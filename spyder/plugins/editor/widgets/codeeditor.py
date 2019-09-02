@@ -237,6 +237,8 @@ class CodeEditor(TextEditBaseWidget):
     get_completions = Signal(bool)
     go_to_definition = Signal(str, int, int)
     sig_show_object_info = Signal(int)
+    # str: object name , str: object signature/documentation,
+    # bool: force showing the info
     sig_show_completion_object_info = Signal(str, str, bool)
     sig_run_selection = Signal()
     sig_run_cell_and_advance = Signal()
@@ -539,6 +541,10 @@ class CodeEditor(TextEditBaseWidget):
         self.differ = diff_match_patch()
         self.previous_text = ''
         self.word_tokens = []
+
+        # Handle completions hints
+        self.completion_widget.sig_completion_hint.connect(
+            self.show_hint_for_completion)
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -1995,7 +2001,7 @@ class CodeEditor(TextEditBaseWidget):
                               'signature': documentation}
             at_point = point if point else QPoint(0, 0)
 
-            if documentation:
+            if documentation and len(documentation) > 0:
                 self.show_hint(
                     documentation,
                     inspect_word=word,
@@ -2005,6 +2011,8 @@ class CodeEditor(TextEditBaseWidget):
                     max_width=self._DEFAULT_COMPLETION_HINT_MAX_WIDTH)
                 base_point = self.mapToGlobal(at_point)
                 self.tooltip_widget.move(base_point)
+            else:
+                self.hide_tooltip()
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""

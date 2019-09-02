@@ -43,6 +43,8 @@ class CompletionWidget(QListWidget):
     """Completion list widget."""
 
     sig_show_completions = Signal(object)
+    # str: completion name , str: completion signature/documentation,
+    # QPoint: QPoint where the hint should be shown
     sig_completion_hint = Signal(str, str, QPoint)
 
     def __init__(self, parent, ancestor):
@@ -67,6 +69,7 @@ class CompletionWidget(QListWidget):
         self.item_width = self.width()
 
     def setup_appearance(self, size, font):
+        """Setup size and font of the completion widget."""
         self.resize(*size)
         self.setFont(font)
 
@@ -171,7 +174,7 @@ class CompletionWidget(QListWidget):
             tooltip_point = QPoint(point)
             tooltip_point.setX(point.x() + self.width())
             tooltip_point.setY(
-                point.y() - (self.height() // 2 + self.sizeHintForRow(0)))
+                point.y() - ((self.height() + self.sizeHintForRow(0)) // 2))
             for completion in completion_list:
                 completion['point'] = tooltip_point
             # Show hint for first completion element
@@ -255,9 +258,9 @@ class CompletionWidget(QListWidget):
         self.completion_position = None
         self.completion_list = None
         self.clear()
-        QToolTip.hideText()
-        QListWidget.hide(self)
         self.textedit.setFocus()
+        QListWidget.hide(self)
+        QToolTip.hideText()
 
     def keyPressEvent(self, event):
         """Override Qt method to process keypress."""
@@ -269,7 +272,7 @@ class CompletionWidget(QListWidget):
         if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
             # Check that what was selected can be selected,
             # otherwise timing issues
-            if self.up_to_date():
+            if self.is_up_to_date():
                 self.item_selected()
             else:
                 self.hide()
@@ -297,7 +300,7 @@ class CompletionWidget(QListWidget):
             self.hide()
             QListWidget.keyPressEvent(self, event)
 
-    def up_to_date(self):
+    def is_up_to_date(self):
         """
         Check if the selection is up to date.
         """
@@ -392,11 +395,9 @@ class CompletionWidget(QListWidget):
         """Set completion hint info and show it."""
         if self.completion_list:
             item = self.completion_list[row]
-            if len(item['documentation']) > 0:
-                if 'point' in item:
-                    self.textedit.show_hint_for_completion(
-                        item['insertText'],
-                        item['documentation'],
-                        item['point'])
-                return
-        self.textedit.hide_tooltip()
+            if 'point' in item:
+                self.sig_completion_hint.emit(
+                    item['insertText'],
+                    item['documentation'],
+                    item['point'])
+            return

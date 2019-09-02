@@ -885,6 +885,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Return True is completion list widget is visible"""
         return self.completion_widget.isVisible()
 
+    def hide_completion_widget(self):
+        """Hide completion widget and tooltip."""
+        self.completion_widget.hide()
+        QToolTip.hideText()
+
     #------Standard keys
     def stdkey_clear(self):
         if not self.has_selected_text():
@@ -1000,6 +1005,5 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                         self.zoom_in.emit()
                 return
         QPlainTextEdit.wheelEvent(self, event)
-        self.completion_widget.hide()
-        QToolTip.hideText()
+        self.hide_completion_widget()
         self.highlight_current_cell()
