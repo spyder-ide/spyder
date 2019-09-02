@@ -353,7 +353,8 @@ def get_symbol_list(outlineexplorer_data_list):
         if oedata.is_class_or_function():
             symbol_list.append((
                 oedata.block.firstLineNumber(),
-                oedata.def_name, oedata.fold_level,
+                oedata.def_name,
+                oedata.fold_level,
                 oedata.get_token()))
     return sorted(symbol_list)
 

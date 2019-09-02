@@ -86,11 +86,13 @@ class EditorSwitcherManager(object):
                 path = short_paths[idx]
             else:
                 path = osp.dirname(data.filename.lower())
+            last_item = idx + 1 == len(editorstack.data)
             self._switcher.add_item(title=title,
                                     description=path,
                                     icon=icon,
                                     section=self._section,
-                                    data=data)
+                                    data=data,
+                                    last_item=last_item)
 
     def create_line_switcher(self):
         """Populate switcher with line info."""
@@ -125,7 +127,6 @@ class EditorSwitcherManager(object):
 
         symbols_list = sourcecode.get_symbol_list(oedata_list)
         icons = sourcecode.get_python_symbol_icons(symbols_list)
-
         for idx, symbol in enumerate(symbols_list):
             title = symbol[1]
             fold_level = symbol[2]
@@ -136,10 +137,12 @@ class EditorSwitcherManager(object):
             icon = icons[idx]
             data = {'title': title,
                     'line_number': line_number + 1}
+            last_item = idx + 1 == len(symbols_list)
             self._switcher.add_item(title=formated_title,
                                     icon=icon,
                                     section=self._section,
-                                    data=data)
+                                    data=data,
+                                    last_item=last_item)
         # Needed to update fold spaces for items titles
         self._switcher.setup()
 

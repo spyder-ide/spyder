@@ -520,12 +520,16 @@ class Switcher(QDialog):
         self.edit.setFocus()
 
     # --- Helper methods
-    def _add_item(self, item):
+    def _add_item(self, item, last_item=True):
         """Perform common actions when adding items."""
         item.set_width(self._ITEM_WIDTH)
         self.model.appendRow(item)
-        self.set_current_row(0)
         self._visible_rows = self.model.rowCount()
+        if last_item:
+            # Only set the current row to the first item when the added item is
+            # the last one in order to prevent performance issues when
+            # adding multiple items
+            self.set_current_row(0)
         self.setup_sections()
 
     # --- API
@@ -562,7 +566,8 @@ class Switcher(QDialog):
         self._modes = {}
 
     def add_item(self, icon=None, title=None, description=None, shortcut=None,
-                 section=None, data=None, tool_tip=None, action_item=False):
+                 section=None, data=None, tool_tip=None, action_item=False,
+                 last_item=True):
         """Add switcher list item."""
         item = SwitcherItem(
             parent=self.list,
@@ -576,7 +581,7 @@ class Switcher(QDialog):
             tool_tip=tool_tip,
             styles=self._item_styles
         )
-        self._add_item(item)
+        self._add_item(item, last_item=last_item)
 
     def add_separator(self):
         """Add separator item."""
