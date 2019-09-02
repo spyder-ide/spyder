@@ -989,7 +989,8 @@ class CodeEditor(TextEditBaseWidget):
             first_letter = text[0] if len(text) > 0 else ''
             is_upper_word = first_letter.isupper()
             completions = [] if completions is None else completions
-            available_completions = {x['insertText']: x for x in completions}
+            available_completions = {x['insertText'].strip():
+                                     x for x in completions[::-1]}
             available_completions.pop(text, False)
             completions = list(available_completions.values())
 
