@@ -40,7 +40,7 @@ DEFAULT_COMPLETION_ITEM_WIDTH = 250
 
 
 class CompletionWidget(QListWidget):
-    """Completion list widget"""
+    """Completion list widget."""
 
     sig_show_completions = Signal(object)
     sig_completion_hint = Signal(str, str, QPoint)
