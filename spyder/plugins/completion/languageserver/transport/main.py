@@ -32,7 +32,7 @@ from spyder.py3compat import getcwd
 
 logger = logging.getLogger(__name__)
 
-PARENT_PROCESS_WATCH_INTERVAL = 10  # 10 s
+PARENT_PROCESS_WATCH_INTERVAL = 3  # 3 s
 
 
 parser = argparse.ArgumentParser(
@@ -139,13 +139,16 @@ if __name__ == '__main__':
     client.start()
 
     def watch_parent_process(pid):
-        # exist when the given pid is not alive
+        """
+        Exit when the given pid is not alive.
+
+        Code taken from the Python Language Server project.
+        """
         if not psutil.pid_exists(pid):
-            logger.info("parent process %s is not alive", pid)
+            logger.info("parent process %s is not alive, exiting!", pid)
             client.stop()
             process.terminate()
             process.wait()
-        logger.debug("parent process %s is still alive", pid)
         threading.Timer(PARENT_PROCESS_WATCH_INTERVAL, watch_parent_process,
                         args=[pid]).start()
 
