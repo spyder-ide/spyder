@@ -260,7 +260,7 @@ class CompletionWidget(QListWidget):
         self.textedit.setFocus()
 
     def keyPressEvent(self, event):
-        """Process keypress."""
+        """Override Qt method to process keypress."""
         text, key = event.text(), event.key()
         alt = event.modifiers() & Qt.AltModifier
         shift = event.modifiers() & Qt.ShiftModifier
