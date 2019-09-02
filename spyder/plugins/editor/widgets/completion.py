@@ -360,6 +360,7 @@ class CompletionWidget(QListWidget):
         self.update_list(completion_text)
 
     def focusOutEvent(self, event):
+        "Override Qt method."
         event.ignore()
         # Don't hide it on Mac when main window loses focus because
         # keyboard input is lost.
