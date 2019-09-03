@@ -986,12 +986,28 @@ class CodeEditor(TextEditBaseWidget):
             cursor = self.textCursor()
             cursor.select(QTextCursor.WordUnderCursor)
             text = to_text_string(cursor.selectedText())
+            first_letter = text[0] if len(text) > 0 else ''
+            is_upper_word = first_letter.isupper()
             completions = [] if completions is None else completions
-            available_completions = {x['insertText']: x for x in completions}
+            available_completions = {x['insertText'].strip():
+                                     x for x in completions[::-1]}
             available_completions.pop(text, False)
             completions = list(available_completions.values())
 
             if completions is not None and len(completions) > 0:
+                for completion in completions:
+                    sort_text = completion['sortText']
+                    if is_upper_word:
+                        first_sort_letter = sort_text[1]
+                        if first_sort_letter.islower():
+                            if first_sort_letter.upper() == first_letter:
+                                completion['sortText'] = 'z' + sort_text
+                    else:
+                        first_sort_letter = sort_text[1]
+                        if first_sort_letter.isupper():
+                            if first_sort_letter.lower() == first_letter:
+                                completion['sortText'] = 'z' + sort_text
+
                 completion_list = sorted(completions,
                                          key=lambda x: x['sortText'])
                 self.completion_widget.show_list(
