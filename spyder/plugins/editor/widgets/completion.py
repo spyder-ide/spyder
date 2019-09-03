@@ -43,7 +43,10 @@ class CompletionWidget(QListWidget):
     """Completion list widget."""
 
     sig_show_completions = Signal(object)
-    # str: completion name , str: completion signature/documentation,
+
+    # Signal with the info about the current completion item documentation
+    # str: completion name
+    # str: completion signature/documentation,
     # QPoint: QPoint where the hint should be shown
     sig_completion_hint = Signal(str, str, QPoint)
 
@@ -171,14 +174,15 @@ class CompletionWidget(QListWidget):
         self.move(point)
 
         if not self.is_internal_console:
-            tooltip_point = QPoint(point)
+            tooltip_point = point
             tooltip_point.setX(point.x() + self.width())
-            tooltip_point.setY(
-                point.y() - ((self.height() + self.sizeHintForRow(0)) // 2))
-            for completion in completion_list:
+            tooltip_point.setY(point.y() + self.sizeHintForRow(0) + 4)
+            for completion in self.completion_list:
                 completion['point'] = tooltip_point
-            # Show hint for first completion element
-            self.row_changed(0)
+
+        # Show hint for first completion element
+        self.setCurrentRow(0)
+        self.row_changed(0)
 
         # signal used for testing
         self.sig_show_completions.emit(completion_list)
@@ -236,7 +240,6 @@ class CompletionWidget(QListWidget):
                 self.addItem(item)
 
         if self.count() > 0:
-            self.setCurrentRow(0)
             self.scrollTo(self.currentIndex(),
                           QAbstractItemView.PositionAtTop)
         else:

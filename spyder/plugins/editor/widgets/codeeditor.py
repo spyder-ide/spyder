@@ -237,9 +237,6 @@ class CodeEditor(TextEditBaseWidget):
     get_completions = Signal(bool)
     go_to_definition = Signal(str, int, int)
     sig_show_object_info = Signal(int)
-    # str: object name , str: object signature/documentation,
-    # bool: force showing the info
-    sig_show_completion_object_info = Signal(str, str, bool)
     sig_run_selection = Signal()
     sig_run_cell_and_advance = Signal()
     sig_run_cell = Signal()
@@ -300,6 +297,12 @@ class CodeEditor(TextEditBaseWidget):
     # Used for testing. When the mouse moves with Ctrl/Cmd pressed and
     # the mouse left button is pressed, this signal is emmited
     sig_go_to_uri = Signal(str)
+
+    # Signal with the info about the current completion item documentation
+    # str: object name
+    # str: object signature/documentation
+    # bool: force showing the info
+    sig_show_completion_object_info = Signal(str, str, bool)
 
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -593,7 +596,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.request_hover(line, col, cursor_offset)
                 else:
                     self.hide_tooltip()
-        else:
+        elif not self.is_completion_widget_visible():
             self.hide_tooltip()
 
     def blockuserdata_list(self):
@@ -1992,14 +1995,13 @@ class CodeEditor(TextEditBaseWidget):
         self.clear_extra_selections('code_analysis_highlight')
 
     # --- Hint for completions
-    def show_hint_for_completion(self, word, documentation, point):
+    def show_hint_for_completion(self, word, documentation, at_point):
         # Change to use signal from list widget
         """Show hint for completion element."""
         self.hide_tooltip()
         if self.completions_hint:
             completion_doc = {'name': word,
                               'signature': documentation}
-            at_point = point if point else QPoint(0, 0)
 
             if documentation and len(documentation) > 0:
                 self.show_hint(
@@ -2009,8 +2011,7 @@ class CodeEditor(TextEditBaseWidget):
                     completion_doc=completion_doc,
                     max_lines=self._DEFAULT_MAX_LINES,
                     max_width=self._DEFAULT_COMPLETION_HINT_MAX_WIDTH)
-                base_point = self.mapToGlobal(at_point)
-                self.tooltip_widget.move(base_point)
+                self.tooltip_widget.move(at_point)
             else:
                 self.hide_tooltip()
 
@@ -3730,7 +3731,8 @@ class CodeEditor(TextEditBaseWidget):
         if self.__cursor_changed:
             self._restore_editor_cursor_and_selections()
         else:
-            if not self._should_display_hover(pos):
+            if (not self._should_display_hover(pos)
+                    and not self.is_completion_widget_visible()):
                 self.hide_tooltip()
 
         TextEditBaseWidget.mouseMoveEvent(self, event)
