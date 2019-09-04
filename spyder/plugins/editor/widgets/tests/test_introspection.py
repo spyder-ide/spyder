@@ -34,6 +34,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
     """Validate completion's space character handling."""
     code_editor, _ = lsp_codeeditor
     code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_completions_hint(False)
 
     completion = code_editor.completion_widget
 
