@@ -12,6 +12,8 @@ import os
 # Local imports
 from spyder.utils import programs
 from spyder.config.base import _
+
+
 CLOUDPICKLE_REQVER = '>=0.5.0'
 PYGMENTS_REQVER = '>=2.0'
 QTCONSOLE_REQVER = '>=4.5.0'
@@ -27,77 +29,103 @@ CHARDET_REQVER = '>=2.0.0'
 NUMPYDOC_REQVER = '>=0.6.0'
 SPYDER_KERNELS_REQVER = '>=1.4.0'
 QDARKSTYLE_REQVER = '>=2.7.0'
-ATOMICWRITES_REQVER = '>=0.0.0'
-DIFF_MATCH_PATCH_REQVER = '>=0.0.0'
-WATCHDOG_REQVER = '>=0.0.0'
+ATOMICWRITES_REQVER = '>=1.2.0'
+DIFF_MATCH_PATCH_REQVER = '>=20181111'
+WATCHDOG_REQVER = '>=0.9.0'
 KEYRING_REQVER = '>=12.0.0'
 PEXPECT_REQVER = '>=4.4.0'
 PARAMIKO_REQVER = '>=2.4.0'
 PYXDG_REQVER = '>=0.26'
+
 DEPENDENCIES_BASE = [
-    {'modname': "cloudpickle", 'package_name': "cloudpickle",
-        'features': _("Serialize variables in the IPython kernel to send to "
-                      "Spyder."), 'required_version': CLOUDPICKLE_REQVER},
-    {'modname': "pygments", 'package_name': "pygments",
-        'features': _("Syntax highlighting for Matlab, Julia and other file "
-                      "types"), 'required_version': PYGMENTS_REQVER},
-    {'modname': "qtconsole", 'package_name': "qtconsole", 'features': _(
-        "Integrate the IPython console"), 'required_version':
-        QTCONSOLE_REQVER},
-    {'modname': "nbconvert", 'package_name': "nbconvert",
-        'features': _("Manipulate Jupyter notebooks on the Editor"),
-        'required_version': NBCONVERT_REQVER},
-    {'modname': "sphinx", 'package_name': "sphinx", 'features': _("Show help "
-     "for objects in the Editor and Consoles in a dedicated pane"),
-        'required_version': SPHINX_REQVER},
-    {'modname': "pylint", 'package_name': "pylint", 'features': _("Static code"
-     "analysis"), 'required_version': PYLINT_REQVER},
-    {'modname': "psutil", 'package_name': "psutil", 'features': _("CPU and "
-     "memory usage info in the status bar"),
-        'required_version': PSUTIL_REQVER},
-    {'modname': "qtawesome", 'package_name': "qtawesome", 'features': _("To "
-     "have an icon theme based on FontAwesome."),
-        'required_version': QTAWESOME_REQVER},
-    {'modname': "qtpy", 'package_name': "qtpy", 'features': _(
-     "Abstraction layer for Python Qt bindings so that Spyder can run on "
-     "multiple Qt bindings and versions."), 'required_version': QTPY_REQVER},
-    {'modname': "pickleshare", 'package_name': "pickleshare", 'features': _(
-     "Show import completions on the Python consoles."),
-        'required_version': PICKLESHARE_REQVER},
-    {'modname': "pyzmq", 'package_name': "pyzmq", 'features': _("Client for "
-     "the language server protocol (LSP)."), 'required_version': PYZMQ_REQVER},
-    {'modname': "chardet", 'package_name': "chardet", 'features': _(
-     "Character encoding auto-detection in Python."),
-        'required_version': CHARDET_REQVER},
-    {'modname': "numpydoc", 'package_name': "numpydoc", 'features': _("Used "
-     "by Jedi to get function return types from Numpydocstrings."),
-        'required_version': NUMPYDOC_REQVER},
-    {'modname': "spyder-kernels", 'package_name': "spyder-kernels",
+    {'modname': "cloudpickle",
+     'package_name': "cloudpickle",
+     'features': _("Serialize variables in the IPython kernel to send to Spyder."),
+     'required_version': CLOUDPICKLE_REQVER},
+    {'modname': "pygments",
+     'package_name': "pygments",
+     'features': _("Syntax highlighting for Matlab, Julia and other file types"),
+     'required_version': PYGMENTS_REQVER},
+    {'modname': "qtconsole",
+     'package_name': "qtconsole",
+     'features': _("Integrate the IPython console"),
+     'required_version': QTCONSOLE_REQVER},
+    {'modname': "nbconvert",
+     'package_name': "nbconvert",
+     'features': _("Manipulate Jupyter notebooks on the Editor"),
+     'required_version': NBCONVERT_REQVER},
+    {'modname': "sphinx",
+     'package_name': "sphinx",
+     'features': _("Show help for objects in the Editor and Consoles in a dedicated pane"),
+     'required_version': SPHINX_REQVER},
+    {'modname': "pylint",
+     'package_name': "pylint",
+     'features': _("Static code analysis"),
+     'required_version': PYLINT_REQVER},
+    {'modname': "psutil",
+     'package_name': "psutil",
+     'features': _("CPU and memory usage info in the status bar"),
+     'required_version': PSUTIL_REQVER},
+    {'modname': "qtawesome",
+     'package_name': "qtawesome",
+     'features': _("To have an icon theme based on FontAwesome."),
+     'required_version': QTAWESOME_REQVER},
+    {'modname': "qtpy",
+     'package_name': "qtpy",
+     'features': _("Abstraction layer for Python Qt bindings so that Spyder can run on multiple Qt bindings and versions."),
+     'required_version': QTPY_REQVER},
+    {'modname': "pickleshare",
+     'package_name': "pickleshare",
+     'features': _("Show import completions on the Python consoles."),
+     'required_version': PICKLESHARE_REQVER},
+    {'modname': "pyzmq",
+     'package_name': "pyzmq",
+     'features': _("Client for the language server protocol (LSP)."),
+     'required_version': PYZMQ_REQVER},
+    {'modname': "chardet",
+     'package_name': "chardet",
+     'features': _("Character encoding auto-detection in Python."),
+     'required_version': CHARDET_REQVER},
+    {'modname': "numpydoc",
+     'package_name': "numpydoc",
+     'features': _("Used by Jedi to get function return types from Numpydocstrings."),
+     'required_version': NUMPYDOC_REQVER},
+    {'modname': "spyder-kernels",
+     'package_name': "spyder-kernels",
      'features': _("Jupyter kernels for the Spyder console."),
-        'required_version': SPYDER_KERNELS_REQVER},
-    {'modname': "qdarkstyle", 'package_name': "qdarkstyle", 'features': _(
-     "Dark style for the entire interface"),
-        'required_version': QDARKSTYLE_REQVER},
-    {'modname': "atomicwrites", 'package_name': "atomicwrites", 'features':
-     _("Atomic file writes."), 'required_version': ATOMICWRITES_REQVER},
-    {'modname': "diff_match_patch", 'package_name': "diff_match_patch",
-        'features': _("Compute text file diff changes during edition."),
-        'required_version': DIFF_MATCH_PATCH_REQVER},
-    {'modname': "watchdog", 'package_name': "watchdog", 'features': _(
-     "Watch file changes on project directories."),
-        'required_version': WATCHDOG_REQVER},
-    {'modname': "keyring", 'package_name': "keyring", 'features': _("Save "
-     "Github credentials to report errors securely."),
-        'required_version': KEYRING_REQVER},
-    {'modname': "pexpect", 'package_name': "pexpect", 'features': _(
-     "Connect to remote kernels through SSH."),
-        'required_version': PEXPECT_REQVER},
-    {'modname': "paramiko", 'package_name': "paramiko", 'features': _(
-     "Connect to remote kernels through SSH."),
-        'required_version': PARAMIKO_REQVER},
-    {'modname': "pyxdg", 'package_name': "pyxdg", 'features': _("Parse "
-     "`.desktop` files on Linux"),
-        'required_version': PYXDG_REQVER}, ]
+     'required_version': SPYDER_KERNELS_REQVER},
+    {'modname': "qdarkstyle",
+     'package_name': "qdarkstyle",
+     'features': _("Dark style for the entire interface"),
+     'required_version': QDARKSTYLE_REQVER},
+    {'modname': "atomicwrites",
+     'package_name': "atomicwrites",
+     'features': _("Atomic file writes."),
+     'required_version': ATOMICWRITES_REQVER},
+    {'modname': "diff_match_patch",
+     'package_name': "diff_match_patch",
+     'features': _("Compute text file diff changes during edition."),
+     'required_version': DIFF_MATCH_PATCH_REQVER},
+    {'modname': "watchdog",
+     'package_name': "watchdog",
+     'features': _("Watch file changes on project directories."),
+     'required_version': WATCHDOG_REQVER},
+    {'modname': "keyring",
+     'package_name': "keyring",
+     'features': _("Save Github credentials to report errors securely."),
+     'required_version': KEYRING_REQVER},
+    {'modname': "pexpect",
+     'package_name': "pexpect",
+     'features': _("Connect to remote kernels through SSH."),
+     'required_version': PEXPECT_REQVER},
+    {'modname': "paramiko",
+     'package_name': "paramiko",
+     'features': _("Connect to remote kernels through SSH."),
+     'required_version': PARAMIKO_REQVER},
+    {'modname': "pyxdg",
+     'package_name': "pyxdg",
+     'features': _("Parse `.desktop` files on Linux"),
+     'required_version': PYXDG_REQVER}, ]
 
 class Dependency(object):
     """Spyder's dependency
