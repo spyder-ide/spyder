@@ -228,7 +228,7 @@ install_requires = [
     # pyqtwebengine module
     'pyqtwebengine<5.13;python_version>="3"',
     # Pyls with all its dependencies
-    'python-language-server[all]>=0.27.0',
+    'python-language-server[all]>=0.28.3',
     # Required to get SSH connections to remote kernels
     'pexpect',
     'paramiko;platform_system=="Windows"',
