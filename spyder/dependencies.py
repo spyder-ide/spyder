@@ -36,6 +36,7 @@ KEYRING_REQVER = '>=12.0.0'
 PEXPECT_REQVER = '>=4.4.0'
 PARAMIKO_REQVER = '>=2.4.0'
 PYXDG_REQVER = '>=0.26'
+PYMPLER_REQVER = '>=0.7'
 
 DEPENDENCIES_BASE = [
     {'modname': "cloudpickle",
@@ -125,7 +126,11 @@ DEPENDENCIES_BASE = [
     {'modname': "pyxdg",
      'package_name': "pyxdg",
      'features': _("Parse `.desktop` files on Linux"),
-     'required_version': PYXDG_REQVER}, ]
+     'required_version': PYXDG_REQVER},
+    {'modname': "pympler",
+     'package_name': "pympler",
+     'features': _("Development tool to measure, monitor and analyze the memory behavior of Python objects in a running Python application."),
+     'required_version': PYMPLER_REQVER}, ]
 
 class Dependency(object):
     """Spyder's dependency
