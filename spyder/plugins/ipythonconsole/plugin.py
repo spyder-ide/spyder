@@ -403,6 +403,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
         self.main.editor.run_in_current_ipyclient.connect(self.run_script)
         self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
+        self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
         self.main.workingdirectory.set_current_console_wd.connect(
             self.set_current_client_working_directory)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
@@ -433,7 +434,7 @@ class IPythonConsole(SpyderPluginWidget):
             return client.shellwidget
 
     def run_script(self, filename, wdir, args, debug, post_mortem,
-                   current_client, clear_variables):
+                   current_client, clear_variables, console_namespace):
         """Run script in current or dedicated client"""
         norm = lambda text: remove_backslashes(to_text_string(text))
 
@@ -464,6 +465,8 @@ class IPythonConsole(SpyderPluginWidget):
                     line += ", wdir='%s'" % norm(wdir)
                 if post_mortem:
                     line += ", post_mortem=True"
+                if console_namespace:
+                    line += ", current_namespace=True"
                 line += ")"
             else: # External kernels, use %run
                 line = "%run "
@@ -479,12 +482,9 @@ class IPythonConsole(SpyderPluginWidget):
                     # still an execution taking place
                     # Fixes spyder-ide/spyder#7293.
                     pass
-                elif client.shellwidget._reading:
-                    client.shellwidget._append_html(
-                        _("<br><b>Please exit from debugging before trying to "
-                          "run a file in this console.</b>\n<hr><br>"),
-                        before_prompt=True)
-                    return
+                elif (client.shellwidget._reading and
+                      client.shellwidget.is_debugging()):
+                    client.shellwidget.write_to_stdin('!' + line)
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables)
                 else:
@@ -505,7 +505,8 @@ class IPythonConsole(SpyderPluginWidget):
                   "<br><br>Please open a new one and try again."
                   ) % osp.basename(filename), QMessageBox.Ok)
 
-    def run_cell(self, code, cell_name, filename, run_cell_copy):
+    def run_cell(self, code, cell_name, filename, run_cell_copy,
+                 function='runcell'):
         """Run cell in current or dedicated client."""
 
         def norm(text):
@@ -518,16 +519,14 @@ class IPythonConsole(SpyderPluginWidget):
         if client is None:
             client = self.get_current_client()
 
-        is_internal_kernel = False
         if client is not None:
             # Internal kernels, use runcell
             if client.get_kernel() is not None and not run_cell_copy:
-                line = (to_text_string("{}('{}','{}')")
-                            .format(to_text_string('runcell'),
-                                (to_text_string(cell_name).replace("\\","\\\\")
-                                    .replace("'", r"\'")),
+                line = (to_text_string(
+                        "{}({}, '{}')").format(
+                                to_text_string(function),
+                                repr(cell_name),
                                 norm(filename).replace("'", r"\'")))
-                is_internal_kernel = True
 
             # External kernels and run_cell_copy, just execute the code
             else:
@@ -539,20 +538,10 @@ class IPythonConsole(SpyderPluginWidget):
                     # still an execution taking place
                     # Fixes spyder-ide/spyder#7293.
                     pass
-                elif client.shellwidget._reading:
-                    client.shellwidget._append_html(
-                        _("<br><b>Exit the debugger before trying to "
-                          "run a cell in this console.</b>\n<hr><br>"),
-                        before_prompt=True)
-                    return
+                elif (client.shellwidget._reading and
+                      client.shellwidget.is_debugging()):
+                    client.shellwidget.write_to_stdin('!' + line)
                 else:
-                    if is_internal_kernel:
-                        client.shellwidget.silent_execute(
-                            to_text_string('get_ipython().cell_code = '
-                                           '"""{}"""')
-                                .format(to_text_string(code)
-                                .replace('\\', r'\\')
-                                .replace('"""', r'\"\"\"')))
                     self.execute_code(line)
             except AttributeError:
                 pass
@@ -566,6 +555,10 @@ class IPythonConsole(SpyderPluginWidget):
                                   "one and try again."
                                   ).format(osp.basename(filename)),
                                 QMessageBox.Ok)
+
+    def debug_cell(self, code, cell_name, filename, run_cell_copy):
+        """Debug current cell."""
+        self.run_cell(code, cell_name, filename, run_cell_copy, 'debugcell')
 
     def set_current_client_working_directory(self, directory):
         """Set current client working directory."""

@@ -87,8 +87,10 @@ class Editor(SpyderPluginWidget):
     DISABLE_ACTIONS_WHEN_HIDDEN = False  # SpyderPluginWidget class attribute
 
     # Signals
-    run_in_current_ipyclient = Signal(str, str, str, bool, bool, bool, bool)
-    run_cell_in_ipyclient = Signal(str, str, str, bool)
+    run_in_current_ipyclient = Signal(str, str, str,
+                                      bool, bool, bool, bool, bool)
+    run_cell_in_ipyclient = Signal(str, object, str, bool)
+    debug_cell_in_ipyclient = Signal(str, object, str, bool)
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
     open_dir = Signal(str)
@@ -611,6 +613,16 @@ class Editor(SpyderPluginWidget):
                    triggered=self.run_cell_and_advance,
                    context=Qt.WidgetShortcut)
 
+        debug_cell_action = create_action(
+            self,
+            _("Debug cell"),
+            icon=ima.icon('debug_cell'),
+            shortcut=get_shortcut('editor', 'debug cell'),
+            tip=_("Debug current cell "
+                  "(Alt+Shift+Enter)"),
+            triggered=self.debug_cell,
+            context=Qt.WidgetShortcut)
+
         re_run_last_cell_action = create_action(self,
                    _("Re-run last cell"),
                    tip=_("Re run last cell "),
@@ -923,6 +935,7 @@ class Editor(SpyderPluginWidget):
         # menu
         debug_menu_actions = [
             debug_action,
+            debug_cell_action,
             debug_next_action,
             debug_step_action,
             debug_return_action,
@@ -1002,6 +1015,7 @@ class Editor(SpyderPluginWidget):
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             debug_action,
+            debug_cell_action,
             run_selected_action,
             run_cell_action,
             run_cell_advance_action,
@@ -1239,6 +1253,10 @@ class Editor(SpyderPluginWidget):
             lambda code, cell_name, filename, run_cell_copy:
             self.run_cell_in_ipyclient.emit(code, cell_name, filename,
                                             run_cell_copy))
+        editorstack.debug_cell_in_ipyclient.connect(
+            lambda code, cell_name, filename, run_cell_copy:
+            self.debug_cell_in_ipyclient.emit(code, cell_name, filename,
+                                              run_cell_copy))
         editorstack.update_plugin_title.connect(
                                    lambda: self.sig_update_plugin_title.emit())
         editorstack.editor_focus_changed.connect(self.save_focus_editorstack)
@@ -2031,13 +2049,20 @@ class Editor(SpyderPluginWidget):
                 self.close_file_from_name(fname)
 
     def renamed(self, source, dest):
-        """File was renamed in file explorer widget or in project explorer"""
+        """
+        Propagate file rename to editor stacks and autosave component.
+
+        This function is called when a file is renamed in the file explorer
+        widget or the project explorer.
+        """
         filename = osp.abspath(to_text_string(source))
         index = self.editorstacks[0].has_filename(filename)
         if index is not None:
             for editorstack in self.editorstacks:
                 editorstack.rename_in_data(filename,
                                            new_filename=to_text_string(dest))
+        self.editorstacks[0].autosave.file_renamed(
+            filename, to_text_string(dest))
 
     def renamed_tree(self, source, dest):
         """Directory was renamed in file explorer or in project explorer."""
@@ -2202,6 +2227,10 @@ class Editor(SpyderPluginWidget):
     def current_file_changed(self, filename, position):
         self.add_cursor_position_to_history(to_text_string(filename), position,
                                             fc=True)
+        # Hide any open tooltips
+        current_stack = self.get_current_editorstack()
+        if current_stack is not None:
+            current_stack.hide_tooltip()
 
     @Slot()
     def go_to_last_edit_location(self):
@@ -2370,6 +2399,7 @@ class Editor(SpyderPluginWidget):
             current = runconf.current
             systerm = runconf.systerm
             clear_namespace = runconf.clear_namespace
+            console_namespace = runconf.console_namespace
 
             if runconf.file_dir:
                 wdir = dirname
@@ -2384,7 +2414,8 @@ class Editor(SpyderPluginWidget):
             # something in a terminal instead of a Python interp.
             self.__last_ec_exec = (fname, wdir, args, interact, debug,
                                    python, python_args, current, systerm,
-                                   post_mortem, clear_namespace)
+                                   post_mortem, clear_namespace,
+                                   console_namespace)
             self.re_run_file()
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
@@ -2414,11 +2445,13 @@ class Editor(SpyderPluginWidget):
             return
         (fname, wdir, args, interact, debug,
          python, python_args, current, systerm,
-         post_mortem, clear_namespace) = self.__last_ec_exec
+         post_mortem, clear_namespace,
+         console_namespace) = self.__last_ec_exec
         if not systerm:
             self.run_in_current_ipyclient.emit(fname, wdir, args,
                                                debug, post_mortem,
-                                               current, clear_namespace)
+                                               current, clear_namespace,
+                                               console_namespace)
         else:
             self.main.open_external_console(fname, wdir, args, interact,
                                             debug, python, python_args,
@@ -2441,6 +2474,12 @@ class Editor(SpyderPluginWidget):
         """Run current cell and advance to the next one"""
         editorstack = self.get_current_editorstack()
         editorstack.run_cell_and_advance()
+
+    @Slot()
+    def debug_cell(self):
+        '''Debug Current cell.'''
+        editorstack = self.get_current_editorstack()
+        editorstack.debug_cell()
 
     @Slot()
     def re_run_last_cell(self):

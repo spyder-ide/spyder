@@ -34,6 +34,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding, sourcecode, programs
+from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.misc import get_error_match
 from spyder.widgets.arraybuilder import ArrayBuilderDialog
 
@@ -327,6 +328,7 @@ class BaseEditMixin(object):
 
         Special chars depend on the language.
         """
+        language = getattr(self, 'language', language).lower()
         active_parameter_template = (
             '<span style=\'font-family:"{font_family}";'
             'font-size:{font_size}pt;'
@@ -362,11 +364,24 @@ class BaseEditMixin(object):
             signature = signature.replace('( ', '(')
 
             # Process signature template
-            if parameter:
-                # '*' has a meaning in regex so needs to be escaped
-                if '*' in parameter:
-                    parameter = parameter.replace('*', '\\*')
-                pattern = r'[\*|(|\s](' + parameter + r')[,|)|\s|=]'
+            if parameter and language == 'python':
+                # Escape all possible regex characters
+                # ( ) { } | [ ] . ^ $ * +
+                escape_regex_chars = ['|', '.', '^', '$', '*', '+']
+                remove_regex_chars = ['(', ')', '{', '}', '[', ']']
+                regex_parameter = parameter
+                for regex_char in escape_regex_chars + remove_regex_chars:
+                    if regex_char in escape_regex_chars:
+                        escape_char = r'\{char}'.format(char=regex_char)
+                        regex_parameter = regex_parameter.replace(regex_char,
+                                                                  escape_char)
+                    else:
+                        regex_parameter = regex_parameter.replace(regex_char,
+                                                                  '')
+                        parameter = parameter.replace(regex_char, '')
+
+                pattern = (r'[\*|\(|\[|\s](' + regex_parameter +
+                           r')[,|\)|\]|\s|=]')
 
             formatted_lines = []
             name = signature.split('(')[0]
@@ -374,15 +389,15 @@ class BaseEditMixin(object):
             rows = textwrap.wrap(signature, width=max_width,
                                  subsequent_indent=indent)
             for row in rows:
-                if parameter:
+                if parameter and language == 'python':
                     # Add template to highlight the active parameter
                     row = re.sub(pattern, handle_sub, row)
 
                 row = row.replace(' ', '&nbsp;')
                 row = row.replace('span&nbsp;', 'span ')
+                row = row.replace('{}', '{{}}')
 
-                language = getattr(self, 'language', language)
-                if language and 'python' == language.lower():
+                if language and language == 'python':
                     for char in ['(', ')', ',', '*', '**']:
                         new_char = chars_template.format(char=char)
                         row = row.replace(char, new_char)
@@ -396,7 +411,7 @@ class BaseEditMixin(object):
             font_family = font.family()
 
             # Format title to display active parameter
-            if parameter:
+            if parameter and language == 'python':
                 title = title_template.format(
                     font_size=font_size,
                     font_family=font_family,
@@ -855,7 +870,7 @@ class BaseEditMixin(object):
 
     def get_current_word_and_position(self, completion=False):
         """Return current word, i.e. word at cursor position,
-            and the start position"""
+            and the start position."""
         cursor = self.textCursor()
         cursor_pos = cursor.position()
 
@@ -905,7 +920,7 @@ class BaseEditMixin(object):
             return text, startpos
 
     def get_current_word(self, completion=False):
-        """Return current word, i.e. word at cursor position"""
+        """Return current word, i.e. word at cursor position."""
         ret = self.get_current_word_and_position(completion)
         if ret is not None:
             return ret[0]
@@ -915,28 +930,28 @@ class BaseEditMixin(object):
         return self._last_hover_word
 
     def get_current_line(self):
-        """Return current line's text"""
+        """Return current line's text."""
         cursor = self.textCursor()
         cursor.select(QTextCursor.BlockUnderCursor)
         return to_text_string(cursor.selectedText())
 
     def get_current_line_to_cursor(self):
-        """Return text from prompt to cursor"""
+        """Return text from prompt to cursor."""
         return self.get_text(self.current_prompt_pos, 'cursor')
 
     def get_line_number_at(self, coordinates):
-        """Return line number at *coordinates* (QPoint)"""
+        """Return line number at *coordinates* (QPoint)."""
         cursor = self.cursorForPosition(coordinates)
         return cursor.blockNumber() + 1
 
     def get_line_at(self, coordinates):
-        """Return line at *coordinates* (QPoint)"""
+        """Return line at *coordinates* (QPoint)."""
         cursor = self.cursorForPosition(coordinates)
         cursor.select(QTextCursor.BlockUnderCursor)
         return to_text_string(cursor.selectedText()).replace(u'\u2029', '')
 
     def get_word_at(self, coordinates):
-        """Return word at *coordinates* (QPoint)"""
+        """Return word at *coordinates* (QPoint)."""
         cursor = self.cursorForPosition(coordinates)
         cursor.select(QTextCursor.WordUnderCursor)
         if self._is_point_inside_word_rect(coordinates):
@@ -947,23 +962,25 @@ class BaseEditMixin(object):
         return word
 
     def get_block_indentation(self, block_nb):
-        """Return line indentation (character number)"""
+        """Return line indentation (character number)."""
         text = to_text_string(self.document().findBlockByNumber(block_nb).text())
         text = text.replace("\t", " "*self.tab_stop_width_spaces)
         return len(text)-len(text.lstrip())
 
-    def get_selection_bounds(self):
-        """Return selection bounds (block numbers)"""
-        cursor = self.textCursor()
+    def get_selection_bounds(self, cursor=None):
+        """Return selection bounds (block numbers)."""
+        if cursor is None:
+            cursor = self.textCursor()
         start, end = cursor.selectionStart(), cursor.selectionEnd()
         block_start = self.document().findBlock(start)
         block_end = self.document().findBlock(end)
         return sorted([block_start.blockNumber(), block_end.blockNumber()])
 
-    def get_selection_first_block(self):
+    def get_selection_first_block(self, cursor=None):
         """Return the first block of the selection."""
-        cursor = self.textCursor()
-        start, end = cursor.selectionStart(), cursor.selectionEnd()
+        if cursor is None:
+            cursor = self.textCursor()
+        start = cursor.selectionStart()
         if start > 0:
             start = start - 1
         return self.document().findBlock(start)
@@ -971,27 +988,30 @@ class BaseEditMixin(object):
 
     #------Text selection
     def has_selected_text(self):
-        """Returns True if some text is selected"""
+        """Returns True if some text is selected."""
         return bool(to_text_string(self.textCursor().selectedText()))
 
-    def get_selected_text(self):
+    def get_selected_text(self, cursor=None):
         """
-        Return text selected by current text cursor, converted in unicode
+        Return text selected by current text cursor, converted in unicode.
 
         Replace the unicode line separator character \u2029 by
         the line separator characters returned by get_line_separator
         """
-        return to_text_string(self.textCursor().selectedText()).replace(u"\u2029",
+        if cursor is None:
+            cursor = self.textCursor()
+        return to_text_string(cursor.selectedText()).replace(u"\u2029",
                                                      self.get_line_separator())
 
     def remove_selected_text(self):
-        """Delete selected text"""
+        """Delete selected text."""
         self.textCursor().removeSelectedText()
 
     def replace(self, text, pattern=None):
-        """Replace selected text by *text*
+        """Replace selected text by *text*.
+
         If *pattern* is not None, replacing selected text using regular
-        expression text substitution"""
+        expression text substitution."""
         cursor = self.textCursor()
         cursor.beginEditBlock()
         if pattern is not None:
@@ -1006,9 +1026,9 @@ class BaseEditMixin(object):
 
     #------Find/replace
     def find_multiline_pattern(self, regexp, cursor, findflag):
-        """Reimplement QTextDocument's find method
+        """Reimplement QTextDocument's find method.
 
-        Add support for *multiline* regular expressions"""
+        Add support for *multiline* regular expressions."""
         pattern = to_text_string(regexp.pattern())
         text = to_text_string(self.toPlainText())
         try:
@@ -1029,7 +1049,7 @@ class BaseEditMixin(object):
             offset = max([cursor.selectionEnd(), cursor.selectionStart()])
             match = regobj.search(text, offset)
         if match:
-            pos1, pos2 = match.span()
+            pos1, pos2 = sh.get_span(match)
             fcursor = self.textCursor()
             fcursor.setPosition(pos1)
             fcursor.setPosition(pos2, QTextCursor.KeepAnchor)
@@ -1367,13 +1387,14 @@ class BrowseHistoryMixin(object):
         text, self.histidx = self.find_in_history(tocursor, self.histidx,
                                                   backward)
         if text is not None:
+            text = text.strip()
             if self.hist_wholeline:
                 self.clear_line()
                 self.insert_text(text)
             else:
                 cursor_position = self.get_position('cursor')
                 # Removing text from cursor to the end of the line
-                self.remove_text('cursor', 'eol')
+                self.remove_text('cursor', 'eof')
                 # Inserting history text
                 self.insert_text(text)
                 self.set_cursor_position(cursor_position)

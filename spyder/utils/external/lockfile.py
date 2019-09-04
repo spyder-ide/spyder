@@ -27,9 +27,8 @@ __metaclass__ = type
 import errno, os
 from time import time as _uniquefloat
 
-import psutil
-from spyder.config.base import running_under_pytest
 from spyder.py3compat import PY2, to_binary_string
+from spyder.utils.programs import is_spyder_process
 
 def unique():
     if PY2:
@@ -190,22 +189,7 @@ class FilesystemLock:
                     try:
                         if kill is not None:
                             kill(int(pid), 0)
-                        # Verify that the running process corresponds to
-                        # a Spyder one
-                        p = psutil.Process(int(pid))
-
-                        # Valid names for main script
-                        names = set(['spyder', 'spyder3', 'spyder.exe',
-                                     'spyder3.exe', 'bootstrap.py',
-                                     'spyder-script.py'])
-                        if running_under_pytest():
-                            names.add('runtests.py')
-
-                        # Check the first three command line arguments
-                        arguments = set(os.path.basename(arg)
-                                        for arg in p.cmdline()[:3])
-                        conditions = [names & arguments]
-                        if not any(conditions):
+                        if not is_spyder_process(int(pid)):
                             raise(OSError(errno.ESRCH, 'No such process'))
                     except OSError as e:
                         if e.errno == errno.ESRCH:
