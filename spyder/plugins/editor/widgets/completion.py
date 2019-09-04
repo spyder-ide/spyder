@@ -240,6 +240,7 @@ class CompletionWidget(QListWidget):
                 self.addItem(item)
 
         if self.count() > 0:
+            self.setCurrentRow(0)
             self.scrollTo(self.currentIndex(),
                           QAbstractItemView.PositionAtTop)
         else:
