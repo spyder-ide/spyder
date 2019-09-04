@@ -25,6 +25,7 @@ def error_dialog(qtbot):
     """Set up error report dialog."""
     widget = SpyderErrorDialog(None)
     qtbot.addWidget(widget)
+    widget.show()
     return widget
 
 
@@ -55,7 +56,13 @@ def test_dialog(error_dialog, qtbot):
     # Assert delete leaves the header
     qtbot.keyClicks(dlg.input_description, desc_text)
     dlg.input_description.selectAll()
-    qtbot.keyPress(dlg.input_description, Qt.Key_Delete)
+    dlg.input_description.delete()
+    assert dlg.input_description.toPlainText() == dlg.input_description.header
+
+    # Assert delete doesn't remove characters on the header
+    ini_pos = dlg.input_description.get_position('sof')
+    dlg.input_description.set_cursor_position(ini_pos)
+    dlg.input_description.delete()
     assert dlg.input_description.toPlainText() == dlg.input_description.header
 
     # Assert backspace works as expected
@@ -64,6 +71,12 @@ def test_dialog(error_dialog, qtbot):
     assert not dlg.submit_btn.isEnabled()
 
     dlg.input_description.selectAll()
+    qtbot.keyPress(dlg.input_description, Qt.Key_Backspace)
+    assert dlg.input_description.toPlainText() == dlg.input_description.header
+
+    ini_pos = dlg.input_description.get_position('sof')
+    dlg.input_description.set_cursor_position(ini_pos)
+    dlg.input_description.set_cursor_position('eol')
     qtbot.keyPress(dlg.input_description, Qt.Key_Backspace)
     assert dlg.input_description.toPlainText() == dlg.input_description.header
 
