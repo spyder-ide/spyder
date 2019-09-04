@@ -195,13 +195,13 @@ class DebuggingWidget(RichJupyterWidget):
         self._previous_prompt = (prompt, password)
 
         if print_prompt:
-            self._highlighter.highlighting_on = True
             # Reset reading in case it was interrupted
             self._reading = False
             self._readline(prompt=prompt, callback=self._readline_callback,
                            password=password)
 
         if self.is_waiting_pdb_input():
+            self._highlighter.highlighting_on = True
             self._pdb_input_ready = True
             self._executing = False
 
