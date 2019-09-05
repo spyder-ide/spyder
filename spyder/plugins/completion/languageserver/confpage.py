@@ -776,7 +776,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_style_label.setWordWrap(True)
 
         # Code style checkbox
-        code_style_check = self.create_checkbox(
+        self.code_style_check = self.create_checkbox(
             _("Enable code style linting"),
             'pycodestyle')
 
@@ -823,12 +823,12 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_style_g_widget = QWidget()
         code_style_g_widget.setLayout(code_style_g_layout)
         code_style_g_widget.setEnabled(self.get_option('pycodestyle'))
-        code_style_check.toggled.connect(code_style_g_widget.setEnabled)
+        self.code_style_check.toggled.connect(code_style_g_widget.setEnabled)
 
         # Code style layout
         code_style_layout = QVBoxLayout()
         code_style_layout.addWidget(code_style_label)
-        code_style_layout.addWidget(code_style_check)
+        code_style_layout.addWidget(self.code_style_check)
         code_style_layout.addWidget(code_style_g_widget)
 
         code_style_widget = QWidget()
@@ -854,7 +854,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         docstring_style_label.setWordWrap(True)
 
         # Docstring style checkbox
-        docstring_style_check = self.create_checkbox(
+        self.docstring_style_check = self.create_checkbox(
             _("Enable docstring style linting"),
             'pydocstyle')
 
@@ -915,13 +915,13 @@ class LanguageServerConfigPage(GeneralConfigPage):
         docstring_style_g_widget = QWidget()
         docstring_style_g_widget.setLayout(docstring_style_g_layout)
         docstring_style_g_widget.setEnabled(self.get_option('pydocstyle'))
-        docstring_style_check.toggled.connect(
+        self.docstring_style_check.toggled.connect(
             docstring_style_g_widget.setEnabled)
 
         # Docstring style layout
         docstring_style_layout = QVBoxLayout()
         docstring_style_layout.addWidget(docstring_style_label)
-        docstring_style_layout.addWidget(docstring_style_check)
+        docstring_style_layout.addWidget(self.docstring_style_check)
         docstring_style_layout.addWidget(docstring_style_g_widget)
 
         docstring_style_widget = QWidget()
@@ -1028,19 +1028,19 @@ class LanguageServerConfigPage(GeneralConfigPage):
         servers_widget.setLayout(servers_layout)
 
         # --- Tabs organization ---
-        tabs = QTabWidget()
-        tabs.addTab(self.create_tab(basic_features_group, advanced_group),
+        self.tabs = QTabWidget()
+        self.tabs.addTab(self.create_tab(basic_features_group, advanced_group),
                     _('Introspection'))
-        tabs.addTab(self.create_tab(linting_widget), _('Linting'))
-        tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
-        tabs.addTab(self.create_tab(docstring_style_widget),
+        self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
+        self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
+        self.tabs.addTab(self.create_tab(docstring_style_widget),
                     _('Docstring style'))
-        tabs.addTab(self.create_tab(advanced_widget),
+        self.tabs.addTab(self.create_tab(advanced_widget),
                     _('Advanced'))
-        tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
+        self.tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(tabs)
+        vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)
 
     def disable_tcp(self, state):
@@ -1146,9 +1146,13 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
             if name in options:
+                # Avoid triggering the action when this action changes state
+                action.blockSignals(True)
                 state = self.get_option(name)
                 action.setChecked(state)
-                action.trigger()
+                action.blockSignals(False)
+                # See: spyder-ide/spyder#9915
+                # action.trigger()
 
         # TODO: Reset Manager
         lsp = self.main.completions.get_client('lsp')

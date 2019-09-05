@@ -30,11 +30,11 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from qtpy import PYQT5, PYQT_VERSION
-from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
+from qtpy.QtCore import Qt, QTimer, QEvent, QPoint, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage
-from qtpy.QtWidgets import (QApplication, QFileDialog, QLineEdit, QTabBar,
-                            QToolTip, QWidget)
+from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QLineEdit,
+                            QTabBar, QToolTip, QWidget)
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from matplotlib.testing.compare import compare_images
 import nbconvert
@@ -1967,6 +1967,55 @@ def test_report_comms_error(qtbot, main_window):
     assert 'No module named' in error_dlg.error_traceback
     main_window.console.close_error_dlg()
     CONF.set('main', 'show_internal_errors', False)
+
+
+@pytest.mark.slow
+def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
+    """
+    Test for spyder-ide/spyder/#10139 regression.
+
+    Enabling codestyle/docstyle on the completion section of preferences,
+    was not updating correctly.
+    """
+    def trigger():
+        pref = main_window.prefs_dialog_instance
+        index = 5
+        page = pref.get_page(index)
+        pref.set_current_index(index)
+        qtbot.wait(1000)
+
+        for idx, check in enumerate([page.code_style_check,
+                                     page.docstring_style_check]):
+            page.tabs.setCurrentIndex(idx + 2)
+            check.animateClick(200)
+            qtbot.wait(1000)
+
+        qtbot.wait(4000)
+        pref.ok_btn.animateClick(300)
+
+
+    CONF.set('lsp-server', 'pycodestyle', False)
+    CONF.set('lsp-server', 'pydocstyle', False)
+
+    timer = QTimer()
+    timer.setSingleShot(True)
+    timer.timeout.connect(trigger)
+    timer.start(5000)
+
+    main_window.show_preferences()
+    qtbot.wait(5000)
+
+    for menu_item in main_window.source_menu_actions:
+        if menu_item and isinstance(menu_item, QAction):
+            print(menu_item.text(), menu_item.isChecked())
+
+            if 'code style' in menu_item.text():
+                assert menu_item.isChecked()
+            elif 'docstring style' in menu_item.text():
+                assert menu_item.isChecked()
+
+    CONF.set('lsp-server', 'pycodestyle', False)
+    CONF.set('lsp-server', 'pydocstyle', False)
 
 
 if __name__ == "__main__":

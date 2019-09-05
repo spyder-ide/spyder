@@ -1090,12 +1090,16 @@ class Editor(SpyderPluginWidget):
         def toogle(checked):
             self.switch_to_plugin()
             self._toggle_checkable_action(checked, method, conf_name)
+
         action = create_action(self, text, toggled=toogle)
+        action.blockSignals(True)
 
         if conf_name not in ['pycodestyle', 'pydocstyle']:
             action.setChecked(self.get_option(conf_name))
         else:
             action.setChecked(CONF.get('lsp-server', conf_name))
+
+        action.blockSignals(False)
 
         return action
 
@@ -1123,10 +1127,8 @@ class Editor(SpyderPluginWidget):
                         logger.error(e, exc_info=True)
             self.set_option(conf_name, checked)
         else:
-            if conf_name == 'pycodestyle':
-                CONF.set('lsp-server', 'pycodestyle', checked)
-            elif conf_name == 'pydocstyle':
-                CONF.set('lsp-server', 'pydocstyle', checked)
+            if conf_name in ('pycodestyle', 'pydocstyle'):
+                CONF.set('lsp-server', conf_name, checked)
             lsp = self.main.completions.get_client('lsp')
             lsp.update_server_list()
 
@@ -2680,8 +2682,11 @@ class Editor(SpyderPluginWidget):
 
             for name, action in self.checkable_actions.items():
                 if name in options:
+                    # Avoid triggering the action when this action changes state
+                    action.blockSignals(True)
                     state = self.get_option(name)
                     action.setChecked(state)
+                    action.blockSignals(False)
                     # See: spyder-ide/spyder#9915
                     # action.trigger()
 
