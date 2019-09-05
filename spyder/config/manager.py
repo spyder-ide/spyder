@@ -136,7 +136,6 @@ class ConfigurationManager(object):
 
         If section is None, the `option` is added to the default section.
         """
-        print('manager', section, option, value)
         config = self.get_active_conf()
         config.set(section=section, option=option, value=value,
                    verbose=verbose, save=save)
