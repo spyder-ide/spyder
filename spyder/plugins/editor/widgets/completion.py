@@ -190,7 +190,7 @@ class CompletionWidget(QListWidget):
         """
         Update the displayed list by filtering self.completion_list.
 
-        If returns False, the autocompletion should stop.
+        If no items are left on the list the autocompletion should stop
         """
         self.clear()
         icons_map = {CompletionItemKind.TEXT: 'text',
