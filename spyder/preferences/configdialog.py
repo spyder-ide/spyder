@@ -140,6 +140,7 @@ class ConfigDialog(QDialog):
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Apply |
                                 QDialogButtonBox.Cancel)
         self.apply_btn = bbox.button(QDialogButtonBox.Apply)
+        self.ok_btn = bbox.button(QDialogButtonBox.Ok)
 
         # Widgets setup
         # Destroying the C++ object right after closing the dialog box,
