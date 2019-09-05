@@ -65,7 +65,7 @@ class EditorSwitcherManager(object):
             self.create_editor_switcher()
 
     def create_editor_switcher(self):
-        """Populate switcher with ."""
+        """Populate switcher with open files."""
         self._switcher.set_placeholder_text(
             _('Start typing the name of an open file'))
 
