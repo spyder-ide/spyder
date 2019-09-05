@@ -49,8 +49,10 @@ def test_runcell(tmpdir, debug):
 
         def runcell(cellname, filename):
             return code
+
         def set_debug_state(state):
             set_debug_state.state = state
+
         set_debug_state.state = None
         kernel_comm.register_call_handler('run_cell', runcell)
         kernel_comm.register_call_handler('get_breakpoints', lambda: {})
