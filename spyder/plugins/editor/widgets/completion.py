@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Completion widget class"""
+"""Completion widget class."""
 
 # Standard library imports
 import sys
@@ -174,9 +174,8 @@ class CompletionWidget(QListWidget):
         self.move(point)
 
         if not self.is_internal_console:
-            tooltip_point = point
-            tooltip_point.setX(point.x() + self.width())
-            tooltip_point.setY(point.y() + self.sizeHintForRow(0) + 4)
+            tooltip_point = self.rect().topRight()
+            tooltip_point = self.mapToGlobal(tooltip_point)
             for completion in self.completion_list:
                 completion['point'] = tooltip_point
 
@@ -258,11 +257,15 @@ class CompletionWidget(QListWidget):
                                                width=width)
 
     def hide(self):
-        """Hide the widget."""
+        """Override Qt method."""
         self.completion_position = None
         self.completion_list = None
         self.clear()
         self.textedit.setFocus()
+        tooltip = getattr(self.textedit, 'tooltip_widget', None)
+        if tooltip:
+            tooltip.hide()
+
         QListWidget.hide(self)
         QToolTip.hideText()
 
@@ -367,7 +370,7 @@ class CompletionWidget(QListWidget):
         self.update_list(completion_text)
 
     def focusOutEvent(self, event):
-        "Override Qt method."
+        """Override Qt method."""
         event.ignore()
         # Don't hide it on Mac when main window loses focus because
         # keyboard input is lost.
