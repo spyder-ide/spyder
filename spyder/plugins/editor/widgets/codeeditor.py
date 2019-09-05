@@ -2015,7 +2015,6 @@ class CodeEditor(TextEditBaseWidget):
 
     # --- Hint for completions
     def show_hint_for_completion(self, word, documentation, at_point):
-        # Change to use signal from list widget
         """Show hint for completion element."""
         self.hide_tooltip()
         if self.completions_hint:
