@@ -1223,6 +1223,7 @@ class Editor(SpyderPluginWidget):
             ('set_stripmode_enabled',               'strip_trailing_spaces_on_modify'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_automatic_completions_enabled',   'automatic_completions'),
+            ('set_completions_hint_enabled',        'completions_hint'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
             ('set_occurrence_highlighting_enabled',  'occurrence_highlighting'),
@@ -2605,6 +2606,8 @@ class Editor(SpyderPluginWidget):
             ibackspace_o = self.get_option(ibackspace_n)
             autocompletions_n = 'automatic_completions'
             autocompletions_o = self.get_option(autocompletions_n)
+            completionshint_n = 'completions_hint'
+            completionshint_o = self.get_option(completionshint_n)
             removetrail_n = 'always_remove_trailing_spaces'
             removetrail_o = self.get_option(removetrail_n)
             converteol_n = 'convert_eol_on_save'
@@ -2642,6 +2645,8 @@ class Editor(SpyderPluginWidget):
                 if autocompletions_n in options:
                     editorstack.set_automatic_completions_enabled(
                         autocompletions_o)
+                if completionshint_n in options:
+                    editorstack.set_completions_hint_enabled(completionshint_o)
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecols_n in options:

@@ -32,7 +32,7 @@ import time
 # Third party imports
 from diff_match_patch import diff_match_patch
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
+from qtpy.QtCore import QPoint, QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
                         QTextCharFormat, QTextCursor, QDesktopServices,
@@ -301,6 +301,12 @@ class CodeEditor(TextEditBaseWidget):
     # the mouse left button is pressed, this signal is emmited
     sig_go_to_uri = Signal(str)
 
+    # Signal with the info about the current completion item documentation
+    # str: object name
+    # str: object signature/documentation
+    # bool: force showing the info
+    sig_show_completion_object_info = Signal(str, str, bool)
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -317,6 +323,8 @@ class CodeEditor(TextEditBaseWidget):
         # See: mouseMoveEvent
         self.tooltip_widget.sig_help_requested.connect(
             self.show_object_info)
+        self.tooltip_widget.sig_completion_help_requested.connect(
+            self.show_completion_object_info)
         self._last_point = None
         self._last_hover_word = None
         self._last_hover_cursor = None
@@ -472,6 +480,9 @@ class CodeEditor(TextEditBaseWidget):
         # Automatic (on the fly) completions
         self.automatic_completions = True
 
+        # Completions hint
+        self.completions_hint = True
+
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = False
         self.add_colons_enabled = True
@@ -537,6 +548,10 @@ class CodeEditor(TextEditBaseWidget):
         self.previous_text = ''
         self.word_tokens = []
 
+        # Handle completions hints
+        self.completion_widget.sig_completion_hint.connect(
+            self.show_hint_for_completion)
+
     # --- Helper private methods
     # ------------------------------------------------------------------------
 
@@ -584,7 +599,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.request_hover(line, col, cursor_offset)
                 else:
                     self.hide_tooltip()
-        else:
+        elif not self.is_completion_widget_visible():
             self.hide_tooltip()
 
     def blockuserdata_list(self):
@@ -724,6 +739,7 @@ class CodeEditor(TextEditBaseWidget):
                      strip_mode=False,
                      intelligent_backspace=True,
                      automatic_completions=True,
+                     completions_hint=True,
                      highlight_current_line=True,
                      highlight_current_cell=True,
                      occurrence_highlighting=True,
@@ -812,6 +828,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Automatic completions
         self.toggle_automatic_completions(automatic_completions)
+
+        # Completions hint
+        self.toggle_completions_hint(completions_hint)
 
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
@@ -1197,6 +1216,10 @@ class CodeEditor(TextEditBaseWidget):
 
     def toggle_automatic_completions(self, state):
         self.automatic_completions = state
+
+    def toggle_completions_hint(self, state):
+        """Enable/disable completion hint."""
+        self.completions_hint = state
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
@@ -1690,7 +1713,12 @@ class CodeEditor(TextEditBaseWidget):
         """Emit signal to update bookmarks."""
         self.sig_bookmarks_changed.emit()
 
-    #-----Code introspection
+    # -----Code introspection
+    def show_completion_object_info(self, name, signature):
+        """Trigger show completion info in Help Pane."""
+        force = True
+        self.sig_show_completion_object_info.emit(name, signature, force)
+
     def show_object_info(self, position):
         """Trigger a calltip"""
         self.sig_show_object_info.emit(position)
@@ -1984,6 +2012,26 @@ class CodeEditor(TextEditBaseWidget):
         self._last_hover_word = None
         self.tooltip_widget.hide()
         self.clear_extra_selections('code_analysis_highlight')
+
+    # --- Hint for completions
+    def show_hint_for_completion(self, word, documentation, at_point):
+        """Show hint for completion element."""
+        self.hide_tooltip()
+        if self.completions_hint:
+            completion_doc = {'name': word,
+                              'signature': documentation}
+
+            if documentation and len(documentation) > 0:
+                self.show_hint(
+                    documentation,
+                    inspect_word=word,
+                    at_point=at_point,
+                    completion_doc=completion_doc,
+                    max_lines=self._DEFAULT_MAX_LINES,
+                    max_width=self._DEFAULT_COMPLETION_HINT_MAX_WIDTH)
+                self.tooltip_widget.move(at_point)
+            else:
+                self.hide_tooltip()
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
@@ -3765,7 +3813,8 @@ class CodeEditor(TextEditBaseWidget):
         if self.__cursor_changed:
             self._restore_editor_cursor_and_selections()
         else:
-            if not self._should_display_hover(pos):
+            if (not self._should_display_hover(pos)
+                    and not self.is_completion_widget_visible()):
                 self.hide_tooltip()
 
         TextEditBaseWidget.mouseMoveEvent(self, event)

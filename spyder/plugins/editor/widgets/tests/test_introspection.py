@@ -267,7 +267,7 @@ def test_completions(lsp_codeeditor, qtbot):
     # Test if the list is updated
     assert "acos(x)" == completion.completion_list[0]['label']
     qtbot.keyClicks(completion, 's')
-    assert "asin" == completion.item(0).text()
+    assert "asin" == completion.item(0).data(Qt.UserRole)
     qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
 
     # enter for new line
