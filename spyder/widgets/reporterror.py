@@ -129,7 +129,6 @@ class SpyderErrorDialog(QDialog):
         QDialog.__init__(self, parent)
         self.is_report = is_report
         self.setWindowTitle(_("Issue reporter"))
-        self.setModal(True)
 
         # To save the traceback sent to the internal console
         self.error_traceback = ""
