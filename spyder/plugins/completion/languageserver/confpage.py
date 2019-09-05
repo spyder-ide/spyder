@@ -1146,9 +1146,13 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
             if name in options:
+                # Avoid triggering the action when this action changes state
+                action.blockSignals(True)
                 state = self.get_option(name)
                 action.setChecked(state)
-                action.trigger()
+                action.blockSignals(False)
+                # See: spyder-ide/spyder#9915
+                # action.trigger()
 
         # TODO: Reset Manager
         lsp = self.main.completions.get_client('lsp')
