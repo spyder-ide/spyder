@@ -28,15 +28,15 @@ PYZMQ_REQVER = '>=17'
 CHARDET_REQVER = '>=2.0.0'
 NUMPYDOC_REQVER = '>=0.6.0'
 SPYDER_KERNELS_REQVER = '>=1.4.0'
-QDARKSTYLE_REQVER = '>=2.7.0'
+QDARKSTYLE_REQVER = '>=2.7'
 ATOMICWRITES_REQVER = '>=1.2.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
-WATCHDOG_REQVER = '>=0.9.0'
-KEYRING_REQVER = '>=12.0.0'
+WATCHDOG_REQVER = None
+KEYRING_REQVER = None
 PEXPECT_REQVER = '>=4.4.0'
 PARAMIKO_REQVER = '>=2.4.0'
 PYXDG_REQVER = '>=0.26'
-PYMPLER_REQVER = '>=0.7'
+PYMPLER_REQVER = None
 
 DEPENDENCIES_BASE = [
     {'modname': "cloudpickle",
@@ -79,7 +79,7 @@ DEPENDENCIES_BASE = [
      'package_name': "pickleshare",
      'features': _("Show import completions on the Python consoles."),
      'required_version': PICKLESHARE_REQVER},
-    {'modname': "pyzmq",
+    {'modname': "zmq",
      'package_name': "pyzmq",
      'features': _("Client for the language server protocol (LSP)."),
      'required_version': PYZMQ_REQVER},
@@ -91,7 +91,7 @@ DEPENDENCIES_BASE = [
      'package_name': "numpydoc",
      'features': _("Used by Jedi to get function return types from Numpydocstrings."),
      'required_version': NUMPYDOC_REQVER},
-    {'modname': "spyder-kernels",
+    {'modname': "spyder_kernels",
      'package_name': "spyder-kernels",
      'features': _("Jupyter kernels for the Spyder console."),
      'required_version': SPYDER_KERNELS_REQVER},
@@ -123,7 +123,7 @@ DEPENDENCIES_BASE = [
      'package_name': "paramiko",
      'features': _("Connect to remote kernels through SSH."),
      'required_version': PARAMIKO_REQVER},
-    {'modname': "pyxdg",
+    {'modname': "xdg",
      'package_name': "pyxdg",
      'features': _("Parse `.desktop` files on Linux"),
      'required_version': PYXDG_REQVER},
