@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Editor Switcher manager
+Editor Switcher manager.
 """
 
 # Standard library imports
@@ -32,7 +32,7 @@ class EditorSwitcherManager(object):
     def __init__(self, switcher_instance, editor, editorstack,
                  section=_("Editor")):
         """
-        Params editor and editorstack should be callables i.e functions
+        Params editor and editorstack should be callables i.e functions.
         """
         self._switcher = switcher_instance
         self._editor = editor

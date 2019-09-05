@@ -685,7 +685,7 @@ class Switcher(QDialog):
         self.sig_item_changed.emit(self.current_item())
 
     def set_position(self, top):
-        """Positions the dialog."""
+        """Set the position of the dialog."""
         parent = self.parent()
         if parent is not None:
             geo = parent.geometry()
