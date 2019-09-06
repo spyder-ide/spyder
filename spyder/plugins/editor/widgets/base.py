@@ -31,7 +31,7 @@ from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
-
+from spyder.plugins.completion.kite.ui.cta import Kite_CTA
 
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""
@@ -92,6 +92,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.unmatched_p_color = QColor(Qt.red)
 
         self.decorations = TextDecorationsManager(self)
+
+        self.kite_cta = Kite_CTA(self)
 
     def setup_completion(self):
         size = CONF.get('main', 'completion/size')
@@ -369,6 +371,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             return super(TextEditBaseWidget, self).toPlainText()
 
     def keyPressEvent(self, event):
+        self.kite_cta.hide()
         text, key = event.text(), event.key()
         ctrl = event.modifiers() & Qt.ControlModifier
         meta = event.modifiers() & Qt.MetaModifier
@@ -955,6 +958,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     #----Qt Events
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
+        self.kite_cta.hide()
         if sys.platform.startswith('linux') and event.button() == Qt.MidButton:
             self.calltip_widget.hide()
             self.setFocus()

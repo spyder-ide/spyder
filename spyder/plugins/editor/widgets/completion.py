@@ -252,6 +252,7 @@ class CompletionWidget(QListWidget):
                           QAbstractItemView.PositionAtTop)
         else:
             self.hide()
+            self.textedit.kite_cta.show()
 
     def get_html_item_representation(self, item_completion, item_type,
                                      height=DEFAULT_COMPLETION_ITEM_HEIGHT,
@@ -334,7 +335,7 @@ class CompletionWidget(QListWidget):
         if not text[0].isalpha():
             sub = text[0] + sub
         return to_text_string(text).lower().startswith(
-                to_text_string(sub).lower())
+            to_text_string(sub).lower())
 
     def is_position_correct(self):
         """Check if the position is correct."""
