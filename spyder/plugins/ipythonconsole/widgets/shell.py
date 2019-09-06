@@ -182,9 +182,16 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if reset:
             self.reset(clear=True)
         if not dark_color:
+            # Needed to change the colors of tracebacks
             self.silent_execute("%colors linux")
+            self.call_kernel(
+                interrupt=True,
+                blocking=False).set_sympy_forecolor(background_color='dark')
         else:
             self.silent_execute("%colors lightbg")
+            self.call_kernel(
+                interrupt=True,
+                blocking=False).set_sympy_forecolor(background_color='light')
 
     def request_syspath(self):
         """Ask the kernel for sys.path contents."""
