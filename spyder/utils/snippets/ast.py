@@ -4,6 +4,8 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+"""LL(1) parse routine for our snippets grammar."""
+
 # Standard lib imports
 import logging
 import codecs
@@ -91,6 +93,7 @@ IGNORE_TERMINALS = {
 
 def switch_context(current_rule, current_ctx, current_args, current_prefix,
                    context_stack, args_stack, prefix_stack):
+    """Decide if a new AST node must be created."""
     new_ctx = current_ctx
     new_args = current_args
     new_prefix = current_prefix
@@ -121,7 +124,6 @@ def switch_context(current_rule, current_ctx, current_args, current_prefix,
 def build_snippet_ast(snippet_text):
     """Given a snippet string, return its abstract syntax tree (AST)."""
     snippet_text = codecs.decode(snippet_text, 'unicode_escape')
-    # logger.debug(snippet_text)
     tokens = tokenize(snippet_text)
     tokens += [Token('eof', '<eof>')]
 

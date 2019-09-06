@@ -1938,7 +1938,7 @@ class CodeEditor(TextEditBaseWidget):
 
     @Slot()
     def cut(self):
-        """Reimplement redo to signal listeners about changes on the text."""
+        """Reimplement cut to signal listeners about changes on the text."""
         has_selected_text = self.has_selected_text()
         if not has_selected_text:
             return

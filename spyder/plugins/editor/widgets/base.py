@@ -873,9 +873,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 if cursor.position() != completion_position:
                     return
             # Add text
-            # self.insert_text(text)
             self.sig_insert_completion.emit(text)
-            # self.document_did_change()
 
     def is_completion_widget_visible(self):
         """Return True is completion list widget is visible"""

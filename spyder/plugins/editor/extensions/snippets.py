@@ -9,42 +9,40 @@
 # Standard library imports
 import copy
 import functools
-from collections import OrderedDict
 
 # Third party imports
 from qtpy.QtGui import QTextCursor, QColor
-from qtpy.QtCore import Qt, Slot, QMutex, QMutexLocker
+from qtpy.QtCore import Qt, QMutex, QMutexLocker
 
 try:
     from rtree import index
     rtree_available = True
-except (OSError, ImportError):
+except Exception:
     rtree_available = False
 
 # Local imports
 from spyder.py3compat import to_text_string
 from spyder.api.editorextension import EditorExtension
-# import spyder.plugins.editor.extensions.snippets.utils.nodes as nodes
-from spyder.utils.snippets.ast import (build_snippet_ast, nodes, tokenize)
-# from spyder.plugins.editor.extensions.snippets.utils.lexer import tokenize
+from spyder.utils.snippets.ast import build_snippet_ast, nodes, tokenize
 
 
 MERGE_ALLOWED = {'int', 'name', 'whitespace'}
 
 
 def no_undo(f):
+    """Inidicate that a modification function should not be called on undo."""
     f.no_undo = True
     return f
 
 
 def lock(f):
+    """Prevent concurrent access to snippets rtree."""
     @functools.wraps(f)
     def wrapper(self, *args, **kwargs):
         if not self.editor.code_snippets:
             return
         if not rtree_available:
             return
-        function_name = f.__name__
         with QMutexLocker(self.modification_lock):
             if not hasattr(f, 'no_undo'):
                 self.update_undo_stack()
@@ -53,6 +51,8 @@ def lock(f):
 
 
 class SnippetSearcherVisitor:
+    """Traverse and extract information from snippets AST."""
+
     def __init__(self, line, column, node_number=0):
         self.line = line
         self.column = column
@@ -108,17 +108,20 @@ class SnippetsExtension(EditorExtension):
             self.editor.sig_undo.connect(self._undo)
             self.editor.sig_redo.connect(self._redo)
         else:
-            self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
-            self.editor.sig_insert_completion.disconnect(self.insert_snippet)
-            self.editor.sig_cursor_position_changed.disconnect(
-                self.cursor_changed)
-            self.editor.sig_text_was_inserted.disconnect(self._redraw_snippets)
-            self.editor.sig_will_insert_text.disconnect(self._process_text)
-            self.editor.sig_will_paste_text.disconnect(self._process_text)
-            self.editor.sig_will_remove_selection.disconnect(
-                self.remove_selection)
-            self.editor.sig_undo.disconnect(self._undo)
-            self.editor.sig_redo.disconnect(self._redo)
+            try:
+                self.editor.sig_key_pressed.disconnect(self._on_key_pressed)
+                self.editor.sig_insert_completion.disconnect(self.insert_snippet)
+                self.editor.sig_cursor_position_changed.disconnect(
+                    self.cursor_changed)
+                self.editor.sig_text_was_inserted.disconnect(self._redraw_snippets)
+                self.editor.sig_will_insert_text.disconnect(self._process_text)
+                self.editor.sig_will_paste_text.disconnect(self._process_text)
+                self.editor.sig_will_remove_selection.disconnect(
+                    self.remove_selection)
+                self.editor.sig_undo.disconnect(self._undo)
+                self.editor.sig_redo.disconnect(self._redo)
+            except:
+                pass
 
     def update_undo_stack(self):
         ast_copy = copy.deepcopy(self.ast)
@@ -166,10 +169,6 @@ class SnippetsExtension(EditorExtension):
         if event.isAccepted():
             return
 
-        # if self.editor.completion_widget.isVisible():
-        #     if not self.editor.completion_widget.is_empty():
-        #         return
-
         with QMutexLocker(self.event_lock):
             key = event.key()
             text = to_text_string(event.text())
@@ -201,8 +200,6 @@ class SnippetsExtension(EditorExtension):
             # Update placeholder text node
             if text != '\b':
                 self.insert_text(text, line, column)
-                # text_node = nodes.TextNode(*token_nodes)
-                # snippet.placeholder = text_node
             else:
                 self.delete_text(line, column)
             self._update_ast()
@@ -234,9 +231,6 @@ class SnippetsExtension(EditorExtension):
             parent_tokens = (parent_tokens[:snippet_position] +
                              list(snippet.placeholder.tokens) +
                              parent_tokens[snippet_position + 1:])
-            # parent_tokens.pop(snippet_position)
-
-            # parent_tokens.insert(snippet_position, snippet.placeholder)
             text_parent.tokens = parent_tokens
 
             if len(parent_tokens) > 1:
@@ -384,7 +378,6 @@ class SnippetsExtension(EditorExtension):
                 if first_token.name in MERGE_ALLOWED:
                     if first_token.name == node.name:
                         left_offset = 0
-                        # right_offset = 1
                         first_token.value = (
                             node.value + first_token.value)
 
@@ -634,7 +627,6 @@ class SnippetsExtension(EditorExtension):
         node_numbers = list(self.index.intersection(point))
         current_node, nearest_text, nearest_snippet = None, None, None
         if len(node_numbers) > 0:
-            # node = self.node_position[node_numbers[-1]][-1]
             for node_number in node_numbers:
                 current_node = self.node_position[node_number][-1]
                 if isinstance(current_node, nodes.SnippetASTNode):
@@ -705,10 +697,8 @@ class SnippetsExtension(EditorExtension):
                     cursor.movePosition(
                         QTextCursor.NextCharacter, n=end_column,
                         mode=QTextCursor.KeepAnchor)
-                    # color = QColor(color)
-                    # color.setAlpha(255)
+
                     color = QColor(self.editor.comment_color)
-                    # color.setAlpha(64)
                     self.editor.highlight_selection('code_snippets',
                                                     QTextCursor(cursor),
                                                     outline_color=color)
@@ -732,7 +722,7 @@ class SnippetsExtension(EditorExtension):
             if node.text() != '':
                 end_column += 1
         start_block = document.findBlockByNumber(start_line)
-        # cursor.beginEditBlock()
+
         cursor.setPosition(start_block.position())
         cursor.movePosition(QTextCursor.StartOfBlock)
         cursor.movePosition(
@@ -745,7 +735,7 @@ class SnippetsExtension(EditorExtension):
         cursor.movePosition(
             QTextCursor.NextCharacter, n=end_column,
             mode=QTextCursor.KeepAnchor)
-        # cursor.endEditBlock()
+
         self.editor.setTextCursor(cursor)
         self.editor.request_signature()
 

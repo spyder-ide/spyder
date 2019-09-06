@@ -410,12 +410,6 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     print({x['label'] for x in sig.args[0]})
     assert 'test_func(xlonger, y1, some_z)' in {
         x['label'] for x in sig.args[0]}
-    # qtbot.keyClicks(code_editor, 'dum')
-
-    # Insert snippet
-    # with qtbot.waitSignal(completion.sig_show_completions,
-    #                       timeout=10000) as sig:
-    #     qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     expected_insert = 'test_func(${1:xlonger}, ${2:y1}, ${3:some_z})$0'
     insert = sig.args[0][0]

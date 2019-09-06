@@ -11,8 +11,6 @@ import re
 BACKSLASH_REPLACE_REGEX = re.compile(r'(\\)([^\\\s])')
 
 # ------------------------ Misc functions -------------------------------------
-
-
 def _compute_offset_str(offset, value):
     line, col = offset
     mark_for_position = True
@@ -28,8 +26,6 @@ def _compute_offset_str(offset, value):
 
 
 # ------------------------ ASTNode identifiers --------------------------------
-
-
 class SnippetKind:
     TABSTOP = 'tabstop'
     PLACEHOLDER = 'placeholder'
@@ -53,8 +49,6 @@ class NodeKind:
 
 
 # ------------------------- Base AST Node classes -----------------------------
-
-
 class ASTNode:
     """
     Base class that represents a node on a snippet AST.
@@ -257,8 +251,6 @@ class FormatNode(ASTNode):
 
 
 # -------------------------- Int snippet node classes -------------------------
-
-
 class TabstopSnippetNode(SnippetASTNode):
     """
     Node that represents an int tabstop snippet.
@@ -365,8 +357,6 @@ class ChoiceNode(TabstopSnippetNode):
 
 
 # --------------------- Variable snippet node classes -------------------------
-
-
 class VariableSnippetNode(SnippetASTNode):
     """
     Node that represents a variable snippet.
@@ -440,8 +430,6 @@ class RegexNode(VariableSnippetNode):
 
 
 # -------------------- Regex formatting node classes --------------------------
-
-
 class FormatSequenceNode(FormatNode):
     """Node that represents a sequence of formatting or text nodes."""
 

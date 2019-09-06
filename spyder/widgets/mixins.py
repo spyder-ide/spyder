@@ -59,6 +59,7 @@ class BaseEditMixin(object):
     _DEFAULT_MAX_HINT_LINES = 20
     _DEFAULT_MAX_HINT_WIDTH = 85
 
+    # The following signals are used to indicate text changes on the editor.
     sig_will_insert_text = None
     sig_will_remove_selection = None
     sig_text_was_inserted = None
@@ -995,7 +996,7 @@ class BaseEditMixin(object):
         return sorted([block_start.blockNumber(), block_end.blockNumber()])
 
     def get_selection_start_end(self, cursor=None):
-        """Return selection start and end (line, column) position."""
+        """Return selection start and end (line, column) positions."""
         if cursor is None:
             cursor = self.textCursor()
         start, end = cursor.selectionStart(), cursor.selectionEnd()

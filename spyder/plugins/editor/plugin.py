@@ -2690,8 +2690,11 @@ class Editor(SpyderPluginWidget):
 
             for name, action in self.checkable_actions.items():
                 if name in options:
+                     # Avoid triggering the action when this action changes state
+                    action.blockSignals(True)
                     state = self.get_option(name)
                     action.setChecked(state)
+                    action.blockSignals(False)
                     # See: spyder-ide/spyder#9915
                     # action.trigger()
 

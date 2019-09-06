@@ -227,7 +227,6 @@ class CompletionWidget(QListWidget):
                 entry_label = completion['label']
                 if not code_snippets_enabled:
                     completion_label = completion['insertText']
-                    # entry_label = completion['insertText']
                 icon = icons_map.get(completion['kind'], 'no_match')
                 entry_label = self.get_html_item_representation(
                     entry_label, icon, height=height, width=width)
