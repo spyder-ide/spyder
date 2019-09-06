@@ -524,12 +524,12 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     # Verify that we are at first breakpoint
     shell.clear_console()
     qtbot.wait(500)
-    shell.kernel_client.input("list")
+    shell.pdb_execute("list")
     qtbot.wait(500)
     assert "1--> 10 arr = np.array(li)" in control.toPlainText()
 
     # Exit debugging
-    shell.kernel_client.input("exit")
+    shell.pdb_execute("exit")
     qtbot.wait(500)
 
     # Set breakpoint on first line with code
@@ -541,7 +541,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     qtbot.wait(1000)
 
     # Verify that we are still on debugging
-    assert shell._reading
+    assert shell.is_waiting_pdb_input()
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
@@ -912,7 +912,7 @@ def test_set_new_breakpoints(main_window, qtbot):
     qtbot.wait(500)
 
     # Verify that the breakpoint was set
-    shell.kernel_client.input("b")
+    shell.pdb_execute("b")
     qtbot.wait(500)
     assert "1   breakpoint   keep yes   at {}:6".format(test_file) in control.toPlainText()
 
@@ -1387,7 +1387,7 @@ def test_stop_dbg(main_window, qtbot):
     qtbot.wait(1000)
 
     # Move to the next line
-    shell.kernel_client.input("n")
+    shell.pdb_execute("n")
     qtbot.wait(1000)
 
     # Stop debugging

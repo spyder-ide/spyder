@@ -2335,7 +2335,7 @@ class Editor(SpyderPluginWidget):
     def debug_command(self, command):
         """Debug actions"""
         self.switch_to_plugin()
-        self.main.ipyconsole.write_to_stdin(command)
+        self.main.ipyconsole.pdb_execute(command)
         focus_widget = self.main.ipyconsole.get_focus_widget()
         if focus_widget:
             focus_widget.setFocus()

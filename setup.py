@@ -202,7 +202,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 install_requires = [
     'cloudpickle',
     'pygments>=2.0',
-    'qtconsole>=4.5.2',
+    'qtconsole>=4.5.5',
     'nbconvert',
     'sphinx',
     'pylint',

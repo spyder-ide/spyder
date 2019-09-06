@@ -709,6 +709,40 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(PY2, reason="insert is not the same in py2")
+def test_dbg_input(ipyconsole, qtbot):
+    """Test that spyder doesn't send pdb commands to unrelated input calls."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Debug with input
+    shell.execute("%debug print('Hello', input('name'))")
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Reach the 'name' input
+    shell.pdb_execute('n')
+    qtbot.wait(100)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    shell.pdb_execute('n')
+    qtbot.wait(100)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'name')
+
+    # Execute some code and make sure that it doesn't work
+    # as this is not a pdb prompt
+    shell.pdb_execute('n')
+    shell.pdb_execute('!aa = 10')
+    qtbot.wait(500)
+    assert control.toPlainText().split()[-1] == 'name'
+    shell.kernel_client.input('test')
+    qtbot.waitUntil(lambda: 'Hello test' in control.toPlainText())
+
+
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(PY2, reason="It doesn't work on PY2")
 def test_unicode_vars(ipyconsole, qtbot):

@@ -225,7 +225,7 @@ a Python version equal or greater than 3.5 or 2.7.
 
 * **Python** 3.5+ or 2.7: The core language Spyder is written in and for.
 * **PyQt5** 5.6+: Python bindings for Qt, used for Spyder's GUI.
-* **qtconsole** 4.5.0+: Enhanced Python interpreter.
+* **qtconsole** 4.5.5+: Enhanced Python interpreter.
 * **Python-language-server**: Editor code completion, calltips
   go-to-definition and real-time code analysis
 * **Sphinx**: Rich text mode for the Help pane.
