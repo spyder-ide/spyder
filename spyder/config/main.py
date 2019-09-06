@@ -205,7 +205,7 @@ DEFAULTS = [
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'automatic_completions': True,
-              'code_snippets': True,
+              'code_snippets': False,
               'completions_hint': True,
               'underline_errors': False,
               'highlight_current_line': True,

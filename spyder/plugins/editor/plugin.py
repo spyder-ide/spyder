@@ -2607,6 +2607,8 @@ class Editor(SpyderPluginWidget):
             ibackspace_o = self.get_option(ibackspace_n)
             autocompletions_n = 'automatic_completions'
             autocompletions_o = self.get_option(autocompletions_n)
+            codesnippets_n = 'code_snippets'
+            codesnippets_o = self.get_option(codesnippets_n)
             removetrail_n = 'always_remove_trailing_spaces'
             removetrail_o = self.get_option(removetrail_n)
             converteol_n = 'convert_eol_on_save'
@@ -2644,6 +2646,10 @@ class Editor(SpyderPluginWidget):
                 if autocompletions_n in options:
                     editorstack.set_automatic_completions_enabled(
                         autocompletions_o)
+                if codesnippets_n in options:
+                    editorstack.set_code_snippets_enabled(codesnippets_o)
+                    lsp = self.main.completions.get_client('lsp')
+                    lsp.update_server_list()
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecols_n in options:
