@@ -38,6 +38,7 @@ class ToolTipWidget(QLabel):
     Shows tooltips that can be styled with the different themes.
     """
 
+    sig_completion_help_requested = Signal(str, str)
     sig_help_requested = Signal(str)
 
     def __init__(self, parent=None, as_tooltip=False):
@@ -47,6 +48,7 @@ class ToolTipWidget(QLabel):
         super(ToolTipWidget, self).__init__(parent, Qt.ToolTip)
 
         # Variables
+        self.completion_doc = None
         self._url = ''
         self.app = QCoreApplication.instance()
         self.as_tooltip = as_tooltip
@@ -111,7 +113,7 @@ class ToolTipWidget(QLabel):
     # ------------------------------------------------------------------------
     # --- 'ToolTipWidget' interface
     # ------------------------------------------------------------------------
-    def show_tip(self, point, tip, cursor=None):
+    def show_tip(self, point, tip, cursor=None, completion_doc=None):
         """
         Attempts to show the specified tip at the current cursor location.
         """
@@ -127,6 +129,8 @@ class ToolTipWidget(QLabel):
         self.tip = tip
         self.setText(tip)
         self.resize(self.sizeHint())
+
+        self.completion_doc = completion_doc
 
         padding = 0
         text_edit = self._text_edit
@@ -191,7 +195,12 @@ class ToolTipWidget(QLabel):
         Reimplemented to hide it when focus goes out of the main window.
         """
         QApplication.restoreOverrideCursor()
-        self.sig_help_requested.emit(self._url)
+        if self.completion_doc:
+            name = self.completion_doc.get('name', '')
+            signature = self.completion_doc.get('signature', '')
+            self.sig_completion_help_requested.emit(name, signature)
+        else:
+            self.sig_help_requested.emit(self._url)
         super(ToolTipWidget, self).mousePressEvent(event)
         self._hide()
 

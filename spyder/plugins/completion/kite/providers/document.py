@@ -116,7 +116,7 @@ class DocumentProvider:
                     'label': completion['display'],
                     'insertText': completion['snippet']['text'],
                     'filterText': completion['display'],
-                    'sortText': completion['display'][0],
+                    'sortText': completion['display'],
                     'documentation': completion['documentation']['text']
                 }
                 spyder_completions.append(entry)
@@ -131,7 +131,7 @@ class DocumentProvider:
                             'label': text,
                             'insertText': snippet,
                             'filterText': text,
-                            'sortText': text[0],
+                            'sortText': text,
                             'documentation': children['documentation']['text']
                         }
                         spyder_completions.append(child_entry)

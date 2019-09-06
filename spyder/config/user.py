@@ -565,6 +565,7 @@ class UserConfig(DefaultsConfig):
         """
         section = self._check_section_option(section, option)
         default_value = self.get_default(section, option)
+
         if default_value is NoDefault:
             # This let us save correctly string value options with
             # no config default that contain non-ascii chars in
