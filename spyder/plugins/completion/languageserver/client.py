@@ -329,6 +329,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                 self.req_status.pop(req_id)
                                 if req_id in self.req_reply:
                                     self.req_reply.pop(req_id)
+            except RuntimeError:
+                # This is triggered when a codeeditor instance has been
+                # removed before the response can be processed.
+                pass
             except zmq.ZMQError:
                 self.notifier.setEnabled(True)
                 return
