@@ -205,7 +205,6 @@ DEFAULTS = [
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'automatic_completions': True,
-              'code_snippets': False,
               'completions_hint': True,
               'underline_errors': False,
               'highlight_current_line': True,
@@ -473,6 +472,7 @@ DEFAULTS = [
               # It is used to disable hover hints in the editor
               'enable_hover_hints': True,
               'code_completion': True,
+              'code_snippets': True,
               'jedi_definition': True,
               'jedi_definition/follow_imports': True,
               'jedi_signature_help': True,

@@ -382,7 +382,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     snippets = code_editor.editor_extensions.get('SnippetsExtension')
 
     CONF.set('editor', 'code_snippets', True)
-    lsp.update_server_list()
+    lsp.update_configuration()
 
     code_editor.toggle_automatic_completions(False)
     code_editor.toggle_code_snippets(True)
@@ -535,7 +535,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     assert not snippets.is_snippet_active
 
     CONF.set('editor', 'code_snippets', False)
-    lsp.update_server_list()
+    lsp.update_configuration()
 
     code_editor.toggle_automatic_completions(True)
     code_editor.toggle_code_snippets(True)

@@ -18,6 +18,7 @@ import functools
 from qtpy.QtCore import Slot
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.utils.programs import run_program
 from spyder.api.completion import SpyderCompletionPlugin
 from spyder.plugins.completion.kite.client import KiteClient
@@ -34,7 +35,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def __init__(self, parent):
         SpyderCompletionPlugin.__init__(self, parent)
         self.available_languages = []
-        self.client = KiteClient(None)
+        enable_code_snippets = CONF.get('lsp-server', 'code_snippets')
+        self.client = KiteClient(None, enable_code_snippets)
         self.kite_process = None
         self.client.sig_client_started.connect(self.http_client_ready)
         self.client.sig_response_ready.connect(
@@ -68,6 +70,10 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client.stop()
         if self.kite_process is not None:
             self.kite_process.kill()
+
+    def update_configuration(self):
+        enable_code_snippets = CONF.get('lsp-server', 'code_snippets')
+        self.client.enable_code_snippets = enable_code_snippets
 
     def _check_if_kite_installed(self):
         path = ''

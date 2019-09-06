@@ -696,6 +696,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # Basic features group
         basic_features_group = QGroupBox(_("Basic features"))
         completion_box = newcb(_("Enable code completion"), 'code_completion')
+        code_snippets_box = newcb(_("Enable code snippets"), 'code_snippets')
         enable_hover_hints_box = newcb(
             _("Enable hover hints"),
             'enable_hover_hints',
@@ -715,6 +716,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         basic_features_layout = QVBoxLayout()
         basic_features_layout.addWidget(completion_box)
+        basic_features_layout.addWidget(code_snippets_box)
         basic_features_layout.addWidget(enable_hover_hints_box)
         basic_features_layout.addWidget(goto_definition_box)
         basic_features_layout.addWidget(follow_imports_box)
@@ -1155,5 +1157,10 @@ class LanguageServerConfigPage(GeneralConfigPage):
                 # action.trigger()
 
         # TODO: Reset Manager
-        lsp = self.main.completions.get_client('lsp')
-        lsp.update_server_list()
+        self.main.completions.update_configuration()
+
+        editor = self.main.editor
+        for editorstack in editor.editorstacks:
+            if 'code_snippets' in options:
+                code_snippets = self.get_option('code_snippets')
+                editorstack.set_code_snippets_enabled(code_snippets)

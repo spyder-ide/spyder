@@ -209,6 +209,12 @@ class CompletionManager(SpyderCompletionPlugin):
                     language, filename, codeeditor
                 )
 
+    def update_configuration(self):
+        for client_name in self.clients:
+            client_info = self.clients[client_name]
+            if client_info['status'] == self.RUNNING:
+                client_info['plugin'].update_configuration()
+
     def start(self):
         for client_name in self.clients:
             client_info = self.clients[client_name]

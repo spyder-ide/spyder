@@ -30,7 +30,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     sig_client_not_responding = Signal()
     sig_perform_request = Signal(int, str, object)
 
-    def __init__(self, parent):
+    def __init__(self, parent, enable_code_snippets=True):
         QObject.__init__(self, parent)
         self.endpoint = None
         self.requests = {}
@@ -38,6 +38,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         self.mutex = QMutex()
         self.opened_files = {}
         self.thread_started = False
+        self.enable_code_snippets = enable_code_snippets
         self.thread = QThread()
         self.moveToThread(self.thread)
         self.thread.started.connect(self.started)

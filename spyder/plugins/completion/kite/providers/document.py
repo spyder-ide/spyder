@@ -93,6 +93,7 @@ class DocumentProvider:
         request = {
             'filename': osp.realpath(params['file']),
             'editor': 'spyder',
+            'no_snippets': not self.enable_code_snippets,
             'text': text,
             'position': {
                 'begin': params['offset']

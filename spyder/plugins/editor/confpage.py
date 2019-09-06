@@ -40,8 +40,6 @@ class EditorConfigPage(PluginConfigPage):
                                      'indent_guides')
         automatic_completion_box = newcb(_("Show completions on the fly"),
                                          'automatic_completions')
-        code_snippets_box = newcb(_("Enable code snippets"),
-                                  'code_snippets')
         completion_hint_box = newcb(_("Show completion details in hint"),
                                     'completions_hint')
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
@@ -100,7 +98,6 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(showindentguides_box)
         display_layout.addWidget(automatic_completion_box)
         display_layout.addWidget(completion_hint_box)
-        display_layout.addWidget(code_snippets_box)
         display_layout.addWidget(linenumbers_box)
         display_layout.addWidget(blanks_box)
         display_layout.addWidget(underline_errors_box)
