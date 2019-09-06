@@ -16,7 +16,6 @@ import logging
 # Local imports
 from spyder.api.completion import SpyderCompletionPlugin
 from spyder.plugins.completion.fallback.actor import FallbackActor
-# from spyder.plugins.completion.languageserver import LSPRequestTypes
 
 
 logger = logging.getLogger(__name__)

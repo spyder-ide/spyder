@@ -973,6 +973,10 @@ class CodeEditor(TextEditBaseWidget):
         """Handle linting response."""
         try:
             self.process_code_analysis(params['params'])
+        except RuntimeError:
+            # This is triggered when a codeeditor instance has been
+            # removed before the response can be processed.
+            return
         except Exception:
             self.log_lsp_handle_errors("Error when processing linting")
 
@@ -1031,6 +1035,10 @@ class CodeEditor(TextEditBaseWidget):
                                          key=lambda x: x['sortText'])
                 self.completion_widget.show_list(
                         completion_list, position, automatic)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance has been
+            # removed before the response can be processed.
+            return
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
 
@@ -1078,6 +1086,10 @@ class CodeEditor(TextEditBaseWidget):
                     language=self.language,
                     documentation=documentation,
                 )
+        except RuntimeError:
+            # This is triggered when a codeeditor instance has been
+            # removed before the response can be processed.
+            return
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
 
@@ -1110,7 +1122,10 @@ class CodeEditor(TextEditBaseWidget):
                     self.show_hint(content, inspect_word=word,
                                    at_point=self._last_point)
                     self._last_point = None
-
+        except RuntimeError:
+            # This is triggered when a codeeditor instance has been
+            # removed before the response can be processed.
+            return
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
 
@@ -1158,6 +1173,10 @@ class CodeEditor(TextEditBaseWidget):
                     self.go_to_definition.emit(position['file'],
                                                start['line'] + 1,
                                                start['character'])
+        except RuntimeError:
+            # This is triggered when a codeeditor instance has been
+            # removed before the response can be processed.
+            return
         except Exception:
             self.log_lsp_handle_errors(
                 "Error when processing go to definition")
