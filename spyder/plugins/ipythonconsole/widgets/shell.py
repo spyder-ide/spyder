@@ -100,11 +100,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'pdb_state': self.set_pdb_state,
             'pdb_continue': self.pdb_continue,
             'get_breakpoints': self.get_spyder_breakpoints,
-            'save_files': self.handle_save_files,
             'run_cell': self.handle_run_cell,
             'cell_count': self.handle_cell_count,
             'current_filename': self.handle_current_filename,
-            'set_debug_state': self._handle_debug_state
+            'get_file_code': self._handle_get_file_code,
+            'set_debug_state': self._handle_debug_state,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
@@ -489,16 +489,30 @@ the sympy module (e.g. plot)
             return editor.get_current_editorstack()
         raise RuntimeError('No editorstack found.')
 
-    def handle_save_files(self):
-        """Save the open files."""
-        self.get_editorstack().save()
+    def _handle_get_file_code(self, filename):
+        """
+        Return the bytes that compose the file.
+
+        Bytes are returned instead of str to support non utf-8 files.
+        """
+        editorstack = self.get_editorstack()
+        if CONF.get('editor', 'save_all_before_run', True):
+            editorstack.save_all()
+        editor = self.get_editor(filename)
+
+        if editor is None:
+            raise RuntimeError(
+                "File {} not open in the editor".format(filename))
+
+        return editor.toPlainText()
 
     def handle_run_cell(self, cell_name, filename):
         """
         Get cell code from cell name and file name.
         """
         editorstack = self.get_editorstack()
-        editorstack.save()
+        if CONF.get('editor', 'save_all_before_run', True):
+            editorstack.save_all()
         editor = self.get_editor(filename)
 
         if editor is None:
@@ -513,7 +527,6 @@ the sympy module (e.g. plot)
     def handle_cell_count(self, filename):
         """Get number of cells in file to loop."""
         editorstack = self.get_editorstack()
-        editorstack.save()
         editor = self.get_editor(filename)
 
         if editor is None:
