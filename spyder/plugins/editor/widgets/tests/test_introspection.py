@@ -24,7 +24,7 @@ from qtpy.QtGui import QTextCursor
 try:
     from rtree import index
     rtree_available = True
-except (OSError, ImportError):
+except Exception:
     rtree_available = False
 
 # Local imports
@@ -381,7 +381,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     completion = code_editor.completion_widget
     snippets = code_editor.editor_extensions.get('SnippetsExtension')
 
-    CONF.set('editor', 'code_snippets', True)
+    CONF.set('lsp-server', 'code_snippets', True)
     lsp.update_configuration()
 
     code_editor.toggle_automatic_completions(False)
@@ -534,7 +534,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Escape)
     assert not snippets.is_snippet_active
 
-    CONF.set('editor', 'code_snippets', False)
+    CONF.set('lsp-server', 'code_snippets', False)
     lsp.update_configuration()
 
     code_editor.toggle_automatic_completions(True)

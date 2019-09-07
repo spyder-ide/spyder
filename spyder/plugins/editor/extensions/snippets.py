@@ -120,7 +120,7 @@ class SnippetsExtension(EditorExtension):
                     self.remove_selection)
                 self.editor.sig_undo.disconnect(self._undo)
                 self.editor.sig_redo.disconnect(self._redo)
-            except:
+            except TypeError:
                 pass
 
     def update_undo_stack(self):
