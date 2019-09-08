@@ -36,6 +36,7 @@ from qtpy.QtWidgets import QMessageBox, QMainWindow
 import sympy
 
 # Local imports
+from spyder.config.base import get_home_dir
 from spyder.config.gui import get_color_scheme
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, to_text_string
@@ -107,6 +108,9 @@ def ipyconsole(qtbot, request):
             os.mkdir(new_wdir)
         CONF.set('workingdir', 'console/use_fixed_directory', True)
         CONF.set('workingdir', 'console/fixed_directory', new_wdir)
+    else:
+        CONF.set('workingdir', 'console/use_fixed_directory', False)
+        CONF.set('workingdir', 'console/fixed_directory', get_home_dir())
 
     # Test the console with a non-ascii temp dir
     non_ascii_dir = request.node.get_closest_marker('non_ascii_dir')
