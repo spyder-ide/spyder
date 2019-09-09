@@ -8,6 +8,7 @@
 
 
 import os
+import sys
 
 # Local imports
 from spyder.utils import programs
@@ -119,18 +120,16 @@ DEPENDENCIES_BASE = [
      'package_name': "pexpect",
      'features': _("Connect to remote kernels through SSH."),
      'required_version': PEXPECT_REQVER},
-    {'modname': "paramiko",
-     'package_name': "paramiko",
-     'features': _("Connect to remote kernels through SSH."),
-     'required_version': PARAMIKO_REQVER},
-    {'modname': "xdg",
-     'package_name': "pyxdg",
-     'features': _("Parse `.desktop` files on Linux"),
-     'required_version': PYXDG_REQVER},
     {'modname': "pympler",
      'package_name': "pympler",
      'features': _("Development tool to measure, monitor and analyze the memory behavior of Python objects in a running Python application."),
-     'required_version': PYMPLER_REQVER}, ]
+     'required_version': PYMPLER_REQVER}]
+
+if sys.platform == 'Linux':
+    DEPENDENCIES_BASE.append({'modname': "xdg", 'package_name': "pyxdg", 'features': _("Parse `.desktop` files on Linux"), 'required_version': PYXDG_REQVER})
+
+if sys.platform == 'Windows':
+    DEPENDENCIES_BASE.append({'modname': "paramiko", 'package_name': "paramiko", 'features': _("Connect to remote kernels through SSH."), 'required_version': PARAMIKO_REQVER})
 
 class Dependency(object):
     """Spyder's dependency
