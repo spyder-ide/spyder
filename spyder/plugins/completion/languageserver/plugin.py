@@ -202,8 +202,6 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.clients[language] = config
                 self.register_queue[language] = []
             else:
-                logger.debug(
-                    self.clients[language]['config'] != config['config'])
                 current_config = self.clients[language]['config']
                 new_config = config['config']
                 restart_diff = ['cmd', 'args', 'host',
@@ -211,6 +209,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 restart = any([current_config[x] != new_config[x]
                                for x in restart_diff])
                 if restart:
+                    logger.debug("Restart required for {} client!".format(
+                        language))
                     if self.clients[language]['status'] == self.STOPPED:
                         self.clients[language] = config
                     elif self.clients[language]['status'] == self.RUNNING:
