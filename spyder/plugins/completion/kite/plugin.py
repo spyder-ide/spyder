@@ -21,6 +21,7 @@ from qtpy.QtCore import Slot
 from spyder.utils.programs import run_program
 from spyder.api.completion import SpyderCompletionPlugin
 from spyder.plugins.completion.kite.client import KiteClient
+from spyder.plugins.completion.kite.status import KiteStatus
 
 # Third-party imports
 import psutil
@@ -36,6 +37,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.available_languages = []
         self.client = KiteClient(None)
         self.kite_process = None
+        statusbar = parent.statusBar()  # MainWindow status bar
+        self.kite_status = KiteStatus(None, statusbar)
         self.client.sig_client_started.connect(self.http_client_ready)
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
@@ -87,6 +90,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
                              'running with PID {0}'.format(proc.pid))
                 running = True
                 break
+        self.kite_status.update_kite_status(running)
         return running
 
     @staticmethod
