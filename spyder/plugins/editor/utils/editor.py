@@ -200,9 +200,13 @@ class TextHelper(object):
         except KeyError:
             pass
         else:
+            if block.isVisible():
+                return
             from spyder.plugins.editor.utils.folding import FoldScope
-            if not block.isVisible():
-                block = FoldScope.find_parent_scope(block)
+
+            while not block.isVisible():
+                # Find first uncolapsed block
+                block = FoldScope.find_parent_scope(block.previous())
                 if TextBlockHelper.is_collapsed(block):
                     folding_panel.toggle_fold_trigger(block)
 

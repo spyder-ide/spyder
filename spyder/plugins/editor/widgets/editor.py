@@ -812,6 +812,11 @@ class EditorStack(QWidget):
                 lambda menu=self.menu:
                 set_menu_icons(menu, False))
 
+    def hide_tooltip(self):
+        """Hide any open tooltips."""
+        for finfo in self.data:
+            finfo.editor.hide_tooltip()
+
     @Slot()
     def update_fname_label(self):
         """Upadte file name label."""
@@ -934,7 +939,11 @@ class EditorStack(QWidget):
         offset = editor.get_position('cursor')
         if pos:
             cursor = editor.get_last_hover_cursor()
-            offset = cursor.position()
+            if cursor:
+                offset = cursor.position()
+            else:
+                return
+
         line, col = editor.get_cursor_line_column(cursor)
         editor.request_hover(line, col, offset,
                              show_hint=False, clicked=bool(pos))
@@ -2630,7 +2639,7 @@ class EditorStack(QWidget):
             else:
                 cell_name = oe_data.oedata.cell_index()
         else:
-            if block.firstLineNumber() == 0:
+            if block.blockNumber() == 0:
                 # There is no name for the first cell, refer by cell number
                 cell_name = 0
             else:

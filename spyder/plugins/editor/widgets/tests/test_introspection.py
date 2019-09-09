@@ -357,6 +357,42 @@ def test_completions(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
+def test_completion_order(lsp_codeeditor, qtbot):
+    code_editor, _ = lsp_codeeditor
+    completion = code_editor.completion_widget
+
+    code_editor.toggle_automatic_completions(False)
+
+    # Set cursor to start
+    code_editor.go_to_line(1)
+    qtbot.keyClicks(code_editor, 'impo')
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    first_completion = sig.args[0][0]
+    assert first_completion['insertText'] == 'import'
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    qtbot.keyClicks(code_editor, 'Impo')
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    first_completion = sig.args[0][0]
+    assert first_completion['insertText'] == 'ImportError'
+
+
+@pytest.mark.slow
+@pytest.mark.first
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason='Only works on Linux')
 def test_fallback_completions(fallback_codeeditor, qtbot):

@@ -1324,7 +1324,7 @@ class MainWindow(QMainWindow):
         # In MacOS X 10.7 our app is not displayed after initialized (I don't
         # know why because this doesn't happen when started from the terminal),
         # so we need to resort to this hack to make it appear.
-        if running_in_mac_app():
+        if running_in_mac_app(check_file=True):
             idx = __file__.index(MAC_APP_NAME)
             app_path = __file__[:idx]
             subprocess.call(['open', app_path + MAC_APP_NAME])
@@ -3460,7 +3460,11 @@ def run_spyder(app, options, args):
         app.sig_open_external_file.connect(main.open_external_file)
         app._has_started = True
         if hasattr(app, '_pending_file_open'):
-            args = app._pending_file_open + args
+            if args:
+                args = app._pending_file_open + args
+            else:
+                args = app._pending_file_open
+
 
     # Open external files passed as args
     if args:

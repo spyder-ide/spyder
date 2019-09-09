@@ -9,16 +9,15 @@
 # Standard library imports
 import logging
 
-# Qt imports
+# Third party imports
 from qtpy.QtCore import QObject, QThread, Signal, QTimer, QMutex
+import requests
 
 # Local imports
 from spyder.plugins.completion.kite import KITE_ENDPOINTS, KITE_REQUEST_MAPPING
 from spyder.plugins.completion.kite.decorators import class_register
 from spyder.plugins.completion.kite.providers import KiteMethodProviderMixIn
-
-# Other imports
-import requests
+from spyder.py3compat import ConnectionError, ConnectionRefusedError
 
 
 logger = logging.getLogger(__name__)
@@ -31,47 +30,22 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     sig_client_not_responding = Signal()
     sig_perform_request = Signal(int, str, object)
 
-    MAX_SERVER_CONTACT_RETRIES = 40
-
     def __init__(self, parent):
         QObject.__init__(self, parent)
-        self.contact_retries = 0
         self.endpoint = None
         self.requests = {}
         self.languages = []
         self.mutex = QMutex()
         self.opened_files = {}
-        self.alive = False
         self.thread_started = False
         self.thread = QThread()
         self.moveToThread(self.thread)
         self.thread.started.connect(self.started)
         self.sig_perform_request.connect(self.perform_request)
 
-    def __wait_http_session_to_start(self):
-        logger.debug('Waiting Kite HTTP endpoint to be available...')
-        _, url = KITE_ENDPOINTS.ALIVE_ENDPOINT
-        try:
-            code = requests.get(url).status_code
-        except Exception:
-            code = 500
-
-        if self.contact_retries == self.MAX_SERVER_CONTACT_RETRIES:
-            logger.debug('Kite server is not answering')
-            self.sig_client_not_responding.emit()
-        elif code != 200:
-            self.contact_retries += 1
-            QTimer.singleShot(250, self.__wait_http_session_to_start)
-        elif code == 200:
-            self.alive = True
-            self.start_client()
-
     def start(self):
         if not self.thread_started:
             self.thread.start()
-        self.__wait_http_session_to_start()
-
-    def start_client(self):
         logger.debug('Starting Kite HTTP session...')
         self.endpoint = requests.Session()
         self.languages = self.get_languages()
@@ -108,18 +82,13 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     def send(self, method, params, url_params):
         response = None
         if self.endpoint is not None and method in KITE_REQUEST_MAPPING:
-            if self.alive:
-                http_verb, path = KITE_REQUEST_MAPPING[method]
-                path = path.format(**url_params)
-                try:
-                    success, response = self.perform_http_request(
-                        http_verb, path, params)
-                except (ConnectionRefusedError, ConnectionError):
-                    self.alive = False
-                    self.endpoint = None
-                    self.contact_retries = 0
-                    self.__wait_http_session_to_start()
-                    return response
+            http_verb, path = KITE_REQUEST_MAPPING[method]
+            path = path.format(**url_params)
+            try:
+                success, response = self.perform_http_request(
+                    http_verb, path, params)
+            except (ConnectionRefusedError, ConnectionError):
+                return response
         return response
 
     def perform_request(self, req_id, method, params):

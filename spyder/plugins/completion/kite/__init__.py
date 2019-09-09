@@ -14,7 +14,6 @@ class _KiteEndpoints(type):
     KITE_PORT = 46624
     KITE_URL = 'http://localhost:{0}'.format(KITE_PORT)
 
-    ALIVE_ENDPOINT = ('GET', '/clientapi/ping')
     LANGUAGES_ENDPOINT = ('GET', '/clientapi/languages')
     EVENT_ENDPOINT = ('POST', '/clientapi/editor/event')
     HOVER_ENDPOINT = (
