@@ -3222,7 +3222,8 @@ class MainWindow(QMainWindow):
             self.switcher.set_search_text('')
             self.switcher.setup()
         self.switcher.show()
-        # Note: the +1 pixel on the top makes it look better
+
+        # Note: The +1 pixel on the top makes it look better
         delta_top = (self.toolbars_menu.geometry().height() +
                      self.menuBar().geometry().height() + 1)
         self.switcher.set_position(delta_top)
