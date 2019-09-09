@@ -529,7 +529,6 @@ the sympy module (e.g. plot)
         Reimplemented to reset the prompt if the error comes after the reply
         """
         self._process_execute_error(msg)
-        self._show_interpreter_prompt()
 
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
