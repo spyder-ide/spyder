@@ -302,9 +302,21 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             'maxLineLength': cs_max_line_length
         }
 
-        # Linting - Pyflakes
+        # Linting
+        # This option controls if any linter is active or not
+        linting_o = self.get_option('linting')
         pyflakes = {
-            'enabled': self.get_option('pyflakes')
+            'enabled': linting_o and self.get_option('pyflakes')
+        }
+
+        pylint = {
+            'enabled': linting_o and self.get_option('pylint'),
+            'args': []
+        }
+
+        mccabe = {
+            'enabled': linting_o and self.get_option('mccabe'),
+            'threshold': 15
         }
 
         # Pydocstyle
@@ -367,6 +379,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         plugins = python_config['configurations']['pyls']['plugins']
         plugins['pycodestyle'] = pycodestyle
         plugins['pyflakes'] = pyflakes
+        plugins['pylint'] = pylint
+        plugins['mccabe'] = mccabe
         plugins['pydocstyle'] = pydocstyle
         plugins['jedi_completion'] = jedi_completion
         plugins['jedi_signature_help'] = jedi_signature_help
