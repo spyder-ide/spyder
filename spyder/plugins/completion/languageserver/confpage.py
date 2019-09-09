@@ -16,7 +16,7 @@ import sys
 # Third party imports
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize
-from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
+from qtpy.QtWidgets import (QAbstractItemView, QButtonGroup, QCheckBox,
                             QComboBox, QDialog, QDialogButtonBox, QGroupBox,
                             QGridLayout, QHBoxLayout, QLabel, QLineEdit,
                             QPushButton, QSpinBox, QTableView, QTabWidget,
@@ -692,7 +692,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
 
-        # --- Introspection ---
+        # --- Introspection tab ---
         # Basic features group
         basic_features_group = QGroupBox(_("Basic features"))
         completion_box = newcb(_("Enable code completion"), 'code_completion')
@@ -737,26 +737,59 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_layout.addWidget(modules_textedit)
         advanced_group.setLayout(advanced_layout)
 
-        # --- Linting ---
-        # Linting options
+        # --- Linting tab ---
+        # Linting label
         linting_label = QLabel(_("Spyder can optionally highlight syntax "
                                  "errors and possible problems with your "
                                  "code in the editor."))
         linting_label.setOpenExternalLinks(True)
         linting_label.setWordWrap(True)
-        linting_check = self.create_checkbox(
-            _("Enable basic linting"),
-            'pyflakes')
 
+        # Linting checkbox
+        linting_check = self.create_checkbox(
+            _("Enable linting"),
+            'linting')
+
+        # Warnings and errors group
+        warnings_errors_group = QGroupBox(_("Warnings and errors"))
+        linting_bg = QButtonGroup()
+        linting_pyflakes_radio = self.create_radiobutton(
+            _("Enable basic linting with Pyflakes"),
+            'pyflakes',
+            button_group=linting_bg)
+        linting_pylint_radio = self.create_radiobutton(
+            _("Enable advanced linting with Pylint (slower)"),
+            'pylint',
+            button_group=linting_bg)
+
+        warnings_errors_layout = QVBoxLayout()
+        warnings_errors_layout.addWidget(linting_pyflakes_radio)
+        warnings_errors_layout.addWidget(linting_pylint_radio)
+        warnings_errors_group.setLayout(warnings_errors_layout)
+
+        # Complexity group
+        complexity_group = QGroupBox(_("Complexity reports"))
         linting_complexity_box = self.create_checkbox(
             _("Enable complexity linting with "
               "the Mccabe package"), 'mccabe')
+
+        complexity_layout = QVBoxLayout()
+        complexity_layout.addWidget(linting_complexity_box)
+        complexity_group.setLayout(complexity_layout)
+
+        # Set linting options enabled/disabled
+        warnings_errors_group.setEnabled(self.get_option('linting'))
+        linting_check.toggled.connect(warnings_errors_group.setEnabled)
+        complexity_group.setEnabled(self.get_option('linting'))
+        linting_check.toggled.connect(complexity_group.setEnabled)
 
         # Linting layout
         linting_layout = QVBoxLayout()
         linting_layout.addWidget(linting_label)
         linting_layout.addWidget(linting_check)
-        linting_layout.addWidget(linting_complexity_box)
+        linting_layout.addWidget(warnings_errors_group)
+        linting_layout.addWidget(complexity_group)
+
         linting_widget = QWidget()
         linting_widget.setLayout(linting_layout)
 
@@ -803,7 +836,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
             'pycodestyle/max_line_length', min_=10, max_=500, step=1,
             tip=_("Default is 79"))
 
-        # Code style layout
+        # Code style group layout
         code_style_g_layout = QGridLayout()
         code_style_g_layout.addWidget(
             self.code_style_filenames_match.label, 1, 0)
