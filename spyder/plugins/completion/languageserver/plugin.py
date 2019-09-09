@@ -280,7 +280,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         python_config = PYTHON_CONFIG.copy()
 
         # Server options
-        cmd = self.get_option('advanced/command_launch')
+        cmd = self.get_option('advanced/module')
         host = self.get_option('advanced/host')
         port = self.get_option('advanced/port')
 
