@@ -884,8 +884,8 @@ class MainWindow(QMainWindow):
                                                 "main_toolbar")
 
         # Switcher instance
-        self.create_switcher()
         logger.info("Loading switcher...")
+        self.create_switcher()
 
         # Internal console plugin
         logger.info("Loading internal console...")
@@ -3238,30 +3238,7 @@ class MainWindow(QMainWindow):
             from spyder.widgets.switcher import Switcher
             self.switcher = Switcher(self)
 
-            # Add base modes to the switcher
-            self.switcher.add_mode('>', _('Commands'))
-            self.switcher.add_mode('?', _('Help'))
-            self.switcher.sig_mode_selected.connect(
-                self.handle_base_switcher_modes)
-
         return self.switcher
-
-    def create_commands_switcher(self):
-        """Create commands switcher."""
-        # TODO: Add swithcer commands
-        self.switcher.clear()
-
-    def create_help_switcher(self):
-        """Create help switcher."""
-        # TODO: Add switcher help
-        self.switcher.clear()
-
-    def handle_base_switcher_modes(self, mode):
-        """Handle switcher mode change."""
-        if mode == '>':
-            self.create_commands_switcher()
-        elif mode == '?':
-            self.create_help_switcher()
 
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):

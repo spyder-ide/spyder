@@ -1603,7 +1603,7 @@ def test_switcher(main_window, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the switcher."""
     switcher = main_window.switcher
 
-    # Assert that the full path of a file is shown in the fileswitcher
+    # Assert that the full path of a file is shown in the switcher
     file_a = tmpdir.join('test_file_a.py')
     file_a.write('''
 def example_def():
@@ -1620,7 +1620,7 @@ def example_def_2():
     assert osp.dirname(str(file_a)) in switcher_paths or len(str(file_a)) > 90
     switcher.close()
 
-    # Assert that long paths are shortened in the fileswitcher
+    # Assert that long paths are shortened in the switcher
     dir_b = tmpdir
     for _ in range(3):
         dir_b = dir_b.mkdir(str(uuid.uuid4()))
