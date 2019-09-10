@@ -941,11 +941,12 @@ class LanguageServerConfigPage(GeneralConfigPage):
         clients_layout = QVBoxLayout()
         clients_layout.addWidget(completion_fallback)
         clients_layout.addWidget(completion_lsp)
-        clients_layout.addWidget(completion_kite)        
+        clients_layout.addWidget(completion_kite)
         clients_group.setLayout(clients_layout)
 
         # Advanced label
-        lsp_advanced_group = QGroupBox(_("Language server client configuration"))
+        lsp_advanced_group = QGroupBox(_(
+            'Language server client configuration'))
         advanced_label = QLabel(
             _("<b>Warning</b>: Only modify these values if "
               "you know what you're doing!"))
