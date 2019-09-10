@@ -23,6 +23,7 @@ class OnlineHelp(SpyderPluginWidget):
     """Online Help Plugin."""
 
     CONF_SECTION = 'onlinehelp'
+    CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
 
     def __init__(self, parent):

@@ -43,6 +43,7 @@ class Pylint(SpyderPluginWidget):
 
     CONF_SECTION = 'pylint'
     CONFIGWIDGET_CLASS = PylintConfigPage
+    CONF_FILE = False
 
     def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
