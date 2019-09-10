@@ -55,6 +55,7 @@ class BaseEditMixin(object):
     _DEFAULT_LANGUAGE = 'python'
     _DEFAULT_MAX_LINES = 10
     _DEFAULT_MAX_WIDTH = 60
+    _DEFAULT_COMPLETION_HINT_MAX_WIDTH = 52
     _DEFAULT_MAX_HINT_LINES = 20
     _DEFAULT_MAX_HINT_WIDTH = 85
 
@@ -163,7 +164,7 @@ class BaseEditMixin(object):
         | Link or shortcut with `inspect_word` |
         ----------------------------------------
         """
-        BASE_TEMPLATE = '''
+        BASE_TEMPLATE = u'''
             <div style=\'font-family: "{font_family}";
                         font-size: {size}pt;
                         color: {color}\'>
@@ -209,10 +210,15 @@ class BaseEditMixin(object):
             # All these replacements are need to properly divide the
             # text in actual paragraphs and wrap the text on each one
             paragraphs = (text
+                          .replace(u"\xa0", u" ")
                           .replace("\n\n", "<!DOUBLE_ENTER!>")
                           .replace(".\n", ".<!SINGLE_ENTER!>")
                           .replace("\n-", "<!SINGLE_ENTER!>-")
                           .replace("-\n", "-<!SINGLE_ENTER!>")
+                          .replace("\n=", "<!SINGLE_ENTER!>=")
+                          .replace("=\n", "=<!SINGLE_ENTER!>")
+                          .replace("\n*", "<!SINGLE_ENTER!>*")
+                          .replace("*\n", "*<!SINGLE_ENTER!>")
                           .replace("\n ", "<!SINGLE_ENTER!> ")
                           .replace(" \n", " <!SINGLE_ENTER!>")
                           .replace("\n", " ")
@@ -247,6 +253,8 @@ class BaseEditMixin(object):
         if max_lines:
             if len(lines) > max_lines:
                 text = '\n'.join(lines[:max_lines]) + ' ...'
+            else:
+                text = '\n'.join(lines)
 
         text = text.replace('\n', '<br>')
         if text_new_line and signature:
@@ -552,14 +560,14 @@ class BaseEditMixin(object):
                      max_width=_DEFAULT_MAX_WIDTH,
                      cursor=None,
                      with_html_format=False,
-                     text_new_line=True):
+                     text_new_line=True,
+                     completion_doc=None):
         """Show tooltip."""
         # Find position of calltip
         point = self._calculate_position(
             at_line=at_line,
             at_point=at_point,
         )
-
         # Format text
         tiptext = self._format_text(
             title=title,
@@ -577,15 +585,16 @@ class BaseEditMixin(object):
         self._update_stylesheet(self.tooltip_widget)
 
         # Display tooltip
-        self.tooltip_widget.show_tip(point, tiptext, cursor=cursor)
+        self.tooltip_widget.show_tip(point, tiptext, cursor=cursor,
+                                     completion_doc=completion_doc)
 
     def show_hint(self, text, inspect_word, at_point,
                   max_lines=_DEFAULT_MAX_HINT_LINES,
                   max_width=_DEFAULT_MAX_HINT_WIDTH,
-                  text_new_line=True):
+                  text_new_line=True, completion_doc=None):
         """Show code hint and crop text as needed."""
         # Check if signature and format
-        res = self._check_signature_and_format(text)
+        res = self._check_signature_and_format(text, max_width=max_width)
         html_signature, extra_text, _ = res
         point = self.get_word_start_pos(at_point)
 
@@ -598,7 +607,8 @@ class BaseEditMixin(object):
                           at_point=point, inspect_word=inspect_word,
                           display_link=True, max_lines=max_lines,
                           max_width=max_width, cursor=cursor,
-                          text_new_line=text_new_line)
+                          text_new_line=text_new_line,
+                          completion_doc=completion_doc)
 
     def hide_tooltip(self):
         """

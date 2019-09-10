@@ -245,7 +245,6 @@ class BaseSH(QSyntaxHighlighter):
         for name, (color, bold, italic) in list(colors.items()):
             format = QTextCharFormat(base_format)
             format.setForeground(QColor(color))
-            format.setBackground(QColor(self.background_color))
             if bold:
                 format.setFontWeight(QFont.Bold)
             format.setFontItalic(italic)

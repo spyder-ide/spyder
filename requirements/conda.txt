@@ -16,7 +16,7 @@ pyxdg
 pyzmq
 qdarkstyle >=2.7
 qtawesome >=0.5.7
-qtconsole >=4.5.2
+qtconsole >=4.5.5
 qtpy >=1.5.0
 sphinx
 spyder-kernels >=1.4.0

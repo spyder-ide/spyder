@@ -1085,12 +1085,16 @@ class Editor(SpyderPluginWidget):
         def toogle(checked):
             self.switch_to_plugin()
             self._toggle_checkable_action(checked, method, conf_name)
+
         action = create_action(self, text, toggled=toogle)
+        action.blockSignals(True)
 
         if conf_name not in ['pycodestyle', 'pydocstyle']:
             action.setChecked(self.get_option(conf_name))
         else:
             action.setChecked(CONF.get('lsp-server', conf_name))
+
+        action.blockSignals(False)
 
         return action
 
@@ -1118,10 +1122,8 @@ class Editor(SpyderPluginWidget):
                         logger.error(e, exc_info=True)
             self.set_option(conf_name, checked)
         else:
-            if conf_name == 'pycodestyle':
-                CONF.set('lsp-server', 'pycodestyle', checked)
-            elif conf_name == 'pydocstyle':
-                CONF.set('lsp-server', 'pydocstyle', checked)
+            if conf_name in ('pycodestyle', 'pydocstyle'):
+                CONF.set('lsp-server', conf_name, checked)
             lsp = self.main.completions.get_client('lsp')
             lsp.update_server_list()
 
@@ -1216,6 +1218,7 @@ class Editor(SpyderPluginWidget):
             ('set_stripmode_enabled',               'strip_trailing_spaces_on_modify'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_automatic_completions_enabled',   'automatic_completions'),
+            ('set_completions_hint_enabled',        'completions_hint'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
             ('set_occurrence_highlighting_enabled',  'occurrence_highlighting'),
@@ -2043,13 +2046,20 @@ class Editor(SpyderPluginWidget):
                 self.close_file_from_name(fname)
 
     def renamed(self, source, dest):
-        """File was renamed in file explorer widget or in project explorer"""
+        """
+        Propagate file rename to editor stacks and autosave component.
+
+        This function is called when a file is renamed in the file explorer
+        widget or the project explorer.
+        """
         filename = osp.abspath(to_text_string(source))
         index = self.editorstacks[0].has_filename(filename)
         if index is not None:
             for editorstack in self.editorstacks:
                 editorstack.rename_in_data(filename,
                                            new_filename=to_text_string(dest))
+        self.editorstacks[0].autosave.file_renamed(
+            filename, to_text_string(dest))
 
     def renamed_tree(self, source, dest):
         """Directory was renamed in file explorer or in project explorer."""
@@ -2214,6 +2224,10 @@ class Editor(SpyderPluginWidget):
     def current_file_changed(self, filename, position):
         self.add_cursor_position_to_history(to_text_string(filename), position,
                                             fc=True)
+        # Hide any open tooltips
+        current_stack = self.get_current_editorstack()
+        if current_stack is not None:
+            current_stack.hide_tooltip()
 
     @Slot()
     def go_to_last_edit_location(self):
@@ -2316,7 +2330,7 @@ class Editor(SpyderPluginWidget):
     def debug_command(self, command):
         """Debug actions"""
         self.switch_to_plugin()
-        self.main.ipyconsole.write_to_stdin(command)
+        self.main.ipyconsole.pdb_execute(command)
         focus_widget = self.main.ipyconsole.get_focus_widget()
         if focus_widget:
             focus_widget.setFocus()
@@ -2587,6 +2601,8 @@ class Editor(SpyderPluginWidget):
             ibackspace_o = self.get_option(ibackspace_n)
             autocompletions_n = 'automatic_completions'
             autocompletions_o = self.get_option(autocompletions_n)
+            completionshint_n = 'completions_hint'
+            completionshint_o = self.get_option(completionshint_n)
             removetrail_n = 'always_remove_trailing_spaces'
             removetrail_o = self.get_option(removetrail_n)
             converteol_n = 'convert_eol_on_save'
@@ -2624,6 +2640,8 @@ class Editor(SpyderPluginWidget):
                 if autocompletions_n in options:
                     editorstack.set_automatic_completions_enabled(
                         autocompletions_o)
+                if completionshint_n in options:
+                    editorstack.set_completions_hint_enabled(completionshint_o)
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecols_n in options:
@@ -2664,8 +2682,11 @@ class Editor(SpyderPluginWidget):
 
             for name, action in self.checkable_actions.items():
                 if name in options:
+                    # Avoid triggering the action when this action changes state
+                    action.blockSignals(True)
                     state = self.get_option(name)
                     action.setChecked(state)
+                    action.blockSignals(False)
                     # See: spyder-ide/spyder#9915
                     # action.trigger()
 

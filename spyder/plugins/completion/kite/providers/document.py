@@ -91,7 +91,7 @@ class DocumentProvider:
                             completion['hint'], CompletionItemKind.TEXT),
                         'insertText': completion['snippet']['text'],
                         'filterText': completion['display'],
-                        'sortText': completion['display'][0],
+                        'sortText': completion['display'],
                         'documentation': completion['documentation']['text']
                     }
                     spyder_completions.append(entry)
