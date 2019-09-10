@@ -17,7 +17,7 @@ from spyder.config.base import _
 
 CLOUDPICKLE_REQVER = '>=0.5.0'
 PYGMENTS_REQVER = '>=2.0'
-QTCONSOLE_REQVER = '>=4.5.0'
+QTCONSOLE_REQVER = '>=4.5.5'
 NBCONVERT_REQVER = '>=4.0'
 SPHINX_REQVER = '>=0.6.6'
 PYLINT_REQVER = '>=0.25'
