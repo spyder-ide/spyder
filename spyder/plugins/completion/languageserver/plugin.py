@@ -140,7 +140,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     def start_client(self, language):
         """Start an LSP client for a given language."""
         started = False
-        if language in self.clients:
+        if language in self.clients and self.get_option('enable'):
             language_client = self.clients[language]
             queue = self.register_queue[language]
 

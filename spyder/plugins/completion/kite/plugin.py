@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class KiteCompletionPlugin(SpyderCompletionPlugin):
+    CONF_SECTION = 'completion-kite'
     COMPLETION_CLIENT_NAME = 'kite'
 
     def __init__(self, parent):
@@ -56,7 +57,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
 
     def start(self):
         installed, path = self._check_if_kite_installed()
-        if installed:
+        if installed and self.get_option('enable'):
             logger.debug('Kite was found on the system: {0}'.format(path))
             running = self._check_if_kite_running()
             if not running:

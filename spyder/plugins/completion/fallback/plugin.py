@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class FallbackPlugin(SpyderCompletionPlugin):
+    CONF_SECTION = 'completion-fallback'
     COMPLETION_CLIENT_NAME = 'fallback'
 
     def __init__(self, parent):
@@ -39,7 +40,7 @@ class FallbackPlugin(SpyderCompletionPlugin):
         return self.started
 
     def start(self):
-        if not self.started:
+        if not self.started and self.get_option('enable'):
             self.fallback_actor.start()
             self.started = True
 

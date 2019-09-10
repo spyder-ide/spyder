@@ -692,6 +692,21 @@ class LanguageServerConfigPage(GeneralConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
 
+        # --- Clients ---
+        completion_lsp = newcb(_("Enable language server completion client"),
+                               'enable')
+        completion_fallback = newcb(_("Enable fallback completion client"),
+                                    'enable',
+                                    section='completion-fallback')
+        completion_kite = newcb(_("Enable kite completion client"), 'enable',
+                                section='completion-kite')
+        clients_widget = QWidget()
+        clients_layout = QVBoxLayout()
+        clients_layout.addWidget(completion_fallback)
+        clients_layout.addWidget(completion_lsp)
+        clients_layout.addWidget(completion_kite)
+        clients_widget.setLayout(clients_layout)
+
         # --- Introspection ---
         # Basic features group
         basic_features_group = QGroupBox(_("Basic features"))
@@ -1029,6 +1044,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         # --- Tabs organization ---
         self.tabs = QTabWidget()
+        self.tabs.addTab(self.create_tab(clients_widget), _('Clients'))
         self.tabs.addTab(self.create_tab(basic_features_group, advanced_group),
                     _('Introspection'))
         self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
