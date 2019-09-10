@@ -224,8 +224,8 @@ class MainConfigPage(GeneralConfigPage):
             "",
             'high_dpi_custom_scale_factors',
             tip=_("Enter values for different screens "
-                  "separated by semicolons ';', "
-                  "float values are supported"),
+                  "separated by semicolons ';'.\n"
+                  "Float values are supported"),
             alignment=Qt.Horizontal,
             regex=r"[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
             restart=True)
