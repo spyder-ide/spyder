@@ -936,7 +936,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         completion_fallback = newcb(_("Enable fallback completions"),
                                     'enable',
                                     section='fallback-completions')
-        completion_kite = newcb(_("Enable kite completions"), 'enable',
+        completion_kite = newcb(_("Enable Kite completions"), 'enable',
                                 section='kite-completions')
 
         clients_layout = QVBoxLayout()
@@ -950,7 +950,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         # Advanced label
         lsp_advanced_group = QGroupBox(_(
-            'Language server client configuration'))
+            'Python Language Server configuration'))
         advanced_label = QLabel(
             _("<b>Warning</b>: Only modify these values if "
               "you know what you're doing!"))
