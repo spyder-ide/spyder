@@ -121,6 +121,10 @@ class SwitcherBaseItem(QStandardItem):
         """Return the content width."""
         return self._width
 
+    def get_height(self):
+        """Return the content height."""
+        return self._height + (self._padding * 2)
+
     def set_score(self, value):
         """Set the search text fuzzy match score."""
         self._score = value
@@ -465,7 +469,11 @@ class Switcher(QDialog):
     sig_item_selected = Signal(object, TEXT_TYPES[-1], TEXT_TYPES[-1], )
     sig_mode_selected = Signal(TEXT_TYPES[-1])
 
-    _MIN_WIDTH = 500
+    _MIN_WIDTH = 580
+    _MIN_HEIGHT = 80
+    _MAX_HEIGHT = 480
+
+    _MAX_NUM_ITEMS = 20
     _ITEM_WIDTH = _MIN_WIDTH - 20
 
     def __init__(self, parent, help_text=None, item_styles=ITEM_STYLES,
@@ -488,6 +496,8 @@ class Switcher(QDialog):
         # Widgets setup
         self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
         self.setWindowOpacity(0.95)
+        self.setMinimumHeight(self._MIN_HEIGHT)
+        self.setMaximumHeight(self._MAX_HEIGHT)
         self.edit.installEventFilter(self.filter)
         self.edit.setPlaceholderText(help_text if help_text else '')
         self.list.setMinimumWidth(self._MIN_WIDTH)
@@ -530,6 +540,7 @@ class Switcher(QDialog):
             # the last one in order to prevent performance issues when
             # adding multiple items
             self.set_current_row(0)
+            self.set_minimum_height()
         self.setup_sections()
 
     # --- API
@@ -539,6 +550,7 @@ class Switcher(QDialog):
         self.model.beginResetModel()
         self.model.clear()
         self.model.endResetModel()
+        self.setMinimumHeight(self._MIN_HEIGHT)
 
     def set_placeholder_text(self, text):
         """Set the text appearing on the empty line edit."""
@@ -650,6 +662,7 @@ class Switcher(QDialog):
             self.set_current_row(-1)
 
         self.setup_sections()
+        self.set_minimum_height()
 
     def setup_sections(self):
         """Set-up which sections appear on the item list."""
@@ -683,6 +696,20 @@ class Switcher(QDialog):
 
         self.proxy.sortBy('_score')
         self.sig_item_changed.emit(self.current_item())
+
+    def set_minimum_height(self):
+        """Set the minimum height depending on the max number of items."""
+        current_item = self.current_item()
+        if current_item is not None:
+            item_height = current_item.get_height()
+            list_height = item_height * self.proxy.rowCount()
+            switcher_height = list_height + self.edit.height()
+            if list_height > item_height * self._MAX_NUM_ITEMS:
+                switcher_height = item_height * self._MAX_NUM_ITEMS
+            elif list_height == item_height:
+                switcher_height = self._MIN_HEIGHT
+            self.setFixedHeight(switcher_height)
+            self.update()
 
     def set_position(self, top):
         """Set the position of the dialog."""
