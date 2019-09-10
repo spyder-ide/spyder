@@ -90,7 +90,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
                              'running with PID {0}'.format(proc.pid))
                 running = True
                 break
-        self.kite_status.update_kite_status(running)
+        self.kite_status.update(running)
         return running
 
     @staticmethod
