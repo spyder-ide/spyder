@@ -2065,8 +2065,8 @@ class CodeEditor(TextEditBaseWidget):
             # Underline errors and warnings in this editor.
             if self.underline_errors_enabled:
                 self.highlight_selection('code_analysis_underline',
-                                           block.selection,
-                                           underline_color=block.color)
+                                         block.selection,
+                                         underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
         self.update_extra_selections()
@@ -2196,8 +2196,8 @@ class CodeEditor(TextEditBaseWidget):
         """Highlight errors and warnings in this editor."""
         self.clear_extra_selections('code_analysis_highlight')
         self.highlight_selection('code_analysis_highlight',
-                                   block_data.selection,
-                                   background_color=block_data.color)
+                                 block_data.selection,
+                                 background_color=block_data.color)
         self.update_extra_selections()
         self.linenumberarea.update()
 

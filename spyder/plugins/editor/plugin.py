@@ -2606,6 +2606,8 @@ class Editor(SpyderPluginWidget):
             ibackspace_o = self.get_option(ibackspace_n)
             autocompletions_n = 'automatic_completions'
             autocompletions_o = self.get_option(autocompletions_n)
+            completionshint_n = 'completions_hint'
+            completionshint_o = self.get_option(completionshint_n)
             removetrail_n = 'always_remove_trailing_spaces'
             removetrail_o = self.get_option(removetrail_n)
             converteol_n = 'convert_eol_on_save'
@@ -2643,6 +2645,8 @@ class Editor(SpyderPluginWidget):
                 if autocompletions_n in options:
                     editorstack.set_automatic_completions_enabled(
                         autocompletions_o)
+                if completionshint_n in options:
+                    editorstack.set_completions_hint_enabled(completionshint_o)
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecols_n in options:
@@ -2683,7 +2687,7 @@ class Editor(SpyderPluginWidget):
 
             for name, action in self.checkable_actions.items():
                 if name in options:
-                     # Avoid triggering the action when this action changes state
+                    # Avoid triggering the action when this action changes state
                     action.blockSignals(True)
                     state = self.get_option(name)
                     action.setChecked(state)

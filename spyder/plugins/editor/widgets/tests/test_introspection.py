@@ -395,7 +395,6 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     """
     text = textwrap.dedent(text)
 
-    # qtbot.keyClicks(code_editor, 'import json')
     code_editor.insert_text(text)
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
@@ -451,10 +450,9 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     assert snippets.active_snippet == 1
 
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    for _ in range(0, 4):
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert snippets.active_snippet == 1
 
     cursor = code_editor.textCursor()
@@ -468,10 +466,8 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
     qtbot.keyClicks(code_editor, '_var')
 
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    for _ in range(0, 4):
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     cursor = code_editor.textCursor()
     arg2 = cursor.selectedText()
@@ -482,10 +478,8 @@ def test_code_snippets(lsp_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
     qtbot.keyClicks(code_editor, 's')
 
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    for _ in range(0, 4):
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     cursor = code_editor.textCursor()
     arg3 = cursor.selectedText()
@@ -507,25 +501,24 @@ def test_code_snippets(lsp_codeeditor, qtbot):
         code_editor.undo()
     assert len(snippets.snippets_map) == 4
 
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    for _ in range(0, 4):
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
     cursor = code_editor.textCursor()
     arg1 = cursor.selectedText()
     assert 'ssome_z' == arg1
 
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    for _ in range(0, 2):
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     # Delete text
     qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
     qtbot.keyPress(code_editor, Qt.Key_Backspace)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
-    qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    for _ in range(0, 4):
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
     cursor = code_editor.textCursor()
     arg1 = cursor.selectedText()
     assert 'rg1' == arg1

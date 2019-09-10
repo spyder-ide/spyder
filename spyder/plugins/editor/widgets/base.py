@@ -51,6 +51,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.extra_selections_dict = {}
+        self.code_snippets = True
 
         self.textChanged.connect(self.changed)
         self.cursorPositionChanged.connect(self.cursor_position_changed)
@@ -873,7 +874,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 if cursor.position() != completion_position:
                     return
             # Add text
-            self.sig_insert_completion.emit(text)
+            if self.code_snippets:
+                self.sig_insert_completion.emit(text)
+            else:
+                self.insert_text(text)
+                self.document_did_change()
 
     def is_completion_widget_visible(self):
         """Return True is completion list widget is visible"""
