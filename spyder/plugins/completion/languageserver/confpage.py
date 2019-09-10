@@ -692,21 +692,6 @@ class LanguageServerConfigPage(GeneralConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
 
-        # --- Clients ---
-        completion_lsp = newcb(_("Enable language server completion client"),
-                               'enable')
-        completion_fallback = newcb(_("Enable fallback completion client"),
-                                    'enable',
-                                    section='completion-fallback')
-        completion_kite = newcb(_("Enable kite completion client"), 'enable',
-                                section='completion-kite')
-        clients_widget = QWidget()
-        clients_layout = QVBoxLayout()
-        clients_layout.addWidget(completion_fallback)
-        clients_layout.addWidget(completion_lsp)
-        clients_layout.addWidget(completion_kite)
-        clients_widget.setLayout(clients_layout)
-
         # --- Introspection ---
         # Basic features group
         basic_features_group = QGroupBox(_("Basic features"))
@@ -943,7 +928,24 @@ class LanguageServerConfigPage(GeneralConfigPage):
         docstring_style_widget.setLayout(docstring_style_layout)
 
         # --- Advanced tab ---
+        # Clients group
+        clients_group = QGroupBox(_("Clients"))
+        completion_lsp = newcb(_("Enable language server completions"),
+                               'enable')
+        completion_fallback = newcb(_("Enable fallback completions"),
+                                    'enable',
+                                    section='fallback-completions')
+        completion_kite = newcb(_("Enable kite completions"), 'enable',
+                                section='kite-completions')
+
+        clients_layout = QVBoxLayout()
+        clients_layout.addWidget(completion_fallback)
+        clients_layout.addWidget(completion_lsp)
+        clients_layout.addWidget(completion_kite)        
+        clients_group.setLayout(clients_layout)
+
         # Advanced label
+        lsp_advanced_group = QGroupBox(_("Language server client configuration"))
         advanced_label = QLabel(
             _("<b>Warning</b>: Only modify these values if "
               "you know what you're doing!"))
@@ -982,14 +984,13 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_host_port_g_layout.addWidget(self.advanced_port.spinbox, 1, 2)
         advanced_g_layout.addLayout(advanced_host_port_g_layout, 2, 1)
 
-        advanced_widget = QWidget()
         advanced_layout = QVBoxLayout()
         advanced_layout.addWidget(advanced_label)
         advanced_layout.addSpacing(12)
         advanced_layout.addLayout(advanced_g_layout)
         advanced_layout.addWidget(self.external_server)
         advanced_layout.addWidget(self.use_stdio)
-        advanced_widget.setLayout(advanced_layout)
+        lsp_advanced_group.setLayout(advanced_layout)
 
         # --- Other servers tab ---
         # Section label
@@ -1044,14 +1045,13 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         # --- Tabs organization ---
         self.tabs = QTabWidget()
-        self.tabs.addTab(self.create_tab(clients_widget), _('Clients'))
         self.tabs.addTab(self.create_tab(basic_features_group, advanced_group),
                     _('Introspection'))
         self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
         self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
         self.tabs.addTab(self.create_tab(docstring_style_widget),
                     _('Docstring style'))
-        self.tabs.addTab(self.create_tab(advanced_widget),
+        self.tabs.addTab(self.create_tab(clients_group, lsp_advanced_group),
                     _('Advanced'))
         self.tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 

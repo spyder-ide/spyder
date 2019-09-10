@@ -106,7 +106,8 @@ class BasePlugin(BasePluginMixin):
         bool, int, str, tuple, list, dict
             Value associated with `option`.
         """
-        return super(BasePlugin, self)._get_option(option, default, section=section)
+        return super(BasePlugin, self)._get_option(option, default,
+                                                   section=section)
 
     def starting_long_process(self, message):
         """

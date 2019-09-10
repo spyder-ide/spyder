@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class FallbackPlugin(SpyderCompletionPlugin):
-    CONF_SECTION = 'completion-fallback'
+    CONF_SECTION = 'fallback-completions'
     COMPLETION_CLIENT_NAME = 'fallback'
 
     def __init__(self, parent):

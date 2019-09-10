@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class KiteCompletionPlugin(SpyderCompletionPlugin):
-    CONF_SECTION = 'completion-kite'
+    CONF_SECTION = 'kite-completions'
     COMPLETION_CLIENT_NAME = 'kite'
 
     def __init__(self, parent):

@@ -57,15 +57,15 @@ class ProjectConfigPage(GeneralConfigPage):
 
         GeneralConfigPage.__init__(self, parent, main)
 
-    def set_option(self, option, value):
+    def set_option(self, option, value, section=None):
         """ """
-        CONF = self._conf
-        CONF.set(self.CONF_SECTION, option, value)
+        section = self.CONF_SECTION if section is None else section
+        self._conf.set(section, option, value)
 
-    def get_option(self, option, default=NoDefault):
+    def get_option(self, option, default=NoDefault, section=None):
         """" """
-        CONF = self._conf
-        return CONF.get(self.CONF_SECTION, option, default)
+        section = self.CONF_SECTION if section is None else section
+        return self._conf.get(section, option, default)
 
 
 class WorkspaceConfigPage(ProjectConfigPage):

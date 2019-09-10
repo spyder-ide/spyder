@@ -497,14 +497,14 @@ DEFAULTS = [
               'advanced/external': False,
               'advanced/stdio': False
              }),
-             ('completion-fallback',
+            ('fallback-completions',
              {
               'enable': True,
-              }),
-             ('completion-kite',
+             }),
+            ('kite-completions',
              {
               'enable': False,
-              }),
+             }),
             ]
 
 

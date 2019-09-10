@@ -316,8 +316,10 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             checkbox.setChecked(self.get_option(option, default, section=sec))
             checkbox.clicked.connect(lambda _, opt=option:
                                      self.has_been_modified(opt))
-        for radiobutton, (sec, option, default) in list(self.radiobuttons.items()):
-            radiobutton.setChecked(self.get_option(option, default, section=sec))
+        for radiobutton, (sec, option, default) in list(
+                self.radiobuttons.items()):
+            radiobutton.setChecked(self.get_option(option, default,
+                                                   section=sec))
             radiobutton.toggled.connect(lambda _foo, opt=option:
                                         self.has_been_modified(opt))
             if radiobutton.restart_required:
@@ -422,11 +424,13 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
     def save_to_conf(self):
         """Save settings to configuration file"""
-        for checkbox, (sec, option, _default) in list(self.checkboxes.items()):
+        for checkbox, (sec, option, _default) in list(
+                self.checkboxes.items()):
             if option in self.changed_options:
                 value = checkbox.isChecked()
                 self.set_option(option, value, section=sec)
-        for radiobutton, (sec, option, _default) in list(self.radiobuttons.items()):
+        for radiobutton, (sec, option, _default) in list(
+                self.radiobuttons.items()):
             if option in self.changed_options:
                 self.set_option(option, radiobutton.isChecked(), section=sec)
         for lineedit, (sec, option, _default) in list(self.lineedits.items()):
@@ -458,7 +462,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         for combobox, (sec, option, _default) in list(self.comboboxes.items()):
             if option in self.changed_options:
                 data = combobox.itemData(combobox.currentIndex())
-                self.set_option(option, from_qvariant(data, to_text_string), section=sec)
+                self.set_option(option, from_qvariant(data, to_text_string),
+                                section=sec)
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
             if option in self.changed_options:
                 font = fontbox.currentFont()
@@ -466,8 +471,11 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 self.set_font(font, option, section=sec)
         for clayout, (sec, option, _default) in list(self.coloredits.items()):
             if option in self.changed_options:
-                self.set_option(option, to_text_string(clayout.lineedit.text()), section=sec)
-        for (clayout, cb_bold, cb_italic), (sec, option, _default) in list(self.scedits.items()):
+                self.set_option(option,
+                                to_text_string(clayout.lineedit.text()),
+                                section=sec)
+        for (clayout, cb_bold, cb_italic), (sec, option, _default) in list(
+                self.scedits.items()):
             if option in self.changed_options:
                 color = to_text_string(clayout.lineedit.text())
                 bold = cb_bold.isChecked()
@@ -709,7 +717,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         cb_italic = QCheckBox()
         cb_italic.setIcon(ima.icon('italic'))
         cb_italic.setToolTip(_("Italic"))
-        self.scedits[(clayout, cb_bold, cb_italic)] = (section, option, default)
+        self.scedits[(clayout, cb_bold, cb_italic)] = (section, option,
+                                                       default)
         if without_layout:
             return label, clayout, cb_bold, cb_italic
         layout = QHBoxLayout()
