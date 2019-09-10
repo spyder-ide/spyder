@@ -101,6 +101,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
             if method in self.handler_registry:
                 converter_name = self.handler_registry[method]
                 converter = getattr(self, converter_name)
-                response = converter(response)
+                if response is not None:
+                    response = converter(response)
             if response is not None:
                 self.sig_response_ready.emit(req_id, response)
