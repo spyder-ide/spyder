@@ -35,10 +35,12 @@ logger = logging.getLogger(__name__)
 
 class LanguageServerPlugin(SpyderCompletionPlugin):
     """Language Server Protocol manager."""
+    CONF_SECTION = 'lsp-server'
+    CONF_FILE = False
+
     COMPLETION_CLIENT_NAME = 'lsp'
     STOPPED = 'stopped'
     RUNNING = 'running'
-    CONF_SECTION = 'lsp-server'
     LOCALHOST = ['127.0.0.1', 'localhost']
     CONFIGWIDGET_CLASS = LanguageServerConfigPage
 
