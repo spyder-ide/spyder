@@ -707,7 +707,7 @@ class ThumbnailScrollBar(QFrame):
             self.scrollarea.viewportMargins().left() -
             self.scrollarea.viewportMargins().right() -
             thumbnail.savefig_btn.width() -
-            thumbnail.layout().spacing()
+            thumbnail.layout().spacing() - extra_padding
             )
         if is_dark_interface():
             # This is required to take into account some hard-coded padding
