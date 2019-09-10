@@ -31,11 +31,6 @@ class BasePlugin(BasePluginMixin):
 
     WARNING: Don't override any methods or attributes present here!
     """
-    # Define configuration name map for plugin to split configuration
-    # among several files. See spyder/config/main.py
-    # Status: Hidden
-    _CONF_NAME_MAP = None
-
     # Use this signal to display a message in the status bar.
     # str: The message you want to display
     # int: Amount of time to display the message

@@ -36,6 +36,11 @@ from spyder.widgets.dock import SpyderDockWidget
 class BasePluginMixin(object):
     """Implementation of the basic functionality for Spyder plugins."""
 
+    # Define configuration name map for plugin to split configuration
+    # among several files. See spyder/config/main.py
+    # Status: Hidden
+    _CONF_NAME_MAP = None
+
     def __init__(self, parent=None):
         super(BasePluginMixin, self).__init__()
 
