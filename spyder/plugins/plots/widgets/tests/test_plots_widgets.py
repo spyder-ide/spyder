@@ -419,10 +419,10 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
         new_height = int(height)
         new_width = int(height / fheight * fwidth)
 
-    assert (figbrowser.zoom_disp.value() ==
-            np.round(figcanvas.width() / fwidth * 100))
     assert figcanvas.width() == new_width
     assert figcanvas.height() == new_height
+    assert (figbrowser.zoom_disp.value() ==
+            round(figcanvas.width() / fwidth * 100))
 
 
 if __name__ == "__main__":
