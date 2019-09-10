@@ -57,7 +57,6 @@ def test_get_workingdir(setup_workingdirectory):
     assert act_wdir == get_home_dir()
 
 
-@pytest.mark.first
 @pytest.mark.use_startup_wdir
 def test_get_workingdir_startup(setup_workingdirectory):
     """Test the method that defines the working directory at home."""

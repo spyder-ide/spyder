@@ -9,10 +9,8 @@ Shell Widget for the IPython Console
 """
 
 # Standard library imports
-import ast
 import os
 import uuid
-import re
 from textwrap import dedent
 
 # Third party imports
@@ -23,17 +21,16 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.config.manager import CONF
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
-from spyder.py3compat import PY2, to_text_string
-from spyder.utils import encoding
+from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style, create_style_class
 from spyder.widgets.helperwidgets import MessageCheckBox
+from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
         ControlWidget, DebuggingWidget, FigureBrowserWidget,
         HelpWidget, NamepaceBrowserWidget, PageControlWidget)
 
-from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                   FigureBrowserWidget):
@@ -90,7 +87,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # set in the qtconsole constructor. See spyder-ide/spyder#4806.
         self.set_bracket_matcher_color_scheme(self.syntax_style)
 
-        self.spyder_kernel_comm = KernelComm()
+        self.spyder_kernel_comm = KernelComm(
+            interrupt_callback=self._pdb_update)
         self.spyder_kernel_comm.sig_exception_occurred.connect(
             self.sig_exception_occurred)
         self.kernel_manager = None
@@ -103,13 +101,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'run_cell': self.handle_run_cell,
             'cell_count': self.handle_cell_count,
             'current_filename': self.handle_current_filename,
+            'set_debug_state': self._handle_debug_state
         }
-
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
-
-        self.spyder_kernel_comm.sig_debugging.connect(self._debugging_hook)
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None):
         """Send message to spyder."""
@@ -118,11 +114,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
         """Set the kernel client and manager"""
-        self.spyder_kernel_comm.set_kernel_client(kernel_client)
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
-        if self.kernel_client is not None:
-            self.set_queued_input(self.kernel_client)
+        self.spyder_kernel_comm.open_comm(kernel_client)
 
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
@@ -185,9 +179,16 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if reset:
             self.reset(clear=True)
         if not dark_color:
+            # Needed to change the colors of tracebacks
             self.silent_execute("%colors linux")
+            self.call_kernel(
+                interrupt=True,
+                blocking=False).set_sympy_forecolor(background_color='dark')
         else:
             self.silent_execute("%colors lightbg")
+            self.call_kernel(
+                interrupt=True,
+                blocking=False).set_sympy_forecolor(background_color='light')
 
     def request_syspath(self):
         """Ask the kernel for sys.path contents."""
@@ -201,18 +202,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # --- To handle the banner
     def long_banner(self):
-        """Banner for IPython widgets with pylab message"""
+        """Banner for clients with additional content."""
         # Default banner
-        try:
-            from IPython.core.usage import quick_guide
-        except Exception:
-            quick_guide = ''
+        py_ver = self.interpreter_versions['python_version'].split('\n')[0]
+        ipy_ver = self.interpreter_versions['ipython_version']
+
         banner_parts = [
-            'Python %s\n' % self.interpreter_versions['python_version'],
+            'Python %s\n' % py_ver,
             'Type "copyright", "credits" or "license" for more information.\n\n',
-            'IPython %s -- An enhanced Interactive Python.\n' % \
-            self.interpreter_versions['ipython_version'],
-            quick_guide
+            'IPython %s -- An enhanced Interactive Python.\n' % ipy_ver
         ]
         banner = ''.join(banner_parts)
 
@@ -244,21 +242,24 @@ enabled at the same time. Some pylab functions are going to be overrided by
 the sympy module (e.g. plot)
 """
             banner = banner + lines
+
         return banner
 
     def short_banner(self):
-        """Short banner with Python and QtConsole versions"""
-        banner = 'Python %s -- IPython %s' % (
-                                  self.interpreter_versions['python_version'],
-                                  self.interpreter_versions['ipython_version'])
+        """Short banner with Python and IPython versions only."""
+        py_ver = self.interpreter_versions['python_version'].split(' ')[0]
+        ipy_ver = self.interpreter_versions['ipython_version']
+        banner = 'Python %s -- IPython %s' % (py_ver, ipy_ver)
         return banner
 
     # --- To define additional shortcuts
     def clear_console(self):
-        if self._reading and self.is_debugging():
+        if self.is_waiting_pdb_input():
             self.dbg_exec_magic('clear')
         else:
             self.execute("%clear")
+        # Stop reading as any input has been removed.
+        self._reading = False
 
     def _reset_namespace(self):
         warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
@@ -299,7 +300,7 @@ the sympy module (e.g. plot)
                 return
 
         try:
-            if self._reading and self.is_debugging():
+            if self.is_waiting_pdb_input():
                 self.dbg_exec_magic('reset', '-f')
             else:
                 if message:
@@ -528,7 +529,6 @@ the sympy module (e.g. plot)
         Reimplemented to reset the prompt if the error comes after the reply
         """
         self._process_execute_error(msg)
-        self._show_interpreter_prompt()
 
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""

@@ -37,6 +37,7 @@ class WorkingDirectory(SpyderPluginWidget):
 
     CONF_SECTION = 'workingdir'
     CONFIGWIDGET_CLASS = WorkingDirectoryConfigPage
+    CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
 
     set_previous_enabled = Signal(bool)

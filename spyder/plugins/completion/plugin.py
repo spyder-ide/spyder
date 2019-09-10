@@ -145,11 +145,12 @@ class CompletionManager(SpyderCompletionPlugin):
                 break
         return {'params': response}
 
-    def gather_and_send(self,
-                        principal_source, response_instance, req_type, req_id):
+    def gather_and_send(self, principal_source, response_instance, req_type,
+                        req_id):
         logger.debug('Gather responses for {0}'.format(req_type))
         responses = []
         req_id_responses = self.requests[req_id]['sources']
+
         if req_type == LSPRequestTypes.DOCUMENT_COMPLETION:
             # principal_source = self.plugin_priority[req_type]
             responses = self.gather_completions(
@@ -161,7 +162,13 @@ class CompletionManager(SpyderCompletionPlugin):
         else:
             principal_source = self.plugin_priority['all']
             responses = req_id_responses[principal_source]
-        response_instance.handle_response(req_type, responses)
+
+        try:
+            response_instance.handle_response(req_type, responses)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance has been
+            # removed before the response can be processed.
+            pass
 
     def send_request(self, language, req_type, req, req_id=None):
         req_id = self.req_id

@@ -205,6 +205,7 @@ DEFAULTS = [
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'automatic_completions': True,
+              'completions_hint': True,
               'underline_errors': False,
               'highlight_current_line': True,
               'highlight_current_cell': True,
@@ -492,6 +493,7 @@ DEFAULTS = [
               'advanced/command_launch': 'pyls',
               'advanced/host': '',
               'advanced/port': 0,
+              'advanced/module': 'pyls',
               'advanced/external': False,
               'advanced/stdio': True
              }),
@@ -589,4 +591,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '52.1.0'
+CONF_VERSION = '53.0.0'

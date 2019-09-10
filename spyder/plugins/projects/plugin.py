@@ -45,6 +45,7 @@ class Projects(SpyderPluginWidget):
     """Projects plugin."""
 
     CONF_SECTION = 'project_explorer'
+    CONF_FILE = False
     sig_pythonpath_changed = Signal()
     sig_project_created = Signal(object, object, object)
     sig_project_loaded = Signal(object)

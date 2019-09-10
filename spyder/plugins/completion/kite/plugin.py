@@ -112,7 +112,16 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
 
     @staticmethod
     def _is_proc_kite(proc):
+        try:
+            # This is raising `ZombieProcess: psutil.ZombieProcess` on OSX
+            # if kite is not running.
+            name = proc.name()
+        except Exception:
+            name = ''
+
         if os.name == 'nt' or sys.platform.startswith('linux'):
-            return 'kited' in proc.name()
+            is_kite = 'kited' in name
         else:
-            return proc.name() == 'Kite'
+            is_kite = 'Kite' == name
+
+        return is_kite

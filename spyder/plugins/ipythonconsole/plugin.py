@@ -67,7 +67,7 @@ dependencies.add("cython", "cython",
                  _("Run Cython files in the IPython Console"),
                  required_version=CYTHON_REQVER, optional=True)
 
-QTCONSOLE_REQVER = ">=4.5.2"
+QTCONSOLE_REQVER = ">=4.5.5"
 dependencies.add("qtconsole", "qtconsole",
                  _("Integrate the IPython console"),
                  required_version=QTCONSOLE_REQVER)
@@ -96,6 +96,7 @@ class IPythonConsole(SpyderPluginWidget):
     """
     CONF_SECTION = 'ipython_console'
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
+    CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     # Signals
@@ -482,9 +483,8 @@ class IPythonConsole(SpyderPluginWidget):
                     # still an execution taking place
                     # Fixes spyder-ide/spyder#7293.
                     pass
-                elif (client.shellwidget._reading and
-                      client.shellwidget.is_debugging()):
-                    client.shellwidget.write_to_stdin('!' + line)
+                elif (client.shellwidget.in_debug_loop()):
+                    client.shellwidget.pdb_execute('!' + line)
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables)
                 else:
@@ -538,9 +538,8 @@ class IPythonConsole(SpyderPluginWidget):
                     # still an execution taking place
                     # Fixes spyder-ide/spyder#7293.
                     pass
-                elif (client.shellwidget._reading and
-                      client.shellwidget.is_debugging()):
-                    client.shellwidget.write_to_stdin('!' + line)
+                elif (client.shellwidget.in_debug_loop()):
+                    client.shellwidget.pdb_execute('!' + line)
                 else:
                     self.execute_code(line)
             except AttributeError:
@@ -584,7 +583,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
         if sw is not None:
-            if sw._reading:
+            if sw.is_waiting_pdb_input():
                 pass
             else:
                 if not current_client:
@@ -607,13 +606,13 @@ class IPythonConsole(SpyderPluginWidget):
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
-    def write_to_stdin(self, line):
+    def pdb_execute(self, line, hidden=False):
         sw = self.get_current_shellwidget()
         if sw is not None:
             # Needed to handle an error when kernel_client is None.
             # See spyder-ide/spyder#7578.
             try:
-                sw.write_to_stdin(line)
+                sw.pdb_execute(line, hidden)
             except AttributeError:
                 pass
 
@@ -819,17 +818,16 @@ class IPythonConsole(SpyderPluginWidget):
         if CONF.get('main_interpreter', 'default'):
             from IPython.core import release
             versions = dict(
-                python_version = sys.version.split("\n")[0].strip(),
+                python_version = sys.version,
                 ipython_version = release.version
             )
         else:
             import subprocess
             versions = {}
             pyexec = CONF.get('main_interpreter', 'executable')
-            py_cmd = "%s -c 'import sys; print(sys.version.split(\"\\n\")[0])'" % \
-                     pyexec
-            ipy_cmd = "%s -c 'import IPython.core.release as r; print(r.version)'" \
-                      % pyexec
+            py_cmd = '%s -c "import sys; print(sys.version)"' % pyexec
+            ipy_cmd = ('%s -c "import IPython.core.release as r; print(r.version)"'
+                       % pyexec)
             for cmd in [py_cmd, ipy_cmd]:
                 try:
                     proc = programs.run_shell_command(cmd)
@@ -1505,7 +1503,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.console.exception_occurred)
         if external_kernel:
             shellwidget.sig_is_spykernel.connect(
-                    self.connect_external_kernel)
+                self.connect_external_kernel)
             shellwidget.is_spyder_kernel()
 
         # Set elapsed time, if possible

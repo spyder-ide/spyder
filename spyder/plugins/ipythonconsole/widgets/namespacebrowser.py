@@ -114,17 +114,6 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         except (TimeoutError, UnpicklingError):
             return None
 
-    def set_pdb_state(self, pdb_state):
-        """Set current pdb state."""
-        if pdb_state is not None and isinstance(pdb_state, dict):
-            self.refresh_from_pdb(pdb_state)
-
-    def pdb_continue(self):
-        """Continue debugging."""
-        # Run Pdb continue to get to the first breakpoint
-        # Fixes 2034
-        self.write_to_stdin('continue')
-
     # ---- Private API (overrode by us) ----------------------------
     def _handle_execute_reply(self, msg):
         """

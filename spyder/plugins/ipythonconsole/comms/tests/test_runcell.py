@@ -50,9 +50,14 @@ def test_runcell(tmpdir, debug):
         def runcell(cellname, filename):
             return code
 
+        def set_debug_state(state):
+            set_debug_state.state = state
+
+        set_debug_state.state = None
         kernel_comm.register_call_handler('run_cell', runcell)
         kernel_comm.register_call_handler('get_breakpoints', lambda: {})
         kernel_comm.register_call_handler('pdb_state', lambda state: None)
+        kernel_comm.register_call_handler('set_debug_state', set_debug_state)
 
         if debug:
             function = 'debugcell'
@@ -68,11 +73,11 @@ def test_runcell(tmpdir, debug):
             # Continue
             process_msg('set_debug_state')
             process_msg('get_breakpoints')
-            assert kernel_comm._debugging
+            assert set_debug_state.state
             time.sleep(.5)
             client.input('c')
             process_msg('set_debug_state')
-            assert not kernel_comm._debugging
+            assert not set_debug_state.state
 
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         assert msg['msg_type'] == 'execute_reply'

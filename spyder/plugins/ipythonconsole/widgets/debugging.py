@@ -48,44 +48,69 @@ class DebuggingWidget(RichJupyterWidget):
             r'^(%s)?([ \t]*ipdb> |[ \t]*In \[\d+\]: |[ \t]*\ \ \ \.\.\.+: )'
             % re.escape(self.other_output_prefix))
         self._previous_prompt = None
-        self._input_queue = []
-        self._input_ready = False
-        self._last_pdb_cmd = ''
+        self._pdb_input_queue = []
+        self._pdb_input_ready = False
+        self._pdb_last_cmd = ''
         self._pdb_line_num = 0
-        self.pdb_history_file = PdbHistory()
+        self._pdb_history_file = PdbHistory()
         self._control.history = [
-            line[-1] for line in self.pdb_history_file.get_tail(
+            line[-1] for line in self._pdb_history_file.get_tail(
                 self.PDB_HIST_MAX, include_latest=True)]
+        self._pdb_in_loop = False
 
-    def set_queued_input(self, client):
-        """Change the kernel client input function queue calls."""
-        old_input = client.input
-
-        def queued_input(string):
-            """If input is not ready, save it in a queue."""
-            if not string.strip():
-                # Must get the last genuine command
-                string = self._last_pdb_cmd
-            if self._input_ready:
-                self._input_ready = False
-                return old_input(string)
-            elif self.is_debugging():
-                self._input_queue.append(string)
-
-        client.input = queued_input
-
-    def _debugging_hook(self, debugging):
-        """Catches debugging state."""
+    def _handle_debug_state(self, in_debug_loop):
+        """Update the debug state."""
+        self._pdb_in_loop = in_debug_loop
         # If debugging starts or stops, clear the input queue.
-        self._input_queue = []
+        self._pdb_input_queue = []
         self._pdb_line_num = 0
+
+    def _pdb_update(self):
+        """
+        Update by sending an input to pdb.
+        """
+        if self._pdb_in_loop:
+            cmd = (u"!get_ipython().kernel.frontend_comm" +
+                   ".remote_call(blocking=True).pong()")
+            self.pdb_execute(cmd, hidden=True)
 
     # --- Public API --------------------------------------------------
-    def write_to_stdin(self, line):
-        """Send raw characters to the IPython kernel through stdin"""
-        self._control.insert_text(line + '\n')
-        self._reading = False
-        self.kernel_client.input(line)
+    def pdb_execute(self, line, hidden=False):
+        """Send line to the pdb kernel if possible."""
+        if not line.strip():
+            # Must get the last genuine command
+            line = self._pdb_last_cmd
+
+        if not self.is_waiting_pdb_input():
+            # We can't execute this if we are not waiting for pdb input
+            if self.in_debug_loop():
+                self._pdb_input_queue.append((line, hidden))
+            return
+
+        if self._pdb_input_ready:
+            # Print the string to the console
+            if not hidden:
+                if line.strip():
+                    self._pdb_last_cmd = line
+
+                # Print the text if it is programatically added.
+                if line.strip() != self.input_buffer.strip():
+                    self._append_plain_text(line + '\n')
+
+                # Save history to browse it later
+                self._pdb_line_num += 1
+                self.add_to_pdb_history(self._pdb_line_num, line)
+
+                # Set executing to true and save the input buffer
+                self._input_buffer_executing = self.input_buffer
+                self._executing = True
+
+                self._finalize_input_request()
+
+            self._pdb_input_ready = False
+            return self.kernel_client.input(line)
+
+        self._pdb_input_queue.append((line, hidden))
 
     def get_spyder_breakpoints(self):
         """Get spyder breakpoints."""
@@ -98,11 +123,11 @@ class DebuggingWidget(RichJupyterWidget):
 
     def dbg_exec_magic(self, magic, args=''):
         """Run an IPython magic while debugging."""
-        if not self.is_debugging():
+        if not self.is_waiting_pdb_input():
             return
         code = "!get_ipython().kernel.shell.run_line_magic('{}', '{}')".format(
                     magic, args)
-        self.kernel_client.input(code)
+        self.pdb_execute(code, hidden=True)
 
     def refresh_from_pdb(self, pdb_state):
         """
@@ -122,7 +147,34 @@ class DebuggingWidget(RichJupyterWidget):
         if 'var_properties' in pdb_state:
             self.set_var_properties(pdb_state['var_properties'])
 
+    def set_pdb_state(self, pdb_state):
+        """Set current pdb state."""
+        if pdb_state is not None and isinstance(pdb_state, dict):
+            self.refresh_from_pdb(pdb_state)
+
+    def pdb_continue(self):
+        """Continue debugging."""
+        # Run Pdb continue to get to the first breakpoint
+        # Fixes 2034
+        self.pdb_execute('continue')
+
     # ---- Private API (overrode by us) ----------------------------
+    def _readline_callback(self, line):
+        """Callback used when the user inputs text in stdin."""
+        if not self.is_waiting_pdb_input():
+            # This is a regular input call
+            self._finalize_input_request()
+            return self.kernel_client.input(line)
+
+        # This is the Spyder addition: add a %plot magic to display
+        # plots while debugging
+        if line.startswith('%plot '):
+            line = line.split()[-1]
+            line = "__spy_code__ = get_ipython().run_cell('%s')" % line
+            self.pdb_execute(line, hidden=True)
+        else:
+            self.pdb_execute(line)
+
     def _handle_input_request(self, msg):
         """Save history and add a %plot magic."""
         if self._hidden:
@@ -132,59 +184,36 @@ class DebuggingWidget(RichJupyterWidget):
         # Make sure that all output from the SUB channel has been processed
         # before entering readline mode.
         self.kernel_client.iopub_channel.flush()
-        self._input_ready = True
-        self._executing = False
+
+        prompt, password = msg['content']['prompt'], msg['content']['password']
+
+        # Check if this is a duplicate that we shouldn't reprint.
+        # This can happen when sending commands to pdb from the frontend.
+        print_prompt = (not self._reading
+                        or not (prompt, password) == self._previous_prompt)
+
+        self._previous_prompt = (prompt, password)
+
+        if print_prompt:
+            # Reset reading in case it was interrupted
+            self._reading = False
+            self._readline(prompt=prompt, callback=self._readline_callback,
+                           password=password)
+
+        if self.is_waiting_pdb_input():
+            self._highlighter.highlighting_on = True
+            self._pdb_input_ready = True
+            self._executing = False
 
         # While the widget thinks only one input is going on,
         # other functions can be sending messages to the kernel.
         # This must be properly processed to avoid dropping messages.
         # If the kernel was not ready, the messages are queued.
-        if len(self._input_queue) > 0:
-            msg = self._input_queue[0]
-            del self._input_queue[0]
-            self.kernel_client.input(msg)
+        if self.is_waiting_pdb_input() and len(self._pdb_input_queue) > 0:
+            args = self._pdb_input_queue[0]
+            del self._pdb_input_queue[0]
+            self.pdb_execute(*args)
             return
-
-        def callback(line):
-            if not self.is_debugging():
-                return self.kernel_client.input(line)
-            line = line.strip()
-
-            # Save history to browse it later
-            self._pdb_line_num += 1
-            self.add_to_pdb_history(self._pdb_line_num, line)
-
-            if line:
-                self._last_pdb_cmd = line
-
-            # must match ConsoleWidget.do_execute
-            self._executing = True
-
-            # This is the Spyder addition: add a %plot magic to display
-            # plots while debugging
-            if line.startswith('%plot '):
-                line = line.split()[-1]
-                code = "__spy_code__ = get_ipython().run_cell('%s')" % line
-                self.kernel_client.input(code)
-            else:
-                self.kernel_client.input(line)
-            self._highlighter.highlighting_on = False
-        self._highlighter.highlighting_on = True
-
-        prompt, password = msg['content']['prompt'], msg['content']['password']
-        position = self._prompt_pos
-
-        if (self._reading and
-                (prompt, password, position) == self._previous_prompt):
-            # This is a duplicate, don't reprint
-            # This can happen when sending commands to pdb from the frontend.
-            return
-
-        self._previous_prompt = (prompt, password, position)
-        # Reset reading in case it was interrupted
-        self._reading = False
-        self._readline(prompt=prompt, callback=callback,
-                       password=password)
 
     def _show_prompt(self, prompt=None, html=False, newline=True):
         """
@@ -198,7 +227,7 @@ class DebuggingWidget(RichJupyterWidget):
     def _event_filter_console_keypress(self, event):
         """Handle Key_Up/Key_Down while debugging."""
         key = event.key()
-        if self._reading:
+        if self.is_waiting_pdb_input():
             self._control.current_prompt_pos = self._prompt_pos
             if key == Qt.Key_Up:
                 self._control.browse_history(backward=True)
@@ -216,9 +245,14 @@ class DebuggingWidget(RichJupyterWidget):
             return super(DebuggingWidget,
                          self)._event_filter_console_keypress(event)
 
-    def is_debugging(self):
+    def in_debug_loop(self):
         """Check if we are debugging."""
-        return self.spyder_kernel_comm._debugging
+        return self._pdb_in_loop
+
+    def is_waiting_pdb_input(self):
+        """Check if we are waiting a pdb input."""
+        return (self.in_debug_loop() and self._previous_prompt is not None
+                and self._previous_prompt[0] == 'ipdb> ')
 
     def add_to_pdb_history(self, line_num, line):
         """Add command to history"""
@@ -228,7 +262,8 @@ class DebuggingWidget(RichJupyterWidget):
         line = line.strip()
 
         # If repeated line
-        if len(self._control.history) > 0 and self._control.history[-1] == line:
+        history = self._control.history
+        if len(history) > 0 and history[-1] == line:
             return
 
         cmd = line.split(" ")[0]
@@ -236,4 +271,4 @@ class DebuggingWidget(RichJupyterWidget):
         is_pdb_cmd = "do_" + cmd in dir(pdb.Pdb)
         if cmd and (not is_pdb_cmd or len(args) > 0):
             self._control.history.append(line)
-            self.pdb_history_file.store_inputs(line_num, line)
+            self._pdb_history_file.store_inputs(line_num, line)

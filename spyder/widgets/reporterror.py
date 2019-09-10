@@ -82,11 +82,6 @@ class DescriptionWidget(CodeEditor):
 
         if cursor_position < self.header_end_pos:
             self.restrict_cursor_position(self.header_end_pos, 'eof')
-        elif key == Qt.Key_Delete:
-            if self.has_selected_text():
-                self.remove_text()
-            else:
-                self.stdkey_clear()
         elif key == Qt.Key_Backspace:
             if self.has_selected_text():
                 self.remove_text()
@@ -98,6 +93,17 @@ class DescriptionWidget(CodeEditor):
             self.cut()
         else:
             CodeEditor.keyPressEvent(self, event)
+
+    def delete(self):
+        """Reimplemented to avoid removing the header."""
+        cursor_position = self.get_position('cursor')
+
+        if cursor_position < self.header_end_pos:
+            self.restrict_cursor_position(self.header_end_pos, 'eof')
+        elif self.has_selected_text():
+            self.remove_text()
+        else:
+            self.stdkey_clear()
 
     def contextMenuEvent(self, event):
         """Reimplemented Qt Method to not show the context menu."""
@@ -123,7 +129,6 @@ class SpyderErrorDialog(QDialog):
         QDialog.__init__(self, parent)
         self.is_report = is_report
         self.setWindowTitle(_("Issue reporter"))
-        self.setModal(True)
 
         # To save the traceback sent to the internal console
         self.error_traceback = ""
