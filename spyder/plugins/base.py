@@ -42,10 +42,16 @@ class BasePluginMixin(object):
         # Check compatibility
         check_compatibility, message = self.check_compatibility()
 
+        self._register_plugin()
+
         self._is_compatible = True
         if not check_compatibility:
             self._is_compatible = False
             self._show_compatibility_message(message)
+
+    def _register_plugin(self):
+        """Register plugin configuration."""
+        CONF.register_plugin(self)
 
     def _set_option(self, option, value):
         """Set option in spyder.ini"""

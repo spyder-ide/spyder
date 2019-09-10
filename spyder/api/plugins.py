@@ -149,10 +149,26 @@ class SpyderPlugin(BasePlugin):
     # Status: Optional
     CONF_SECTION = None
 
-    # Widget to be used as entry in Spyder Preferences
-    # dialog
+    # Widget to be used as entry in Spyder Preferences dialog
     # Status: Optional
     CONFIGWIDGET_CLASS = None
+
+    # Use separate configuration file for plugin
+    # Status: Optional
+    CONF_FILE = True
+
+    # Define configuration name map for plugin to split configuration
+    # among several files
+    # Status: Optional
+    CONF_NAME_MAP = None
+
+    # Define configuration defaults if using a separate file
+    # Status: Optional
+    CONF_DEFAULTS = None
+
+    # Define configuration version if using a separate file
+    # Status: Optional
+    CONF_VERSION = None
 
     # ------------------------------ METHODS ----------------------------------
 
