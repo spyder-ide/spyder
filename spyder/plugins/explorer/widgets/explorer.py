@@ -175,7 +175,7 @@ class DirView(QTreeView):
 
         # Signals
         header.customContextMenuRequested.connect(self.show_header_menu)
-        header.sectionClicked.connect(lambda x: self.sort_by_column())
+        # header.sectionClicked.connect(lambda x: self.sort_by_column())
 
     #---- Model
     def setup_fs_model(self):
@@ -197,7 +197,7 @@ class DirView(QTreeView):
         self.setAnimated(False)
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
-        self.setSortingEnabled(False)
+        # self.setSortingEnabled(False)
         self.fsmodel.modelReset.connect(self.reset_icon_provider)
         self.reset_icon_provider()
         # Disable the view of .spyproject.
