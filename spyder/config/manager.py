@@ -63,13 +63,13 @@ class ConfigurationManager(object):
             path = self.get_plugin_config_path(conf_section)
             version = plugin_class.CONF_VERSION
             version = version if version else '0.0.0'
-            name_map = plugin_class.CONF_NAME_MAP
+            name_map = plugin_class._CONF_NAME_MAP
             name_map = name_map if name_map else {'spyder': []}
             defaults = plugin_class.CONF_DEFAULTS
 
             if conf_section in self._plugin_configs:
-                raise Exception('A plugin with section "{}" already exsists!'
-                                ''.format(conf_section))
+                raise RuntimeError('A plugin with section "{}" already '
+                                   'exists!'.format(conf_section))
 
             plugin_config = MultiUserConfig(
                 name_map,
@@ -93,11 +93,13 @@ class ConfigurationManager(object):
         """Return the system configuration path."""
         return None
 
-    def get_active_conf(self, section):
+    def get_active_conf(self, section=None):
         """
         Return the active user or project configurarion for plugin.
         """
-        if section in self._plugin_configs:
+        if section is None:
+            config = self._user_config
+        elif section in self._plugin_configs:
             config = self._plugin_configs[section]
         else:
             # TODO: implement project configuration on the following PR
@@ -119,7 +121,7 @@ class ConfigurationManager(object):
         base_path = get_conf_path()
         path = osp.join(base_path, 'plugins')
         if plugin_folder is None:
-            raise Exception('Plugin configuration needs to define a `CONF_SECTION`!')
+            raise RuntimeError('Plugin needs to define `CONF_SECTION`!')
         path = osp.join(base_path, 'plugins', plugin_folder)
         if not osp.isdir(path):
             os.makedirs(path)
@@ -207,10 +209,10 @@ class ConfigurationManager(object):
         config = self.get_active_conf(section)
         config.remove_option(section, option)
 
-    def reset_to_defaults(self):
+    def reset_to_defaults(self, section=None):
         """Reset config to Default values."""
         config = self.get_active_conf(section)
-        config.reset_to_defaults()
+        config.reset_to_defaults(section=section)
 
 
 CONF = ConfigurationManager()

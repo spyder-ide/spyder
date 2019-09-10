@@ -943,10 +943,10 @@ class MultiUserConfig(object):
         config.set(section=section, option=option, value=value,
                    verbose=verbose, save=save)
 
-    def reset_to_defaults(self):
+    def reset_to_defaults(self, section=None):
         """Reset configuration to Default values."""
         for _, config in self._configs_map.items():
-            config.reset_to_defaults()
+            config.reset_to_defaults(section=section)
 
     def remove_section(self, section):
         """Remove `section` and all options within it."""
