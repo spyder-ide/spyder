@@ -317,6 +317,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                             traceback = ''.join(traceback)
                             traceback = traceback + '\n' + message
                             self.sig_server_error.emit(traceback)
+                        req_id = resp['id']
+                        if req_id in self.req_reply:
+                            self.req_reply[req_id](None, {'params': []})
                 elif 'method' in resp:
                     if resp['method'][0] != '$':
                         if 'id' in resp:
