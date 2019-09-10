@@ -212,7 +212,7 @@ class UserConfig(DefaultsConfig):
             self._old_version = old_version
 
             # Save new defaults
-            self._save_new_defaults(defaults)
+            self._save_new_defaults(self.defaults)
 
             # Updating defaults only if major/minor version is different
             if (self._get_minor_version(version)
@@ -258,7 +258,9 @@ class UserConfig(DefaultsConfig):
 
     def _check_defaults(self, defaults):
         """Check if defaults are valid and update defaults values."""
-        if isinstance(defaults, dict):
+        if defaults is None:
+            defaults = [(self.DEFAULT_SECTION_NAME, {})]
+        elif isinstance(defaults, dict):
             defaults = [(self.DEFAULT_SECTION_NAME, defaults)]
         elif isinstance(defaults, list):
             # Check is a list of tuples with strings and dictionaries
