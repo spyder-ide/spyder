@@ -47,13 +47,15 @@ class BasePluginMixin(object):
             self._is_compatible = False
             self._show_compatibility_message(message)
 
-    def _set_option(self, option, value):
+    def _set_option(self, option, value, section=None):
         """Set option in spyder.ini"""
-        CONF.set(self.CONF_SECTION, str(option), value)
+        section = self.CONF_SECTION if section is None else section
+        CONF.set(section, str(option), value)
 
-    def _get_option(self, option, default=NoDefault):
+    def _get_option(self, option, default=NoDefault, section=None):
         """Get option from spyder.ini."""
-        return CONF.get(self.CONF_SECTION, option, default)
+        section = self.CONF_SECTION if section is None else section
+        return CONF.get(section, option, default)
 
     def _show_status_message(self, message, timeout=0):
         """Show message in main window's status bar."""
