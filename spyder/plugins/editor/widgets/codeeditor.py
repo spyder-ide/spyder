@@ -892,7 +892,6 @@ class CodeEditor(TextEditBaseWidget):
                 logger.error('%', 1, stack_info=True)
 
     # ------------- LSP: Configuration and protocol start/end ----------------
-
     def start_completion_services(self):
         logger.debug("Completions services available for: {0}".format(
             self.filename))
@@ -903,6 +902,7 @@ class CodeEditor(TextEditBaseWidget):
         """Start LSP integration if it wasn't done before."""
         logger.debug("LSP available for: %s" % self.filename)
         self.parse_lsp_config(config)
+        self.completions_available = True
         self.document_did_open()
 
     def stop_completion_services(self):

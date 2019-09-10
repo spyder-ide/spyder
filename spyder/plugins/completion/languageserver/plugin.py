@@ -23,7 +23,7 @@ from spyder.config.base import get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.manager import CONF
 from spyder.api.completion import SpyderCompletionPlugin
-from spyder.utils.misc import select_port, getcwd_or_home
+from spyder.utils.misc import getcwd_or_home
 from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.completion.languageserver.client import LSPClient
 from spyder.plugins.completion.languageserver.confpage import (
@@ -155,10 +155,6 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
 
-                if not config['external']:
-                    port = select_port(default_port=config['port'])
-                    config['port'] = port
-
                 language_client['instance'] = LSPClient(
                     parent=self,
                     server_settings=config,
@@ -202,8 +198,6 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.clients[language] = config
                 self.register_queue[language] = []
             else:
-                logger.debug(
-                    self.clients[language]['config'] != config['config'])
                 current_config = self.clients[language]['config']
                 new_config = config['config']
                 restart_diff = ['cmd', 'args', 'host',
@@ -211,6 +205,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 restart = any([current_config[x] != new_config[x]
                                for x in restart_diff])
                 if restart:
+                    logger.debug("Restart required for {} client!".format(
+                        language))
                     if self.clients[language]['status'] == self.STOPPED:
                         self.clients[language] = config
                     elif self.clients[language]['status'] == self.RUNNING:
@@ -280,7 +276,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         python_config = PYTHON_CONFIG.copy()
 
         # Server options
-        cmd = self.get_option('advanced/command_launch')
+        cmd = self.get_option('advanced/module')
         host = self.get_option('advanced/host')
         port = self.get_option('advanced/port')
 
