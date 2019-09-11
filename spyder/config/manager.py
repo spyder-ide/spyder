@@ -15,7 +15,7 @@ import os.path as osp
 # Local imports
 from spyder.config.base import get_conf_path, get_home_dir
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
-from spyder.config.user import MultiUserConfig, NoDefault
+from spyder.config.user import UserConfig, MultiUserConfig, NoDefault
 
 
 class ConfigurationManager(object):
@@ -31,12 +31,29 @@ class ConfigurationManager(object):
         if not osp.isdir(path):
             os.makedirs(path)
 
+        # Site configuration defines the system defaults if a file
+        # is found in the site location
+        site_defaults = DEFAULTS
+        site_path = self.get_site_config_path()
+        if os.path.isdir(site_path):
+            site_config = UserConfig(
+                'spyder',
+                path=site_path,
+                defaults=DEFAULTS,
+                load=False,
+                version=CONF_VERSION,
+                backup=False,
+                raw_mode=True,
+                remove_obsolete=False,
+            )
+            site_defaults = site_config.to_list()
+
         self._parent = parent
         self._active_project_callback = active_project_callback
         self._user_config = MultiUserConfig(
             NAME_MAP,
             path=path,
-            defaults=DEFAULTS,
+            defaults=site_defaults,
             load=True,
             version=CONF_VERSION,
             backup=True,
@@ -46,9 +63,6 @@ class ConfigurationManager(object):
 
         # Store plugin configurations when CONF_FILE = True
         self._plugin_configs = {}
-
-        # TODO: Implementation to be defined in following PR
-        self._site_config = None
 
         # TODO: To be implemented in following PR
         self._project_configs = {}  # Cache project configurations
@@ -89,10 +103,6 @@ class ConfigurationManager(object):
         if osp.isfile(old_location):
             os.remove(old_location)
 
-    def get_system_config_path(self):
-        """Return the system configuration path."""
-        return None
-
     def get_active_conf(self, section=None):
         """
         Return the active user or project configurarion for plugin.
@@ -106,6 +116,18 @@ class ConfigurationManager(object):
             config = self._user_config
 
         return config
+
+    def get_site_config_path(self):
+        """
+        Return the site configuration path.
+
+        This is currently the located within the spyder installed module in
+        the 'defaults/spyder.ini' file.
+        """
+        import spyder
+        base_path = os.path.dirname(spyder.__file__)
+        path = osp.join(base_path, 'defaults')
+        return path
 
     def get_user_config_path(self):
         """Return the user configuration path."""

@@ -605,6 +605,22 @@ class UserConfig(DefaultsConfig):
         """Remove .ini file associated to config."""
         os.remove(self.get_config_fpath())
 
+    def to_list(self):
+        """
+        Return in list format.
+
+        The format is [('section1', {'opt-1': value, ...}),
+                       ('section2', {'opt-2': othervalue, ...}), ...]
+        """
+        new_defaults = []
+        self._load_from_ini(self.get_config_fpath())
+        for section in self._sections:
+            sec_data = {}
+            for (option, _) in self.items(section):
+                sec_data[option] = self.get(section, option)
+                new_defaults.append((section, sec_data))
+        return new_defaults
+
 
 class SpyderUserConfig(UserConfig):
 
