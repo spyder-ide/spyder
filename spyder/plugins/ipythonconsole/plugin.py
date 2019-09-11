@@ -96,6 +96,7 @@ class IPythonConsole(SpyderPluginWidget):
     """
     CONF_SECTION = 'ipython_console'
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
+    CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     # Signals
@@ -817,17 +818,16 @@ class IPythonConsole(SpyderPluginWidget):
         if CONF.get('main_interpreter', 'default'):
             from IPython.core import release
             versions = dict(
-                python_version = sys.version.split("\n")[0].strip(),
+                python_version = sys.version,
                 ipython_version = release.version
             )
         else:
             import subprocess
             versions = {}
             pyexec = CONF.get('main_interpreter', 'executable')
-            py_cmd = "%s -c 'import sys; print(sys.version.split(\"\\n\")[0])'" % \
-                     pyexec
-            ipy_cmd = "%s -c 'import IPython.core.release as r; print(r.version)'" \
-                      % pyexec
+            py_cmd = '%s -c "import sys; print(sys.version)"' % pyexec
+            ipy_cmd = ('%s -c "import IPython.core.release as r; print(r.version)"'
+                       % pyexec)
             for cmd in [py_cmd, ipy_cmd]:
                 try:
                     proc = programs.run_shell_command(cmd)
@@ -1503,7 +1503,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.console.exception_occurred)
         if external_kernel:
             shellwidget.sig_is_spykernel.connect(
-                    self.connect_external_kernel)
+                self.connect_external_kernel)
             shellwidget.is_spyder_kernel()
 
         # Set elapsed time, if possible
