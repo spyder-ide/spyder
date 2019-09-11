@@ -34,6 +34,10 @@ def handle_qbytearray(obj, encoding):
     return to_text_string(obj, encoding=encoding)
 
 
+class DummyWorker:
+    pass
+
+
 class PythonWorker(QObject):
     """
     Generic python worker for running python code on threads.
@@ -88,7 +92,7 @@ class ProcessWorker(QObject):
     sig_finished = Signal(object, object, object)
     sig_partial = Signal(object, object, object)
 
-    def __init__(self, cmd_list, environ=None):
+    def __init__(self, cmd_list, environ=None, cwd=None):
         """
         Process worker based on a QProcess for non blocking UI.
 
@@ -105,15 +109,19 @@ class ProcessWorker(QObject):
         self._fired = False
         self._communicate_first = False
         self._partial_stdout = None
+        self._partial_stderr = None
         self._started = False
 
         self._timer = QTimer()
         self._process = QProcess()
         self._set_environment(environ)
+        if cwd is not None and os.path.isdir(cwd):
+            self._process.setWorkingDirectory(cwd)
 
         self._timer.setInterval(150)
         self._timer.timeout.connect(self._communicate)
         self._process.readyReadStandardOutput.connect(self._partial)
+        self._process.readyReadStandardError.connect(self._partial_error)
 
     def _get_encoding(self):
         """Return the encoding/codepage to use."""
@@ -148,6 +156,18 @@ class ProcessWorker(QObject):
 
         self.sig_partial.emit(self, stdout, None)
 
+    def _partial_error(self):
+        """Callback for partial output."""
+        raw_stderr = self._process.readAllStandardError()
+        stderr = handle_qbytearray(raw_stderr, self._get_encoding())
+
+        if self._partial_stderr is None:
+            self._partial_stderr = stderr
+        else:
+            self._partial_stderr += stderr
+
+        self.sig_partial.emit(self, None, stderr)
+
     def _communicate(self):
         """Callback for communicate."""
         if (not self._communicate_first and
@@ -168,14 +188,13 @@ class ProcessWorker(QObject):
         else:
             stdout = self._partial_stdout
 
-        raw_stderr = self._process.readAllStandardError()
-        stderr = handle_qbytearray(raw_stderr, enco)
+        if self._partial_stderr is None:
+            raw_stderr = self._process.readAllStandardError()
+            stderr = handle_qbytearray(raw_stderr, enco)
+        else:
+            stderr = self._partial_stderr
+
         result = [stdout.encode(enco), stderr.encode(enco)]
-
-        if PY2:
-            stderr = stderr.decode()
-        result[-1] = ''
-
         self._result = result
 
         if not self._fired:
@@ -252,13 +271,14 @@ class WorkerManager(QObject):
             self._queue_workers.append(worker)
 
         if self._queue_workers and self._running_threads < self._max_threads:
-            #print('Queue: {0} Running: {1} Workers: {2} '
+            # print('Queue: {0} Running: {1} Workers: {2} '
             #       'Threads: {3}'.format(len(self._queue_workers),
             #                                 self._running_threads,
             #                                 len(self._workers),
             #                                 len(self._threads)))
             self._running_threads += 1
             worker = self._queue_workers.popleft()
+
             thread = QThread()
             if isinstance(worker, PythonWorker):
                 worker.moveToThread(thread)
@@ -294,11 +314,14 @@ class WorkerManager(QObject):
         self._create_worker(worker)
         return worker
 
-    def create_process_worker(self, cmd_list, environ=None):
+    def create_process_worker(self, cmd_list, environ=None, cwd=None):
         """Create a new process worker instance."""
-        worker = ProcessWorker(cmd_list, environ=environ)
+        worker = ProcessWorker(cmd_list, environ=environ, cwd=cwd)
         self._create_worker(worker)
         return worker
+
+    def is_busy(self):
+        return bool(self._queue_workers)
 
     def terminate_all(self):
         """Terminate all worker processes."""
