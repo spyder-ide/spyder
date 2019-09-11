@@ -97,7 +97,6 @@ class GeneralProjectPage(BaseProjectPage):
         """Main project creation page."""
         self.project_name = None
         self.location = get_home_dir()
-        self._worker_manager = WorkerManager()
         self._last_validated_url = None
         self._last_validated_url_result = None
 
@@ -263,8 +262,9 @@ class GeneralProjectPage(BaseProjectPage):
                         self._last_validated_url = name_or_url
                         self._last_validated_url_result = None
 
-                        if not self._worker_manager.is_busy():
-                            worker = self._worker_manager.create_python_worker(
+                        wm = self._parent._worker_manager
+                        if not wm.is_busy():
+                            worker = wm.create_python_worker(
                                 self._validate_url, name_or_url)
                             worker.sig_finished.connect(self._finished)
                             worker.start()
@@ -328,23 +328,23 @@ class ProjectDialog(QDialog):
     def __init__(self, parent):
         """Project creation dialog."""
         super(ProjectDialog, self).__init__(parent=parent)
+
         self._invalid_index_start = -1
+        self._is_asking = None
+        self._is_busy = None
+        self._worker_manager = WorkerManager()
 
         # Widgets 
         self.spinner = create_waitspinner(size=16, parent=self)
         self.label_title = QLabel()
         self.label_status = QLabel()
-        self._worker_manager = WorkerManager()
-
         self.pages_widget = QStackedWidget(self)
         self.page_general = GeneralProjectPage(self)
-
         self.button_select_location = QToolButton()
         self.button_cancel = QPushButton(_('Cancel'))
         self.button_previous = QPushButton(_('Previous'))
         self.button_next = QPushButton(_('Next'))
         self.button_create = QPushButton(_('Create'))
-
         self.bbox = QDialogButtonBox(Qt.Horizontal)
         self.bbox.addButton(self.button_cancel, QDialogButtonBox.ActionRole)
         self.bbox.addButton(self.button_previous, QDialogButtonBox.ActionRole)
@@ -551,6 +551,7 @@ class ProjectDialog(QDialog):
         error_lines = [line for line in error_lines if line.strip()]
         context = worker.context
 
+        # Check if git always produces this?
         if any(['fatal' in line for line in error_lines]):
             self.pages_widget.setDisabled(False)
             self.label_status.setText(error_lines[-1])
@@ -573,7 +574,8 @@ class ProjectDialog(QDialog):
             answer = QMessageBox.warning(
                 self,
                 _("Warning"),
-                (_("Spyder is in the process of creating a project") + '<br><br>' +
+                (_("Spyder is in the process of creating a project") +
+                '<br><br>' +
                  _("Do you want to abort?")),
                 QMessageBox.Yes | QMessageBox.No)
 
@@ -587,6 +589,7 @@ class ProjectDialog(QDialog):
 def test():
     """Local test."""
     from spyder.utils.qthelpers import qapplication
+    import sys
     app = qapplication()
     dlg = ProjectDialog(None)
     dlg.show()
