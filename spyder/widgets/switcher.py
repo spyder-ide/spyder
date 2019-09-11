@@ -123,7 +123,7 @@ class SwitcherBaseItem(QStandardItem):
 
     def get_height(self):
         """Return the content height."""
-        return self._height + (self._padding * 2)
+        return self._height
 
     def set_score(self, value):
         """Set the search text fuzzy match score."""
@@ -471,7 +471,7 @@ class Switcher(QDialog):
 
     _MIN_WIDTH = 580
     _MIN_HEIGHT = 80
-    _MAX_HEIGHT = 480
+    _MAX_HEIGHT = 400
 
     _MAX_NUM_ITEMS = 20
     _ITEM_WIDTH = _MIN_WIDTH - 20
@@ -496,7 +496,7 @@ class Switcher(QDialog):
         # Widgets setup
         self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
         self.setWindowOpacity(0.95)
-        self.setMinimumHeight(self._MIN_HEIGHT)
+#        self.setMinimumHeight(self._MIN_HEIGHT)
         self.setMaximumHeight(self._MAX_HEIGHT)
         self.edit.installEventFilter(self.filter)
         self.edit.setPlaceholderText(help_text if help_text else '')
@@ -540,7 +540,7 @@ class Switcher(QDialog):
             # the last one in order to prevent performance issues when
             # adding multiple items
             self.set_current_row(0)
-            self.set_minimum_height()
+            self.set_height()
         self.setup_sections()
 
     # --- API
@@ -662,7 +662,7 @@ class Switcher(QDialog):
             self.set_current_row(-1)
 
         self.setup_sections()
-        self.set_minimum_height()
+        self.set_height()
 
     def setup_sections(self):
         """Set-up which sections appear on the item list."""
@@ -697,19 +697,23 @@ class Switcher(QDialog):
         self.proxy.sortBy('_score')
         self.sig_item_changed.emit(self.current_item())
 
-    def set_minimum_height(self):
-        """Set the minimum height depending on the max number of items."""
-        current_item = self.current_item()
-        if current_item is not None:
+    def set_height(self):
+        """Set height taking into account the number of items."""
+        if self._visible_rows >= self._MAX_NUM_ITEMS:
+            switcher_height = self._MAX_HEIGHT
+        elif self._visible_rows == 1:
+            switcher_height = self._MIN_HEIGHT
+        elif self._visible_rows != 0 and self.current_item():
+            current_item = self.current_item()
             item_height = current_item.get_height()
-            list_height = item_height * self.proxy.rowCount()
-            switcher_height = list_height + self.edit.height()
-            if list_height > item_height * self._MAX_NUM_ITEMS:
-                switcher_height = item_height * self._MAX_NUM_ITEMS
-            elif list_height == item_height:
-                switcher_height = self._MIN_HEIGHT
-            self.setFixedHeight(switcher_height)
-            self.update()
+            list_height = item_height * (self._visible_rows + 3)
+            edit_height = self.edit.height()
+            spacing_height = self.layout().spacing() * 4
+            switcher_height = list_height + edit_height + spacing_height
+        else:
+            switcher_height = self._MIN_HEIGHT
+        self.setFixedHeight(switcher_height)
+        self.adjustSize()
 
     def set_position(self, top):
         """Set the position of the dialog."""

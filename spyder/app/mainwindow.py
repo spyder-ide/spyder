@@ -3223,9 +3223,9 @@ class MainWindow(QMainWindow):
             self.switcher.setup()
         self.switcher.show()
 
-        # Note: The +1 pixel on the top makes it look better
+        # Note: The +6 pixel on the top makes it look better
         delta_top = (self.toolbars_menu.geometry().height() +
-                     self.menuBar().geometry().height() + 1)
+                     self.menuBar().geometry().height() + 6)
         self.switcher.set_position(delta_top)
 
     def open_symbolfinder(self):
