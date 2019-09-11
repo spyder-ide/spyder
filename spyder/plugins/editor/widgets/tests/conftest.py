@@ -101,6 +101,7 @@ def lsp_plugin(qtbot_module, request):
     CONF.set('lsp-server', 'pycodestyle', True)
     CONF.set('lsp-server', 'pydocstyle', True)
     CONF.set('lsp-server', 'stdio', False)
+    CONF.set('lsp-server', 'code_snippets', False)
 
     # Create the manager
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
