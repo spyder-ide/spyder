@@ -500,9 +500,6 @@ class CodeEditor(TextEditBaseWidget):
         # Automatic (on the fly) completions
         self.automatic_completions = True
 
-        # Code snippets
-        self.code_snippets = True
-
         # Completions hint
         self.completions_hint = True
 

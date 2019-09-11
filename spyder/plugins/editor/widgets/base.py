@@ -51,6 +51,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.extra_selections_dict = {}
+
+        # Code snippets
         self.code_snippets = True
 
         self.textChanged.connect(self.changed)
