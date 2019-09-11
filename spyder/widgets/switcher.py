@@ -470,7 +470,7 @@ class Switcher(QDialog):
     sig_mode_selected = Signal(TEXT_TYPES[-1])
 
     _MIN_WIDTH = 580
-    _MIN_HEIGHT = 80
+    _MIN_HEIGHT = 200
     _MAX_HEIGHT = 400
 
     _MAX_NUM_ITEMS = 20
@@ -701,8 +701,6 @@ class Switcher(QDialog):
         """Set height taking into account the number of items."""
         if self._visible_rows >= self._MAX_NUM_ITEMS:
             switcher_height = self._MAX_HEIGHT
-        elif self._visible_rows == 1:
-            switcher_height = self._MIN_HEIGHT
         elif self._visible_rows != 0 and self.current_item():
             current_item = self.current_item()
             item_height = current_item.get_height()
@@ -710,10 +708,10 @@ class Switcher(QDialog):
             edit_height = self.edit.height()
             spacing_height = self.layout().spacing() * 4
             switcher_height = list_height + edit_height + spacing_height
+            switcher_height = max(switcher_height, self._MIN_HEIGHT)
         else:
             switcher_height = self._MIN_HEIGHT
         self.setFixedHeight(switcher_height)
-        self.adjustSize()
 
     def set_position(self, top):
         """Set the position of the dialog."""
