@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Status widget for Kite completion.
+Status widget for Kite completions.
 """
 
 # Local imports
@@ -15,7 +15,7 @@ from spyder.widgets.status import BaseTimerStatus
 
 
 class KiteStatus(BaseTimerStatus):
-    """Status bar widget for Kite completion state."""
+    """Status bar widget for Kite completions status."""
 
     def __init__(self, parent, statusbar):
         super(KiteStatus, self).__init__(parent, statusbar,
@@ -42,4 +42,4 @@ class KiteStatus(BaseTimerStatus):
 
     def get_tooltip(self):
         """Return localized tool tip for widget."""
-        return _("Kite completion status")
+        return _("Kite completions status")
