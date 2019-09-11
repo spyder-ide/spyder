@@ -73,16 +73,16 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         http_method = getattr(self.endpoint, verb)
         try:
             http_response = http_method(url, json=params)
-            success = http_response.status_code == 200
-            if success:
-                try:
-                    response = http_response.json()
-                except Exception:
-                    response = http_response.text
-                    response = None if response == '' else response
-            return success, response
         except Exception:
             return False, None
+        success = http_response.status_code == 200
+        if success:
+            try:
+                response = http_response.json()
+            except Exception:
+                response = http_response.text
+                response = None if response == '' else response
+        return success, response
 
     def send(self, method, params, url_params):
         response = None
