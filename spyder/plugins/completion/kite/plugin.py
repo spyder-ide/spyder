@@ -28,6 +28,10 @@ import psutil
 
 logger = logging.getLogger(__name__)
 
+NOT_INSTALLED = 'Not installed'
+RUNNING = 'Running'
+NOT_RUNNING = 'Not running'
+
 
 class KiteCompletionPlugin(SpyderCompletionPlugin):
     COMPLETION_CLIENT_NAME = 'kite'
@@ -72,25 +76,26 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         if self.kite_process is not None:
             self.kite_process.kill()
 
-    def _check_if_kite_installed(self):
+    @classmethod
+    def _check_if_kite_installed(cls):
         path = ''
         if os.name == 'nt':
             path = 'C:\\Program Files\\Kite\\kited.exe'
         elif sys.platform.startswith('linux'):
             path = osp.expanduser('~/.local/share/kite/kited')
         elif sys.platform == 'darwin':
-            path = self._locate_kite_darwin()
+            path = cls._locate_kite_darwin()
         return osp.exists(osp.realpath(path)), path
 
-    def _check_if_kite_running(self):
+    @classmethod
+    def _check_if_kite_running(cls):
         running = False
         for proc in psutil.process_iter(attrs=['pid', 'name', 'username']):
-            if self._is_proc_kite(proc):
+            if cls._is_proc_kite(proc):
                 logger.debug('Kite process already '
                              'running with PID {0}'.format(proc.pid))
                 running = True
                 break
-        self.kite_status.update_kite_status(running)
         return running
 
     @staticmethod
@@ -129,3 +134,13 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             is_kite = 'Kite' == name
 
         return is_kite
+
+    @classmethod
+    def kite_status(cls):
+        """Kite completions status: Not installed, Running, Not running."""
+        if not cls._check_if_kite_installed():
+            return NOT_INSTALLED
+        elif cls._check_if_kite_running():
+            return RUNNING
+        elif cls:
+            return NOT_RUNNING

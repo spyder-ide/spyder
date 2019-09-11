@@ -1745,6 +1745,28 @@ spyder/images/binary_light.svg
 spyder/images/binary.svg
 
 
+-------------------------------------------------------------------------------
+
+
+Icons for Kite Completions Plugin
+----------------------------
+
+
+Copyright (c) 2019 Kite
+
+
+Author: Kite | https://kite.com
+Site: https://kite.com
+Source: https://kite.com
+License:
+
+
+Files covered:
+
+spyder/images/kite_light.svg
+spyder/images/kite_dark.svg
+
+
 ===============================================================================
 
 
