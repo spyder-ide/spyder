@@ -67,6 +67,15 @@ class BaseProject(object):
 
     # --- Helpers
     # -------------------------------------------------------------------------
+    def set_repository_url(self, repository_url):
+        """Set repository if creation was from a clone."""
+        config = self.CONF[VCS]
+        try:
+            config.set(VCS, 'repository_url', repository_url)
+            config.set(VCS, 'use_version_control', True)
+        except EnvironmentError:
+            pass
+
     def set_recent_files(self, recent_files):
         """Set a list of files opened by the project."""
         for recent_file in recent_files[:]:

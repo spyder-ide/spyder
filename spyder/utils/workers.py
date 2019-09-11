@@ -35,7 +35,9 @@ def handle_qbytearray(obj, encoding):
 
 
 class DummyWorker:
-    pass
+    """Worker for chaining operations."""
+    sig_started = Signal(object)
+    sig_finished = Signal(object, object, object)  # worker, stdout, stderr
 
 
 class PythonWorker(QObject):

@@ -54,7 +54,8 @@ VCS = 'vcs'
 VCS_DEFAULTS = [
     (VCS,
      {'use_version_control': False,
-      'version_control_system': '',
+      'version_control_system': 'git',
+      'repository_url': '',
       }
      )]
 VCS_VERSION = '0.1.0'

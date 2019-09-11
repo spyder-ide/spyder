@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-# -----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
 #
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
-# -----------------------------------------------------------------------------
 """Project creation dialog."""
 
 from __future__ import print_function
@@ -14,34 +12,27 @@ import errno
 import os
 import os.path as osp
 import subprocess
-import sys
 import tempfile
 
+import requests
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import (QButtonGroup, QComboBox, QDialog,
-                            QDialogButtonBox, QGridLayout, QGroupBox,
-                            QHBoxLayout, QLabel, QLineEdit, QMessageBox,
-                            QPushButton, QRadioButton, QScrollArea,
-                            QStackedWidget, QToolButton, QVBoxLayout,
-                            QWidget)
-import requests
+from qtpy.QtWidgets import (QButtonGroup, QComboBox, QDialog, QDialogButtonBox,
+                            QGridLayout, QHBoxLayout, QLabel, QLineEdit,
+                            QMessageBox, QPushButton, QRadioButton,
+                            QStackedWidget, QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _, get_home_dir
 from spyder.plugins.projects.widgets import get_available_project_types
-from spyder.py3compat import PY3, to_text_string
+from spyder.py3compat import PY3
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
-from spyder.utils.programs import is_anaconda, find_program
+from spyder.utils.programs import find_program, is_anaconda
 from spyder.utils.qthelpers import create_waitspinner, get_std_icon
-from spyder.utils.workers import WorkerManager
-
-
-class DummyWorker:
-    pass
+from spyder.utils.workers import DummyWorker, WorkerManager
 
 
 def is_writable(path):
@@ -58,7 +49,7 @@ def is_writable(path):
 class BaseProjectPage(QWidget):
     """Base project configuration page."""
 
-    # object represents the text of an issue
+    # `object` represents the text of an issue
     sig_validated = Signal(bool, object)
 
     def __init__(self, parent=None):
@@ -571,6 +562,7 @@ class ProjectDialog(QDialog):
             context['path'] = os.path.join(context['path'], folder)
             self.sig_project_created.emit(worker.context)
             if not self._is_asking:
+                # This way we avoid a sudden close if the QMessageBox is on
                 self.accept()
 
     def close(self):

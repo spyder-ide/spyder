@@ -314,8 +314,13 @@ class Projects(SpyderPluginWidget):
                 self.set_project_filenames(
                     self.main.editor.get_open_filenames())
 
-        self.current_active_project = EmptyProject(path)
-        self.latest_project = EmptyProject(path)
+        project = EmptyProject(path)
+        self.current_active_project = project
+        self.latest_project = project
+        
+        repo = context.get('repository_url')
+        if repo:
+            project.set_repository_url(repo)
         self.set_option('current_project_path', self.get_active_project_path())
 
         self.setup_menu_actions()
