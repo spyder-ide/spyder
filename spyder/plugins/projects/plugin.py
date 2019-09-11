@@ -30,6 +30,7 @@ from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, MENU_SEPARATOR
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.programs import find_program
 from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
@@ -47,7 +48,7 @@ class Projects(SpyderPluginWidget):
     CONF_SECTION = 'project_explorer'
     CONF_FILE = False
     sig_pythonpath_changed = Signal()
-    sig_project_created = Signal(object, object, object)
+    sig_project_created = Signal(dict)
     sig_project_loaded = Signal(object)
     sig_project_closed = Signal(object)
 
@@ -256,18 +257,8 @@ class Projects(SpyderPluginWidget):
         self.edit_project_preferences_action.setEnabled(active)
 
     def edit_project_preferences(self):
-        """Edit Spyder active project preferences"""
-        from spyder.plugins.projects.confpage import ProjectPreferences
-        if self.project_active:
-            active_project = self.project_list[0]
-            dlg = ProjectPreferences(self, active_project)
-#            dlg.size_change.connect(self.set_project_prefs_size)
-#            if self.projects_prefs_dialog_size is not None:
-#                dlg.resize(self.projects_prefs_dialog_size)
-            dlg.show()
-#        dlg.check_all_settings()
-#        dlg.pages_widget.currentChanged.connect(self.__preference_page_changed)
-            dlg.exec_()
+        """Edit Spyder active project preferences."""
+        pass
 
     @Slot()
     def create_new_project(self):
@@ -275,23 +266,20 @@ class Projects(SpyderPluginWidget):
         self.switch_to_plugin()
         active_project = self.current_active_project
         dlg = ProjectDialog(self)
-        dlg.sig_project_creation_requested.connect(self._create_project)
-        dlg.sig_project_creation_requested.connect(self.sig_project_created)
+        dlg.sig_project_created.connect(self._project_created)
         if dlg.exec_():
             if (active_project is None
                     and self.get_option('visible_if_project_open')):
                 self.show_explorer()
-            self.sig_pythonpath_changed.emit()
-            self.restart_consoles()
 
-    def _create_project(self, path):
-        """Create a new project."""
-        self.open_project(path=path)
-        self.setup_menu_actions()
-        self.add_to_recent(path)
+    def _project_created(self, context):
+        """Callback for project creation."""
+        path = context['path']
+        self.open_project(path, context=context)
+        self.sig_project_created.emit(context)
 
     def open_project(self, path=None, restart_consoles=True,
-                     save_previous_files=True):
+                     save_previous_files=True, context={}):
         """Open the project located in `path`"""
         self.notify_project_open(path)
         self.switch_to_plugin()
