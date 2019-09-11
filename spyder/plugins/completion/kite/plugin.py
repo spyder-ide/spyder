@@ -28,13 +28,12 @@ import psutil
 
 logger = logging.getLogger(__name__)
 
-NOT_INSTALLED = 'Not installed'
-RUNNING = 'Running'
-NOT_RUNNING = 'Not running'
-
 
 class KiteCompletionPlugin(SpyderCompletionPlugin):
     COMPLETION_CLIENT_NAME = 'kite'
+    NOT_INSTALLED = 'Not installed'
+    RUNNING = 'Running'
+    NOT_RUNNING = 'Not running'
 
     def __init__(self, parent):
         SpyderCompletionPlugin.__init__(self, parent)
@@ -42,7 +41,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client = KiteClient(None)
         self.kite_process = None
         statusbar = parent.statusBar()  # MainWindow status bar
-        self.kite_status = KiteStatus(None, statusbar)
+        self.kite_status = KiteStatus(None, statusbar, self)
         self.client.sig_client_started.connect(self.http_client_ready)
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
@@ -76,22 +75,20 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         if self.kite_process is not None:
             self.kite_process.kill()
 
-    @classmethod
-    def _check_if_kite_installed(cls):
+    def _check_if_kite_installed(self):
         path = ''
         if os.name == 'nt':
             path = 'C:\\Program Files\\Kite\\kited.exe'
         elif sys.platform.startswith('linux'):
             path = osp.expanduser('~/.local/share/kite/kited')
         elif sys.platform == 'darwin':
-            path = cls._locate_kite_darwin()
+            path = self._locate_kite_darwin()
         return osp.exists(osp.realpath(path)), path
 
-    @classmethod
-    def _check_if_kite_running(cls):
+    def _check_if_kite_running(self):
         running = False
         for proc in psutil.process_iter(attrs=['pid', 'name', 'username']):
-            if cls._is_proc_kite(proc):
+            if self._is_proc_kite(proc):
                 logger.debug('Kite process already '
                              'running with PID {0}'.format(proc.pid))
                 running = True
@@ -135,12 +132,11 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
 
         return is_kite
 
-    @classmethod
-    def kite_status(cls):
+    def status(self):
         """Kite completions status: Not installed, Running, Not running."""
-        if not cls._check_if_kite_installed():
-            return NOT_INSTALLED
-        elif cls._check_if_kite_running():
-            return RUNNING
-        elif cls:
-            return NOT_RUNNING
+        if not self._check_if_kite_installed():
+            return self.NOT_INSTALLED
+        elif self._check_if_kite_running():
+            return self.RUNNING
+        elif self:
+            return self.NOT_RUNNING
