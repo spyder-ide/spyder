@@ -137,6 +137,7 @@ if __name__ == '__main__':
     client = LanguageServerClient(zmq_in_port=args.zmq_in_port,
                                   zmq_out_port=args.zmq_out_port)
     client.start()
+    is_alive = True
 
     def watch_parent_process(pid):
         """
@@ -144,13 +145,13 @@ if __name__ == '__main__':
 
         Code taken from the Python Language Server project.
         """
+        global is_alive
         if not psutil.pid_exists(pid):
             logger.info("parent process %s is not alive, exiting!", pid)
-            client.stop()
-            process.terminate()
-            process.wait()
-        threading.Timer(PARENT_PROCESS_WATCH_INTERVAL, watch_parent_process,
-                        args=[pid]).start()
+            is_alive = False
+        if is_alive:
+            threading.Timer(PARENT_PROCESS_WATCH_INTERVAL,
+                            watch_parent_process, args=[pid]).start()
 
     watching_thread = threading.Thread(
         target=watch_parent_process, args=(parent_pid,))
@@ -158,11 +159,11 @@ if __name__ == '__main__':
     watching_thread.start()
 
     try:
-        while True:
+        while is_alive:
             client.listen()
     except TerminateSignal:
         pass
     client.stop()
-    # sig_manager.restore()
+
     process.terminate()
     process.wait()
