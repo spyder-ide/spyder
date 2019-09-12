@@ -15,9 +15,7 @@ import os.path as osp
 import pytest
 
 # Local imports
-from spyder.plugins.projects.api import EmptyProject
-from spyder.plugins.projects.utils.config import (CODESTYLE, WORKSPACE,
-                                                  ENCODING, VCS)
+from spyder.plugins.projects.projecttypes import EmptyProject
 
 
 @pytest.fixture(scope='session')
@@ -39,22 +37,6 @@ def test_empty_project(project_test, qtbot):
     """Test creation of an Empy project, and its configuration files."""
     project_dir, project = project_test
     assert project.root_path == str(project_dir)
-
-    print(project.root_path, os.listdir(osp.join(project.root_path,
-                                        '.spyproject', 'config')))
-
-    # Assert Project configs
-    conf_files = project.get_conf_files()
-
-    qtbot.wait(3000)
-    for filename in [CODESTYLE, ENCODING, VCS]:
-        assert filename in conf_files
-        project_config = conf_files[filename]
-
-        # assert configurations files
-        fpath = project_config.get_config_fpath()
-        print([fpath])
-        assert osp.isfile(fpath)
 
 
 def test_set_load_recent_files(project_test):
