@@ -7,13 +7,15 @@
 Tests for __init__.py.
 """
 
-# Test library imports
-import pytest
+# Standard library imports
+import os
 import os.path as osp
+
+# Third party imports
+import pytest
 
 # Local imports
 from spyder.plugins.projects.api import EmptyProject
-
 from spyder.plugins.projects.utils.config import (CODESTYLE, WORKSPACE,
                                                   ENCODING, VCS)
 
@@ -28,23 +30,31 @@ def project_test(tmpdir_factory):
         project: EmptyProject object.
     """
     project_dir = tmpdir_factory.mktemp("test_project")
+    os.makedirs(osp.join(str(project_dir), '.spyproject', 'config'))
     project = EmptyProject(str(project_dir))
     return project_dir, project
 
 
-def test_empty_project(project_test):
-    """Test creation of anEmpy project, and its configuration files."""
+def test_empty_project(project_test, qtbot):
+    """Test creation of an Empy project, and its configuration files."""
     project_dir, project = project_test
     assert project.root_path == str(project_dir)
 
-    # Assert Project onfigs
+    print(project.root_path, os.listdir(osp.join(project.root_path,
+                                        '.spyproject', 'config')))
+
+    # Assert Project configs
     conf_files = project.get_conf_files()
-    for dir_ in [CODESTYLE, WORKSPACE, ENCODING, VCS]:
-        assert dir_ in conf_files
-        project_config = conf_files[dir_]
+
+    qtbot.wait(3000)
+    for filename in [CODESTYLE, ENCODING, VCS]:
+        assert filename in conf_files
+        project_config = conf_files[filename]
 
         # assert configurations files
-        assert osp.exists(project_config.filename())
+        fpath = project_config.get_config_fpath()
+        print([fpath])
+        assert osp.isfile(fpath)
 
 
 def test_set_load_recent_files(project_test):

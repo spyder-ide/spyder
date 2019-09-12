@@ -219,13 +219,13 @@ to install them separately in those cases.
 ### Build dependencies
 
 When installing Spyder from its source package, the only requirement is to have
-a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
+a Python version equal or greater than 3.5 or 2.7.
 
 ### Runtime dependencies
 
-* **Python** 2.7 or 3.4+: The core language Spyder is written in and for.
+* **Python** 3.5+ or 2.7: The core language Spyder is written in and for.
 * **PyQt5** 5.6+: Python bindings for Qt, used for Spyder's GUI.
-* **qtconsole** 4.5.0+: Enhanced Python interpreter.
+* **qtconsole** 4.5.5+: Enhanced Python interpreter.
 * **Python-language-server**: Editor code completion, calltips
   go-to-definition and real-time code analysis
 * **Sphinx**: Rich text mode for the Help pane.
@@ -249,6 +249,7 @@ a Python version greater than 2.7 or 3.4 (Python <=3.3 is no longer supported).
 * **diff-match-patch**: Compute text file diff changes during edition.
 * **watchdog**: Watch file changes on project directories.
 * **pyxdg**: Parse `.desktop` files on Linux
+* **rtree**: Fast access to code snippets regions (Anaconda only).
 
 ### Optional dependencies
 

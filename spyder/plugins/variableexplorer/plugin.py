@@ -7,7 +7,7 @@
 """Variable Explorer Plugin."""
 
 # Third party imports
-from qtpy.QtCore import QTimer, Signal, Slot
+from qtpy.QtCore import QTimer, Slot
 from qtpy.QtWidgets import QStackedWidget, QVBoxLayout
 from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
@@ -21,14 +21,23 @@ from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
 from spyder.plugins.variableexplorer.confpage import VariableExplorerConfigPage
 
 PANDAS_REQVER = '>=0.13.1'
-dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
-                              "Variable Explorer"),
+dependencies.add('pandas', 'pandas',
+                 _("View and edit DataFrames and Series in the "
+                   "Variable Explorer"),
                  required_version=PANDAS_REQVER, optional=True)
 
 NUMPY_REQVER = '>=1.7'
-dependencies.add("numpy", _("View and edit two and three dimensional arrays "
-                            "in the Variable Explorer"),
+dependencies.add("numpy", "numpy",
+                 _("View and edit two and three dimensional arrays "
+                   "in the Variable Explorer"),
                  required_version=NUMPY_REQVER, optional=True)
+
+PYMPLER_REQVER = '>=0.7'
+dependencies.add("pympler", "pympler",
+                 _("Development tool to measure, monitor and analyze the"
+                   " memory behavior of Python objects in a running Python"
+                   " application."),
+                 required_version=PYMPLER_REQVER, optional=True)
 
 
 class VariableExplorer(SpyderPluginWidget):
@@ -36,6 +45,7 @@ class VariableExplorer(SpyderPluginWidget):
 
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
+    CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
     INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
     SECONDARY_FREE_MEMORY_TIME_TRIGGER = 180 * 1000  # ms

@@ -26,6 +26,7 @@ class OutlineExplorer(SpyderPluginWidget):
     """Outline Explorer plugin."""
 
     CONF_SECTION = 'outline_explorer'
+    CONF_FILE = False
 
     def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)

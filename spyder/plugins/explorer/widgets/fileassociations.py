@@ -440,7 +440,7 @@ class FileAssociationsWidget(QWidget):
         `/path/to/app/executable` is an executable app on mac and windows and
         a .desktop xdg file on linux.
         """
-        self._data = data
+        self._data = {} if data is None else data
         self._update_extensions()
 
     def add_association(self, value=None):

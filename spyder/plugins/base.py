@@ -11,29 +11,35 @@ Base plugin class
 # Standard library imports
 import inspect
 import os
+import sys
 
 # Third party imports
 import qdarkstyle
 from qtpy.QtCore import Qt, Slot
 from qtpy.QtGui import QCursor, QKeySequence
-from qtpy.QtWidgets import (QApplication, QDockWidget, QMainWindow, QMenu,
-                            QMessageBox, QShortcut, QToolButton, QWidget)
+from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
+                            QMenu, QMessageBox, QShortcut, QToolButton)
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import get_color_scheme, get_font, is_dark_interface
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import configparser, is_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
-    toggle_actions)
+    toggle_actions, set_menu_icons)
 from spyder.widgets.dock import SpyderDockWidget
 
 
 class BasePluginMixin(object):
     """Implementation of the basic functionality for Spyder plugins."""
+
+    # Define configuration name map for plugin to split configuration
+    # among several files. See spyder/config/main.py
+    # Status: Hidden
+    _CONF_NAME_MAP = None
 
     def __init__(self, parent=None):
         super(BasePluginMixin, self).__init__()
@@ -41,10 +47,16 @@ class BasePluginMixin(object):
         # Check compatibility
         check_compatibility, message = self.check_compatibility()
 
+        self._register_plugin()
+
         self._is_compatible = True
         if not check_compatibility:
             self._is_compatible = False
             self._show_compatibility_message(message)
+
+    def _register_plugin(self):
+        """Register plugin configuration."""
+        CONF.register_plugin(self)
 
     def _set_option(self, option, value):
         """Set option in spyder.ini"""
@@ -381,6 +393,9 @@ class BasePluginWidgetMixin(object):
         self._plugin_actions = self.get_plugin_actions() + additional_actions
         add_actions(self._options_menu, self._plugin_actions)
 
+        if sys.platform == 'darwin':
+            set_menu_icons(self._options_menu, True)
+
     def _setup(self):
         """
         Setup Options menu, create toggle action and connect signals.
@@ -394,6 +409,12 @@ class BasePluginWidgetMixin(object):
         add_actions(self._options_menu, self._plugin_actions)
         self.options_button.setMenu(self._options_menu)
         self._options_menu.aboutToShow.connect(self._refresh_actions)
+
+        # Show icons in Mac plugin menus
+        if sys.platform == 'darwin':
+            self._options_menu.aboutToHide.connect(
+                lambda menu=self._options_menu:
+                set_menu_icons(menu, False))
 
         # Update title
         self.sig_update_plugin_title.connect(self._update_plugin_title)

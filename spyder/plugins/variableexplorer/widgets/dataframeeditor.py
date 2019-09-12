@@ -33,7 +33,6 @@ Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
 """
 
 # Standard library imports
-import time
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
@@ -57,7 +56,7 @@ from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, config_shortcut
 from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
-                              to_text_string)
+                              to_text_string, perf_counter)
 from spyder.utils.icon_manager import ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
@@ -392,8 +391,8 @@ class DataFrameModel(QAbstractTableModel):
 
     def flags(self, index):
         """Set flags"""
-        return Qt.ItemFlags(QAbstractTableModel.flags(self, index) |
-                            Qt.ItemIsEditable)
+        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
+                                Qt.ItemIsEditable))
 
     def setData(self, index, value, role=Qt.EditRole, change_type=None):
         """Cell content change"""
@@ -1131,14 +1130,14 @@ class DataFrameEditor(QDialog):
     def _sizeHintForColumn(self, table, col, limit_ms=None):
         """Get the size hint for a given column in a table."""
         max_row = table.model().rowCount()
-        lm_start = time.clock()
+        lm_start = perf_counter()
         lm_row = 64 if limit_ms else max_row
         max_width = self.min_trunc
         for row in range(max_row):
             v = table.sizeHintForIndex(table.model().index(row, col))
             max_width = max(max_width, v.width())
             if row > lm_row:
-                lm_now = time.clock()
+                lm_now = perf_counter()
                 lm_elapsed = (lm_now - lm_start) * 1000
                 if lm_elapsed >= limit_ms:
                     break
@@ -1260,11 +1259,16 @@ class DataFrameEditor(QDialog):
 
     def _update_header_size(self):
         """Update the column width of the header."""
+        self.table_header.resizeColumnsToContents()
         column_count = self.table_header.model().columnCount()
         for index in range(0, column_count):
             if index < column_count:
                 column_width = self.dataTable.columnWidth(index)
-                self.table_header.setColumnWidth(index, column_width)
+                header_width = self.table_header.columnWidth(index)
+                if column_width > header_width:
+                    self.table_header.setColumnWidth(index, column_width)
+                else:
+                    self.dataTable.setColumnWidth(index, header_width)
             else:
                 break
 

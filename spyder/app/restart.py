@@ -30,7 +30,7 @@ from qtpy.QtWidgets import QApplication, QMessageBox, QSplashScreen, QWidget
 from spyder.config.base import _, get_image_path
 from spyder.py3compat import to_text_string
 from spyder.utils.qthelpers import qapplication
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 PY2 = sys.version[0] == '2'
@@ -105,8 +105,10 @@ class Restarter(QWidget):
 
     def _show_message(self, text):
         """Show message on splash screen."""
-        self.splash.showMessage(text, Qt.AlignBottom | Qt.AlignCenter |
-                                Qt.AlignAbsolute, QColor(Qt.white))
+        self.splash.showMessage(text,
+                                int(Qt.AlignBottom | Qt.AlignCenter |
+                                    Qt.AlignAbsolute),
+                                QColor(Qt.white))
 
     def animate_ellipsis(self):
         """Animate dots at the end of the splash screen message."""

@@ -24,7 +24,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import get_image_path, running_in_mac_app
+from spyder.config.base import get_image_path, running_in_mac_app, MAC_APP_NAME
 from spyder.config.gui import get_shortcut, is_dark_interface
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils.icon_manager import ima
@@ -41,7 +41,9 @@ from spyder.widgets.waitingspinner import QWaitingSpinner
 # (self.listwidget is widget *a* and self is widget *b*)
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
+
 logger = logging.getLogger(__name__)
+MENU_SEPARATOR = None
 
 
 def get_image_label(name, default="not_found.png"):
@@ -57,11 +59,16 @@ class MacApplication(QApplication):
 
     def __init__(self, *args):
         QApplication.__init__(self, *args)
+        self._has_started = False
+        self._pending_file_open = []
 
     def event(self, event):
         if event.type() == QEvent.FileOpen:
             fname = str(event.file())
-            self.sig_open_external_file.emit(fname)
+            if self._has_started:
+                self.sig_open_external_file.emit(fname)
+            elif MAC_APP_NAME not in fname:
+                self._pending_file_open.append(fname)
         return QApplication.event(self, event)
 
 
@@ -302,12 +309,6 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
             action.setShortcut(shortcut)
         action.setShortcutContext(context)
 
-    def update_icon(icon, action):
-        if icon:
-            action.setIcon(ima.icon(icon.name))
-
-    action.update_icon = lambda: update_icon(icon, action)
-
     return action
 
 
@@ -337,12 +338,6 @@ def add_actions(target, actions, insert_before=None):
             else:
                 target.insertMenu(insert_before, action)
         elif isinstance(action, QAction):
-            if isinstance(action, SpyderAction):
-                if isinstance(target, QMenu) or not isinstance(target, QToolBar):
-                    try:
-                        action = action.no_icon_action
-                    except RuntimeError:
-                        continue
             if insert_before is None:
                 # This is needed in order to ignore adding an action whose
                 # wrapped C/C++ object has been deleted.
@@ -468,45 +463,8 @@ class SpyderAction(QAction):
     def __init__(self, *args, **kwargs):
         """Spyder QAction class wrapper to handle cross platform patches."""
         super(SpyderAction, self).__init__(*args, **kwargs)
-        self._action_no_icon = None
-
-        if sys.platform == 'darwin':
-            self._action_no_icon = QAction(*args, **kwargs)
-            self._action_no_icon.setIcon(QIcon())
-            self._action_no_icon.triggered.connect(self.triggered)
-            self._action_no_icon.toggled.connect(self.toggled)
-            self._action_no_icon.changed.connect(self.changed)
-            self._action_no_icon.hovered.connect(self.hovered)
-
-            def dummy():
-                pass
-
-            self._action_no_icon.update_icon = dummy
-        else:
-            self._action_no_icon = self
-
-    def __getattribute__(self, name):
-        """Intercept method calls and apply to both actions, except signals."""
-        attr = super(SpyderAction, self).__getattribute__(name)
-
-        if hasattr(attr, '__call__') and name not in ['triggered', 'toggled',
-                                                      'changed', 'hovered']:
-            def newfunc(*args, **kwargs):
-                result = attr(*args, **kwargs)
-                if name not in ['setIcon']:
-                    action_no_icon = self.__dict__['_action_no_icon']
-                    attr_no_icon = super(QAction,
-                                         action_no_icon).__getattribute__(name)
-                    attr_no_icon(*args, **kwargs)
-                return result
-            return newfunc
-        else:
-            return attr
-
-    @property
-    def no_icon_action(self):
-        """Return the action without an Icon."""
-        return self._action_no_icon
+        if sys.platform == "darwin":
+            self.setIconVisibleInMenu(False)
 
 
 class ShowStdIcons(QWidget):
@@ -610,7 +568,20 @@ def create_plugin_layout(tools_layout, main_widget=None):
     return layout
 
 
-MENU_SEPARATOR = None
+def set_menu_icons(menu, state):
+    """Show/hide icons for menu actions."""
+    menu_actions = menu.actions()
+    for action in menu_actions:
+        try:
+            if action.menu() is not None:
+                # This is submenu, so we need to call this again
+                set_menu_icons(action.menu(), state)
+            elif action.isSeparator():
+                continue
+            else:
+                action.setIconVisibleInMenu(state)
+        except RuntimeError:
+            continue
 
 
 class SpyderProxyStyle(QProxyStyle):

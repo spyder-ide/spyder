@@ -37,6 +37,7 @@ class HistoryLog(SpyderPluginWidget):
 
     CONF_SECTION = 'historylog'
     CONFIGWIDGET_CLASS = HistoryConfigPage
+    CONF_FILE = False
     focus_changed = Signal()
 
     def __init__(self, parent):

@@ -43,6 +43,7 @@ class Pylint(SpyderPluginWidget):
 
     CONF_SECTION = 'pylint'
     CONFIGWIDGET_CLASS = PylintConfigPage
+    CONF_FILE = False
 
     def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
@@ -66,6 +67,10 @@ class Pylint(SpyderPluginWidget):
 
         # Follow editorstacks tab change
         self.main.editor.sig_editor_focus_changed.connect(self.set_filename)
+
+        # Used by Analyze button to check if file should be saved and start
+        # analysis
+        self.pylint.start_analysis.connect(self.run_pylint_from_analyze_button)
 
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
@@ -153,3 +158,16 @@ class Pylint(SpyderPluginWidget):
         if self.dockwidget:
             self.switch_to_plugin()
         self.pylint.analyze(filename)
+
+    @Slot()
+    def run_pylint_from_analyze_button(self):
+        """
+        See if file should and can be saved and run pylint code analysis.
+
+        Does not check that file name is valid etc, so should only be used for
+        Analyze button.
+        """
+        if (self.get_option('save_before', True)
+                and not self.main.editor.save()):
+            return
+        self.pylint.start()

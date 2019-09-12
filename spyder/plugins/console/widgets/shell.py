@@ -29,7 +29,7 @@ from qtpy.QtWidgets import QApplication, QMenu, QToolTip
 # Local import
 from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
 from spyder.config.gui import config_shortcut, get_shortcut
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import (builtins, is_string, is_text_string,
                               PY3, str_lower, to_text_string)
 from spyder.utils import encoding

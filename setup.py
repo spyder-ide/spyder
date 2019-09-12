@@ -43,8 +43,8 @@ PY3 = sys.version_info[0] == 3
 # Taken from the notebook setup.py -- Modified BSD License
 #==============================================================================
 v = sys.version_info
-if v[:2] < (2, 7) or (v[0] >= 3 and v[:2] < (3, 4)):
-    error = "ERROR: Spyder requires Python version 2.7 or 3.4 and above."
+if v[:2] < (2, 7) or (v[0] >= 3 and v[:2] < (3, 5)):
+    error = "ERROR: Spyder requires Python version 2.7 or 3.5 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -140,7 +140,7 @@ else:
 # Files added to the package
 #==============================================================================
 EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
-           '.ini', '.txt', '.qss', '.ttf', '.json']
+           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
@@ -202,7 +202,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 install_requires = [
     'cloudpickle',
     'pygments>=2.0',
-    'qtconsole>=4.5.0',
+    'qtconsole>=4.5.5',
     'nbconvert',
     'sphinx',
     'pylint',
@@ -234,12 +234,13 @@ install_requires = [
     'paramiko;platform_system=="Windows"',
     # Required for accesing xdg spec on Linux
     'pyxdg;platform_system=="Linux"',
+    'pympler'
 ]
 
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
     'test:platform_system == "Windows"': ['pywin32'],
-    'test': ['pytest<4.1',
+    'test': ['pytest<5.0',
              'pytest-qt',
              'pytest-mock',
              'pytest-cov',

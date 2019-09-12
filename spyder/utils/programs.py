@@ -25,8 +25,11 @@ import tempfile
 import threading
 import time
 
+# Third party imports
+import psutil
+
 # Local imports
-from spyder.config.base import _, get_conf_path, is_stable_version
+from spyder.config.base import is_stable_version, running_under_pytest
 from spyder.config.utils import is_anaconda
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
@@ -65,7 +68,14 @@ def is_program_installed(basename):
     Return program absolute path if installed in PATH.
 
     Otherwise, return None
+
+    On macOS systems, a .app is considered installed if
+    it exists.
     """
+    if (sys.platform == 'darwin' and basename.endswith('.app') and
+            osp.exists(basename)):
+        return basename
+
     for path in os.environ["PATH"].split(os.pathsep):
         abspath = osp.join(path, basename)
         if osp.isfile(abspath):
@@ -89,6 +99,24 @@ def find_program(basename):
         path = is_program_installed(name)
         if path:
             return path
+
+
+def get_full_command_for_program(path):
+    """
+    Return the list of tokens necessary to open the program
+    at a given path.
+
+    On macOS systems, this function prefixes .app paths with
+    'open -a', which is necessary to run the application.
+
+    On all other OS's, this function has no effect.
+
+    :str path: The path of the program to run.
+    :return: The list of tokens necessary to run the program.
+    """
+    if sys.platform == 'darwin' and path.endswith('.app'):
+        return ['open', '-a', path]
+    return [path]
 
 
 def alter_subprocess_kwargs_by_platform(**kwargs):
@@ -178,7 +206,7 @@ def run_program(program, args=None, **subprocess_kwargs):
     if not fullcmd:
         raise ProgramError("Program %s was not found" % program)
     # As per subprocess, we make a complete list of prog+args
-    fullcmd = [fullcmd] + (args or [])
+    fullcmd = get_full_command_for_program(fullcmd) + (args or [])
     for stream in ['stdin', 'stdout', 'stderr']:
         subprocess_kwargs.setdefault(stream, subprocess.PIPE)
     subprocess_kwargs = alter_subprocess_kwargs_by_platform(
@@ -933,4 +961,30 @@ def check_python_help(filename):
         else:
             return False
     except:
+        return False
+
+
+def is_spyder_process(pid):
+    """
+    Test whether given PID belongs to a Spyder process.
+
+    This is checked by testing the first three command line arguments. This
+    function returns a bool. If there is no process with this PID or its
+    command line cannot be accessed (perhaps because the process is owned by
+    another user), then the function returns False.
+    """
+    try:
+        p = psutil.Process(int(pid))
+
+        # Valid names for main script
+        names = set(['spyder', 'spyder3', 'spyder.exe', 'spyder3.exe',
+                     'bootstrap.py', 'spyder-script.py'])
+        if running_under_pytest():
+            names.add('runtests.py')
+
+        # Check the first three command line arguments
+        arguments = set(os.path.basename(arg) for arg in p.cmdline()[:3])
+        conditions = [names & arguments]
+        return any(conditions)
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
         return False

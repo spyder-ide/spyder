@@ -14,8 +14,7 @@ from spyder.preferences.configdialog import ConfigDialog, GeneralConfigPage
 from spyder.utils.qthelpers import get_icon
 from spyder.config.user import NoDefault
 from spyder.plugins.projects.widgets import EmptyProject
-from spyder.plugins.projects.utils.config import (WORKSPACE, VCS, ENCODING,
-                                            CODESTYLE)
+from spyder.plugins.projects.utils.config import WORKSPACE, VCS, CODESTYLE
 
 
 class ProjectPreferences(ConfigDialog):
@@ -103,7 +102,6 @@ class WorkspaceConfigPage(ProjectConfigPage):
     def apply_settings(self, options):
         """ """
         pass  # TODO:
-        #self.main.apply_settings()
 
 
 class CodeConfigPage(ProjectConfigPage):
@@ -140,7 +138,6 @@ class CodeConfigPage(ProjectConfigPage):
     def apply_settings(self, options):
         """ """
         print('applied')  # spyder: test-skip
-        #self.main.apply_settings()
 
 
 class VersionConfigPage(ProjectConfigPage):
@@ -175,7 +172,6 @@ class VersionConfigPage(ProjectConfigPage):
     def apply_settings(self, options):
         """ """
         print('applied')  # spyder: test-skip
-        #self.main.apply_settings()
 
 
 if __name__ == "__main__":

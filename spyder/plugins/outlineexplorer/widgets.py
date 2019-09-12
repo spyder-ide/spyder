@@ -12,8 +12,8 @@ import os.path as osp
 
 # Third party imports
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import QSize, QObject, Qt, Signal, Slot
-from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget,
+from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
                             QTreeWidgetItemIterator)
 
 # Local imports
@@ -81,7 +81,7 @@ class TreeItem(QTreeWidgetItem):
     @property
     def line(self):
         """Get line number."""
-        return self.oedata.block.firstLineNumber() + 1
+        return self.oedata.block.blockNumber() + 1
 
     def update(self):
         """Update the tree element."""
@@ -498,7 +498,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         for data in editor.outlineexplorer_data_list():
             try:
-                line_nb = data.block.firstLineNumber() + 1
+                line_nb = data.block.blockNumber() + 1
             except AttributeError:
                 continue
             level = None if data is None else data.fold_level

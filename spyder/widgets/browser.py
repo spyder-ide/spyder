@@ -14,7 +14,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import QUrl, Signal, Slot
 from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QProgressBar, QMenu,
-                            QVBoxLayout, QWidget)
+                            QWidget)
 from qtpy.QtWebEngineWidgets import (QWebEnginePage, QWebEngineSettings,
                                      QWebEngineView, WEBENGINE)
 from qtpy.QtGui import QFontInfo
@@ -168,7 +168,11 @@ class WebView(QWebEngineView):
     #------ QWebEngineView API -------------------------------------------------------
     def createWindow(self, webwindowtype):
         import webbrowser
-        webbrowser.open(to_text_string(self.url().toString()))
+        # See: spyder-ide/spyder#9849
+        try:
+            webbrowser.open(to_text_string(self.url().toString()))
+        except ValueError:
+            pass
 
     def contextMenuEvent(self, event):
         menu = QMenu(self)

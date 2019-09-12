@@ -17,16 +17,14 @@ import sys
 
 # Third party imports
 from qtpy import PYQT5
-from qtpy.QtCore import (QByteArray, QEvent, QMimeData, QPoint, Qt, Signal,
-                         Slot)
-from qtpy.QtGui import QDrag
-from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
+from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
+from qtpy.QtWidgets import (QHBoxLayout, QMenu, QTabBar,
                             QTabWidget, QWidget, QLineEdit)
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
-from spyder.py3compat import PY2, to_binary_string, to_text_string
+from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
 from spyder.utils.misc import get_common_path
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -256,6 +254,9 @@ class BaseTabs(QTabWidget):
 
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips
+
+        self.setStyleSheet("QTabWidget::tab-bar {"
+                           "alignment: left;}")
 
         if menu is None:
             self.menu = QMenu(self)

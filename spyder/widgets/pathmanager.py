@@ -17,7 +17,7 @@ from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout,
                             QListWidget, QListWidgetItem, QMessageBox,
-                            QVBoxLayout, QCheckBox)
+                            QVBoxLayout)
 
 # Local imports
 from spyder.config.base import _

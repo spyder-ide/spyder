@@ -24,12 +24,11 @@ from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QLineEdit, QListView, QListWidget, QListWidgetItem,
                             QMessageBox, QPushButton, QRadioButton,
                             QScrollArea, QSpinBox, QSplitter, QStackedWidget,
-                            QStyleFactory, QTabWidget, QVBoxLayout, QWidget,
-                            QApplication, QPlainTextEdit)
+                            QVBoxLayout, QWidget, QPlainTextEdit)
 
 # Local imports
 from spyder.config.base import _, load_lang_conf
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.user import NoDefault
 from spyder.py3compat import to_text_string
 from spyder.utils.icon_manager import ima
@@ -141,6 +140,7 @@ class ConfigDialog(QDialog):
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Apply |
                                 QDialogButtonBox.Cancel)
         self.apply_btn = bbox.button(QDialogButtonBox.Apply)
+        self.ok_btn = bbox.button(QDialogButtonBox.Ok)
 
         # Widgets setup
         # Destroying the C++ object right after closing the dialog box,
@@ -148,7 +148,6 @@ class ConfigDialog(QDialog):
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        self.setWindowFlags(Qt.Dialog | Qt.WindowStaysOnTopHint)
         self.setWindowTitle(_('Preferences'))
         self.setWindowIcon(ima.icon('configure'))
         self.contents_widget.setMovement(QListView.Static)
@@ -202,7 +201,9 @@ class ConfigDialog(QDialog):
             widget = self.pages_widget.currentWidget()
         else:
             widget = self.pages_widget.widget(index)
-        return widget.widget()
+
+        if widget:
+            return widget.widget()
 
     @Slot()
     def accept(self):
@@ -320,11 +321,10 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         return True
 
     def load_from_conf(self):
-        """Load settings from configuration file"""
+        """Load settings from configuration file."""
         for checkbox, (option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default))
-            # QAbstractButton works differently for PySide and PyQt
-            checkbox.clicked.connect(lambda opt=option:
+            checkbox.clicked.connect(lambda _, opt=option:
                                      self.has_been_modified(opt))
         for radiobutton, (option, default) in list(self.radiobuttons.items()):
             radiobutton.setChecked(self.get_option(option, default))
@@ -337,7 +337,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             if getattr(lineedit, 'content_type', None) == list:
                 data = ', '.join(data)
             lineedit.setText(data)
-            lineedit.textChanged.connect(lambda _foo, opt=option:
+            lineedit.textChanged.connect(lambda _, opt=option:
                                          self.has_been_modified(opt))
             if lineedit.restart_required:
                 self.restart_options[option] = lineedit.label_text
@@ -433,46 +433,56 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def save_to_conf(self):
         """Save settings to configuration file"""
         for checkbox, (option, _default) in list(self.checkboxes.items()):
-            self.set_option(option, checkbox.isChecked())
+            if option in self.changed_options:
+                value = checkbox.isChecked()
+                self.set_option(option, value)
         for radiobutton, (option, _default) in list(self.radiobuttons.items()):
-            self.set_option(option, radiobutton.isChecked())
+            if option in self.changed_options:
+                self.set_option(option, radiobutton.isChecked())
         for lineedit, (option, _default) in list(self.lineedits.items()):
-            data = lineedit.text()
-            content_type = getattr(lineedit, 'content_type', None)
-            if content_type == list:
-                data = [item.strip() for item in data.split(',')]
-            else:
-                data = to_text_string(data)
-            self.set_option(option, data)
-        for textedit, (option, _default) in list(self.textedits.items()):
-            data = textedit.toPlainText()
-            content_type = getattr(textedit, 'content_type', None)
-            if content_type == dict:
-                if data:
-                    data = ast.literal_eval(data)
+            if option in self.changed_options:
+                data = lineedit.text()
+                content_type = getattr(lineedit, 'content_type', None)
+                if content_type == list:
+                    data = [item.strip() for item in data.split(',')]
                 else:
-                    data = textedit.content_type()
-            elif content_type in (tuple, list):
-                data = [item.strip() for item in data.split(',')]
-            else:
-                data = to_text_string(data)
-            self.set_option(option, data)
+                    data = to_text_string(data)
+                self.set_option(option, data)
+        for textedit, (option, _default) in list(self.textedits.items()):
+            if option in self.changed_options:
+                data = textedit.toPlainText()
+                content_type = getattr(textedit, 'content_type', None)
+                if content_type == dict:
+                    if data:
+                        data = ast.literal_eval(data)
+                    else:
+                        data = textedit.content_type()
+                elif content_type in (tuple, list):
+                    data = [item.strip() for item in data.split(',')]
+                else:
+                    data = to_text_string(data)
+                self.set_option(option, data)
         for spinbox, (option, _default) in list(self.spinboxes.items()):
-            self.set_option(option, spinbox.value())
+            if option in self.changed_options:
+                self.set_option(option, spinbox.value())
         for combobox, (option, _default) in list(self.comboboxes.items()):
-            data = combobox.itemData(combobox.currentIndex())
-            self.set_option(option, from_qvariant(data, to_text_string))
+            if option in self.changed_options:
+                data = combobox.itemData(combobox.currentIndex())
+                self.set_option(option, from_qvariant(data, to_text_string))
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
-            font = fontbox.currentFont()
-            font.setPointSize(sizebox.value())
-            self.set_font(font, option)
+            if option in self.changed_options:
+                font = fontbox.currentFont()
+                font.setPointSize(sizebox.value())
+                self.set_font(font, option)
         for clayout, (option, _default) in list(self.coloredits.items()):
-            self.set_option(option, to_text_string(clayout.lineedit.text()))
+            if option in self.changed_options:
+                self.set_option(option, to_text_string(clayout.lineedit.text()))
         for (clayout, cb_bold, cb_italic), (option, _default) in list(self.scedits.items()):
-            color = to_text_string(clayout.lineedit.text())
-            bold = cb_bold.isChecked()
-            italic = cb_italic.isChecked()
-            self.set_option(option, (color, bold, italic))
+            if option in self.changed_options:
+                color = to_text_string(clayout.lineedit.text())
+                bold = cb_bold.isChecked()
+                italic = cb_italic.isChecked()
+                self.set_option(option, (color, bold, italic))
 
     @Slot(str)
     def has_been_modified(self, option):

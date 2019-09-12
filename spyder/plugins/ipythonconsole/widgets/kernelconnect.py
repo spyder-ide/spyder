@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
 
 # Local imports
 from spyder.config.base import _, get_home_dir
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 class KernelConnectionDialog(QDialog):
@@ -159,6 +159,7 @@ class KernelConnectionDialog(QDialog):
         layout.addWidget(self.rm_group)
         layout.addLayout(btns_layout)
 
+        self.cf.setFocus()
         self.load_connection_settings()
 
     def load_connection_settings(self):

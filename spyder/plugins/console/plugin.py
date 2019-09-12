@@ -24,7 +24,7 @@ from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QHBoxLayout
 
 # Local imports
 from spyder.config.base import _, DEV, get_debug_level
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.utils.icon_manager import ima
 from spyder.utils.environ import EnvDialog
 from spyder.utils.misc import (get_error_match, remove_backslashes,
@@ -48,6 +48,7 @@ class Console(SpyderPluginWidget):
     Console widget
     """
     CONF_SECTION = 'internal_console'
+    CONF_FILE = False
     focus_changed = Signal()
     redirect_stdio = Signal(bool)
     edit_goto = Signal(str, int, str)
@@ -204,9 +205,12 @@ class Console(SpyderPluginWidget):
         if CONF.get('main', 'show_internal_errors'):
             if self.error_dlg is None:
                 self.error_dlg = SpyderErrorDialog(self)
+                self.error_dlg.set_color_scheme(CONF.get('appearance',
+                                                         'selected'))
                 self.error_dlg.close_btn.clicked.connect(self.close_error_dlg)
                 self.error_dlg.rejected.connect(self.remove_error_dlg)
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
+
             if is_pyls_error:
                 title = "Internal Python Language Server error"
                 self.error_dlg.set_title(title)

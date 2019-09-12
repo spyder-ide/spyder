@@ -71,20 +71,6 @@ except AttributeError:
 
 
 #-----------------------------------------------------------------------------
-# Auxiliary functions
-#-----------------------------------------------------------------------------
-def background(f):
-    """
-    Call a function in a simple thread, to prevent blocking
-
-    Taken from the Jupyter Qtconsole project
-    """
-    t = Thread(target=f)
-    t.start()
-    return t
-
-
-#-----------------------------------------------------------------------------
 # Client widget
 #-----------------------------------------------------------------------------
 class ClientWidget(QWidget, SaveHistoryMixin):
@@ -116,6 +102,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         SaveHistoryMixin.__init__(self, history_filename)
 
         # --- Init attrs
+        self.plugin = plugin
         self.id_ = id_
         self.connection_file = connection_file
         self.hostname = hostname
@@ -280,7 +267,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.sig_show_env.connect(self.show_env)
 
         # To sync with working directory toolbar
-        self.shellwidget.executed.connect(self.shellwidget.get_cwd)
+        self.shellwidget.executed.connect(self.shellwidget.update_cwd)
 
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
@@ -307,10 +294,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Method to handle what to do when the stop button is pressed"""
         self.stop_button.setDisabled(True)
         # Interrupt computations or stop debugging
-        if not self.shellwidget._reading:
+        if not self.shellwidget.is_waiting_pdb_input():
             self.interrupt_kernel()
         else:
-            self.shellwidget.write_to_stdin('exit')
+            self.shellwidget.pdb_execute('exit', hidden=True)
 
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget."""
@@ -376,14 +363,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                         self,
                         _("Show environment variables"),
                         icon=ima.icon('environ'),
-                        triggered=self.shellwidget.get_env
+                        triggered=self.shellwidget.request_env
                      )
 
         syspath_action = create_action(
                             self,
                             _("Show sys.path contents"),
                             icon=ima.icon('syspath'),
-                            triggered=self.shellwidget.get_syspath
+                            triggered=self.shellwidget.request_syspath
                          )
 
         self.show_time_action.setChecked(self.show_elapsed_time)
@@ -500,9 +487,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             # This avoids some flakyness with our Cython tests
             if running_under_pytest():
                 now = False
+            self.shellwidget.spyder_kernel_comm.close()
             self.shellwidget.kernel_manager.shutdown_kernel(now=now)
+            self.shellwidget._pdb_history_file.save_thread.stop()
         if self.shellwidget.kernel_client is not None:
-            background(self.shellwidget.kernel_client.stop_channels)
+            self.shellwidget.kernel_client.stop_channels()
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
@@ -539,8 +528,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     self.infowidget.hide()
                     sw.show()
                 try:
+                    # Close comm
+                    sw.spyder_kernel_comm.close()
                     sw.kernel_manager.restart_kernel(
                         stderr=self.stderr_handle)
+                    # Reopen comm
+                    sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+
                 except RuntimeError as e:
                     sw._append_plain_text(
                         _('Error restarting kernel: %s\n') % e,
@@ -730,7 +724,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         Show possible errors when setting the selected Matplotlib backend.
         """
         if not self.external_kernel:
-            self.shellwidget.silent_execute(
-                    "get_ipython().kernel._show_mpl_backend_errors()")
+            self.shellwidget.call_kernel().show_mpl_backend_errors()
         self.shellwidget.sig_prompt_ready.disconnect(
             self._show_mpl_backend_errors)

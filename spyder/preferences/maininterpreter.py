@@ -264,4 +264,3 @@ class MainInterpreterConfigPage(GeneralConfigPage):
                 self.set_option('custom_interpreter', executable)
         if not self.pyexec_edit.text():
             self.set_option('custom_interpreter', '')
-        self.main.apply_settings()

@@ -69,7 +69,7 @@ class MainConfigPage(GeneralConfigPage):
                               'check_updates_on_startup')
 
         # Decide if it's possible to activate or not single instance mode
-        if running_in_mac_app():
+        if running_in_mac_app(check_file=True):
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)
 
@@ -224,8 +224,8 @@ class MainConfigPage(GeneralConfigPage):
             "",
             'high_dpi_custom_scale_factors',
             tip=_("Enter values for different screens "
-                  "separated by semicolons ';', "
-                  "float values are supported"),
+                  "separated by semicolons ';'.\n"
+                  "Float values are supported"),
             alignment=Qt.Horizontal,
             regex=r"[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
             restart=True)

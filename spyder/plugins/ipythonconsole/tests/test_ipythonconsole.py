@@ -24,7 +24,7 @@ except ImportError:
     from mock import Mock  # Python 2
 
 # Third party imports
-import cloudpickle
+from IPython.core import release as ipy_release
 from flaky import flaky
 from jupyter_client.kernelspec import KernelSpec
 from pygments.token import Name
@@ -36,13 +36,20 @@ from qtpy.QtWidgets import QMessageBox, QMainWindow
 import sympy
 
 # Local imports
+from spyder.config.base import get_home_dir
 from spyder.config.gui import get_color_scheme
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.programs import get_temp_dir
+
+
+# Global skip
+if sys.platform == 'darwin' and PY2:
+    pytest.skip("These tests are segfaulting too much in macOS and Python 2",
+                allow_module_level=True)
 
 
 # =============================================================================
@@ -51,6 +58,7 @@ from spyder.utils.programs import get_temp_dir
 SHELL_TIMEOUT = 20000
 TEMP_DIRECTORY = tempfile.gettempdir()
 NON_ASCII_DIR = osp.join(TEMP_DIRECTORY, u'測試', u'اختبار')
+NEW_DIR = 'new_workingdir'
 
 
 # =============================================================================
@@ -92,36 +100,57 @@ def ipyconsole(qtbot, request):
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
 
+    # Start in a new working directory the console
+    use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
+    if use_startup_wdir:
+        new_wdir = osp.join(os.getcwd(), NEW_DIR)
+        if not osp.exists(new_wdir):
+            os.mkdir(new_wdir)
+        CONF.set('workingdir', 'console/use_fixed_directory', True)
+        CONF.set('workingdir', 'console/fixed_directory', new_wdir)
+    else:
+        CONF.set('workingdir', 'console/use_fixed_directory', False)
+        CONF.set('workingdir', 'console/fixed_directory', get_home_dir())
+
     # Test the console with a non-ascii temp dir
-    non_ascii_dir = request.node.get_marker('non_ascii_dir')
+    non_ascii_dir = request.node.get_closest_marker('non_ascii_dir')
     if non_ascii_dir:
         test_dir = NON_ASCII_DIR
     else:
         test_dir = None
 
     # Instruct the console to not use a stderr file
-    no_stderr_file = request.node.get_marker('no_stderr_file')
+    no_stderr_file = request.node.get_closest_marker('no_stderr_file')
     if no_stderr_file:
         test_no_stderr = True
     else:
         test_no_stderr = False
 
     # Use the automatic backend if requested
-    auto_backend = request.node.get_marker('auto_backend')
+    auto_backend = request.node.get_closest_marker('auto_backend')
     if auto_backend:
         CONF.set('ipython_console', 'pylab/backend', 1)
 
     # Start a Pylab client if requested
-    pylab_client = request.node.get_marker('pylab_client')
+    pylab_client = request.node.get_closest_marker('pylab_client')
     is_pylab = True if pylab_client else False
 
     # Start a Sympy client if requested
-    sympy_client = request.node.get_marker('sympy_client')
+    sympy_client = request.node.get_closest_marker('sympy_client')
     is_sympy = True if sympy_client else False
 
     # Start a Cython client if requested
-    cython_client = request.node.get_marker('cython_client')
+    cython_client = request.node.get_closest_marker('cython_client')
     is_cython = True if cython_client else False
+
+    # Use an external interpreter if requested
+    external_interpreter = request.node.get_closest_marker('external_interpreter')
+    if external_interpreter:
+        CONF.set('main_interpreter', 'default', False)
+        CONF.set('main_interpreter', 'executable', sys.executable)
+    else:
+        CONF.set('main_interpreter', 'default', True)
+        CONF.set('main_interpreter', 'executable', '')
 
     # Create the console and a new client
     window = MainWindowMock()
@@ -151,21 +180,45 @@ def ipyconsole(qtbot, request):
 # Tests
 # =============================================================================
 @pytest.mark.slow
+@pytest.mark.external_interpreter
+def test_banners(ipyconsole, qtbot):
+    """Test that console banners are generated correctly."""
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Long banner
+    text = control.toPlainText().splitlines()
+    py_ver = sys.version.splitlines()[0].strip()
+    assert py_ver in text[0]  # Python version in first line
+    assert 'license' in text[1]  # 'license' mention in second line
+    assert '' == text[2]  # Third line is empty
+    assert ipy_release.version in text[3]  # Fourth line is IPython
+
+    # Short banner
+    short_banner = shell.short_banner()
+    py_ver = sys.version.split(' ')[0]
+    expected = 'Python %s -- IPython %s' % (py_ver, ipy_release.version)
+    assert expected == short_banner
+
+
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
-        "function,signature,documentation",
-        [("arange",
-          ["start", "stop"],
-          ["Return evenly spaced values within a given interval.<br>",
-           "returns an ndarray rather than a list.<br>"]),
-         ("vectorize",
-          ["pyfunc", "otype", "signature"],
-          ["Generalized function class.<br>",
-           "numpy array or a tuple of numpy ..."]),
-         ("absolute",
-          ["x", "/", "out"],
-          ["Parameters<br>", "x : array_like ..."])]
-        )
+    "function,signature,documentation",
+    [("arange",
+      ["start", "stop"],
+      ["Return evenly spaced values within a given interval.<br>",
+       "<br>Python built-in `range` function, but returns an ndarray ..."]),
+     ("vectorize",
+      ["pyfunc", "otype", "signature"],
+      ["Generalized function class.<br>",
+       "Define a vectorized function which takes a nested sequence ..."]),
+     ("absolute",
+      ["x", "/", "out"],
+      ["Parameters<br>", "x : array_like ..."])]
+    )
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
 def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
@@ -566,7 +619,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
 
     # Ask for directory.
     with qtbot.waitSignal(shell.sig_change_cwd):
-        shell.get_cwd()
+        shell.update_cwd()
 
     if os.name == 'nt':
         tempdir = tempdir.replace(u"\\\\", u"\\")
@@ -578,7 +631,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-def test_get_env(ipyconsole, qtbot):
+def test_request_env(ipyconsole, qtbot):
     """Test that getting env vars from the kernel is working as expected."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
@@ -589,7 +642,7 @@ def test_get_env(ipyconsole, qtbot):
 
     # Ask for os.environ contents
     with qtbot.waitSignal(shell.sig_show_env) as blocker:
-        shell.get_env()
+        shell.request_env()
 
     # Get env contents from the signal
     env_contents = blocker.args[0]
@@ -602,7 +655,7 @@ def test_get_env(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt',
                     reason="Fails due to differences in path handling")
-def test_get_syspath(ipyconsole, qtbot, tmpdir):
+def test_request_syspath(ipyconsole, qtbot, tmpdir):
     """
     Test that getting sys.path contents from the kernel is working as
     expected.
@@ -617,7 +670,7 @@ def test_get_syspath(ipyconsole, qtbot, tmpdir):
 
     # Ask for sys.path contents
     with qtbot.waitSignal(shell.sig_show_syspath) as blocker:
-        shell.get_syspath()
+        shell.request_syspath()
 
     # Get sys.path contents from the signal
     syspath_contents = blocker.args[0]
@@ -629,10 +682,11 @@ def test_get_syspath(ipyconsole, qtbot, tmpdir):
 @pytest.mark.slow
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
-def test_browse_history_dbg(ipyconsole, qtbot):
+def test_save_history_dbg(ipyconsole, qtbot):
     """Test that browsing command history is working while debugging."""
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
     control = ipyconsole.get_focus_widget()
@@ -649,6 +703,15 @@ def test_browse_history_dbg(ipyconsole, qtbot):
     qtbot.keyClicks(control, '!aa = 10')
     qtbot.keyClick(control, Qt.Key_Enter)
 
+    # Add a pdb command to make sure it is not saved
+    qtbot.wait(1000)
+    qtbot.keyClicks(control, 'u')
+    qtbot.keyClick(control, Qt.Key_Enter)
+
+    # Add an empty line to make sure it is not saved
+    qtbot.wait(1000)
+    qtbot.keyClick(control, Qt.Key_Enter)
+
     # Clear console (for some reason using shell.clear_console
     # doesn't work here)
     shell.reset(clear=True)
@@ -658,6 +721,63 @@ def test_browse_history_dbg(ipyconsole, qtbot):
     # introduced command
     qtbot.keyClick(control, Qt.Key_Up)
     assert '!aa = 10' in control.toPlainText()
+
+    # Open new widget
+    ipyconsole.create_new_client()
+
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Generate a traceback and enter debugging mode
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('1/0')
+
+    shell.execute('%debug')
+    qtbot.wait(1000)
+
+    # Press Up arrow button and assert we get the last
+    # introduced command
+    qtbot.keyClick(control, Qt.Key_Up)
+    assert '!aa = 10' in control.toPlainText()
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(PY2, reason="insert is not the same in py2")
+def test_dbg_input(ipyconsole, qtbot):
+    """Test that spyder doesn't send pdb commands to unrelated input calls."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Debug with input
+    shell.execute("%debug print('Hello', input('name'))")
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Reach the 'name' input
+    shell.pdb_execute('n')
+    qtbot.wait(100)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    shell.pdb_execute('n')
+    qtbot.wait(100)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'name')
+
+    # Execute some code and make sure that it doesn't work
+    # as this is not a pdb prompt
+    shell.pdb_execute('n')
+    shell.pdb_execute('!aa = 10')
+    qtbot.wait(500)
+    assert control.toPlainText().split()[-1] == 'name'
+    shell.kernel_client.input('test')
+    qtbot.waitUntil(lambda: 'Hello test' in control.toPlainText())
 
 
 @pytest.mark.slow
@@ -679,7 +799,7 @@ def test_unicode_vars(ipyconsole, qtbot):
     assert shell.get_value('д') == 10
 
     # Change its value and verify
-    shell.set_value('д', [cloudpickle.dumps(20, protocol=2)])
+    shell.set_value('д', 20)
     qtbot.wait(1000)
     assert shell.get_value('д') == 20
 
@@ -733,7 +853,7 @@ def test_values_dbg(ipyconsole, qtbot):
     assert shell.get_value('aa') == 10
 
     # Set value
-    shell.set_value('aa', [cloudpickle.dumps(20, protocol=2)])
+    shell.set_value('aa', 20)
     qtbot.wait(1000)
     assert shell.get_value('aa') == 20
 
@@ -1167,6 +1287,18 @@ def test_remove_old_stderr_files(ipyconsole, qtbot):
     # Assert that only that file is removed
     ipyconsole._remove_old_stderr_files()
     assert not osp.isfile(osp.join(tmpdir, 'foo.stderr'))
+
+
+@pytest.mark.slow
+@pytest.mark.use_startup_wdir
+def test_console_working_directory(ipyconsole, qtbot):
+    """Test for checking the working directory."""
+    shell = ipyconsole.get_current_shellwidget()
+    shell.execute('import os; cwd = os.getcwd()')
+
+    current_wdir = shell.get_value('cwd')
+    folders = osp.split(current_wdir)
+    assert folders[-1] == NEW_DIR
 
 
 if __name__ == "__main__":

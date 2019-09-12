@@ -14,7 +14,6 @@
 from __future__ import with_statement
 
 # Standard library imports
-import mimetypes as mime
 import os
 import os.path as osp
 import re
@@ -26,15 +25,15 @@ import sys
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QSize,
                          QSortFilterProxyModel, Qt, QTimer, QUrl, Signal, Slot)
-from qtpy.QtGui import QDrag, QIcon, QKeySequence
+from qtpy.QtGui import QDrag, QKeySequence
 from qtpy.QtWidgets import (QApplication, QFileIconProvider, QFileSystemModel,
                             QHBoxLayout, QInputDialog, QLabel, QLineEdit,
                             QMenu, QMessageBox, QToolButton, QTreeView,
                             QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import _, get_home_dir, get_image_path
-from spyder.config.gui import config_shortcut, get_shortcut, is_dark_interface
+from spyder.config.base import _, get_home_dir
+from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.py3compat import str_lower, to_binary_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.icon_manager import ima

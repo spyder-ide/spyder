@@ -8,8 +8,7 @@
 Dock widgets for plugins
 """
 
-from qtpy.QtCore import QEvent, QObject, QPoint, Qt, QSize, Signal
-from qtpy.QtGui import QCursor
+from qtpy.QtCore import QEvent, QObject, Qt, QSize, Signal
 from qtpy.QtWidgets import (QApplication, QDockWidget, QHBoxLayout,
                             QSizePolicy, QStyle, QTabBar, QToolButton,
                             QWidget)
@@ -28,6 +27,10 @@ class TabFilter(QObject):
         self.dock_tabbar = dock_tabbar
         self.main = main
         self.from_index = None
+
+        # Center dockwidget tabs to differentiate them from plugin tabs.
+        # See spyder-ide/spyder#9763
+        self.dock_tabbar.setStyleSheet("QTabBar {alignment: center;}")
 
     def eventFilter(self, obj, event):
         """Filter mouse press events.
@@ -218,6 +221,7 @@ class SpyderDockWidget(QDockWidget):
                 if title == self.title:
                     dock_tabbar = tabbar
                     break
+
         if dock_tabbar is not None:
             self.dock_tabbar = dock_tabbar
             # Install filter only once per QTabBar

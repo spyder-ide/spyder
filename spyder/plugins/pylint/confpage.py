@@ -6,9 +6,11 @@
 
 """Pylint config page."""
 
+# Third-party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
+# Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.plugins.pylint.widgets.pylintgui import PylintWidget

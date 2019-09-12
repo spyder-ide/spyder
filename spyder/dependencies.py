@@ -22,9 +22,10 @@ class Dependency(object):
     OK = 'OK'
     NOK = 'NOK'
 
-    def __init__(self, modname, features, required_version,
+    def __init__(self, modname, package_name, features, required_version,
                  installed_version=None, optional=False):
         self.modname = modname
+        self.package_name = package_name
         self.features = features
         self.required_version = required_version
         self.optional = optional
@@ -63,15 +64,16 @@ class Dependency(object):
 DEPENDENCIES = []
 
 
-def add(modname, features, required_version, installed_version=None,
-        optional=False):
+def add(modname, package_name, features, required_version,
+        installed_version=None, optional=False):
     """Add Spyder dependency"""
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
         if dependency.modname == modname:
             raise ValueError("Dependency has already been registered: %s"\
                              % modname)
-    DEPENDENCIES += [Dependency(modname, features, required_version,
+    DEPENDENCIES += [Dependency(modname, package_name, features,
+                                required_version,
                                 installed_version, optional)]
 
 

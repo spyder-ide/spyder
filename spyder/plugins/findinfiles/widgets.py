@@ -37,7 +37,6 @@ from spyder.config.main import EXCLUDE_PATTERNS
 from spyder.py3compat import to_text_string, PY2
 from spyder.utils.icon_manager import ima
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
-from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 from spyder.utils.misc import regexp_error_msg
@@ -751,7 +750,7 @@ class ItemDelegate(QStyledItemDelegate):
         doc.setHtml(options.text)
         doc.setTextWidth(options.rect.width())
 
-        return QSize(doc.idealWidth(), doc.size().height())
+        return QSize(int(doc.idealWidth()), int(doc.size().height()))
 
 
 class ResultsBrowser(OneColumnTree):
