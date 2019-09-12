@@ -317,7 +317,7 @@ class Projects(SpyderPluginWidget):
         project = EmptyProject(path)
         self.current_active_project = project
         self.latest_project = project
-        
+
         repo = context.get('repository_url')
         if repo:
             project.set_repository_url(repo)

@@ -242,7 +242,9 @@ class GeneralProjectPage(BaseProjectPage):
             self.label_project_name_or_url.setDisabled(True)
             self.text_project_name_or_url.setDisabled(True)
             self.text_project_name_or_url.setText('')
-            self.label_project_name_or_url.setText('<p>' + '&nbsp;'*26 + '</p>')
+            self.label_project_name_or_url.setText(
+                '<p>' + '&nbsp;'*26 + '</p>'
+            )
             path = self.location
             is_valid = True
             self.button_select_location.setFocus()
@@ -278,13 +280,14 @@ class GeneralProjectPage(BaseProjectPage):
                         error = '' if is_valid else validating_text
                 else:
                     is_valid = False
-                    error = _('Valid url for the repository must end in `.git`!')
+                    error = _(
+                        'Valid url for the repository must end in `.git`!')
 
             path = self.location
 
         if path:
             self.text_location.setText(path)
-    
+
         self.sig_validated.emit(is_valid, error)
 
         return is_valid, error
@@ -302,7 +305,7 @@ class GeneralProjectPage(BaseProjectPage):
         """
         path = self.text_location.text()
         pref_idx = self.combo_project_preferences.currentIndex()
-        preferences = self.combo_project_preferences.itemData(pref_idx) 
+        preferences = self.combo_project_preferences.itemData(pref_idx)
 
         if self.radio_from_vcs.isChecked():
             repo_url = self.text_project_name_or_url.text()
@@ -334,7 +337,7 @@ class ProjectDialog(QDialog):
         self._is_busy = None
         self._worker_manager = WorkerManager()
 
-        # Widgets 
+        # Widgets
         self.spinner = create_waitspinner(size=16, parent=self)
         self.label_title = QLabel()
         self.label_status = QLabel()
@@ -391,7 +394,8 @@ class ProjectDialog(QDialog):
         self.button_create.clicked.connect(self.create_project)
         self.pages_widget.currentChanged.connect(self.validate)
         self.page_general.sig_validated.connect(self.validate)
-        self.page_general.sig_project_type_updated.connect(self.load_project_type)
+        self.page_general.sig_project_type_updated.connect(
+            self.load_project_type)
 
         self.validate()
 
@@ -575,7 +579,7 @@ class ProjectDialog(QDialog):
                 self,
                 _("Warning"),
                 (_("Spyder is in the process of creating a project") +
-                '<br><br>' +
+                 '<br><br>' +
                  _("Do you want to abort?")),
                 QMessageBox.Yes | QMessageBox.No)
 
