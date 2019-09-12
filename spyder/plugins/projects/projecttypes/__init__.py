@@ -16,7 +16,7 @@ from collections import OrderedDict
 # Local imports
 from spyder.config.base import _, get_project_config_folder
 from spyder.py3compat import to_text_string
-from spyder.plugins.projects.utils.config import (ProjectMultiConfig, 
+from spyder.plugins.projects.utils.config import (ProjectMultiConfig,
                                                   PROJECT_NAME_MAP,
                                                   PROJECT_DEFAULTS,
                                                   PROJECT_CONF_VERSION)
