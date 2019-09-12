@@ -1409,6 +1409,7 @@ class ExplorerTreeWidget(DirView):
     set_previous_enabled = Signal(bool)
     set_next_enabled = Signal(bool)
     sig_open_dir = Signal(str)
+    sig_column_visibility_changed = Signal(int)
 
     def __init__(self, parent=None, show_cd_only=None):
         DirView.__init__(self, parent)
@@ -1593,6 +1594,13 @@ class ExplorerWidget(QWidget):
                             icon=ima.icon('ArrowUp'),
                             triggered=self.treewidget.go_to_parent_directory)
 
+        toggle_size_column_action = create_action(self, text=_('Size'),
+                                                  toggled=lambda: self.toggle_columns(1))
+        toggle_kind_column_action = create_action(self, text=_('Kind'),
+                                                  toggled=lambda: self.toggle_columns(2))
+        toggle_last_column_action = create_action(
+            self, text=_('Last modified'), toggled=lambda: self.toggle_columns(3))
+
         # Setup widgets
         self.treewidget.setup(
             name_filters=name_filters,
@@ -1600,11 +1608,13 @@ class ExplorerWidget(QWidget):
             single_click_to_open=single_click_to_open,
             file_associations=file_associations,
         )
-        self.treewidget.chdir(getcwd_or_home())
-        self.treewidget.common_actions += [None, icontext_action]
-
         for i in [1, 2]:
             self.treewidget.hideColumn(i)
+
+        self.treewidget.chdir(getcwd_or_home())
+        self.treewidget.common_actions += [None, icontext_action, None,
+            toggle_size_column_action, toggle_kind_column_action,
+            toggle_last_column_action]
 
         button_previous.setDefaultAction(previous_action)
         previous_action.setEnabled(False)
@@ -1636,6 +1646,10 @@ class ExplorerWidget(QWidget):
         self.treewidget.set_previous_enabled.connect(
                                                previous_action.setEnabled)
         self.treewidget.set_next_enabled.connect(next_action.setEnabled)
+
+    def toggle_columns(self, column):
+        """"""
+
 
     @Slot(bool)
     def toggle_icontext(self, state):
