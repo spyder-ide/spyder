@@ -229,8 +229,6 @@ def status(deps=DEPENDENCIES, linesep=os.linesep):
     col2 = []
     for dependency in deps:
         title1 = dependency.modname
-        ### The two lines below correspond to the change, but please
-        # don't add these comments to the PR.
         if dependency.required_version is not None:
             title1 += ' ' + dependency.required_version
         col1.append(title1)
