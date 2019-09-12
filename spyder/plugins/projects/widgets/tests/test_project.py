@@ -39,7 +39,7 @@ def test_empty_project(project_test, qtbot):
     project_dir, project = project_test
     assert project.root_path == str(project_dir)
 
-    # Assert Project configs	
+    # Assert Project configs
     qtbot.wait(3000)
     for filename in [WORKSPACE, CODESTYLE, ENCODING, VCS]:
         config_path = os.path.join(project.root_path, '.spyproject',
