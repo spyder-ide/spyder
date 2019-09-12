@@ -175,7 +175,6 @@ class DirView(QTreeView):
 
         # Signals
         header.customContextMenuRequested.connect(self.show_header_menu)
-        # header.sectionClicked.connect(lambda x: self.sort_by_column())
 
     #---- Model
     def setup_fs_model(self):
@@ -213,28 +212,31 @@ class DirView(QTreeView):
         self._last_order = not self._last_order
 
     def show_header_menu(self, pos):
-        """"""
+        """Display header menu"""
         self.menu_header.clear()
-        items = [_('Sort by name'), _('Sort by size'), _("Sort by kind"),
-                 _("Sort by last modified")]
+        items = [_('Size'), _('Kind'), _("Last modified")]
         header_actions = []
-        for column, item in enumerate(items):
-            order = int(not self._last_order)
+        for idx, item in enumerate(items):
+            column = idx + 1
             action = create_action(
-                self, item, None, None,
-                triggered=lambda x, col=column, order=order:
-                    self.sortByColumn(col, order),
+                self,
+                item,
+                None,
+                None,
+                toggled=lambda x, c=column: self._toggle_column(c),
             )
-            if column == self._last_column:
-                action.setDisabled(True)
-                action.setCheckable(True)
-                action.setChecked(True)
-                action.setDisabled(False)
-
+            action.blockSignals(True)
+            action.setChecked(not self.isColumnHidden(column))
+            action.blockSignals(False)
             header_actions.append(action)
 
         add_actions(self.menu_header, header_actions)
         self.menu_header.popup(self.mapToGlobal(pos))
+
+    def _toggle_column(self, column):
+        """Toggle hidden status of column."""
+        is_hidden = self.isColumnHidden(column)
+        self.setColumnHidden(column, not is_hidden)
 
     def set_single_click_to_open(self, value):
         """Set single click to open items."""
