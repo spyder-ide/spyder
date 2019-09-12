@@ -93,20 +93,20 @@ class CompletionManager(SpyderCompletionPlugin):
             req_type = request_responses['req_type']
             language = request_responses['language']
             request_responses['sources'][completion_source] = resp
-        corresponding_source = self.plugin_priority.get(req_type, 'lsp')
-        is_src_ready = self.language_status[language].get(
-            corresponding_source, False)
-        if corresponding_source == completion_source:
-            response_instance = request_responses['response_instance']
-            self.gather_and_send(
-                completion_source, response_instance, req_type, req_id)
-        else:
-            # Preferred completion source is not available
-            # Requests are handled in a first come, first served basis
-            if not is_src_ready:
+            corresponding_source = self.plugin_priority.get(req_type, 'lsp')
+            is_src_ready = self.language_status[language].get(
+                corresponding_source, False)
+            if corresponding_source == completion_source:
                 response_instance = request_responses['response_instance']
                 self.gather_and_send(
                     completion_source, response_instance, req_type, req_id)
+            else:
+                # Preferred completion source is not available
+                # Requests are handled in a first come, first served basis
+                if not is_src_ready:
+                    response_instance = request_responses['response_instance']
+                    self.gather_and_send(
+                        completion_source, response_instance, req_type, req_id)
 
     @Slot(str)
     def client_available(self, client_name):
@@ -116,7 +116,7 @@ class CompletionManager(SpyderCompletionPlugin):
     def gather_completions(self, principal_source, req_id_responses):
         merge_stats = {source: 0 for source in req_id_responses}
         responses = req_id_responses[principal_source]['params']
-        available_completions = {x['insertText'] for x in responses}
+        available_completions = {x['label'] for x in responses}
         priority_level = 1
         for source in req_id_responses:
             logger.debug(source)
@@ -126,7 +126,7 @@ class CompletionManager(SpyderCompletionPlugin):
                 continue
             source_responses = req_id_responses[source]['params']
             for response in source_responses:
-                if response['insertText'] not in available_completions:
+                if response['label'] not in available_completions:
                     response['sortText'] = (
                         'z' + 'z' * priority_level + response['sortText'])
                     responses.append(response)
@@ -215,6 +215,12 @@ class CompletionManager(SpyderCompletionPlugin):
                 client_info['plugin'].register_file(
                     language, filename, codeeditor
                 )
+
+    def update_configuration(self):
+        for client_name in self.clients:
+            client_info = self.clients[client_name]
+            if client_info['status'] == self.RUNNING:
+                client_info['plugin'].update_configuration()
 
     def start(self):
         for client_name in self.clients:

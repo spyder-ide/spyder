@@ -249,6 +249,7 @@ a Python version equal or greater than 3.5 or 2.7.
 * **diff-match-patch**: Compute text file diff changes during edition.
 * **watchdog**: Watch file changes on project directories.
 * **pyxdg**: Parse `.desktop` files on Linux
+* **rtree**: Fast access to code snippets regions (Anaconda only).
 
 ### Optional dependencies
 

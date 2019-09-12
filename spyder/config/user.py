@@ -212,7 +212,7 @@ class UserConfig(DefaultsConfig):
             self._old_version = old_version
 
             # Save new defaults
-            self._save_new_defaults(defaults)
+            self._save_new_defaults(self.defaults)
 
             # Updating defaults only if major/minor version is different
             if (self._get_minor_version(version)
@@ -258,7 +258,9 @@ class UserConfig(DefaultsConfig):
 
     def _check_defaults(self, defaults):
         """Check if defaults are valid and update defaults values."""
-        if isinstance(defaults, dict):
+        if defaults is None:
+            defaults = [(self.DEFAULT_SECTION_NAME, {})]
+        elif isinstance(defaults, dict):
             defaults = [(self.DEFAULT_SECTION_NAME, defaults)]
         elif isinstance(defaults, list):
             # Check is a list of tuples with strings and dictionaries
@@ -941,10 +943,10 @@ class MultiUserConfig(object):
         config.set(section=section, option=option, value=value,
                    verbose=verbose, save=save)
 
-    def reset_to_defaults(self):
+    def reset_to_defaults(self, section=None):
         """Reset configuration to Default values."""
         for _, config in self._configs_map.items():
-            config.reset_to_defaults()
+            config.reset_to_defaults(section=section)
 
     def remove_section(self, section):
         """Remove `section` and all options within it."""

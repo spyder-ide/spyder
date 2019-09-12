@@ -12,7 +12,9 @@ import re
 import os
 import sys
 
+# Local imports
 from spyder.py3compat import PY2
+
 if PY2:
     from itertools import izip as zip
 

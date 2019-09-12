@@ -36,7 +36,7 @@ from spyder.plugins.completion.languageserver.decorators import (
 from spyder.plugins.completion.languageserver.transport import MessageKind
 from spyder.plugins.completion.languageserver.providers import (
     LSPMethodProviderMixIn)
-from spyder.utils.misc import getcwd_or_home
+from spyder.utils.misc import getcwd_or_home, select_port
 
 # Conditional imports
 if PY2:
@@ -66,16 +66,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     #  facilities.
     sig_server_error = Signal(str)
 
-    # Constants
-    external_server_fmt = ('--server-host %(host)s '
-                           '--server-port %(port)s ')
-
     def __init__(self, parent,
                  server_settings={},
                  folder=getcwd_or_home(),
                  language='python'):
         QObject.__init__(self)
-        # LSPMethodProviderMixIn.__init__(self)
         self.manager = parent
         self.zmq_in_socket = None
         self.zmq_out_socket = None
@@ -91,6 +86,15 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.watched_files = {}
         self.watched_folders = {}
         self.req_reply = {}
+
+        # Select a free port to start the server.
+        # NOTE: Don't use the new value to set server_setttings['port']!!
+        # That's not required because this doesn't really correspond to a
+        # change in the config settings of the server. Else a server
+        # restart would be generated when doing a
+        # workspace/didChangeConfiguration request.
+        if not server_settings['external']:
+            server_port = select_port(default_port=server_settings['port'])
 
         self.transport_args = [sys.executable, '-u',
                                osp.join(LOCATION, 'transport', 'main.py')]
@@ -110,8 +114,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.context = zmq.Context()
 
         server_args_fmt = server_settings.get('args', '')
-        server_args = server_args_fmt.format(**server_settings)
-        transport_args = self.external_server_fmt % (server_settings)
+        server_args = server_args_fmt.format(
+            host=server_settings['host'],
+            port=server_port)
+        transport_args_fmt = '--server-host {host} --server-port {port} '
+        transport_args = transport_args_fmt.format(
+            host=server_settings['host'],
+            port=server_port)
 
         self.server_args = []
         if language == 'python':
@@ -308,6 +317,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                             traceback = ''.join(traceback)
                             traceback = traceback + '\n' + message
                             self.sig_server_error.emit(traceback)
+                        req_id = resp['id']
+                        if req_id in self.req_reply:
+                            self.req_reply[req_id](None, {'params': []})
                 elif 'method' in resp:
                     if resp['method'][0] != '$':
                         if 'id' in resp:

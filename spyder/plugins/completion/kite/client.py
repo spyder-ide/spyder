@@ -30,7 +30,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     sig_client_not_responding = Signal()
     sig_perform_request = Signal(int, str, object)
 
-    def __init__(self, parent):
+    def __init__(self, parent, enable_code_snippets=True):
         QObject.__init__(self, parent)
         self.endpoint = None
         self.requests = {}
@@ -38,6 +38,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         self.mutex = QMutex()
         self.opened_files = {}
         self.thread_started = False
+        self.enable_code_snippets = enable_code_snippets
         self.thread = QThread()
         self.moveToThread(self.thread)
         self.thread.started.connect(self.started)
@@ -63,13 +64,18 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     def get_languages(self):
         verb, url = KITE_ENDPOINTS.LANGUAGES_ENDPOINT
         success, response = self.perform_http_request(verb, url)
+        if response is None:
+            response = []
         return response
 
     def perform_http_request(self, verb, url, params=None):
         response = None
         success = False
         http_method = getattr(self.endpoint, verb)
-        http_response = http_method(url, json=params)
+        try:
+            http_response = http_method(url, json=params)
+        except Exception:
+            return False, None
         success = http_response.status_code == 200
         if success:
             try:
@@ -101,6 +107,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
             if method in self.handler_registry:
                 converter_name = self.handler_registry[method]
                 converter = getattr(self, converter_name)
-                response = converter(response)
+                if response is not None:
+                    response = converter(response)
             if response is not None:
                 self.sig_response_ready.emit(req_id, response)

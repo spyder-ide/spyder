@@ -91,6 +91,7 @@ class IPythonConsole(SpyderPluginWidget):
     """
     CONF_SECTION = 'ipython_console'
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
+    CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     # Signals

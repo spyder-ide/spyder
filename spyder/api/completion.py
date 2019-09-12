@@ -139,6 +139,10 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
         """
         pass
 
+    def update_configuration(self):
+        """Handle completion option configuration updates."""
+        pass
+
     def project_path_update(self, project_path, update_kind):
         """
         Handle project path updates on Spyder.

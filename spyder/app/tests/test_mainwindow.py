@@ -1639,21 +1639,28 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
 
 
 @pytest.mark.slow
-def test_fileswitcher(main_window, qtbot, tmpdir):
-    """Test the use of shorten paths when necessary in the fileswitcher."""
-    fileswitcher = main_window.fileswitcher
+def test_switcher(main_window, qtbot, tmpdir):
+    """Test the use of shorten paths when necessary in the switcher."""
+    switcher = main_window.switcher
 
-    # Assert that the full path of a file is shown in the fileswitcher
+    # Assert that the full path of a file is shown in the switcher
     file_a = tmpdir.join('test_file_a.py')
-    file_a.write('foo\n')
+    file_a.write('''
+def example_def():
+    pass
+
+def example_def_2():
+    pass
+''')
     main_window.editor.load(str(file_a))
 
-    main_window.open_fileswitcher()
-    fileswitcher_paths = fileswitcher.paths
-    assert file_a in fileswitcher_paths
-    fileswitcher.close()
+    main_window.open_switcher()
+    switcher_paths = [switcher.model.item(item_idx).get_description()
+                      for item_idx in range(switcher.model.rowCount())]
+    assert osp.dirname(str(file_a)) in switcher_paths or len(str(file_a)) > 90
+    switcher.close()
 
-    # Assert that long paths are shortened in the fileswitcher
+    # Assert that long paths are shortened in the switcher
     dir_b = tmpdir
     for _ in range(3):
         dir_b = dir_b.mkdir(str(uuid.uuid4()))
@@ -1661,25 +1668,29 @@ def test_fileswitcher(main_window, qtbot, tmpdir):
     file_b.write('bar\n')
     main_window.editor.load(str(file_b))
 
-    main_window.open_fileswitcher()
-    file_b_text = fileswitcher.list.item(
-        fileswitcher.list.count() - 1).text()
+    main_window.open_switcher()
+    file_b_text = switcher.model.item(
+        switcher.model.rowCount() - 1).get_description()
     assert '...' in file_b_text
-    fileswitcher.close()
+    switcher.close()
 
     # Assert search works correctly
     search_texts = ['test_file_a', 'file_b', 'foo_spam']
     expected_paths = [file_a, file_b, None]
     for search_text, expected_path in zip(search_texts, expected_paths):
-        main_window.open_fileswitcher()
-        qtbot.keyClicks(fileswitcher.edit, search_text)
+        main_window.open_switcher()
+        qtbot.keyClicks(switcher.edit, search_text)
         qtbot.wait(200)
-        assert fileswitcher.count() == 2 * bool(expected_path)
-        if expected_path:
-            assert fileswitcher.filtered_path[0] == expected_path
-        else:
-            assert not fileswitcher.filtered_path
-        fileswitcher.close()
+        assert switcher.count() == bool(expected_path)
+        switcher.close()
+
+    # Assert symbol switcher works
+    main_window.editor.set_current_filename(str(file_a))
+    main_window.open_switcher()
+    qtbot.keyClicks(switcher.edit, '@')
+    qtbot.wait(200)
+    assert switcher.count() == 2
+    switcher.close()
 
 
 @pytest.mark.slow
@@ -1853,6 +1864,8 @@ def test_render_issue():
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform.startswith('linux'), reason="It segfaults on Linux")
 def test_custom_layouts(main_window, qtbot):
     """Test that layout are showing the expected widgets visible."""
     mw = main_window
