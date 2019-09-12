@@ -78,7 +78,7 @@ class KeyPressFilter(QObject):
 class SwitcherBaseItem(QStandardItem):
     """Base List Item."""
 
-    _PADDING = 3
+    _PADDING = 5
     _WIDTH = 400
     _HEIGHT = None
     _STYLES = None
@@ -114,7 +114,7 @@ class SwitcherBaseItem(QStandardItem):
     # --- API
     def set_width(self, value):
         """Set the content width."""
-        self._width = value - (self._padding * 2)
+        self._width = value - (self._padding * 3)
         self._set_rendered_text()
 
     def get_width(self):
@@ -212,7 +212,7 @@ class SwitcherItem(SwitcherBaseItem):
     """
 
     _FONT_SIZE = 10
-    _HEIGHT = 15
+    _HEIGHT = 20
     _STYLE_ATTRIBUTES = ['title_color', 'description_color', 'section_color',
                          'shortcut_color', 'title_font_size',
                          'description_font_size', 'section_font_size',
@@ -469,11 +469,10 @@ class Switcher(QDialog):
     sig_item_selected = Signal(object, TEXT_TYPES[-1], TEXT_TYPES[-1], )
     sig_mode_selected = Signal(TEXT_TYPES[-1])
 
+    _MAX_NUM_ITEMS = 15
     _MIN_WIDTH = 580
     _MIN_HEIGHT = 200
-    _MAX_HEIGHT = 400
-
-    _MAX_NUM_ITEMS = 20
+    _MAX_HEIGHT = 390
     _ITEM_WIDTH = _MIN_WIDTH - 20
 
     def __init__(self, parent, help_text=None, item_styles=ITEM_STYLES,
