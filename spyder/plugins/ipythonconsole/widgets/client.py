@@ -294,10 +294,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Method to handle what to do when the stop button is pressed"""
         self.stop_button.setDisabled(True)
         # Interrupt computations or stop debugging
-        if not self.shellwidget._reading:
+        if not self.shellwidget.is_waiting_pdb_input():
             self.interrupt_kernel()
         else:
-            self.shellwidget.write_to_stdin('exit')
+            self.shellwidget.pdb_execute('exit', hidden=True)
 
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget."""
@@ -489,7 +489,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 now = False
             self.shellwidget.spyder_kernel_comm.close()
             self.shellwidget.kernel_manager.shutdown_kernel(now=now)
-            self.shellwidget.pdb_history_file.save_thread.stop()
+            self.shellwidget._pdb_history_file.save_thread.stop()
         if self.shellwidget.kernel_client is not None:
             self.shellwidget.kernel_client.stop_channels()
 
@@ -533,7 +533,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     sw.kernel_manager.restart_kernel(
                         stderr=self.stderr_handle)
                     # Reopen comm
-                    sw.spyder_kernel_comm.set_kernel_client(sw.kernel_client)
+                    sw.spyder_kernel_comm.open_comm(sw.kernel_client)
 
                 except RuntimeError as e:
                     sw._append_plain_text(

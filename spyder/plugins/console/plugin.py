@@ -48,6 +48,7 @@ class Console(SpyderPluginWidget):
     Console widget
     """
     CONF_SECTION = 'internal_console'
+    CONF_FILE = False
     focus_changed = Signal()
     redirect_stdio = Signal(bool)
     edit_goto = Signal(str, int, str)

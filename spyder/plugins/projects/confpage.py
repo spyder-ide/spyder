@@ -102,7 +102,6 @@ class WorkspaceConfigPage(ProjectConfigPage):
     def apply_settings(self, options):
         """ """
         pass  # TODO:
-        #self.main.apply_settings()
 
 
 class CodeConfigPage(ProjectConfigPage):
@@ -139,7 +138,6 @@ class CodeConfigPage(ProjectConfigPage):
     def apply_settings(self, options):
         """ """
         print('applied')  # spyder: test-skip
-        #self.main.apply_settings()
 
 
 class VersionConfigPage(ProjectConfigPage):
@@ -174,7 +172,6 @@ class VersionConfigPage(ProjectConfigPage):
     def apply_settings(self, options):
         """ """
         print('applied')  # spyder: test-skip
-        #self.main.apply_settings()
 
 
 if __name__ == "__main__":

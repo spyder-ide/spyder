@@ -164,9 +164,10 @@ class FileInfo(QObject):
     sig_save_bookmarks = Signal(str, str)
     text_changed_at = Signal(str, int)
     edit_goto = Signal(str, int, str)
-    send_to_help = Signal(str, str, str, str, bool)
+    sig_send_to_help = Signal(str, str, bool)
     sig_filename_changed = Signal(str)
     sig_show_object_info = Signal(int)
+    sig_show_completion_object_info = Signal(str, str)
 
     def __init__(self, filename, encoding, editor, new, threadmanager):
         QObject.__init__(self)
@@ -185,6 +186,8 @@ class FileInfo(QObject):
         self.editor.textChanged.connect(self.text_changed)
         self.editor.sig_bookmarks_changed.connect(self.bookmarks_changed)
         self.editor.sig_show_object_info.connect(self.sig_show_object_info)
+        self.editor.sig_show_completion_object_info.connect(
+            self.sig_send_to_help)
         self.sig_filename_changed.connect(self.editor.sig_filename_changed)
 
     @property
@@ -543,6 +546,8 @@ class EditorStack(QWidget):
         self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
         self.automatic_completions_enabled = True
+        self.completions_hint_enabled = True
+        self.code_snippets_enabled = True
         self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
@@ -1149,11 +1154,23 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_intelligent_backspace(state)
 
+    def set_code_snippets_enabled(self, state):
+        self.code_snippets_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_code_snippets(state)
+
     def set_automatic_completions_enabled(self, state):
         self.automatic_completions_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_automatic_completions(state)
+
+    def set_completions_hint_enabled(self, state):
+        self.completions_hint_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_completions_hint(state)
 
     def set_occurrence_highlighting_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'occurrence_highlighting')
@@ -2338,7 +2355,7 @@ class EditorStack(QWidget):
         finfo = FileInfo(fname, enc, editor, new, self.threadmanager)
 
         self.add_to_data(finfo, set_current, add_where)
-        finfo.send_to_help.connect(self.send_to_help)
+        finfo.sig_send_to_help.connect(self.send_to_help)
         finfo.sig_show_object_info.connect(self.inspect_current_object)
         finfo.todo_results_changed.connect(
             lambda: self.todo_results_changed.emit())
@@ -2369,6 +2386,8 @@ class EditorStack(QWidget):
             strip_mode=self.stripmode_enabled,
             intelligent_backspace=self.intelligent_backspace_enabled,
             automatic_completions=self.automatic_completions_enabled,
+            code_snippets=self.code_snippets_enabled,
+            completions_hint=self.completions_hint_enabled,
             highlight_current_line=self.highlight_current_line_enabled,
             highlight_current_cell=self.highlight_current_cell_enabled,
             occurrence_highlighting=self.occurrence_highlighting_enabled,
@@ -2432,6 +2451,7 @@ class EditorStack(QWidget):
         """Cursor position of one of the editor in the stack has changed"""
         self.sig_editor_cursor_position_changed.emit(line, index)
 
+    @Slot(str, str, bool)
     def send_to_help(self, name, signature, force=False):
         """qstr1: obj_text, qstr2: argpspec, qstr3: note, qstr4: doc_text"""
         if not force and not self.help_enabled:

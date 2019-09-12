@@ -696,6 +696,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # Basic features group
         basic_features_group = QGroupBox(_("Basic features"))
         completion_box = newcb(_("Enable code completion"), 'code_completion')
+        code_snippets_box = newcb(_("Enable code snippets"), 'code_snippets')
         enable_hover_hints_box = newcb(
             _("Enable hover hints"),
             'enable_hover_hints',
@@ -715,6 +716,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         basic_features_layout = QVBoxLayout()
         basic_features_layout.addWidget(completion_box)
+        basic_features_layout.addWidget(code_snippets_box)
         basic_features_layout.addWidget(enable_hover_hints_box)
         basic_features_layout.addWidget(goto_definition_box)
         basic_features_layout.addWidget(follow_imports_box)
@@ -776,7 +778,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_style_label.setWordWrap(True)
 
         # Code style checkbox
-        code_style_check = self.create_checkbox(
+        self.code_style_check = self.create_checkbox(
             _("Enable code style linting"),
             'pycodestyle')
 
@@ -823,12 +825,12 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_style_g_widget = QWidget()
         code_style_g_widget.setLayout(code_style_g_layout)
         code_style_g_widget.setEnabled(self.get_option('pycodestyle'))
-        code_style_check.toggled.connect(code_style_g_widget.setEnabled)
+        self.code_style_check.toggled.connect(code_style_g_widget.setEnabled)
 
         # Code style layout
         code_style_layout = QVBoxLayout()
         code_style_layout.addWidget(code_style_label)
-        code_style_layout.addWidget(code_style_check)
+        code_style_layout.addWidget(self.code_style_check)
         code_style_layout.addWidget(code_style_g_widget)
 
         code_style_widget = QWidget()
@@ -854,7 +856,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         docstring_style_label.setWordWrap(True)
 
         # Docstring style checkbox
-        docstring_style_check = self.create_checkbox(
+        self.docstring_style_check = self.create_checkbox(
             _("Enable docstring style linting"),
             'pydocstyle')
 
@@ -915,13 +917,13 @@ class LanguageServerConfigPage(GeneralConfigPage):
         docstring_style_g_widget = QWidget()
         docstring_style_g_widget.setLayout(docstring_style_g_layout)
         docstring_style_g_widget.setEnabled(self.get_option('pydocstyle'))
-        docstring_style_check.toggled.connect(
+        self.docstring_style_check.toggled.connect(
             docstring_style_g_widget.setEnabled)
 
         # Docstring style layout
         docstring_style_layout = QVBoxLayout()
         docstring_style_layout.addWidget(docstring_style_label)
-        docstring_style_layout.addWidget(docstring_style_check)
+        docstring_style_layout.addWidget(self.docstring_style_check)
         docstring_style_layout.addWidget(docstring_style_g_widget)
 
         docstring_style_widget = QWidget()
@@ -936,9 +938,9 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_label.setAlignment(Qt.AlignJustify)
 
         # Advanced options
-        self.advanced_command_launch = self.create_lineedit(
-            _("Command to launch the Python language server: "),
-            'advanced/command_launch', alignment=Qt.Horizontal,
+        self.advanced_module = self.create_lineedit(
+            _("Module for the Python language server: "),
+            'advanced/module', alignment=Qt.Horizontal,
             word_wrap=False)
         self.advanced_host = self.create_lineedit(
             _("IP Address and port to bind the server to: "),
@@ -957,8 +959,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         # Advanced layout
         advanced_g_layout = QGridLayout()
-        advanced_g_layout.addWidget(self.advanced_command_launch.label, 1, 0)
-        advanced_g_layout.addWidget(self.advanced_command_launch.textbox, 1, 1)
+        advanced_g_layout.addWidget(self.advanced_module.label, 1, 0)
+        advanced_g_layout.addWidget(self.advanced_module.textbox, 1, 1)
         advanced_g_layout.addWidget(self.advanced_host.label, 2, 0)
 
         advanced_host_port_g_layout = QGridLayout()
@@ -1028,31 +1030,29 @@ class LanguageServerConfigPage(GeneralConfigPage):
         servers_widget.setLayout(servers_layout)
 
         # --- Tabs organization ---
-        tabs = QTabWidget()
-        tabs.addTab(self.create_tab(basic_features_group, advanced_group),
+        self.tabs = QTabWidget()
+        self.tabs.addTab(self.create_tab(basic_features_group, advanced_group),
                     _('Introspection'))
-        tabs.addTab(self.create_tab(linting_widget), _('Linting'))
-        tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
-        tabs.addTab(self.create_tab(docstring_style_widget),
+        self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
+        self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
+        self.tabs.addTab(self.create_tab(docstring_style_widget),
                     _('Docstring style'))
-        tabs.addTab(self.create_tab(advanced_widget),
+        self.tabs.addTab(self.create_tab(advanced_widget),
                     _('Advanced'))
-        tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
+        self.tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(tabs)
+        vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)
 
     def disable_tcp(self, state):
         if state == Qt.Checked:
-            # self.advanced_command_launch.textbox.setEnabled(False)
             self.advanced_host.textbox.setEnabled(False)
             self.advanced_port.spinbox.setEnabled(False)
             self.external_server.stateChanged.disconnect()
             self.external_server.setChecked(False)
             self.external_server.setEnabled(False)
         else:
-            # self.advanced_command_launch.textbox.setEnabled(True)
             self.advanced_host.textbox.setEnabled(True)
             self.advanced_port.spinbox.setEnabled(True)
             self.external_server.setChecked(False)
@@ -1061,18 +1061,16 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
     def disable_stdio(self, state):
         if state == Qt.Checked:
-            # self.advanced_command_launch.textbox.setEnabled(False)
             self.advanced_host.textbox.setEnabled(True)
             self.advanced_port.spinbox.setEnabled(True)
-            self.advanced_command_launch.textbox.setEnabled(False)
+            self.advanced_module.textbox.setEnabled(False)
             self.use_stdio.stateChanged.disconnect()
             self.use_stdio.setChecked(False)
             self.use_stdio.setEnabled(False)
         else:
-            # self.advanced_command_launch.textbox.setEnabled(True)
             self.advanced_host.textbox.setEnabled(True)
             self.advanced_port.spinbox.setEnabled(True)
-            self.advanced_command_launch.textbox.setEnabled(True)
+            self.advanced_module.textbox.setEnabled(True)
             self.use_stdio.setChecked(False)
             self.use_stdio.setEnabled(True)
             self.use_stdio.stateChanged.connect(self.disable_tcp)
@@ -1146,10 +1144,19 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
             if name in options:
+                # Avoid triggering the action when this action changes state
+                action.blockSignals(True)
                 state = self.get_option(name)
                 action.setChecked(state)
-                action.trigger()
+                action.blockSignals(False)
+                # See: spyder-ide/spyder#9915
+                # action.trigger()
 
         # TODO: Reset Manager
-        lsp = self.main.completions.get_client('lsp')
-        lsp.update_server_list()
+        self.main.completions.update_configuration()
+
+        editor = self.main.editor
+        for editorstack in editor.editorstacks:
+            if 'code_snippets' in options:
+                code_snippets = self.get_option('code_snippets')
+                editorstack.set_code_snippets_enabled(code_snippets)

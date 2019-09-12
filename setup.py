@@ -202,7 +202,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 install_requires = [
     'cloudpickle',
     'pygments>=2.0',
-    'qtconsole>=4.5.2',
+    'qtconsole>=4.5.5',
     'nbconvert',
     'sphinx',
     'pylint',
@@ -234,7 +234,7 @@ install_requires = [
     'paramiko;platform_system=="Windows"',
     # Required for accesing xdg spec on Linux
     'pyxdg;platform_system=="Linux"',
-    'pympler',
+    'pympler'
 ]
 
 extras_require = {

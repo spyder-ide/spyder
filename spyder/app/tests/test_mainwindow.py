@@ -30,11 +30,11 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from qtpy import PYQT5, PYQT_VERSION
-from qtpy.QtCore import Qt, QTimer, QEvent, QUrl
+from qtpy.QtCore import Qt, QTimer, QEvent, QPoint, QUrl
 from qtpy.QtTest import QTest
 from qtpy.QtGui import QImage
-from qtpy.QtWidgets import (QApplication, QFileDialog, QLineEdit, QTabBar,
-                            QToolTip, QWidget)
+from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QLineEdit,
+                            QTabBar, QToolTip, QWidget)
 from qtpy.QtWebEngineWidgets import WEBENGINE
 from matplotlib.testing.compare import compare_images
 import nbconvert
@@ -524,12 +524,12 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     # Verify that we are at first breakpoint
     shell.clear_console()
     qtbot.wait(500)
-    shell.kernel_client.input("list")
+    shell.pdb_execute("list")
     qtbot.wait(500)
     assert "1--> 10 arr = np.array(li)" in control.toPlainText()
 
     # Exit debugging
-    shell.kernel_client.input("exit")
+    shell.pdb_execute("exit")
     qtbot.wait(500)
 
     # Set breakpoint on first line with code
@@ -541,7 +541,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     qtbot.wait(1000)
 
     # Verify that we are still on debugging
-    assert shell._reading
+    assert shell.is_waiting_pdb_input()
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
@@ -912,7 +912,7 @@ def test_set_new_breakpoints(main_window, qtbot):
     qtbot.wait(500)
 
     # Verify that the breakpoint was set
-    shell.kernel_client.input("b")
+    shell.pdb_execute("b")
     qtbot.wait(500)
     assert "1   breakpoint   keep yes   at {}:6".format(test_file) in control.toPlainText()
 
@@ -1387,7 +1387,7 @@ def test_stop_dbg(main_window, qtbot):
     qtbot.wait(1000)
 
     # Move to the next line
-    shell.kernel_client.input("n")
+    shell.pdb_execute("n")
     qtbot.wait(1000)
 
     # Stop debugging
@@ -1853,6 +1853,8 @@ def test_render_issue():
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(
+    sys.platform.startswith('linux'), reason="It segfaults on Linux")
 def test_custom_layouts(main_window, qtbot):
     """Test that layout are showing the expected widgets visible."""
     mw = main_window
@@ -1967,6 +1969,55 @@ def test_report_comms_error(qtbot, main_window):
     assert 'No module named' in error_dlg.error_traceback
     main_window.console.close_error_dlg()
     CONF.set('main', 'show_internal_errors', False)
+
+
+@pytest.mark.slow
+def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
+    """
+    Test for spyder-ide/spyder/#10139 regression.
+
+    Enabling codestyle/docstyle on the completion section of preferences,
+    was not updating correctly.
+    """
+    def trigger():
+        pref = main_window.prefs_dialog_instance
+        index = 5
+        page = pref.get_page(index)
+        pref.set_current_index(index)
+        qtbot.wait(1000)
+
+        for idx, check in enumerate([page.code_style_check,
+                                     page.docstring_style_check]):
+            page.tabs.setCurrentIndex(idx + 2)
+            check.animateClick(200)
+            qtbot.wait(1000)
+
+        qtbot.wait(4000)
+        pref.ok_btn.animateClick(300)
+
+
+    CONF.set('lsp-server', 'pycodestyle', False)
+    CONF.set('lsp-server', 'pydocstyle', False)
+
+    timer = QTimer()
+    timer.setSingleShot(True)
+    timer.timeout.connect(trigger)
+    timer.start(5000)
+
+    main_window.show_preferences()
+    qtbot.wait(5000)
+
+    for menu_item in main_window.source_menu_actions:
+        if menu_item and isinstance(menu_item, QAction):
+            print(menu_item.text(), menu_item.isChecked())
+
+            if 'code style' in menu_item.text():
+                assert menu_item.isChecked()
+            elif 'docstring style' in menu_item.text():
+                assert menu_item.isChecked()
+
+    CONF.set('lsp-server', 'pycodestyle', False)
+    CONF.set('lsp-server', 'pydocstyle', False)
 
 
 if __name__ == "__main__":

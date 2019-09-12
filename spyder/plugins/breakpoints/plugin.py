@@ -33,6 +33,7 @@ from .widgets.breakpointsgui import BreakpointWidget
 class Breakpoints(SpyderPluginWidget):
     """Breakpoint list"""
     CONF_SECTION = 'breakpoints'
+    CONF_FILE = False
 
     def __init__(self, parent=None):
         """Initialization."""
