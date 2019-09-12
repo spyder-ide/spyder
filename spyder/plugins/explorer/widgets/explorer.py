@@ -196,7 +196,6 @@ class DirView(QTreeView):
         self.setAnimated(False)
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
-        # self.setSortingEnabled(False)
         self.fsmodel.modelReset.connect(self.reset_icon_provider)
         self.reset_icon_provider()
         # Disable the view of .spyproject.
@@ -212,9 +211,10 @@ class DirView(QTreeView):
         self._last_order = not self._last_order
 
     def show_header_menu(self, pos):
-        """Display header menu"""
+        """Display header menu."""
         self.menu_header.clear()
-        items = [_('Size'), _('Kind'), _("Last modified")]
+        kind = _('Kind') if sys.platform == 'darwin' else _('Type')
+        items = [_('Size'), kind, _("Date modified")]
         header_actions = []
         for idx, item in enumerate(items):
             column = idx + 1
@@ -223,7 +223,7 @@ class DirView(QTreeView):
                 item,
                 None,
                 None,
-                toggled=lambda x, c=column: self._toggle_column(c),
+                toggled=lambda x, c=column: self.toggle_column(c),
             )
             action.blockSignals(True)
             action.setChecked(not self.isColumnHidden(column))
@@ -233,10 +233,17 @@ class DirView(QTreeView):
         add_actions(self.menu_header, header_actions)
         self.menu_header.popup(self.mapToGlobal(pos))
 
-    def _toggle_column(self, column):
-        """Toggle hidden status of column."""
+    def toggle_column(self, column):
+        """Toggle visibility of column."""
         is_hidden = self.isColumnHidden(column)
         self.setColumnHidden(column, not is_hidden)
+        visible_columns = [0]
+        for col in range(1, 4):
+            if not self.isColumnHidden(col):
+                visible_columns.append(col)
+
+        self.parent_widget.sig_option_changed.emit('visible_columns',
+                                                   visible_columns)
 
     def set_single_click_to_open(self, value):
         """Set single click to open items."""
@@ -1409,7 +1416,6 @@ class ExplorerTreeWidget(DirView):
     set_previous_enabled = Signal(bool)
     set_next_enabled = Signal(bool)
     sig_open_dir = Signal(str)
-    sig_column_visibility_changed = Signal(int)
 
     def __init__(self, parent=None, show_cd_only=None):
         DirView.__init__(self, parent)
@@ -1569,7 +1575,7 @@ class ExplorerWidget(QWidget):
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_cd_only=None, show_icontext=True,
                  single_click_to_open=False, file_associations={},
-                 options_button=None):
+                 options_button=None, visible_columns=[0, 3]):
         QWidget.__init__(self, parent)
 
         # Widgets
@@ -1594,13 +1600,6 @@ class ExplorerWidget(QWidget):
                             icon=ima.icon('ArrowUp'),
                             triggered=self.treewidget.go_to_parent_directory)
 
-        toggle_size_column_action = create_action(self, text=_('Size'),
-                                                  toggled=lambda: self.toggle_columns(1))
-        toggle_kind_column_action = create_action(self, text=_('Kind'),
-                                                  toggled=lambda: self.toggle_columns(2))
-        toggle_last_column_action = create_action(
-            self, text=_('Last modified'), toggled=lambda: self.toggle_columns(3))
-
         # Setup widgets
         self.treewidget.setup(
             name_filters=name_filters,
@@ -1608,13 +1607,32 @@ class ExplorerWidget(QWidget):
             single_click_to_open=single_click_to_open,
             file_associations=file_associations,
         )
-        for i in [1, 2]:
-            self.treewidget.hideColumn(i)
+
+        # Setup of actions
+        ismac = sys.platform == 'darwin'
+        kind = _('Display kind') if ismac else _('Display type')
+        self.display_column_actions = []
+        for idx, text in enumerate([_('Display size'), kind,
+                                   _('Display date modified')]):
+            col = idx + 1
+            action = create_action(
+                self, text=text,
+                toggled=lambda x, c=col: self.treewidget.toggle_column(c))
+
+            if col in visible_columns:
+                self.treewidget.showColumn(col)
+            else:
+                self.treewidget.hideColumn(col)
+
+            action.blockSignals(True)
+            action.setChecked(not self.treewidget.isColumnHidden(col))
+            action.blockSignals(False)
+
+            self.display_column_actions.append(action)
 
         self.treewidget.chdir(getcwd_or_home())
-        self.treewidget.common_actions += [None, icontext_action, None,
-            toggle_size_column_action, toggle_kind_column_action,
-            toggle_last_column_action]
+        self.treewidget.common_actions += [None, icontext_action, None]
+        self.treewidget.common_actions += self.display_column_actions
 
         button_previous.setDefaultAction(previous_action)
         previous_action.setEnabled(False)
@@ -1646,10 +1664,17 @@ class ExplorerWidget(QWidget):
         self.treewidget.set_previous_enabled.connect(
                                                previous_action.setEnabled)
         self.treewidget.set_next_enabled.connect(next_action.setEnabled)
+        self.sig_option_changed.connect(self.refresh_actions)
 
-    def toggle_columns(self, column):
-        """"""
-
+    def refresh_actions(self, option, value):
+        """Refresh column visibility actions."""
+        if option == 'visible_columns':
+            for col in range(1, 4):
+                is_hidden = self.treewidget.isColumnHidden(col)
+                action = self.display_column_actions[col - 1]
+                action.blockSignals(True)
+                action.setChecked(not is_hidden)
+                action.blockSignals(False)
 
     @Slot(bool)
     def toggle_icontext(self, state):
