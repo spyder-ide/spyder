@@ -19,7 +19,7 @@ import psutil
 logger = logging.getLogger(__name__)
 
 
-def check_if_kite_installed(self):
+def check_if_kite_installed():
     """Detect if kite is installed and return the installation path."""
     path = ''
     if os.name == 'nt':
@@ -31,7 +31,7 @@ def check_if_kite_installed(self):
     return osp.exists(osp.realpath(path)), path
 
 
-def check_if_kite_running(self):
+def check_if_kite_running():
     """Detect if kite is running."""
     running = False
     for proc in psutil.process_iter(attrs=['pid', 'name', 'username']):
