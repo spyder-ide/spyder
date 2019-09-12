@@ -29,7 +29,7 @@ from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HTMLDelegate
 
 # Style dict constants
-FONT_SIZE = CONF.get('appearance', 'rich_font/size', 10)
+FONT_SIZE = 10
 ITEM_STYLES = {
         'title_color': ima.MAIN_FG_COLOR,
         'description_color': 'rgb(153, 153, 153)',
