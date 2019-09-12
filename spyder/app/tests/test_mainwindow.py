@@ -834,7 +834,7 @@ def test_run_cython_code(main_window, qtbot):
     # Close file
     main_window.editor.close_file()
 
-
+ 
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows.")
@@ -852,7 +852,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
 
     # Create project
     with qtbot.waitSignal(projects.sig_project_loaded):
-        projects._create_project(project_dir)
+        projects.open_project(project_dir, restart_consoles=False)
 
     # Select notebook in the project explorer
     idx = projects.explorer.treewidget.get_index('notebook.ipynb')
