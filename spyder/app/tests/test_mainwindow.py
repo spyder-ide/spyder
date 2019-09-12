@@ -834,7 +834,7 @@ def test_run_cython_code(main_window, qtbot):
     # Close file
     main_window.editor.close_file()
 
- 
+
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows.")
