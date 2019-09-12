@@ -13,6 +13,7 @@ import sys
 # Local imports
 from spyder.utils import programs
 from spyder.config.base import _
+from spyder.config.utils import is_anaconda
 
 
 CLOUDPICKLE_REQVER = '>=0.5.0'
@@ -38,6 +39,7 @@ PEXPECT_REQVER = '>=4.4.0'
 PARAMIKO_REQVER = '>=2.4.0'
 PYXDG_REQVER = '>=0.26'
 PYMPLER_REQVER = None
+RTREE_REQVER = '>=0.8.3'
 
 DEPENDENCIES_BASE = [
     {'modname': "cloudpickle",
@@ -138,6 +140,14 @@ if sys.platform == 'nt':
          'package_name': "paramiko",
          'features': _("Connect to remote kernels through SSH."),
          'required_version': PARAMIKO_REQVER})
+
+if is_anaconda():
+    DEPENDENCIES_BASE.append(
+        {'modname': "rtree",
+         'package_name': "rtree",
+         'features': _("Fast access to code snippets regions."),
+         'required_version': RTREE_REQVER}
+    )
 
 class Dependency(object):
     """Spyder's dependency
