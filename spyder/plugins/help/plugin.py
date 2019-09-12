@@ -48,6 +48,7 @@ class Help(SpyderPluginWidget):
     """
     CONF_SECTION = 'help'
     CONFIGWIDGET_CLASS = HelpConfigPage
+    CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
     FONT_SIZE_DELTA = DEFAULT_SMALL_DELTA
 

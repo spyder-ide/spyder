@@ -42,7 +42,7 @@ def test_ignore_warnings(qtbot, lsp_codeeditor):
     CONF.set('lsp-server', 'pycodestyle/ignore', 'E261')
 
     # After this call the manager needs to be reinitialized
-    manager.update_server_list()
+    manager.update_configuration()
 
     if os.environ.get('CI', None) is None and sys.platform == 'darwin':
         # To be able to run local tests on mac this modification is needed
@@ -72,7 +72,7 @@ def test_ignore_warnings(qtbot, lsp_codeeditor):
 
     CONF.set('lsp-server', 'pydocstyle/ignore', '')
     CONF.set('lsp-server', 'pycodestyle/ignore', '')
-    manager.update_server_list()
+    manager.update_configuration()
     qtbot.wait(2000)
 
     assert warnings == expected

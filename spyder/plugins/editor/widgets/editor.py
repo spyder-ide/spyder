@@ -547,6 +547,7 @@ class EditorStack(QWidget):
         self.intelligent_backspace_enabled = True
         self.automatic_completions_enabled = True
         self.completions_hint_enabled = True
+        self.code_snippets_enabled = True
         self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
@@ -1152,6 +1153,12 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_intelligent_backspace(state)
+
+    def set_code_snippets_enabled(self, state):
+        self.code_snippets_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_code_snippets(state)
 
     def set_automatic_completions_enabled(self, state):
         self.automatic_completions_enabled = state
@@ -2379,6 +2386,7 @@ class EditorStack(QWidget):
             strip_mode=self.stripmode_enabled,
             intelligent_backspace=self.intelligent_backspace_enabled,
             automatic_completions=self.automatic_completions_enabled,
+            code_snippets=self.code_snippets_enabled,
             completions_hint=self.completions_hint_enabled,
             highlight_current_line=self.highlight_current_line_enabled,
             highlight_current_cell=self.highlight_current_cell_enabled,

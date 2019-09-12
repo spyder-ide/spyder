@@ -9,10 +9,8 @@ Shell Widget for the IPython Console
 """
 
 # Standard library imports
-import ast
 import os
 import uuid
-import re
 from textwrap import dedent
 
 # Third party imports
@@ -23,17 +21,16 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.config.manager import CONF
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
-from spyder.py3compat import PY2, to_text_string
-from spyder.utils import encoding
+from spyder.py3compat import to_text_string
 from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style, create_style_class
 from spyder.widgets.helperwidgets import MessageCheckBox
+from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
         ControlWidget, DebuggingWidget, FigureBrowserWidget,
         HelpWidget, NamepaceBrowserWidget, PageControlWidget)
 
-from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                   FigureBrowserWidget):
@@ -205,18 +202,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # --- To handle the banner
     def long_banner(self):
-        """Banner for IPython widgets with pylab message"""
+        """Banner for clients with additional content."""
         # Default banner
-        try:
-            from IPython.core.usage import quick_guide
-        except Exception:
-            quick_guide = ''
+        py_ver = self.interpreter_versions['python_version'].split('\n')[0]
+        ipy_ver = self.interpreter_versions['ipython_version']
+
         banner_parts = [
-            'Python %s\n' % self.interpreter_versions['python_version'],
+            'Python %s\n' % py_ver,
             'Type "copyright", "credits" or "license" for more information.\n\n',
-            'IPython %s -- An enhanced Interactive Python.\n' % \
-            self.interpreter_versions['ipython_version'],
-            quick_guide
+            'IPython %s -- An enhanced Interactive Python.\n' % ipy_ver
         ]
         banner = ''.join(banner_parts)
 
@@ -248,13 +242,14 @@ enabled at the same time. Some pylab functions are going to be overrided by
 the sympy module (e.g. plot)
 """
             banner = banner + lines
+
         return banner
 
     def short_banner(self):
-        """Short banner with Python and QtConsole versions"""
-        banner = 'Python %s -- IPython %s' % (
-                                  self.interpreter_versions['python_version'],
-                                  self.interpreter_versions['ipython_version'])
+        """Short banner with Python and IPython versions only."""
+        py_ver = self.interpreter_versions['python_version'].split(' ')[0]
+        ipy_ver = self.interpreter_versions['ipython_version']
+        banner = 'Python %s -- IPython %s' % (py_ver, ipy_ver)
         return banner
 
     # --- To define additional shortcuts
@@ -534,7 +529,6 @@ the sympy module (e.g. plot)
         Reimplemented to reset the prompt if the error comes after the reply
         """
         self._process_execute_error(msg)
-        self._show_interpreter_prompt()
 
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
