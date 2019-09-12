@@ -472,7 +472,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
 
 
 @pytest.mark.slow
-@flaky(max_runs=3)
+@flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt' or PY2, reason="It fails sometimes")
 @pytest.mark.parametrize(
     "debugcell", [True, False])
@@ -502,20 +502,25 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     if debugcell:
         # Advance 2 cells
         for i in range(2):
-            qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+            qtbot.keyClick(code_editor, Qt.Key_Return,
+                           modifier=Qt.ShiftModifier)
             qtbot.wait(500)
 
         # Debug the cell
         qtbot.keyClick(code_editor, Qt.Key_Return,
-               modifier=Qt.AltModifier | Qt.ShiftModifier)
-        qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
-        # We need to press continue as we don't test yet if a breakpoint
-        # is in the cell
-        qtbot.keyClick(shell._control, 'c')
-        qtbot.keyClick(shell._control, Qt.Key_Enter)
-        qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+                       modifier=Qt.AltModifier | Qt.ShiftModifier)
+        try:
+            qtbot.waitUntil(
+                lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+            # We need to press continue as we don't test yet if a breakpoint
+            # is in the cell
+            qtbot.keyClick(shell._control, 'c')
+            qtbot.keyClick(shell._control, Qt.Key_Enter)
+            qtbot.waitUntil(
+                lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+        except Exception:
+            print('Shell content: ', shell._control.toPlainText(), '\n\n')
+            raise
     else:
         # Click the debug button
         qtbot.mouseClick(debug_button, Qt.LeftButton)
@@ -541,7 +546,11 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     qtbot.wait(1000)
 
     # Verify that we are still on debugging
-    assert shell.is_waiting_pdb_input()
+    try:
+        assert shell.is_waiting_pdb_input()
+    except Exception:
+        print('Shell content: ', shell._control.toPlainText(), '\n\n')
+        raise
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
@@ -1406,8 +1415,8 @@ def test_stop_dbg(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="It only works on Linux")
+@pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
+                    reason="It only works on Linux, and doesn't work on PY2.")
 def test_change_cwd_dbg(main_window, qtbot):
     """
     Test that using the Working directory toolbar is working while debugging.
@@ -1431,7 +1440,7 @@ def test_change_cwd_dbg(main_window, qtbot):
                                        browsing_history=False,
                                        refresh_explorer=True)
     qtbot.wait(1000)
-
+    print(repr(control.toPlainText()))
     shell.clear_console()
     qtbot.wait(500)
 
