@@ -579,9 +579,9 @@ class ProjectDialog(QDialog):
                  _("Do you want to abort?")),
                 QMessageBox.Yes | QMessageBox.No)
 
-        if answer == QMessageBox.Yes or not self._is_busy:
-            self._worker_manager.terminate_all()
-            super(ProjectDialog, self).reject()
+            if answer == QMessageBox.Yes or not self._is_busy:
+                self._worker_manager.terminate_all()
+                super(ProjectDialog, self).reject()
         else:
             super(ProjectDialog, self).close()
 
