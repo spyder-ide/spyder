@@ -74,7 +74,7 @@ DEPENDENCIES_BASE = [
      'required_version': QTAWESOME_REQVER},
     {'modname': "qtpy",
      'package_name': "qtpy",
-     'features': _("Abstraction layer for Python Qt bindings so that Spyder can run on multiple Qt bindings and versions."),
+     'features': _("Abstraction layer for Python Qt bindings."),
      'required_version': QTPY_REQVER},
     {'modname': "pickleshare",
      'package_name': "pickleshare",
@@ -122,14 +122,22 @@ DEPENDENCIES_BASE = [
      'required_version': PEXPECT_REQVER},
     {'modname': "pympler",
      'package_name': "pympler",
-     'features': _("Development tool to measure, monitor and analyze the memory behavior of Python objects in a running Python application."),
+     'features': _("Tool to measure the memory behavior of Python objects."),
      'required_version': PYMPLER_REQVER}]
 
-if sys.platform == 'Linux':
-    DEPENDENCIES_BASE.append({'modname': "xdg", 'package_name': "pyxdg", 'features': _("Parse `.desktop` files on Linux"), 'required_version': PYXDG_REQVER})
+if sys.platform.startswith('linux'):
+    DEPENDENCIES_BASE.append(
+        {'modname': "xdg",
+         'package_name': "pyxdg",
+         'features': _("Parse `.desktop` files on Linux"),
+         'required_version': PYXDG_REQVER})
 
-if sys.platform == 'Windows':
-    DEPENDENCIES_BASE.append({'modname': "paramiko", 'package_name': "paramiko", 'features': _("Connect to remote kernels through SSH."), 'required_version': PARAMIKO_REQVER})
+if sys.platform == 'nt':
+    DEPENDENCIES_BASE.append(
+        {'modname': "paramiko",
+         'package_name': "paramiko",
+         'features': _("Connect to remote kernels through SSH."),
+         'required_version': PARAMIKO_REQVER})
 
 class Dependency(object):
     """Spyder's dependency
@@ -211,7 +219,10 @@ def status(deps=DEPENDENCIES, linesep=os.linesep):
     col2 = []
     for dependency in deps:
         title1 = dependency.modname
-        title1 += ' ' + dependency.required_version
+        ### The two lines below correspond to the change, but please
+        # don't add these comments to the PR.
+        if dependency.required_version is not None:
+            title1 += ' ' + dependency.required_version
         col1.append(title1)
         maxwidth = max([maxwidth, len(title1)])
         col2.append(dependency.get_installed_version())

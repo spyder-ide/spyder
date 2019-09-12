@@ -271,11 +271,6 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 qInstallMessageHandler(qt_message_handler)
 
 
-# =============================================================================
-# Dependencies
-# =============================================================================
-dependencies.declare_dependencies()
-
 #==============================================================================
 # Main Window
 #==============================================================================
@@ -1418,6 +1413,7 @@ class MainWindow(QMainWindow):
 
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies"""
+        dependencies.declare_dependencies()
         missing_deps = dependencies.missing_dependencies()
         if missing_deps:
             QMessageBox.critical(self, _('Error'),
