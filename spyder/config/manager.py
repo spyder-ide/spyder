@@ -35,7 +35,8 @@ class ConfigurationManager(object):
         # is found in the site location
         site_defaults = DEFAULTS
         site_path = self.get_site_config_path()
-        if os.path.isdir(site_path):
+        site_fpath = osp.join(site_path, 'spyder.ini')
+        if os.path.isfile(site_fpath):
             site_config = UserConfig(
                 'spyder',
                 path=site_path,
