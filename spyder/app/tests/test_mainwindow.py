@@ -472,7 +472,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
 
 
 @pytest.mark.slow
-@flaky(max_runs=10)
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or PY2, reason="It fails sometimes")
 @pytest.mark.parametrize(
     "debugcell", [True, False])
@@ -498,6 +498,9 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     # Set breakpoint
     code_editor.debugger.toogle_breakpoint(line_number=10)
     qtbot.wait(500)
+    cursor = code_editor.textCursor()
+    cursor.setPosition(0)
+    code_editor.setTextCursor(cursor)
 
     if debugcell:
         # Advance 2 cells
