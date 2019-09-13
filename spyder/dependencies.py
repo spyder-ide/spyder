@@ -14,6 +14,7 @@ import sys
 from spyder.utils import programs
 from spyder.config.base import _
 from spyder.config.utils import is_anaconda
+from spyder.py3compat import PY2
 
 
 CLOUDPICKLE_REQVER = '>=0.5.0'
@@ -40,6 +41,15 @@ PARAMIKO_REQVER = '>=2.4.0'
 PYXDG_REQVER = '>=0.26'
 PYMPLER_REQVER = None
 RTREE_REQVER = '>=0.8.3'
+SYMPY_REQVER = '>=0.7.3'
+CYTHON_REQVER = '>=0.21'
+IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
+MATPLOTLIB_REQVER = '>=2.0.0'
+PANDAS_REQVER = '>=0.13.1'
+NUMPY_REQVER = '>=1.7'
+SCIPY_REQVER = '>=0.17.0'
+PYLS_REQVER = '>=0.27.0'
+
 
 
 DEPENDENCIES_BASE = [
@@ -126,7 +136,45 @@ DEPENDENCIES_BASE = [
     {'modname': "pympler",
      'package_name': "pympler",
      'features': _("Tool to measure the memory behavior of Python objects"),
-     'required_version': PYMPLER_REQVER}]
+     'required_version': PYMPLER_REQVER},
+    {'modname': "sympy",
+     'package_name': "sympy",
+     'features': _("Symbolic mathematics in the IPython Console"),
+     'required_version': SYMPY_REQVER,
+     'optional': True},
+    {'modname': "cython",
+     'package_name': "cython",
+     'features': _("Run Cython files in the IPython Console"),
+     'required_version': CYTHON_REQVER,
+     'optional': True},
+    {'modname': "IPython",
+     'package_name': "IPython",
+     'features': _("IPython interactive python environment"),
+     'required_version': IPYTHON_REQVER},
+    {'modname': "matplotlib",
+     'package_name': "matplotlib",
+     'features': _("2D/3D plotting in the IPython console"),
+     'required_version': MATPLOTLIB_REQVER,
+     'optional': True},
+    {'modname': 'pandas',
+     'package_name':  'pandas',
+     'features': _("View and edit DataFrames and Series in the Variable Explorer"),
+     'required_version': PANDAS_REQVER,
+     'optional': True},
+    {'modname': "numpy",
+     'package_name': "numpy",
+     'features': _("View and edit two and three dimensional arrays in the Variable Explorer"),
+     'required_version': NUMPY_REQVER,
+     'optional': True},
+    {'modname': "scipy",
+     'package_name': "scipy",
+     'features': _("Import Matlab workspace files in the Variable Explorer"),
+     'required_version': SCIPY_REQVER,
+     'optional': True},
+    {'modname': 'pyls',
+     'package_name': 'python-language-server',
+     'features': _("Code completion and linting for the Editor"),
+     'required_version': PYLS_REQVER}]
 
 
 if sys.platform.startswith('linux'):
@@ -257,5 +305,12 @@ def missing_dependencies():
 
 def declare_dependencies():
     for dep in DEPENDENCIES_BASE:
+        # Detect if dependency is optional
+        if dep.get('optional', False):
+            optional = True
+        else:
+            optional = False
+
         add(dep['modname'], dep['package_name'],
-            dep['features'], dep['required_version'])
+            dep['features'], dep['required_version'],
+            optional=optional)
