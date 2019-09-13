@@ -745,6 +745,19 @@ def test_save_history_dbg(ipyconsole, qtbot):
     qtbot.keyClick(control, Qt.Key_Up)
     assert '!aa = 10' in control.toPlainText()
 
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(1000)
+    # Add a multiline statment and ckeck we can browse it correctly
+    shell._pdb_history.history.append('if True:\n    print(1)')
+    shell._pdb_history.history.append('print(2)')
+    shell._pdb_history.history.append('if True:\n    print(10)')
+    # The continuation prompt is here
+    qtbot.keyClick(control, Qt.Key_Up)
+    assert '...:     print(10)' in control.toPlainText()
+    shell._control.set_cursor_position(shell._control.get_position('eof') - 2)
+    qtbot.keyClick(control, Qt.Key_Up)
+    assert '...:     print(1)' in control.toPlainText()
+
 
 @pytest.mark.slow
 @pytest.mark.skipif(PY2, reason="insert is not the same in py2")

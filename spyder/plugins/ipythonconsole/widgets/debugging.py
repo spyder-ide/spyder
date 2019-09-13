@@ -13,6 +13,7 @@ import re
 import pdb
 
 from IPython.core.history import HistoryManager
+from IPython.core.inputsplitter import InputSplitter
 from qtpy.QtCore import Qt
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
@@ -41,6 +42,7 @@ class DebuggingWidget(RichJupyterWidget):
     PDB_HIST_MAX = 400
 
     def __init__(self, *args, **kwargs):
+        self._pdb_in_loop = False
         super(DebuggingWidget, self).__init__(*args, **kwargs)
         # Adapted from qtconsole/frontend_widget.py
         # This adds 'ipdb> ' as a prompt self._highlighter recognises
@@ -53,10 +55,14 @@ class DebuggingWidget(RichJupyterWidget):
         self._pdb_last_cmd = ''
         self._pdb_line_num = 0
         self._pdb_history_file = PdbHistory()
-        self._control.history = [
+
+        self._pdb_history = [
             line[-1] for line in self._pdb_history_file.get_tail(
                 self.PDB_HIST_MAX, include_latest=True)]
-        self._pdb_in_loop = False
+        self._pdb_history_edits = {}
+        self._pdb_history_index = len(self._pdb_history)
+
+        self._tmp_reading = False
 
     def _handle_debug_state(self, in_debug_loop):
         """Update the debug state."""
@@ -229,34 +235,109 @@ class DebuggingWidget(RichJupyterWidget):
         key = event.key()
         if self.is_waiting_pdb_input():
             self._control.current_prompt_pos = self._prompt_pos
-            if key == Qt.Key_Up:
-                self._control.browse_history(backward=True)
-                return True
-            elif key == Qt.Key_Down:
-                self._control.browse_history(backward=False)
-                return True
-            elif key in (Qt.Key_Return, Qt.Key_Enter):
-                self._control.reset_search_pos()
-            elif key == Qt.Key_Tab:
-                # This is a bit hacky
-                # ConsoleWidget._get_input_buffer_cursor_prompt()
-                # Doesn't work if self._executing is True
-                # It might be True in case of hidden pdb_execute
-                executing = self._executing
-                self._executing = False
-                make_tab = self._tab_pressed()
-                self._executing = executing
-                if not make_tab:
-                    # interrput the kernel so it processes the event
-                    self.call_kernel(interrupt=True).pong()
-                    return True
-            else:
-                self._control.hist_wholeline = False
-            return super(DebuggingWidget,
-                         self)._event_filter_console_keypress(event)
+            # Pretend this is a regular prompt
+            self._tmp_reading = self._reading
+            self._reading = False
+            try:
+                return super(DebuggingWidget,
+                             self)._event_filter_console_keypress(event)
+            finally:
+                self._reading = self._tmp_reading
         else:
             return super(DebuggingWidget,
                          self)._event_filter_console_keypress(event)
+
+    def _register_is_complete_callback(self, source, callback):
+        """Call the callback with the result of is_complete."""
+        # Add a continuation propt if not complete
+        if self.is_waiting_pdb_input():
+            complete, indent = self._is_pdb_complete(source)
+            callback(complete, indent)
+        else:
+            return super(DebuggingWidget, self)._register_is_complete_callback(
+                source, callback)
+
+    def execute(self, source=None, hidden=False, interactive=False):
+        """ Executes source or the input buffer, possibly prompting for more
+        input.
+        """
+        if self.is_waiting_pdb_input():
+
+            if interactive:
+                if source is None:
+                    source = self.input_buffer
+                # Add a continuation propt if not complete
+                complete, indent = self._is_pdb_complete(source)
+                if not complete:
+                    self.do_execute(source, complete, indent)
+                    return
+            # Execute
+            self._append_plain_text('\n')
+            self._tmp_reading = False
+            if self._reading_callback:
+                self._reading_callback()
+            return
+        return super(DebuggingWidget, self).execute(
+            source, hidden, interactive)
+
+    def _is_pdb_complete(self, source):
+        """
+        Check if the pdb input is ready to be executed.
+        """
+        if source and source[0] == '!':
+            source = source[1:]
+        complete, indent = InputSplitter().check_complete(source)
+        if indent is not None:
+            indent = indent * ' '
+        return complete != 'incomplete', indent
+
+    @property
+    def _history(self):
+        """Get history."""
+        if self.is_waiting_pdb_input():
+            return self._pdb_history
+        else:
+            return self.__history
+
+    @_history.setter
+    def _history(self, history):
+        """Set history."""
+        if self.is_waiting_pdb_input():
+            self._pdb_history = history
+        else:
+            self.__history = history
+
+    @property
+    def _history_edits(self):
+        """Get edited history."""
+        if self.is_waiting_pdb_input():
+            return self._pdb_history_edits
+        else:
+            return self.__history_edits
+
+    @_history_edits.setter
+    def _history_edits(self, history_edits):
+        """Set edited history."""
+        if self.is_waiting_pdb_input():
+            self._pdb_history_edits = history_edits
+        else:
+            self.__history_edits = history_edits
+
+    @property
+    def _history_index(self):
+        """Get history index."""
+        if self.is_waiting_pdb_input():
+            return self._pdb_history_index
+        else:
+            return self.__history_index
+
+    @_history_index.setter
+    def _history_index(self, history_index):
+        """Set history index."""
+        if self.is_waiting_pdb_input():
+            self._pdb_history_index = history_index
+        else:
+            self.__history_index = history_index
 
     def in_debug_loop(self):
         """Check if we are debugging."""
@@ -269,13 +350,14 @@ class DebuggingWidget(RichJupyterWidget):
 
     def add_to_pdb_history(self, line_num, line):
         """Add command to history"""
-        self._control.histidx = None
+        self._pdb_history_index = len(self._pdb_history)
+        self._pdb_history_edits = {}
+        line = line.rstrip()
         if not line:
             return
-        line = line.strip()
 
         # If repeated line
-        history = self._control.history
+        history = self._pdb_history
         if len(history) > 0 and history[-1] == line:
             return
 
@@ -283,5 +365,6 @@ class DebuggingWidget(RichJupyterWidget):
         args = line.split(" ")[1:]
         is_pdb_cmd = "do_" + cmd in dir(pdb.Pdb)
         if cmd and (not is_pdb_cmd or len(args) > 0):
-            self._control.history.append(line)
+            self._pdb_history.append(line)
+            self._pdb_history_index = len(self._pdb_history)
             self._pdb_history_file.store_inputs(line_num, line)
