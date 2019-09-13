@@ -20,6 +20,7 @@ from urllib.request import urlretrieve
 from qtpy.QtCore import QThread, Signal
 
 # Local imports
+from spyder.config.base import _
 from spyder.py3compat import to_text_string
 from spyder.plugins.completion.kite.utils.status import check_if_kite_installed
 
@@ -33,12 +34,12 @@ class KiteInstallationThread(QThread):
     MAC_URL = "https://release.kite.com/dls/mac/current"
 
     # Process status
-    NO_STATUS = "No status"
-    DOWNLOADING_SCRIPT = "Downloading Kite script installer"
-    DOWNLOADING_INSTALLER = "Downloading Kite installer"
-    INSTALLING = "Installing Kite"
-    FINISHED = "Install finished"
-    ERRORED = "Error"
+    NO_STATUS = _("No status")
+    DOWNLOADING_SCRIPT = _("Downloading Kite script installer")
+    DOWNLOADING_INSTALLER = _("Downloading Kite installer")
+    INSTALLING = _("Installing Kite")
+    FINISHED = _("Install finished")
+    ERRORED = _("Error")
 
     # Signals
     # Signal to get the current status of the installation
@@ -152,12 +153,12 @@ class KiteInstallationThread(QThread):
 
     def run(self):
         """Execute the installation task."""
-        is_kite_installed, _ = check_if_kite_installed()
+        is_kite_installed, installation_path = check_if_kite_installed()
         if is_kite_installed:
             self._change_installation_status(status=self.FINISHED)
         else:
             try:
-                path, _ = self._download_installer_or_script()
+                path, http_response = self._download_installer_or_script()
                 self._execute_installer_or_script(path)
             except Exception as error:
                 self._change_installation_status(status=self.ERRORED)

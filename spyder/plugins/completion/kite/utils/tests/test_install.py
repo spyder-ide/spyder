@@ -16,6 +16,8 @@ import pytest
 
 # Local imports
 from spyder.plugins.completion.kite.utils.install import KiteInstallationThread
+from spyder.plugins.completion.kite.utils.status import (
+    check_if_kite_installed, check_if_kite_running)
 
 # Time to wait until the installation finishes
 # (6 minutes in milliseconds)
@@ -61,6 +63,8 @@ def test_kite_install(qtbot):
     install_manager.finished.connect(finished)
     with qtbot.waitSignal(install_manager.finished, timeout=INSTALL_TIMEOUT):
         install_manager.install()
+
+    assert check_if_kite_installed and check_if_kite_running
 
 
 if __name__ == "__main__":
