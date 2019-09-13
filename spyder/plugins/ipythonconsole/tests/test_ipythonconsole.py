@@ -748,13 +748,14 @@ def test_save_history_dbg(ipyconsole, qtbot):
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(1000)
     # Add a multiline statment and ckeck we can browse it correctly
-    shell._pdb_history.history.append('if True:\n    print(1)')
-    shell._pdb_history.history.append('print(2)')
-    shell._pdb_history.history.append('if True:\n    print(10)')
+    shell._pdb_history.append('if True:\n    print(1)')
+    shell._pdb_history.append('print(2)')
+    shell._pdb_history.append('if True:\n    print(10)')
+    shell._pdb_history_index = len(shell._pdb_history)
     # The continuation prompt is here
     qtbot.keyClick(control, Qt.Key_Up)
     assert '...:     print(10)' in control.toPlainText()
-    shell._control.set_cursor_position(shell._control.get_position('eof') - 2)
+    shell._control.set_cursor_position(shell._control.get_position('eof') - 25)
     qtbot.keyClick(control, Qt.Key_Up)
     assert '...:     print(1)' in control.toPlainText()
 
