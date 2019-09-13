@@ -238,7 +238,7 @@ class DebuggingWidget(RichJupyterWidget):
                 self._pdb_browse_history(backward=False)
                 return True
             elif key in (Qt.Key_Return, Qt.Key_Enter):
-                self._control.reset_search_pos()
+                self._pdb_history.reset_search_pos()
             else:
                 self._pdb_history.hist_wholeline = False
             return super(DebuggingWidget,
