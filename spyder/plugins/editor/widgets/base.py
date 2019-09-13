@@ -13,7 +13,6 @@
 
 # Standard library imports
 import os
-import os.path as osp
 import sys
 
 # Third party imports

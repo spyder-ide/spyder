@@ -309,6 +309,12 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
             action.setShortcut(shortcut)
         action.setShortcutContext(context)
 
+    def update_icon(icon, action):
+        if icon:
+            action.setIcon(ima.icon(icon.name))
+
+    action.update_icon = lambda: update_icon(icon, action)
+
     return action
 
 

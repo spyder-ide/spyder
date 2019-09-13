@@ -70,7 +70,7 @@ class CursorPositionStatus(StatusBarWidget):
 class VCSStatus(StatusBarWidget):
     """Status bar widget for system vcs."""
 
-    def __init__(self, parent, statusbar, ):
+    def __init__(self, parent, statusbar):
         super(VCSStatus, self).__init__(parent, statusbar,
                                         icon=ima.icon('code_fork'))
         self._worker_manager = WorkerManager(max_threads=1)

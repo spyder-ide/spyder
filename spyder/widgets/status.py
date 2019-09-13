@@ -54,8 +54,7 @@ class StatusBarWidget(QWidget):
         self.label_value = QLabel()
 
         # Widget setup
-        if icon is not None:
-            self.label_icon.setPixmap(self._pixmap)
+        self.set_icon(icon)
 
         # See spyder-ide/spyder#9044.
         self.text_font = QFont(get_font(option='font'))
@@ -100,6 +99,30 @@ class StatusBarWidget(QWidget):
         self._pixmap = icon.pixmap(QSize(16, 16)) if icon is not None else None
         if icon is not None:
             self.label_icon.setPixmap(self._pixmap)
+
+    def update_tooltip(self):
+        """Update tooltip for widget."""
+        tooltip = self.get_tooltip()
+        if tooltip:
+            self.label_value.setToolTip(tooltip)
+            if self.label_icon:
+                self.label_icon.setToolTip(tooltip)
+            self.setToolTip(tooltip)
+
+    def mouseReleaseEvent(self, event):
+        """Override Qt method to allow for click signal."""
+        super(StatusBarWidget, self).mousePressEvent(event)
+        self.sig_clicked.emit()
+
+    # --- API to be defined by user
+    # ------------------------------------------------------------------------
+    def get_tooltip(self):
+        """Return the widget tooltip text."""
+        return ''
+
+    def get_icon(self):
+        """Return the widget tooltip text."""
+        return None
 
 
 class BaseTimerStatus(StatusBarWidget):

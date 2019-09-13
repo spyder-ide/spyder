@@ -30,7 +30,6 @@ from spyder import dependencies
 from spyder.config.base import get_conf_path, get_translation
 from spyder.py3compat import pickle, to_text_string
 from spyder.utils.icon_manager import ima
-from spyder.utils.encoding import to_unicode_from_fs
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import (is_module_or_package,

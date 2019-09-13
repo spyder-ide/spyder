@@ -20,13 +20,14 @@ from qtpy.compat import getopenfilename
 from qtpy.QtCore import QRegExp, QSize, Qt, Signal
 from qtpy.QtGui import QCursor, QRegExpValidator
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QHBoxLayout, QInputDialog, QLabel, QLineEdit,
-                            QListWidget, QListWidgetItem, QPushButton,
-                            QVBoxLayout, QWidget)
+                            QHBoxLayout, QLabel, QLineEdit, QListWidget,
+                            QListWidgetItem, QPushButton, QVBoxLayout,
+                            QWidget)
+
 # Local imports
 from spyder.config.base import _
-from spyder.utils.icon_manager import ima
 from spyder.utils.encoding import is_text_file
+from spyder.utils.icon_manager import ima
 from spyder.utils.programs import (get_application_icon,
                                    get_installed_applications,
                                    parse_linux_desktop_entry)

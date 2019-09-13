@@ -105,11 +105,12 @@ class WorkingDirectory(SpyderPluginWidget):
         self.toolbar.addAction(self.browse_action)
 
         # Parent dir action
-        parent_action = create_action(self, "parent", None,
-                                      ima.icon('up'),
-                                      _('Change to parent directory'),
-                                      triggered=self.parent_directory)
-        self.toolbar.addAction(parent_action)
+        self.parent_action = create_action(
+            self, "parent", None,
+            ima.icon('up'),
+            _('Change to parent directory'),
+            triggered=self.parent_directory)
+        self.toolbar.addAction(self.parent_action)
 
     def get_workdir(self):
         """Get current workdir from the CONF file."""

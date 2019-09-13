@@ -23,6 +23,12 @@ from spyder.utils.encoding import is_text_file
 import qtawesome as qta
 
 
+if is_dark_interface():
+    MAIN_FG_COLOR = 'white'	
+else:	
+    MAIN_FG_COLOR = 'black'
+
+
 class IconManager:
 
     # Icons for different programming language extensions
@@ -101,6 +107,7 @@ class IconManager:
         BIG_ATTR_FACTOR = self.big_factor
         SMALL_ATTR_FACTOR = self.small_factor
         _qtaargs = {
+            'environment':             [('mdi.cube-outline',), {'color': MAIN_FG_COLOR}],
             'drag-horizontal':         [('mdi.drag-horizontal',), {'color': MAIN_FG_COLOR}],
             'format_letter_case':      [('mdi.format-letter-case',), {'color': MAIN_FG_COLOR}],
             'regex':                   [('mdi.regex',), {'color': MAIN_FG_COLOR}],
@@ -127,6 +134,7 @@ class IconManager:
             'breakpoint_transparent':  [('fa.circle',), {'color': 'darkred', 'opacity': 0.75, 'scale_factor': 0.9}],
             'breakpoint_big':          [('fa.circle',), {'color': '#cc0000', 'scale_factor': 0.9} ],
             'breakpoint_cond_big':     [('fa.question-circle',), {'color': '#cc0000', 'scale_factor': 0.9},],
+            'breakpoints':             [('mdi.dots-vertical',), {'color': MAIN_FG_COLOR}],
             'arrow_debugger':          [('mdi.arrow-right-bold',), {'color': '#3775a9', 'scale_factor': 2.0}],
             'debug':                   [('spyder.debug',), {'color': '#3775a9'}],
             'arrow-step-over':         [('spyder.step-forward',), {'color': '#3775a9'}],
@@ -140,6 +148,8 @@ class IconManager:
             'run_selection':           [('spyder.run-selection',), {'color': MAIN_FG_COLOR}],
             'run_cell':                [('spyder.cell-code', 'spyder.cell-border', 'spyder.cell-play'),
                                         {'options': [{'color': '#fff683'}, {'color': MAIN_FG_COLOR}, {'color': 'green'}]}],
+            'debug_cell':              [('spyder.cell-code', 'spyder.cell-border', 'spyder.cell-play'),
+                                        {'options': [{'color': '#fff683'}, {'color': MAIN_FG_COLOR}, {'color': '#3775a9'}]}],
             'run_cell_advance':        [('spyder.cell-code', 'spyder.cell-border', 'spyder.cell-play', 'spyder.cell-next'),
                                         {'options': [{'color': '#fff683'}, {'color': MAIN_FG_COLOR,}, {'color': 'green'}, {'color': 'red'}]}],
             'todo_list':               [('fa.th-list', 'fa.check'), {'options': [{'color': '#999999'}, {'offset': (0.0, 0.2), 'color': '#3775a9', 'color_disabled': '#748fa6'}]}],
@@ -191,8 +201,8 @@ class IconManager:
             'bug':                     [('fa.bug',), {'color': MAIN_FG_COLOR}],
             'maximize':                [('spyder.maximize-pane',), {'color': MAIN_FG_COLOR}],
             'unmaximize':              [('spyder.minimize-pane',), {'color': MAIN_FG_COLOR}],
-            'window_nofullscreen':     [('spyder.inward',), {'color': MAIN_FG_COLOR}],
-            'window_fullscreen':       [('fa.arrows-alt',), {'color': MAIN_FG_COLOR}],
+            'window_nofullscreen':     [('mdi.arrow-collapse-all',), {'color': MAIN_FG_COLOR}],
+            'window_fullscreen':       [('mdi.arrow-expand-all',), {'color': MAIN_FG_COLOR}],
             'MessageBoxWarning':       [('fa.warning',), {'color': MAIN_FG_COLOR}],
             'arredit':                 [('fa.table',), {'color': MAIN_FG_COLOR}],
             'zoom_out':                [('fa.search-minus',), {'color': MAIN_FG_COLOR}],
@@ -261,8 +271,8 @@ class IconManager:
             'project':                 [('fa.folder-open-o',), {'color': MAIN_FG_COLOR}],
             'DriveHDIcon':             [('fa.hdd-o',), {'color': MAIN_FG_COLOR}],
             'arrow':                   [('fa.arrow-right',), {'color': MAIN_FG_COLOR}],
-            'collapse':                [('spyder.inward',), {'color': MAIN_FG_COLOR}],
-            'expand':                  [('fa.arrows-alt',), {'color': MAIN_FG_COLOR}],
+            'collapse':                [('mdi.collapse-all',), {'color': MAIN_FG_COLOR}],
+            'expand':                  [('mdi.expand-all',), {'color': MAIN_FG_COLOR}],
             'restore':                 [('fa.level-up',), {'color': MAIN_FG_COLOR}],
             'collapse_selection':      [('fa.minus-square-o',), {'color': MAIN_FG_COLOR}],
             'expand_selection':        [('fa.plus-square-o',), {'color': MAIN_FG_COLOR}],
@@ -280,13 +290,24 @@ class IconManager:
             'close_pane':              [('fa.window-close-o',), {'color': MAIN_FG_COLOR}],
             # --- Autocompletion type icons --------------
             'keyword':                 [('mdi.alpha-k-box',), {'color': '#df2935', 'scale_factor': BIG_ATTR_FACTOR}],
+            'color':                   [('mdi.alpha-c-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
+            'enum':                    [('mdi.alpha-e-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
+            'value':                   [('mdi.alpha-v-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
+            'unit':                    [('mdi.alpha-u-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
             'text':                    [('mdi.alpha-t-box',), {'color': 'gray', 'scale_factor': BIG_ATTR_FACTOR}],
+            'snippet':                 [('mdi.alpha-s-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
             'attribute':               [('mdi.alpha-a-box',), {'color': 'magenta', 'scale_factor': BIG_ATTR_FACTOR}],
+            'reference':               [('mdi.alpha-r-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
+            'variable':                [('mdi.alpha-v-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
+            'field':                   [('mdi.alpha-f-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
+            'property':                [('mdi.alpha-p-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
             'module':                  [('mdi.alpha-m-box',), {'color': '#daa520', 'scale_factor': BIG_ATTR_FACTOR}],
             'class':                   [('mdi.alpha-c-box',), {'color':'#3775a9', 'scale_factor': BIG_ATTR_FACTOR}],
+            'interface':               [('mdi.alpha-i-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
             'private2':                [('spyder.circle-underscore',), {'color':'#e69c9c', 'scale_factor': SMALL_ATTR_FACTOR}],
             'private1':                [('spyder.circle-underscore',), {'color':'#e69c9c', 'scale_factor': SMALL_ATTR_FACTOR}],
             'method':                  [('mdi.alpha-m-box',), {'color':'#7ea67e', 'scale_factor': BIG_ATTR_FACTOR}],
+            'constructor':             [('mdi.alpha-c-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
             'function':                [('mdi.alpha-f-box',), {'color':'orange', 'scale_factor': BIG_ATTR_FACTOR}],
             'blockcomment':            [('fa5s.hashtag',), {'color':'grey', 'scale_factor': SMALL_ATTR_FACTOR}],
             'cell':                    [('mdi.percent',), {'color':'red', 'scale_factor': SMALL_ATTR_FACTOR}],
@@ -456,7 +477,7 @@ class IconManager:
 
     def base64_from_icon(self, icon_name, width, height):
         """Convert icon to base64 encoding."""
-        icon_obj = icon(icon_name)
+        icon_obj = self.icon(icon_name)
         image = QImage(icon_obj.pixmap(width, height).toImage())
         byte_array = QByteArray()
         buffer = QBuffer(byte_array)
