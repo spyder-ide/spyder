@@ -145,6 +145,27 @@ def test_single_line_unindent(code_editor_indent_bot):
     assert new_text == expected
 
 
+def test_single_line_unindent_with_empty_line(code_editor_indent_bot):
+    """Test unindentation in a single line."""
+    editor, qtbot = code_editor_indent_bot
+    text = ("if True:\n"
+            "  if True:\n"
+            "    print(0)\n"
+            "\n"
+            "    \n"
+            )
+    expected = ("if True:\n"
+                "  if True:\n"
+                "    print(0)\n"
+                "\n"
+                "  \n"
+                )
+    editor.set_text(text)
+    # Indent line without spaces
+    new_text = make_unindent(editor, start_line=5)
+    assert new_text == expected
+
+
 def test_selection_unindent(code_editor_indent_bot):
     """Test unindentation with selection of more than one line."""
     editor, qtbot = code_editor_indent_bot

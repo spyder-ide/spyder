@@ -2645,7 +2645,8 @@ class CodeEditor(TextEditBaseWidget):
         cursor.insertText(indentation)
         return False  # simple indentation don't fix indentation
 
-    def fix_indent_smart(self, forward=True, comment_or_string=False):
+    def fix_indent_smart(self, forward=True, comment_or_string=False,
+                         ignore_empty_line=False):
         """
         Fix indentation (Python only, no text selection)
 
@@ -2739,8 +2740,13 @@ class CodeEditor(TextEditBaseWidget):
 
         # TODO untangle this block
         if prevline and not bracket_stack and not prevtext.endswith(':'):
-            cur_indent = self.get_block_indentation(block_nb - 1)
-            is_blank = not self.get_text_line(block_nb - 1).strip()
+            above_block_nb = block_nb - 1
+            # If the block above is empty, check the previous one
+            if (ignore_empty_line and self.get_text_line(above_block_nb) == ''
+                    and above_block_nb > 0):
+                above_block_nb -= 1
+            cur_indent = self.get_block_indentation(above_block_nb)
+            is_blank = not self.get_text_line(above_block_nb).strip()
             trailing_text = self.get_text_line(block_nb).strip()
             # If brackets are matched and no block gets opened
             # Match the above line's indent and nudge to the next multiple of 4
@@ -2882,7 +2888,8 @@ class CodeEditor(TextEditBaseWidget):
             if force or not leading_text.strip() \
                or (self.tab_indents and self.tab_mode):
                 if self.is_python_like():
-                    if not self.fix_indent(forward=False):
+                    if not self.fix_indent(forward=False,
+                                           ignore_empty_line=True):
                         self.remove_prefix(self.indent_chars)
                 elif leading_text.endswith('\t'):
                     self.remove_prefix('\t')
