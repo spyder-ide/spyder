@@ -65,8 +65,7 @@ logger = logging.getLogger(__name__)
 # Dependencies
 PYLS_REQVER = '>=0.27.0'
 dependencies.add('pyls', 'python-language-server',
-                 _("Editor's code completion, go-to-definition, help and "
-                   "real-time code analysis"),
+                 _("Code completion and linting for the Editor"),
                  required_version=PYLS_REQVER)
 
 WINPDB_PATH = programs.find_program('winpdb')

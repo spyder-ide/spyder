@@ -41,22 +41,23 @@ PYXDG_REQVER = '>=0.26'
 PYMPLER_REQVER = None
 RTREE_REQVER = '>=0.8.3'
 
+
 DEPENDENCIES_BASE = [
     {'modname': "cloudpickle",
      'package_name': "cloudpickle",
-     'features': _("Serialize variables in the IPython kernel to send to Spyder."),
+     'features': _("Handle communications between kernel and frontend"),
      'required_version': CLOUDPICKLE_REQVER},
     {'modname': "pygments",
      'package_name': "pygments",
-     'features': _("Syntax highlighting for Matlab, Julia and other file types"),
+     'features': _("Syntax highlighting for a lot of file types in the Editor"),
      'required_version': PYGMENTS_REQVER},
     {'modname': "qtconsole",
      'package_name': "qtconsole",
-     'features': _("Integrate the IPython console"),
+     'features': _("Main package for the IPython console"),
      'required_version': QTCONSOLE_REQVER},
     {'modname': "nbconvert",
      'package_name': "nbconvert",
-     'features': _("Manipulate Jupyter notebooks on the Editor"),
+     'features': _("Manipulate Jupyter notebooks in the Editor"),
      'required_version': NBCONVERT_REQVER},
     {'modname': "sphinx",
      'package_name': "sphinx",
@@ -72,7 +73,7 @@ DEPENDENCIES_BASE = [
      'required_version': PSUTIL_REQVER},
     {'modname': "qtawesome",
      'package_name': "qtawesome",
-     'features': _("To have an icon theme based on FontAwesome."),
+     'features': _("Icon theme based on FontAwesome and Material Design icons"),
      'required_version': QTAWESOME_REQVER},
     {'modname': "qtpy",
      'package_name': "qtpy",
@@ -80,23 +81,23 @@ DEPENDENCIES_BASE = [
      'required_version': QTPY_REQVER},
     {'modname': "pickleshare",
      'package_name': "pickleshare",
-     'features': _("Show import completions on the Python consoles."),
+     'features': _("Cache the list of installed Python modules"),
      'required_version': PICKLESHARE_REQVER},
     {'modname': "zmq",
      'package_name': "pyzmq",
-     'features': _("Client for the language server protocol (LSP)."),
+     'features': _("Client for the language server protocol (LSP)"),
      'required_version': PYZMQ_REQVER},
     {'modname': "chardet",
      'package_name': "chardet",
-     'features': _("Character encoding auto-detection in Python."),
+     'features': _("Character encoding auto-detection for the Editor"),
      'required_version': CHARDET_REQVER},
     {'modname': "numpydoc",
      'package_name': "numpydoc",
-     'features': _("Used by Jedi to get function return types from Numpydocstrings."),
+     'features': _("Improve code completion for objects that use Numpy docstrings"),
      'required_version': NUMPYDOC_REQVER},
     {'modname': "spyder_kernels",
      'package_name': "spyder-kernels",
-     'features': _("Jupyter kernels for the Spyder console."),
+     'features': _("Jupyter kernels for the Spyder console"),
      'required_version': SPYDER_KERNELS_REQVER},
     {'modname': "qdarkstyle",
      'package_name': "qdarkstyle",
@@ -104,50 +105,52 @@ DEPENDENCIES_BASE = [
      'required_version': QDARKSTYLE_REQVER},
     {'modname': "atomicwrites",
      'package_name': "atomicwrites",
-     'features': _("Atomic file writes."),
+     'features': _("Atomic file writes in the Editor"),
      'required_version': ATOMICWRITES_REQVER},
     {'modname': "diff_match_patch",
      'package_name': "diff_match_patch",
-     'features': _("Compute text file diff changes during edition."),
+     'features': _("Compute text file diff changes during edition"),
      'required_version': DIFF_MATCH_PATCH_REQVER},
     {'modname': "watchdog",
      'package_name': "watchdog",
-     'features': _("Watch file changes on project directories."),
+     'features': _("Watch file changes on project directories"),
      'required_version': WATCHDOG_REQVER},
     {'modname': "keyring",
      'package_name': "keyring",
-     'features': _("Save Github credentials to report errors securely."),
+     'features': _("Save Github credentials to report internal errors securely"),
      'required_version': KEYRING_REQVER},
     {'modname': "pexpect",
      'package_name': "pexpect",
-     'features': _("Connect to remote kernels through SSH."),
+     'features': _("Stdio support for our language server client"),
      'required_version': PEXPECT_REQVER},
     {'modname': "pympler",
      'package_name': "pympler",
-     'features': _("Tool to measure the memory behavior of Python objects."),
+     'features': _("Tool to measure the memory behavior of Python objects"),
      'required_version': PYMPLER_REQVER}]
+
 
 if sys.platform.startswith('linux'):
     DEPENDENCIES_BASE.append(
         {'modname': "xdg",
          'package_name': "pyxdg",
-         'features': _("Parse `.desktop` files on Linux"),
+         'features': _("Parse desktop files on Linux"),
          'required_version': PYXDG_REQVER})
 
 if sys.platform == 'nt':
     DEPENDENCIES_BASE.append(
         {'modname': "paramiko",
          'package_name': "paramiko",
-         'features': _("Connect to remote kernels through SSH."),
+         'features': _("Connect to remote kernels through SSH"),
          'required_version': PARAMIKO_REQVER})
 
 if is_anaconda():
     DEPENDENCIES_BASE.append(
         {'modname': "rtree",
          'package_name': "rtree",
-         'features': _("Fast access to code snippets regions."),
+         'features': _("Fast access to code snippets regions"),
          'required_version': RTREE_REQVER}
     )
+
 
 class Dependency(object):
     """Spyder's dependency
