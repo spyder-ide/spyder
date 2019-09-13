@@ -74,7 +74,7 @@ dependencies.add("IPython", "IPython",
 
 MATPLOTLIB_REQVER = '>=2.0.0'
 dependencies.add("matplotlib", "matplotlib",
-                 _("Display 2D graphics in the IPython Console"),
+                 _("2D/3D plotting in the IPython console"),
                  required_version=MATPLOTLIB_REQVER, optional=True)
 
 if is_dark_interface():

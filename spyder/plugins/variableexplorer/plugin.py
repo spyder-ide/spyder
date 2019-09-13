@@ -33,6 +33,12 @@ dependencies.add("numpy", "numpy",
                  required_version=NUMPY_REQVER, optional=True)
 
 
+SCIPY_REQVER = '>=0.17.0'
+dependencies.add("scipy", "scipy",
+                 _("Import Matlab workspace files in the Variable Explorer"),
+                 required_version=SCIPY_REQVER, optional=True)
+
+
 class VariableExplorer(SpyderPluginWidget):
     """Variable Explorer plugin."""
 
