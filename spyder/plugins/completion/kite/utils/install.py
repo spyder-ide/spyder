@@ -7,6 +7,7 @@
 """Kite installation functions."""
 
 # Standard library imports
+from __future__ import print_function
 import os
 import os.path as osp
 import re
@@ -52,6 +53,7 @@ class KiteInstallationThread(QThread):
 
     def __init__(self, parent):
         super(KiteInstallationThread, self).__init__()
+        self.status = self.NO_STATUS
         if os.name == 'nt':
             self._download_url = self.WINDOWS_URL
             self._installer_name = 'kiteSetup.exe'
@@ -64,8 +66,8 @@ class KiteInstallationThread(QThread):
 
     def _change_installation_status(self, status=NO_STATUS):
         """Set the installation status."""
-        self._status = status
-        self.sig_installation_status.emit(self._status)
+        self.status = status
+        self.sig_installation_status.emit(self.status)
 
     def _progress_reporter(self, block_number, read_size, total_size):
         progress = 0
@@ -146,27 +148,27 @@ class KiteInstallationThread(QThread):
         else:
             self._execute_linux_installation(installer_path)
         os.remove(installer_path)
+        self._change_installation_status(status=self.FINISHED)
 
     def run(self):
         """Execute the installation task."""
-        try:
-            path, _ = self._download_installer_or_script()
-            self._execute_installer_or_script(path)
+        is_kite_installed, _ = check_if_kite_installed()
+        if is_kite_installed:
             self._change_installation_status(status=self.FINISHED)
-        except Exception as error:
-            self._change_installation_status(status=self.ERRORED)
-            self.sig_error_msg.emit(to_text_string(error))
-            return
+        else:
+            try:
+                path, _ = self._download_installer_or_script()
+                self._execute_installer_or_script(path)
+            except Exception as error:
+                self._change_installation_status(status=self.ERRORED)
+                self.sig_error_msg.emit(to_text_string(error))
+        return
 
     def install(self):
         """Install Kite."""
         # If already running wait for it to finish
         if self.wait():
-            is_kite_installed, _ = check_if_kite_installed()
-            if is_kite_installed:
-                self._change_installation_status(status=self.FINISHED)
-            else:
-                self.start()
+            self.start()
 
 
 if __name__ == '__main__':
@@ -180,4 +182,5 @@ if __name__ == '__main__':
     install_manager.sig_download_progress.connect(
         lambda progress: print(progress))
     install_manager.install()
+    install_manager.finished.connect(app.quit)
     app.exec_()
