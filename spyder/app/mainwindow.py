@@ -1383,7 +1383,8 @@ class MainWindow(QMainWindow):
             self.check_updates(startup=True)
 
         # Show dialog with missing dependencies
-        self.report_missing_dependencies()
+        if not running_under_pytest():
+            self.report_missing_dependencies()
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
