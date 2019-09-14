@@ -278,6 +278,7 @@ def status(deps=DEPENDENCIES, linesep=os.linesep):
     maxwidth = 0
     col1 = []
     col2 = []
+
     for dependency in deps:
         title1 = dependency.modname
         if dependency.required_version is not None:
@@ -285,10 +286,16 @@ def status(deps=DEPENDENCIES, linesep=os.linesep):
         col1.append(title1)
         maxwidth = max([maxwidth, len(title1)])
         col2.append(dependency.get_installed_version())
+
     text = ""
     for index in range(len(deps)):
         text += col1[index].ljust(maxwidth) + ':  ' + col2[index] + linesep
-    return text[:-1]
+
+    # Remove spurious linesep when reporting deps to Github
+    if not linesep == '<br>':
+        text = text[:-1]
+
+    return text
 
 
 def missing_dependencies():
