@@ -90,5 +90,6 @@ class EmptyProject(BaseProject):
 
 
 if __name__ == '__main__':
-    path = '/Users/gpena-castellanos/test_project'
-    project = EmptyProject('/Users/gpena-castellanos/test_project')
+    from spyder.config.base import get_home_dir
+    project_path = osp.join(get_home_dir(), 'test_project')
+    project = EmptyProject(project_path)
