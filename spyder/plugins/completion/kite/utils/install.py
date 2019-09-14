@@ -11,6 +11,7 @@ from __future__ import print_function
 import os
 import os.path as osp
 import re
+import stat
 import subprocess
 import sys
 from tempfile import gettempdir
@@ -120,25 +121,37 @@ class KiteInstallationThread(QThread):
     def _execute_linux_installation(self, installer_path):
         """Installation on Linux."""
         self._change_installation_status(status=self.DOWNLOADING_INSTALLER)
-        download_command = [installer_path, '--download']
-        with subprocess.Popen(
-                download_command,
-                stdout=subprocess.PIPE,
-                universal_newlines=True) as download_process:
-            for progress in iter(download_process.stdout.readline, ""):
-                if re.match(r'Download: (\d+)/(\d+)', progress):
-                    download_progress = progress.split(':')[-1].strip()
-                    self.sig_download_progress.emit(download_progress)
+        stat_file = os.stat(installer_path)
+        os.chmod(installer_path, stat_file.st_mode | stat.S_IEXEC)
+        download_command = '{} --download'.format(installer_path)
+        download_process = subprocess.Popen(
+            download_command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            shell=True
+            )
+        while True:
+            progress = download_process.stdout.readline()
+            progress = to_text_string(progress, "utf-8")
+            if progress == '' and download_process.poll() is not None:
+                break
+            if re.match(r'Download: (\d+)/(\d+)', progress):
+                download_progress = progress.split(':')[-1].strip()
+                self.sig_download_progress.emit(download_progress)
+        download_process.stdout.close()
+        return_code = download_process.wait()
+        if return_code:
+            raise subprocess.CalledProcessError(return_code, download_command)
 
-        install_commands = [
-            [installer_path, '--install'],
-            ['~/.local/share/kite/kited',
-             '--plugin-launch-with-copilot',
-             '--channel=spyder']
-        ]
+        install_command = [installer_path, '--install']
+        run_command = [
+            '~/.local/share/kite/kited',
+            '--plugin-launch-with-copilot',
+            '--channel=spyder']
+
         self._change_installation_status(status=self.INSTALLING)
-        for command in install_commands:
-            subprocess.call(command)
+        subprocess.call(install_command)
+        subprocess.call(run_command, shell=True)
 
     def _execute_installer_or_script(self, installer_path):
         """Execute the installer."""
