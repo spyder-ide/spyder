@@ -101,8 +101,8 @@ class DebuggingWidget(RichJupyterWidget):
 
                 # Print the text if it is programatically added.
                 if line.strip() != self.input_buffer.strip():
-                    self._append_plain_text(line + '\n')
-
+                    self._append_plain_text(line)
+                self._append_plain_text('\n')
                 # Save history to browse it later
                 self._pdb_line_num += 1
                 self.add_to_pdb_history(self._pdb_line_num, line)
@@ -272,10 +272,10 @@ class DebuggingWidget(RichJupyterWidget):
                     self.do_execute(source, complete, indent)
                     return
             # Execute
-            self._append_plain_text('\n')
             self._tmp_reading = False
             if self._reading_callback:
                 self._reading_callback()
+
             return
         return super(DebuggingWidget, self).execute(
             source, hidden, interactive)
