@@ -64,13 +64,18 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     def get_languages(self):
         verb, url = KITE_ENDPOINTS.LANGUAGES_ENDPOINT
         success, response = self.perform_http_request(verb, url)
+        if response is None:
+            response = []
         return response
 
     def perform_http_request(self, verb, url, params=None):
         response = None
         success = False
         http_method = getattr(self.endpoint, verb)
-        http_response = http_method(url, json=params)
+        try:
+            http_response = http_method(url, json=params)
+        except Exception:
+            return False, None
         success = http_response.status_code == 200
         if success:
             try:

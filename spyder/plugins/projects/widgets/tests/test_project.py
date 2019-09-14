@@ -15,9 +15,9 @@ import os.path as osp
 import pytest
 
 # Local imports
-from spyder.plugins.projects.api import EmptyProject
-from spyder.plugins.projects.utils.config import (CODESTYLE, WORKSPACE,
-                                                  ENCODING, VCS)
+from spyder.plugins.projects.projecttypes import EmptyProject
+from spyder.plugins.projects.utils.config import (CODESTYLE, ENCODING,
+                                                  VCS, WORKSPACE)
 
 
 @pytest.fixture(scope='session')
@@ -30,7 +30,6 @@ def project_test(tmpdir_factory):
         project: EmptyProject object.
     """
     project_dir = tmpdir_factory.mktemp("test_project")
-    os.makedirs(osp.join(str(project_dir), '.spyproject', 'config'))
     project = EmptyProject(str(project_dir))
     return project_dir, project
 
@@ -40,21 +39,13 @@ def test_empty_project(project_test, qtbot):
     project_dir, project = project_test
     assert project.root_path == str(project_dir)
 
-    print(project.root_path, os.listdir(osp.join(project.root_path,
-                                        '.spyproject', 'config')))
-
     # Assert Project configs
-    conf_files = project.get_conf_files()
-
     qtbot.wait(3000)
-    for filename in [CODESTYLE, ENCODING, VCS]:
-        assert filename in conf_files
-        project_config = conf_files[filename]
-
-        # assert configurations files
-        fpath = project_config.get_config_fpath()
-        print([fpath])
-        assert osp.isfile(fpath)
+    for filename in [WORKSPACE, CODESTYLE, ENCODING, VCS]:
+        config_path = os.path.join(project.root_path, '.spyproject',
+                                   'config')
+        files = os.listdir(config_path)
+        assert filename + '.ini' in files
 
 
 def test_set_load_recent_files(project_test):

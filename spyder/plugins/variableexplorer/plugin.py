@@ -12,32 +12,12 @@ from qtpy.QtWidgets import QStackedWidget, QVBoxLayout
 from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
-from spyder import dependencies
 from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.utils import icon_manager as ima
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
         NamespaceBrowser)
 from spyder.plugins.variableexplorer.confpage import VariableExplorerConfigPage
-
-PANDAS_REQVER = '>=0.13.1'
-dependencies.add('pandas', 'pandas',
-                 _("View and edit DataFrames and Series in the "
-                   "Variable Explorer"),
-                 required_version=PANDAS_REQVER, optional=True)
-
-NUMPY_REQVER = '>=1.7'
-dependencies.add("numpy", "numpy",
-                 _("View and edit two and three dimensional arrays "
-                   "in the Variable Explorer"),
-                 required_version=NUMPY_REQVER, optional=True)
-
-PYMPLER_REQVER = '>=0.7'
-dependencies.add("pympler", "pympler",
-                 _("Development tool to measure, monitor and analyze the"
-                   " memory behavior of Python objects in a running Python"
-                   " application."),
-                 required_version=PYMPLER_REQVER, optional=True)
 
 
 class VariableExplorer(SpyderPluginWidget):
