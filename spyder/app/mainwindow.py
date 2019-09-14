@@ -271,14 +271,6 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 qInstallMessageHandler(qt_message_handler)
 
 
-# =============================================================================
-# Dependencies
-# =============================================================================
-QDARKSTYLE_REQVER = '>=2.6.4'
-dependencies.add("qdarkstyle", "qdarkstyle",
-                 _("Dark style for the entire interface"),
-                 required_version=QDARKSTYLE_REQVER)
-
 #==============================================================================
 # Main Window
 #==============================================================================
@@ -1391,7 +1383,8 @@ class MainWindow(QMainWindow):
             self.check_updates(startup=True)
 
         # Show dialog with missing dependencies
-        self.report_missing_dependencies()
+        if not running_under_pytest():
+            self.report_missing_dependencies()
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
@@ -1425,6 +1418,7 @@ class MainWindow(QMainWindow):
 
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies"""
+        dependencies.declare_dependencies()
         missing_deps = dependencies.missing_dependencies()
         if missing_deps:
             QMessageBox.critical(self, _('Error'),
