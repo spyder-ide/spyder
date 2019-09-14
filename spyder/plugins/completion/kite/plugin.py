@@ -87,7 +87,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
 
     def _check_if_kite_running(self):
         running = False
-        for proc in psutil.process_iter(attrs=['pid', 'name', 'username']):
+        for proc in psutil.process_iter(attrs=['pid', 'name', 'username',
+                                               'status']):
             if self._is_proc_kite(proc):
                 logger.debug('Kite process already '
                              'running with PID {0}'.format(proc.pid))
@@ -126,7 +127,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             name = ''
 
         if os.name == 'nt' or sys.platform.startswith('linux'):
-            is_kite = 'kited' in name
+            is_kite = 'kited' in name and proc.status() != 'zombie'
         else:
             is_kite = 'Kite' == name
 
