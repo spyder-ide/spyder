@@ -151,7 +151,7 @@ class KiteInstallationThread(QThread):
 
         self._change_installation_status(status=self.INSTALLING)
         subprocess.call(install_command)
-        subprocess.call(run_command, shell=True)
+        subprocess.Popen(run_command, shell=True)
 
     def _execute_installer_or_script(self, installer_path):
         """Execute the installer."""
