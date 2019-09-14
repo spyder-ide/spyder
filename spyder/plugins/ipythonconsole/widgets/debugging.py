@@ -43,13 +43,13 @@ class DebuggingWidget(RichJupyterWidget):
 
     def __init__(self, *args, **kwargs):
         self._pdb_in_loop = False
+        self._previous_prompt = None
         super(DebuggingWidget, self).__init__(*args, **kwargs)
         # Adapted from qtconsole/frontend_widget.py
         # This adds 'ipdb> ' as a prompt self._highlighter recognises
         self._highlighter._ipy_prompt_re = re.compile(
             r'^(%s)?([ \t]*ipdb> |[ \t]*In \[\d+\]: |[ \t]*\ \ \ \.\.\.+: )'
             % re.escape(self.other_output_prefix))
-        self._previous_prompt = None
         self._pdb_input_queue = []
         self._pdb_input_ready = False
         self._pdb_last_cmd = ''
@@ -345,7 +345,9 @@ class DebuggingWidget(RichJupyterWidget):
 
     def is_waiting_pdb_input(self):
         """Check if we are waiting a pdb input."""
-        return (self.in_debug_loop() and self._previous_prompt is not None
+        # If the comm is not open, self._pdb_in_loop can not be set
+        return ((self.in_debug_loop() or not self.spyder_kernel_comm.is_open())
+                and self._previous_prompt is not None
                 and self._previous_prompt[0] == 'ipdb> ')
 
     def add_to_pdb_history(self, line_num, line):
