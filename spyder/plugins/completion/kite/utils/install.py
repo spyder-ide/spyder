@@ -15,15 +15,19 @@ import stat
 import subprocess
 import sys
 from tempfile import gettempdir
-from urllib.request import urlretrieve
 
 # Third party imports
 from qtpy.QtCore import QThread, Signal
 
 # Local imports
 from spyder.config.base import _
-from spyder.py3compat import to_text_string
+from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.completion.kite.utils.status import check_if_kite_installed
+
+if PY2:
+    from urllib import urlretrieve
+else:
+    from urllib.request import urlretrieve
 
 
 class KiteInstallationThread(QThread):
