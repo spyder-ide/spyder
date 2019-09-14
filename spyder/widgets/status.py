@@ -18,11 +18,11 @@ from qtpy.QtGui import QFont, QIcon
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 
 # Local imports
-from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.config import utils
 from spyder.py3compat import PY3
+
 
 class StatusBarWidget(QWidget):
     """Status bar widget base."""
