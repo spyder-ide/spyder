@@ -65,7 +65,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         verb, url = KITE_ENDPOINTS.LANGUAGES_ENDPOINT
         success, response = self.perform_http_request(verb, url)
         if response is None:
-            response = []
+            response = ['python']
         return response
 
     def perform_http_request(self, verb, url, params=None):
@@ -74,7 +74,8 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         http_method = getattr(self.endpoint, verb)
         try:
             http_response = http_method(url, json=params)
-        except Exception:
+        except Exception as error:
+            logger.debug('Kite request error: {0}'.format(error))
             return False, None
         success = http_response.status_code == 200
         if success:
