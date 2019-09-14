@@ -1423,7 +1423,7 @@ class MainWindow(QMainWindow):
         if missing_deps:
             QMessageBox.critical(self, _('Error'),
                 _("<b>You have missing dependencies!</b>"
-                  "<br><br><tt>%s</tt><br><br>"
+                  "<br><br><tt>%s</tt><br>"
                   "<b>Please install them to avoid this message.</b>"
                   "<br><br>"
                   "<i>Note</i>: Spyder could work without some of these "
