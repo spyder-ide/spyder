@@ -435,7 +435,7 @@ class DirView(QTreeView):
             triggered=self.open)
         open_with_menu = QMenu(_('Open with'), self)
         open_external_action = create_action(
-            self, _("Open extenally"),
+            self, _("Open externally"),
             triggered=self.open_external)
         move_action = create_action(self, _("Move..."),
                                     icon="move.png",
