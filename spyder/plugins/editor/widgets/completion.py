@@ -61,6 +61,7 @@ class CompletionWidget(QListWidget):
         self.completion_list = None
         self.completion_position = None
         self.automatic = False
+        self.display_index = []
 
         # Setup item rendering
         self.setItemDelegate(HTMLDelegate(self, margin=3))
@@ -213,19 +214,25 @@ class CompletionWidget(QListWidget):
                      CompletionItemKind.REFERENCE: 'reference',
                      }
 
+        self.display_index = []
         height = self.item_height
         width = self.item_width
 
-        for completion in self.completion_list:
+        for i, completion in enumerate(self.completion_list):
             if not self.is_internal_console:
+                code_snippets_enabled = getattr(
+                    self.textedit, 'code_snippets', False)
                 completion_label = completion['filterText']
+                completion_text = completion['insertText']
+                entry_label = completion['label']
+                if not code_snippets_enabled:
+                    completion_label = completion['insertText']
                 icon = icons_map.get(completion['kind'], 'no_match')
-                completion_data = completion['insertText']
-                completion_text = self.get_html_item_representation(
-                    completion_data, icon, height=height, width=width)
+                entry_label = self.get_html_item_representation(
+                    entry_label, icon, height=height, width=width)
                 item = QListWidgetItem(ima.icon(icon),
-                                       completion_text)
-                item.setData(Qt.UserRole, completion_data)
+                                       entry_label)
+                item.setData(Qt.UserRole, completion_text)
             else:
                 completion_label = completion[0]
                 completion_text = self.get_html_item_representation(
@@ -237,6 +244,7 @@ class CompletionWidget(QListWidget):
             if self.check_can_complete(
                     completion_label, filter_text):
                 self.addItem(item)
+                self.display_index.append(i)
 
         if self.count() > 0:
             self.setCurrentRow(0)
@@ -323,6 +331,8 @@ class CompletionWidget(QListWidget):
         """Check if sub can be completed to text."""
         if not sub:
             return True
+        if not text[0].isalpha():
+            sub = text[0] + sub
         return to_text_string(text).lower().startswith(
                 to_text_string(sub).lower())
 

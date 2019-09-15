@@ -191,7 +191,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         for language in self.clients:
             self.close_client(language)
 
-    def update_server_list(self):
+    def update_configuration(self):
         for language in self.get_languages():
             config = {'status': self.STOPPED,
                       'config': self.get_language_config(language),
@@ -335,7 +335,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         # Code completion
         jedi_completion = {
             'enabled': self.get_option('code_completion'),
-            'include_params': False
+            'include_params':  self.get_option('code_snippets')
         }
 
         jedi_signature_help = {

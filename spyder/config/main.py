@@ -472,6 +472,7 @@ DEFAULTS = [
               # It is used to disable hover hints in the editor
               'enable_hover_hints': True,
               'code_completion': True,
+              'code_snippets': True,
               'jedi_definition': True,
               'jedi_definition/follow_imports': True,
               'jedi_signature_help': True,

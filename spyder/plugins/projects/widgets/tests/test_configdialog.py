@@ -16,25 +16,19 @@ import tempfile
 import pytest
 
 # Local imports
-from spyder.plugins.projects.confpage import (EmptyProject,
-                                                  ProjectPreferences)
+from spyder.plugins.projects.projecttypes import EmptyProject
 
 @pytest.fixture
-def projects_preferences(qtbot):
+def project(qtbot):
     """Set up ProjectPreferences."""
     project_dir = tempfile.mkdtemp() + osp.sep + '.spyproject'
     project = EmptyProject(project_dir)
-    project_preferences = ProjectPreferences(None, project)
-    qtbot.addWidget(project_preferences)
-    return (project, project_preferences)
+    return project
 
 
-def test_projects_preferences(projects_preferences):
+def test_projects_preferences(project):
     """Run Project Preferences."""
-    project, preferences = projects_preferences
-    preferences.resize(250, 480)
-    preferences.show()
-    assert preferences
+    assert project
 
 
 if __name__ == "__main__":
