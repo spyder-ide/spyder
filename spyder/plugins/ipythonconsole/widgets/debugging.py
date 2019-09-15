@@ -114,6 +114,8 @@ class DebuggingWidget(RichJupyterWidget):
                 # Set executing to true and save the input buffer
                 self._input_buffer_executing = self.input_buffer
                 self._executing = True
+                # Execute
+                self._tmp_reading = False
 
                 self._finalize_input_request()
 
@@ -275,8 +277,6 @@ class DebuggingWidget(RichJupyterWidget):
                 if not complete:
                     self.do_execute(source, complete, indent)
                     return
-            # Execute
-            self._tmp_reading = False
             if self._reading_callback:
                 self._reading_callback()
 
