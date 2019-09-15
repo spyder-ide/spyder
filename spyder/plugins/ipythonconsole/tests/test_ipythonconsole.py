@@ -1320,7 +1320,8 @@ def test_console_working_directory(ipyconsole, qtbot):
 def test_pdb_multiline(ipyconsole, qtbot):
     """Test entering a multiline statment into pdb"""
     shell = ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
     control = ipyconsole.get_focus_widget()
