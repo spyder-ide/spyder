@@ -1315,5 +1315,34 @@ def test_console_working_directory(ipyconsole, qtbot):
     assert folders[-1] == NEW_DIR
 
 
+@pytest.mark.slow
+@pytest.mark.use_startup_wdir
+def test_pdb_multiline(ipyconsole, qtbot):
+    """Test entering a multiline statment into pdb"""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    shell.execute('%debug print()')
+    qtbot.wait(1000)
+    assert '\nipdb> ' in control.toPlainText()
+
+    # Test reset magic
+    qtbot.keyClicks(control, 'if True:')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+    qtbot.keyClicks(control, 'bb = 10')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    assert shell.get_value('bb') == 10
+    assert "if True:\n   ...:     bb = 10\n" in control.toPlainText()
+
+
 if __name__ == "__main__":
     pytest.main()
