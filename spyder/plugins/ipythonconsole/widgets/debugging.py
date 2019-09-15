@@ -13,12 +13,16 @@ import re
 import pdb
 
 from IPython.core.history import HistoryManager
-from IPython.core.inputsplitter import InputSplitter
 from qtpy.QtCore import Qt
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import get_conf_path
 from spyder.config.manager import CONF
+from spyder.py3compat import PY2
+if not PY2:
+    from IPython.core.inputtransformer2 import TransformerManager
+else:
+    from IPython.core.inputsplitter import IPythonInputSplitter
 
 
 class PdbHistory(HistoryManager):
@@ -286,7 +290,11 @@ class DebuggingWidget(RichJupyterWidget):
         """
         if source and source[0] == '!':
             source = source[1:]
-        complete, indent = InputSplitter().check_complete(source)
+        if PY2:
+            tm = IPythonInputSplitter()
+        else:
+            tm = TransformerManager()
+        complete, indent = tm.check_complete(source)
         if indent is not None:
             indent = indent * ' '
         return complete != 'incomplete', indent
