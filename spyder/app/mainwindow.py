@@ -618,8 +618,6 @@ class MainWindow(QMainWindow):
         ui_theme = CONF.get('appearance', 'ui_theme')
         color_scheme = CONF.get('appearance', 'selected')
 
-        logger.info('Deleting previous Spyder instance LSP logs...')
-        delete_lsp_log_files()
 
         if ui_theme == 'dark':
             if not running_under_pytest():
@@ -1322,6 +1320,9 @@ class MainWindow(QMainWindow):
         """Actions to be performed only after the main window's `show` method
         was triggered"""
         self.restore_scrollbar_position.emit()
+
+        logger.info('Deleting previous Spyder instance LSP logs...')
+        delete_lsp_log_files()
 
         # Workaround for spyder-ide/spyder#880.
         # QDockWidget objects are not painted if restored as floating
