@@ -939,7 +939,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         # Advanced settings checkbox
         self.advanced_options_check = self.create_checkbox(
-            _("Enable advanced settings"), 'advanced')
+            _("Enable advanced settings"), 'advanced/enabled')
 
         # Advanced options
         self.advanced_module = self.create_lineedit(
@@ -974,20 +974,20 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_g_layout.addLayout(advanced_host_port_g_layout, 2, 1)
 
         # External server and stdio options layout
-        external_server_layout = QVBoxLayout()
-        external_server_layout.addWidget(self.external_server)
-        external_server_layout.addWidget(self.use_stdio)
+        advanced_server_layout = QVBoxLayout()
+        advanced_server_layout.addWidget(self.external_server)
+        advanced_server_layout.addWidget(self.use_stdio)
 
         advanced_options_layout = QVBoxLayout()
         advanced_options_layout.addLayout(advanced_g_layout)
-        advanced_options_layout.addLayout(external_server_layout)
+        advanced_options_layout.addLayout(advanced_server_layout)
 
         # Set advanced options enabled/disabled
-        advanced_g_widget = QWidget()
-        advanced_g_widget.setLayout(advanced_options_layout)
-        advanced_g_widget.setEnabled(self.get_option('advanced'))
+        advanced_options_widget = QWidget()
+        advanced_options_widget.setLayout(advanced_options_layout)
+        advanced_options_widget.setEnabled(self.get_option('advanced/enabled'))
         self.advanced_options_check.toggled.connect(
-            advanced_g_widget.setEnabled)
+            advanced_options_widget.setEnabled)
         self.advanced_options_check.toggled.connect(
             self.show_advanced_warning)
 
@@ -995,8 +995,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_layout = QVBoxLayout()
         advanced_layout.addWidget(advanced_label)
         advanced_layout.addWidget(self.advanced_options_check)
-        advanced_layout.addSpacing(12)
-        advanced_layout.addWidget(advanced_g_widget)
+        advanced_layout.addWidget(advanced_options_widget)
 
         advanced_widget = QWidget()
         advanced_widget.setLayout(advanced_layout)
