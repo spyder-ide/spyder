@@ -34,7 +34,8 @@ def check_if_kite_installed():
 def check_if_kite_running():
     """Detect if kite is running."""
     running = False
-    for proc in psutil.process_iter(attrs=['pid', 'name', 'username']):
+    for proc in psutil.process_iter(attrs=['pid', 'name', 'username',
+                                           'status']):
         if is_proc_kite(proc):
             logger.debug('Kite process already '
                          'running with PID {0}'.format(proc.pid))
@@ -73,7 +74,7 @@ def is_proc_kite(proc):
         name = ''
 
     if os.name == 'nt' or sys.platform.startswith('linux'):
-        is_kite = 'kited' in name
+        is_kite = 'kited' in name and proc.status() != 'zombie'
     else:
         is_kite = 'Kite' == name
 
