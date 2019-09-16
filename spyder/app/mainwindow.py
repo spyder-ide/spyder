@@ -253,6 +253,7 @@ def setup_logging(cli_options):
 
 
 def delete_lsp_log_files():
+    """Delete previous dead Spyder instances LSP log files."""
     regex = re.compile(r'.*_.*_(\d+)[.]log')
     files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
     for f in files:
