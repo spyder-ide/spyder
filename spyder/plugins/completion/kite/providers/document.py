@@ -195,19 +195,22 @@ class DocumentProvider:
                 signatures = call['signatures']
                 arg_idx = call['arg_index']
 
-                signature = signatures[0]
                 parameters = []
                 names = []
-                logger.debug(signature)
-                for arg in signature['args']:
-                    parameters.append({
-                        'label': arg['name'],
-                        'documentation': ''
-                    })
-                    names.append(arg['name'])
 
-                func_args = ', '.join(names)
-                call_label = '{0}({1})'.format(call_label, func_args)
+                logger.debug(signatures)
+                if len(signatures) > 0:
+                    signature = signatures[0]
+                    logger.debug(signature)
+                    for arg in signature['args']:
+                        parameters.append({
+                            'label': arg['name'],
+                            'documentation': ''
+                        })
+                        names.append(arg['name'])
+
+                    func_args = ', '.join(names)
+                    call_label = '{0}({1})'.format(call_label, func_args)
 
                 base_signature = {
                     'label': call_label,
