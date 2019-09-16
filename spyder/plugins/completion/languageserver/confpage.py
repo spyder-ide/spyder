@@ -937,6 +937,10 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_label.setWordWrap(True)
         advanced_label.setAlignment(Qt.AlignJustify)
 
+        # Advanced settings checkbox
+        self.advanced_options_check = self.create_checkbox(
+            _("Enable advanced settings"), 'advanced')
+
         # Advanced options
         self.advanced_module = self.create_lineedit(
             _("Module for the Python language server: "),
@@ -969,13 +973,30 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_host_port_g_layout.addWidget(self.advanced_port.spinbox, 1, 2)
         advanced_g_layout.addLayout(advanced_host_port_g_layout, 2, 1)
 
-        advanced_widget = QWidget()
+        # External server and stdio options layout
+        external_server_layout = QVBoxLayout()
+        external_server_layout.addWidget(self.external_server)
+        external_server_layout.addWidget(self.use_stdio)
+
+        advanced_options_layout = QVBoxLayout()
+        advanced_options_layout.addLayout(advanced_g_layout)
+        advanced_options_layout.addLayout(external_server_layout)
+
+        # Set advanced options enabled/disabled
+        advanced_g_widget = QWidget()
+        advanced_g_widget.setLayout(advanced_options_layout)
+        advanced_g_widget.setEnabled(self.get_option('advanced'))
+        self.advanced_options_check.toggled.connect(
+            advanced_g_widget.setEnabled)
+
+        # Advanced options layout
         advanced_layout = QVBoxLayout()
         advanced_layout.addWidget(advanced_label)
+        advanced_layout.addWidget(self.advanced_options_check)
         advanced_layout.addSpacing(12)
-        advanced_layout.addLayout(advanced_g_layout)
-        advanced_layout.addWidget(self.external_server)
-        advanced_layout.addWidget(self.use_stdio)
+        advanced_layout.addWidget(advanced_g_widget)
+
+        advanced_widget = QWidget()
         advanced_widget.setLayout(advanced_layout)
 
         # --- Other servers tab ---
