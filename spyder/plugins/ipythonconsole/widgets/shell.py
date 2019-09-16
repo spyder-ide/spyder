@@ -96,12 +96,13 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         handlers = {
             'pdb_state': self.set_pdb_state,
             'pdb_continue': self.pdb_continue,
-            'get_breakpoints': self.get_spyder_breakpoints,
+            'get_pdb_settings': self.handle_get_pdb_settings,
             'save_files': self.handle_save_files,
             'run_cell': self.handle_run_cell,
             'cell_count': self.handle_cell_count,
             'current_filename': self.handle_current_filename,
-            'set_debug_state': self._handle_debug_state
+            'is_file_open': self.handle_is_file_open,
+            'set_debug_state': self._handle_debug_state,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
@@ -504,6 +505,13 @@ the sympy module (e.g. plot)
 
         # The file is open, load code from editor
         return editor.get_cell_code(cell_name)
+
+    def handle_is_file_open(self, filename):
+        """Check if filename is open."""
+        editorstack = self.get_editorstack()
+        if self.get_editor(filename) is None:
+            return False
+        return True
 
     def handle_cell_count(self, filename):
         """Get number of cells in file to loop."""

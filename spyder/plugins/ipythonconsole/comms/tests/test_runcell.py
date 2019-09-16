@@ -7,13 +7,14 @@ from ipykernel.tests.test_embed_kernel import setup_kernel
 from qtconsole.comms import CommManager
 import pytest
 import time
+from flaky import flaky
 
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
-from spyder_kernels.py3compat import PY3, to_text_string
+from spyder_kernels.py3compat import to_text_string
 
 
 TIMEOUT = 15
-
+@flaky(max_runs=3)
 @pytest.mark.parametrize(
     "debug", [True, False])
 def test_runcell(tmpdir, debug):
@@ -55,7 +56,9 @@ def test_runcell(tmpdir, debug):
 
         set_debug_state.state = None
         kernel_comm.register_call_handler('run_cell', runcell)
-        kernel_comm.register_call_handler('get_breakpoints', lambda: {})
+        kernel_comm.register_call_handler(
+            'get_pdb_settings',
+            lambda: {"breakpoints": {}, "pdb_ignore_lib": False})
         kernel_comm.register_call_handler('pdb_state', lambda state: None)
         kernel_comm.register_call_handler('set_debug_state', set_debug_state)
 
@@ -72,7 +75,7 @@ def test_runcell(tmpdir, debug):
         if debug:
             # Continue
             process_msg('set_debug_state')
-            process_msg('get_breakpoints')
+            process_msg('get_pdb_settings')
             assert set_debug_state.state
             time.sleep(.5)
             client.input('c')
