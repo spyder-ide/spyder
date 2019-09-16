@@ -95,6 +95,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # workspace/didChangeConfiguration request.
         if not server_settings['external']:
             server_port = select_port(default_port=server_settings['port'])
+        else:
+            server_port = server_settings['port']
 
         self.transport_args = [sys.executable, '-u',
                                osp.join(LOCATION, 'transport', 'main.py')]
