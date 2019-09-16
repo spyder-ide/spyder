@@ -29,6 +29,7 @@ import os.path as osp
 import re
 import signal
 import socket
+import glob
 import subprocess
 import sys
 import threading
@@ -180,6 +181,7 @@ from spyder.app import tour
 #==============================================================================
 # Third-party library imports
 #==============================================================================
+import psutil
 import qdarkstyle
 
 #==============================================================================
@@ -248,6 +250,17 @@ def setup_logging(cli_options):
                             format=log_format,
                             filename=log_file,
                             filemode='w+')
+
+
+def delete_lsp_log_files():
+    regex = re.compile(r'.*_.*_(\d+)[.]log')
+    files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
+    for f in files:
+        match = regex.match(f)
+        if match is not None:
+            pid = int(match.group(1))
+            if not psutil.pid_exists(pid):
+                os.remove(f)
 
 
 def qt_message_handler(msg_type, msg_log_context, msg_string):
@@ -603,6 +616,9 @@ class MainWindow(QMainWindow):
         logger.info("Applying theme configuration...")
         ui_theme = CONF.get('appearance', 'ui_theme')
         color_scheme = CONF.get('appearance', 'selected')
+
+        logger.info('Deleting previous Spyder instance LSP logs...')
+        delete_lsp_log_files()
 
         if ui_theme == 'dark':
             if not running_under_pytest():
