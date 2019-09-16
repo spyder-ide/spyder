@@ -97,28 +97,29 @@ class DebuggingWidget(RichJupyterWidget):
                 self._pdb_input_queue.append((line, hidden))
             return
 
+        if not hidden:
+            if line.strip():
+                self._pdb_last_cmd = line
+
+            # Print the text if it is programatically added.
+            if line.strip() != self.input_buffer.strip():
+                self._append_plain_text(line)
+            self._append_plain_text('\n')
+            # Save history to browse it later
+            self._pdb_line_num += 1
+            self.add_to_pdb_history(self._pdb_line_num, line)
+
+            # Set executing to true and save the input buffer
+            self._input_buffer_executing = self.input_buffer
+            self._executing = True
+
+            # Disable the console
+            self._tmp_reading = False
+            self._finalize_input_request()
+            hidden = True
+
         if self._pdb_input_ready:
             # Print the string to the console
-            if not hidden:
-                if line.strip():
-                    self._pdb_last_cmd = line
-
-                # Print the text if it is programatically added.
-                if line.strip() != self.input_buffer.strip():
-                    self._append_plain_text(line)
-                self._append_plain_text('\n')
-                # Save history to browse it later
-                self._pdb_line_num += 1
-                self.add_to_pdb_history(self._pdb_line_num, line)
-
-                # Set executing to true and save the input buffer
-                self._input_buffer_executing = self.input_buffer
-                self._executing = True
-                # Execute
-                self._tmp_reading = False
-
-                self._finalize_input_request()
-
             self._pdb_input_ready = False
             return self.kernel_client.input(line)
 
