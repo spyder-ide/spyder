@@ -19,8 +19,8 @@ from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize
 from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
                             QComboBox, QDialog, QDialogButtonBox, QGroupBox,
                             QGridLayout, QHBoxLayout, QLabel, QLineEdit,
-                            QPushButton, QSpinBox, QTableView, QTabWidget,
-                            QVBoxLayout, QWidget)
+                            QMessageBox, QPushButton, QSpinBox, QTableView,
+                            QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -937,6 +937,10 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_label.setWordWrap(True)
         advanced_label.setAlignment(Qt.AlignJustify)
 
+        # Advanced settings checkbox
+        self.advanced_options_check = self.create_checkbox(
+            _("Enable advanced settings"), 'advanced/enabled')
+
         # Advanced options
         self.advanced_module = self.create_lineedit(
             _("Module for the Python language server: "),
@@ -969,13 +973,31 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_host_port_g_layout.addWidget(self.advanced_port.spinbox, 1, 2)
         advanced_g_layout.addLayout(advanced_host_port_g_layout, 2, 1)
 
-        advanced_widget = QWidget()
+        # External server and stdio options layout
+        advanced_server_layout = QVBoxLayout()
+        advanced_server_layout.addWidget(self.external_server)
+        advanced_server_layout.addWidget(self.use_stdio)
+
+        advanced_options_layout = QVBoxLayout()
+        advanced_options_layout.addLayout(advanced_g_layout)
+        advanced_options_layout.addLayout(advanced_server_layout)
+
+        # Set advanced options enabled/disabled
+        advanced_options_widget = QWidget()
+        advanced_options_widget.setLayout(advanced_options_layout)
+        advanced_options_widget.setEnabled(self.get_option('advanced/enabled'))
+        self.advanced_options_check.toggled.connect(
+            advanced_options_widget.setEnabled)
+        self.advanced_options_check.toggled.connect(
+            self.show_advanced_warning)
+
+        # Advanced options layout
         advanced_layout = QVBoxLayout()
         advanced_layout.addWidget(advanced_label)
-        advanced_layout.addSpacing(12)
-        advanced_layout.addLayout(advanced_g_layout)
-        advanced_layout.addWidget(self.external_server)
-        advanced_layout.addWidget(self.use_stdio)
+        advanced_layout.addWidget(self.advanced_options_check)
+        advanced_layout.addWidget(advanced_options_widget)
+
+        advanced_widget = QWidget()
         advanced_widget.setLayout(advanced_layout)
 
         # --- Other servers tab ---
@@ -1090,6 +1112,25 @@ class LanguageServerConfigPage(GeneralConfigPage):
             self.docstring_style_ignore.label.setText(
                 _("Ignore the following errors in addition "
                   "to the specified convention:"))
+
+    @Slot(bool)
+    def show_advanced_warning(self, state):
+        """
+        Show a warning when trying to modify the PyLS advanced
+        settings.
+        """
+        if state:
+            QMessageBox.warning(
+                self,
+                _("Warning"),
+                _("<b>Modifying these options can break code completion!!</b>"
+                  "<br><br>"
+                  "If that's the case, please reset your Spyder preferences "
+                  "by going to the menu"
+                  "<br><br>"
+                  "<tt>Tools > Reset Spyder to factory defaults</tt>"
+                  "<br><br>"
+                  "instead of reporting a bug."))
 
     def reset_to_default(self):
         CONF.reset_to_defaults(section='lsp-server')
