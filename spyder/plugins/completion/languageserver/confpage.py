@@ -19,8 +19,8 @@ from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize
 from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
                             QComboBox, QDialog, QDialogButtonBox, QGroupBox,
                             QGridLayout, QHBoxLayout, QLabel, QLineEdit,
-                            QPushButton, QSpinBox, QTableView, QTabWidget,
-                            QVBoxLayout, QWidget)
+                            QMessageBox, QPushButton, QSpinBox, QTableView,
+                            QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -988,6 +988,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_g_widget.setEnabled(self.get_option('advanced'))
         self.advanced_options_check.toggled.connect(
             advanced_g_widget.setEnabled)
+        self.advanced_options_check.toggled.connect(
+            self.show_advanced_warning)
 
         # Advanced options layout
         advanced_layout = QVBoxLayout()
@@ -1111,6 +1113,25 @@ class LanguageServerConfigPage(GeneralConfigPage):
             self.docstring_style_ignore.label.setText(
                 _("Ignore the following errors in addition "
                   "to the specified convention:"))
+
+    @Slot(bool)
+    def show_advanced_warning(self, state):
+        """
+        Show a warning when trying to modify the PyLS advanced
+        settings.
+        """
+        if state:
+            QMessageBox.warning(
+                self,
+                _("Warning"),
+                _("<b>Modifying these options can break code completion!!</b>"
+                  "<br><br>"
+                  "If that's the case, please reset your Spyder preferences "
+                  "by going to the menu"
+                  "<br><br>"
+                  "<tt>Tools > Reset Spyder to factory defaults</tt>"
+                  "<br><br>"
+                  "instead of reporting a bug."))
 
     def reset_to_default(self):
         CONF.reset_to_defaults(section='lsp-server')
