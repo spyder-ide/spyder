@@ -200,12 +200,17 @@ class DebuggingWidget(RichJupyterWidget):
 
         prompt, password = msg['content']['prompt'], msg['content']['password']
 
-        # Check if this is a duplicate that we shouldn't reprint.
-        # This can happen when sending commands to pdb from the frontend.
-        print_prompt = (not self._reading
-                        or not (prompt, password) == self._previous_prompt)
-
         self._previous_prompt = (prompt, password)
+
+        # Check if the prompt should be printed
+        if not self.is_waiting_pdb_input():
+            print_prompt = True
+        else:
+            # This is pdb. The prompt should be printed unless:
+            # 1. The prompt is already printed (self._reading is True)
+            # 2. A commad is in the queue
+            print_prompt = (not self._reading
+                            and len(self._pdb_input_queue) == 0)
 
         if print_prompt:
             # Reset reading in case it was interrupted
