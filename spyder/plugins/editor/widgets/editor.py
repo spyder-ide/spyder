@@ -18,6 +18,7 @@ import os
 import os.path as osp
 import sys
 import unicodedata
+import codecs
 
 # Third party imports
 import qdarkstyle
@@ -35,7 +36,8 @@ from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import config_shortcut, is_dark_interface, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
-from spyder.py3compat import qbytearray_to_str, to_text_string, MutableSequence
+from spyder.py3compat import (qbytearray_to_str, to_text_string,
+                              MutableSequence, PY2)
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -1780,8 +1782,13 @@ class EditorStack(QWidget):
         except OSError:
             # Some filesystems don't support the option to sync directories
             # issue untitaker/python-atomicwrites#17
-            with open(filename, 'w') as f:
-                f.write(txt)
+            if PY2:
+                with codecs.open(filename, 'w',
+                                 encoding=fileinfo.encoding) as f:
+                    f.write(txt)
+            else:
+                with open(filename, 'w', encoding=fileinfo.encoding) as f:
+                    f.write(txt)
 
     def save(self, index=None, force=False):
         """Write text of editor to a file.
