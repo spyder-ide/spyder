@@ -72,8 +72,7 @@ class TCPLanguageServerClient(LanguageServerClient):
         except (BrokenPipeError, ConnectionError) as e:
             # This avoids a total freeze at startup
             # when we're trying to connect to a TCP
-            # (but not LSP) server that rejects our
-            # connection
+            # socket that rejects our connection
             logger.error(e)
 
     def is_server_alive(self):
