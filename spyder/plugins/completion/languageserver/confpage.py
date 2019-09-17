@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
                             QComboBox, QDialog, QDialogButtonBox, QGroupBox,
                             QGridLayout, QHBoxLayout, QLabel, QLineEdit,
                             QMessageBox, QPushButton, QSpinBox, QTableView,
-                            QTabWidget, QVBoxLayout, QWidget)
+                            QTabWidget, QVBoxLayout, QWidget, QButtonGroup)
 
 # Local imports
 from spyder.config.base import _
@@ -933,18 +933,30 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # --- Advanced tab ---
         # Clients group
         clients_group = QGroupBox(_("Clients"))
-        self.completion_lsp = newcb(_("Enable language server completions"),
-                                    'enable')
         self.completion_fallback = newcb(_("Enable fallback completions"),
                                          'enable',
                                          section='fallback-completions')
-        self.completion_kite = newcb(_("Enable Kite completions"), 'enable',
-                                     section='kite-completions')
+        client_selection_group = QGroupBox(_('Select completion server'))
+        client_selection_bg = QButtonGroup(client_selection_group)
+        self.completion_lsp = self.create_radiobutton(
+            _("Language server protocol (LSP)"),
+            'enable',
+            button_group=client_selection_bg)
+        self.completion_kite = self.create_radiobutton(
+            _("Kite"),
+            'enable',
+            section='kite-completions',
+            button_group=client_selection_bg)
 
         clients_layout = QVBoxLayout()
+
+        clients_selection_layout = QVBoxLayout()
+        clients_selection_layout.addWidget(self.completion_lsp)
+        clients_selection_layout.addWidget(self.completion_kite)
+        client_selection_group.setLayout(clients_selection_layout)
+
+        clients_layout.addWidget(client_selection_group)
         clients_layout.addWidget(self.completion_fallback)
-        clients_layout.addWidget(self.completion_lsp)
-        clients_layout.addWidget(self.completion_kite)
         clients_group.setLayout(clients_layout)
 
         check_kite, __ = KiteCompletionPlugin._check_if_kite_installed()
