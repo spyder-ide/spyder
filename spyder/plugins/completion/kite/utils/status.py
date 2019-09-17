@@ -84,9 +84,10 @@ def is_proc_kite(proc):
 
     return is_kite
 
+
 def status():
     """Kite completions status: not installed, running, not running."""
-    kite_installed, _ = check_if_kite_installed() 
+    kite_installed, _ = check_if_kite_installed()
     if not kite_installed:
         return NOT_INSTALLED
     elif check_if_kite_running():
