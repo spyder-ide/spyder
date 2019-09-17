@@ -124,18 +124,18 @@ scientific computing and software development.
 
 # Beta release
 
-**Subject**: [ANN] Spyder 4.0 fourth public beta release
+**Subject**: [ANN] Spyder 4.0 fifth public beta release
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the fourth beta of our next major version: Spyder **4.0**.
+I'm pleased to announce the fifth beta of our next major version: Spyder **4.0**.
 
 We've been working on this version for almost three years now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
 people who like the bleeding edge to give it a try. This beta version is released
-5 weeks after Spyder 4.0 beta3 and it includes more than 400 commits.
+6 weeks after Spyder 4.0 beta4 and it includes more than 540 commits.
 
 Spyder 4.0 comes with several interesting and exciting new features. The most
 important ones are:
@@ -155,38 +155,42 @@ important ones are:
 
 - Editor
     * Code folding.
-    * Indent guides.
-    * Code completion on the fly.
+    * Indentation guides.
     * A class/method/function lookup panel. This can be shown in the menu
       `Source > Show selector for classes and functions`.
     * Autosave functionality to recover unsaved files after a crash.
     * Code completion and linting are provided by the Python Language Server.
 
 - IPython Console
-    * Add menu options to start consoles in Pylab, Sympy and Cython modes.
-    * Cells are run through a new function called `runcell`.
+    * Run files in an empty namespace.
+    * Create dedicated consoles for Pylab, Sympy and Cython.
+    * Run cells through a new function called `runcell`.
+    * Run cells by name.
+
+- Debugger
+    * `runfile` and `runcell` can be called when the debugger is active.
+    * Debug cells by pressing `Alt+Shift+Return`.
+    * Permanent history.
+    * Syntax highlighting.
 
 - Variable Explorer
-    * Add a new viewer to inspect any Python object in a tree-like view.
-    * Add the ability to filter variables by name or type.
-    * Add MultiIndex display support to the Dataframe viewer.
-    * Add support for all Pandas indexes.
-    * Add support for sets.
-    * Add support for Numpy object arrays.
+    * New viewer to inspect any Python object in a tree-like view.
+    * Filter variables by name or type.
+    * MultiIndex support in the Dataframe viewer.
+    * Support for all Pandas indexes.
+    * Support for sets.
+    * Support for Numpy object arrays.
 
 - Files
-    * Add the possibility to associate different external applications to open
-      specific file extensions.
-    * Add a context menu action called `Open externally` to all files to open
-      them with the default program associated with the file type.
-    * Add multi-select functionality (Ctrl/Shift+click).
-    * Add the ability to copy/paste files and their absolute or relative paths.
+    * Associate external applications to open specific file extensions.
+    * Context menu action to open files externally.
+    * Multi-select functionality with `Ctrl/Shift + mouse click`.
+    * Copy/paste files and their absolute or relative paths.
     * Use special icons for different file types.
-    * Add an option to open files and directories with a single click.
 
 - Outline
     * Show cells grouped in sections.
-    * Add a default name to all cells.
+    * Add default name to all cells.
 
 
 For a more complete list of changes, please see our

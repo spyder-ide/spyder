@@ -10,6 +10,7 @@
 import os
 import os.path as osp
 import random
+import textwrap
 import sys
 
 # Third party imports
@@ -20,8 +21,15 @@ import pytestqt
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextCursor
 
+try:
+    from rtree import index
+    rtree_available = True
+except Exception:
+    rtree_available = False
+
 # Local imports
 from spyder.py3compat import PY2
+from spyder.config.manager import CONF
 
 
 # Location of this file
@@ -34,6 +42,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
     """Validate completion's space character handling."""
     code_editor, _ = lsp_codeeditor
     code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
 
     completion = code_editor.completion_widget
 
@@ -56,6 +65,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
     assert not completion.isVisible()
 
     code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
 
 
 @pytest.mark.slow
@@ -71,6 +81,7 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
                   '>>=', '<<=', '**=']
 
     code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
     code_editor.go_to_line(1)
@@ -96,6 +107,7 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
     assert completion.isHidden() is True
 
     code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
 
 
 @pytest.mark.slow
@@ -105,6 +117,7 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
     """Test on-the-fly completions."""
     code_editor, _ = lsp_codeeditor
     completion = code_editor.completion_widget
+    code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
     code_editor.go_to_line(1)
@@ -183,6 +196,7 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
         qtbot.keyClicks(code_editor, ' r')
 
     assert "random" in [x['label'] for x in sig.args[0]]
+    code_editor.toggle_code_snippets(True)
 
 
 @pytest.mark.slow
@@ -193,6 +207,7 @@ def test_completions(lsp_codeeditor, qtbot):
     completion = code_editor.completion_widget
 
     code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
     code_editor.go_to_line(1)
@@ -353,6 +368,170 @@ def test_completions(lsp_codeeditor, qtbot):
                                         'math.asinangle\n'\
                                         'math.\n'
     code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
+
+
+@pytest.mark.slow
+@pytest.mark.first
+@pytest.mark.skipif(not rtree_available or PY2,
+                    reason='Only works if libspatialindex is installed')
+def test_code_snippets(lsp_codeeditor, qtbot):
+    assert rtree_available
+    code_editor, lsp = lsp_codeeditor
+    completion = code_editor.completion_widget
+    snippets = code_editor.editor_extensions.get('SnippetsExtension')
+
+    CONF.set('lsp-server', 'code_snippets', True)
+    lsp.update_configuration()
+
+    code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(True)
+    # Set cursor to start
+    code_editor.go_to_line(1)
+
+    text = """
+    def test_func(xlonger, y1, some_z):
+        pass
+    """
+    text = textwrap.dedent(text)
+
+    code_editor.insert_text(text)
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    qtbot.keyClicks(code_editor, 'test_')
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    print({x['label'] for x in sig.args[0]})
+    assert 'test_func(xlonger, y1, some_z)' in {
+        x['label'] for x in sig.args[0]}
+
+    expected_insert = 'test_func(${1:xlonger}, ${2:y1}, ${3:some_z})$0'
+    insert = sig.args[0][0]
+    assert expected_insert == insert['insertText']
+
+    assert snippets.is_snippet_active
+    assert code_editor.has_selected_text()
+
+    # Rotate through snippet regions
+    cursor = code_editor.textCursor()
+    arg1 = cursor.selectedText()
+    assert 'xlonger' == arg1
+    assert snippets.active_snippet == 1
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    cursor = code_editor.textCursor()
+    arg2 = cursor.selectedText()
+    assert 'y1' == arg2
+    assert snippets.active_snippet == 2
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    cursor = code_editor.textCursor()
+    arg2 = cursor.selectedText()
+    assert 'some_z' == arg2
+    assert snippets.active_snippet == 3
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert snippets.active_snippet == 0
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert snippets.active_snippet == 1
+    assert code_editor.has_selected_text()
+
+    # Replace selection
+    qtbot.keyClicks(code_editor, 'arg1')
+    qtbot.wait(5000)
+
+    assert len(snippets.snippets_map) == 4
+    assert snippets.active_snippet == 1
+
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
+
+    for _ in range(0, 4):
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert snippets.active_snippet == 1
+
+    cursor = code_editor.textCursor()
+    text1 = cursor.selectedText()
+    assert text1 == 'arg1'
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert snippets.active_snippet == 2
+
+    # Extend text from right
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
+    qtbot.keyClicks(code_editor, '_var')
+
+    for _ in range(0, 4):
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    cursor = code_editor.textCursor()
+    arg2 = cursor.selectedText()
+    assert 'y1_var' == arg2
+
+    # Extend text from left
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
+    qtbot.keyClicks(code_editor, 's')
+
+    for _ in range(0, 4):
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    cursor = code_editor.textCursor()
+    arg3 = cursor.selectedText()
+    assert 'ssome_z' == arg3
+
+    # Delete snippet region
+    qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+    assert len(snippets.snippets_map) == 3
+
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    cursor = code_editor.textCursor()
+    arg1 = cursor.selectedText()
+    assert 'arg1' == arg1
+
+    # Undo action
+    with qtbot.waitSignal(code_editor.sig_undo,
+                          timeout=10000) as sig:
+        code_editor.undo()
+    assert len(snippets.snippets_map) == 4
+
+    for _ in range(0, 4):
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    cursor = code_editor.textCursor()
+    arg1 = cursor.selectedText()
+    assert 'ssome_z' == arg1
+
+    for _ in range(0, 2):
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    # Delete text
+    qtbot.keyPress(code_editor, Qt.Key_Left, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+
+    for _ in range(0, 4):
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    cursor = code_editor.textCursor()
+    arg1 = cursor.selectedText()
+    assert 'rg1' == arg1
+
+    # Disable snippets
+    qtbot.keyPress(code_editor, Qt.Key_Escape)
+    assert not snippets.is_snippet_active
+
+    CONF.set('lsp-server', 'code_snippets', False)
+    lsp.update_configuration()
+
+    code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
 
 
 @pytest.mark.slow
@@ -395,11 +574,13 @@ def test_completion_order(lsp_codeeditor, qtbot):
 @pytest.mark.first
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason='Only works on Linux')
+@flaky(max_runs=5)
 def test_fallback_completions(fallback_codeeditor, qtbot):
     code_editor, _ = fallback_codeeditor
     completion = code_editor.completion_widget
 
     code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
     code_editor.go_to_line(1)
@@ -409,7 +590,7 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
     code_editor.document_did_change()
 
     # Enter for new line
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyClicks(code_editor, 'w')
@@ -447,6 +628,7 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
     assert 'another' not in word_set
 
     code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
 
 
 if __name__ == '__main__':

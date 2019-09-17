@@ -473,6 +473,7 @@ DEFAULTS = [
               # It is used to disable hover hints in the editor
               'enable_hover_hints': True,
               'code_completion': True,
+              'code_snippets': True,
               'jedi_definition': True,
               'jedi_definition/follow_imports': True,
               'jedi_signature_help': True,
@@ -491,6 +492,7 @@ DEFAULTS = [
               'pydocstyle/ignore': '',
               'pydocstyle/match': '(?!test_).*\\.py',
               'pydocstyle/match_dir': '[^\\.].*',
+              'advanced/enabled': False,
               'advanced/module': 'pyls',
               'advanced/host': '127.0.0.1',
               'advanced/port': 2087,

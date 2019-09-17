@@ -305,12 +305,13 @@ else:
 # Exceptions
 # ============================================================================
 if PY2:
-    ConnectionRefusedError = ConnectionError = OSError
+    ConnectionRefusedError = ConnectionError = BrokenPipeError = OSError
     TimeoutError = RuntimeError
 else:
     ConnectionError = ConnectionError
     ConnectionRefusedError = ConnectionRefusedError
     TimeoutError = TimeoutError
+    BrokenPipeError = BrokenPipeError
 
 
 if __name__ == '__main__':

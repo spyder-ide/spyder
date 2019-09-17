@@ -29,6 +29,7 @@ import os.path as osp
 import re
 import signal
 import socket
+import glob
 import subprocess
 import sys
 import threading
@@ -180,6 +181,7 @@ from spyder.app import tour
 #==============================================================================
 # Third-party library imports
 #==============================================================================
+import psutil
 import qdarkstyle
 
 #==============================================================================
@@ -250,6 +252,18 @@ def setup_logging(cli_options):
                             filemode='w+')
 
 
+def delete_lsp_log_files():
+    """Delete previous dead Spyder instances LSP log files."""
+    regex = re.compile(r'.*_.*_(\d+)[.]log')
+    files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
+    for f in files:
+        match = regex.match(f)
+        if match is not None:
+            pid = int(match.group(1))
+            if not psutil.pid_exists(pid):
+                os.remove(f)
+
+
 def qt_message_handler(msg_type, msg_log_context, msg_string):
     """
     Qt warning messages are intercepted by this handler.
@@ -270,14 +284,6 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 
 qInstallMessageHandler(qt_message_handler)
 
-
-# =============================================================================
-# Dependencies
-# =============================================================================
-QDARKSTYLE_REQVER = '>=2.6.4'
-dependencies.add("qdarkstyle", "qdarkstyle",
-                 _("Dark style for the entire interface"),
-                 required_version=QDARKSTYLE_REQVER)
 
 #==============================================================================
 # Main Window
@@ -411,7 +417,7 @@ class MainWindow(QMainWindow):
         self.tours_available = None
 
         # File switcher
-        self.fileswitcher = None
+        self.switcher = None
 
         # Check for updates Thread and Worker, refereces needed to prevent
         # segfaulting
@@ -612,6 +618,7 @@ class MainWindow(QMainWindow):
         ui_theme = CONF.get('appearance', 'ui_theme')
         color_scheme = CONF.get('appearance', 'selected')
 
+
         if ui_theme == 'dark':
             if not running_under_pytest():
                 # Set style proxy to fix combobox popup on mac and qdark
@@ -665,13 +672,13 @@ class MainWindow(QMainWindow):
                                "Use next layout")
         self.register_shortcut(self.toggle_previous_layout_action, "_",
                                "Use previous layout")
-        # File switcher shortcuts
+        # Switcher shortcuts
         self.file_switcher_action = create_action(
                                     self,
                                     _('File switcher...'),
                                     icon=ima.icon('filelist'),
                                     tip=_('Fast switch between files'),
-                                    triggered=self.open_fileswitcher,
+                                    triggered=self.open_switcher,
                                     context=Qt.ApplicationShortcut)
         self.register_shortcut(self.file_switcher_action, context="_",
                                name="File switcher")
@@ -882,6 +889,10 @@ class MainWindow(QMainWindow):
 
         self.main_toolbar = self.create_toolbar(_("Main toolbar"),
                                                 "main_toolbar")
+
+        # Switcher instance
+        logger.info("Loading switcher...")
+        self.create_switcher()
 
         # Internal console plugin
         logger.info("Loading internal console...")
@@ -1310,6 +1321,9 @@ class MainWindow(QMainWindow):
         was triggered"""
         self.restore_scrollbar_position.emit()
 
+        logger.info('Deleting previous Spyder instance LSP logs...')
+        delete_lsp_log_files()
+
         # Workaround for spyder-ide/spyder#880.
         # QDockWidget objects are not painted if restored as floating
         # windows, so we must dock them before showing the mainwindow,
@@ -1387,7 +1401,8 @@ class MainWindow(QMainWindow):
             self.check_updates(startup=True)
 
         # Show dialog with missing dependencies
-        self.report_missing_dependencies()
+        if not running_under_pytest():
+            self.report_missing_dependencies()
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
@@ -1421,11 +1436,12 @@ class MainWindow(QMainWindow):
 
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies"""
+        dependencies.declare_dependencies()
         missing_deps = dependencies.missing_dependencies()
         if missing_deps:
             QMessageBox.critical(self, _('Error'),
                 _("<b>You have missing dependencies!</b>"
-                  "<br><br><tt>%s</tt><br><br>"
+                  "<br><br><tt>%s</tt><br>"
                   "<b>Please install them to avoid this message.</b>"
                   "<br><br>"
                   "<i>Note</i>: Spyder could work without some of these "
@@ -1661,8 +1677,8 @@ class MainWindow(QMainWindow):
                   helper, explorer_file, finder] + plugins,
                  [console_int, console_ipy, history]]        # Row 1
                 ],
-            'width fraction': [ 5,            # Column 0 width
-                               55,            # Column 1 width
+            'width fraction': [15,            # Column 0 width
+                               45,            # Column 1 width
                                 5,            # Column 2 width
                                45],           # Column 3 width
             'height fraction': [[100],          # Column 0, row heights
@@ -3205,35 +3221,36 @@ class MainWindow(QMainWindow):
         self.tour.set_tour(index, frames, self)
         self.tour.start_tour()
 
-    # ---- Global File Switcher
-    def open_fileswitcher(self, symbol=False):
-        """Open file list management dialog box."""
-        if self.fileswitcher is not None and \
-          self.fileswitcher.is_visible:
-            self.fileswitcher.hide()
-            self.fileswitcher.is_visible = False
+    # ---- Global Switcher
+    def open_switcher(self, symbol=False):
+        """Open switcher dialog box."""
+        if self.switcher is not None and self.switcher.isVisible():
+            self.switcher.clear()
+            self.switcher.hide()
             return
         if symbol:
-            self.fileswitcher.plugin = self.editor
-            self.fileswitcher.set_search_text('@')
+            self.switcher.set_search_text('@')
         else:
-            self.fileswitcher.set_search_text('')
-        self.fileswitcher.show()
-        self.fileswitcher.is_visible = True
+            self.switcher.set_search_text('')
+            self.switcher.setup()
+        self.switcher.show()
+
+        # Note: The +6 pixel on the top makes it look better
+        delta_top = (self.toolbars_menu.geometry().height() +
+                     self.menuBar().geometry().height() + 6)
+        self.switcher.set_position(delta_top)
 
     def open_symbolfinder(self):
         """Open symbol list management dialog box."""
-        self.open_fileswitcher(symbol=True)
+        self.open_switcher(symbol=True)
 
-    def add_to_fileswitcher(self, plugin, tabs, data, icon):
-        """Add a plugin to the File Switcher."""
-        if self.fileswitcher is None:
-            from spyder.widgets.fileswitcher import FileSwitcher
-            self.fileswitcher = FileSwitcher(self, plugin, tabs, data, icon)
-        else:
-            self.fileswitcher.add_plugin(plugin, tabs, data, icon)
-        self.fileswitcher.sig_goto_file.connect(
-            plugin.get_current_tab_manager().set_stack_index)
+    def create_switcher(self):
+        """Create switcher dialog instance."""
+        if self.switcher is None:
+            from spyder.widgets.switcher import Switcher
+            self.switcher = Switcher(self)
+
+        return self.switcher
 
     # ---- Check for Spyder Updates
     def _check_updates_ready(self):
