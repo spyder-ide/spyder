@@ -165,7 +165,11 @@ class KiteInstallationThread(QThread):
             self._execute_mac_installation(installer_path)
         else:
             self._execute_linux_installation(installer_path)
-        os.remove(installer_path)
+        try:
+            os.remove(installer_path)
+        except Exception:
+            # Handle errors while removing installer file
+            pass
         self._change_installation_status(status=self.FINISHED)
 
     def run(self):
