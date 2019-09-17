@@ -18,7 +18,6 @@ import os
 import os.path as osp
 import sys
 import unicodedata
-import codecs
 
 # Third party imports
 import qdarkstyle
@@ -37,7 +36,7 @@ from spyder.config.gui import config_shortcut, is_dark_interface, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
 from spyder.py3compat import (qbytearray_to_str, to_text_string,
-                              MutableSequence, PY2)
+                              MutableSequence)
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
