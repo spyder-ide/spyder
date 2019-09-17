@@ -22,24 +22,26 @@ logger = logging.getLogger(__name__)
 class KiteStatus(BaseTimerStatus):
     """Status bar widget for Kite completions status."""
 
-    def __init__(self, parent, statusbar, status_handler):
-        self._status_handler = status_handler
+    def __init__(self, parent, statusbar):
         super(KiteStatus, self).__init__(parent, statusbar,
                                          icon=ima.get_kite_icon())
 
     def import_test(self):
         """Raise ImportError if feature is not supported."""
         try:
-            self._status_handler.status()
+            from spyder.plugins.completion.kite.utils.status import status
         except Exception as e:
             logger.debug('Error while fetching Kite status: {0}'.format(e))
             raise ImportError
 
     def get_value(self):
         """Return Kite completions state."""
-        status = self._status_handler.status()
-        self.setVisible(status != self._status_handler.NOT_INSTALLED)
-        text = '𝕜𝕚𝕥𝕖: {}'.format(status)
+        from spyder.plugins.completion.kite.utils.status import (
+            status, NOT_INSTALLED)
+        kite_status = status()
+        # TODO: Use enable preference to update visibility of the status bar
+        self.setVisible(kite_status != NOT_INSTALLED)
+        text = '𝕜𝕚𝕥𝕖: {}'.format(kite_status)
         return text
 
     def get_tooltip(self):

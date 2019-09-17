@@ -55,8 +55,14 @@ class BaseEditMixin(object):
     _DEFAULT_LANGUAGE = 'python'
     _DEFAULT_MAX_LINES = 10
     _DEFAULT_MAX_WIDTH = 60
+    _DEFAULT_COMPLETION_HINT_MAX_WIDTH = 52
     _DEFAULT_MAX_HINT_LINES = 20
     _DEFAULT_MAX_HINT_WIDTH = 85
+
+    # The following signals are used to indicate text changes on the editor.
+    sig_will_insert_text = None
+    sig_will_remove_selection = None
+    sig_text_was_inserted = None
 
     def __init__(self):
         self.eol_chars = None
@@ -163,7 +169,7 @@ class BaseEditMixin(object):
         | Link or shortcut with `inspect_word` |
         ----------------------------------------
         """
-        BASE_TEMPLATE = '''
+        BASE_TEMPLATE = u'''
             <div style=\'font-family: "{font_family}";
                         font-size: {size}pt;
                         color: {color}\'>
@@ -209,10 +215,15 @@ class BaseEditMixin(object):
             # All these replacements are need to properly divide the
             # text in actual paragraphs and wrap the text on each one
             paragraphs = (text
+                          .replace(u"\xa0", u" ")
                           .replace("\n\n", "<!DOUBLE_ENTER!>")
                           .replace(".\n", ".<!SINGLE_ENTER!>")
                           .replace("\n-", "<!SINGLE_ENTER!>-")
                           .replace("-\n", "-<!SINGLE_ENTER!>")
+                          .replace("\n=", "<!SINGLE_ENTER!>=")
+                          .replace("=\n", "=<!SINGLE_ENTER!>")
+                          .replace("\n*", "<!SINGLE_ENTER!>*")
+                          .replace("*\n", "*<!SINGLE_ENTER!>")
                           .replace("\n ", "<!SINGLE_ENTER!> ")
                           .replace(" \n", " <!SINGLE_ENTER!>")
                           .replace("\n", " ")
@@ -247,6 +258,8 @@ class BaseEditMixin(object):
         if max_lines:
             if len(lines) > max_lines:
                 text = '\n'.join(lines[:max_lines]) + ' ...'
+            else:
+                text = '\n'.join(lines)
 
         text = text.replace('\n', '<br>')
         if text_new_line and signature:
@@ -552,14 +565,14 @@ class BaseEditMixin(object):
                      max_width=_DEFAULT_MAX_WIDTH,
                      cursor=None,
                      with_html_format=False,
-                     text_new_line=True):
+                     text_new_line=True,
+                     completion_doc=None):
         """Show tooltip."""
         # Find position of calltip
         point = self._calculate_position(
             at_line=at_line,
             at_point=at_point,
         )
-
         # Format text
         tiptext = self._format_text(
             title=title,
@@ -577,15 +590,16 @@ class BaseEditMixin(object):
         self._update_stylesheet(self.tooltip_widget)
 
         # Display tooltip
-        self.tooltip_widget.show_tip(point, tiptext, cursor=cursor)
+        self.tooltip_widget.show_tip(point, tiptext, cursor=cursor,
+                                     completion_doc=completion_doc)
 
     def show_hint(self, text, inspect_word, at_point,
                   max_lines=_DEFAULT_MAX_HINT_LINES,
                   max_width=_DEFAULT_MAX_HINT_WIDTH,
-                  text_new_line=True):
+                  text_new_line=True, completion_doc=None):
         """Show code hint and crop text as needed."""
         # Check if signature and format
-        res = self._check_signature_and_format(text)
+        res = self._check_signature_and_format(text, max_width=max_width)
         html_signature, extra_text, _ = res
         point = self.get_word_start_pos(at_point)
 
@@ -598,7 +612,8 @@ class BaseEditMixin(object):
                           at_point=point, inspect_word=inspect_word,
                           display_link=True, max_lines=max_lines,
                           max_width=max_width, cursor=cursor,
-                          text_new_line=text_new_line)
+                          text_new_line=text_new_line,
+                          completion_doc=completion_doc)
 
     def hide_tooltip(self):
         """
@@ -844,18 +859,32 @@ class BaseEditMixin(object):
         else:
             return ''
 
-    def insert_text(self, text):
+    def insert_text(self, text, will_insert_text=True):
         """Insert text at cursor position"""
         if not self.isReadOnly():
+            if will_insert_text and self.sig_will_insert_text is not None:
+                self.sig_will_insert_text.emit(text)
             self.textCursor().insertText(text)
+            if self.sig_text_was_inserted is not None:
+                self.sig_text_was_inserted.emit()
 
     def replace_text(self, position_from, position_to, text):
         cursor = self.__select_text(position_from, position_to)
+        if self.sig_will_remove_selection is not None:
+            start, end = self.get_selection_start_end(cursor)
+            self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
+        if self.sig_will_insert_text is not None:
+            self.sig_will_insert_text.emit(text)
         cursor.insertText(text)
+        if self.sig_text_was_inserted is not None:
+            self.sig_text_was_inserted.emit()
 
     def remove_text(self, position_from, position_to):
         cursor = self.__select_text(position_from, position_to)
+        if self.sig_will_remove_selection is not None:
+            start, end = self.get_selection_start_end(cursor)
+            self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
 
     def get_current_word_and_position(self, completion=False):
@@ -966,6 +995,19 @@ class BaseEditMixin(object):
         block_end = self.document().findBlock(end)
         return sorted([block_start.blockNumber(), block_end.blockNumber()])
 
+    def get_selection_start_end(self, cursor=None):
+        """Return selection start and end (line, column) positions."""
+        if cursor is None:
+            cursor = self.textCursor()
+        start, end = cursor.selectionStart(), cursor.selectionEnd()
+        start_cursor = QTextCursor(cursor)
+        start_cursor.setPosition(start)
+        start_position = self.get_cursor_line_column(start_cursor)
+        end_cursor = QTextCursor(cursor)
+        end_cursor.setPosition(end)
+        end_position = self.get_cursor_line_column(end_cursor)
+        return start_position, end_position
+
     def get_selection_first_block(self, cursor=None):
         """Return the first block of the selection."""
         if cursor is None:
@@ -1006,11 +1048,18 @@ class BaseEditMixin(object):
         cursor.beginEditBlock()
         if pattern is not None:
             seltxt = to_text_string(cursor.selectedText())
+        if self.sig_will_remove_selection is not None:
+            start, end = self.get_selection_start_end(cursor)
+            self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
         if pattern is not None:
             text = re.sub(to_text_string(pattern),
                           to_text_string(text), to_text_string(seltxt))
+        if self.sig_will_insert_text is not None:
+            self.sig_will_insert_text.emit(text)
         cursor.insertText(text)
+        if self.sig_text_was_inserted is not None:
+            self.sig_text_was_inserted.emit()
         cursor.endEditBlock()
 
 
@@ -1182,7 +1231,11 @@ class BaseEditMixin(object):
             if text != '':
                 cursor = self.textCursor()
                 cursor.beginEditBlock()
+                if self.sig_will_insert_text is not None:
+                    self.sig_will_insert_text.emit(text)
                 cursor.insertText(text)
+                if self.sig_text_was_inserted is not None:
+                    self.sig_text_was_inserted.emit()
                 cursor.endEditBlock()
 
 
@@ -1358,36 +1411,31 @@ class SaveHistoryMixin(object):
             self.append_to_history.emit(self.history_filename, text)
 
 
-class BrowseHistoryMixin(object):
+class BrowseHistory(object):
 
     def __init__(self):
         self.history = []
         self.histidx = None
         self.hist_wholeline = False
 
-    def clear_line(self):
-        """Clear current line (without clearing console prompt)"""
-        self.remove_text(self.current_prompt_pos, 'eof')
+    def browse_history(self, line, cursor_pos, backward):
+        """
+        Browse history.
 
-    def browse_history(self, backward):
-        """Browse history"""
-        if self.is_cursor_before('eol') and self.hist_wholeline:
+        Return the new text and wherever the cursor should move.
+        """
+        if cursor_pos < len(line) and self.hist_wholeline:
             self.hist_wholeline = False
-        tocursor = self.get_current_line_to_cursor()
+        tocursor = line[:cursor_pos]
         text, self.histidx = self.find_in_history(tocursor, self.histidx,
                                                   backward)
         if text is not None:
             text = text.strip()
             if self.hist_wholeline:
-                self.clear_line()
-                self.insert_text(text)
+                return text, True
             else:
-                cursor_position = self.get_position('cursor')
-                # Removing text from cursor to the end of the line
-                self.remove_text('cursor', 'eof')
-                # Inserting history text
-                self.insert_text(text)
-                self.set_cursor_position(cursor_position)
+                return tocursor + text, False
+        return None, False
 
     def find_in_history(self, tocursor, start_idx, backward):
         """Find text 'tocursor' in history, from index 'start_idx'"""
@@ -1416,3 +1464,26 @@ class BrowseHistoryMixin(object):
     def reset_search_pos(self):
         """Reset the position from which to search the history"""
         self.histidx = None
+
+
+class BrowseHistoryMixin(BrowseHistory):
+
+    def clear_line(self):
+        """Clear current line (without clearing console prompt)"""
+        self.remove_text(self.current_prompt_pos, 'eof')
+
+    def browse_history(self, backward):
+        """Browse history"""
+        line = self.get_text(self.current_prompt_pos, 'eof')
+        old_pos = self.get_position('cursor')
+        cursor_pos = self.get_position('cursor') - self.current_prompt_pos
+        if cursor_pos < 0:
+            cursor_pos = 0
+            self.set_cursor_position(self.current_prompt_pos)
+        text, move_cursor = super(BrowseHistoryMixin, self).browse_history(
+            line, cursor_pos, backward)
+        if text is not None:
+            self.clear_line()
+            self.insert_text(text)
+            if not move_cursor:
+                self.set_cursor_position(old_pos)

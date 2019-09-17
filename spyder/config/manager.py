@@ -43,6 +43,10 @@ class ConfigurationManager(object):
             raw_mode=True,
             remove_obsolete=False,
         )
+
+        # Store plugin configurations when CONF_FILE = True
+        self._plugin_configs = {}
+
         # TODO: Implementation to be defined in following PR
         self._site_config = None
 
@@ -51,6 +55,33 @@ class ConfigurationManager(object):
 
         # Setup
         self.remove_deprecated_config_locations()
+
+    def register_plugin(self, plugin_class):
+        """Register plugin configuration."""
+        conf_section = plugin_class.CONF_SECTION
+        if plugin_class.CONF_FILE and conf_section:
+            path = self.get_plugin_config_path(conf_section)
+            version = plugin_class.CONF_VERSION
+            version = version if version else '0.0.0'
+            name_map = plugin_class._CONF_NAME_MAP
+            name_map = name_map if name_map else {'spyder': []}
+            defaults = plugin_class.CONF_DEFAULTS
+
+            if conf_section in self._plugin_configs:
+                raise RuntimeError('A plugin with section "{}" already '
+                                   'exists!'.format(conf_section))
+
+            plugin_config = MultiUserConfig(
+                name_map,
+                path=path,
+                defaults=defaults,
+                load=True,
+                version=version,
+                backup=True,
+                raw_mode=True,
+                remove_obsolete=False,
+            )
+            self._plugin_configs[conf_section] = plugin_config
 
     def remove_deprecated_config_locations(self):
         """Removing old .spyder.ini location."""
@@ -62,17 +93,36 @@ class ConfigurationManager(object):
         """Return the system configuration path."""
         return None
 
-    def get_active_conf(self):
+    def get_active_conf(self, section=None):
         """
-        Return the active project configuration or the user configurarion.
+        Return the active user or project configurarion for plugin.
         """
-        # TODO: implement project configuration on the following PR
-        return self._user_config
+        if section is None:
+            config = self._user_config
+        elif section in self._plugin_configs:
+            config = self._plugin_configs[section]
+        else:
+            # TODO: implement project configuration on the following PR
+            config = self._user_config
+
+        return config
 
     def get_user_config_path(self):
         """Return the user configuration path."""
         base_path = get_conf_path()
         path = osp.join(base_path, 'config')
+        if not osp.isdir(path):
+            os.makedirs(path)
+
+        return path
+
+    def get_plugin_config_path(self, plugin_folder):
+        """Return the plugin configuration path."""
+        base_path = get_conf_path()
+        path = osp.join(base_path, 'plugins')
+        if plugin_folder is None:
+            raise RuntimeError('Plugin needs to define `CONF_SECTION`!')
+        path = osp.join(base_path, 'plugins', plugin_folder)
         if not osp.isdir(path):
             os.makedirs(path)
 
@@ -113,12 +163,12 @@ class ConfigurationManager(object):
     # ------------------------------------------------------------------------
     def items(self, section):
         """Return all the items option/values for the given section."""
-        config = self.get_active_conf()
+        config = self.get_active_conf(section)
         return config.items(section)
 
     def options(self, section):
         """Return all the options for the given section."""
-        config = self.get_active_conf()
+        config = self.get_active_conf(section)
         return config.options(section)
 
     def get(self, section, option, default=NoDefault):
@@ -127,7 +177,7 @@ class ConfigurationManager(object):
 
         If section is None, the `option` is requested from default section.
         """
-        config = self.get_active_conf()
+        config = self.get_active_conf(section)
         return config.get(section=section, option=option, default=default)
 
     def set(self, section, option, value, verbose=False, save=True):
@@ -136,7 +186,7 @@ class ConfigurationManager(object):
 
         If section is None, the `option` is added to the default section.
         """
-        config = self.get_active_conf()
+        config = self.get_active_conf(section)
         config.set(section=section, option=option, value=value,
                    verbose=verbose, save=save)
 
@@ -146,23 +196,23 @@ class ConfigurationManager(object):
 
         This is useful for type checking in `get` method.
         """
-        config = self.get_active_conf()
+        config = self.get_active_conf(section)
         return config.get_default(section, option)
 
     def remove_section(self, section):
         """Remove `section` and all options within it."""
-        config = self.get_active_conf()
+        config = self.get_active_conf(section)
         config.remove_section(section)
 
     def remove_option(self, section, option):
         """Remove `option` from `section`."""
-        config = self.get_active_conf()
+        config = self.get_active_conf(section)
         config.remove_option(section, option)
 
-    def reset_to_defaults(self):
+    def reset_to_defaults(self, section=None):
         """Reset config to Default values."""
-        config = self.get_active_conf()
-        config.reset_to_defaults()
+        config = self.get_active_conf(section)
+        config.reset_to_defaults(section=section)
 
 
 CONF = ConfigurationManager()

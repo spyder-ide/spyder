@@ -32,11 +32,12 @@ import time
 # Third party imports
 from diff_match_patch import diff_match_patch
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
+from qtpy.QtCore import QPoint, QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
                         QTextCharFormat, QTextCursor, QDesktopServices,
-                        QKeyEvent, QTextDocument, QTextFormat, QTextOption)
+                        QKeyEvent, QTextDocument, QTextFormat, QTextOption,
+                        QTextFrameFormat)
 from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QLabel,
@@ -56,7 +57,8 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               CloseQuotesExtension,
                                               DocstringWriterExtension,
                                               QMenuOnlyForEnter,
-                                              EditorExtensionsManager)
+                                              EditorExtensionsManager,
+                                              SnippetsExtension)
 from spyder.plugins.completion.languageserver import (LSPRequestTypes,
                                                       TextDocumentSyncKind,
                                                       DiagnosticSeverity)
@@ -301,6 +303,30 @@ class CodeEditor(TextEditBaseWidget):
     # the mouse left button is pressed, this signal is emmited
     sig_go_to_uri = Signal(str)
 
+    # Signal with the info about the current completion item documentation
+    # str: object name
+    # str: object signature/documentation
+    # bool: force showing the info
+    sig_show_completion_object_info = Signal(str, str, bool)
+
+    # Used to indicate if text was inserted into the editor
+    sig_text_was_inserted = Signal()
+
+    # Used to indicate that text will be inserted into the editor
+    sig_will_insert_text = Signal(str)
+
+    # Used to indicate that a text selection will be removed
+    sig_will_remove_selection = Signal(tuple, tuple)
+
+    # Used to indicate that text will be pasted
+    sig_will_paste_text = Signal(str)
+
+    # Used to indicate that an undo operation will take place
+    sig_undo = Signal()
+
+    # Used to indicate that an undo operation will take place
+    sig_redo = Signal()
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -317,6 +343,8 @@ class CodeEditor(TextEditBaseWidget):
         # See: mouseMoveEvent
         self.tooltip_widget.sig_help_requested.connect(
             self.show_object_info)
+        self.tooltip_widget.sig_completion_help_requested.connect(
+            self.show_completion_object_info)
         self._last_point = None
         self._last_hover_word = None
         self._last_hover_cursor = None
@@ -472,6 +500,9 @@ class CodeEditor(TextEditBaseWidget):
         # Automatic (on the fly) completions
         self.automatic_completions = True
 
+        # Completions hint
+        self.completions_hint = True
+
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = False
         self.add_colons_enabled = True
@@ -530,12 +561,17 @@ class CodeEditor(TextEditBaseWidget):
         self.editor_extensions = EditorExtensionsManager(self)
 
         self.editor_extensions.add(CloseQuotesExtension())
+        self.editor_extensions.add(SnippetsExtension())
         self.editor_extensions.add(CloseBracketsExtension())
 
         # Text diffs across versions
         self.differ = diff_match_patch()
         self.previous_text = ''
         self.word_tokens = []
+
+        # Handle completions hints
+        self.completion_widget.sig_completion_hint.connect(
+            self.show_hint_for_completion)
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -584,7 +620,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.request_hover(line, col, cursor_offset)
                 else:
                     self.hide_tooltip()
-        else:
+        elif not self.is_completion_widget_visible():
             self.hide_tooltip()
 
     def blockuserdata_list(self):
@@ -724,6 +760,8 @@ class CodeEditor(TextEditBaseWidget):
                      strip_mode=False,
                      intelligent_backspace=True,
                      automatic_completions=True,
+                     completions_hint=True,
+                     code_snippets=True,
                      highlight_current_line=True,
                      highlight_current_cell=True,
                      occurrence_highlighting=True,
@@ -813,6 +851,12 @@ class CodeEditor(TextEditBaseWidget):
         # Automatic completions
         self.toggle_automatic_completions(automatic_completions)
 
+        # Completions hint
+        self.toggle_completions_hint(completions_hint)
+
+        # Code snippets
+        self.toggle_code_snippets(code_snippets)
+
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
             self.panels.refresh()
@@ -873,7 +917,6 @@ class CodeEditor(TextEditBaseWidget):
                 logger.error('%', 1, stack_info=True)
 
     # ------------- LSP: Configuration and protocol start/end ----------------
-
     def start_completion_services(self):
         logger.debug("Completions services available for: {0}".format(
             self.filename))
@@ -884,6 +927,7 @@ class CodeEditor(TextEditBaseWidget):
         """Start LSP integration if it wasn't done before."""
         logger.debug("LSP available for: %s" % self.filename)
         self.parse_lsp_config(config)
+        self.completions_available = True
         self.document_did_open()
 
     def stop_completion_services(self):
@@ -954,6 +998,10 @@ class CodeEditor(TextEditBaseWidget):
         """Handle linting response."""
         try:
             self.process_code_analysis(params['params'])
+        except RuntimeError:
+            # This is triggered when a codeeditor instance has been
+            # removed before the response can be processed.
+            return
         except Exception:
             self.log_lsp_handle_errors("Error when processing linting")
 
@@ -985,13 +1033,37 @@ class CodeEditor(TextEditBaseWidget):
             completions = params['params']
             cursor = self.textCursor()
             cursor.select(QTextCursor.WordUnderCursor)
-            text = to_text_string(cursor.selectedText())
-            first_letter = text[0] if len(text) > 0 else ''
+            text1 = to_text_string(cursor.selectedText())
+
+            cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor, 2)
+            cursor.select(QTextCursor.WordUnderCursor)
+            text2 = to_text_string(cursor.selectedText())
+
+            first_letter = text1[0] if len(text1) > 0 else ''
             is_upper_word = first_letter.isupper()
             completions = [] if completions is None else completions
-            available_completions = {x['insertText'].strip():
-                                     x for x in completions[::-1]}
-            available_completions.pop(text, False)
+            comparison_key = 'label'
+            if self.code_snippets:
+                available_completions = {x['label'].strip():
+                                         x for x in completions}
+                t1 = available_completions.pop(text1, None)
+                t2 = available_completions.pop(text2, None)
+
+                if t1 is not None:
+                    if t1['insertText'] != t1[comparison_key]:
+                        available_completions[t1[comparison_key]] = t1
+
+                if t2 is not None:
+                    t1_label = t1[comparison_key] if t1 else None
+                    if t2[comparison_key] != t1_label:
+                        if t2['insertText'] != t2[comparison_key]:
+                            available_completions[t2[comparison_key]] = t2
+            else:
+                comparison_key = 'insertText'
+                available_completions = {x['insertText'].strip(): x
+                                         for x in completions[::-1]}
+                available_completions.pop(text1, None)
+
             completions = list(available_completions.values())
 
             if completions is not None and len(completions) > 0:
@@ -1012,6 +1084,10 @@ class CodeEditor(TextEditBaseWidget):
                                          key=lambda x: x['sortText'])
                 self.completion_widget.show_list(
                         completion_list, position, automatic)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance has been
+            # removed before the response can be processed.
+            return
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
 
@@ -1059,6 +1135,10 @@ class CodeEditor(TextEditBaseWidget):
                     language=self.language,
                     documentation=documentation,
                 )
+        except RuntimeError:
+            # This is triggered when a codeeditor instance has been
+            # removed before the response can be processed.
+            return
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
 
@@ -1091,7 +1171,10 @@ class CodeEditor(TextEditBaseWidget):
                     self.show_hint(content, inspect_word=word,
                                    at_point=self._last_point)
                     self._last_point = None
-
+        except RuntimeError:
+            # This is triggered when a codeeditor instance has been
+            # removed before the response can be processed.
+            return
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
 
@@ -1139,6 +1222,10 @@ class CodeEditor(TextEditBaseWidget):
                     self.go_to_definition.emit(position['file'],
                                                start['line'] + 1,
                                                start['character'])
+        except RuntimeError:
+            # This is triggered when a codeeditor instance has been
+            # removed before the response can be processed.
+            return
         except Exception:
             self.log_lsp_handle_errors(
                 "Error when processing go to definition")
@@ -1197,6 +1284,13 @@ class CodeEditor(TextEditBaseWidget):
 
     def toggle_automatic_completions(self, state):
         self.automatic_completions = state
+
+    def toggle_code_snippets(self, state):
+        self.code_snippets = state
+
+    def toggle_completions_hint(self, state):
+        """Enable/disable completion hint."""
+        self.completions_hint = state
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
@@ -1472,11 +1566,11 @@ class CodeEditor(TextEditBaseWidget):
         self.clear_extra_selections('occurrences')
         self.sig_flags_changed.emit()
 
-    def __highlight_selection(self, key, cursor, foreground_color=None,
-                        background_color=None, underline_color=None,
-                        outline_color=None,
-                        underline_style=QTextCharFormat.SingleUnderline,
-                        update=False):
+    def highlight_selection(self, key, cursor, foreground_color=None,
+                            background_color=None, underline_color=None,
+                            outline_color=None,
+                            underline_style=QTextCharFormat.SingleUnderline,
+                            update=False):
         if cursor is None:
             return
         extra_selections = self.get_extra_selections(key)
@@ -1525,7 +1619,7 @@ class CodeEditor(TextEditBaseWidget):
         self.occurrences = []
         while cursor:
             self.occurrences.append(cursor.blockNumber())
-            self.__highlight_selection('occurrences', cursor,
+            self.highlight_selection('occurrences', cursor,
                                        background_color=self.occurrence_color)
             cursor = self.__find_next(text, cursor)
         self.update_extra_selections()
@@ -1690,7 +1784,12 @@ class CodeEditor(TextEditBaseWidget):
         """Emit signal to update bookmarks."""
         self.sig_bookmarks_changed.emit()
 
-    #-----Code introspection
+    # -----Code introspection
+    def show_completion_object_info(self, name, signature):
+        """Trigger show completion info in Help Pane."""
+        force = True
+        self.sig_show_completion_object_info.emit(name, signature, force)
+
     def show_object_info(self, position):
         """Trigger a calltip"""
         self.sig_show_object_info.emit(position)
@@ -1846,9 +1945,24 @@ class CodeEditor(TextEditBaseWidget):
             eol_chars = self.get_line_separator()
             text = eol_chars.join((text + eol_chars).splitlines())
         self.skip_rstrip = True
+        self.sig_will_paste_text.emit(text)
         TextEditBaseWidget.insertPlainText(self, text)
+        self.sig_text_was_inserted.emit()
+
         self.document_did_change(text)
         self.skip_rstrip = False
+
+    @Slot()
+    def cut(self):
+        """Reimplement cut to signal listeners about changes on the text."""
+        has_selected_text = self.has_selected_text()
+        if not has_selected_text:
+            return
+        start, end = self.get_selection_start_end()
+        self.sig_will_remove_selection.emit(start, end)
+        TextEditBaseWidget.cut(self)
+        self.sig_text_was_inserted.emit()
+        self.document_did_change('')
 
     @Slot()
     def undo(self):
@@ -1856,7 +1970,9 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isUndoAvailable():
             self.text_version -= 1
             self.skip_rstrip = True
+            self.sig_undo.emit()
             TextEditBaseWidget.undo(self)
+            self.sig_text_was_inserted.emit()
             self.document_did_change('')
             self.skip_rstrip = False
 
@@ -1866,7 +1982,9 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isRedoAvailable():
             self.text_version += 1
             self.skip_rstrip = True
+            self.sig_redo.emit()
             TextEditBaseWidget.redo(self)
+            self.sig_text_was_inserted.emit()
             self.document_did_change('text')
             self.skip_rstrip = False
 
@@ -1962,9 +2080,9 @@ class CodeEditor(TextEditBaseWidget):
 
             # Underline errors and warnings in this editor.
             if self.underline_errors_enabled:
-                self.__highlight_selection('code_analysis_underline',
-                                           block.selection,
-                                           underline_color=block.color)
+                self.highlight_selection('code_analysis_underline',
+                                         block.selection,
+                                         underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
         self.update_extra_selections()
@@ -1984,6 +2102,26 @@ class CodeEditor(TextEditBaseWidget):
         self._last_hover_word = None
         self.tooltip_widget.hide()
         self.clear_extra_selections('code_analysis_highlight')
+
+    # --- Hint for completions
+    def show_hint_for_completion(self, word, documentation, at_point):
+        """Show hint for completion element."""
+        self.hide_tooltip()
+        if self.completions_hint:
+            completion_doc = {'name': word,
+                              'signature': documentation}
+
+            if documentation and len(documentation) > 0:
+                self.show_hint(
+                    documentation,
+                    inspect_word=word,
+                    at_point=at_point,
+                    completion_doc=completion_doc,
+                    max_lines=self._DEFAULT_MAX_LINES,
+                    max_width=self._DEFAULT_COMPLETION_HINT_MAX_WIDTH)
+                self.tooltip_widget.move(at_point)
+            else:
+                self.hide_tooltip()
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
@@ -2073,9 +2211,9 @@ class CodeEditor(TextEditBaseWidget):
     def highlight_line_warning(self, block_data):
         """Highlight errors and warnings in this editor."""
         self.clear_extra_selections('code_analysis_highlight')
-        self.__highlight_selection('code_analysis_highlight',
-                                   block_data.selection,
-                                   background_color=block_data.color)
+        self.highlight_selection('code_analysis_highlight',
+                                 block_data.selection,
+                                 background_color=block_data.color)
         self.update_extra_selections()
         self.linenumberarea.update()
 
@@ -3270,6 +3408,11 @@ class CodeEditor(TextEditBaseWidget):
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
+
+        def insert_text(event):
+            TextEditBaseWidget.keyPressEvent(self, event)
+            self.sig_text_was_inserted.emit()
+
         # Send the signal to the editor's extension.
         event.ignore()
         self.sig_key_pressed.emit(event)
@@ -3342,7 +3485,7 @@ class CodeEditor(TextEditBaseWidget):
                     cmt_or_str = cmt_or_str_cursor and cmt_or_str_line_begin
 
                     self.textCursor().beginEditBlock()
-                    TextEditBaseWidget.keyPressEvent(self, event)
+                    insert_text(event)
                     self.fix_and_strip_indent(comment_or_string=cmt_or_str)
                     self.textCursor().endEditBlock()
         elif key == Qt.Key_Insert and not shift and not ctrl:
@@ -3352,7 +3495,7 @@ class CodeEditor(TextEditBaseWidget):
             leading_length = len(leading_text)
             trailing_spaces = leading_length-len(leading_text.rstrip())
             if has_selection or not self.intelligent_backspace:
-                TextEditBaseWidget.keyPressEvent(self, event)
+                insert_text(event)
             else:
                 trailing_text = self.get_text('cursor', 'eol')
                 if not leading_text.strip() \
@@ -3360,7 +3503,7 @@ class CodeEditor(TextEditBaseWidget):
                     if leading_length % len(self.indent_chars) == 0:
                         self.unindent()
                     else:
-                        TextEditBaseWidget.keyPressEvent(self, event)
+                        insert_text(event)
                 elif trailing_spaces and not trailing_text.strip():
                     self.remove_suffix(leading_text[-trailing_spaces:])
                 elif leading_text and trailing_text and \
@@ -3372,7 +3515,7 @@ class CodeEditor(TextEditBaseWidget):
                                         QTextCursor.KeepAnchor, 2)
                     cursor.removeSelectedText()
                 else:
-                    TextEditBaseWidget.keyPressEvent(self, event)
+                    insert_text(event)
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
@@ -3402,7 +3545,7 @@ class CodeEditor(TextEditBaseWidget):
                                                 ).block().previous().text())
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
-            TextEditBaseWidget.keyPressEvent(self, event)
+            insert_text(event)
         elif key == Qt.Key_Space and not shift and not ctrl \
              and not has_selection and self.auto_unindent_enabled:
             self.completion_widget.hide()
@@ -3413,7 +3556,7 @@ class CodeEditor(TextEditBaseWidget):
                                                 ).block().previous().text())
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
-            TextEditBaseWidget.keyPressEvent(self, event)
+            insert_text(event)
         elif key == Qt.Key_Tab and not ctrl:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
@@ -3432,7 +3575,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.unindent()
             event.accept()
         elif not event.isAccepted():
-            TextEditBaseWidget.keyPressEvent(self, event)
+            insert_text(event)
         if len(text) > 0:
             self.document_did_change(text)
 
@@ -3544,7 +3687,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor = self.cursorForPosition(pos)
             cursor.select(QTextCursor.WordUnderCursor)
             self.clear_extra_selections('ctrl_click')
-            self.__highlight_selection(
+            self.highlight_selection(
                 'ctrl_click', cursor, update=True,
                 foreground_color=self.ctrl_click_color,
                 underline_color=self.ctrl_click_color,
@@ -3568,7 +3711,7 @@ class CodeEditor(TextEditBaseWidget):
                     color = QColor(255, 80, 80)
 
             self.clear_extra_selections('ctrl_click')
-            self.__highlight_selection(
+            self.highlight_selection(
                 'ctrl_click', cursor, update=True,
                 foreground_color=color,
                 underline_color=color,
@@ -3765,7 +3908,8 @@ class CodeEditor(TextEditBaseWidget):
         if self.__cursor_changed:
             self._restore_editor_cursor_and_selections()
         else:
-            if not self._should_display_hover(pos):
+            if (not self._should_display_hover(pos)
+                    and not self.is_completion_widget_visible()):
                 self.hide_tooltip()
 
         TextEditBaseWidget.mouseMoveEvent(self, event)

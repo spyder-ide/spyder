@@ -24,6 +24,7 @@ except ImportError:
     from mock import Mock  # Python 2
 
 # Third party imports
+from IPython.core import release as ipy_release
 from flaky import flaky
 from jupyter_client.kernelspec import KernelSpec
 from pygments.token import Name
@@ -35,6 +36,7 @@ from qtpy.QtWidgets import QMessageBox, QMainWindow
 import sympy
 
 # Local imports
+from spyder.config.base import get_home_dir
 from spyder.config.gui import get_color_scheme
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, to_text_string
@@ -106,6 +108,9 @@ def ipyconsole(qtbot, request):
             os.mkdir(new_wdir)
         CONF.set('workingdir', 'console/use_fixed_directory', True)
         CONF.set('workingdir', 'console/fixed_directory', new_wdir)
+    else:
+        CONF.set('workingdir', 'console/use_fixed_directory', False)
+        CONF.set('workingdir', 'console/fixed_directory', get_home_dir())
 
     # Test the console with a non-ascii temp dir
     non_ascii_dir = request.node.get_closest_marker('non_ascii_dir')
@@ -138,6 +143,15 @@ def ipyconsole(qtbot, request):
     cython_client = request.node.get_closest_marker('cython_client')
     is_cython = True if cython_client else False
 
+    # Use an external interpreter if requested
+    external_interpreter = request.node.get_closest_marker('external_interpreter')
+    if external_interpreter:
+        CONF.set('main_interpreter', 'default', False)
+        CONF.set('main_interpreter', 'executable', sys.executable)
+    else:
+        CONF.set('main_interpreter', 'default', True)
+        CONF.set('main_interpreter', 'executable', '')
+
     # Create the console and a new client
     window = MainWindowMock()
     console = IPythonConsole(parent=window,
@@ -165,6 +179,30 @@ def ipyconsole(qtbot, request):
 # =============================================================================
 # Tests
 # =============================================================================
+@pytest.mark.slow
+@pytest.mark.external_interpreter
+def test_banners(ipyconsole, qtbot):
+    """Test that console banners are generated correctly."""
+    shell = ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Long banner
+    text = control.toPlainText().splitlines()
+    py_ver = sys.version.splitlines()[0].strip()
+    assert py_ver in text[0]  # Python version in first line
+    assert 'license' in text[1]  # 'license' mention in second line
+    assert '' == text[2]  # Third line is empty
+    assert ipy_release.version in text[3]  # Fourth line is IPython
+
+    # Short banner
+    short_banner = shell.short_banner()
+    py_ver = sys.version.split(' ')[0]
+    expected = 'Python %s -- IPython %s' % (py_ver, ipy_release.version)
+    assert expected == short_banner
+
+
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
@@ -706,6 +744,53 @@ def test_save_history_dbg(ipyconsole, qtbot):
     # introduced command
     qtbot.keyClick(control, Qt.Key_Up)
     assert '!aa = 10' in control.toPlainText()
+
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(1000)
+    # Add a multiline statment and ckeck we can browse it correctly
+    shell._pdb_history.history.append('if True:\n    print(1)')
+    shell._pdb_history.history.append('print(2)')
+    shell._pdb_history.history.append('if True:\n    print(10)')
+    # The continuation prompt is here
+    qtbot.keyClick(control, Qt.Key_Up)
+    assert '...:     print(10)' in control.toPlainText()
+    shell._control.set_cursor_position(shell._control.get_position('eof') - 2)
+    qtbot.keyClick(control, Qt.Key_Up)
+    assert '...:     print(1)' in control.toPlainText()
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(PY2, reason="insert is not the same in py2")
+def test_dbg_input(ipyconsole, qtbot):
+    """Test that spyder doesn't send pdb commands to unrelated input calls."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Debug with input
+    shell.execute("%debug print('Hello', input('name'))")
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Reach the 'name' input
+    shell.pdb_execute('n')
+    qtbot.wait(100)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    shell.pdb_execute('n')
+    qtbot.wait(100)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'name')
+
+    # Execute some code and make sure that it doesn't work
+    # as this is not a pdb prompt
+    shell.pdb_execute('n')
+    shell.pdb_execute('!aa = 10')
+    qtbot.wait(500)
+    assert control.toPlainText().split()[-1] == 'name'
+    shell.kernel_client.input('test')
+    qtbot.waitUntil(lambda: 'Hello test' in control.toPlainText())
 
 
 @pytest.mark.slow

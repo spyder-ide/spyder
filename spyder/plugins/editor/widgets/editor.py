@@ -43,9 +43,9 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     mimedata2url, set_menu_icons)
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
-from spyder.widgets.fileswitcher import FileSwitcher
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
+from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
 from spyder.plugins.editor.widgets import codeeditor
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget  # analysis:ignore
 from spyder.plugins.editor.widgets.codeeditor import Printer       # analysis:ignore
@@ -164,9 +164,10 @@ class FileInfo(QObject):
     sig_save_bookmarks = Signal(str, str)
     text_changed_at = Signal(str, int)
     edit_goto = Signal(str, int, str)
-    send_to_help = Signal(str, str, str, str, bool)
+    sig_send_to_help = Signal(str, str, bool)
     sig_filename_changed = Signal(str)
     sig_show_object_info = Signal(int)
+    sig_show_completion_object_info = Signal(str, str)
 
     def __init__(self, filename, encoding, editor, new, threadmanager):
         QObject.__init__(self)
@@ -185,6 +186,8 @@ class FileInfo(QObject):
         self.editor.textChanged.connect(self.text_changed)
         self.editor.sig_bookmarks_changed.connect(self.bookmarks_changed)
         self.editor.sig_show_object_info.connect(self.sig_show_object_info)
+        self.editor.sig_show_completion_object_info.connect(
+            self.sig_send_to_help)
         self.sig_filename_changed.connect(self.editor.sig_filename_changed)
 
     @property
@@ -467,7 +470,8 @@ class EditorStack(QWidget):
         self.setLayout(layout)
 
         self.menu = None
-        self.fileswitcher_dlg = None
+        self.switcher_dlg = None
+        self.switcher_manager = None
 #        self.filelist_btn = None
 #        self.previous_btn = None
 #        self.next_btn = None
@@ -481,13 +485,17 @@ class EditorStack(QWidget):
         self.find_widget = None
 
         self.data = []
-        fileswitcher_action = create_action(self, _("File switcher..."),
-                icon=ima.icon('filelist'),
-                triggered=self.open_fileswitcher_dlg)
-        symbolfinder_action = create_action(self,
-                _("Find symbols in file..."),
-                icon=ima.icon('symbol_find'),
-                triggered=self.open_symbolfinder_dlg)
+
+        switcher_action = create_action(
+            self,
+            _("File switcher..."),
+            icon=ima.icon('filelist'),
+            triggered=self.open_switcher_dlg)
+        symbolfinder_action = create_action(
+            self,
+            _("Find symbols in file..."),
+            icon=ima.icon('symbol_find'),
+            triggered=self.open_symbolfinder_dlg)
         copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon=ima.icon('editcopy'),
                 triggered=lambda:
@@ -508,7 +516,7 @@ class EditorStack(QWidget):
                                 triggered=self.show_in_external_file_explorer)
 
         self.menu_actions = actions + [external_fileexp_action,
-                                       None, fileswitcher_action,
+                                       None, switcher_action,
                                        symbolfinder_action,
                                        copy_to_cb_action, None, close_right,
                                        close_all_but_this, sort_tabs]
@@ -543,6 +551,8 @@ class EditorStack(QWidget):
         self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
         self.automatic_completions_enabled = True
+        self.completions_hint_enabled = True
+        self.code_snippets_enabled = True
         self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
@@ -862,35 +872,41 @@ class EditorStack(QWidget):
         self.set_stack_index(other.get_stack_index())
 
     @Slot()
-    def open_fileswitcher_dlg(self):
+    @Slot(str)
+    def open_switcher_dlg(self, initial_text=''):
         """Open file list management dialog box"""
         if not self.tabs.count():
             return
-        if self.fileswitcher_dlg is not None and \
-          self.fileswitcher_dlg.is_visible:
-            self.fileswitcher_dlg.hide()
-            self.fileswitcher_dlg.is_visible = False
+        if self.switcher_dlg is not None and self.switcher_dlg.isVisible():
+            self.switcher_dlg.hide()
+            self.switcher_dlg.clear()
             return
-        self.fileswitcher_dlg = FileSwitcher(self, self, self.tabs, self.data,
-                                             ima.icon('TextFileIcon'))
-        self.fileswitcher_dlg.sig_goto_file.connect(self.set_stack_index)
-        self.fileswitcher_dlg.show()
-        self.fileswitcher_dlg.is_visible = True
+        if self.switcher_dlg is None:
+            from spyder.widgets.switcher import Switcher
+            self.switcher_dlg = Switcher(self)
+            self.switcher_manager = EditorSwitcherManager(
+                self.switcher_dlg,
+                lambda: self.get_current_editor(),
+                lambda: self,
+                section=self.get_plugin_title())
+
+        self.switcher_dlg.set_search_text(initial_text)
+        self.switcher_dlg.setup()
+        self.switcher_dlg.show()
+        # Note: the +1 pixel on the top makes it look better
+        delta_top = (self.tabs.tabBar().geometry().height() +
+                     self.fname_label.geometry().height() + 1)
+        self.switcher_dlg.set_position(delta_top)
 
     @Slot()
     def open_symbolfinder_dlg(self):
-        self.open_fileswitcher_dlg()
-        self.fileswitcher_dlg.set_search_text('@')
+        self.open_switcher_dlg(initial_text='@')
 
     def get_plugin_title(self):
         """Get the plugin title of the parent widget."""
-        # Needed for the editor stack to use its own fileswitcher instance.
+        # Needed for the editor stack to use its own switcher instance.
         # See spyder-ide/spyder#9469.
         return self.parent().plugin.get_plugin_title()
-
-    def get_current_tab_manager(self):
-        """Get the widget with the TabWidget attribute."""
-        return self
 
     def go_to_line(self, line=None):
         """Go to line dialog"""
@@ -1149,11 +1165,23 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_intelligent_backspace(state)
 
+    def set_code_snippets_enabled(self, state):
+        self.code_snippets_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_code_snippets(state)
+
     def set_automatic_completions_enabled(self, state):
         self.automatic_completions_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_automatic_completions(state)
+
+    def set_completions_hint_enabled(self, state):
+        self.completions_hint_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_completions_hint(state)
 
     def set_occurrence_highlighting_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'occurrence_highlighting')
@@ -2338,7 +2366,7 @@ class EditorStack(QWidget):
         finfo = FileInfo(fname, enc, editor, new, self.threadmanager)
 
         self.add_to_data(finfo, set_current, add_where)
-        finfo.send_to_help.connect(self.send_to_help)
+        finfo.sig_send_to_help.connect(self.send_to_help)
         finfo.sig_show_object_info.connect(self.inspect_current_object)
         finfo.todo_results_changed.connect(
             lambda: self.todo_results_changed.emit())
@@ -2369,6 +2397,8 @@ class EditorStack(QWidget):
             strip_mode=self.stripmode_enabled,
             intelligent_backspace=self.intelligent_backspace_enabled,
             automatic_completions=self.automatic_completions_enabled,
+            code_snippets=self.code_snippets_enabled,
+            completions_hint=self.completions_hint_enabled,
             highlight_current_line=self.highlight_current_line_enabled,
             highlight_current_cell=self.highlight_current_cell_enabled,
             occurrence_highlighting=self.occurrence_highlighting_enabled,
@@ -2432,6 +2462,7 @@ class EditorStack(QWidget):
         """Cursor position of one of the editor in the stack has changed"""
         self.sig_editor_cursor_position_changed.emit(line, index)
 
+    @Slot(str, str, bool)
     def send_to_help(self, name, signature, force=False):
         """qstr1: obj_text, qstr2: argpspec, qstr3: note, qstr4: doc_text"""
         if not force and not self.help_enabled:

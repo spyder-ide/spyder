@@ -28,7 +28,6 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder import dependencies
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.gui import get_shortcut
 from spyder.config.manager import CONF
@@ -42,6 +41,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
+from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
                                                   EditorSplitter, EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
@@ -61,18 +61,6 @@ from spyder.preferences.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
 logger = logging.getLogger(__name__)
 
 
-# Dependencies
-PYLS_REQVER = '>=0.27.0'
-dependencies.add('pyls', 'python-language-server',
-                 _("Editor's code completion, go-to-definition, help and "
-                   "real-time code analysis"),
-                 required_version=PYLS_REQVER)
-
-NBCONVERT_REQVER = ">=4.0"
-dependencies.add("nbconvert", "nbconvert",
-                 _("Manipulate Jupyter notebooks on the Editor"),
-                 required_version=NBCONVERT_REQVER)
-
 WINPDB_PATH = programs.find_program('winpdb')
 
 
@@ -82,6 +70,7 @@ class Editor(SpyderPluginWidget):
     """
     CONF_SECTION = 'editor'
     CONFIGWIDGET_CLASS = EditorConfigPage
+    CONF_FILE = False
     TEMPFILE_PATH = get_conf_path('temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
     DISABLE_ACTIONS_WHEN_HIDDEN = False  # SpyderPluginWidget class attribute
@@ -1065,8 +1054,13 @@ class Editor(SpyderPluginWidget):
         if not editorstack.data:
             self.__load_temp_file()
         self.add_dockwidget()
-        self.main.add_to_fileswitcher(self, editorstack.tabs, editorstack.data,
-                                      ima.icon('TextFileIcon'))
+
+        # Add modes to switcher
+        self.switcher_manager = EditorSwitcherManager(
+            self.main.switcher,
+            lambda: self.get_current_editor(),
+            lambda: self.get_current_editorstack(),
+            section=self.get_plugin_title())
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1092,12 +1086,16 @@ class Editor(SpyderPluginWidget):
         def toogle(checked):
             self.switch_to_plugin()
             self._toggle_checkable_action(checked, method, conf_name)
+
         action = create_action(self, text, toggled=toogle)
+        action.blockSignals(True)
 
         if conf_name not in ['pycodestyle', 'pydocstyle']:
             action.setChecked(self.get_option(conf_name))
         else:
             action.setChecked(CONF.get('lsp-server', conf_name))
+
+        action.blockSignals(False)
 
         return action
 
@@ -1125,12 +1123,10 @@ class Editor(SpyderPluginWidget):
                         logger.error(e, exc_info=True)
             self.set_option(conf_name, checked)
         else:
-            if conf_name == 'pycodestyle':
-                CONF.set('lsp-server', 'pycodestyle', checked)
-            elif conf_name == 'pydocstyle':
-                CONF.set('lsp-server', 'pydocstyle', checked)
-            lsp = self.main.completions.get_client('lsp')
-            lsp.update_server_list()
+            if conf_name in ('pycodestyle', 'pydocstyle'):
+                CONF.set('lsp-server', conf_name, checked)
+            completions = self.main.completions
+            completions.update_configuration()
 
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
@@ -1165,13 +1161,6 @@ class Editor(SpyderPluginWidget):
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
         self.register_widget_shortcuts(editorstack)
-        if len(self.editorstacks) > 1 and self.main is not None:
-            # The first editostack is registered automatically with Spyder's
-            # main window through the `register_plugin` method. Only additional
-            # editors added by splitting need to be registered.
-            # See spyder-ide/spyder#5057.
-            self.main.fileswitcher.sig_goto_file.connect(
-                      editorstack.set_stack_index)
 
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
@@ -1223,6 +1212,7 @@ class Editor(SpyderPluginWidget):
             ('set_stripmode_enabled',               'strip_trailing_spaces_on_modify'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_automatic_completions_enabled',   'automatic_completions'),
+            ('set_completions_hint_enabled',        'completions_hint'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
             ('set_occurrence_highlighting_enabled',  'occurrence_highlighting'),
@@ -1463,11 +1453,6 @@ class Editor(SpyderPluginWidget):
         #if self.introspector:
         #    self.introspector.change_extra_path(
         #            self.main.get_spyder_pythonpath())
-
-    #------ FileSwitcher API
-    def get_current_tab_manager(self):
-        """Get the widget with the TabWidget attribute."""
-        return self.get_current_editorstack()
 
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
@@ -2334,7 +2319,7 @@ class Editor(SpyderPluginWidget):
     def debug_command(self, command):
         """Debug actions"""
         self.switch_to_plugin()
-        self.main.ipyconsole.write_to_stdin(command)
+        self.main.ipyconsole.pdb_execute(command)
         focus_widget = self.main.ipyconsole.get_focus_widget()
         if focus_widget:
             focus_widget.setFocus()
@@ -2605,6 +2590,8 @@ class Editor(SpyderPluginWidget):
             ibackspace_o = self.get_option(ibackspace_n)
             autocompletions_n = 'automatic_completions'
             autocompletions_o = self.get_option(autocompletions_n)
+            completionshint_n = 'completions_hint'
+            completionshint_o = self.get_option(completionshint_n)
             removetrail_n = 'always_remove_trailing_spaces'
             removetrail_o = self.get_option(removetrail_n)
             converteol_n = 'convert_eol_on_save'
@@ -2642,6 +2629,8 @@ class Editor(SpyderPluginWidget):
                 if autocompletions_n in options:
                     editorstack.set_automatic_completions_enabled(
                         autocompletions_o)
+                if completionshint_n in options:
+                    editorstack.set_completions_hint_enabled(completionshint_o)
                 if edgeline_n in options:
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecols_n in options:
@@ -2682,8 +2671,11 @@ class Editor(SpyderPluginWidget):
 
             for name, action in self.checkable_actions.items():
                 if name in options:
+                    # Avoid triggering the action when this action changes state
+                    action.blockSignals(True)
                     state = self.get_option(name)
                     action.setChecked(state)
+                    action.blockSignals(False)
                     # See: spyder-ide/spyder#9915
                     # action.trigger()
 
