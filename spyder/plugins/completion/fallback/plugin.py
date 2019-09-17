@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 class FallbackPlugin(SpyderCompletionPlugin):
     CONF_SECTION = 'fallback-completions'
     COMPLETION_CLIENT_NAME = 'fallback'
+    CONF_FILE = False
 
     def __init__(self, parent):
         SpyderCompletionPlugin.__init__(self, parent)
