@@ -491,9 +491,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                         tip=None, msg_warning=None, msg_info=None,
                         msg_if_enabled=False, section=None):
         checkbox = QCheckBox(text)
+        self.checkboxes[checkbox] = (section, option, default)
         if tip is not None:
             checkbox.setToolTip(tip)
-        self.checkboxes[checkbox] = (section, option, default)
         if msg_warning is not None or msg_info is not None:
             def show_message(is_checked=False):
                 if is_checked or not msg_if_enabled:

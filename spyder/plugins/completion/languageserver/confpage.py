@@ -933,22 +933,22 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # --- Advanced tab ---
         # Clients group
         clients_group = QGroupBox(_("Clients"))
-        completion_lsp = newcb(_("Enable language server completions"),
-                               'enable')
-        completion_fallback = newcb(_("Enable fallback completions"),
-                                    'enable',
-                                    section='fallback-completions')
-        completion_kite = newcb(_("Enable Kite completions"), 'enable',
-                                section='kite-completions')
+        self.completion_lsp = newcb(_("Enable language server completions"),
+                                    'enable')
+        self.completion_fallback = newcb(_("Enable fallback completions"),
+                                         'enable',
+                                         section='fallback-completions')
+        self.completion_kite = newcb(_("Enable Kite completions"), 'enable',
+                                     section='kite-completions')
 
         clients_layout = QVBoxLayout()
-        clients_layout.addWidget(completion_fallback)
-        clients_layout.addWidget(completion_lsp)
-        clients_layout.addWidget(completion_kite)
+        clients_layout.addWidget(self.completion_fallback)
+        clients_layout.addWidget(self.completion_lsp)
+        clients_layout.addWidget(self.completion_kite)
         clients_group.setLayout(clients_layout)
 
-        check_kite, kite_pth = KiteCompletionPlugin._check_if_kite_installed()
-        completion_kite.setEnabled(check_kite)
+        check_kite, __ = KiteCompletionPlugin._check_if_kite_installed()
+        self.completion_kite.setEnabled(check_kite)
 
         # Advanced label
         lsp_advanced_group = QGroupBox(_(
@@ -1019,8 +1019,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_layout.addWidget(self.advanced_options_check)
         advanced_layout.addWidget(advanced_options_widget)
 
-        advanced_widget = QWidget()
-        advanced_widget.setLayout(advanced_layout)
+        lsp_advanced_group.setLayout(advanced_layout)
 
         # --- Other servers tab ---
         # Section label
