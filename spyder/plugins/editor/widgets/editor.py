@@ -1776,19 +1776,7 @@ class EditorStack(QWidget):
         correct encoding without doing any error handling.
         """
         txt = fileinfo.editor.get_text_with_eol()
-        try:
-            fileinfo.encoding = encoding.write(txt, filename,
-                                               fileinfo.encoding)
-        except OSError:
-            # Some filesystems don't support the option to sync directories
-            # issue untitaker/python-atomicwrites#17
-            if PY2:
-                with codecs.open(filename, 'w',
-                                 encoding=fileinfo.encoding) as f:
-                    f.write(txt)
-            else:
-                with open(filename, 'w', encoding=fileinfo.encoding) as f:
-                    f.write(txt)
+        fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
 
     def save(self, index=None, force=False):
         """Write text of editor to a file.

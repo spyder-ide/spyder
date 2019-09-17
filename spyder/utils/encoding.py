@@ -17,6 +17,7 @@ import locale
 import re
 import os
 import sys
+import codecs
 
 # Third-party imports
 from chardet.universaldetector import UniversalDetector
@@ -24,7 +25,7 @@ from atomicwrites import atomic_write
 
 # Local imports
 from spyder.py3compat import (is_string, to_text_string, is_binary_string,
-                              is_unicode)
+                              is_unicode, PY2)
 from spyder.utils.external.binaryornot.check import is_binary
 
 
@@ -245,10 +246,19 @@ def write(text, filename, encoding='utf-8', mode='wb'):
             umask = os.umask(0)
             os.umask(umask)
             original_mode = 0o777 & ~umask
-        with atomic_write(filename,
-                          overwrite=True,
-                          mode=mode) as textfile:
-            textfile.write(text)
+        try:
+            with atomic_write(filename, overwrite=True,
+                              mode=mode) as textfile:
+                textfile.write(text)
+        except OSError:
+            # Some filesystems don't support the option to sync directories
+            # issue untitaker/python-atomicwrites#17
+            if PY2:
+                with codecs.open(filename, 'w', encoding=encoding) as f:
+                    f.write(text)
+            else:
+                with open(filename, 'w', encoding=encoding) as f:
+                    f.write(text)
         os.chmod(filename, original_mode)
     return encoding
 
