@@ -277,17 +277,21 @@ class CompletionWidget(QListWidget):
         QListWidget.hide(self)
         QToolTip.hideText()
 
+
+    def _select_completion(self, event):
+        """
+        Check that what was selected can be selected otherwise timing issues.
+        """
+        if self.is_up_to_date():
+            self.item_selected()
+        else:
+            self.hide()
+            self.textedit.keyPressEvent(event)
+
     def event(self, event):
         """Override Qt method to process tab keypress."""
         if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
-            # Check that what was selected can be selected,
-            # otherwise timing issues
-            if self.is_up_to_date():
-                self.item_selected()
-                print('HELLO!')
-            else:
-                self.hide()
-                self.textedit.keyPressEvent(event)
+            self._select_completion(event)
             return False
 
         return QListWidget.event(self, event)
@@ -299,15 +303,8 @@ class CompletionWidget(QListWidget):
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
         modifier = shift or ctrl or alt
-        # if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
         if key == Qt.Key_Tab:
-            # Check that what was selected can be selected,
-            # otherwise timing issues
-            if self.is_up_to_date():
-                self.item_selected()
-            else:
-                self.hide()
-                self.textedit.keyPressEvent(event)
+            self._select_completion(event)
         elif key == Qt.Key_Escape:
             self.hide()
         elif key in (Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
