@@ -3811,6 +3811,9 @@ class CodeEditor(TextEditBaseWidget):
         Remove trailing whitespace on leaving a non-string line containing it.
         Return the number of removed spaces.
         """
+        if not self.hasFocus():
+            # Avoid problem when using split editor
+            return 0
         # Update current position
         current_position = self.textCursor().position()
         last_position = self.last_position
