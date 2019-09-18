@@ -17,7 +17,6 @@ import locale
 import re
 import os
 import sys
-import codecs
 
 # Third-party imports
 from chardet.universaldetector import UniversalDetector
