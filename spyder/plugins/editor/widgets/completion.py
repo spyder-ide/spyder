@@ -277,9 +277,10 @@ class CompletionWidget(QListWidget):
         QListWidget.hide(self)
         QToolTip.hideText()
 
-
     def _select_completion(self, event):
         """
+        Use selected completion from list.
+
         Check that what was selected can be selected otherwise timing issues.
         """
         if self.is_up_to_date():
