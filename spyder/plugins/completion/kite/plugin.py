@@ -70,6 +70,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         else:
             # TODO: Add check based on the preference for Kite
             self.kite_installer.show()
+            self.kite_installer.center()
 
     def shutdown(self):
         self.client.stop()

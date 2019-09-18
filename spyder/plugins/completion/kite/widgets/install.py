@@ -9,13 +9,14 @@
 # Third-party imports
 from qtpy.QtCore import Qt, QUrl, Signal
 from qtpy.QtGui import QDesktopServices, QMovie, QPixmap
-from qtpy.QtWidgets import (QDialog, QHBoxLayout, QMessageBox,
+from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
                             QLabel, QProgressBar, QPushButton, QVBoxLayout,
                             QWidget)
 
 # Local imports
 from spyder.config.base import _, get_image_path
-from spyder.plugins.completion.kite.utils.install import INSTALLING, FINISHED
+from spyder.plugins.completion.kite.utils.install import (ERRORED, INSTALLING,
+                                                          FINISHED)
 
 
 class KiteWelcome(QWidget):
@@ -159,11 +160,12 @@ class KiteInstallerDialog(QDialog):
         self._installation_widget.sig_close_button_clicked.connect(
             self.close_installer)
 
-        self._center()
-
-    def _center(self):
+    def center(self):
         """Center the dialog."""
-        # TODO: Add center calculation
+        screen = QApplication.desktop().screenGeometry(0)
+        x = screen.center().x() - self.width() / 2
+        y = screen.center().y() - self.height() / 2
+        self.move(x, y)
 
     def _handle_error_msg(self, msg):
         """Handle error message with an error dialog."""
@@ -178,7 +180,8 @@ class KiteInstallerDialog(QDialog):
         get_help_button.clicked.connect(
             lambda: QDesktopServices.openUrl(
                     QUrl('https://kite.com/download')))
-        error_message_dialog.addButton(get_help_button)
+        error_message_dialog.addButton(get_help_button, QMessageBox.ActionRole)
+        error_message_dialog.exec_()
 
     def install(self):
         """Initialize installation process."""
@@ -186,7 +189,7 @@ class KiteInstallerDialog(QDialog):
         self._installation_thread.install()
         self._installation_widget.setVisible(True)
         self.adjustSize()
-        self._center()
+        self.center()
 
     def finished_installation(self, status):
         """Handle finished installation."""
@@ -195,7 +198,11 @@ class KiteInstallerDialog(QDialog):
 
     def close_installer(self):
         """Close the installation dialog."""
-        self.hide()
+        if (self._installation_thread.status == ERRORED
+                or self._installation_thread.status == FINISHED):
+            self.accept()
+        else:
+            self.hide()
 
 
 if __name__ == "__main__":

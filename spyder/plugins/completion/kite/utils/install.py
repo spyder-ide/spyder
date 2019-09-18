@@ -103,7 +103,7 @@ class KiteInstallationThread(QThread):
             installer_path,
             '--plugin-launch-with-copilot',
             '--channel=spyder']
-        subprocess.call(install_command, shell=True)
+        subprocess.check_call(install_command, shell=True)
 
     def _execute_mac_installation(self, installer_path):
         """Installation on MacOS."""
@@ -120,7 +120,7 @@ class KiteInstallationThread(QThread):
              '--channel=spyder']
         ]
         for command in install_commands:
-            subprocess.call(command)
+            subprocess.check_call(command)
 
     def _execute_linux_installation(self, installer_path):
         """Installation on Linux."""
@@ -156,7 +156,7 @@ class KiteInstallationThread(QThread):
             '--channel=spyder']
 
         self._change_installation_status(status=INSTALLING)
-        subprocess.call(install_command)
+        subprocess.check_call(install_command)
         subprocess.Popen(run_command, shell=True)
 
     def _execute_installer_or_script(self, installer_path):

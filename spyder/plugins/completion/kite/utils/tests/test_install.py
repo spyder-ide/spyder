@@ -40,7 +40,6 @@ def test_kite_install(qtbot):
         assert False
 
     def download_progress(progress, total):
-        assert progress < total
         assert total != 0
 
     def finished():
