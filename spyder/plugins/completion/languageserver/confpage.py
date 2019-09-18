@@ -713,15 +713,25 @@ class LanguageServerConfigPage(GeneralConfigPage):
                                      "definition"),
                                    'jedi_definition/follow_imports')
         show_signature_box = newcb(_("Show calltips"), 'jedi_signature_help')
+        automatic_completion_box = newcb(_("Show completions on the fly"),
+                                         'automatic_completions',
+                                         section='editor')
+        completion_hint_box = newcb(_("Show completion details in hint"),
+                                    'completions_hint', section='editor')
 
         basic_features_layout = QVBoxLayout()
         basic_features_layout.addWidget(completion_box)
+        basic_features_layout.addWidget(automatic_completion_box)
+        basic_features_layout.addWidget(completion_hint_box)
         basic_features_layout.addWidget(code_snippets_box)
         basic_features_layout.addWidget(enable_hover_hints_box)
         basic_features_layout.addWidget(goto_definition_box)
         basic_features_layout.addWidget(follow_imports_box)
         basic_features_layout.addWidget(show_signature_box)
         basic_features_group.setLayout(basic_features_layout)
+
+        completion_box.toggled.connect(automatic_completion_box.setEnabled)
+        completion_box.toggled.connect(completion_hint_box.setEnabled)
 
         # Advanced group
         advanced_group = QGroupBox(_("Advanced"))
@@ -1185,19 +1195,26 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
             if name in options:
+                # See: spyder-ide/spyder#9915
                 # Avoid triggering the action when this action changes state
-                action.blockSignals(True)
                 state = self.get_option(name)
+                action.blockSignals(True)
                 action.setChecked(state)
                 action.blockSignals(False)
-                # See: spyder-ide/spyder#9915
-                # action.trigger()
 
         # TODO: Reset Manager
         self.main.completions.update_configuration()
 
+        # Update editor plugin options
         editor = self.main.editor
+        editor_method_sec_opts = {
+            'set_code_snippets_enabled': (self.CONF_SECTION, 'code_snippets'),
+            'set_automatic_completions_enabled': ('editor',
+                                                  'automatic_completions'),
+            'set_completions_hint_enabled': ('editor', 'completions_hint'),
+        }
         for editorstack in editor.editorstacks:
-            if 'code_snippets' in options:
-                code_snippets = self.get_option('code_snippets')
-                editorstack.set_code_snippets_enabled(code_snippets)
+            for method_name, (sec, opt) in editor_method_sec_opts.items():
+                if opt in options:
+                    method = getattr(editorstack, method_name)
+                    method(self.get_option(opt, section=sec))
