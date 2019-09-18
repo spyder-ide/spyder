@@ -22,7 +22,7 @@ from spyder.py3compat import to_text_string
 from spyder.widgets.helperwidgets import HTMLDelegate
 
 
-COMPLETION_ITEM_TEMPLATE = """
+COMPLETION_ITEM_TEMPLATE = u"""
 <table width="{width}" height="{height}">
     <tr>
         <td valign="middle" style="color:{color}">
@@ -284,7 +284,8 @@ class CompletionWidget(QListWidget):
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
         modifier = shift or ctrl or alt
-        if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
+        # if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
+        if key == Qt.Key_Tab:
             # Check that what was selected can be selected,
             # otherwise timing issues
             if self.is_up_to_date():
