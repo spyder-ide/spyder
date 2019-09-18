@@ -161,7 +161,7 @@ class EditorConfigPage(PluginConfigPage):
             _("Tab stop width:"),
             _("spaces"),
             'tab_stop_width_spaces',
-            4, 1, 8, 1)
+            default=4, min_=1, max_=8, step=1)
 
         def enable_tabwidth_spin(index):
             if index == 7:  # Tabulations
