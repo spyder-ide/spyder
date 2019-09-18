@@ -15,7 +15,7 @@ import logging
 import functools
 
 # Qt imports
-from qtpy.QtCore import Slot
+from qtpy.QtCore import Slot, QTimer
 
 # Local imports
 from spyder.config.manager import CONF
@@ -38,16 +38,27 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         enable_code_snippets = CONF.get('lsp-server', 'code_snippets')
         self.client = KiteClient(None, enable_code_snippets)
         self.kite_process = None
+        self.main_window_visible = False
+        self.kite_initialized = False
+        self.onboarding_shown = False
         self.client.sig_client_started.connect(self.http_client_ready)
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
                               self.COMPLETION_CLIENT_NAME))
+        self.main.restore_scrollbar_position.connect(self.restore_scrollbar_position)
 
     @Slot(list)
     def http_client_ready(self, languages):
         logger.debug('Kite client is available for {0}'.format(languages))
         self.available_languages = languages
         self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME)
+        self.kite_initialized = True
+        self._kite_onboarding()
+
+    @Slot()
+    def restore_scrollbar_position(self):
+        self.main_window_visible = True
+        self._kite_onboarding()
 
     def send_request(self, language, req_type, req, req_id):
         if language in self.available_languages:
@@ -74,6 +85,20 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def update_configuration(self):
         enable_code_snippets = CONF.get('lsp-server', 'code_snippets')
         self.client.enable_code_snippets = enable_code_snippets
+
+    def _kite_onboarding(self):
+        if not self.onboarding_shown \
+                and self.main_window_visible \
+                and self.kite_initialized \
+                and self.get_option('kite-show-onboarding', True):
+            logger.debug('kite: executing onboarding steps')
+            onboarding_file = self.client.get_onboarding_file()
+            if onboarding_file is None:
+                # fixme: show onboarding notification
+                pass
+            else:
+                self.set_option('kite-show-onboarding', False)
+                QTimer.singleShot(500, lambda: self.main.editor.load(onboarding_file))
 
     def _check_if_kite_installed(self):
         path = ''

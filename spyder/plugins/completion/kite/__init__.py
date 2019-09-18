@@ -21,6 +21,8 @@ class _KiteEndpoints(type):
                'cursor_runes={cursor_runes}')
     COMPLETION_ENDPOINT = ('POST', '/clientapi/editor/complete')
     SIGNATURE_ENDPOINT = ('POST', '/clientapi/editor/signatures')
+    # fixme: atom -> spyder
+    ONBOARDING_ENDPOINT = ('GET', '/clientapi/plugins/onboarding_file?editor=atom')
 
     def __getattribute__(self, attr):
         value = object.__getattribute__(self, attr)
