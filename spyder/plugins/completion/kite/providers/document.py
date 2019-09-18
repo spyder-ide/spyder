@@ -62,7 +62,9 @@ class DocumentProvider:
             'filename': osp.realpath(params['file']),
             'text': params['text'],
             'action': 'focus',
-            'selections': []
+            'selections': [
+                {'start': params['offset'], 'end': params['offset']}
+            ]
         }
 
         default_info = {'text': '', 'count': 0}
@@ -80,7 +82,9 @@ class DocumentProvider:
             'filename': osp.realpath(params['file']),
             'text': params['text'],
             'action': 'edit',
-            'selections': []
+            'selections': [
+                {'start': params['offset'], 'end': params['offset']}
+            ]
         }
         with QMutexLocker(self.mutex):
             file_info = self.opened_files[params['file']]
