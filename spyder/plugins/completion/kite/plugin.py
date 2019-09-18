@@ -20,6 +20,8 @@ from spyder.api.completion import SpyderCompletionPlugin
 from spyder.plugins.completion.kite.client import KiteClient
 from spyder.plugins.completion.kite.utils.status import (
     check_if_kite_running, check_if_kite_installed)
+from spyder.plugins.completion.kite.utils.install import KiteInstallationThread
+from spyder.plugins.completion.kite.widgets.install import KiteInstallerDialog
 
 
 logger = logging.getLogger(__name__)
@@ -34,6 +36,10 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         enable_code_snippets = CONF.get('lsp-server', 'code_snippets')
         self.client = KiteClient(None, enable_code_snippets)
         self.kite_process = None
+        self.kite_installation_thread = KiteInstallationThread(self)
+        self.kite_installer = KiteInstallerDialog(
+            parent,
+            self.kite_installation_thread)
         self.client.sig_client_started.connect(self.http_client_ready)
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
@@ -61,6 +67,9 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
                 logger.debug('Starting Kite service...')
                 self.kite_process = run_program(path)
             self.client.start()
+        else:
+            # TODO: Add check based on the preference for Kite
+            self.kite_installer.show()
 
     def shutdown(self):
         self.client.stop()

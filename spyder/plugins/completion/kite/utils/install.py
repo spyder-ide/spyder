@@ -29,6 +29,14 @@ if PY2:
 else:
     from urllib.request import urlretrieve
 
+# Installation process statuses
+NO_STATUS = _("No status")
+DOWNLOADING_SCRIPT = _("Downloading Kite script installer")
+DOWNLOADING_INSTALLER = _("Downloading Kite installer")
+INSTALLING = _("Installing Kite")
+FINISHED = _("Install finished")
+ERRORED = _("Error")
+
 
 class KiteInstallationThread(QThread):
     """Thread to handle the installation process of kite."""
@@ -38,28 +46,21 @@ class KiteInstallationThread(QThread):
     LINUX_URL = "https://release.kite.com/dls/linux/current"
     MAC_URL = "https://release.kite.com/dls/mac/current"
 
-    # Process status
-    NO_STATUS = _("No status")
-    DOWNLOADING_SCRIPT = _("Downloading Kite script installer")
-    DOWNLOADING_INSTALLER = _("Downloading Kite installer")
-    INSTALLING = _("Installing Kite")
-    FINISHED = _("Install finished")
-    ERRORED = _("Error")
-
     # Signals
     # Signal to get the current status of the installation
     # str: Status string
     sig_installation_status = Signal(str)
     # Signal to get the download progress
     # str: Download progress
-    sig_download_progress = Signal(str)
+    # str: Total download size
+    sig_download_progress = Signal(int, int)
     # Signal to get error messages
     # str: Error string
     sig_error_msg = Signal(str)
 
     def __init__(self, parent):
         super(KiteInstallationThread, self).__init__()
-        self.status = self.NO_STATUS
+        self.status = NO_STATUS
         if os.name == 'nt':
             self._download_url = self.WINDOWS_URL
             self._installer_name = 'kiteSetup.exe'
@@ -79,17 +80,16 @@ class KiteInstallationThread(QThread):
         progress = 0
         if total_size > 0:
             progress = block_number * read_size
-        progress_message = '{0}/{1}'.format(progress, total_size)
-        self.sig_download_progress.emit(progress_message)
+        self.sig_download_progress.emit(progress, total_size)
 
     def _download_installer_or_script(self):
         """Download the installer or installation script."""
         temp_dir = gettempdir()
         path = osp.join(temp_dir, self._installer_name)
         if sys.platform.startswith('linux'):
-            self._change_installation_status(status=self.DOWNLOADING_SCRIPT)
+            self._change_installation_status(status=DOWNLOADING_SCRIPT)
         else:
-            self._change_installation_status(status=self.DOWNLOADING_INSTALLER)
+            self._change_installation_status(status=DOWNLOADING_INSTALLER)
 
         return urlretrieve(
             self._download_url,
@@ -98,7 +98,7 @@ class KiteInstallationThread(QThread):
 
     def _execute_windows_installation(self, installer_path):
         """Installation on Windows."""
-        self._change_installation_status(status=self.INSTALLING)
+        self._change_installation_status(status=INSTALLING)
         install_command = [
             installer_path,
             '--plugin-launch-with-copilot',
@@ -107,7 +107,7 @@ class KiteInstallationThread(QThread):
 
     def _execute_mac_installation(self, installer_path):
         """Installation on MacOS."""
-        self._change_installation_status(status=self.INSTALLING)
+        self._change_installation_status(status=INSTALLING)
         install_commands = [
             ['hdiutil', 'attach', '-nobrowse', installer_path],
             ['cp', '-r', '/Volumes/Kite/Kite.app', '/Applications/'],
@@ -124,7 +124,7 @@ class KiteInstallationThread(QThread):
 
     def _execute_linux_installation(self, installer_path):
         """Installation on Linux."""
-        self._change_installation_status(status=self.DOWNLOADING_INSTALLER)
+        self._change_installation_status(status=DOWNLOADING_INSTALLER)
         stat_file = os.stat(installer_path)
         os.chmod(installer_path, stat_file.st_mode | stat.S_IEXEC)
         download_command = '{} --download'.format(installer_path)
@@ -141,7 +141,9 @@ class KiteInstallationThread(QThread):
                 break
             if re.match(r'Download: (\d+)/(\d+)', progress):
                 download_progress = progress.split(':')[-1].strip()
-                self.sig_download_progress.emit(download_progress)
+                current_progress = download_progress.split('/')[0]
+                total_size = download_progress.split('/')[1]
+                self.sig_download_progress.emit(current_progress, total_size)
         download_process.stdout.close()
         return_code = download_process.wait()
         if return_code:
@@ -153,7 +155,7 @@ class KiteInstallationThread(QThread):
             '--plugin-launch-with-copilot',
             '--channel=spyder']
 
-        self._change_installation_status(status=self.INSTALLING)
+        self._change_installation_status(status=INSTALLING)
         subprocess.call(install_command)
         subprocess.Popen(run_command, shell=True)
 
@@ -170,19 +172,19 @@ class KiteInstallationThread(QThread):
         except Exception:
             # Handle errors while removing installer file
             pass
-        self._change_installation_status(status=self.FINISHED)
+        self._change_installation_status(status=FINISHED)
 
     def run(self):
         """Execute the installation task."""
         is_kite_installed, installation_path = check_if_kite_installed()
         if is_kite_installed:
-            self._change_installation_status(status=self.FINISHED)
+            self._change_installation_status(status=FINISHED)
         else:
             try:
                 path, http_response = self._download_installer_or_script()
                 self._execute_installer_or_script(path)
             except Exception as error:
-                self._change_installation_status(status=self.ERRORED)
+                self._change_installation_status(status=ERRORED)
                 self.sig_error_msg.emit(to_text_string(error))
         return
 
@@ -202,7 +204,7 @@ if __name__ == '__main__':
     install_manager.sig_error_msg.connect(
         lambda error: print(error))
     install_manager.sig_download_progress.connect(
-        lambda progress: print(progress))
+        lambda progress, total: print('{0}/{1}'.format(progress, total)))
     install_manager.install()
     install_manager.finished.connect(app.quit)
     app.exec_()
