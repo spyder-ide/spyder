@@ -253,12 +253,8 @@ def write(text, filename, encoding='utf-8', mode='wb'):
         except OSError:
             # Some filesystems don't support the option to sync directories
             # issue untitaker/python-atomicwrites#17
-            if PY2:
-                with codecs.open(filename, 'w', encoding=encoding) as f:
-                    f.write(text)
-            else:
-                with open(filename, 'w', encoding=encoding) as f:
-                    f.write(text)
+            with open(filename, mode) as textfile:
+                textfile.write(text)
         os.chmod(filename, original_mode)
     return encoding
 
