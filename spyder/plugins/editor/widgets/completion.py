@@ -10,7 +10,7 @@
 import sys
 
 # Third psrty imports
-from qtpy.QtCore import QPoint, Qt, Signal, Slot
+from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetrics
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
                             QListWidgetItem, QToolTip)
@@ -276,6 +276,21 @@ class CompletionWidget(QListWidget):
 
         QListWidget.hide(self)
         QToolTip.hideText()
+
+    def event(self, event):
+        """Override Qt method to process tab keypress."""
+        if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
+            # Check that what was selected can be selected,
+            # otherwise timing issues
+            if self.is_up_to_date():
+                self.item_selected()
+                print('HELLO!')
+            else:
+                self.hide()
+                self.textedit.keyPressEvent(event)
+            return False
+
+        return QListWidget.event(self, event)
 
     def keyPressEvent(self, event):
         """Override Qt method to process keypress."""

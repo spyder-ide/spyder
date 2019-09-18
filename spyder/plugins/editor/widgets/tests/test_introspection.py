@@ -223,8 +223,22 @@ def test_completions(lsp_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
     assert "math" in [x['label'] for x in sig.args[0]]
 
-    # enter should accept first completion
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
+    # enter should not accept first completion and add a line
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    assert code_editor.toPlainText() == 'import mat\n'
+
+    # Delete all and rewrite the test text
+    code_editor.set_text('')
+    qtbot.wait(300)
+    qtbot.keyClicks(code_editor, 'import mat')
+
+    # press tab and get completions
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    # tab should accept first completion
+    qtbot.keyPress(completion, Qt.Key_Tab, delay=300)
     assert code_editor.toPlainText() == 'import math'
 
     # enter for new line
@@ -283,7 +297,7 @@ def test_completions(lsp_codeeditor, qtbot):
     assert "acos(x)" == completion.completion_list[0]['label']
     qtbot.keyClicks(completion, 's')
     assert "asin" == completion.item(0).data(Qt.UserRole)
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
+    qtbot.keyPress(completion, Qt.Key_Tab, delay=300)
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
@@ -316,7 +330,7 @@ def test_completions(lsp_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
         qtbot.keyPress(code_editor, 's')
     assert "asin(x)" in [x['label'] for x in sig.args[0]]
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
+    qtbot.keyPress(completion, Qt.Key_Tab, delay=300)
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
@@ -334,7 +348,7 @@ def test_completions(lsp_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
         qtbot.keyPress(code_editor, 's')
     assert "asin(x)" in [x['label'] for x in sig.args[0]]
-    qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
+    qtbot.keyPress(completion, Qt.Key_Tab, delay=300)
     for i in range(len('angle')):
         qtbot.keyClick(code_editor, Qt.Key_Right)
 
