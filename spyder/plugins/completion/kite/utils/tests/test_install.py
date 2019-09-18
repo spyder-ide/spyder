@@ -39,8 +39,9 @@ def test_kite_install(qtbot):
         # Should not enter here
         assert False
 
-    def download_progress(progress):
-        assert re.match(r"(\d+)/(\d+)", progress)
+    def download_progress(progress, total):
+        assert progress < total
+        assert total != 0
 
     def finished():
         if sys.platform.startswith("linux"):

@@ -25,7 +25,7 @@ class KiteWelcome(QWidget):
     sig_install_button_clicked = Signal()
 
     def __init__(self, parent):
-        QWidget.__init__(self, parent)
+        super(KiteWelcome, self).__init__(parent)
 
         # Left side
         install_info = QLabel(
@@ -75,7 +75,7 @@ class KiteInstallation(QWidget):
     sig_close_button_clicked = Signal()
 
     def __init__(self, parent):
-        QWidget.__init__(self, parent)
+        super(KiteInstallation, self).__init__(parent)
 
         # Left side
         action_layout = QVBoxLayout()
@@ -131,7 +131,7 @@ class KiteInstallation(QWidget):
 class KiteInstallerDialog(QDialog):
     """Kite installer."""
     def __init__(self, parent, kite_installation_thread):
-        QWidget.__init__(self, parent)
+        super(KiteInstallerDialog, self).__init__(parent)
         self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
         self._parent = parent
         self._installation_thread = kite_installation_thread
