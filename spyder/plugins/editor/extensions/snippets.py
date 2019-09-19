@@ -186,11 +186,18 @@ class SnippetsExtension(EditorExtension):
                     self.reset()
                     event.accept()
                 elif len(text) > 0:
+                    not_brace = text not in {'(', ')', '[', ']', '{', '}'}
+                    not_completion = (
+                        text not in self.editor.auto_completion_characters)
+                    not_signature = (
+                        text not in self.editor.signature_completion_characters
+                    )
+                    valid = not_brace and not_completion and not_signature
                     if node is not None:
                         if snippet is None or text == '\n':
                             # Constant text identifier was modified
                             self.reset()
-                        elif text.isalnum() or text == '\b':
+                        elif valid or text == '\b':
                             self._process_text(text)
 
     @lock
