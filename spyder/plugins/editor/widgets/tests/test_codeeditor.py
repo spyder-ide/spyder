@@ -154,6 +154,8 @@ def test_editor_rstrip_keypress(
     cursor = widget.textCursor()
     cursor.movePosition(QTextCursor.End)
     widget.setTextCursor(cursor)
+    widget.setFocus()
+    assert widget.hasFocus()
     for key in keys:
         if isinstance(key, tuple):
             # Mouse event
