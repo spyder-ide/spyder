@@ -302,8 +302,10 @@ class DebuggingWidget(RichJupyterWidget):
                     self._reading_callback()
 
             return
-        return super(DebuggingWidget, self).execute(
-            source, hidden, interactive)
+        if not self._executing:
+            # Only execute if not executing
+            return super(DebuggingWidget, self).execute(
+                source, hidden, interactive)
 
     def _is_pdb_complete(self, source):
         """
