@@ -208,9 +208,10 @@ class DebuggingWidget(RichJupyterWidget):
         else:
             # This is pdb. The prompt should be printed unless:
             # 1. The prompt is already printed (self._reading is True)
-            # 2. A commad is in the queue
+            # 2. A hidden commad is in the queue
             print_prompt = (not self._reading
-                            and len(self._pdb_input_queue) == 0)
+                            and (len(self._pdb_input_queue) == 0
+                                 or not self._pdb_input_queue[0][1]))
 
         if print_prompt:
             # Reset reading in case it was interrupted
@@ -228,8 +229,7 @@ class DebuggingWidget(RichJupyterWidget):
         # This must be properly processed to avoid dropping messages.
         # If the kernel was not ready, the messages are queued.
         if self.is_waiting_pdb_input() and len(self._pdb_input_queue) > 0:
-            args = self._pdb_input_queue[0]
-            del self._pdb_input_queue[0]
+            args = self._pdb_input_queue.pop(0)
             self.pdb_execute(*args)
             return
 
