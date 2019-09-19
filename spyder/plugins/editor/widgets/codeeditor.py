@@ -972,7 +972,8 @@ class CodeEditor(TextEditBaseWidget):
             'language': self.language,
             'version': self.text_version,
             'text': self.toPlainText(),
-            'codeeditor': self
+            'codeeditor': self,
+            'offset': self.get_position('cursor')
         }
         return params
 
@@ -989,7 +990,8 @@ class CodeEditor(TextEditBaseWidget):
             'file': self.filename,
             'version': self.text_version,
             'text': text,
-            'diff': patch
+            'diff': patch,
+            'offset': self.get_position('cursor')
         }
         return params
 

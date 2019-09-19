@@ -26,7 +26,8 @@ from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.config.gui import get_font, is_dark_interface
-from spyder.plugins.completion.kite.plugin import KiteCompletionPlugin
+from spyder.plugins.completion.kite.utils.status import (
+    check_if_kite_installed)
 from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
@@ -959,7 +960,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         clients_layout.addWidget(self.completion_fallback)
         clients_group.setLayout(clients_layout)
 
-        check_kite, __ = KiteCompletionPlugin._check_if_kite_installed()
+        check_kite, __ = check_if_kite_installed()
         self.completion_kite.setEnabled(check_kite)
 
         # Advanced label
