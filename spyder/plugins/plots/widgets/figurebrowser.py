@@ -917,7 +917,7 @@ class FigureThumbnail(QWidget):
             # See spyder-ide/spyder#10255.
             if is_dark_interface():
                 self.canvas.setStyleSheet(
-                        "FigureCanvas{border: 2px solid %s;}" % "red")
+                        "FigureCanvas{border: 2px solid %s;}" % "#148CD2")
             else:
                 self.canvas.setStyleSheet(
                         "FigureCanvas{border: 2px solid %s;}" % colorname)
