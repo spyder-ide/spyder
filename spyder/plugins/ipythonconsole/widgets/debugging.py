@@ -273,19 +273,33 @@ class DebuggingWidget(RichJupyterWidget):
     def execute(self, source=None, hidden=False, interactive=False):
         """ Executes source or the input buffer, possibly prompting for more
         input.
+
+        Do not use to run pdb commands. Use pdb_execute instead.
+        This will add a '!' in front of the code.
         """
         if self.is_waiting_pdb_input():
+            if source is None:
+                if hidden:
+                    # Nothing to execute
+                    return
+                else:
+                    source = self.input_buffer
+            else:
+                source = '!' + source
+                if not hidden:
+                    self.input_buffer = source
 
             if interactive:
-                if source is None:
-                    source = self.input_buffer
                 # Add a continuation propt if not complete
                 complete, indent = self._is_pdb_complete(source)
                 if not complete:
                     self.do_execute(source, complete, indent)
                     return
-            if self._reading_callback:
-                self._reading_callback()
+            if hidden:
+                self.pdb_execute(source, hidden)
+            else:
+                if self._reading_callback:
+                    self._reading_callback()
 
             return
         return super(DebuggingWidget, self).execute(
