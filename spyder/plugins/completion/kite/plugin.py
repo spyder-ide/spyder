@@ -57,6 +57,10 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
 
     @Slot()
     def restore_scrollbar_position(self):
+        """
+        Called when the main window restores the scrollbar position, i.e. when it's shown
+        :return:
+        """
         self.main_window_visible = True
         self._kite_onboarding()
 
@@ -87,6 +91,11 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client.enable_code_snippets = enable_code_snippets
 
     def _kite_onboarding(self):
+        """
+        Opens the onboarding file, which is retrieved from the Kite HTTP endpoint.
+        This skips onboarding if onboarding is not possible yet or has already been displayed before.
+        :return:
+        """
         if not self.onboarding_shown \
                 and self.main_window_visible \
                 and self.kite_initialized \
