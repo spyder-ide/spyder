@@ -218,11 +218,12 @@ class DebuggingWidget(RichJupyterWidget):
             self._reading = False
             self._readline(prompt=prompt, callback=self._readline_callback,
                            password=password)
+            if self.is_waiting_pdb_input():
+                self._executing = False
+                self._highlighter.highlighting_on = True
 
         if self.is_waiting_pdb_input():
-            self._highlighter.highlighting_on = True
             self._pdb_input_ready = True
-            self._executing = False
 
         # While the widget thinks only one input is going on,
         # other functions can be sending messages to the kernel.
