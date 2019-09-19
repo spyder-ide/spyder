@@ -696,6 +696,11 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # Basic features group
         basic_features_group = QGroupBox(_("Basic features"))
         completion_box = newcb(_("Enable code completion"), 'code_completion')
+        automatic_completion_box = newcb(_("Show completions on the fly"),
+                                         'automatic_completions',
+                                         section='editor')
+        completion_hint_box = newcb(_("Show completion details"),
+                                    'completions_hint', section='editor')
         code_snippets_box = newcb(_("Enable code snippets"), 'code_snippets')
         enable_hover_hints_box = newcb(
             _("Enable hover hints"),
@@ -713,11 +718,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
                                      "definition"),
                                    'jedi_definition/follow_imports')
         show_signature_box = newcb(_("Show calltips"), 'jedi_signature_help')
-        automatic_completion_box = newcb(_("Show completions on the fly"),
-                                         'automatic_completions',
-                                         section='editor')
-        completion_hint_box = newcb(_("Show completion details in hint"),
-                                    'completions_hint', section='editor')
+        underline_errors_box = newcb(_("Underline errors and warnings"),
+                                     'underline_errors', section='editor')
 
         basic_features_layout = QVBoxLayout()
         basic_features_layout.addWidget(completion_box)
@@ -728,10 +730,12 @@ class LanguageServerConfigPage(GeneralConfigPage):
         basic_features_layout.addWidget(goto_definition_box)
         basic_features_layout.addWidget(follow_imports_box)
         basic_features_layout.addWidget(show_signature_box)
+        basic_features_layout.addWidget(underline_errors_box)
         basic_features_group.setLayout(basic_features_layout)
 
         completion_box.toggled.connect(automatic_completion_box.setEnabled)
         completion_box.toggled.connect(completion_hint_box.setEnabled)
+        goto_definition_box.toggled.connect(follow_imports_box.setEnabled)
 
         # Advanced group
         advanced_group = QGroupBox(_("Advanced"))
@@ -1195,9 +1199,14 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
             if name in options:
-                # See: spyder-ide/spyder#9915
+                section = self.CONF_SECTION
+                if name == 'underline_errors':
+                    section = 'editor'
+
+                state = self.get_option(name, section=section)
+
                 # Avoid triggering the action when this action changes state
-                state = self.get_option(name)
+                # See: spyder-ide/spyder#9915
                 action.blockSignals(True)
                 action.setChecked(state)
                 action.blockSignals(False)
@@ -1212,6 +1221,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
             'set_automatic_completions_enabled': ('editor',
                                                   'automatic_completions'),
             'set_completions_hint_enabled': ('editor', 'completions_hint'),
+            'set_underline_errors_enabled': ('editor', 'underline_errors'),
         }
         for editorstack in editor.editorstacks:
             for method_name, (sec, opt) in editor_method_sec_opts.items():

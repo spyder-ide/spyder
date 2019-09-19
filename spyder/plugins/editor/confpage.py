@@ -40,8 +40,6 @@ class EditorConfigPage(PluginConfigPage):
                                      'indent_guides')
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
-        underline_errors_box = newcb(_("Underline errors and warnings"),
-                                     'underline_errors')
         currentline_box = newcb(_("Highlight current line"),
                                 'highlight_current_line')
         currentcell_box = newcb(_("Highlight current cell"),
@@ -94,7 +92,6 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(showindentguides_box)
         display_layout.addWidget(linenumbers_box)
         display_layout.addWidget(blanks_box)
-        display_layout.addWidget(underline_errors_box)
         display_layout.addWidget(currentline_box)
         display_layout.addWidget(currentcell_box)
         display_layout.addWidget(wrap_mode_box)
