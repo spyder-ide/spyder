@@ -552,6 +552,7 @@ class EditorStack(QWidget):
         self.intelligent_backspace_enabled = True
         self.automatic_completions_enabled = True
         self.completions_hint_enabled = True
+        self.hover_hints_enabled = True
         self.code_snippets_enabled = True
         self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
@@ -1182,6 +1183,12 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_completions_hint(state)
+
+    def set_hover_hints_enabled(self, state):
+        self.hover_hints_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_hover_hints(state)
 
     def set_occurrence_highlighting_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'occurrence_highlighting')
@@ -2399,6 +2406,7 @@ class EditorStack(QWidget):
             automatic_completions=self.automatic_completions_enabled,
             code_snippets=self.code_snippets_enabled,
             completions_hint=self.completions_hint_enabled,
+            hover_hints=self.hover_hints_enabled,
             highlight_current_line=self.highlight_current_line_enabled,
             highlight_current_cell=self.highlight_current_cell_enabled,
             occurrence_highlighting=self.occurrence_highlighting_enabled,

@@ -534,6 +534,9 @@ class CodeEditor(TextEditBaseWidget):
         self.skip_rstrip = False
         self.strip_trailing_spaces_on_modify = True
 
+        # Hover hints
+        self.hover_hints_enabled = None
+
         # Language Server
         self.lsp_requests = {}
         self.document_opened = False
@@ -545,7 +548,7 @@ class CodeEditor(TextEditBaseWidget):
         self.sync_mode = TextDocumentSyncKind.FULL
         self.will_save_notify = False
         self.will_save_until_notify = False
-        self.enable_hover = False
+        self.enable_hover = True
         self.auto_completion_characters = []
         self.signature_completion_characters = []
         self.go_to_definition_enabled = False
@@ -579,8 +582,7 @@ class CodeEditor(TextEditBaseWidget):
     # --- Hover/Hints
     def _should_display_hover(self, point):
         """Check if a hover hint should be displayed:"""
-        return (CONF.get('lsp-server', 'enable_hover_hints') and point
-                and self.get_word_at(point))
+        return self.hover_hints_enabled and point and self.get_word_at(point)
 
     def _handle_hover(self):
         """Handle hover hint trigger after delay."""
@@ -761,6 +763,7 @@ class CodeEditor(TextEditBaseWidget):
                      intelligent_backspace=True,
                      automatic_completions=True,
                      completions_hint=True,
+                     hover_hints=True,
                      code_snippets=True,
                      highlight_current_line=True,
                      highlight_current_cell=True,
@@ -853,6 +856,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Completions hint
         self.toggle_completions_hint(completions_hint)
+
+        # Hover hints
+        self.toggle_hover_hints(hover_hints)
 
         # Code snippets
         self.toggle_code_snippets(code_snippets)
@@ -1163,16 +1169,15 @@ class CodeEditor(TextEditBaseWidget):
         """Handle hover response."""
         try:
             content = contents['params']
-            if CONF.get('lsp-server', 'enable_hover_hints'):
-                self.sig_display_object_info.emit(content,
-                                                  self._request_hover_clicked)
-                if self._show_hint and self._last_point and content:
-                    # This is located in spyder/widgets/mixins.py
-                    word = self._last_hover_word,
-                    content = content.replace(u'\xa0', ' ')
-                    self.show_hint(content, inspect_word=word,
-                                   at_point=self._last_point)
-                    self._last_point = None
+            self.sig_display_object_info.emit(content,
+                                              self._request_hover_clicked)
+            if self._show_hint and self._last_point and content:
+                # This is located in spyder/widgets/mixins.py
+                word = self._last_hover_word,
+                content = content.replace(u'\xa0', ' ')
+                self.show_hint(content, inspect_word=word,
+                               at_point=self._last_point)
+                self._last_point = None
         except RuntimeError:
             # This is triggered when a codeeditor instance has been
             # removed before the response can be processed.
@@ -1286,6 +1291,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def toggle_automatic_completions(self, state):
         self.automatic_completions = state
+
+    def toggle_hover_hints(self, state):
+        self.hover_hints_enabled = state
 
     def toggle_code_snippets(self, state):
         self.code_snippets = state
