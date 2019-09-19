@@ -238,7 +238,7 @@ def write(text, filename, encoding='utf-8', mode='wb'):
     else:
         # Based in the solution at untitaker/python-atomicwrites#42.
         # Needed to fix file permissions overwritting.
-        # See untitaker/python-atomicwrites#17
+        # See spyder-ide/spyder#9381.
         try:
             original_mode = os.stat(filename).st_mode
         except OSError:  # Change to FileNotFoundError for PY3
@@ -252,7 +252,7 @@ def write(text, filename, encoding='utf-8', mode='wb'):
                 textfile.write(text)
         except OSError as error:
             # Some filesystems don't support the option to sync directories
-            # issue untitaker/python-atomicwrites#17
+            # See untitaker/python-atomicwrites#17
             if error.errno != errno.EINVAL:
                 with open(filename, mode) as textfile:
                     textfile.write(text)
