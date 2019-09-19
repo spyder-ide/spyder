@@ -350,7 +350,16 @@ class CodeEditor(TextEditBaseWidget):
         self._last_hover_cursor = None
         self._timer_mouse_moving = QTimer(self)
         self._timer_mouse_moving.setInterval(350)
-        self._timer_mouse_moving.timeout.connect(lambda: self._handle_hover())
+        self._timer_mouse_moving.setSingleShot(True)
+        self._timer_mouse_moving.timeout.connect(self._handle_hover)
+
+        # Typing keys / handling on the fly completions
+        # See: keyPressEvent
+        self._last_key_pressed_text = ''
+        self._timer_key_press = QTimer(self)
+        self._timer_key_press.setInterval(300)
+        self._timer_key_press.setSingleShot(True)
+        self._timer_key_press.timeout.connect(self._handle_completions)
 
         # Goto uri
         self._last_hover_pattern_key = None
@@ -3418,6 +3427,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
+        self._timer_key_press.start()
 
         def insert_text(event):
             TextEditBaseWidget.keyPressEvent(self, event)
@@ -3593,21 +3603,26 @@ class CodeEditor(TextEditBaseWidget):
             event.accept()
         elif not event.isAccepted():
             insert_text(event)
-        if len(text) > 0:
-            self.document_did_change(text)
 
-            cursor = self.textCursor()
-            cursor.select(QTextCursor.WordUnderCursor)
-            word_text = to_text_string(cursor.selectedText())
-            # Perform completion on the fly
-            if self.automatic_completions:
-                if text.isalpha():
-                    self.do_completion(automatic=True)
+        self._last_key_pressed_text = text
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent
             # Modifiers should be passed to the parent because they
             # could be shortcuts
             event.accept()
+
+    def _handle_completions(self):
+        """Handle on the fly completions with a delay."""
+        text = self._last_key_pressed_text
+        if len(text) > 0:
+            self.document_did_change(text)
+            cursor = self.textCursor()
+            cursor.select(QTextCursor.WordUnderCursor)
+
+            # Perform completion on the fly
+            if self.automatic_completions and not self.in_comment_or_string():
+                if text.isalpha():
+                    self.do_completion(automatic=True)
 
     def fix_and_strip_indent(self, comment_or_string=False):
         """Automatically fix indent and strip previous automatic indent."""
