@@ -3503,7 +3503,7 @@ class CodeEditor(TextEditBaseWidget):
                         self.fix_and_strip_indent(
                             comment_or_string=cmt_or_str)
                     else:
-                        self.fix_indent()
+                        self.fix_indent(comment_or_string=cmt_or_str)
                     self.textCursor().endEditBlock()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
