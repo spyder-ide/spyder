@@ -204,6 +204,11 @@ class KiteInstallerDialog(QDialog):
         else:
             self.hide()
 
+    def reject(self):
+        """Qt method override."""
+        # TODO: Disable setting to check if Kite has been installed
+        self.close_installer()
+
 
 if __name__ == "__main__":
     from spyder.utils.qthelpers import qapplication

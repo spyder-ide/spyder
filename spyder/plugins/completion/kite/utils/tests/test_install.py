@@ -15,7 +15,9 @@ import sys
 import pytest
 
 # Local imports
-from spyder.plugins.completion.kite.utils.install import KiteInstallationThread
+from spyder.plugins.completion.kite.utils.install import (
+    KiteInstallationThread, DOWNLOADING_INSTALLER, DOWNLOADING_SCRIPT,
+    INSTALLING, FINISHED)
 from spyder.plugins.completion.kite.utils.status import (
     check_if_kite_installed, check_if_kite_running)
 
@@ -45,15 +47,15 @@ def test_kite_install(qtbot):
     def finished():
         if sys.platform.startswith("linux"):
             expected_installation_status = [
-                install_manager.DOWNLOADING_SCRIPT,
-                install_manager.DOWNLOADING_INSTALLER,
-                install_manager.INSTALLING,
-                install_manager.FINISHED]
+                DOWNLOADING_SCRIPT,
+                DOWNLOADING_INSTALLER,
+                INSTALLING,
+                FINISHED]
         else:
             expected_installation_status = [
-                install_manager.DOWNLOADING_INSTALLER,
-                install_manager.INSTALLING,
-                install_manager.FINISHED]
+                DOWNLOADING_INSTALLER,
+                INSTALLING,
+                FINISHED]
 
         assert installation_statuses == expected_installation_status
 
