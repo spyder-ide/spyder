@@ -1282,7 +1282,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def set_strip_mode(self, enable):
         """
-        Strip all trailing spaces if enabled, else only strip on auto-indents.
+        Strip all trailing spaces if enabled.
         """
         self.strip_trailing_spaces_on_modify = enable
 
@@ -3475,7 +3475,10 @@ class CodeEditor(TextEditBaseWidget):
                   self.autoinsert_colons():
                     self.textCursor().beginEditBlock()
                     self.insert_text(':' + self.get_line_separator())
-                    self.fix_and_strip_indent()
+                    if self.strip_trailing_spaces_on_modify:
+                        self.fix_and_strip_indent()
+                    else:
+                        self.fix_indent()
                     self.textCursor().endEditBlock()
                 elif self.is_completion_widget_visible():
                     self.select_completion_list()
@@ -3496,7 +3499,11 @@ class CodeEditor(TextEditBaseWidget):
 
                     self.textCursor().beginEditBlock()
                     insert_text(event)
-                    self.fix_and_strip_indent(comment_or_string=cmt_or_str)
+                    if self.strip_trailing_spaces_on_modify:
+                        self.fix_and_strip_indent(
+                            comment_or_string=cmt_or_str)
+                    else:
+                        self.fix_indent(comment_or_string=cmt_or_str)
                     self.textCursor().endEditBlock()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
