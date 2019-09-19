@@ -1201,3 +1201,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
             if 'code_snippets' in options:
                 code_snippets = self.get_option('code_snippets')
                 editorstack.set_code_snippets_enabled(code_snippets)
+
+            if 'enable_hover_hints' in options:
+                hover_hints = self.get_option('enable_hover_hints')
+                editorstack.set_hover_hints_enabled(hover_hints)
