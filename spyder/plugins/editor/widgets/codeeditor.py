@@ -582,7 +582,6 @@ class CodeEditor(TextEditBaseWidget):
     # --- Hover/Hints
     def _should_display_hover(self, point):
         """Check if a hover hint should be displayed:"""
-        print('_should_display_hover', self.hover_hints_enabled)
         return self.hover_hints_enabled and point and self.get_word_at(point)
 
     def _handle_hover(self):
@@ -1171,13 +1170,13 @@ class CodeEditor(TextEditBaseWidget):
         try:
             content = contents['params']
             self.sig_display_object_info.emit(content,
-                                                self._request_hover_clicked)
+                                              self._request_hover_clicked)
             if self._show_hint and self._last_point and content:
                 # This is located in spyder/widgets/mixins.py
                 word = self._last_hover_word,
                 content = content.replace(u'\xa0', ' ')
                 self.show_hint(content, inspect_word=word,
-                                at_point=self._last_point)
+                               at_point=self._last_point)
                 self._last_point = None
         except RuntimeError:
             # This is triggered when a codeeditor instance has been
