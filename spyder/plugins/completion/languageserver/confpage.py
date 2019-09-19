@@ -1218,7 +1218,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
         editor = self.main.editor
         editor_method_sec_opts = {
             'set_code_snippets_enabled': (self.CONF_SECTION, 'code_snippets'),
-            'set_hover_hints_enabled':  (self.CONF_SECTION, 'enable_hover_hints'),
+            'set_hover_hints_enabled':  (self.CONF_SECTION,
+                                         'enable_hover_hints'),
             'set_automatic_completions_enabled': ('editor',
                                                   'automatic_completions'),
             'set_completions_hint_enabled': ('editor', 'completions_hint'),
