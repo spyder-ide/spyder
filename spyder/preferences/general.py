@@ -105,7 +105,7 @@ class MainConfigPage(GeneralConfigPage):
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
-                                          0, 0, 30)
+                                          default=0, min_=0, max_=30)
         margin_box.toggled.connect(margin_spin.spinbox.setEnabled)
         margin_box.toggled.connect(margin_spin.slabel.setEnabled)
         margin_spin.spinbox.setEnabled(self.get_option('use_custom_margin'))

@@ -95,6 +95,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # workspace/didChangeConfiguration request.
         if not server_settings['external']:
             server_port = select_port(default_port=server_settings['port'])
+        else:
+            server_port = server_settings['port']
 
         self.transport_args = [sys.executable, '-u',
                                osp.join(LOCATION, 'transport', 'main.py')]
@@ -150,9 +152,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                 '--zmq-out-port', self.zmq_in_port]
 
         server_log = subprocess.PIPE
+        pid = os.getpid()
         if get_debug_level() > 0:
             # Create server log file
-            server_log_fname = 'server_{0}.log'.format(self.language)
+            server_log_fname = 'server_{0}_{1}.log'.format(self.language, pid)
             server_log_file = get_conf_path(osp.join('lsp_logs',
                                                      server_log_fname))
             if not osp.exists(osp.dirname(server_log_file)):
@@ -207,7 +210,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         client_log = subprocess.PIPE
         if get_debug_level() > 0:
             # Client log file
-            client_log_fname = 'client_{0}.log'.format(self.language)
+            client_log_fname = 'client_{0}_{1}.log'.format(self.language, pid)
             client_log_file = get_conf_path(osp.join('lsp_logs',
                                                      client_log_fname))
             if not osp.exists(osp.dirname(client_log_file)):

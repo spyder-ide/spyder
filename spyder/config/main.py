@@ -491,6 +491,7 @@ DEFAULTS = [
               'pydocstyle/ignore': '',
               'pydocstyle/match': '(?!test_).*\\.py',
               'pydocstyle/match_dir': '[^\\.].*',
+              'advanced/enabled': False,
               'advanced/module': 'pyls',
               'advanced/host': '127.0.0.1',
               'advanced/port': 2087,

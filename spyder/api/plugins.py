@@ -71,7 +71,7 @@ class BasePlugin(BasePluginMixin):
         super(BasePlugin, self)._show_status_message(message, timeout)
 
     @Slot(str, object)
-    def set_option(self, option, value):
+    def set_option(self, option, value, section=None):
         """
         Set an option in Spyder configuration file.
 
@@ -89,9 +89,9 @@ class BasePlugin(BasePluginMixin):
           same or another plugin.
         * CONF_SECTION needs to be defined for this to work.
         """
-        super(BasePlugin, self)._set_option(option, value)
+        super(BasePlugin, self)._set_option(option, value, section=section)
 
-    def get_option(self, option, default=NoDefault):
+    def get_option(self, option, default=NoDefault, section=None):
         """
         Get an option from Spyder configuration file.
 
@@ -105,7 +105,8 @@ class BasePlugin(BasePluginMixin):
         bool, int, str, tuple, list, dict
             Value associated with `option`.
         """
-        return super(BasePlugin, self)._get_option(option, default)
+        return super(BasePlugin, self)._get_option(option, default,
+                                                   section=section)
 
     def starting_long_process(self, message):
         """
