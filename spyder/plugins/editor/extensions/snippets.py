@@ -187,10 +187,10 @@ class SnippetsExtension(EditorExtension):
                     event.accept()
                 elif len(text) > 0:
                     if node is not None:
-                        if snippet is None:
+                        if snippet is None or text == '\n':
                             # Constant text identifier was modified
                             self.reset()
-                        else:
+                        elif text.isalnum() or text == '\b':
                             self._process_text(text)
 
     @lock
@@ -200,6 +200,8 @@ class SnippetsExtension(EditorExtension):
             # Update placeholder text node
             if text != '\b':
                 self.insert_text(text, line, column)
+            elif text == '\n':
+                self.reset()
             else:
                 self.delete_text(line, column)
             self._update_ast()
@@ -260,6 +262,9 @@ class SnippetsExtension(EditorExtension):
                 right_node = text_node_tokens[node_index + 1]
                 offset = 1
                 if left_node.mark_for_position:
+                    if not isinstance(left_node, nodes.LeafNode):
+                        self.reset()
+                        return
                     if left_node.name in MERGE_ALLOWED:
                         if left_node.name == right_node.name:
                             left_node.value = (
@@ -648,8 +653,7 @@ class SnippetsExtension(EditorExtension):
             return
         node, nearest_snippet, _ = self._find_node_by_position(line, col)
         if node is None:
-            # self.reset()
-            pass
+            self.reset()
         else:
             if nearest_snippet is not None:
                 self.active_snippet = nearest_snippet.number
@@ -740,17 +744,18 @@ class SnippetsExtension(EditorExtension):
         self.editor.request_signature()
 
     def _update_ast(self):
-        self.reset(partial_reset=True)
-        self.is_snippet_active = True
-        self.ast.compute_position(self.starting_position)
-        start_line, start_column = self.starting_position
-        visitor = SnippetSearcherVisitor(
-            start_line, start_column, self.node_number)
-        self.ast.accept(visitor)
-        self.snippets_map = visitor.snippet_map
-        self.update_position_tree(visitor)
-        self.editor.clear_extra_selections('code_snippets')
-        self.draw_snippets()
+        if self.starting_position is not None:
+            self.reset(partial_reset=True)
+            self.is_snippet_active = True
+            self.ast.compute_position(self.starting_position)
+            start_line, start_column = self.starting_position
+            visitor = SnippetSearcherVisitor(
+                start_line, start_column, self.node_number)
+            self.ast.accept(visitor)
+            self.snippets_map = visitor.snippet_map
+            self.update_position_tree(visitor)
+            self.editor.clear_extra_selections('code_snippets')
+            self.draw_snippets()
 
     def insert_snippet(self, text):
         line, column = self.editor.get_cursor_line_column()
