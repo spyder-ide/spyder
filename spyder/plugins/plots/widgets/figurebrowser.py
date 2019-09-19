@@ -913,8 +913,14 @@ class FigureThumbnail(QWidget):
         """
         colorname = self.canvas.palette().highlight().color().name()
         if highlight:
-            self.canvas.setStyleSheet(
-                    "FigureCanvas{border: 1px solid %s;}" % colorname)
+            # Highlighted figure is not clear in dark mode with blue color.
+            # See spyder-ide/spyder#10255.
+            if is_dark_interface():
+                self.canvas.setStyleSheet(
+                        "FigureCanvas{border: 2px solid %s;}" % "#148CD2")
+            else:
+                self.canvas.setStyleSheet(
+                        "FigureCanvas{border: 2px solid %s;}" % colorname)
         else:
             self.canvas.setStyleSheet("FigureCanvas{}")
 
