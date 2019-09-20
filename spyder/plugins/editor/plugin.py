@@ -2531,7 +2531,6 @@ class Editor(SpyderPluginWidget):
     #------ Options
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        print(options)
         if self.editorstacks is not None:
             # --- syntax highlight and text rendering settings
             color_scheme_n = 'color_scheme_name'
