@@ -264,8 +264,8 @@ class MainConfigPage(GeneralConfigPage):
         """
         Get selected language setting and save to language configuration file.
         """
-        for combobox, (option, _default) in list(self.comboboxes.items()):
-            if option == 'interface_language':
+        for combobox, (sec, opt, _default) in list(self.comboboxes.items()):
+            if opt == 'interface_language':
                 data = combobox.itemData(combobox.currentIndex())
                 value = from_qvariant(data, to_text_string)
                 break
