@@ -15,7 +15,7 @@ import logging
 import functools
 
 # Qt imports
-from qtpy.QtCore import Slot, QTimer
+from qtpy.QtCore import Slot
 
 # Local imports
 from spyder.config.manager import CONF
@@ -45,7 +45,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
                               self.COMPLETION_CLIENT_NAME))
-        self.main.restore_scrollbar_position.connect(self.restore_scrollbar_position)
+        self.main.sig_setup_finished.connect(self.mainwindow_setup_finished)
 
     @Slot(list)
     def http_client_ready(self, languages):
@@ -56,9 +56,10 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self._kite_onboarding()
 
     @Slot()
-    def restore_scrollbar_position(self):
+    def mainwindow_setup_finished(self):
         """
-        Called when the main window restores the scrollbar position, i.e. when it's shown
+        Called when the setup of the main window finished
+        to let us do onboarding if necessary
         :return:
         """
         self.main_window_visible = True
@@ -92,22 +93,22 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
 
     def _kite_onboarding(self):
         """
-        Opens the onboarding file, which is retrieved from the Kite HTTP endpoint.
-        This skips onboarding if onboarding is not possible yet or has already been displayed before.
+        Opens the onboarding file, which is retrieved
+        from the Kite HTTP endpoint. This skips onboarding if onboarding
+        is not possible yet or has already been displayed before.
         :return:
         """
         if not self.onboarding_shown \
                 and self.main_window_visible \
                 and self.kite_initialized \
-                and self.get_option('kite-show-onboarding', True):
-            logger.debug('kite: executing onboarding steps')
+                and self.get_option('kite_show_onboarding', True):
             onboarding_file = self.client.get_onboarding_file()
             if onboarding_file is None:
                 # fixme: show onboarding notification
                 pass
             else:
-                self.set_option('kite-show-onboarding', False)
-                QTimer.singleShot(500, lambda: self.main.editor.load(onboarding_file))
+                self.set_option('kite_show_onboarding', False)
+                self.main.open_file(onboarding_file)
 
     def _check_if_kite_installed(self):
         path = ''
