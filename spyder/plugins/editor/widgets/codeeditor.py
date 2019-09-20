@@ -355,6 +355,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Typing keys / handling on the fly completions
         # See: keyPressEvent
+        self._last_key_pressed_text = ''
         self.automatic_completions_after_chars = 3
         self.automatic_completions_after_ms = 300
         self._timer_key_press = QTimer(self)
@@ -3622,6 +3623,8 @@ class CodeEditor(TextEditBaseWidget):
         elif not event.isAccepted():
             insert_text(event)
 
+        self._last_key_pressed_text = text
+
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent
             # Modifiers should be passed to the parent because they
@@ -3634,13 +3637,15 @@ class CodeEditor(TextEditBaseWidget):
         cursor.select(QTextCursor.WordUnderCursor)
         text = to_text_string(cursor.selectedText())
 
-        if len(text) > self.automatic_completions_after_chars:
+        if (len(text) > self.automatic_completions_after_chars
+                and self._last_key_pressed_text):
             self.document_did_change(text)            
 
             # Perform completion on the fly
             if self.automatic_completions and not self.in_comment_or_string():
                 if text.isalpha():
                     self.do_completion(automatic=True)
+                    self._last_key_pressed_text = ''
 
     def fix_and_strip_indent(self, comment_or_string=False):
         """Automatically fix indent and strip previous automatic indent."""

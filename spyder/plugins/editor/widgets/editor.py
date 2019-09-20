@@ -1189,7 +1189,7 @@ class EditorStack(QWidget):
         self.automatic_completions_after_ms = ms
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_automatic_completions_after_chars(ms)
+                finfo.editor.set_automatic_completions_after_ms(ms)
 
     def set_completions_hint_enabled(self, state):
         self.completions_hint_enabled = state
