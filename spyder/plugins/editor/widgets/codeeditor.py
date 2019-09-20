@@ -355,9 +355,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Typing keys / handling on the fly completions
         # See: keyPressEvent
-        self._last_key_pressed_text = ''
+        self.automatic_completions_after_chars = 3
+        self.automatic_completions_after_ms = 300
         self._timer_key_press = QTimer(self)
-        self._timer_key_press.setInterval(300)
         self._timer_key_press.setSingleShot(True)
         self._timer_key_press.timeout.connect(self._handle_completions)
 
@@ -771,6 +771,8 @@ class CodeEditor(TextEditBaseWidget):
                      strip_mode=False,
                      intelligent_backspace=True,
                      automatic_completions=True,
+                     automatic_completions_after_chars=3,
+                     automatic_completions_after_ms=300,
                      completions_hint=True,
                      hover_hints=True,
                      code_snippets=True,
@@ -862,6 +864,10 @@ class CodeEditor(TextEditBaseWidget):
 
         # Automatic completions
         self.toggle_automatic_completions(automatic_completions)
+        self.set_automatic_completions_after_chars(
+            automatic_completions_after_chars)
+        self.set_automatic_completions_after_ms(
+            automatic_completions_after_ms)
 
         # Completions hint
         self.toggle_completions_hint(completions_hint)
@@ -1310,6 +1316,18 @@ class CodeEditor(TextEditBaseWidget):
     def toggle_completions_hint(self, state):
         """Enable/disable completion hint."""
         self.completions_hint = state
+
+    def set_automatic_completions_after_chars(self, number):
+        """
+        Set the number of characters after which auto completion is fired.
+        """
+        self.automatic_completions_after_chars = number
+
+    def set_automatic_completions_after_ms(self, ms):
+        """
+        Set the amount of time in ms after which auto completion is fired.
+        """
+        self.automatic_completions_after_ms = ms
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
@@ -3427,7 +3445,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
-        self._timer_key_press.start()
+        self._timer_key_press.start(self.automatic_completions_after_ms)
 
         def insert_text(event):
             TextEditBaseWidget.keyPressEvent(self, event)
@@ -3604,7 +3622,6 @@ class CodeEditor(TextEditBaseWidget):
         elif not event.isAccepted():
             insert_text(event)
 
-        self._last_key_pressed_text = text
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent
             # Modifiers should be passed to the parent because they
@@ -3613,11 +3630,12 @@ class CodeEditor(TextEditBaseWidget):
 
     def _handle_completions(self):
         """Handle on the fly completions with a delay."""
-        text = self._last_key_pressed_text
-        if len(text) > 3:
-            self.document_did_change(text)
-            cursor = self.textCursor()
-            cursor.select(QTextCursor.WordUnderCursor)
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.WordUnderCursor)
+        text = to_text_string(cursor.selectedText())
+
+        if len(text) > self.automatic_completions_after_chars:
+            self.document_did_change(text)            
 
             # Perform completion on the fly
             if self.automatic_completions and not self.in_comment_or_string():

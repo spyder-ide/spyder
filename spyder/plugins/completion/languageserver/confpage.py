@@ -696,6 +696,11 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # Completion group
         completion_label = QLabel(_('Some text for this section!'))
         completion_box = newcb(_("Enable code completion"), 'code_completion')
+        automatic_completion_box = newcb(_("Show completions on the fly"),
+                                         'automatic_completions',
+                                         section='editor')
+        completion_hint_box = newcb(_("Show completion details"),
+                                    'completions_hint', section='editor')
         code_snippets_box = newcb(_("Enable code snippets"), 'code_snippets')
         enable_hover_hints_box = newcb(
             _("Enable hover hints"),
@@ -703,26 +708,41 @@ class LanguageServerConfigPage(GeneralConfigPage):
             tip=_("If enabled, hovering the mouse pointer over an object\n"
                   "name will display that object's signature and/or\n"
                   "docstring (if present)."))
+        automatic_completion_box = newcb(_("Show completions on the fly"),
+                                         'automatic_completions',
+                                         section='editor')
+        completion_hint_box = newcb(_("Show completion details"),
+                                    'completions_hint', section='editor')
         completions_after_characters = self.create_spinbox(
-            _("Show completions after characters:"), None,
+            _("Show automatic completions after characters:"), None,
             'automatic_completions_after_chars', min_=1, step=1,
             tip=_("Default is 3"), section='editor')
         completions_after_ms = self.create_spinbox(
-            _("Show completions after keyboard idle (ms):"), None,
-            'automatic_completions_after_ms', min_=300, step=10,
+            _("Show automatic completions after keyboard idle (ms):"), None,
+            'automatic_completions_after_ms', min_=200, max_=5000, step=10,
             tip=_("Default is 300"), section='editor')
 
         completion_layout = QGridLayout()
         completion_layout.addWidget(completion_label, 0, 0)
         completion_layout.addWidget(completion_box, 1, 0)
-        completion_layout.addWidget(code_snippets_box, 2, 0)
-        completion_layout.addWidget(enable_hover_hints_box, 3, 0)
+        completion_layout.addWidget(completion_hint_box, 2, 0)
+        completion_layout.addWidget(automatic_completion_box, 3, 0)
         completion_layout.addWidget(completions_after_characters.plabel, 4, 0)
         completion_layout.addWidget(completions_after_characters.spinbox, 4, 1)
         completion_layout.addWidget(completions_after_ms.plabel, 5, 0)
         completion_layout.addWidget(completions_after_ms.spinbox, 5, 1)
+        completion_layout.addWidget(code_snippets_box, 6, 0)
+        completion_layout.addWidget(enable_hover_hints_box, 7, 0)
+        completion_layout.setColumnStretch(2, 5)
         completion_widget = QWidget()
         completion_widget.setLayout(completion_layout)
+
+        completion_box.toggled.connect(automatic_completion_box.setEnabled)
+        completion_box.toggled.connect(completion_hint_box.setEnabled)
+        completion_box.toggled.connect(
+            completions_after_characters.spinbox.setEnabled)
+        completion_box.toggled.connect(
+            completions_after_ms.spinbox.setEnabled)
 
         # --- Introspection ---
         # Introspection group
@@ -742,6 +762,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
         introspection_layout.addWidget(follow_imports_box)
         introspection_layout.addWidget(show_signature_box)
         introspection_group.setLayout(introspection_layout)
+
+        goto_definition_box.toggled.connect(follow_imports_box.setEnabled)
 
         # Advanced group
         advanced_group = QGroupBox(_("Advanced"))
@@ -766,16 +788,27 @@ class LanguageServerConfigPage(GeneralConfigPage):
                                  "code in the editor."))
         linting_label.setOpenExternalLinks(True)
         linting_label.setWordWrap(True)
-        linting_check = newcb(_("Enable basic linting"),'pyflakes')
-        linting_complexity_box = newcb(_("Enable complexity linting with "
-                                         "the Mccabe package"), 'mccabe')
+        linting_check = self.create_checkbox(
+            _("Enable basic linting"),
+            'pyflakes')
+        underline_errors_box = newcb(
+            _("Underline errors and warnings"),
+            'underline_errors',
+            section='editor')
+        linting_complexity_box = self.create_checkbox(
+            _("Enable complexity linting with the Mccabe package"),
+            'mccabe')
+
         # Linting layout
         linting_layout = QVBoxLayout()
         linting_layout.addWidget(linting_label)
         linting_layout.addWidget(linting_check)
+        linting_layout.addWidget(underline_errors_box)
         linting_layout.addWidget(linting_complexity_box)
         linting_widget = QWidget()
         linting_widget.setLayout(linting_layout)
+
+        linting_check.toggled.connect(underline_errors_box.setEnabled)
 
         # --- Code style tab ---
         # Code style label
@@ -1202,23 +1235,38 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
             if name in options:
+                section = self.CONF_SECTION
+                if name == 'underline_errors':
+                    section = 'editor'
+
+                state = self.get_option(name, section=section)
+
                 # Avoid triggering the action when this action changes state
+                # See: spyder-ide/spyder#9915
                 action.blockSignals(True)
-                state = self.get_option(name)
                 action.setChecked(state)
                 action.blockSignals(False)
-                # See: spyder-ide/spyder#9915
-                # action.trigger()
 
         # TODO: Reset Manager
         self.main.completions.update_configuration()
 
+        # Update editor plugin options
         editor = self.main.editor
+        editor_method_sec_opts = {
+            'set_code_snippets_enabled': (self.CONF_SECTION, 'code_snippets'),
+            'set_hover_hints_enabled':  (self.CONF_SECTION,
+                                         'enable_hover_hints'),
+            'set_automatic_completions_enabled': ('editor',
+                                                  'automatic_completions'),
+            'set_completions_hint_enabled': ('editor', 'completions_hint'),
+            'set_underline_errors_enabled': ('editor', 'underline_errors'),
+            'set_automatic_completions_after_chars': (
+                'editor', 'automatic_completions_after_chars'),
+            'set_automatic_completions_after_ms': (
+                'editor', 'automatic_completions_after_ms'),
+        }
         for editorstack in editor.editorstacks:
-            if 'code_snippets' in options:
-                code_snippets = self.get_option('code_snippets')
-                editorstack.set_code_snippets_enabled(code_snippets)
-
-            if 'enable_hover_hints' in options:
-                hover_hints = self.get_option('enable_hover_hints')
-                editorstack.set_hover_hints_enabled(hover_hints)
+            for method_name, (sec, opt) in editor_method_sec_opts.items():
+                if opt in options:
+                    method = getattr(editorstack, method_name)
+                    method(self.get_option(opt, section=sec))
