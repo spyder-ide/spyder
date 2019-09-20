@@ -22,7 +22,7 @@ from spyder.py3compat import to_text_string
 from spyder.widgets.helperwidgets import HTMLDelegate
 
 
-COMPLETION_ITEM_TEMPLATE = """
+COMPLETION_ITEM_TEMPLATE = u"""
 <table width="{width}" height="{height}">
     <tr>
         <td valign="middle" style="color:{color}">
