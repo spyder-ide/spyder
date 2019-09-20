@@ -47,9 +47,12 @@ class KiteStatus(BaseTimerStatus):
             if client_status:
                 kite_status = client_status.short
                 self.tooltip = client_status.long
+                if (client_status.status == 'ready'
+                        or client_status.status == 'unsupported'):
+                    self.open_file_updated = False
             else:
                 kite_status = 'not reacheable'
-            self.open_file_updated = False
+                self.open_file_updated = False
         text = '𝕜𝕚𝕥𝕖: {}'.format(kite_status)
         kite_enabled = self.plugin.get_option('enable', True)
         self.setVisible(kite_status != NOT_INSTALLED or kite_enabled)
