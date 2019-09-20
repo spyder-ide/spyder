@@ -36,7 +36,8 @@ from spyder.plugins.completion.languageserver.decorators import (
 from spyder.plugins.completion.languageserver.transport import MessageKind
 from spyder.plugins.completion.languageserver.providers import (
     LSPMethodProviderMixIn)
-from spyder.utils.misc import getcwd_or_home, select_port
+from spyder.utils.misc import (getcwd_or_home, select_port,
+                               check_connection_port)
 
 # Conditional imports
 if PY2:
@@ -123,6 +124,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         transport_args = transport_args_fmt.format(
             host=server_settings['host'],
             port=server_port)
+        self.server_host = server_settings['host']
+        self.server_port = server_port
 
         self.server_args = []
         if language == 'python':
@@ -206,6 +209,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 stdin=server_stdin,
                 stderr=server_stderr,
                 creationflags=creation_flags)
+        else:
+            # Check connection to lsp server using a TCP socket
+            response = check_connection_port(self.server_host,
+                                             self.server_port)
+            if not response:
+                # TODO: start a new server
+                pass
 
         client_log = subprocess.PIPE
         if get_debug_level() > 0:
