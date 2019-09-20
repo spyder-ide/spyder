@@ -159,8 +159,6 @@ class Editor(SpyderPluginWidget):
 
         # Completions setup
         self.completion_editor_settings = {}
-        self.open_file_update.connect(
-            lambda filename: self.main.completions.get_client('kite').open_file_update())
 
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
@@ -320,6 +318,12 @@ class Editor(SpyderPluginWidget):
     def send_completion_request(self, language, request, params):
         logger.debug("%s completion server request: %r" % (language, request))
         self.main.completions.send_request(language, request, params)
+
+    def kite_completions_file_status(self):
+        """Connect open file update to Kite completion."""
+        self.open_file_update.connect(
+            lambda filename: self.main.completions.get_client('kite').
+            open_file_update())
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):

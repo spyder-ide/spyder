@@ -76,7 +76,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
 
     def open_file_update(self):
         """Current opened file changed."""
-        self.client.open_file_updated = True
+        self.kite_status.open_file_updated = True
 
     def get_kite_status(self):
         """

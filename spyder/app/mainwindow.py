@@ -1392,6 +1392,9 @@ class MainWindow(QMainWindow):
             if self.projects.get_active_project() is None:
                 self.editor.setup_open_files()
 
+        # Connect Editor to Kite completions plugin status
+        self.editor.kite_completions_file_status()
+
         # Setup menus
         self.setup_menus()
 

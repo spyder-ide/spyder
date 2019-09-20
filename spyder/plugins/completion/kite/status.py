@@ -51,9 +51,7 @@ class KiteStatus(BaseTimerStatus):
                 kite_status = 'not reacheable'
             self.open_file_updated = False
         text = '𝕜𝕚𝕥𝕖: {}'.format(kite_status)
-        # TODO: Use Kite enable preference to update visibility
-        # of the status bar
-        kite_enabled = True
+        kite_enabled = self.plugin.get_option('enable', True)
         self.setVisible(kite_status != NOT_INSTALLED or kite_enabled)
 
         return text
