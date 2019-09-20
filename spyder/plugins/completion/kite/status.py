@@ -45,10 +45,10 @@ class KiteStatus(BaseTimerStatus):
         if kite_status == RUNNING and self.open_file_updated:
             client_status = self.plugin.get_kite_status()
             if client_status:
-                kite_status = client_status.short
-                self.tooltip = client_status.long
-                if (client_status.status == 'ready'
-                        or client_status.status == 'unsupported'):
+                kite_status = client_status['short']
+                self.tooltip = client_status['long']
+                if (client_status['status'] == 'ready'
+                        or client_status['status'] == 'unsupported'):
                     self.open_file_updated = False
             else:
                 kite_status = 'not reacheable'

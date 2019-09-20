@@ -84,6 +84,5 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         """
         if self.main:
             filename = self.main.editor.get_current_filename()
-            saved = (not self.main.editor.get_current_finfo().
-                     editor.document().isModified())
-            self.client.get_status(filename, saved=saved)
+            saved = not self.main.editor.is_current_file_modified()
+            return self.client.get_status(filename, saved=saved)
