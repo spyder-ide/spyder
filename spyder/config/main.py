@@ -205,6 +205,8 @@ DEFAULTS = [
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'automatic_completions': True,
+              'automatic_completions_after_chars': 3,
+              'automatic_completions_after_ms': 300,
               'completions_hint': True,
               'underline_errors': False,
               'highlight_current_line': True,
