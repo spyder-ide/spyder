@@ -3445,8 +3445,9 @@ class CodeEditor(TextEditBaseWidget):
             return super(CodeEditor, self).event(event)
 
     def keyPressEvent(self, event):
-        """Reimplement Qt method"""
-        self._timer_key_press.start(self.automatic_completions_after_ms)
+        """Reimplement Qt method."""
+        if self.automatic_completions_after_ms > 0:
+            self._timer_key_press.start(self.automatic_completions_after_ms)
 
         def insert_text(event):
             TextEditBaseWidget.keyPressEvent(self, event)
@@ -3624,6 +3625,8 @@ class CodeEditor(TextEditBaseWidget):
             insert_text(event)
 
         self._last_key_pressed_text = text
+        if self.automatic_completions_after_ms == 0:
+            self._handle_completions()
 
         if not event.modifiers():
             # Accept event to avoid it being handled by the parent

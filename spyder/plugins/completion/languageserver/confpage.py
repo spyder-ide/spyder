@@ -694,7 +694,6 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         # --- Completion ---
         # Completion group
-        completion_label = QLabel(_('Some text for this section!'))
         self.completion_box = newcb(_("Enable code completion"),
                                     'code_completion')
         self.completion_hint_box = newcb(
@@ -706,34 +705,26 @@ class LanguageServerConfigPage(GeneralConfigPage):
             'automatic_completions',
             section='editor')
         self.completions_after_characters = self.create_spinbox(
-            _("Show automatic completions after characters:"), None,
+            _("Show automatic completions after characters entered:"), None,
             'automatic_completions_after_chars', min_=1, step=1,
             tip=_("Default is 3"), section='editor')
         self.completions_after_ms = self.create_spinbox(
             _("Show automatic completions after keyboard idle (ms):"), None,
-            'automatic_completions_after_ms', min_=200, max_=5000, step=10,
+            'automatic_completions_after_ms', min_=0, max_=5000, step=10,
             tip=_("Default is 300"), section='editor')
         code_snippets_box = newcb(_("Enable code snippets"), 'code_snippets')
-        enable_hover_hints_box = newcb(
-            _("Enable hover hints"),
-            'enable_hover_hints',
-            tip=_("If enabled, hovering the mouse pointer over an object\n"
-                  "name will display that object's signature and/or\n"
-                  "docstring (if present)."))
 
         completion_layout = QGridLayout()
-        completion_layout.addWidget(completion_label, 0, 0)
-        completion_layout.addWidget(self.completion_box, 1, 0)
-        completion_layout.addWidget(self.completion_hint_box, 2, 0)
-        completion_layout.addWidget(self.automatic_completion_box, 3, 0)
+        completion_layout.addWidget(self.completion_box, 0, 0)
+        completion_layout.addWidget(self.completion_hint_box, 1, 0)
+        completion_layout.addWidget(self.automatic_completion_box, 2, 0)
         completion_layout.addWidget(self.completions_after_characters.plabel,
-                                    4, 0)
+                                    3, 0)
         completion_layout.addWidget(self.completions_after_characters.spinbox,
-                                    4, 1)
-        completion_layout.addWidget(self.completions_after_ms.plabel, 5, 0)
-        completion_layout.addWidget(self.completions_after_ms.spinbox, 5, 1)
-        completion_layout.addWidget(code_snippets_box, 6, 0)
-        completion_layout.addWidget(enable_hover_hints_box, 7, 0)
+                                    3, 1)
+        completion_layout.addWidget(self.completions_after_ms.plabel, 4, 0)
+        completion_layout.addWidget(self.completions_after_ms.spinbox, 4, 1)
+        completion_layout.addWidget(code_snippets_box, 5, 0)
         completion_layout.setColumnStretch(2, 5)
         completion_widget = QWidget()
         completion_widget.setLayout(completion_layout)
@@ -755,10 +746,17 @@ class LanguageServerConfigPage(GeneralConfigPage):
                                      "definition"),
                                    'jedi_definition/follow_imports')
         show_signature_box = newcb(_("Show calltips"), 'jedi_signature_help')
+        enable_hover_hints_box = newcb(
+            _("Enable hover hints"),
+            'enable_hover_hints',
+            tip=_("If enabled, hovering the mouse pointer over an object\n"
+                  "name will display that object's signature and/or\n"
+                  "docstring (if present)."))
         introspection_layout = QVBoxLayout()
         introspection_layout.addWidget(goto_definition_box)
         introspection_layout.addWidget(follow_imports_box)
         introspection_layout.addWidget(show_signature_box)
+        introspection_layout.addWidget(enable_hover_hints_box)
         introspection_group.setLayout(introspection_layout)
 
         goto_definition_box.toggled.connect(follow_imports_box.setEnabled)
@@ -1101,9 +1099,9 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.tabs = QTabWidget()
         self.tabs.addTab(self.create_tab(completion_widget),
                          _('Completion'))
+        self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
         self.tabs.addTab(self.create_tab(introspection_group, advanced_group),
                          _('Introspection'))
-        self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
         self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
         self.tabs.addTab(self.create_tab(docstring_style_widget),
                          _('Docstring style'))
