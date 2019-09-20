@@ -718,8 +718,6 @@ class LanguageServerConfigPage(GeneralConfigPage):
                                      "definition"),
                                    'jedi_definition/follow_imports')
         show_signature_box = newcb(_("Show calltips"), 'jedi_signature_help')
-        underline_errors_box = newcb(_("Underline errors and warnings"),
-                                     'underline_errors', section='editor')
 
         basic_features_layout = QVBoxLayout()
         basic_features_layout.addWidget(completion_box)
@@ -730,7 +728,6 @@ class LanguageServerConfigPage(GeneralConfigPage):
         basic_features_layout.addWidget(goto_definition_box)
         basic_features_layout.addWidget(follow_imports_box)
         basic_features_layout.addWidget(show_signature_box)
-        basic_features_layout.addWidget(underline_errors_box)
         basic_features_group.setLayout(basic_features_layout)
 
         completion_box.toggled.connect(automatic_completion_box.setEnabled)
@@ -763,18 +760,24 @@ class LanguageServerConfigPage(GeneralConfigPage):
         linting_check = self.create_checkbox(
             _("Enable basic linting"),
             'pyflakes')
-
+        underline_errors_box = newcb(
+            _("Underline errors and warnings"),
+            'underline_errors',
+            section='editor')
         linting_complexity_box = self.create_checkbox(
-            _("Enable complexity linting with "
-              "the Mccabe package"), 'mccabe')
+            _("Enable complexity linting with the Mccabe package"),
+            'mccabe')
 
         # Linting layout
         linting_layout = QVBoxLayout()
         linting_layout.addWidget(linting_label)
         linting_layout.addWidget(linting_check)
+        linting_layout.addWidget(underline_errors_box)
         linting_layout.addWidget(linting_complexity_box)
         linting_widget = QWidget()
         linting_widget.setLayout(linting_layout)
+
+        linting_check.toggled.connect(underline_errors_box.setEnabled)
 
         # --- Code style tab ---
         # Code style label
