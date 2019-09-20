@@ -9,6 +9,7 @@
 # Standard library imports
 import copy
 import functools
+import inspect
 
 # Third party imports
 from qtpy.QtGui import QTextCursor, QColor
@@ -88,6 +89,7 @@ class SnippetsExtension(EditorExtension):
         self.starting_position = None
         self.modification_lock = QMutex()
         self.event_lock = QMutex()
+        self.update_lock = QMutex()
         self.node_position = {}
         self.snippets_map = {}
         self.undo_stack = []
@@ -166,7 +168,7 @@ class SnippetsExtension(EditorExtension):
                         num_pops += len(data)
             if len(self.redo_stack) > 0:
                 for _ in range(num_pops):
-                    if len(self.undo_stack) == 0:
+                    if len(self.redo_stack) == 0:
                         break
                     info = self.redo_stack.pop(0)
                     ast_copy = copy.deepcopy(self.ast)
@@ -681,9 +683,20 @@ class SnippetsExtension(EditorExtension):
     def cursor_changed(self, line, col):
         if not rtree_available:
             return
+        # with QMutexLocker(self.reset_lock):
+        ignore_calls = {'undo', 'redo'}
         node, nearest_snippet, _ = self._find_node_by_position(line, col)
         if node is None:
-            self.reset()
+            stack = inspect.stack()
+            ignore = False
+            # Check if parent call was due to text update on codeeditor
+            # caused by a undo/redo call
+            for call in stack:
+                if call[3] in ignore_calls:
+                    ignore = True
+                    break
+            if not ignore:
+                self.reset()
         else:
             if nearest_snippet is not None:
                 self.active_snippet = nearest_snippet.number
