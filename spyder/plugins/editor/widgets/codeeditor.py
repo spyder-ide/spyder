@@ -3637,7 +3637,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor.select(QTextCursor.WordUnderCursor)
         text = to_text_string(cursor.selectedText())
 
-        if (len(text) > self.automatic_completions_after_chars
+        if (len(text) >= self.automatic_completions_after_chars
                 and self._last_key_pressed_text):
             self.document_did_change(text)
 
