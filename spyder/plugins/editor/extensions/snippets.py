@@ -182,6 +182,9 @@ class SnippetsExtension(EditorExtension):
                     next_snippet = ((self.active_snippet + 1) %
                                     len(self.snippets_map))
                     self.select_snippet(next_snippet)
+
+                    if next_snippet == 0:
+                        self.reset()
                 elif key == Qt.Key_Escape:
                     self.reset()
                     event.accept()
