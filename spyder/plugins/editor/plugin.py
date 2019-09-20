@@ -2531,6 +2531,7 @@ class Editor(SpyderPluginWidget):
     #------ Options
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
+        print(options)
         if self.editorstacks is not None:
             # --- syntax highlight and text rendering settings
             color_scheme_n = 'color_scheme_name'
@@ -2621,6 +2622,16 @@ class Editor(SpyderPluginWidget):
 
 
             for editorstack in self.editorstacks:
+                # Checkable options
+                if blanks_n in options:
+                    editorstack.set_blanks_enabled(blanks_o)
+                if scrollpastend_n in options:
+                    editorstack.set_scrollpastend_enabled(scrollpastend_o)
+                if indentguides_n in options:
+                    editorstack.set_indent_guides(indentguides_o)
+                if classfuncdropdown_n in options:
+                    editorstack.set_classfunc_dropdown_visible(classfuncdropdown_o)
+
                 if tabbar_n in options:
                     editorstack.set_tabbar_visible(tabbar_o)
                 if linenb_n in options:
@@ -2677,7 +2688,6 @@ class Editor(SpyderPluginWidget):
                     action.setChecked(state)
                     action.blockSignals(False)
                     # See: spyder-ide/spyder#9915
-                    # action.trigger()
 
             # Multiply by 1000 to convert seconds to milliseconds
             self.autosave.interval = (
