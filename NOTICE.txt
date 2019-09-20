@@ -1749,7 +1749,7 @@ spyder/images/binary.svg
 
 
 Icons for Kite Completions Plugin
-----------------------------
+---------------------------------
 
 
 Copyright (c) 2019 Kite

@@ -159,6 +159,8 @@ class Editor(SpyderPluginWidget):
 
         # Completions setup
         self.completion_editor_settings = {}
+        self.open_file_update.connect(
+            lambda filename: self.main.completions.get_client('kite').open_file_update())
 
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)

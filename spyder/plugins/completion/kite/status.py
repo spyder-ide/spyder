@@ -22,7 +22,10 @@ logger = logging.getLogger(__name__)
 class KiteStatus(BaseTimerStatus):
     """Status bar widget for Kite completions status."""
 
-    def __init__(self, parent, statusbar):
+    def __init__(self, parent, statusbar, plugin):
+        self.plugin = plugin
+        self.tooltip = _("Kite completions status")
+        self.open_file_updated = True
         super(KiteStatus, self).__init__(parent, statusbar,
                                          icon=ima.get_kite_icon())
 
@@ -34,16 +37,27 @@ class KiteStatus(BaseTimerStatus):
             logger.debug('Error while fetching Kite status: {0}'.format(e))
             raise ImportError
 
-    def get_value(self):
+    def get_value(self, filename=None, saved=False):
         """Return Kite completions state."""
         from spyder.plugins.completion.kite.utils.status import (
-            status, NOT_INSTALLED)
+            status, NOT_INSTALLED, RUNNING)
         kite_status = status()
-        # TODO: Use enable preference to update visibility of the status bar
-        self.setVisible(kite_status != NOT_INSTALLED)
+        if kite_status == RUNNING and self.open_file_updated:
+            client_status = self.plugin.get_kite_status()
+            if client_status:
+                kite_status = client_status.short
+                self.tooltip = client_status.long
+            else:
+                kite_status = 'not reacheable'
+            self.open_file_updated = False
         text = '𝕜𝕚𝕥𝕖: {}'.format(kite_status)
+        # TODO: Use Kite enable preference to update visibility
+        # of the status bar
+        kite_enabled = True
+        self.setVisible(kite_status != NOT_INSTALLED or kite_enabled)
+
         return text
 
     def get_tooltip(self):
         """Return localized tool tip for widget."""
-        return _("Kite completions status")
+        return self.tooltip

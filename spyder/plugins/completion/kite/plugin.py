@@ -36,7 +36,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client = KiteClient(None, enable_code_snippets)
         self.kite_process = None
         statusbar = parent.statusBar()  # MainWindow status bar
-        self.kite_status = KiteStatus(None, statusbar)
+        self.kite_status = KiteStatus(None, statusbar, self)
         self.client.sig_client_started.connect(self.http_client_ready)
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
@@ -73,3 +73,17 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def update_configuration(self):
         enable_code_snippets = CONF.get('lsp-server', 'code_snippets')
         self.client.enable_code_snippets = enable_code_snippets
+
+    def open_file_update(self):
+        """Current opened file changed."""
+        self.client.open_file_updated = True
+
+    def get_kite_status(self):
+        """
+        Get Kite status taking into account the current file in the Editor.
+        """
+        if self.main:
+            filename = self.main.editor.get_current_filename()
+            saved = (not self.main.editor.get_current_finfo().
+                     editor.document().isModified())
+            self.client.get_status(filename, saved=saved)
