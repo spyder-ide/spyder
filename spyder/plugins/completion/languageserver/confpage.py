@@ -692,9 +692,9 @@ class LanguageServerConfigPage(GeneralConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
 
-        # --- Introspection ---
-        # Basic features group
-        basic_features_group = QGroupBox(_("Basic features"))
+        # --- Completion ---
+        # Completion group
+        completion_label = QLabel(_('Some text for this section!'))
         completion_box = newcb(_("Enable code completion"), 'code_completion')
         code_snippets_box = newcb(_("Enable code snippets"), 'code_snippets')
         enable_hover_hints_box = newcb(
@@ -703,6 +703,30 @@ class LanguageServerConfigPage(GeneralConfigPage):
             tip=_("If enabled, hovering the mouse pointer over an object\n"
                   "name will display that object's signature and/or\n"
                   "docstring (if present)."))
+        completions_after_characters = self.create_spinbox(
+            _("Show completions after characters:"), None,
+            'automatic_completions_after_chars', min_=1, step=1,
+            tip=_("Default is 3"), section='editor')
+        completions_after_ms = self.create_spinbox(
+            _("Show completions after keyboard idle (ms):"), None,
+            'automatic_completions_after_ms', min_=300, step=10,
+            tip=_("Default is 300"), section='editor')
+
+        completion_layout = QGridLayout()
+        completion_layout.addWidget(completion_label, 0, 0)
+        completion_layout.addWidget(completion_box, 1, 0)
+        completion_layout.addWidget(code_snippets_box, 2, 0)
+        completion_layout.addWidget(enable_hover_hints_box, 3, 0)
+        completion_layout.addWidget(completions_after_characters.plabel, 4, 0)
+        completion_layout.addWidget(completions_after_characters.spinbox, 4, 1)
+        completion_layout.addWidget(completions_after_ms.plabel, 5, 0)
+        completion_layout.addWidget(completions_after_ms.spinbox, 5, 1)
+        completion_widget = QWidget()
+        completion_widget.setLayout(completion_layout)
+
+        # --- Introspection ---
+        # Introspection group
+        introspection_group = QGroupBox(_("Basic features"))
         goto_definition_box = newcb(
             _("Enable Go to definition"),
             'jedi_definition',
@@ -713,15 +737,11 @@ class LanguageServerConfigPage(GeneralConfigPage):
                                      "definition"),
                                    'jedi_definition/follow_imports')
         show_signature_box = newcb(_("Show calltips"), 'jedi_signature_help')
-
-        basic_features_layout = QVBoxLayout()
-        basic_features_layout.addWidget(completion_box)
-        basic_features_layout.addWidget(code_snippets_box)
-        basic_features_layout.addWidget(enable_hover_hints_box)
-        basic_features_layout.addWidget(goto_definition_box)
-        basic_features_layout.addWidget(follow_imports_box)
-        basic_features_layout.addWidget(show_signature_box)
-        basic_features_group.setLayout(basic_features_layout)
+        introspection_layout = QVBoxLayout()
+        introspection_layout.addWidget(goto_definition_box)
+        introspection_layout.addWidget(follow_imports_box)
+        introspection_layout.addWidget(show_signature_box)
+        introspection_group.setLayout(introspection_layout)
 
         # Advanced group
         advanced_group = QGroupBox(_("Advanced"))
@@ -746,14 +766,9 @@ class LanguageServerConfigPage(GeneralConfigPage):
                                  "code in the editor."))
         linting_label.setOpenExternalLinks(True)
         linting_label.setWordWrap(True)
-        linting_check = self.create_checkbox(
-            _("Enable basic linting"),
-            'pyflakes')
-
-        linting_complexity_box = self.create_checkbox(
-            _("Enable complexity linting with "
-              "the Mccabe package"), 'mccabe')
-
+        linting_check = newcb(_("Enable basic linting"),'pyflakes')
+        linting_complexity_box = newcb(_("Enable complexity linting with "
+                                         "the Mccabe package"), 'mccabe')
         # Linting layout
         linting_layout = QVBoxLayout()
         linting_layout.addWidget(linting_label)
@@ -1053,7 +1068,9 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         # --- Tabs organization ---
         self.tabs = QTabWidget()
-        self.tabs.addTab(self.create_tab(basic_features_group, advanced_group),
+        self.tabs.addTab(self.create_tab(completion_widget),
+                    _('Completion'))
+        self.tabs.addTab(self.create_tab(introspection_group, advanced_group),
                     _('Introspection'))
         self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
         self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))

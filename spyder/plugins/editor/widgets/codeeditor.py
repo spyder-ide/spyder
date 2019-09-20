@@ -3614,7 +3614,7 @@ class CodeEditor(TextEditBaseWidget):
     def _handle_completions(self):
         """Handle on the fly completions with a delay."""
         text = self._last_key_pressed_text
-        if len(text) > 0:
+        if len(text) > 3:
             self.document_did_change(text)
             cursor = self.textCursor()
             cursor.select(QTextCursor.WordUnderCursor)
