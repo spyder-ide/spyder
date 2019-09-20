@@ -132,7 +132,8 @@ class DocumentProvider:
                         text = children['snippet']['text']
                         snippet = convert_text_snippet(children['snippet'])
                         child_entry = {
-                            'kind': CompletionItemKind.SNIPPET,
+                            'kind': KITE_DOCUMENT_TYPES.get(
+                                children['hint'], CompletionItemKind.TEXT),
                             'label': text,
                             'insertText': snippet,
                             'filterText': text,

@@ -13,6 +13,7 @@ import functools
 # Third party imports
 from qtpy.QtGui import QTextCursor, QColor
 from qtpy.QtCore import Qt, QMutex, QMutexLocker
+from diff_match_patch import diff_match_patch
 
 try:
     from rtree import index
@@ -27,6 +28,7 @@ from spyder.utils.snippets.ast import build_snippet_ast, nodes, tokenize
 
 
 MERGE_ALLOWED = {'int', 'name', 'whitespace'}
+VALID_UPDATES = {diff_match_patch.DIFF_DELETE, diff_match_patch.DIFF_INSERT}
 
 
 def no_undo(f):
@@ -132,13 +134,22 @@ class SnippetsExtension(EditorExtension):
     @no_undo
     def _undo(self):
         if self.is_snippet_active:
+            num_pops = 0
+            patch = self.editor.patch
+            for diffs in patch:
+                for (op, data) in diffs.diffs:
+                    if op in VALID_UPDATES:
+                        num_pops += len(data)
             if len(self.undo_stack) > 0:
-                info = self.undo_stack.pop(0)
-                ast_copy = copy.deepcopy(self.ast)
-                redo_info = (ast_copy, self.starting_position,
-                             self.active_snippet)
-                self.redo_stack.insert(0, redo_info)
-                self.ast, self.starting_position, self.active_snippet = info
+                for _ in range(num_pops):
+                    if len(self.undo_stack) == 0:
+                        break
+                    info = self.undo_stack.pop(0)
+                    ast_copy = copy.deepcopy(self.ast)
+                    redo_info = (ast_copy, self.starting_position,
+                                 self.active_snippet)
+                    self.redo_stack.insert(0, redo_info)
+                    self.ast, self.starting_position, self.active_snippet = info
                 self._update_ast()
                 self.editor.clear_extra_selections('code_snippets')
                 self.draw_snippets()
@@ -147,13 +158,22 @@ class SnippetsExtension(EditorExtension):
     @no_undo
     def _redo(self):
         if self.is_snippet_active:
+            num_pops = 0
+            patch = self.editor.patch
+            for diffs in patch:
+                for (op, data) in diffs.diffs:
+                    if op in VALID_UPDATES:
+                        num_pops += len(data)
             if len(self.redo_stack) > 0:
-                info = self.redo_stack.pop(0)
-                ast_copy = copy.deepcopy(self.ast)
-                undo_info = (ast_copy, self.starting_position,
-                             self.active_snippet)
-                self.undo_stack.insert(0, undo_info)
-                self.ast, self.starting_position, self.active_snippet = info
+                for _ in range(num_pops):
+                    if len(self.undo_stack) == 0:
+                        break
+                    info = self.redo_stack.pop(0)
+                    ast_copy = copy.deepcopy(self.ast)
+                    undo_info = (ast_copy, self.starting_position,
+                                 self.active_snippet)
+                    self.undo_stack.insert(0, undo_info)
+                    self.ast, self.starting_position, self.active_snippet = info
                 self._update_ast()
                 self.editor.clear_extra_selections('code_snippets')
                 self.draw_snippets()
