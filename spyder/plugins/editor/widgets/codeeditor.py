@@ -3639,7 +3639,7 @@ class CodeEditor(TextEditBaseWidget):
 
         if (len(text) > self.automatic_completions_after_chars
                 and self._last_key_pressed_text):
-            self.document_did_change(text)            
+            self.document_did_change(text)
 
             # Perform completion on the fly
             if self.automatic_completions and not self.in_comment_or_string():

@@ -2634,7 +2634,8 @@ class Editor(SpyderPluginWidget):
                 if indentguides_n in options:
                     editorstack.set_indent_guides(indentguides_o)
                 if classfuncdropdown_n in options:
-                    editorstack.set_classfunc_dropdown_visible(classfuncdropdown_o)
+                    editorstack.set_classfunc_dropdown_visible(
+                        classfuncdropdown_o)
 
                 if tabbar_n in options:
                     editorstack.set_tabbar_visible(tabbar_o)

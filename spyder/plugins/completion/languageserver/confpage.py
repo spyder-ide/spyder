@@ -1100,15 +1100,15 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # --- Tabs organization ---
         self.tabs = QTabWidget()
         self.tabs.addTab(self.create_tab(completion_widget),
-                    _('Completion'))
+                         _('Completion'))
         self.tabs.addTab(self.create_tab(introspection_group, advanced_group),
-                    _('Introspection'))
+                         _('Introspection'))
         self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
         self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
         self.tabs.addTab(self.create_tab(docstring_style_widget),
-                    _('Docstring style'))
+                         _('Docstring style'))
         self.tabs.addTab(self.create_tab(advanced_widget),
-                    _('Advanced'))
+                         _('Advanced'))
         self.tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 
         vlayout = QVBoxLayout()
