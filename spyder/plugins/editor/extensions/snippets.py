@@ -273,13 +273,15 @@ class SnippetsExtension(EditorExtension):
                 # is also a snippet
                 self._delete_token(delete_token, text_parent, line, column)
 
-            next_number = snippet_number - 1
+            next_number = snippet_number
             for current_number in self.snippets_map:
                 if current_number > snippet_number:
                     snippet_nodes = self.snippets_map[current_number]
                     for snippet_node in snippet_nodes:
+                        current_number = snippet_node.number
                         snippet_node.number = next_number
-                    next_number -= 1
+                        next_number = current_number
+                    # next_number -= 1
         else:
             self._delete_token(node, text_node, line, column)
 
