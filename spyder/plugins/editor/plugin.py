@@ -1448,7 +1448,7 @@ class Editor(SpyderPluginWidget):
         """Return if the current filename has been modified."""
         finfo = self.get_current_finfo()
         modified = False
-        if finfo.editor:
+        if finfo:
             modified = finfo.editor.document().isModified()
         return modified
 
