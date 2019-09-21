@@ -307,7 +307,7 @@ def check_connection_port(address, port):
                  address, port))
     try:
         s.connect((address, port))
-        logger.debug("Connected to {} on port {}").format(address, port)
+        logger.debug("Connected to {} on port {}".format(address, port))
         return True
     except socket.error as e:
         logger.debug("Connection to {} on port {} failed: {}".format(
