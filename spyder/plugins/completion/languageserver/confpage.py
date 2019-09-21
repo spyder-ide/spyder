@@ -1247,6 +1247,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
             if not response:
                 self.report_no_external_server(host, port, 'python')
                 return False
+            else:
+                return True
         else:
             return super(GeneralConfigPage, self).is_valid()
 
