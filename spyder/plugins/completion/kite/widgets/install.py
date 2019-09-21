@@ -15,6 +15,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
 
 # Local imports
 from spyder.config.base import _, get_image_path
+from spyder.config.manager import CONF
 from spyder.plugins.completion.kite.utils.install import (ERRORED, INSTALLING,
                                                           FINISHED)
 
@@ -206,8 +207,10 @@ class KiteInstallerDialog(QDialog):
 
     def reject(self):
         """Qt method override."""
-        # TODO: Disable setting to check if Kite has been installed
-        self.close_installer()
+        on_welcome_widget = self._welcome_widget.isVisible()
+        if on_welcome_widget:
+            CONF.set('kite-completions', 'install_enable', False)
+        super(KiteInstallerDialog, self).reject()
 
 
 if __name__ == "__main__":

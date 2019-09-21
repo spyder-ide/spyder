@@ -37,6 +37,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client = KiteClient(None, enable_code_snippets)
         self.kite_process = None
         self.kite_installation_thread = KiteInstallationThread(self)
+        # TODO: Connect thread status to status bar
         self.kite_installer = KiteInstallerDialog(
             parent,
             self.kite_installation_thread)
@@ -68,9 +69,10 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
                 self.kite_process = run_program(path)
             self.client.start()
         else:
-            # TODO: Add check based on the preference for Kite
-            self.kite_installer.show()
-            self.kite_installer.center()
+            kite_installation_enabled = self.get_option('install_enable', True)
+            if kite_installation_enabled:
+                self.kite_installer.show()
+                self.kite_installer.center()
 
     def shutdown(self):
         self.client.stop()
