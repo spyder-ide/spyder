@@ -1177,6 +1177,13 @@ class LanguageServerConfigPage(GeneralConfigPage):
         Show a warning when trying to modify the PyLS advanced
         settings.
         """
+        # Don't show warning if the option is already enabled.
+        # This avoids showing it when the Preferences dialog
+        # is created.
+        if self.get_option('advanced/enabled'):
+            return
+
+        # Show warning when toggling the button state
         if state:
             QMessageBox.warning(
                 self,
