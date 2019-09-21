@@ -82,6 +82,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.zmq_in_port = None
         self.zmq_out_port = None
         self.transport_client = None
+        self.notifier = None
         self.language = language
 
         self.initialized = False
@@ -109,6 +110,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                osp.join(LOCATION, 'transport', 'main.py')]
         self.external_server = server_settings.get('external', False)
         self.stdio = server_settings.get('stdio', False)
+
         # Setting stdio on implies that external_server is off
         if self.stdio and self.external_server:
             error = ('If server is set to use stdio communication, '
@@ -270,17 +272,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         logger.debug('LSP {} client started!'.format(self.language))
 
     def stop(self):
-        # self.shutdown()
-        # self.exit()
         logger.info('Stopping {} client...'.format(self.language))
         if self.notifier is not None:
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
             self.notifier = None
-        # if os.name == 'nt':
-        #     self.transport_client.send_signal(signal.CTRL_BREAK_EVENT)
-        # else:
-        self.transport_client.kill()
+        if self.transport_client is not None:
+            self.transport_client.kill()
         self.context.destroy()
         if not self.external_server:
             self.lsp_server.kill()
