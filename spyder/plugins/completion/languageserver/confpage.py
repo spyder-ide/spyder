@@ -1241,6 +1241,21 @@ class LanguageServerConfigPage(GeneralConfigPage):
                                        language=language.capitalize())
         )
 
+    def report_no_address_change(self):
+        """
+        Report that server address has no changed after checking the
+        external server option.
+        """
+        QMessageBox.critical(
+            self,
+            _("Error"),
+            _("The address of the external server you are trying to connect "
+              "to is the same as the one of the current internal server "
+              "started by Spyder."
+              "<br><br>"
+              "Please provide a different address!")
+        )
+
     def is_valid(self):
         """Check if config options are valid."""
         host = self.advanced_host.textbox.text()
@@ -1251,17 +1266,31 @@ class LanguageServerConfigPage(GeneralConfigPage):
         if host not in ['127.0.0.1', 'localhost']:
             self.external_server.setChecked(True)
 
-        # Check connection to LSP server using a TCP socket
+        # Checks for extenal PyLS
         if self.external_server.isChecked():
             port = int(self.advanced_port.spinbox.text())
+
+            # Check that host and port of the current server are
+            # different from the new ones provided to connect to
+            # an external server.
+            cm = self.main.completions
+            lsp = cm.get_client('lsp')
+            pyclient = lsp.clients.get('python')
+            if pyclient is not None:
+                instance = pyclient['instance']
+                if not pyclient['config']['external']:
+                    if (instance.server_host == host and
+                            instance.server_port == port):
+                        self.report_no_address_change()
+                        return False
+
+            # Check connection to LSP server using a TCP socket
             response = check_connection_port(host, port)
             if not response:
                 self.report_no_external_server(host, port, 'python')
                 return False
-            else:
-                return super(GeneralConfigPage, self).is_valid()
-        else:
-            return super(GeneralConfigPage, self).is_valid()
+
+        return super(GeneralConfigPage, self).is_valid()
 
     def apply_settings(self, options):
         # Check regex of code style options
