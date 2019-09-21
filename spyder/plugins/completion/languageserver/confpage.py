@@ -303,6 +303,10 @@ class LSPServerEditor(QDialog):
         host_text = self.host_input.text()
         cmd_text = self.cmd_input.text()
 
+        if host_text not in ['127.0.0.1', 'localhost']:
+            self.external = True
+            self.external_cb.setChecked(True)
+
         if not self.HOST_REGEX.match(host_text):
             self.button_ok.setEnabled(False)
             self.host_input.setStyleSheet(self.INVALID_CSS)
@@ -1227,8 +1231,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
         QMessageBox.critical(
             self,
             _("Error"),
-            _("It appears there is no {language} language server listening at "
-              "address:"
+            _("It appears there is no {language} language server listening "
+              "at address:"
               "<br><br>"
               "<tt>{host}:{port}</tt>"
               "<br><br>"
@@ -1239,16 +1243,23 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
     def is_valid(self):
         """Check if config options are valid."""
+        host = self.advanced_host.textbox.text()
+
+        # If host is not local, the server must be external
+        # and we need to automatically check the corresponding
+        # option
+        if host not in ['127.0.0.1', 'localhost']:
+            self.external_server.setChecked(True)
+
         # Check connection to LSP server using a TCP socket
         if self.external_server.isChecked():
-            host = self.advanced_host.textbox.text()
             port = int(self.advanced_port.spinbox.text())
             response = check_connection_port(host, port)
             if not response:
                 self.report_no_external_server(host, port, 'python')
                 return False
             else:
-                return True
+                return super(GeneralConfigPage, self).is_valid()
         else:
             return super(GeneralConfigPage, self).is_valid()
 
