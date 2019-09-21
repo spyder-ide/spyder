@@ -300,7 +300,7 @@ def regexp_error_msg(pattern):
 
 
 def check_connection_port(address, port):
-    """Verify if a port is available given the address given."""
+    """Verify if `port` is available in `address`."""
     # Create a TCP socket
     s = socket.socket()
     logger.debug("Attempting to connect to {} on port {}".format(

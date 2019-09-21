@@ -24,7 +24,7 @@ from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.manager import CONF
 from spyder.api.completion import SpyderCompletionPlugin
-from spyder.utils.misc import getcwd_or_home
+from spyder.utils.misc import check_connection_port, getcwd_or_home
 from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.completion.languageserver.client import LSPClient
 from spyder.plugins.completion.languageserver.confpage import (
@@ -140,7 +140,6 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         self.main.console.exception_occurred(error, is_traceback=True,
                                              is_pyls_error=True)
 
-    @Slot(str, int, str)
     def report_no_external_server(self, host, port, language):
         """
         Report that connection couldn't be established with
@@ -149,13 +148,19 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         QMessageBox.critical(
             self.main,
             _("Error"),
-            _("It appears there is no language server listening at "
-              "<tt>{host}:{port}</tt>. Therefore, completion and linting "
-              "for <b>{language}</b> will stop to work!"
+            _("It appears there is no {language} language server listening "
+              "at address:"
               "<br><br>"
-              "Please verify that the provided information is correct "
-              "and try again.").format(host=host, port=port,
-                                       language=language.capitalize())
+              "<tt>{host}:{port}</tt>"
+              "<br><br>"
+              "Therefore, completion and linting for {language} will not "
+              "work during this session."
+              "<br><br>"
+              "To fix this, please verify that your firewall or antivirus "
+              "allows Python processes to open ports in your system, or the "
+              "settings you introduced in our Preferences to connect to "
+              "external LSP servers.").format(host=host, port=port,
+                                              language=language.capitalize())
         )
 
     def start_client(self, language):
@@ -176,6 +181,17 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
 
+                # If we're trying to connect to an external server,
+                # verify that it's listening before creating a
+                # client for it.
+                if config['external']:
+                    host = config['host']
+                    port = config['port']
+                    response = check_connection_port(host, port)
+                    if not response:
+                        self.report_no_external_server(host, port, language)
+                        return False
+
                 language_client['instance'] = LSPClient(
                     parent=self,
                     server_settings=config,
@@ -195,10 +211,6 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
     def register_client_instance(self, instance):
         """Register signals emmited by a client instance."""
-        instance.sig_no_external_server.connect(
-            self.report_no_external_server)
-
-        # Handle connection with other plugins
         if self.main:
             if self.main.editor:
                 instance.sig_initialize.connect(

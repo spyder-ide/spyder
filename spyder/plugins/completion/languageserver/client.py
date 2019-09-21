@@ -67,10 +67,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     #  facilities.
     sig_server_error = Signal(str)
 
-    #: Signal to report that no connection could be established
-    #  with an external server.
-    sig_no_external_server = Signal(str, int, str)
-
     def __init__(self, parent,
                  server_settings={},
                  folder=getcwd_or_home(),
@@ -215,17 +211,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 stdin=server_stdin,
                 stderr=server_stderr,
                 creationflags=creation_flags)
-        else:
-            # Check connection to lsp server using a TCP socket
-            response = check_connection_port(self.server_host,
-                                             self.server_port)
-            if not response:
-                self.sig_no_external_server.emit(
-                    self.server_host,
-                    self.server_port,
-                    self.language
-                )
-                return
 
         client_log = subprocess.PIPE
         if get_debug_level() > 0:
