@@ -1277,7 +1277,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
             pyclient = lsp.clients.get('python')
             if pyclient is not None:
                 instance = pyclient['instance']
-                if not pyclient['config']['external']:
+                if (instance is not None and
+                        not pyclient['config']['external']):
                     if (instance.server_host == host and
                             instance.server_port == port):
                         self.report_no_address_change()

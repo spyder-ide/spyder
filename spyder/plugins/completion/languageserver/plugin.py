@@ -205,7 +205,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 language_client['instance'].start()
                 language_client['status'] = self.RUNNING
                 for entry in queue:
-                    language_client.register_file(*entry)
+                    language_client['instance'].register_file(*entry)
                 self.register_queue[language] = []
         return started
 
@@ -228,35 +228,45 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
     def update_configuration(self):
         for language in self.get_languages():
-            config = {'status': self.STOPPED,
-                      'config': self.get_language_config(language),
-                      'instance': None}
+            client_config = {'status': self.STOPPED,
+                             'config': self.get_language_config(language),
+                             'instance': None}
             if language not in self.clients:
-                self.clients[language] = config
+                self.clients[language] = client_config
                 self.register_queue[language] = []
             else:
-                current_config = self.clients[language]['config']
-                new_config = config['config']
+                current_lang_config = self.clients[language]['config']
+                new_lang_config = client_config['config']
                 restart_diff = ['cmd', 'args', 'host',
                                 'port', 'external', 'stdio']
-                restart = any([current_config[x] != new_config[x]
+                restart = any([current_lang_config[x] != new_lang_config[x]
                                for x in restart_diff])
                 if restart:
                     logger.debug("Restart required for {} client!".format(
                         language))
                     if self.clients[language]['status'] == self.STOPPED:
-                        self.clients[language] = config
+                        # If we move from an external non-working server to
+                        # an internal one, we need to start a new client.
+                        if (current_lang_config['external'] and
+                                not new_lang_config['external']):
+                            self.restart_client(language, client_config)
+                        else:
+                            self.clients[language] = client_config
                     elif self.clients[language]['status'] == self.RUNNING:
-                        self.main.editor.stop_completion_services(language)
-                        self.main.projects.stop_lsp_services()
-                        self.close_client(language)
-                        self.clients[language] = config
-                        self.start_client(language)
+                        self.restart_client(language, client_config)
                 else:
                     if self.clients[language]['status'] == self.RUNNING:
                         client = self.clients[language]['instance']
                         client.send_plugin_configurations(
-                            new_config['configurations'])
+                            new_lang_config['configurations'])
+
+    def restart_client(self, language, config):
+        """Restart a client."""
+        self.main.editor.stop_completion_services(language)
+        self.main.projects.stop_lsp_services()
+        self.close_client(language)
+        self.clients[language] = config
+        self.start_client(language)
 
     def update_client_status(self, active_set):
         for language in self.clients:
