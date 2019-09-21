@@ -303,6 +303,7 @@ def check_connection_port(address, port):
     """Verify if `port` is available in `address`."""
     # Create a TCP socket
     s = socket.socket()
+    s.settimeout(2)
     logger.debug("Attempting to connect to {} on port {}".format(
                  address, port))
     try:
