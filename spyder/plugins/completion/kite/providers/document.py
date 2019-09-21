@@ -55,6 +55,15 @@ def convert_text_snippet(snippet_info):
 
 
 class DocumentProvider:
+
+    def get_file_info(self, params):
+        """Get file info and add the file if doesn't exists."""
+        default_info = {'text': '', 'count': 0}
+        file_info = self.opened_files.get(
+            params['file'], default_info)
+        self.opened_files[params['file']] = file_info
+        return self.opened_files[params['file']]
+
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
     def document_did_open(self, params):
         request = {
@@ -67,9 +76,8 @@ class DocumentProvider:
             ]
         }
 
-        default_info = {'text': '', 'count': 0}
         with QMutexLocker(self.mutex):
-            file_info = self.opened_files.get(params['file'], default_info)
+            file_info = self.get_file_info(params)
             file_info['count'] += 1
             file_info['text'] = params['text']
             self.opened_files[params['file']] = file_info
@@ -87,13 +95,13 @@ class DocumentProvider:
             ]
         }
         with QMutexLocker(self.mutex):
-            file_info = self.opened_files[params['file']]
+            file_info = self.get_file_info(params)
             file_info['text'] = params['text']
         return request
 
     @send_request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
     def request_document_completions(self, params):
-        text = self.opened_files[params['file']]['text']
+        text = self.get_file_info(params)['text']
         request = {
             'filename': osp.realpath(params['file']),
             'editor': 'spyder',
@@ -144,7 +152,7 @@ class DocumentProvider:
 
     @send_request(method=LSPRequestTypes.DOCUMENT_HOVER)
     def request_hover(self, params):
-        text = self.opened_files[params['file']]['text']
+        text = self.get_file_info(params)['text']
         md5 = hashlib.md5(text.encode('utf-8')).hexdigest()
         path = str(params['file'])
         path = path.replace(osp.sep, ':')
@@ -176,7 +184,7 @@ class DocumentProvider:
 
     @send_request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
     def request_signature(self, request):
-        text = self.opened_files[request['file']]['text']
+        text = self.get_file_info(request)['text']
         response = {
             'editor': 'spyder',
             'filename': request['file'],

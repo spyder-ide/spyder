@@ -122,7 +122,7 @@ class KiteInstallation(QWidget):
         """Update installation status (downloading, installing, finished)."""
         self._progress_label.setText(status)
         if status == INSTALLING:
-            self._progress_bar.hide()
+            self._progress_bar.setRange(0, 0)
 
     def update_installation_progress(self, current_value, total):
         """Update installation progress bar."""

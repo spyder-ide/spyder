@@ -20,7 +20,8 @@ from spyder.api.completion import SpyderCompletionPlugin
 from spyder.plugins.completion.kite.client import KiteClient
 from spyder.plugins.completion.kite.utils.status import (
     check_if_kite_running, check_if_kite_installed)
-from spyder.plugins.completion.kite.utils.install import KiteInstallationThread
+from spyder.plugins.completion.kite.utils.install import (
+    KiteInstallationThread, FINISHED)
 from spyder.plugins.completion.kite.widgets.install import KiteInstallerDialog
 
 
@@ -45,6 +46,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
                               self.COMPLETION_CLIENT_NAME))
+        self.kite_installation_thread.sig_installation_status.connect(
+            lambda status: self.client.start() if status == FINISHED else None)
 
     @Slot(list)
     def http_client_ready(self, languages):
