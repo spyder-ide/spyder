@@ -67,6 +67,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     #  facilities.
     sig_server_error = Signal(str)
 
+    #: Signal to report that no connection could be established
+    #  with an external server.
+    sig_no_external_server = Signal(str, int, str)
+
     def __init__(self, parent,
                  server_settings={},
                  folder=getcwd_or_home(),
@@ -95,9 +99,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # restart would be generated when doing a
         # workspace/didChangeConfiguration request.
         if not server_settings['external']:
-            server_port = select_port(default_port=server_settings['port'])
+            self.server_port = select_port(
+                default_port=server_settings['port'])
         else:
-            server_port = server_settings['port']
+            self.server_port = server_settings['port']
+        self.server_host = server_settings['host']
 
         self.transport_args = [sys.executable, '-u',
                                osp.join(LOCATION, 'transport', 'main.py')]
@@ -118,17 +124,15 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         server_args_fmt = server_settings.get('args', '')
         server_args = server_args_fmt.format(
-            host=server_settings['host'],
-            port=server_port)
+            host=self.server_host,
+            port=self.server_port)
         transport_args_fmt = '--server-host {host} --server-port {port} '
         transport_args = transport_args_fmt.format(
-            host=server_settings['host'],
-            port=server_port)
-        self.server_host = server_settings['host']
-        self.server_port = server_port
+            host=self.server_host,
+            port=self.server_port)
 
         self.server_args = []
-        if language == 'python':
+        if self.language == 'python':
             self.server_args += [sys.executable, '-m']
         self.server_args += [server_settings['cmd']]
         if len(server_args) > 0:
@@ -214,8 +218,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             response = check_connection_port(self.server_host,
                                              self.server_port)
             if not response:
-                # TODO: start a new server
-                pass
+                self.sig_no_external_server.emit(
+                    self.server_host,
+                    self.server_port,
+                    self.language
+                )
+                return
 
         client_log = subprocess.PIPE
         if get_debug_level() > 0:

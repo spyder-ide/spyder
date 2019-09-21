@@ -17,9 +17,10 @@ import functools
 
 # Third-party imports
 from qtpy.QtCore import Slot
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import get_conf_path, running_under_pytest
+from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.manager import CONF
 from spyder.api.completion import SpyderCompletionPlugin
@@ -139,6 +140,24 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         self.main.console.exception_occurred(error, is_traceback=True,
                                              is_pyls_error=True)
 
+    @Slot(str, int, str)
+    def report_no_external_server(self, host, port, language):
+        """
+        Report that connection couldn't be established with
+        an external server.
+        """
+        QMessageBox.critical(
+            self.main,
+            _("Error"),
+            _("It appears there is no language server listening at "
+              "<tt>{host}:{port}</tt>. Therefore, completion and linting "
+              "for <b>{language}</b> will stop to work!"
+              "<br><br>"
+              "Please verify that the provided information is correct "
+              "and try again.").format(host=host, port=port,
+                                       language=language.capitalize())
+        )
+
     def start_client(self, language):
         """Start an LSP client for a given language."""
         started = False
@@ -176,6 +195,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
     def register_client_instance(self, instance):
         """Register signals emmited by a client instance."""
+        instance.sig_no_external_server.connect(
+            self.report_no_external_server)
+
+        # Handle connection with other plugins
         if self.main:
             if self.main.editor:
                 instance.sig_initialize.connect(
