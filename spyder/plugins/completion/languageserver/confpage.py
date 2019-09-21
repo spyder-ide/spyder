@@ -1273,8 +1273,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
             # Check that host and port of the current server are
             # different from the new ones provided to connect to
             # an external server.
-            cm = self.main.completions
-            lsp = cm.get_client('lsp')
+            lsp = self.main.completions.get_client('lsp')
             pyclient = lsp.clients.get('python')
             if pyclient is not None:
                 instance = pyclient['instance']

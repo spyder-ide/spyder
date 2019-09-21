@@ -36,8 +36,7 @@ from spyder.plugins.completion.languageserver.decorators import (
 from spyder.plugins.completion.languageserver.transport import MessageKind
 from spyder.plugins.completion.languageserver.providers import (
     LSPMethodProviderMixIn)
-from spyder.utils.misc import (getcwd_or_home, select_port,
-                               check_connection_port)
+from spyder.utils.misc import getcwd_or_home, select_port
 
 # Conditional imports
 if PY2:
