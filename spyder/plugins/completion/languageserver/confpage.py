@@ -30,6 +30,7 @@ from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
+from spyder.utils.misc import check_connection_port
 from spyder.utils.programs import find_program
 from spyder.widgets.helperwidgets import ItemDelegate
 
@@ -173,12 +174,13 @@ class LSPServerEditor(QDialog):
 
         self.host_input.setPlaceholderText('127.0.0.1')
         self.host_input.setText(host)
-        self.host_input.textChanged.connect(lambda x: self.validate())
+        self.host_input.textChanged.connect(lambda _: self.validate())
 
         self.port_spinner.setToolTip(_('TCP port number of the server'))
         self.port_spinner.setMinimum(1)
         self.port_spinner.setMaximum(60000)
         self.port_spinner.setValue(port)
+        self.port_spinner.valueChanged.connect(lambda _: self.validate())
 
         self.cmd_input.setText(cmd)
         self.cmd_input.setPlaceholderText('/absolute/path/to/command')
@@ -301,6 +303,10 @@ class LSPServerEditor(QDialog):
         host_text = self.host_input.text()
         cmd_text = self.cmd_input.text()
 
+        if host_text not in ['127.0.0.1', 'localhost']:
+            self.external = True
+            self.external_cb.setChecked(True)
+
         if not self.HOST_REGEX.match(host_text):
             self.button_ok.setEnabled(False)
             self.host_input.setStyleSheet(self.INVALID_CSS)
@@ -334,6 +340,11 @@ class LSPServerEditor(QDialog):
                 self.cmd_input.setToolTip(_('Program was found on your '
                                             'system'))
                 self.button_ok.setEnabled(True)
+        else:
+            port = int(self.port_spinner.text())
+            response = check_connection_port(host_text, port)
+            if not response:
+                self.button_ok.setEnabled(False)
 
         try:
             json.loads(self.conf_input.toPlainText())
@@ -1177,6 +1188,13 @@ class LanguageServerConfigPage(GeneralConfigPage):
         Show a warning when trying to modify the PyLS advanced
         settings.
         """
+        # Don't show warning if the option is already enabled.
+        # This avoids showing it when the Preferences dialog
+        # is created.
+        if self.get_option('advanced/enabled'):
+            return
+
+        # Show warning when toggling the button state
         if state:
             QMessageBox.warning(
                 self,
@@ -1204,6 +1222,75 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.table.delete_server(idx)
         self.set_modified(True)
         self.delete_btn.setEnabled(False)
+
+    def report_no_external_server(self, host, port, language):
+        """
+        Report that connection couldn't be established with
+        an external server.
+        """
+        QMessageBox.critical(
+            self,
+            _("Error"),
+            _("It appears there is no {language} language server listening "
+              "at address:"
+              "<br><br>"
+              "<tt>{host}:{port}</tt>"
+              "<br><br>"
+              "Please verify that the provided information is correct "
+              "and try again.").format(host=host, port=port,
+                                       language=language.capitalize())
+        )
+
+    def report_no_address_change(self):
+        """
+        Report that server address has no changed after checking the
+        external server option.
+        """
+        QMessageBox.critical(
+            self,
+            _("Error"),
+            _("The address of the external server you are trying to connect "
+              "to is the same as the one of the current internal server "
+              "started by Spyder."
+              "<br><br>"
+              "Please provide a different address!")
+        )
+
+    def is_valid(self):
+        """Check if config options are valid."""
+        host = self.advanced_host.textbox.text()
+
+        # If host is not local, the server must be external
+        # and we need to automatically check the corresponding
+        # option
+        if host not in ['127.0.0.1', 'localhost']:
+            self.external_server.setChecked(True)
+
+        # Checks for extenal PyLS
+        if self.external_server.isChecked():
+            port = int(self.advanced_port.spinbox.text())
+
+            # Check that host and port of the current server are
+            # different from the new ones provided to connect to
+            # an external server.
+            lsp = self.main.completions.get_client('lsp')
+            pyclient = lsp.clients.get('python')
+            if pyclient is not None:
+                instance = pyclient['instance']
+                if (instance is not None and
+                        not pyclient['config']['external']):
+                    if (instance.server_host == host and
+                            instance.server_port == port):
+                        self.report_no_address_change()
+                        return False
+
+            # Check connection to LSP server using a TCP socket
+            response = check_connection_port(host, port)
+            if not response:
+                self.report_no_external_server(host, port, 'python')
+                return False
+
+        return super(GeneralConfigPage, self).is_valid()
 
     def apply_settings(self, options):
         # Check regex of code style options
