@@ -30,6 +30,7 @@ from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
+from spyder.utils.misc import check_connection_port
 from spyder.utils.programs import find_program
 from spyder.widgets.helperwidgets import ItemDelegate
 
@@ -173,12 +174,13 @@ class LSPServerEditor(QDialog):
 
         self.host_input.setPlaceholderText('127.0.0.1')
         self.host_input.setText(host)
-        self.host_input.textChanged.connect(lambda x: self.validate())
+        self.host_input.textChanged.connect(lambda _: self.validate())
 
         self.port_spinner.setToolTip(_('TCP port number of the server'))
         self.port_spinner.setMinimum(1)
         self.port_spinner.setMaximum(60000)
         self.port_spinner.setValue(port)
+        self.port_spinner.valueChanged.connect(lambda _: self.validate())
 
         self.cmd_input.setText(cmd)
         self.cmd_input.setPlaceholderText('/absolute/path/to/command')
@@ -301,6 +303,10 @@ class LSPServerEditor(QDialog):
         host_text = self.host_input.text()
         cmd_text = self.cmd_input.text()
 
+        if host_text not in ['127.0.0.1', 'localhost']:
+            self.external = True
+            self.external_cb.setChecked(True)
+
         if not self.HOST_REGEX.match(host_text):
             self.button_ok.setEnabled(False)
             self.host_input.setStyleSheet(self.INVALID_CSS)
@@ -334,6 +340,11 @@ class LSPServerEditor(QDialog):
                 self.cmd_input.setToolTip(_('Program was found on your '
                                             'system'))
                 self.button_ok.setEnabled(True)
+        else:
+            port = int(self.port_spinner.text())
+            response = check_connection_port(host_text, port)
+            if not response:
+                self.button_ok.setEnabled(False)
 
         try:
             json.loads(self.conf_input.toPlainText())
@@ -692,17 +703,50 @@ class LanguageServerConfigPage(GeneralConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
 
-        # --- Introspection ---
-        # Basic features group
-        basic_features_group = QGroupBox(_("Basic features"))
-        completion_box = newcb(_("Enable code completion"), 'code_completion')
+        # --- Completion ---
+        # Completion group
+        self.completion_box = newcb(_("Enable code completion"),
+                                    'code_completion')
+        self.completion_hint_box = newcb(
+            _("Show completion details"),
+            'completions_hint',
+            section='editor')
+        self.automatic_completion_box = newcb(
+            _("Show completions on the fly"),
+            'automatic_completions',
+            section='editor')
+        self.completions_after_characters = self.create_spinbox(
+            _("Show automatic completions after characters entered:"), None,
+            'automatic_completions_after_chars', min_=1, step=1,
+            tip=_("Default is 3"), section='editor')
+        self.completions_after_ms = self.create_spinbox(
+            _("Show automatic completions after keyboard idle (ms):"), None,
+            'automatic_completions_after_ms', min_=0, max_=5000, step=10,
+            tip=_("Default is 300"), section='editor')
         code_snippets_box = newcb(_("Enable code snippets"), 'code_snippets')
-        enable_hover_hints_box = newcb(
-            _("Enable hover hints"),
-            'enable_hover_hints',
-            tip=_("If enabled, hovering the mouse pointer over an object\n"
-                  "name will display that object's signature and/or\n"
-                  "docstring (if present)."))
+
+        completion_layout = QGridLayout()
+        completion_layout.addWidget(self.completion_box, 0, 0)
+        completion_layout.addWidget(self.completion_hint_box, 1, 0)
+        completion_layout.addWidget(self.automatic_completion_box, 2, 0)
+        completion_layout.addWidget(self.completions_after_characters.plabel,
+                                    3, 0)
+        completion_layout.addWidget(self.completions_after_characters.spinbox,
+                                    3, 1)
+        completion_layout.addWidget(self.completions_after_ms.plabel, 4, 0)
+        completion_layout.addWidget(self.completions_after_ms.spinbox, 4, 1)
+        completion_layout.addWidget(code_snippets_box, 5, 0)
+        completion_layout.setColumnStretch(2, 5)
+        completion_widget = QWidget()
+        completion_widget.setLayout(completion_layout)
+
+        self.completion_box.toggled.connect(self.check_completion_options)
+        self.automatic_completion_box.toggled.connect(
+            self.check_completion_options)
+
+        # --- Introspection ---
+        # Introspection group
+        introspection_group = QGroupBox(_("Basic features"))
         goto_definition_box = newcb(
             _("Enable Go to definition"),
             'jedi_definition',
@@ -713,15 +757,20 @@ class LanguageServerConfigPage(GeneralConfigPage):
                                      "definition"),
                                    'jedi_definition/follow_imports')
         show_signature_box = newcb(_("Show calltips"), 'jedi_signature_help')
+        enable_hover_hints_box = newcb(
+            _("Enable hover hints"),
+            'enable_hover_hints',
+            tip=_("If enabled, hovering the mouse pointer over an object\n"
+                  "name will display that object's signature and/or\n"
+                  "docstring (if present)."))
+        introspection_layout = QVBoxLayout()
+        introspection_layout.addWidget(goto_definition_box)
+        introspection_layout.addWidget(follow_imports_box)
+        introspection_layout.addWidget(show_signature_box)
+        introspection_layout.addWidget(enable_hover_hints_box)
+        introspection_group.setLayout(introspection_layout)
 
-        basic_features_layout = QVBoxLayout()
-        basic_features_layout.addWidget(completion_box)
-        basic_features_layout.addWidget(code_snippets_box)
-        basic_features_layout.addWidget(enable_hover_hints_box)
-        basic_features_layout.addWidget(goto_definition_box)
-        basic_features_layout.addWidget(follow_imports_box)
-        basic_features_layout.addWidget(show_signature_box)
-        basic_features_group.setLayout(basic_features_layout)
+        goto_definition_box.toggled.connect(follow_imports_box.setEnabled)
 
         # Advanced group
         advanced_group = QGroupBox(_("Advanced"))
@@ -749,18 +798,24 @@ class LanguageServerConfigPage(GeneralConfigPage):
         linting_check = self.create_checkbox(
             _("Enable basic linting"),
             'pyflakes')
-
+        underline_errors_box = newcb(
+            _("Underline errors and warnings"),
+            'underline_errors',
+            section='editor')
         linting_complexity_box = self.create_checkbox(
-            _("Enable complexity linting with "
-              "the Mccabe package"), 'mccabe')
+            _("Enable complexity linting with the Mccabe package"),
+            'mccabe')
 
         # Linting layout
         linting_layout = QVBoxLayout()
         linting_layout.addWidget(linting_label)
         linting_layout.addWidget(linting_check)
+        linting_layout.addWidget(underline_errors_box)
         linting_layout.addWidget(linting_complexity_box)
         linting_widget = QWidget()
         linting_widget.setLayout(linting_layout)
+
+        linting_check.toggled.connect(underline_errors_box.setEnabled)
 
         # --- Code style tab ---
         # Code style label
@@ -1053,19 +1108,33 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         # --- Tabs organization ---
         self.tabs = QTabWidget()
-        self.tabs.addTab(self.create_tab(basic_features_group, advanced_group),
-                    _('Introspection'))
+        self.tabs.addTab(self.create_tab(completion_widget),
+                         _('Completion'))
         self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
+        self.tabs.addTab(self.create_tab(introspection_group, advanced_group),
+                         _('Introspection'))
         self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
         self.tabs.addTab(self.create_tab(docstring_style_widget),
-                    _('Docstring style'))
+                         _('Docstring style'))
         self.tabs.addTab(self.create_tab(advanced_widget),
-                    _('Advanced'))
+                         _('Advanced'))
         self.tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)
+
+    def check_completion_options(self, state):
+        """Update enabled status of completion checboxes and spinboxes."""
+        state = self.completion_box.isChecked()
+        self.completion_hint_box.setEnabled(state)
+        self.automatic_completion_box.setEnabled(state)
+
+        state = state and self.automatic_completion_box.isChecked()
+        self.completions_after_characters.spinbox.setEnabled(state)
+        self.completions_after_characters.plabel.setEnabled(state)
+        self.completions_after_ms.spinbox.setEnabled(state)
+        self.completions_after_ms.plabel.setEnabled(state)
 
     def disable_tcp(self, state):
         if state == Qt.Checked:
@@ -1119,6 +1188,13 @@ class LanguageServerConfigPage(GeneralConfigPage):
         Show a warning when trying to modify the PyLS advanced
         settings.
         """
+        # Don't show warning if the option is already enabled.
+        # This avoids showing it when the Preferences dialog
+        # is created.
+        if self.get_option('advanced/enabled'):
+            return
+
+        # Show warning when toggling the button state
         if state:
             QMessageBox.warning(
                 self,
@@ -1146,6 +1222,75 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.table.delete_server(idx)
         self.set_modified(True)
         self.delete_btn.setEnabled(False)
+
+    def report_no_external_server(self, host, port, language):
+        """
+        Report that connection couldn't be established with
+        an external server.
+        """
+        QMessageBox.critical(
+            self,
+            _("Error"),
+            _("It appears there is no {language} language server listening "
+              "at address:"
+              "<br><br>"
+              "<tt>{host}:{port}</tt>"
+              "<br><br>"
+              "Please verify that the provided information is correct "
+              "and try again.").format(host=host, port=port,
+                                       language=language.capitalize())
+        )
+
+    def report_no_address_change(self):
+        """
+        Report that server address has no changed after checking the
+        external server option.
+        """
+        QMessageBox.critical(
+            self,
+            _("Error"),
+            _("The address of the external server you are trying to connect "
+              "to is the same as the one of the current internal server "
+              "started by Spyder."
+              "<br><br>"
+              "Please provide a different address!")
+        )
+
+    def is_valid(self):
+        """Check if config options are valid."""
+        host = self.advanced_host.textbox.text()
+
+        # If host is not local, the server must be external
+        # and we need to automatically check the corresponding
+        # option
+        if host not in ['127.0.0.1', 'localhost']:
+            self.external_server.setChecked(True)
+
+        # Checks for extenal PyLS
+        if self.external_server.isChecked():
+            port = int(self.advanced_port.spinbox.text())
+
+            # Check that host and port of the current server are
+            # different from the new ones provided to connect to
+            # an external server.
+            lsp = self.main.completions.get_client('lsp')
+            pyclient = lsp.clients.get('python')
+            if pyclient is not None:
+                instance = pyclient['instance']
+                if (instance is not None and
+                        not pyclient['config']['external']):
+                    if (instance.server_host == host and
+                            instance.server_port == port):
+                        self.report_no_address_change()
+                        return False
+
+            # Check connection to LSP server using a TCP socket
+            response = check_connection_port(host, port)
+            if not response:
+                self.report_no_external_server(host, port, 'python')
+                return False
+
+        return super(GeneralConfigPage, self).is_valid()
 
     def apply_settings(self, options):
         # Check regex of code style options
@@ -1185,19 +1330,38 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
             if name in options:
+                section = self.CONF_SECTION
+                if name == 'underline_errors':
+                    section = 'editor'
+
+                state = self.get_option(name, section=section)
+
                 # Avoid triggering the action when this action changes state
+                # See: spyder-ide/spyder#9915
                 action.blockSignals(True)
-                state = self.get_option(name)
                 action.setChecked(state)
                 action.blockSignals(False)
-                # See: spyder-ide/spyder#9915
-                # action.trigger()
 
         # TODO: Reset Manager
         self.main.completions.update_configuration()
 
+        # Update editor plugin options
         editor = self.main.editor
+        editor_method_sec_opts = {
+            'set_code_snippets_enabled': (self.CONF_SECTION, 'code_snippets'),
+            'set_hover_hints_enabled':  (self.CONF_SECTION,
+                                         'enable_hover_hints'),
+            'set_automatic_completions_enabled': ('editor',
+                                                  'automatic_completions'),
+            'set_completions_hint_enabled': ('editor', 'completions_hint'),
+            'set_underline_errors_enabled': ('editor', 'underline_errors'),
+            'set_automatic_completions_after_chars': (
+                'editor', 'automatic_completions_after_chars'),
+            'set_automatic_completions_after_ms': (
+                'editor', 'automatic_completions_after_ms'),
+        }
         for editorstack in editor.editorstacks:
-            if 'code_snippets' in options:
-                code_snippets = self.get_option('code_snippets')
-                editorstack.set_code_snippets_enabled(code_snippets)
+            for method_name, (sec, opt) in editor_method_sec_opts.items():
+                if opt in options:
+                    method = getattr(editorstack, method_name)
+                    method(self.get_option(opt, section=sec))
