@@ -77,6 +77,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.zmq_in_port = None
         self.zmq_out_port = None
         self.transport_client = None
+        self.notifier = None
         self.language = language
 
         self.initialized = False
@@ -94,14 +95,17 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # restart would be generated when doing a
         # workspace/didChangeConfiguration request.
         if not server_settings['external']:
-            server_port = select_port(default_port=server_settings['port'])
+            self.server_port = select_port(
+                default_port=server_settings['port'])
         else:
-            server_port = server_settings['port']
+            self.server_port = server_settings['port']
+        self.server_host = server_settings['host']
 
         self.transport_args = [sys.executable, '-u',
                                osp.join(LOCATION, 'transport', 'main.py')]
         self.external_server = server_settings.get('external', False)
         self.stdio = server_settings.get('stdio', False)
+
         # Setting stdio on implies that external_server is off
         if self.stdio and self.external_server:
             error = ('If server is set to use stdio communication, '
@@ -117,15 +121,15 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         server_args_fmt = server_settings.get('args', '')
         server_args = server_args_fmt.format(
-            host=server_settings['host'],
-            port=server_port)
+            host=self.server_host,
+            port=self.server_port)
         transport_args_fmt = '--server-host {host} --server-port {port} '
         transport_args = transport_args_fmt.format(
-            host=server_settings['host'],
-            port=server_port)
+            host=self.server_host,
+            port=self.server_port)
 
         self.server_args = []
-        if language == 'python':
+        if self.language == 'python':
             self.server_args += [sys.executable, '-m']
         self.server_args += [server_settings['cmd']]
         if len(server_args) > 0:
@@ -252,17 +256,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         logger.debug('LSP {} client started!'.format(self.language))
 
     def stop(self):
-        # self.shutdown()
-        # self.exit()
         logger.info('Stopping {} client...'.format(self.language))
         if self.notifier is not None:
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
             self.notifier = None
-        # if os.name == 'nt':
-        #     self.transport_client.send_signal(signal.CTRL_BREAK_EVENT)
-        # else:
-        self.transport_client.kill()
+        if self.transport_client is not None:
+            self.transport_client.kill()
         self.context.destroy()
         if not self.external_server:
             self.lsp_server.kill()
