@@ -32,7 +32,7 @@ token_regex = OrderedDict({
     'slash': r'^/$',
     'comma': r'^,$',
     'left_curly_name': r'^\{[a-zA-Z_]\w*$',
-    'name': r'^[a-zA-Z_]\w*$',
+    'name': r'^(?=[\w])(?=[^_\d])\w*$',
     'symbol': r'^(?=[^\w]$)(?=[^\s]$)'
 })
 
