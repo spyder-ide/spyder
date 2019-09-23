@@ -36,7 +36,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.kite_process = None
         self.main_window_visible = False
         self.kite_initialized = False
-        self.onboarding_shown = False
         self.client.sig_client_started.connect(self.http_client_ready)
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
@@ -94,8 +93,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         is not possible yet or has already been displayed before.
         :return:
         """
-        if not self.onboarding_shown \
-                and self.main_window_visible \
+        if not  self.main_window_visible \
                 and self.kite_initialized \
                 and self.get_option('kite_show_onboarding', True):
             onboarding_file = self.client.get_onboarding_file()

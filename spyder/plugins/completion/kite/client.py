@@ -71,8 +71,6 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     def get_onboarding_file(self):
         verb, url = KITE_ENDPOINTS.ONBOARDING_ENDPOINT
         success, response = self.perform_http_request(verb, url)
-        if response is None:
-            response = None
         return response
 
     def perform_http_request(self, verb, url, params=None):
