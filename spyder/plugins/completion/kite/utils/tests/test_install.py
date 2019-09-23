@@ -45,9 +45,7 @@ def test_kite_install(qtbot):
         assert total != 0
 
     def finished():
-        if check_if_kite_installed():
-            expected_installation_status = [FINISHED]
-        elif sys.platform.startswith("linux"):
+        if sys.platform.startswith("linux"):
             expected_installation_status = [
                 DOWNLOADING_SCRIPT,
                 DOWNLOADING_INSTALLER,
@@ -59,7 +57,8 @@ def test_kite_install(qtbot):
                 INSTALLING,
                 FINISHED]
 
-        assert installation_statuses == expected_installation_status
+        assert installation_statuses == expected_installation_status \
+            or installation_statuses == [FINISHED]
 
     install_manager.sig_installation_status.connect(installation_status)
     install_manager.sig_error_msg.connect(error_msg)
