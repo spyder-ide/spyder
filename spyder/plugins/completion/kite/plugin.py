@@ -48,12 +48,29 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
                               self.COMPLETION_CLIENT_NAME))
         self.kite_installation_thread.sig_installation_status.connect(
             lambda status: self.client.start() if status == FINISHED else None)
+        self.main.sig_setup_finished.connect(self.mainwindow_setup_finished)
 
     @Slot(list)
     def http_client_ready(self, languages):
         logger.debug('Kite client is available for {0}'.format(languages))
         self.available_languages = languages
         self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME)
+
+    @Slot()
+    def mainwindow_setup_finished(self):
+        """
+        Called when the setup of the main window finished
+        to let us do onboarding if necessary
+        :return:
+        """
+        self._show_installation_dialog()
+
+    def _show_installation_dialog(self):
+        """Show installation dialog."""
+        kite_installation_enabled = self.get_option('install_enable', True)
+        if kite_installation_enabled:
+            self.kite_installer.show()
+            self.kite_installer.center()
 
     def send_request(self, language, req_type, req, req_id):
         if language in self.available_languages:
@@ -71,11 +88,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
                 logger.debug('Starting Kite service...')
                 self.kite_process = run_program(path)
             self.client.start()
-        else:
-            kite_installation_enabled = self.get_option('install_enable', True)
-            if kite_installation_enabled:
-                self.kite_installer.show()
-                self.kite_installer.center()
 
     def shutdown(self):
         self.client.stop()
@@ -85,3 +97,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def update_configuration(self):
         enable_code_snippets = CONF.get('lsp-server', 'code_snippets')
         self.client.enable_code_snippets = enable_code_snippets
+
+    def is_installing(self):
+        """Check if an installation is taking place."""
+        return self.kite_installation_thread.isRunning()

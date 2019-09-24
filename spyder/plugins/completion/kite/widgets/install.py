@@ -141,7 +141,7 @@ class KiteInstallerDialog(QDialog):
             self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint
                                 | Qt.Tool)
         else:
-            self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)```
+            self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
         self._parent = parent
         self._installation_thread = kite_installation_thread
         self._welcome_widget = KiteWelcome(self)

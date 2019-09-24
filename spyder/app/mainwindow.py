@@ -317,6 +317,7 @@ class MainWindow(QMainWindow):
 
     # Signals
     restore_scrollbar_position = Signal()
+    sig_setup_finished = Signal()
     all_actions_defined = Signal()
     sig_pythonpath_changed = Signal()
     sig_open_external_file = Signal(str)
@@ -1409,6 +1410,9 @@ class MainWindow(QMainWindow):
         self.menuBar().raise_()
         self.is_setting_up = False
 
+        # Notify that the setup of the mainwindow was finished
+        self.sig_setup_finished.emit()
+
     def set_window_title(self):
         """Set window title."""
         if DEV is not None:
@@ -2412,6 +2416,8 @@ class MainWindow(QMainWindow):
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
+        if not self.completions.closing_plugin(cancelable):
+            return False
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             plugin._close_window()
             if not plugin.closing_plugin(cancelable):
