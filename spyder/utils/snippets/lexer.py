@@ -100,6 +100,7 @@ def tokenize(snippet):
                     word = ''
                     last_name = None
             else:
+                word = temp_word
                 i += 1
     if last_name is not None:
         token = Token(last_name, word, 1, i + 1)
