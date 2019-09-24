@@ -93,7 +93,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         is not possible yet or has already been displayed before.
         :return:
         """
-        if not  self.main_window_visible \
+        if self.main_window_visible \
                 and self.kite_initialized \
                 and self.get_option('kite_show_onboarding', True):
             onboarding_file = self.client.get_onboarding_file()
