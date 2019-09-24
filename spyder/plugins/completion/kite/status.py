@@ -57,12 +57,12 @@ class KiteStatus(BaseTimerStatus):
                 self.open_file_updated = False
         else:
             self.tooltip = self.BASE_TOOLTIP
-        text = '𝕜𝕚𝕥𝕖: {}'.format(kite_status)
+
         kite_enabled = self.plugin.get_option('enable', True)
         self.update_tooltip()
         self.setVisible(kite_status != NOT_INSTALLED or kite_enabled)
 
-        return text
+        return kite_status
 
     def get_tooltip(self):
         """Return localized tool tip for widget."""
