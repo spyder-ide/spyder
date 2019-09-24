@@ -17,6 +17,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
 
 # Local imports
 from spyder.utils import icon_manager as ima
+from spyder.plugins.completion.kite.providers.document import KITE_COMPLETION
 from spyder.plugins.completion.languageserver import CompletionItemKind
 from spyder.py3compat import to_text_string
 from spyder.widgets.helperwidgets import HTMLDelegate
@@ -41,7 +42,25 @@ DEFAULT_COMPLETION_ITEM_WIDTH = 250
 
 class CompletionWidget(QListWidget):
     """Completion list widget."""
-
+    ICONS_MAP = {CompletionItemKind.TEXT: 'text',
+                 CompletionItemKind.METHOD: 'method',
+                 CompletionItemKind.FUNCTION: 'function',
+                 CompletionItemKind.CONSTRUCTOR: 'constructor',
+                 CompletionItemKind.FIELD: 'field',
+                 CompletionItemKind.VARIABLE: 'variable',
+                 CompletionItemKind.CLASS: 'class',
+                 CompletionItemKind.INTERFACE: 'interface',
+                 CompletionItemKind.MODULE: 'module',
+                 CompletionItemKind.PROPERTY: 'property',
+                 CompletionItemKind.UNIT: 'unit',
+                 CompletionItemKind.VALUE: 'value',
+                 CompletionItemKind.ENUM: 'enum',
+                 CompletionItemKind.KEYWORD: 'keyword',
+                 CompletionItemKind.SNIPPET: 'snippet',
+                 CompletionItemKind.COLOR: 'color',
+                 CompletionItemKind.FILE: 'filenew',
+                 CompletionItemKind.REFERENCE: 'reference',
+                 }
     sig_show_completions = Signal(object)
 
     # Signal with the info about the current completion item documentation
@@ -57,6 +76,7 @@ class CompletionWidget(QListWidget):
         self.hide()
         self.itemActivated.connect(self.item_selected)
         self.currentRowChanged.connect(self.row_changed)
+        self.currentItemChanged.connect(self.update_text_item_provider)
         self.is_internal_console = False
         self.completion_list = None
         self.completion_position = None
@@ -194,25 +214,6 @@ class CompletionWidget(QListWidget):
         If no items are left on the list the autocompletion should stop
         """
         self.clear()
-        icons_map = {CompletionItemKind.TEXT: 'text',
-                     CompletionItemKind.METHOD: 'method',
-                     CompletionItemKind.FUNCTION: 'function',
-                     CompletionItemKind.CONSTRUCTOR: 'constructor',
-                     CompletionItemKind.FIELD: 'field',
-                     CompletionItemKind.VARIABLE: 'variable',
-                     CompletionItemKind.CLASS: 'class',
-                     CompletionItemKind.INTERFACE: 'interface',
-                     CompletionItemKind.MODULE: 'module',
-                     CompletionItemKind.PROPERTY: 'property',
-                     CompletionItemKind.UNIT: 'unit',
-                     CompletionItemKind.VALUE: 'value',
-                     CompletionItemKind.ENUM: 'enum',
-                     CompletionItemKind.KEYWORD: 'keyword',
-                     CompletionItemKind.SNIPPET: 'snippet',
-                     CompletionItemKind.COLOR: 'color',
-                     CompletionItemKind.FILE: 'filenew',
-                     CompletionItemKind.REFERENCE: 'reference',
-                     }
 
         self.display_index = []
         height = self.item_height
@@ -227,7 +228,7 @@ class CompletionWidget(QListWidget):
                 entry_label = completion['label']
                 if not code_snippets_enabled:
                     completion_label = completion['insertText']
-                icon = icons_map.get(completion['kind'], 'no_match')
+                icon = self.ICONS_MAP.get(completion['kind'], 'no_match')
                 entry_label = self.get_html_item_representation(
                     entry_label, icon, height=height, width=width)
                 item = QListWidgetItem(ima.icon(icon),
@@ -417,4 +418,34 @@ class CompletionWidget(QListWidget):
                     item['insertText'],
                     item['documentation'],
                     item['point'])
+
             return
+
+    def _update_item_text(self, item_widget, item_info, height, width,
+                          provider=True):
+        """Update item text using the info available."""
+        item_provider = item_info['provider']
+        item_type = self.ICONS_MAP.get(item_info['kind'], 'no_match')
+        item_label = item_info['label']
+
+        if item_provider == KITE_COMPLETION and provider:
+            item_type = '{0} {1}'.format(item_provider, item_type)
+        item_text = self.get_html_item_representation(
+            item_label, item_type, height=height, width=width)
+
+        item_widget.setText(item_text)
+
+    @Slot(QListWidgetItem, QListWidgetItem)
+    def update_text_item_provider(self, current, previous):
+        """Update item text to show completion provider."""
+        height = self.item_height
+        width = self.item_width
+
+        if current and self.completion_list:
+            current_item_info = self.completion_list[self.currentRow()]
+            self._update_item_text(current, current_item_info, height, width)
+
+        if previous and self.completion_list:
+            previous_item_info = self.completion_list[self.row(previous)]
+            self._update_item_text(
+                previous, previous_item_info, height, width, provider=False)
