@@ -6,6 +6,9 @@
 
 """Kite installation widget."""
 
+# Standard library imports
+import sys
+
 # Third-party imports
 from qtpy.QtCore import Qt, QUrl, Signal
 from qtpy.QtGui import QDesktopServices, QMovie, QPixmap
@@ -134,7 +137,11 @@ class KiteInstallerDialog(QDialog):
     """Kite installer."""
     def __init__(self, parent, kite_installation_thread):
         super(KiteInstallerDialog, self).__init__(parent)
-        self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
+        if sys.platform == 'darwin':
+            self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint
+                                | Qt.Tool)
+        else:
+            self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)```
         self._parent = parent
         self._installation_thread = kite_installation_thread
         self._welcome_widget = KiteWelcome(self)
