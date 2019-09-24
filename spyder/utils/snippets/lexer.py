@@ -33,7 +33,7 @@ token_regex = OrderedDict({
     'comma': r'^,$',
     'left_curly_name': r'^\{[a-zA-Z_]\w*$',
     'name': r'^(?=[\w])(?=[^_\d])\w*$',
-    'symbol': r'^(?=[^\w]$)(?=[^\s]$)'
+    'symbol': r'^(?=[^\w]$)(?=[^\s]$)|_'
 })
 
 token_regex = {name: re.compile(r) for name, r in token_regex.items()}
