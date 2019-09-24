@@ -68,7 +68,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def _show_installation_dialog(self):
         """Show installation dialog."""
         kite_installation_enabled = self.get_option('install_enable', True)
-        if kite_installation_enabled:
+        installed, path = check_if_kite_installed()
+        if not installed and kite_installation_enabled:
             self.kite_installer.show()
             self.kite_installer.center()
 
