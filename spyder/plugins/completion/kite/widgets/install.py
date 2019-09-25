@@ -23,6 +23,52 @@ from spyder.plugins.completion.kite.utils.install import (ERRORED, INSTALLING,
                                                           FINISHED)
 
 
+class KiteIntegrationInfo(QWidget):
+    """Initial Widget with info about the integration with Kite."""
+    # Signal triggered for the 'Learn more' button
+    sig_learn_more_button_clicked = Signal()
+    # Signal triggered for the 'Install Kite' button
+    sig_install_button_clicked = Signal()
+    # Signal triggered for the 'Dismiss' button
+    sig_dismiss_button_clicked = Signal()
+
+    def __init__(self, parent):
+        super(KiteIntegrationInfo, self).__init__(parent)
+        # Images
+        images_layout = QHBoxLayout()
+
+        # Label
+        integration_label = QLabel(
+            _('''Now Spyder can use <a href="https://kite.com/">Kite</a> to '''
+              '''provide better and more accurate code completions in its '''
+              '''editor <br>for the most important packages in the Python '''
+              '''scientific ecosystem, such as Numpy, <br>Matplotlib and '''
+              '''Pandas.<br><br>Would you like to install it or learn more '''
+              '''about it?<br><br><i>Note:</i> Kite is not an open source '''
+              '''program.'''))
+        integration_label.setOpenExternalLinks(True)
+
+        # Buttons
+        buttons_layout = QHBoxLayout()
+        learn_more_button = QPushButton(_('Learn more'))
+        install_button = QPushButton(_('Install Kite'))
+        dismiss_button = QPushButton(_('Dismiss'))
+        buttons_layout.addStretch(0)
+        buttons_layout.addWidget(learn_more_button)
+        buttons_layout.addWidget(install_button)
+        buttons_layout.addWidget(dismiss_button)
+
+        general_layout = QVBoxLayout()
+        general_layout.addLayout(images_layout)
+        general_layout.addWidget(integration_label)
+        general_layout.addLayout(buttons_layout)
+        self.setLayout(general_layout)
+
+        learn_more_button.clicked.connect(self.sig_learn_more_button_clicked)
+        install_button.clicked.connect(self.sig_install_button_clicked)
+        dismiss_button.clicked.connect(self.sig_dismiss_button_clicked)
+
+
 class KiteWelcome(QWidget):
     """Kite welcome info widget."""
 
@@ -144,13 +190,16 @@ class KiteInstallerDialog(QDialog):
             self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
         self._parent = parent
         self._installation_thread = kite_installation_thread
+        self._integration_widget = KiteIntegrationInfo(self)
         self._welcome_widget = KiteWelcome(self)
         self._installation_widget = KiteInstallation(self)
 
         # Layout
         installer_layout = QVBoxLayout()
+        installer_layout.addWidget(self._integration_widget)
         installer_layout.addWidget(self._welcome_widget)
         installer_layout.addWidget(self._installation_widget)
+        self._welcome_widget.hide()
         self._installation_widget.hide()
 
         self.setLayout(installer_layout)
@@ -163,17 +212,16 @@ class KiteInstallerDialog(QDialog):
         self._installation_thread.sig_installation_status.connect(
             self.finished_installation)
         self._installation_thread.sig_error_msg.connect(self._handle_error_msg)
+        self._integration_widget.sig_learn_more_button_clicked.connect(
+            self.welcome)
+        self._integration_widget.sig_install_button_clicked.connect(
+            self.install)
+        self._integration_widget.sig_dismiss_button_clicked.connect(
+            self.close_installer)
         self._welcome_widget.sig_install_button_clicked.connect(
             self.install)
         self._installation_widget.sig_close_button_clicked.connect(
             self.close_installer)
-
-    def center(self):
-        """Center the dialog."""
-        screen = QApplication.desktop().screenGeometry(0)
-        x = screen.center().x() - self.width() / 2
-        y = screen.center().y() - self.height() / 2
-        self.move(x, y)
 
     def _handle_error_msg(self, msg):
         """Handle error message with an error dialog."""
@@ -191,9 +239,25 @@ class KiteInstallerDialog(QDialog):
         error_message_dialog.addButton(get_help_button, QMessageBox.ActionRole)
         error_message_dialog.exec_()
 
+    def center(self):
+        """Center the dialog."""
+        screen = QApplication.desktop().screenGeometry(0)
+        x = screen.center().x() - self.width() / 2
+        y = screen.center().y() - self.height() / 2
+        self.move(x, y)
+
+    def welcome(self):
+        """Show welcome widget."""
+        self._integration_widget.hide()
+        self._installation_widget.hide()
+        self._welcome_widget.setVisible(True)
+        self.adjustSize()
+        self.center()
+
     def install(self):
-        """Initialize installation process."""
+        """Initialize installation process and show install widget."""
         self._welcome_widget.hide()
+        self._integration_widget.hide()
         self._installation_thread.install()
         self._installation_widget.setVisible(True)
         self.adjustSize()
@@ -206,8 +270,10 @@ class KiteInstallerDialog(QDialog):
 
     def close_installer(self):
         """Close the installation dialog."""
+        on_integration_widget = self._integration_widget.isVisible()
         if (self._installation_thread.status == ERRORED
-                or self._installation_thread.status == FINISHED):
+                or self._installation_thread.status == FINISHED
+                or on_integration_widget):
             self.accept()
         else:
             self.hide()
@@ -215,7 +281,8 @@ class KiteInstallerDialog(QDialog):
     def reject(self):
         """Qt method override."""
         on_welcome_widget = self._welcome_widget.isVisible()
-        if on_welcome_widget:
+        on_integration_widget = self._integration_widget.isVisible()
+        if on_welcome_widget or on_integration_widget:
             CONF.set('kite-completions', 'install_enable', False)
         super(KiteInstallerDialog, self).reject()
 
