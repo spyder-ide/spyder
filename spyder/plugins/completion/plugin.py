@@ -210,7 +210,7 @@ class CompletionManager(SpyderCompletionPlugin):
         if self.get_option('enable_kite') and self._is_client_running(kite):
             client_names.append(kite)
         if (req_type not in self.MUTEX_REQUEST_TYPES or
-                kite not in client_names):
+                kite not in client_names) and lsp in self.clients:
             client_names.append(lsp)
 
         if (self.get_option('enable_fallback') and
