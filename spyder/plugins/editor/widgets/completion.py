@@ -33,6 +33,10 @@ COMPLETION_ITEM_TEMPLATE = u"""
         <td valign="middle" align="right" float="right" style="color:{color}">
             {type}
         </td>
+        <td valign="top" align="right" float="right" width="{img_width}">
+            <img src="data:image/png;base64, {icon_provider}"
+                 height="{img_height}" width={img_width}/>
+        </td>
     </tr>
 </table>
 """
@@ -76,7 +80,6 @@ class CompletionWidget(QListWidget):
         self.hide()
         self.itemActivated.connect(self.item_selected)
         self.currentRowChanged.connect(self.row_changed)
-        self.currentItemChanged.connect(self.update_text_item_provider)
         self.is_internal_console = False
         self.completion_list = None
         self.completion_position = None
@@ -225,19 +228,19 @@ class CompletionWidget(QListWidget):
                     self.textedit, 'code_snippets', False)
                 completion_label = completion['filterText']
                 completion_text = completion['insertText']
-                entry_label = completion['label']
                 if not code_snippets_enabled:
                     completion_label = completion['insertText']
                 icon = self.ICONS_MAP.get(completion['kind'], 'no_match')
-                entry_label = self.get_html_item_representation(
-                    entry_label, icon, height=height, width=width)
-                item = QListWidgetItem(ima.icon(icon),
-                                       entry_label)
+                item = QListWidgetItem()
+                item.setIcon(ima.icon(icon))
+                self.set_item_text(
+                    item, completion, height=height, width=width)
                 item.setData(Qt.UserRole, completion_text)
             else:
                 completion_label = completion[0]
                 completion_text = self.get_html_item_representation(
-                    completion_label, '', height=height, width=width)
+                    completion_label, '', icon_provider=None, size=0,
+                    height=height, width=width)
                 item = QListWidgetItem()
                 item.setData(Qt.UserRole, completion_label)
                 item.setText(completion_text)
@@ -254,7 +257,31 @@ class CompletionWidget(QListWidget):
         else:
             self.hide()
 
+    def set_item_text(self, item_widget, item_info, height, width):
+        """Set item text using the info available."""
+        item_provider = item_info['provider']
+        item_type = self.ICONS_MAP.get(item_info['kind'], 'no_match')
+        item_label = item_info['label']
+        icon_provider = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+        img_height = height - 2
+        img_width = img_height * 0.8
+
+        if item_provider == KITE_COMPLETION:
+            icon_provider = ima.get_kite_icon()
+            icon_provider = ima.base64_from_icon_obj(
+                icon_provider, 417, 528)
+
+        item_text = self.get_html_item_representation(
+            item_label, item_type, icon_provider=icon_provider,
+            img_height=img_height, img_width=img_width, height=height,
+            width=width)
+
+        item_widget.setText(item_text)
+
     def get_html_item_representation(self, item_completion, item_type,
+                                     icon_provider=None,
+                                     img_height=0,
+                                     img_width=0,
                                      height=DEFAULT_COMPLETION_ITEM_HEIGHT,
                                      width=DEFAULT_COMPLETION_ITEM_WIDTH):
         """Get HTML representation of and item."""
@@ -262,6 +289,9 @@ class CompletionWidget(QListWidget):
         return COMPLETION_ITEM_TEMPLATE.format(completion=item_completion,
                                                type=item_type,
                                                color=ima.MAIN_FG_COLOR,
+                                               icon_provider=icon_provider,
+                                               img_height=img_height,
+                                               img_width=img_width,
                                                height=height,
                                                width=width)
 
@@ -420,32 +450,3 @@ class CompletionWidget(QListWidget):
                     item['point'])
 
             return
-
-    def _update_item_text(self, item_widget, item_info, height, width,
-                          provider=True):
-        """Update item text using the info available."""
-        item_provider = item_info['provider']
-        item_type = self.ICONS_MAP.get(item_info['kind'], 'no_match')
-        item_label = item_info['label']
-
-        if item_provider == KITE_COMPLETION and provider:
-            item_type = '{0} {1}'.format(item_provider, item_type)
-        item_text = self.get_html_item_representation(
-            item_label, item_type, height=height, width=width)
-
-        item_widget.setText(item_text)
-
-    @Slot(QListWidgetItem, QListWidgetItem)
-    def update_text_item_provider(self, current, previous):
-        """Update item text to show completion provider."""
-        height = self.item_height
-        width = self.item_width
-
-        if current and self.completion_list:
-            current_item_info = self.completion_list[self.currentRow()]
-            self._update_item_text(current, current_item_info, height, width)
-
-        if previous and self.completion_list:
-            previous_item_info = self.completion_list[self.row(previous)]
-            self._update_item_text(
-                previous, previous_item_info, height, width, provider=False)
