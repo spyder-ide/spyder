@@ -228,6 +228,7 @@ class DocumentProvider:
                 params = {
                     'signatures': base_signature,
                     'activeSignature': 0,
-                    'activeParameter': arg_idx
+                    'activeParameter': arg_idx,
+                    'provider': KITE_COMPLETION
                 }
         return {'params': params}

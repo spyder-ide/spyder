@@ -127,6 +127,7 @@ class DocumentProvider:
         if len(response['signatures']) > 0:
             response['signatures'] = response['signatures'][
                 response['activeSignature']]
+            response['provider'] = LSP_COMPLETION
         else:
             response = None
         if req_id in self.req_reply:

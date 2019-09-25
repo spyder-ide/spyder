@@ -262,7 +262,8 @@ class CompletionWidget(QListWidget):
         item_provider = item_info['provider']
         item_type = self.ICONS_MAP.get(item_info['kind'], 'no_match')
         item_label = item_info['label']
-        icon_provider = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+        icon_provider = ("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l"
+                         "EQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")
         img_height = height - 2
         img_width = img_height * 0.8
 
