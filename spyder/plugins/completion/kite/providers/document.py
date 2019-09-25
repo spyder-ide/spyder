@@ -133,9 +133,11 @@ class DocumentProvider:
                             'kind': KITE_DOCUMENT_TYPES.get(
                                 child['hint'], CompletionItemKind.TEXT),
                             'label': ' '*2 + child['display'],
-                            'insertText': convert_text_snippet(child['snippet']),
+                            'insertText': convert_text_snippet(
+                                child['snippet']),
                             'filterText': child['snippet']['text'],
-                            'sortText': '{:4d}{:4d}'.format(i, j),  # use the returned ordering
+                            # use the returned ordering
+                            'sortText': '{:4d}{:4d}'.format(i, j),
                             'documentation': child['documentation']['text']
                         }
                         spyder_completions.append(child_entry)

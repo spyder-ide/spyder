@@ -104,12 +104,15 @@ class CompletionManager(SpyderCompletionPlugin):
         logger.debug("Completion plugin: Request {0} Got response "
                      "from {1}".format(req_id, completion_source))
 
-        # do not check _is_plugin_running for LSP, since LSP does not set that state
-        if (completion_source == KiteCompletionPlugin.COMPLETION_CLIENT_NAME and not resp):
+        # do not check _is_plugin_running for LSP,
+        # since LSP does not set that state
+        if (completion_source == KiteCompletionPlugin.COMPLETION_CLIENT_NAME
+                and not resp):
             req_state = self.requests[req_id]
             if req_state['req_type'] in self.MUTEX_REQUEST_TYPES:
-                # Kite request failed on a mutually exclusive request: try with LSP
-                self.clients['lsp']['plugin'].send_request(req_state['language'], req_state['req_type'], req_state['req'], req_id)
+                self.clients['lsp']['plugin'].send_request(
+                    req_state['language'], req_state['req_type'],
+                    req_state['req'], req_id)
                 return
 
         with QMutexLocker(self.collection_mutex):
@@ -149,7 +152,8 @@ class CompletionManager(SpyderCompletionPlugin):
                     continue
                 seen_completions.add(response['label'])
 
-                response['sortText'] = '{}{}'.format(priority, response['sortText'])
+                response['sortText'] = '{}{}'.format(
+                    priority, response['sortText'])
                 responses.append(response)
                 merge_stats[source] += 1
 
@@ -190,22 +194,29 @@ class CompletionManager(SpyderCompletionPlugin):
             pass
 
     def _is_client_running(self, name):
-        return self.clients.get(name, {}).get('status', self.STOPPED) == self.RUNNING
+        status = self.clients.get(name, {}).get('status', self.STOPPED)
+        return status == self.RUNNING
 
     def send_request(self, language, req_type, req):
         req_id = self.req_id
 
+        kite = KiteCompletionPlugin.COMPLETION_CLIENT_NAME
+        lsp = LanguageServerPlugin.COMPLETION_CLIENT_NAME
+        fallback = FallbackPlugin.COMPLETION_CLIENT_NAME
+
         client_names = []
         if req_type not in self.MUTEX_REQUEST_TYPES:
-            client_names.append(KiteCompletionPlugin.COMPLETION_CLIENT_NAME)
-            client_names.append(LanguageServerPlugin.COMPLETION_CLIENT_NAME)
-        elif self.get_option('enable_kite', True) and self._is_client_running(KiteCompletionPlugin.COMPLETION_CLIENT_NAME):
-            client_names.append(KiteCompletionPlugin.COMPLETION_CLIENT_NAME)
+            client_names.append(kite)
+            client_names.append(lsp)
+        elif (self.get_option('enable_kite', True) and
+              self._is_client_running(kite)):
+            client_names.append(kite)
         else:
-            client_names.append(LanguageServerPlugin.COMPLETION_CLIENT_NAME)
+            client_names.append(lsp)
 
-        if self.get_option('enable_fallback', True) and self._is_client_running('fallback'):
-            client_names.append(FallbackPlugin.COMPLETION_CLIENT_NAME)
+        if (self.get_option('enable_fallback', True) and
+                self._is_client_running(fallback)):
+            client_names.append(fallback)
 
         for client_name in client_names:
             client_info = self.clients[client_name]

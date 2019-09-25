@@ -49,13 +49,14 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         if language in self.available_languages:
             self.client.sig_perform_request.emit(req_id, req_type, req)
         else:
-            self.sig_response_ready.emit(self.COMPLETION_CLIENT_NAME, req_id, {})
+            self.sig_response_ready.emit(self.COMPLETION_CLIENT_NAME,
+                                         req_id, {})
 
     def start_client(self, language):
         return language in self.available_languages
 
     def start(self):
-        # start client regardless of the above to support undetected Kite builds
+        # always start client to support possibly undetected Kite builds
         self.client.start()
         installed, path = check_if_kite_installed()
         if installed:

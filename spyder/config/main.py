@@ -504,8 +504,7 @@ DEFAULTS = [
              {
               'enable_kite': True,
               'enable_fallback': True,
-             }
-            )
+             }),
             ]
 
 
