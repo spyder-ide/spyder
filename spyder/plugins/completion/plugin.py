@@ -143,14 +143,15 @@ class CompletionManager(SpyderCompletionPlugin):
     def gather_completions(self, req_id_responses):
         merge_stats = {source: 0 for source in req_id_responses}
         responses = []
-        seen_completions = {x['label'] for x in responses}
+        dedupe_set = set()
         for priority, source in enumerate(self.COMPLETION_SOURCE_PRIORITY):
             if source not in req_id_responses:
                 continue
             for response in req_id_responses[source].get('params', []):
-                if response['label'] in seen_completions:
+                dedupe_key = response['label'].strip()
+                if dedupe_key in dedupe_set:
                     continue
-                seen_completions.add(response['label'])
+                dedupe_set.add(dedupe_key)
 
                 response['sortText'] = '{}{}'.format(
                     priority, response['sortText'])
