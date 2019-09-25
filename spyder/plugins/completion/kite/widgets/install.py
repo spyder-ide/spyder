@@ -18,6 +18,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
 
 # Local imports
 from spyder.config.base import _, get_image_path
+from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.plugins.completion.kite.utils.install import (ERRORED, INSTALLING,
                                                           FINISHED)
@@ -36,6 +37,28 @@ class KiteIntegrationInfo(QWidget):
         super(KiteIntegrationInfo, self).__init__(parent)
         # Images
         images_layout = QHBoxLayout()
+        if is_dark_interface():
+            spyder_icon_filename = 'spyder.svg'
+            kite_icon_filename = 'kite_dark.svg'
+        else:
+            spyder_icon_filename = 'spyder_dark.svg'
+            kite_icon_filename = 'kite_light.svg'
+        spyder_image_path = get_image_path(spyder_icon_filename)
+        spyder_image = QPixmap(spyder_image_path)
+        spyder_image_label = QLabel()
+        spyder_image_label.setPixmap(
+            spyder_image.scaled(100, 100, Qt.KeepAspectRatio))
+
+        kite_image_path = get_image_path(kite_icon_filename)
+        kite_image = QPixmap(kite_image_path)
+        kite_image_label = QLabel()
+        kite_image_label.setPixmap(
+            kite_image.scaled(100, 100, Qt.KeepAspectRatio))
+
+        images_layout.addStretch(0)
+        images_layout.addWidget(spyder_image_label)
+        images_layout.addWidget(kite_image_label)
+        images_layout.addStretch(0)
 
         # Label
         integration_label = QLabel(
@@ -155,7 +178,6 @@ class KiteInstallation(QWidget):
         copilot_image = QPixmap(copilot_image_source)
         copilot_label = QLabel()
         copilot_label.setPixmap(copilot_image)
-        copilot_label.setMask(copilot_image.mask())
 
         # Layout
         general_layout = QHBoxLayout()
