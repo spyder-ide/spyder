@@ -75,6 +75,12 @@ class DebuggingWidget(RichJupyterWidget):
         self._pdb_input_queue = []
         self._pdb_line_num = 0
 
+        # start/stop pdb history session
+        if in_debug_loop:
+            self._pdb_history_file.new_session()
+        else:
+            self._pdb_history_file.end_session()
+
     def _pdb_update(self):
         """
         Update by sending an input to pdb.
