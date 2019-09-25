@@ -7,6 +7,7 @@
 """Completion widget class."""
 
 # Standard library imports
+import html
 import sys
 
 # Third psrty imports
@@ -258,7 +259,8 @@ class CompletionWidget(QListWidget):
                                      width=DEFAULT_COMPLETION_ITEM_WIDTH):
         """Get HTML representation of and item."""
 
-        return COMPLETION_ITEM_TEMPLATE.format(completion=item_completion,
+        display = html.escape(item_completion).replace(' ', '&nbsp;')
+        return COMPLETION_ITEM_TEMPLATE.format(completion=display,
                                                type=item_type,
                                                color=ima.MAIN_FG_COLOR,
                                                height=height,

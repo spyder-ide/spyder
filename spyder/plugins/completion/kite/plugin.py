@@ -48,11 +48,15 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def send_request(self, language, req_type, req, req_id):
         if language in self.available_languages:
             self.client.sig_perform_request.emit(req_id, req_type, req)
+        else:
+            self.sig_response_ready.emit(self.COMPLETION_CLIENT_NAME, req_id, {})
 
     def start_client(self, language):
         return language in self.available_languages
 
     def start(self):
+        # start client regardless of the above to support undetected Kite builds
+        self.client.start()
         installed, path = check_if_kite_installed()
         if installed:
             logger.debug('Kite was found on the system: {0}'.format(path))
@@ -60,7 +64,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             if not running:
                 logger.debug('Starting Kite service...')
                 self.kite_process = run_program(path)
-            self.client.start()
 
     def shutdown(self):
         self.client.stop()

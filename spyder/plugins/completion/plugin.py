@@ -33,13 +33,28 @@ logger = logging.getLogger(__name__)
 
 
 class CompletionManager(SpyderCompletionPlugin):
+    CONF_SECTION = 'completions'
+    CONF_FILE = False
+
     STOPPED = 'stopped'
     RUNNING = 'running'
-    BASE_PLUGINS = {
-        'lsp': LanguageServerPlugin,
-        'fallback': FallbackPlugin,
-        'kite': KiteCompletionPlugin
+    BASE_PLUGINS = {p.COMPLETION_CLIENT_NAME: p for p in (
+        LanguageServerPlugin,
+        FallbackPlugin,
+        KiteCompletionPlugin,
+    )}
+
+    MUTEX_REQUEST_TYPES = {
+        LSPRequestTypes.DOCUMENT_COMPLETION,
+        LSPRequestTypes.DOCUMENT_HOVER,
+        LSPRequestTypes.DOCUMENT_SIGNATURE,
     }
+
+    COMPLETION_SOURCE_PRIORITY = (
+        KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
+        LanguageServerPlugin.COMPLETION_CLIENT_NAME,
+        FallbackPlugin.COMPLETION_CLIENT_NAME,
+    )
 
     def __init__(self, parent, plugins=['lsp', 'kite', 'fallback']):
         SpyderCompletionPlugin.__init__(self, parent)
@@ -88,6 +103,15 @@ class CompletionManager(SpyderCompletionPlugin):
     def receive_response(self, completion_source, req_id, resp):
         logger.debug("Completion plugin: Request {0} Got response "
                      "from {1}".format(req_id, completion_source))
+
+        # do not check _is_plugin_running for LSP, since LSP does not set that state
+        if (completion_source == KiteCompletionPlugin.COMPLETION_CLIENT_NAME and not resp):
+            req_state = self.requests[req_id]
+            if req_state['req_type'] in self.MUTEX_REQUEST_TYPES:
+                # Kite request failed on a mutually exclusive request: try with LSP
+                self.clients['lsp']['plugin'].send_request(req_state['language'], req_state['req_type'], req_state['req'], req_id)
+                return
+
         with QMutexLocker(self.collection_mutex):
             request_responses = self.requests[req_id]
             req_type = request_responses['req_type']
@@ -113,25 +137,22 @@ class CompletionManager(SpyderCompletionPlugin):
         client_info = self.clients[client_name]
         client_info['status'] = self.RUNNING
 
-    def gather_completions(self, principal_source, req_id_responses):
+    def gather_completions(self, req_id_responses):
         merge_stats = {source: 0 for source in req_id_responses}
-        responses = req_id_responses[principal_source]['params']
-        available_completions = {x['label'] for x in responses}
-        priority_level = 1
-        for source in req_id_responses:
-            logger.debug(source)
-            if source == principal_source:
-                merge_stats[source] += len(
-                    req_id_responses[source]['params'])
+        responses = []
+        seen_completions = {x['label'] for x in responses}
+        for priority, source in enumerate(self.COMPLETION_SOURCE_PRIORITY):
+            if source not in req_id_responses:
                 continue
-            source_responses = req_id_responses[source]['params']
-            for response in source_responses:
-                if response['label'] not in available_completions:
-                    response['sortText'] = (
-                        'z' + 'z' * priority_level + response['sortText'])
-                    responses.append(response)
-                    merge_stats[source] += 1
-            priority_level += 1
+            for response in req_id_responses[source].get('params', []):
+                if response['label'] in seen_completions:
+                    continue
+                seen_completions.add(response['label'])
+
+                response['sortText'] = '{}{}'.format(priority, response['sortText'])
+                responses.append(response)
+                merge_stats[source] += 1
+
         logger.debug('Responses statistics: {0}'.format(merge_stats))
         responses = {'params': responses}
         return responses
@@ -152,9 +173,7 @@ class CompletionManager(SpyderCompletionPlugin):
         req_id_responses = self.requests[req_id]['sources']
 
         if req_type == LSPRequestTypes.DOCUMENT_COMPLETION:
-            # principal_source = self.plugin_priority[req_type]
-            responses = self.gather_completions(
-                principal_source, req_id_responses)
+            responses = self.gather_completions(req_id_responses)
         elif req_type == LSPRequestTypes.DOCUMENT_HOVER:
             responses = self.gather_default(req_id_responses, '')
         elif req_type == LSPRequestTypes.DOCUMENT_SIGNATURE:
@@ -170,19 +189,36 @@ class CompletionManager(SpyderCompletionPlugin):
             # removed before the response can be processed.
             pass
 
-    def send_request(self, language, req_type, req, req_id=None):
+    def _is_client_running(self, name):
+        return self.clients.get(name, {}).get('status', self.STOPPED) == self.RUNNING
+
+    def send_request(self, language, req_type, req):
         req_id = self.req_id
-        for client_name in self.clients:
+
+        client_names = []
+        if req_type not in self.MUTEX_REQUEST_TYPES:
+            client_names.append(KiteCompletionPlugin.COMPLETION_CLIENT_NAME)
+            client_names.append(LanguageServerPlugin.COMPLETION_CLIENT_NAME)
+        elif self.get_option('enable_kite', True) and self._is_client_running(KiteCompletionPlugin.COMPLETION_CLIENT_NAME):
+            client_names.append(KiteCompletionPlugin.COMPLETION_CLIENT_NAME)
+        else:
+            client_names.append(LanguageServerPlugin.COMPLETION_CLIENT_NAME)
+
+        if self.get_option('enable_fallback', True) and self._is_client_running('fallback'):
+            client_names.append(FallbackPlugin.COMPLETION_CLIENT_NAME)
+
+        for client_name in client_names:
             client_info = self.clients[client_name]
-            if client_info['status'] == self.RUNNING:
-                self.requests[req_id] = {
-                    'req_type': req_type,
-                    'response_instance': req['response_instance'],
-                    'language': language,
-                    'sources': {}
-                }
-                client_info['plugin'].send_request(
-                    language, req_type, req, req_id)
+            self.requests[req_id] = {
+                'language': language,
+                'req_type': req_type,
+                'req': req,
+                'response_instance': req['response_instance'],
+                'sources': {}
+            }
+            client_info['plugin'].send_request(
+                language, req_type, req, req_id)
+
         if req['requires_response']:
             self.req_id += 1
 

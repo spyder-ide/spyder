@@ -114,32 +114,32 @@ class DocumentProvider:
         spyder_completions = []
         completions = response['completions']
         if completions is not None:
-            for completion in completions:
+            for i, completion in enumerate(completions):
                 entry = {
                     'kind': KITE_DOCUMENT_TYPES.get(
                         completion['hint'], CompletionItemKind.TEXT),
                     'label': completion['display'],
                     'insertText': completion['snippet']['text'],
                     'filterText': completion['display'],
-                    'sortText': completion['display'],
+                    'sortText': '{:4d}'.format(i),  # use the returned ordering
                     'documentation': completion['documentation']['text']
                 }
                 spyder_completions.append(entry)
+
                 if 'children' in completion:
                     children_snippets = completion['children']
-                    for children in children_snippets:
-                        text = children['snippet']['text']
-                        snippet = convert_text_snippet(children['snippet'])
+                    for j, child in enumerate(children_snippets):
                         child_entry = {
                             'kind': KITE_DOCUMENT_TYPES.get(
-                                children['hint'], CompletionItemKind.TEXT),
-                            'label': text,
-                            'insertText': snippet,
-                            'filterText': text,
-                            'sortText': text,
-                            'documentation': children['documentation']['text']
+                                child['hint'], CompletionItemKind.TEXT),
+                            'label': ' '*2 + child['display'],
+                            'insertText': convert_text_snippet(child['snippet']),
+                            'filterText': child['snippet']['text'],
+                            'sortText': '{:4d}{:4d}'.format(i, j),  # use the returned ordering
+                            'documentation': child['documentation']['text']
                         }
                         spyder_completions.append(child_entry)
+
         return {'params': spyder_completions}
 
     @send_request(method=LSPRequestTypes.DOCUMENT_HOVER)
