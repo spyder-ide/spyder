@@ -104,7 +104,7 @@ class CompletionManager(SpyderCompletionPlugin):
         logger.debug("Completion plugin: Request {0} Got response "
                      "from {1}".format(req_id, completion_source))
 
-        # do not check _is_plugin_running for LSP,
+        # Do not check _is_plugin_running for LSP,
         # since LSP does not set that state
         if (completion_source == KiteCompletionPlugin.COMPLETION_CLIENT_NAME
                 and not resp):
@@ -205,16 +205,14 @@ class CompletionManager(SpyderCompletionPlugin):
         fallback = FallbackPlugin.COMPLETION_CLIENT_NAME
 
         client_names = []
-        if req_type not in self.MUTEX_REQUEST_TYPES:
+
+        if self.get_option('enable_kite') and self._is_client_running(kite):
             client_names.append(kite)
-            client_names.append(lsp)
-        elif (self.get_option('enable_kite', True) and
-              self._is_client_running(kite)):
-            client_names.append(kite)
-        else:
+        if (req_type not in self.MUTEX_REQUEST_TYPES or
+                kite not in client_names):
             client_names.append(lsp)
 
-        if (self.get_option('enable_fallback', True) and
+        if (self.get_option('enable_fallback') and
                 self._is_client_running(fallback)):
             client_names.append(fallback)
 

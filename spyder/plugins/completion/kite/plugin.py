@@ -56,7 +56,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         return language in self.available_languages
 
     def start(self):
-        # always start client to support possibly undetected Kite builds
+        # Always start client to support possibly undetected Kite builds
         self.client.start()
         installed, path = check_if_kite_installed()
         if installed:

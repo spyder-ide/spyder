@@ -121,7 +121,8 @@ class DocumentProvider:
                     'label': completion['display'],
                     'insertText': completion['snippet']['text'],
                     'filterText': completion['display'],
-                    'sortText': '{:4d}'.format(i),  # use the returned ordering
+                    # Use the returned ordering
+                    'sortText': '{:4d}'.format(i),
                     'documentation': completion['documentation']['text']
                 }
                 spyder_completions.append(entry)
@@ -136,7 +137,7 @@ class DocumentProvider:
                             'insertText': convert_text_snippet(
                                 child['snippet']),
                             'filterText': child['snippet']['text'],
-                            # use the returned ordering
+                            # Use the returned ordering
                             'sortText': '{:4d}{:4d}'.format(i, j),
                             'documentation': child['documentation']['text']
                         }
