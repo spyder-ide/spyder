@@ -1444,14 +1444,6 @@ class Editor(SpyderPluginWidget):
     def is_file_opened(self, filename=None):
         return self.editorstacks[0].is_file_opened(filename)
 
-    def is_current_file_modified(self):
-        """Return if the current filename has been modified."""
-        finfo = self.get_current_finfo()
-        modified = False
-        if finfo:
-            modified = finfo.editor.document().isModified()
-        return modified
-
     def set_current_filename(self, filename, editorwindow=None, focus=True):
         """Set focus to *filename* if this file has been opened.
 

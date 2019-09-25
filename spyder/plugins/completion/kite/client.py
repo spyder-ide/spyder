@@ -68,13 +68,13 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
             response = ['python']
         return response
 
-    def get_status(self, filename, saved=True):
-        """Get Kite status taking into account a filename."""
-        if saved:
-            verb, url = KITE_ENDPOINTS.SAVED_STATUS_ENDPOINT
+    def get_status(self, filename):
+        """Get Kite status for a givec filename."""
+        if filename:
+            verb, url = KITE_ENDPOINTS.FILENAME_STATUS_ENDPOINT
             url = url.format(filename=filename)
         else:
-            verb, url = KITE_ENDPOINTS.UNSAVED_STATUS_ENDPOINT
+            verb, url = KITE_ENDPOINTS.BUFFER_STATUS_ENDPOINT
         success, response = self.perform_http_request(verb, url)
         return response
 

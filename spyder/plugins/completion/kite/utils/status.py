@@ -17,7 +17,7 @@ import sys
 import psutil
 
 NOT_INSTALLED = 'not installed'
-RUNNING = 'running'
+RUNNING = 'ready'
 NOT_RUNNING = 'not running'
 
 logger = logging.getLogger(__name__)
@@ -86,7 +86,7 @@ def is_proc_kite(proc):
 
 
 def status():
-    """Kite completions status: not installed, running, not running."""
+    """Kite completions status: not installed, ready, not running."""
     kite_installed, _ = check_if_kite_installed()
     if not kite_installed:
         return NOT_INSTALLED
