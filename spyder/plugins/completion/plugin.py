@@ -153,7 +153,7 @@ class CompletionManager(SpyderCompletionPlugin):
                     continue
                 dedupe_set.add(dedupe_key)
 
-                response['sortText'] = '{}{}'.format(
+                response['sortText'] = '{} {}'.format(
                     priority, response['sortText'])
                 responses.append(response)
                 merge_stats[source] += 1

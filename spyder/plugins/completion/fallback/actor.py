@@ -65,7 +65,7 @@ class FallbackActor(QObject):
         keywords = [{'kind': CompletionItemKind.KEYWORD,
                      'insertText': keyword,
                      'label': keyword,
-                     'sortText': u'zz{0}'.format(keyword[0].lower()),
+                     'sortText': keyword,
                      'filterText': keyword, 'documentation': ''}
                     for keyword in keywords]
         # logger.debug(keywords)
@@ -74,7 +74,7 @@ class FallbackActor(QObject):
         tokens = get_words(text, language)
         tokens = [{'kind': CompletionItemKind.TEXT, 'insertText': token,
                    'label': token,
-                   'sortText': u'zz{0}'.format(token[0].lower()),
+                   'sortText': token,
                    'filterText': token, 'documentation': ''}
                   for token in tokens]
         for token in tokens:

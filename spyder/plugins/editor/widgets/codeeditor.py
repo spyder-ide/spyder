@@ -1064,7 +1064,6 @@ class CodeEditor(TextEditBaseWidget):
             text2 = to_text_string(cursor.selectedText())
 
             first_letter = text1[0] if len(text1) > 0 else ''
-            is_upper_word = first_letter.isupper()
             completions = [] if completions is None else completions
             comparison_key = 'label'
             if self.code_snippets:
@@ -1090,22 +1089,18 @@ class CodeEditor(TextEditBaseWidget):
 
             completions = list(available_completions.values())
 
-            if completions is not None and len(completions) > 0:
-                for completion in completions:
-                    sort_text = completion['sortText']
-                    if is_upper_word:
-                        first_sort_letter = sort_text[1]
-                        if first_sort_letter.islower():
-                            if first_sort_letter.upper() == first_letter:
-                                completion['sortText'] = 'z' + sort_text
-                    else:
-                        first_sort_letter = sort_text[1]
-                        if first_sort_letter.isupper():
-                            if first_sort_letter.lower() == first_letter:
-                                completion['sortText'] = 'z' + sort_text
+            def sort_key(completion):
+                first_insert_letter = completion['insertText'][0]
+                case_mismatch = (
+                    (first_letter.isupper() and first_insert_letter.islower())
+                    or
+                    (first_letter.islower() and first_insert_letter.isupper())
+                )
+                # False < True, so case matches go first, and case mismatches last
+                return (case_mismatch, completion['sortText'])
 
-                completion_list = sorted(completions,
-                                         key=lambda x: x['sortText'])
+            completion_list = sorted(completions, key=sort_key)
+            if len(completion_list) > 0:
                 self.completion_widget.show_list(
                         completion_list, position, automatic)
         except RuntimeError:
