@@ -1470,6 +1470,9 @@ class IPythonConsole(SpyderPluginWidget):
         # Assign kernel manager and client to shellwidget
         kernel_client.start_channels()
         shellwidget = client.shellwidget
+        if hostname is not None:
+            # Sending signals to remote kernels is not implemented
+            shellwidget._signal_enabled = False
         shellwidget.set_kernel_client_and_manager(
             kernel_client, kernel_manager)
         shellwidget.sig_exception_occurred.connect(

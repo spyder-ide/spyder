@@ -11,6 +11,8 @@ mode and Spyder
 
 import re
 import pdb
+import signal
+import sys
 
 from IPython.core.history import HistoryManager
 from qtpy.QtCore import Qt
@@ -60,6 +62,8 @@ class DebuggingWidget(RichJupyterWidget):
                 self.PDB_HIST_MAX, include_latest=True)]
         self._pdb_in_loop = False
 
+        self._signal_enabled = True
+
     def _handle_debug_state(self, in_debug_loop):
         """Update the debug state."""
         self._pdb_in_loop = in_debug_loop
@@ -75,6 +79,9 @@ class DebuggingWidget(RichJupyterWidget):
             cmd = (u"!get_ipython().kernel.frontend_comm" +
                    ".remote_call(blocking=True).pong()")
             self.pdb_execute(cmd, hidden=True)
+        if self._signal_enabled and hasattr(signal, 'SIGUSR1'):
+            # Try to send a signal to give a chance to update
+            self.signal_kernel(signal.SIGUSR1)
 
     # --- Public API --------------------------------------------------
     def pdb_execute(self, line, hidden=False):
@@ -291,3 +298,23 @@ class DebuggingWidget(RichJupyterWidget):
         if cmd and (not is_pdb_cmd or len(args) > 0):
             self._pdb_history.history.append(line)
             self._pdb_history_file.store_inputs(line_num, line)
+
+    def signal_kernel(self, sig):
+        """
+        Try to send the signal sig to the kernel. Returns False if it failed.
+        """
+        if self._kernel_is_starting:
+            return False
+
+        if not self.kernel_manager.has_kernel:
+            return False
+
+        interrupt_mode = self.kernel_manager.kernel_spec.interrupt_mode
+        if interrupt_mode != 'signal':
+            return False
+
+        if sys.platform == 'win32':
+            return False
+
+        self.kernel_manager.signal_kernel(sig)
+        return True
