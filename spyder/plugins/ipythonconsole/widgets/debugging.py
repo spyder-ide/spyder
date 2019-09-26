@@ -79,15 +79,15 @@ class DebuggingWidget(RichJupyterWidget):
             cmd = (u"!get_ipython().kernel.frontend_comm" +
                    ".remote_call(blocking=True).pong()")
             self.pdb_execute(cmd, hidden=True)
-        if self._signal_enabled and hasattr(signal, 'SIGUSR1'):
+        if self.can_signal_kernel('SIGUSR1'):
             # Try to send a signal to give a chance to update
-            self.signal_kernel(signal.SIGUSR1)
+            self.kernel_manager.signal_kernel(signal.SIGUSR1)
 
     def pdb_stop_here(self):
         """Try to set pdb trace where the execution is."""
-        if self._signal_enabled and hasattr(signal, 'SIGUSR2'):
-            # Try to send a signal to give a chance to update
-            self.signal_kernel(signal.SIGUSR2)
+        if self.can_signal_kernel('SIGUSR2'):
+            # Try to send a signal to break here
+            self.kernel_manager.signal_kernel(signal.SIGUSR2)
 
     # --- Public API --------------------------------------------------
     def pdb_execute(self, line, hidden=False):
@@ -305,10 +305,16 @@ class DebuggingWidget(RichJupyterWidget):
             self._pdb_history.history.append(line)
             self._pdb_history_file.store_inputs(line_num, line)
 
-    def signal_kernel(self, sig):
+    def can_signal_kernel(self, sig):
         """
         Try to send the signal sig to the kernel. Returns False if it failed.
         """
+        if not self._signal_enabled:
+            return False
+
+        if not hasattr(signal, sig):
+            return False
+
         if self._kernel_is_starting:
             return False
 
@@ -322,5 +328,4 @@ class DebuggingWidget(RichJupyterWidget):
         if sys.platform == 'win32':
             return False
 
-        self.kernel_manager.signal_kernel(sig)
         return True
