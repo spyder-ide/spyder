@@ -44,6 +44,11 @@ class CompletionManager(SpyderCompletionPlugin):
         KiteCompletionPlugin,
     )}
 
+    GOOD_COMPLETIONS_SOURCES = {
+        KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
+        LanguageServerPlugin.COMPLETION_CLIENT_NAME,
+    }
+
     MUTEX_REQUEST_TYPES = {
         LSPRequestTypes.DOCUMENT_COMPLETION,
         LSPRequestTypes.DOCUMENT_HOVER,
@@ -104,36 +109,25 @@ class CompletionManager(SpyderCompletionPlugin):
         logger.debug("Completion plugin: Request {0} Got response "
                      "from {1}".format(req_id, completion_source))
 
-        # Do not check _is_plugin_running for LSP,
-        # since LSP does not set that state
-        if (completion_source == KiteCompletionPlugin.COMPLETION_CLIENT_NAME
-                and not resp):
-            req_state = self.requests[req_id]
-            if req_state['req_type'] in self.MUTEX_REQUEST_TYPES:
-                self.clients['lsp']['plugin'].send_request(
-                    req_state['language'], req_state['req_type'],
-                    req_state['req'], req_id)
+        if req_id not in self.requests:
+            return
+        request_responses = self.requests[req_id]
+        request_responses['sources'][completion_source] = resp
+
+        if (request_responses['req_type'] ==
+                LSPRequestTypes.DOCUMENT_COMPLETION and
+                (completion_source not in self.GOOD_COMPLETIONS_SOURCES or
+                 not resp)):
+            # Check if there's any work remaining that may return completions,
+            # since we don't have "good" completions from the current response
+            if any(source not in request_responses['sources']
+                   for source in self.GOOD_COMPLETIONS_SOURCES):
                 return
+        else:
+            del self.requests[req_id]
 
         with QMutexLocker(self.collection_mutex):
-            request_responses = self.requests[req_id]
-            req_type = request_responses['req_type']
-            language = request_responses['language']
-            request_responses['sources'][completion_source] = resp
-            corresponding_source = self.plugin_priority.get(req_type, 'lsp')
-            is_src_ready = self.language_status[language].get(
-                corresponding_source, False)
-            if corresponding_source == completion_source:
-                response_instance = request_responses['response_instance']
-                self.gather_and_send(
-                    completion_source, response_instance, req_type, req_id)
-            else:
-                # Preferred completion source is not available
-                # Requests are handled in a first come, first served basis
-                if not is_src_ready:
-                    response_instance = request_responses['response_instance']
-                    self.gather_and_send(
-                        completion_source, response_instance, req_type, req_id)
+            self.gather_and_send(request_responses)
 
     @Slot(str)
     def client_available(self, client_name):
@@ -171,11 +165,11 @@ class CompletionManager(SpyderCompletionPlugin):
                 break
         return {'params': response}
 
-    def gather_and_send(self, principal_source, response_instance, req_type,
-                        req_id):
+    def gather_and_send(self, request_responses):
+        req_type = request_responses['req_type']
+        req_id_responses = request_responses['sources']
+        response_instance = request_responses['response_instance']
         logger.debug('Gather responses for {0}'.format(req_type))
-        responses = []
-        req_id_responses = self.requests[req_id]['sources']
 
         if req_type == LSPRequestTypes.DOCUMENT_COMPLETION:
             responses = self.gather_completions(req_id_responses)
@@ -200,37 +194,18 @@ class CompletionManager(SpyderCompletionPlugin):
 
     def send_request(self, language, req_type, req):
         req_id = self.req_id
+        self.req_id += 1
 
-        kite = KiteCompletionPlugin.COMPLETION_CLIENT_NAME
-        lsp = LanguageServerPlugin.COMPLETION_CLIENT_NAME
-        fallback = FallbackPlugin.COMPLETION_CLIENT_NAME
-
-        client_names = []
-
-        if self.get_option('enable_kite') and self._is_client_running(kite):
-            client_names.append(kite)
-        if (req_type not in self.MUTEX_REQUEST_TYPES or
-                kite not in client_names) and lsp in self.clients:
-            client_names.append(lsp)
-
-        if (self.get_option('enable_fallback') and
-                self._is_client_running(fallback)):
-            client_names.append(fallback)
-
-        for client_name in client_names:
+        for client_name in self.clients:
             client_info = self.clients[client_name]
             self.requests[req_id] = {
                 'language': language,
                 'req_type': req_type,
-                'req': req,
                 'response_instance': req['response_instance'],
-                'sources': {}
+                'sources': {},
             }
             client_info['plugin'].send_request(
                 language, req_type, req, req_id)
-
-        if req['requires_response']:
-            self.req_id += 1
 
     def send_notification(self, language, notification_type, notification):
         for client_name in self.clients:
