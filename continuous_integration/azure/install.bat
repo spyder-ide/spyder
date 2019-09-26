@@ -9,6 +9,10 @@ if %USE_CONDA% == yes (
     conda install -q -y -c spyder-ide --file requirements/conda.txt
     if errorlevel 1 exit 1
 
+    :: jupyter_client 5.3.3 is broken on windows
+    conda install -q -y -c spyder-ide jupyter_client=5.3.1
+    if errorlevel 1 exit 1
+
     conda install -q -y -c spyder-ide --file requirements/tests.txt
     if errorlevel 1 exit 1
 
