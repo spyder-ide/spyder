@@ -67,8 +67,8 @@ class KiteIntegrationInfo(QWidget):
               '''editor <br>for the most important packages in the Python '''
               '''scientific ecosystem, such as Numpy, <br>Matplotlib and '''
               '''Pandas.<br><br>Would you like to install it or learn more '''
-              '''about it?<br><br><i>Note:</i> Kite is not an open source '''
-              '''program.'''))
+              '''about it?<br><br><i>Note:</i> Kite is free to use '''
+              '''but is not an open source program.'''))
         integration_label.setOpenExternalLinks(True)
 
         # Buttons
