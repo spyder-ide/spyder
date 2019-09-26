@@ -748,13 +748,14 @@ def test_save_history_dbg(ipyconsole, qtbot):
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(1000)
     # Add a multiline statment and ckeck we can browse it correctly
-    shell._pdb_history.history.append('if True:\n    print(1)')
-    shell._pdb_history.history.append('print(2)')
-    shell._pdb_history.history.append('if True:\n    print(10)')
+    shell._pdb_history.append('if True:\n    print(1)')
+    shell._pdb_history.append('print(2)')
+    shell._pdb_history.append('if True:\n    print(10)')
+    shell._pdb_history_index = len(shell._pdb_history)
     # The continuation prompt is here
     qtbot.keyClick(control, Qt.Key_Up)
     assert '...:     print(10)' in control.toPlainText()
-    shell._control.set_cursor_position(shell._control.get_position('eof') - 2)
+    shell._control.set_cursor_position(shell._control.get_position('eof') - 25)
     qtbot.keyClick(control, Qt.Key_Up)
     assert '...:     print(1)' in control.toPlainText()
 
@@ -1431,6 +1432,36 @@ def test_console_complete(ipyconsole, qtbot):
     except Exception:
         print(repr(control.toPlainText()))
         raise
+
+
+@pytest.mark.slow
+@pytest.mark.use_startup_wdir
+def test_pdb_multiline(ipyconsole, qtbot):
+    """Test entering a multiline statment into pdb"""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    shell.execute('%debug print()')
+    qtbot.wait(1000)
+    assert '\nipdb> ' in control.toPlainText()
+
+    # Test reset magic
+    qtbot.keyClicks(control, 'if True:')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+    qtbot.keyClicks(control, 'bb = 10')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    assert shell.get_value('bb') == 10
+    assert "if True:\n   ...:     bb = 10\n" in control.toPlainText()
 
 
 if __name__ == "__main__":

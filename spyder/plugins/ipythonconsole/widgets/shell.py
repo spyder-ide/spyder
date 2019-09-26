@@ -71,6 +71,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
+        self.spyder_kernel_comm = KernelComm(
+            interrupt_callback=self._pdb_update)
+        self.spyder_kernel_comm.sig_exception_occurred.connect(
+            self.sig_exception_occurred)
         super(ShellWidget, self).__init__(*args, **kw)
 
         self.ipyclient = ipyclient
@@ -87,10 +91,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # set in the qtconsole constructor. See spyder-ide/spyder#4806.
         self.set_bracket_matcher_color_scheme(self.syntax_style)
 
-        self.spyder_kernel_comm = KernelComm(
-            interrupt_callback=self._pdb_update)
-        self.spyder_kernel_comm.sig_exception_occurred.connect(
-            self.sig_exception_occurred)
         self.kernel_manager = None
         self.kernel_client = None
         handlers = {
