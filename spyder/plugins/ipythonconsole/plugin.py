@@ -452,10 +452,9 @@ class IPythonConsole(SpyderPluginWidget):
 
             try:
                 if client.shellwidget._executing:
-                    # Don't allow multiple executions when there's
-                    # still an execution taking place
-                    # Fixes spyder-ide/spyder#7293.
-                    pass
+                    if not client.shellwidget.in_debug_loop():
+                        # if we are not debugging, try to break here
+                        client.shellwidget.pdb_stop_here()
                 elif (client.shellwidget.in_debug_loop()):
                     client.shellwidget.pdb_execute('!' + line)
                 elif current_client:

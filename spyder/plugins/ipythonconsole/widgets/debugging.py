@@ -83,6 +83,12 @@ class DebuggingWidget(RichJupyterWidget):
             # Try to send a signal to give a chance to update
             self.signal_kernel(signal.SIGUSR1)
 
+    def pdb_stop_here(self):
+        """Try to set pdb trace where the execution is."""
+        if self._signal_enabled and hasattr(signal, 'SIGUSR2'):
+            # Try to send a signal to give a chance to update
+            self.signal_kernel(signal.SIGUSR2)
+
     # --- Public API --------------------------------------------------
     def pdb_execute(self, line, hidden=False):
         """Send line to the pdb kernel if possible."""
