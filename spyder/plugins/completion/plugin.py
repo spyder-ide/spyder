@@ -161,7 +161,7 @@ class CompletionManager(SpyderCompletionPlugin):
         response = ''
         for source in self.SOURCE_PRIORITY[req_type]:
             if source in responses:
-                response = responses[source]['params']
+                response = responses[source].get('params', '')
                 if response:
                     break
         return {'params': response}

@@ -356,8 +356,6 @@ class CodeEditor(TextEditBaseWidget):
         # Typing keys / handling on the fly completions
         # See: keyPressEvent
         self._last_key_pressed_text = ''
-        self.automatic_completions_after_chars = 3
-        self.automatic_completions_after_ms = 300
         self._timer_key_press = QTimer(self)
         self._timer_key_press.setSingleShot(True)
         self._timer_key_press.timeout.connect(self._handle_completions)
@@ -508,7 +506,9 @@ class CodeEditor(TextEditBaseWidget):
         self.intelligent_backspace = True
 
         # Automatic (on the fly) completions
-        self.automatic_completions = True
+        self.automatic_completions = CONF.get('editor', 'automatic_completions')
+        self.automatic_completions_after_chars = CONF.get('editor', 'automatic_completions_after_chars')
+        self.automatic_completions_after_ms = CONF.get('editor', 'automatic_completions_after_ms')
 
         # Completions hint
         self.completions_hint = True
@@ -771,9 +771,9 @@ class CodeEditor(TextEditBaseWidget):
                      tab_mode=True,
                      strip_mode=False,
                      intelligent_backspace=True,
-                     automatic_completions=True,
-                     automatic_completions_after_chars=3,
-                     automatic_completions_after_ms=300,
+                     automatic_completions=None,
+                     automatic_completions_after_chars=None,
+                     automatic_completions_after_ms=None,
                      completions_hint=True,
                      hover_hints=True,
                      code_snippets=True,
@@ -1301,7 +1301,8 @@ class CodeEditor(TextEditBaseWidget):
         self.intelligent_backspace = state
 
     def toggle_automatic_completions(self, state):
-        self.automatic_completions = state
+        if state is not None:
+            self.automatic_completions = state
 
     def toggle_hover_hints(self, state):
         self.hover_hints_enabled = state
@@ -1317,13 +1318,15 @@ class CodeEditor(TextEditBaseWidget):
         """
         Set the number of characters after which auto completion is fired.
         """
-        self.automatic_completions_after_chars = number
+        if number is not None:
+            self.automatic_completions_after_chars = number
 
     def set_automatic_completions_after_ms(self, ms):
         """
         Set the amount of time in ms after which auto completion is fired.
         """
-        self.automatic_completions_after_ms = ms
+        if ms is not None:
+            self.automatic_completions_after_ms = ms
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
