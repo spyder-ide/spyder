@@ -39,22 +39,12 @@ class CompletionManager(SpyderCompletionPlugin):
 
     STOPPED = 'stopped'
     RUNNING = 'running'
+
     BASE_PLUGINS = {p.COMPLETION_CLIENT_NAME: p for p in (
         LanguageServerPlugin,
         FallbackPlugin,
         KiteCompletionPlugin,
     )}
-
-    WAIT_FOR_COMPLETION_SOURCE = {
-        KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
-        LanguageServerPlugin.COMPLETION_CLIENT_NAME,
-    }
-
-    COMPLETION_SOURCE_PRIORITY = (
-        KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
-        LanguageServerPlugin.COMPLETION_CLIENT_NAME,
-        FallbackPlugin.COMPLETION_CLIENT_NAME,
-    )
 
     WAIT_FOR_SOURCE = defaultdict(
         lambda: {LanguageServerPlugin.COMPLETION_CLIENT_NAME},
@@ -73,28 +63,27 @@ class CompletionManager(SpyderCompletionPlugin):
             },
         })
 
+    SOURCE_PRIORITY = defaultdict(
+        lambda: (
+            LanguageServerPlugin.COMPLETION_CLIENT_NAME,
+            KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
+            FallbackPlugin.COMPLETION_CLIENT_NAME,
+        ), {
+            LSPRequestTypes.DOCUMENT_COMPLETION: (
+                KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
+                LanguageServerPlugin.COMPLETION_CLIENT_NAME,
+                FallbackPlugin.COMPLETION_CLIENT_NAME,
+            ),
+        })
+
     def __init__(self, parent, plugins=['lsp', 'kite', 'fallback']):
         SpyderCompletionPlugin.__init__(self, parent)
         self.clients = {}
         self.requests = {}
         self.language_status = {}
         self.started = False
-        self.first_completion = False
         self.req_id = 0
-        self.completion_first_time = 500
-        self.waiting_time = 1000
         self.collection_mutex = QMutex()
-
-        self.plugin_priority = {
-            LSPRequestTypes.DOCUMENT_COMPLETION: 'lsp',
-            LSPRequestTypes.DOCUMENT_SIGNATURE: 'lsp',
-            LSPRequestTypes.DOCUMENT_HOVER: 'lsp',
-            'all': 'lsp'
-        }
-
-        self.response_priority = [
-            'lsp', 'kite', 'fallback'
-        ]
 
         for plugin in plugins:
             if plugin in self.BASE_PLUGINS:
@@ -146,10 +135,12 @@ class CompletionManager(SpyderCompletionPlugin):
         client_info['status'] = self.RUNNING
 
     def gather_completions(self, req_id_responses):
+        priorities = self.SOURCE_PRIORITY[LSPRequestTypes.DOCUMENT_COMPLETION]
+
         merge_stats = {source: 0 for source in req_id_responses}
         responses = []
         dedupe_set = set()
-        for priority, source in enumerate(self.COMPLETION_SOURCE_PRIORITY):
+        for priority, source in enumerate(priorities):
             if source not in req_id_responses:
                 continue
             for response in req_id_responses[source].get('params', []):
@@ -166,13 +157,13 @@ class CompletionManager(SpyderCompletionPlugin):
         responses = {'params': responses}
         return responses
 
-    def gather_default(self, responses, default=''):
+    def gather_default(self, req_type, responses):
         response = ''
-        for source in self.response_priority:
-            response = responses.get(source, {'params': default})
-            response = response['params']
-            if response is not None and len(response) > 0:
-                break
+        for source in self.SOURCE_PRIORITY[req_type]:
+            if source in responses:
+                response = responses[source]['params']
+                if response:
+                    break
         return {'params': response}
 
     def gather_and_send(self, request_responses):
@@ -183,13 +174,8 @@ class CompletionManager(SpyderCompletionPlugin):
 
         if req_type == LSPRequestTypes.DOCUMENT_COMPLETION:
             responses = self.gather_completions(req_id_responses)
-        elif req_type == LSPRequestTypes.DOCUMENT_HOVER:
-            responses = self.gather_default(req_id_responses, '')
-        elif req_type == LSPRequestTypes.DOCUMENT_SIGNATURE:
-            responses = self.gather_default(req_id_responses, None)
         else:
-            principal_source = self.plugin_priority['all']
-            responses = req_id_responses[principal_source]
+            responses = self.gather_default(req_type, req_id_responses)
 
         try:
             response_instance.handle_response(req_type, responses)

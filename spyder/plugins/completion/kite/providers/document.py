@@ -20,7 +20,7 @@ from spyder.plugins.completion.languageserver import (
 
 
 # Kite can return e.g. "int | str", so we make the default hint VALUE.
-KITE_DOCUMENT_TYPES = defaultdict(CompletionItemKind.VALUE, {
+KITE_DOCUMENT_TYPES = defaultdict(lambda: CompletionItemKind.VALUE, {
     'function': CompletionItemKind.FUNCTION,
     'type': CompletionItemKind.CLASS,
     'module': CompletionItemKind.MODULE,
