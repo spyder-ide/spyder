@@ -71,7 +71,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         kite_installation_enabled = self.get_option('install_enable', True)
         installed, path = check_if_kite_installed()
         if (not installed and kite_installation_enabled
-            and not running_under_pytest()):
+                and not running_under_pytest()):
             self.kite_installer.show()
             self.kite_installer.center()
 
