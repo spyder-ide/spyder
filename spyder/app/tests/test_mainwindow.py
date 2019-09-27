@@ -2045,8 +2045,8 @@ def test_preferences_change_font_regression(main_window, qtbot):
         pref.set_current_index(index)
         qtbot.wait(1000)
 
-        for fontbox in [page.plain_text_font.fontbox, 
-                         page.rich_text_font.fontbox]:
+        for fontbox in [page.plain_text_font.fontbox,
+                        page.rich_text_font.fontbox]:
             fontbox.setFocus()
             idx = fontbox.currentIndex()
             fontbox.setCurrentIndex(idx + 1)
