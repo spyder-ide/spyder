@@ -35,7 +35,8 @@ from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import config_shortcut, is_dark_interface, get_shortcut
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
-from spyder.py3compat import qbytearray_to_str, to_text_string, MutableSequence
+from spyder.py3compat import (qbytearray_to_str, to_text_string,
+                              MutableSequence)
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -552,6 +553,7 @@ class EditorStack(QWidget):
         self.intelligent_backspace_enabled = True
         self.automatic_completions_enabled = True
         self.completions_hint_enabled = True
+        self.hover_hints_enabled = True
         self.code_snippets_enabled = True
         self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
@@ -1177,11 +1179,29 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_automatic_completions(state)
 
+    def set_automatic_completions_after_chars(self, chars):
+        self.automatic_completions_after_chars = chars
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_automatic_completions_after_chars(chars)
+
+    def set_automatic_completions_after_ms(self, ms):
+        self.automatic_completions_after_ms = ms
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_automatic_completions_after_ms(ms)
+
     def set_completions_hint_enabled(self, state):
         self.completions_hint_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_completions_hint(state)
+
+    def set_hover_hints_enabled(self, state):
+        self.hover_hints_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_hover_hints(state)
 
     def set_occurrence_highlighting_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'occurrence_highlighting')
@@ -2399,6 +2419,7 @@ class EditorStack(QWidget):
             automatic_completions=self.automatic_completions_enabled,
             code_snippets=self.code_snippets_enabled,
             completions_hint=self.completions_hint_enabled,
+            hover_hints=self.hover_hints_enabled,
             highlight_current_line=self.highlight_current_line_enabled,
             highlight_current_cell=self.highlight_current_cell_enabled,
             occurrence_highlighting=self.occurrence_highlighting_enabled,
