@@ -34,9 +34,6 @@ logger = logging.getLogger(__name__)
 
 
 class CompletionManager(SpyderCompletionPlugin):
-    CONF_SECTION = 'completions'
-    CONF_FILE = False
-
     STOPPED = 'stopped'
     RUNNING = 'running'
 

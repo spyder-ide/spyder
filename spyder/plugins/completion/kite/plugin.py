@@ -26,18 +26,21 @@ logger = logging.getLogger(__name__)
 
 
 class KiteCompletionPlugin(SpyderCompletionPlugin):
+    CONF_SECTION = 'kite'
+    CONF_FILE = False
+
     COMPLETION_CLIENT_NAME = 'kite'
 
     def __init__(self, parent):
         SpyderCompletionPlugin.__init__(self, parent)
         self.available_languages = []
-        enable_code_snippets = CONF.get('lsp-server', 'code_snippets')
-        self.client = KiteClient(None, enable_code_snippets)
+        self.client = KiteClient(None)
         self.kite_process = None
         self.client.sig_client_started.connect(self.http_client_ready)
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
                               self.COMPLETION_CLIENT_NAME))
+        self.update_configuration()
 
     @Slot(list)
     def http_client_ready(self, languages):
@@ -46,7 +49,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME)
 
     def send_request(self, language, req_type, req, req_id):
-        if language in self.available_languages:
+        if self.enabled and language in self.available_languages:
             self.client.sig_perform_request.emit(req_id, req_type, req)
         else:
             self.sig_response_ready.emit(self.COMPLETION_CLIENT_NAME,
@@ -72,5 +75,5 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             self.kite_process.kill()
 
     def update_configuration(self):
-        enable_code_snippets = CONF.get('lsp-server', 'code_snippets')
-        self.client.enable_code_snippets = enable_code_snippets
+        self.client.enable_code_snippets = self.get_option('enable_snippets')
+        self.enabled = self.get_option('enable')

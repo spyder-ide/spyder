@@ -500,6 +500,11 @@ DEFAULTS = [
               'advanced/external': False,
               'advanced/stdio': False
              }),
+            ('kite',
+             {
+              'enable': True,
+              'enable_snippets': True,
+             }),
             ]
 
 
