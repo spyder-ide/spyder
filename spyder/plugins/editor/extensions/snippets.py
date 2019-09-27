@@ -135,6 +135,8 @@ class SnippetsExtension(EditorExtension):
     @lock
     @no_undo
     def _undo(self):
+        if len(self.undo_stack) == 0:
+            self.reset()
         if self.is_snippet_active:
             num_pops = 0
             patch = self.editor.patch
