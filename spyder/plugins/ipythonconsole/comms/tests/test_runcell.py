@@ -3,6 +3,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder_kernels/__init__.py for details)
 
+from flaky import flaky
 from ipykernel.tests.test_embed_kernel import setup_kernel
 from qtconsole.comms import CommManager
 import pytest
@@ -14,6 +15,8 @@ from spyder_kernels.py3compat import PY3, to_text_string
 
 TIMEOUT = 15
 
+
+@flaky(max_runs=3)
 @pytest.mark.parametrize(
     "debug", [True, False])
 def test_runcell(tmpdir, debug):
