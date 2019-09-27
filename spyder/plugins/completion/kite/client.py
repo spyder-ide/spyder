@@ -10,7 +10,7 @@
 import logging
 
 # Third party imports
-from qtpy.QtCore import QObject, QThread, Signal, QTimer, QMutex
+from qtpy.QtCore import QObject, QThread, Signal, QMutex
 import requests
 
 # Local imports
@@ -70,7 +70,6 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
 
     def perform_http_request(self, verb, url, params=None):
         response = None
-        success = False
         http_method = getattr(self.endpoint, verb)
         try:
             http_response = http_method(url, json=params)

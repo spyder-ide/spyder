@@ -59,6 +59,7 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager,
                                               SnippetsExtension)
+from spyder.plugins.completion.kite.ui.cta import KiteCTA
 from spyder.plugins.completion.languageserver import (LSPRequestTypes,
                                                       TextDocumentSyncKind,
                                                       DiagnosticSeverity)
@@ -586,6 +587,9 @@ class CodeEditor(TextEditBaseWidget):
         self.completion_widget.sig_completion_hint.connect(
             self.show_hint_for_completion)
 
+        # re-use parent of completion_widget (usually the main window)
+        self.kite_cta = KiteCTA(self, self.completion_widget.parent())
+
     # --- Helper private methods
     # ------------------------------------------------------------------------
 
@@ -1108,9 +1112,12 @@ class CodeEditor(TextEditBaseWidget):
                                          key=lambda x: x['sortText'])
                 self.completion_widget.show_list(
                         completion_list, position, automatic)
+
+            self.kite_cta.handle_processed_completions(completions)
         except RuntimeError:
             # This is triggered when a codeeditor instance has been
             # removed before the response can be processed.
+            self.kite_cta.hide_coverage_cta()
             return
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
@@ -3457,6 +3464,8 @@ class CodeEditor(TextEditBaseWidget):
         event.ignore()
         self.sig_key_pressed.emit(event)
 
+        self.kite_cta.handle_key_press(event)
+
         key = event.key()
         text = to_text_string(event.text())
         has_selection = self.has_selected_text()
@@ -4002,6 +4011,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def mousePressEvent(self, event):
         """Override Qt method."""
+        self.kite_cta.handle_mouse_press(event)
+
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier
         pos = event.pos()

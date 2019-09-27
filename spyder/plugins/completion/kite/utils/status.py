@@ -58,7 +58,7 @@ def locate_kite_darwin():
         installed = len(out) > 0
         path = (out.decode('utf-8', 'replace').strip().split('\n')[0]
                 if installed else default_path)
-    except (subprocess.CalledProcessError, UnicodeDecodeError) as ex:
+    except (subprocess.CalledProcessError, UnicodeDecodeError):
         # Use the default path
         path = default_path
     finally:

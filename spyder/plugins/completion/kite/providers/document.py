@@ -112,7 +112,7 @@ class DocumentProvider:
     def convert_completion_request(self, response):
         logger.debug(response)
         if response is None:
-           return {'params': []}
+            return {'params': []}
         spyder_completions = []
         completions = response['completions']
         if completions is not None:
