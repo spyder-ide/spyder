@@ -6,6 +6,7 @@
 
 """Kite document requests handlers and senders."""
 
+from collections import defaultdict
 import logging
 import hashlib
 
@@ -18,17 +19,17 @@ from spyder.plugins.completion.languageserver import (
     LSPRequestTypes, CompletionItemKind)
 
 
-KITE_DOCUMENT_TYPES = {
+# Kite can return e.g. "int | str", so we make the default hint VALUE.
+KITE_DOCUMENT_TYPES = defaultdict(CompletionItemKind.VALUE, {
     'function': CompletionItemKind.FUNCTION,
-    'call': CompletionItemKind.FUNCTION,
-    'module': CompletionItemKind.MODULE,
     'type': CompletionItemKind.CLASS,
-    'instance': CompletionItemKind.VARIABLE,
-    'descriptor': CompletionItemKind.FILE,
+    'module': CompletionItemKind.MODULE,
+    'descriptor': CompletionItemKind.PROPERTY,
     'union': CompletionItemKind.VALUE,
-    'global': CompletionItemKind.PROPERTY,
-    'unknown': CompletionItemKind.TEXT
-}
+    'unknown': CompletionItemKind.TEXT,
+    'keyword': CompletionItemKind.KEYWORD,
+    'call': CompletionItemKind.FUNCTION,
+})
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +123,7 @@ class DocumentProvider:
                     'insertText': completion['snippet']['text'],
                     'filterText': completion['display'],
                     # Use the returned ordering
-                    'sortText': '{:4d}'.format(i),
+                    'sortText': (i, 0),
                     'documentation': completion['documentation']['text']
                 }
                 spyder_completions.append(entry)
@@ -138,7 +139,7 @@ class DocumentProvider:
                                 child['snippet']),
                             'filterText': child['snippet']['text'],
                             # Use the returned ordering
-                            'sortText': '{:4d}{:4d}'.format(i, j),
+                            'sortText': (i, j+1),
                             'documentation': child['documentation']['text']
                         }
                         spyder_completions.append(child_entry)

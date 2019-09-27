@@ -500,11 +500,6 @@ DEFAULTS = [
               'advanced/external': False,
               'advanced/stdio': False
              }),
-            ('completions',
-             {
-              'enable_kite': True,
-              'enable_fallback': True,
-             }),
             ]
 
 

@@ -298,6 +298,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 params['response_callback'] = functools.partial(
                     self.receive_response, language=language, req_id=req_id)
                 client.perform_request(request, params)
+        else:
+            self.sig_response_ready.emit(self.COMPLETION_CLIENT_NAME,
+                                         req_id, {})
 
     def send_notification(self, language, request, params):
         if language in self.clients:

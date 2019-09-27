@@ -9,6 +9,7 @@ Backend plugin to manage multiple code completion and introspection clients.
 """
 
 # Standard library imports
+from collections import defaultdict
 import logging
 import os
 import os.path as osp
@@ -44,15 +45,9 @@ class CompletionManager(SpyderCompletionPlugin):
         KiteCompletionPlugin,
     )}
 
-    GOOD_COMPLETIONS_SOURCES = {
+    WAIT_FOR_COMPLETION_SOURCE = {
         KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
         LanguageServerPlugin.COMPLETION_CLIENT_NAME,
-    }
-
-    MUTEX_REQUEST_TYPES = {
-        LSPRequestTypes.DOCUMENT_COMPLETION,
-        LSPRequestTypes.DOCUMENT_HOVER,
-        LSPRequestTypes.DOCUMENT_SIGNATURE,
     }
 
     COMPLETION_SOURCE_PRIORITY = (
@@ -60,6 +55,23 @@ class CompletionManager(SpyderCompletionPlugin):
         LanguageServerPlugin.COMPLETION_CLIENT_NAME,
         FallbackPlugin.COMPLETION_CLIENT_NAME,
     )
+
+    WAIT_FOR_SOURCE = defaultdict(
+        lambda: {LanguageServerPlugin.COMPLETION_CLIENT_NAME},
+        {
+            LSPRequestTypes.DOCUMENT_COMPLETION: {
+                KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
+                LanguageServerPlugin.COMPLETION_CLIENT_NAME,
+            },
+            LSPRequestTypes.DOCUMENT_SIGNATURE: {
+                KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
+                LanguageServerPlugin.COMPLETION_CLIENT_NAME,
+            },
+            LSPRequestTypes.DOCUMENT_HOVER: {
+                KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
+                LanguageServerPlugin.COMPLETION_CLIENT_NAME,
+            },
+        })
 
     def __init__(self, parent, plugins=['lsp', 'kite', 'fallback']):
         SpyderCompletionPlugin.__init__(self, parent)
@@ -114,15 +126,13 @@ class CompletionManager(SpyderCompletionPlugin):
         request_responses = self.requests[req_id]
         request_responses['sources'][completion_source] = resp
 
-        if (request_responses['req_type'] ==
-                LSPRequestTypes.DOCUMENT_COMPLETION and
-                (completion_source not in self.GOOD_COMPLETIONS_SOURCES or
-                 not resp)):
+        wait_for = self.WAIT_FOR_SOURCE[request_responses['req_type']]
+        if (completion_source not in wait_for or not resp):
             # Check if there's any work remaining that may return completions,
             # since we don't have "good" completions from the current response
-            if any(source in self.clients and
+            if any(self._is_client_running(source) and
                    source not in request_responses['sources']
-                   for source in self.GOOD_COMPLETIONS_SOURCES):
+                   for source in wait_for):
                 return
         else:
             del self.requests[req_id]
@@ -148,8 +158,7 @@ class CompletionManager(SpyderCompletionPlugin):
                     continue
                 dedupe_set.add(dedupe_key)
 
-                response['sortText'] = '{} {}'.format(
-                    priority, response['sortText'])
+                response['sortText'] = (priority, response['sortText'])
                 responses.append(response)
                 merge_stats[source] += 1
 
@@ -190,6 +199,10 @@ class CompletionManager(SpyderCompletionPlugin):
             pass
 
     def _is_client_running(self, name):
+        if name == LanguageServerPlugin.COMPLETION_CLIENT_NAME:
+            # The LSP plugin does not emit a plugin ready signal
+            return name in self.clients
+
         status = self.clients.get(name, {}).get('status', self.STOPPED)
         return status == self.RUNNING
 
