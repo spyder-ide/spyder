@@ -1639,7 +1639,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(os.name == 'nt', 'Does not work on windows')
+@pytest.mark.skipif(os.name == 'nt', reason='Does not work on windows')
 def test_switcher(main_window, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the switcher."""
     switcher = main_window.switcher

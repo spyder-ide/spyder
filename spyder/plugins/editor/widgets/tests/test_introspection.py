@@ -536,7 +536,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
-@pytest.mark.skipif(os.name == 'nt', 'Does not work on windows')
+@pytest.mark.skipif(os.name == 'nt', reason='Does not work on windows')
 def test_completion_order(lsp_codeeditor, qtbot):
     code_editor, _ = lsp_codeeditor
     completion = code_editor.completion_widget
