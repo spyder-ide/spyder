@@ -120,7 +120,8 @@ class CompletionManager(SpyderCompletionPlugin):
                  not resp)):
             # Check if there's any work remaining that may return completions,
             # since we don't have "good" completions from the current response
-            if any(source not in request_responses['sources']
+            if any(source in self.clients and
+                   source not in request_responses['sources']
                    for source in self.GOOD_COMPLETIONS_SOURCES):
                 return
         else:
