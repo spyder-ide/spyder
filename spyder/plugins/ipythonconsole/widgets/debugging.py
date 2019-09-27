@@ -63,6 +63,7 @@ class DebuggingWidget(RichJupyterWidget):
         self._pdb_in_loop = False
 
         self._signal_enabled = True
+        self._signal_ready = False
 
     def _handle_debug_state(self, in_debug_loop):
         """Update the debug state."""
@@ -308,24 +309,36 @@ class DebuggingWidget(RichJupyterWidget):
     def can_signal_kernel(self, sig):
         """
         Try to send the signal sig to the kernel. Returns False if it failed.
+
+        sig is a string
         """
+        if not self.spyder_kernel_comm.is_ready():
+            # Need to wait until kernel is fully up
+            return False
+
         if not self._signal_enabled:
+            # Check if we disabled signals (e.g. remote kernel)
             return False
 
         if not hasattr(signal, sig):
+            # Check if it is possible at all
             return False
 
         if self._kernel_is_starting:
+            # Check the kernel is not starting
             return False
 
         if not self.kernel_manager.has_kernel:
+            # Do we even have a kernel?
             return False
 
         interrupt_mode = self.kernel_manager.kernel_spec.interrupt_mode
         if interrupt_mode != 'signal':
+            # Only send a signal if the kernel is expecting at least interrupts
             return False
 
         if sys.platform == 'win32':
+            # No signals on windows
             return False
 
         return True
