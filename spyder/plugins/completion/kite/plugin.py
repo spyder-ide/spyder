@@ -14,6 +14,7 @@ import functools
 from qtpy.QtCore import Slot
 
 # Local imports
+from spyder.config.base import running_under_pytest
 from spyder.config.manager import CONF
 from spyder.utils.programs import run_program
 from spyder.api.completion import SpyderCompletionPlugin
@@ -69,7 +70,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         """Show installation dialog."""
         kite_installation_enabled = self.get_option('install_enable', True)
         installed, path = check_if_kite_installed()
-        if not installed and kite_installation_enabled:
+        if (not installed and kite_installation_enabled
+            and not running_under_pytest()):
             self.kite_installer.show()
             self.kite_installer.center()
 
