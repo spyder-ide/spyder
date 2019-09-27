@@ -313,7 +313,7 @@ class DebuggingWidget(RichJupyterWidget):
         sig is a string
         """
         if not self.spyder_kernel_comm.is_ready():
-            # Need to wait until kernel is fully up
+            # Need to wait until kernel is up so the signals are registered.
             return False
 
         if not self._signal_enabled:
