@@ -70,8 +70,7 @@ class FallbackActor(QObject):
                      'sortText': keyword,
                      'filterText': keyword,
                      'documentation': '',
-                     'provider': FALLBACK_COMPLETION,
-                    }
+                     'provider': FALLBACK_COMPLETION}
                     for keyword in keywords]
         # logger.debug(keywords)
         # tokens = list(lexer.get_tokens(text))
@@ -82,8 +81,7 @@ class FallbackActor(QObject):
                    'sortText': token,
                    'filterText': token,
                    'documentation': '',
-                   'provider': FALLBACK_COMPLETION,
-                  }
+                   'provider': FALLBACK_COMPLETION}
                   for token in tokens]
         for token in tokens:
             if token['insertText'] not in keyword_set:

@@ -500,15 +500,18 @@ class CodeEditor(TextEditBaseWidget):
 
         # Tab key behavior
         self.tab_indents = None
-        self.tab_mode = True # see CodeEditor.set_tab_mode
+        self.tab_mode = True  # see CodeEditor.set_tab_mode
 
         # Intelligent backspace mode
         self.intelligent_backspace = True
 
         # Automatic (on the fly) completions
-        self.automatic_completions = CONF.get('editor', 'automatic_completions')
-        self.automatic_completions_after_chars = CONF.get('editor', 'automatic_completions_after_chars')
-        self.automatic_completions_after_ms = CONF.get('editor', 'automatic_completions_after_ms')
+        self.automatic_completions = \
+            CONF.get('editor', 'automatic_completions')
+        self.automatic_completions_after_chars = \
+            CONF.get('editor', 'automatic_completions_after_chars')
+        self.automatic_completions_after_ms = \
+            CONF.get('editor', 'automatic_completions_after_ms')
 
         # Completions hint
         self.completions_hint = True
@@ -1096,7 +1099,7 @@ class CodeEditor(TextEditBaseWidget):
                     or
                     (first_letter.islower() and first_insert_letter.isupper())
                 )
-                # False < True, so case matches go first, and case mismatches last
+                # False < True, so case matches go first
                 return (case_mismatch, completion['sortText'])
 
             completion_list = sorted(completions, key=sort_key)
