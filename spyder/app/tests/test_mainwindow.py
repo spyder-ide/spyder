@@ -267,35 +267,35 @@ def test_opengl_implementation(main_window, qtbot):
     CONF.set('main', 'opengl', 'automatic')
 
 
-@pytest.mark.slow
-@flaky(max_runs=3)
-@pytest.mark.skipif(np.__version__ < '1.14.0', reason="This only happens in Numpy 1.14+")
-@pytest.mark.parametrize('main_window', [{'spy_config': ('variable_explorer', 'minmax', True)}], indirect=True)
-def test_filter_numpy_warning(main_window, qtbot):
-    """
-    Test that we filter a warning shown when an array contains nan
-    values and the Variable Explorer option 'Show arrays min/man'
-    is on.
+# @pytest.mark.slow
+# @flaky(max_runs=3)
+# @pytest.mark.skipif(np.__version__ < '1.14.0', reason="This only happens in Numpy 1.14+")
+# @pytest.mark.parametrize('main_window', [{'spy_config': ('variable_explorer', 'minmax', True)}], indirect=True)
+# def test_filter_numpy_warning(main_window, qtbot):
+#     """
+#     Test that we filter a warning shown when an array contains nan
+#     values and the Variable Explorer option 'Show arrays min/man'
+#     is on.
 
-    For spyder-ide/spyder#7063.
-    """
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    control = shell._control
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
+#     For spyder-ide/spyder#7063.
+#     """
+#     shell = main_window.ipyconsole.get_current_shellwidget()
+#     control = shell._control
+#     qtbot.waitUntil(lambda: shell._prompt_html is not None,
+#                     timeout=SHELL_TIMEOUT)
 
-    # Create an array with a nan value
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('import numpy as np; A=np.full(16, np.nan)')
+#     # Create an array with a nan value
+#     with qtbot.waitSignal(shell.executed):
+#         shell.execute('import numpy as np; A=np.full(16, np.nan)')
 
-    qtbot.wait(1000)
+#     qtbot.wait(1000)
 
-    # Assert that no warnings are shown in the console
-    assert "warning" not in control.toPlainText()
-    assert "Warning" not in control.toPlainText()
+#     # Assert that no warnings are shown in the console
+#     assert "warning" not in control.toPlainText()
+#     assert "Warning" not in control.toPlainText()
 
-    # Restore default config value
-    CONF.set('variable_explorer', 'minmax', False)
+#     # Restore default config value
+#     CONF.set('variable_explorer', 'minmax', False)
 
 
 @pytest.mark.slow
