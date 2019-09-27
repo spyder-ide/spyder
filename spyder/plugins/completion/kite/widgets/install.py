@@ -77,8 +77,8 @@ class KiteIntegrationInfo(QWidget):
         install_button = QPushButton(_('Install Kite'))
         dismiss_button = QPushButton(_('Dismiss'))
         buttons_layout.addStretch(0)
-        buttons_layout.addWidget(learn_more_button)
         buttons_layout.addWidget(install_button)
+        buttons_layout.addWidget(learn_more_button)
         buttons_layout.addWidget(dismiss_button)
 
         general_layout = QVBoxLayout()
@@ -100,14 +100,15 @@ class KiteWelcome(QWidget):
 
     def __init__(self, parent):
         super(KiteWelcome, self).__init__(parent)
+        self.setFixedHeight(340)
 
         # Left side
         install_info = QLabel(
             _('''<big><b>Level up your completions with '''
               '''Kite</b></big><br><br>'''
-              '''<i>Kite is a native app that runs locally '''
+              '''Kite is a native app that runs locally '''
               '''on your computer <br>and uses machine learning '''
-              '''to provide advanced <br>completions.</i><br><br>'''
+              '''to provide advanced <br>completions.<br><br>'''
               '''&#10003; Specialized support for Python '''
               '''data analysis packages<br><br>'''
               '''&#10003; 1.5x more completions '''
@@ -117,7 +118,8 @@ class KiteWelcome(QWidget):
               '''&#10003; 100% local - no internet '''
               '''connection required<br><br>'''
               '''&#10003; 100% free to use<br><br>'''
-              '''<a href="https://kite.com">Learn more</a>'''))
+              '''<a href="https://kite.com/spyder-integration">'''
+              '''Learn more</a>'''))
         install_info.setOpenExternalLinks(True)
 
         # Right side
@@ -130,6 +132,7 @@ class KiteWelcome(QWidget):
         install_gif_label.setMovie(install_gif)
         install_button = QPushButton(_('Add Kite'))
         action_layout.addWidget(install_gif_label)
+        action_layout.addStretch(0)
         action_layout.addWidget(install_button)
 
         # Layout
