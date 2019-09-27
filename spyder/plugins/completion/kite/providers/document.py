@@ -31,6 +31,8 @@ KITE_DOCUMENT_TYPES = defaultdict(lambda: CompletionItemKind.VALUE, {
     'call': CompletionItemKind.FUNCTION,
 })
 
+KITE_COMPLETION = 'Kite'
+
 logger = logging.getLogger(__name__)
 
 
@@ -124,7 +126,8 @@ class DocumentProvider:
                     'filterText': completion['display'],
                     # Use the returned ordering
                     'sortText': (i, 0),
-                    'documentation': completion['documentation']['text']
+                    'documentation': completion['documentation']['text'],
+                    'provider': KITE_COMPLETION,
                 }
                 spyder_completions.append(entry)
 
@@ -140,7 +143,8 @@ class DocumentProvider:
                             'filterText': child['snippet']['text'],
                             # Use the returned ordering
                             'sortText': (i, j+1),
-                            'documentation': child['documentation']['text']
+                            'documentation': child['documentation']['text'],
+                            'provider': KITE_COMPLETION,
                         }
                         spyder_completions.append(child_entry)
 
@@ -229,6 +233,7 @@ class DocumentProvider:
                 params = {
                     'signatures': base_signature,
                     'activeSignature': 0,
-                    'activeParameter': arg_idx
+                    'activeParameter': arg_idx,
+                    'provider': KITE_COMPLETION
                 }
         return {'params': params}
