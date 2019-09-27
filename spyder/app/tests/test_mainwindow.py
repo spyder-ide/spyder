@@ -1593,49 +1593,53 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
 
     # Change the option so that bbox_inches=None.
     CONF.set('ipython_console', 'pylab/inline/bbox_inches', False)
+    try:
 
-    # Restart the kernel and wait until it's up again
-    shell._prompt_html = None
-    client.restart_kernel()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
+        # Restart the kernel and wait until it's up again
+        shell._prompt_html = None
+        client.restart_kernel()
+        qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                        timeout=SHELL_TIMEOUT)
 
-    # Generate the same plot inline with bbox_inches='tight' and save the
-    # figure with savefig.
-    savefig_figname = osp.join(
-        tmpdir, 'savefig_bbox_inches_None.png').replace('\\', '/')
-    with qtbot.waitSignal(shell.executed):
-        shell.execute(("import matplotlib.pyplot as plt\n"
-                       "fig, ax = plt.subplots()\n"
-                       "fig.set_size_inches(%f, %f)\n"
-                       "ax.set_position([0.25, 0.25, 0.5, 0.5])\n"
-                       "ax.set_xticks(range(10))\n"
-                       "ax.xaxis.set_ticklabels([])\n"
-                       "ax.set_yticks(range(10))\n"
-                       "ax.yaxis.set_ticklabels([])\n"
-                       "ax.tick_params(axis='both', length=0)\n"
-                       "for loc in ax.spines:\n"
-                       "    ax.spines[loc].set_color('#000000')\n"
-                       "    ax.spines[loc].set_linewidth(2)\n"
-                       "ax.axis([0, 9, 0, 9])\n"
-                       "ax.plot(range(10), color='#000000', lw=2)\n"
-                       "fig.savefig('%s',\n"
-                       "            bbox_inches=None,\n"
-                       "            dpi=%f)"
-                       ) % (fig_width, fig_height, savefig_figname, fig_dpi))
+        # Generate the same plot inline with bbox_inches='tight' and save the
+        # figure with savefig.
+        savefig_figname = osp.join(
+            tmpdir, 'savefig_bbox_inches_None.png').replace('\\', '/')
+        with qtbot.waitSignal(shell.executed):
+            shell.execute(("import matplotlib.pyplot as plt\n"
+                           "fig, ax = plt.subplots()\n"
+                           "fig.set_size_inches(%f, %f)\n"
+                           "ax.set_position([0.25, 0.25, 0.5, 0.5])\n"
+                           "ax.set_xticks(range(10))\n"
+                           "ax.xaxis.set_ticklabels([])\n"
+                           "ax.set_yticks(range(10))\n"
+                           "ax.yaxis.set_ticklabels([])\n"
+                           "ax.tick_params(axis='both', length=0)\n"
+                           "for loc in ax.spines:\n"
+                           "    ax.spines[loc].set_color('#000000')\n"
+                           "    ax.spines[loc].set_linewidth(2)\n"
+                           "ax.axis([0, 9, 0, 9])\n"
+                           "ax.plot(range(10), color='#000000', lw=2)\n"
+                           "fig.savefig('%s',\n"
+                           "            bbox_inches=None,\n"
+                           "            dpi=%f)"
+                           ) % (fig_width, fig_height, savefig_figname, fig_dpi))
 
-    # Get the image name from the html, fetch the image from the shell, and
-    # then save it to a file.
-    html = shell._control.toHtml()
-    img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
-    qimg = shell._get_image(img_name)
-    assert isinstance(qimg, QImage)
+        # Get the image name from the html, fetch the image from the shell, and
+        # then save it to a file.
+        html = shell._control.toHtml()
+        img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
+        qimg = shell._get_image(img_name)
+        assert isinstance(qimg, QImage)
 
-    # Save the inline figure and assert it is similar to the one generated
-    # with savefig.
-    inline_figname = osp.join(tmpdir, 'inline_bbox_inches_None.png')
-    qimg.save(inline_figname)
-    assert compare_images(savefig_figname, inline_figname, 0.1) is None
+        # Save the inline figure and assert it is similar to the one generated
+        # with savefig.
+        inline_figname = osp.join(tmpdir, 'inline_bbox_inches_None.png')
+        qimg.save(inline_figname)
+        assert compare_images(savefig_figname, inline_figname, 0.1) is None
+    finally:
+        # Reset optin to True if we run it again
+        CONF.set('ipython_console', 'pylab/inline/bbox_inches', True)
 
 
 @pytest.mark.slow
