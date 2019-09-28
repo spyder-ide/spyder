@@ -38,26 +38,16 @@ class KiteIntegrationInfo(QWidget):
         # Images
         images_layout = QHBoxLayout()
         if is_dark_interface():
-            spyder_icon_filename = 'spyder.svg'
-            kite_icon_filename = 'kite_dark.svg'
+            icon_filename = 'spyder_kite.svg'
         else:
-            spyder_icon_filename = 'spyder_dark.svg'
-            kite_icon_filename = 'kite_light.svg'
-        spyder_image_path = get_image_path(spyder_icon_filename)
-        spyder_image = QPixmap(spyder_image_path)
-        spyder_image_label = QLabel()
-        spyder_image_label.setPixmap(
-            spyder_image.scaled(100, 100, Qt.KeepAspectRatio))
-
-        kite_image_path = get_image_path(kite_icon_filename)
-        kite_image = QPixmap(kite_image_path)
-        kite_image_label = QLabel()
-        kite_image_label.setPixmap(
-            kite_image.scaled(100, 100, Qt.KeepAspectRatio))
+            icon_filename = 'spyder_kite_dark.svg'
+        image_path = get_image_path(icon_filename)
+        image = QPixmap(image_path)
+        image_label = QLabel()
+        image_label.setPixmap(image)
 
         images_layout.addStretch(0)
-        images_layout.addWidget(spyder_image_label)
-        images_layout.addWidget(kite_image_label)
+        images_layout.addWidget(image_label)
         images_layout.addStretch(0)
 
         # Label
