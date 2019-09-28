@@ -29,6 +29,7 @@ import os.path as osp
 import re
 import signal
 import socket
+import glob
 import subprocess
 import sys
 import threading
@@ -180,6 +181,7 @@ from spyder.app import tour
 #==============================================================================
 # Third-party library imports
 #==============================================================================
+import psutil
 import qdarkstyle
 
 #==============================================================================
@@ -250,6 +252,18 @@ def setup_logging(cli_options):
                             filemode='w+')
 
 
+def delete_lsp_log_files():
+    """Delete previous dead Spyder instances LSP log files."""
+    regex = re.compile(r'.*_.*_(\d+)[.]log')
+    files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
+    for f in files:
+        match = regex.match(f)
+        if match is not None:
+            pid = int(match.group(1))
+            if not psutil.pid_exists(pid):
+                os.remove(f)
+
+
 def qt_message_handler(msg_type, msg_log_context, msg_string):
     """
     Qt warning messages are intercepted by this handler.
@@ -270,14 +284,6 @@ def qt_message_handler(msg_type, msg_log_context, msg_string):
 
 qInstallMessageHandler(qt_message_handler)
 
-
-# =============================================================================
-# Dependencies
-# =============================================================================
-QDARKSTYLE_REQVER = '>=2.6.4'
-dependencies.add("qdarkstyle", "qdarkstyle",
-                 _("Dark style for the entire interface"),
-                 required_version=QDARKSTYLE_REQVER)
 
 #==============================================================================
 # Main Window
@@ -611,6 +617,7 @@ class MainWindow(QMainWindow):
         logger.info("Applying theme configuration...")
         ui_theme = CONF.get('appearance', 'ui_theme')
         color_scheme = CONF.get('appearance', 'selected')
+
 
         if ui_theme == 'dark':
             if not running_under_pytest():
@@ -1314,6 +1321,9 @@ class MainWindow(QMainWindow):
         was triggered"""
         self.restore_scrollbar_position.emit()
 
+        logger.info('Deleting previous Spyder instance LSP logs...')
+        delete_lsp_log_files()
+
         # Workaround for spyder-ide/spyder#880.
         # QDockWidget objects are not painted if restored as floating
         # windows, so we must dock them before showing the mainwindow,
@@ -1391,7 +1401,8 @@ class MainWindow(QMainWindow):
             self.check_updates(startup=True)
 
         # Show dialog with missing dependencies
-        self.report_missing_dependencies()
+        if not running_under_pytest():
+            self.report_missing_dependencies()
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
@@ -1425,11 +1436,12 @@ class MainWindow(QMainWindow):
 
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies"""
+        dependencies.declare_dependencies()
         missing_deps = dependencies.missing_dependencies()
         if missing_deps:
             QMessageBox.critical(self, _('Error'),
                 _("<b>You have missing dependencies!</b>"
-                  "<br><br><tt>%s</tt><br><br>"
+                  "<br><br><tt>%s</tt><br>"
                   "<b>Please install them to avoid this message.</b>"
                   "<br><br>"
                   "<i>Note</i>: Spyder could work without some of these "

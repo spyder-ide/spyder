@@ -223,42 +223,13 @@ a Python version equal or greater than 3.5 or 2.7.
 
 ### Runtime dependencies
 
+The basic dependencies to run Spyder are:
+
 * **Python** 3.5+ or 2.7: The core language Spyder is written in and for.
 * **PyQt5** 5.6+: Python bindings for Qt, used for Spyder's GUI.
-* **qtconsole** 4.5.5+: Enhanced Python interpreter.
-* **Python-language-server**: Editor code completion, calltips
-  go-to-definition and real-time code analysis
-* **Sphinx**: Rich text mode for the Help pane.
-* **Pygments** 2.0+: Syntax highlighting for all file types it supports.
-* **Pylint**: Static code analysis.
-* **Psutil**: CPU and memory usage on the status bar.
-* **Nbconvert**: Manipulation of notebooks in the Editor.
-* **Qtawesome** 0.5.7+: To have an icon theme based on FontAwesome.
-* **Pickleshare**: Show import completions on the Python consoles.
-* **PyZMQ**: Client for the language server protocol (LSP).
-* **QtPy** 1.5.0+: Abstraction layer for Python Qt bindings so that Spyder
-  can run on multiple Qt bindings and versions.
-* **Chardet**: Character encoding auto-detection in Python.
-* **Numpydoc**: Used by Jedi to get function return types from Numpydocstrings.
-* **Cloudpickle**: Serialize variables in the IPython kernel to send to Spyder.
-* **spyder-kernels** 1.4.0+: Jupyter kernels for the Spyder console.
-* **keyring**: Save Github credentials to report errors securely.
-* **QDarkStyle** 2.6.4+: A dark stylesheet for Qt applications, used for Spyder's dark theme.
-* **atomicwrites**: Atomic file writes.
-* **pexpect**/**paramiko**: Connect to remote kernels through SSH.
-* **diff-match-patch**: Compute text file diff changes during edition.
-* **watchdog**: Watch file changes on project directories.
-* **pyxdg**: Parse `.desktop` files on Linux
-* **rtree**: Fast access to code snippets regions (Anaconda only).
 
-### Optional dependencies
-
-* **Matplotlib**: 2D/3D plotting in the IPython console.
-* **Pandas**: View and edit DataFrames and Series in the Variable Explorer.
-* **Numpy**: View and edit 2- or 3-dimensional arrays in the Variable Explorer.
-* **SymPy**: Symbolic mathematics in the IPython console.
-* **SciPy**: Import Matlab workspace files in the Variable Explorer.
-* **Cython**: Run Cython files in the IPython console.
+The rest our dependencies (both required and optional) are declared in
+[this file](https://github.com/spyder-ide/spyder/blob/master/spyder/dependencies.py).
 
 
 ## Sponsors

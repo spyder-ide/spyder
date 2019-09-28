@@ -30,6 +30,8 @@ KITE_DOCUMENT_TYPES = {
     'unknown': CompletionItemKind.TEXT
 }
 
+KITE_COMPLETION = 'Kite'
+
 logger = logging.getLogger(__name__)
 
 
@@ -62,7 +64,9 @@ class DocumentProvider:
             'filename': osp.realpath(params['file']),
             'text': params['text'],
             'action': 'focus',
-            'selections': []
+            'selections': [
+                {'start': params['offset'], 'end': params['offset']}
+            ]
         }
 
         default_info = {'text': '', 'count': 0}
@@ -80,7 +84,9 @@ class DocumentProvider:
             'filename': osp.realpath(params['file']),
             'text': params['text'],
             'action': 'edit',
-            'selections': []
+            'selections': [
+                {'start': params['offset'], 'end': params['offset']}
+            ]
         }
         with QMutexLocker(self.mutex):
             file_info = self.opened_files[params['file']]
@@ -118,7 +124,8 @@ class DocumentProvider:
                     'insertText': completion['snippet']['text'],
                     'filterText': completion['display'],
                     'sortText': completion['display'],
-                    'documentation': completion['documentation']['text']
+                    'documentation': completion['documentation']['text'],
+                    'provider': KITE_COMPLETION
                 }
                 spyder_completions.append(entry)
                 if 'children' in completion:
@@ -195,19 +202,22 @@ class DocumentProvider:
                 signatures = call['signatures']
                 arg_idx = call['arg_index']
 
-                signature = signatures[0]
                 parameters = []
                 names = []
-                logger.debug(signature)
-                for arg in signature['args']:
-                    parameters.append({
-                        'label': arg['name'],
-                        'documentation': ''
-                    })
-                    names.append(arg['name'])
 
-                func_args = ', '.join(names)
-                call_label = '{0}({1})'.format(call_label, func_args)
+                logger.debug(signatures)
+                if len(signatures) > 0:
+                    signature = signatures[0]
+                    logger.debug(signature)
+                    for arg in signature['args']:
+                        parameters.append({
+                            'label': arg['name'],
+                            'documentation': ''
+                        })
+                        names.append(arg['name'])
+
+                    func_args = ', '.join(names)
+                    call_label = '{0}({1})'.format(call_label, func_args)
 
                 base_signature = {
                     'label': call_label,
@@ -218,6 +228,7 @@ class DocumentProvider:
                 params = {
                     'signatures': base_signature,
                     'activeSignature': 0,
-                    'activeParameter': arg_idx
+                    'activeParameter': arg_idx,
+                    'provider': KITE_COMPLETION
                 }
         return {'params': params}

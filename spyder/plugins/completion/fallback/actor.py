@@ -29,6 +29,8 @@ from spyder.plugins.completion.languageserver import LSPRequestTypes
 from spyder.plugins.completion.fallback.utils import get_keywords, get_words
 
 
+FALLBACK_COMPLETION = "Fallback"
+
 logger = logging.getLogger(__name__)
 
 
@@ -66,7 +68,8 @@ class FallbackActor(QObject):
                      'insertText': keyword,
                      'label': keyword,
                      'sortText': u'zz{0}'.format(keyword[0].lower()),
-                     'filterText': keyword, 'documentation': ''}
+                     'filterText': keyword, 'documentation': '',
+                     'provider': FALLBACK_COMPLETION}
                     for keyword in keywords]
         # logger.debug(keywords)
         # tokens = list(lexer.get_tokens(text))
@@ -75,7 +78,8 @@ class FallbackActor(QObject):
         tokens = [{'kind': CompletionItemKind.TEXT, 'insertText': token,
                    'label': token,
                    'sortText': u'zz{0}'.format(token[0].lower()),
-                   'filterText': token, 'documentation': ''}
+                   'filterText': token, 'documentation': '',
+                   'provider': FALLBACK_COMPLETION}
                   for token in tokens]
         for token in tokens:
             if token['insertText'] not in keyword_set:

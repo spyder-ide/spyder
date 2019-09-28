@@ -401,6 +401,14 @@ def icon(name, scale_factor=None, resample=False, icon_path=None):
         return icon if icon is not None else QIcon()
 
 
+def get_kite_icon():
+    """Return the Kite logo taking into account the theme of the interface."""
+    icon_path = 'kite_light.svg'
+    if is_dark_interface():
+        icon_path = 'kite_dark.svg'
+    return QIcon(get_image_path(icon_path))
+
+
 def get_icon_by_extension_or_type(fname, scale_factor):
     """Return the icon depending on the file extension"""
     application_icons = {}
@@ -476,6 +484,11 @@ def get_icon_by_extension_or_type(fname, scale_factor):
 def base64_from_icon(icon_name, width, height):
     """Convert icon to base64 encoding."""
     icon_obj = icon(icon_name)
+    return base64_from_icon_obj(icon_obj, width, height)
+
+
+def base64_from_icon_obj(icon_obj, width, height):
+    """Convert icon object to base64 enconding."""
     image = QImage(icon_obj.pixmap(width, height).toImage())
     byte_array = QByteArray()
     buffer = QBuffer(byte_array)
