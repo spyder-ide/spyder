@@ -10,16 +10,16 @@ pickleshare
 psutil
 pygments >=2.0
 pylint
+pympler
 pyqt <5.13
-python-language-server >=0.27.0
+python-language-server >=0.28.2
 pyxdg
 pyzmq
 qdarkstyle >=2.7
 qtawesome >=0.5.7
 qtconsole >=4.5.5
 qtpy >=1.5.0
-sphinx
-spyder-kernels >=1.4.0
-watchdog
-pympler
 rtree
+sphinx
+spyder-kernels >=1.5.0
+watchdog
