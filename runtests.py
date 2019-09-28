@@ -39,7 +39,8 @@ def main(run_slow=False, extra_args=None):
 
     if sys.version[0] == '3':
         # Print stack if segmentation fault
-        pytest_args += ['-X', 'faulthandler']
+        import faulthandler
+        faulthandler.enable()
 
     if RUN_CI:
         pytest_args += ['-x', '--cov=spyder', '--no-cov-on-fail',
