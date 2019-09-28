@@ -140,7 +140,8 @@ class DocumentProvider:
                             'insertText': snippet,
                             'filterText': text,
                             'sortText': text,
-                            'documentation': children['documentation']['text']
+                            'documentation': children['documentation']['text'],
+                            'provider': KITE_COMPLETION
                         }
                         spyder_completions.append(child_entry)
         return {'params': spyder_completions}
