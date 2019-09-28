@@ -2032,5 +2032,38 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     CONF.set('lsp-server', 'pydocstyle', False)
 
 
+@pytest.mark.slow
+def test_preferences_change_font_regression(main_window, qtbot):
+    """
+    Test for spyder-ide/spyder/#10284 regression.
+
+    Changing font resulted in error.
+    """
+    def trigger():
+        pref = main_window.prefs_dialog_instance
+        index = 1
+        page = pref.get_page(index)
+        pref.set_current_index(index)
+        qtbot.wait(1000)
+
+        for fontbox in [page.plain_text_font.fontbox,
+                        page.rich_text_font.fontbox]:
+            fontbox.setFocus()
+            idx = fontbox.currentIndex()
+            fontbox.setCurrentIndex(idx + 1)
+            qtbot.wait(1000)
+
+        qtbot.wait(4000)
+        pref.ok_btn.animateClick(300)
+
+    timer = QTimer()
+    timer.setSingleShot(True)
+    timer.timeout.connect(trigger)
+    timer.start(5000)
+
+    main_window.show_preferences()
+    qtbot.wait(5000)
+
+
 if __name__ == "__main__":
     pytest.main()
