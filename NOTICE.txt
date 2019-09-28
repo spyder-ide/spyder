@@ -1818,9 +1818,6 @@ spyder/plugins/help/utils/static/images/up_arrow_disabled.png
 
 
 
-
-
-
 pyqt-bloomfilter 3.0.0
 -------------------------------------------------------------------------
 
@@ -1854,19 +1851,12 @@ https://github.com/kiteco/pyqt-bloomfilter
 
 Files covered:
 
-spyder/utils/external/pyqt_bloomfilter/CHANGES.txt
 spyder/utils/external/pyqt_bloomfilter/LICENSE.txt
-spyder/utils/external/pyqt_bloomfilter/MANIFEST.in
 spyder/utils/external/pyqt_bloomfilter/pybloom_pyqt
-spyder/utils/external/pyqt_bloomfilter/pybloom_pyqt/benchmarks.py
 spyder/utils/external/pyqt_bloomfilter/pybloom_pyqt/__init__.py
 spyder/utils/external/pyqt_bloomfilter/pybloom_pyqt/pybloom.py
-spyder/utils/external/pyqt_bloomfilter/pybloom_pyqt/test_pybloom.py
 spyder/utils/external/pyqt_bloomfilter/pybloom_pyqt/utils.py
-spyder/utils/external/pyqt_bloomfilter/README.md
-spyder/utils/external/pyqt_bloomfilter/requirements.txt
 spyder/utils/external/pyqt_bloomfilter/setup.py
-spyder/utils/external/pyqt_bloomfilter/tox.ini
 
 
 -------------------------------------------------------------------------------
