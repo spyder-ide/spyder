@@ -1657,7 +1657,7 @@ def example_def_2():
     main_window.open_switcher()
     switcher_paths = [switcher.model.item(item_idx).get_description()
                       for item_idx in range(switcher.model.rowCount())]
-    assert osp.dirname(str(file_a)) in switcher_paths or len(str(file_a)) > 90
+    assert osp.dirname(str(file_a)) in switcher_paths or len(str(file_a)) > 75
     switcher.close()
 
     # Assert that long paths are shortened in the switcher
