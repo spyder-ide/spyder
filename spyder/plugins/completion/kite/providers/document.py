@@ -47,11 +47,14 @@ def convert_text_snippet(snippet_info):
         placeholder_end = placeholder['end']
         next_pos = placeholder_begin
         standard_text = text[prev_pos:next_pos]
-        snippet_text = text[next_pos:placeholder_end][1:-1]
+        snippet_text = text[next_pos:placeholder_end]
         prev_pos = placeholder['end']
         text_builder.append(standard_text)
         placeholder_number = (i + 1) % total_placeholders
-        snippet = '${%d:%s}' % (placeholder_number, snippet_text)
+        if snippet_text:
+            snippet = '${%d:%s}' % (placeholder_number, snippet_text)
+        else:
+            snippet = '$%d' % (placeholder_number)
         text_builder.append(snippet)
     text_builder.append(text[prev_pos:])
     return ''.join(text_builder)
@@ -113,7 +116,7 @@ class DocumentProvider:
     def convert_completion_request(self, response):
         logger.debug(response)
         if response is None:
-           return {'params': []}
+            return {'params': []}
         spyder_completions = []
         completions = response['completions']
         if completions is not None:
@@ -122,7 +125,7 @@ class DocumentProvider:
                     'kind': KITE_DOCUMENT_TYPES.get(
                         completion['hint'], CompletionItemKind.TEXT),
                     'label': completion['display'],
-                    'insertText': completion['snippet']['text'],
+                    'insertText': convert_text_snippet(completion['snippet']),
                     'filterText': completion['display'],
                     # Use the returned ordering
                     'sortText': (i, 0),
