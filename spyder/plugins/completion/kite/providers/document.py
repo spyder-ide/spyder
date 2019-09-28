@@ -40,7 +40,7 @@ def convert_text_snippet(snippet_info):
     text_builder = []
     prev_pos = 0
     next_pos = None
-    total_placeholders = len(snippet_info['placeholders'])
+    total_placeholders = len(snippet_info['placeholders']) + 1
     for i, placeholder in enumerate(snippet_info['placeholders']):
         placeholder_begin = placeholder['begin']
         placeholder_end = placeholder['end']
@@ -53,6 +53,7 @@ def convert_text_snippet(snippet_info):
         snippet = '${%d:%s}' % (placeholder_number, snippet_text)
         text_builder.append(snippet)
     text_builder.append(text[prev_pos:])
+    text_builder.append('$0')
     return ''.join(text_builder)
 
 
@@ -112,7 +113,7 @@ class DocumentProvider:
     def convert_completion_request(self, response):
         logger.debug(response)
         if response is None:
-           return {'params': []}
+            return {'params': []}
         spyder_completions = []
         completions = response['completions']
         if completions is not None:
