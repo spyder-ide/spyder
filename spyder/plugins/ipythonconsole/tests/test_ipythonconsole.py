@@ -697,25 +697,25 @@ def test_save_history_dbg(ipyconsole, qtbot):
         shell.execute('1/0')
 
     shell.execute('%debug')
-    qtbot.wait(1000)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Enter an expression
     qtbot.keyClicks(control, '!aa = 10')
     qtbot.keyClick(control, Qt.Key_Enter)
 
     # Add a pdb command to make sure it is not saved
-    qtbot.wait(1000)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     qtbot.keyClicks(control, 'u')
     qtbot.keyClick(control, Qt.Key_Enter)
 
     # Add an empty line to make sure it is not saved
-    qtbot.wait(1000)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     qtbot.keyClick(control, Qt.Key_Enter)
 
     # Clear console (for some reason using shell.clear_console
     # doesn't work here)
     shell.reset(clear=True)
-    qtbot.wait(1000)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Press Up arrow button and assert we get the last
     # introduced command
@@ -738,7 +738,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
         shell.execute('1/0')
 
     shell.execute('%debug')
-    qtbot.wait(1000)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Press Up arrow button and assert we get the last
     # introduced command
@@ -746,7 +746,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
     assert '!aa = 10' in control.toPlainText()
 
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(1000)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     # Add a multiline statment and ckeck we can browse it correctly
     shell._pdb_history.history.append('if True:\n    print(1)')
     shell._pdb_history.history.append('print(2)')
