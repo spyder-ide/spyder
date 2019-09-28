@@ -30,6 +30,8 @@ KITE_DOCUMENT_TYPES = {
     'unknown': CompletionItemKind.TEXT
 }
 
+KITE_COMPLETION = 'Kite'
+
 logger = logging.getLogger(__name__)
 
 
@@ -122,7 +124,8 @@ class DocumentProvider:
                     'insertText': completion['snippet']['text'],
                     'filterText': completion['display'],
                     'sortText': completion['display'],
-                    'documentation': completion['documentation']['text']
+                    'documentation': completion['documentation']['text'],
+                    'provider': KITE_COMPLETION
                 }
                 spyder_completions.append(entry)
                 if 'children' in completion:
@@ -225,6 +228,7 @@ class DocumentProvider:
                 params = {
                     'signatures': base_signature,
                     'activeSignature': 0,
-                    'activeParameter': arg_idx
+                    'activeParameter': arg_idx,
+                    'provider': KITE_COMPLETION
                 }
         return {'params': params}

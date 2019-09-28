@@ -201,6 +201,7 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
+@flaky(max_runs=5)
 def test_completions(lsp_codeeditor, qtbot):
     """Exercise code completion in several ways."""
     code_editor, _ = lsp_codeeditor
@@ -536,6 +537,7 @@ def test_code_snippets(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
+@flaky(max_runs=5)
 def test_completion_order(lsp_codeeditor, qtbot):
     code_editor, _ = lsp_codeeditor
     completion = code_editor.completion_widget

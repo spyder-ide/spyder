@@ -300,8 +300,8 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2 or sys.platform.startswith('linux'),
-                    reason="Times out in PY2 and fails on second run on Linux")
+@pytest.mark.skipif(PY2 or not sys.platform == 'darwin',
+                    reason="Times out in PY2 and fails on other than macOS")
 def test_get_help_combo(main_window, qtbot):
     """
     Test that Help can display docstrings for names typed in its combobox.
@@ -1754,6 +1754,7 @@ def test_troubleshooting_menu_item_and_url(monkeypatch):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
+@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     """
     Test fix for spyder-ide/spyder#6317.

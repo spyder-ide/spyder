@@ -19,6 +19,8 @@ from spyder.plugins.completion.languageserver.decorators import (
     handles, send_request, send_notification)
 
 
+LSP_COMPLETION = "LSP"
+
 logger = logging.getLogger(__name__)
 
 
@@ -100,6 +102,7 @@ class DocumentProvider:
                 item['insertTextFormat'] = item.get(
                     'insertTextFormat', InsertTextFormat.PLAIN_TEXT)
                 item['insertText'] = item.get('insertText', item['label'])
+                item['provider'] = LSP_COMPLETION
 
         if req_id in self.req_reply:
             self.req_reply[req_id](
@@ -124,6 +127,7 @@ class DocumentProvider:
         if len(response['signatures']) > 0:
             response['signatures'] = response['signatures'][
                 response['activeSignature']]
+            response['provider'] = LSP_COMPLETION
         else:
             response = None
         if req_id in self.req_reply:
