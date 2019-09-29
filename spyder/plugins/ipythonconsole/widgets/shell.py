@@ -496,9 +496,7 @@ the sympy module (e.g. plot)
         editor = self.get_editor(filename)
 
         if editor is None:
-            # Load it from file instead
-            text, _enc = encoding.read(filename)
-            return text
+            return None
 
         return editor.toPlainText()
 
