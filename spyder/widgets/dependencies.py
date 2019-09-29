@@ -94,7 +94,7 @@ class DependenciesDialog(QDialog):
         vlayout.addLayout(hlayout)
 
         self.setLayout(vlayout)
-        self.resize(840, 560)
+        self.resize(860, 560)
 
     def set_data(self, dependencies):
         self.treewidget.update_dependencies(dependencies)

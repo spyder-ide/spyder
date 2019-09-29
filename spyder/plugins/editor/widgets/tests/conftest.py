@@ -40,7 +40,10 @@ def codeeditor_factory():
                         close_quotes=True,
                         close_parentheses=True,
                         color_scheme='spyder/dark',
-                        font=QFont("Monospace", 10))
+                        font=QFont("Monospace", 10),
+                        automatic_completions=True,
+                        automatic_completions_after_chars=1,
+                        automatic_completions_after_ms=200)
     editor.resize(640, 480)
     return editor
 
@@ -101,6 +104,7 @@ def lsp_plugin(qtbot_module, request):
     CONF.set('lsp-server', 'pycodestyle', True)
     CONF.set('lsp-server', 'pydocstyle', True)
     CONF.set('lsp-server', 'stdio', False)
+    CONF.set('lsp-server', 'code_snippets', False)
 
     # Create the manager
     os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'

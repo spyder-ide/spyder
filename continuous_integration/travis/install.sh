@@ -28,6 +28,9 @@ if [ "$USE_CONDA" = "yes" ]; then
     # Install test ones
     conda install -q -y -c spyder-ide --file requirements/tests.txt
 
+    # Github backend tests are failing with 1.1.1d
+    conda install -q -y openssl=1.1.1c
+
     # Install coveralls
     pip install -q coveralls
 
@@ -39,6 +42,9 @@ else
     if [ "$PYTHON_VERSION" = "3.7" ]; then
         conda install -q -y python=3.7.3
     fi
+
+    # Github backend tests are failing with 1.1.1d
+    conda install -q -y openssl=1.1.1c
 
     # Install Spyder and its dependencies from our setup.py
     pip install -e .[test]

@@ -20,6 +20,7 @@ from spyder.plugins.completion.languageserver import (
 
 KITE_DOCUMENT_TYPES = {
     'function': CompletionItemKind.FUNCTION,
+    'call': CompletionItemKind.FUNCTION,
     'module': CompletionItemKind.MODULE,
     'type': CompletionItemKind.CLASS,
     'instance': CompletionItemKind.VARIABLE,
@@ -29,7 +30,31 @@ KITE_DOCUMENT_TYPES = {
     'unknown': CompletionItemKind.TEXT
 }
 
+KITE_COMPLETION = 'Kite'
+
 logger = logging.getLogger(__name__)
+
+
+def convert_text_snippet(snippet_info):
+    text = snippet_info['text']
+    text_builder = []
+    prev_pos = 0
+    next_pos = None
+    total_placeholders = len(snippet_info['placeholders']) + 1
+    for i, placeholder in enumerate(snippet_info['placeholders']):
+        placeholder_begin = placeholder['begin']
+        placeholder_end = placeholder['end']
+        next_pos = placeholder_begin
+        standard_text = text[prev_pos:next_pos]
+        snippet_text = text[next_pos:placeholder_end][1:-1]
+        prev_pos = placeholder['end']
+        text_builder.append(standard_text)
+        placeholder_number = (i + 1) % total_placeholders
+        snippet = '${%d:%s}' % (placeholder_number, snippet_text)
+        text_builder.append(snippet)
+    text_builder.append(text[prev_pos:])
+    text_builder.append('$0')
+    return ''.join(text_builder)
 
 
 class DocumentProvider:
@@ -40,7 +65,9 @@ class DocumentProvider:
             'filename': osp.realpath(params['file']),
             'text': params['text'],
             'action': 'focus',
-            'selections': []
+            'selections': [
+                {'start': params['offset'], 'end': params['offset']}
+            ]
         }
 
         default_info = {'text': '', 'count': 0}
@@ -58,7 +85,9 @@ class DocumentProvider:
             'filename': osp.realpath(params['file']),
             'text': params['text'],
             'action': 'edit',
-            'selections': []
+            'selections': [
+                {'start': params['offset'], 'end': params['offset']}
+            ]
         }
         with QMutexLocker(self.mutex):
             file_info = self.opened_files[params['file']]
@@ -71,6 +100,7 @@ class DocumentProvider:
         request = {
             'filename': osp.realpath(params['file']),
             'editor': 'spyder',
+            'no_snippets': not self.enable_code_snippets,
             'text': text,
             'position': {
                 'begin': params['offset']
@@ -81,20 +111,40 @@ class DocumentProvider:
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def convert_completion_request(self, response):
+        logger.debug(response)
+        if response is None:
+            return {'params': []}
         spyder_completions = []
-        if response is not None:
-            completions = response['completions']
-            if completions is not None:
-                for completion in completions:
-                    entry = {
-                        'kind': KITE_DOCUMENT_TYPES.get(
-                            completion['hint'], CompletionItemKind.TEXT),
-                        'insertText': completion['snippet']['text'],
-                        'filterText': completion['display'],
-                        'sortText': completion['display'],
-                        'documentation': completion['documentation']['text']
-                    }
-                    spyder_completions.append(entry)
+        completions = response['completions']
+        if completions is not None:
+            for completion in completions:
+                entry = {
+                    'kind': KITE_DOCUMENT_TYPES.get(
+                        completion['hint'], CompletionItemKind.TEXT),
+                    'label': completion['display'],
+                    'insertText': completion['snippet']['text'],
+                    'filterText': completion['display'],
+                    'sortText': completion['display'],
+                    'documentation': completion['documentation']['text'],
+                    'provider': KITE_COMPLETION
+                }
+                spyder_completions.append(entry)
+                if 'children' in completion:
+                    children_snippets = completion['children']
+                    for children in children_snippets:
+                        text = children['snippet']['text']
+                        snippet = convert_text_snippet(children['snippet'])
+                        child_entry = {
+                            'kind': KITE_DOCUMENT_TYPES.get(
+                                children['hint'], CompletionItemKind.TEXT),
+                            'label': text,
+                            'insertText': snippet,
+                            'filterText': text,
+                            'sortText': text,
+                            'documentation': children['documentation']['text'],
+                            'provider': KITE_COMPLETION
+                        }
+                        spyder_completions.append(child_entry)
         return {'params': spyder_completions}
 
     @send_request(method=LSPRequestTypes.DOCUMENT_HOVER)
@@ -116,6 +166,8 @@ class DocumentProvider:
 
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
     def process_hover(self, response):
+        # logger.debug(response)
+        text = None
         logger.debug(response)
         if response is not None:
             report = response['report']
@@ -152,19 +204,22 @@ class DocumentProvider:
                 signatures = call['signatures']
                 arg_idx = call['arg_index']
 
-                signature = signatures[0]
                 parameters = []
                 names = []
-                logger.debug(signature)
-                for arg in signature['args']:
-                    parameters.append({
-                        'label': arg['name'],
-                        'documentation': ''
-                    })
-                    names.append(arg['name'])
 
-                func_args = ', '.join(names)
-                call_label = '{0}({1})'.format(call_label, func_args)
+                logger.debug(signatures)
+                if len(signatures) > 0:
+                    signature = signatures[0]
+                    logger.debug(signature)
+                    for arg in signature['args']:
+                        parameters.append({
+                            'label': arg['name'],
+                            'documentation': ''
+                        })
+                        names.append(arg['name'])
+
+                    func_args = ', '.join(names)
+                    call_label = '{0}({1})'.format(call_label, func_args)
 
                 base_signature = {
                     'label': call_label,
@@ -175,6 +230,7 @@ class DocumentProvider:
                 params = {
                     'signatures': base_signature,
                     'activeSignature': 0,
-                    'activeParameter': arg_idx
+                    'activeParameter': arg_idx,
+                    'provider': KITE_COMPLETION
                 }
         return {'params': params}
