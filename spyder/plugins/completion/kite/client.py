@@ -75,7 +75,6 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         try:
             http_response = http_method(url, json=params)
         except Exception as error:
-            # this is expected, since Kite may not be running, so we don't log
             return False, None
         success = http_response.status_code == 200
         if success:
