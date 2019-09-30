@@ -9,6 +9,7 @@ import re
 
 ident_re = r'[a-zA-Z_][a-zA-Z0-9_]*'
 dotted_path_re = r'{ident}(?:\.{ident})*'.format(ident=ident_re)
+ident_full_re = ident_re+r'\Z'
 
 
 def find_returning_function_path(text, cursor, line_start='\n'):
@@ -37,7 +38,7 @@ def find_returning_function_path(text, cursor, line_start='\n'):
 
     # Take the first part of the expression, and check that it's a name
     name = expr.split('.', 1)[0]
-    if not re.fullmatch(ident_re, name):
+    if not re.match(ident_full_re, name):
         return None
 
     # find the previous occurrence of name = dotted.path()
