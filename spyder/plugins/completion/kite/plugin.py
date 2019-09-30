@@ -75,5 +75,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             self.kite_process.kill()
 
     def update_configuration(self):
-        self.client.enable_code_snippets = self.get_option('enable_snippets')
+        self.client.enable_code_snippets = \
+            CONF.get('lsp-server', 'code_snippets')
         self.enabled = self.get_option('enable')

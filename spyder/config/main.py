@@ -503,7 +503,6 @@ DEFAULTS = [
             ('kite',
              {
               'enable': True,
-              'enable_snippets': True,
              }),
             ]
 
