@@ -6,7 +6,7 @@
 
 import os
 
-from spyder.utils.external.pyqt_bloomfilter.pybloom_pyqt import BloomFilter
+from spyder.utils.external.pybloom_pyqt import BloomFilter
 
 
 class KiteBloomFilter:

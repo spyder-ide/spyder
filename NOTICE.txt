@@ -1837,7 +1837,7 @@ No modifications made.
 pyqt-bloomfilter is used in Spyder under the terms of the MIT.
 See below for the full text of the MIT.
 
-spyder/utils/external/pyqt_bloomfilter is used in Spyder
+spyder/utils/external/pybloom_pyqt is used in Spyder
 to implement fast lookup of the availability of Kite completions.
 
 See below for the full text of the MIT (expat) license.
@@ -1851,12 +1851,10 @@ https://github.com/kiteco/pyqt-bloomfilter
 
 Files covered:
 
-spyder/utils/external/pyqt_bloomfilter/LICENSE.txt
-spyder/utils/external/pyqt_bloomfilter/pybloom_pyqt
-spyder/utils/external/pyqt_bloomfilter/pybloom_pyqt/__init__.py
-spyder/utils/external/pyqt_bloomfilter/pybloom_pyqt/pybloom.py
-spyder/utils/external/pyqt_bloomfilter/pybloom_pyqt/utils.py
-spyder/utils/external/pyqt_bloomfilter/setup.py
+spyder/utils/external/pybloom_pyqt
+spyder/utils/external/pybloom_pyqt/__init__.py
+spyder/utils/external/pybloom_pyqt/pybloom.py
+spyder/utils/external/pybloom_pyqt/utils.py
 
 
 -------------------------------------------------------------------------------
