@@ -14,6 +14,7 @@ from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.plugins.completion.kite.bloomfilter import KiteBloomFilter
 from spyder.plugins.completion.kite.parsing import find_returning_function_path
+from spyder.plugins.completion.kite.utils.status import check_if_kite_installed
 from spyder.plugins.completion.fallback.actor import FALLBACK_COMPLETION
 
 # Translation callback
@@ -44,12 +45,14 @@ class KiteCTA(QFrame):
         labels_layout.setSpacing(15)
         labels_layout.addStretch()
         labels.setLayout(labels_layout)
+        # TODO Learn More & Install Kite should trigger the install flow UI
+        # and disable the CTA for the session
         labels_layout.addWidget(self._create_link_label(
             _("Install Kite"), "https://kite.com/download/"))
         labels_layout.addWidget(self._create_link_label(
             _("Learn more"), "https://kite.com"))
         dismissal_link = self._create_link_label(_("Dismiss forever"), "#")
-        dismissal_link.linkActivated.connect(self._dismiss)
+        dismissal_link.linkActivated.connect(self._dismiss_forever())
         labels_layout.addWidget(dismissal_link)
 
         # main layout: message + horizontally aligned links
@@ -66,6 +69,10 @@ class KiteCTA(QFrame):
         self._enabled = CONF.get('main', 'show_kite_cta')
         self._escaped = False
         self.hide()
+
+        is_kite_installed, _ = check_if_kite_installed()
+        if is_kite_installed:
+            self._dismiss_forever()
 
     def handle_key_press(self, event):
         key = event.key()
@@ -110,7 +117,7 @@ class KiteCTA(QFrame):
         is_dot = key == ord('.')
         return is_upper or is_lower or is_digit or is_under
 
-    def _dismiss(self):
+    def _dismiss_forever(self):
         self._enabled = False
         CONF.set('main', 'show_kite_cta', False)
 
