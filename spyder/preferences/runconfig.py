@@ -44,6 +44,7 @@ ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 
 CLEAR_ALL_VARIABLES = _("Remove all variables before execution")
 CONSOLE_NAMESPACE = _("Run in console’s namespace instead of an empty one")
+USE_SIGNALS = _("Use signals to communicate with console (USR1, USR2)")
 POST_MORTEM = _("Directly enter debugging when errors appear")
 INTERACT = _("Interact with the Python console after execution")
 
@@ -68,6 +69,7 @@ class RunConfiguration(object):
         self.python_args_enabled = None
         self.clear_namespace = None
         self.console_namespace = None
+        self.use_signals = None
         self.file_dir = None
         self.cw_dir = None
         self.fixed_dir = None
@@ -92,6 +94,8 @@ class RunConfiguration(object):
                                     CONF.get('run', 'clear_namespace', False))
         self.console_namespace = options.get('console_namespace',
                                    CONF.get('run', 'console_namespace', False))
+        self.use_signals = options.get('use_signals',
+                              CONF.get('run', 'use_signals', True))
         self.file_dir = options.get('file_dir',
                            CONF.get('run', WDIR_USE_SCRIPT_DIR_OPTION, True))
         self.cw_dir = options.get('cw_dir',
@@ -114,6 +118,7 @@ class RunConfiguration(object):
                 'python_args': self.python_args,
                 'clear_namespace': self.clear_namespace,
                 'console_namespace': self.console_namespace,
+                'use_signals': self.use_signals,
                 'file_dir': self.file_dir,
                 'cw_dir': self.cw_dir,
                 'fixed_dir': self.fixed_dir,
@@ -196,15 +201,18 @@ class RunConfigOptions(QWidget):
         self.console_ns_cb = QCheckBox(CONSOLE_NAMESPACE)
         common_layout.addWidget(self.console_ns_cb, 1, 0)
 
+        self.use_signals_cb = QCheckBox(USE_SIGNALS)
+        common_layout.addWidget(self.use_signals_cb, 2, 0)
+
         self.post_mortem_cb = QCheckBox(POST_MORTEM)
-        common_layout.addWidget(self.post_mortem_cb, 2, 0)
+        common_layout.addWidget(self.post_mortem_cb, 3, 0)
 
         self.clo_cb = QCheckBox(_("Command line options:"))
-        common_layout.addWidget(self.clo_cb, 3, 0)
+        common_layout.addWidget(self.clo_cb, 4, 0)
         self.clo_edit = QLineEdit()
         self.clo_cb.toggled.connect(self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
-        common_layout.addWidget(self.clo_edit, 3, 1)
+        common_layout.addWidget(self.clo_edit, 4, 1)
 
         # --- Working directory ---
         wdir_group = QGroupBox(_("Working directory settings"))
@@ -294,6 +302,7 @@ class RunConfigOptions(QWidget):
         self.pclo_edit.setText(self.runconf.python_args)
         self.clear_var_cb.setChecked(self.runconf.clear_namespace)
         self.console_ns_cb.setChecked(self.runconf.console_namespace)
+        self.use_signals_cb.setChecked(self.runconf.use_signals)
         self.file_dir_radio.setChecked(self.runconf.file_dir)
         self.cwd_radio.setChecked(self.runconf.cw_dir)
         self.fixed_dir_radio.setChecked(self.runconf.fixed_dir)
@@ -311,6 +320,7 @@ class RunConfigOptions(QWidget):
         self.runconf.python_args = to_text_string(self.pclo_edit.text())
         self.runconf.clear_namespace = self.clear_var_cb.isChecked()
         self.runconf.console_namespace = self.console_ns_cb.isChecked()
+        self.runconf.use_signals = self.use_signals_cb.isChecked()
         self.runconf.file_dir = self.file_dir_radio.isChecked()
         self.runconf.cw_dir = self.cwd_radio.isChecked()
         self.runconf.fixed_dir = self.fixed_dir_radio.isChecked()
@@ -517,10 +527,13 @@ class RunConfigPage(GeneralConfigPage):
                                                'clear_namespace', False)
         console_namespace = self.create_checkbox(CONSOLE_NAMESPACE,
                                                  'console_namespace', False)
+        use_signals = self.create_checkbox(USE_SIGNALS,
+                                           'use_signals', True)
 
         general_layout = QVBoxLayout()
         general_layout.addWidget(clear_variables)
         general_layout.addWidget(console_namespace)
+        general_layout.addWidget(use_signals)
         general_layout.addWidget(post_mortem)
         general_group.setLayout(general_layout)
 

@@ -316,7 +316,7 @@ class DebuggingWidget(RichJupyterWidget):
             # Need to wait until kernel is up so the signals are registered.
             return False
 
-        if not self._signal_enabled:
+        if not (self._signal_enabled and CONF.get('run', 'use_signals', True)):
             # Check if we disabled signals (e.g. remote kernel)
             return False
 
