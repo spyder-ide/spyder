@@ -2036,5 +2036,92 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     CONF.set('lsp-server', 'pydocstyle', False)
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="No signals on Windows.")
+def test_signals(main_window, qtbot):
+    """Test that signals work."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+
+    run_action = main_window.run_toolbar_actions[0]
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+
+    # Load test file
+    test_file = osp.join(LOCATION, 'loop_script.py')
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Check we stop on breakpoints
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # Test if disabling signals work
+    CONF.set('run', 'use_signals', True)
+
+    # Click the debug button
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Continue debugging
+    qtbot.keyClick(shell._control, 'c')
+    qtbot.keyClick(shell._control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    # Set a breakpoint
+    code_editor.debugger.toogle_breakpoint(line_number=3)
+
+    # We should drop into the debugger
+    qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    qtbot.keyClick(shell._control, 'q')
+    qtbot.keyClick(shell._control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # Test if we can debug while execution is running
+    CONF.set('run', 'use_signals', True)
+
+    # Click the run button
+    qtbot.mouseClick(run_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    # Click the debug button
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    # We should drop into the debugger
+    qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    qtbot.keyClick(shell._control, 'q')
+    qtbot.keyClick(shell._control, Qt.Key_Enter)
+    qtbot.wait(1000)
+
+    # Test if disabling signals work
+    CONF.set('run', 'use_signals', False)
+
+    # Click the run button
+    qtbot.mouseClick(run_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    # Click the debug button
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    assert shell._control.toPlainText().split()[-1] != 'ipdb>'
+
+    main_window.ipyconsole.get_current_client().interrupt_kernel()
+
+
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main(['test_mainwindow.py::test_signals', '--run-slow'])
