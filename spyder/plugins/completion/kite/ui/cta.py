@@ -18,11 +18,11 @@ from spyder.plugins.completion.kite.utils.status import check_if_kite_installed
 from spyder.plugins.completion.fallback.actor import FALLBACK_COMPLETION
 
 # Translation callback
-_ = get_translation("spyder")
+translate = get_translation("spyder")
 
 COVERAGE_MESSAGE = (
-    _("No completions found."
-      " Get completions for this case and more by installing Kite.")
+    translate("No completions found."
+              " Get completions for this case and more by installing Kite.")
 )
 
 
@@ -48,11 +48,12 @@ class KiteCTA(QFrame):
         # TODO Learn More & Install Kite should trigger the install flow UI
         # and disable the CTA for the session
         labels_layout.addWidget(self._create_link_label(
-            _("Install Kite"), "https://kite.com/download/"))
+            translate("Install Kite"), "https://kite.com/download/"))
         labels_layout.addWidget(self._create_link_label(
-            _("Learn more"), "https://kite.com"))
-        dismissal_link = self._create_link_label(_("Dismiss forever"), "#")
-        dismissal_link.linkActivated.connect(self._dismiss_forever())
+            translate("Learn more"), "https://kite.com"))
+        dismissal_link = self._create_link_label(
+            translate("Dismiss forever"), "#")
+        dismissal_link.linkActivated.connect(self._dismiss_forever)
         labels_layout.addWidget(dismissal_link)
 
         # main layout: message + horizontally aligned links

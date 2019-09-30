@@ -39,7 +39,8 @@ def make_hashfuncs(num_slices, num_bits):
     num_salts, extra = divmod(num_slices, len(fmt))
     if extra:
         num_salts += 1
-    salts = tuple(hashfn(hashfn(pack('I', i)).digest()) for i in range_fn(0, num_salts))
+    salts = tuple(hashfn(hashfn(pack('I', i)).digest())
+                  for i in range_fn(0, num_salts))
 
     def _hash_maker(key):
         if running_python_3:
@@ -104,7 +105,8 @@ class BloomFilter(object):
         self.capacity = capacity
         self.num_bits = num_slices * bits_per_slice
         self.count = count
-        self.make_hashes, self.hashfn = make_hashfuncs(self.num_slices, self.bits_per_slice)
+        self.make_hashes, self.hashfn = make_hashfuncs(self.num_slices,
+                                                       self.bits_per_slice)
 
     def __contains__(self, key):
         """Tests a key's membership in this bloom filter.
@@ -160,9 +162,9 @@ class BloomFilter(object):
         """ Calculates the union of the two underlying bitarrays and returns
         a new bloom filter object."""
         if self.capacity != other.capacity or \
-                        self.error_rate != other.error_rate:
-            raise ValueError(
-                "Unioning filters requires both filters to have both the same capacity and error rate")
+                self.error_rate != other.error_rate:
+            raise ValueError("Unioning filters requires both filters to have "
+                             "both the same capacity and error rate")
         new_bloom = self.copy()
         new_bloom.bitarray = new_bloom.bitarray | other.bitarray
         return new_bloom
@@ -171,12 +173,12 @@ class BloomFilter(object):
         return self.union(other)
 
     def intersection(self, other):
-        """ Calculates the intersection of the two underlying bitarrays and returns
-        a new bloom filter object."""
+        """ Calculates the intersection of the two underlying bitarrays and
+        returns a new bloom filter object."""
         if self.capacity != other.capacity or \
-                        self.error_rate != other.error_rate:
-            raise ValueError(
-                "Intersecting filters requires both filters to have equal capacity and error rate")
+                self.error_rate != other.error_rate:
+            raise ValueError("Intersecting filters requires both filters to "
+                             "have equal capacity and error rate")
         new_bloom = self.copy()
         new_bloom.bitarray = new_bloom.bitarray & other.bitarray
         return new_bloom
@@ -193,7 +195,7 @@ class BloomFilter(object):
         # f.write(self.bitarray.bits)
         f = QFile(path)
         if f.open(QIODevice.WriteOnly):
-            out =  QDataStream(f)
+            out = QDataStream(f)
             out.writeBytes(self.FILE_FMT)
             out.writeFloat(self.error_rate)
             out.writeInt(self.num_slices)
@@ -238,7 +240,8 @@ class BloomFilter(object):
 
     def __setstate__(self, d):
         self.__dict__.update(d)
-        self.make_hashes, self.hashfn = make_hashfuncs(self.num_slices, self.bits_per_slice)
+        self.make_hashes, self.hashfn = make_hashfuncs(self.num_slices,
+                                                       self.bits_per_slice)
 
 
 class ScalableBloomFilter(object):
@@ -317,14 +320,15 @@ class ScalableBloomFilter(object):
         return cloned
 
     def union(self, other):
-        """ Calculates the union of the underlying classic bloom filters and returns
-        a new scalable bloom filter object."""
+        """ Calculates the union of the underlying classic bloom filters and
+        returns a new scalable bloom filter object."""
 
         if self.scale != other.scale or \
                 self.initial_capacity != other.initial_capacity or \
                 self.error_rate != other.error_rate:
-            raise ValueError("Unioning two scalable bloom filters requires \
-            both filters to have both the same mode, initial capacity and error rate")
+            raise ValueError("Unioning two scalable bloom filters requires "
+                             "both filters to have both the same mode, "
+                             "initial capacity and error rate")
         if len(self.filters) > len(other.filters):
             larger_sbf = self.copy()
             smaller_sbf = other
