@@ -582,6 +582,7 @@ class CodeEditor(TextEditBaseWidget):
         self.differ = diff_match_patch()
         self.previous_text = ''
         self.word_tokens = []
+        self.patch = []
 
         # Handle completions hints
         self.completion_widget.sig_completion_hint.connect(
@@ -1010,13 +1011,13 @@ class CodeEditor(TextEditBaseWidget):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
         text = self.toPlainText()
-        patch = self.differ.patch_make(self.previous_text, text)
+        self.patch = self.differ.patch_make(self.previous_text, text)
         self.previous_text = text
         params = {
             'file': self.filename,
             'version': self.text_version,
             'text': text,
-            'diff': patch,
+            'diff': self.patch,
             'offset': self.get_position('cursor')
         }
         return params
@@ -1070,29 +1071,6 @@ class CodeEditor(TextEditBaseWidget):
             first_letter = text1[0] if len(text1) > 0 else ''
             is_upper_word = first_letter.isupper()
             completions = [] if completions is None else completions
-            comparison_key = 'label'
-            if self.code_snippets:
-                available_completions = {x['label'].strip():
-                                         x for x in completions}
-                t1 = available_completions.pop(text1, None)
-                t2 = available_completions.pop(text2, None)
-
-                if t1 is not None:
-                    if t1['insertText'] != t1[comparison_key]:
-                        available_completions[t1[comparison_key]] = t1
-
-                if t2 is not None:
-                    t1_label = t1[comparison_key] if t1 else None
-                    if t2[comparison_key] != t1_label:
-                        if t2['insertText'] != t2[comparison_key]:
-                            available_completions[t2[comparison_key]] = t2
-            else:
-                comparison_key = 'insertText'
-                available_completions = {x['insertText'].strip(): x
-                                         for x in completions[::-1]}
-                available_completions.pop(text1, None)
-
-            completions = list(available_completions.values())
 
             if completions is not None and len(completions) > 0:
                 for completion in completions:
@@ -2015,10 +1993,10 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isUndoAvailable():
             self.text_version -= 1
             self.skip_rstrip = True
-            self.sig_undo.emit()
             TextEditBaseWidget.undo(self)
-            self.sig_text_was_inserted.emit()
             self.document_did_change('')
+            self.sig_undo.emit()
+            self.sig_text_was_inserted.emit()
             self.skip_rstrip = False
 
     @Slot()
@@ -2027,10 +2005,10 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isRedoAvailable():
             self.text_version += 1
             self.skip_rstrip = True
-            self.sig_redo.emit()
             TextEditBaseWidget.redo(self)
-            self.sig_text_was_inserted.emit()
             self.document_did_change('text')
+            self.sig_redo.emit()
+            self.sig_text_was_inserted.emit()
             self.skip_rstrip = False
 
     def get_block_data(self, block):
@@ -3458,6 +3436,7 @@ class CodeEditor(TextEditBaseWidget):
 
         def insert_text(event):
             TextEditBaseWidget.keyPressEvent(self, event)
+            self.document_did_change()
             self.sig_text_was_inserted.emit()
 
         # Send the signal to the editor's extension.
