@@ -28,7 +28,7 @@ COVERAGE_MESSAGE = (
 
 class KiteCTA(QFrame):
     def __init__(self, textedit, ancestor):
-        super().__init__(ancestor)
+        super(KiteCTA, self).__init__(ancestor)
         self.textedit = textedit
         self.setObjectName("kite_cta")
         # fixme retrieve color from theme
