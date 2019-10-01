@@ -11,11 +11,11 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    version="1.0"
-   width="351.56873"
-   height="150.31233"
+   width="10.5cm"
+   height="3.9770138cm"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
    sodipodi:docname="spyder_kite_dark.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    inkscape:export-filename="C:\Users\Daniel\Desktop\Spyder\spyder\spyder\images\spyder_dark.png"
@@ -49,8 +49,8 @@
     </rdf:RDF>
   </metadata>
   <sodipodi:namedview
-     inkscape:window-height="744"
-     inkscape:window-width="1280"
+     inkscape:window-height="841"
+     inkscape:window-width="1600"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0.0"
      borderopacity="1.0"
@@ -58,13 +58,23 @@
      pagecolor="#ffffff"
      id="base"
      inkscape:zoom="2.0279948"
-     inkscape:cx="178.68508"
-     inkscape:cy="50.537045"
+     inkscape:cx="191.24765"
+     inkscape:cy="38.532784"
      inkscape:window-x="0"
-     inkscape:window-y="22"
+     inkscape:window-y="30"
      inkscape:current-layer="g5145"
      showgrid="false"
-     inkscape:window-maximized="0" />
+     inkscape:window-maximized="1"
+     inkscape:pagecheckerboard="true"
+     units="cm"
+     showguides="true"
+     inkscape:guide-bbox="true">
+    <sodipodi:guide
+       position="-39.940931,76.923274"
+       orientation="0,1"
+       id="guide877"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
   <defs
      id="defs4">
     <linearGradient
@@ -404,13 +414,13 @@
       </g>
     </g>
     <polygon
-       transform="matrix(0.36137952,-7.3740006e-5,7.3740006e-5,0.36137952,1010.0209,868.36804)"
-       points="218.04,222.89 136.59,376.14 313.03,526.8 371.43,301.09 "
+       transform="matrix(0.36137952,-7.3740006e-5,7.3740006e-5,0.36137952,1079.0498,868.35398)"
+       points="313.03,526.8 371.43,301.09 218.04,222.89 136.59,376.14 "
        id="polygon4"
        style="fill:#303030;fill-opacity:1;stroke:#303030;stroke-opacity:1" />
     <polygon
-       transform="matrix(0.36137952,-7.3740006e-5,7.3740006e-5,0.36137952,1010.0209,868.36804)"
-       points="382.72,257.44 416.13,128.29 146.94,0 0,259.49 102.28,346.83 201.74,171.2 "
+       transform="matrix(0.36137952,-7.3740006e-5,7.3740006e-5,0.36137952,1079.0498,868.35398)"
+       points="102.28,346.83 201.74,171.2 382.72,257.44 416.13,128.29 146.94,0 0,259.49 "
        id="polygon6"
        style="fill:#303030;fill-opacity:1;stroke:#303030;stroke-opacity:1" />
     <rect
@@ -418,8 +428,8 @@
        id="rect4596-7-3"
        width="59.080555"
        height="18.833834"
-       x="67.941261"
-       y="1256.9242"
+       x="42.718365"
+       y="1283.0729"
        ry="0"
        transform="matrix(-0.69411188,0.71986714,0.71986714,0.69411188,0,0)" />
     <rect
@@ -427,8 +437,8 @@
        id="rect4596-7-8-00"
        width="59.080555"
        height="18.833834"
-       x="1260.683"
-       y="62.844341"
+       x="1285.9064"
+       y="36.696194"
        ry="0"
        transform="rotate(46.020131)" />
     <rect
@@ -436,8 +446,8 @@
        id="rect4596-7-9-1"
        width="59.080555"
        height="18.833834"
-       x="1300.26"
-       y="-20.953588"
+       x="1325.4834"
+       y="-47.101727"
        ry="0"
        transform="rotate(46.020131)" />
     <rect
@@ -445,8 +455,8 @@
        id="rect4596-7-8-0-2"
        width="59.080555"
        height="18.833834"
-       x="28.009247"
-       y="1340.3796"
+       x="2.7863352"
+       y="1366.5283"
        ry="0"
        transform="matrix(-0.69411187,0.71986715,0.71986715,0.69411187,0,0)" />
     <rect
@@ -454,8 +464,8 @@
        id="rect4596-7-8-08-2"
        width="94.197601"
        height="21.882357"
-       x="825.76294"
-       y="959.33716"
+       x="862.09167"
+       y="959.57397"
        ry="0"
        transform="matrix(0.99997743,-0.00671852,0.01247229,0.99992222,0,0)" />
   </g>
