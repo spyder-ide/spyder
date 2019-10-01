@@ -36,6 +36,12 @@ DOWNLOADING_INSTALLER = _("Downloading Kite installer")
 INSTALLING = _("Installing Kite")
 FINISHED = _("Install finished")
 ERRORED = _("Error")
+CANCELLED = _("Cancelled")
+
+
+class KiteInstallationCancelledException(Exception):
+    """Kite installation was cancelled."""
+    pass
 
 
 class KiteInstallationThread(QThread):
@@ -61,6 +67,7 @@ class KiteInstallationThread(QThread):
     def __init__(self, parent):
         super(KiteInstallationThread, self).__init__()
         self.status = NO_STATUS
+        self.cancelled = False
         if os.name == 'nt':
             self._download_url = self.WINDOWS_URL
             self._installer_name = 'kiteSetup.exe'
@@ -80,7 +87,10 @@ class KiteInstallationThread(QThread):
         progress = 0
         if total_size > 0:
             progress = block_number * read_size
-        self.sig_download_progress.emit(progress, total_size)
+        if self.cancelled:
+            raise KiteInstallationCancelledException()
+        else:
+            self.sig_download_progress.emit(progress, total_size)
 
     def _download_installer_or_script(self):
         """Download the installer or installation script."""
@@ -134,7 +144,7 @@ class KiteInstallationThread(QThread):
             stderr=subprocess.STDOUT,
             shell=True
             )
-        while True:
+        while True and not self.cancelled:
             progress = download_process.stdout.readline()
             progress = to_text_string(progress, "utf-8")
             if progress == '' and download_process.poll() is not None:
@@ -146,6 +156,8 @@ class KiteInstallationThread(QThread):
                 self.sig_download_progress.emit(current_progress, total_size)
         download_process.stdout.close()
         return_code = download_process.wait()
+        if self.cancelled:
+            raise KiteInstallationCancelledException()
         if return_code:
             raise subprocess.CalledProcessError(return_code, download_command)
 
@@ -183,6 +195,8 @@ class KiteInstallationThread(QThread):
             try:
                 path, http_response = self._download_installer_or_script()
                 self._execute_installer_or_script(path)
+            except KiteInstallationCancelledException:
+                self._change_installation_status(status=CANCELLED)
             except Exception as error:
                 self._change_installation_status(status=ERRORED)
                 self.sig_error_msg.emit(to_text_string(error))

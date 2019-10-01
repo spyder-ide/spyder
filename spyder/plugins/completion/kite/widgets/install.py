@@ -10,7 +10,7 @@
 import sys
 
 # Third-party imports
-from qtpy.QtCore import Qt, QUrl, Signal
+from qtpy.QtCore import QEvent, Qt, QUrl, Signal
 from qtpy.QtGui import QDesktopServices, QMovie, QPixmap
 from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
                             QLabel, QProgressBar, QPushButton, QVBoxLayout,
@@ -64,8 +64,11 @@ class KiteIntegrationInfo(QWidget):
         # Buttons
         buttons_layout = QHBoxLayout()
         learn_more_button = QPushButton(_('Learn more'))
+        learn_more_button.setAutoDefault(False)
         install_button = QPushButton(_('Install Kite'))
+        install_button.setAutoDefault(False)
         dismiss_button = QPushButton(_('Dismiss'))
+        dismiss_button.setAutoDefault(False)
         buttons_layout.addStretch(0)
         buttons_layout.addWidget(install_button)
         buttons_layout.addWidget(learn_more_button)
@@ -87,6 +90,8 @@ class KiteWelcome(QWidget):
 
     # Signal to check clicks on the installation button
     sig_install_button_clicked = Signal()
+    # Signal to check clicks on the dismiss button
+    sig_dismiss_button_clicked = Signal()
 
     def __init__(self, parent):
         super(KiteWelcome, self).__init__(parent)
@@ -120,10 +125,18 @@ class KiteWelcome(QWidget):
         install_gif.start()
         install_gif_label = QLabel()
         install_gif_label.setMovie(install_gif)
-        install_button = QPushButton(_('Add Kite'))
+
+        button_layout = QHBoxLayout()
+        install_button = QPushButton(_('Install Kite'))
+        dismiss_button = QPushButton(_('Dismiss'))
+        button_layout.addStretch(0)
+        button_layout.addWidget(install_button)
+        button_layout.addWidget(dismiss_button)
+        button_layout.addStretch(0)
+
         action_layout.addWidget(install_gif_label)
         action_layout.addStretch(0)
-        action_layout.addWidget(install_button)
+        action_layout.addLayout(button_layout)
 
         # Layout
         general_layout = QHBoxLayout()
@@ -133,13 +146,16 @@ class KiteWelcome(QWidget):
 
         # Signals
         install_button.clicked.connect(self.sig_install_button_clicked)
+        dismiss_button.clicked.connect(self.sig_dismiss_button_clicked)
 
 
 class KiteInstallation(QWidget):
     """Kite progress installation widget."""
 
-    # Signal to check clicks on the close button
-    sig_close_button_clicked = Signal()
+    # Signal to check clicks on the ok button
+    sig_ok_button_clicked = Signal()
+    # Signal to check clicks on the cancel button
+    sig_cancel_button_clicked = Signal()
 
     def __init__(self, parent):
         super(KiteInstallation, self).__init__(parent)
@@ -156,14 +172,21 @@ class KiteInstallation(QWidget):
               '''When Kite is done installing, the Copilot will <br>'''
               '''launch automatically and guide you throught the <br>'''
               '''rest of the setup process.'''))
-        close_button = QPushButton(_('OK'))
+
+        button_layout = QHBoxLayout()
+        ok_button = QPushButton(_('OK'))
+        cancel_button = QPushButton(_('Cancel'))
+        button_layout.addStretch(0)
+        button_layout.addWidget(ok_button)
+        button_layout.addWidget(cancel_button)
+        button_layout.addStretch(0)
 
         action_layout.addStretch(0)
         action_layout.addWidget(self._progress_label)
         action_layout.addWidget(self._progress_bar)
         action_layout.addWidget(install_info)
         action_layout.addStretch(0)
-        action_layout.addWidget(close_button, alignment=Qt.AlignBottom)
+        action_layout.addLayout(button_layout)
 
         # Right side
         copilot_image_source = get_image_path('kite_copilot.png')
@@ -180,7 +203,8 @@ class KiteInstallation(QWidget):
         self.setLayout(general_layout)
 
         # Signals
-        close_button.clicked.connect(self.sig_close_button_clicked)
+        ok_button.clicked.connect(self.sig_ok_button_clicked)
+        cancel_button.clicked.connect(self.sig_cancel_button_clicked)
 
     def update_installation_status(self, status):
         """Update installation status (downloading, installing, finished)."""
@@ -232,11 +256,15 @@ class KiteInstallerDialog(QDialog):
         self._integration_widget.sig_install_button_clicked.connect(
             self.install)
         self._integration_widget.sig_dismiss_button_clicked.connect(
-            self.close_installer)
+            self.reject)
         self._welcome_widget.sig_install_button_clicked.connect(
             self.install)
-        self._installation_widget.sig_close_button_clicked.connect(
+        self._welcome_widget.sig_dismiss_button_clicked.connect(
+            self.reject)
+        self._installation_widget.sig_ok_button_clicked.connect(
             self.close_installer)
+        self._installation_widget.sig_cancel_button_clicked.connect(
+            self.reject)
 
     def _handle_error_msg(self, msg):
         """Handle error message with an error dialog."""
@@ -278,6 +306,18 @@ class KiteInstallerDialog(QDialog):
         self.adjustSize()
         self.center()
 
+    def cancel_install(self):
+        """Cancel the installation in progress."""
+        reply = QMessageBox.critical(
+            self._parent, 'Spyder',
+            _('Do you really want to cancel Kite installation?'),
+            QMessageBox.Yes, QMessageBox.No)
+        if reply == QMessageBox.Yes and self._installation_thread.isRunning():
+            self._installation_thread.cancelled = True
+            self._installation_thread.quit()
+            return True
+        return False
+
     def finished_installation(self, status):
         """Handle finished installation."""
         if status == FINISHED:
@@ -297,7 +337,11 @@ class KiteInstallerDialog(QDialog):
         """Qt method override."""
         on_welcome_widget = self._welcome_widget.isVisible()
         on_integration_widget = self._integration_widget.isVisible()
-        if on_welcome_widget or on_integration_widget:
+        on_installation_widget = self._installation_widget.isVisible()
+        if on_installation_widget:
+            if not self.cancel_install():
+                return
+        elif on_welcome_widget or on_integration_widget:
             CONF.set('kite-completions', 'install_enable', False)
         super(KiteInstallerDialog, self).reject()
 
