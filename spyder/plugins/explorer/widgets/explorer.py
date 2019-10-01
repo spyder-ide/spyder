@@ -23,8 +23,9 @@ import sys
 
 # Third party imports
 from qtpy.compat import getexistingdirectory, getsavefilename
-from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QSize,
-                         QSortFilterProxyModel, Qt, QTimer, QUrl, Signal, Slot)
+from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QModelIndex, QRunnable,
+                         QSize, QSortFilterProxyModel, Qt, QThread,
+                         QThreadPool, QTimer, QUrl, Signal, Slot)
 from qtpy.QtGui import QDrag, QKeySequence
 from qtpy.QtWidgets import (QApplication, QFileIconProvider, QFileSystemModel,
                             QHBoxLayout, QInputDialog, QLabel, QLineEdit,
@@ -40,7 +41,8 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_plugin_layout, file_uri)
+                                    create_plugin_layout, create_waitspinner,
+                                    file_uri)
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -115,23 +117,48 @@ def has_subdirectories(path, include, exclude, show_all):
         return False
 
 
-class IconProvider(QFileIconProvider):
-    """Project tree widget icon provider"""
+class IconProviderThread(QRunnable):
+    """Runnable element to retrieve custom file icon."""
 
-    def __init__(self, treeview):
-        super(IconProvider, self).__init__()
-        self.treeview = treeview
+    def __init__(self, path, index, update_icon):
+        """Start processe to get custom icon for QFileInfo object."""
+        super(IconProviderThread, self).__init__()
+        self.path = path
+        self.index = index
+        self.update_icon = update_icon
 
-    @Slot(int)
-    @Slot(QFileInfo)
-    def icon(self, icontype_or_qfileinfo):
-        """Reimplement Qt method"""
-        if isinstance(icontype_or_qfileinfo, QFileIconProvider.IconType):
-            return super(IconProvider, self).icon(icontype_or_qfileinfo)
-        else:
-            qfileinfo = icontype_or_qfileinfo
+    def run(self):
+        fname = self.path
+        index = self.index
+        icon = ima.get_icon_by_extension_or_type(fname, scale_factor=1.0)
+        self.update_icon(fname, icon, index)
+
+
+class CustomIconFileSystemModel(QFileSystemModel):
+    """File system model with custom file icons."""
+
+    def __init__(self, parent):
+        super(CustomIconFileSystemModel, self).__init__(parent)
+        self.icons = {}
+        self.thread_pool = QThreadPool()
+
+    def update_icon(self, path, icon, index):
+        """Update file icon for element on the given index."""
+        self.icons[path] = icon
+
+    def data(self, index, role):
+        """Reimplement Qt method."""
+        if role == QFileSystemModel.FileIconRole and index.column() == 0:
+            qfileinfo = self.fileInfo(index)
             fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
-            return ima.get_icon_by_extension_or_type(fname, scale_factor=1.0)
+            if fname in self.icons:
+                return self.icons[fname]
+            else:
+                icon_thread = IconProviderThread(
+                    fname, index, self.update_icon)
+                self.thread_pool.start(icon_thread)
+                return None
+        return super(CustomIconFileSystemModel, self).data(index, role)
 
 
 class DirView(QTreeView):
@@ -145,6 +172,7 @@ class DirView(QTreeView):
     sig_run = Signal(str)
     sig_new_file = Signal(str)
     sig_open_interpreter = Signal(str)
+    sig_loading = Signal(bool)
     redirect_stdio = Signal(bool)
 
     def __init__(self, parent=None):
@@ -180,7 +208,7 @@ class DirView(QTreeView):
     def setup_fs_model(self):
         """Setup filesystem model"""
         filters = QDir.AllDirs | QDir.Files | QDir.Drives | QDir.NoDotAndDotDot
-        self.fsmodel = QFileSystemModel(self)
+        self.fsmodel = CustomIconFileSystemModel(self)
         self.fsmodel.setFilter(filters)
         self.fsmodel.setNameFilterDisables(False)
 
@@ -188,16 +216,27 @@ class DirView(QTreeView):
         """Install filesystem model"""
         self.setModel(self.fsmodel)
 
+    def check_model_update(self, index, start, end):
+        """Disable view update if rows are being inserted."""
+        self.setUpdatesEnabled(False)
+        self.sig_loading.emit(True)
+
+    def model_update(self):
+        """Handle model update after all the raws are inserted."""
+        self.resizeColumnToContents(0)
+        self.setUpdatesEnabled(True)
+        self.update()
+        self.sig_loading.emit(False)
+
     def setup_view(self):
-        """Setup view"""
+        """Setup view."""
         self.install_model()
-        self.fsmodel.directoryLoaded.connect(
-            lambda: self.resizeColumnToContents(0))
+        self.fsmodel.directoryLoaded.connect(lambda: self.model_update())
+        self.fsmodel.rowsAboutToBeInserted.connect(self.check_model_update)
+        self.fsmodel.rowsAboutToBeRemoved.connect(self.check_model_update)
         self.setAnimated(False)
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
-        self.fsmodel.modelReset.connect(self.reset_icon_provider)
-        self.reset_icon_provider()
         # Disable the view of .spyproject.
         self.filter_directories()
 
@@ -309,11 +348,6 @@ class DirView(QTreeView):
         # Setup context menu
         self.menu = QMenu(self)
         self.common_actions = self.setup_common_actions()
-
-    def reset_icon_provider(self):
-        """Reset file system model icon provider
-        The purpose of this is to refresh files/directories icons"""
-        self.fsmodel.setIconProvider(IconProvider(self))
 
     #---- Context menu
     def setup_common_actions(self):
