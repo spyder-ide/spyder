@@ -342,7 +342,7 @@ class KiteInstallerDialog(QDialog):
             if not self.cancel_install():
                 return
         elif on_welcome_widget or on_integration_widget:
-            CONF.set('kite-completions', 'install_enable', False)
+            CONF.set('kite', 'installation/enabled', False)
         super(KiteInstallerDialog, self).reject()
 
 

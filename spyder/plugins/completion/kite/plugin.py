@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 
 class KiteCompletionPlugin(SpyderCompletionPlugin):
     COMPLETION_CLIENT_NAME = 'kite'
+    CONF_SECTION = 'kite'
+    CONF_FILE = False
 
     def __init__(self, parent):
         SpyderCompletionPlugin.__init__(self, parent)
@@ -68,12 +70,16 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
 
     def _show_installation_dialog(self):
         """Show installation dialog."""
-        kite_installation_enabled = self.get_option('install_enable', True)
+        kite_installation_enabled = self.get_option('installation/enabled')
         installed, path = check_if_kite_installed()
         if (not installed and kite_installation_enabled
                 and not running_under_pytest()):
             self.kite_installer.show()
             self.kite_installer.center()
+
+    def get_option(self, option):
+        """Get an option from our config system."""
+        return CONF.get(self.CONF_SECTION, option)
 
     def send_request(self, language, req_type, req, req_id):
         if language in self.available_languages:

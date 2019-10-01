@@ -500,6 +500,10 @@ DEFAULTS = [
               'advanced/external': False,
               'advanced/stdio': False
              }),
+            ('kite',
+             {
+              'installation/enabled': True,
+             }),
             ]
 
 
