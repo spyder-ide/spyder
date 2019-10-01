@@ -281,6 +281,7 @@ class KiteInstallerDialog(QDialog):
                     QUrl('https://kite.com/download')))
         error_message_dialog.addButton(get_help_button, QMessageBox.ActionRole)
         error_message_dialog.exec_()
+        self.accept()
 
     def center(self):
         """Center the dialog."""
