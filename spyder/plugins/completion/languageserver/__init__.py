@@ -529,6 +529,7 @@ class LSPRequestTypes:
     DOCUMENT_HIGHLIGHT = 'textDocument/documentHighlight'
     DOCUMENT_SYMBOL = 'textDocument/documentSymbol'
     DOCUMENT_FORMATTING = 'textDocument/formatting'
+    DOCUMENT_FOLDING_RANGE = 'textDocument/foldingRange'
     DOCUMENT_RANGE_FORMATTING = 'textDocument/rangeFormatting'
     DOCUMENT_ON_TYPE_FORMATTING = 'textDocument/onTypeFormatting'
     DOCUMENT_DEFINITION = 'textDocument/definition'

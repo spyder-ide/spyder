@@ -1231,6 +1231,17 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors(
                 "Error when processing go to definition")
 
+    # ------------- LSP: Code folding ranges -------------------------------
+    @request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
+    def request_folding(self):
+        params = {'file': self.filename}
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
+    def handle_folding_range(self, response):
+        ranges = response['params']
+        logger.debug(f'Ranges: {ranges}')
+
     # ------------- LSP: Save/close file -----------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
              requires_response=False)
