@@ -67,7 +67,7 @@ if os.name == 'nt':
 # Qt imports
 #==============================================================================
 from qtpy import API, PYQT5
-from qtpy.compat import from_qvariant
+from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          QThread, QTimer, QUrl, Signal, Slot,
                          qInstallMessageHandler)
@@ -800,7 +800,10 @@ class MainWindow(QMainWindow):
                     triggered=self.win_env)
             self.tools_menu_actions.append(winenv_action)
         self.tools_menu_actions += [MENU_SEPARATOR, reset_spyder_action]
-
+        if get_debug_level() >= 3:
+            self.menu_lsp_logs = QMenu(_("LSP logs"))
+            self.menu_lsp_logs.aboutToShow.connect(self.update_lsp_logs)
+            self.tools_menu_actions += [self.menu_lsp_logs]
         # External Tools submenu
         self.external_tools_menu = QMenu(_("External Tools"))
         self.external_tools_menu_actions = []
@@ -1315,6 +1318,160 @@ class MainWindow(QMainWindow):
                     menu.aboutToShow.connect(
                         lambda menu=menu: set_menu_icons(menu, False))
                     menu.aboutToShow.connect(self.hide_options_menus)
+    
+    def update_lsp_logs(self):
+        """Create an action for each lsp log file."""
+        lsp_logs = []
+        regex = re.compile(r'.*_.*_(\d+)[.]log')
+        files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
+        for f in files:
+            action = create_action(self, f, triggered=self.load)
+            action.setData(to_qvariant(f))
+            lsp_logs.append(action)
+        add_actions(self.menu_lsp_logs, lsp_logs)
+
+    @Slot()
+    @Slot(str)
+    @Slot(str, int, str)
+    @Slot(str, int, str, object)
+    def load(self, filenames=None, goto=None, word='',
+             editorwindow=None, processevents=True, start_column=None,
+             set_focus=True, add_where='end'):
+        """
+        Load a text file
+        editorwindow: load in this editorwindow (useful when clicking on
+        outline explorer with multiple editor windows)
+        processevents: determines if processEvents() should be called at the
+        end of this method (set to False to prevent keyboard events from
+        creeping through to the editor during debugging)
+        """
+        # Switch to editor before trying to load a file
+        try:
+            self.switch_to_plugin()
+        except AttributeError:
+            pass
+
+        editor0 = self.get_current_editor()
+        if editor0 is not None:
+            position0 = editor0.get_position('cursor')
+            filename0 = self.get_current_filename()
+        else:
+            position0, filename0 = None, None
+        if not filenames:
+            # Recent files action
+            action = self.sender()
+            if isinstance(action, QAction):
+                filenames = from_qvariant(action.data(), to_text_string)
+        if not filenames:
+            basedir = getcwd_or_home()
+            if self.edit_filetypes is None:
+                self.edit_filetypes = get_edit_filetypes()
+            if self.edit_filters is None:
+                self.edit_filters = get_edit_filters()
+
+            c_fname = self.get_current_filename()
+            if c_fname is not None and c_fname != self.TEMPFILE_PATH:
+                basedir = osp.dirname(c_fname)
+            self.redirect_stdio.emit(False)
+            parent_widget = self.get_current_editorstack()
+            if filename0 is not None:
+                selectedfilter = get_filter(self.edit_filetypes,
+                                            osp.splitext(filename0)[1])
+            else:
+                selectedfilter = ''
+            if not running_under_pytest():
+                filenames, _sf = getopenfilenames(
+                                    parent_widget,
+                                    _("Open file"), basedir,
+                                    self.edit_filters,
+                                    selectedfilter=selectedfilter,
+                                    options=QFileDialog.HideNameFilterDetails)
+            else:
+                # Use a Qt (i.e. scriptable) dialog for pytest
+                dialog = QFileDialog(parent_widget, _("Open file"),
+                                     options=QFileDialog.DontUseNativeDialog)
+                if dialog.exec_():
+                    filenames = dialog.selectedFiles()
+            self.redirect_stdio.emit(True)
+            if filenames:
+                filenames = [osp.normpath(fname) for fname in filenames]
+            else:
+                return
+
+        focus_widget = QApplication.focusWidget()
+        if self.editorwindows and not self.dockwidget.isVisible():
+            # We override the editorwindow variable to force a focus on
+            # the editor window instead of the hidden editor dockwidget.
+            # See spyder-ide/spyder#5742.
+            if editorwindow not in self.editorwindows:
+                editorwindow = self.editorwindows[0]
+            editorwindow.setFocus()
+            editorwindow.raise_()
+        elif (self.dockwidget and not self._ismaximized
+              and not self.dockwidget.isAncestorOf(focus_widget)
+              and not isinstance(focus_widget, CodeEditor)):
+            self.switch_to_plugin()
+
+        def _convert(fname):
+            fname = osp.abspath(encoding.to_unicode_from_fs(fname))
+            if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
+                fname = fname[0].upper()+fname[1:]
+            return fname
+
+        if hasattr(filenames, 'replaceInStrings'):
+            # This is a QStringList instance (PyQt API #1), converting to list:
+            filenames = list(filenames)
+        if not isinstance(filenames, list):
+            filenames = [_convert(filenames)]
+        else:
+            filenames = [_convert(fname) for fname in list(filenames)]
+        if isinstance(goto, int):
+            goto = [goto]
+        elif goto is not None and len(goto) != len(filenames):
+            goto = None
+
+        for index, filename in enumerate(filenames):
+            # -- Do not open an already opened file
+            focus = set_focus and index == 0
+            current_editor = self.set_current_filename(filename,
+                                                       editorwindow,
+                                                       focus=focus)
+            if current_editor is None:
+                # -- Not a valid filename:
+                if not osp.isfile(filename):
+                    continue
+                # --
+                current_es = self.get_current_editorstack(editorwindow)
+                # Creating the editor widget in the first editorstack
+                # (the one that can't be destroyed), then cloning this
+                # editor widget in all other editorstacks:
+                finfo = self.editorstacks[0].load(
+                    filename, set_current=False, add_where=add_where)
+                finfo.path = self.main.get_spyder_pythonpath()
+                self._clone_file_everywhere(finfo)
+                current_editor = current_es.set_current_filename(filename,
+                                                                 focus=focus)
+                current_editor.debugger.load_breakpoints()
+                current_editor.set_bookmarks(load_bookmarks(filename))
+                self.register_widget_shortcuts(current_editor)
+                current_es.analyze_script()
+                self.__add_recent_file(filename)
+            if goto is not None: # 'word' is assumed to be None as well
+                current_editor.go_to_line(goto[index], word=word,
+                                          start_column=start_column)
+                position = current_editor.get_position('cursor')
+                self.cursor_moved(filename0, position0, filename, position)
+            current_editor.clearFocus()
+            current_editor.setFocus()
+            current_editor.window().raise_()
+            if processevents:
+                QApplication.processEvents()
+            else:
+                # processevents is false only when calling from debugging
+                current_editor.sig_debug_stop.emit(goto[index])
+                current_sw = self.main.ipyconsole.get_current_shellwidget()
+                current_sw.sig_prompt_ready.connect(
+                    current_editor.sig_debug_stop[()].emit)
 
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
