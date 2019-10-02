@@ -146,7 +146,7 @@ class CustomIconFileSystemModel(QFileSystemModel):
         """Update file icon for element on the given index."""
         self.icons[path] = icon
 
-    def data(self, index, role):
+    def data(self, index, role=Qt.DisplayRole):
         """Reimplement Qt method."""
         if role == QFileSystemModel.FileIconRole and index.column() == 0:
             qfileinfo = self.fileInfo(index)
