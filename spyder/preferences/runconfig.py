@@ -44,7 +44,7 @@ ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
 
 CLEAR_ALL_VARIABLES = _("Remove all variables before execution")
 CONSOLE_NAMESPACE = _("Run in console’s namespace instead of an empty one")
-USE_SIGNALS = _("Use signals to communicate with console (USR1, USR2)")
+USE_SIGNALS = _("Use signals to communicate with console (SIGUSR1)")
 POST_MORTEM = _("Directly enter debugging when errors appear")
 INTERACT = _("Interact with the Python console after execution")
 
