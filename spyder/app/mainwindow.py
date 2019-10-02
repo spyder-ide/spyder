@@ -67,7 +67,7 @@ if os.name == 'nt':
 # Qt imports
 #==============================================================================
 from qtpy import API, PYQT5
-from qtpy.compat import from_qvariant, to_qvariant
+from qtpy.compat import from_qvariant, to_qvariant # analysis:ignore
 from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          QThread, QTimer, QUrl, Signal, Slot,
                          qInstallMessageHandler)
@@ -1318,7 +1318,7 @@ class MainWindow(QMainWindow):
                     menu.aboutToShow.connect(
                         lambda menu=menu: set_menu_icons(menu, False))
                     menu.aboutToShow.connect(self.hide_options_menus)
-    
+
     def update_lsp_logs(self):
         """Create an action for each lsp log file."""
         lsp_logs = []
@@ -1456,7 +1456,7 @@ class MainWindow(QMainWindow):
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
-            if goto is not None: # 'word' is assumed to be None as well
+            if goto is not None:  # 'word' is assumed to be None as well
                 current_editor.go_to_line(goto[index], word=word,
                                           start_column=start_column)
                 position = current_editor.get_position('cursor')
