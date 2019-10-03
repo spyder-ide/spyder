@@ -67,7 +67,7 @@ if os.name == 'nt':
 # Qt imports
 #==============================================================================
 from qtpy import API, PYQT5
-from qtpy.compat import from_qvariant, to_qvariant # analysis:ignore
+from qtpy.compat import from_qvariant
 from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          QThread, QTimer, QUrl, Signal, Slot,
                          qInstallMessageHandler)
@@ -1326,7 +1326,7 @@ class MainWindow(QMainWindow):
         files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
         for f in files:
             action = create_action(self, f, triggered=self.editor.load)
-            action.setData(to_qvariant(f))
+            action.setData(f)
             lsp_logs.append(action)
         add_actions(self.menu_lsp_logs, lsp_logs)
 
