@@ -552,6 +552,8 @@ class EditorStack(QWidget):
         self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
         self.automatic_completions_enabled = True
+        self.automatic_completion_chars = 3
+        self.automatic_completion_ms = 300
         self.completions_hint_enabled = True
         self.hover_hints_enabled = True
         self.code_snippets_enabled = True
