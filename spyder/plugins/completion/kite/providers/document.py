@@ -59,7 +59,7 @@ def convert_text_snippet(snippet_info):
 class DocumentProvider:
 
     def get_file_info(self, params):
-        """Get file info and add the file if doesn't exists."""
+        """Get file info and add the file if it does not exist."""
         default_info = {'text': '', 'count': 0}
         file_info = self.opened_files.get(
             params['file'], default_info)

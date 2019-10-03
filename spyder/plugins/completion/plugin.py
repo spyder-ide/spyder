@@ -268,8 +268,8 @@ class CompletionManager(SpyderCompletionPlugin):
         if cancelable and kite_plugin.is_installing():
             reply = QMessageBox.critical(
                 self.main, 'Spyder',
-                _('''Kite installation process has not finished. '''
-                  '''Do you really want to exit?'''),
+                _('Kite installation process has not finished. '
+                  'Do you really want to exit?'),
                 QMessageBox.Yes, QMessageBox.No)
             if reply == QMessageBox.No:
                 return False

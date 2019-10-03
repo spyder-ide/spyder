@@ -220,6 +220,7 @@ class KiteInstallation(QWidget):
 
 class KiteInstallerDialog(QDialog):
     """Kite installer."""
+
     def __init__(self, parent, kite_installation_thread):
         super(KiteInstallerDialog, self).__init__(parent)
         if sys.platform == 'darwin':
