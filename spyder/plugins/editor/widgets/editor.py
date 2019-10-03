@@ -2417,6 +2417,8 @@ class EditorStack(QWidget):
             strip_mode=self.stripmode_enabled,
             intelligent_backspace=self.intelligent_backspace_enabled,
             automatic_completions=self.automatic_completions_enabled,
+            automatic_completions_after_chars=self.automatic_completions_after_chars,
+            automatic_completions_after_ms=self.automatic_completions_after_ms,
             code_snippets=self.code_snippets_enabled,
             completions_hint=self.completions_hint_enabled,
             hover_hints=self.hover_hints_enabled,
