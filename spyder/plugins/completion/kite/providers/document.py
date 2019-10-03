@@ -6,6 +6,7 @@
 
 """Kite document requests handlers and senders."""
 
+from collections import defaultdict
 import logging
 import hashlib
 
@@ -18,17 +19,17 @@ from spyder.plugins.completion.languageserver import (
     LSPRequestTypes, CompletionItemKind)
 
 
-KITE_DOCUMENT_TYPES = {
+# Kite can return e.g. "int | str", so we make the default hint VALUE.
+KITE_DOCUMENT_TYPES = defaultdict(lambda: CompletionItemKind.VALUE, {
     'function': CompletionItemKind.FUNCTION,
-    'call': CompletionItemKind.FUNCTION,
-    'module': CompletionItemKind.MODULE,
     'type': CompletionItemKind.CLASS,
-    'instance': CompletionItemKind.VARIABLE,
-    'descriptor': CompletionItemKind.FILE,
+    'module': CompletionItemKind.MODULE,
+    'descriptor': CompletionItemKind.PROPERTY,
     'union': CompletionItemKind.VALUE,
-    'global': CompletionItemKind.PROPERTY,
-    'unknown': CompletionItemKind.TEXT
-}
+    'unknown': CompletionItemKind.TEXT,
+    'keyword': CompletionItemKind.KEYWORD,
+    'call': CompletionItemKind.FUNCTION,
+})
 
 KITE_COMPLETION = 'Kite'
 
@@ -46,11 +47,14 @@ def convert_text_snippet(snippet_info):
         placeholder_end = placeholder['end']
         next_pos = placeholder_begin
         standard_text = text[prev_pos:next_pos]
-        snippet_text = text[next_pos:placeholder_end][1:-1]
+        snippet_text = text[next_pos:placeholder_end]
         prev_pos = placeholder['end']
         text_builder.append(standard_text)
         placeholder_number = (i + 1) % total_placeholders
-        snippet = '${%d:%s}' % (placeholder_number, snippet_text)
+        if snippet_text:
+            snippet = '${%d:%s}' % (placeholder_number, snippet_text)
+        else:
+            snippet = '$%d' % (placeholder_number)
         text_builder.append(snippet)
     text_builder.append(text[prev_pos:])
     text_builder.append('$0')
@@ -117,34 +121,37 @@ class DocumentProvider:
         spyder_completions = []
         completions = response['completions']
         if completions is not None:
-            for completion in completions:
+            for i, completion in enumerate(completions):
                 entry = {
                     'kind': KITE_DOCUMENT_TYPES.get(
                         completion['hint'], CompletionItemKind.TEXT),
                     'label': completion['display'],
-                    'insertText': completion['snippet']['text'],
+                    'insertText': convert_text_snippet(completion['snippet']),
                     'filterText': completion['display'],
-                    'sortText': completion['display'],
+                    # Use the returned ordering
+                    'sortText': (i, 0),
                     'documentation': completion['documentation']['text'],
-                    'provider': KITE_COMPLETION
+                    'provider': KITE_COMPLETION,
                 }
                 spyder_completions.append(entry)
+
                 if 'children' in completion:
                     children_snippets = completion['children']
-                    for children in children_snippets:
-                        text = children['snippet']['text']
-                        snippet = convert_text_snippet(children['snippet'])
+                    for j, child in enumerate(children_snippets):
                         child_entry = {
                             'kind': KITE_DOCUMENT_TYPES.get(
-                                children['hint'], CompletionItemKind.TEXT),
-                            'label': text,
-                            'insertText': snippet,
-                            'filterText': text,
-                            'sortText': text,
-                            'documentation': children['documentation']['text'],
-                            'provider': KITE_COMPLETION
+                                child['hint'], CompletionItemKind.TEXT),
+                            'label': ' '*2 + child['display'],
+                            'insertText': convert_text_snippet(
+                                child['snippet']),
+                            'filterText': child['snippet']['text'],
+                            # Use the returned ordering
+                            'sortText': (i, j+1),
+                            'documentation': child['documentation']['text'],
+                            'provider': KITE_COMPLETION,
                         }
                         spyder_completions.append(child_entry)
+
         return {'params': spyder_completions}
 
     @send_request(method=LSPRequestTypes.DOCUMENT_HOVER)
