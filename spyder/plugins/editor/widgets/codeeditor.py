@@ -1240,7 +1240,7 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
         ranges = response['params']
-        logger.debug(f'Ranges: {ranges}')
+        logger.debug('Ranges: {}'.format(ranges))
 
     # ------------- LSP: Save/close file -----------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
