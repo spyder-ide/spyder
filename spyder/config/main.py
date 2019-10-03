@@ -502,6 +502,8 @@ DEFAULTS = [
              }),
             ('kite',
              {
+              'enable': True,
+              # Enable the installation dialog
               'installation/enabled': True,
              }),
             ]

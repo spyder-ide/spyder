@@ -1657,7 +1657,7 @@ def example_def_2():
     main_window.open_switcher()
     switcher_paths = [switcher.model.item(item_idx).get_description()
                       for item_idx in range(switcher.model.rowCount())]
-    assert osp.dirname(str(file_a)) in switcher_paths or len(str(file_a)) > 90
+    assert osp.dirname(str(file_a)) in switcher_paths or len(str(file_a)) > 75
     switcher.close()
 
     # Assert that long paths are shortened in the switcher
@@ -1960,6 +1960,7 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_report_comms_error(qtbot, main_window):
     """Test if a comms error is correctly displayed."""
     CONF.set('main', 'show_internal_errors', True)
@@ -2030,6 +2031,39 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
 
     CONF.set('lsp-server', 'pycodestyle', False)
     CONF.set('lsp-server', 'pydocstyle', False)
+
+
+@pytest.mark.slow
+def test_preferences_change_font_regression(main_window, qtbot):
+    """
+    Test for spyder-ide/spyder/#10284 regression.
+
+    Changing font resulted in error.
+    """
+    def trigger():
+        pref = main_window.prefs_dialog_instance
+        index = 1
+        page = pref.get_page(index)
+        pref.set_current_index(index)
+        qtbot.wait(1000)
+
+        for fontbox in [page.plain_text_font.fontbox,
+                        page.rich_text_font.fontbox]:
+            fontbox.setFocus()
+            idx = fontbox.currentIndex()
+            fontbox.setCurrentIndex(idx + 1)
+            qtbot.wait(1000)
+
+        qtbot.wait(4000)
+        pref.ok_btn.animateClick(300)
+
+    timer = QTimer()
+    timer.setSingleShot(True)
+    timer.timeout.connect(trigger)
+    timer.start(5000)
+
+    main_window.show_preferences()
+    qtbot.wait(5000)
 
 
 if __name__ == "__main__":

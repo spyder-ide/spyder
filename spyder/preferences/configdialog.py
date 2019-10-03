@@ -468,7 +468,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
             if option in self.changed_options:
                 font = fontbox.currentFont()
                 font.setPointSize(sizebox.value())
-                self.set_font(font, option, section=sec)
+                self.set_font(font, option)
         for clayout, (sec, option, _default) in list(self.coloredits.items()):
             if option in self.changed_options:
                 self.set_option(option,
