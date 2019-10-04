@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 
 class FallbackPlugin(SpyderCompletionPlugin):
+    CONF_SECTION = 'fallback-completions'
+    CONF_FILE = False
     COMPLETION_CLIENT_NAME = 'fallback'
 
     def __init__(self, parent):
@@ -34,12 +36,13 @@ class FallbackPlugin(SpyderCompletionPlugin):
                 self.COMPLETION_CLIENT_NAME, _id, resp))
         self.started = False
         self.requests = {}
+        self.update_configuration()
 
     def start_client(self, language):
         return self.started
 
     def start(self):
-        if not self.started:
+        if not self.started and self.enabled:
             self.fallback_actor.start()
             self.started = True
 
@@ -48,6 +51,9 @@ class FallbackPlugin(SpyderCompletionPlugin):
             self.fallback_actor.stop()
 
     def send_request(self, language, req_type, req, req_id=None):
+        if not self.enabled:
+            return
+
         request = {
             'type': req_type,
             'file': req['file'],
@@ -56,3 +62,7 @@ class FallbackPlugin(SpyderCompletionPlugin):
         }
         req['language'] = language
         self.fallback_actor.sig_mailbox.emit(request)
+
+    def update_configuration(self):
+        self.enabled = self.get_option('enable')
+        self.start()

@@ -74,12 +74,8 @@ class DocumentProvider:
             ]
         }
 
-        default_info = {'text': '', 'count': 0}
         with QMutexLocker(self.mutex):
-            file_info = self.opened_files.get(params['file'], default_info)
-            file_info['count'] += 1
-            file_info['text'] = params['text']
-            self.opened_files[params['file']] = file_info
+            self.opened_files[params['file']] = params['text']
         return request
 
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_CHANGE)
@@ -94,13 +90,12 @@ class DocumentProvider:
             ]
         }
         with QMutexLocker(self.mutex):
-            file_info = self.opened_files[params['file']]
-            file_info['text'] = params['text']
+            self.opened_files[params['file']] = params['text']
         return request
 
     @send_request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
     def request_document_completions(self, params):
-        text = self.opened_files[params['file']]['text']
+        text = self.opened_files[params['file']]
         request = {
             'filename': osp.realpath(params['file']),
             'editor': 'spyder',
@@ -188,7 +183,7 @@ class DocumentProvider:
 
     @send_request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
     def request_signature(self, request):
-        text = self.opened_files[request['file']]['text']
+        text = self.opened_files[request['file']]
         response = {
             'editor': 'spyder',
             'filename': request['file'],

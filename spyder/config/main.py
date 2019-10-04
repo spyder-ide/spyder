@@ -470,6 +470,7 @@ DEFAULTS = [
             ('appearance', APPEARANCE),
             ('lsp-server',
              {
+              'enable': True,
               # This option is not used with the LSP server config
               # It is used to disable hover hints in the editor
               'enable_hover_hints': True,
@@ -500,9 +501,15 @@ DEFAULTS = [
               'advanced/external': False,
               'advanced/stdio': False
              }),
+            ('fallback-completions',
+             {
+              'enable': True,
+             }),
             ('kite',
              {
               'enable': True,
+              'autostart': True,
+              'cta': True,
              }),
             ]
 

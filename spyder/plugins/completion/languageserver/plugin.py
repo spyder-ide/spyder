@@ -52,14 +52,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         self.requests = set({})
         self.register_queue = {}
 
-        # Register languages to create clients for
-        for language in self.get_languages():
-            self.clients[language] = {
-                'status': self.STOPPED,
-                'config': self.get_language_config(language),
-                'instance': None
-            }
-            self.register_queue[language] = []
+        self.update_configuration()
 
     def register_file(self, language, filename, codeeditor):
         if language in self.clients:
@@ -68,10 +61,6 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.register_queue[language].append((filename, codeeditor))
             else:
                 language_client.register_file(filename, codeeditor)
-
-    def get_option(self, option):
-        """Get an option from our config system."""
-        return CONF.get(self.CONF_SECTION, option)
 
     def get_languages(self):
         """
@@ -166,7 +155,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     def start_client(self, language):
         """Start an LSP client for a given language."""
         started = False
-        if language in self.clients:
+        if language in self.clients and self.enabled:
             language_client = self.clients[language]
             queue = self.register_queue[language]
 
@@ -227,6 +216,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             self.close_client(language)
 
     def update_configuration(self):
+        self.enabled = self.get_option('enable')
         for language in self.get_languages():
             client_config = {'status': self.STOPPED,
                              'config': self.get_language_config(language),
@@ -290,7 +280,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.COMPLETION_CLIENT_NAME, req_id, response)
 
     def send_request(self, language, request, params, req_id):
-        if language in self.clients:
+        if self.enabled and language in self.clients:
+            # Ensure client is started
+            self.start_client(language)
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
                 self.requests.add(req_id)
@@ -298,9 +290,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 params['response_callback'] = functools.partial(
                     self.receive_response, language=language, req_id=req_id)
                 client.perform_request(request, params)
-        else:
-            self.sig_response_ready.emit(self.COMPLETION_CLIENT_NAME,
-                                         req_id, {})
+                return
+        self.sig_response_ready.emit(self.COMPLETION_CLIENT_NAME,
+                                     req_id, {})
 
     def send_notification(self, language, request, params):
         if language in self.clients:

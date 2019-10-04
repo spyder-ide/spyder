@@ -61,13 +61,19 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def start(self):
         # Always start client to support possibly undetected Kite builds
         self.client.start()
+
+        # Autostart engine
+        if not self.autostart:
+            return
         installed, path = check_if_kite_installed()
-        if installed:
-            logger.debug('Kite was found on the system: {0}'.format(path))
-            running = check_if_kite_running()
-            if not running:
-                logger.debug('Starting Kite service...')
-                self.kite_process = run_program(path)
+        if not installed:
+            return
+        logger.debug('Kite was found on the system: {0}'.format(path))
+        running = check_if_kite_running()
+        if running:
+            return
+        logger.debug('Starting Kite service...')
+        self.kite_process = run_program(path)
 
     def shutdown(self):
         self.client.stop()
@@ -77,4 +83,5 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def update_configuration(self):
         self.client.enable_code_snippets = CONF.get('lsp-server',
                                                     'code_snippets')
+        self.autostart = self.get_option('autostart')
         self.enabled = self.get_option('enable')
