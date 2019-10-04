@@ -183,14 +183,16 @@ class KiteInstallation(QWidget):
         # Left side
         action_layout = QVBoxLayout()
         progress_layout = QHBoxLayout()
-        self.progress_filter = HoverEventFilter()
+        self._progress_widget = QWidget(self)
+        self._progress_filter = HoverEventFilter()
         self._progress_bar = QProgressBar(self)
-        self._progress_bar.installEventFilter(self.progress_filter)
+        self._progress_widget.installEventFilter(self._progress_filter)
         cancel_button = QPushButton()
         cancel_button.setIcon(ima.icon('DialogCloseButton'))
         cancel_button.hide()
         progress_layout.addWidget(self._progress_bar)
         progress_layout.addWidget(cancel_button)
+        self._progress_widget.setLayout(progress_layout)
 
         self._progress_label = QLabel(_('Downloading'))
         install_info = QLabel(
@@ -209,7 +211,7 @@ class KiteInstallation(QWidget):
 
         action_layout.addStretch()
         action_layout.addWidget(self._progress_label)
-        action_layout.addLayout(progress_layout)
+        action_layout.addWidget(self._progress_widget)
         action_layout.addWidget(install_info)
         action_layout.addStretch()
         action_layout.addLayout(button_layout)
@@ -233,9 +235,9 @@ class KiteInstallation(QWidget):
         # Signals
         ok_button.clicked.connect(self.sig_ok_button_clicked)
         cancel_button.clicked.connect(self.sig_cancel_button_clicked)
-        self.progress_filter.sig_hover_enter.connect(
+        self._progress_filter.sig_hover_enter.connect(
             lambda: cancel_button.show())
-        self.progress_filter.sig_hover_leave.connect(
+        self._progress_filter.sig_hover_leave.connect(
             lambda: cancel_button.hide())
 
     def update_installation_status(self, status):
