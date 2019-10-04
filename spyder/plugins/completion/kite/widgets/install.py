@@ -13,8 +13,8 @@ import sys
 from qtpy.QtCore import QEvent, QObject, QSize, Qt, QUrl, Signal
 from qtpy.QtGui import QDesktopServices, QMovie, QPixmap
 from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
-                            QLabel, QProgressBar, QPushButton, QVBoxLayout,
-                            QWidget)
+                            QLabel, QProgressBar, QPushButton, QSpacerItem,
+                            QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _, get_image_path
@@ -135,8 +135,8 @@ class KiteWelcome(QWidget):
         install_gif_label = QLabel()
         install_gif.start()
         install_image = install_gif.currentPixmap()
-        image_height = install_image.height() * 0.5
-        image_width = install_image.width() * 0.5
+        image_height = install_image.height() * 0.8
+        image_width = install_image.width() * 0.8
         install_gif.setScaledSize(QSize(image_width, image_height))
         install_gif_label.setMovie(install_gif)
 
@@ -195,14 +195,15 @@ class KiteInstallation(QWidget):
         action_layout = QVBoxLayout()
         progress_layout = QHBoxLayout()
         self._progress_widget = QWidget(self)
+        self._progress_widget.setFixedHeight(50)
         self._progress_filter = HoverEventFilter()
         self._progress_bar = QProgressBar(self)
+        self._progress_bar.setFixedWidth(180)
         self._progress_widget.installEventFilter(self._progress_filter)
         cancel_button = QPushButton()
         cancel_button.setIcon(ima.icon('DialogCloseButton'))
-        self._progress_widget.setFixedHeight(50)
         cancel_button.hide()
-        progress_layout.addWidget(self._progress_bar)
+        progress_layout.addWidget(self._progress_bar, alignment=Qt.AlignLeft)
         progress_layout.addWidget(cancel_button)
         self._progress_widget.setLayout(progress_layout)
 
@@ -225,8 +226,9 @@ class KiteInstallation(QWidget):
         action_layout.addWidget(self._progress_label)
         action_layout.addWidget(self._progress_widget)
         action_layout.addWidget(install_info)
-        action_layout.addStretch()
+        action_layout.addSpacing(10)
         action_layout.addLayout(button_layout)
+        action_layout.addStretch()
 
         # Right side
         copilot_image_source = get_image_path('kite_copilot.png')
