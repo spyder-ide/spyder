@@ -991,16 +991,12 @@ class LanguageServerConfigPage(GeneralConfigPage):
                                     "(if the Kite engine is running)"),
                                   'enable',
                                   section='kite')
-        self.lsp_enabled = newcb(_("Enable Language Server Protocol (LSP)"),
-                                 'enable',
-                                 section='lsp-server')
         self.fallback_enabled = newcb(_("Enable fallback completions"),
                                       'enable',
                                       section='fallback-completions')
 
         clients_layout = QVBoxLayout()
         clients_layout.addWidget(self.kite_enabled)
-        clients_layout.addWidget(self.lsp_enabled)
         clients_layout.addWidget(self.fallback_enabled)
         clients_group.setLayout(clients_layout)
 
