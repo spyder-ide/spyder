@@ -90,11 +90,6 @@ def create_projects(projects, mocker):
         mocker.patch.object(
             projects.main.editor, 'get_open_filenames', return_value=files)
 
-        # We mock os.path.isfile so that we do not have to
-        # actually create the files on the disk.
-        mocker.patch(
-            'spyder.plugins.projects.api.os.path.isfile', return_value=True)
-
         return projects
     return _create_projects
 

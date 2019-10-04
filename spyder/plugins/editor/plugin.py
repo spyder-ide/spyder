@@ -28,7 +28,6 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QToolBar, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder import dependencies
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.gui import get_shortcut
 from spyder.config.manager import CONF
@@ -42,6 +41,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
+from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
 from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
                                                   EditorSplitter, EditorStack,)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
@@ -60,18 +60,6 @@ from spyder.preferences.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
 
 logger = logging.getLogger(__name__)
 
-
-# Dependencies
-PYLS_REQVER = '>=0.27.0'
-dependencies.add('pyls', 'python-language-server',
-                 _("Editor's code completion, go-to-definition, help and "
-                   "real-time code analysis"),
-                 required_version=PYLS_REQVER)
-
-NBCONVERT_REQVER = ">=4.0"
-dependencies.add("nbconvert", "nbconvert",
-                 _("Manipulate Jupyter notebooks on the Editor"),
-                 required_version=NBCONVERT_REQVER)
 
 WINPDB_PATH = programs.find_program('winpdb')
 
@@ -1064,8 +1052,13 @@ class Editor(SpyderPluginWidget):
         if not editorstack.data:
             self.__load_temp_file()
         self.add_dockwidget()
-        self.main.add_to_fileswitcher(self, editorstack.tabs, editorstack.data,
-                                      ima.icon('TextFileIcon'))
+
+        # Add modes to switcher
+        self.switcher_manager = EditorSwitcherManager(
+            self.main.switcher,
+            lambda: self.get_current_editor(),
+            lambda: self.get_current_editorstack(),
+            section=self.get_plugin_title())
 
     def update_font(self):
         """Update font from Preferences"""
@@ -1166,13 +1159,6 @@ class Editor(SpyderPluginWidget):
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
         self.register_widget_shortcuts(editorstack)
-        if len(self.editorstacks) > 1 and self.main is not None:
-            # The first editostack is registered automatically with Spyder's
-            # main window through the `register_plugin` method. Only additional
-            # editors added by splitting need to be registered.
-            # See spyder-ide/spyder#5057.
-            self.main.fileswitcher.sig_goto_file.connect(
-                      editorstack.set_stack_index)
 
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
@@ -1224,6 +1210,10 @@ class Editor(SpyderPluginWidget):
             ('set_stripmode_enabled',               'strip_trailing_spaces_on_modify'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_automatic_completions_enabled',   'automatic_completions'),
+            ('set_automatic_completions_after_chars',
+             'automatic_completions_after_chars'),
+            ('set_automatic_completions_after_ms',
+             'automatic_completions_after_ms'),
             ('set_completions_hint_enabled',        'completions_hint'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
@@ -1236,9 +1226,13 @@ class Editor(SpyderPluginWidget):
             ('set_convert_eol_on_save',             'convert_eol_on_save'),
             ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
                     )
+
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
+
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
+        editorstack.set_hover_hints_enabled(CONF.get('lsp-server',
+                                                     'enable_hover_hints'))
         color_scheme = self.get_color_scheme()
         editorstack.set_default_font(self.get_font(), color_scheme)
 
@@ -1465,11 +1459,6 @@ class Editor(SpyderPluginWidget):
         #if self.introspector:
         #    self.introspector.change_extra_path(
         #            self.main.get_spyder_pythonpath())
-
-    #------ FileSwitcher API
-    def get_current_tab_manager(self):
-        """Get the widget with the TabWidget attribute."""
-        return self.get_current_editorstack()
 
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
@@ -2638,6 +2627,17 @@ class Editor(SpyderPluginWidget):
 
 
             for editorstack in self.editorstacks:
+                # Checkable options
+                if blanks_n in options:
+                    editorstack.set_blanks_enabled(blanks_o)
+                if scrollpastend_n in options:
+                    editorstack.set_scrollpastend_enabled(scrollpastend_o)
+                if indentguides_n in options:
+                    editorstack.set_indent_guides(indentguides_o)
+                if classfuncdropdown_n in options:
+                    editorstack.set_classfunc_dropdown_visible(
+                        classfuncdropdown_o)
+
                 if tabbar_n in options:
                     editorstack.set_tabbar_visible(tabbar_o)
                 if linenb_n in options:
@@ -2694,7 +2694,6 @@ class Editor(SpyderPluginWidget):
                     action.setChecked(state)
                     action.blockSignals(False)
                     # See: spyder-ide/spyder#9915
-                    # action.trigger()
 
             # Multiply by 1000 to convert seconds to milliseconds
             self.autosave.interval = (

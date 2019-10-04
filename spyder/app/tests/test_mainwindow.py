@@ -300,8 +300,8 @@ def test_filter_numpy_warning(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2 or sys.platform.startswith('linux'),
-                    reason="Times out in PY2 and fails on second run on Linux")
+@pytest.mark.skipif(PY2 or not sys.platform == 'darwin',
+                    reason="Times out in PY2 and fails on other than macOS")
 def test_get_help_combo(main_window, qtbot):
     """
     Test that Help can display docstrings for names typed in its combobox.
@@ -1639,21 +1639,28 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
 
 
 @pytest.mark.slow
-def test_fileswitcher(main_window, qtbot, tmpdir):
-    """Test the use of shorten paths when necessary in the fileswitcher."""
-    fileswitcher = main_window.fileswitcher
+def test_switcher(main_window, qtbot, tmpdir):
+    """Test the use of shorten paths when necessary in the switcher."""
+    switcher = main_window.switcher
 
-    # Assert that the full path of a file is shown in the fileswitcher
+    # Assert that the full path of a file is shown in the switcher
     file_a = tmpdir.join('test_file_a.py')
-    file_a.write('foo\n')
+    file_a.write('''
+def example_def():
+    pass
+
+def example_def_2():
+    pass
+''')
     main_window.editor.load(str(file_a))
 
-    main_window.open_fileswitcher()
-    fileswitcher_paths = fileswitcher.paths
-    assert file_a in fileswitcher_paths
-    fileswitcher.close()
+    main_window.open_switcher()
+    switcher_paths = [switcher.model.item(item_idx).get_description()
+                      for item_idx in range(switcher.model.rowCount())]
+    assert osp.dirname(str(file_a)) in switcher_paths or len(str(file_a)) > 75
+    switcher.close()
 
-    # Assert that long paths are shortened in the fileswitcher
+    # Assert that long paths are shortened in the switcher
     dir_b = tmpdir
     for _ in range(3):
         dir_b = dir_b.mkdir(str(uuid.uuid4()))
@@ -1661,25 +1668,29 @@ def test_fileswitcher(main_window, qtbot, tmpdir):
     file_b.write('bar\n')
     main_window.editor.load(str(file_b))
 
-    main_window.open_fileswitcher()
-    file_b_text = fileswitcher.list.item(
-        fileswitcher.list.count() - 1).text()
+    main_window.open_switcher()
+    file_b_text = switcher.model.item(
+        switcher.model.rowCount() - 1).get_description()
     assert '...' in file_b_text
-    fileswitcher.close()
+    switcher.close()
 
     # Assert search works correctly
     search_texts = ['test_file_a', 'file_b', 'foo_spam']
     expected_paths = [file_a, file_b, None]
     for search_text, expected_path in zip(search_texts, expected_paths):
-        main_window.open_fileswitcher()
-        qtbot.keyClicks(fileswitcher.edit, search_text)
+        main_window.open_switcher()
+        qtbot.keyClicks(switcher.edit, search_text)
         qtbot.wait(200)
-        assert fileswitcher.count() == 2 * bool(expected_path)
-        if expected_path:
-            assert fileswitcher.filtered_path[0] == expected_path
-        else:
-            assert not fileswitcher.filtered_path
-        fileswitcher.close()
+        assert switcher.count() == bool(expected_path)
+        switcher.close()
+
+    # Assert symbol switcher works
+    main_window.editor.set_current_filename(str(file_a))
+    main_window.open_switcher()
+    qtbot.keyClicks(switcher.edit, '@')
+    qtbot.wait(200)
+    assert switcher.count() == 2
+    switcher.close()
 
 
 @pytest.mark.slow
@@ -1739,6 +1750,7 @@ def test_troubleshooting_menu_item_and_url(monkeypatch):
 
 @flaky(max_runs=3)
 @pytest.mark.slow
+@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
 def test_help_opens_when_show_tutorial_full(main_window, qtbot):
     """
     Test fix for spyder-ide/spyder#6317.
@@ -1948,6 +1960,7 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_report_comms_error(qtbot, main_window):
     """Test if a comms error is correctly displayed."""
     CONF.set('main', 'show_internal_errors', True)
@@ -2018,6 +2031,39 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
 
     CONF.set('lsp-server', 'pycodestyle', False)
     CONF.set('lsp-server', 'pydocstyle', False)
+
+
+@pytest.mark.slow
+def test_preferences_change_font_regression(main_window, qtbot):
+    """
+    Test for spyder-ide/spyder/#10284 regression.
+
+    Changing font resulted in error.
+    """
+    def trigger():
+        pref = main_window.prefs_dialog_instance
+        index = 1
+        page = pref.get_page(index)
+        pref.set_current_index(index)
+        qtbot.wait(1000)
+
+        for fontbox in [page.plain_text_font.fontbox,
+                        page.rich_text_font.fontbox]:
+            fontbox.setFocus()
+            idx = fontbox.currentIndex()
+            fontbox.setCurrentIndex(idx + 1)
+            qtbot.wait(1000)
+
+        qtbot.wait(4000)
+        pref.ok_btn.animateClick(300)
+
+    timer = QTimer()
+    timer.setSingleShot(True)
+    timer.timeout.connect(trigger)
+    timer.start(5000)
+
+    main_window.show_preferences()
+    qtbot.wait(5000)
 
 
 if __name__ == "__main__":

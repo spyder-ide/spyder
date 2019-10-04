@@ -1411,36 +1411,31 @@ class SaveHistoryMixin(object):
             self.append_to_history.emit(self.history_filename, text)
 
 
-class BrowseHistoryMixin(object):
+class BrowseHistory(object):
 
     def __init__(self):
         self.history = []
         self.histidx = None
         self.hist_wholeline = False
 
-    def clear_line(self):
-        """Clear current line (without clearing console prompt)"""
-        self.remove_text(self.current_prompt_pos, 'eof')
+    def browse_history(self, line, cursor_pos, backward):
+        """
+        Browse history.
 
-    def browse_history(self, backward):
-        """Browse history"""
-        if self.is_cursor_before('eol') and self.hist_wholeline:
+        Return the new text and wherever the cursor should move.
+        """
+        if cursor_pos < len(line) and self.hist_wholeline:
             self.hist_wholeline = False
-        tocursor = self.get_current_line_to_cursor()
+        tocursor = line[:cursor_pos]
         text, self.histidx = self.find_in_history(tocursor, self.histidx,
                                                   backward)
         if text is not None:
             text = text.strip()
             if self.hist_wholeline:
-                self.clear_line()
-                self.insert_text(text)
+                return text, True
             else:
-                cursor_position = self.get_position('cursor')
-                # Removing text from cursor to the end of the line
-                self.remove_text('cursor', 'eof')
-                # Inserting history text
-                self.insert_text(text)
-                self.set_cursor_position(cursor_position)
+                return tocursor + text, False
+        return None, False
 
     def find_in_history(self, tocursor, start_idx, backward):
         """Find text 'tocursor' in history, from index 'start_idx'"""
@@ -1469,3 +1464,26 @@ class BrowseHistoryMixin(object):
     def reset_search_pos(self):
         """Reset the position from which to search the history"""
         self.histidx = None
+
+
+class BrowseHistoryMixin(BrowseHistory):
+
+    def clear_line(self):
+        """Clear current line (without clearing console prompt)"""
+        self.remove_text(self.current_prompt_pos, 'eof')
+
+    def browse_history(self, backward):
+        """Browse history"""
+        line = self.get_text(self.current_prompt_pos, 'eof')
+        old_pos = self.get_position('cursor')
+        cursor_pos = self.get_position('cursor') - self.current_prompt_pos
+        if cursor_pos < 0:
+            cursor_pos = 0
+            self.set_cursor_position(self.current_prompt_pos)
+        text, move_cursor = super(BrowseHistoryMixin, self).browse_history(
+            line, cursor_pos, backward)
+        if text is not None:
+            self.clear_line()
+            self.insert_text(text)
+            if not move_cursor:
+                self.set_cursor_position(old_pos)

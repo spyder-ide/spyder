@@ -18,6 +18,7 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import get_conf_path
 from spyder.config.manager import CONF
+from spyder.widgets.mixins import BrowseHistory
 
 
 class PdbHistory(HistoryManager):
@@ -53,7 +54,8 @@ class DebuggingWidget(RichJupyterWidget):
         self._pdb_last_cmd = ''
         self._pdb_line_num = 0
         self._pdb_history_file = PdbHistory()
-        self._control.history = [
+        self._pdb_history = BrowseHistory()
+        self._pdb_history.history = [
             line[-1] for line in self._pdb_history_file.get_tail(
                 self.PDB_HIST_MAX, include_latest=True)]
         self._pdb_in_loop = False
@@ -230,20 +232,37 @@ class DebuggingWidget(RichJupyterWidget):
         if self.is_waiting_pdb_input():
             self._control.current_prompt_pos = self._prompt_pos
             if key == Qt.Key_Up:
-                self._control.browse_history(backward=True)
+                self._pdb_browse_history(backward=True)
                 return True
             elif key == Qt.Key_Down:
-                self._control.browse_history(backward=False)
+                self._pdb_browse_history(backward=False)
                 return True
             elif key in (Qt.Key_Return, Qt.Key_Enter):
-                self._control.reset_search_pos()
+                self._pdb_history.reset_search_pos()
             else:
-                self._control.hist_wholeline = False
+                self._pdb_history.hist_wholeline = False
             return super(DebuggingWidget,
                          self)._event_filter_console_keypress(event)
         else:
             return super(DebuggingWidget,
                          self)._event_filter_console_keypress(event)
+
+    def _pdb_browse_history(self, backward):
+        """Browse history"""
+        control = self._control
+        # Make sure the cursor is not before the prompt
+        if control.get_position('cursor') < control.current_prompt_pos:
+            control.set_cursor_position(control.current_prompt_pos)
+        old_pos = control.get_position('cursor')
+        line = self._get_input_buffer()
+        cursor_pos = self._get_input_buffer_cursor_pos()
+        text, move_cursor = self._pdb_history.browse_history(
+            line, cursor_pos, backward)
+        if text is not None:
+            control.remove_text(control.current_prompt_pos, 'eof')
+            self._insert_plain_text_into_buffer(control.textCursor(), text)
+            if not move_cursor:
+                control.set_cursor_position(old_pos)
 
     def in_debug_loop(self):
         """Check if we are debugging."""
@@ -256,13 +275,13 @@ class DebuggingWidget(RichJupyterWidget):
 
     def add_to_pdb_history(self, line_num, line):
         """Add command to history"""
-        self._control.histidx = None
+        self._pdb_history.histidx = None
         if not line:
             return
         line = line.strip()
 
         # If repeated line
-        history = self._control.history
+        history = self._pdb_history.history
         if len(history) > 0 and history[-1] == line:
             return
 
@@ -270,5 +289,5 @@ class DebuggingWidget(RichJupyterWidget):
         args = line.split(" ")[1:]
         is_pdb_cmd = "do_" + cmd in dir(pdb.Pdb)
         if cmd and (not is_pdb_cmd or len(args) > 0):
-            self._control.history.append(line)
+            self._pdb_history.history.append(line)
             self._pdb_history_file.store_inputs(line_num, line)

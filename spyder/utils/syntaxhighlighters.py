@@ -27,7 +27,6 @@ from qtpy.QtGui import (QColor, QCursor, QFont, QSyntaxHighlighter,
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import (builtins, is_text_string, to_text_string, PY3,
@@ -39,11 +38,6 @@ from spyder.utils.workers import WorkerManager
 from spyder.plugins.outlineexplorer.api import OutlineExplorerData
 from spyder.utils.qstringhelpers import qstring_length
 
-PYGMENTS_REQVER = '>=2.0'
-dependencies.add("pygments", "pygments",
-                 _("Syntax highlighting for Matlab, Julia and "
-                   "other file types"),
-                 required_version=PYGMENTS_REQVER)
 
 
 # =============================================================================
