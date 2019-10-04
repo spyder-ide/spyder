@@ -501,6 +501,12 @@ DEFAULTS = [
               'advanced/external': False,
               'advanced/stdio': False
              }),
+            ('kite',
+             {
+              'enable': True,
+              # Enable the installation dialog
+              'show_installation_dialog': True,
+             }),
             ]
 
 
