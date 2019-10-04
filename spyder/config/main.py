@@ -205,6 +205,8 @@ DEFAULTS = [
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'automatic_completions': True,
+              'automatic_completions_after_chars': 3,
+              'automatic_completions_after_ms': 300,
               'completions_hint': True,
               'underline_errors': False,
               'highlight_current_line': True,
@@ -222,7 +224,7 @@ DEFAULTS = [
               'autosave_enabled': True,
               'autosave_interval': 60,
               'docstring_type': 'Numpydoc',
-              'strip_trailing_spaces_on_modify': True,
+              'strip_trailing_spaces_on_modify': False,
               }),
             ('historylog',
              {
@@ -498,6 +500,12 @@ DEFAULTS = [
               'advanced/external': False,
               'advanced/stdio': False
              }),
+            ('kite',
+             {
+              'enable': True,
+              # Enable the installation dialog
+              'show_installation_dialog': True,
+             }),
             ]
 
 
@@ -592,4 +600,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '53.0.0'
+CONF_VERSION = '53.1.0'
