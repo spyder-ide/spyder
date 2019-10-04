@@ -45,6 +45,8 @@ class KiteIntegrationInfo(QWidget):
         image_path = get_image_path(icon_filename)
         image = QPixmap(image_path)
         image_label = QLabel()
+        screen = QApplication.primaryScreen()
+        image.setDevicePixelRatio(screen.devicePixelRatio())
         image_label.setPixmap(image)
 
         images_layout.addStretch(0)
@@ -221,9 +223,8 @@ class KiteInstallation(QWidget):
 
         copilot_image = QPixmap(copilot_image_source)
         copilot_label = QLabel()
-        copilot_label.setPixmap(
-            copilot_image.scaled(500, 500,
-                                 Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        copilot_image.setDevicePixelRatio(screen.devicePixelRatio())
+        copilot_label.setPixmap(copilot_image)
 
         # Layout
         general_layout = QHBoxLayout()
