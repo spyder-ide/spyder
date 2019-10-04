@@ -1772,6 +1772,8 @@ Files covered:
 
 spyder/images/kite_light.svg
 spyder/images/kite_dark.svg
+spyder/images/kite.gif
+spyder/images/kite_copilot.png
 
 
 ===============================================================================

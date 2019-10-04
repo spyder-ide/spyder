@@ -15,7 +15,9 @@ import sys
 import pytest
 
 # Local imports
-from spyder.plugins.completion.kite.utils.install import KiteInstallationThread
+from spyder.plugins.completion.kite.utils.install import (
+    KiteInstallationThread, DOWNLOADING_INSTALLER, DOWNLOADING_SCRIPT,
+    INSTALLING, FINISHED)
 from spyder.plugins.completion.kite.utils.status import (
     check_if_kite_installed, check_if_kite_running)
 
@@ -40,21 +42,21 @@ def test_kite_install(qtbot):
         # Should not enter here
         assert False
 
-    def download_progress(progress):
-        assert re.match(r"(\d+)/(\d+)", progress)
+    def download_progress(progress, total):
+        assert total != 0
 
     def finished():
         if sys.platform.startswith("linux"):
             expected_installation_status = [
-                install_manager.DOWNLOADING_SCRIPT,
-                install_manager.DOWNLOADING_INSTALLER,
-                install_manager.INSTALLING,
-                install_manager.FINISHED]
+                DOWNLOADING_SCRIPT,
+                DOWNLOADING_INSTALLER,
+                INSTALLING,
+                FINISHED]
         else:
             expected_installation_status = [
-                install_manager.DOWNLOADING_INSTALLER,
-                install_manager.INSTALLING,
-                install_manager.FINISHED]
+                DOWNLOADING_INSTALLER,
+                INSTALLING,
+                FINISHED]
 
         # This status can be obtained the second time our tests are run
         if not installation_statuses == ['Install finished']:
@@ -67,7 +69,7 @@ def test_kite_install(qtbot):
     with qtbot.waitSignal(install_manager.finished, timeout=INSTALL_TIMEOUT):
         install_manager.install()
 
-    assert check_if_kite_installed and check_if_kite_running
+    assert check_if_kite_installed() and check_if_kite_running()
 
 
 if __name__ == "__main__":

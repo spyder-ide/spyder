@@ -17,9 +17,10 @@ import functools
 
 # Third-party imports
 from qtpy.QtCore import QObject, Slot, QMutex, QMutexLocker
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import get_conf_path, running_under_pytest
+from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import select_port, getcwd_or_home
@@ -273,3 +274,21 @@ class CompletionManager(SpyderCompletionPlugin):
 
     def get_client(self, name):
         return self.clients[name]['plugin']
+
+    def closing_plugin(self, cancelable=False):
+        """
+        Check state of the clients before closing.
+
+        Particularly for Kite, we need to check if an installation
+        is taking place.
+        """
+        kite_plugin = self.get_client('kite')
+        if cancelable and kite_plugin.is_installing():
+            reply = QMessageBox.critical(
+                self.main, 'Spyder',
+                _('Kite installation process has not finished. '
+                  'Do you really want to exit?'),
+                QMessageBox.Yes, QMessageBox.No)
+            if reply == QMessageBox.No:
+                return False
+        return True
