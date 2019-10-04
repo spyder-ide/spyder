@@ -19,12 +19,12 @@ from spyder.config.manager import CONF
 from spyder.utils.programs import run_program
 from spyder.api.completion import SpyderCompletionPlugin
 from spyder.plugins.completion.kite.client import KiteClient
-from spyder.plugins.completion.kite.status import KiteStatus
 from spyder.plugins.completion.kite.utils.status import (
     check_if_kite_running, check_if_kite_installed)
 from spyder.plugins.completion.kite.utils.install import (
     KiteInstallationThread, FINISHED)
 from spyder.plugins.completion.kite.widgets.install import KiteInstallerDialog
+from spyder.plugins.completion.kite.widgets.status import KiteStatus
 
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         statusbar = parent.statusBar()  # MainWindow status bar
         self.kite_status = KiteStatus(None, statusbar, self)
         self.kite_installation_thread = KiteInstallationThread(self)
-        # TODO: Connect thread status to status bar
         self.kite_installer = KiteInstallerDialog(
             parent,
             self.kite_installation_thread)
