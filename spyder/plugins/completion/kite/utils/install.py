@@ -56,10 +56,12 @@ class KiteInstallationThread(QThread):
     # Signal to get the current status of the installation
     # str: Status string
     sig_installation_status = Signal(str)
+
     # Signal to get the download progress
     # str: Download progress
     # str: Total download size
     sig_download_progress = Signal(int, int)
+
     # Signal to get error messages
     # str: Error string
     sig_error_msg = Signal(str)

@@ -55,13 +55,13 @@ class KiteIntegrationInfo(QWidget):
 
         # Label
         integration_label = QLabel(
-            _('''Now Spyder can use <a href="https://kite.com/">Kite</a> to '''
-              '''provide better and more accurate code completions in its '''
-              '''editor <br>for the most important packages in the Python '''
-              '''scientific ecosystem, such as Numpy, <br>Matplotlib and '''
-              '''Pandas.<br><br>Would you like to install it or learn more '''
-              '''about it?<br><br><i>Note:</i> Kite is free to use '''
-              '''but is not an open source program.'''))
+            _("Now Spyder can use <a href=\"https://kite.com/\">Kite</a> to "
+              "provide better and more accurate code completions in its "
+              "editor <br>for the most important packages in the Python "
+              "scientific ecosystem, such as Numpy, <br>Matplotlib and "
+              "Pandas.<br><br>Would you like to install it or learn more "
+              "about it?<br><br><i>Note:</i> Kite is free to use "
+              "but is not an open source program."))
         integration_label.setOpenExternalLinks(True)
 
         # Buttons
@@ -102,22 +102,22 @@ class KiteWelcome(QWidget):
 
         # Left side
         install_info = QLabel(
-            _('''<big><b>Level up your completions with '''
-              '''Kite</b></big><br><br>'''
-              '''Kite is a native app that runs locally '''
-              '''on your computer <br>and uses machine learning '''
-              '''to provide advanced <br>completions.<br><br>'''
-              '''&#10003; Specialized support for Python '''
-              '''data analysis packages<br><br>'''
-              '''&#10003; 1.5x more completions '''
-              '''than the builtin engine<br><br>'''
-              '''&#10003; Completions ranked by code context <br><br>'''
-              '''&#10003; Full line code completions<br><br>'''
-              '''&#10003; 100% local - no internet '''
-              '''connection required<br><br>'''
-              '''&#10003; 100% free to use<br><br>'''
-              '''<a href="https://kite.com/spyder-integration">'''
-              '''Go to Kite website</a>'''))
+            _("<big><b>Level up your completions with "
+              "Kite</b></big><br><br>"
+              "Kite is a native app that runs locally "
+              "on your computer <br>and uses machine learning "
+              "to provide advanced <br>completions.<br><br>"
+              "&#10003; Specialized support for Python "
+              "data analysis packages<br><br>"
+              "&#10003; 1.5x more completions "
+              "than the builtin engine<br><br>"
+              "&#10003; Completions ranked by code context <br><br>"
+              "&#10003; Full line code completions<br><br>"
+              "&#10003; 100% local - no internet "
+              "connection required<br><br>"
+              "&#10003; 100% free to use<br><br>"
+              "<a href=\"https://kite.com/spyder-integration\">"
+              "Go to Kite website</a>"))
         install_info.setOpenExternalLinks(True)
 
         # Right side
@@ -125,10 +125,10 @@ class KiteWelcome(QWidget):
         install_gif_source = get_image_path('kite.gif')
 
         install_gif = QMovie(install_gif_source)
-        install_gif.start()
         install_gif_label = QLabel()
         gif_ratio = 360/640
         install_gif.setScaledSize(QSize(500, 500 * gif_ratio))
+        install_gif.start()
         install_gif_label.setMovie(install_gif)
 
         button_layout = QHBoxLayout()
@@ -191,6 +191,7 @@ class KiteInstallation(QWidget):
         self._progress_widget.installEventFilter(self._progress_filter)
         cancel_button = QPushButton()
         cancel_button.setIcon(ima.icon('DialogCloseButton'))
+        self._progress_widget.setFixedHeight(50)
         cancel_button.hide()
         progress_layout.addWidget(self._progress_bar)
         progress_layout.addWidget(cancel_button)
@@ -198,12 +199,12 @@ class KiteInstallation(QWidget):
 
         self._progress_label = QLabel(_('Downloading'))
         install_info = QLabel(
-            _('''Kite comes with a native app called the Copilot <br>'''
-              '''which provides you with real time <br>'''
-              '''documentation as you code.<br><br>'''
-              '''When Kite is done installing, the Copilot will <br>'''
-              '''launch automatically and guide you throught the <br>'''
-              '''rest of the setup process.'''))
+            _("Kite comes with a native app called the Copilot <br>"
+              "which provides you with real time <br>"
+              "documentation as you code.<br><br>"
+              "When Kite is done installing, the Copilot will <br>"
+              "launch automatically and guide you throught the <br>"
+              "rest of the setup process."))
 
         button_layout = QHBoxLayout()
         ok_button = QPushButton(_('OK'))
@@ -223,6 +224,7 @@ class KiteInstallation(QWidget):
 
         copilot_image = QPixmap(copilot_image_source)
         copilot_label = QLabel()
+        screen = QApplication.primaryScreen()
         copilot_image.setDevicePixelRatio(screen.devicePixelRatio())
         copilot_label.setPixmap(copilot_image)
 
@@ -306,9 +308,9 @@ class KiteInstallerDialog(QDialog):
         """Handle error message with an error dialog."""
         error_message_dialog = QMessageBox(self._parent)
         error_message_dialog.setText(
-            _('''<b>An error ocurred while Kite was installing!</b><br><br>'''
-              '''You can follow our manual install instructions to<br>'''
-              '''integrate Kite with Spyder yourself.'''))
+            _("<b>An error ocurred while Kite was installing!</b><br><br>"
+              "You can follow our manual install instructions to<br>"
+              "integrate Kite with Spyder yourself."))
         error_message_dialog.setWindowTitle(_('Kite install error'))
 
         get_help_button = QPushButton(_('Contact Kite for help'))
@@ -352,7 +354,7 @@ class KiteInstallerDialog(QDialog):
         if reply == QMessageBox.Yes and self._installation_thread.isRunning():
             self._installation_thread.cancelled = True
             self._installation_thread.quit()
-            self.hide()
+            self.accept()
             return True
         return False
 

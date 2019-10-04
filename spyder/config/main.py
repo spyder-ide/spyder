@@ -504,7 +504,7 @@ DEFAULTS = [
              {
               'enable': True,
               # Enable the installation dialog
-              'installation/enabled': True,
+              'show_installation_dialog': True,
              }),
             ]
 

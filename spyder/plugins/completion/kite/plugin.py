@@ -65,13 +65,12 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         """
         Called when the setup of the main window finished
         to let us do onboarding if necessary
-        :return:
         """
         self._show_installation_dialog()
 
     def _show_installation_dialog(self):
         """Show installation dialog."""
-        kite_installation_enabled = self.get_option('installation/enabled')
+        kite_installation_enabled = self.get_option('show_installation_dialog')
         installed, path = check_if_kite_installed()
         if (not installed and kite_installation_enabled
                 and not running_under_pytest()):
@@ -112,4 +111,3 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def is_installing(self):
         """Check if an installation is taking place."""
         return self.kite_installation_thread.isRunning()
-
