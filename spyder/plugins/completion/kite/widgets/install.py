@@ -46,12 +46,19 @@ class KiteIntegrationInfo(QWidget):
         image = QPixmap(image_path)
         image_label = QLabel()
         screen = QApplication.primaryScreen()
-        image.setDevicePixelRatio(screen.devicePixelRatio())
+        device_image_ratio = screen.devicePixelRatio()
+        if device_image_ratio > 1:
+            image.setDevicePixelRatio(device_image_ratio)
+        else:
+            image_height = image.height() * 0.5
+            image_width = image.width() * 0.5
+            image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
+                                 Qt.SmoothTransformation)
         image_label.setPixmap(image)
 
-        images_layout.addStretch(0)
+        images_layout.addStretch()
         images_layout.addWidget(image_label)
-        images_layout.addStretch(0)
+        images_layout.addStretch()
 
         # Label
         integration_label = QLabel(
@@ -126,21 +133,23 @@ class KiteWelcome(QWidget):
 
         install_gif = QMovie(install_gif_source)
         install_gif_label = QLabel()
-        gif_ratio = 360/640
-        install_gif.setScaledSize(QSize(500, 500 * gif_ratio))
         install_gif.start()
+        install_image = install_gif.currentPixmap()
+        image_height = install_image.height() * 0.5
+        image_width = install_image.width() * 0.5
+        install_gif.setScaledSize(QSize(image_width, image_height))
         install_gif_label.setMovie(install_gif)
 
         button_layout = QHBoxLayout()
         install_button = QPushButton(_('Install Kite'))
         dismiss_button = QPushButton(_('Dismiss'))
-        button_layout.addStretch(0)
+        button_layout.addStretch()
         button_layout.addWidget(install_button)
         button_layout.addWidget(dismiss_button)
-        button_layout.addStretch(0)
+        button_layout.addStretch()
 
         action_layout.addWidget(install_gif_label)
-        action_layout.addStretch(0)
+        action_layout.addStretch()
         action_layout.addLayout(button_layout)
 
         # Layout
@@ -225,8 +234,17 @@ class KiteInstallation(QWidget):
         copilot_image = QPixmap(copilot_image_source)
         copilot_label = QLabel()
         screen = QApplication.primaryScreen()
-        copilot_image.setDevicePixelRatio(screen.devicePixelRatio())
-        copilot_label.setPixmap(copilot_image)
+        device_pixel_ratio = screen.devicePixelRatio()
+        if device_pixel_ratio > 1:
+            copilot_image.setDevicePixelRatio(device_pixel_ratio)
+            copilot_label.setPixmap(copilot_image)
+        else:
+            image_height = copilot_image.height() * 0.4
+            image_width = copilot_image.width() * 0.4
+            copilot_label.setPixmap(
+                copilot_image.scaled(image_width, image_height,
+                                     Qt.KeepAspectRatio,
+                                     Qt.SmoothTransformation))
 
         # Layout
         general_layout = QHBoxLayout()
