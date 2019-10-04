@@ -62,6 +62,7 @@ def convert_text_snippet(snippet_info):
 
 
 class DocumentProvider:
+
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
     def document_did_open(self, params):
         request = {
@@ -151,7 +152,7 @@ class DocumentProvider:
 
     @send_request(method=LSPRequestTypes.DOCUMENT_HOVER)
     def request_hover(self, params):
-        text = self.opened_files[params['file']]['text']
+        text = self.opened_files.get(request['file'], "")
         md5 = hashlib.md5(text.encode('utf-8')).hexdigest()
         path = str(params['file'])
         path = path.replace(osp.sep, ':')
@@ -183,7 +184,7 @@ class DocumentProvider:
 
     @send_request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
     def request_signature(self, request):
-        text = self.opened_files[request['file']]
+        text = self.opened_files.get(request['file'], "")
         response = {
             'editor': 'spyder',
             'filename': request['file'],

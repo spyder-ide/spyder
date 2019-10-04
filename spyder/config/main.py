@@ -510,6 +510,8 @@ DEFAULTS = [
               'enable': True,
               'autostart': True,
               'cta': True,
+              # Enable the installation dialog
+              'show_installation_dialog': True,
              }),
             ]
 
