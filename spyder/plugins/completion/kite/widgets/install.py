@@ -10,7 +10,7 @@
 import sys
 
 # Third-party imports
-from qtpy.QtCore import QEvent, QObject, Qt, QUrl, Signal
+from qtpy.QtCore import QEvent, QObject, QSize, Qt, QUrl, Signal
 from qtpy.QtGui import QDesktopServices, QMovie, QPixmap
 from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
                             QLabel, QProgressBar, QPushButton, QVBoxLayout,
@@ -125,6 +125,8 @@ class KiteWelcome(QWidget):
         install_gif = QMovie(install_gif_source)
         install_gif.start()
         install_gif_label = QLabel()
+        gif_ratio = 360/640
+        install_gif.setScaledSize(QSize(500, 500 * gif_ratio))
         install_gif_label.setMovie(install_gif)
 
         button_layout = QHBoxLayout()
@@ -217,7 +219,9 @@ class KiteInstallation(QWidget):
 
         copilot_image = QPixmap(copilot_image_source)
         copilot_label = QLabel()
-        copilot_label.setPixmap(copilot_image)
+        copilot_label.setPixmap(
+            copilot_image.scaled(500, 500,
+                                 Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
         # Layout
         general_layout = QHBoxLayout()
