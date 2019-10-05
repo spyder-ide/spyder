@@ -470,7 +470,6 @@ DEFAULTS = [
             ('appearance', APPEARANCE),
             ('lsp-server',
              {
-              'enable': True,
               # This option is not used with the LSP server config
               # It is used to disable hover hints in the editor
               'enable_hover_hints': True,
@@ -509,7 +508,7 @@ DEFAULTS = [
              {
               'enable': True,
               'autostart': True,
-              'cta': True,
+              'call_to_action': True,
               # Enable the installation dialog
               'show_installation_dialog': True,
              }),

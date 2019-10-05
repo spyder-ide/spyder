@@ -155,7 +155,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     def start_client(self, language):
         """Start an LSP client for a given language."""
         started = False
-        if language in self.clients and self.enabled:
+        if language in self.clients:
             language_client = self.clients[language]
             queue = self.register_queue[language]
 
@@ -216,7 +216,6 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             self.close_client(language)
 
     def update_configuration(self):
-        self.enabled = self.get_option('enable')
         for language in self.get_languages():
             client_config = {'status': self.STOPPED,
                              'config': self.get_language_config(language),
@@ -280,9 +279,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.COMPLETION_CLIENT_NAME, req_id, response)
 
     def send_request(self, language, request, params, req_id):
-        if self.enabled and language in self.clients:
-            # Ensure client is started
-            self.start_client(language)
+        if language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
                 self.requests.add(req_id)

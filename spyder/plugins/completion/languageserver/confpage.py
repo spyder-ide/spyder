@@ -1007,7 +1007,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
             section='kite')
         self.kite_cta = self.create_checkbox(
             _("Notify me when Kite can provide missing completions"),
-            'cta',
+            'call_to_action',
             section='kite')
         kite_layout.addWidget(self.kite_autostart)
         kite_layout.addWidget(self.kite_cta)
