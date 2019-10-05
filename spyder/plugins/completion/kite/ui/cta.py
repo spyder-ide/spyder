@@ -7,7 +7,9 @@
 from qtpy.QtCore import Qt, QTimer, QUrl
 from qtpy.QtGui import QDesktopServices
 from qtpy.QtWidgets import (QLabel, QApplication,
-                            QVBoxLayout, QFrame, QHBoxLayout)
+                            QVBoxLayout, QFrame, QHBoxLayout,
+                            QPushButton)
+from spyder.utils.syntaxhighlighters import get_color_scheme
 
 from spyder.config.base import get_translation
 from spyder.config.gui import get_font
@@ -18,11 +20,11 @@ from spyder.plugins.completion.kite.utils.status import check_if_kite_installed
 from spyder.plugins.completion.fallback.actor import FALLBACK_COMPLETION
 
 # Translation callback
-translate = get_translation("spyder")
+_ = get_translation("spyder")
 
 COVERAGE_MESSAGE = (
-    translate("No completions found."
-              " Get completions for this case and more by installing Kite.")
+    _("No completions found."
+      " Get completions for this case and more by installing Kite.")
 )
 
 
@@ -30,50 +32,64 @@ class KiteCTA(QFrame):
     def __init__(self, textedit, ancestor):
         super(KiteCTA, self).__init__(ancestor)
         self.textedit = textedit
-        self.setObjectName("kite_cta")
-        # fixme retrieve color from theme
-        self.setStyleSheet('#kite_cta:active {  border: 1px solid #6a6ea9; }')
 
+        self.setObjectName("kite-cta")
+        self.set_color_scheme(CONF.get('appearance', 'selected'))
         # Reuse completion window size
-        self.setFont(get_font())
+        # self.setFont(get_font())
         self.setFocusPolicy(Qt.NoFocus)
 
         # sub-layout: horizontally aligned links
-        labels = QFrame(self)
-        labels_layout = QHBoxLayout()
-        labels_layout.setContentsMargins(5, 5, 5, 5)
-        labels_layout.setSpacing(15)
-        labels_layout.addStretch()
-        labels.setLayout(labels_layout)
-        # TODO Learn More & Install Kite should trigger the install flow UI
-        # and disable the CTA for the session
-        labels_layout.addWidget(self._create_link_label(
-            translate("Install Kite"), "https://kite.com/download/"))
-        labels_layout.addWidget(self._create_link_label(
-            translate("Learn more"), "https://kite.com"))
-        dismissal_link = self._create_link_label(
-            translate("Dismiss forever"), "#")
-        dismissal_link.linkActivated.connect(self._dismiss_forever)
-        labels_layout.addWidget(dismissal_link)
+        actions = QFrame(self)
+        actions_layout = QHBoxLayout()
+        actions_layout.setContentsMargins(5, 5, 5, 5)
+        actions_layout.setSpacing(10)
+        actions_layout.addStretch()
+        actions.setLayout(actions_layout)
+
+        self._install_button = QPushButton(_("Install Kite"))
+        self._learn_button = QPushButton(_("Learn More"))
+        self._dismiss_button = QPushButton(_("Dismiss Forever"))
+        self._install_button.clicked.connect(self._install_kite)
+        self._learn_button.clicked.connect(self._learn_more)
+        self._dismiss_button.clicked.connect(self._dismiss_forever)
+        actions_layout.addWidget(self._install_button)
+        actions_layout.addWidget(self._learn_button)
+        actions_layout.addWidget(self._dismiss_button)
 
         # main layout: message + horizontally aligned links
         main_layout = QVBoxLayout()
         main_layout.setContentsMargins(5, 5, 5, 5)
-        labels_layout.setSpacing(10)
         self.setLayout(main_layout)
         self.label = QLabel(self)
         self.label.setWordWrap(True)
         main_layout.addWidget(self.label)
-        main_layout.addWidget(labels)
+        main_layout.addWidget(actions)
         main_layout.addStretch()
 
         self._enabled = CONF.get('main', 'show_kite_cta')
         self._escaped = False
         self.hide()
 
-        is_kite_installed, _ = check_if_kite_installed()
+        is_kite_installed, __ = check_if_kite_installed()
         if is_kite_installed:
             self._dismiss_forever()
+
+    def set_color_scheme(self, color_scheme):
+        if isinstance(color_scheme, str):
+            color_scheme = get_color_scheme(color_scheme)
+        bg_color = color_scheme['background']
+        border_color = color_scheme['sideareas']
+        text_color, __, __ = color_scheme['normal']
+        button_color = color_scheme['currentline']
+        hover_color = color_scheme['currentcell']
+        self.setStyleSheet("""
+* {{ background-color: {background}; color: {color}; border: 0; }}
+#kite-cta {{ border: 2px solid {border}; }}
+QPushButton {{ background-color: {button}; border: 1px solid {border}; }}
+QPushButton:hover {{ background-color: {hover}; }}
+""".format(background=bg_color, border=border_color, color=text_color,
+           button=button_color, hover=hover_color))
 
     def handle_key_press(self, event):
         key = event.key()
@@ -119,19 +135,23 @@ class KiteCTA(QFrame):
         return is_upper or is_lower or is_digit or is_under
 
     def _dismiss_forever(self):
+        self.hide()
         self._enabled = False
         CONF.set('main', 'show_kite_cta', False)
 
-    def _create_link_label(self, text, link):
-        text = '<p><a href="{link}">{text}</a></p>'.format(
-            text=text, link=link)
-        label = QLabel(text, self)
-        label.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
-        label.linkActivated.connect(self.hide)
-        if link.startswith("http"):
-            url = QUrl(link)
-            label.linkActivated.connect(lambda: QDesktopServices.openUrl(url))
-        return label
+    def _learn_more(self):
+        self.hide()
+        self._enabled = False
+        kite = self.parent().completions.get_client('kite')
+        kite.kite_installer.welcome()
+        kite.kite_installer.show()
+
+    def _install_kite(self):
+        self.hide()
+        self._enabled = False
+        kite = self.parent().completions.get_client('kite')
+        kite.kite_installer.install()
+        kite.kite_installer.show()
 
     # Taken from spyder/plugins/editor/widgets/base.py
     # Places CTA next to cursor

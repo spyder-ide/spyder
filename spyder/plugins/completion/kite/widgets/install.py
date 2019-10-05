@@ -398,7 +398,7 @@ class KiteInstallerDialog(QDialog):
         if on_installation_widget:
             self.hide()
         else:
-            CONF.set('kite', 'installation/enabled', False)
+            CONF.set('kite', 'show_installation_dialog', False)
             super(KiteInstallerDialog, self).reject()
 
 
