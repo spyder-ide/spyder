@@ -1220,6 +1220,10 @@ class Editor(SpyderPluginWidget):
             ('set_stripmode_enabled',               'strip_trailing_spaces_on_modify'),
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_automatic_completions_enabled',   'automatic_completions'),
+            ('set_automatic_completions_after_chars',
+             'automatic_completions_after_chars'),
+            ('set_automatic_completions_after_ms',
+             'automatic_completions_after_ms'),
             ('set_completions_hint_enabled',        'completions_hint'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
@@ -1232,9 +1236,13 @@ class Editor(SpyderPluginWidget):
             ('set_convert_eol_on_save',             'convert_eol_on_save'),
             ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
                     )
+
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
+
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
+        editorstack.set_hover_hints_enabled(CONF.get('lsp-server',
+                                                     'enable_hover_hints'))
         color_scheme = self.get_color_scheme()
         editorstack.set_default_font(self.get_font(), color_scheme)
 
@@ -2629,6 +2637,17 @@ class Editor(SpyderPluginWidget):
 
 
             for editorstack in self.editorstacks:
+                # Checkable options
+                if blanks_n in options:
+                    editorstack.set_blanks_enabled(blanks_o)
+                if scrollpastend_n in options:
+                    editorstack.set_scrollpastend_enabled(scrollpastend_o)
+                if indentguides_n in options:
+                    editorstack.set_indent_guides(indentguides_o)
+                if classfuncdropdown_n in options:
+                    editorstack.set_classfunc_dropdown_visible(
+                        classfuncdropdown_o)
+
                 if tabbar_n in options:
                     editorstack.set_tabbar_visible(tabbar_o)
                 if linenb_n in options:
@@ -2685,7 +2704,6 @@ class Editor(SpyderPluginWidget):
                     action.setChecked(state)
                     action.blockSignals(False)
                     # See: spyder-ide/spyder#9915
-                    # action.trigger()
 
             # Multiply by 1000 to convert seconds to milliseconds
             self.autosave.interval = (

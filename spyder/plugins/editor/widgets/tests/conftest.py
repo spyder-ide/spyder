@@ -40,7 +40,10 @@ def codeeditor_factory():
                         close_quotes=True,
                         close_parentheses=True,
                         color_scheme='spyder/dark',
-                        font=QFont("Monospace", 10))
+                        font=QFont("Monospace", 10),
+                        automatic_completions=True,
+                        automatic_completions_after_chars=1,
+                        automatic_completions_after_ms=200)
     editor.resize(640, 480)
     return editor
 

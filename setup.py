@@ -233,7 +233,7 @@ install_requires = [
     'pexpect',
     'paramiko;platform_system=="Windows"',
     # Required for accesing xdg spec on Linux
-    'pyxdg;platform_system=="Linux"',
+    'pyxdg>=0.26;platform_system=="Linux"',
     'pympler'
 ]
 
