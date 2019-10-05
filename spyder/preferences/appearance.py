@@ -113,27 +113,27 @@ class AppearanceConfigPage(GeneralConfigPage):
         fonts_group = QGroupBox(_("Fonts"))
 
         # Fonts widgets
-        plain_text_font = self.create_fontgroup(
+        self.plain_text_font = self.create_fontgroup(
             option='font',
             title=_("Plain text"),
             fontfilters=QFontComboBox.MonospacedFonts,
             without_group=True)
 
-        rich_text_font = self.create_fontgroup(
+        self.rich_text_font = self.create_fontgroup(
             option='rich_font',
             title=_("Rich text"),
             without_group=True)
 
         # Fonts layouts
         fonts_layout = QGridLayout(fonts_group)
-        fonts_layout.addWidget(plain_text_font.fontlabel, 0, 0)
-        fonts_layout.addWidget(plain_text_font.fontbox, 0, 1)
-        fonts_layout.addWidget(plain_text_font.sizelabel, 0, 2)
-        fonts_layout.addWidget(plain_text_font.sizebox, 0, 3)
-        fonts_layout.addWidget(rich_text_font.fontlabel, 1, 0)
-        fonts_layout.addWidget(rich_text_font.fontbox, 1, 1)
-        fonts_layout.addWidget(rich_text_font.sizelabel, 1, 2)
-        fonts_layout.addWidget(rich_text_font.sizebox, 1, 3)
+        fonts_layout.addWidget(self.plain_text_font.fontlabel, 0, 0)
+        fonts_layout.addWidget(self.plain_text_font.fontbox, 0, 1)
+        fonts_layout.addWidget(self.plain_text_font.sizelabel, 0, 2)
+        fonts_layout.addWidget(self.plain_text_font.sizebox, 0, 3)
+        fonts_layout.addWidget(self.rich_text_font.fontlabel, 1, 0)
+        fonts_layout.addWidget(self.rich_text_font.fontbox, 1, 1)
+        fonts_layout.addWidget(self.rich_text_font.sizelabel, 1, 2)
+        fonts_layout.addWidget(self.rich_text_font.sizebox, 1, 3)
         fonts_layout.setRowStretch(fonts_layout.rowCount(), 1)
 
         # Left options layout

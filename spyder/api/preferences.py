@@ -13,7 +13,8 @@ given plugin.
 from spyder.preferences.configdialog import SpyderConfigPage
 
 class PluginConfigPage(SpyderConfigPage):
-    """Plugin configuration dialog box page widget"""
+    """Plugin configuration dialog box page widget."""
+
     def __init__(self, plugin, parent):
         self.plugin = plugin
         self.get_option = plugin.get_option

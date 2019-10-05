@@ -130,7 +130,8 @@ class HTMLDelegate(QStyledItemDelegate):
 
         ctx = QAbstractTextDocumentLayout.PaintContext()
 
-        textRect = style.subElementRect(QStyle.SE_ItemViewItemText, options)
+        textRect = style.subElementRect(QStyle.SE_ItemViewItemText,
+                                        options, None)
         painter.save()
 
         # Adjustments for the file switcher
@@ -180,7 +181,8 @@ class ItemDelegate(QStyledItemDelegate):
 
         ctx = QAbstractTextDocumentLayout.PaintContext()
 
-        textRect = style.subElementRect(QStyle.SE_ItemViewItemText, options)
+        textRect = style.subElementRect(QStyle.SE_ItemViewItemText,
+                                        options, None)
         painter.save()
 
         painter.translate(textRect.topLeft())

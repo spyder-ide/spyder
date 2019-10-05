@@ -9,10 +9,12 @@
 # Standard library imports
 import copy
 import functools
+import inspect
 
 # Third party imports
 from qtpy.QtGui import QTextCursor, QColor
 from qtpy.QtCore import Qt, QMutex, QMutexLocker
+from diff_match_patch import diff_match_patch
 
 try:
     from rtree import index
@@ -27,6 +29,7 @@ from spyder.utils.snippets.ast import build_snippet_ast, nodes, tokenize
 
 
 MERGE_ALLOWED = {'int', 'name', 'whitespace'}
+VALID_UPDATES = {diff_match_patch.DIFF_DELETE, diff_match_patch.DIFF_INSERT}
 
 
 def no_undo(f):
@@ -86,6 +89,7 @@ class SnippetsExtension(EditorExtension):
         self.starting_position = None
         self.modification_lock = QMutex()
         self.event_lock = QMutex()
+        self.update_lock = QMutex()
         self.node_position = {}
         self.snippets_map = {}
         self.undo_stack = []
@@ -131,14 +135,25 @@ class SnippetsExtension(EditorExtension):
     @lock
     @no_undo
     def _undo(self):
+        if len(self.undo_stack) == 0:
+            self.reset()
         if self.is_snippet_active:
+            num_pops = 0
+            patch = self.editor.patch
+            for diffs in patch:
+                for (op, data) in diffs.diffs:
+                    if op in VALID_UPDATES:
+                        num_pops += len(data)
             if len(self.undo_stack) > 0:
-                info = self.undo_stack.pop(0)
-                ast_copy = copy.deepcopy(self.ast)
-                redo_info = (ast_copy, self.starting_position,
-                             self.active_snippet)
-                self.redo_stack.insert(0, redo_info)
-                self.ast, self.starting_position, self.active_snippet = info
+                for _ in range(num_pops):
+                    if len(self.undo_stack) == 0:
+                        break
+                    info = self.undo_stack.pop(0)
+                    ast_copy = copy.deepcopy(self.ast)
+                    redo_info = (ast_copy, self.starting_position,
+                                 self.active_snippet)
+                    self.redo_stack.insert(0, redo_info)
+                    self.ast, self.starting_position, self.active_snippet = info
                 self._update_ast()
                 self.editor.clear_extra_selections('code_snippets')
                 self.draw_snippets()
@@ -147,13 +162,22 @@ class SnippetsExtension(EditorExtension):
     @no_undo
     def _redo(self):
         if self.is_snippet_active:
+            num_pops = 0
+            patch = self.editor.patch
+            for diffs in patch:
+                for (op, data) in diffs.diffs:
+                    if op in VALID_UPDATES:
+                        num_pops += len(data)
             if len(self.redo_stack) > 0:
-                info = self.redo_stack.pop(0)
-                ast_copy = copy.deepcopy(self.ast)
-                undo_info = (ast_copy, self.starting_position,
-                             self.active_snippet)
-                self.undo_stack.insert(0, undo_info)
-                self.ast, self.starting_position, self.active_snippet = info
+                for _ in range(num_pops):
+                    if len(self.redo_stack) == 0:
+                        break
+                    info = self.redo_stack.pop(0)
+                    ast_copy = copy.deepcopy(self.ast)
+                    undo_info = (ast_copy, self.starting_position,
+                                 self.active_snippet)
+                    self.undo_stack.insert(0, undo_info)
+                    self.ast, self.starting_position, self.active_snippet = info
                 self._update_ast()
                 self.editor.clear_extra_selections('code_snippets')
                 self.draw_snippets()
@@ -182,15 +206,25 @@ class SnippetsExtension(EditorExtension):
                     next_snippet = ((self.active_snippet + 1) %
                                     len(self.snippets_map))
                     self.select_snippet(next_snippet)
+
+                    if next_snippet == 0:
+                        self.reset()
                 elif key == Qt.Key_Escape:
                     self.reset()
                     event.accept()
                 elif len(text) > 0:
+                    not_brace = text not in {'(', ')', '[', ']', '{', '}'}
+                    not_completion = (
+                        text not in self.editor.auto_completion_characters)
+                    not_signature = (
+                        text not in self.editor.signature_completion_characters
+                    )
+                    valid = not_brace and not_completion and not_signature
                     if node is not None:
-                        if snippet is None:
+                        if snippet is None or text == '\n':
                             # Constant text identifier was modified
                             self.reset()
-                        else:
+                        elif valid or text == '\b':
                             self._process_text(text)
 
     @lock
@@ -200,6 +234,8 @@ class SnippetsExtension(EditorExtension):
             # Update placeholder text node
             if text != '\b':
                 self.insert_text(text, line, column)
+            elif text == '\n':
+                self.reset()
             else:
                 self.delete_text(line, column)
             self._update_ast()
@@ -239,13 +275,15 @@ class SnippetsExtension(EditorExtension):
                 # is also a snippet
                 self._delete_token(delete_token, text_parent, line, column)
 
-            next_number = snippet_number - 1
+            next_number = snippet_number
             for current_number in self.snippets_map:
                 if current_number > snippet_number:
                     snippet_nodes = self.snippets_map[current_number]
                     for snippet_node in snippet_nodes:
+                        current_number = snippet_node.number
                         snippet_node.number = next_number
-                    next_number -= 1
+                        next_number = current_number
+                    # next_number -= 1
         else:
             self._delete_token(node, text_node, line, column)
 
@@ -260,6 +298,9 @@ class SnippetsExtension(EditorExtension):
                 right_node = text_node_tokens[node_index + 1]
                 offset = 1
                 if left_node.mark_for_position:
+                    if not isinstance(left_node, nodes.LeafNode):
+                        self.reset()
+                        return
                     if left_node.name in MERGE_ALLOWED:
                         if left_node.name == right_node.name:
                             left_node.value = (
@@ -646,10 +687,20 @@ class SnippetsExtension(EditorExtension):
     def cursor_changed(self, line, col):
         if not rtree_available:
             return
+        # with QMutexLocker(self.reset_lock):
+        ignore_calls = {'undo', 'redo'}
         node, nearest_snippet, _ = self._find_node_by_position(line, col)
         if node is None:
-            # self.reset()
-            pass
+            stack = inspect.stack()
+            ignore = False
+            # Check if parent call was due to text update on codeeditor
+            # caused by a undo/redo call
+            for call in stack:
+                if call[3] in ignore_calls:
+                    ignore = True
+                    break
+            if not ignore:
+                self.reset()
         else:
             if nearest_snippet is not None:
                 self.active_snippet = nearest_snippet.number
@@ -740,17 +791,18 @@ class SnippetsExtension(EditorExtension):
         self.editor.request_signature()
 
     def _update_ast(self):
-        self.reset(partial_reset=True)
-        self.is_snippet_active = True
-        self.ast.compute_position(self.starting_position)
-        start_line, start_column = self.starting_position
-        visitor = SnippetSearcherVisitor(
-            start_line, start_column, self.node_number)
-        self.ast.accept(visitor)
-        self.snippets_map = visitor.snippet_map
-        self.update_position_tree(visitor)
-        self.editor.clear_extra_selections('code_snippets')
-        self.draw_snippets()
+        if self.starting_position is not None:
+            self.reset(partial_reset=True)
+            self.is_snippet_active = True
+            self.ast.compute_position(self.starting_position)
+            start_line, start_column = self.starting_position
+            visitor = SnippetSearcherVisitor(
+                start_line, start_column, self.node_number)
+            self.ast.accept(visitor)
+            self.snippets_map = visitor.snippet_map
+            self.update_position_tree(visitor)
+            self.editor.clear_extra_selections('code_snippets')
+            self.draw_snippets()
 
     def insert_snippet(self, text):
         line, column = self.editor.get_cursor_line_column()
