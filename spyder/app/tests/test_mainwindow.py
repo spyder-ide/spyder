@@ -2077,4 +2077,4 @@ def test_preferences_change_font_regression(main_window, qtbot):
 
 
 if __name__ == "__main__":
-    pytest.main(['test_mainwindow.py::test_c_and_n_pdb_commands', '--run-slow'])
+    pytest.main()
