@@ -69,7 +69,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         return response
 
     def get_status(self, filename):
-        """Get Kite status for a givec filename."""
+        """Get Kite status for a given filename."""
         if filename:
             verb, url = KITE_ENDPOINTS.FILENAME_STATUS_ENDPOINT
             url = url.format(filename=filename)
