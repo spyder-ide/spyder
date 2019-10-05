@@ -11,7 +11,7 @@ from qtpy.QtWidgets import (QLabel, QApplication,
                             QPushButton)
 from spyder.utils.syntaxhighlighters import get_color_scheme
 
-from spyder.config.base import get_translation
+from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.plugins.completion.kite.bloomfilter import KiteBloomFilter
@@ -19,21 +19,18 @@ from spyder.plugins.completion.kite.parsing import find_returning_function_path
 from spyder.plugins.completion.kite.utils.status import check_if_kite_installed
 from spyder.plugins.completion.fallback.actor import FALLBACK_COMPLETION
 
-# Translation callback
-_ = get_translation("spyder")
-
 COVERAGE_MESSAGE = (
     _("No completions found."
       " Get completions for this case and more by installing Kite.")
 )
 
 
-class KiteCTA(QFrame):
+class KiteCallToAction(QFrame):
     def __init__(self, textedit, ancestor):
-        super(KiteCTA, self).__init__(ancestor)
+        super(KiteCallToAction, self).__init__(ancestor)
         self.textedit = textedit
 
-        self.setObjectName("kite-cta")
+        self.setObjectName("kite-call-to-action")
         self.set_color_scheme(CONF.get('appearance', 'selected'))
         # Reuse completion window size
         # self.setFont(get_font())
@@ -67,7 +64,7 @@ class KiteCTA(QFrame):
         main_layout.addWidget(actions)
         main_layout.addStretch()
 
-        self._enabled = CONF.get('main', 'show_kite_cta')
+        self._enabled = CONF.get('kite', 'show_call_to_action')
         self._escaped = False
         self.hide()
 
@@ -85,7 +82,7 @@ class KiteCTA(QFrame):
         hover_color = color_scheme['currentcell']
         self.setStyleSheet("""
 * {{ background-color: {background}; color: {color}; border: 0; }}
-#kite-cta {{ border: 2px solid {border}; }}
+#kite-call-to-action {{ border: 2px solid {border}; }}
 QPushButton {{ background-color: {button}; border: 1px solid {border}; }}
 QPushButton:hover {{ background-color: {hover}; }}
 """.format(background=bg_color, border=border_color, color=text_color,
@@ -123,7 +120,7 @@ QPushButton:hover {{ background-color: {hover}; }}
         self.label.setText(COVERAGE_MESSAGE)
         self.resize(self.sizeHint())
         self.show()
-        self._position()
+        self.textedit.position_widget_at_cursor(self)
         self.raise_()
 
     def _is_valid_ident_key(self, key):
@@ -137,7 +134,7 @@ QPushButton:hover {{ background-color: {hover}; }}
     def _dismiss_forever(self):
         self.hide()
         self._enabled = False
-        CONF.set('main', 'show_kite_cta', False)
+        CONF.set('kite', 'show_call_to_action', False)
 
     def _learn_more(self):
         self.hide()
@@ -152,50 +149,3 @@ QPushButton:hover {{ background-color: {hover}; }}
         kite = self.parent().completions.get_client('kite')
         kite.kite_installer.install()
         kite.kite_installer.show()
-
-    # Taken from spyder/plugins/editor/widgets/base.py
-    # Places CTA next to cursor
-    def _position(self):
-        # Retrieve current screen height
-        desktop = QApplication.desktop()
-        srect = desktop.availableGeometry(desktop.screenNumber(self))
-        screen_right = srect.right()
-        screen_bottom = srect.bottom()
-
-        point = self.textedit.cursorRect().bottomRight()
-        point = self.textedit.calculate_real_position(point)
-        point = self.textedit.mapToGlobal(point)
-
-        # Computing completion widget and its parent right positions
-        comp_right = point.x() + self.width()
-        ancestor = self.parent()
-        if ancestor is None:
-            anc_right = screen_right
-        else:
-            anc_right = min([ancestor.x() + ancestor.width(), screen_right])
-
-        # Moving completion widget to the left
-        # if there is not enough space to the right
-        if comp_right > anc_right:
-            point.setX(point.x() - self.width())
-
-        # Computing completion widget and its parent bottom positions
-        comp_bottom = point.y() + self.height()
-        ancestor = self.parent()
-        if ancestor is None:
-            anc_bottom = screen_bottom
-        else:
-            anc_bottom = min([ancestor.y() + ancestor.height(), screen_bottom])
-
-        # Moving completion widget above if there is not enough space below
-        x_position = point.x()
-        if comp_bottom > anc_bottom:
-            point = self.textedit.cursorRect().topRight()
-            point = self.textedit.mapToGlobal(point)
-            point.setX(x_position)
-            point.setY(point.y() - self.height())
-
-        if ancestor is not None:
-            # Useful only if we set parent to 'ancestor' in __init__
-            point = ancestor.mapFromGlobal(point)
-        self.move(point)

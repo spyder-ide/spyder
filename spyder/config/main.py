@@ -92,7 +92,6 @@ DEFAULTS = [
               'completion/size': (300, 180),
               'report_error/remember_me': False,
               'report_error/remember_token': False,
-              'show_kite_cta': True,
               }),
             ('quick_layouts',
              {
@@ -506,6 +505,7 @@ DEFAULTS = [
               'enable': True,
               # Enable the installation dialog
               'show_installation_dialog': True,
+              'show_call_to_action': True,
              }),
             ]
 

@@ -11,8 +11,8 @@ from spyder.utils.external.pybloom_pyqt import BloomFilter
 
 class KiteBloomFilter:
     """
-    KiteBloomFilter managese access to the bloomfilter data, namely
-    to tell if Kite would provide completions for a given path.
+    KiteBloomFilter manages access to the set of fully qualified
+    function paths whose semantics Kite understands.
     """
     _filter = None
 
