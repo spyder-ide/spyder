@@ -552,6 +552,8 @@ class EditorStack(QWidget):
         self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
         self.automatic_completions_enabled = True
+        self.automatic_completion_chars = 3
+        self.automatic_completion_ms = 300
         self.completions_hint_enabled = True
         self.hover_hints_enabled = True
         self.code_snippets_enabled = True
@@ -1180,13 +1182,13 @@ class EditorStack(QWidget):
                 finfo.editor.toggle_automatic_completions(state)
 
     def set_automatic_completions_after_chars(self, chars):
-        self.automatic_completions_after_chars = chars
+        self.automatic_completion_chars = chars
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_automatic_completions_after_chars(chars)
 
     def set_automatic_completions_after_ms(self, ms):
-        self.automatic_completions_after_ms = ms
+        self.automatic_completion_ms = ms
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_automatic_completions_after_ms(ms)
@@ -2420,6 +2422,8 @@ class EditorStack(QWidget):
             strip_mode=self.stripmode_enabled,
             intelligent_backspace=self.intelligent_backspace_enabled,
             automatic_completions=self.automatic_completions_enabled,
+            automatic_completions_after_chars=self.automatic_completion_chars,
+            automatic_completions_after_ms=self.automatic_completion_ms,
             code_snippets=self.code_snippets_enabled,
             completions_hint=self.completions_hint_enabled,
             hover_hints=self.hover_hints_enabled,

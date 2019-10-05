@@ -75,7 +75,6 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         try:
             http_response = http_method(url, json=params)
         except Exception as error:
-            logger.debug('Kite request error: {0}'.format(error))
             return False, None
         success = http_response.status_code == 200
         if success:
@@ -99,6 +98,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         return response
 
     def perform_request(self, req_id, method, params):
+        response = None
         if method in self.sender_registry:
             logger.debug('Perform {0} request with id {1}'.format(
                 method, req_id))
@@ -110,5 +110,4 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
                 converter = getattr(self, converter_name)
                 if response is not None:
                     response = converter(response)
-            if response is not None:
-                self.sig_response_ready.emit(req_id, response)
+        self.sig_response_ready.emit(req_id, response or {})

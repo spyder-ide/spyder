@@ -317,6 +317,7 @@ class MainWindow(QMainWindow):
 
     # Signals
     restore_scrollbar_position = Signal()
+    sig_setup_finished = Signal()
     all_actions_defined = Signal()
     sig_pythonpath_changed = Signal()
     sig_open_external_file = Signal(str)
@@ -800,7 +801,10 @@ class MainWindow(QMainWindow):
                     triggered=self.win_env)
             self.tools_menu_actions.append(winenv_action)
         self.tools_menu_actions += [MENU_SEPARATOR, reset_spyder_action]
-
+        if get_debug_level() >= 3:
+            self.menu_lsp_logs = QMenu(_("LSP logs"))
+            self.menu_lsp_logs.aboutToShow.connect(self.update_lsp_logs)
+            self.tools_menu_actions += [self.menu_lsp_logs]
         # External Tools submenu
         self.external_tools_menu = QMenu(_("External Tools"))
         self.external_tools_menu_actions = []
@@ -1316,6 +1320,17 @@ class MainWindow(QMainWindow):
                         lambda menu=menu: set_menu_icons(menu, False))
                     menu.aboutToShow.connect(self.hide_options_menus)
 
+    def update_lsp_logs(self):
+        """Create an action for each lsp log file."""
+        lsp_logs = []
+        regex = re.compile(r'.*_.*_(\d+)[.]log')
+        files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
+        for f in files:
+            action = create_action(self, f, triggered=self.editor.load)
+            action.setData(f)
+            lsp_logs.append(action)
+        add_actions(self.menu_lsp_logs, lsp_logs)
+
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
         was triggered"""
@@ -1408,6 +1423,9 @@ class MainWindow(QMainWindow):
         # Fixes spyder-ide/spyder#3887.
         self.menuBar().raise_()
         self.is_setting_up = False
+
+        # Notify that the setup of the mainwindow was finished
+        self.sig_setup_finished.emit()
 
     def set_window_title(self):
         """Set window title."""
@@ -2412,6 +2430,8 @@ class MainWindow(QMainWindow):
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
+        if not self.completions.closing_plugin(cancelable):
+            return False
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             plugin._close_window()
             if not plugin.closing_plugin(cancelable):
