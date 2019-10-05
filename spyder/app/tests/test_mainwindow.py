@@ -1310,7 +1310,8 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
     qtbot.mouseClick(debug_button, Qt.LeftButton)
-    qtbot.wait(1000)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
     # Set a breakpoint
     code_editor = main_window.editor.get_focus_widget()
@@ -1320,38 +1321,47 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     # Verify that c works
     qtbot.keyClicks(control, 'c')
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
-    assert nsb.editor.source_model.rowCount() == 1
+    qtbot.waitUntil(
+        lambda: nsb.editor.source_model.rowCount() == 1)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
     # Verify that n works
     qtbot.keyClicks(control, 'n')
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
-    assert nsb.editor.source_model.rowCount() == 2
+    qtbot.waitUntil(
+        lambda: nsb.editor.source_model.rowCount() == 2)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
     # Verify that doesn't go to sitecustomize.py with next and stops
     # the debugging session.
     qtbot.keyClicks(control, 'n')
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
     qtbot.keyClicks(control, 'n')
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
-
-    assert nsb.editor.source_model.rowCount() == 3
-
-    qtbot.keyClicks(control, 'n')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
+    qtbot.waitUntil(
+        lambda: nsb.editor.source_model.rowCount() == 3)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
     qtbot.keyClicks(control, 'n')
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
     qtbot.keyClicks(control, 'n')
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(
+        lambda: 'In [2]:' in control.toPlainText())
 
     # Assert that the prompt appear
     shell.clear_console()
@@ -2067,4 +2077,4 @@ def test_preferences_change_font_regression(main_window, qtbot):
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main(['test_mainwindow.py::test_c_and_n_pdb_commands', '--run-slow'])
