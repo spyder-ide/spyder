@@ -73,7 +73,7 @@ class KiteCallToAction(QFrame):
             self._dismiss_forever()
 
     def set_color_scheme(self, color_scheme):
-        if isinstance(color_scheme, str):
+        if not isinstance(color_scheme, dict):
             color_scheme = get_color_scheme(color_scheme)
         bg_color = color_scheme['background']
         border_color = color_scheme['sideareas']
