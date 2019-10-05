@@ -64,7 +64,7 @@ class KiteCallToAction(QFrame):
         main_layout.addWidget(actions)
         main_layout.addStretch()
 
-        self._enabled = CONF.get('kite', 'show_call_to_action')
+        self._enabled = CONF.get('kite', 'call_to_action')
         self._escaped = False
         self.hide()
 
@@ -134,7 +134,7 @@ QPushButton:hover {{ background-color: {hover}; }}
     def _dismiss_forever(self):
         self.hide()
         self._enabled = False
-        CONF.set('kite', 'show_call_to_action', False)
+        CONF.set('kite', 'call_to_action', False)
 
     def _learn_more(self):
         self.hide()

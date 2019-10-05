@@ -505,7 +505,7 @@ DEFAULTS = [
               'enable': True,
               # Enable the installation dialog
               'show_installation_dialog': True,
-              'show_call_to_action': True,
+              'call_to_action': True,
              }),
             ]
 
