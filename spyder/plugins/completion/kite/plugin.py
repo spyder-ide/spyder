@@ -22,11 +22,9 @@ from spyder.plugins.completion.kite.client import KiteClient
 from spyder.plugins.completion.kite.utils.status import (
     check_if_kite_running, check_if_kite_installed)
 from spyder.plugins.completion.kite.utils.install import (
-    KiteInstallationThread, FINISHED)
-from spyder.plugins.completion.kite.utils.status import (
-    status, RUNNING)
+    KiteInstallationThread)
 from spyder.plugins.completion.kite.widgets.install import KiteInstallerDialog
-from spyder.plugins.completion.kite.widgets.status import KiteStatus
+from spyder.plugins.completion.kite.widgets.status import KiteStatusWidget
 
 
 logger = logging.getLogger(__name__)
@@ -53,18 +51,21 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         # Status
         statusbar = parent.statusBar()  # MainWindow status bar
         self.open_file_updated = False
-        self.kite_status = KiteStatus(None, statusbar, self)
+        self.kite_status_widget = KiteStatusWidget(None, statusbar, self)
 
         # Signals
         self.client.sig_client_started.connect(self.http_client_ready)
+        self.client.sig_status_response_ready.connect(
+            self.set_kite_status)
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
                               self.COMPLETION_CLIENT_NAME))
         self.kite_installation_thread.sig_installation_status.connect(
-            lambda status: self.client.start() if status == FINISHED else None)
+            self.set_kite_status)
         self.kite_installer.sig_visibility_changed.connect(
             self.show_status_tooltip)
-        self.kite_status.sig_clicked.connect(self.show_installation_dialog)
+        self.kite_status_widget.sig_clicked.connect(
+            self.show_installation_dialog)
         self.main.sig_setup_finished.connect(self.mainwindow_setup_finished)
 
         # Config
@@ -80,9 +81,16 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def mainwindow_setup_finished(self):
         """
         Called when the setup of the main window finished
-        to let us do onboarding if necessary
+        to let us setup elements like installation and
+        onboarding if necessary
         """
         self.show_installation_dialog()
+
+    @Slot(str)
+    @Slot(object)
+    def set_kite_status(self, status):
+        """Set status of kite for the current file."""
+        self.kite_status_widget.set_value(status)
 
     @Slot(bool)
     def show_status_tooltip(self, visible):
@@ -91,7 +99,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             text = _("Kite installation will continue in the backgroud<br>"
                      "Click on the status bar to show again the "
                      "installation dialog")
-            self.kite_status.show_tooltip(text)
+            self.kite_status_widget.show_tooltip(text)
 
     @Slot()
     def show_installation_dialog(self):
@@ -133,28 +141,12 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
                                                     'code_snippets')
         self.enabled = self.get_option('enable')
 
-    def open_file_update(self):
+    def open_file_update(self, filename):
         """Current opened file changed."""
-        self.open_file_updated = True
-
-    def get_kite_status(self):
-        """
-        Get Kite status.
-
-        Takes into account the current file in the Editor and
-        installation process status
-        """
-        kite_status = status()
-        if self.main and kite_status == RUNNING and self.open_file_updated:
-            filename = self.main.editor.get_current_filename()
-            kite_status = self.client.get_status(filename)
-            if (kite_status is not None and kite_status['status'] == 'ready'
-                    or kite_status['status'] == 'unsupported'):
-                self.open_file_updated = False
-        elif self.is_installing():
-            kite_status = self.kite_installation_thread.status
-        return kite_status
+        if not self.is_installing():
+            self.client.sig_perform_status_request.emit(filename)
 
     def is_installing(self):
         """Check if an installation is taking place."""
-        return self.kite_installation_thread.isRunning()
+        return (self.kite_installation_thread.isRunning()
+                and not self.kite_installation_thread.cancelled)

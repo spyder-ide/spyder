@@ -88,6 +88,7 @@ class DocumentProvider:
             file_info['count'] += 1
             file_info['text'] = params['text']
             self.opened_files[params['file']] = file_info
+            self.get_status(params['file'])
         return request
 
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_CHANGE)

@@ -322,8 +322,7 @@ class Editor(SpyderPluginWidget):
     def kite_completions_file_status(self):
         """Connect open file update to Kite completion."""
         self.open_file_update.connect(
-            lambda filename: self.main.completions.get_client('kite').
-            open_file_update())
+            self.main.completions.get_client('kite').open_file_update)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):

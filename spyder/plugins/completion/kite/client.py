@@ -17,6 +17,8 @@ import requests
 from spyder.plugins.completion.kite import KITE_ENDPOINTS, KITE_REQUEST_MAPPING
 from spyder.plugins.completion.kite.decorators import class_register
 from spyder.plugins.completion.kite.providers import KiteMethodProviderMixIn
+from spyder.plugins.completion.kite.utils.status import (
+    status, check_if_kite_running)
 from spyder.py3compat import ConnectionError, ConnectionRefusedError
 
 
@@ -29,12 +31,15 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     sig_client_started = Signal(list)
     sig_client_not_responding = Signal()
     sig_perform_request = Signal(int, str, object)
+    sig_perform_status_request = Signal(str)
+    sig_status_response_ready = Signal(object)
 
     def __init__(self, parent, enable_code_snippets=True):
         QObject.__init__(self, parent)
         self.endpoint = None
         self.requests = {}
         self.languages = []
+        self.file_status = None
         self.mutex = QMutex()
         self.opened_files = {}
         self.thread_started = False
@@ -43,6 +48,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         self.moveToThread(self.thread)
         self.thread.started.connect(self.started)
         self.sig_perform_request.connect(self.perform_request)
+        self.sig_perform_status_request.connect(self.get_status)
 
     def start(self):
         if not self.thread_started:
@@ -68,8 +74,8 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
             response = ['python']
         return response
 
-    def get_status(self, filename):
-        """Get Kite status for a given filename."""
+    def _get_status(self, filename):
+        """Perform a request to get kite status for a file."""
         if filename:
             verb, url = KITE_ENDPOINTS.FILENAME_STATUS_ENDPOINT
             url = url.format(filename=filename)
@@ -77,6 +83,26 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
             verb, url = KITE_ENDPOINTS.BUFFER_STATUS_ENDPOINT
         success, response = self.perform_http_request(verb, url)
         return response
+
+    def get_status(self, filename):
+        """Get kite status for a given filename."""
+        if (filename in self.opened_files
+                and 'status' in self.opened_files[filename]):
+            kite_status = self.opened_files[filename]['status']
+            if (status in ['ready', 'unsupported']
+                    and check_if_kite_running()):
+                self.sig_file_status.emit(kite_status)
+                return
+        kite_status = self._get_status(filename)
+        if filename and kite_status is not None:
+            self.set_file_status(filename, kite_status)
+        else:
+            kite_status = status()
+        self.sig_status_response_ready.emit(kite_status)
+
+    def set_file_status(self, filename, status):
+        if filename in self.opened_files:
+            self.opened_files[filename]['status'] = status
 
     def perform_http_request(self, verb, url, params=None):
         response = None
