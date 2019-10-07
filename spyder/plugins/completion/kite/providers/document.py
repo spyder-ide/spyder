@@ -226,12 +226,13 @@ class DocumentProvider:
                 if len(signatures) > 0:
                     signature = signatures[0]
                     logger.debug(signature)
-                    for arg in signature['args']:
-                        parameters.append({
-                            'label': arg['name'],
-                            'documentation': ''
-                        })
-                        names.append(arg['name'])
+                    if signature['args'] is not None:
+                        for arg in signature['args']:
+                            parameters.append({
+                                'label': arg['name'],
+                                'documentation': ''
+                            })
+                            names.append(arg['name'])
 
                     func_args = ', '.join(names)
                     call_label = '{0}({1})'.format(call_label, func_args)
