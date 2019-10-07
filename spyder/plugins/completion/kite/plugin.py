@@ -80,25 +80,27 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     @Slot()
     def mainwindow_setup_finished(self):
         """
-        Called when the setup of the main window finished
-        to let us setup elements like installation and
-        onboarding if necessary
+        This is called after the main window setup finishes to show Kite's
+        installation dialog and onboarding if necessary.
         """
         self.show_installation_dialog()
 
     @Slot(str)
-    @Slot(object)
+    @Slot(dict)
     def set_kite_status(self, status):
-        """Set status of kite for the current file."""
+        """Show Kite status for the current file."""
         self.kite_status_widget.set_value(status)
 
     @Slot(bool)
     def show_status_tooltip(self, visible):
         """Show tooltip over the status widget for the installation process."""
-        if self.is_installing() and not visible:
-            text = _("Kite installation will continue in the backgroud<br>"
-                     "Click on the status bar to show again the "
-                     "installation dialog")
+        if not visible:
+            if self.is_installing():
+                text = _("Kite installation will continue in the background."
+                         "<br>Click here to show the installation "
+                         "dialog again.")
+            else:
+                text = _("Click here to show the installation dialog again.")
             self.kite_status_widget.show_tooltip(text)
 
     @Slot()
@@ -116,6 +118,11 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         else:
             self.sig_response_ready.emit(self.COMPLETION_CLIENT_NAME,
                                          req_id, {})
+
+    def send_status_request(self, filename):
+        """Request status for the given file."""
+        if not self.is_installing():
+            self.client.sig_perform_status_request.emit(filename)
 
     def start_client(self, language):
         return language in self.available_languages
@@ -141,12 +148,11 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
                                                     'code_snippets')
         self.enabled = self.get_option('enable')
 
-    def open_file_update(self, filename):
-        """Current opened file changed."""
-        if not self.is_installing():
-            self.client.sig_perform_status_request.emit(filename)
-
     def is_installing(self):
         """Check if an installation is taking place."""
         return (self.kite_installation_thread.isRunning()
                 and not self.kite_installation_thread.cancelled)
+
+    def installation_cancelled_or_errored(self):
+        """Check if an installation was cancelled or failed."""
+        return self.kite_installation_thread.cancelled_or_errored()

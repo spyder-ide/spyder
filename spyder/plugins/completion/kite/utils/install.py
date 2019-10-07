@@ -8,6 +8,7 @@
 
 # Standard library imports
 from __future__ import print_function
+import logging
 import os
 import os.path as osp
 import re
@@ -37,6 +38,8 @@ INSTALLING = _("Installing Kite")
 FINISHED = _("Install finished")
 ERRORED = _("Error")
 CANCELLED = _("Cancelled")
+
+logger = logging.getLogger(__name__)
 
 
 class KiteInstallationCancelledException(Exception):
@@ -201,6 +204,8 @@ class KiteInstallationThread(QThread):
                 self._change_installation_status(status=CANCELLED)
             except Exception as error:
                 self._change_installation_status(status=ERRORED)
+                logger.debug(
+                    "Installation error: {0}".format(to_text_string(error)))
                 self.sig_error_msg.emit(to_text_string(error))
         return
 
@@ -209,6 +214,10 @@ class KiteInstallationThread(QThread):
         # If already running wait for it to finish
         if self.wait():
             self.start()
+
+    def cancelled_or_errored(self):
+        """Return if the installation was cancelled or failed."""
+        return self.status in [ERRORED, CANCELLED]
 
 
 if __name__ == '__main__':

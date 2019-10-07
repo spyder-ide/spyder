@@ -320,9 +320,9 @@ class Editor(SpyderPluginWidget):
         self.main.completions.send_request(language, request, params)
 
     def kite_completions_file_status(self):
-        """Connect open file update to Kite completion."""
+        """Connect open_file_update to Kite update the status."""
         self.open_file_update.connect(
-            self.main.completions.get_client('kite').open_file_update)
+            self.main.completions.get_client('kite').send_status_request)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):

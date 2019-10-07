@@ -16,7 +16,8 @@ from spyder.config.base import _
 from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import ToolTipWidget
 from spyder.widgets.status import StatusBarWidget
-from spyder.plugins.completion.kite.utils.status import NOT_INSTALLED
+from spyder.plugins.completion.kite.utils.status import (
+    check_if_kite_installed, NOT_INSTALLED)
 
 logger = logging.getLogger(__name__)
 
@@ -24,37 +25,38 @@ logger = logging.getLogger(__name__)
 class KiteStatusWidget(StatusBarWidget):
     """Status bar widget for Kite completions status."""
     BASE_TOOLTIP = _("Kite completions status")
-    DEFAULT_STATUS = _('not reacheable')
+    DEFAULT_STATUS = _('not reachable')
 
     def __init__(self, parent, statusbar, plugin):
         self.plugin = plugin
         self.tooltip = self.BASE_TOOLTIP
         super(KiteStatusWidget, self).__init__(parent, statusbar,
                                                icon=ima.get_kite_icon())
-        self.tooltipWidget = ToolTipWidget(self, as_tooltip=True)
-        self.set_value(None)
+        self.tooltip_widget = ToolTipWidget(self, as_tooltip=True)
+        is_installed, _ = check_if_kite_installed()
+        self.setVisible(is_installed)
 
     def set_value(self, value):
         """Return Kite completions state."""
-        kite_enabled = self.plugin.get_option('enable')
+        is_installing = self.plugin.is_installing()
+        installation_status = self.plugin.installation_cancelled_or_errored()
         if (value is not None and 'short' in value):
             self.tooltip = value['long']
             value = value['short']
-        elif value is not None and self.plugin.is_installing():
-            self.tooltip = _('Kite is being installed')
+        elif value is not None and is_installing or installation_status:
+            self.setVisible(True)
             if value == NOT_INSTALLED:
                 return
         elif value is None:
             value = self.DEFAULT_STATUS
             self.tooltip = self.BASE_TOOLTIP
-
         self.update_tooltip()
-        self.setVisible(value != NOT_INSTALLED or kite_enabled)
-
+        self.setVisible(value != NOT_INSTALLED)
+        value = "Kite: {0}".format(value)
         super(KiteStatusWidget, self).set_value(value)
 
     def get_tooltip(self):
-        """Return localized tool tip for widget."""
+        """Reimplementation to get a dynamic tooltip."""
         return self.tooltip
 
     def show_tooltip(self, text=None):
@@ -62,4 +64,4 @@ class KiteStatusWidget(StatusBarWidget):
         if not text:
             text = self.tooltip
         pos = self.parent().mapToGlobal(self.pos())
-        self.tooltipWidget.show_basic_tip(pos, text)
+        self.tooltip_widget.show_basic_tip(pos, text)

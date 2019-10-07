@@ -277,6 +277,7 @@ class KiteInstallation(QWidget):
 
 class KiteInstallerDialog(QDialog):
     """Kite installer."""
+
     # Signal to inform about visibility changes
     # bool: if the dialog is visible or not
     sig_visibility_changed = Signal(bool)
