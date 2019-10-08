@@ -800,6 +800,14 @@ class MainWindow(QMainWindow):
                             "(i.e. for all sessions)"),
                     triggered=self.win_env)
             self.tools_menu_actions.append(winenv_action)
+        from spyder.plugins.completion.kite.utils.install import (
+            check_if_kite_installed)
+        is_kite_installed, kite_path = check_if_kite_installed()
+        if not is_kite_installed:
+            install_kite_action = create_action(
+                self, _("Install Kite completion engine"),
+                triggered=self.show_kite_installation)
+            self.tools_menu_actions.append(install_kite_action)
         self.tools_menu_actions += [MENU_SEPARATOR, reset_spyder_action]
         if get_debug_level() >= 3:
             self.menu_lsp_logs = QMenu(_("LSP logs"))
@@ -2952,6 +2960,10 @@ class MainWindow(QMainWindow):
     def win_env(self):
         """Show Windows current user environment variables"""
         self.dialog_manager.show(WinUserEnvDialog(self))
+
+    def show_kite_installation(self):
+        """Show installation dialog for Kite."""
+        self.completions.get_client('kite').show_installation_dialog()
 
     #---- Preferences
     def apply_settings(self):

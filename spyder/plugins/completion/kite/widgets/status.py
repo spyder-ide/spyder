@@ -38,6 +38,7 @@ class KiteStatusWidget(StatusBarWidget):
 
     def set_value(self, value):
         """Return Kite completions state."""
+        kite_enabled = self.plugin.get_option('enable')
         is_installing = self.plugin.is_installing()
         installation_status = self.plugin.installation_cancelled_or_errored()
         if (value is not None and 'short' in value):
@@ -51,7 +52,7 @@ class KiteStatusWidget(StatusBarWidget):
             value = self.DEFAULT_STATUS
             self.tooltip = self.BASE_TOOLTIP
         self.update_tooltip()
-        self.setVisible(value != NOT_INSTALLED)
+        self.setVisible(value != NOT_INSTALLED and kite_enabled)
         value = "Kite: {0}".format(value)
         super(KiteStatusWidget, self).set_value(value)
 

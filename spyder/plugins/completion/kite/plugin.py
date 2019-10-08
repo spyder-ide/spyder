@@ -83,7 +83,9 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         This is called after the main window setup finishes to show Kite's
         installation dialog and onboarding if necessary.
         """
-        self.show_installation_dialog()
+        kite_installation_enabled = self.get_option('show_installation_dialog')
+        if kite_installation_enabled:
+            self.show_installation_dialog()
 
     @Slot(str)
     @Slot(dict)
@@ -106,10 +108,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     @Slot()
     def show_installation_dialog(self):
         """Show installation dialog."""
-        kite_installation_enabled = self.get_option('show_installation_dialog')
         installed, path = check_if_kite_installed()
-        if (not installed and kite_installation_enabled
-                and not running_under_pytest()):
+        if not installed and not running_under_pytest():
             self.kite_installer.show()
 
     def send_request(self, language, req_type, req, req_id):
