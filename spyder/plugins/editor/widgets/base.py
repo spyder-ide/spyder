@@ -1014,7 +1014,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         desktop = QApplication.desktop()
         srect = desktop.availableGeometry(desktop.screenNumber(widget))
 
-        left, top, right, bottom = srect.left(), srect.top(), srect.right(), srect.bottom()
+        left, top, right, bottom = (srect.left(), srect.top(),
+                                    srect.right(), srect.bottom())
         ancestor = widget.parent()
         if ancestor:
             left = max(left, ancestor.x())
@@ -1050,4 +1051,3 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def calculate_real_position(self, point):
         return point
-

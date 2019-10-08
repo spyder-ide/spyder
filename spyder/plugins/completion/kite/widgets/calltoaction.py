@@ -9,7 +9,6 @@ from qtpy.QtGui import QDesktopServices
 from qtpy.QtWidgets import (QLabel, QApplication,
                             QVBoxLayout, QFrame, QHBoxLayout,
                             QPushButton)
-from spyder.utils.syntaxhighlighters import get_color_scheme
 
 from spyder.config.base import _
 from spyder.config.gui import get_font
@@ -18,6 +17,8 @@ from spyder.plugins.completion.kite.bloomfilter import KiteBloomFilter
 from spyder.plugins.completion.kite.parsing import find_returning_function_path
 from spyder.plugins.completion.kite.utils.status import check_if_kite_installed
 from spyder.plugins.completion.fallback.actor import FALLBACK_COMPLETION
+from spyder.utils.syntaxhighlighters import get_color_scheme
+from spyder.utils.icon_manager import is_dark_interface
 
 COVERAGE_MESSAGE = (
     _("No completions found."
@@ -30,10 +31,19 @@ class KiteCallToAction(QFrame):
         super(KiteCallToAction, self).__init__(ancestor)
         self.textedit = textedit
 
-        self.setFrameStyle(54)
+        self.setFrameStyle(QFrame.StyledPanel | QFrame.Plain)
         self.setAutoFillBackground(True)
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.setFocusPolicy(Qt.NoFocus)
+        if is_dark_interface():
+            self.setObjectName("kite-call-to-action")
+            self.setStyleSheet(self.styleSheet() +
+                               ("#kite-call-to-action "
+                                "{ border: 1px solid; "
+                                "  border-color: #32414B; "
+                                "  border-radius: 4px;} "
+                                "#kite-call-to-action:hover "
+                                "{ border:1px solid #148CD2; }"))
 
         # sub-layout: horizontally aligned links
         actions = QFrame(self)

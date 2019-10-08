@@ -590,7 +590,8 @@ class CodeEditor(TextEditBaseWidget):
             self.show_hint_for_completion)
 
         # re-use parent of completion_widget (usually the main window)
-        self.kite_call_to_action = KiteCallToAction(self, self.completion_widget.parent())
+        compl_parent = self.completion_widget.parent()
+        self.kite_call_to_action = KiteCallToAction(self, compl_parent)
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
