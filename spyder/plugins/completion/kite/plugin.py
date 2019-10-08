@@ -91,7 +91,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         # Always start client to support possibly undetected Kite builds
         self.client.start()
 
-        # Autostart engine
         if not self.enabled:
             return
         installed, path = check_if_kite_installed()
