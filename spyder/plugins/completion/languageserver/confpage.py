@@ -1001,22 +1001,15 @@ class LanguageServerConfigPage(GeneralConfigPage):
         clients_group.setLayout(clients_layout)
 
         kite_layout = QVBoxLayout()
-        self.kite_autostart = self.create_checkbox(
-            _("Start Kite engine on editor startup"),
-            'autostart',
-            section='kite')
         self.kite_cta = self.create_checkbox(
-            _("Notify me when Kite can provide missing completions"),
+            _("Notify me when Kite can provide missing completions"
+              " (but is unavailable)"),
             'call_to_action',
             section='kite')
-        kite_layout.addWidget(self.kite_autostart)
         kite_layout.addWidget(self.kite_cta)
         kite_group = QGroupBox(_(
             'Kite configuration'))
         kite_group.setLayout(kite_layout)
-
-        kite_group.setEnabled(self.get_option('enable', section='kite'))
-        self.kite_enabled.toggled.connect(kite_group.setEnabled)
 
         # Advanced label
         lsp_advanced_group = QGroupBox(_(

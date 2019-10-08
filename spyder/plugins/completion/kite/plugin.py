@@ -92,7 +92,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client.start()
 
         # Autostart engine
-        if not self.autostart:
+        if not self.enabled:
             return
         installed, path = check_if_kite_installed()
         if not installed:
@@ -112,7 +112,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def update_configuration(self):
         self.client.enable_code_snippets = CONF.get('lsp-server',
                                                     'code_snippets')
-        self.autostart = self.get_option('autostart')
         self.enabled = self.get_option('enable')
 
     def is_installing(self):
