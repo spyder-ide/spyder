@@ -168,7 +168,9 @@ try:
 except ImportError:
     WinUserEnvDialog = None  # analysis:ignore
 
+
 from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
+                                    get_kite_icon,
                                     add_shortcut_to_tooltip,
                                     create_module_bookmark_actions,
                                     create_program_action, DialogManager,
@@ -806,6 +808,7 @@ class MainWindow(QMainWindow):
         if not is_kite_installed:
             install_kite_action = create_action(
                 self, _("Install Kite completion engine"),
+                icon=get_kite_icon(),
                 triggered=self.show_kite_installation)
             self.tools_menu_actions.append(install_kite_action)
         self.tools_menu_actions += [MENU_SEPARATOR, reset_spyder_action]

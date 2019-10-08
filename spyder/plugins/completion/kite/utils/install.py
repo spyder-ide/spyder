@@ -32,11 +32,11 @@ else:
 
 # Installation process statuses
 NO_STATUS = _("No status")
-DOWNLOADING_SCRIPT = _("Downloading Kite script installer")
-DOWNLOADING_INSTALLER = _("Downloading Kite installer")
-INSTALLING = _("Installing Kite")
-FINISHED = _("Install finished")
-ERRORED = _("Error")
+DOWNLOADING_SCRIPT = _("Downloading script installer")
+DOWNLOADING_INSTALLER = _("Downloading installer")
+INSTALLING = _("Installing")
+FINISHED = _("Installation finished")
+ERRORED = _("Installation errored")
 CANCELLED = _("Cancelled")
 
 logger = logging.getLogger(__name__)

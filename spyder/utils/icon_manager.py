@@ -408,9 +408,8 @@ def get_kite_icon(scale_factor=0.85):
         icon_path = 'kite_dark.svg'
     pixmap = QPixmap(get_image_path(icon_path))
     if scale_factor is not None:
-        icon_ratio = pixmap.width() / pixmap.height()
         pixmap_height = 16 * scale_factor
-        pixmap_width = 16 * scale_factor * icon_ratio
+        pixmap_width = 16 * scale_factor
         pixmap = pixmap.scaled(
             pixmap_width,
             pixmap_height,
