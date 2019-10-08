@@ -110,21 +110,31 @@ class CompletionManager(SpyderCompletionPlugin):
 
         if req_id not in self.requests:
             return
-        request_responses = self.requests[req_id]
-        request_responses['sources'][completion_source] = resp
-
-        wait_for = self.WAIT_FOR_SOURCE[request_responses['req_type']]
-        if (completion_source not in wait_for or not resp):
-            # Check if there's any work remaining that may return completions,
-            # since we don't have "good" completions from the current response
-            if any(self._is_client_running(source) and
-                   source not in request_responses['sources']
-                   for source in wait_for):
-                return
-        else:
-            del self.requests[req_id]
 
         with QMutexLocker(self.collection_mutex):
+            request_responses = self.requests[req_id]
+            request_responses['sources'][completion_source] = resp
+
+            wait_for = self.WAIT_FOR_SOURCE[request_responses['req_type']]
+            if not resp:
+                # Any response is better than no response
+                keep_waiting = any(
+                    self._is_client_running(source) and
+                    source not in request_responses['sources']
+                    for source in self.clients)
+            elif completion_source not in wait_for:
+                # A wait_for response is better than non-wait_for
+                keep_waiting = any(
+                    self._is_client_running(source) and
+                    source not in request_responses['sources']
+                    for source in wait_for)
+            else:
+                keep_waiting = False
+
+            if keep_waiting:
+                return
+
+            del self.requests[req_id]
             self.gather_and_send(request_responses)
 
     @Slot(str)
@@ -194,14 +204,14 @@ class CompletionManager(SpyderCompletionPlugin):
         req_id = self.req_id
         self.req_id += 1
 
+        self.requests[req_id] = {
+            'language': language,
+            'req_type': req_type,
+            'response_instance': req['response_instance'],
+            'sources': {},
+        }
         for client_name in self.clients:
             client_info = self.clients[client_name]
-            self.requests[req_id] = {
-                'language': language,
-                'req_type': req_type,
-                'response_instance': req['response_instance'],
-                'sources': {},
-            }
             client_info['plugin'].send_request(
                 language, req_type, req, req_id)
 
