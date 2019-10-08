@@ -30,10 +30,9 @@ class KiteCallToAction(QFrame):
         super(KiteCallToAction, self).__init__(ancestor)
         self.textedit = textedit
 
-        self.setObjectName("kite-call-to-action")
-        self.set_color_scheme(CONF.get('appearance', 'selected'))
-        # Reuse completion window size
-        # self.setFont(get_font())
+        self.setFrameStyle(54)
+        self.setAutoFillBackground(True)
+        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.setFocusPolicy(Qt.NoFocus)
 
         # sub-layout: horizontally aligned links
@@ -71,22 +70,6 @@ class KiteCallToAction(QFrame):
         is_kite_installed, __ = check_if_kite_installed()
         if is_kite_installed:
             self._dismiss_forever()
-
-    def set_color_scheme(self, color_scheme):
-        if not isinstance(color_scheme, dict):
-            color_scheme = get_color_scheme(color_scheme)
-        bg_color = color_scheme['background']
-        border_color = color_scheme['sideareas']
-        text_color, __, __ = color_scheme['normal']
-        button_color = color_scheme['currentline']
-        hover_color = color_scheme['currentcell']
-        self.setStyleSheet("""
-* {{ background-color: {background}; color: {color}; border: 0; }}
-#kite-call-to-action {{ border: 2px solid {border}; }}
-QPushButton {{ background-color: {button}; border: 1px solid {border}; }}
-QPushButton:hover {{ background-color: {hover}; }}
-""".format(background=bg_color, border=border_color, color=text_color,
-           button=button_color, hover=hover_color))
 
     def handle_key_press(self, event):
         key = event.key()

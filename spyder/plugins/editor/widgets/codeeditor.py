@@ -1904,7 +1904,6 @@ class CodeEditor(TextEditBaseWidget):
             self.highlight_current_line()
         else:
             self.unhighlight_current_line()
-        self.kite_call_to_action.set_color_scheme(color_scheme)
 
     def set_text(self, text):
         """Set the text of the editor"""
