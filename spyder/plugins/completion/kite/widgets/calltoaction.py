@@ -4,20 +4,16 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-from qtpy.QtCore import Qt, QTimer, QUrl
-from qtpy.QtGui import QDesktopServices
-from qtpy.QtWidgets import (QLabel, QApplication,
-                            QVBoxLayout, QFrame, QHBoxLayout,
-                            QPushButton)
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import (QLabel, QVBoxLayout, QFrame,
+                            QHBoxLayout, QPushButton)
 
 from spyder.config.base import _
-from spyder.config.gui import get_font
 from spyder.config.manager import CONF
 from spyder.plugins.completion.kite.bloomfilter import KiteBloomFilter
 from spyder.plugins.completion.kite.parsing import find_returning_function_path
 from spyder.plugins.completion.kite.utils.status import check_if_kite_installed
 from spyder.plugins.completion.fallback.actor import FALLBACK_COMPLETION
-from spyder.utils.syntaxhighlighters import get_color_scheme
 from spyder.utils.icon_manager import is_dark_interface
 
 COVERAGE_MESSAGE = (
