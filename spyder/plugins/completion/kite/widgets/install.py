@@ -329,6 +329,9 @@ class KiteInstallerDialog(QDialog):
         # Show integration widget
         self.setup()
 
+        # Only show dialog one time
+        CONF.set('kite', 'show_installation_dialog', False)
+
     def _handle_error_msg(self, msg):
         """Handle error message with an error dialog."""
         error_message_dialog = QMessageBox(self._parent)
@@ -417,7 +420,6 @@ class KiteInstallerDialog(QDialog):
         if on_installation_widget:
             self.close_installer()
         else:
-            CONF.set('kite', 'installation/enabled', False)
             super(KiteInstallerDialog, self).reject()
 
 

@@ -62,6 +62,8 @@ class KiteStatusWidget(StatusBarWidget):
 
     def show_tooltip(self, text=None):
         """Show tooltip for a period of time."""
+        if not self.isVisible():
+            return
         if not text:
             text = self.tooltip
         pos = self.parent().mapToGlobal(self.pos())
