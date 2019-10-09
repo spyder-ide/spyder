@@ -75,9 +75,10 @@ class CompletionWidget(QListWidget):
     sig_completion_hint = Signal(str, str, QPoint)
 
     def __init__(self, parent, ancestor):
-        QListWidget.__init__(self, ancestor)
-        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
+        super(CompletionWidget, self).__init__(ancestor)
         self.textedit = parent
+
+        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.hide()
         self.itemActivated.connect(self.item_selected)
         self.currentRowChanged.connect(self.row_changed)
@@ -154,49 +155,7 @@ class CompletionWidget(QListWidget):
         self.setFocus()
         self.raise_()
 
-        # Retrieving current screen height
-        desktop = QApplication.desktop()
-        srect = desktop.availableGeometry(desktop.screenNumber(self))
-        screen_right = srect.right()
-        screen_bottom = srect.bottom()
-
-        point = self.textedit.cursorRect().bottomRight()
-        point = self.textedit.calculate_real_position(point)
-        point = self.textedit.mapToGlobal(point)
-
-        # Computing completion widget and its parent right positions
-        comp_right = point.x() + self.width()
-        ancestor = self.parent()
-        if ancestor is None:
-            anc_right = screen_right
-        else:
-            anc_right = min([ancestor.x() + ancestor.width(), screen_right])
-
-        # Moving completion widget to the left
-        # if there is not enough space to the right
-        if comp_right > anc_right:
-            point.setX(point.x() - self.width())
-
-        # Computing completion widget and its parent bottom positions
-        comp_bottom = point.y() + self.height()
-        ancestor = self.parent()
-        if ancestor is None:
-            anc_bottom = screen_bottom
-        else:
-            anc_bottom = min([ancestor.y() + ancestor.height(), screen_bottom])
-
-        # Moving completion widget above if there is not enough space below
-        x_position = point.x()
-        if comp_bottom > anc_bottom:
-            point = self.textedit.cursorRect().topRight()
-            point = self.textedit.mapToGlobal(point)
-            point.setX(x_position)
-            point.setY(point.y() - self.height())
-
-        if ancestor is not None:
-            # Useful only if we set parent to 'ancestor' in __init__
-            point = ancestor.mapFromGlobal(point)
-        self.move(point)
+        self.textedit.position_widget_at_cursor(self)
 
         if not self.is_internal_console:
             tooltip_point = self.rect().topRight()

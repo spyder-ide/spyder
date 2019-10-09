@@ -1653,6 +1653,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     assert compare_images(savefig_figname, inline_figname, 0.1) is None
 
 
+@flaky(max_runs=3)
 @pytest.mark.slow
 def test_switcher(main_window, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the switcher."""
