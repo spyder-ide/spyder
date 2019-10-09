@@ -1306,56 +1306,71 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     test_file = osp.join(LOCATION, 'script.py')
     main_window.editor.load(test_file)
 
-    # Click the debug button
-    debug_action = main_window.debug_toolbar_actions[0]
-    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
-    qtbot.wait(1000)
+    try:
+        # Click the debug button
+        debug_action = main_window.debug_toolbar_actions[0]
+        debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-    # Set a breakpoint
-    code_editor = main_window.editor.get_focus_widget()
-    code_editor.debugger.toogle_breakpoint(line_number=6)
-    qtbot.wait(500)
+        # Set a breakpoint
+        code_editor = main_window.editor.get_focus_widget()
+        code_editor.debugger.toogle_breakpoint(line_number=6)
+        qtbot.wait(500)
 
-    # Verify that c works
-    qtbot.keyClicks(control, 'c')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
-    assert nsb.editor.source_model.rowCount() == 1
+        # Verify that c works
+        qtbot.keyClicks(control, 'c')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(
+            lambda: nsb.editor.source_model.rowCount() == 1)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-    # Verify that n works
-    qtbot.keyClicks(control, 'n')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
-    assert nsb.editor.source_model.rowCount() == 2
+        # Verify that n works
+        qtbot.keyClicks(control, 'n')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(
+            lambda: nsb.editor.source_model.rowCount() == 2)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-    # Verify that doesn't go to sitecustomize.py with next and stops
-    # the debugging session.
-    qtbot.keyClicks(control, 'n')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
+        # Verify that doesn't go to sitecustomize.py with next and stops
+        # the debugging session.
+        qtbot.keyClicks(control, 'n')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-    qtbot.keyClicks(control, 'n')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
+        qtbot.keyClicks(control, 'n')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(
+            lambda: nsb.editor.source_model.rowCount() == 3)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-    assert nsb.editor.source_model.rowCount() == 3
+        qtbot.keyClicks(control, 'n')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-    qtbot.keyClicks(control, 'n')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
+        qtbot.keyClicks(control, 'n')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-    qtbot.keyClicks(control, 'n')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
+        qtbot.keyClicks(control, 'n')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(
+            lambda: 'In [2]:' in control.toPlainText())
 
-    qtbot.keyClicks(control, 'n')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(500)
-
-    # Assert that the prompt appear
-    shell.clear_console()
-    assert 'In [2]:' in control.toPlainText()
+        # Assert that the prompt appear
+        shell.clear_console()
+        assert 'In [2]:' in control.toPlainText()
+    except:
+        # print console content for debugging
+        print(control.toPlainText())
+        raise
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
@@ -1638,6 +1653,7 @@ def test_tight_layout_option_for_inline_plot(main_window, qtbot, tmpdir):
     assert compare_images(savefig_figname, inline_figname, 0.1) is None
 
 
+@flaky(max_runs=3)
 @pytest.mark.slow
 def test_switcher(main_window, qtbot, tmpdir):
     """Test the use of shorten paths when necessary in the switcher."""
