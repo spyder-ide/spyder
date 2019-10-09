@@ -42,6 +42,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         self.file_status = None
         self.mutex = QMutex()
         self.opened_files = {}
+        self.opened_files_status = {}
         self.thread_started = False
         self.enable_code_snippets = enable_code_snippets
         self.thread = QThread()
@@ -86,10 +87,9 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
 
     def get_status(self, filename):
         """Get kite status for a given filename."""
-        if (filename in self.opened_files
-                and 'status' in self.opened_files[filename]):
-            kite_status = self.opened_files[filename]['status']
-            if (status in ['ready', 'unsupported']
+        if filename in self.opened_files_status:
+            kite_status = self.opened_files_status[filename]
+            if (kite_status in ['ready', 'unsupported']
                     and check_if_kite_running()):
                 self.sig_file_status.emit(kite_status)
                 return
@@ -101,8 +101,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         self.sig_status_response_ready.emit(kite_status)
 
     def set_file_status(self, filename, status):
-        if filename in self.opened_files:
-            self.opened_files[filename]['status'] = status
+        self.opened_files_status[filename] = status
 
     def perform_http_request(self, verb, url, params=None):
         response = None
