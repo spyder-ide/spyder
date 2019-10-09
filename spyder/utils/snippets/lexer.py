@@ -32,8 +32,8 @@ token_regex = OrderedDict({
     'slash': r'^/$',
     'comma': r'^,$',
     'left_curly_name': r'^\{[a-zA-Z_]\w*$',
-    'name': r'^[a-zA-Z_]\w*$',
-    'symbol': r'^(?=[^\w]$)(?=[^\s]$)'
+    'name': r'^(?=[\w])(?=[^_\d])\w*$',
+    'symbol': r'^(?=[^\w]$)(?=[^\s]$)|_'
 })
 
 token_regex = {name: re.compile(r) for name, r in token_regex.items()}
@@ -100,6 +100,7 @@ def tokenize(snippet):
                     word = ''
                     last_name = None
             else:
+                word = temp_word
                 i += 1
     if last_name is not None:
         token = Token(last_name, word, 1, i + 1)

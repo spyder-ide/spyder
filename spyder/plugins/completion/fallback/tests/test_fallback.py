@@ -10,6 +10,7 @@ import os.path as osp
 import pytest
 from diff_match_patch import diff_match_patch
 from spyder.plugins.completion.languageserver import LSPRequestTypes
+from spyder.plugins.completion.fallback.utils import get_words
 
 
 DATA_PATH = osp.join(osp.dirname(osp.abspath(__file__)), "data")
@@ -67,7 +68,8 @@ def test_file_open_close(qtbot_module, fallback_fixture):
 
     open_request = {
         'file': 'test.py',
-        'text': TEST_FILE
+        'text': TEST_FILE,
+        'offset': -1,
     }
     fallback.send_request(
         'python', LSPRequestTypes.DOCUMENT_DID_OPEN, open_request)
@@ -83,6 +85,12 @@ def test_file_open_close(qtbot_module, fallback_fixture):
     assert 'test.py' not in fallback.fallback_actor.file_tokens
 
 
+def test_get_words():
+    source = 'foo bar123 baz car456'
+    tokens = get_words(source, 5, 'python')
+    assert set(tokens) == {'foo', 'baz', 'car456'}
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize('file_fixture', language_list, indirect=True)
 def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
@@ -93,7 +101,8 @@ def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
     # diff = diff_match.patch_make('', contents)
     open_request = {
         'file': filename,
-        'text': contents
+        'text': contents,
+        'offset': -1,
     }
     fallback.send_request(
         language, LSPRequestTypes.DOCUMENT_DID_OPEN, open_request)
@@ -118,7 +127,8 @@ def test_token_update(qtbot_module, fallback_fixture):
     # diff = diff_match.patch_make('', TEST_FILE)
     open_request = {
         'file': 'test.py',
-        'text': TEST_FILE
+        'text': TEST_FILE,
+        'offset': -1,
     }
     fallback.send_request(
         'python', LSPRequestTypes.DOCUMENT_DID_OPEN, open_request)
@@ -138,7 +148,8 @@ def test_token_update(qtbot_module, fallback_fixture):
     diff = diff_match.patch_make(TEST_FILE, TEST_FILE_UPDATE)
     update_request = {
         'file': 'test.py',
-        'diff': diff
+        'diff': diff,
+        'offset': -1,
     }
     fallback.send_request(
         'python', LSPRequestTypes.DOCUMENT_DID_CHANGE, update_request)
