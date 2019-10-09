@@ -40,8 +40,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.available_languages = []
         self.client = KiteClient(None)
         self.kite_process = None
-        self.main_window_visible = False
-        self.kite_initialized = False
         self.kite_installation_thread = KiteInstallationThread(self)
         # TODO: Connect thread status to status bar
         self.kite_installer = KiteInstallerDialog(
@@ -61,7 +59,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         logger.debug('Kite client is available for {0}'.format(languages))
         self.available_languages = languages
         self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME)
-        self.kite_initialized = True
         self._kite_onboarding()
 
     @Slot()
@@ -71,7 +68,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         to let us do onboarding if necessary
         """
         self._show_installation_dialog()
-        self.main_window_visible = True
         self._kite_onboarding()
 
     def _show_installation_dialog(self):
@@ -94,20 +90,21 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         return language in self.available_languages
 
     def start(self):
-        # Always start client to support possibly undetected Kite builds
-        self.client.start()
-
-        if not self.enabled:
-            return
-        installed, path = check_if_kite_installed()
-        if not installed:
-            return
-        logger.debug('Kite was found on the system: {0}'.format(path))
-        running = check_if_kite_running()
-        if running:
-            return
-        logger.debug('Starting Kite service...')
-        self.kite_process = run_program(path)
+        try:
+            if not self.enabled:
+                return
+            installed, path = check_if_kite_installed()
+            if not installed:
+                return
+            logger.debug('Kite was found on the system: {0}'.format(path))
+            running = check_if_kite_running()
+            if running:
+                return
+            logger.debug('Starting Kite service...')
+            self.kite_process = run_program(path)
+        finally:
+            # Always start client to support possibly undetected Kite builds
+            self.client.start()
 
     def shutdown(self):
         self.client.stop()
@@ -126,16 +123,26 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         is not possible yet or has already been displayed before.
         :return:
         """
-        if self.main_window_visible \
-                and self.kite_initialized \
-                and self.get_option('kite_show_onboarding', True):
-            onboarding_file = self.client.get_onboarding_file()
-            if onboarding_file is None:
-                # fixme: show onboarding notification
-                pass
-            else:
-                self.set_option('kite_show_onboarding', False)
-                self.main.open_file(onboarding_file)
+        if not self.enabled:
+            return
+        if not self.get_option('kite_show_onboarding'):
+            return
+        if self.main.is_setting_up:
+            return
+        if not self.available_languages:
+            return
+        if not self.kite_process:
+            installed, _ = check_if_kite_installed()
+            if not installed:
+                return
+
+        onboarding_file = self.client.get_onboarding_file()
+        if onboarding_file is None:
+            # fixme: show onboarding notification
+            pass
+        else:
+            self.set_option('kite_show_onboarding', False)
+            self.main.open_file(onboarding_file)
 
     def is_installing(self):
         """Check if an installation is taking place."""
