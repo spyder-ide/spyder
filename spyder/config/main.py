@@ -510,7 +510,6 @@ DEFAULTS = [
               'call_to_action': True,
               # Enable the installation dialog
               'show_installation_dialog': True,
-              'call_to_action': True,
              }),
             ]
 
