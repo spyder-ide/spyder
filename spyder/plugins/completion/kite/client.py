@@ -32,14 +32,14 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     sig_client_not_responding = Signal()
     sig_perform_request = Signal(int, str, object)
     sig_perform_status_request = Signal(str)
-    sig_status_response_ready = Signal(object)
+    sig_str_status_response_ready = Signal(str)
+    sig_dict_status_response_ready = Signal(dict)
 
     def __init__(self, parent, enable_code_snippets=True):
         QObject.__init__(self, parent)
         self.endpoint = None
         self.requests = {}
         self.languages = []
-        self.file_status = None
         self.mutex = QMutex()
         self.opened_files = {}
         self.opened_files_status = {}
@@ -87,21 +87,12 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
 
     def get_status(self, filename):
         """Get kite status for a given filename."""
-        if filename in self.opened_files_status:
-            kite_status = self.opened_files_status[filename]
-            if (kite_status in ['ready', 'unsupported']
-                    and check_if_kite_running()):
-                self.sig_file_status.emit(kite_status)
-                return
         kite_status = self._get_status(filename)
-        if filename and kite_status is not None:
-            self.set_file_status(filename, kite_status)
-        else:
+        if not filename or kite_status is None:
             kite_status = status()
-        self.sig_status_response_ready.emit(kite_status)
-
-    def set_file_status(self, filename, status):
-        self.opened_files_status[filename] = status
+            self.sig_str_status_response_ready.emit(kite_status)
+        else:
+            self.sig_dict_status_response_ready.emit(kite_status)
 
     def perform_http_request(self, verb, url, params=None):
         response = None
