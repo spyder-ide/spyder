@@ -108,6 +108,17 @@ def expected_case_unsensitive_results():
     return results
 
 
+def expected_lineending_case_insensitive_results():
+    results = {'lineendtest.bintxt': [(2, 1), (3, 1), (4, 1), (5, 1), (6, 1),
+                                      (7, 1)]}
+    return results
+
+
+def expected_lineending_case_sensitive_results():
+    results = {'lineendtest.bintxt': [(2, 1), (3, 1), (6, 1), (7, 1)]}
+    return results
+
+
 @flaky(max_runs=5)
 def test_find_in_files_search(findinfiles, qtbot):
     """
@@ -563,6 +574,38 @@ def test_max_history(searchin_combobox, mocker):
     ]
     assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
+
+
+@pytest.mark.parametrize('findinfiles',
+                         [{'exclude': "", 'exclude_regexp': False,
+                           'search_text_regexp': True,
+                           'case_sensitive': False}],
+                         indirect=True)
+def test_findinfiles_lineending_regexp(findinfiles, qtbot):
+    findinfiles.set_search_text("Oo$")
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.find()
+    blocker = qtbot.waitSignal(findinfiles.sig_finished)
+    blocker.wait()
+    matches = process_search_results(findinfiles.result_browser.data)
+    print(matches)
+    assert expected_lineending_case_insensitive_results() == matches
+
+
+@pytest.mark.parametrize('findinfiles',
+                         [{'exclude': "", 'exclude_regexp': False,
+                           'search_text_regexp': True,
+                           'case_sensitive': True}],
+                         indirect=True)
+def test_findinfiles_lineending_case_sensitive_regexp(findinfiles, qtbot):
+    findinfiles.set_search_text("oo$")
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.find()
+    blocker = qtbot.waitSignal(findinfiles.sig_finished)
+    blocker.wait()
+    matches = process_search_results(findinfiles.result_browser.data)
+    print(matches)
+    assert expected_lineending_case_sensitive_results() == matches
 
 
 if __name__ == "__main__":
