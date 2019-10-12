@@ -55,9 +55,9 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
 
         # Signals
         self.client.sig_client_started.connect(self.http_client_ready)
-        self.client.sig_str_status_response_ready.connect(
+        self.client.sig_status_response_ready[str].connect(
             self.set_kite_status)
-        self.client.sig_dict_status_response_ready.connect(
+        self.client.sig_status_response_ready[dict].connect(
             self.set_kite_status)
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
