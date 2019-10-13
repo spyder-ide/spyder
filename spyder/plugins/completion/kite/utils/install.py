@@ -149,7 +149,7 @@ class KiteInstallationThread(QThread):
             stderr=subprocess.STDOUT,
             shell=True
             )
-        while True and not self.cancelled:
+        while not self.cancelled:
             progress = download_process.stdout.readline()
             progress = to_text_string(progress, "utf-8")
             if progress == '' and download_process.poll() is not None:
@@ -159,10 +159,12 @@ class KiteInstallationThread(QThread):
                 current_progress = download_progress.split('/')[0]
                 total_size = download_progress.split('/')[1]
                 self.sig_download_progress.emit(current_progress, total_size)
-        download_process.stdout.close()
-        return_code = download_process.wait()
+
         if self.cancelled:
             raise KiteInstallationCancelledException()
+
+        download_process.stdout.close()
+        return_code = download_process.wait()
         if return_code:
             raise subprocess.CalledProcessError(return_code, download_command)
 
