@@ -182,11 +182,6 @@ class HoverEventFilter(QObject):
 class KiteInstallation(QWidget):
     """Kite progress installation widget."""
 
-    # Signal to check clicks on the ok button
-    sig_ok_button_clicked = Signal()
-    # Signal to check clicks on the cancel button
-    sig_cancel_button_clicked = Signal()
-
     def __init__(self, parent):
         super(KiteInstallation, self).__init__(parent)
 
@@ -199,11 +194,11 @@ class KiteInstallation(QWidget):
         self._progress_bar = QProgressBar(self)
         self._progress_bar.setFixedWidth(180)
         self._progress_widget.installEventFilter(self._progress_filter)
-        cancel_button = QPushButton()
-        cancel_button.setIcon(ima.icon('DialogCloseButton'))
-        cancel_button.hide()
+        self.cancel_button = QPushButton()
+        self.cancel_button.setIcon(ima.icon('DialogCloseButton'))
+        self.cancel_button.hide()
         progress_layout.addWidget(self._progress_bar, alignment=Qt.AlignLeft)
-        progress_layout.addWidget(cancel_button)
+        progress_layout.addWidget(self.cancel_button)
         self._progress_widget.setLayout(progress_layout)
 
         self._progress_label = QLabel(_('Downloading'))
@@ -216,9 +211,9 @@ class KiteInstallation(QWidget):
               "rest of the setup process."))
 
         button_layout = QHBoxLayout()
-        ok_button = QPushButton(_('OK'))
+        self.ok_button = QPushButton(_('OK'))
         button_layout.addStretch()
-        button_layout.addWidget(ok_button)
+        button_layout.addWidget(self.ok_button)
         button_layout.addStretch()
 
         action_layout.addStretch()
@@ -255,12 +250,10 @@ class KiteInstallation(QWidget):
         self.setLayout(general_layout)
 
         # Signals
-        ok_button.clicked.connect(self.sig_ok_button_clicked)
-        cancel_button.clicked.connect(self.sig_cancel_button_clicked)
         self._progress_filter.sig_hover_enter.connect(
-            lambda: cancel_button.show())
+            lambda: self.cancel_button.show())
         self._progress_filter.sig_hover_leave.connect(
-            lambda: cancel_button.hide())
+            lambda: self.cancel_button.hide())
 
     def update_installation_status(self, status):
         """Update installation status (downloading, installing, finished)."""
@@ -320,9 +313,9 @@ class KiteInstallerDialog(QDialog):
             self.install)
         self._welcome_widget.sig_dismiss_button_clicked.connect(
             self.reject)
-        self._installation_widget.sig_ok_button_clicked.connect(
+        self._installation_widget.ok_button.clicked.connect(
             self.close_installer)
-        self._installation_widget.sig_cancel_button_clicked.connect(
+        self._installation_widget.cancel_button.clicked.connect(
             self.cancel_install)
 
         # Show integration widget
