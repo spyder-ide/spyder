@@ -86,7 +86,11 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         installation dialog and onboarding if necessary.
         """
         kite_installation_enabled = self.get_option('show_installation_dialog')
+
         if kite_installation_enabled:
+            # Only show dialog one time
+            self.set_option('show_installation_dialog', False)
+
             self.show_installation_dialog()
 
     @Slot(str)

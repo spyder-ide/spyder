@@ -19,7 +19,6 @@ from qtpy.QtWidgets import (QApplication, QDialog, QHBoxLayout, QMessageBox,
 # Local imports
 from spyder.config.base import _, get_image_path
 from spyder.config.gui import is_dark_interface
-from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
 from spyder.plugins.completion.kite.utils.install import (ERRORED, INSTALLING,
                                                           FINISHED, CANCELLED)
@@ -328,9 +327,6 @@ class KiteInstallerDialog(QDialog):
 
         # Show integration widget
         self.setup()
-
-        # Only show dialog one time
-        CONF.set('kite', 'show_installation_dialog', False)
 
     def _handle_error_msg(self, msg):
         """Handle error message with an error dialog."""
