@@ -43,30 +43,30 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.kite_process = None
 
         # Installation
-        self.kite_installation_thread = KiteInstallationThread(self)
-        self.kite_installer = KiteInstallerDialog(
+        self.installation_thread = KiteInstallationThread(self)
+        self.installer = KiteInstallerDialog(
             parent,
-            self.kite_installation_thread)
+            self.installation_thread)
 
         # Status
         statusbar = parent.statusBar()  # MainWindow status bar
         self.open_file_updated = False
-        self.kite_status_widget = KiteStatusWidget(None, statusbar, self)
+        self.status_widget = KiteStatusWidget(None, statusbar, self)
 
         # Signals
         self.client.sig_client_started.connect(self.http_client_ready)
         self.client.sig_status_response_ready[str].connect(
-            self.set_kite_status)
+            self.set_status)
         self.client.sig_status_response_ready[dict].connect(
-            self.set_kite_status)
+            self.set_status)
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
                               self.COMPLETION_CLIENT_NAME))
-        self.kite_installation_thread.sig_installation_status.connect(
-            self.set_kite_status)
-        self.kite_installer.sig_visibility_changed.connect(
+        self.installation_thread.sig_installation_status.connect(
+            self.set_status)
+        self.installer.sig_visibility_changed.connect(
             self.show_status_tooltip)
-        self.kite_status_widget.sig_clicked.connect(
+        self.status_widget.sig_clicked.connect(
             self.show_installation_dialog)
         self.main.sig_setup_finished.connect(self.mainwindow_setup_finished)
 
@@ -85,9 +85,9 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         This is called after the main window setup finishes to show Kite's
         installation dialog and onboarding if necessary.
         """
-        kite_installation_enabled = self.get_option('show_installation_dialog')
+        show_dialog = self.get_option('show_installation_dialog')
 
-        if kite_installation_enabled:
+        if show_dialog:
             # Only show dialog one time
             self.set_option('show_installation_dialog', False)
 
@@ -95,9 +95,9 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
 
     @Slot(str)
     @Slot(dict)
-    def set_kite_status(self, status):
+    def set_status(self, status):
         """Show Kite status for the current file."""
-        self.kite_status_widget.set_value(status)
+        self.status_widget.set_value(status)
 
     @Slot(bool)
     def show_status_tooltip(self, visible):
@@ -106,17 +106,17 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             if self.is_installing():
                 text = _("Kite installation will continue in the background."
                          "<br>Click here to show the installation "
-                         "dialog again.")
+                         "dialog again")
             else:
-                text = _("Click here to show the installation dialog again.")
-            self.kite_status_widget.show_tooltip(text)
+                text = _("Click here to show the installation dialog again")
+            self.status_widget.show_tooltip(text)
 
     @Slot()
     def show_installation_dialog(self):
         """Show installation dialog."""
         installed, path = check_if_kite_installed()
         if not installed and not running_under_pytest():
-            self.kite_installer.show()
+            self.installer.show()
 
     def send_request(self, language, req_type, req, req_id):
         if self.enabled and language in self.available_languages:
@@ -161,9 +161,9 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
 
     def is_installing(self):
         """Check if an installation is taking place."""
-        return (self.kite_installation_thread.isRunning()
-                and not self.kite_installation_thread.cancelled)
+        return (self.installation_thread.isRunning()
+                and not self.installation_thread.cancelled)
 
     def installation_cancelled_or_errored(self):
         """Check if an installation was cancelled or failed."""
-        return self.kite_installation_thread.cancelled_or_errored()
+        return self.installation_thread.cancelled_or_errored()

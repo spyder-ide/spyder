@@ -274,7 +274,7 @@ class KiteInstallerDialog(QDialog):
     # bool: if the dialog is visible or not
     sig_visibility_changed = Signal(bool)
 
-    def __init__(self, parent, kite_installation_thread):
+    def __init__(self, parent, installation_thread):
         super(KiteInstallerDialog, self).__init__(parent)
         if sys.platform == 'darwin':
             self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint
@@ -282,7 +282,7 @@ class KiteInstallerDialog(QDialog):
         else:
             self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
         self._parent = parent
-        self._installation_thread = kite_installation_thread
+        self._installation_thread = installation_thread
         self._integration_widget = KiteIntegrationInfo(self)
         self._welcome_widget = KiteWelcome(self)
         self._installation_widget = KiteInstallation(self)
