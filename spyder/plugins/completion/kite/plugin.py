@@ -42,13 +42,13 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client = KiteClient(None)
         self.kite_process = None
 
-        # Installation
+        # Installation dialog
         self.installation_thread = KiteInstallationThread(self)
         self.installer = KiteInstallerDialog(
             parent,
             self.installation_thread)
 
-        # Status
+        # Status widget
         statusbar = parent.statusBar()  # MainWindow status bar
         self.open_file_updated = False
         self.status_widget = KiteStatusWidget(None, statusbar, self)
@@ -64,8 +64,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
                               self.COMPLETION_CLIENT_NAME))
         self.installation_thread.sig_installation_status.connect(
             self.set_status)
-        self.installer.sig_visibility_changed.connect(
-            self.show_status_tooltip)
         self.status_widget.sig_clicked.connect(
             self.show_installation_dialog)
         self.main.sig_setup_finished.connect(self.mainwindow_setup_finished)
@@ -88,7 +86,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         show_dialog = self.get_option('show_installation_dialog')
 
         if show_dialog:
-            # Only show dialog one time
+            # Only show the dialog once at startup
             self.set_option('show_installation_dialog', False)
 
             self.show_installation_dialog()
@@ -98,18 +96,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def set_status(self, status):
         """Show Kite status for the current file."""
         self.status_widget.set_value(status)
-
-    @Slot(bool)
-    def show_status_tooltip(self, visible):
-        """Show tooltip over the status widget for the installation process."""
-        if not visible:
-            if self.is_installing():
-                text = _("Kite installation will continue in the background."
-                         "<br>Click here to show the installation "
-                         "dialog again")
-            else:
-                text = _("Click here to show the installation dialog again")
-            self.status_widget.show_tooltip(text)
 
     @Slot()
     def show_installation_dialog(self):

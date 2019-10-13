@@ -14,7 +14,6 @@ import logging
 # Local imports
 from spyder.config.base import _
 from spyder.utils import icon_manager as ima
-from spyder.widgets.calltip import ToolTipWidget
 from spyder.widgets.status import StatusBarWidget
 from spyder.plugins.completion.kite.utils.status import (
     check_if_kite_installed, NOT_INSTALLED)
@@ -32,7 +31,6 @@ class KiteStatusWidget(StatusBarWidget):
         self.tooltip = self.BASE_TOOLTIP
         super(KiteStatusWidget, self).__init__(parent, statusbar,
                                                icon=ima.get_kite_icon())
-        self.tooltip_widget = ToolTipWidget(self, as_tooltip=True)
         is_installed, _ = check_if_kite_installed()
         self.setVisible(is_installed)
 
@@ -40,14 +38,23 @@ class KiteStatusWidget(StatusBarWidget):
         """Return Kite completions state."""
         kite_enabled = self.plugin.get_option('enable')
         is_installing = self.plugin.is_installing()
-        installation_status = self.plugin.installation_cancelled_or_errored()
+        cancelled_or_errored = self.plugin.installation_cancelled_or_errored()
+
         if (value is not None and 'short' in value):
             self.tooltip = value['long']
             value = value['short']
-        elif value is not None and is_installing or installation_status:
+        elif value is not None and (is_installing or cancelled_or_errored):
             self.setVisible(True)
             if value == NOT_INSTALLED:
                 return
+            elif is_installing:
+                self.tooltip = _("Kite installation will continue in the "
+                                 "background.\n"
+                                 "Click here to show the installation "
+                                 "dialog again")
+            elif cancelled_or_errored:
+                self.tooltip = _("Click here to show the\n"
+                                 "installation dialog again")
         elif value is None:
             value = self.DEFAULT_STATUS
             self.tooltip = self.BASE_TOOLTIP
@@ -59,12 +66,3 @@ class KiteStatusWidget(StatusBarWidget):
     def get_tooltip(self):
         """Reimplementation to get a dynamic tooltip."""
         return self.tooltip
-
-    def show_tooltip(self, text=None):
-        """Show tooltip for a period of time."""
-        if not self.isVisible():
-            return
-        if not text:
-            text = self.tooltip
-        pos = self.parent().mapToGlobal(self.pos())
-        self.tooltip_widget.show_basic_tip(pos, text)

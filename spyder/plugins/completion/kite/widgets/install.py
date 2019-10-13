@@ -270,10 +270,6 @@ class KiteInstallation(QWidget):
 class KiteInstallerDialog(QDialog):
     """Kite installer."""
 
-    # Signal to inform about visibility changes
-    # bool: if the dialog is visible or not
-    sig_visibility_changed = Signal(bool)
-
     def __init__(self, parent, installation_thread):
         super(KiteInstallerDialog, self).__init__(parent)
         if sys.platform == 'darwin':
@@ -392,16 +388,6 @@ class KiteInstallerDialog(QDialog):
             self.accept()
         else:
             self.hide()
-
-    def showEvent(self, event):
-        """Reimplement Qt method."""
-        self.sig_visibility_changed.emit(True)
-        super(KiteInstallerDialog, self).showEvent(event)
-
-    def hideEvent(self, event):
-        """Reimplement Qt method."""
-        self.sig_visibility_changed.emit(False)
-        super(KiteInstallerDialog, self).hideEvent(event)
 
     def reject(self):
         """Reimplement Qt method."""
