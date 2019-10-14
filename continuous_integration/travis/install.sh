@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
-# -- Install Miniconda in Travis
-if ["$TRAVIS" = "true"]; then
+# -- Install Miniconda
+if [ "$TRAVIS" = "true" ] || [ "$CIRCLECI" = "true" ]; then
     MINICONDA=Miniconda3-latest-Linux-x86_64.sh
     wget https://repo.continuum.io/miniconda/$MINICONDA -O miniconda.sh
     bash miniconda.sh -b -p $HOME/miniconda
@@ -34,7 +34,7 @@ if [ "$USE_CONDA" = "yes" ]; then
     conda install -q -y openssl=1.1.1c
 
     # Install coveralls in Travis
-    if ["$TRAVIS" = "true"]; then
+    if [ "$TRAVIS" = "true" ]; then
         pip install -q coveralls
     fi
 
