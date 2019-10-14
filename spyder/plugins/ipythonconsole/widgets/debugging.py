@@ -211,7 +211,6 @@ class DebuggingWidget(RichJupyterWidget):
             self._pdb_history_file.store_inputs(line_num, line)
 
     # --- Private API --------------------------------------------------
-
     def _is_pdb_complete(self, source):
         """
         Check if the pdb input is ready to be executed.
@@ -228,7 +227,6 @@ class DebuggingWidget(RichJupyterWidget):
         return complete != 'incomplete', indent
 
     # ---- Public API (overrode by us) ----------------------------
-
     def execute(self, source=None, hidden=False, interactive=False):
         """ Executes source or the input buffer, possibly prompting for more
         input.
