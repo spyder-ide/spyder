@@ -22,7 +22,7 @@ from spyder.config.manager import CONF
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
-from spyder.utils import programs, encoding
+from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style, create_style_class
 from spyder.widgets.helperwidgets import MessageCheckBox
