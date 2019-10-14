@@ -76,6 +76,7 @@ class DocumentProvider:
         }
 
         with QMutexLocker(self.mutex):
+            self.get_status(params['file'])
             self.opened_files[params['file']] = params['text']
         return request
 

@@ -139,6 +139,8 @@ class Editor(SpyderPluginWidget):
         self.dialog_size = None
 
         statusbar = parent.statusBar()  # Create a status bar
+        # Remove separator line
+        statusbar.setStyleSheet('QStatusBar::item {border: None;}')
         self.vcs_status = VCSStatus(self, statusbar)
         self.cursorpos_status = CursorPositionStatus(self, statusbar)
         self.encoding_status = EncodingStatus(self, statusbar)
@@ -316,6 +318,11 @@ class Editor(SpyderPluginWidget):
     def send_completion_request(self, language, request, params):
         logger.debug("%s completion server request: %r" % (language, request))
         self.main.completions.send_request(language, request, params)
+
+    def kite_completions_file_status(self):
+        """Connect open_file_update to Kite's status."""
+        self.open_file_update.connect(
+            self.main.completions.get_client('kite').send_status_request)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
