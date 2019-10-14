@@ -11,7 +11,7 @@ psutil
 pygments >=2.0
 pylint
 pyqt <5.13
-python-language-server >=0.28.3
+python-language-server >=0.29.0
 pyxdg
 pyzmq
 qdarkstyle >=2.7
