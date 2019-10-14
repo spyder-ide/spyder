@@ -1,10 +1,12 @@
 #!/bin/bash -ex
 
-# -- Install Miniconda
-MINICONDA=Miniconda3-latest-Linux-x86_64.sh
-wget https://repo.continuum.io/miniconda/$MINICONDA -O miniconda.sh
-bash miniconda.sh -b -p $HOME/miniconda
-source $HOME/miniconda/etc/profile.d/conda.sh
+# -- Install Miniconda in Travis
+if ["$TRAVIS" = "true"]; then
+    MINICONDA=Miniconda3-latest-Linux-x86_64.sh
+    wget https://repo.continuum.io/miniconda/$MINICONDA -O miniconda.sh
+    bash miniconda.sh -b -p $HOME/miniconda
+    source $HOME/miniconda/etc/profile.d/conda.sh
+fi
 
 
 # -- Make new conda environment with required Python version
@@ -31,8 +33,10 @@ if [ "$USE_CONDA" = "yes" ]; then
     # Github backend tests are failing with 1.1.1d
     conda install -q -y openssl=1.1.1c
 
-    # Install coveralls
-    pip install -q coveralls
+    # Install coveralls in Travis
+    if ["$TRAVIS" = "true"]; then
+        pip install -q coveralls
+    fi
 
     # Install spyder-kernels from Github with no deps
     pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
