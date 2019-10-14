@@ -1289,7 +1289,8 @@ def test_varexp_edit_inline(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="It times out sometimes on Windows and macOS")
 def test_c_and_n_pdb_commands(main_window, qtbot):
     """Test that c and n Pdb commands update the Variable Explorer."""
     nsb = main_window.variableexplorer.get_focus_widget()
