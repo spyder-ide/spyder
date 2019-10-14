@@ -100,8 +100,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'run_cell': self.handle_run_cell,
             'cell_count': self.handle_cell_count,
             'current_filename': self.handle_current_filename,
-            'get_file_code': self._handle_get_file_code,
-            'set_debug_state': self._handle_debug_state,
+            'get_file_code': self.handle_get_file_code,
+            'set_debug_state': self.handle_debug_state,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
@@ -484,7 +484,7 @@ the sympy module (e.g. plot)
             return editor.get_current_editorstack()
         raise RuntimeError('No editorstack found.')
 
-    def _handle_get_file_code(self, filename):
+    def handle_get_file_code(self, filename):
         """
         Return the bytes that compose the file.
 

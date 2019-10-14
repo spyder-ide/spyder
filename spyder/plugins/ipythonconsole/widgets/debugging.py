@@ -60,7 +60,7 @@ class DebuggingWidget(RichJupyterWidget):
                 self.PDB_HIST_MAX, include_latest=True)]
         self._pdb_in_loop = False
 
-    def _handle_debug_state(self, in_debug_loop):
+    def handle_debug_state(self, in_debug_loop):
         """Update the debug state."""
         self._pdb_in_loop = in_debug_loop
         # If debugging starts or stops, clear the input queue.
