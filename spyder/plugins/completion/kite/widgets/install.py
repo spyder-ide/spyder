@@ -24,6 +24,9 @@ from spyder.plugins.completion.kite.utils.install import (ERRORED, INSTALLING,
                                                           FINISHED, CANCELLED)
 
 
+KITE_CONTACT_URL = "https://kite.com/contact/"
+
+
 class KiteIntegrationInfo(QWidget):
     """Initial Widget with info about the integration with Kite."""
     # Signal triggered for the 'Learn more' button
@@ -319,19 +322,13 @@ class KiteInstallerDialog(QDialog):
 
     def _handle_error_msg(self, msg):
         """Handle error message with an error dialog."""
-        error_message_dialog = QMessageBox(self._parent)
-        error_message_dialog.setText(
-            _("<b>An error ocurred while Kite was installing!</b><br><br>"
-              "You can follow our manual install instructions to<br>"
-              "integrate Kite with Spyder yourself."))
-        error_message_dialog.setWindowTitle(_('Kite install error'))
-
-        get_help_button = QPushButton(_('Contact Kite for help'))
-        get_help_button.clicked.connect(
-            lambda: QDesktopServices.openUrl(
-                    QUrl('https://kite.com/contact/')))
-        error_message_dialog.addButton(get_help_button, QMessageBox.ActionRole)
-        error_message_dialog.exec_()
+        QMessageBox.critical(
+            self._parent,
+            _('Kite installation error'),
+            _("<b>An error ocurred while installing Kite!</b><br><br>"
+              "Please try to install it manually or "
+              "<a href=\"{kite_contact}\">contact Kite</a> "
+              "for help").format(kite_contact=KITE_CONTACT_URL))
         self.accept()
 
     def setup(self, integration=True, welcome=False, installation=False):
