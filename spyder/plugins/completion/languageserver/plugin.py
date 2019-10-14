@@ -17,13 +17,14 @@ import functools
 
 # Third-party imports
 from qtpy.QtCore import Slot
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import get_conf_path, running_under_pytest
+from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.manager import CONF
 from spyder.api.completion import SpyderCompletionPlugin
-from spyder.utils.misc import getcwd_or_home
+from spyder.utils.misc import check_connection_port, getcwd_or_home
 from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.completion.languageserver.client import LSPClient
 from spyder.plugins.completion.languageserver.confpage import (
@@ -139,6 +140,29 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         self.main.console.exception_occurred(error, is_traceback=True,
                                              is_pyls_error=True)
 
+    def report_no_external_server(self, host, port, language):
+        """
+        Report that connection couldn't be established with
+        an external server.
+        """
+        QMessageBox.critical(
+            self.main,
+            _("Error"),
+            _("It appears there is no {language} language server listening "
+              "at address:"
+              "<br><br>"
+              "<tt>{host}:{port}</tt>"
+              "<br><br>"
+              "Therefore, completion and linting for {language} will not "
+              "work during this session."
+              "<br><br>"
+              "To fix this, please verify that your firewall or antivirus "
+              "allows Python processes to open ports in your system, or the "
+              "settings you introduced in our Preferences to connect to "
+              "external LSP servers.").format(host=host, port=port,
+                                              language=language.capitalize())
+        )
+
     def start_client(self, language):
         """Start an LSP client for a given language."""
         started = False
@@ -157,6 +181,17 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
 
+                # If we're trying to connect to an external server,
+                # verify that it's listening before creating a
+                # client for it.
+                if config['external']:
+                    host = config['host']
+                    port = config['port']
+                    response = check_connection_port(host, port)
+                    if not response:
+                        self.report_no_external_server(host, port, language)
+                        return False
+
                 language_client['instance'] = LSPClient(
                     parent=self,
                     server_settings=config,
@@ -170,7 +205,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 language_client['instance'].start()
                 language_client['status'] = self.RUNNING
                 for entry in queue:
-                    language_client.register_file(*entry)
+                    language_client['instance'].register_file(*entry)
                 self.register_queue[language] = []
         return started
 
@@ -193,35 +228,45 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
     def update_configuration(self):
         for language in self.get_languages():
-            config = {'status': self.STOPPED,
-                      'config': self.get_language_config(language),
-                      'instance': None}
+            client_config = {'status': self.STOPPED,
+                             'config': self.get_language_config(language),
+                             'instance': None}
             if language not in self.clients:
-                self.clients[language] = config
+                self.clients[language] = client_config
                 self.register_queue[language] = []
             else:
-                current_config = self.clients[language]['config']
-                new_config = config['config']
+                current_lang_config = self.clients[language]['config']
+                new_lang_config = client_config['config']
                 restart_diff = ['cmd', 'args', 'host',
                                 'port', 'external', 'stdio']
-                restart = any([current_config[x] != new_config[x]
+                restart = any([current_lang_config[x] != new_lang_config[x]
                                for x in restart_diff])
                 if restart:
                     logger.debug("Restart required for {} client!".format(
                         language))
                     if self.clients[language]['status'] == self.STOPPED:
-                        self.clients[language] = config
+                        # If we move from an external non-working server to
+                        # an internal one, we need to start a new client.
+                        if (current_lang_config['external'] and
+                                not new_lang_config['external']):
+                            self.restart_client(language, client_config)
+                        else:
+                            self.clients[language] = client_config
                     elif self.clients[language]['status'] == self.RUNNING:
-                        self.main.editor.stop_completion_services(language)
-                        self.main.projects.stop_lsp_services()
-                        self.close_client(language)
-                        self.clients[language] = config
-                        self.start_client(language)
+                        self.restart_client(language, client_config)
                 else:
                     if self.clients[language]['status'] == self.RUNNING:
                         client = self.clients[language]['instance']
                         client.send_plugin_configurations(
-                            new_config['configurations'])
+                            new_lang_config['configurations'])
+
+    def restart_client(self, language, config):
+        """Restart a client."""
+        self.main.editor.stop_completion_services(language)
+        self.main.projects.stop_lsp_services()
+        self.close_client(language)
+        self.clients[language] = config
+        self.start_client(language)
 
     def update_client_status(self, active_set):
         for language in self.clients:
@@ -253,6 +298,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 params['response_callback'] = functools.partial(
                     self.receive_response, language=language, req_id=req_id)
                 client.perform_request(request, params)
+        else:
+            self.sig_response_ready.emit(self.COMPLETION_CLIENT_NAME,
+                                         req_id, {})
 
     def send_notification(self, language, request, params):
         if language in self.clients:

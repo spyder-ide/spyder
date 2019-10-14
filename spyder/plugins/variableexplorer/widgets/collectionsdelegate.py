@@ -98,7 +98,7 @@ class CollectionsDelegate(QItemDelegate):
                 self.parent(), _("Error"),
                 _("Spyder was unable to retrieve the value of "
                   "this variable from the console.<br><br>"
-                  "The error mesage was:<br>"
+                  "The error message was:<br>"
                   "<i>%s</i>") % to_text_string(msg))
             return
 
@@ -432,7 +432,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 self.parent(), _("Error"),
                 _("Spyder was unable to retrieve the value of "
                   "this variable from the console.<br><br>"
-                  "The error mesage was:<br>"
+                  "The error message was:<br>"
                   "<i>%s</i>") % to_text_string(msg))
             return
         self.current_index = index

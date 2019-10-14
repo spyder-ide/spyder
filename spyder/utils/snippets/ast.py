@@ -123,7 +123,6 @@ def switch_context(current_rule, current_ctx, current_args, current_prefix,
 
 def build_snippet_ast(snippet_text):
     """Given a snippet string, return its abstract syntax tree (AST)."""
-    snippet_text = codecs.decode(snippet_text, 'unicode_escape')
     tokens = tokenize(snippet_text)
     tokens += [Token('eof', '<eof>')]
 
