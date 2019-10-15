@@ -1,17 +1,15 @@
 #!/bin/bash -ex
 
-# -- Install Miniconda and create a test env
-if [ "$TRAVIS" = "true" ] || [ "$CIRCLECI" = "true" ]; then
-    # Install Miniconda
-    MINICONDA=Miniconda3-latest-Linux-x86_64.sh
-    wget https://repo.continuum.io/miniconda/$MINICONDA -O miniconda.sh
-    bash miniconda.sh -b -p $HOME/miniconda
+# -- Install Miniconda
+MINICONDA=Miniconda3-latest-Linux-x86_64.sh
+wget https://repo.continuum.io/miniconda/$MINICONDA -O miniconda.sh
+bash miniconda.sh -b -p $HOME/miniconda
+source $HOME/miniconda/etc/profile.d/conda.sh
 
-    # Create env
-    source $HOME/miniconda/etc/profile.d/conda.sh
-    conda create -y -n test python=$PYTHON_VERSION
-    conda activate test
-fi
+
+# -- Make new conda environment with required Python version
+conda create -y -n test python=$PYTHON_VERSION
+conda activate test
 
 
 # -- Installl dependencies
@@ -33,10 +31,8 @@ if [ "$USE_CONDA" = "yes" ]; then
     # Github backend tests are failing with 1.1.1d
     conda install -q -y openssl=1.1.1c
 
-    # Install coveralls in Travis
-    if [ "$TRAVIS" = "true" ]; then
-        pip install -q coveralls
-    fi
+    # Install coveralls
+    pip install -q coveralls
 
     # Install spyder-kernels from Github with no deps
     pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
