@@ -11,8 +11,8 @@ import mimetypes as mime
 import sys
 
 # Third party imports
-from qtpy.QtCore import QBuffer, QByteArray
-from qtpy.QtGui import QIcon, QImage
+from qtpy.QtCore import QBuffer, QByteArray, Qt
+from qtpy.QtGui import QIcon, QImage, QPixmap
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
@@ -401,6 +401,24 @@ def icon(name, scale_factor=None, resample=False, icon_path=None):
         return icon if icon is not None else QIcon()
 
 
+def get_kite_icon(scale_factor=0.85):
+    """Return the Kite logo taking into account the theme of the interface."""
+    icon_path = 'kite_light.svg'
+    if is_dark_interface():
+        icon_path = 'kite_dark.svg'
+    pixmap = QPixmap(get_image_path(icon_path))
+    if scale_factor is not None:
+        pixmap_height = 16 * scale_factor
+        pixmap_width = 16 * scale_factor
+        pixmap = pixmap.scaled(
+            pixmap_width,
+            pixmap_height,
+            aspectRatioMode=Qt.KeepAspectRatio,
+            transformMode=Qt.SmoothTransformation)
+    kite_icon = QIcon(pixmap)
+    return kite_icon
+
+
 def get_icon_by_extension_or_type(fname, scale_factor):
     """Return the icon depending on the file extension"""
     application_icons = {}
@@ -476,6 +494,11 @@ def get_icon_by_extension_or_type(fname, scale_factor):
 def base64_from_icon(icon_name, width, height):
     """Convert icon to base64 encoding."""
     icon_obj = icon(icon_name)
+    return base64_from_icon_obj(icon_obj, width, height)
+
+
+def base64_from_icon_obj(icon_obj, width, height):
+    """Convert icon object to base64 enconding."""
     image = QImage(icon_obj.pixmap(width, height).toImage())
     byte_array = QByteArray()
     buffer = QBuffer(byte_array)

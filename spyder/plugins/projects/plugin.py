@@ -33,7 +33,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
-from spyder.plugins.projects.widgets import EmptyProject
+from spyder.plugins.projects.projecttypes import EmptyProject
 from spyder.plugins.completion.languageserver import (
     LSPRequestTypes, FileChangeType)
 from spyder.plugins.completion.decorators import (
@@ -105,9 +105,6 @@ class Projects(SpyderPluginWidget):
         self.clear_recent_projects_action =\
             create_action(self, _("Clear this list"),
                           triggered=self.clear_recent_projects)
-        self.edit_project_preferences_action =\
-            create_action(self, _("Project Preferences"),
-                          triggered=self.edit_project_preferences)
         self.recent_project_menu = QMenu(_("Recent Projects"), self)
 
         if self.main is not None:
@@ -258,21 +255,6 @@ class Projects(SpyderPluginWidget):
         active = bool(self.get_active_project_path())
         self.close_project_action.setEnabled(active)
         self.delete_project_action.setEnabled(active)
-        self.edit_project_preferences_action.setEnabled(active)
-
-    def edit_project_preferences(self):
-        """Edit Spyder active project preferences"""
-        from spyder.plugins.projects.confpage import ProjectPreferences
-        if self.project_active:
-            active_project = self.project_list[0]
-            dlg = ProjectPreferences(self, active_project)
-#            dlg.size_change.connect(self.set_project_prefs_size)
-#            if self.projects_prefs_dialog_size is not None:
-#                dlg.resize(self.projects_prefs_dialog_size)
-            dlg.show()
-#        dlg.check_all_settings()
-#        dlg.pages_widget.currentChanged.connect(self.__preference_page_changed)
-            dlg.exec_()
 
     @Slot()
     def create_new_project(self):
@@ -292,8 +274,6 @@ class Projects(SpyderPluginWidget):
     def _create_project(self, path):
         """Create a new project."""
         self.open_project(path=path)
-        self.setup_menu_actions()
-        self.add_to_recent(path)
 
     def open_project(self, path=None, restart_consoles=True,
                      save_previous_files=True):
@@ -331,8 +311,9 @@ class Projects(SpyderPluginWidget):
                 self.set_project_filenames(
                     self.main.editor.get_open_filenames())
 
-        self.current_active_project = EmptyProject(path)
-        self.latest_project = EmptyProject(path)
+        project = EmptyProject(path)
+        self.current_active_project = project
+        self.latest_project = project
         self.set_option('current_project_path', self.get_active_project_path())
 
         self.setup_menu_actions()
@@ -515,10 +496,7 @@ class Projects(SpyderPluginWidget):
     def is_valid_project(self, path):
         """Check if a directory is a valid Spyder project"""
         spy_project_dir = osp.join(path, '.spyproject')
-        if osp.isdir(path) and osp.isdir(spy_project_dir):
-            return True
-        else:
-            return False
+        return osp.isdir(path) and osp.isdir(spy_project_dir)
 
     def add_to_recent(self, project):
         """

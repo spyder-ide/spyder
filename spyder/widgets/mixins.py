@@ -453,13 +453,15 @@ class BaseEditMixin(object):
 
         if language == 'python':
             open_func_char = '('
+            end_func_char_line = [')', ',']
             idx = signature_or_text.find(open_func_char)
             inspect_word = signature_or_text[:idx]
             name_plus_char = inspect_word + open_func_char
 
             # Signature type
             count = signature_or_text.count(name_plus_char)
-            has_signature = open_func_char in lines[0]
+            has_signature = (open_func_char in lines[0]
+                             and lines[0][-1] in end_func_char_line)
             if len(lines) > 1:
                 has_multisignature = count > 1 and name_plus_char in lines[1]
             else:

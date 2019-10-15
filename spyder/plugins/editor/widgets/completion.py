@@ -7,6 +7,7 @@
 """Completion widget class."""
 
 # Standard library imports
+import html
 import sys
 
 # Third psrty imports
@@ -17,12 +18,13 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
 
 # Local imports
 from spyder.utils import icon_manager as ima
+from spyder.plugins.completion.kite.providers.document import KITE_COMPLETION
 from spyder.plugins.completion.languageserver import CompletionItemKind
 from spyder.py3compat import to_text_string
 from spyder.widgets.helperwidgets import HTMLDelegate
 
 
-COMPLETION_ITEM_TEMPLATE = """
+COMPLETION_ITEM_TEMPLATE = u"""
 <table width="{width}" height="{height}">
     <tr>
         <td valign="middle" style="color:{color}">
@@ -31,6 +33,10 @@ COMPLETION_ITEM_TEMPLATE = """
 
         <td valign="middle" align="right" float="right" style="color:{color}">
             {type}
+        </td>
+        <td valign="top" align="right" float="right" width="{img_width}">
+            <img src="data:image/png;base64, {icon_provider}"
+                 height="{img_height}" width={img_width}/>
         </td>
     </tr>
 </table>
@@ -41,7 +47,25 @@ DEFAULT_COMPLETION_ITEM_WIDTH = 250
 
 class CompletionWidget(QListWidget):
     """Completion list widget."""
-
+    ICONS_MAP = {CompletionItemKind.TEXT: 'text',
+                 CompletionItemKind.METHOD: 'method',
+                 CompletionItemKind.FUNCTION: 'function',
+                 CompletionItemKind.CONSTRUCTOR: 'constructor',
+                 CompletionItemKind.FIELD: 'field',
+                 CompletionItemKind.VARIABLE: 'variable',
+                 CompletionItemKind.CLASS: 'class',
+                 CompletionItemKind.INTERFACE: 'interface',
+                 CompletionItemKind.MODULE: 'module',
+                 CompletionItemKind.PROPERTY: 'property',
+                 CompletionItemKind.UNIT: 'unit',
+                 CompletionItemKind.VALUE: 'value',
+                 CompletionItemKind.ENUM: 'enum',
+                 CompletionItemKind.KEYWORD: 'keyword',
+                 CompletionItemKind.SNIPPET: 'snippet',
+                 CompletionItemKind.COLOR: 'color',
+                 CompletionItemKind.FILE: 'filenew',
+                 CompletionItemKind.REFERENCE: 'reference',
+                 }
     sig_show_completions = Signal(object)
 
     # Signal with the info about the current completion item documentation
@@ -51,9 +75,10 @@ class CompletionWidget(QListWidget):
     sig_completion_hint = Signal(str, str, QPoint)
 
     def __init__(self, parent, ancestor):
-        QListWidget.__init__(self, ancestor)
-        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
+        super(CompletionWidget, self).__init__(ancestor)
         self.textedit = parent
+
+        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.hide()
         self.itemActivated.connect(self.item_selected)
         self.currentRowChanged.connect(self.row_changed)
@@ -130,49 +155,7 @@ class CompletionWidget(QListWidget):
         self.setFocus()
         self.raise_()
 
-        # Retrieving current screen height
-        desktop = QApplication.desktop()
-        srect = desktop.availableGeometry(desktop.screenNumber(self))
-        screen_right = srect.right()
-        screen_bottom = srect.bottom()
-
-        point = self.textedit.cursorRect().bottomRight()
-        point = self.textedit.calculate_real_position(point)
-        point = self.textedit.mapToGlobal(point)
-
-        # Computing completion widget and its parent right positions
-        comp_right = point.x() + self.width()
-        ancestor = self.parent()
-        if ancestor is None:
-            anc_right = screen_right
-        else:
-            anc_right = min([ancestor.x() + ancestor.width(), screen_right])
-
-        # Moving completion widget to the left
-        # if there is not enough space to the right
-        if comp_right > anc_right:
-            point.setX(point.x() - self.width())
-
-        # Computing completion widget and its parent bottom positions
-        comp_bottom = point.y() + self.height()
-        ancestor = self.parent()
-        if ancestor is None:
-            anc_bottom = screen_bottom
-        else:
-            anc_bottom = min([ancestor.y() + ancestor.height(), screen_bottom])
-
-        # Moving completion widget above if there is not enough space below
-        x_position = point.x()
-        if comp_bottom > anc_bottom:
-            point = self.textedit.cursorRect().topRight()
-            point = self.textedit.mapToGlobal(point)
-            point.setX(x_position)
-            point.setY(point.y() - self.height())
-
-        if ancestor is not None:
-            # Useful only if we set parent to 'ancestor' in __init__
-            point = ancestor.mapFromGlobal(point)
-        self.move(point)
+        self.textedit.position_widget_at_cursor(self)
 
         if not self.is_internal_console:
             tooltip_point = self.rect().topRight()
@@ -194,25 +177,6 @@ class CompletionWidget(QListWidget):
         If no items are left on the list the autocompletion should stop
         """
         self.clear()
-        icons_map = {CompletionItemKind.TEXT: 'text',
-                     CompletionItemKind.METHOD: 'method',
-                     CompletionItemKind.FUNCTION: 'function',
-                     CompletionItemKind.CONSTRUCTOR: 'constructor',
-                     CompletionItemKind.FIELD: 'field',
-                     CompletionItemKind.VARIABLE: 'variable',
-                     CompletionItemKind.CLASS: 'class',
-                     CompletionItemKind.INTERFACE: 'interface',
-                     CompletionItemKind.MODULE: 'module',
-                     CompletionItemKind.PROPERTY: 'property',
-                     CompletionItemKind.UNIT: 'unit',
-                     CompletionItemKind.VALUE: 'value',
-                     CompletionItemKind.ENUM: 'enum',
-                     CompletionItemKind.KEYWORD: 'keyword',
-                     CompletionItemKind.SNIPPET: 'snippet',
-                     CompletionItemKind.COLOR: 'color',
-                     CompletionItemKind.FILE: 'filenew',
-                     CompletionItemKind.REFERENCE: 'reference',
-                     }
 
         self.display_index = []
         height = self.item_height
@@ -224,19 +188,19 @@ class CompletionWidget(QListWidget):
                     self.textedit, 'code_snippets', False)
                 completion_label = completion['filterText']
                 completion_text = completion['insertText']
-                entry_label = completion['label']
                 if not code_snippets_enabled:
                     completion_label = completion['insertText']
-                icon = icons_map.get(completion['kind'], 'no_match')
-                entry_label = self.get_html_item_representation(
-                    entry_label, icon, height=height, width=width)
-                item = QListWidgetItem(ima.icon(icon),
-                                       entry_label)
+                icon = self.ICONS_MAP.get(completion['kind'], 'no_match')
+                item = QListWidgetItem()
+                item.setIcon(ima.icon(icon))
+                self.set_item_text(
+                    item, completion, height=height, width=width)
                 item.setData(Qt.UserRole, completion_text)
             else:
                 completion_label = completion[0]
                 completion_text = self.get_html_item_representation(
-                    completion_label, '', height=height, width=width)
+                    completion_label, '', icon_provider=None, size=0,
+                    height=height, width=width)
                 item = QListWidgetItem()
                 item.setData(Qt.UserRole, completion_label)
                 item.setText(completion_text)
@@ -253,14 +217,45 @@ class CompletionWidget(QListWidget):
         else:
             self.hide()
 
+    def set_item_text(self, item_widget, item_info, height, width):
+        """Set item text using the info available."""
+        item_provider = item_info['provider']
+        item_type = self.ICONS_MAP.get(item_info['kind'], 'no_match')
+        item_label = item_info['label']
+        icon_provider = ("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l"
+                         "EQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")
+        img_height = height - 2
+        img_width = img_height * 0.8
+
+        if item_provider == KITE_COMPLETION:
+            kite_height = img_height
+            kite_width = (416.14/526.8) * kite_height
+            icon_provider = ima.get_kite_icon()
+            icon_provider = ima.base64_from_icon_obj(
+                icon_provider, kite_width, kite_height)
+
+        item_text = self.get_html_item_representation(
+            item_label, item_type, icon_provider=icon_provider,
+            img_height=img_height, img_width=img_width, height=height,
+            width=width)
+
+        item_widget.setText(item_text)
+
     def get_html_item_representation(self, item_completion, item_type,
+                                     icon_provider=None,
+                                     img_height=0,
+                                     img_width=0,
                                      height=DEFAULT_COMPLETION_ITEM_HEIGHT,
                                      width=DEFAULT_COMPLETION_ITEM_WIDTH):
         """Get HTML representation of and item."""
 
-        return COMPLETION_ITEM_TEMPLATE.format(completion=item_completion,
+        display = html.escape(item_completion).replace(' ', '&nbsp;')
+        return COMPLETION_ITEM_TEMPLATE.format(completion=display,
                                                type=item_type,
                                                color=ima.MAIN_FG_COLOR,
+                                               icon_provider=icon_provider,
+                                               img_height=img_height,
+                                               img_width=img_width,
                                                height=height,
                                                width=width)
 
@@ -417,4 +412,5 @@ class CompletionWidget(QListWidget):
                     item['insertText'],
                     item['documentation'],
                     item['point'])
+
             return

@@ -18,19 +18,10 @@ from qtpy.QtGui import QFont, QIcon
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 
 # Local imports
-from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.config import utils
 from spyder.py3compat import PY3
-
-if not os.name == 'nt':
-    PSUTIL_REQVER = '>=0.3'
-    dependencies.add(
-        "psutil",
-        "psutil",
-        _("CPU and memory usage info in the status bar"),
-        required_version=PSUTIL_REQVER)
 
 
 class StatusBarWidget(QWidget):
@@ -57,9 +48,7 @@ class StatusBarWidget(QWidget):
         self.set_icon(icon)
 
         # See spyder-ide/spyder#9044.
-        self.text_font = QFont(get_font(option='font'))
-        self.text_font.setPointSize(self.font().pointSize())
-        self.text_font.setBold(True)
+        self.text_font = QFont(QFont().defaultFamily(), weight=QFont.Normal)
         self.label_value.setAlignment(Qt.AlignRight)
         self.label_value.setFont(self.text_font)
 

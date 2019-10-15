@@ -54,6 +54,7 @@ class DebuggingWidget(RichJupyterWidget):
         self._highlighter._ipy_prompt_re = re.compile(
             r'^(%s)?([ \t]*ipdb> |[ \t]*In \[\d+\]: |[ \t]*\ \ \ \.\.\.+: )'
             % re.escape(self.other_output_prefix))
+        # List of tuples containing (code, hidden)
         self._pdb_input_queue = []
         self._pdb_input_ready = False
         self._pdb_last_cmd = ''
@@ -68,12 +69,18 @@ class DebuggingWidget(RichJupyterWidget):
 
         self._tmp_reading = False
 
-    def _handle_debug_state(self, in_debug_loop):
+    def handle_debug_state(self, in_debug_loop):
         """Update the debug state."""
         self._pdb_in_loop = in_debug_loop
         # If debugging starts or stops, clear the input queue.
         self._pdb_input_queue = []
         self._pdb_line_num = 0
+
+        # start/stop pdb history session
+        if in_debug_loop:
+            self._pdb_history_file.new_session()
+        else:
+            self._pdb_history_file.end_session()
 
     def _pdb_update(self):
         """
@@ -171,6 +178,92 @@ class DebuggingWidget(RichJupyterWidget):
         # Fixes 2034
         self.pdb_execute('continue')
 
+    def in_debug_loop(self):
+        """Check if we are debugging."""
+        return self._pdb_in_loop
+
+    def is_waiting_pdb_input(self):
+        """Check if we are waiting a pdb input."""
+        # If the comm is not open, self._pdb_in_loop can not be set
+        return ((self.in_debug_loop() or not self.spyder_kernel_comm.is_open())
+                and self._previous_prompt is not None
+                and self._previous_prompt[0] == 'ipdb> ')
+
+    def add_to_pdb_history(self, line_num, line):
+        """Add command to history"""
+        self._pdb_history_index = len(self._pdb_history)
+        self._pdb_history_edits = {}
+        line = line.rstrip()
+        if not line:
+            return
+
+        # If repeated line
+        history = self._pdb_history
+        if len(history) > 0 and history[-1] == line:
+            return
+
+        cmd = line.split(" ")[0]
+        args = line.split(" ")[1:]
+        is_pdb_cmd = "do_" + cmd in dir(pdb.Pdb)
+        if cmd and (not is_pdb_cmd or len(args) > 0):
+            self._pdb_history.append(line)
+            self._pdb_history_index = len(self._pdb_history)
+            self._pdb_history_file.store_inputs(line_num, line)
+
+    # --- Private API --------------------------------------------------
+    def _is_pdb_complete(self, source):
+        """
+        Check if the pdb input is ready to be executed.
+        """
+        if source and source[0] == '!':
+            source = source[1:]
+        if PY2:
+            tm = IPythonInputSplitter()
+        else:
+            tm = TransformerManager()
+        complete, indent = tm.check_complete(source)
+        if indent is not None:
+            indent = indent * ' '
+        return complete != 'incomplete', indent
+
+    # ---- Public API (overrode by us) ----------------------------
+    def execute(self, source=None, hidden=False, interactive=False):
+        """ Executes source or the input buffer, possibly prompting for more
+        input.
+
+        Do not use to run pdb commands. Use pdb_execute instead.
+        This will add a '!' in front of the code.
+        """
+        if self.is_waiting_pdb_input():
+            if source is None:
+                if hidden:
+                    # Nothing to execute
+                    return
+                else:
+                    source = self.input_buffer
+            else:
+                source = '!' + source
+                if not hidden:
+                    self.input_buffer = source
+
+            if interactive:
+                # Add a continuation propt if not complete
+                complete, indent = self._is_pdb_complete(source)
+                if not complete:
+                    self.do_execute(source, complete, indent)
+                    return
+            if hidden:
+                self.pdb_execute(source, hidden)
+            else:
+                if self._reading_callback:
+                    self._reading_callback()
+
+            return
+        if not self._executing:
+            # Only execute if not executing
+            return super(DebuggingWidget, self).execute(
+                source, hidden, interactive)
+
     # ---- Private API (overrode by us) ----------------------------
     def _readline_callback(self, line):
         """Callback used when the user inputs text in stdin."""
@@ -205,31 +298,37 @@ class DebuggingWidget(RichJupyterWidget):
 
         prompt, password = msg['content']['prompt'], msg['content']['password']
 
-        # Check if this is a duplicate that we shouldn't reprint.
-        # This can happen when sending commands to pdb from the frontend.
-        print_prompt = (not self._reading
-                        or not (prompt, password) == self._previous_prompt)
-
         self._previous_prompt = (prompt, password)
+
+        # Check if the prompt should be printed
+        if not self.is_waiting_pdb_input():
+            print_prompt = True
+        else:
+            # This is pdb. The prompt should be printed unless:
+            # 1. The prompt is already printed (self._reading is True)
+            # 2. A hidden commad is in the queue
+            print_prompt = (not self._reading
+                            and (len(self._pdb_input_queue) == 0
+                                 or not self._pdb_input_queue[0][1]))
 
         if print_prompt:
             # Reset reading in case it was interrupted
             self._reading = False
             self._readline(prompt=prompt, callback=self._readline_callback,
                            password=password)
+            if self.is_waiting_pdb_input():
+                self._executing = False
+                self._highlighter.highlighting_on = True
 
         if self.is_waiting_pdb_input():
-            self._highlighter.highlighting_on = True
             self._pdb_input_ready = True
-            self._executing = False
 
         # While the widget thinks only one input is going on,
         # other functions can be sending messages to the kernel.
         # This must be properly processed to avoid dropping messages.
         # If the kernel was not ready, the messages are queued.
         if self.is_waiting_pdb_input() and len(self._pdb_input_queue) > 0:
-            args = self._pdb_input_queue[0]
-            del self._pdb_input_queue[0]
+            args = self._pdb_input_queue.pop(0)
             self.pdb_execute(*args)
             return
 
@@ -268,42 +367,6 @@ class DebuggingWidget(RichJupyterWidget):
         else:
             return super(DebuggingWidget, self)._register_is_complete_callback(
                 source, callback)
-
-    def execute(self, source=None, hidden=False, interactive=False):
-        """ Executes source or the input buffer, possibly prompting for more
-        input.
-        """
-        if self.is_waiting_pdb_input():
-
-            if interactive:
-                if source is None:
-                    source = self.input_buffer
-                # Add a continuation propt if not complete
-                complete, indent = self._is_pdb_complete(source)
-                if not complete:
-                    self.do_execute(source, complete, indent)
-                    return
-            if self._reading_callback:
-                self._reading_callback()
-
-            return
-        return super(DebuggingWidget, self).execute(
-            source, hidden, interactive)
-
-    def _is_pdb_complete(self, source):
-        """
-        Check if the pdb input is ready to be executed.
-        """
-        if source and source[0] == '!':
-            source = source[1:]
-        if PY2:
-            tm = IPythonInputSplitter()
-        else:
-            tm = TransformerManager()
-        complete, indent = tm.check_complete(source)
-        if indent is not None:
-            indent = indent * ' '
-        return complete != 'incomplete', indent
 
     @property
     def _history(self):
@@ -352,35 +415,3 @@ class DebuggingWidget(RichJupyterWidget):
             self._pdb_history_index = history_index
         else:
             self.__history_index = history_index
-
-    def in_debug_loop(self):
-        """Check if we are debugging."""
-        return self._pdb_in_loop
-
-    def is_waiting_pdb_input(self):
-        """Check if we are waiting a pdb input."""
-        # If the comm is not open, self._pdb_in_loop can not be set
-        return ((self.in_debug_loop() or not self.spyder_kernel_comm.is_open())
-                and self._previous_prompt is not None
-                and self._previous_prompt[0] == 'ipdb> ')
-
-    def add_to_pdb_history(self, line_num, line):
-        """Add command to history"""
-        self._pdb_history_index = len(self._pdb_history)
-        self._pdb_history_edits = {}
-        line = line.rstrip()
-        if not line:
-            return
-
-        # If repeated line
-        history = self._pdb_history
-        if len(history) > 0 and history[-1] == line:
-            return
-
-        cmd = line.split(" ")[0]
-        args = line.split(" ")[1:]
-        is_pdb_cmd = "do_" + cmd in dir(pdb.Pdb)
-        if cmd and (not is_pdb_cmd or len(args) > 0):
-            self._pdb_history.append(line)
-            self._pdb_history_index = len(self._pdb_history)
-            self._pdb_history_file.store_inputs(line_num, line)
