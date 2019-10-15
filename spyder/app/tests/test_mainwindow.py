@@ -2128,6 +2128,7 @@ def test_signals(main_window, qtbot):
     # Click the debug button
     qtbot.mouseClick(debug_button, Qt.LeftButton)
     try:
+        qtbot.wait(1000)
         qtbot.waitUntil(
             lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
     except:
