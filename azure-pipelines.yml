@@ -35,10 +35,15 @@ jobs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
 
-  - task: Bash@3
+  - script: sudo install -d -m 0777 /usr/local/miniconda/envs/
+    displayName: Fix Conda permissions
+
+    # Conda setup environment.
+    # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/conda-environment?view=vsts
+  - task: CondaEnvironment@0
     inputs:
-      script: conda create -y -n test python=$PYTHON_VERSION
-      failOnStderr: true
+      environmentName: 'test'
+      packageSpecs: 'python=$(python.version)'
 
     # Install dependencies
   - script: |

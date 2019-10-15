@@ -10,10 +10,9 @@ if [ "$TRAVIS" = "true" ] || [ "$CIRCLECI" = "true" ]; then
     # Create env
     source $HOME/miniconda/etc/profile.d/conda.sh
     conda create -y -n test python=$PYTHON_VERSION
+    conda activate test
 fi
 
-# -- Activate test env
-conda activate test
 
 # -- Installl dependencies
 if [ "$USE_CONDA" = "yes" ]; then
