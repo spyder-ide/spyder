@@ -6,7 +6,7 @@ if [ "$USE_CONDA" = "yes" ]; then
     conda install -q -y -c conda-forge/label/beta -c conda-forge --file requirements/conda.txt
 
     # Install test ones
-    conda install -q -y -c conda-forge --file requirements/tests.txt
+    conda install -q -y -c conda-forge -c spyder-ide --file requirements/tests.txt
 
     # Install spyder-kernels from Github with no deps
     pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
