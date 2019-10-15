@@ -71,6 +71,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
+        self.spyder_kernel_comm = KernelComm(
+            interrupt_callback=self._pdb_update)
+        self.spyder_kernel_comm.sig_exception_occurred.connect(
+            self.sig_exception_occurred)
         super(ShellWidget, self).__init__(*args, **kw)
 
         self.ipyclient = ipyclient
@@ -87,22 +91,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # set in the qtconsole constructor. See spyder-ide/spyder#4806.
         self.set_bracket_matcher_color_scheme(self.syntax_style)
 
-        self.spyder_kernel_comm = KernelComm(
-            interrupt_callback=self._pdb_update)
-        self.spyder_kernel_comm.sig_exception_occurred.connect(
-            self.sig_exception_occurred)
         self.kernel_manager = None
         self.kernel_client = None
         handlers = {
             'pdb_state': self.set_pdb_state,
             'pdb_continue': self.pdb_continue,
             'get_pdb_settings': self.handle_get_pdb_settings,
-            'save_files': self.handle_save_files,
             'run_cell': self.handle_run_cell,
             'cell_count': self.handle_cell_count,
             'current_filename': self.handle_current_filename,
-            'is_file_open': self.handle_is_file_open,
-            'set_debug_state': self._handle_debug_state,
+            'get_file_code': self.handle_get_file_code,
+            'set_debug_state': self.handle_debug_state,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
@@ -485,16 +484,29 @@ the sympy module (e.g. plot)
             return editor.get_current_editorstack()
         raise RuntimeError('No editorstack found.')
 
-    def handle_save_files(self):
-        """Save the open files."""
-        self.get_editorstack().save()
+    def handle_get_file_code(self, filename):
+        """
+        Return the bytes that compose the file.
+
+        Bytes are returned instead of str to support non utf-8 files.
+        """
+        editorstack = self.get_editorstack()
+        if CONF.get('editor', 'save_all_before_run', True):
+            editorstack.save_all()
+        editor = self.get_editor(filename)
+
+        if editor is None:
+            return None
+
+        return editor.toPlainText()
 
     def handle_run_cell(self, cell_name, filename):
         """
         Get cell code from cell name and file name.
         """
         editorstack = self.get_editorstack()
-        editorstack.save()
+        if CONF.get('editor', 'save_all_before_run', True):
+            editorstack.save_all()
         editor = self.get_editor(filename)
 
         if editor is None:
@@ -506,17 +518,9 @@ the sympy module (e.g. plot)
         # The file is open, load code from editor
         return editor.get_cell_code(cell_name)
 
-    def handle_is_file_open(self, filename):
-        """Check if filename is open."""
-        editorstack = self.get_editorstack()
-        if self.get_editor(filename) is None:
-            return False
-        return True
-
     def handle_cell_count(self, filename):
         """Get number of cells in file to loop."""
         editorstack = self.get_editorstack()
-        editorstack.save()
         editor = self.get_editor(filename)
 
         if editor is None:

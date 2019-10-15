@@ -81,7 +81,7 @@ class CompletionManager(SpyderCompletionPlugin):
         self.language_status = {}
         self.started = False
         self.req_id = 0
-        self.collection_mutex = QMutex()
+        self.collection_mutex = QMutex(QMutex.Recursive)
 
         for plugin in plugins:
             if plugin in self.BASE_PLUGINS:
