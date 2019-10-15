@@ -73,6 +73,7 @@ class DebuggingWidget(RichJupyterWidget):
         self._signal_ready = False
         self._tmp_reading = False
 
+    # --- Public API --------------------------------------------------
     def handle_debug_state(self, in_debug_loop):
         """Update the debug state."""
         self._pdb_in_loop = in_debug_loop
@@ -86,19 +87,6 @@ class DebuggingWidget(RichJupyterWidget):
         else:
             self._pdb_history_file.end_session()
 
-    def _pdb_update(self):
-        """
-        Update by sending an input to pdb.
-        """
-        if self._pdb_in_loop:
-            cmd = (u"!get_ipython().kernel.frontend_comm" +
-                   ".remote_call(blocking=True).pong()")
-            self.pdb_execute(cmd, hidden=True)
-        if self.can_signal_kernel('SIGUSR1'):
-            # Try to send a signal to give a chance to update
-            self.kernel_manager.signal_kernel(signal.SIGUSR1)
-
-    # --- Public API --------------------------------------------------
     def pdb_execute(self, line, hidden=False):
         """Send line to the pdb kernel if possible."""
         if not line.strip():
@@ -217,6 +205,43 @@ class DebuggingWidget(RichJupyterWidget):
             self._pdb_history_index = len(self._pdb_history)
             self._pdb_history_file.store_inputs(line_num, line)
 
+    def can_signal_kernel(self, sig):
+        """
+        Try to send the signal sig to the kernel. Returns False if it failed.
+
+        sig is a string
+        """
+        if not self.spyder_kernel_comm.is_ready():
+            # Need to wait until kernel is up so the signals are registered.
+            return False
+
+        if not (self._signal_enabled and CONF.get('run', 'use_signals', True)):
+            # Check if we disabled signals (e.g. remote kernel)
+            return False
+
+        if not hasattr(signal, sig):
+            # Check if it is possible at all
+            return False
+
+        if self._kernel_is_starting:
+            # Check the kernel is not starting
+            return False
+
+        if not self.kernel_manager.has_kernel:
+            # Do we even have a kernel?
+            return False
+
+        interrupt_mode = self.kernel_manager.kernel_spec.interrupt_mode
+        if interrupt_mode != 'signal':
+            # Only send a signal if the kernel is expecting at least interrupts
+            return False
+
+        if sys.platform == 'win32':
+            # No signals on windows
+            return False
+
+        return True
+
     # --- Private API --------------------------------------------------
     def _is_pdb_complete(self, source):
         """
@@ -232,6 +257,18 @@ class DebuggingWidget(RichJupyterWidget):
         if indent is not None:
             indent = indent * ' '
         return complete != 'incomplete', indent
+
+    def _pdb_update(self):
+        """
+        Update by sending an input to pdb.
+        """
+        if self._pdb_in_loop:
+            cmd = (u"!get_ipython().kernel.frontend_comm" +
+                   ".remote_call(blocking=True).pong()")
+            self.pdb_execute(cmd, hidden=True)
+        if self.can_signal_kernel('SIGUSR1'):
+            # Try to send a signal to give a chance to update
+            self.kernel_manager.signal_kernel(signal.SIGUSR1)
 
     # ---- Public API (overrode by us) ----------------------------
     def execute(self, source=None, hidden=False, interactive=False):
@@ -417,40 +454,3 @@ class DebuggingWidget(RichJupyterWidget):
             self._pdb_history_index = history_index
         else:
             self.__history_index = history_index
-
-    def can_signal_kernel(self, sig):
-        """
-        Try to send the signal sig to the kernel. Returns False if it failed.
-
-        sig is a string
-        """
-        if not self.spyder_kernel_comm.is_ready():
-            # Need to wait until kernel is up so the signals are registered.
-            return False
-
-        if not (self._signal_enabled and CONF.get('run', 'use_signals', True)):
-            # Check if we disabled signals (e.g. remote kernel)
-            return False
-
-        if not hasattr(signal, sig):
-            # Check if it is possible at all
-            return False
-
-        if self._kernel_is_starting:
-            # Check the kernel is not starting
-            return False
-
-        if not self.kernel_manager.has_kernel:
-            # Do we even have a kernel?
-            return False
-
-        interrupt_mode = self.kernel_manager.kernel_spec.interrupt_mode
-        if interrupt_mode != 'signal':
-            # Only send a signal if the kernel is expecting at least interrupts
-            return False
-
-        if sys.platform == 'win32':
-            # No signals on windows
-            return False
-
-        return True
