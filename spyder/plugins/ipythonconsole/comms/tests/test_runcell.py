@@ -10,7 +10,7 @@ import pytest
 import time
 
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
-from spyder_kernels.py3compat import PY3, to_text_string
+from spyder_kernels.py3compat import to_text_string
 
 
 TIMEOUT = 15

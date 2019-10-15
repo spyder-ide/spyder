@@ -119,9 +119,13 @@ def shorten_paths(path_list, is_unsaved):
     recurse_level({i: pl for i, pl in enumerate(path_list) if pl})
 
     if common_prefix:
-        result_paths = ["...{}".format(
-                        path.rstrip(os.sep).split(common_prefix)[-1])
-                        for path in new_path_list]
+        result_paths = []
+        for path in new_path_list:
+            path_elements = path.rstrip(os.sep).split(common_prefix)
+            if len(path_elements) > 1:
+                result_paths.append("...{}".format(path_elements[-1]))
+            else:
+                result_paths.append(path)
     else:
         result_paths = [path.rstrip(os.sep) for path in new_path_list]
 
