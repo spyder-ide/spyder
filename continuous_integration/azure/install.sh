@@ -14,7 +14,7 @@ if [ "$USE_CONDA" = "yes" ]; then
     conda install -q -y -c spyder-ide --file requirements/conda.txt
 
     # Install dependencies not in conda
-    pip install -q -y applaunchservices
+    pip install -q applaunchservices
 
     # Install test ones
     conda install -q -y -c spyder-ide --file requirements/tests.txt
