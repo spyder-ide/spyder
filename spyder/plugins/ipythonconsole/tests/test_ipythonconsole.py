@@ -1340,9 +1340,15 @@ def test_console_complete(ipyconsole, qtbot):
         # test complete with one result
         shell.execute('cbs = 1')
         qtbot.waitUntil(lambda: check_value('cbs', 1))
-        qtbot.keyClicks(control, 'cb')
-        qtbot.keyClick(control, Qt.Key_Tab)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbs')
+        qtbot.wait(500)
+        try:
+            qtbot.keyClicks(control, 'cb')
+            qtbot.keyClick(control, Qt.Key_Tab)
+            qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbs')
+        except:
+            # Print shell content before failing
+            print(control.toPlainText())
+            raise
 
         # test complete with several result
         shell.execute('cbba = 1')
