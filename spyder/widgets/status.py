@@ -48,9 +48,7 @@ class StatusBarWidget(QWidget):
         self.set_icon(icon)
 
         # See spyder-ide/spyder#9044.
-        self.text_font = QFont(get_font(option='font'))
-        self.text_font.setPointSize(self.font().pointSize())
-        self.text_font.setBold(True)
+        self.text_font = QFont(QFont().defaultFamily(), weight=QFont.Normal)
         self.label_value.setAlignment(Qt.AlignRight)
         self.label_value.setFont(self.text_font)
 
