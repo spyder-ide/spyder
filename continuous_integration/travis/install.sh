@@ -1,18 +1,19 @@
 #!/bin/bash -ex
 
-# -- Install Miniconda
+# -- Install Miniconda and create a test env
 if [ "$TRAVIS" = "true" ] || [ "$CIRCLECI" = "true" ]; then
+    # Install Miniconda
     MINICONDA=Miniconda3-latest-Linux-x86_64.sh
     wget https://repo.continuum.io/miniconda/$MINICONDA -O miniconda.sh
     bash miniconda.sh -b -p $HOME/miniconda
+
+    # Create env
     source $HOME/miniconda/etc/profile.d/conda.sh
+    conda create -y -n test python=$PYTHON_VERSION
 fi
 
-
-# -- Make new conda environment with required Python version
-conda create -y -n test python=$PYTHON_VERSION
+# -- Activate test env
 conda activate test
-
 
 # -- Installl dependencies
 if [ "$USE_CONDA" = "yes" ]; then

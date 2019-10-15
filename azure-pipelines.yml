@@ -35,6 +35,11 @@ jobs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
 
+  - task: Bash@3
+    inputs:
+      script: conda create -y -n test python=$PYTHON_VERSION
+      failOnStderr: true
+
     # Install dependencies
   - script: |
       ./continuous_integration/travis/install.sh
