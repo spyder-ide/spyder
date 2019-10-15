@@ -18,7 +18,7 @@ if [ "$USE_CONDA" = "yes" ]; then
     conda install -q -y -c conda-forge/label/beta -c conda-forge --file requirements/conda.txt
 
     # Install test dependencies
-    conda install -q -y -c conda-forge -c spyder-ide --file requirements/tests.txt
+    conda install -q -y -c conda-forge -c spyder-ide --file requirements/tests.txt pyqt=5.12
 
     # Install coveralls
     pip install -q coveralls
