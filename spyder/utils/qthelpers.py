@@ -13,6 +13,7 @@ import os
 import os.path as osp
 import re
 import sys
+import applaunchservices as als
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
@@ -59,6 +60,7 @@ class MacApplication(QApplication):
 
     def __init__(self, *args):
         QApplication.__init__(self, *args)
+        self._never_shown = True
         self._has_started = False
         self._pending_file_open = []
 
@@ -93,6 +95,40 @@ def qapplication(translate=True, test_time=3):
 
         # Set application name for KDE. See spyder-ide/spyder#2207.
         app.setApplicationName('Spyder')
+
+    if running_in_mac_app():
+        # Accept opening python-script
+        uniform_type_identifier = "public.python-script"
+        # Get top frame
+        f = sys._getframe()
+        while f.f_back is not None:
+            f = f.f_back
+        # if top frame is MAC_APP_NAME, set ourselves to open files at startup
+        origin_filename = f.f_code.co_filename
+        if MAC_APP_NAME in origin_filename:
+            bundle_idx = origin_filename.find(MAC_APP_NAME)
+            old_handler = als.get_bundle_identifier_for_path(
+                origin_filename[:bundle_idx] + MAC_APP_NAME)
+        else:
+            # Else, just restore the previous handler
+            old_handler = als.get_UTI_handler(
+                uniform_type_identifier, 'editor')
+
+        # Restore previous handle when quitting
+        app.aboutToQuit.connect(
+            lambda: als.set_UTI_handler(
+                uniform_type_identifier, 'editor', old_handler))
+
+        # Wait to be visible to set ourselves as the UTI handler
+        def handle_applicationStateChanged(state):
+            if state == Qt.ApplicationActive and app._never_shown:
+                app._never_shown = False
+                bundle_identifier = als.get_bundle_identifier()
+                als.set_UTI_handler(
+                    uniform_type_identifier, 'editor', bundle_identifier)
+
+        app.applicationStateChanged.connect(handle_applicationStateChanged)
+
     if translate:
         install_translator(app)
 

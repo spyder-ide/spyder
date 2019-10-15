@@ -49,6 +49,7 @@ PANDAS_REQVER = '>=0.13.1'
 NUMPY_REQVER = '>=1.7'
 SCIPY_REQVER = '>=0.17.0'
 PYLS_REQVER = '>=0.28.2;<0.29.0'
+APPLAUNCHSERVICES_REQVER = '>=0.1.5'
 
 
 
@@ -133,6 +134,10 @@ DEPENDENCIES_BASE = [
      'package_name': "pexpect",
      'features': _("Stdio support for our language server client"),
      'required_version': PEXPECT_REQVER},
+    {'modname': "applaunchservices",
+     'package_name': "applaunchservices",
+     'features': _("Tool to notify macos that the app can open files"),
+     'required_version': APPLAUNCHSERVICES_REQVER},
     {'modname': "pympler",
      'package_name': "pympler",
      'features': _("Tool to measure the memory behavior of Python objects"),
