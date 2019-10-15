@@ -1317,7 +1317,6 @@ def test_console_working_directory(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.use_startup_wdir
 @pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
                     reason="It only works on Linux with python 3.")
 def test_console_complete(ipyconsole, qtbot):

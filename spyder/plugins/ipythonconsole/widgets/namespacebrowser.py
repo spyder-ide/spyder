@@ -63,12 +63,12 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def set_namespace_view(self, view):
         """Set the current namespace view."""
-        if self.namespacebrowser:
+        if self.namespacebrowser is not None:
             self.namespacebrowser.process_remote_view(view)
 
     def set_var_properties(self, properties):
         """Set var properties."""
-        if self.namespacebrowser:
+        if self.namespacebrowser is not None:
             self.namespacebrowser.set_var_properties(properties)
 
     def set_namespace_view_settings(self):
