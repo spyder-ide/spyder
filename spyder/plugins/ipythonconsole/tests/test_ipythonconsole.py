@@ -1344,6 +1344,8 @@ def test_console_complete(ipyconsole, qtbot):
         try:
             qtbot.keyClicks(control, 'cb')
             qtbot.keyClick(control, Qt.Key_Tab)
+            # Jedi completion takes time to start up the first time
+            qtbot.wait(5000)
             qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbs')
         except:
             # Print shell content before failing
