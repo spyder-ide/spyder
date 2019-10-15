@@ -1130,8 +1130,7 @@ class CodeEditor(TextEditBaseWidget):
                 parameter_idx = signature_params['activeParameter']
                 parameters = signature_data['parameters']
                 parameter = None
-
-                if len(parameters) > 0:
+                if parameter_idx < len(parameters):
                     parameter_data = parameters[parameter_idx]
                     parameter = parameter_data['label']
 
