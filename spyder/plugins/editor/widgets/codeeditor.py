@@ -1129,10 +1129,13 @@ class CodeEditor(TextEditBaseWidget):
 
                 parameter_idx = signature_params['activeParameter']
                 parameters = signature_data['parameters']
-                parameter_data = parameters[parameter_idx]
+                parameter = None
+
+                if len(parameters) > 0:
+                    parameter_data = parameters[parameter_idx]
+                    parameter = parameter_data['label']
 
                 signature = signature_data['label']
-                parameter = parameter_data['label']
 
                 # This method is part of spyder/widgets/mixins
                 self.show_calltip(
