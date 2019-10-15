@@ -15,7 +15,7 @@ conda activate test
 # -- Installl dependencies
 if [ "$USE_CONDA" = "yes" ]; then
     # Install main dependencies
-    conda install -q -y -c conda-forge --file requirements/conda.txt
+    conda install -q -y -c conda-forge/label/beta -c conda-forge --file requirements/conda.txt
 
     # Install test ones
     conda install -q -y -c conda-forge --file requirements/tests.txt
