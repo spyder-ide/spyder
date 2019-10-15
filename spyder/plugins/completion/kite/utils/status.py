@@ -16,6 +16,10 @@ import sys
 # Third-party imports
 import psutil
 
+NOT_INSTALLED = 'not installed'
+RUNNING = 'ready'
+NOT_RUNNING = 'not running'
+
 logger = logging.getLogger(__name__)
 
 
@@ -58,7 +62,7 @@ def locate_kite_darwin():
         installed = len(out) > 0
         path = (out.decode('utf-8', 'replace').strip().split('\n')[0]
                 if installed else default_path)
-    except (subprocess.CalledProcessError, UnicodeDecodeError) as ex:
+    except (subprocess.CalledProcessError, UnicodeDecodeError):
         # Use the default path
         path = default_path
     finally:
@@ -79,3 +83,14 @@ def is_proc_kite(proc):
         is_kite = 'Kite' == name
 
     return is_kite
+
+
+def status():
+    """Kite completions status: not installed, ready, not running."""
+    kite_installed, _ = check_if_kite_installed()
+    if not kite_installed:
+        return NOT_INSTALLED
+    elif check_if_kite_running():
+        return RUNNING
+    else:
+        return NOT_RUNNING

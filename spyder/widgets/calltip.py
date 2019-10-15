@@ -113,6 +113,16 @@ class ToolTipWidget(QLabel):
     # ------------------------------------------------------------------------
     # --- 'ToolTipWidget' interface
     # ------------------------------------------------------------------------
+    def show_basic_tip(self, point, tip):
+        """Show basic tip."""
+        self.tip = tip
+        self.setText(tip)
+        self.resize(self.sizeHint())
+        y = point.y() - self.height()
+        self.move(point.x(), y)
+        self.show()
+        return True
+
     def show_tip(self, point, tip, cursor=None, completion_doc=None):
         """
         Attempts to show the specified tip at the current cursor location.

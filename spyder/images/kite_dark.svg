@@ -7,11 +7,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   viewBox="0 0 416.14 526.8"
+   viewBox="0 0 526.79997 526.8"
    version="1.1"
    id="svg10"
    sodipodi:docname="kite_dark.svg"
-   inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   width="526.79999"
+   height="526.79999">
   <metadata
      id="metadata16">
     <rdf:RDF>
@@ -20,6 +22,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>kite_vector_icon</dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -39,7 +42,7 @@
      id="namedview12"
      showgrid="false"
      inkscape:zoom="0.44798786"
-     inkscape:cx="-154.66304"
+     inkscape:cx="-249.53168"
      inkscape:cy="263.39999"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
@@ -49,19 +52,22 @@
      id="title2">kite_vector_icon</title>
   <g
      id="Layer_2"
-     data-name="Layer 2">
+     data-name="Layer 2"
+     transform="translate(0,4.4140625e-6)">
     <g
        id="Layer_1-2"
        data-name="Layer 1"
-       style="fill:#000000;fill-opacity:0.00502513">
+       style="fill:#000000;fill-opacity:0.00502511">
       <polygon
-         points="218.04 222.89 136.59 376.14 313.03 526.8 371.43 301.09 218.04 222.89"
+         points="218.04,222.89 136.59,376.14 313.03,526.8 371.43,301.09 "
          id="polygon4"
-         style="fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-opacity:1" />
+         style="fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-opacity:1"
+         transform="translate(56)" />
       <polygon
-         points="146.94 0 0 259.49 102.28 346.83 201.74 171.2 382.72 257.44 416.13 128.29 146.94 0"
+         points="102.28,346.83 201.74,171.2 382.72,257.44 416.13,128.29 146.94,0 0,259.49 "
          id="polygon6"
-         style="fill:#ffffff;fill-opacity:1;stroke:#fffffc;stroke-opacity:1" />
+         style="fill:#ffffff;fill-opacity:1;stroke:#fffffc;stroke-opacity:1"
+         transform="translate(56)" />
     </g>
   </g>
 </svg>

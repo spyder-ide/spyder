@@ -1820,6 +1820,49 @@ spyder/plugins/help/utils/static/images/up_arrow_disabled.png
 
 
 
+pyqt-bloomfilter 3.0.0
+-------------------------------------------------------------------------
+
+
+Copyright (c) 2011 Jay Baird and Bob Ippolito
+Copyright (c) 2019 - Spyder Project Contributors (see AUTHORS.txt)
+
+
+Author: Jay Baird and Bob Ippolito
+Source: https://github.com/kiteco/pyqt-bloomfilter
+License: MIT (expat)
+https://opensource.org/licenses/MIT
+
+No modifications made.
+
+
+pyqt-bloomfilter is used in Spyder under the terms of the MIT.
+See below for the full text of the MIT.
+
+spyder/utils/external/pybloom_pyqt is used in Spyder
+to implement fast lookup of the availability of Kite completions.
+
+See below for the full text of the MIT (expat) license.
+
+The current pyqt-bloomfilter license can be viewed at:
+https://github.com/kiteco/pyqt-bloomfilter/blob/master/LICENSE.txt
+
+The current version of the original file[s] can be viewed at:
+https://github.com/kiteco/pyqt-bloomfilter
+
+
+Files covered:
+
+spyder/utils/external/pybloom_pyqt
+spyder/utils/external/pybloom_pyqt/__init__.py
+spyder/utils/external/pybloom_pyqt/pybloom.py
+spyder/utils/external/pybloom_pyqt/utils.py
+
+
+-------------------------------------------------------------------------------
+
+
+
 
 Full License Text
 =================

@@ -22,7 +22,7 @@ from spyder.config.manager import CONF
 from spyder.config.base import _
 from spyder.config.gui import config_shortcut
 from spyder.py3compat import to_text_string
-from spyder.utils import programs, encoding
+from spyder.utils import programs
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style, create_style_class
 from spyder.widgets.helperwidgets import MessageCheckBox
@@ -71,6 +71,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
+        self.spyder_kernel_comm = KernelComm(
+            interrupt_callback=self._pdb_update)
+        self.spyder_kernel_comm.sig_exception_occurred.connect(
+            self.sig_exception_occurred)
         super(ShellWidget, self).__init__(*args, **kw)
 
         self.ipyclient = ipyclient
@@ -87,10 +91,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # set in the qtconsole constructor. See spyder-ide/spyder#4806.
         self.set_bracket_matcher_color_scheme(self.syntax_style)
 
-        self.spyder_kernel_comm = KernelComm(
-            interrupt_callback=self._pdb_update)
-        self.spyder_kernel_comm.sig_exception_occurred.connect(
-            self.sig_exception_occurred)
         self.kernel_manager = None
         self.kernel_client = None
         handlers = {
@@ -100,8 +100,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'run_cell': self.handle_run_cell,
             'cell_count': self.handle_cell_count,
             'current_filename': self.handle_current_filename,
-            'get_file_code': self._handle_get_file_code,
-            'set_debug_state': self._handle_debug_state,
+            'get_file_code': self.handle_get_file_code,
+            'set_debug_state': self.handle_debug_state,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
@@ -484,7 +484,7 @@ the sympy module (e.g. plot)
             return editor.get_current_editorstack()
         raise RuntimeError('No editorstack found.')
 
-    def _handle_get_file_code(self, filename):
+    def handle_get_file_code(self, filename):
         """
         Return the bytes that compose the file.
 

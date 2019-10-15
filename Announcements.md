@@ -124,18 +124,18 @@ scientific computing and software development.
 
 # Beta release
 
-**Subject**: [ANN] Spyder 4.0 fifth public beta release
+**Subject**: [ANN] Spyder 4.0 sixth public beta release
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the fifth beta of our next major version: Spyder **4.0**.
+I'm pleased to announce the sixth beta of our next major version: Spyder **4.0**.
 
-We've been working on this version for almost three years now and as far as we know
+We've been working on this version for more than three years now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
 people who like the bleeding edge to give it a try. This beta version is released
-6 weeks after Spyder 4.0 beta4 and it includes more than 540 commits.
+4 weeks after Spyder 4.0 beta4 and it includes more than 275 commits.
 
 Spyder 4.0 comes with several interesting and exciting new features. The most
 important ones are:
@@ -159,6 +159,8 @@ important ones are:
     * A class/method/function lookup panel. This can be shown in the menu
       `Source > Show selector for classes and functions`.
     * Autosave functionality to recover unsaved files after a crash.
+    * Optional integration with the [Kite](https://kite.com/) completion
+      engine.
     * Code completion and linting are provided by the Python Language Server.
 
 - IPython Console
@@ -199,7 +201,7 @@ For a more complete list of changes, please see our
 You can easily install this beta if you use Anaconda by running:
 
     conda update qt pyqt
-    conda install -c spyder-ide spyder=4.0.0b3
+    conda install -c spyder-ide spyder=4.0.0b6
 
 Or you can use pip with this command:
 
