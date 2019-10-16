@@ -34,7 +34,7 @@ if %USE_CONDA% == yes (
 )
 
 :: Install spyder-kernels from master
-pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels.git
+pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
 if errorlevel 1 exit 1
 
 :: Install codecov
