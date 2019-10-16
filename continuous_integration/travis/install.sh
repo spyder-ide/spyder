@@ -35,7 +35,7 @@ if [ "$USE_CONDA" = "yes" ]; then
     pip install -q coveralls
 
     # Install spyder-kernels from Github with no deps
-    pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels.git@refs/pull/153/head
+    pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels.git
 else
     # Downgrade to Python 3.7.3 because 3.7.4 is not pulling
     # wheels for all packages
@@ -65,7 +65,7 @@ else
     pip install git+https://github.com/jupyter/qtconsole.git
 
     # Install spyder-kernels from Github
-    pip install -q git+https://github.com/spyder-ide/spyder-kernels.git@refs/pull/153/head
+    pip install -q git+https://github.com/spyder-ide/spyder-kernels.git
 
     # Install coveralls
     pip install -q coveralls
