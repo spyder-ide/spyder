@@ -257,9 +257,15 @@ class MainConfigPage(GeneralConfigPage):
 
         screen_resolution_layout.addLayout(screen_resolution_inner_layout)
         screen_resolution_group.setLayout(screen_resolution_layout)
+        if sys.platform == "darwin":
+            interface_tab = self.create_tab(screen_resolution_group,
+                                            interface_group, macOS_group)
+        else:
+            interface_tab = self.create_tab(screen_resolution_group,
+                                            interface_group)
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(screen_resolution_group, interface_group),
+        tabs.addTab(interface_tab,
                     _("Interface"))
         tabs.addTab(self.create_tab(general_group, sbar_group),
                     _("Advanced settings"))
