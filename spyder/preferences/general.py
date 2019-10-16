@@ -156,7 +156,7 @@ class MainConfigPage(GeneralConfigPage):
 
             macOS_group = QGroupBox(_("macOS integration"))
             mac_open_file_box = newcb(
-                _("Open files from finder with spyder"),
+                _("Open files from finder with Spyder"),
                 'mac_open_file',
                 tip=_("Register Spyder with the Launch Services"))
             mac_open_file_box.toggled.connect(set_open_file)
