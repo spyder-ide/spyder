@@ -134,10 +134,6 @@ DEPENDENCIES_BASE = [
      'package_name': "pexpect",
      'features': _("Stdio support for our language server client"),
      'required_version': PEXPECT_REQVER},
-    {'modname': "applaunchservices",
-     'package_name': "applaunchservices",
-     'features': _("Tool to notify macos that the app can open files"),
-     'required_version': APPLAUNCHSERVICES_REQVER},
     {'modname': "pympler",
      'package_name': "pympler",
      'features': _("Tool to measure the memory behavior of Python objects"),
@@ -180,6 +176,13 @@ DEPENDENCIES_BASE = [
      'package_name': 'python-language-server',
      'features': _("Code completion and linting for the Editor"),
      'required_version': PYLS_REQVER}]
+
+if sys.platform == "darwin":
+    DEPENDENCIES_BASE.append(
+        {'modname': "applaunchservices",
+         'package_name': "applaunchservices",
+         'features': _("Tool to notify macos that the app can open files"),
+         'required_version': APPLAUNCHSERVICES_REQVER})
 
 
 if sys.platform.startswith('linux'):
