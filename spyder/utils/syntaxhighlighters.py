@@ -487,7 +487,7 @@ class PythonSH(BaseSH):
     add_kw = ['async', 'await']
     PROG = re.compile(make_python_patterns(additional_keywords=add_kw), re.S)
     IDPROG = re.compile(r"\s+(\w+)", re.S)
-    ASPROG = re.compile(r".*?\b(as)\b")
+    ASPROG = re.compile(r"\b(as)\b")
     # Syntax highlighting states (from one text block to another):
     (NORMAL, INSIDE_SQ3STRING, INSIDE_DQ3STRING,
      INSIDE_SQSTRING, INSIDE_DQSTRING,
