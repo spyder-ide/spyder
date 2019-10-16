@@ -345,8 +345,11 @@ class DebuggingWidget(RichJupyterWidget):
             self._tmp_reading = self._reading
             self._reading = False
             try:
-                return super(DebuggingWidget,
-                             self)._event_filter_console_keypress(event)
+                ret = super(DebuggingWidget,
+                            self)._event_filter_console_keypress(event)
+                if key == Qt.Key_Tab:
+                    self.call_kernel(interrupt=True).pong()
+                return ret
             finally:
                 self._reading = self._tmp_reading
         else:
