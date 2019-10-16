@@ -183,9 +183,16 @@ def test_set_get_project_filenames_when_closing(create_projects, tmpdir):
 
     Regression test for spyder-ide/spyder#8375.
     """
-    path = to_text_string(tmpdir.mkdir('project1'))
-    opened_files = [os.path.join(path, file)
-                    for file in ['file1', 'file2', 'file3']]
+    # Setup tmp dir and files
+    dir_object = tmpdir.mkdir('project1')
+    path = to_text_string(dir_object)
+
+    # Needed to actually create the files
+    opened_files = []
+    for file in ['file1', 'file2', 'file3']:
+        file_object = dir_object.join(file)
+        file_object.write(file)
+        opened_files.append(to_text_string(file_object))
 
     # Create the projects plugin.
     projects = create_projects(path, opened_files)
@@ -202,10 +209,16 @@ def test_set_get_project_filenames_when_switching(create_projects, tmpdir):
     Test that files in the Editor are loaded and saved correctly when
     switching projects.
     """
-    path1 = to_text_string(tmpdir.mkdir('project1'))
+    dir_object1 = tmpdir.mkdir('project1')
+    path1 = to_text_string(dir_object1)
     path2 = to_text_string(tmpdir.mkdir('project2'))
-    opened_files = [os.path.join(path1, file)
-                    for file in ['file1', 'file2', 'file3']]
+
+    # Needed to actually create the files
+    opened_files = []
+    for file in ['file1', 'file2', 'file3']:
+        file_object = dir_object1.join(file)
+        file_object.write(file)
+        opened_files.append(to_text_string(file_object))
 
     # Create the projects plugin.
     projects = create_projects(path1, opened_files)
