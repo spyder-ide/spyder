@@ -175,6 +175,32 @@ def test_open_project_uses_visible_config(projects, tmpdir, value):
     assert projects.dockwidget.isVisible() == value
 
 
+def test_set_get_project_filenames_when_closing_no_files(create_projects,
+                                                         tmpdir):
+    """
+    Test that the currently opened files in the Editor are saved and loaded
+    correctly to and from the project config when the project is closed and
+    then reopened.
+
+    Regression test for spyder-ide/spyder#10045.
+    """
+    path = to_text_string(tmpdir.mkdir('project1'))
+    # Create paths but no actual files
+    opened_files = [os.path.join(path, file)
+                    for file in ['file1', 'file2', 'file3']]
+
+    # Create the projects plugin without creating files.
+    projects = create_projects(path, opened_files)
+    assert projects.get_project_filenames() == []
+
+    # Close and reopen the project.
+    projects.close_project()
+    projects.open_project(path=path)
+
+    # Check the original list isn't empty (was not changed)
+    assert opened_files
+
+
 def test_set_get_project_filenames_when_closing(create_projects, tmpdir):
     """
     Test that the currently opened files in the Editor are saved and loaded
@@ -182,6 +208,7 @@ def test_set_get_project_filenames_when_closing(create_projects, tmpdir):
     then reopened.
 
     Regression test for spyder-ide/spyder#8375.
+    Updated for spyder-ide/spyder#10045.
     """
     # Setup tmp dir and files
     dir_object = tmpdir.mkdir('project1')
@@ -208,6 +235,8 @@ def test_set_get_project_filenames_when_switching(create_projects, tmpdir):
     """
     Test that files in the Editor are loaded and saved correctly when
     switching projects.
+
+    Updated for spyder-ide/spyder#10045.
     """
     dir_object1 = tmpdir.mkdir('project1')
     path1 = to_text_string(dir_object1)
