@@ -1062,6 +1062,7 @@ class Editor(SpyderPluginWidget):
 
         # Add modes to switcher
         self.switcher_manager = EditorSwitcherManager(
+            self,
             self.main.switcher,
             lambda: self.get_current_editor(),
             lambda: self.get_current_editorstack(),
