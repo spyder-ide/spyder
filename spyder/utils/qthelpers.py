@@ -32,6 +32,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.icon_manager import get_icon, get_kite_icon, get_std_icon
 from spyder.widgets.waitingspinner import QWaitingSpinner
+from spyder.config.manager import CONF
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----
@@ -74,6 +75,47 @@ class MacApplication(QApplication):
         return QApplication.event(self, event)
 
 
+def get_origin_filename():
+    """Return the filename at the top of the stack"""
+    # Get top frame
+    f = sys._getframe()
+    while f.f_back is not None:
+        f = f.f_back
+    return f.f_code.co_filename
+
+
+def register_app_launchservices(
+        app,
+        uniform_type_identifier="public.python-script",
+        role='editor'):
+    """Register app to the apple launch services so it can open python files"""
+    # if top frame is MAC_APP_NAME, set ourselves to open files at startup
+    origin_filename = get_origin_filename()
+    if MAC_APP_NAME in origin_filename:
+        bundle_idx = origin_filename.find(MAC_APP_NAME)
+        old_handler = als.get_bundle_identifier_for_path(
+            origin_filename[:bundle_idx] + MAC_APP_NAME)
+    else:
+        # Else, just restore the previous handler
+        old_handler = als.get_UTI_handler(
+            uniform_type_identifier, role)
+
+    # Restore previous handle when quitting
+    app.aboutToQuit.connect(
+        lambda: als.set_UTI_handler(
+            uniform_type_identifier, role, old_handler))
+
+    # Wait to be visible to set ourselves as the UTI handler
+    def handle_applicationStateChanged(state):
+        if state == Qt.ApplicationActive and app._never_shown:
+            app._never_shown = False
+            bundle_identifier = als.get_bundle_identifier()
+            als.set_UTI_handler(
+                uniform_type_identifier, role, bundle_identifier)
+
+    app.applicationStateChanged.connect(handle_applicationStateChanged)
+
+
 def qapplication(translate=True, test_time=3):
     """
     Return QApplication instance
@@ -96,38 +138,9 @@ def qapplication(translate=True, test_time=3):
         # Set application name for KDE. See spyder-ide/spyder#2207.
         app.setApplicationName('Spyder')
 
-    if sys.platform == "darwin":
-        # Accept opening python-script
-        uniform_type_identifier = "public.python-script"
-        # Get top frame
-        f = sys._getframe()
-        while f.f_back is not None:
-            f = f.f_back
-        # if top frame is MAC_APP_NAME, set ourselves to open files at startup
-        origin_filename = f.f_code.co_filename
-        if MAC_APP_NAME in origin_filename:
-            bundle_idx = origin_filename.find(MAC_APP_NAME)
-            old_handler = als.get_bundle_identifier_for_path(
-                origin_filename[:bundle_idx] + MAC_APP_NAME)
-        else:
-            # Else, just restore the previous handler
-            old_handler = als.get_UTI_handler(
-                uniform_type_identifier, 'editor')
-
-        # Restore previous handle when quitting
-        app.aboutToQuit.connect(
-            lambda: als.set_UTI_handler(
-                uniform_type_identifier, 'editor', old_handler))
-
-        # Wait to be visible to set ourselves as the UTI handler
-        def handle_applicationStateChanged(state):
-            if state == Qt.ApplicationActive and app._never_shown:
-                app._never_shown = False
-                bundle_identifier = als.get_bundle_identifier()
-                als.set_UTI_handler(
-                    uniform_type_identifier, 'editor', bundle_identifier)
-
-        app.applicationStateChanged.connect(handle_applicationStateChanged)
+    if sys.platform == "darwin" and CONF.get('main', 'mac_open_file', False):
+        # Register app if setting is set
+        register_app_launchservices(app)
 
     if translate:
         install_translator(app)

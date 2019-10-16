@@ -13,6 +13,7 @@ For historical reasons (dating back to Spyder 2) the main class here is called
 """
 
 import traceback
+import sys
 
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import Qt
@@ -142,6 +143,16 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(tear_off_box)
         interface_layout.addLayout(margins_cursor_layout)
         interface_group.setLayout(interface_layout)
+
+        if sys.platform == "darwin":
+            macOS_group = QGroupBox(_("macOS integration"))
+            mac_open_file_box = newcb(
+                _("Open files from finder with spyder"),
+                'mac_open_file',
+                tip=_("Register Spyder with the Launch Services"))
+            macOS_layout = QVBoxLayout()
+            macOS_layout.addWidget(mac_open_file_box)
+            macOS_group.setLayout(macOS_layout)
 
         # --- Status bar
         sbar_group = QGroupBox(_("Status bar"))
