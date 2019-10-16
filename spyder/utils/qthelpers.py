@@ -89,7 +89,8 @@ def restore_launchservices():
     """Restore LaunchServices to the previous state"""
     app = QApplication.instance()
     for key, handler in app._original_handlers.items():
-        als.set_UTI_handler(*key, handler)
+        UTI, role = key
+        als.set_UTI_handler(UTI, role, handler)
 
 
 def register_app_launchservices(
