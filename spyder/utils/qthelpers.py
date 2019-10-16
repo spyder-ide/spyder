@@ -25,7 +25,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import get_image_path, running_in_mac_app, MAC_APP_NAME
+from spyder.config.base import get_image_path, MAC_APP_NAME
 from spyder.config.gui import get_shortcut, is_dark_interface
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
@@ -82,7 +82,7 @@ def qapplication(translate=True, test_time=3):
     test_time: Time to maintain open the application when testing. It's given
     in seconds
     """
-    if running_in_mac_app():
+    if sys.platform == "darwin":
         SpyderApplication = MacApplication
     else:
         SpyderApplication = QApplication
@@ -96,7 +96,7 @@ def qapplication(translate=True, test_time=3):
         # Set application name for KDE. See spyder-ide/spyder#2207.
         app.setApplicationName('Spyder')
 
-    if running_in_mac_app():
+    if sys.platform == "darwin":
         # Accept opening python-script
         uniform_type_identifier = "public.python-script"
         # Get top frame

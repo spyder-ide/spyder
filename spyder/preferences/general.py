@@ -69,7 +69,7 @@ class MainConfigPage(GeneralConfigPage):
                               'check_updates_on_startup')
 
         # Decide if it's possible to activate or not single instance mode
-        if running_in_mac_app(check_file=True):
+        if running_in_mac_app():
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)
 
