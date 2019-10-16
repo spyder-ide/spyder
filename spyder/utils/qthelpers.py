@@ -64,6 +64,7 @@ class MacApplication(QApplication):
         self._never_shown = True
         self._has_started = False
         self._pending_file_open = []
+        self._original_handlers = {}
 
     def event(self, event):
         if event.type() == QEvent.FileOpen:
@@ -84,11 +85,18 @@ def get_origin_filename():
     return f.f_code.co_filename
 
 
+def restore_launchservices():
+    """Restore LaunchServices to the previous state"""
+    app = QApplication.instance()
+    for key, handler in app._original_handlers.items():
+        als.set_UTI_handler(*key, handler)
+
+
 def register_app_launchservices(
-        app,
         uniform_type_identifier="public.python-script",
         role='editor'):
     """Register app to the apple launch services so it can open python files"""
+    app = QApplication.instance()
     # if top frame is MAC_APP_NAME, set ourselves to open files at startup
     origin_filename = get_origin_filename()
     if MAC_APP_NAME in origin_filename:
@@ -100,10 +108,16 @@ def register_app_launchservices(
         old_handler = als.get_UTI_handler(
             uniform_type_identifier, role)
 
+    app._original_handlers[(uniform_type_identifier, role)] = old_handler
+
     # Restore previous handle when quitting
-    app.aboutToQuit.connect(
-        lambda: als.set_UTI_handler(
-            uniform_type_identifier, role, old_handler))
+    app.aboutToQuit.connect(restore_launchservices)
+
+    if not app._never_shown:
+        bundle_identifier = als.get_bundle_identifier()
+        als.set_UTI_handler(
+            uniform_type_identifier, role, bundle_identifier)
+        return
 
     # Wait to be visible to set ourselves as the UTI handler
     def handle_applicationStateChanged(state):
@@ -140,7 +154,7 @@ def qapplication(translate=True, test_time=3):
 
     if sys.platform == "darwin" and CONF.get('main', 'mac_open_file', False):
         # Register app if setting is set
-        register_app_launchservices(app)
+        register_app_launchservices()
 
     if translate:
         install_translator(app)

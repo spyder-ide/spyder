@@ -26,6 +26,8 @@ from spyder.config.base import (_, LANGUAGE_CODES, running_in_mac_app,
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import to_text_string
 import spyder.utils.icon_manager as ima
+from spyder.utils.qthelpers import (register_app_launchservices,
+                                    restore_launchservices)
 
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
@@ -145,11 +147,19 @@ class MainConfigPage(GeneralConfigPage):
         interface_group.setLayout(interface_layout)
 
         if sys.platform == "darwin":
+
+            def set_open_file(state):
+                if state:
+                    register_app_launchservices()
+                else:
+                    restore_launchservices()
+
             macOS_group = QGroupBox(_("macOS integration"))
             mac_open_file_box = newcb(
                 _("Open files from finder with spyder"),
                 'mac_open_file',
                 tip=_("Register Spyder with the Launch Services"))
+            mac_open_file_box.toggled.connect(set_open_file)
             macOS_layout = QVBoxLayout()
             macOS_layout.addWidget(mac_open_file_box)
             macOS_group.setLayout(macOS_layout)
