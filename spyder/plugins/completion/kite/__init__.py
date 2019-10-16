@@ -28,7 +28,7 @@ class _KiteEndpoints(type):
         value = object.__getattribute__(self, attr)
         if attr.endswith('ENDPOINT'):
             verb, path = value
-            url = '{0}{1}'.format(self.KITE_URL, path)
+            url = u'{0}{1}'.format(self.KITE_URL, path)
             return verb.lower(), url
         return value
 
