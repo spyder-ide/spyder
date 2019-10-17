@@ -1,5 +1,50 @@
 # History of changes
 
+## Version 4.0beta7 (2019-10-17)
+
+### Issues Closed
+
+* [Issue 10424](https://github.com/spyder-ide/spyder/issues/10424) - Kite call-to-action consistently causes a Spyder hard crash ([PR 10432](https://github.com/spyder-ide/spyder/pull/10432))
+* [Issue 10404](https://github.com/spyder-ide/spyder/issues/10404) - TypeError in go-to-definition ([PR 10399](https://github.com/spyder-ide/spyder/pull/10399))
+* [Issue 10388](https://github.com/spyder-ide/spyder/issues/10388) - Big toolip when using kite ([PR 10405](https://github.com/spyder-ide/spyder/pull/10405))
+* [Issue 10372](https://github.com/spyder-ide/spyder/issues/10372) - IndexError when autocompleting using Kite ([PR 10418](https://github.com/spyder-ide/spyder/pull/10418))
+* [Issue 10351](https://github.com/spyder-ide/spyder/issues/10351) - Syntax coloring  incorrect with import as statements ([PR 10421](https://github.com/spyder-ide/spyder/pull/10421))
+* [Issue 10335](https://github.com/spyder-ide/spyder/issues/10335) - Editor plugin not raised after selecting file in Switcher ([PR 10420](https://github.com/spyder-ide/spyder/pull/10420))
+* [Issue 10290](https://github.com/spyder-ide/spyder/issues/10290) - Deleting line when breakpoint it set causes crash
+* [Issue 9356](https://github.com/spyder-ide/spyder/issues/9356) - UnicodeEncodeError when pylint tries to print non-ascii character ([PR 9851](https://github.com/spyder-ide/spyder/pull/9851))
+* [Issue 7787](https://github.com/spyder-ide/spyder/issues/7787) - Suppress ipdb output during debug ([PR 10207](https://github.com/spyder-ide/spyder/pull/10207))
+* [Issue 7031](https://github.com/spyder-ide/spyder/issues/7031) - Profiler raises a UnicodeEncodeError when non-ASCII characters are printed by the source file ([PR 9851](https://github.com/spyder-ide/spyder/pull/9851))
+* [Issue 1643](https://github.com/spyder-ide/spyder/issues/1643) - Spyder does not fully support IPython scripts (*.ipy)
+* [Issue 1073](https://github.com/spyder-ide/spyder/issues/1073) - Debugging: Unable to run selection while debugging ([PR 10190](https://github.com/spyder-ide/spyder/pull/10190))
+* [Issue 288](https://github.com/spyder-ide/spyder/issues/288) - Code completion doesn't work in the debugger
+
+In this release 13 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 10434](https://github.com/spyder-ide/spyder/pull/10434) - PR: Increase minimal required version of spyder-kernels to 1.6
+* [PR 10432](https://github.com/spyder-ide/spyder/pull/10432) - PR: Add bloom files to our tarballs ([10424](https://github.com/spyder-ide/spyder/issues/10424))
+* [PR 10421](https://github.com/spyder-ide/spyder/pull/10421) - PR: Update highlighter regex for 'as' keyword ([10351](https://github.com/spyder-ide/spyder/issues/10351))
+* [PR 10420](https://github.com/spyder-ide/spyder/pull/10420) - PR: Editor plugin is raised after selecting file in the switcher ([10335](https://github.com/spyder-ide/spyder/issues/10335))
+* [PR 10418](https://github.com/spyder-ide/spyder/pull/10418) - PR: Check length of parameters data vs active parameter index ([10372](https://github.com/spyder-ide/spyder/issues/10372))
+* [PR 10413](https://github.com/spyder-ide/spyder/pull/10413) - PR: Don't use PyLS 0.29 for now in our tests
+* [PR 10411](https://github.com/spyder-ide/spyder/pull/10411) - PR: Add validation for number of parameters in function calltip ([10408](https://github.com/spyder-ide/spyder/issues/10408))
+* [PR 10405](https://github.com/spyder-ide/spyder/pull/10405) - PR: Add validation for completion signature processing ([10388](https://github.com/spyder-ide/spyder/issues/10388))
+* [PR 10403](https://github.com/spyder-ide/spyder/pull/10403) - PR: Improve LSP support for MarkupString[] for hover requests
+* [PR 10399](https://github.com/spyder-ide/spyder/pull/10399) - PR: Fix deadlock when going to a definition ([10404](https://github.com/spyder-ide/spyder/issues/10404))
+* [PR 10327](https://github.com/spyder-ide/spyder/pull/10327) - PR: Try opening closed files in the frontend side
+* [PR 10207](https://github.com/spyder-ide/spyder/pull/10207) - PR: Disable printing stack when using debug buttons ([7787](https://github.com/spyder-ide/spyder/issues/7787))
+* [PR 10190](https://github.com/spyder-ide/spyder/pull/10190) - PR: Full multiline support and better history management for the debugger ([1073](https://github.com/spyder-ide/spyder/issues/1073))
+* [PR 10153](https://github.com/spyder-ide/spyder/pull/10153) - PR: Add console handler to send file contents to the kernel during execution
+* [PR 9940](https://github.com/spyder-ide/spyder/pull/9940) - PR: Add autocomplete to the debugger
+* [PR 9851](https://github.com/spyder-ide/spyder/pull/9851) - PR: Set encoding to utf8 for Profiler and Pylint processes ([9356](https://github.com/spyder-ide/spyder/issues/9356), [7031](https://github.com/spyder-ide/spyder/issues/7031))
+
+In this release 16 pull requests were closed.
+
+
+----
+
+
 ## Version 4.0beta6 (2019-10-14)
 
 ### Issues Closed

@@ -1798,7 +1798,7 @@ class EditorStack(QWidget):
         txt = fileinfo.editor.get_text_with_eol()
         fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
 
-    def save(self, index=None, force=False):
+    def save(self, index=None, force=False, save_new_files=True):
         """Write text of editor to a file.
 
         Args:
@@ -1827,7 +1827,10 @@ class EditorStack(QWidget):
             return True
         if not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
-            return self.save_as(index=index)
+            if save_new_files:
+                return self.save_as(index=index)
+            # The file doesn't need to be saved
+            return True
         if self.always_remove_trailing_spaces:
             self.remove_trailing_spaces(index)
         if self.convert_eol_on_save:
@@ -2044,14 +2047,14 @@ class EditorStack(QWidget):
         else:
             return False
 
-    def save_all(self):
+    def save_all(self, save_new_files=True):
         """Save all opened files.
 
         Iterate through self.data and call save() on any modified files.
         """
         for index in range(self.get_stack_count()):
             if self.data[index].editor.document().isModified():
-                self.save(index)
+                self.save(index, save_new_files=save_new_files)
 
     #------ Update UI
     def start_stop_analysis_timer(self):
