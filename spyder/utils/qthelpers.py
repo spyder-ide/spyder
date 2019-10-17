@@ -65,7 +65,11 @@ class MacApplication(QApplication):
     def event(self, event):
         if event.type() == QEvent.FileOpen:
             fname = str(event.file())
-            if self._has_started:
+            if sys.argv and sys.argv[0] == fname:
+                # Ignore requests to open own script
+                # Later, mainwindow.initialize() will set sys.argv[0] to ''
+                pass
+            elif self._has_started:
                 self.sig_open_external_file.emit(fname)
             elif MAC_APP_NAME not in fname:
                 self._pending_file_open.append(fname)

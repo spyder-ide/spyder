@@ -110,7 +110,7 @@ class DebuggingWidget(RichJupyterWidget):
 
             # Print the text if it is programatically added.
             if line.strip() != self.input_buffer.strip():
-                self._append_plain_text(line)
+                self.input_buffer = line
             self._append_plain_text('\n')
             # Save history to browse it later
             self._pdb_line_num += 1
@@ -279,7 +279,12 @@ class DebuggingWidget(RichJupyterWidget):
             line = "__spy_code__ = get_ipython().run_cell('%s')" % line
             self.pdb_execute(line, hidden=True)
         else:
+            self.set_pdb_echo_code(True)
             self.pdb_execute(line)
+
+    def set_pdb_echo_code(self, state):
+        """Choose if the code should echo in the console."""
+        self.call_kernel(interrupt=True).set_pdb_echo_code(state)
 
     def _handle_input_request(self, msg):
         """Save history and add a %plot magic."""
@@ -345,8 +350,11 @@ class DebuggingWidget(RichJupyterWidget):
             self._tmp_reading = self._reading
             self._reading = False
             try:
-                return super(DebuggingWidget,
-                             self)._event_filter_console_keypress(event)
+                ret = super(DebuggingWidget,
+                            self)._event_filter_console_keypress(event)
+                if key == Qt.Key_Tab:
+                    self.call_kernel(interrupt=True).pong()
+                return ret
             finally:
                 self._reading = self._tmp_reading
         else:
