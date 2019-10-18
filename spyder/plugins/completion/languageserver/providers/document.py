@@ -227,7 +227,7 @@ class DocumentProvider:
     @send_notification(method=LSPRequestTypes.DOCUMENT_DID_CLOSE)
     def document_did_close(self, params):
         codeeditor = params['codeeditor']
-        logger.debug('[{0}] File: {1}'.format(
+        logger.debug(u'[{0}] File: {1}'.format(
             LSPRequestTypes.DOCUMENT_DID_CLOSE, params['file']))
         filename = path_as_uri(params['file'])
 
