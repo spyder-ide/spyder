@@ -62,6 +62,10 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
                               self.COMPLETION_CLIENT_NAME))
+
+        self.client.sig_response_ready.connect(self._kite_onboarding)
+        self.client.sig_status_response_ready.connect(self._kite_onboarding)
+
         self.installation_thread.sig_installation_status.connect(
             self.set_status)
         self.status_widget.sig_clicked.connect(
@@ -146,6 +150,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client.enable_code_snippets = CONF.get('lsp-server',
                                                     'code_snippets')
         self.enabled = self.get_option('enable')
+        self._show_onboarding = self.get_option('show_onboarding')
 
     def _kite_onboarding(self):
         """
@@ -154,25 +159,24 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         is not possible yet or has already been displayed before.
         :return:
         """
+
         if not self.enabled:
             return
-        if not self.get_option('kite_show_onboarding'):
+        if not self._show_onboarding:
             return
         if self.main.is_setting_up:
             return
         if not self.available_languages:
             return
-        if not self.kite_process:
-            installed, _ = check_if_kite_installed()
-            if not installed:
-                return
 
+        # No need to check installed status,
+        # since the get_onboarding_file call fails fast.
         onboarding_file = self.client.get_onboarding_file()
         if onboarding_file is None:
-            # fixme: show onboarding notification
             pass
         else:
-            self.set_option('kite_show_onboarding', False)
+            self._show_onboarding = False
+            self.set_option('show_onboarding', False)
             self.main.open_file(onboarding_file)
 
     def is_installing(self):
