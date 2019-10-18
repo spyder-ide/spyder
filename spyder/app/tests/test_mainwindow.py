@@ -1253,6 +1253,7 @@ def test_maximize_minimize_plugins(main_window, qtbot):
     assert not main_window.editor._ismaximized
 
 
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif((os.name == 'nt' or
                      os.environ.get('CI', None) is not None and PYQT_VERSION >= '5.9'),
@@ -1471,6 +1472,10 @@ def test_change_cwd_dbg(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
+    # Load test file to be able to enter in debugging mode
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
+
     # Give focus to the widget that's going to receive clicks
     control = main_window.ipyconsole.get_focus_widget()
     control.setFocus()
@@ -1509,6 +1514,10 @@ def test_varexp_magic_dbg(main_window, qtbot):
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+
+    # Load test file to be able to enter in debugging mode
+    test_file = osp.join(LOCATION, 'script.py')
+    main_window.editor.load(test_file)
 
     # Give focus to the widget that's going to receive clicks
     control = main_window.ipyconsole.get_focus_widget()
