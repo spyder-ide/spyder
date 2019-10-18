@@ -947,7 +947,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Configuration and protocol start/end ----------------
     def start_completion_services(self):
-        logger.debug("Completions services available for: {0}".format(
+        logger.debug(u"Completions services available for: {0}".format(
             self.filename))
         self.completions_available = True
         self.document_did_open()
@@ -1129,10 +1129,12 @@ class CodeEditor(TextEditBaseWidget):
 
                 parameter_idx = signature_params['activeParameter']
                 parameters = signature_data['parameters']
-                parameter_data = parameters[parameter_idx]
+                parameter = None
+                if len(parameters) > 0 and parameter_idx < len(parameters):
+                    parameter_data = parameters[parameter_idx]
+                    parameter = parameter_data['label']
 
                 signature = signature_data['label']
-                parameter = parameter_data['label']
 
                 # This method is part of spyder/widgets/mixins
                 self.show_calltip(

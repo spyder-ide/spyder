@@ -129,12 +129,12 @@ class KiteCallToAction(QFrame):
         self.hide()
         self._enabled = False
         kite = self.parent().completions.get_client('kite')
-        kite.kite_installer.welcome()
-        kite.kite_installer.show()
+        kite.installer.welcome()
+        kite.installer.show()
 
     def _install_kite(self):
         self.hide()
         self._enabled = False
         kite = self.parent().completions.get_client('kite')
-        kite.kite_installer.install()
-        kite.kite_installer.show()
+        kite.installer.install()
+        kite.installer.show()

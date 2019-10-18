@@ -275,6 +275,7 @@ class ProfilerWidget(QWidget):
             for envItem in env:
                 envName, separator, envValue = envItem.partition('=')
                 processEnvironment.insert(envName, envValue)
+            processEnvironment.insert("PYTHONIOENCODING", "utf8")
             self.process.setProcessEnvironment(processEnvironment)
 
         self.output = ''

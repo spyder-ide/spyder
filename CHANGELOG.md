@@ -1,5 +1,124 @@
 # History of changes
 
+## Version 4.0beta7 (2019-10-17)
+
+### Issues Closed
+
+* [Issue 10424](https://github.com/spyder-ide/spyder/issues/10424) - Kite call-to-action consistently causes a Spyder hard crash ([PR 10432](https://github.com/spyder-ide/spyder/pull/10432))
+* [Issue 10404](https://github.com/spyder-ide/spyder/issues/10404) - TypeError in go-to-definition ([PR 10399](https://github.com/spyder-ide/spyder/pull/10399))
+* [Issue 10388](https://github.com/spyder-ide/spyder/issues/10388) - Big toolip when using kite ([PR 10405](https://github.com/spyder-ide/spyder/pull/10405))
+* [Issue 10372](https://github.com/spyder-ide/spyder/issues/10372) - IndexError when autocompleting using Kite ([PR 10418](https://github.com/spyder-ide/spyder/pull/10418))
+* [Issue 10351](https://github.com/spyder-ide/spyder/issues/10351) - Syntax coloring  incorrect with import as statements ([PR 10421](https://github.com/spyder-ide/spyder/pull/10421))
+* [Issue 10335](https://github.com/spyder-ide/spyder/issues/10335) - Editor plugin not raised after selecting file in Switcher ([PR 10420](https://github.com/spyder-ide/spyder/pull/10420))
+* [Issue 10290](https://github.com/spyder-ide/spyder/issues/10290) - Deleting line when breakpoint it set causes crash
+* [Issue 9356](https://github.com/spyder-ide/spyder/issues/9356) - UnicodeEncodeError when pylint tries to print non-ascii character ([PR 9851](https://github.com/spyder-ide/spyder/pull/9851))
+* [Issue 7787](https://github.com/spyder-ide/spyder/issues/7787) - Suppress ipdb output during debug ([PR 10207](https://github.com/spyder-ide/spyder/pull/10207))
+* [Issue 7031](https://github.com/spyder-ide/spyder/issues/7031) - Profiler raises a UnicodeEncodeError when non-ASCII characters are printed by the source file ([PR 9851](https://github.com/spyder-ide/spyder/pull/9851))
+* [Issue 1643](https://github.com/spyder-ide/spyder/issues/1643) - Spyder does not fully support IPython scripts (*.ipy)
+* [Issue 1073](https://github.com/spyder-ide/spyder/issues/1073) - Debugging: Unable to run selection while debugging ([PR 10190](https://github.com/spyder-ide/spyder/pull/10190))
+* [Issue 288](https://github.com/spyder-ide/spyder/issues/288) - Code completion doesn't work in the debugger
+
+In this release 13 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 10434](https://github.com/spyder-ide/spyder/pull/10434) - PR: Increase minimal required version of spyder-kernels to 1.6
+* [PR 10432](https://github.com/spyder-ide/spyder/pull/10432) - PR: Add bloom files to our tarballs ([10424](https://github.com/spyder-ide/spyder/issues/10424))
+* [PR 10421](https://github.com/spyder-ide/spyder/pull/10421) - PR: Update highlighter regex for 'as' keyword ([10351](https://github.com/spyder-ide/spyder/issues/10351))
+* [PR 10420](https://github.com/spyder-ide/spyder/pull/10420) - PR: Editor plugin is raised after selecting file in the switcher ([10335](https://github.com/spyder-ide/spyder/issues/10335))
+* [PR 10418](https://github.com/spyder-ide/spyder/pull/10418) - PR: Check length of parameters data vs active parameter index ([10372](https://github.com/spyder-ide/spyder/issues/10372))
+* [PR 10413](https://github.com/spyder-ide/spyder/pull/10413) - PR: Don't use PyLS 0.29 for now in our tests
+* [PR 10411](https://github.com/spyder-ide/spyder/pull/10411) - PR: Add validation for number of parameters in function calltip ([10408](https://github.com/spyder-ide/spyder/issues/10408))
+* [PR 10405](https://github.com/spyder-ide/spyder/pull/10405) - PR: Add validation for completion signature processing ([10388](https://github.com/spyder-ide/spyder/issues/10388))
+* [PR 10403](https://github.com/spyder-ide/spyder/pull/10403) - PR: Improve LSP support for MarkupString[] for hover requests
+* [PR 10399](https://github.com/spyder-ide/spyder/pull/10399) - PR: Fix deadlock when going to a definition ([10404](https://github.com/spyder-ide/spyder/issues/10404))
+* [PR 10327](https://github.com/spyder-ide/spyder/pull/10327) - PR: Try opening closed files in the frontend side
+* [PR 10207](https://github.com/spyder-ide/spyder/pull/10207) - PR: Disable printing stack when using debug buttons ([7787](https://github.com/spyder-ide/spyder/issues/7787))
+* [PR 10190](https://github.com/spyder-ide/spyder/pull/10190) - PR: Full multiline support and better history management for the debugger ([1073](https://github.com/spyder-ide/spyder/issues/1073))
+* [PR 10153](https://github.com/spyder-ide/spyder/pull/10153) - PR: Add console handler to send file contents to the kernel during execution
+* [PR 9940](https://github.com/spyder-ide/spyder/pull/9940) - PR: Add autocomplete to the debugger
+* [PR 9851](https://github.com/spyder-ide/spyder/pull/9851) - PR: Set encoding to utf8 for Profiler and Pylint processes ([9356](https://github.com/spyder-ide/spyder/issues/9356), [7031](https://github.com/spyder-ide/spyder/issues/7031))
+
+In this release 16 pull requests were closed.
+
+
+----
+
+
+## Version 4.0beta6 (2019-10-14)
+
+### Issues Closed
+
+* [Issue 10352](https://github.com/spyder-ide/spyder/issues/10352) - An error occurs when autocompleting 'subplots' using kite. ([PR 10365](https://github.com/spyder-ide/spyder/pull/10365))
+* [Issue 10331](https://github.com/spyder-ide/spyder/issues/10331) - Automatic_completions* options not being set at startup ([PR 10348](https://github.com/spyder-ide/spyder/pull/10348))
+* [Issue 10308](https://github.com/spyder-ide/spyder/issues/10308) - A file switcher test is failing on master ([PR 10309](https://github.com/spyder-ide/spyder/pull/10309))
+* [Issue 10296](https://github.com/spyder-ide/spyder/issues/10296) - Portuguese (BRAZIL) minor error ([PR 10344](https://github.com/spyder-ide/spyder/pull/10344))
+* [Issue 10289](https://github.com/spyder-ide/spyder/issues/10289) - crash in 4.0.0b5 related to non-ascii characters and tooltips ([PR 10256](https://github.com/spyder-ide/spyder/pull/10256))
+* [Issue 10284](https://github.com/spyder-ide/spyder/issues/10284) - Can not change font ([PR 10306](https://github.com/spyder-ide/spyder/pull/10306))
+* [Issue 10255](https://github.com/spyder-ide/spyder/issues/10255) - Selected figure thumbnail in Plots not highlighted in dark mode ([PR 10259](https://github.com/spyder-ide/spyder/pull/10259))
+* [Issue 10248](https://github.com/spyder-ide/spyder/issues/10248) - Trailing spaces are being removed on line change even if the option is unset in preferences ([PR 10261](https://github.com/spyder-ide/spyder/pull/10261))
+* [Issue 10235](https://github.com/spyder-ide/spyder/issues/10235) - Completions docs UI shows docs for wrong completion ([PR 10262](https://github.com/spyder-ide/spyder/pull/10262))
+* [Issue 10230](https://github.com/spyder-ide/spyder/issues/10230) - Several errors with code snippets ([PR 10256](https://github.com/spyder-ide/spyder/pull/10256))
+* [Issue 10227](https://github.com/spyder-ide/spyder/issues/10227) - Kite completions ordering is not respected ([PR 10301](https://github.com/spyder-ide/spyder/pull/10301))
+* [Issue 10226](https://github.com/spyder-ide/spyder/issues/10226) - Kite (and LSP) completions frequently not displayed ([PR 10301](https://github.com/spyder-ide/spyder/pull/10301))
+* [Issue 10214](https://github.com/spyder-ide/spyder/issues/10214) - Minimal pyxdg version not set in setup.py ([PR 10218](https://github.com/spyder-ide/spyder/pull/10218))
+* [Issue 10208](https://github.com/spyder-ide/spyder/issues/10208) - OSError when saving files on Linux ([PR 10236](https://github.com/spyder-ide/spyder/pull/10236))
+* [Issue 10203](https://github.com/spyder-ide/spyder/issues/10203) - IndexError in Kite completitons  ([PR 10216](https://github.com/spyder-ide/spyder/pull/10216))
+* [Issue 10141](https://github.com/spyder-ide/spyder/issues/10141) - Ctrl+I doesn't work in editor when hovers are deactivated ([PR 10254](https://github.com/spyder-ide/spyder/pull/10254))
+* [Issue 10134](https://github.com/spyder-ide/spyder/issues/10134) - On the fly code completion interferes with normal typing ([PR 10262](https://github.com/spyder-ide/spyder/pull/10262))
+* [Issue 10118](https://github.com/spyder-ide/spyder/issues/10118) - Open Collective ([PR 10237](https://github.com/spyder-ide/spyder/pull/10237))
+* [Issue 10071](https://github.com/spyder-ide/spyder/issues/10071) - Kite is always started ([PR 10354](https://github.com/spyder-ide/spyder/pull/10354))
+* [Issue 9992](https://github.com/spyder-ide/spyder/issues/9992) - Completion stopped working after switching to "This is an external server" ([PR 10278](https://github.com/spyder-ide/spyder/pull/10278))
+* [Issue 7008](https://github.com/spyder-ide/spyder/issues/7008) - Keyboard shortcut dialog unuseable / crash ([PR 10215](https://github.com/spyder-ide/spyder/pull/10215))
+
+In this release 21 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 10370](https://github.com/spyder-ide/spyder/pull/10370) - PR: Remove extraneous Kite config option
+* [PR 10365](https://github.com/spyder-ide/spyder/pull/10365) - PR: Fix Kite error when args in signature is None ([10352](https://github.com/spyder-ide/spyder/issues/10352))
+* [PR 10358](https://github.com/spyder-ide/spyder/pull/10358) - PR: Update test_c_and_n_pdb_commands test
+* [PR 10354](https://github.com/spyder-ide/spyder/pull/10354) - PR: Enable better configuration of completions clients ([10071](https://github.com/spyder-ide/spyder/issues/10071))
+* [PR 10348](https://github.com/spyder-ide/spyder/pull/10348) - PR: Apply autocompletion options at startup ([10331](https://github.com/spyder-ide/spyder/issues/10331))
+* [PR 10344](https://github.com/spyder-ide/spyder/pull/10344) - PR: Fix error in Portuguese translation ([10296](https://github.com/spyder-ide/spyder/issues/10296))
+* [PR 10338](https://github.com/spyder-ide/spyder/pull/10338) - PR: Add LSP log option when spyder is in debug mode
+* [PR 10332](https://github.com/spyder-ide/spyder/pull/10332) - PR: Add a call-to-action for Kite
+* [PR 10324](https://github.com/spyder-ide/spyder/pull/10324) - PR: Add branding for code snippet completions
+* [PR 10321](https://github.com/spyder-ide/spyder/pull/10321) - PR: Show exact match completions
+* [PR 10314](https://github.com/spyder-ide/spyder/pull/10314) - PR: Fix tests on Windows
+* [PR 10309](https://github.com/spyder-ide/spyder/pull/10309) - PR: Fix test and path shortening for the switcher ([10308](https://github.com/spyder-ide/spyder/issues/10308))
+* [PR 10306](https://github.com/spyder-ide/spyder/pull/10306) - PR: Fix regression for set_font method ([10284](https://github.com/spyder-ide/spyder/issues/10284))
+* [PR 10301](https://github.com/spyder-ide/spyder/pull/10301) - PR: Fix completions prioritization and Kite completions behavior ([10227](https://github.com/spyder-ide/spyder/issues/10227), [10226](https://github.com/spyder-ide/spyder/issues/10226))
+* [PR 10278](https://github.com/spyder-ide/spyder/pull/10278) - PR: Add several validations for external LSP servers ([9992](https://github.com/spyder-ide/spyder/issues/9992))
+* [PR 10270](https://github.com/spyder-ide/spyder/pull/10270) - PR: Fix regression and add test for language selection on preferences
+* [PR 10262](https://github.com/spyder-ide/spyder/pull/10262) - PR: Add delay and minimum chars to on the fly completions ([10235](https://github.com/spyder-ide/spyder/issues/10235), [10134](https://github.com/spyder-ide/spyder/issues/10134))
+* [PR 10261](https://github.com/spyder-ide/spyder/pull/10261) - PR: Only remove trailing spaces when option is turned on in Preferences ([10248](https://github.com/spyder-ide/spyder/issues/10248))
+* [PR 10259](https://github.com/spyder-ide/spyder/pull/10259) - PR: Better highlight selected figure in thumbnail. ([10255](https://github.com/spyder-ide/spyder/issues/10255))
+* [PR 10256](https://github.com/spyder-ide/spyder/pull/10256) - PR: Fix several code snippets corner cases ([10289](https://github.com/spyder-ide/spyder/issues/10289), [10230](https://github.com/spyder-ide/spyder/issues/10230))
+* [PR 10254](https://github.com/spyder-ide/spyder/pull/10254) - PR: Always enable hovers on the PyLS ([10141](https://github.com/spyder-ide/spyder/issues/10141))
+* [PR 10253](https://github.com/spyder-ide/spyder/pull/10253) - PR: Move some options from editor to LSP Preferences page
+* [PR 10252](https://github.com/spyder-ide/spyder/pull/10252) - PR: Add ability to modify other plugin options
+* [PR 10251](https://github.com/spyder-ide/spyder/pull/10251) - PR: Add an installation UI for Kite
+* [PR 10249](https://github.com/spyder-ide/spyder/pull/10249) - PR: Avoid stripping if the event comes from another editor
+* [PR 10237](https://github.com/spyder-ide/spyder/pull/10237) - PR: Add open collective funding button ([10118](https://github.com/spyder-ide/spyder/issues/10118))
+* [PR 10236](https://github.com/spyder-ide/spyder/pull/10236) - PR: Fix OSError when saving files on Linux ([10208](https://github.com/spyder-ide/spyder/issues/10208))
+* [PR 10233](https://github.com/spyder-ide/spyder/pull/10233) - PR: Send current cursor position to Kite to enable autosearch in Kite Copilot
+* [PR 10220](https://github.com/spyder-ide/spyder/pull/10220) - PR: Catch errors when sending messages to tcp sockets that reject a connection from our LSP client
+* [PR 10219](https://github.com/spyder-ide/spyder/pull/10219) - PR: Create LSP logs for all active instances of Spyder
+* [PR 10218](https://github.com/spyder-ide/spyder/pull/10218) - PR: Add minimal requirement for pyxdg to 0.26 ([10214](https://github.com/spyder-ide/spyder/issues/10214))
+* [PR 10216](https://github.com/spyder-ide/spyder/pull/10216) - PR: Fix signature processing when no signature is retrieved with Kite ([10203](https://github.com/spyder-ide/spyder/issues/10203))
+* [PR 10215](https://github.com/spyder-ide/spyder/pull/10215) - PR: Fix keyboard shortcut dialog crash ([7008](https://github.com/spyder-ide/spyder/issues/7008))
+* [PR 10211](https://github.com/spyder-ide/spyder/pull/10211) - PR: Fix connection to an external LSP server
+* [PR 10205](https://github.com/spyder-ide/spyder/pull/10205) - PR: Add checkbox to verify changes in advanced options of LSP preferences
+* [PR 10179](https://github.com/spyder-ide/spyder/pull/10179) - PR: Implement Kite installation logic
+* [PR 10166](https://github.com/spyder-ide/spyder/pull/10166) - PR: Add status bar widget for Kite
+
+In this release 37 pull requests were closed.
+
+
+----
+
+
 ## Version 4.0beta5 (2019-09-15)
 
 ### Issues Closed

@@ -152,14 +152,17 @@ class DocumentProvider:
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
     def process_hover_result(self, result, req_id):
         contents = result['contents']
-        if isinstance(contents, list):
-            if len(contents) > 0:
-                contents = contents[0]
-            else:
-                contents = {}
         if isinstance(contents, dict):
             if 'value' in contents:
                 contents = contents['value']
+        elif isinstance(contents, list):
+            text = []
+            for entry in contents:
+                if isinstance(entry, dict):
+                    text.append(entry['value'])
+                else:
+                    text.append(entry)
+            contents = '\n\n'.join(text)
         if req_id in self.req_reply:
             self.req_reply[req_id](
                 LSPRequestTypes.DOCUMENT_HOVER,
@@ -224,7 +227,7 @@ class DocumentProvider:
     @send_notification(method=LSPRequestTypes.DOCUMENT_DID_CLOSE)
     def document_did_close(self, params):
         codeeditor = params['codeeditor']
-        logger.debug('[{0}] File: {1}'.format(
+        logger.debug(u'[{0}] File: {1}'.format(
             LSPRequestTypes.DOCUMENT_DID_CLOSE, params['file']))
         filename = path_as_uri(params['file'])
 
