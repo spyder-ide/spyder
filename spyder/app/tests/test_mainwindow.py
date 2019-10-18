@@ -208,7 +208,7 @@ def main_window(request):
     # Print shell content if failed
     if request.node.rep_setup.passed:
         if request.node.rep_call.failed:
-            print(main_window.ipyconsole.get_current_shellwidget(
+            print(window.ipyconsole.get_current_shellwidget(
                 )._control.toPlainText())
 
 
