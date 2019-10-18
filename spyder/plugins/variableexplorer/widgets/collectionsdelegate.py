@@ -99,7 +99,7 @@ class CollectionsDelegate(QItemDelegate):
                 _("Spyder was unable to retrieve the value of "
                   "this variable from the console.<br><br>"
                   "The error message was:<br>"
-                  "<i>%s</i>") % to_text_string(msg))
+                  "%s") % to_text_string(msg))
             return
 
         key = index.model().get_key(index)

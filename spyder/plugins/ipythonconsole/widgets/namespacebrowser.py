@@ -85,7 +85,11 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             return self.call_kernel(
                 interrupt=True, blocking=True).get_value(name)
         except (TimeoutError, UnpicklingError):
-            raise ValueError('Kernel did not send the value.')
+            msg = _("The variable is either too big or not picklable."
+                    "<br><br>"
+                    "<i>Note</i>: Please don't report this problem on "
+                    "Github, there's nothing to do about it.")
+            raise ValueError(msg)
 
     def set_value(self, name, value):
         """Set value for a variable"""
