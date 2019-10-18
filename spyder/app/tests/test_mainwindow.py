@@ -146,7 +146,7 @@ def find_desired_tab_in_window(tab_name, window):
 # =============================================================================
 # ---- Fixtures
 # =============================================================================
-@pytest.pytest_runtest_makereport(tryfirst=True, hookwrapper=True)
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     # execute all other hooks to obtain the report object
     outcome = yield
