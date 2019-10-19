@@ -4,6 +4,7 @@ pytest-cov
 pytest-qt
 pytest-ordering
 pytest-lazy-fixture
+pytest-faulthandler
 mock
 pandas
 scipy
