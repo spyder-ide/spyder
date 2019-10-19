@@ -173,7 +173,14 @@ def ipyconsole(qtbot, request):
 
     qtbot.addWidget(window)
     window.show()
-    return console
+
+    yield console
+
+    # Print shell content if failed
+    if request.node.rep_setup.passed:
+        if request.node.rep_call.failed:
+            # Print content of shellwidget and close window
+            print(console.get_current_shellwidget()._control.toPlainText())
 
 
 # =============================================================================
