@@ -1171,7 +1171,7 @@ class CodeEditor(TextEditBaseWidget):
             content = contents['params']
             self.sig_display_object_info.emit(content,
                                               self._request_hover_clicked)
-            if self._show_hint and self._last_point and content:
+            if content is not None and self._show_hint and self._last_point:
                 # This is located in spyder/widgets/mixins.py
                 word = self._last_hover_word,
                 content = content.replace(u'\xa0', ' ')
