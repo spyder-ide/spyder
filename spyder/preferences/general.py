@@ -26,8 +26,10 @@ from spyder.config.base import (_, LANGUAGE_CODES, running_in_mac_app,
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import to_text_string
 import spyder.utils.icon_manager as ima
-from spyder.utils.qthelpers import (register_app_launchservices,
-                                    restore_launchservices)
+if sys.platform == "darwin":
+    import applaunchservices as als
+    from spyder.utils.qthelpers import (register_app_launchservices,
+                                        restore_launchservices)
 
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
@@ -162,7 +164,15 @@ class MainConfigPage(GeneralConfigPage):
             mac_open_file_box.toggled.connect(set_open_file)
             macOS_layout = QVBoxLayout()
             macOS_layout.addWidget(mac_open_file_box)
+            if als.get_bundle_identifier() is None:
+                # Disable setting
+                mac_open_file_box.setDisabled(True)
+                macOS_layout.addWidget(QLabel(
+                    'Launch Spyder from "python.app" to enable apple events'
+                    ' integrations.'))
+
             macOS_group.setLayout(macOS_layout)
+
 
         # --- Status bar
         sbar_group = QGroupBox(_("Status bar"))

@@ -37,10 +37,6 @@ if %USE_CONDA% == yes (
 pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
 if errorlevel 1 exit 1
 
-:: Install dependencies not in conda
-pip install -q applaunchservices
-if errorlevel 1 exit 1
-
 :: Install codecov
 pip install -q codecov
 if errorlevel 1 exit 1

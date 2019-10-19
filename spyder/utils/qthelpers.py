@@ -13,7 +13,8 @@ import os
 import os.path as osp
 import re
 import sys
-import applaunchservices as als
+if sys.platform == "darwin":
+    import applaunchservices as als
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
@@ -85,50 +86,52 @@ def get_origin_filename():
     return f.f_code.co_filename
 
 
-def restore_launchservices():
-    """Restore LaunchServices to the previous state"""
-    app = QApplication.instance()
-    for key, handler in app._original_handlers.items():
-        UTI, role = key
-        als.set_UTI_handler(UTI, role, handler)
+if sys.platform == "darwin":
+    def restore_launchservices():
+        """Restore LaunchServices to the previous state"""
+        app = QApplication.instance()
+        for key, handler in app._original_handlers.items():
+            UTI, role = key
+            als.set_UTI_handler(UTI, role, handler)
 
+    def register_app_launchservices(
+            uniform_type_identifier="public.python-script",
+            role='editor'):
+        """
+        Register app to the apple launch services so it can open python files
+        """
+        app = QApplication.instance()
+        # if top frame is MAC_APP_NAME, set ourselves to open files at startup
+        origin_filename = get_origin_filename()
+        if MAC_APP_NAME in origin_filename:
+            bundle_idx = origin_filename.find(MAC_APP_NAME)
+            old_handler = als.get_bundle_identifier_for_path(
+                origin_filename[:bundle_idx] + MAC_APP_NAME)
+        else:
+            # Else, just restore the previous handler
+            old_handler = als.get_UTI_handler(
+                uniform_type_identifier, role)
 
-def register_app_launchservices(
-        uniform_type_identifier="public.python-script",
-        role='editor'):
-    """Register app to the apple launch services so it can open python files"""
-    app = QApplication.instance()
-    # if top frame is MAC_APP_NAME, set ourselves to open files at startup
-    origin_filename = get_origin_filename()
-    if MAC_APP_NAME in origin_filename:
-        bundle_idx = origin_filename.find(MAC_APP_NAME)
-        old_handler = als.get_bundle_identifier_for_path(
-            origin_filename[:bundle_idx] + MAC_APP_NAME)
-    else:
-        # Else, just restore the previous handler
-        old_handler = als.get_UTI_handler(
-            uniform_type_identifier, role)
+        app._original_handlers[(uniform_type_identifier, role)] = old_handler
 
-    app._original_handlers[(uniform_type_identifier, role)] = old_handler
+        # Restore previous handle when quitting
+        app.aboutToQuit.connect(restore_launchservices)
 
-    # Restore previous handle when quitting
-    app.aboutToQuit.connect(restore_launchservices)
-
-    if not app._never_shown:
-        bundle_identifier = als.get_bundle_identifier()
-        als.set_UTI_handler(
-            uniform_type_identifier, role, bundle_identifier)
-        return
-
-    # Wait to be visible to set ourselves as the UTI handler
-    def handle_applicationStateChanged(state):
-        if state == Qt.ApplicationActive and app._never_shown:
-            app._never_shown = False
+        if not app._never_shown:
             bundle_identifier = als.get_bundle_identifier()
             als.set_UTI_handler(
                 uniform_type_identifier, role, bundle_identifier)
+            return
 
-    app.applicationStateChanged.connect(handle_applicationStateChanged)
+        # Wait to be visible to set ourselves as the UTI handler
+        def handle_applicationStateChanged(state):
+            if state == Qt.ApplicationActive and app._never_shown:
+                app._never_shown = False
+                bundle_identifier = als.get_bundle_identifier()
+                als.set_UTI_handler(
+                    uniform_type_identifier, role, bundle_identifier)
+
+        app.applicationStateChanged.connect(handle_applicationStateChanged)
 
 
 def qapplication(translate=True, test_time=3):

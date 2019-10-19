@@ -235,7 +235,7 @@ install_requires = [
     # Required for accesing xdg spec on Linux
     'pyxdg>=0.26;platform_system=="Linux"',
     'pympler',
-    'applaunchservices',
+    'applaunchservices;platform_system=="Darwin"',
 ]
 
 extras_require = {
