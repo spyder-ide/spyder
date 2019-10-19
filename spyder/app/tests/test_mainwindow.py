@@ -207,8 +207,8 @@ def main_window(request):
             if window.console.error_dlg:
                 window.console.close_error_dlg()
             window.switcher.close()
-            client = window.ipyconsole.get_current_client()
-            window.ipyconsole.close_client(client=client)
+            for client in window.ipyconsole.get_clients():
+                window.ipyconsole.close_client(client=client)
             # Reset cwd
             window.explorer.chdir(get_home_dir())
 
@@ -322,6 +322,7 @@ def test_default_plugin_actions(main_window, qtbot):
 
 
 @pytest.mark.slow
+@flaky(max_runs=3)
 @pytest.mark.parametrize('main_window', [{'spy_config': ('main', 'opengl', 'software')}], indirect=True)
 def test_opengl_implementation(main_window, qtbot):
     """
@@ -1347,71 +1348,66 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     test_file = osp.join(LOCATION, 'script.py')
     main_window.editor.load(test_file)
 
-    try:
-        # Click the debug button
-        debug_action = main_window.debug_toolbar_actions[0]
-        debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
-        qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    # Click the debug button
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-        # Set a breakpoint
-        code_editor = main_window.editor.get_focus_widget()
-        code_editor.debugger.toogle_breakpoint(line_number=6)
-        qtbot.wait(500)
+    # Set a breakpoint
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.debugger.toogle_breakpoint(line_number=6)
+    qtbot.wait(500)
 
-        # Verify that c works
-        qtbot.keyClicks(control, 'c')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(
-            lambda: nsb.editor.source_model.rowCount() == 1)
-        qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    # Verify that c works
+    qtbot.keyClicks(control, 'c')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(
+        lambda: nsb.editor.source_model.rowCount() == 1)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-        # Verify that n works
-        qtbot.keyClicks(control, 'n')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(
-            lambda: nsb.editor.source_model.rowCount() == 2)
-        qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    # Verify that n works
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(
+        lambda: nsb.editor.source_model.rowCount() == 2)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-        # Verify that doesn't go to sitecustomize.py with next and stops
-        # the debugging session.
-        qtbot.keyClicks(control, 'n')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    # Verify that doesn't go to sitecustomize.py with next and stops
+    # the debugging session.
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-        qtbot.keyClicks(control, 'n')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(
-            lambda: nsb.editor.source_model.rowCount() == 3)
-        qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(
+        lambda: nsb.editor.source_model.rowCount() == 3)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-        qtbot.keyClicks(control, 'n')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-        qtbot.keyClicks(control, 'n')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-        qtbot.keyClicks(control, 'n')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(
-            lambda: 'In [2]:' in control.toPlainText())
+    qtbot.keyClicks(control, 'n')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(
+        lambda: 'In [2]:' in control.toPlainText())
 
-        # Assert that the prompt appear
-        shell.clear_console()
-        assert 'In [2]:' in control.toPlainText()
-    except:
-        # print console content for debugging
-        print(control.toPlainText())
-        raise
+    # Assert that the prompt appear
+    shell.clear_console()
+    assert 'In [2]:' in control.toPlainText()
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
@@ -1546,14 +1542,17 @@ def test_varexp_magic_dbg(main_window, qtbot):
 @pytest.mark.skipif(PY2, reason="It times out sometimes")
 @pytest.mark.parametrize(
     'main_window',
-    [{'spy_config': ('ipython_console', 'pylab/inline/figure_format', 0)},
-     {'spy_config': ('ipython_console', 'pylab/inline/figure_format', 1)}],
+    [{'spy_config': ('ipython_console', 'pylab/inline/figure_format', 1)},
+     {'spy_config': ('ipython_console', 'pylab/inline/figure_format', 0)}],
     indirect=True)
 def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
     """
     Test that plots generated in the IPython console are properly displayed
     in the plots plugin.
     """
+    # Restart clients to make sure figure_format is set
+    for client in main_window.ipyconsole.get_clients():
+        main_window.ipyconsole.close_client(client=client)
     assert CONF.get('plots', 'mute_inline_plotting') is False
     shell = main_window.ipyconsole.get_current_shellwidget()
     figbrowser = main_window.plots.current_widget()

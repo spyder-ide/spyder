@@ -251,7 +251,7 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
 
     # Hide the calltip to avoid focus problems on Linux
     control.calltip_widget.hide()
-    
+
     # Check spected elements for signature and documentation
     for element in signature:
         assert element in control.calltip_widget.text()
@@ -768,6 +768,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
 
 @pytest.mark.slow
+@flaky(max_runs=3)
 @pytest.mark.skipif(PY2, reason="insert is not the same in py2")
 def test_dbg_input(ipyconsole, qtbot):
     """Test that spyder doesn't send pdb commands to unrelated input calls."""
@@ -1315,7 +1316,10 @@ def test_remove_old_stderr_files(ipyconsole, qtbot):
 def test_console_working_directory(ipyconsole, qtbot):
     """Test for checking the working directory."""
     shell = ipyconsole.get_current_shellwidget()
-    shell.execute('import os; cwd = os.getcwd()')
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('import os; cwd = os.getcwd()')
 
     current_wdir = shell.get_value('cwd')
     folders = osp.split(current_wdir)
@@ -1342,110 +1346,105 @@ def test_console_complete(ipyconsole, qtbot):
         except KeyError:
             return False
 
-    try:
-        # test complete with one result
+    # test complete with one result
+    with qtbot.waitSignal(shell.executed):
         shell.execute('cbs = 1')
-        qtbot.waitUntil(lambda: check_value('cbs', 1))
-        qtbot.wait(500)
-        try:
-            qtbot.keyClicks(control, 'cb')
-            qtbot.keyClick(control, Qt.Key_Tab)
-            # Jedi completion takes time to start up the first time
-            qtbot.wait(5000)
-            qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbs')
-        except:
-            # Print shell content before failing
-            print(control.toPlainText())
-            raise
+    qtbot.waitUntil(lambda: check_value('cbs', 1))
+    qtbot.wait(500)
 
-        # test complete with several result
+    qtbot.keyClicks(control, 'cb')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    # Jedi completion takes time to start up the first time
+    qtbot.wait(5000)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbs')
+
+    # test complete with several result
+    with qtbot.waitSignal(shell.executed):
         shell.execute('cbba = 1')
-        qtbot.waitUntil(lambda: check_value('cbba', 1))
-        qtbot.keyClicks(control, 'cb')
-        qtbot.keyClick(control, Qt.Key_Tab)
-        qtbot.waitUntil(shell._completion_widget.isVisible)
-        # cbs is another solution, so not completed yet
-        assert control.toPlainText().split()[-1] == 'cb'
-        qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbba')
+    qtbot.waitUntil(lambda: check_value('cbba', 1))
+    qtbot.keyClicks(control, 'cb')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(shell._completion_widget.isVisible)
+    # cbs is another solution, so not completed yet
+    assert control.toPlainText().split()[-1] == 'cb'
+    qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbba')
 
+    with qtbot.waitSignal(shell.executed):
         shell.execute('abba = 1')
-        qtbot.waitUntil(lambda: check_value('abba', 1))
+    qtbot.waitUntil(lambda: check_value('abba', 1))
 
-        # Generate a traceback and enter debugging mode
-        with qtbot.waitSignal(shell.executed):
-            shell.execute('1/0')
+    # Generate a traceback and enter debugging mode
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('1/0')
 
-        shell.execute('%debug')
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    shell.execute('%debug')
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
-        # Test complete in debug mode
-        # check abba is completed twice (as the cursor moves)
-        qtbot.keyClicks(control, '!ab')
-        qtbot.keyClick(control, Qt.Key_Tab)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!abba')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    # Test complete in debug mode
+    # check abba is completed twice (as the cursor moves)
+    qtbot.keyClicks(control, '!ab')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!abba')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
-        # A second time to check a function call doesn't cause a problem
-        qtbot.keyClicks(control, 'print(ab')
-        qtbot.keyClick(control, Qt.Key_Tab)
-        qtbot.waitUntil(
-            lambda: control.toPlainText().split()[-1] == 'print(abba')
-        qtbot.keyClicks(control, ')')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    # A second time to check a function call doesn't cause a problem
+    qtbot.keyClicks(control, 'print(ab')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(
+        lambda: control.toPlainText().split()[-1] == 'print(abba')
+    qtbot.keyClicks(control, ')')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
-        # Enter an expression
-        qtbot.keyClicks(control, 'baab = 10')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.wait(100)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-        qtbot.waitUntil(lambda: check_value('baab', 10))
+    # Enter an expression
+    qtbot.keyClicks(control, 'baab = 10')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(100)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(lambda: check_value('baab', 10))
 
-        # Check baab is completed
-        qtbot.keyClicks(control, 'ba')
-        qtbot.keyClick(control, Qt.Key_Tab)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'baab')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    # Check baab is completed
+    qtbot.keyClicks(control, 'ba')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'baab')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
-        # Get a second ba*
-        qtbot.keyClicks(control, 'ba2ab = 10')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.wait(100)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-        qtbot.waitUntil(lambda: check_value('ba2ab', 10))
+    # Get a second ba*
+    qtbot.keyClicks(control, 'ba2ab = 10')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(100)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(lambda: check_value('ba2ab', 10))
 
-        # Check the completion widget is shown
-        qtbot.keyClicks(control, 'ba')
-        qtbot.keyClick(control, Qt.Key_Tab)
-        qtbot.waitUntil(shell._completion_widget.isVisible)
-        assert control.toPlainText().split()[-1] == 'ba'
-        qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'baab')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    # Check the completion widget is shown
+    qtbot.keyClicks(control, 'ba')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(shell._completion_widget.isVisible)
+    assert control.toPlainText().split()[-1] == 'ba'
+    qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'baab')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
-        # Create a class
-        qtbot.keyClicks(control, '!class A(): baba = 1')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.wait(100)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-        qtbot.waitUntil(lambda: shell.is_defined('A'))
-        qtbot.keyClicks(control, '!a = A()')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.wait(100)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-        qtbot.waitUntil(lambda: shell.is_defined('a'))
+    # Create a class
+    qtbot.keyClicks(control, '!class A(): baba = 1')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(100)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(lambda: shell.is_defined('A'))
+    qtbot.keyClicks(control, '!a = A()')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.wait(100)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(lambda: shell.is_defined('a'))
 
-        # Check we can complete attributes
-        qtbot.keyClicks(control, '!a.ba')
-        qtbot.keyClick(control, Qt.Key_Tab)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!a.baba')
-    except Exception:
-        print(repr(control.toPlainText()))
-        raise
+    # Check we can complete attributes
+    qtbot.keyClicks(control, '!a.ba')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!a.baba')
 
 
 @pytest.mark.slow
