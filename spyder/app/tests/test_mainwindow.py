@@ -2893,5 +2893,36 @@ def test_pbd_step(main_window, qtbot, tmpdir):
         str(test_file))
 
 
+@flaky(max_runs=3)
+def test_print_frames(main_window, qtbot, tmpdir):
+    """Test the runcell command."""
+    # Write code with a cell to a file
+    code = ('from qtpy.QtCore import QMutex\n'
+            'lock = QMutex()\n'
+            'lock.lock()\n'
+            'lock.lock()')
+    p = tmpdir.join("print-test.py")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Click the run button
+    run_action = main_window.run_toolbar_actions[0]
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+    qtbot.mouseClick(run_button, Qt.LeftButton)
+    qtbot.wait(1000)
+
+    # Check we are blocked
+    control = main_window.ipyconsole.get_focus_widget()
+    assert ']:' not in control.toPlainText().split()[-1]
+
+    # Do print_current_frames
+    shell.print_frames()
+
+    qtbot.waitUntil(lambda: 'lock.lock()' in control.toPlainText())
+
+
 if __name__ == "__main__":
     pytest.main()
