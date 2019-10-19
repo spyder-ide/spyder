@@ -2205,7 +2205,7 @@ def test_debug_thread(main_window, qtbot):
 
     # There is a breakpoint, so it should continue
     qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'continue')
+        lambda: 'ipdb> continue' in shell._control.toPlainText())
     qtbot.waitUntil(
         lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
