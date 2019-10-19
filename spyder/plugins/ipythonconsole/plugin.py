@@ -576,12 +576,13 @@ class IPythonConsole(SpyderPluginWidget):
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
-    def pdb_execute(self, line, hidden=False):
+    def pdb_execute(self, line, hidden=False, echo_code=False):
         sw = self.get_current_shellwidget()
         if sw is not None:
             # Needed to handle an error when kernel_client is None.
             # See spyder-ide/spyder#7578.
             try:
+                sw.set_pdb_echo_code(echo_code)
                 sw.pdb_execute(line, hidden)
             except AttributeError:
                 pass

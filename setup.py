@@ -140,7 +140,7 @@ else:
 # Files added to the package
 #==============================================================================
 EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
-           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst']
+           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
@@ -213,7 +213,7 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
-    'spyder-kernels>=1.5.0,<1.6.0',
+    'spyder-kernels>=1.6.0,<1.7.0',
     'qdarkstyle>=2.7',
     'atomicwrites',
     'diff-match-patch',
