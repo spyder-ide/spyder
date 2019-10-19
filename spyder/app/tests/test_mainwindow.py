@@ -1147,7 +1147,9 @@ def test_run_cell_copy(main_window, qtbot, tmpdir):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
-
+    # Make sure run_cell_copy is properly set
+    for editorstack in main_window.editor.editorstacks:
+        editorstack.set_run_cell_copy(True)
     # Load test file
     main_window.editor.load(filepath)
 
