@@ -2131,5 +2131,43 @@ def test_preferences_change_font_regression(main_window, qtbot):
     qtbot.wait(5000)
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_debug_unsaved_file(main_window, qtbot):
+    """Test that we can debug an unsaved file."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    control = shell._control
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text('print(0)\nprint(1)\nprint(2)')
+
+    # Set breakpoint
+    code_editor.debugger.toogle_breakpoint(line_number=2)
+    qtbot.wait(500)
+
+    # Start debugging
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+
+    # There is a breakpoint, so it should continue
+    qtbot.waitUntil(
+        lambda: 'ipdb> continue' in shell._control.toPlainText())
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    assert "1---> 2 print(1)" in control.toPlainText()
+
+
 if __name__ == "__main__":
     pytest.main()

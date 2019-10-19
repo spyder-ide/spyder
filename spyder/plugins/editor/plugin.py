@@ -1986,9 +1986,9 @@ class Editor(SpyderPluginWidget):
         editorstack.save_copy_as()
 
     @Slot()
-    def save_all(self):
+    def save_all(self, save_new_files=True):
         """Save all opened files"""
-        self.get_current_editorstack().save_all()
+        self.get_current_editorstack().save_all(save_new_files=save_new_files)
 
     @Slot()
     def revert(self):
@@ -2359,7 +2359,7 @@ class Editor(SpyderPluginWidget):
     def run_file(self, debug=False):
         """Run script inside current interpreter or in a new one"""
         editorstack = self.get_current_editorstack()
-        if editorstack.save():
+        if editorstack.save(save_new_files=False):
             editor = self.get_current_editor()
             fname = osp.abspath(self.get_current_filename())
 
@@ -2418,7 +2418,7 @@ class Editor(SpyderPluginWidget):
                                    python, python_args, current, systerm,
                                    post_mortem, clear_namespace,
                                    console_namespace)
-            self.re_run_file()
+            self.re_run_file(save_new_files=False)
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
                 # raised in top-level and so focus will be given to the
@@ -2439,10 +2439,10 @@ class Editor(SpyderPluginWidget):
         self.run_file(debug=True)
 
     @Slot()
-    def re_run_file(self):
+    def re_run_file(self, save_new_files=True):
         """Re-run last script"""
         if self.get_option('save_all_before_run'):
-            self.save_all()
+            self.save_all(save_new_files=save_new_files)
         if self.__last_ec_exec is None:
             return
         (fname, wdir, args, interact, debug,
