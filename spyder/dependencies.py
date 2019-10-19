@@ -181,7 +181,7 @@ if sys.platform == "darwin":
     DEPENDENCIES_BASE.append(
         {'modname': "applaunchservices",
          'package_name': "applaunchservices",
-         'features': _("Tool to notify macos that the app can open files"),
+         'features': _("Notify macOS that Spyder can open Python files"),
          'required_version': APPLAUNCHSERVICES_REQVER})
 
 

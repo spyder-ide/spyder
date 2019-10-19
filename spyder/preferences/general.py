@@ -158,7 +158,7 @@ class MainConfigPage(GeneralConfigPage):
 
             macOS_group = QGroupBox(_("macOS integration"))
             mac_open_file_box = newcb(
-                _("Open files from finder with Spyder"),
+                _("Open files from Finder with Spyder"),
                 'mac_open_file',
                 tip=_("Register Spyder with the Launch Services"))
             mac_open_file_box.toggled.connect(set_open_file)
@@ -168,8 +168,8 @@ class MainConfigPage(GeneralConfigPage):
                 # Disable setting
                 mac_open_file_box.setDisabled(True)
                 macOS_layout.addWidget(QLabel(
-                    'Launch Spyder from "python.app" to enable apple events'
-                    ' integrations.'))
+                    _('Launch Spyder with <code>python.app</code> to enable'
+                      ' Apple event integrations.')))
 
             macOS_group.setLayout(macOS_layout)
 
@@ -285,8 +285,7 @@ class MainConfigPage(GeneralConfigPage):
                                             interface_group)
 
         tabs = QTabWidget()
-        tabs.addTab(interface_tab,
-                    _("Interface"))
+        tabs.addTab(interface_tab, _("Interface"))
         tabs.addTab(self.create_tab(general_group, sbar_group),
                     _("Advanced settings"))
 

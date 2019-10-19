@@ -56,31 +56,6 @@ def get_image_label(name, default="not_found.png"):
     return label
 
 
-class MacApplication(QApplication):
-    """Subclass to be able to open external files with our Mac app"""
-    sig_open_external_file = Signal(str)
-
-    def __init__(self, *args):
-        QApplication.__init__(self, *args)
-        self._never_shown = True
-        self._has_started = False
-        self._pending_file_open = []
-        self._original_handlers = {}
-
-    def event(self, event):
-        if event.type() == QEvent.FileOpen:
-            fname = str(event.file())
-            if sys.argv and sys.argv[0] == fname:
-                # Ignore requests to open own script
-                # Later, mainwindow.initialize() will set sys.argv[0] to ''
-                pass
-            elif self._has_started:
-                self.sig_open_external_file.emit(fname)
-            elif MAC_APP_NAME not in fname:
-                self._pending_file_open.append(fname)
-        return QApplication.event(self, event)
-
-
 def get_origin_filename():
     """Return the filename at the top of the stack"""
     # Get top frame
@@ -88,54 +63,6 @@ def get_origin_filename():
     while f.f_back is not None:
         f = f.f_back
     return f.f_code.co_filename
-
-
-if sys.platform == "darwin":
-    def restore_launchservices():
-        """Restore LaunchServices to the previous state"""
-        app = QApplication.instance()
-        for key, handler in app._original_handlers.items():
-            UTI, role = key
-            als.set_UTI_handler(UTI, role, handler)
-
-    def register_app_launchservices(
-            uniform_type_identifier="public.python-script",
-            role='editor'):
-        """
-        Register app to the apple launch services so it can open python files
-        """
-        app = QApplication.instance()
-        # if top frame is MAC_APP_NAME, set ourselves to open files at startup
-        origin_filename = get_origin_filename()
-        if MAC_APP_NAME in origin_filename:
-            bundle_idx = origin_filename.find(MAC_APP_NAME)
-            old_handler = als.get_bundle_identifier_for_path(
-                origin_filename[:bundle_idx] + MAC_APP_NAME)
-        else:
-            # Else, just restore the previous handler
-            old_handler = als.get_UTI_handler(
-                uniform_type_identifier, role)
-
-        app._original_handlers[(uniform_type_identifier, role)] = old_handler
-
-        # Restore previous handle when quitting
-        app.aboutToQuit.connect(restore_launchservices)
-
-        if not app._never_shown:
-            bundle_identifier = als.get_bundle_identifier()
-            als.set_UTI_handler(
-                uniform_type_identifier, role, bundle_identifier)
-            return
-
-        # Wait to be visible to set ourselves as the UTI handler
-        def handle_applicationStateChanged(state):
-            if state == Qt.ApplicationActive and app._never_shown:
-                app._never_shown = False
-                bundle_identifier = als.get_bundle_identifier()
-                als.set_UTI_handler(
-                    uniform_type_identifier, role, bundle_identifier)
-
-        app.applicationStateChanged.connect(handle_applicationStateChanged)
 
 
 def qapplication(translate=True, test_time=3):
@@ -666,6 +593,82 @@ class SpyderProxyStyle(QProxyStyle):
             return 0
 
         return QProxyStyle.styleHint(self, hint, option, widget, returnData)
+
+
+# =============================================================================
+# Only for macOS
+# =============================================================================
+class MacApplication(QApplication):
+    """Subclass to be able to open external files with our Mac app"""
+    sig_open_external_file = Signal(str)
+
+    def __init__(self, *args):
+        QApplication.__init__(self, *args)
+        self._never_shown = True
+        self._has_started = False
+        self._pending_file_open = []
+        self._original_handlers = {}
+
+    def event(self, event):
+        if event.type() == QEvent.FileOpen:
+            fname = str(event.file())
+            if sys.argv and sys.argv[0] == fname:
+                # Ignore requests to open own script
+                # Later, mainwindow.initialize() will set sys.argv[0] to ''
+                pass
+            elif self._has_started:
+                self.sig_open_external_file.emit(fname)
+            elif MAC_APP_NAME not in fname:
+                self._pending_file_open.append(fname)
+        return QApplication.event(self, event)
+
+
+def restore_launchservices():
+    """Restore LaunchServices to the previous state"""
+    app = QApplication.instance()
+    for key, handler in app._original_handlers.items():
+        UTI, role = key
+        als.set_UTI_handler(UTI, role, handler)
+
+
+def register_app_launchservices(
+        uniform_type_identifier="public.python-script",
+        role='editor'):
+    """
+    Register app to the apple launch services so it can open python files
+    """
+    app = QApplication.instance()
+    # if top frame is MAC_APP_NAME, set ourselves to open files at startup
+    origin_filename = get_origin_filename()
+    if MAC_APP_NAME in origin_filename:
+        bundle_idx = origin_filename.find(MAC_APP_NAME)
+        old_handler = als.get_bundle_identifier_for_path(
+            origin_filename[:bundle_idx] + MAC_APP_NAME)
+    else:
+        # Else, just restore the previous handler
+        old_handler = als.get_UTI_handler(
+            uniform_type_identifier, role)
+
+    app._original_handlers[(uniform_type_identifier, role)] = old_handler
+
+    # Restore previous handle when quitting
+    app.aboutToQuit.connect(restore_launchservices)
+
+    if not app._never_shown:
+        bundle_identifier = als.get_bundle_identifier()
+        als.set_UTI_handler(
+            uniform_type_identifier, role, bundle_identifier)
+        return
+
+    # Wait to be visible to set ourselves as the UTI handler
+    def handle_applicationStateChanged(state):
+        if state == Qt.ApplicationActive and app._never_shown:
+            app._never_shown = False
+            bundle_identifier = als.get_bundle_identifier()
+            als.set_UTI_handler(
+                uniform_type_identifier, role, bundle_identifier)
+
+    app.applicationStateChanged.connect(handle_applicationStateChanged)
 
 
 if __name__ == "__main__":
