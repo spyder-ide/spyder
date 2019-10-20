@@ -361,6 +361,10 @@ the sympy module (e.g. plot)
         except AttributeError:
             pass
 
+    def print_frames(self):
+        """Print current frames"""
+        self.call_kernel(interrupt=True).print_current_frames()
+
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
         inspect = CONF.config_shortcut(

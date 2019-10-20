@@ -317,6 +317,12 @@ class IPythonConsole(SpyderPluginWidget):
                                        triggered=self.restart_kernel,
                                        context=Qt.WidgetWithChildrenShortcut)
 
+        print_frames_action = create_action(
+            self, _("Print current frames"),
+            icon=ima.icon('environ'),
+            triggered=self.print_frames,
+            context=Qt.WidgetWithChildrenShortcut)
+
         reset_action = create_action(self, _("Remove all variables"),
                                      icon=ima.icon('editdelete'),
                                      triggered=self.reset_kernel,
@@ -353,7 +359,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.menu_actions = [create_client_action, special_console_menu,
                              connect_to_kernel_action,
                              MENU_SEPARATOR,
-                             self.interrupt_action,
+                             self.interrupt_action, print_frames_action,
                              restart_action, reset_action, rename_tab_action]
 
         self.update_execution_state_kernel()
@@ -1198,6 +1204,12 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             self.switch_to_plugin()
             client.reset_namespace()
+
+    def print_frames(self):
+        """Print current frames."""
+        shell = self.get_current_shellwidget()
+        if shell is not None:
+            shell.print_frames()
 
     def interrupt_kernel(self):
         """Interrupt kernel of current client."""
