@@ -60,7 +60,7 @@ def test_kite_install(qtbot):
                 FINISHED]
 
         # This status can be obtained the second time our tests are run
-        if not installation_statuses == ['Install finished']:
+        if not installation_statuses == ['Installation finished']:
             assert installation_statuses == expected_installation_status
 
     install_manager.sig_installation_status.connect(installation_status)
