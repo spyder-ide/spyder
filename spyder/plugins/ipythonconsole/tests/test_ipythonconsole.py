@@ -912,7 +912,7 @@ def test_plot_magic_dbg(ipyconsole, qtbot):
     # Test reset magic
     qtbot.keyClicks(control, '%plot plt.plot(range(10))')
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(1000)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Assert that there's a plot in the console
     assert shell._control.toHtml().count('img src') == 1
