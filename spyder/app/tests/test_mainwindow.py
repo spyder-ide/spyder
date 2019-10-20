@@ -186,9 +186,21 @@ def main_window(request):
         pass
 
     if not hasattr(main_window, 'window'):
-        main_window.window = start.main()
-    # Start the window
-    window = main_window.window
+        # Start the window
+        window = start.main()
+        main_window.window = window
+    else:
+        window = main_window.window
+        # Close everything we can think of
+        window.editor.close_file()
+        window.projects.close_project()
+        if window.console.error_dlg:
+            window.console.close_error_dlg()
+        window.switcher.close()
+        for client in window.ipyconsole.get_clients():
+            window.ipyconsole.close_client(client=client, force=True)
+        # Reset cwd
+        window.explorer.chdir(get_home_dir())
 
     yield window
 
@@ -200,17 +212,6 @@ def main_window(request):
                 )._control.toPlainText())
             window.close()
             del main_window.window
-        else:
-            # Close everything we can think of
-            window.editor.close_file()
-            window.projects.close_project()
-            if window.console.error_dlg:
-                window.console.close_error_dlg()
-            window.switcher.close()
-            for client in window.ipyconsole.get_clients():
-                window.ipyconsole.close_client(client=client)
-            # Reset cwd
-            window.explorer.chdir(get_home_dir())
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -1552,9 +1553,6 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
     Test that plots generated in the IPython console are properly displayed
     in the plots plugin.
     """
-    # Restart clients to make sure figure_format is set
-    for client in main_window.ipyconsole.get_clients():
-        main_window.ipyconsole.close_client(client=client)
     assert CONF.get('plots', 'mute_inline_plotting') is False
     shell = main_window.ipyconsole.get_current_shellwidget()
     figbrowser = main_window.plots.current_widget()
