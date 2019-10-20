@@ -2099,6 +2099,53 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
 
 
 @pytest.mark.slow
+@flaky(max_runs=3)
+def test_break_while_running(main_window, qtbot):
+    """Test that we can set breakpoints while running."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+
+    # Load test file
+    test_file = osp.join(LOCATION, 'loop_script.py')
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # Click the debug button
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.wait(1000)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Continue debugging
+    qtbot.keyClick(shell._control, 'c')
+    qtbot.keyClick(shell._control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    # Set a breakpoint
+    code_editor.debugger.toogle_breakpoint(line_number=3)
+
+    # We should drop into the debugger
+    qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    qtbot.keyClick(shell._control, 'q')
+    qtbot.keyClick(shell._control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+
+@pytest.mark.slow
 def test_preferences_change_font_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#10284 regression.
