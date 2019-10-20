@@ -2100,8 +2100,18 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-def test_break_while_running(main_window, qtbot):
+def test_break_while_running(main_window, qtbot, tmpdir):
     """Test that we can set breakpoints while running."""
+    # Create loop
+    code = ("import time\n"
+            "for i in range(100):\n"
+            "    print(i)\n"
+            "    time.sleep(0.1)\n"
+            )
+    p = tmpdir.join("loop_script.py")
+    p.write(code)
+    test_file = to_text_string(p)
+
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -2112,7 +2122,6 @@ def test_break_while_running(main_window, qtbot):
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
 
     # Load test file
-    test_file = osp.join(LOCATION, 'loop_script.py')
     main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
 
