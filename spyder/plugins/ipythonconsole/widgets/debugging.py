@@ -13,7 +13,6 @@ import re
 import pdb
 
 from IPython.core.history import HistoryManager
-from qtpy.QtCore import Qt
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import get_conf_path
@@ -81,15 +80,6 @@ class DebuggingWidget(RichJupyterWidget):
             self._pdb_history_file.new_session()
         else:
             self._pdb_history_file.end_session()
-
-    def _pdb_update(self):
-        """
-        Update by sending an input to pdb.
-        """
-        if self._pdb_in_loop:
-            cmd = (u"!get_ipython().kernel.frontend_comm" +
-                   ".remote_call(blocking=True).pong()")
-            self.pdb_execute(cmd, hidden=True)
 
     # --- Public API --------------------------------------------------
     def pdb_execute(self, line, hidden=False):
@@ -209,6 +199,26 @@ class DebuggingWidget(RichJupyterWidget):
             self._pdb_history.append(line)
             self._pdb_history_index = len(self._pdb_history)
             self._pdb_history_file.store_inputs(line_num, line)
+
+    def patch_kernel_client(self, client):
+        """Patch kernel client to work correctly while debugging."""
+
+        super_complete = client.complete
+
+        def complete(code, cursor_pos=None):
+            """Tab complete text in the kernel's namespace."""
+            if self.is_waiting_pdb_input() and client.comm_channel:
+                shell_channel = client.shell_channel
+                client._shell_channel = client.comm_channel
+                try:
+                    return super_complete(code, cursor_pos)
+                finally:
+                    client._shell_channel = shell_channel
+            else:
+                return super_complete(code, cursor_pos)
+
+        client.complete = complete
+        return client
 
     # --- Private API --------------------------------------------------
     def _is_pdb_complete(self, source):
@@ -343,7 +353,6 @@ class DebuggingWidget(RichJupyterWidget):
 
     def _event_filter_console_keypress(self, event):
         """Handle Key_Up/Key_Down while debugging."""
-        key = event.key()
         if self.is_waiting_pdb_input():
             self._control.current_prompt_pos = self._prompt_pos
             # Pretend this is a regular prompt
@@ -352,8 +361,6 @@ class DebuggingWidget(RichJupyterWidget):
             try:
                 ret = super(DebuggingWidget,
                             self)._event_filter_console_keypress(event)
-                if key == Qt.Key_Tab:
-                    self.call_kernel(interrupt=True).pong()
                 return ret
             finally:
                 self._reading = self._tmp_reading

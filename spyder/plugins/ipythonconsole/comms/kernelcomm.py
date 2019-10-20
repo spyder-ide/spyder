@@ -10,6 +10,9 @@ In addition to the remote_call mechanism implemented in CommBase:
 """
 import logging
 import pickle
+import zmq
+import jupyter_client
+from contextlib import contextmanager
 
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
 
@@ -17,6 +20,9 @@ from spyder_kernels.comms.commbase import CommBase
 from spyder.py3compat import TimeoutError
 
 logger = logging.getLogger(__name__)
+
+# Patch jupyter_client
+jupyter_client.connect.channel_socket_types['comm'] = zmq.DEALER
 
 
 class KernelComm(CommBase, QObject):
@@ -28,14 +34,51 @@ class KernelComm(CommBase, QObject):
     _sig_got_reply = Signal()
     sig_exception_occurred = Signal(str, bool)
 
-    def __init__(self, interrupt_callback=None):
+    def __init__(self):
         super(KernelComm, self).__init__()
         self.register_call_handler(
             '_async_error', self._async_error)
-        self._interrupt_callback = interrupt_callback
+        self.register_call_handler('_set_comm_port', self._set_comm_port)
+        self.comm_port = None
+        self.kernel_client = None
+
+    def _set_comm_port(self, port):
+        """Set comm port"""
+        client = self.kernel_client
+        client.comm_port = port
+        identity = client.session.bsession
+        socket = client._create_connected_socket(
+            'comm', identity=identity)
+        client.comm_channel = client.shell_channel_class(
+            socket, client.session, client.ioloop)
+
+    @contextmanager
+    def comm_channel_manager(self, comm_id):
+        """Use comm_channel instead of shell_channel."""
+        if not self.kernel_client.comm_channel:
+            yield
+            return
+        id_list = self.get_comm_id_list(comm_id)
+        for comm_id in id_list:
+            self._comms[comm_id]['comm']._send_channel = (
+                self.kernel_client.comm_channel)
+        try:
+            yield
+        finally:
+            for comm_id in id_list:
+                self._comms[comm_id]['comm']._send_channel = (
+                    self.kernel_client.shell_channel)
+
+    def _set_call_return_value(self, call_dict, data, is_error=False):
+        """subclass to use the comm_channel for all replies."""
+        with self.comm_channel_manager(self.calling_comm_id):
+            super(KernelComm, self)._set_call_return_value(
+                call_dict, data, is_error)
 
     def open_comm(self, kernel_client):
         """Open comm through the kernel client."""
+        self.kernel_client = kernel_client
+        self.kernel_client.comm_channel = None
         self._register_comm(
             # Create new comm and send the highest protocol
             kernel_client.comm_manager.new_comm(self._comm_name, data={
@@ -49,17 +92,19 @@ class KernelComm(CommBase, QObject):
             comm_id=comm_id)
 
     # ---- Private -----
-    def _get_call_return_value(self, call_dict):
+    def _get_call_return_value(self, call_dict, call_data, comm_id):
         """
         Interupt the kernel if needed.
         """
         settings = call_dict['settings']
-        if 'interrupt' in settings and settings['interrupt']:
-            if self._interrupt_callback is not None:
-                self._interrupt_callback()
-
-        return super(KernelComm, self)._get_call_return_value(
-            call_dict)
+        interrupt = 'interrupt' in settings and settings['interrupt']
+        if interrupt:
+            with self.comm_channel_manager(comm_id):
+                return super(KernelComm, self)._get_call_return_value(
+                    call_dict, call_data, comm_id)
+        else:
+            return super(KernelComm, self)._get_call_return_value(
+                call_dict, call_data, comm_id)
 
     def _wait_reply(self, call_id, call_name, timeout):
         """Wait for the other side reply."""

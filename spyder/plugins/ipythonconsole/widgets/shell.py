@@ -71,8 +71,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
-        self.spyder_kernel_comm = KernelComm(
-            interrupt_callback=self._pdb_update)
+        self.spyder_kernel_comm = KernelComm()
         self.spyder_kernel_comm.sig_exception_occurred.connect(
             self.sig_exception_occurred)
         super(ShellWidget, self).__init__(*args, **kw)
@@ -115,7 +114,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
         """Set the kernel client and manager"""
         self.kernel_manager = kernel_manager
-        self.kernel_client = kernel_client
+        self.kernel_client = self.patch_kernel_client(kernel_client)
         self.spyder_kernel_comm.open_comm(kernel_client)
 
     #---- Public API ----------------------------------------------------------
