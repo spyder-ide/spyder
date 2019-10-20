@@ -272,15 +272,8 @@ class DebuggingWidget(RichJupyterWidget):
             self._finalize_input_request()
             return self.kernel_client.input(line)
 
-        # This is the Spyder addition: add a %plot magic to display
-        # plots while debugging
-        if line.startswith('%plot '):
-            line = line.split()[-1]
-            line = "__spy_code__ = get_ipython().run_cell('%s')" % line
-            self.pdb_execute(line, hidden=True)
-        else:
-            self.set_pdb_echo_code(True)
-            self.pdb_execute(line)
+        self.set_pdb_echo_code(True)
+        self.pdb_execute(line)
 
     def set_pdb_echo_code(self, state):
         """Choose if the code should echo in the console."""
