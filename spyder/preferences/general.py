@@ -20,16 +20,16 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QMessageBox, QTabWidget,
                             QVBoxLayout)
+if sys.platform == "darwin":
+    import applaunchservices as als
 
 from spyder.config.base import (_, LANGUAGE_CODES, running_in_mac_app,
                                 save_lang_conf)
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import to_text_string
 import spyder.utils.icon_manager as ima
-if sys.platform == "darwin":
-    import applaunchservices as als
-    from spyder.utils.qthelpers import (register_app_launchservices,
-                                        restore_launchservices)
+from spyder.utils.qthelpers import (register_app_launchservices,
+                                    restore_launchservices)
 
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"

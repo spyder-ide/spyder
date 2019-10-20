@@ -13,8 +13,6 @@ import os
 import os.path as osp
 import re
 import sys
-if sys.platform == "darwin":
-    import applaunchservices as als
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
@@ -24,6 +22,8 @@ from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
                             QLineEdit, QMenu, QProxyStyle, QStyle, QToolBar,
                             QToolButton, QVBoxLayout, QWidget)
+if sys.platform == "darwin":
+    import applaunchservices as als
 
 # Local imports
 from spyder.config.base import get_image_path, MAC_APP_NAME
@@ -635,10 +635,10 @@ def register_app_launchservices(
         uniform_type_identifier="public.python-script",
         role='editor'):
     """
-    Register app to the apple launch services so it can open python files
+    Register app to the Apple launch services so it can open Python files
     """
     app = QApplication.instance()
-    # if top frame is MAC_APP_NAME, set ourselves to open files at startup
+    # If top frame is MAC_APP_NAME, set ourselves to open files at startup
     origin_filename = get_origin_filename()
     if MAC_APP_NAME in origin_filename:
         bundle_idx = origin_filename.find(MAC_APP_NAME)
