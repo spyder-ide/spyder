@@ -2038,7 +2038,7 @@ def test_report_comms_error(qtbot, main_window):
     with qtbot.waitSignal(shell.executed):
         shell.execute("get_ipython().kernel.frontend_comm."
                       "register_call_handler('get_cwd', get_cwd)")
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=3000):
         shell.execute('ls')
 
     error_dlg = main_window.console.error_dlg
