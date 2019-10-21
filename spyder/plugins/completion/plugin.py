@@ -116,20 +116,12 @@ class CompletionManager(SpyderCompletionPlugin):
             request_responses['sources'][completion_source] = resp
 
             wait_for = self.WAIT_FOR_SOURCE[request_responses['req_type']]
-            if not resp:
-                # Any response is better than no response
-                keep_waiting = any(
-                    self._is_client_running(source) and
-                    source not in request_responses['sources']
-                    for source in self.clients)
-            elif completion_source not in wait_for:
-                # A wait_for response is better than non-wait_for
-                keep_waiting = any(
-                    self._is_client_running(source) and
-                    source not in request_responses['sources']
-                    for source in wait_for)
-            else:
-                keep_waiting = False
+
+            # Wait for all providers to finish
+            keep_waiting = any(
+                self._is_client_running(source) and
+                source not in request_responses['sources']
+                for source in wait_for)
 
             if keep_waiting:
                 return
