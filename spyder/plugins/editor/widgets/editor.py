@@ -552,6 +552,8 @@ class EditorStack(QWidget):
         self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
         self.automatic_completions_enabled = True
+        self.automatic_completion_chars = 3
+        self.automatic_completion_ms = 300
         self.completions_hint_enabled = True
         self.hover_hints_enabled = True
         self.code_snippets_enabled = True
@@ -1180,13 +1182,13 @@ class EditorStack(QWidget):
                 finfo.editor.toggle_automatic_completions(state)
 
     def set_automatic_completions_after_chars(self, chars):
-        self.automatic_completions_after_chars = chars
+        self.automatic_completion_chars = chars
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_automatic_completions_after_chars(chars)
 
     def set_automatic_completions_after_ms(self, ms):
-        self.automatic_completions_after_ms = ms
+        self.automatic_completion_ms = ms
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_automatic_completions_after_ms(ms)
@@ -1796,7 +1798,7 @@ class EditorStack(QWidget):
         txt = fileinfo.editor.get_text_with_eol()
         fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
 
-    def save(self, index=None, force=False):
+    def save(self, index=None, force=False, save_new_files=True):
         """Write text of editor to a file.
 
         Args:
@@ -1825,7 +1827,10 @@ class EditorStack(QWidget):
             return True
         if not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
-            return self.save_as(index=index)
+            if save_new_files:
+                return self.save_as(index=index)
+            # The file doesn't need to be saved
+            return True
         if self.always_remove_trailing_spaces:
             self.remove_trailing_spaces(index)
         if self.convert_eol_on_save:
@@ -2042,14 +2047,14 @@ class EditorStack(QWidget):
         else:
             return False
 
-    def save_all(self):
+    def save_all(self, save_new_files=True):
         """Save all opened files.
 
         Iterate through self.data and call save() on any modified files.
         """
         for index in range(self.get_stack_count()):
             if self.data[index].editor.document().isModified():
-                self.save(index)
+                self.save(index, save_new_files=save_new_files)
 
     #------ Update UI
     def start_stop_analysis_timer(self):
@@ -2417,6 +2422,8 @@ class EditorStack(QWidget):
             strip_mode=self.stripmode_enabled,
             intelligent_backspace=self.intelligent_backspace_enabled,
             automatic_completions=self.automatic_completions_enabled,
+            automatic_completions_after_chars=self.automatic_completion_chars,
+            automatic_completions_after_ms=self.automatic_completion_ms,
             code_snippets=self.code_snippets_enabled,
             completions_hint=self.completions_hint_enabled,
             hover_hints=self.hover_hints_enabled,

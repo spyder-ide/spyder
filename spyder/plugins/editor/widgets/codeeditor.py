@@ -59,6 +59,8 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager,
                                               SnippetsExtension)
+from spyder.plugins.completion.kite.widgets.calltoaction import (
+    KiteCallToAction)
 from spyder.plugins.completion.languageserver import (LSPRequestTypes,
                                                       TextDocumentSyncKind,
                                                       DiagnosticSeverity)
@@ -356,8 +358,6 @@ class CodeEditor(TextEditBaseWidget):
         # Typing keys / handling on the fly completions
         # See: keyPressEvent
         self._last_key_pressed_text = ''
-        self.automatic_completions_after_chars = 3
-        self.automatic_completions_after_ms = 300
         self._timer_key_press = QTimer(self)
         self._timer_key_press.setSingleShot(True)
         self._timer_key_press.timeout.connect(self._handle_completions)
@@ -502,13 +502,15 @@ class CodeEditor(TextEditBaseWidget):
 
         # Tab key behavior
         self.tab_indents = None
-        self.tab_mode = True # see CodeEditor.set_tab_mode
+        self.tab_mode = True  # see CodeEditor.set_tab_mode
 
         # Intelligent backspace mode
         self.intelligent_backspace = True
 
         # Automatic (on the fly) completions
         self.automatic_completions = True
+        self.automatic_completions_after_chars = 3
+        self.automatic_completions_after_ms = 300
 
         # Completions hint
         self.completions_hint = True
@@ -586,6 +588,10 @@ class CodeEditor(TextEditBaseWidget):
         # Handle completions hints
         self.completion_widget.sig_completion_hint.connect(
             self.show_hint_for_completion)
+
+        # re-use parent of completion_widget (usually the main window)
+        compl_parent = self.completion_widget.parent()
+        self.kite_call_to_action = KiteCallToAction(self, compl_parent)
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -941,7 +947,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Configuration and protocol start/end ----------------
     def start_completion_services(self):
-        logger.debug("Completions services available for: {0}".format(
+        logger.debug(u"Completions services available for: {0}".format(
             self.filename))
         self.completions_available = True
         self.document_did_open()
@@ -1065,30 +1071,28 @@ class CodeEditor(TextEditBaseWidget):
             text2 = to_text_string(cursor.selectedText())
 
             first_letter = text1[0] if len(text1) > 0 else ''
-            is_upper_word = first_letter.isupper()
             completions = [] if completions is None else completions
 
-            if completions is not None and len(completions) > 0:
-                for completion in completions:
-                    sort_text = completion['sortText']
-                    if is_upper_word:
-                        first_sort_letter = sort_text[1]
-                        if first_sort_letter.islower():
-                            if first_sort_letter.upper() == first_letter:
-                                completion['sortText'] = 'z' + sort_text
-                    else:
-                        first_sort_letter = sort_text[1]
-                        if first_sort_letter.isupper():
-                            if first_sort_letter.lower() == first_letter:
-                                completion['sortText'] = 'z' + sort_text
+            def sort_key(completion):
+                first_insert_letter = completion['insertText'][0]
+                case_mismatch = (
+                    (first_letter.isupper() and first_insert_letter.islower())
+                    or
+                    (first_letter.islower() and first_insert_letter.isupper())
+                )
+                # False < True, so case matches go first
+                return (case_mismatch, completion['sortText'])
 
-                completion_list = sorted(completions,
-                                         key=lambda x: x['sortText'])
+            completion_list = sorted(completions, key=sort_key)
+            if len(completion_list) > 0:
                 self.completion_widget.show_list(
                         completion_list, position, automatic)
+
+            self.kite_call_to_action.handle_processed_completions(completions)
         except RuntimeError:
             # This is triggered when a codeeditor instance has been
             # removed before the response can be processed.
+            self.kite_call_to_action.hide_coverage_cta()
             return
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
@@ -1125,10 +1129,12 @@ class CodeEditor(TextEditBaseWidget):
 
                 parameter_idx = signature_params['activeParameter']
                 parameters = signature_data['parameters']
-                parameter_data = parameters[parameter_idx]
+                parameter = None
+                if len(parameters) > 0 and parameter_idx < len(parameters):
+                    parameter_data = parameters[parameter_idx]
+                    parameter = parameter_data['label']
 
                 signature = signature_data['label']
-                parameter = parameter_data['label']
 
                 # This method is part of spyder/widgets/mixins
                 self.show_calltip(
@@ -1165,7 +1171,7 @@ class CodeEditor(TextEditBaseWidget):
             content = contents['params']
             self.sig_display_object_info.emit(content,
                                               self._request_hover_clicked)
-            if self._show_hint and self._last_point and content:
+            if content is not None and self._show_hint and self._last_point:
                 # This is located in spyder/widgets/mixins.py
                 word = self._last_hover_word,
                 content = content.replace(u'\xa0', ' ')
@@ -3447,6 +3453,8 @@ class CodeEditor(TextEditBaseWidget):
         event.ignore()
         self.sig_key_pressed.emit(event)
 
+        self.kite_call_to_action.handle_key_press(event)
+
         key = event.key()
         text = to_text_string(event.text())
         has_selection = self.has_selected_text()
@@ -3992,6 +4000,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def mousePressEvent(self, event):
         """Override Qt method."""
+        self.kite_call_to_action.handle_mouse_press(event)
+
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier
         pos = event.pos()

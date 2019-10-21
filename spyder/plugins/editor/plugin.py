@@ -139,6 +139,8 @@ class Editor(SpyderPluginWidget):
         self.dialog_size = None
 
         statusbar = parent.statusBar()  # Create a status bar
+        # Remove separator line
+        statusbar.setStyleSheet('QStatusBar::item {border: None;}')
         self.vcs_status = VCSStatus(self, statusbar)
         self.cursorpos_status = CursorPositionStatus(self, statusbar)
         self.encoding_status = EncodingStatus(self, statusbar)
@@ -316,6 +318,11 @@ class Editor(SpyderPluginWidget):
     def send_completion_request(self, language, request, params):
         logger.debug("%s completion server request: %r" % (language, request))
         self.main.completions.send_request(language, request, params)
+
+    def kite_completions_file_status(self):
+        """Connect open_file_update to Kite's status."""
+        self.open_file_update.connect(
+            self.main.completions.get_client('kite').send_status_request)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -1055,6 +1062,7 @@ class Editor(SpyderPluginWidget):
 
         # Add modes to switcher
         self.switcher_manager = EditorSwitcherManager(
+            self,
             self.main.switcher,
             lambda: self.get_current_editor(),
             lambda: self.get_current_editorstack(),
@@ -1069,7 +1077,9 @@ class Editor(SpyderPluginWidget):
             completion_size = CONF.get('main', 'completion/size')
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
+                kite_call_to_action = finfo.editor.kite_call_to_action
                 comp_widget.setup_appearance(completion_size, font)
+                kite_call_to_action.setFont(font)
 
     def _create_checkable_action(self, text, conf_name, method=''):
         """Helper function to create a checkable action.
@@ -1226,8 +1236,10 @@ class Editor(SpyderPluginWidget):
             ('set_convert_eol_on_save',             'convert_eol_on_save'),
             ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
                     )
+
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
+
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
         editorstack.set_hover_hints_enabled(CONF.get('lsp-server',
                                                      'enable_hover_hints'))
@@ -1974,9 +1986,9 @@ class Editor(SpyderPluginWidget):
         editorstack.save_copy_as()
 
     @Slot()
-    def save_all(self):
+    def save_all(self, save_new_files=True):
         """Save all opened files"""
-        self.get_current_editorstack().save_all()
+        self.get_current_editorstack().save_all(save_new_files=save_new_files)
 
     @Slot()
     def revert(self):
@@ -2323,7 +2335,7 @@ class Editor(SpyderPluginWidget):
     def debug_command(self, command):
         """Debug actions"""
         self.switch_to_plugin()
-        self.main.ipyconsole.pdb_execute(command)
+        self.main.ipyconsole.pdb_execute(command, hidden=True, echo_code=False)
         focus_widget = self.main.ipyconsole.get_focus_widget()
         if focus_widget:
             focus_widget.setFocus()
@@ -2347,7 +2359,7 @@ class Editor(SpyderPluginWidget):
     def run_file(self, debug=False):
         """Run script inside current interpreter or in a new one"""
         editorstack = self.get_current_editorstack()
-        if editorstack.save():
+        if editorstack.save(save_new_files=False):
             editor = self.get_current_editor()
             fname = osp.abspath(self.get_current_filename())
 
@@ -2406,7 +2418,7 @@ class Editor(SpyderPluginWidget):
                                    python, python_args, current, systerm,
                                    post_mortem, clear_namespace,
                                    console_namespace)
-            self.re_run_file()
+            self.re_run_file(save_new_files=False)
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
                 # raised in top-level and so focus will be given to the
@@ -2427,10 +2439,10 @@ class Editor(SpyderPluginWidget):
         self.run_file(debug=True)
 
     @Slot()
-    def re_run_file(self):
+    def re_run_file(self, save_new_files=True):
         """Re-run last script"""
         if self.get_option('save_all_before_run'):
-            self.save_all()
+            self.save_all(save_new_files=save_new_files)
         if self.__last_ec_exec is None:
             return
         (fname, wdir, args, interact, debug,
