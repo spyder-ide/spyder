@@ -19,11 +19,7 @@ from spyder.plugins.editor.utils.editor import BlockUserData
 
 
 def _load_all_breakpoints():
-    bp_dict = CONF.get('run', 'breakpoints', {})
-    for filename in list(bp_dict.keys()):
-        if not osp.isfile(filename):
-            bp_dict.pop(filename)
-    return bp_dict
+    return CONF.get('run', 'breakpoints', {})
 
 
 def load_breakpoints(filename):
@@ -35,8 +31,6 @@ def load_breakpoints(filename):
 
 
 def save_breakpoints(filename, breakpoints):
-    if not osp.isfile(filename):
-        return
     bp_dict = _load_all_breakpoints()
     bp_dict[filename] = breakpoints
     CONF.set('run', 'breakpoints', bp_dict)

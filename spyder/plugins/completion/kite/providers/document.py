@@ -70,9 +70,11 @@ class DocumentProvider:
             'filename': osp.realpath(params['file']),
             'text': params['text'],
             'action': 'focus',
-            'selections': [
-                {'start': params['offset'], 'end': params['offset']}
-            ]
+            'selections': [{
+                'start': params['offset'],
+                'end': params['offset'],
+                'encoding': 'utf-16',
+            }],
         }
 
         with QMutexLocker(self.mutex):
@@ -87,9 +89,11 @@ class DocumentProvider:
             'filename': osp.realpath(params['file']),
             'text': params['text'],
             'action': 'edit',
-            'selections': [
-                {'start': params['offset'], 'end': params['offset']}
-            ]
+            'selections': [{
+                'start': params['offset'],
+                'end': params['offset'],
+                'encoding': 'utf-16',
+            }],
         }
         with QMutexLocker(self.mutex):
             self.opened_files[params['file']] = params['text']
@@ -106,7 +110,7 @@ class DocumentProvider:
             'position': {
                 'begin': params['offset']
             },
-            'placeholders': []
+            'offset_encoding': 'utf-16',
         }
         return request
 
@@ -164,7 +168,8 @@ class DocumentProvider:
         request = {
             'filename': path,
             'hash': md5,
-            'cursor_runes': params['offset']
+            'cursor_runes': params['offset'],
+            'offset_encoding': 'utf-16',
         }
         return None, request
 
@@ -191,7 +196,7 @@ class DocumentProvider:
             'filename': request['file'],
             'text': text,
             'cursor_runes': request['offset'],
-            'offset_encoding': 'utf-32'
+            'offset_encoding': 'utf-16',
         }
         return response
 

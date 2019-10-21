@@ -374,11 +374,11 @@ def test_save_all(editor_bot, mocker):
 
     save_all()
     assert editor_stack.save.call_count == 3
-    editor_stack.save.assert_any_call(0)
-    editor_stack.save.assert_any_call(1)
-    editor_stack.save.assert_any_call(2)
+    editor_stack.save.assert_any_call(0, save_new_files=True)
+    editor_stack.save.assert_any_call(1, save_new_files=True)
+    editor_stack.save.assert_any_call(2, save_new_files=True)
     with pytest.raises(AssertionError):
-        editor_stack.save.assert_any_call(3)
+        editor_stack.save.assert_any_call(3, save_new_files=True)
 
 
 if __name__ == "__main__":
