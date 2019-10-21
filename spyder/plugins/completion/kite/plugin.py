@@ -154,34 +154,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.enabled = self.get_option('enable')
         self._show_onboarding = self.get_option('show_onboarding')
 
-    def _kite_onboarding(self):
-        """
-        Opens the onboarding file, which is retrieved
-        from the Kite HTTP endpoint. This skips onboarding if onboarding
-        is not possible yet or has already been displayed before.
-        :return:
-        """
-
-        if not self.enabled:
-            return
-        if not self._show_onboarding:
-            return
-        if self.main.is_setting_up:
-            return
-        if not self.available_languages:
-            return
-
-        # No need to check installed status,
-        # since the get_onboarding_file call fails fast.
-        self.client.sig_perform_onboarding_request.emit()
-
-    def _show_onboarding_file(self, onboarding_file):
-        """Open onboarding file in the Editor and disable onboarding."""
-        if onboarding_file is not None:
-            self._show_onboarding = False
-            self.set_option('show_onboarding', False)
-            self.main.open_file(onboarding_file)
-
     def is_installing(self):
         """Check if an installation is taking place."""
         return (self.installation_thread.isRunning()
@@ -190,3 +162,29 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def installation_cancelled_or_errored(self):
         """Check if an installation was cancelled or failed."""
         return self.installation_thread.cancelled_or_errored()
+
+    def _kite_onboarding(self):
+        """Request the onboarding file."""
+        # No need to check installed status,
+        # since the get_onboarding_file call fails fast.
+        self.client.sig_perform_onboarding_request.emit()
+
+    @Slot(str)
+    def _show_onboarding_file(self, onboarding_file):
+        """
+        Opens the onboarding file, which is retrieved
+        from the Kite HTTP endpoint. This skips onboarding if onboarding
+        is not possible yet or has already been displayed before.
+        """
+        if not self.enabled:
+            return
+        if not self._show_onboarding:
+            return
+        if self.main.is_setting_up:
+            return
+        if not self.available_languages:
+            return
+        if onboarding_file:
+            self._show_onboarding = False
+            self.set_option('show_onboarding', False)
+            self.main.open_file(onboarding_file)
