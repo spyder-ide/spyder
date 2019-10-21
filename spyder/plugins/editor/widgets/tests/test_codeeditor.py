@@ -143,8 +143,8 @@ def test_editor_log_lsp_handle_errors(editorbot, capsys):
          [Qt.Key_Enter],
          True),
     ])
-def test_editor_rstrip_keypress(
-        editorbot, input_text, expected_text, keys, strip_all):
+def test_editor_rstrip_keypress(editorbot, input_text, expected_text, keys,
+                                strip_all):
     """
     Test that whitespace is removed when leaving a line.
     """
