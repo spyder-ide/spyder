@@ -65,6 +65,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
 
         self.client.sig_response_ready.connect(self._kite_onboarding)
         self.client.sig_status_response_ready.connect(self._kite_onboarding)
+        self.client.sig_onboarding_response_ready.connect(
+            self._show_onboarding_file)
 
         self.installation_thread.sig_installation_status.connect(
             self.set_status)
@@ -171,10 +173,11 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
 
         # No need to check installed status,
         # since the get_onboarding_file call fails fast.
-        onboarding_file = self.client.get_onboarding_file()
-        if onboarding_file is None:
-            pass
-        else:
+        self.client.sig_perform_onboarding_request.emit()
+
+    def _show_onboarding_file(self, onboarding_file):
+        """Open onboarding file in the Editor and disable onboarding."""
+        if onboarding_file is not None:
             self._show_onboarding = False
             self.set_option('show_onboarding', False)
             self.main.open_file(onboarding_file)
