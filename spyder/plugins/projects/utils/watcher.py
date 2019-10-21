@@ -11,9 +11,13 @@ import logging
 
 # Third-party imports
 from qtpy.QtCore import QObject, Signal
+from qtpy.QtWidgets import QMessageBox
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+
+# Local imports
+from spyder.config.base import _
 
 logger = logging.getLogger(__name__)
 
@@ -87,10 +91,28 @@ class WorkspaceWatcher(QObject):
         self.event_handler.sig_file_modified.connect(project.file_modified)
 
     def start(self, workspace_folder):
-        self.observer = Observer()
-        self.observer.schedule(
-            self.event_handler, workspace_folder, recursive=True)
-        self.observer.start()
+        # Needed to handle an error caused for inotify watch limit reached.
+        # See spyder-ide/spyder#10478
+        try:
+            self.observer = Observer()
+            self.observer.schedule(
+                self.event_handler, workspace_folder, recursive=True)
+            self.observer.start()
+        except OSError:
+            QMessageBox.warning(self.parent(), "Spyder",
+                                _("An error occurred while creating "
+                                  "the watcher of changes for the working "
+                                  "directory. Please, try to increase "
+                                  "the inotify limit on your system.<br><br>"
+                                  "On Linux you can use the following "
+                                  "command:<br><br>"
+                                  "<code>sudo sysctl -n -w "
+                                  "fs.inotify.max_user_watches=524288</code>"
+                                  "<br><br>For a permanent setting of the "
+                                  "configuration you will need to edit "
+                                  "<code>/etc/sysctl.conf</code> an add "
+                                  "the following line:<br><br> <code>"
+                                  "fs.inotify.max_user_watches=524288</code>"))
 
     def stop(self):
         self.observer.stop()
