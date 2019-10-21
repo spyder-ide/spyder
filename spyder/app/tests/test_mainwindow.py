@@ -13,13 +13,14 @@ Tests for the main window.
 # Standard library imports
 import os
 import os.path as osp
+import re
 import shutil
 import tempfile
+from textwrap import dedent
 try:
     from unittest.mock import Mock, MagicMock
 except ImportError:
     from mock import Mock, MagicMock  # Python 2
-import re
 import sys
 import uuid
 
@@ -2129,6 +2130,51 @@ def test_preferences_change_font_regression(main_window, qtbot):
 
     main_window.show_preferences()
     qtbot.wait(5000)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.use_introspection
+def test_go_to_definition(main_window, qtbot, capsys):
+    """Test that go-to-definition works as expected."""
+    # --- Code that gives no definition
+    code_no_def = dedent("""
+    from qtpy.QtCore import Qt
+    Qt.FramelessWindowHint""")
+
+    # Create new editor with code and wait until LSP is ready
+    main_window.editor.new(text=code_no_def)
+    code_editor = main_window.editor.get_focus_widget()
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_open()
+
+    # Move cursor to the left one character to be next to
+    # FramelessWindowHint
+    code_editor.move_cursor(-1)
+    with qtbot.waitSignal(code_editor.lsp_response_signal):
+        code_editor.go_to_definition_from_cursor()
+
+    # Capture stderr and assert there are no errors
+    sys_stream = capsys.readouterr()
+    assert sys_stream.err == u''
+
+    # --- Code that gives definition
+    code_def = "import qtpy.QtCore"
+
+    # Create new editor with code and wait until LSP is ready
+    main_window.editor.new(text=code_def)
+    n_editors = len(main_window.editor.get_filenames())
+    code_editor = main_window.editor.get_focus_widget()
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_open()
+
+    # Move cursor to the left one character to be next to QtCore
+    code_editor.move_cursor(-1)
+    with qtbot.waitSignal(code_editor.lsp_response_signal):
+        code_editor.go_to_definition_from_cursor()
+
+    # Assert there's one more file open than before
+    assert len(main_window.editor.get_filenames()) == n_editors + 1
 
 
 if __name__ == "__main__":
