@@ -91,28 +91,32 @@ class WorkspaceWatcher(QObject):
         self.event_handler.sig_file_modified.connect(project.file_modified)
 
     def start(self, workspace_folder):
-        # Needed to handle an error caused for inotify watch limit reached.
+        # Needed to handle an error caused for inotify limit reached.
         # See spyder-ide/spyder#10478
         try:
             self.observer = Observer()
             self.observer.schedule(
                 self.event_handler, workspace_folder, recursive=True)
             self.observer.start()
-        except OSError:
-            QMessageBox.warning(self.parent(), "Spyder",
-                                _("An error occurred while creating "
-                                  "the watcher of changes for the working "
-                                  "directory. Please, try to increase "
-                                  "the inotify limit on your system.<br><br>"
-                                  "On Linux you can use the following "
-                                  "command:<br><br>"
-                                  "<code>sudo sysctl -n -w "
-                                  "fs.inotify.max_user_watches=524288</code>"
-                                  "<br><br>For a permanent setting of the "
-                                  "configuration you will need to edit "
-                                  "<code>/etc/sysctl.conf</code> an add "
-                                  "the following line:<br><br> <code>"
-                                  "fs.inotify.max_user_watches=524288</code>"))
+        except OSError as e:
+            if u'inotify' in e:
+                QMessageBox.warning(
+                    self.parent(),
+                    "Spyder",
+                    _("File changes for this project can't be tracked because "
+                      "it contains too many files. To fix this you need to "
+                      "increase the inotify limit in your system, with the "
+                      "following command:<br><br><code>"
+                      "sudo sysctl -n -w fs.inotify.max_user_watches=524288"
+                      "</code><br><br>For a permanent solution "
+                      "you need to add to <code>/etc/sysctl.conf</code> "
+                      "the following line:<br><br> <code>"
+                      "fs.inotify.max_user_watches=524288</code><br><br>"
+                      "After doing that, you need to close and start Spyder "
+                      "again so those changes can take effect."))
+                self.observer = None
+            else:
+                raise e
 
     def stop(self):
         self.observer.stop()
