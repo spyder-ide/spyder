@@ -18,6 +18,7 @@ import os.path as osp
 import signal
 import subprocess
 import sys
+import time
 
 # Third-party imports
 from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
@@ -290,7 +291,20 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             }
 
         logger.debug('{} request: {}'.format(self.language, method))
-        self.zmq_out_socket.send_pyobj(msg, flags=zmq.NOBLOCK)
+        # Wait maximum 1 second
+        timeout = time.time() + 1
+        success = False
+        while not success:
+            try:
+                self.zmq_out_socket.send_pyobj(msg, flags=zmq.NOBLOCK)
+                success = True
+            except zmq.error.Again:
+                if time.time() < timeout:
+                    # Try again in 10ms
+                    time.sleep(0.01)
+                else:
+                    # The server doesn't reply
+                    raise
         self.request_seq += 1
         return int(_id)
 
