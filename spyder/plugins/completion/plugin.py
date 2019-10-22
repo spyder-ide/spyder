@@ -131,6 +131,7 @@ class CompletionManager(SpyderCompletionPlugin):
 
     @Slot(int)
     def receive_timeout(self, req_id):
+        # On timeout, collect all completions and return to the user
         logger.debug("Completion plugin: Request {} timed out".format(req_id))
 
         if req_id not in self.requests:
@@ -219,6 +220,7 @@ class CompletionManager(SpyderCompletionPlugin):
             client_info['plugin'].send_request(
                 language, req_type, req, req_id)
 
+        # Start the timer on this request
         QTimer.singleShot(200, lambda: self.receive_timeout(req_id))
 
     def send_notification(self, language, notification_type, notification):

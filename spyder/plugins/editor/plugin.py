@@ -1224,6 +1224,8 @@ class Editor(SpyderPluginWidget):
              'automatic_completions_after_chars'),
             ('set_automatic_completions_after_ms',
              'automatic_completions_after_ms'),
+            ('set_completions_max_request_ms',
+             'completions_max_request_ms'),
             ('set_completions_hint_enabled',        'completions_hint'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),

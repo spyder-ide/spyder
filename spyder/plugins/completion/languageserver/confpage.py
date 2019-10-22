@@ -723,6 +723,10 @@ class LanguageServerConfigPage(GeneralConfigPage):
             _("Show automatic completions after keyboard idle (ms):"), None,
             'automatic_completions_after_ms', min_=0, max_=5000, step=10,
             tip=_("Default is 300"), section='editor')
+        self.completions_max_request_ms = self.create_spinbox(
+            _("Time to wait for completions to return (ms):"), None,
+            'completions_max_request_ms', min_=10, max_=5000, step=10,
+            tip=_("Default is 200"), section='editor')
         code_snippets_box = newcb(_("Enable code snippets"), 'code_snippets')
 
         completion_layout = QGridLayout()
@@ -735,7 +739,11 @@ class LanguageServerConfigPage(GeneralConfigPage):
                                     3, 1)
         completion_layout.addWidget(self.completions_after_ms.plabel, 4, 0)
         completion_layout.addWidget(self.completions_after_ms.spinbox, 4, 1)
-        completion_layout.addWidget(code_snippets_box, 5, 0)
+        completion_layout.addWidget(self.completions_max_request_ms.plabel,
+                                    5, 0)
+        completion_layout.addWidget(self.completions_max_request_ms.spinbox,
+                                    5, 1)
+        completion_layout.addWidget(code_snippets_box, 6, 0)
         completion_layout.setColumnStretch(2, 5)
         completion_widget = QWidget()
         completion_widget.setLayout(completion_layout)
@@ -1164,6 +1172,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.completions_after_characters.plabel.setEnabled(state)
         self.completions_after_ms.spinbox.setEnabled(state)
         self.completions_after_ms.plabel.setEnabled(state)
+        self.completions_max_request_ms.spinbox.setEnabled(state)
+        self.completions_max_request_ms.plabel.setEnabled(state)
 
     def disable_tcp(self, state):
         if state == Qt.Checked:
@@ -1388,6 +1398,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
                 'editor', 'automatic_completions_after_chars'),
             'set_automatic_completions_after_ms': (
                 'editor', 'automatic_completions_after_ms'),
+            'set_completions_max_request_ms': (
+                'editor', 'completions_max_request_ms'),
         }
         for editorstack in editor.editorstacks:
             for method_name, (sec, opt) in editor_method_sec_opts.items():

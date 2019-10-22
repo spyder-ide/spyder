@@ -512,6 +512,9 @@ class CodeEditor(TextEditBaseWidget):
         self.automatic_completions_after_chars = 3
         self.automatic_completions_after_ms = 300
 
+        # Completions timeout
+        self.completions_max_request_ms = 200
+
         # Completions hint
         self.completions_hint = True
 
@@ -781,6 +784,7 @@ class CodeEditor(TextEditBaseWidget):
                      automatic_completions=True,
                      automatic_completions_after_chars=3,
                      automatic_completions_after_ms=300,
+                     completions_max_request_ms=200,
                      completions_hint=True,
                      hover_hints=True,
                      code_snippets=True,
@@ -876,6 +880,9 @@ class CodeEditor(TextEditBaseWidget):
             automatic_completions_after_chars)
         self.set_automatic_completions_after_ms(
             automatic_completions_after_ms)
+
+        # Completions timeout
+        self.set_completions_max_request_ms(completions_max_request_ms)
 
         # Completions hint
         self.toggle_completions_hint(completions_hint)
@@ -1313,6 +1320,12 @@ class CodeEditor(TextEditBaseWidget):
         Set the amount of time in ms after which auto completion is fired.
         """
         self.automatic_completions_after_ms = ms
+
+    def set_completions_max_request_ms(self, ms):
+        """
+        Set the amount of time to wait for completions to return.
+        """
+        self.completions_max_request_ms = ms
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
