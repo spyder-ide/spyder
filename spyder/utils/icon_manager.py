@@ -11,9 +11,9 @@ import mimetypes as mime
 import sys
 
 # Third party imports
-from qtpy.QtCore import QBuffer, QByteArray, QSize, Qt
+from qtpy.QtCore import QBuffer, QByteArray, Qt
 from qtpy.QtGui import QIcon, QImage, QPixmap
-from qtpy.QtWidgets import QApplication, QStyle, QWidget
+from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
 from spyder.config.base import get_image_path
