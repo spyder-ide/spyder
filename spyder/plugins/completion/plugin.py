@@ -132,10 +132,10 @@ class CompletionManager(SpyderCompletionPlugin):
     @Slot(int)
     def receive_timeout(self, req_id):
         # On timeout, collect all completions and return to the user
-        logger.debug("Completion plugin: Request {} timed out".format(req_id))
-
         if req_id not in self.requests:
             return
+
+        logger.debug("Completion plugin: Request {} timed out".format(req_id))
 
         with QMutexLocker(self.collection_mutex):
             request_responses = self.requests[req_id]
