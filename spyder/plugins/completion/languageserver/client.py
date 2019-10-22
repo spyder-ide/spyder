@@ -290,7 +290,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             }
 
         logger.debug('{} request: {}'.format(self.language, method))
-        self.zmq_out_socket.send_pyobj(msg)
+        self.zmq_out_socket.send_pyobj(msg, flags=zmq.NOBLOCK)
         self.request_seq += 1
         return int(_id)
 
