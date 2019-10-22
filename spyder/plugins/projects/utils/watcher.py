@@ -119,6 +119,7 @@ class WorkspaceWatcher(QObject):
                 raise e
 
     def stop(self):
-        self.observer.stop()
-        self.observer.join()
-        del self.observer
+        if self.observer is not None:
+            self.observer.stop()
+            self.observer.join()
+            del self.observer
