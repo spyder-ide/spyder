@@ -52,6 +52,14 @@ class KernelComm(CommBase, QObject):
         client.comm_channel = client.shell_channel_class(
             socket, client.session, client.ioloop)
 
+    def shutdown_comm_channel(self):
+        """shutdown the comm channel."""
+        channel = self.kernel_client.comm_channel
+        if channel:
+            msg = self.kernel_client.session.msg('shutdown_request', {})
+            channel.send(msg)
+            self.kernel_client.comm_channel = None
+
     @contextmanager
     def comm_channel_manager(self, comm_id):
         """Use comm_channel instead of shell_channel."""
