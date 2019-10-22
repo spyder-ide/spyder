@@ -247,7 +247,6 @@ extras_require = {
              'pytest-xvfb;platform_system=="Linux"',
              'pytest-ordering',
              'pytest-lazy-fixture',
-             'pytest-faulthandler',
              'mock',
              'flaky',
              'pandas',
