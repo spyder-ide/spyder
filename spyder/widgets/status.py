@@ -75,11 +75,11 @@ class StatusBarWidget(QWidget):
     # ------------------------------------------------------------------------
     def set_icon(self, icon):
         """Set the icon for the status bar widget."""
+        self.label_icon.setVisible(icon is not None)
         if icon is not None and isinstance(icon, QIcon):
             self._icon = icon
             self._pixmap = icon.pixmap(self._icon_size)
             self.label_icon.setPixmap(self._pixmap)
-            self.label_icon.setVisible(icon is not None)
 
     def set_value(self, value):
         """Set formatted text value."""
