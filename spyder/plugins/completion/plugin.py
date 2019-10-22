@@ -213,7 +213,6 @@ class CompletionManager(SpyderCompletionPlugin):
             'req_type': req_type,
             'response_instance': req['response_instance'],
             'sources': {},
-            'timed_out': False,
         }
         for client_name in self.clients:
             client_info = self.clients[client_name]
