@@ -16,7 +16,7 @@ import os.path as osp
 import functools
 
 # Third-party imports
-from qtpy.QtCore import QObject, Slot, QMutex, QMutexLocker
+from qtpy.QtCore import QObject, Slot, QMutex, QMutexLocker, QTimer
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
@@ -129,6 +129,18 @@ class CompletionManager(SpyderCompletionPlugin):
             del self.requests[req_id]
             self.gather_and_send(request_responses)
 
+    @Slot(int)
+    def receive_timeout(self, req_id):
+        logger.debug("Completion plugin: Request {} timed out".format(req_id))
+
+        if req_id not in self.requests:
+            return
+
+        with QMutexLocker(self.collection_mutex):
+            request_responses = self.requests[req_id]
+            del self.requests[req_id]
+            self.gather_and_send(request_responses)
+
     @Slot(str)
     def client_available(self, client_name):
         client_info = self.clients[client_name]
@@ -201,11 +213,14 @@ class CompletionManager(SpyderCompletionPlugin):
             'req_type': req_type,
             'response_instance': req['response_instance'],
             'sources': {},
+            'timed_out': False,
         }
         for client_name in self.clients:
             client_info = self.clients[client_name]
             client_info['plugin'].send_request(
                 language, req_type, req, req_id)
+
+        QTimer.singleShot(200, lambda: self.receive_timeout(req_id))
 
     def send_notification(self, language, notification_type, notification):
         for client_name in self.clients:
