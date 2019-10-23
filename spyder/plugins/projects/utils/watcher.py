@@ -91,7 +91,7 @@ class WorkspaceWatcher(QObject):
         self.event_handler.sig_file_modified.connect(project.file_modified)
 
     def start(self, workspace_folder):
-        # Needed to handle an error caused for inotify limit reached.
+        # Needed to handle an error caused by the inotify limit reached.
         # See spyder-ide/spyder#10478
         try:
             self.observer = Observer()
@@ -103,15 +103,21 @@ class WorkspaceWatcher(QObject):
                 QMessageBox.warning(
                     self.parent(),
                     "Spyder",
-                    _("File changes for this project can't be tracked because "
-                      "it contains too many files. To fix this you need to "
-                      "increase the inotify limit in your system, with the "
-                      "following command:<br><br><code>"
+                    _("File system changes for this project can't be tracked "
+                      "because it contains too many files. To fix this you "
+                      "need to increase the inotify limit in your system, "
+                      "with the following command:"
+                      "<br><br>"
+                      "<code>"
                       "sudo sysctl -n -w fs.inotify.max_user_watches=524288"
-                      "</code><br><br>For a permanent solution "
-                      "you need to add to <code>/etc/sysctl.conf</code> "
-                      "the following line:<br><br> <code>"
-                      "fs.inotify.max_user_watches=524288</code><br><br>"
+                      "</code>"
+                      "<br><br>For a permanent solution you need to add to"
+                      "<code>/etc/sysctl.conf</code>"
+                      "the following line:<br><br>"
+                      "<code>"
+                      "fs.inotify.max_user_watches=524288"
+                      "</code>"
+                      "<br><br>"
                       "After doing that, you need to close and start Spyder "
                       "again so those changes can take effect."))
                 self.observer = None
