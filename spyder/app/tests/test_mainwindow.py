@@ -215,12 +215,13 @@ def main_window(request):
             del main_window.window
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def cleanup(request):
     """Cleanup a testing directory once we are finished."""
     def remove_test_dir():
         if hasattr(main_window, 'window'):
             main_window.window.close()
+            del main_window.window
     request.addfinalizer(remove_test_dir)
 
 
