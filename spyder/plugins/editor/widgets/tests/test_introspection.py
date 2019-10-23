@@ -43,7 +43,6 @@ def test_space_completion(lsp_codeeditor, qtbot):
     code_editor, _ = lsp_codeeditor
     code_editor.toggle_automatic_completions(False)
     code_editor.toggle_code_snippets(False)
-    code_editor.set_completions_max_request_ms(9000)
 
     completion = code_editor.completion_widget
 
