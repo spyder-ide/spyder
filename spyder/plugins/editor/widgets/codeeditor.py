@@ -2128,7 +2128,6 @@ class CodeEditor(TextEditBaseWidget):
     # --- Hint for completions
     def show_hint_for_completion(self, word, documentation, at_point):
         """Show hint for completion element."""
-        self.hide_tooltip()
         if self.completions_hint:
             completion_doc = {'name': word,
                               'signature': documentation}
@@ -2142,8 +2141,8 @@ class CodeEditor(TextEditBaseWidget):
                     max_lines=self._DEFAULT_MAX_LINES,
                     max_width=self._DEFAULT_COMPLETION_HINT_MAX_WIDTH)
                 self.tooltip_widget.move(at_point)
-            else:
-                self.hide_tooltip()
+                return
+        self.hide_tooltip()
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
@@ -3479,9 +3478,6 @@ class CodeEditor(TextEditBaseWidget):
                      '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
         delimiters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=',
                       '//=', '%=', '@=', '&=', '|=', '^=', '>>=', '<<=', '**='}
-
-        if not shift and not ctrl:
-            self.hide_tooltip()
 
         if text not in self.auto_completion_characters:
             if text in operators or text in delimiters:

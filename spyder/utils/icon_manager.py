@@ -22,7 +22,6 @@ from spyder.config.gui import is_dark_interface
 from spyder.utils.encoding import is_text_file
 import qtawesome as qta
 
-
 if is_dark_interface():
     MAIN_FG_COLOR = 'white'
 else:

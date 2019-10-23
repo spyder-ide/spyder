@@ -122,7 +122,13 @@ class BaseEditMixin(object):
 
         return point
 
-    def _update_stylesheet(self, widget):
+    def _update_stylesheet(self, widget, _updated=set()):
+        # Update the stylesheet for a given widget at most once
+        # because Qt is slow to repeatedly parse & apply CSS
+        if id(widget) in _updated:
+            return
+        _updated.add(id(widget))
+
         """Update the background stylesheet to make it lighter."""
         if is_dark_interface():
             css = qdarkstyle.load_stylesheet_from_environment()
