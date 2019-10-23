@@ -223,7 +223,8 @@ class CompletionManager(SpyderCompletionPlugin):
         # Start the timer on this request
         max_ms = self.get_option('completions_max_request_ms',
                                  default=200, section='editor')
-        QTimer.singleShot(max_ms, lambda: self.receive_timeout(req_id))
+        if max_ms > 0:
+            QTimer.singleShot(max_ms, lambda: self.receive_timeout(req_id))
 
     def send_notification(self, language, notification_type, notification):
         for client_name in self.clients:

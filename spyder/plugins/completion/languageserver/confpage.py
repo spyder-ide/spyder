@@ -725,8 +725,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
             tip=_("Default is 300"), section='editor')
         self.completions_max_request_ms = self.create_spinbox(
             _("Time to wait for completions to return (ms):"), None,
-            'completions_max_request_ms', min_=10, max_=5000, step=10,
-            tip=_("Default is 200"), section='editor')
+            'completions_max_request_ms', min_=0, max_=5000, step=10,
+            tip=_("Default is 200 / 0 to disable"), section='editor')
         code_snippets_box = newcb(_("Enable code snippets"), 'code_snippets')
 
         completion_layout = QGridLayout()
