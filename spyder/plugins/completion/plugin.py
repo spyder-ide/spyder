@@ -20,7 +20,7 @@ from qtpy.QtCore import QObject, Slot, QMutex, QMutexLocker
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _, get_conf_path, running_under_pytest
+from spyder.config.base import _, get_conf_path
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import select_port, getcwd_or_home
@@ -166,10 +166,10 @@ class CompletionManager(SpyderCompletionPlugin):
         return responses
 
     def gather_default(self, req_type, responses):
-        response = ''
+        response = None
         for source in self.SOURCE_PRIORITY[req_type]:
             if source in responses:
-                response = responses[source].get('params', '')
+                response = responses[source].get('params', None)
                 if response:
                     break
         return {'params': response}

@@ -1333,6 +1333,7 @@ class MainWindow(QMainWindow):
 
     def update_lsp_logs(self):
         """Create an action for each lsp log file."""
+        self.menu_lsp_logs.clear()
         lsp_logs = []
         regex = re.compile(r'.*_.*_(\d+)[.]log')
         files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
