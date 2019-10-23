@@ -43,8 +43,8 @@ PY3 = sys.version_info[0] == 3
 # Taken from the notebook setup.py -- Modified BSD License
 #==============================================================================
 v = sys.version_info
-if v[:2] < (2, 7) or (v[0] >= 3 and v[:2] < (3, 4)):
-    error = "ERROR: Spyder requires Python version 2.7 or 3.4 and above."
+if v[:2] < (2, 7) or (v[0] >= 3 and v[:2] < (3, 5)):
+    error = "ERROR: Spyder requires Python version 2.7 or 3.5 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -127,7 +127,8 @@ CMDCLASS = {'install_data': MyInstallData}
 # Main scripts
 #==============================================================================
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
-# platforms due to a bug in pip installation process (see Issue 1158)
+# platforms due to a bug in pip installation process
+# See spyder-ide/spyder#1158.
 SCRIPTS = ['%s_win_post_install.py' % NAME]
 if PY3 and sys.platform.startswith('linux'):
     SCRIPTS.append('spyder3')
@@ -139,7 +140,7 @@ else:
 # Files added to the package
 #==============================================================================
 EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
-           '.ini', '.txt', '.qss', '.ttf', '.json']
+           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom']
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
@@ -201,7 +202,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 install_requires = [
     'cloudpickle',
     'pygments>=2.0',
-    'qtconsole>=4.5.0',
+    'qtconsole>=4.5.5',
     'nbconvert',
     'sphinx',
     'pylint',
@@ -212,10 +213,11 @@ install_requires = [
     'pyzmq',
     'chardet>=2.0.0',
     'numpydoc',
-    'spyder-kernels>=1.2',
-    'qdarkstyle>=2.6.4',
+    'spyder-kernels>=1.6.0,<1.7.0',
+    'qdarkstyle>=2.7',
     'atomicwrites',
     'diff-match-patch',
+    'watchdog',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
@@ -226,22 +228,26 @@ install_requires = [
     # pyqtwebengine module
     'pyqtwebengine<5.13;python_version>="3"',
     # Pyls with all its dependencies
-    'python-language-server[all]>=0.19.0,<0.25',
+    'python-language-server[all]>=0.28.2,<0.29.0',
     # Required to get SSH connections to remote kernels
     'pexpect',
-    'paramiko;platform_system=="Windows"'
+    'paramiko;platform_system=="Windows"',
+    # Required for accesing xdg spec on Linux
+    'pyxdg>=0.26;platform_system=="Linux"',
+    'pympler'
 ]
 
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
     'test:platform_system == "Windows"': ['pywin32'],
-    'test': ['pytest<4.1',
+    'test': ['pytest<5.0',
              'pytest-qt',
              'pytest-mock',
              'pytest-cov',
              'pytest-xvfb;platform_system=="Linux"',
              'pytest-ordering',
              'pytest-lazy-fixture',
+             'pytest-faulthandler',
              'mock',
              'flaky',
              'pandas',

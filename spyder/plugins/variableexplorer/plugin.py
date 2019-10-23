@@ -7,12 +7,11 @@
 """Variable Explorer Plugin."""
 
 # Third party imports
-from qtpy.QtCore import QTimer, Signal, Slot
+from qtpy.QtCore import QTimer, Slot
 from qtpy.QtWidgets import QStackedWidget, QVBoxLayout
 from spyder_kernels.utils.nsview import REMOTE_SETTINGS
 
 # Local imports
-from spyder import dependencies
 from spyder.config.base import _
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.utils import icon_manager as ima
@@ -20,22 +19,13 @@ from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
         NamespaceBrowser)
 from spyder.plugins.variableexplorer.confpage import VariableExplorerConfigPage
 
-PANDAS_REQVER = '>=0.13.1'
-dependencies.add('pandas',  _("View and edit DataFrames and Series in the "
-                              "Variable Explorer"),
-                 required_version=PANDAS_REQVER, optional=True)
-
-NUMPY_REQVER = '>=1.7'
-dependencies.add("numpy", _("View and edit two and three dimensional arrays "
-                            "in the Variable Explorer"),
-                 required_version=NUMPY_REQVER, optional=True)
-
 
 class VariableExplorer(SpyderPluginWidget):
     """Variable Explorer plugin."""
 
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
+    CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
     INITIAL_FREE_MEMORY_TIME_TRIGGER = 60 * 1000  # ms
     SECONDARY_FREE_MEMORY_TIME_TRIGGER = 180 * 1000  # ms
@@ -45,16 +35,13 @@ class VariableExplorer(SpyderPluginWidget):
 
         # Widgets
         self.stack = QStackedWidget(self)
+        self.stack.setStyleSheet("QStackedWidget{padding: 0px; border: 0px}")
         self.shellwidgets = {}
 
         # Layout
         layout = QVBoxLayout()
         layout.addWidget(self.stack)
         self.setLayout(layout)
-
-
-        # Initialize plugin
-        self.initialize_plugin()
 
     def get_settings(self):
         """
@@ -106,7 +93,7 @@ class VariableExplorer(SpyderPluginWidget):
         self.stack.setCurrentWidget(nsb)
         # We update the actions of the options button (cog menu) and we move
         # it to the layout of the current widget.
-        self.refresh_actions()
+        self._refresh_actions()
         nsb.setup_options_button()
 
     def current_widget(self):
@@ -161,9 +148,8 @@ class VariableExplorer(SpyderPluginWidget):
             nsb = self.current_widget()
             nsb.refresh_table()
             nsb.import_data(filenames=fname)
-            if self.dockwidget and not self.ismaximized:
-                self.dockwidget.setVisible(True)
-                self.dockwidget.raise_()
+            if self.dockwidget:
+                self.switch_to_plugin()
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -180,22 +166,10 @@ class VariableExplorer(SpyderPluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.current_widget()
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-        
-    def refresh_plugin(self):
-        """Refresh widget"""
-        pass
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return self.current_widget().actions if self.current_widget() else []
-
-    def register_plugin(self):
-        """Register plugin in Spyder's main window"""
-        self.main.add_dockwidget(self)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""

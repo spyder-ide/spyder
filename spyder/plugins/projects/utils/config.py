@@ -5,96 +5,107 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
-"""Configuration options for projects"""
-
-# Standard library imports
-import os
+"""Configuration options for projects."""
 
 # Local imports
-from spyder.config.user import UserConfig
+from spyder.config.user import MultiUserConfig, UserConfig
 
+
+# Constants
 PROJECT_FILENAME = '.spyproj'
-PROJECT_FOLDER = '.spyproject'
+WORKSPACE = 'workspace'
+CODESTYLE = 'codestyle'
+ENCODING = 'encoding'
+VCS = 'vcs'
 
 
 # Project configuration defaults
-WORKSPACE = 'workspace'
-WORKSPACE_DEFAULTS = [
+PROJECT_DEFAULTS = [
     (WORKSPACE,
      {'restore_data_on_startup': True,
       'save_data_on_exit': True,
       'save_history': True,
       'save_non_project_files': False,
       }
-     )]
-WORKSPACE_VERSION = '0.1.0'
-
-
-CODESTYLE = 'codestyle'
-CODESTYLE_DEFAULTS = [
+     ),
     (CODESTYLE,
      {'indentation': True,
       'edge_line': True,
       'edge_line_columns': '79',
       }
-     )]
-CODESTYLE_VERSION = '0.1.0'
-
-
-ENCODING = 'encoding'
-ENCODING_DEFAULTS = [
-    (ENCODING,
-     {'text_encoding': 'utf-8',
-      }
-     )]
-ENCODING_VERSION = '0.1.0'
-
-
-VCS = 'vcs'
-VCS_DEFAULTS = [
+     ),
     (VCS,
      {'use_version_control': False,
       'version_control_system': '',
       }
-     )]
-VCS_VERSION = '0.1.0'
+     ),
+    (ENCODING,
+     {'text_encoding': 'utf-8',
+      }
+     )
+]
+
+
+PROJECT_NAME_MAP = {
+    # Empty container object means use the rest of defaults
+    WORKSPACE: [],
+    # Splitting these files makes sense for projects, we might as well
+    # apply the same split for the app global config
+    # These options change on spyder startup or are tied to a specific OS,
+    # not good for version control
+    WORKSPACE: [
+        (WORKSPACE, [
+            'restore_data_on_startup',
+            'save_data_on_exit',
+            'save_history',
+            'save_non_project_files',
+            ],
+         ),
+    ],
+    CODESTYLE: [
+        (CODESTYLE, [
+            'indentation',
+            'edge_line',
+            'edge_line_columns',
+            ],
+         ),
+    ],
+    VCS: [
+        (VCS, [
+            'use_version_control',
+            'version_control_system',
+            ],
+         ),
+    ],
+    ENCODING: [
+        (ENCODING, [
+            'text_encoding',
+            ]
+         ),
+    ],
+}
+
+
+# =============================================================================
+# Config instance
+# =============================================================================
+# IMPORTANT NOTES:
+# 1. If you want to *change* the default value of a current option, you need to
+#    do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
+# 2. If you want to *remove* options that are no longer needed in our codebase,
+#    or if you want to *rename* options, then you need to do a MAJOR update in
+#    version, e.g. from 3.0.0 to 4.0.0
+# 3. You don't need to touch this value if you're just adding a new option
+PROJECT_CONF_VERSION = '0.2.0'
 
 
 class ProjectConfig(UserConfig):
-    """ProjectConfig class, based on UserConfig.
+    """Plugin configuration handler."""
 
-    Parameters
-    ----------
-    name: str
-        name of the config
-    defaults: tuple
-        dictionnary containing options *or* list of tuples
-        (section_name, options)
-    version: str
-        version of the configuration file (X.Y.Z format)
-    filename: str
-        configuration file will be saved in %home%/subfolder/%name%.ini
-    """
-    DEFAULT_SECTION_NAME = 'main'
 
-    def __init__(self, name, root_path, filename, defaults=None, load=True,
-                 version=None):
-        self.project_root_path = root_path
+class ProjectMultiConfig(MultiUserConfig):
+    """Plugin configuration handler with multifile support."""
+    DEFAULT_FILE_NAME = WORKSPACE
 
-        # Config rootpath
-        self._root_path = os.path.join(root_path, PROJECT_FOLDER)
-        self._filename = filename
-
-        # Create folder if non existent
-        if not os.path.isdir(self._root_path):
-            os.makedirs(self._root_path)
-
-        # Add file
-        # NOTE: We have to think better about the uses of this file
-        # with open(os.path.join(root_path, PROJECT_FILENAME), 'w') as f:
-        #    f.write('spyder-ide project\n')
-
-        UserConfig.__init__(self, name, defaults=defaults, load=load,
-                            version=version, subfolder=None, backup=False,
-                            raw_mode=True, remove_obsolete=True)
-
+    def get_config_class(self):
+        return ProjectConfig

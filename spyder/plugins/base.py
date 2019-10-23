@@ -8,20 +8,114 @@
 Base plugin class
 """
 
+# Standard library imports
+import inspect
+import os
+import sys
+
 # Third party imports
 import qdarkstyle
 from qtpy.QtCore import Qt, Slot
-from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import QDockWidget, QMainWindow, QShortcut
+from qtpy.QtGui import QCursor, QKeySequence
+from qtpy.QtWidgets import (QAction, QApplication, QDockWidget, QMainWindow,
+                            QMenu, QMessageBox, QShortcut, QToolButton)
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import is_dark_interface, get_font
-from spyder.config.main import CONF
-from spyder.py3compat import is_text_string
+from spyder.config.gui import get_color_scheme, get_font, is_dark_interface
+from spyder.config.manager import CONF
+from spyder.config.user import NoDefault
+from spyder.py3compat import configparser, is_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import create_action
+from spyder.utils.qthelpers import (
+    add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
+    toggle_actions, set_menu_icons)
 from spyder.widgets.dock import SpyderDockWidget
+
+
+class BasePluginMixin(object):
+    """Implementation of the basic functionality for Spyder plugins."""
+
+    # Define configuration name map for plugin to split configuration
+    # among several files. See spyder/config/main.py
+    # Status: Hidden
+    _CONF_NAME_MAP = None
+
+    def __init__(self, parent=None):
+        super(BasePluginMixin, self).__init__()
+
+        # Check compatibility
+        check_compatibility, message = self.check_compatibility()
+
+        self._register_plugin()
+
+        self._is_compatible = True
+        if not check_compatibility:
+            self._is_compatible = False
+            self._show_compatibility_message(message)
+
+    def _register_plugin(self):
+        """Register plugin configuration."""
+        CONF.register_plugin(self)
+
+    def _set_option(self, option, value, section=None):
+        """Set option in spyder.ini"""
+        section = self.CONF_SECTION if section is None else section
+        CONF.set(section, str(option), value)
+
+    def _get_option(self, option, default=NoDefault, section=None):
+        """Get option from spyder.ini."""
+        section = self.CONF_SECTION if section is None else section
+        return CONF.get(section, option, default)
+
+    def _show_status_message(self, message, timeout=0):
+        """Show message in main window's status bar."""
+        self.main.statusBar().showMessage(message, timeout)
+
+    def _show_compatibility_message(self, message):
+        """Show a compatibility message."""
+        messageBox = QMessageBox(self)
+        messageBox.setWindowModality(Qt.NonModal)
+        messageBox.setAttribute(Qt.WA_DeleteOnClose)
+        messageBox.setWindowTitle('Compatibility Check')
+        messageBox.setText(message)
+        messageBox.setStandardButtons(QMessageBox.Ok)
+        messageBox.show()
+
+    def _starting_long_process(self, message):
+        """
+        Show message in main window's status bar and change cursor to
+        Qt.WaitCursor
+        """
+        self._show_status_message(message)
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.processEvents()
+
+    def _ending_long_process(self, message=""):
+        """
+        Clear main window's status bar and restore mouse cursor.
+        """
+        QApplication.restoreOverrideCursor()
+        self._show_status_message(message, timeout=2000)
+        QApplication.processEvents()
+
+    def _get_plugin_path(self):
+        """Return filesystem path to the root directory of the plugin."""
+        return os.path.dirname(inspect.getfile(self.__class__))
+
+    def _create_configwidget(self, dlg, main_window):
+        """Create configuration dialog box page widget"""
+        if self.CONFIGWIDGET_CLASS is not None:
+            parent = self
+            main = dlg
+            if not hasattr(self, 'dockwidget'):
+                # Prevent QWidget assignment to a plugin that does not have
+                # a graphical widget.
+                parent = dlg
+                main = main_window
+            configwidget = self.CONFIGWIDGET_CLASS(parent, main)
+            configwidget.initialize()
+            return configwidget
 
 
 class PluginWindow(QMainWindow):
@@ -41,39 +135,86 @@ class PluginWindow(QMainWindow):
         self.plugin.dockwidget.setVisible(True)
         self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
-        self.plugin.undocked_window = None
+        self.plugin._undocked_window = None
 
 
-class BasePluginMixin(object):
-    """Basic functionality for Spyder plugin widgets."""
+class BasePluginWidgetMixin(object):
+    """
+    Implementation of the basic functionality for Spyder plugin widgets.
+    """
 
-    ALLOWED_AREAS = Qt.AllDockWidgetAreas
-    LOCATION = Qt.LeftDockWidgetArea
-    FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
+    _ALLOWED_AREAS = Qt.AllDockWidgetAreas
+    _LOCATION = Qt.LeftDockWidgetArea
+    _FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
 
     def __init__(self, parent=None):
-        super(BasePluginMixin, self).__init__()
+        super(BasePluginWidgetMixin, self).__init__()
 
-        # Additional actions
-        self.dock_action = create_action(self,
-                                         _("Dock"),
-                                         icon=ima.icon('dock'),
-                                         tip=_("Dock the pane"),
-                                         triggered=self.close_window)
+        # Actions to add to the Options menu
+        self._plugin_actions = None
 
-        self.undock_action = create_action(self,
-                                           _("Undock"),
-                                           icon=ima.icon('undock'),
-                                           tip=_("Undock the pane"),
-                                           triggered=self.create_window)
+        # Attribute to keep track if the plugin is undocked in a
+        # separate window
+        self._undocked_window = None
 
-        self.close_plugin_action = create_action(self,
-                                                 _("Close"),
-                                                 icon=ima.icon('close_pane'),
-                                                 tip=_("Close the pane"),
-                                                 triggered=self.plugin_closed)
+        self._ismaximized = False
+        self._default_margins = None
+        self._isvisible = False
 
-    def initialize_plugin_in_mainwindow_layout(self):
+        # Options buttons
+        self.options_button = create_toolbutton(self, text=_('Options'),
+                                                icon=ima.icon('tooloptions'))
+        self.options_button.setPopupMode(QToolButton.InstantPopup)
+
+        # Don't show menu arrow and remove padding
+        if is_dark_interface():
+            self.options_button.setStyleSheet(
+                ("QToolButton::menu-indicator{image: none;}\n"
+                 "QToolButton{padding: 3px;}"))
+        else:
+            self.options_button.setStyleSheet(
+                "QToolButton::menu-indicator{image: none;}")
+
+        # Options menu
+        self._options_menu = QMenu(self)
+
+        # NOTE: Don't use the default option of CONF.get to assign a
+        # None shortcut to plugins that don't have one. That will mess
+        # the creation of our Keyboard Shortcuts prefs page
+        try:
+            self.shortcut = CONF.get('shortcuts', '_/switch to %s' %
+                                     self.CONF_SECTION)
+        except configparser.NoOptionError:
+            pass
+
+        # We decided to create our own toggle action instead of using
+        # the one that comes with dockwidget because it's not possible
+        # to raise and focus the plugin with it.
+        self._toggle_view_action = None
+
+        # Default actions for Options menu
+        self._dock_action = create_action(
+            self,
+            _("Dock"),
+            icon=ima.icon('dock'),
+            tip=_("Dock the pane"),
+            triggered=self._close_window)
+
+        self._undock_action = create_action(
+            self,
+            _("Undock"),
+            icon=ima.icon('undock'),
+            tip=_("Undock the pane"),
+            triggered=self._create_window)
+
+        self._close_plugin_action = create_action(
+            self,
+            _("Close"),
+            icon=ima.icon('close_pane'),
+            tip=_("Close the pane"),
+            triggered=self._plugin_closed)
+
+    def _initialize_plugin_in_mainwindow_layout(self):
         """
         If this is the first time the plugin is shown, perform actions to
         initialize plugin position in Spyder's window layout.
@@ -88,78 +229,65 @@ class BasePluginMixin(object):
                 return
             self.set_option('first_time', False)
 
-    def update_margins(self):
+    def _update_margins(self):
         """Update plugin margins"""
         layout = self.layout()
-        if self.default_margins is None:
-            self.default_margins = layout.getContentsMargins()
+        if self._default_margins is None:
+            self._default_margins = layout.getContentsMargins()
         if CONF.get('main', 'use_custom_margin'):
             margin = CONF.get('main', 'custom_margin')
             layout.setContentsMargins(*[margin]*4)
         else:
-            layout.setContentsMargins(*self.default_margins)
+            layout.setContentsMargins(*self._default_margins)
 
-    def update_plugin_title(self):
+    def _update_plugin_title(self):
         """Update plugin title, i.e. dockwidget or window title"""
         if self.dockwidget is not None:
             win = self.dockwidget
-        elif self.undocked_window is not None:
-            win = self.undocked_window
+        elif self._undocked_window is not None:
+            win = self._undocked_window
         else:
             return
         win.setWindowTitle(self.get_plugin_title())
 
-    def create_dockwidget(self):
+    def _create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
         # Creating dock widget
         dock = SpyderDockWidget(self.get_plugin_title(), self.main)
 
         # Set properties
         dock.setObjectName(self.__class__.__name__+"_dw")
-        dock.setAllowedAreas(self.ALLOWED_AREAS)
-        dock.setFeatures(self.FEATURES)
+        dock.setAllowedAreas(self._ALLOWED_AREAS)
+        dock.setFeatures(self._FEATURES)
         dock.setWidget(self)
-        self.update_margins()
-        dock.visibilityChanged.connect(self.visibility_changed)
-        dock.topLevelChanged.connect(self.on_top_level_changed)
-        dock.sig_plugin_closed.connect(self.plugin_closed)
+        self._update_margins()
+        dock.visibilityChanged.connect(self._visibility_changed)
+        dock.topLevelChanged.connect(self._on_top_level_changed)
+        dock.sig_plugin_closed.connect(self._plugin_closed)
         self.dockwidget = dock
         if self.shortcut is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
                             self.switch_to_plugin)
             self.register_shortcut(sc, "_", "Switch to %s" % self.CONF_SECTION)
-        return (dock, self.LOCATION)
+        return (dock, self._LOCATION)
 
-    def create_configwidget(self, parent):
-        """Create configuration dialog box page widget"""
-        if self.CONFIGWIDGET_CLASS is not None:
-            configwidget = self.CONFIGWIDGET_CLASS(self, parent)
-            configwidget.initialize()
-            return configwidget
-
-    def switch_to_plugin(self):
+    def _switch_to_plugin(self):
         """Switch to plugin."""
         if (self.main.last_plugin is not None and
-                self.main.last_plugin.ismaximized and
+                self.main.last_plugin._ismaximized and
                 self.main.last_plugin is not self):
             self.main.maximize_dockwidget()
-        if not self.toggle_view_action.isChecked():
-            self.toggle_view_action.setChecked(True)
-        self.visibility_changed(True)
+        if not self._toggle_view_action.isChecked():
+            self._toggle_view_action.setChecked(True)
+        self._visibility_changed(True)
 
     @Slot()
-    def plugin_closed(self):
+    def _plugin_closed(self):
         """DockWidget was closed"""
-        self.toggle_view_action.setChecked(False)
+        self._toggle_view_action.setChecked(False)
 
-    def get_plugin_font(self, rich_text=False):
-        """
-        Return plugin font option.
-
-        All plugins in Spyder use a global font. This is a convenience method
-        in case some plugins will have a delta size based on the default size.
-        """
-
+    def _get_font(self, rich_text=False):
+        """Return plugin font."""
         if rich_text:
             option = 'rich_font'
             font_size_delta = self.RICH_FONT_SIZE_DELTA
@@ -180,11 +308,7 @@ class BasePluginMixin(object):
                         "and cannot be set directly on the plugin."
                         "This method is deprecated.")
 
-    def show_message(self, message, timeout=0):
-        """Show message in main window's status bar"""
-        self.main.statusBar().showMessage(message, timeout)
-
-    def create_toggle_view_action(self):
+    def _create_toggle_view_action(self):
         """Associate a toggle view action with each plugin"""
         title = self.get_plugin_title()
         if self.CONF_SECTION == 'editor':
@@ -197,34 +321,24 @@ class BasePluginMixin(object):
         else:
             action = create_action(self, title, toggled=lambda checked:
                                                 self.toggle_view(checked))
-        self.toggle_view_action = action
-
-    def toggle_view(self, checked):
-        """Toggle view"""
-        if not self.dockwidget:
-            return
-        if checked:
-            self.dockwidget.show()
-            self.dockwidget.raise_()
-        else:
-            self.dockwidget.hide()
+        self._toggle_view_action = action
 
     @Slot()
-    def close_window(self):
+    def _close_window(self):
         """Close QMainWindow instance that contains this plugin."""
-        if self.undocked_window is not None:
-            self.undocked_window.close()
-            self.undocked_window = None
+        if self._undocked_window is not None:
+            self._undocked_window.close()
+            self._undocked_window = None
 
             # Oddly, these actions can appear disabled after the Dock
             # action is pressed
-            self.undock_action.setDisabled(False)
-            self.close_plugin_action.setDisabled(False)
+            self._undock_action.setDisabled(False)
+            self._close_plugin_action.setDisabled(False)
 
     @Slot()
-    def create_window(self):
+    def _create_window(self):
         """Create a QMainWindow instance containing this plugin."""
-        self.undocked_window = window = PluginWindow(self)
+        self._undocked_window = window = PluginWindow(self)
         window.setAttribute(Qt.WA_DeleteOnClose)
         icon = self.get_plugin_icon()
         if is_text_string(icon):
@@ -241,9 +355,92 @@ class BasePluginMixin(object):
         window.show()
 
     @Slot(bool)
-    def on_top_level_changed(self, top_level):
+    def _on_top_level_changed(self, top_level):
         """Actions to perform when a plugin is undocked to be moved."""
         if top_level:
-            self.undock_action.setDisabled(True)
+            self._undock_action.setDisabled(True)
         else:
-            self.undock_action.setDisabled(False)
+            self._undock_action.setDisabled(False)
+
+    def _visibility_changed(self, enable):
+        """Dock widget visibility has changed."""
+        if self.dockwidget is None:
+            return
+        if enable:
+            self.dockwidget.raise_()
+            widget = self.get_focus_widget()
+            if widget is not None and self._undocked_window is not None:
+                widget.setFocus()
+        visible = self.dockwidget.isVisible() or self._ismaximized
+        if self.DISABLE_ACTIONS_WHEN_HIDDEN:
+            toggle_actions(self._plugin_actions, visible)
+        self._isvisible = enable and visible
+        if self._isvisible:
+            self.refresh_plugin()
+
+    def _refresh_actions(self):
+        """Refresh Options menu."""
+        self._options_menu.clear()
+
+        # Decide what additional actions to show
+        if self._undocked_window is None:
+            additional_actions = [MENU_SEPARATOR,
+                                  self._undock_action,
+                                  self._close_plugin_action]
+        else:
+            additional_actions = [MENU_SEPARATOR,
+                                  self._dock_action]
+
+        # Create actions list
+        self._plugin_actions = self.get_plugin_actions() + additional_actions
+        add_actions(self._options_menu, self._plugin_actions)
+
+        if sys.platform == 'darwin':
+            set_menu_icons(self._options_menu, True)
+
+    def _setup(self):
+        """
+        Setup Options menu, create toggle action and connect signals.
+        """
+        # Creat toggle view action
+        self._create_toggle_view_action()
+
+        # Create Options menu
+        self._plugin_actions = self.get_plugin_actions() + [MENU_SEPARATOR,
+                                                            self._undock_action]
+        add_actions(self._options_menu, self._plugin_actions)
+        self.options_button.setMenu(self._options_menu)
+        self._options_menu.aboutToShow.connect(self._refresh_actions)
+
+        # Show icons in Mac plugin menus
+        if sys.platform == 'darwin':
+            self._options_menu.aboutToHide.connect(
+                lambda menu=self._options_menu:
+                set_menu_icons(menu, False))
+
+        # Update title
+        self.sig_update_plugin_title.connect(self._update_plugin_title)
+        self.setWindowTitle(self.get_plugin_title())
+
+    def _register_shortcut(self, qaction_or_qshortcut, context, name,
+                           add_shortcut_to_tip=False):
+        """Register a shortcut associated to a QAction or QShortcut."""
+        self.main.register_shortcut(qaction_or_qshortcut, context,
+                                    name, add_shortcut_to_tip)
+
+    def _get_color_scheme(self):
+        """Get the current color scheme."""
+        return get_color_scheme(CONF.get('appearance', 'selected'))
+
+    def _add_dockwidget(self):
+        """Add dockwidget to the main window and set it up."""
+        self.main.add_dockwidget(self)
+
+        # This is not necessary for the Editor because it calls
+        # _setup directly on init.
+        if self.CONF_SECTION != 'editor':
+            self._setup()
+
+    def _tabify(self, core_plugin):
+        """Tabify plugin next to a core plugin."""
+        self.main.tabify_plugins(core_plugin, self)

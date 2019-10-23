@@ -25,8 +25,7 @@ import logging
 
 # Third party imports
 from qtpy.compat import getopenfilename, getsavefilename
-from qtpy.QtCore import (QByteArray, QProcess, QProcessEnvironment, QTextCodec,
-                         Qt, Signal)
+from qtpy.QtCore import QByteArray, QProcess, QProcessEnvironment, Qt, Signal
 from qtpy.QtGui import QColor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
                             QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
@@ -50,10 +49,7 @@ except KeyError as error:
     _ = gettext.gettext
 
 
-locale_codec = QTextCodec.codecForLocale()
 logger = logging.getLogger(__name__)
-
-
 def is_profiler_installed():
     from spyder.utils.programs import is_module_installed
     return is_module_installed('cProfile') and is_module_installed('pstats')
@@ -279,6 +275,7 @@ class ProfilerWidget(QWidget):
             for envItem in env:
                 envName, separator, envValue = envItem.partition('=')
                 processEnvironment.insert(envName, envValue)
+            processEnvironment.insert("PYTHONIOENCODING", "utf8")
             self.process.setProcessEnvironment(processEnvironment)
 
         self.output = ''
@@ -327,7 +324,7 @@ class ProfilerWidget(QWidget):
                 qba += self.process.readAllStandardError()
             else:
                 qba += self.process.readAllStandardOutput()
-        text = to_text_string( locale_codec.toUnicode(qba.data()) )
+        text = to_text_string(qba.data(), encoding='utf-8')
         if error:
             self.error_output += text
         else:
@@ -485,20 +482,24 @@ class ProfilerDataTree(QTreeWidget):
     def load_data(self, profdatafile):
         """Load profiler data saved by profile/cProfile module"""
         import pstats
+        # Fixes spyder-ide/spyder#6220.
         try:
             stats_indi = [pstats.Stats(profdatafile), ]
         except (OSError, IOError):
+            self.profdata = None
             return
         self.profdata = stats_indi[0]
 
         if self.compare_file is not None:
+            # Fixes spyder-ide/spyder#5587.
             try:
                 stats_indi.append(pstats.Stats(self.compare_file))
             except (OSError, IOError) as e:
                 QMessageBox.critical(
                     self, _("Error"),
-                    _("Error when trying to load profiler results"))
-                logger.debug("Error when calling pstats, {}".format(e))
+                    _("Error when trying to load profiler results. "
+                      "The error was<br><br>"
+                      "<tt>{0}</tt>").format(e))
                 self.compare_file = None
         map(lambda x: x.calc_callees(), stats_indi)
         self.profdata.calc_callees()
@@ -514,12 +515,16 @@ class ProfilerDataTree(QTreeWidget):
             self.setColumnHidden(i, hide)
 
     def save_data(self, filename):
-        """"""
+        """Save profiler data."""
         self.stats1[0].dump_stats(filename)
 
     def find_root(self):
         """Find a function without a caller"""
-        self.profdata.sort_stats("cumulative")
+        # Fixes spyder-ide/spyder#8336.
+        if self.profdata is not None:
+            self.profdata.sort_stats("cumulative")
+        else:
+            return
         for func in self.profdata.fcn_list:
             if ('~', 0) != func[0:2] and not func[2].startswith(
                     '<built-in method exec>'):
@@ -539,7 +544,7 @@ class ProfilerDataTree(QTreeWidget):
         self.setItemsExpandable(True)
         self.setSortingEnabled(False)
         rootkey = self.find_root()  # This root contains profiler overhead
-        if rootkey:
+        if rootkey is not None:
             self.populate_tree(self, self.find_callees(rootkey))
             self.resizeColumnToContents(0)
             self.setSortingEnabled(True)

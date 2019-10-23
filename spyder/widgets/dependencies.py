@@ -26,7 +26,7 @@ class DependenciesTreeWidget(QTreeWidget):
 
     def update_dependencies(self, dependencies):
         self.clear()
-        headers = (_("Module"), _(" Required "),
+        headers = (_("Module"), _("Package name"), _(" Required "),
                    _(" Installed "), _("Provided features"))
         self.setHeaderLabels(headers)
         mandatory_item = QTreeWidgetItem(["Mandatory"])
@@ -39,6 +39,7 @@ class DependenciesTreeWidget(QTreeWidget):
 
         for dependency in dependencies:
             item = QTreeWidgetItem([dependency.modname,
+                                    dependency.package_name,
                                     dependency.required_version,
                                     dependency.installed_version,
                                     dependency.features])
@@ -93,7 +94,7 @@ class DependenciesDialog(QDialog):
         vlayout.addLayout(hlayout)
 
         self.setLayout(vlayout)
-        self.resize(840, 560)
+        self.resize(860, 560)
 
     def set_data(self, dependencies):
         self.treewidget.update_dependencies(dependencies)
@@ -109,12 +110,15 @@ def test():
     from spyder import dependencies
 
     # Test sample
-    dependencies.add("IPython", "Enhanced Python interpreter", ">=20.0")
-    dependencies.add("matplotlib", "Interactive data plotting", ">=1.0")
-    dependencies.add("sympy", "Symbolic Mathematics", ">=10.0", optional=True)
-    dependencies.add("foo", "Non-existent module", ">=1.0")
-    dependencies.add("numpy", "Edit arrays in Variable Explorer", ">=0.10",
+    dependencies.add("IPython", "IPython", "Enhanced Python interpreter",
+                     ">=20.0")
+    dependencies.add("matplotlib", "matplotlib", "Interactive data plotting",
+                     ">=1.0")
+    dependencies.add("sympy", "sympy", "Symbolic Mathematics", ">=10.0",
                      optional=True)
+    dependencies.add("foo", "foo", "Non-existent module", ">=1.0")
+    dependencies.add("numpy", "numpy",  "Edit arrays in Variable Explorer",
+                     ">=0.10", optional=True)
 
     from spyder.utils.qthelpers import qapplication
     app = qapplication()

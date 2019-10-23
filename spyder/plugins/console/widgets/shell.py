@@ -29,7 +29,7 @@ from qtpy.QtWidgets import QApplication, QMenu, QToolTip
 # Local import
 from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
 from spyder.config.gui import config_shortcut, get_shortcut
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import (builtins, is_string, is_text_string,
                               PY3, str_lower, to_text_string)
 from spyder.utils import encoding
@@ -546,7 +546,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 
     def flush(self, error=False, prompt=False):
         """Flush buffer, write text to console"""
-        # Fix for Issue 2452
+        # Fix for spyder-ide/spyder#2452
         if PY3:
             try:
                 text = "".join(self.__buffer)
@@ -848,7 +848,8 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
 
     def show_completion_widget(self, textlist):
         """Show completion widget"""
-        self.completion_widget.show_list(textlist, position=None)
+        self.completion_widget.show_list(
+            textlist, automatic=False, position=None)
 
     def hide_completion_widget(self):
         """Hide completion widget"""

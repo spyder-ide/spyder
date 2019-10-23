@@ -6,9 +6,6 @@
 
 """Tests utilities."""
 
-# Standard library imports
-import os
-
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMessageBox, QApplication

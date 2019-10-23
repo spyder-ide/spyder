@@ -53,11 +53,28 @@ def setup_arrayeditor(qbot, data, title="", xlabels=None, ylabels=None):
 # =============================================================================
 # Tests
 # =============================================================================
+def test_object_arrays(qtbot):
+    """Test that object arrays are working properly."""
+    arr = np.array([u'a', 1, [2]], dtype=object)
+    assert_array_equal(arr, launch_arrayeditor(arr, "object array"))
+
+
+def test_object_arrays_display(qtbot):
+    """
+    Test that value_to_display is being used to display the values of
+    object arrays.
+    """
+    arr = np.array([[np.array([1, 2])], 2], dtype=object)
+    dlg = setup_arrayeditor(qtbot, arr)
+    idx = dlg.arraywidget.model.index(0, 0)
+    assert u'[Numpy array]' == dlg.arraywidget.model.data(idx)
+
+
 def test_type_errors(qtbot):
     """
     Verify that we don't get a TypeError for certain structured arrays.
 
-    Fixes issue #5254.
+    Fixes spyder-ide/spyder#5254.
     """
     arr = np.ones(2, dtype=[('X', 'f8', (2,10)), ('S', 'S10')])
     dlg = setup_arrayeditor(qtbot, arr)
@@ -200,7 +217,7 @@ def test_arraymodel_set_data_overflow(monkeypatch):
     """
     Test that entry of an overflowing integer is caught and handled properly.
 
-    Unit regression test for #6114 .
+    Unit regression test for spyder-ide/spyder#6114.
     """
     MockQMessageBox = Mock()
     attr_to_patch = 'spyder.plugins.variableexplorer.widgets.arrayeditor.QMessageBox'
@@ -229,7 +246,7 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
     """
     Test that entry of an overflowing integer is caught and handled properly.
 
-    Integration regression test for #6114 .
+    Integration regression test for spyder-ide/spyder#6114.
     """
     MockQMessageBox = Mock()
     attr_to_patch = 'spyder.plugins.variableexplorer.widgets.arrayeditor.QMessageBox'

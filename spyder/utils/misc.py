@@ -13,6 +13,7 @@ import os.path as osp
 import re
 import sys
 import stat
+import socket
 
 from spyder.py3compat import is_text_string, getcwd
 from spyder.config.base import get_home_dir
@@ -296,3 +297,22 @@ def regexp_error_msg(pattern):
     except re.error as e:
         return str(e)
     return None
+
+
+def check_connection_port(address, port):
+    """Verify if `port` is available in `address`."""
+    # Create a TCP socket
+    s = socket.socket()
+    s.settimeout(2)
+    logger.debug("Attempting to connect to {} on port {}".format(
+                 address, port))
+    try:
+        s.connect((address, port))
+        logger.debug("Connected to {} on port {}".format(address, port))
+        return True
+    except socket.error as e:
+        logger.debug("Connection to {} on port {} failed: {}".format(
+                     address, port, e))
+        return False
+    finally:
+        s.close()

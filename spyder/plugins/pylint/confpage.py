@@ -6,9 +6,11 @@
 
 """Pylint config page."""
 
+# Third-party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
+# Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.plugins.pylint.widgets.pylintgui import PylintWidget
@@ -35,7 +37,7 @@ class PylintConfigPage(PluginConfigPage):
 
         # Warning: do not try to regroup the following QLabel contents with
         # widgets above -- this string was isolated here in a single QLabel
-        # on purpose: to fix Issue 863
+        # on purpose: to fix spyder-ide/spyder#863.
         results_label2 = QLabel(PylintWidget.DATAPATH)
 
         results_label2.setTextInteractionFlags(Qt.TextSelectableByMouse)

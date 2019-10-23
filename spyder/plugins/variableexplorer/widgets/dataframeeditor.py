@@ -33,7 +33,6 @@ Components of gtabview from gtabview/viewer.py and gtabview/models.py of the
 """
 
 # Standard library imports
-import time
 
 # Third party imports
 from qtpy.compat import from_qvariant, to_qvariant
@@ -57,7 +56,7 @@ from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, config_shortcut
 from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
-                              to_text_string)
+                              to_text_string, perf_counter)
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
@@ -323,7 +322,7 @@ class DataFrameModel(QAbstractTableModel):
                     return to_qvariant(self._format % value)
                 except (ValueError, TypeError):
                     # may happen if format = '%d' and value = NaN;
-                    # see issue 4139
+                    # see spyder-ide/spyder#4139.
                     return to_qvariant(DEFAULT_FORMAT % value)
             elif is_type_text_string(value):
                 # Don't perform any conversion on strings
@@ -368,11 +367,13 @@ class DataFrameModel(QAbstractTableModel):
                                  ascending=ascending, inplace=True,
                                  kind='mergesort')
                 except ValueError as e:
-                    # Not possible to sort on duplicate columns #5225
+                    # Not possible to sort on duplicate columns
+                    # See spyder-ide/spyder#5225.
                     QMessageBox.critical(self.dialog, "Error",
                                          "ValueError: %s" % to_text_string(e))
                 except SystemError as e:
-                    # Not possible to sort on category dtypes #5361
+                    # Not possible to sort on category dtypes
+                    # See spyder-ide/spyder#5361.
                     QMessageBox.critical(self.dialog, "Error",
                                          "SystemError: %s" % to_text_string(e))
                 self.update_df_index()
@@ -390,8 +391,8 @@ class DataFrameModel(QAbstractTableModel):
 
     def flags(self, index):
         """Set flags"""
-        return Qt.ItemFlags(QAbstractTableModel.flags(self, index) |
-                            Qt.ItemIsEditable)
+        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
+                                Qt.ItemIsEditable))
 
     def setData(self, index, value, role=Qt.EditRole, change_type=None):
         """Cell content change"""
@@ -440,7 +441,7 @@ class DataFrameModel(QAbstractTableModel):
         """DataFrame row number"""
         # Avoid a "Qt exception in virtual methods" generated in our
         # tests on Windows/Python 3.7
-        # See PR 8910
+        # See spyder-ide/spyder#8910.
         try:
             if self.total_rows <= self.rows_loaded:
                 return self.total_rows
@@ -470,7 +471,7 @@ class DataFrameModel(QAbstractTableModel):
         """DataFrame column number"""
         # Avoid a "Qt exception in virtual methods" generated in our
         # tests on Windows/Python 3.7
-        # See PR 8910
+        # See spyder-ide/spyder#8910.
         try:
             # This is done to implement series
             if len(self.df.shape) == 1:
@@ -533,7 +534,7 @@ class DataFrameView(QTableView):
 
         except NameError:
             # Needed to handle a NameError while fetching data when closing
-            # See issue 7880
+            # See spyder-ide/spyder#7880.
             pass
 
     def sortByColumn(self, index):
@@ -1129,14 +1130,14 @@ class DataFrameEditor(QDialog):
     def _sizeHintForColumn(self, table, col, limit_ms=None):
         """Get the size hint for a given column in a table."""
         max_row = table.model().rowCount()
-        lm_start = time.clock()
+        lm_start = perf_counter()
         lm_row = 64 if limit_ms else max_row
         max_width = self.min_trunc
         for row in range(max_row):
             v = table.sizeHintForIndex(table.model().index(row, col))
             max_width = max(max_width, v.width())
             if row > lm_row:
-                lm_now = time.clock()
+                lm_now = perf_counter()
                 lm_elapsed = (lm_now - lm_start) * 1000
                 if lm_elapsed >= limit_ms:
                     break
@@ -1258,11 +1259,16 @@ class DataFrameEditor(QDialog):
 
     def _update_header_size(self):
         """Update the column width of the header."""
+        self.table_header.resizeColumnsToContents()
         column_count = self.table_header.model().columnCount()
         for index in range(0, column_count):
             if index < column_count:
                 column_width = self.dataTable.columnWidth(index)
-                self.table_header.setColumnWidth(index, column_width)
+                header_width = self.table_header.columnWidth(index)
+                if column_width > header_width:
+                    self.table_header.setColumnWidth(index, column_width)
+                else:
+                    self.dataTable.setColumnWidth(index, header_width)
             else:
                 break
 

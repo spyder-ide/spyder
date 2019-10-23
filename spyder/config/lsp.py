@@ -66,7 +66,7 @@ PYTHON_CONFIG = {
                 },
                 'jedi_completion': {
                     'enabled': True,
-                    'include_params': False
+                    'include_params': True
                 },
                 'jedi_definition': {
                     'enabled': True,
@@ -95,6 +95,10 @@ PYTHON_CONFIG = {
                 'preload': {
                     'enabled': True,
                     'modules': []
+                },
+                'pylint': {
+                    'enabled': False,
+                    'args': []
                 }
             },
 

@@ -1,9 +1,10 @@
-pytest <4.1
+pytest <5.0
 pytest-mock
 pytest-cov
 pytest-qt
 pytest-ordering
 pytest-lazy-fixture
+pytest-faulthandler <2.0
 mock
 pandas
 scipy

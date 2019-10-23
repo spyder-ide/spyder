@@ -162,7 +162,6 @@ def test_editorstacks_share_autosave_data(editor_plugin, qtbot):
 def test_editor_calls_recoverydialog_exec_if_nonempty(
         mock_RecoveryDialog, editor_plugin):
     """Check that editor tries to exec a recovery dialog on construction."""
-    editor = editor_plugin
     assert mock_RecoveryDialog.return_value.exec_if_nonempty.called
 
 
@@ -171,6 +170,13 @@ def test_closing_editor_plugin_stops_autosave_timer(editor_plugin):
     assert editor.autosave.timer.isActive()
     editor.closing_plugin()
     assert not editor.autosave.timer.isActive()
+
+
+def test_renamed_propagates_to_autosave(editor_plugin, mocker):
+    editorstack = editor_plugin.get_current_editorstack()
+    mocker.patch.object(editorstack.autosave, 'file_renamed')
+    editor_plugin.renamed('src', 'dest')
+    editorstack.autosave.file_renamed.assert_called()
 
 
 def test_go_to_prev_next_cursor_position(editor_plugin, python_files):

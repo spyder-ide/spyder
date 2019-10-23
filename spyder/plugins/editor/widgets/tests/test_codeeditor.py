@@ -12,7 +12,7 @@ import pytest
 
 # Local imports
 from spyder.plugins.editor.widgets.editor import codeeditor
-from spyder.py3compat import PY3
+from spyder.py3compat import PY2, PY3
 
 
 # --- Fixtures
@@ -86,11 +86,12 @@ def test_editor_log_lsp_handle_errors(editorbot, capsys):
     assert test_1 or test_2
 
 
+@pytest.mark.skipif(PY2, reason="Python 2 strings don't have attached encoding.")
 @pytest.mark.parametrize(
     "input_text, expected_text, keys, strip_all",
     [
         ("for i in range(2): ",
-         "for i in range(2): \n\n     \n    ",
+         "for i in range(2): \n    \n     \n    ",
          [Qt.Key_Enter, Qt.Key_Enter, ' ', Qt.Key_Enter],
          False),
         ('for i in range(2): ',
@@ -129,9 +130,21 @@ def test_editor_log_lsp_handle_errors(editorbot, capsys):
          'a=1\na=2 \na=3',
          [(Qt.LeftButton, 6), Qt.Key_Up],
          True),
+        ('def fun():\n    """fun',
+         'def fun():\n    """fun\n\n    ',
+         [Qt.Key_Enter, Qt.Key_Enter],
+         True),
+        ('def fun():\n    """fun',
+         'def fun():\n    """fun\n    \n    ',
+         [Qt.Key_Enter, Qt.Key_Enter],
+         False),
+        ("('🚫')",
+         "('🚫')\n",
+         [Qt.Key_Enter],
+         True),
     ])
-def test_editor_rstrip_keypress(
-        editorbot, input_text, expected_text, keys, strip_all):
+def test_editor_rstrip_keypress(editorbot, input_text, expected_text, keys,
+                                strip_all):
     """
     Test that whitespace is removed when leaving a line.
     """

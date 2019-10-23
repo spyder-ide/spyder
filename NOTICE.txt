@@ -1006,6 +1006,50 @@ Files covered:
 spyder/plugins/variableexplorer/widgets/dataframeeditor.py
 
 
+-------------------------------------------------------------------------------
+
+
+
+Classes from objbrowser 1.2.1
+-----------------------------
+
+
+Copyright (c) 2016 Pepijn Kenter
+
+
+Author: Pepijn Kenter | titusjan@gmail.com | https://github.com/titusjan
+Site/Source: https://github.com/titusjan/objbrowser
+License: MIT (Expat) License | https://opensource.org/licenses/MIT
+
+Modifications made to each class to adapt them to Spyder's needs.
+
+
+objbrowser is distributed under the MIT license.
+
+
+Use the core functionality of the project, mainly changing the code to use
+the upstream version of qtpy project (since it is already a dependency of
+Spyder).
+
+See below for the full text of the MIT (Expat) license.
+
+The current objbrowser license can be viewed at:
+https://github.com/titusjan/objbrowser/blob/master/LICENSE.txt
+
+The current version of the original files can be viewed at:
+https://github.com/titusjan/objbrowser/tree/master/objbrowser
+
+
+Files covered:
+
+spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py
+spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py
+spyder/plugins/variableexplorer/widgets/objectexplorer/toggle_column_mixin.py
+spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py
+spyder/plugins/variableexplorer/widgets/objectexplorerr/tree_model.py
+spyder/plugins/variableexplorer/widgets/objectexplorer/utils.py
+
+
 ===============================================================================
 
 
@@ -1170,7 +1214,6 @@ spyder/images/matplotlib.png
 spyder/images/none.png
 spyder/images/not_found.png
 spyder/images/options.svg
-spyder/images/set_workdir.png
 spyder/images/splash.png
 spyder/images/spyder.svg
 spyder/images/spyder_light.svg
@@ -1178,7 +1221,6 @@ spyder/images/whole_words.png
 spyder/images/win_env.png
 spyder/images/actions/hist.png
 spyder/images/console/ipython_console.png
-spyder/images/console/ipython_console_t.png
 spyder/images/editor/attribute.png
 spyder/images/editor/blockcomment.png
 spyder/images/editor/cell.png
@@ -1235,7 +1277,6 @@ spyder/images/arrow.png
 spyder/images/bold.png
 spyder/images/browser.png
 spyder/images/ext_tools.png
-spyder/images/font.png
 spyder/images/genprefs.png
 spyder/images/help.png
 spyder/images/italic.png
@@ -1246,10 +1287,8 @@ spyder/images/actions/1downarrow.png
 spyder/images/actions/1uparrow.png
 spyder/images/actions/2downarrow.png
 spyder/images/actions/2uparrow.png
-spyder/images/actions/auto_reload.png
 spyder/images/actions/browse_tab.png
 spyder/images/actions/check.png
-spyder/images/actions/cmdprompt.png
 spyder/images/actions/configure.png
 spyder/images/actions/copywop.png
 spyder/images/actions/delete.png
@@ -1282,7 +1321,6 @@ spyder/images/actions/options_more.png
 spyder/images/actions/plot.png
 spyder/images/actions/previous.png
 spyder/images/actions/redo.png
-spyder/images/actions/reload.png
 spyder/images/actions/rename.png
 spyder/images/actions/replace.png
 spyder/images/actions/show.png
@@ -1294,11 +1332,9 @@ spyder/images/actions/up.png
 spyder/images/actions/zoom_in.png
 spyder/images/actions/zoom_out.png
 spyder/images/console/clear.png
-spyder/images/console/cmdprompt_t.png
 spyder/images/console/console.png
 spyder/images/console/environ.png
 spyder/images/console/history.png
-spyder/images/console/history24.png
 spyder/images/console/kill.png
 spyder/images/console/prompt.png
 spyder/images/console/restart.png
@@ -1399,7 +1435,6 @@ spyder/images/actions/stop.png
 spyder/images/actions/stop_debug.png
 spyder/images/actions/unmaximize.png
 spyder/images/actions/window_fullscreen.png
-spyder/images/console/terminated.png
 spyder/images/editor/breakpoint_big.png
 spyder/images/editor/breakpoint_cond_big.png
 spyder/images/editor/breakpoint_cond_small.png
@@ -1710,8 +1745,38 @@ spyder/images/binary_light.svg
 spyder/images/binary.svg
 
 
-===============================================================================
+-------------------------------------------------------------------------------
 
+
+Icons for Kite Completions Plugin
+---------------------------------
+
+
+Copyright (c) 2019 Kite
+
+
+Author: Kite | https://kite.com
+Site: https://kite.com
+Source: https://kite.com
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+
+
+Licensed under the terms of the Creative Commons Attribution International 4.0.
+
+
+See below for the full text of the Creative Commons Attribution International 4.0 License.
+
+
+Files covered:
+
+spyder/images/kite_light.svg
+spyder/images/kite_dark.svg
+spyder/images/kite.gif
+spyder/images/kite_copilot.png
+
+
+===============================================================================
 
 
 
@@ -1752,6 +1817,49 @@ spyder/plugins/help/utils/static/images/up_arrow_disabled.png
 
 
 ===============================================================================
+
+
+
+pyqt-bloomfilter 3.0.0
+-------------------------------------------------------------------------
+
+
+Copyright (c) 2011 Jay Baird and Bob Ippolito
+Copyright (c) 2019 - Spyder Project Contributors (see AUTHORS.txt)
+
+
+Author: Jay Baird and Bob Ippolito
+Source: https://github.com/kiteco/pyqt-bloomfilter
+License: MIT (expat)
+https://opensource.org/licenses/MIT
+
+No modifications made.
+
+
+pyqt-bloomfilter is used in Spyder under the terms of the MIT.
+See below for the full text of the MIT.
+
+spyder/utils/external/pybloom_pyqt is used in Spyder
+to implement fast lookup of the availability of Kite completions.
+
+See below for the full text of the MIT (expat) license.
+
+The current pyqt-bloomfilter license can be viewed at:
+https://github.com/kiteco/pyqt-bloomfilter/blob/master/LICENSE.txt
+
+The current version of the original file[s] can be viewed at:
+https://github.com/kiteco/pyqt-bloomfilter
+
+
+Files covered:
+
+spyder/utils/external/pybloom_pyqt
+spyder/utils/external/pybloom_pyqt/__init__.py
+spyder/utils/external/pybloom_pyqt/pybloom.py
+spyder/utils/external/pybloom_pyqt/utils.py
+
+
+-------------------------------------------------------------------------------
 
 
 

@@ -12,7 +12,7 @@ from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 import spyder.utils.icon_manager as ima
 
 
@@ -152,7 +152,7 @@ class EditorConfigPage(PluginConfigPage):
             _("Tab stop width:"),
             _("spaces"),
             'tab_stop_width_spaces',
-            4, 1, 8, 1)
+            default=4, min_=1, max_=8, step=1)
 
         def enable_tabwidth_spin(index):
             if index == 7:  # Tabulations
@@ -313,7 +313,7 @@ class EditorConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(display_widget), _("Display"))
         tabs.addTab(self.create_tab(sourcecode_widget), _("Source code"))
-        tabs.addTab(self.create_tab(run_widget), _('Run Code'))
+        tabs.addTab(self.create_tab(run_widget), _('Run code'))
         tabs.addTab(self.create_tab(template_btn, autosave_group,
                                     docstring_group, annotations_group,
                                     eol_group),

@@ -12,8 +12,8 @@ import os.path as osp
 
 # Third party imports
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import QSize, QObject, Qt, Signal, Slot
-from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget,
+from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
                             QTreeWidgetItemIterator)
 
 # Local imports
@@ -81,7 +81,7 @@ class TreeItem(QTreeWidgetItem):
     @property
     def line(self):
         """Get line number."""
-        return self.oedata.block.firstLineNumber() + 1
+        return self.oedata.block.blockNumber() + 1
 
     def update(self):
         """Update the tree element."""
@@ -108,7 +108,7 @@ class FunctionItem(TreeItem):
 
     def is_method(self):
         return isinstance(self.parent(), ClassItem)
-    
+
     def setup(self):
         if self.is_method():
             self.setToolTip(0, _("Method defined at line %s") % str(self.line))
@@ -258,7 +258,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.setTextElideMode(Qt.ElideMiddle if state else Qt.ElideRight)
         for index in range(self.topLevelItemCount()):
             self.topLevelItem(index).set_text(fullpath=self.show_fullpath)
-            
+
     def __hide_or_show_root_items(self, item):
         """
         show_all_files option is disabled: hide all root items except *item*
@@ -384,7 +384,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if editor is None:
             # This is needed when we can't find an editor to attach
             # the outline explorer to.
-            # Fix issue 8813
+            # Fix spyder-ide/spyder#8813.
             return
         editor_id = editor.get_id()
         if editor_id in list(self.editor_ids.values()):
@@ -498,7 +498,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         for data in editor.outlineexplorer_data_list():
             try:
-                line_nb = data.block.firstLineNumber() + 1
+                line_nb = data.block.blockNumber() + 1
             except AttributeError:
                 continue
             level = None if data is None else data.fold_level
@@ -735,7 +735,7 @@ class OutlineExplorerWidget(QWidget):
                                            icon='outline_explorer_vis.png',
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
-        
+
         btn_layout = QHBoxLayout()
         for btn in self.setup_buttons():
             btn.setAutoRaise(True)
@@ -778,7 +778,7 @@ class OutlineExplorerWidget(QWidget):
             self.remove_editor(editor)
         if editor is not None:
             self.treewidget.set_current_editor(editor, update)
-        
+
     def remove_editor(self, editor):
         self.treewidget.remove_editor(editor)
 

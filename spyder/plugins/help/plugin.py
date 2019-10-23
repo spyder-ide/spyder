@@ -13,12 +13,10 @@ import sys
 # Third party imports
 from qtpy.QtCore import QUrl, Signal, Slot
 from qtpy.QtWidgets import (QActionGroup, QComboBox, QHBoxLayout,
-                            QLabel, QLineEdit, QMenu, QMessageBox,
-                            QToolButton, QVBoxLayout)
+                            QLabel, QLineEdit, QMessageBox)
 from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 
 # Local imports
-from spyder import dependencies
 from spyder.config.base import _, get_conf_path, get_module_source_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.api.plugins import SpyderPluginWidget
@@ -35,12 +33,6 @@ from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.plugins.help.widgets import PlainText, RichText, ObjectComboBox
 
-# Sphinx dependency
-dependencies.add("sphinx", _("Show help for objects in the Editor and "
-                             "Consoles in a dedicated pane"),
-                 required_version='>=0.6.6')
-
-
 
 class Help(SpyderPluginWidget):
     """
@@ -48,6 +40,7 @@ class Help(SpyderPluginWidget):
     """
     CONF_SECTION = 'help'
     CONFIGWIDGET_CLASS = HelpConfigPage
+    CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
     FONT_SIZE_DELTA = DEFAULT_SMALL_DELTA
 
@@ -70,7 +63,7 @@ class Help(SpyderPluginWidget):
         self.rich_text = RichText(self)
 
         color_scheme = self.get_color_scheme()
-        self.set_plain_text_font(self.get_plugin_font(), color_scheme)
+        self.set_plain_text_font(self.get_font(), color_scheme)
         self.plain_text.editor.toggle_wrap_mode(self.get_option('wrap'))
 
         # Add entries to read-only editor context-menu
@@ -80,7 +73,7 @@ class Help(SpyderPluginWidget):
         self.plain_text.editor.readonly_menu.addSeparator()
         add_actions(self.plain_text.editor.readonly_menu, (self.wrap_action,))
 
-        self.set_rich_text_font(self.get_plugin_font('rich_text'))
+        self.set_rich_text_font(self.get_font(rich_text=True))
 
         self.shell = None
 
@@ -183,15 +176,12 @@ class Help(SpyderPluginWidget):
             view.page().setLinkDelegationPolicy(QWebEnginePage.DelegateAllLinks)
         view.linkClicked.connect(self.handle_link_clicks)
 
-        # Initialize plugin
-        self.initialize_plugin()
-
         self._starting_up = True
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.variableexplorer, self)
+        self.tabify(self.main.variableexplorer)
 
     def get_plugin_title(self):
         """Return widget title"""
@@ -218,15 +208,11 @@ class Help(SpyderPluginWidget):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.focus_changed.connect(self.main.plugin_focus_changed)
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
         self.main.console.set_help(self)
 
         self.internal_shell = self.main.console.shell
         self.console = self.main.console
-
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
 
     def refresh_plugin(self):
         """Refresh widget"""
@@ -238,8 +224,8 @@ class Help(SpyderPluginWidget):
     def update_font(self):
         """Update font from Preferences"""
         color_scheme = self.get_color_scheme()
-        font = self.get_plugin_font()
-        rich_font = self.get_plugin_font(rich_text=True)
+        font = self.get_font()
+        rich_font = self.get_font(rich_text=True)
 
         self.set_plain_text_font(font, color_scheme=color_scheme)
         self.set_rich_text_font(rich_font)
@@ -327,7 +313,7 @@ class Help(SpyderPluginWidget):
 
     def set_rich_text_font(self, font):
         """Set rich text mode font"""
-        self.rich_text.set_font(font, fixed_font=self.get_plugin_font())
+        self.rich_text.set_font(font, fixed_font=self.get_font())
 
     def set_plain_text_font(self, font, color_scheme=None):
         """Set plain text mode font"""
@@ -533,7 +519,7 @@ class Help(SpyderPluginWidget):
         if hasattr(self.main, 'tabifiedDockWidgets'):
             # 'QMainWindow.tabifiedDockWidgets' was introduced in PyQt 4.5
             if (self.dockwidget and (force or self.dockwidget.isVisible()) and
-                    not self.ismaximized and
+                    not self._ismaximized and
                     (force or text != self._last_texts[index])):
                 dockwidgets = self.main.tabifiedDockWidgets(self.dockwidget)
                 if (self.console.dockwidget not in dockwidgets and

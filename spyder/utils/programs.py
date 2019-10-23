@@ -4,27 +4,36 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Running programs utilities"""
+"""Running programs utilities."""
 
 from __future__ import print_function
 
+# Standard library imports
+from ast import literal_eval
 from distutils.version import LooseVersion
 from getpass import getuser
+import glob
 import imp
 import inspect
+import itertools
 import os
 import os.path as osp
 import re
 import subprocess
 import sys
 import tempfile
+import threading
+import time
+
+# Third party imports
+import psutil
 
 # Local imports
-from spyder.config.base import is_stable_version
+from spyder.config.base import is_stable_version, running_under_pytest
 from spyder.config.utils import is_anaconda
+from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
-from spyder.py3compat import PY2, is_text_string, to_text_string
 
 
 class ProgramError(Exception):
@@ -59,7 +68,14 @@ def is_program_installed(basename):
     Return program absolute path if installed in PATH.
 
     Otherwise, return None
+
+    On macOS systems, a .app is considered installed if
+    it exists.
     """
+    if (sys.platform == 'darwin' and basename.endswith('.app') and
+            osp.exists(basename)):
+        return basename
+
     for path in os.environ["PATH"].split(os.pathsep):
         abspath = osp.join(path, basename)
         if osp.isfile(abspath):
@@ -83,6 +99,24 @@ def find_program(basename):
         path = is_program_installed(name)
         if path:
             return path
+
+
+def get_full_command_for_program(path):
+    """
+    Return the list of tokens necessary to open the program
+    at a given path.
+
+    On macOS systems, this function prefixes .app paths with
+    'open -a', which is necessary to run the application.
+
+    On all other OS's, this function has no effect.
+
+    :str path: The path of the program to run.
+    :return: The list of tokens necessary to run the program.
+    """
+    if sys.platform == 'darwin' and path.endswith('.app'):
+        return ['open', '-a', path]
+    return [path]
 
 
 def alter_subprocess_kwargs_by_platform(**kwargs):
@@ -172,7 +206,7 @@ def run_program(program, args=None, **subprocess_kwargs):
     if not fullcmd:
         raise ProgramError("Program %s was not found" % program)
     # As per subprocess, we make a complete list of prog+args
-    fullcmd = [fullcmd] + (args or [])
+    fullcmd = get_full_command_for_program(fullcmd) + (args or [])
     for stream in ['stdin', 'stdout', 'stderr']:
         subprocess_kwargs.setdefault(stream, subprocess.PIPE)
     subprocess_kwargs = alter_subprocess_kwargs_by_platform(
@@ -194,10 +228,376 @@ def start_file(filename):
     # We need to use setUrl instead of setPath because this is the only
     # cross-platform way to open external files. setPath fails completely on
     # Mac and doesn't open non-ascii files on Linux.
-    # Fixes Issue 740
+    # Fixes spyder-ide/spyder#740.
     url = QUrl()
     url.setUrl(filename)
     return QDesktopServices.openUrl(url)
+
+
+def parse_linux_desktop_entry(fpath):
+    """Load data from desktop entry with xdg specification."""
+    from xdg.DesktopEntry import DesktopEntry
+
+    try:
+        entry = DesktopEntry(fpath)
+        entry_data = {}
+        entry_data['name'] = entry.getName()
+        entry_data['icon_path'] = entry.getIcon()
+        entry_data['exec'] = entry.getExec()
+        entry_data['type'] = entry.getType()
+        entry_data['hidden'] = entry.getHidden()
+        entry_data['fpath'] = fpath
+    except Exception:
+        entry_data = {
+            'name': '',
+            'icon_path': '',
+            'hidden': '',
+            'exec': '',
+            'type': '',
+            'fpath': fpath
+        }
+
+    return entry_data
+
+
+def _get_mac_application_icon_path(app_bundle_path):
+    """Parse mac application bundle and return path for *.icns file."""
+    import plistlib
+    contents_path = info_path = os.path.join(app_bundle_path, 'Contents')
+    info_path = os.path.join(contents_path, 'Info.plist')
+
+    pl = {}
+    if os.path.isfile(info_path):
+        try:
+            # readPlist is deprecated but needed for py27 compat
+            pl = plistlib.readPlist(info_path)
+        except Exception:
+            pass
+
+    icon_file = pl.get('CFBundleIconFile')
+    icon_path = None
+    if icon_file:
+        icon_path = os.path.join(contents_path, 'Resources', icon_file)
+
+        # Some app bundles seem to list the icon name without extension
+        if not icon_path.endswith('.icns'):
+            icon_path = icon_path + '.icns'
+
+        if not os.path.isfile(icon_path):
+            icon_path = None
+
+    return icon_path
+
+
+def get_username():
+    """Return current session username."""
+    if os.name == 'nt':
+        username = os.getlogin()
+    else:
+        import pwd
+        username = pwd.getpwuid(os.getuid())[0]
+
+    return username
+
+
+def _get_win_reg_info(key_path, hive, flag, subkeys):
+    """
+    See: https://stackoverflow.com/q/53132434
+    """
+    import winreg
+
+    reg = winreg.ConnectRegistry(None, hive)
+    software_list = []
+    try:
+        key = winreg.OpenKey(reg, key_path, 0, winreg.KEY_READ | flag)
+        count_subkey = winreg.QueryInfoKey(key)[0]
+
+        for index in range(count_subkey):
+            software = {}
+            try:
+                subkey_name = winreg.EnumKey(key, index)
+                if not (subkey_name.startswith('{')
+                        and subkey_name.endswith('}')):
+                    software['key'] = subkey_name
+                    subkey = winreg.OpenKey(key, subkey_name)
+                    for property in subkeys:
+                        try:
+                            value = winreg.QueryValueEx(subkey, property)[0]
+                            software[property] = value
+                        except EnvironmentError:
+                            software[property] = ''
+                    software_list.append(software)
+            except EnvironmentError:
+                continue
+    except Exception:
+        pass
+
+    return software_list
+
+
+def _get_win_applications():
+    """Return all system installed windows applications."""
+    import winreg
+
+    # See:
+    # https://docs.microsoft.com/en-us/windows/desktop/shell/app-registration
+    key_path = 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths'
+
+    # Hive and flags
+    hfs = [
+        (winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_32KEY),
+        (winreg.HKEY_LOCAL_MACHINE, winreg.KEY_WOW64_64KEY),
+        (winreg.HKEY_CURRENT_USER, 0),
+    ]
+    subkeys = [None]
+    sort_key = 'key'
+    app_paths = {}
+    _apps = [_get_win_reg_info(key_path, hf[0], hf[1], subkeys) for hf in hfs]
+    software_list = itertools.chain(*_apps)
+    for software in sorted(software_list, key=lambda x: x[sort_key]):
+        if software[None]:
+            key = software['key'].capitalize().replace('.exe', '')
+            expanded_fpath = os.path.expandvars(software[None]).lower()
+            if '"' in expanded_fpath or "'" in expanded_fpath:
+                expanded_fpath = literal_eval(expanded_fpath)
+            app_paths[key] = expanded_fpath
+
+    # See:
+    # https://www.blog.pythonlibrary.org/2010/03/03/finding-installed-software-using-python/
+    # https://stackoverflow.com/q/53132434
+    key_path = 'SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
+    subkeys = ['DisplayName', 'InstallLocation', 'DisplayIcon']
+    sort_key = 'DisplayName'
+    apps = {}
+    _apps = [_get_win_reg_info(key_path, hf[0], hf[1], subkeys) for hf in hfs]
+    software_list = itertools.chain(*_apps)
+    for software in sorted(software_list, key=lambda x: x[sort_key]):
+        location = software['InstallLocation']
+        name = software['DisplayName']
+        icon = software['DisplayIcon']
+        key = software['key']
+        if name and icon:
+            icon = icon.replace('"', '').replace("'", '')
+            icon = icon.split(',')[0]
+
+            if location == '' and icon:
+                location = os.path.dirname(icon)
+
+            if not os.path.isfile(icon):
+                icon = ''
+
+            if location and os.path.isdir(location):
+                files = [f for f in os.listdir(location)
+                         if os.path.isfile(os.path.join(location, f))]
+                if files:
+                    for fname in files:
+                        fn_low = fname.lower()
+                        valid_file = fn_low.endswith(('.exe', '.com', '.bat'))
+                        if valid_file and not fn_low.startswith('unins'):
+                            fpath = os.path.join(location, fname)
+                            expanded_fpath = os.path.expandvars(fpath.lower())
+                            if '"' in expanded_fpath or "'" in expanded_fpath:
+                                expanded_fpath = literal_eval(expanded_fpath)
+                            apps[name + ' (' + fname + ')'] = expanded_fpath
+    # Join data
+    values = list(zip(*apps.values()))[-1]
+    for name, fpath in app_paths.items():
+        if fpath not in values:
+            apps[name] = fpath
+
+    return apps
+
+
+def _get_linux_applications():
+    """Return all system installed linux applications."""
+    # See:
+    # https://standards.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
+    # https://askubuntu.com/q/433609
+    apps = {}
+    desktop_app_paths = [
+        '/usr/share/**/*.desktop',
+        '~/.local/share/**/*.desktop',
+    ]
+    all_entries_data = []
+    for path in desktop_app_paths:
+        fpaths = glob.glob(path)
+        for fpath in fpaths:
+            entry_data = parse_linux_desktop_entry(fpath)
+            all_entries_data.append(entry_data)
+
+    for entry_data in sorted(all_entries_data, key=lambda x: x['name']):
+        if not entry_data['hidden'] and entry_data['type'] == 'Application':
+            apps[entry_data['name']] = entry_data['fpath']
+
+    return apps
+
+
+def _get_mac_applications():
+    """Return all system installed osx applications."""
+    apps = {}
+    app_folders = [
+        '/**/*.app',
+        '/Users/{}/**/*.app'.format(get_username())
+    ]
+
+    fpaths = []
+    for path in app_folders:
+        fpaths += glob.glob(path)
+
+    for fpath in fpaths:
+        if os.path.isdir(fpath):
+            name = os.path.basename(fpath).split('.app')[0]
+            apps[name] = fpath
+
+    return apps
+
+
+def get_application_icon(fpath):
+    """Return application icon or default icon if not found."""
+    from qtpy.QtGui import QIcon
+    from spyder.utils import icon_manager as ima
+
+    if os.path.isfile(fpath) or os.path.isdir(fpath):
+        icon = ima.icon('no_match')
+        if sys.platform == 'darwin':
+            icon_path = _get_mac_application_icon_path(fpath)
+            if icon_path and os.path.isfile(icon_path):
+                icon = QIcon(icon_path)
+        elif os.name == 'nt':
+            pass
+        else:
+            entry_data = parse_linux_desktop_entry(fpath)
+            icon_path = entry_data['icon_path']
+            if icon_path:
+                if os.path.isfile(icon_path):
+                    icon = QIcon(icon_path)
+                else:
+                    icon = QIcon.fromTheme(icon_path)
+    else:
+        icon = ima.icon('help')
+
+    return icon
+
+
+def get_installed_applications():
+    """
+    Return all system installed applications.
+
+    The return value is a list of tuples where the first item is the icon path
+    and the second item is the program executable path.
+    """
+    apps = {}
+    if sys.platform == 'darwin':
+        apps = _get_mac_applications()
+    elif os.name == 'nt':
+        apps = _get_win_applications()
+    else:
+        apps = _get_linux_applications()
+
+    if sys.platform == 'darwin':
+        apps = {key: val for (key, val) in apps.items() if osp.isdir(val)}
+    else:
+        apps = {key: val for (key, val) in apps.items() if osp.isfile(val)}
+
+    return apps
+
+
+def open_files_with_application(app_path, fnames):
+    """
+    Generalized method for opening files with a specific application.
+
+    Returns a dictionary of the command used and the return code.
+    A code equal to 0 means the application executed successfully.
+    """
+    return_codes = {}
+
+    # Add quotes as needed
+    if sys.platform != 'darwin':
+        new_fnames = []
+        for fname in fnames:
+            if ' ' in fname:
+                if '"' in fname:
+                    fname = '"{}"'.format(fname)
+                else:
+                    fname = "'{}'".format(fname)
+                new_fnames.append(fname)
+            else:
+                new_fnames.append(fname)
+        fnames = new_fnames
+
+    if sys.platform == 'darwin':
+        if not (app_path.endswith('.app') and os.path.isdir(app_path)):
+            raise ValueError('`app_path`  must point to a valid OSX '
+                             'application!')
+        cmd = ['open', '-a', app_path] + fnames
+        try:
+            return_code = subprocess.call(cmd)
+        except Exception:
+            return_code = 1
+        return_codes[' '.join(cmd)] = return_code
+    elif os.name == 'nt':
+        if not (app_path.endswith(('.exe', '.bar', '.com'))
+                and os.path.isfile(app_path)):
+            raise ValueError('`app_path`  must point to a valid Windows '
+                             'executable!')
+        cmd = [app_path] + fnames
+        try:
+            return_code = subprocess.call(cmd)
+        except OSError:
+            return_code = 1
+        return_codes[' '.join(cmd)] = return_code
+    else:
+        if not (app_path.endswith('.desktop') and os.path.isfile(app_path)):
+            raise ValueError('`app_path` must point to a valid Linux '
+                             'application!')
+
+        entry = parse_linux_desktop_entry(app_path)
+        app_path = entry['exec']
+        multi = []
+        extra = []
+        if len(fnames) == 1:
+            fname = fnames[0]
+            if '%u' in app_path:
+                cmd = app_path.replace('%u', fname)
+            elif '%f' in app_path:
+                cmd = app_path.replace('%f', fname)
+            elif '%U' in app_path:
+                cmd = app_path.replace('%U', fname)
+            elif '%F' in app_path:
+                cmd = app_path.replace('%F', fname)
+            else:
+                cmd = app_path
+                extra = fnames
+        elif len(fnames) > 1:
+            if '%U' in app_path:
+                cmd = app_path.replace('%U', ' '.join(fnames))
+            elif '%F' in app_path:
+                cmd = app_path.replace('%F', ' '.join(fnames))
+            if '%u' in app_path:
+                for fname in fnames:
+                    multi.append(app_path.replace('%u', fname))
+            elif '%f' in app_path:
+                for fname in fnames:
+                    multi.append(app_path.replace('%f', fname))
+            else:
+                cmd = app_path
+                extra = fnames
+
+        if multi:
+            for cmd in multi:
+                try:
+                    return_code = subprocess.call([cmd], shell=True)
+                except Exception:
+                    return_code = 1
+                return_codes[cmd] = return_code
+        else:
+            try:
+                return_code = subprocess.call([cmd] + extra, shell=True)
+            except Exception:
+                return_code = 1
+            return_codes[cmd] = return_code
+
+    return return_codes
 
 
 def python_script_exists(package=None, module=None):
@@ -299,7 +699,8 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         # Command line and cwd have to be converted to the filesystem
         # encoding before passing them to subprocess, but only for
         # Python 2.
-        # See https://bugs.python.org/issue1759845#msg74142 and Issue 1856
+        # See https://bugs.python.org/issue1759845#msg74142 and
+        # spyder-ide/spyder#1856.
         if PY2:
             cmd = encoding.to_fs_from_unicode(cmd)
             wdir = encoding.to_fs_from_unicode(wdir)
@@ -315,7 +716,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                                  _("It was not possible to run this file in "
                                    "an external terminal"),
                                  QMessageBox.Ok)
-    elif os.name == 'posix':
+    elif sys.platform.startswith('linux'):
         programs = [{'cmd': 'gnome-terminal',
                      'wdir-option': '--working-directory',
                      'execute-option': '-x'},
@@ -340,7 +741,25 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
                 else:
                     run_program(program['cmd'], arglist)
                 return
-        # TODO: Add a fallback to OSX
+    elif sys.platform == 'darwin':
+        f = tempfile.NamedTemporaryFile('wt', prefix='run_spyder_',
+                                        suffix='.sh', dir=get_temp_dir(),
+                                        delete=False)
+        if wdir:
+            f.write('cd {}\n'.format(wdir))
+        f.write(' '.join(p_args))
+        f.close()
+        os.chmod(f.name, 0o777)
+
+        def run_terminal_thread():
+            proc = run_shell_command('open -a Terminal.app ' + f.name)
+            # Prevent race condition
+            time.sleep(3)
+            proc.wait()
+            os.remove(f.name)
+
+        thread = threading.Thread(target=run_terminal_thread)
+        thread.start()
     else:
         raise NotImplementedError
 
@@ -542,4 +961,30 @@ def check_python_help(filename):
         else:
             return False
     except:
+        return False
+
+
+def is_spyder_process(pid):
+    """
+    Test whether given PID belongs to a Spyder process.
+
+    This is checked by testing the first three command line arguments. This
+    function returns a bool. If there is no process with this PID or its
+    command line cannot be accessed (perhaps because the process is owned by
+    another user), then the function returns False.
+    """
+    try:
+        p = psutil.Process(int(pid))
+
+        # Valid names for main script
+        names = set(['spyder', 'spyder3', 'spyder.exe', 'spyder3.exe',
+                     'bootstrap.py', 'spyder-script.py'])
+        if running_under_pytest():
+            names.add('runtests.py')
+
+        # Check the first three command line arguments
+        arguments = set(os.path.basename(arg) for arg in p.cmdline()[:3])
+        conditions = [names & arguments]
+        return any(conditions)
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
         return False

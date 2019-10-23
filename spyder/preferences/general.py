@@ -69,7 +69,7 @@ class MainConfigPage(GeneralConfigPage):
                               'check_updates_on_startup')
 
         # Decide if it's possible to activate or not single instance mode
-        if running_in_mac_app():
+        if running_in_mac_app(check_file=True):
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)
 
@@ -105,7 +105,7 @@ class MainConfigPage(GeneralConfigPage):
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
-                                          0, 0, 30)
+                                          default=0, min_=0, max_=30)
         margin_box.toggled.connect(margin_spin.spinbox.setEnabled)
         margin_box.toggled.connect(margin_spin.slabel.setEnabled)
         margin_spin.spinbox.setEnabled(self.get_option('use_custom_margin'))
@@ -224,8 +224,8 @@ class MainConfigPage(GeneralConfigPage):
             "",
             'high_dpi_custom_scale_factors',
             tip=_("Enter values for different screens "
-                  "separated by semicolons ';', "
-                  "float values are supported"),
+                  "separated by semicolons ';'.\n"
+                  "Float values are supported"),
             alignment=Qt.Horizontal,
             regex=r"[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
             restart=True)
@@ -251,7 +251,7 @@ class MainConfigPage(GeneralConfigPage):
         tabs.addTab(self.create_tab(screen_resolution_group, interface_group),
                     _("Interface"))
         tabs.addTab(self.create_tab(general_group, sbar_group),
-                    _("Advanced Settings"))
+                    _("Advanced settings"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
@@ -264,8 +264,8 @@ class MainConfigPage(GeneralConfigPage):
         """
         Get selected language setting and save to language configuration file.
         """
-        for combobox, (option, _default) in list(self.comboboxes.items()):
-            if option == 'interface_language':
+        for combobox, (sec, opt, _default) in list(self.comboboxes.items()):
+            if opt == 'interface_language':
                 data = combobox.itemData(combobox.currentIndex())
                 value = from_qvariant(data, to_text_string)
                 break

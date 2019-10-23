@@ -105,7 +105,7 @@ def test_del_undo_redo_shortcuts(editor_bot):
     Test that the undo and redo keyboard shortcuts are working as expected
     with the default Spyder keybindings.
 
-    Regression test for issue #7743.
+    Regression test for spyder-ide/spyder#7743.
     """
     editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
@@ -289,7 +289,8 @@ def test_builtin_shift_del_and_ins(editor_bot):
     Test that the builtin key sequences Ctrl+Ins, Shit+Del and Shift+Ins result
     in copy, cut and paste actions in Windows and Linux.
 
-    Regression test for issue #5035, #4947, and #5973.
+    Regression test for spyder-ide/spyder#5035, spyder-ide/spyder#4947, and
+    spyder-ide/spyder#5973.
     """
     editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()

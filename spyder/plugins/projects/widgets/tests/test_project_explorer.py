@@ -26,7 +26,7 @@ from spyder.utils import programs
 @pytest.fixture
 def project_explorer(qtbot, request, tmpdir):
     """Setup Project Explorer widget."""
-    directory = request.node.get_marker('change_directory')
+    directory = request.node.get_closest_marker('change_directory')
     if directory:
         project_dir = to_text_string(tmpdir.mkdir('project'))
     else:

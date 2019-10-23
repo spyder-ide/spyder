@@ -16,7 +16,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMenu
 
 # Local imports
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 
 
@@ -71,7 +71,7 @@ class DocstringWriterExtension(object):
         """Get func def when the cursor is located on the first def line."""
         document = self.code_editor.document()
         cursor = QTextCursor(
-            document.findBlockByLineNumber(self.line_number_cursor - 1))
+            document.findBlockByNumber(self.line_number_cursor - 1))
 
         func_text = ''
         func_indent = ''
