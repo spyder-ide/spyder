@@ -33,6 +33,8 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     sig_perform_request = Signal(int, str, object)
     sig_perform_status_request = Signal(str)
     sig_status_response_ready = Signal((str,), (dict,))
+    sig_perform_onboarding_request = Signal()
+    sig_onboarding_response_ready = Signal(str)
 
     def __init__(self, parent, enable_code_snippets=True):
         QObject.__init__(self, parent)
@@ -49,6 +51,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         self.thread.started.connect(self.started)
         self.sig_perform_request.connect(self.perform_request)
         self.sig_perform_status_request.connect(self.get_status)
+        self.sig_perform_onboarding_request.connect(self.get_onboarding_file)
 
     def start(self):
         if not self.thread_started:
@@ -73,6 +76,17 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         if response is None:
             response = ['python']
         return response
+
+    def _get_onboarding_file(self):
+        """Perform a request to get kite's onboarding file."""
+        verb, url = KITE_ENDPOINTS.ONBOARDING_ENDPOINT
+        success, response = self.perform_http_request(verb, url)
+        return response
+
+    def get_onboarding_file(self):
+        """Get onboarding file."""
+        onboarding_file = self._get_onboarding_file()
+        self.sig_onboarding_response_ready.emit(onboarding_file)
 
     def _get_status(self, filename):
         """Perform a request to get kite status for a file."""
