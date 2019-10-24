@@ -774,6 +774,7 @@ class ThumbnailScrollBar(QFrame):
             thumbnail.sig_canvas_clicked.disconnect()
             thumbnail.sig_remove_figure.disconnect()
             thumbnail.sig_save_figure.disconnect()
+            thumbnail.setParent(None)
         self._thumbnails = []
         self.current_thumbnail = None
         self.figure_viewer.figcanvas.clear_canvas()
@@ -784,6 +785,7 @@ class ThumbnailScrollBar(QFrame):
             index = self._thumbnails.index(thumbnail)
             self._thumbnails.remove(thumbnail)
         self.layout().removeWidget(thumbnail)
+        thumbnail.setParent(None)
         thumbnail.sig_canvas_clicked.disconnect()
         thumbnail.sig_remove_figure.disconnect()
         thumbnail.sig_save_figure.disconnect()
