@@ -1064,34 +1064,20 @@ class CodeEditor(TextEditBaseWidget):
             completions = params['params']
             completions = [] if completions is None else completions
 
-            # Compute default replace_start, replace_end for completions
-            # that don't specify a textEdit.
-            replace_end = self.textCursor().position()
-            under_cursor = self.get_current_word_and_position(
-                completion=True)
+            under_cursor = self.get_current_word_and_position(completion=True)
             if under_cursor:
-                word, replace_start = under_cursor
+                word, _ = under_cursor
             else:
                 word = ''
-                replace_start = replace_end
-
-            # Normalize all completions to contain a textEdit
-            for completion in completions:
-                if 'textEdit' not in completion:
-                    completion['textEdit'] = {
-                        'range': {
-                            'start': replace_start,
-                            'end': replace_end,
-                        },
-                        'newText': completion['insertText'],
-                    }
-
             first_letter = ''
             if len(word) > 0:
                 first_letter = word[0]
 
             def sort_key(completion):
-                first_insert_letter = completion['textEdit']['newText'][0]
+                if 'textEdit' in completion:
+                    first_insert_letter = completion['textEdit']['newText'][0]
+                else:
+                    first_insert_letter = completion['insertText'][0]
                 case_mismatch = (
                     (first_letter.isupper() and first_insert_letter.islower())
                     or

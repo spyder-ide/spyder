@@ -136,7 +136,7 @@ class CompletionWidget(QListWidget):
             self.is_internal_console = True
         self.completion_list = completion_list
         # Check everything is in order
-        self.update_current()
+        self.update_current(new=True)
 
         # If update_current called close, stop loading
         if not self.completion_list:
@@ -170,7 +170,7 @@ class CompletionWidget(QListWidget):
         # signal used for testing
         self.sig_show_completions.emit(completion_list)
 
-    def update_list(self, current_word):
+    def update_list(self, current_word, new=True):
         """
         Update the displayed list by filtering self.completion_list.
 
@@ -184,6 +184,8 @@ class CompletionWidget(QListWidget):
 
         for i, completion in enumerate(self.completion_list):
             if not self.is_internal_console:
+                if not new and 'textEdit' in completion:
+                    continue
                 completion_filter = completion['filterText']
 
                 icon = self.ICONS_MAP.get(completion['kind'], 'no_match')
@@ -299,7 +301,7 @@ class CompletionWidget(QListWidget):
                 QListWidget.keyPressEvent(self, event)
         elif len(text) or key == Qt.Key_Backspace:
             self.textedit.keyPressEvent(event)
-            self.update_current()
+            self.update_current(new=False)
         elif modifier:
             self.textedit.keyPressEvent(event)
         else:
@@ -366,7 +368,7 @@ class CompletionWidget(QListWidget):
 
         return True
 
-    def update_current(self):
+    def update_current(self, new=False):
         """
         Update the displayed list.
         """
@@ -375,7 +377,7 @@ class CompletionWidget(QListWidget):
             return
 
         current_word = self.textedit.get_current_word(completion=True)
-        self.update_list(current_word)
+        self.update_list(current_word, new=new)
 
     def focusOutEvent(self, event):
         """Override Qt method."""
@@ -410,8 +412,12 @@ class CompletionWidget(QListWidget):
         if self.completion_list:
             item = self.completion_list[row]
             if 'point' in item:
+                if 'textEdit' in item:
+                    insert_text = item['textEdit']['newText']
+                else:
+                    insert_text = item['insertText']
                 self.sig_completion_hint.emit(
-                    item['textEdit']['newText'],
+                    insert_text,
                     item['documentation'],
                     item['point'])
 

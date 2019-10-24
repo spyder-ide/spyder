@@ -858,13 +858,16 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if not completion:
             return
         cursor = self.textCursor()
-        if isinstance(completion, dict):
+        if isinstance(completion, dict) and 'textEdit' in completion:
             cursor.setPosition(completion['textEdit']['range']['start'])
             cursor.setPosition(completion['textEdit']['range']['end'],
                                QTextCursor.KeepAnchor)
             text = to_text_string(completion['textEdit']['newText'])
         else:
-            text = to_text_string(completion)
+            text = completion
+            if isinstance(completion, dict):
+                text = completion['insertText']
+            text = to_text_string(text)
 
             # Get word on the left of the cursor.
             result = self.get_current_word_and_position(completion=True)

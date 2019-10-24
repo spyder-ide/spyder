@@ -270,6 +270,8 @@ def test_completions(lsp_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    assert code_editor.toPlainText() == 'import math\nmath.hypot\n'\
+                                        'math.hypot()\n'
 
     # Complete math.a <tab> ... s <enter> to math.asin
     qtbot.keyClicks(code_editor, 'math.a')
@@ -284,11 +286,13 @@ def test_completions(lsp_codeeditor, qtbot):
     assert "acos(x)" == completion.completion_list[0]['label']
     qtbot.keyClicks(completion, 's')
     data = completion.item(0).data(Qt.UserRole)
-    assert "asin" == data['textEdit']['newText']
+    assert "asin" == data['insertText']
     qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    assert code_editor.toPlainText() == 'import math\nmath.hypot\n'\
+                                        'math.hypot()\nmath.asin\n'
 
     # Check can get list back
     qtbot.keyClicks(code_editor, 'math.f')
@@ -307,6 +311,9 @@ def test_completions(lsp_codeeditor, qtbot):
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    assert code_editor.toPlainText() == 'import math\nmath.hypot\n'\
+                                        'math.hypot()\nmath.asin\n'\
+                                        'math.f\n'
 
     # Complete math.a <tab> s ...<enter> to math.asin
     qtbot.keyClicks(code_editor, 'math.a')
@@ -322,6 +329,9 @@ def test_completions(lsp_codeeditor, qtbot):
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    assert code_editor.toPlainText() == 'import math\nmath.hypot\n'\
+                                        'math.hypot()\nmath.asin\n'\
+                                        'math.f\nmath.asin\n'
 
     # Complete math.a|angle <tab> s ...<enter> to math.asin|angle
     qtbot.keyClicks(code_editor, 'math.aangle')
@@ -340,8 +350,13 @@ def test_completions(lsp_codeeditor, qtbot):
     for i in range(len('angle')):
         qtbot.keyClick(code_editor, Qt.Key_Right)
 
-    # Check math.a <tab> <backspace> doesn't emit sig_show_completions
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    assert code_editor.toPlainText() == 'import math\nmath.hypot\n'\
+                                        'math.hypot()\nmath.asin\n'\
+                                        'math.f\nmath.asin\n'\
+                                        'math.asinangle\n'
+
+    # Check math.a <tab> <backspace> doesn't emit sig_show_completions
     qtbot.keyClicks(code_editor, 'math.a')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
