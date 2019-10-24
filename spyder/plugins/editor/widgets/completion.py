@@ -170,7 +170,7 @@ class CompletionWidget(QListWidget):
         # signal used for testing
         self.sig_show_completions.emit(completion_list)
 
-    def update_list(self, filter_text):
+    def update_list(self, current_word):
         """
         Update the displayed list by filtering self.completion_list.
 
@@ -184,29 +184,25 @@ class CompletionWidget(QListWidget):
 
         for i, completion in enumerate(self.completion_list):
             if not self.is_internal_console:
-                code_snippets_enabled = getattr(
-                    self.textedit, 'code_snippets', False)
-                completion_label = completion['filterText']
-                completion_text = completion['insertText']
-                if not code_snippets_enabled:
-                    completion_label = completion['insertText']
+                completion_filter = completion['filterText']
+
                 icon = self.ICONS_MAP.get(completion['kind'], 'no_match')
                 item = QListWidgetItem()
                 item.setIcon(ima.icon(icon))
                 self.set_item_text(
                     item, completion, height=height, width=width)
-                item.setData(Qt.UserRole, completion_text)
+                item.setData(Qt.UserRole, completion)
             else:
-                completion_label = completion[0]
+                completion_filter = completion[0]
+
                 completion_text = self.get_html_item_representation(
-                    completion_label, '', icon_provider=None, size=0,
+                    completion[0], '', icon_provider=None, size=0,
                     height=height, width=width)
                 item = QListWidgetItem()
-                item.setData(Qt.UserRole, completion_label)
+                item.setData(Qt.UserRole, completion[0])
                 item.setText(completion_text)
 
-            if self.check_can_complete(
-                    completion_label, filter_text):
+            if self.check_can_complete(completion_filter, current_word):
                 self.addItem(item)
                 self.display_index.append(i)
 
@@ -318,18 +314,25 @@ class CompletionWidget(QListWidget):
             return False
         if not self.is_position_correct():
             return False
-        completion_text = self.textedit.get_current_word(completion=True)
-        selected_text = self.currentItem().data(Qt.UserRole)
-        return self.check_can_complete(selected_text, completion_text)
+        current_word = self.textedit.get_current_word(completion=True)
+        completion = self.currentItem().data(Qt.UserRole)
+        if isinstance(completion, dict):
+            filter_text = completion['filterText']
+        else:
+            filter_text = completion
+        return self.check_can_complete(filter_text, current_word)
 
-    def check_can_complete(self, text, sub):
-        """Check if sub can be completed to text."""
-        if not sub:
+    def check_can_complete(self, filter_text, current_word):
+        """Check if current_word matches filter_text."""
+        if not filter_text or isinstance(filter_text, dict):
             return True
-        if not text[0].isalpha():
-            sub = text[0] + sub
-        return to_text_string(text).lower().startswith(
-                to_text_string(sub).lower())
+
+        if not current_word:
+            return True
+        if not filter_text[0].isalpha():
+            current_word = filter_text[0] + current_word
+        return to_text_string(filter_text).lower().startswith(
+                to_text_string(current_word).lower())
 
     def is_position_correct(self):
         """Check if the position is correct."""
@@ -371,8 +374,8 @@ class CompletionWidget(QListWidget):
             self.hide()
             return
 
-        completion_text = self.textedit.get_current_word(completion=True)
-        self.update_list(completion_text)
+        current_word = self.textedit.get_current_word(completion=True)
+        self.update_list(current_word)
 
     def focusOutEvent(self, event):
         """Override Qt method."""
@@ -397,9 +400,8 @@ class CompletionWidget(QListWidget):
             item = self.currentItem()
 
         if item is not None and self.completion_position is not None:
-            self.textedit.insert_completion(
-                to_text_string(item.data(Qt.UserRole)),
-                self.completion_position)
+            self.textedit.insert_completion(item.data(Qt.UserRole),
+                                            self.completion_position)
         self.hide()
 
     @Slot(int)
@@ -409,7 +411,7 @@ class CompletionWidget(QListWidget):
             item = self.completion_list[row]
             if 'point' in item:
                 self.sig_completion_hint.emit(
-                    item['insertText'],
+                    item['textEdit']['newText'],
                     item['documentation'],
                     item['point'])
 

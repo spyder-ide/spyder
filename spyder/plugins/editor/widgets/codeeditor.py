@@ -1062,19 +1062,36 @@ class CodeEditor(TextEditBaseWidget):
         position, automatic = args
         try:
             completions = params['params']
-            cursor = self.textCursor()
-            cursor.select(QTextCursor.WordUnderCursor)
-            text1 = to_text_string(cursor.selectedText())
-
-            cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor, 2)
-            cursor.select(QTextCursor.WordUnderCursor)
-            text2 = to_text_string(cursor.selectedText())
-
-            first_letter = text1[0] if len(text1) > 0 else ''
             completions = [] if completions is None else completions
 
+            # Compute default replace_start, replace_end for completions
+            # that don't specify a textEdit.
+            replace_end = self.textCursor().position()
+            under_cursor = self.get_current_word_and_position(
+                completion=True)
+            if under_cursor:
+                word, replace_start = under_cursor
+            else:
+                word = ''
+                replace_start = replace_end
+
+            # Normalize all completions to contain a textEdit
+            for completion in completions:
+                if 'textEdit' not in completion:
+                    completion['textEdit'] = {
+                        'range': {
+                            'start': replace_start,
+                            'end': replace_end,
+                        },
+                        'newText': completion['insertText'],
+                    }
+
+            first_letter = ''
+            if len(word) > 0:
+                first_letter = word[0]
+
             def sort_key(completion):
-                first_insert_letter = completion['insertText'][0]
+                first_insert_letter = completion['textEdit']['newText'][0]
                 case_mismatch = (
                     (first_letter.isupper() and first_insert_letter.islower())
                     or
