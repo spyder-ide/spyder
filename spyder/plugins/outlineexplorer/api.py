@@ -27,6 +27,7 @@ import re
 from qtpy.QtCore import Signal, QObject
 from qtpy.QtGui import QTextBlock
 from spyder.config.base import _
+from spyder.config.base import running_under_pytest
 
 
 class OutlineExplorerProxy(QObject):
@@ -95,8 +96,12 @@ class OutlineExplorerData(QObject):
         self.def_type = def_type
         self.def_name = def_name
         self.color = color
-        # Copy the text block to make sure it is not deleted
-        self.block = QTextBlock(block)
+        if running_under_pytest():
+            # block might be a dummy
+            self.block = block
+        else:
+            # Copy the text block to make sure it is not deleted
+            self.block = QTextBlock(block)
 
     def is_not_class_nor_function(self):
         return self.def_type not in (self.CLASS, self.FUNCTION)
