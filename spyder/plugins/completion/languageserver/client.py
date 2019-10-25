@@ -310,12 +310,15 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 else:
                     self.transport_unresponsive = True
                     # The server doesn't reply
-                    if socket.gethostbyname('localhost') != '127.0.0.1':
+                    try:
+                        localhost = socket.gethostbyname('localhost')
+                    except:
+                        localhost = None
+                    if localhost is None:
                         raise RuntimeError(
                             'LSP server is not responding.'
-                            ' Make sure your hosts file is correct.'
-                            ' (localhost = {})'.format(
-                                repr(socket.gethostbyname('localhost'))))
+                            ' Make sure your hosts file (/etc/hosts)'
+                            ' is correct (localhost is not defined)')
                     raise RuntimeError('LSP server is not responding.')
         self.request_seq += 1
         return int(_id)
