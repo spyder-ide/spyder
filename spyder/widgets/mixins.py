@@ -833,6 +833,13 @@ class BaseEditMixin(object):
         except IndexError:
             return self.get_line_separator()
 
+    def get_text_region(self, start_line, end_line):
+        """Return text lines spanned from *start_line* to *end_line*."""
+        lines = to_text_string(self.toPlainText()).splitlines()
+        sep = self.get_line_separator()
+        region = lines[start_line:end_line + 1]
+        return sep.join(region)
+
     def get_text(self, position_from, position_to):
         """
         Return text between *position_from* and *position_to*

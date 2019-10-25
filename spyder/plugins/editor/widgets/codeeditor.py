@@ -951,6 +951,7 @@ class CodeEditor(TextEditBaseWidget):
             self.filename))
         self.completions_available = True
         self.document_did_open()
+        self.request_folding()
 
     def update_completion_configuration(self, config):
         """Start LSP integration if it wasn't done before."""
@@ -958,6 +959,7 @@ class CodeEditor(TextEditBaseWidget):
         self.parse_lsp_config(config)
         self.completions_available = True
         self.document_did_open()
+        self.request_folding()
 
     def stop_completion_services(self):
         logger.debug('Stopping completion services for %s' % self.filename)
@@ -1007,9 +1009,15 @@ class CodeEditor(TextEditBaseWidget):
         return params
 
     # ------------- LSP: Linting ---------------------------------------
+
+    def document_did_change(self, text=None):
+        """Call LSP functions each time the document is changed."""
+        self._document_did_change()
+        self.request_folding()
+
     @request(
         method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
-    def document_did_change(self, text=None):
+    def _document_did_change(self, text=None):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
         text = self.toPlainText()
@@ -1246,7 +1254,6 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
         ranges = response['params']
-        logger.debug('Ranges: {}'.format(ranges))
         folding_panel = self.panels.get(FoldingPanel)
         folding_panel.update_folding(ranges)
 
