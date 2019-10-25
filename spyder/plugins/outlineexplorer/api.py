@@ -233,6 +233,7 @@ class OutlineExplorerData(QObject):
         return (block
                 and block.isValid()
                 and block.userData()
+                and hasattr(block.userData(), 'oedata')
                 and block.userData().oedata == self
                 )
 
