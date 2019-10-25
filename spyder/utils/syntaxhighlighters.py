@@ -292,13 +292,13 @@ class BaseSH(QSyntaxHighlighter):
         self.highlight_block(text)
 
         # Process blocks for fold detection
-        current_block = self.currentBlock()
-        previous_block = self._find_prev_non_blank_block(current_block)
-        if self.editor:
-            if self.fold_detector is not None:
-                self.fold_detector._editor = weakref.ref(self.editor)
-                self.fold_detector.process_block(
-                    current_block, previous_block, text)
+        # current_block = self.currentBlock()
+        # previous_block = self._find_prev_non_blank_block(current_block)
+        # if self.editor:
+        #     if self.fold_detector is not None:
+        #         self.fold_detector._editor = weakref.ref(self.editor)
+        #         self.fold_detector.process_block(
+        #             current_block, previous_block, text)
 
     def highlight_block(self, text):
         """

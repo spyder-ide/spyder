@@ -173,6 +173,19 @@ class FoldingPanel(Panel):
         self.action_expand_all = None
         self._original_background = None
         self._highlight_runner = DelayJobRunner(delay=250)
+        self.folding_regions = {}
+        self.folding_status = {}
+
+    def update_folding(self, ranges):
+        """Update folding panel folding ranges."""
+        new_folding_ranges = {}
+        for starting_line, ending_line in ranges:
+            new_folding_ranges[starting_line + 1] = ending_line + 1
+        # TODO: Line difference computation should be done here in order
+        # to detect if folding regions were not modified.
+        self.folding_regions = new_folding_ranges
+        self.folding_status = {line: False for line in self.folding_regions}
+        self.repaint()
 
     def sizeHint(self):
         """Returns the widget size hint (based on the editor font size) """
@@ -197,8 +210,9 @@ class FoldingPanel(Panel):
                 pass
         # Draw fold triggers
         for top_position, line_number, block in self.editor.visible_blocks:
-            if TextBlockHelper.is_fold_trigger(block):
-                collapsed = TextBlockHelper.is_collapsed(block)
+            # if TextBlockHelper.is_fold_trigger(block):
+            if line_number in self.folding_regions:
+                collapsed = self.folding_status[line_number]  # TextBlockHelper.is_collapsed(block)
                 mouse_over = self._mouse_over_line == line_number
                 self._draw_fold_indicator(
                     top_position, mouse_over, collapsed, painter)
@@ -326,16 +340,15 @@ class FoldingPanel(Panel):
     def find_parent_scope(block):
         """Find parent scope, if the block is not a fold trigger."""
         original = block
-        if not TextBlockHelper.is_fold_trigger(block):
-            # search level of next non blank line
-            while block.text().strip() == '' and block.isValid():
-                block = block.next()
-            ref_lvl = TextBlockHelper.get_fold_lvl(block) - 1
-            block = original
-            while (block.blockNumber() and
-                   (not TextBlockHelper.is_fold_trigger(block) or
-                    TextBlockHelper.get_fold_lvl(block) > ref_lvl)):
-                block = block.previous()
+        block_line = block.blockNumber()
+        if block_line not in self.folding_regions:
+            for start_line in self.folding_regions:
+                end_line = self.folding_regions[start_line]
+                if end_line > block_line:
+                    if start_line < block_line:
+                        block = self.editor.document().findBlockByNumber(
+                            start_line)
+                        break
         return block
 
     def _clear_scope_decos(self):
@@ -382,6 +395,9 @@ class FoldingPanel(Panel):
 
         :param block: Block that starts the current fold scope.
         """
+        block_line = block.blockNumber()
+        end_line = self.folding_regions[block_line]
+
         scope = FoldScope(block)
         if (self._current_scope is None or
                 self._current_scope.get_range() != scope.get_range()):

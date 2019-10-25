@@ -1247,6 +1247,8 @@ class CodeEditor(TextEditBaseWidget):
     def handle_folding_range(self, response):
         ranges = response['params']
         logger.debug('Ranges: {}'.format(ranges))
+        folding_panel = self.panels.get(FoldingPanel)
+        folding_panel.update_folding(ranges)
 
     # ------------- LSP: Save/close file -----------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
