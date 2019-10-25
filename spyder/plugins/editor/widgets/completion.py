@@ -188,8 +188,7 @@ class CompletionWidget(QListWidget):
                 item.setData(Qt.UserRole, completion_text)
             else:
                 completion_text = self.get_html_item_representation(
-                    completion_label, '', icon_provider=None, size=0,
-                    height=height, width=width)
+                    completion_label, '', height=height, width=width)
                 item.setData(Qt.UserRole, completion_label)
                 item.setText(completion_text)
 
@@ -232,11 +231,10 @@ class CompletionWidget(QListWidget):
                                      height=DEFAULT_COMPLETION_ITEM_HEIGHT,
                                      width=DEFAULT_COMPLETION_ITEM_WIDTH):
         """Get HTML representation of and item."""
-        height = str(height)
-        width = str(width)
-        img_height = str(img_height)
-        img_width = str(img_width)
-        return ''.join([
+        height = to_text_string(height)
+        width = to_text_string(width)
+
+        parts = [
             '<table width="', width, '" height="', height, '">', '<tr>',
 
             '<td valign="middle" style="color:' + ima.MAIN_FG_COLOR + '">',
@@ -247,15 +245,23 @@ class CompletionWidget(QListWidget):
             ima.MAIN_FG_COLOR, '">',
             item_type,
             '</td>',
+        ]
+        if icon_provider is not None:
+            img_height = to_text_string(img_height)
+            img_width = to_text_string(img_width)
 
-            '<td valign="top" align="right" float="right" width="',
-            img_width, '">',
-            '<img src="data:image/png;base64, ', icon_provider, '" height="',
-            img_height, '" width="', img_width, '"/>',
-            '</td>',
-
+            parts.extend([
+                '<td valign="top" align="right" float="right" width="',
+                img_width, '">',
+                '<img src="data:image/png;base64, ', icon_provider,
+                '" height="', img_height, '" width="', img_width, '"/>',
+                '</td>',
+            ])
+        parts.extend([
             '</tr>', '</table>',
         ])
+
+        return ''.join(parts)
 
     def hide(self):
         """Override Qt method."""
@@ -406,15 +412,24 @@ class CompletionWidget(QListWidget):
                 self.completion_position)
         self.hide()
 
+    def trigger_completion_hint(self, row=None):
+        if not self.completion_list:
+            return
+        if row is None:
+            row = self.currentRow()
+        if row < 0 or len(self.completion_list) <= row:
+            return
+
+        item = self.completion_list[row]
+        if 'point' not in item:
+            return
+
+        self.sig_completion_hint.emit(
+            item['insertText'],
+            item['documentation'],
+            item['point'])
+
     @Slot(int)
     def row_changed(self, row):
         """Set completion hint info and show it."""
-        if self.completion_list:
-            item = self.completion_list[row]
-            if 'point' in item:
-                self.sig_completion_hint.emit(
-                    item['insertText'],
-                    item['documentation'],
-                    item['point'])
-
-            return
+        self.trigger_completion_hint(row)

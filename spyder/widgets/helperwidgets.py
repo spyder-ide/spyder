@@ -152,9 +152,14 @@ class HTMLDelegate(QStyledItemDelegate):
         painter.restore()
 
     def sizeHint(self, option, index):
-        # use a fixed size instead of computing an "ideal width"
-        # because it's more performant, and this is a reasonable size
-        return QSize(621, 22)
+        options = QStyleOptionViewItem(option)
+        self.initStyleOption(options, index)
+
+        doc = QTextDocument()
+        doc.setDocumentMargin(self._margin)
+        doc.setHtml(options.text)
+
+        return QSize(round(doc.idealWidth()), round(doc.size().height() - 2))
 
 
 class ItemDelegate(QStyledItemDelegate):

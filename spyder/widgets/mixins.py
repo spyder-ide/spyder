@@ -64,6 +64,8 @@ class BaseEditMixin(object):
     sig_will_remove_selection = None
     sig_text_was_inserted = None
 
+    _styled_widgets = set()
+
     def __init__(self):
         self.eol_chars = None
         self.calltip_size = 600
@@ -122,14 +124,14 @@ class BaseEditMixin(object):
 
         return point
 
-    def _update_stylesheet(self, widget, _updated=set()):
+    def _update_stylesheet(self, widget):
+        """Update the background stylesheet to make it lighter."""
         # Update the stylesheet for a given widget at most once
         # because Qt is slow to repeatedly parse & apply CSS
-        if id(widget) in _updated:
+        if id(widget) in self._styled_widgets:
             return
-        _updated.add(id(widget))
+        self._styled_widgets.add(id(widget))
 
-        """Update the background stylesheet to make it lighter."""
         if is_dark_interface():
             css = qdarkstyle.load_stylesheet_from_environment()
             widget.setStyleSheet(css)
