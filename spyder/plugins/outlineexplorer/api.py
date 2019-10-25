@@ -25,6 +25,7 @@ outlineexplorer.edit_goto.connect(handle_go_to)
 import re
 
 from qtpy.QtCore import Signal, QObject
+from qtpy.QtGui import QTextBlock
 from spyder.config.base import _
 
 
@@ -94,7 +95,8 @@ class OutlineExplorerData(QObject):
         self.def_type = def_type
         self.def_name = def_name
         self.color = color
-        self.block = block
+        # Copy the text block to make sure it is not deleted
+        self.block = QTextBlock(block)
 
     def is_not_class_nor_function(self):
         return self.def_type not in (self.CLASS, self.FUNCTION)
@@ -188,6 +190,10 @@ class OutlineExplorerData(QObject):
         forward : bool, optional
             Whether to iterate forward or backward from the current block.
         """
+        if not self.is_valid():
+            # Avoid calling blockNumber if not a valid block
+            return
+
         if forward:
             block = self.block.next()
         else:
@@ -243,3 +249,17 @@ class OutlineExplorerData(QObject):
             return True
         else:
             return False
+
+    def blockNumber(self):
+        """Get the block number."""
+        if not self.is_valid():
+            # Avoid calling blockNumber if not a valid block
+            return
+        return self.block.blockNumber()
+
+    def firstLineNumber(self):
+        """Get the first line number."""
+        if not self.is_valid():
+            # Avoid calling firstLineNumber if not a valid block
+            return
+        return self.block.firstLineNumber()
