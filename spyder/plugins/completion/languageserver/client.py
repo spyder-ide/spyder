@@ -19,6 +19,7 @@ import signal
 import subprocess
 import sys
 import time
+import socket
 
 # Third-party imports
 from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
@@ -144,6 +145,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         else:
             self.transport_args += ['--stdio-server']
             self.external_server = True
+        self.transport_unresponsive = False
 
     def start(self):
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
@@ -269,6 +271,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.lsp_server.kill()
 
     def send(self, method, params, kind):
+        if (self.transport_client.poll() is not None or
+                self.transport_unresponsive):
+            return
         if ClientConstants.CANCEL in params:
             return
         _id = self.request_seq
@@ -303,8 +308,15 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     # Try again in 10ms
                     time.sleep(0.01)
                 else:
+                    self.transport_unresponsive = True
                     # The server doesn't reply
-                    raise
+                    if socket.gethostbyname('localhost') != '127.0.0.1':
+                        raise RuntimeError(
+                            'LSP server is not responding.'
+                            ' Make sure your hosts file is correct.'
+                            ' (localhost = {})'.format(
+                                repr(socket.gethostbyname('localhost'))))
+                    raise RuntimeError('LSP server is not responding.')
         self.request_seq += 1
         return int(_id)
 
