@@ -3629,7 +3629,7 @@ class CodeEditor(TextEditBaseWidget):
         text = to_text_string(cursor.selectedText())
 
         # WordUnderCursor fails if the cursor is next to a parens `)`.
-        # If the resturned text is a right parens we move to the left.
+        # If the returned text starts with a right parens we move to the left.
         if text.startswith(')'):
             cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
             cursor.select(QTextCursor.WordUnderCursor)
