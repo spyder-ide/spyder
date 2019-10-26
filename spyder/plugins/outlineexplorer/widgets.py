@@ -84,6 +84,7 @@ class TreeItem(QTreeWidgetItem):
         block_number = self.oedata.blockNumber()
         if block_number is not None:
             return block_number + 1
+        return None
 
     def update(self):
         """Update the tree element."""
