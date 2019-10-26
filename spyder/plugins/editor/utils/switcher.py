@@ -29,10 +29,10 @@ def get_symbol_list(outlineexplorer_data_list):
     symbol_list = []
     for oedata in outlineexplorer_data_list:
         if oedata.is_class_or_function():
-            line_number = oedata.firstLineNumber()
+            line_number = oedata.get_block_number()
             if line_number is not None:
                 symbol_list.append((
-                    line_number,
+                    line_number + 1,
                     oedata.def_name,
                     oedata.fold_level,
                     oedata.get_token()))

@@ -256,16 +256,9 @@ class OutlineExplorerData(QObject):
         else:
             return False
 
-    def blockNumber(self):
+    def get_block_number(self):
         """Get the block number."""
         if not self.is_valid():
             # Avoid calling blockNumber if not a valid block
             return None
         return self.block.blockNumber()
-
-    def firstLineNumber(self):
-        """Get the first line number."""
-        if not self.is_valid():
-            # Avoid calling firstLineNumber if not a valid block
-            return None
-        return self.block.firstLineNumber()

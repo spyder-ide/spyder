@@ -81,7 +81,7 @@ class TreeItem(QTreeWidgetItem):
     @property
     def line(self):
         """Get line number."""
-        block_number = self.oedata.blockNumber()
+        block_number = self.oedata.get_block_number()
         if block_number is not None:
             return block_number + 1
         return None
@@ -501,7 +501,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         for data in editor.outlineexplorer_data_list():
             try:
-                line_nb = data.blockNumber()
+                line_nb = data.get_block_number()
                 if line_nb is None:
                     continue
                 line_nb += 1
