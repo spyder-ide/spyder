@@ -1,3 +1,4 @@
+applaunchservices
 atomicwrites
 chardet >=2.0.0
 cloudpickle
@@ -24,4 +25,3 @@ rtree
 sphinx
 spyder-kernels >=1.6.0
 watchdog
-applaunchservices

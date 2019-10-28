@@ -52,7 +52,6 @@ PYLS_REQVER = '>=0.29.2;<0.30.0'
 APPLAUNCHSERVICES_REQVER = '>=0.1.7'
 
 
-
 DEPENDENCIES_BASE = [
     {'modname': "cloudpickle",
      'package_name': "cloudpickle",
@@ -183,7 +182,6 @@ if sys.platform == "darwin":
          'package_name': "applaunchservices",
          'features': _("Notify macOS that Spyder can open Python files"),
          'required_version': APPLAUNCHSERVICES_REQVER})
-
 
 if sys.platform.startswith('linux'):
     DEPENDENCIES_BASE.append(
