@@ -714,7 +714,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.completions_hint_after_ms = self.create_spinbox(
             _("Show completion detail after keyboard idle (ms):"), None,
             'completions_hint_after_ms', min_=0, max_=5000, step=10,
-            tip=_("Default is 1000"), section='editor')
+            tip=_("Default is 500"), section='editor')
         self.automatic_completion_box = newcb(
             _("Show completions on the fly"),
             'automatic_completions',

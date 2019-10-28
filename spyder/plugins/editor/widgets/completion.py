@@ -49,9 +49,7 @@ class CompletionWidget(QListWidget):
                      CompletionItemKind.FILE: 'filenew',
                      CompletionItemKind.REFERENCE: 'reference',
                      }
-
-    ICON_MAP = {typ: ima.icon(typ) for typ in set(ITEM_TYPE_MAP.values())}
-    ICON_MAP['no_match'] = ima.icon('no_match')
+    ICON_MAP = {}
 
     sig_show_completions = Signal(object)
 
@@ -198,6 +196,11 @@ class CompletionWidget(QListWidget):
         if self.count() == 0:
             self.hide()
 
+    def _get_cached_icon(self, name):
+        if name not in self.ICON_MAP:
+            self.ICON_MAP[name] = ima.icon(name)
+        return self.ICON_MAP[name]
+
     def set_item_display(self, item_widget, item_info, height, width):
         """Set item text & icons using the info available."""
         item_provider = item_info['provider']
@@ -221,8 +224,7 @@ class CompletionWidget(QListWidget):
             width=width)
 
         item_widget.setText(item_text)
-        if item_type in self.ICON_MAP:
-            item_widget.setIcon(self.ICON_MAP[item_type])
+        item_widget.setIcon(self._get_cached_icon(item_type))
 
     def get_html_item_representation(self, item_completion, item_type,
                                      icon_provider=None,
