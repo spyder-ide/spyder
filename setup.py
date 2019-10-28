@@ -200,6 +200,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
     import setuptools     # analysis:ignore
 
 install_requires = [
+    'applaunchservices;platform_system=="Darwin"',
     'atomicwrites',
     'chardet>=2.0.0',
     'cloudpickle',

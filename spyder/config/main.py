@@ -63,6 +63,7 @@ DEFAULTS = [
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
+              'mac_open_file': False,
               'normal_screen_resolution': True,
               'high_dpi_scaling': False,
               'high_dpi_custom_scale_factor': False,
