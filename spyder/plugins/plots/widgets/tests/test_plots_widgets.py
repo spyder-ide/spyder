@@ -224,7 +224,9 @@ def test_close_one_thumbnail(figbrowser, tmpdir, fmt):
     assert len(figbrowser.thumbnails_sb.findChildren(FigureThumbnail)) == 2
 
     # Remove the first figure
-    figbrowser.close_figure()
+    figures = figbrowser.thumbnails_sb.findChildren(FigureThumbnail)
+    figbrowser.thumbnails_sb.remove_thumbnail(figures[0])
+
     assert len(figbrowser.thumbnails_sb.findChildren(FigureThumbnail)) == 1
 
 
