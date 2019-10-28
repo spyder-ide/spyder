@@ -17,9 +17,10 @@ import functools
 
 # Third-party imports
 from qtpy.QtCore import QObject, Slot, QMutex, QMutexLocker
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import get_conf_path, running_under_pytest
+from spyder.config.base import _, get_conf_path
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import select_port, getcwd_or_home
@@ -80,7 +81,7 @@ class CompletionManager(SpyderCompletionPlugin):
         self.language_status = {}
         self.started = False
         self.req_id = 0
-        self.collection_mutex = QMutex()
+        self.collection_mutex = QMutex(QMutex.Recursive)
 
         for plugin in plugins:
             if plugin in self.BASE_PLUGINS:
@@ -109,21 +110,31 @@ class CompletionManager(SpyderCompletionPlugin):
 
         if req_id not in self.requests:
             return
-        request_responses = self.requests[req_id]
-        request_responses['sources'][completion_source] = resp
-
-        wait_for = self.WAIT_FOR_SOURCE[request_responses['req_type']]
-        if (completion_source not in wait_for or not resp):
-            # Check if there's any work remaining that may return completions,
-            # since we don't have "good" completions from the current response
-            if any(self._is_client_running(source) and
-                   source not in request_responses['sources']
-                   for source in wait_for):
-                return
-        else:
-            del self.requests[req_id]
 
         with QMutexLocker(self.collection_mutex):
+            request_responses = self.requests[req_id]
+            request_responses['sources'][completion_source] = resp
+
+            wait_for = self.WAIT_FOR_SOURCE[request_responses['req_type']]
+            if not resp:
+                # Any response is better than no response
+                keep_waiting = any(
+                    self._is_client_running(source) and
+                    source not in request_responses['sources']
+                    for source in self.clients)
+            elif completion_source not in wait_for:
+                # A wait_for response is better than non-wait_for
+                keep_waiting = any(
+                    self._is_client_running(source) and
+                    source not in request_responses['sources']
+                    for source in wait_for)
+            else:
+                keep_waiting = False
+
+            if keep_waiting:
+                return
+
+            del self.requests[req_id]
             self.gather_and_send(request_responses)
 
     @Slot(str)
@@ -155,10 +166,10 @@ class CompletionManager(SpyderCompletionPlugin):
         return responses
 
     def gather_default(self, req_type, responses):
-        response = ''
+        response = None
         for source in self.SOURCE_PRIORITY[req_type]:
             if source in responses:
-                response = responses[source].get('params', '')
+                response = responses[source].get('params', None)
                 if response:
                     break
         return {'params': response}
@@ -193,14 +204,14 @@ class CompletionManager(SpyderCompletionPlugin):
         req_id = self.req_id
         self.req_id += 1
 
+        self.requests[req_id] = {
+            'language': language,
+            'req_type': req_type,
+            'response_instance': req['response_instance'],
+            'sources': {},
+        }
         for client_name in self.clients:
             client_info = self.clients[client_name]
-            self.requests[req_id] = {
-                'language': language,
-                'req_type': req_type,
-                'response_instance': req['response_instance'],
-                'sources': {},
-            }
             client_info['plugin'].send_request(
                 language, req_type, req, req_id)
 
@@ -273,3 +284,21 @@ class CompletionManager(SpyderCompletionPlugin):
 
     def get_client(self, name):
         return self.clients[name]['plugin']
+
+    def closing_plugin(self, cancelable=False):
+        """
+        Check state of the clients before closing.
+
+        Particularly for Kite, we need to check if an installation
+        is taking place.
+        """
+        kite_plugin = self.get_client('kite')
+        if cancelable and kite_plugin.is_installing():
+            reply = QMessageBox.critical(
+                self.main, 'Spyder',
+                _('Kite installation process has not finished. '
+                  'Do you really want to exit?'),
+                QMessageBox.Yes, QMessageBox.No)
+            if reply == QMessageBox.No:
+                return False
+        return True

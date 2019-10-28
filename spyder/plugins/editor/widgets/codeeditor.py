@@ -59,6 +59,8 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               QMenuOnlyForEnter,
                                               EditorExtensionsManager,
                                               SnippetsExtension)
+from spyder.plugins.completion.kite.widgets.calltoaction import (
+    KiteCallToAction)
 from spyder.plugins.completion.languageserver import (LSPRequestTypes,
                                                       TextDocumentSyncKind,
                                                       DiagnosticSeverity)
@@ -587,6 +589,10 @@ class CodeEditor(TextEditBaseWidget):
         self.completion_widget.sig_completion_hint.connect(
             self.show_hint_for_completion)
 
+        # re-use parent of completion_widget (usually the main window)
+        completion_parent = self.completion_widget.parent()
+        self.kite_call_to_action = KiteCallToAction(self, completion_parent)
+
     # --- Helper private methods
     # ------------------------------------------------------------------------
 
@@ -941,7 +947,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Configuration and protocol start/end ----------------
     def start_completion_services(self):
-        logger.debug("Completions services available for: {0}".format(
+        logger.debug(u"Completions services available for: {0}".format(
             self.filename))
         self.completions_available = True
         self.document_did_open()
@@ -1081,9 +1087,12 @@ class CodeEditor(TextEditBaseWidget):
             if len(completion_list) > 0:
                 self.completion_widget.show_list(
                         completion_list, position, automatic)
+
+            self.kite_call_to_action.handle_processed_completions(completions)
         except RuntimeError:
             # This is triggered when a codeeditor instance has been
             # removed before the response can be processed.
+            self.kite_call_to_action.hide_coverage_cta()
             return
         except Exception:
             self.log_lsp_handle_errors('Error when processing completions')
@@ -1120,10 +1129,12 @@ class CodeEditor(TextEditBaseWidget):
 
                 parameter_idx = signature_params['activeParameter']
                 parameters = signature_data['parameters']
-                parameter_data = parameters[parameter_idx]
+                parameter = None
+                if len(parameters) > 0 and parameter_idx < len(parameters):
+                    parameter_data = parameters[parameter_idx]
+                    parameter = parameter_data['label']
 
                 signature = signature_data['label']
-                parameter = parameter_data['label']
 
                 # This method is part of spyder/widgets/mixins
                 self.show_calltip(
@@ -1160,7 +1171,7 @@ class CodeEditor(TextEditBaseWidget):
             content = contents['params']
             self.sig_display_object_info.emit(content,
                                               self._request_hover_clicked)
-            if self._show_hint and self._last_point and content:
+            if content is not None and self._show_hint and self._last_point:
                 # This is located in spyder/widgets/mixins.py
                 word = self._last_hover_word,
                 content = content.replace(u'\xa0', ' ')
@@ -3431,6 +3442,8 @@ class CodeEditor(TextEditBaseWidget):
         event.ignore()
         self.sig_key_pressed.emit(event)
 
+        self.kite_call_to_action.handle_key_press(event)
+
         key = event.key()
         text = to_text_string(event.text())
         has_selection = self.has_selected_text()
@@ -3976,6 +3989,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def mousePressEvent(self, event):
         """Override Qt method."""
+        self.kite_call_to_action.handle_mouse_press(event)
+
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier
         pos = event.pos()

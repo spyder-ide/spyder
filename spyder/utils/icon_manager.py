@@ -11,8 +11,8 @@ import mimetypes as mime
 import sys
 
 # Third party imports
-from qtpy.QtCore import QBuffer, QByteArray
-from qtpy.QtGui import QIcon, QImage
+from qtpy.QtCore import QBuffer, QByteArray, Qt
+from qtpy.QtGui import QIcon, QImage, QPixmap
 from qtpy.QtWidgets import QStyle, QWidget
 
 # Local imports
@@ -403,9 +403,7 @@ def icon(name, scale_factor=None, resample=False, icon_path=None):
 
 def get_kite_icon():
     """Return the Kite logo taking into account the theme of the interface."""
-    icon_path = 'kite_light.svg'
-    if is_dark_interface():
-        icon_path = 'kite_dark.svg'
+    icon_path = 'kite_dark.svg' if is_dark_interface() else 'kite_light.svg'
     return QIcon(get_image_path(icon_path))
 
 

@@ -21,7 +21,7 @@ import time
 # Third party imports
 import pylint
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import QByteArray, QProcess, Signal, Slot
+from qtpy.QtCore import QByteArray, QProcess, Signal, Slot, QProcessEnvironment
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
                             QVBoxLayout, QWidget)
 
@@ -341,6 +341,10 @@ class PylintWidget(QWidget):
             p_args += [osp.basename(filename)]
         else:
             p_args = [osp.basename(filename)]
+        processEnvironment = QProcessEnvironment()
+        processEnvironment.insert("PYTHONIOENCODING", "utf8")
+        self.process.setProcessEnvironment(processEnvironment)
+
         self.process.start(sys.executable, p_args)
 
         running = self.process.waitForStarted()

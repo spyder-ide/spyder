@@ -168,7 +168,9 @@ try:
 except ImportError:
     WinUserEnvDialog = None  # analysis:ignore
 
+
 from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
+                                    get_kite_icon,
                                     add_shortcut_to_tooltip,
                                     create_module_bookmark_actions,
                                     create_program_action, DialogManager,
@@ -317,6 +319,7 @@ class MainWindow(QMainWindow):
 
     # Signals
     restore_scrollbar_position = Signal()
+    sig_setup_finished = Signal()
     all_actions_defined = Signal()
     sig_pythonpath_changed = Signal()
     sig_open_external_file = Signal(str)
@@ -799,6 +802,15 @@ class MainWindow(QMainWindow):
                             "(i.e. for all sessions)"),
                     triggered=self.win_env)
             self.tools_menu_actions.append(winenv_action)
+        from spyder.plugins.completion.kite.utils.install import (
+            check_if_kite_installed)
+        is_kite_installed, kite_path = check_if_kite_installed()
+        if not is_kite_installed:
+            install_kite_action = create_action(
+                self, _("Install Kite completion engine"),
+                icon=get_kite_icon(),
+                triggered=self.show_kite_installation)
+            self.tools_menu_actions.append(install_kite_action)
         self.tools_menu_actions += [MENU_SEPARATOR, reset_spyder_action]
         if get_debug_level() >= 3:
             self.menu_lsp_logs = QMenu(_("LSP logs"))
@@ -1321,6 +1333,7 @@ class MainWindow(QMainWindow):
 
     def update_lsp_logs(self):
         """Create an action for each lsp log file."""
+        self.menu_lsp_logs.clear()
         lsp_logs = []
         regex = re.compile(r'.*_.*_(\d+)[.]log')
         files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
@@ -1406,6 +1419,9 @@ class MainWindow(QMainWindow):
             if self.projects.get_active_project() is None:
                 self.editor.setup_open_files()
 
+        # Connect Editor to Kite completions plugin status
+        self.editor.kite_completions_file_status()
+
         # Setup menus
         self.setup_menus()
 
@@ -1422,6 +1438,9 @@ class MainWindow(QMainWindow):
         # Fixes spyder-ide/spyder#3887.
         self.menuBar().raise_()
         self.is_setting_up = False
+
+        # Notify that the setup of the mainwindow was finished
+        self.sig_setup_finished.emit()
 
     def set_window_title(self):
         """Set window title."""
@@ -2426,6 +2445,8 @@ class MainWindow(QMainWindow):
         self.save_current_window_settings(prefix)
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
+        if not self.completions.closing_plugin(cancelable):
+            return False
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             plugin._close_window()
             if not plugin.closing_plugin(cancelable):
@@ -2943,6 +2964,10 @@ class MainWindow(QMainWindow):
     def win_env(self):
         """Show Windows current user environment variables"""
         self.dialog_manager.show(WinUserEnvDialog(self))
+
+    def show_kite_installation(self):
+        """Show installation dialog for Kite."""
+        self.completions.get_client('kite').show_installation_dialog()
 
     #---- Preferences
     def apply_settings(self):

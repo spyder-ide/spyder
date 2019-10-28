@@ -985,7 +985,35 @@ class LanguageServerConfigPage(GeneralConfigPage):
         docstring_style_widget.setLayout(docstring_style_layout)
 
         # --- Advanced tab ---
+        # Clients group
+        clients_group = QGroupBox(_("Providers"))
+        self.kite_enabled = newcb(_("Enable Kite "
+                                    "(if the Kite engine is running)"),
+                                  'enable',
+                                  section='kite')
+        self.fallback_enabled = newcb(_("Enable fallback completions"),
+                                      'enable',
+                                      section='fallback-completions')
+
+        clients_layout = QVBoxLayout()
+        clients_layout.addWidget(self.kite_enabled)
+        clients_layout.addWidget(self.fallback_enabled)
+        clients_group.setLayout(clients_layout)
+
+        kite_layout = QVBoxLayout()
+        self.kite_cta = self.create_checkbox(
+            _("Notify me when Kite can provide missing completions"
+              " (but is unavailable)"),
+            'call_to_action',
+            section='kite')
+        kite_layout.addWidget(self.kite_cta)
+        kite_group = QGroupBox(_(
+            'Kite configuration'))
+        kite_group.setLayout(kite_layout)
+
         # Advanced label
+        lsp_advanced_group = QGroupBox(_(
+            'Python Language Server configuration'))
         advanced_label = QLabel(
             _("<b>Warning</b>: Only modify these values if "
               "you know what you're doing!"))
@@ -1052,8 +1080,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_layout.addWidget(self.advanced_options_check)
         advanced_layout.addWidget(advanced_options_widget)
 
-        advanced_widget = QWidget()
-        advanced_widget.setLayout(advanced_layout)
+        lsp_advanced_group.setLayout(advanced_layout)
 
         # --- Other servers tab ---
         # Section label
@@ -1116,7 +1143,9 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
         self.tabs.addTab(self.create_tab(docstring_style_widget),
                          _('Docstring style'))
-        self.tabs.addTab(self.create_tab(advanced_widget),
+        self.tabs.addTab(self.create_tab(clients_group,
+                                         lsp_advanced_group,
+                                         kite_group),
                          _('Advanced'))
         self.tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 

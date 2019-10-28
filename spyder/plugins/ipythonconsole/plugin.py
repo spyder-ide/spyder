@@ -556,35 +556,33 @@ class IPythonConsole(SpyderPluginWidget):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
         if sw is not None:
-            if sw.is_waiting_pdb_input():
-                pass
-            else:
-                if not current_client:
-                    # Clear console and reset namespace for
-                    # dedicated clients.
-                    # See spyder-ide/spyder#5748.
-                    try:
-                        sw.sig_prompt_ready.disconnect()
-                    except TypeError:
-                        pass
-                    sw.reset_namespace(warning=False)
-                elif current_client and clear_variables:
-                    sw.reset_namespace(warning=False)
-                # Needed to handle an error when kernel_client is none.
-                # See spyder-ide/spyder#6308.
+            if not current_client:
+                # Clear console and reset namespace for
+                # dedicated clients.
+                # See spyder-ide/spyder#5748.
                 try:
-                    sw.execute(to_text_string(lines))
-                except AttributeError:
+                    sw.sig_prompt_ready.disconnect()
+                except TypeError:
                     pass
+                sw.reset_namespace(warning=False)
+            elif current_client and clear_variables:
+                sw.reset_namespace(warning=False)
+            # Needed to handle an error when kernel_client is none.
+            # See spyder-ide/spyder#6308.
+            try:
+                sw.execute(to_text_string(lines))
+            except AttributeError:
+                pass
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
-    def pdb_execute(self, line, hidden=False):
+    def pdb_execute(self, line, hidden=False, echo_code=False):
         sw = self.get_current_shellwidget()
         if sw is not None:
             # Needed to handle an error when kernel_client is None.
             # See spyder-ide/spyder#7578.
             try:
+                sw.set_pdb_echo_code(echo_code)
                 sw.pdb_execute(line, hidden)
             except AttributeError:
                 pass

@@ -1008,3 +1008,46 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         QPlainTextEdit.wheelEvent(self, event)
         self.hide_completion_widget()
         self.highlight_current_cell()
+
+    def position_widget_at_cursor(self, widget):
+        # Retrieve current screen height
+        desktop = QApplication.desktop()
+        srect = desktop.availableGeometry(desktop.screenNumber(widget))
+
+        left, top, right, bottom = (srect.left(), srect.top(),
+                                    srect.right(), srect.bottom())
+        ancestor = widget.parent()
+        if ancestor:
+            left = max(left, ancestor.x())
+            top = max(top, ancestor.y())
+            right = min(right, ancestor.x() + ancestor.width())
+            bottom = min(bottom, ancestor.y() + ancestor.height())
+
+        point = self.cursorRect().bottomRight()
+        point = self.calculate_real_position(point)
+        point = self.mapToGlobal(point)
+        # Move to left of cursor if not enough space on right
+        widget_right = point.x() + widget.width()
+        if widget_right > right:
+            point.setX(point.x() - widget.width())
+        # Push to right if not enough space on left
+        if point.x() < left:
+            point.setX(left)
+
+        # Moving widget above if there is not enough space below
+        widget_bottom = point.y() + widget.height()
+        x_position = point.x()
+        if widget_bottom > bottom:
+            point = self.cursorRect().topRight()
+            point = self.mapToGlobal(point)
+            point.setX(x_position)
+            point.setY(point.y() - widget.height())
+
+        if ancestor is not None:
+            # Useful only if we set parent to 'ancestor' in __init__
+            point = ancestor.mapFromGlobal(point)
+
+        widget.move(point)
+
+    def calculate_real_position(self, point):
+        return point

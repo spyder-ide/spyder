@@ -29,11 +29,13 @@ def get_symbol_list(outlineexplorer_data_list):
     symbol_list = []
     for oedata in outlineexplorer_data_list:
         if oedata.is_class_or_function():
-            symbol_list.append((
-                oedata.block.firstLineNumber(),
-                oedata.def_name,
-                oedata.fold_level,
-                oedata.get_token()))
+            line_number = oedata.get_block_number()
+            if line_number is not None:
+                symbol_list.append((
+                    line_number + 1,
+                    oedata.def_name,
+                    oedata.fold_level,
+                    oedata.get_token()))
     return sorted(symbol_list)
 
 
@@ -99,8 +101,8 @@ class EditorSwitcherManager(object):
     LINE_MODE = ':'
     FILES_MODE = ''
 
-    def __init__(self, switcher_instance, get_codeeditor, get_editorstack,
-                 section=_("Editor")):
+    def __init__(self, plugin, switcher_instance, get_codeeditor,
+                 get_editorstack, section=_("Editor")):
         """
         'get_codeeditor' and 'get_editorstack' params should be callables
         to get the current CodeEditor or EditorStack instance as needed.
@@ -108,6 +110,7 @@ class EditorSwitcherManager(object):
             current_codeeditor = get_codeditor()
             current_editorstack = get_editorstack()
         """
+        self._plugin = plugin
         self._switcher = switcher_instance
         self._editor = get_codeeditor
         self._editorstack = get_editorstack
@@ -231,6 +234,7 @@ class EditorSwitcherManager(object):
             # Each plugin that wants to attach to the switcher should do this?
             if item.get_section() == self._section:
                 self.editor_switcher_handler(data)
+                self._plugin.switch_to_plugin()
 
     def handle_switcher_text(self, search_text):
         """Handle switcher search text for line mode."""

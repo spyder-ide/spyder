@@ -41,23 +41,24 @@ class StatusBarWidget(QWidget):
         self._icon = None
         self._pixmap = None
         self._icon_size = QSize(16, 16)  # Should this be adjustable?
-        self.label_icon = QLabel() if icon is not None else None
+        self.label_icon = QLabel()
         self.label_value = QLabel()
 
         # Widget setup
         self.set_icon(icon)
 
         # See spyder-ide/spyder#9044.
-        self.text_font = QFont(get_font(option='font'))
-        self.text_font.setPointSize(self.font().pointSize())
-        self.text_font.setBold(True)
+        self.text_font = QFont(QFont().defaultFamily(), weight=QFont.Normal)
         self.label_value.setAlignment(Qt.AlignRight)
         self.label_value.setFont(self.text_font)
 
         # Layout
         layout = QHBoxLayout()
-        if icon is not None:
-            layout.addWidget(self.label_icon)
+        layout.setSpacing(0)  # Reduce space between icon and label
+        layout.addWidget(self.label_icon)
+        self.label_icon.setVisible(icon is not None)
+
+
         layout.addWidget(self.label_value)
         layout.addSpacing(20)
 
@@ -74,6 +75,7 @@ class StatusBarWidget(QWidget):
     # ------------------------------------------------------------------------
     def set_icon(self, icon):
         """Set the icon for the status bar widget."""
+        self.label_icon.setVisible(icon is not None)
         if icon is not None and isinstance(icon, QIcon):
             self._icon = icon
             self._pixmap = icon.pixmap(self._icon_size)

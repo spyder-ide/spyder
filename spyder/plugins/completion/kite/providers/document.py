@@ -62,6 +62,7 @@ def convert_text_snippet(snippet_info):
 
 
 class DocumentProvider:
+
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_OPEN)
     def document_did_open(self, params):
         request = {
@@ -69,17 +70,16 @@ class DocumentProvider:
             'filename': osp.realpath(params['file']),
             'text': params['text'],
             'action': 'focus',
-            'selections': [
-                {'start': params['offset'], 'end': params['offset']}
-            ]
+            'selections': [{
+                'start': params['offset'],
+                'end': params['offset'],
+                'encoding': 'utf-16',
+            }],
         }
 
-        default_info = {'text': '', 'count': 0}
         with QMutexLocker(self.mutex):
-            file_info = self.opened_files.get(params['file'], default_info)
-            file_info['count'] += 1
-            file_info['text'] = params['text']
-            self.opened_files[params['file']] = file_info
+            self.get_status(params['file'])
+            self.opened_files[params['file']] = params['text']
         return request
 
     @send_request(method=LSPRequestTypes.DOCUMENT_DID_CHANGE)
@@ -89,18 +89,19 @@ class DocumentProvider:
             'filename': osp.realpath(params['file']),
             'text': params['text'],
             'action': 'edit',
-            'selections': [
-                {'start': params['offset'], 'end': params['offset']}
-            ]
+            'selections': [{
+                'start': params['offset'],
+                'end': params['offset'],
+                'encoding': 'utf-16',
+            }],
         }
         with QMutexLocker(self.mutex):
-            file_info = self.opened_files[params['file']]
-            file_info['text'] = params['text']
+            self.opened_files[params['file']] = params['text']
         return request
 
     @send_request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
     def request_document_completions(self, params):
-        text = self.opened_files[params['file']]['text']
+        text = self.opened_files[params['file']]
         request = {
             'filename': osp.realpath(params['file']),
             'editor': 'spyder',
@@ -109,7 +110,7 @@ class DocumentProvider:
             'position': {
                 'begin': params['offset']
             },
-            'placeholders': []
+            'offset_encoding': 'utf-16',
         }
         return request
 
@@ -156,9 +157,9 @@ class DocumentProvider:
 
     @send_request(method=LSPRequestTypes.DOCUMENT_HOVER)
     def request_hover(self, params):
-        text = self.opened_files[params['file']]['text']
+        text = self.opened_files.get(params['file'], "")
         md5 = hashlib.md5(text.encode('utf-8')).hexdigest()
-        path = str(params['file'])
+        path = params['file']
         path = path.replace(osp.sep, ':')
         logger.debug(path)
         if os.name == 'nt':
@@ -167,7 +168,8 @@ class DocumentProvider:
         request = {
             'filename': path,
             'hash': md5,
-            'cursor_runes': params['offset']
+            'cursor_runes': params['offset'],
+            'offset_encoding': 'utf-16',
         }
         return None, request
 
@@ -188,13 +190,13 @@ class DocumentProvider:
 
     @send_request(method=LSPRequestTypes.DOCUMENT_SIGNATURE)
     def request_signature(self, request):
-        text = self.opened_files[request['file']]['text']
+        text = self.opened_files.get(request['file'], "")
         response = {
             'editor': 'spyder',
             'filename': request['file'],
             'text': text,
             'cursor_runes': request['offset'],
-            'offset_encoding': 'utf-32'
+            'offset_encoding': 'utf-16',
         }
         return response
 
@@ -218,12 +220,13 @@ class DocumentProvider:
                 if len(signatures) > 0:
                     signature = signatures[0]
                     logger.debug(signature)
-                    for arg in signature['args']:
-                        parameters.append({
-                            'label': arg['name'],
-                            'documentation': ''
-                        })
-                        names.append(arg['name'])
+                    if signature['args'] is not None:
+                        for arg in signature['args']:
+                            parameters.append({
+                                'label': arg['name'],
+                                'documentation': ''
+                            })
+                            names.append(arg['name'])
 
                     func_args = ', '.join(names)
                     call_label = '{0}({1})'.format(call_label, func_args)
