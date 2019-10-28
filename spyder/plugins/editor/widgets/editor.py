@@ -555,7 +555,7 @@ class EditorStack(QWidget):
         self.automatic_completion_chars = 3
         self.automatic_completion_ms = 300
         self.completions_hint_enabled = True
-        self.completions_hint_after_ms = 1000
+        self.completions_hint_after_ms = 500
         self.hover_hints_enabled = True
         self.code_snippets_enabled = True
         self.underline_errors_enabled = False

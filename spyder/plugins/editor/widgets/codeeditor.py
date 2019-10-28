@@ -523,7 +523,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Completions hint
         self.completions_hint = True
-        self.completions_hint_after_ms = 1000
+        self.completions_hint_after_ms = 500
 
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = False
@@ -788,7 +788,7 @@ class CodeEditor(TextEditBaseWidget):
                      automatic_completions_after_chars=3,
                      automatic_completions_after_ms=300,
                      completions_hint=True,
-                     completions_hint_after_ms=1000,
+                     completions_hint_after_ms=500,
                      hover_hints=True,
                      code_snippets=True,
                      highlight_current_line=True,

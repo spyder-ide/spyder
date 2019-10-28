@@ -236,6 +236,12 @@ class CompletionWidget(QListWidget):
         height = to_text_string(height)
         width = to_text_string(width)
 
+        # Unfortunately, both old- and new-style Python string formatting
+        # have poor performance due to being implemented as functions that
+        # parse the format string.
+        # f-strings in new versions of Python are fast due to Python
+        # compiling them into efficient string operations, but to be
+        # compatible with old versions of Python, we manually join strings.
         parts = [
             '<table width="', width, '" height="', height, '">', '<tr>',
 
