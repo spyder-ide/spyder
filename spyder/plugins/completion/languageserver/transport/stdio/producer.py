@@ -58,7 +58,6 @@ class StdioLanguageServerClient(LanguageServerClient):
         logger.info('Closing consumer thread...')
         self.reading_thread.stop()
         logger.debug('Joining thread...')
-        self.reading_thread.join()
         logger.debug('Exit routine should be complete')
 
     def transport_send(self, content_length, body):

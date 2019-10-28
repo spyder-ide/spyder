@@ -366,8 +366,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     @handles(SERVER_READY)
     @send_request(method=LSPRequestTypes.INITIALIZE)
     def initialize(self, *args, **kwargs):
+        pid = self.transport_client.pid if not self.external_server else None
         params = {
-            'processId': self.transport_client.pid,
+            'processId': pid,
             'rootUri': pathlib.Path(osp.abspath(self.folder)).as_uri(),
             'capabilities': self.client_capabilites,
             'trace': TRACE
