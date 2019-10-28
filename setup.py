@@ -204,8 +204,8 @@ install_requires = [
     'chardet>=2.0.0',
     'cloudpickle',
     'diff-match-patch',
-    # Pseudo-dependency. To be removed when Jedi fixes completions
-    # for Numpy and Pandas
+    # This is here until Jedi 0.15+ fixes completions for
+    # Numpy and Pandas
     'jedi==0.14.1',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
@@ -222,7 +222,7 @@ install_requires = [
     'pympler',
     'pyqt5<5.13;python_version>="3"',
     'pyqtwebengine<5.13;python_version>="3"',
-    'python-language-server[all]>=0.29.2,<0.30.0',
+    'python-language-server[all]>=0.29.3,<0.30.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq',
     'qdarkstyle>=2.7',
