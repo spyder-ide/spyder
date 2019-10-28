@@ -228,13 +228,16 @@ install_requires = [
     # pyqtwebengine module
     'pyqtwebengine<5.13;python_version>="3"',
     # Pyls with all its dependencies
-    'python-language-server[all]>=0.28.3,<0.29.0',
+    'python-language-server[all]>=0.29.2,<0.30.0',
     # Required to get SSH connections to remote kernels
     'pexpect',
     'paramiko;platform_system=="Windows"',
     # Required for accesing xdg spec on Linux
     'pyxdg>=0.26;platform_system=="Linux"',
-    'pympler'
+    'pympler',
+    # Pseudo-dependency. To be removed when Jedi fixes completions
+    # for Numpy and Pandas
+    'jedi==0.14.1'
 ]
 
 extras_require = {
