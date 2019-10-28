@@ -1333,6 +1333,7 @@ class MainWindow(QMainWindow):
 
     def update_lsp_logs(self):
         """Create an action for each lsp log file."""
+        self.menu_lsp_logs.clear()
         lsp_logs = []
         regex = re.compile(r'.*_.*_(\d+)[.]log')
         files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
@@ -1468,12 +1469,18 @@ class MainWindow(QMainWindow):
 
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies"""
+        # Declare dependencies before trying to detect the missing ones
         dependencies.declare_dependencies()
         missing_deps = dependencies.missing_dependencies()
+
         if missing_deps:
+            # Fix html formatting. The last 4 chars correspond to a
+            # '<br>' added by missing_dependencies
+            missing_deps = missing_deps[:-4].replace('<', '&lt;')
+
             QMessageBox.critical(self, _('Error'),
                 _("<b>You have missing dependencies!</b>"
-                  "<br><br><tt>%s</tt><br>"
+                  "<br><br><tt>%s</tt><br><br>"
                   "<b>Please install them to avoid this message.</b>"
                   "<br><br>"
                   "<i>Note</i>: Spyder could work without some of these "
