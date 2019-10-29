@@ -309,8 +309,8 @@ class CompletionWidget(QListWidget):
             self.hide()
             self.textedit.keyPressEvent(event)
         elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
-                     Qt.Key_Home, Qt.Key_End,
-                     Qt.Key_CapsLock) and not modifier:
+                     Qt.Key_Home, Qt.Key_End) and not modifier:
+            self.textedit._completions_hint_idle = True
             if key == Qt.Key_Up and self.currentRow() == 0:
                 self.setCurrentRow(self.count() - 1)
             elif key == Qt.Key_Down and self.currentRow() == self.count()-1:
