@@ -172,7 +172,12 @@ class CompletionWidget(QListWidget):
 
     def update_list(self, current_word, new=True):
         """
-        Update the displayed list by filtering self.completion_list.
+        Update the displayed list by filtering self.completion_list based on
+        the current_word under the cursor (see check_can_complete).
+
+        If we're not updating the list with new completions, we filter out
+        textEdit completions, since it's difficult to apply them correctly
+        after the user makes edits.
 
         If no items are left on the list the autocompletion should stop
         """

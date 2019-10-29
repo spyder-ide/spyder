@@ -855,6 +855,14 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.completion_widget.item_selected()
 
     def insert_completion(self, completion, completion_position):
+        """Insert a completion into the editor.
+
+        completion_position is where the completion was generated.
+
+        The replacement range is computed using the (LSP) completion's
+        textEdit field if it exists. Otherwise, we replace from the
+        start of the word under the cursor.
+        """
         if not completion:
             return
         cursor = self.textCursor()
