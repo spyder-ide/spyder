@@ -139,14 +139,13 @@ class ColorModel(QFileSystemModel):
     """FileSystemModel providing a color-code for different commit-status."""
     def __init__(self, *args, **kwargs):
         self.vcs_state = {}
-        normalstyle = CONF.get('appearance', 'selected') + '/normal'
         self.color_array = [
-                QColor(CONF.get('project_explorer', 'color/untracked')),
-                QColor(CONF.get('project_explorer', 'color/ignored')),
-                QColor(CONF.get('project_explorer', 'color/modified')),
-                QColor(CONF.get('project_explorer', 'color/added')),
-                QColor(CONF.get('project_explorer', 'color/conflict')),
-                QColor(CONF.get('appearance', normalstyle)[0])]
+            QColor('#ff0000'),  # untracked
+            QColor('#808080'),  # ignored
+            QColor('#0099ff'),  # modified
+            QColor('#00ff00'),  # added
+            QColor('#ff7700'),  # conflict
+            QColor(ima.MAIN_FG_COLOR)]  # Base
         self.root_path = ''
         self.use_vcs = CONF.get('project_explorer', 'use_version_control')
         self.func = lambda p, f, l: self.new_row(p, f, l)
@@ -216,10 +215,9 @@ class ColorModel(QFileSystemModel):
         """Set the colors of the elements in the Treeview."""
         if self.use_vcs and self.vcs_state and role == Qt.TextColorRole:
             filename = osp.abspath(self.filePath(index))
-            bMap = [x in filename for x in self.vcs_state]
-            if sum(bMap) == 1:
-                val = list(self.vcs_state)[bMap.index(1)]
-                return self.color_array[self.vcs_state[val]]
+            if filename in self.vcs_state:
+                color_index = self.vcs_state[filename]
+                return self.color_array[color_index]
             else:
                 return self.color_array[-1]
         return super(ColorModel, self).data(index, role)

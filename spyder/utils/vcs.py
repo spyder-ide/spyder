@@ -113,7 +113,8 @@ def git_status(out_str, path):
                 index = ["??", "!!"].index(status)
             except ValueError:
                 continue
-        vcsst[osp.abspath(osp.join(path, f_string[3:]))] = index
+        relative_string = f_string[3:].replace("\"", "")
+        vcsst[osp.abspath(osp.join(path, relative_string))] = index
     return vcsst
 
 
@@ -162,8 +163,6 @@ def get_vcs_status(vcs_path):
                     vcsst.update(hg_status(out.decode("utf-8")[:-1], path))
             else:
                 continue
-    if vcsst == {}:
-        return []
     return vcsst
 
 

@@ -1363,7 +1363,7 @@ class Editor(SpyderPluginWidget):
     @Slot(str, str)
     def update_vcs_status(self, _, filename):
         if self.projects is not None:
-            self.projects.explorer.treewidget.fsmodel.set_vcs_state(filename)
+            self.projects.update_vcs_status(filename)
 
     #------ Handling editor windows
     def setup_other_windows(self):
