@@ -3624,8 +3624,16 @@ class CodeEditor(TextEditBaseWidget):
     def _handle_completions(self):
         """Handle on the fly completions with a delay."""
         cursor = self.textCursor()
+        pos = cursor.position()
         cursor.select(QTextCursor.WordUnderCursor)
         text = to_text_string(cursor.selectedText())
+
+        # WordUnderCursor fails if the cursor is next to a right brace.
+        # If the returned text starts with it, we move to the left.
+        if text.startswith((')', ']', '}')):
+            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.select(QTextCursor.WordUnderCursor)
+            text = to_text_string(cursor.selectedText())
 
         if (len(text) >= self.automatic_completions_after_chars
                 and self._last_key_pressed_text):
@@ -3633,7 +3641,8 @@ class CodeEditor(TextEditBaseWidget):
 
             # Perform completion on the fly
             if self.automatic_completions and not self.in_comment_or_string():
-                if text.isalpha():
+                # Variables can include numbers and underscores
+                if text.isalpha() or text.isalnum() or '_' in text:
                     self.do_completion(automatic=True)
                     self._last_key_pressed_text = ''
 
