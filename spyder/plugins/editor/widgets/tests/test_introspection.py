@@ -213,6 +213,7 @@ def test_automatic_completions_parens_bug(lsp_codeeditor, qtbot):
     completion = code_editor.completion_widget
     code_editor.toggle_code_snippets(False)
 
+    # Parens:
     # Set cursor to start
     code_editor.set_text('my_list = [1, 2, 3]\nlist_copy = list((my))')
     cursor = code_editor.textCursor()
@@ -229,6 +230,41 @@ def test_automatic_completions_parens_bug(lsp_codeeditor, qtbot):
         qtbot.keyClicks(code_editor, '_')
 
     assert "my_list" in [x['label'] for x in sig.args[0]]
+
+    # Square braces:
+    # Set cursor to start
+    code_editor.set_text('my_dic = {1: 1, 2: 2}\nonesee = 1\none = my_dic[on]')
+    cursor = code_editor.textCursor()
+    code_editor.moveCursor(cursor.End)
+
+    # Move cursor next to list((my$))
+    qtbot.keyPress(code_editor, Qt.Key_Left)
+    qtbot.wait(500)
+
+    # Complete my_ -> my_list
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=5000) as sig:
+        qtbot.keyClicks(code_editor, 'e')
+
+    assert "onesee" in [x['label'] for x in sig.args[0]]
+
+
+    # Curly braces:
+    # Set cursor to start
+    code_editor.set_text('my_dic = {1: 1, 2: 2}\nonesee = 1\none = {on}')
+    cursor = code_editor.textCursor()
+    code_editor.moveCursor(cursor.End)
+
+    # Move cursor next to list((my$))
+    qtbot.keyPress(code_editor, Qt.Key_Left)
+    qtbot.wait(500)
+
+    # Complete my_ -> my_list
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=5000) as sig:
+        qtbot.keyClicks(code_editor, 'e')
+
+    assert "onesee" in [x['label'] for x in sig.args[0]]
 
 
 @pytest.mark.slow
