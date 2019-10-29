@@ -8,6 +8,7 @@
 
 from __future__ import print_function
 
+from codecs import escape_decode
 import os
 import os.path as osp
 import subprocess
@@ -137,6 +138,8 @@ def hg_status(out_str, path):
 def get_vcs_status(vcs_path):
     """Return the commit status."""
     root_path = get_vcs_root(vcs_path)
+    if root_path is None:
+        return []
     if not root_path:
         # look in subdirectories for repositories
         paths = []
@@ -156,6 +159,7 @@ def get_vcs_status(vcs_path):
         if programs.find_program(tool):
             proc = programs.run_program(tool, args, cwd=path)
             out, err = proc.communicate()
+            out = escape_decode(out)[0]
             if proc.returncode >= 0 and err == b'' and out:
                 if tool == 'git':
                     vcsst.update(git_status(out.decode("utf-8")[:-1], path))
