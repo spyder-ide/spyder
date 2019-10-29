@@ -183,8 +183,17 @@ class FoldingPanel(Panel):
             new_folding_ranges[starting_line + 1] = ending_line + 1
         # TODO: Line difference computation should be done here in order
         # to detect if folding regions were not modified.
+
         self.folding_regions = new_folding_ranges
         self.folding_status = {line: False for line in self.folding_regions}
+        block = self.editor.firstVisibleBlock()
+        while block.isValid():
+            block_visible = block.isVisible()
+            block_number = block.blockNumber()
+            if not block_visible:
+                if block_number in self.folding_regions:
+                    self.folding_status[block_number] = True
+            block = block.next()
         self.repaint()
 
     def sizeHint(self):
