@@ -340,7 +340,7 @@ class CompletionWidget(QListWidget):
         if item is None:
             item = self.currentItem()
         current_word = self.textedit.get_current_word(completion=True)
-        completion = self.currentItem().data(Qt.UserRole)
+        completion = item.data(Qt.UserRole)
         if isinstance(completion, dict):
             filter_text = completion['filterText']
         else:
