@@ -358,9 +358,18 @@ class CodeEditor(TextEditBaseWidget):
         # Typing keys / handling on the fly completions
         # See: keyPressEvent
         self._last_key_pressed_text = ''
-        self._timer_key_press = QTimer(self)
-        self._timer_key_press.setSingleShot(True)
-        self._timer_key_press.timeout.connect(self._handle_completions)
+        self._timer_autocomplete = QTimer(self)
+        self._timer_autocomplete.setSingleShot(True)
+        self._timer_autocomplete.timeout.connect(self._handle_completions)
+
+        # Handle completions hints
+        self._completions_hint_idle = False
+        self._timer_completions_hint = QTimer(self)
+        self._timer_completions_hint.setSingleShot(True)
+        self._timer_completions_hint.timeout.connect(
+            self._set_completions_hint_idle)
+        self.completion_widget.sig_completion_hint.connect(
+            self.show_hint_for_completion)
 
         # Goto uri
         self._last_hover_pattern_key = None
@@ -514,6 +523,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Completions hint
         self.completions_hint = True
+        self.completions_hint_after_ms = 500
 
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = False
@@ -584,10 +594,6 @@ class CodeEditor(TextEditBaseWidget):
         self.previous_text = ''
         self.word_tokens = []
         self.patch = []
-
-        # Handle completions hints
-        self.completion_widget.sig_completion_hint.connect(
-            self.show_hint_for_completion)
 
         # re-use parent of completion_widget (usually the main window)
         completion_parent = self.completion_widget.parent()
@@ -782,6 +788,7 @@ class CodeEditor(TextEditBaseWidget):
                      automatic_completions_after_chars=3,
                      automatic_completions_after_ms=300,
                      completions_hint=True,
+                     completions_hint_after_ms=500,
                      hover_hints=True,
                      code_snippets=True,
                      highlight_current_line=True,
@@ -874,11 +881,11 @@ class CodeEditor(TextEditBaseWidget):
         self.toggle_automatic_completions(automatic_completions)
         self.set_automatic_completions_after_chars(
             automatic_completions_after_chars)
-        self.set_automatic_completions_after_ms(
-            automatic_completions_after_ms)
+        self.set_automatic_completions_after_ms(automatic_completions_after_ms)
 
         # Completions hint
         self.toggle_completions_hint(completions_hint)
+        self.set_completions_hint_after_ms(completions_hint_after_ms)
 
         # Hover hints
         self.toggle_hover_hints(hover_hints)
@@ -1313,6 +1320,12 @@ class CodeEditor(TextEditBaseWidget):
         Set the amount of time in ms after which auto completion is fired.
         """
         self.automatic_completions_after_ms = ms
+
+    def set_completions_hint_after_ms(self, ms):
+        """
+        Set the amount of time in ms after which the completions hint is shown.
+        """
+        self.completions_hint_after_ms = ms
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
@@ -2125,11 +2138,14 @@ class CodeEditor(TextEditBaseWidget):
         self.tooltip_widget.hide()
         self.clear_extra_selections('code_analysis_highlight')
 
+    def _set_completions_hint_idle(self):
+        self._completions_hint_idle = True
+        self.completion_widget.trigger_completion_hint()
+
     # --- Hint for completions
     def show_hint_for_completion(self, word, documentation, at_point):
         """Show hint for completion element."""
-        self.hide_tooltip()
-        if self.completions_hint:
+        if self.completions_hint and self._completions_hint_idle:
             completion_doc = {'name': word,
                               'signature': documentation}
 
@@ -2142,8 +2158,8 @@ class CodeEditor(TextEditBaseWidget):
                     max_lines=self._DEFAULT_MAX_LINES,
                     max_width=self._DEFAULT_COMPLETION_HINT_MAX_WIDTH)
                 self.tooltip_widget.move(at_point)
-            else:
-                self.hide_tooltip()
+                return
+        self.hide_tooltip()
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
@@ -3431,7 +3447,13 @@ class CodeEditor(TextEditBaseWidget):
     def keyPressEvent(self, event):
         """Reimplement Qt method."""
         if self.automatic_completions_after_ms > 0:
-            self._timer_key_press.start(self.automatic_completions_after_ms)
+            self._timer_autocomplete.start(self.automatic_completions_after_ms)
+
+        if self.completions_hint_after_ms > 0:
+            self._completions_hint_idle = False
+            self._timer_completions_hint.start(self.completions_hint_after_ms)
+        else:
+            self._set_completions_hint_idle()
 
         def insert_text(event):
             TextEditBaseWidget.keyPressEvent(self, event)
@@ -3479,9 +3501,6 @@ class CodeEditor(TextEditBaseWidget):
                      '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
         delimiters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=',
                       '//=', '%=', '@=', '&=', '|=', '^=', '>>=', '<<=', '**='}
-
-        if not shift and not ctrl:
-            self.hide_tooltip()
 
         if text not in self.auto_completion_characters:
             if text in operators or text in delimiters:
