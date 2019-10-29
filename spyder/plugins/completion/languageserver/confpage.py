@@ -994,10 +994,17 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.fallback_enabled = newcb(_("Enable fallback completions"),
                                       'enable',
                                       section='fallback-completions')
+        self.completions_wait_for_ms = self.create_spinbox(
+            _("Time to wait for all providers to return (ms):"), None,
+            'completions_wait_for_ms', min_=0, max_=5000, step=10,
+            tip=_("Beyond this timeout, "
+                  "the first available provider will be returned"),
+            section='editor')
 
         clients_layout = QVBoxLayout()
         clients_layout.addWidget(self.kite_enabled)
         clients_layout.addWidget(self.fallback_enabled)
+        clients_layout.addWidget(self.completions_wait_for_ms)
         clients_group.setLayout(clients_layout)
 
         kite_layout = QVBoxLayout()

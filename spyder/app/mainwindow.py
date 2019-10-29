@@ -1333,6 +1333,7 @@ class MainWindow(QMainWindow):
 
     def update_lsp_logs(self):
         """Create an action for each lsp log file."""
+        self.menu_lsp_logs.clear()
         lsp_logs = []
         regex = re.compile(r'.*_.*_(\d+)[.]log')
         files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
@@ -1360,7 +1361,7 @@ class MainWindow(QMainWindow):
         # In MacOS X 10.7 our app is not displayed after initialized (I don't
         # know why because this doesn't happen when started from the terminal),
         # so we need to resort to this hack to make it appear.
-        if running_in_mac_app(check_file=True):
+        if running_in_mac_app():
             idx = __file__.index(MAC_APP_NAME)
             app_path = __file__[:idx]
             subprocess.call(['open', app_path + MAC_APP_NAME])
@@ -1468,12 +1469,18 @@ class MainWindow(QMainWindow):
 
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies"""
+        # Declare dependencies before trying to detect the missing ones
         dependencies.declare_dependencies()
         missing_deps = dependencies.missing_dependencies()
+
         if missing_deps:
+            # Fix html formatting. The last 4 chars correspond to a
+            # '<br>' added by missing_dependencies
+            missing_deps = missing_deps[:-4].replace('<', '&lt;')
+
             QMessageBox.critical(self, _('Error'),
                 _("<b>You have missing dependencies!</b>"
-                  "<br><br><tt>%s</tt><br>"
+                  "<br><br><tt>%s</tt><br><br>"
                   "<b>Please install them to avoid this message.</b>"
                   "<br><br>"
                   "<i>Note</i>: Spyder could work without some of these "
@@ -3506,7 +3513,7 @@ def run_spyder(app, options, args):
         QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 
     # Open external files with our Mac app
-    if running_in_mac_app():
+    if sys.platform == "darwin":
         app.sig_open_external_file.connect(main.open_external_file)
         app._has_started = True
         if hasattr(app, '_pending_file_open'):

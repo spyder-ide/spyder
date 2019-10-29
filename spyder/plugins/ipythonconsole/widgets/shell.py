@@ -492,7 +492,7 @@ the sympy module (e.g. plot)
         """
         editorstack = self.get_editorstack()
         if CONF.get('editor', 'save_all_before_run', True):
-            editorstack.save_all()
+            editorstack.save_all(save_new_files=False)
         editor = self.get_editor(filename)
 
         if editor is None:
@@ -508,7 +508,7 @@ the sympy module (e.g. plot)
         """
         editorstack = self.get_editorstack()
         if CONF.get('editor', 'save_all_before_run', True):
-            editorstack.save_all()
+            editorstack.save_all(save_new_files=False)
         editor = self.get_editor(filename)
 
         if editor is None:

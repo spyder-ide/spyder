@@ -590,8 +590,8 @@ class CodeEditor(TextEditBaseWidget):
             self.show_hint_for_completion)
 
         # re-use parent of completion_widget (usually the main window)
-        compl_parent = self.completion_widget.parent()
-        self.kite_call_to_action = KiteCallToAction(self, compl_parent)
+        completion_parent = self.completion_widget.parent()
+        self.kite_call_to_action = KiteCallToAction(self, completion_parent)
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -947,7 +947,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Configuration and protocol start/end ----------------
     def start_completion_services(self):
-        logger.debug("Completions services available for: {0}".format(
+        logger.debug(u"Completions services available for: {0}".format(
             self.filename))
         self.completions_available = True
         self.document_did_open()
@@ -1130,7 +1130,7 @@ class CodeEditor(TextEditBaseWidget):
                 parameter_idx = signature_params['activeParameter']
                 parameters = signature_data['parameters']
                 parameter = None
-                if parameter_idx < len(parameters):
+                if len(parameters) > 0 and parameter_idx < len(parameters):
                     parameter_data = parameters[parameter_idx]
                     parameter = parameter_data['label']
 
@@ -1171,7 +1171,7 @@ class CodeEditor(TextEditBaseWidget):
             content = contents['params']
             self.sig_display_object_info.emit(content,
                                               self._request_hover_clicked)
-            if self._show_hint and self._last_point and content:
+            if content is not None and self._show_hint and self._last_point:
                 # This is located in spyder/widgets/mixins.py
                 word = self._last_hover_word,
                 content = content.replace(u'\xa0', ' ')
