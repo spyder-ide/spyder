@@ -138,6 +138,8 @@ class DebuggingWidget(RichJupyterWidget):
             "breakpoints": CONF.get('run', 'breakpoints', {}),
             "pdb_ignore_lib": CONF.get(
                 'run', 'pdb_ignore_lib', False),
+            "pdb_execute_events": CONF.get(
+                'run', 'pdb_execute_events', False),
             }
 
     def set_spyder_breakpoints(self):
@@ -149,6 +151,11 @@ class DebuggingWidget(RichJupyterWidget):
         """Set pdb_ignore_lib into a debugging session"""
         self.call_kernel(interrupt=True).set_pdb_ignore_lib(
             CONF.get('run', 'pdb_ignore_lib', False))
+
+    def set_pdb_execute_events(self):
+        """Set pdb_execute_events into a debugging session"""
+        self.call_kernel(interrupt=True).set_pdb_execute_events(
+            CONF.get('run', 'pdb_execute_events', False))
 
     def dbg_exec_magic(self, magic, args=''):
         """Run an IPython magic while debugging."""
