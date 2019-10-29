@@ -2277,7 +2277,8 @@ class MainWindow(QMainWindow):
         console, not_readonly, readwrite_editor = textedit_properties
 
         # Editor has focus and there is no file opened in it
-        if not console and not_readonly and not self.editor.is_file_opened():
+        if (not console and not_readonly and self.editor
+                and not self.editor.is_file_opened()):
             return
 
         # Disabling all actions to begin with
@@ -2301,8 +2302,9 @@ class MainWindow(QMainWindow):
         # Comment, uncomment, indent, unindent...
         if not console and not_readonly:
             # This is the editor and current file is writable
-            for action in self.editor.edit_menu_actions:
-                action.setEnabled(True)
+            if self.editor:
+                for action in self.editor.edit_menu_actions:
+                    action.setEnabled(True)
 
     def update_search_menu(self):
         """Update search menu"""
@@ -2328,7 +2330,8 @@ class MainWindow(QMainWindow):
                     pass
 
         # Disable the replace action for read-only files
-        self.search_menu_actions[3].setEnabled(readwrite_editor)
+        if len(self.search_menu_actions) > 3:
+            self.search_menu_actions[3].setEnabled(readwrite_editor)
 
     def create_plugins_menu(self):
         order = ['editor', 'ipython_console', 'variable_explorer',
