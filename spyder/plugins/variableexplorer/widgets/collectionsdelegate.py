@@ -57,25 +57,23 @@ class CollectionsDelegate(QItemDelegate):
     def show_warning(self, index):
         """
         Decide if showing a warning when the user is trying to view
-        a big variable associated to a Tablemodel index
+        a big variable associated to a Tablemodel index.
 
         This avoids getting the variables' value to know its
         size and type, using instead those already computed by
         the TableModel.
 
         The problem is when a variable is too big, it can take a
-        lot of time just to get its value
+        lot of time just to get its value.
         """
-        try:
-            val_size = index.model().sizes[index.row()]
-            val_type = index.model().types[index.row()]
-        except Exception:
-            return False
-        if val_type in ['list', 'set', 'tuple', 'dict'] and \
-                int(val_size) > 1e5:
-            return True
-        else:
-            return False
+        val_type = index.sibling(index.row(), 1).data()
+        val_size = index.sibling(index.row(), 2).data()
+
+        if val_type in ['list', 'set', 'tuple', 'dict']:
+            if int(val_size) > 1e5:
+                return True
+
+        return False
 
     def createEditor(self, parent, option, index, object_explorer=False):
         """Overriding method createEditor"""
@@ -382,30 +380,6 @@ class ToggleColumnDelegate(CollectionsDelegate):
     def set_value(self, index, value):
         if index.isValid():
             index.model().set_value(index, value)
-
-    def show_warning(self, index):
-        """
-        Decide if showing a warning when the user is trying to view
-        a big variable associated to a Tablemodel index
-
-        This avoids getting the variables' value to know its
-        size and type, using instead those already computed by
-        the TableModel.
-
-        The problem is when a variable is too big, it can take a
-        lot of time just to get its value
-        """
-        try:
-            tree_item = index.model().treeItem(index)
-            val_size = safe_tio_call(len, tree_item)
-            val_type = type(tree_item.obj).__name__
-        except Exception:
-            return False
-        if val_type in ['list', 'set', 'tuple', 'dict'] and \
-                int(val_size) > 1e5:
-            return True
-        else:
-            return False
 
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
