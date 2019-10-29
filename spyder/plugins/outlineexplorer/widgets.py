@@ -154,6 +154,8 @@ def get_item_children(item):
         others = get_item_children(child)
         if others is not None:
             children += others
+    # Remove any child without line number
+    children = [child for child in children if child.line is not None]
     return sorted(children, key=lambda child: child.line)
 
 
@@ -489,7 +491,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 if block_line in tree_cache:
                     remove_from_tree_cache(tree_cache, line=block_line)
                 if _l in tree_cache:
-                    tree_cache[block_line] = tree_cache[_l]
+                    if block_line is not None:
+                        tree_cache[block_line] = tree_cache[_l]
                     tree_cache.pop(_l)
 
         ancestors = [(root_item, 0)]
