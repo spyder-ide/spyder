@@ -248,7 +248,6 @@ def test_automatic_completions_parens_bug(lsp_codeeditor, qtbot):
 
     assert "onesee" in [x['label'] for x in sig.args[0]]
 
-
     # Curly braces:
     # Set cursor to start
     code_editor.set_text('my_dic = {1: 1, 2: 2}\nonesee = 1\none = {on}')
