@@ -63,6 +63,7 @@ DEFAULTS = [
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
+              'mac_open_file': False,
               'normal_screen_resolution': True,
               'high_dpi_scaling': False,
               'high_dpi_custom_scale_factor': False,
@@ -207,7 +208,9 @@ DEFAULTS = [
               'automatic_completions': True,
               'automatic_completions_after_chars': 3,
               'automatic_completions_after_ms': 300,
+              'completions_wait_for_ms': 200,
               'completions_hint': True,
+              'completions_hint_after_ms': 500,
               'underline_errors': False,
               'highlight_current_line': True,
               'highlight_current_cell': True,
@@ -510,6 +513,7 @@ DEFAULTS = [
               'call_to_action': True,
               # Enable the installation dialog
               'show_installation_dialog': True,
+              'show_onboarding': True,
              }),
             ]
 

@@ -61,12 +61,16 @@ class BaseProject(object):
 
     def set_recent_files(self, recent_files):
         """Set a list of files opened by the project."""
-        for recent_file in recent_files[:]:
-            if not os.path.isfile(recent_file):
-                recent_files.remove(recent_file)
-        recent_files = [os.path.relpath(recent_file, self.root_path)
-                        for recent_file in recent_files]
-        files = list(OrderedDict.fromkeys(recent_files))
+        processed_recent_files = []
+        for recent_file in recent_files:
+            if os.path.isfile(recent_file):
+                try:
+                    relative_recent_file = os.path.relpath(
+                        recent_file, self.root_path)
+                    processed_recent_files.append(relative_recent_file)
+                except ValueError:
+                    processed_recent_files.append(recent_file)
+        files = list(OrderedDict.fromkeys(processed_recent_files))
         self.config.set('main', 'recent_files', files)
 
     def get_recent_files(self):
@@ -75,7 +79,6 @@ class BaseProject(object):
         recent_files = [recent_file if os.path.isabs(recent_file)
                         else os.path.join(self.root_path, recent_file)
                         for recent_file in recent_files]
-
         for recent_file in recent_files[:]:
             if not os.path.isfile(recent_file):
                 recent_files.remove(recent_file)

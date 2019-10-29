@@ -555,13 +555,14 @@ class EditorStack(QWidget):
         self.automatic_completion_chars = 3
         self.automatic_completion_ms = 300
         self.completions_hint_enabled = True
+        self.completions_hint_after_ms = 500
         self.hover_hints_enabled = True
         self.code_snippets_enabled = True
         self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
         self.occurrence_highlighting_enabled = True
-        self.occurrence_highlighting_timeout=1500
+        self.occurrence_highlighting_timeout = 1500
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
         self.convert_eol_on_save = False
@@ -1199,6 +1200,12 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_completions_hint(state)
 
+    def set_completions_hint_after_ms(self, ms):
+        self.completions_hint_after_ms = ms
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_completions_hint_after_ms(ms)
+
     def set_hover_hints_enabled(self, state):
         self.hover_hints_enabled = state
         if self.data:
@@ -1798,7 +1805,7 @@ class EditorStack(QWidget):
         txt = fileinfo.editor.get_text_with_eol()
         fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
 
-    def save(self, index=None, force=False):
+    def save(self, index=None, force=False, save_new_files=True):
         """Write text of editor to a file.
 
         Args:
@@ -1827,7 +1834,10 @@ class EditorStack(QWidget):
             return True
         if not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
-            return self.save_as(index=index)
+            if save_new_files:
+                return self.save_as(index=index)
+            # The file doesn't need to be saved
+            return True
         if self.always_remove_trailing_spaces:
             self.remove_trailing_spaces(index)
         if self.convert_eol_on_save:
@@ -2044,14 +2054,14 @@ class EditorStack(QWidget):
         else:
             return False
 
-    def save_all(self):
+    def save_all(self, save_new_files=True):
         """Save all opened files.
 
         Iterate through self.data and call save() on any modified files.
         """
         for index in range(self.get_stack_count()):
             if self.data[index].editor.document().isModified():
-                self.save(index)
+                self.save(index, save_new_files=save_new_files)
 
     #------ Update UI
     def start_stop_analysis_timer(self):
@@ -2423,6 +2433,7 @@ class EditorStack(QWidget):
             automatic_completions_after_ms=self.automatic_completion_ms,
             code_snippets=self.code_snippets_enabled,
             completions_hint=self.completions_hint_enabled,
+            completions_hint_after_ms=self.completions_hint_after_ms,
             hover_hints=self.hover_hints_enabled,
             highlight_current_line=self.highlight_current_line_enabled,
             highlight_current_cell=self.highlight_current_cell_enabled,

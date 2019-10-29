@@ -19,6 +19,7 @@ import logging
 import os
 import psutil
 import signal
+import threading
 from functools import partial
 
 # Local imports
@@ -30,6 +31,8 @@ from spyder.py3compat import getcwd
 
 
 logger = logging.getLogger(__name__)
+
+PARENT_PROCESS_WATCH_INTERVAL = 3  # 3 s
 
 
 parser = argparse.ArgumentParser(
@@ -120,6 +123,8 @@ if __name__ == '__main__':
     extra_args = ' '.join(extra_args)
     logger.debug(extra_args)
     process = psutil.Process()
+    parent_pid = process.ppid()
+
     sig_manager = SignalManager()
     if args.stdio_server:
         LanguageServerClient = partial(StdioLanguageServerClient,
@@ -132,12 +137,33 @@ if __name__ == '__main__':
     client = LanguageServerClient(zmq_in_port=args.zmq_in_port,
                                   zmq_out_port=args.zmq_out_port)
     client.start()
+    is_alive = True
+
+    def watch_parent_process(pid):
+        """
+        Exit when the given pid is not alive.
+
+        Code taken from the Python Language Server project.
+        """
+        global is_alive
+        if not psutil.pid_exists(pid):
+            logger.info("parent process %s is not alive, exiting!", pid)
+            is_alive = False
+        if is_alive:
+            threading.Timer(PARENT_PROCESS_WATCH_INTERVAL,
+                            watch_parent_process, args=[pid]).start()
+
+    watching_thread = threading.Thread(
+        target=watch_parent_process, args=(parent_pid,))
+    watching_thread.daemon = True
+    watching_thread.start()
+
     try:
-        while True:
+        while is_alive:
             client.listen()
     except TerminateSignal:
         pass
     client.stop()
-    # sig_manager.restore()
+
     process.terminate()
     process.wait()

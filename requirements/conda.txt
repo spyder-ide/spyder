@@ -1,7 +1,9 @@
+applaunchservices
 atomicwrites
 chardet >=2.0.0
 cloudpickle
 diff-match-patch
+jedi =0.14.1
 keyring
 nbconvert
 numpydoc
@@ -12,7 +14,7 @@ pygments >=2.0
 pylint
 pympler
 pyqt <5.13
-python-language-server >=0.28.2,<0.29.0
+python-language-server >=0.29.3,<0.30.0
 pyxdg
 pyzmq
 qdarkstyle >=2.7

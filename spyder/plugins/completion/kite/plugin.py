@@ -62,6 +62,12 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client.sig_response_ready.connect(
             functools.partial(self.sig_response_ready.emit,
                               self.COMPLETION_CLIENT_NAME))
+
+        self.client.sig_response_ready.connect(self._kite_onboarding)
+        self.client.sig_status_response_ready.connect(self._kite_onboarding)
+        self.client.sig_onboarding_response_ready.connect(
+            self._show_onboarding_file)
+
         self.installation_thread.sig_installation_status.connect(
             self.set_status)
         self.status_widget.sig_clicked.connect(
@@ -76,6 +82,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         logger.debug('Kite client is available for {0}'.format(languages))
         self.available_languages = languages
         self.sig_plugin_ready.emit(self.COMPLETION_CLIENT_NAME)
+        self._kite_onboarding()
 
     @Slot()
     def mainwindow_setup_finished(self):
@@ -83,12 +90,12 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         This is called after the main window setup finishes to show Kite's
         installation dialog and onboarding if necessary.
         """
-        show_dialog = self.get_option('show_installation_dialog')
+        self._kite_onboarding()
 
+        show_dialog = self.get_option('show_installation_dialog')
         if show_dialog:
             # Only show the dialog once at startup
             self.set_option('show_installation_dialog', False)
-
             self.show_installation_dialog()
 
     @Slot(str)
@@ -120,20 +127,21 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         return language in self.available_languages
 
     def start(self):
-        # Always start client to support possibly undetected Kite builds
-        self.client.start()
-
-        if not self.enabled:
-            return
-        installed, path = check_if_kite_installed()
-        if not installed:
-            return
-        logger.debug('Kite was found on the system: {0}'.format(path))
-        running = check_if_kite_running()
-        if running:
-            return
-        logger.debug('Starting Kite service...')
-        self.kite_process = run_program(path)
+        try:
+            if not self.enabled:
+                return
+            installed, path = check_if_kite_installed()
+            if not installed:
+                return
+            logger.debug('Kite was found on the system: {0}'.format(path))
+            running = check_if_kite_running()
+            if running:
+                return
+            logger.debug('Starting Kite service...')
+            self.kite_process = run_program(path)
+        finally:
+            # Always start client to support possibly undetected Kite builds
+            self.client.start()
 
     def shutdown(self):
         self.client.stop()
@@ -144,6 +152,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client.enable_code_snippets = CONF.get('lsp-server',
                                                     'code_snippets')
         self.enabled = self.get_option('enable')
+        self._show_onboarding = self.get_option('show_onboarding')
 
     def is_installing(self):
         """Check if an installation is taking place."""
@@ -153,3 +162,29 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
     def installation_cancelled_or_errored(self):
         """Check if an installation was cancelled or failed."""
         return self.installation_thread.cancelled_or_errored()
+
+    def _kite_onboarding(self):
+        """Request the onboarding file."""
+        # No need to check installed status,
+        # since the get_onboarding_file call fails fast.
+        self.client.sig_perform_onboarding_request.emit()
+
+    @Slot(str)
+    def _show_onboarding_file(self, onboarding_file):
+        """
+        Opens the onboarding file, which is retrieved
+        from the Kite HTTP endpoint. This skips onboarding if onboarding
+        is not possible yet or has already been displayed before.
+        """
+        if not self.enabled:
+            return
+        if not self._show_onboarding:
+            return
+        if self.main.is_setting_up:
+            return
+        if not self.available_languages:
+            return
+        if onboarding_file:
+            self._show_onboarding = False
+            self.set_option('show_onboarding', False)
+            self.main.open_file(onboarding_file)
