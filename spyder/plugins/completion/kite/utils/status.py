@@ -55,7 +55,7 @@ def locate_kite_darwin():
     default path is used.
     """
     default_path = '/Applications/Kite.app'
-    path = None
+    path = ''
     try:
         out = subprocess.check_output(
             ['mdfind', 'kMDItemCFBundleIdentifier="com.kite.Kite"'])

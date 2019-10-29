@@ -81,7 +81,10 @@ class TreeItem(QTreeWidgetItem):
     @property
     def line(self):
         """Get line number."""
-        return self.oedata.block.blockNumber() + 1
+        block_number = self.oedata.get_block_number()
+        if block_number is not None:
+            return block_number + 1
+        return None
 
     def update(self):
         """Update the tree element."""
@@ -151,6 +154,8 @@ def get_item_children(item):
         others = get_item_children(child)
         if others is not None:
             children += others
+    # Remove any child without line number
+    children = [child for child in children if child.line is not None]
     return sorted(children, key=lambda child: child.line)
 
 
@@ -486,7 +491,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 if block_line in tree_cache:
                     remove_from_tree_cache(tree_cache, line=block_line)
                 if _l in tree_cache:
-                    tree_cache[block_line] = tree_cache[_l]
+                    if block_line is not None:
+                        tree_cache[block_line] = tree_cache[_l]
                     tree_cache.pop(_l)
 
         ancestors = [(root_item, 0)]
@@ -498,7 +504,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         for data in editor.outlineexplorer_data_list():
             try:
-                line_nb = data.block.blockNumber() + 1
+                line_nb = data.get_block_number()
+                if line_nb is None:
+                    continue
+                line_nb += 1
             except AttributeError:
                 continue
             level = None if data is None else data.fold_level

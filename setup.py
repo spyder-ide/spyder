@@ -200,41 +200,39 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
     import setuptools     # analysis:ignore
 
 install_requires = [
-    'cloudpickle',
-    'pygments>=2.0',
-    'qtconsole>=4.5.5',
-    'nbconvert',
-    'sphinx',
-    'pylint',
-    'psutil',
-    'qtawesome>=0.5.7',
-    'qtpy>=1.5.0',
-    'pickleshare',
-    'pyzmq',
-    'chardet>=2.0.0',
-    'numpydoc',
-    'spyder-kernels>=1.6.0,<1.7.0',
-    'qdarkstyle>=2.7',
+    'applaunchservices;platform_system=="Darwin"',
     'atomicwrites',
+    'chardet>=2.0.0',
+    'cloudpickle',
     'diff-match-patch',
-    'watchdog',
+    # This is here until Jedi 0.15+ fixes completions for
+    # Numpy and Pandas
+    'jedi==0.14.1',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
-    # Packages for pyqt5 are only available in
-    # Python 3
-    'pyqt5<5.13;python_version>="3"',
-    # pyqt5 5.12 split WebEngine into the
-    # pyqtwebengine module
-    'pyqtwebengine<5.13;python_version>="3"',
-    # Pyls with all its dependencies
-    'python-language-server[all]>=0.28.2,<0.29.0',
+    'nbconvert',
+    'numpydoc',
     # Required to get SSH connections to remote kernels
-    'pexpect',
     'paramiko;platform_system=="Windows"',
-    # Required for accesing xdg spec on Linux
+    'pexpect',
+    'pickleshare',
+    'psutil',
+    'pygments>=2.0',
+    'pylint',
+    'pympler',
+    'pyqt5<5.13;python_version>="3"',
+    'pyqtwebengine<5.13;python_version>="3"',
+    'python-language-server[all]>=0.29.3,<0.30.0',
     'pyxdg>=0.26;platform_system=="Linux"',
-    'pympler'
+    'pyzmq',
+    'qdarkstyle>=2.7',
+    'qtawesome>=0.5.7',
+    'qtconsole>=4.5.5',
+    'qtpy>=1.5.0',
+    'sphinx',
+    'spyder-kernels>=1.6.0,<1.7.0',
+    'watchdog',
 ]
 
 extras_require = {
