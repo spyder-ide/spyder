@@ -237,11 +237,11 @@ def test_automatic_completions_parens_bug(lsp_codeeditor, qtbot):
     cursor = code_editor.textCursor()
     code_editor.moveCursor(cursor.End)
 
-    # Move cursor next to list((my$))
+    # Move cursor next to my_dic[on$]
     qtbot.keyPress(code_editor, Qt.Key_Left)
     qtbot.wait(500)
 
-    # Complete my_ -> my_list
+    # Complete one -> onesee
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=5000) as sig:
         qtbot.keyClicks(code_editor, 'e')
@@ -254,11 +254,11 @@ def test_automatic_completions_parens_bug(lsp_codeeditor, qtbot):
     cursor = code_editor.textCursor()
     code_editor.moveCursor(cursor.End)
 
-    # Move cursor next to list((my$))
+    # Move cursor next to {on*}
     qtbot.keyPress(code_editor, Qt.Key_Left)
     qtbot.wait(500)
 
-    # Complete my_ -> my_list
+    # Complete one -> onesee
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=5000) as sig:
         qtbot.keyClicks(code_editor, 'e')
