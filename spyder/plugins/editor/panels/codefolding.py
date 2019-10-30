@@ -620,12 +620,14 @@ class FoldingPanel(Panel):
                 positions_to_check = (cursor.position(), )
             for pos in positions_to_check:
                 block = self.editor.document().findBlock(pos)
-                th = TextBlockHelper()
-                if th.is_fold_trigger(block) and th.is_collapsed(block):
-                    self.toggle_fold_trigger(block)
+                start_line = block.blockNumber() + 1
+                if (start_line in self.folding_regions and
+                        self.folding_status[start_line]):
+                    end_line = self.folding_regions[start_line]
+                    self.toggle_fold_trigger(block.next())
                     if delete_request and cursor.hasSelection():
-                        scope = FoldScope(self.find_parent_scope(block))
-                        tc = TextHelper(self.editor).select_lines(*scope.get_range())
+                        # scope = FoldScope(self.find_parent_scope(block))
+                        tc = TextHelper(self.editor).select_lines(start_line, end_line)
                         if tc.selectionStart() > cursor.selectionStart():
                             start = cursor.selectionStart()
                         else:
@@ -637,6 +639,8 @@ class FoldingPanel(Panel):
                         tc.setPosition(start)
                         tc.setPosition(end, tc.KeepAnchor)
                         self.editor.setTextCursor(tc)
+                        self.folding_regions.pop(start_line)
+                        self.folding_status.pop(start_line)
 
     @staticmethod
     def _show_previous_blank_lines(block):
