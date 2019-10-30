@@ -10,6 +10,8 @@
 # Standard library imports
 import copy
 import datetime
+import functools
+import operator
 
 # Third party imports
 from qtpy.compat import to_qvariant
@@ -71,6 +73,13 @@ class CollectionsDelegate(QItemDelegate):
 
         if val_type in ['list', 'set', 'tuple', 'dict']:
             if int(val_size) > 1e5:
+                return True
+        elif (val_type in ['DataFrame', 'Series'] or 'Array' in val_type or
+                'Index' in val_type):
+            # From https://blender.stackexchange.com/a/131849
+            shape = [int(s) for s in val_size.strip("()").split(",") if s]
+            size = functools.reduce(operator.mul, shape)
+            if size > 5e6:
                 return True
 
         return False
