@@ -20,10 +20,11 @@ from collections import OrderedDict
 # Third-party imports
 from qtpy.QtCore import (QAbstractItemModel, QModelIndex, Qt,
                          QSortFilterProxyModel, Signal)
-from qtpy.QtGui import QFont, QBrush, QColor
+from qtpy.QtGui import QBrush, QColor
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.gui import get_font
 from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
     cut_off_str)
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (
@@ -54,7 +55,9 @@ class TreeModel(QAbstractItemModel):
                  obj,
                  obj_name='',
                  attr_cols=None,
-                 parent=None):
+                 parent=None,
+                 regular_font=None,
+                 special_attribute_font=None):
         """
         Constructor
 
@@ -67,9 +70,12 @@ class TreeModel(QAbstractItemModel):
         super(TreeModel, self).__init__(parent)
         self._attr_cols = attr_cols
 
-        self.regular_font = QFont()  # Font for members (non-functions)
+        # Font for members (non-functions)
+        self.regular_font = regular_font if regular_font else get_font()
         # Font for __special_attributes__
-        self.special_attribute_font = QFont()
+        self.special_attribute_font = (special_attribute_font
+                                       if special_attribute_font
+                                       else get_font())
         self.special_attribute_font.setItalic(False)
 
         self.regular_color = QBrush(QColor(ima.MAIN_FG_COLOR))

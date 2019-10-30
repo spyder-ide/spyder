@@ -377,7 +377,11 @@ class ObjectExplorer(QDialog):
                 if not self._resize_to_contents and size > 0:  # Just in case
                     header.resizeSection(idx, size)
                 else:
-                    header.setSectionResizeMode(QHeaderView.ResizeToContents)
+                    header.setSectionResizeMode(
+                        idx, QHeaderView.ResizeToContents)
+                    width = header.sectionSize(idx)
+                    header.setSectionResizeMode(idx, QHeaderView.Interactive)
+                    header.resizeSection(idx, width)
 
             for idx, visible in enumerate(column_visible):
                 elem = self.obj_tree.toggle_column_actions_group.actions()[idx]

@@ -14,7 +14,7 @@ import logging
 # Third-party imports
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QAbstractItemView, QAction, QActionGroup,
-                            QTableWidget, QTreeView, QTreeWidget)
+                            QHeaderView, QTableWidget, QTreeView, QTreeWidget)
 
 # Local imports
 from spyder.config.base import _
