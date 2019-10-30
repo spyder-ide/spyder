@@ -140,9 +140,6 @@ class TreeModel(QAbstractItemModel):
                 attr = self._attr_cols[col].data_fn(tree_item)
                 # Replace carriage returns and line feeds with unicode glyphs
                 # so that all table rows fit on one line.
-                # return attr.replace('\n',
-                #                     unichr(0x240A)).replace('\r',
-                #                     unichr(0x240D))
                 return (attr.replace('\r\n', to_unichr(0x21B5))
                             .replace('\n', to_unichr(0x21B5))
                             .replace('\r', to_unichr(0x21B5)))

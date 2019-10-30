@@ -17,7 +17,8 @@ import string
 # Third-party imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QTextOption
-from spyder_kernels.utils.nsview import value_to_display
+from spyder_kernels.utils.nsview import (get_size, get_human_readable_type,
+                                         value_to_display)
 
 # Local imports
 from spyder.config.base import _
@@ -289,16 +290,15 @@ ATTR_MODEL_TYPE = AttributeModel(
 ATTR_MODEL_CLASS = AttributeModel(
     'Type',
     doc="The name of the class of the object via obj.__class__.__name__",
-    data_fn=lambda tree_item: type(tree_item.obj).__name__,
+    data_fn=lambda tree_item: get_human_readable_type(tree_item.obj),
     col_visible=True,
     width=MEDIUM_COL_WIDTH)
 
 
 ATTR_MODEL_LENGTH = AttributeModel(
     'Size',
-    doc=_("The length of the object using the len() function"),
-    # data_fn     = tio_length,
-    data_fn=safe_data_fn(len),
+    doc=_("The length or shape of the object"),
+    data_fn=lambda tree_item: to_text_string(get_size(tree_item.obj)),
     col_visible=True,
     alignment=ALIGN_RIGHT,
     width=SMALL_COL_WIDTH)
