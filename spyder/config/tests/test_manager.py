@@ -41,7 +41,6 @@ def test_site_config_load(mocker):
         with open(os.path.join(path, 'spyder.ini'), 'w') as fh:
             fh.write(content)
 
-
         from spyder.config.manager import ConfigurationManager
         config = ConfigurationManager()
         config.reset_to_defaults()
