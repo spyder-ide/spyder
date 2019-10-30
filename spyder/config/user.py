@@ -708,9 +708,6 @@ class SpyderUserConfig(UserConfig):
 
         Apply any patch to configuration values on version changes.
         """
-        # if old_version and check_version(old_version, '2.4.0', '<'):
-        #     self.reset_to_defaults(save=False)
-        # else:
         self._update_defaults(self.defaults, old_version)
 
         if old_version and check_version(old_version, '44.1.0', '<'):
