@@ -129,11 +129,10 @@ class ToolTipWidget(QLabel):
         """
         # Don't attempt to show it if it's already visible and the text
         # to be displayed is the same as the one displayed before.
-        if self.isVisible():
-            if self.tip == tip:
-                return True
-            else:
-                self.hide()
+        if self.tip == tip:
+            if not self.isVisible():
+                self.show()
+            return
 
         # Set the text and resize the widget accordingly.
         self.tip = tip
@@ -197,7 +196,8 @@ class ToolTipWidget(QLabel):
             point.setX(adjusted_point.x() - tip_width - padding)
 
         self.move(point)
-        self.show()
+        if not self.isVisible():
+            self.show()
         return True
 
     def mousePressEvent(self, event):

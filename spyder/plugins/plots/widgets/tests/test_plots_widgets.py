@@ -28,7 +28,8 @@ from qtpy.QtGui import QPixmap
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
+from spyder.plugins.plots.widgets.figurebrowser import (FigureBrowser,
+                                                        FigureThumbnail)
 from spyder.py3compat import to_text_string
 
 
@@ -210,6 +211,23 @@ def test_close_all_figures(figbrowser, tmpdir, fmt):
     assert figbrowser.thumbnails_sb.get_current_index() == -1
     assert figbrowser.thumbnails_sb.current_thumbnail is None
     assert figbrowser.figviewer.figcanvas.fig is None
+    assert len(figbrowser.thumbnails_sb.findChildren(FigureThumbnail)) == 0
+
+
+@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+def test_close_one_thumbnail(figbrowser, tmpdir, fmt):
+    """
+    Test the thumbnail is removed from the GUI.
+    """
+    # Add two figures to the browser
+    add_figures_to_browser(figbrowser, 2, tmpdir, fmt)
+    assert len(figbrowser.thumbnails_sb.findChildren(FigureThumbnail)) == 2
+
+    # Remove the first figure
+    figures = figbrowser.thumbnails_sb.findChildren(FigureThumbnail)
+    figbrowser.thumbnails_sb.remove_thumbnail(figures[0])
+
+    assert len(figbrowser.thumbnails_sb.findChildren(FigureThumbnail)) == 1
 
 
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])

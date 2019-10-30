@@ -144,7 +144,7 @@ def main():
 
     if (CONF.get('main', 'single_instance') and not options.new_instance
             and not options.reset_config_files
-            and not running_in_mac_app(check_file=True)):
+            and not running_in_mac_app()):
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file
