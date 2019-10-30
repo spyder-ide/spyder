@@ -138,8 +138,6 @@ def hg_status(out_str, path):
 def get_vcs_status(vcs_path):
     """Return the commit status."""
     root_path = get_vcs_root(vcs_path)
-    if root_path is None:
-        return []
     if not root_path:
         # look in subdirectories for repositories
         paths = []
@@ -148,6 +146,7 @@ def get_vcs_status(vcs_path):
                 root_path = get_vcs_root(subdir)
                 if root_path:
                     paths.append(root_path)
+        # root_path and subdirectories are not version controlled.
         if paths == []:
             return []
     else:
