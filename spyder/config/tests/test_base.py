@@ -57,9 +57,11 @@ def test_get_conf_paths():
     config_paths = get_conf_paths()
 
     if os.name == 'nt':
-        assert len(config_paths) >= 1
+        values = [1, 2]
     else:
-        assert len(config_paths) >= 2
+        values = [2, 3]
+
+    assert len(config_paths) in values
 
 
 if __name__ == '__main__':
