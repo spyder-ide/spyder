@@ -11,6 +11,7 @@ Tests for the spyder.config.base module.
 """
 
 # Standard library imports
+import os
 import os.path as osp
 try:
     from importlib import reload
@@ -48,6 +49,17 @@ def test_get_conf_path(monkeypatch, use_dev_config_dir):
     assert osp.isdir(conf_path)
     monkeypatch.undo()
     reload(spyder.config.base)
+
+
+def test_get_conf_paths():
+    """Test that the config paths return the right amount of values."""
+    from spyder.config.base import get_conf_paths
+    config_paths = get_conf_paths()
+
+    if os.name == 'nt':
+        assert len(config_paths) >= 1
+    else:
+        assert len(config_paths) >= 2
 
 
 if __name__ == '__main__':

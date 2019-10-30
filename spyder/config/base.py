@@ -228,6 +228,29 @@ def get_conf_path(filename=None):
         return osp.join(conf_dir, filename)
 
 
+def get_conf_paths():
+    """Return the files that can update system configuration defaults."""
+    CONDA_PREFIX = os.environ.get('CONDA_PREFIX', None)
+
+    if os.name == 'nt':
+        SEARCH_PATH = (
+            'C:/ProgramData/spyder',
+        )
+    else:
+        SEARCH_PATH = (
+            '/etc/spyder',
+            '/usr/local/etc/spyder',
+        )
+
+    if CONDA_PREFIX is not None:
+        CONDA_PREFIX = CONDA_PREFIX.replace('\\', '/')
+        SEARCH_PATH += (
+            '{}/etc/spyder'.format(CONDA_PREFIX),
+        )
+
+    return SEARCH_PATH
+
+
 def get_module_path(modname):
     """Return module *modname* base path"""
     return osp.abspath(osp.dirname(sys.modules[modname].__file__))

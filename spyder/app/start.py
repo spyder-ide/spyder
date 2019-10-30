@@ -142,6 +142,15 @@ def main():
         levels = {'minimal': '2', 'verbose': '3'}
         os.environ['SPYDER_DEBUG'] = levels[options.debug_info]
 
+    if options.paths:
+        from spyder.config.base import get_conf_paths
+        print('\nconfig:')
+        for path in reversed(get_conf_paths()):
+            print('\t' + path)
+        print('\n')
+        return
+
+
     if (CONF.get('main', 'single_instance') and not options.new_instance
             and not options.reset_config_files
             and not running_in_mac_app()):

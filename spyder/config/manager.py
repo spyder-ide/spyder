@@ -13,7 +13,7 @@ import os
 import os.path as osp
 
 # Local imports
-from spyder.config.base import get_conf_path, get_home_dir
+from spyder.config.base import get_conf_paths, get_conf_path, get_home_dir
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.user import UserConfig, MultiUserConfig, NoDefault
 
@@ -33,21 +33,22 @@ class ConfigurationManager(object):
 
         # Site configuration defines the system defaults if a file
         # is found in the site location
+        conf_paths = get_conf_paths()
         site_defaults = DEFAULTS
-        site_path = self.get_site_config_path()
-        site_fpath = osp.join(site_path, 'spyder.ini')
-        if os.path.isfile(site_fpath):
-            site_config = UserConfig(
-                'spyder',
-                path=site_path,
-                defaults=DEFAULTS,
-                load=False,
-                version=CONF_VERSION,
-                backup=False,
-                raw_mode=True,
-                remove_obsolete=False,
-            )
-            site_defaults = site_config.to_list()
+        for conf_path in reversed(conf_paths):
+            conf_fpath = os.path.join(conf_path, 'spyder.ini')
+            if os.path.isfile(conf_fpath):
+                site_config = UserConfig(
+                    'spyder',
+                    path=conf_path,
+                    defaults=site_defaults,
+                    load=False,
+                    version=CONF_VERSION,
+                    backup=False,
+                    raw_mode=True,
+                    remove_obsolete=False,
+                )
+                site_defaults = site_config.to_list()
 
         self._parent = parent
         self._active_project_callback = active_project_callback
@@ -117,18 +118,6 @@ class ConfigurationManager(object):
             config = self._user_config
 
         return config
-
-    def get_site_config_path(self):
-        """
-        Return the site configuration path.
-
-        This is currently the located within the spyder installed module in
-        the 'defaults/spyder.ini' file.
-        """
-        import spyder
-        base_path = os.path.dirname(spyder.__file__)
-        path = osp.join(base_path, 'defaults')
-        return path
 
     def get_user_config_path(self):
         """Return the user configuration path."""
