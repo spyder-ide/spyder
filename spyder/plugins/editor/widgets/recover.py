@@ -15,8 +15,10 @@ import time
 # Third party imports
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout, QLabel,
-                            QMessageBox, QPushButton, QTableWidget,
+from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
+                            QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+                            QMessageBox, QPushButton, QRadioButton, QScrollArea,
+                            QTableWidget, QSizePolicy,
                             QVBoxLayout, QWidget)
 # Local imports
 from spyder.config.base import _, running_under_pytest
@@ -99,6 +101,26 @@ class RecoveryDialog(QDialog):
         self.add_table()
         self.add_cancel_button()
         self.setWindowTitle(_('Recover from autosave'))
+
+        #self.createQGridLayout()
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        #gridlayout = QGridLayout(self)
+        # viewport = QWidget(self)
+        #self.table.setLayout(gridlayout)
+        scrollarea = QScrollArea(self)
+        groupBox = QGroupBox(scrollarea)
+        vbox = QVBoxLayout(self)
+        for i in range(20):
+            vbox.addWidget(QRadioButton("item xxx"))
+
+        groupBox.setLayout(vbox)
+        scrollarea.setWidget(groupBox)
+        scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.scrollarea = scrollarea
+        self.layout.addWidget(scrollarea)
+        #self.setLayout(self.layout)
+        #self.layout.update()
+
 
     def gather_data(self, autosave_mapping):
         """
