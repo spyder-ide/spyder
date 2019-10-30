@@ -584,6 +584,7 @@ class CodeEditor(TextEditBaseWidget):
         self.previous_text = ''
         self.word_tokens = []
         self.patch = []
+        self.text_diff = []
 
         # Handle completions hints
         self.completion_widget.sig_completion_hint.connect(
@@ -1022,6 +1023,8 @@ class CodeEditor(TextEditBaseWidget):
         self.text_version += 1
         text = self.toPlainText()
         self.patch = self.differ.patch_make(self.previous_text, text)
+        self.text_diff = (self.differ.diff_main(self.previous_text, text),
+                          self.previous_text)
         self.previous_text = text
         params = {
             'file': self.filename,

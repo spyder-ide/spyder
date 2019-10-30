@@ -176,25 +176,49 @@ class FoldingPanel(Panel):
         self.folding_regions = {}
         self.folding_status = {}
 
+    def __compute_line_offsets(self, text, reverse=False):
+        lines = text.splitlines(keepends=True)
+        line_start_offset = {}
+        offset = 0
+        for i, line in enumerate(lines):
+            if not reverse:
+                line_start_offset[i + 1] = offset
+            else:
+                line_start_offset[offset] = i + 1
+            offset += len(line)
+        return line_start_offset
+
     def update_folding(self, ranges):
         """Update folding panel folding ranges."""
         new_folding_ranges = {}
         for starting_line, ending_line in ranges:
             new_folding_ranges[starting_line + 1] = ending_line + 1
-        # TODO: Line difference computation should be done here in order
-        # to detect if folding regions were not modified.
 
+        past_folding_regions = dict(self.folding_regions)
         self.folding_regions = new_folding_ranges
-        self.folding_status = {line: False for line in self.folding_regions}
-        block = self.editor.firstVisibleBlock()
-        while block.isValid():
-            block_visible = block.isVisible()
-            block_number = block.blockNumber()
-            if not block_visible:
-                if block_number in self.folding_regions:
-                    self.folding_status[block_number] = True
-            block = block.next()
-        self.repaint()
+        folding_status = {line: False for line in self.folding_regions}
+
+        if len(folding_status) == len(self.folding_status):
+            # No folding lines were introduced before/after
+            self.folding_status = dict(
+                zip(folding_status.keys(), self.folding_status.values()))
+        else:
+            # Line difference computation is done in order
+            # to detect if folding regions were not modified.
+            differ = self.editor.differ
+            diff, previous_text = self.editor.text_diff
+            current_text = self.editor.toPlainText()
+            prev_offsets = self.__compute_line_offsets(previous_text)
+            current_lines = self.__compute_line_offsets(current_text, True)
+
+            for line in past_folding_regions:
+                offset = prev_offsets[line]
+                new_offset = differ.diff_xIndex(diff, offset)
+                new_line = current_lines[new_offset]
+                if new_line in self.folding_regions:
+                    folding_status[new_line] = self.folding_status[line]
+            self.folding_status = folding_status
+        self.update()
 
     def sizeHint(self):
         """Returns the widget size hint (based on the editor font size) """
