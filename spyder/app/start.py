@@ -83,6 +83,7 @@ def main():
         options.new_instance = False
         options.reset_config_files = False
         options.debug_info = None
+        options.paths = False
         args = None
     else:
         options, args = get_options()
@@ -149,7 +150,6 @@ def main():
             print('\t' + path)
         print('\n')
         return
-
 
     if (CONF.get('main', 'single_instance') and not options.new_instance
             and not options.reset_config_files

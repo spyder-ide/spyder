@@ -3564,6 +3564,7 @@ def main():
         options.opengl_implementation = None
         options.debug_info = None
         options.debug_output = None
+        options.paths = None
 
         if CONF.get('main', 'opengl') != 'automatic':
             option = CONF.get('main', 'opengl')

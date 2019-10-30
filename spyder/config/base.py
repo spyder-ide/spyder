@@ -248,6 +248,16 @@ def get_conf_paths():
             '{}/etc/spyder'.format(CONDA_PREFIX),
         )
 
+    if running_under_pytest():
+        search_paths = []
+        tmpfolder = str(tempfile.gettempdir())
+        for i in range(3):
+            path = os.path.join(tmpfolder, 'site-config-'+str(i))
+            if not os.path.isdir(path):
+                os.makedirs(path)
+            search_paths.append(path)
+        SEARCH_PATH = tuple(search_paths)
+
     return SEARCH_PATH
 
 

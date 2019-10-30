@@ -8,40 +8,37 @@
 
 # Standard library imports
 import os
+import shutil
 import tempfile
 
 # Third party imports
 import pytest
 
 # Local imports
-import spyder.config.base
+from spyder.config.base import get_conf_paths
+from spyder.config.manager import ConfigurationManager
 
 
-def get_config_paths_mock():
-    search_paths = []
-    for i in range(3):
-        path = tempfile.mkdtemp(suffix='-'+str(i))
-        search_paths.append(path)
-    return search_paths
+def clear_site_config():
+    """Delete all test site config folders."""
+    for path in get_conf_paths():
+        shutil.rmtree(path)
 
 
-def test_site_config_load(mocker):
+def test_site_config_load():
     """
     Test that the site/system config preferences are loaded with correct
     precedence.
     """
-    mocker.patch.object(spyder.config.base, 'get_conf_paths',
-                        return_value=get_config_paths_mock())
-
-    print('path, value, expected value')
-    for i, path in enumerate(reversed(spyder.config.base.get_conf_paths())):
+    clear_site_config()
+    for i, path in enumerate(reversed(get_conf_paths())):
         exp_value = 100*(1 + i)
         content = '[main]\nmemory_usage/timeout = ' + str(exp_value) + '\n'
 
-        with open(os.path.join(path, 'spyder.ini'), 'w') as fh:
+        conf_fpath = os.path.join(path, 'spyder.ini')
+        with open(conf_fpath, 'w') as fh:
             fh.write(content)
 
-        from spyder.config.manager import ConfigurationManager
         config = ConfigurationManager()
         config.reset_to_defaults()
         value = config.get('main', 'memory_usage/timeout')
@@ -49,6 +46,7 @@ def test_site_config_load(mocker):
         print(path, value, exp_value)
 
         assert value == exp_value
+    clear_site_config()
 
 
 if __name__ == "__main__":
