@@ -106,9 +106,8 @@ def test_objectexplorer(objectexplorer):
     assert model.columnCount() == 11
 
 
-@pytest.mark.skipif(PY2, reason="Number of rows is different in PY2")
-def test_objectexplorer_types(objectexplorer):
-    """Test to validate proper handling of multiple data types."""
+def test_objectexplorer_collection_types(objectexplorer):
+    """Test to validate proper handling of collection data types."""
     test = {'str': 'kjkj kj k j j kj k jkj',
             'list': [1, 3, 4, 'kjkj', None],
             'set': {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
@@ -118,15 +117,46 @@ def test_objectexplorer_types(objectexplorer):
             'date': datetime.date(1945, 5, 8),
             'datetime': datetime.datetime(1945, 5, 8)}
     editor = objectexplorer(test,
-                            expanded=True,
+                            name='variables',
                             show_callable_attributes=True,
                             show_special_attributes=True)
     # Editor was created
     assert editor
 
-    # Check number of rows
+    # Check number of rows and row content
     model = editor.obj_tree.model()
-    assert model.rowCount() == 48
+    # Only the row for the dict
+    assert model.rowCount() == 1
+    # Size of the dict
+    assert model.data(model.index(0, 2), Qt.DisplayRole) == '8'
+    assert model.columnCount() == 11
+
+
+def test_objectexplorer_types(objectexplorer):
+    """Test to validate proper handling of data types inside an object."""
+    class Foobar(object):
+        def __init__(self):
+            self.text = "toto"
+            self.list = [1, 3, 4, 'kjkj', None]
+            self.set = {1, 2, 1, 3, None, 'A', 'B', 'C', True, False},
+            self.dict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]},
+            self.float = 1.2233,
+            self.array = np.random.rand(10, 10),
+            self.date = datetime.date(1945, 5, 8),
+            self.datetime = datetime.datetime(1945, 5, 8)
+    foo = Foobar()
+
+    editor = objectexplorer(foo,
+                            name='foo',
+                            show_callable_attributes=True,
+                            show_special_attributes=True)
+    # Editor was created
+    assert editor
+
+    # Check number of rows and row content
+    model = editor.obj_tree.model()
+    # Only the row for the object
+    assert model.rowCount() == 1
     assert model.columnCount() == 11
 
 

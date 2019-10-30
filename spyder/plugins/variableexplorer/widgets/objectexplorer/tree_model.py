@@ -13,10 +13,8 @@
 # -----------------------------------------------------------------------------
 
 # Standard library imports
-import datetime
 import logging
 from difflib import SequenceMatcher
-from collections import OrderedDict
 
 # Third-party imports
 from qtpy.QtCore import (QAbstractItemModel, QModelIndex, Qt,
@@ -26,9 +24,7 @@ from qtpy.QtGui import QBrush, QColor
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import get_font
-from spyder_kernels.utils.nsview import (
-    array, DataFrame, Index, display_to_value, FakeObject,
-    Image, is_editable_type, is_known_type, MaskedArray, ndarray, Series)
+from spyder_kernels.utils.nsview import is_editable_type
 from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
     cut_off_str)
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (
@@ -292,7 +288,7 @@ class TreeModel(QAbstractItemModel):
         tree_items = []
 
         # Only populate children for objects without their own editor
-        if not is_editable_type(obj):
+        if not is_editable_type(obj) or obj == self.rootItem.obj:
             is_attr_list = [False] * len(obj_children)
 
             # Object attributes
