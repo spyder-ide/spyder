@@ -286,40 +286,6 @@ class TreeModel(QAbstractItemModel):
         obj_children = []
         path_strings = []
 
-        if isinstance(obj, (list, tuple)):
-            obj_children = sorted(enumerate(obj))
-            path_strings = ['{}[{}]'.format(obj_path,
-                            item[0]) if obj_path else item[0]
-                            for item in obj_children]
-        elif isinstance(obj, (set, frozenset)):
-            obj_children = [('pop()', elem) for elem in obj]
-            path_strings = ['{0}.pop()'.format(obj_path,
-                            item[0]) if obj_path else item[0]
-                            for item in obj_children]
-        elif hasattr(obj, 'items'):  # dictionaries and the likes.
-            try:
-                obj_children = list(obj.items())
-            except Exception as ex:
-                # Can happen if the items method expects an argument,
-                # for instance the types.DictType.items
-                # method expects a dictionary.
-                logger.warn("No items expanded. "
-                            "Objects items() call failed: {}".format(ex))
-                obj_children = []
-
-            # Sort keys, except when the object is an OrderedDict.
-            if not isinstance(obj, OrderedDict):
-                try:
-                    obj_children = sorted(obj.items())
-                except Exception as ex:
-                    logger.debug("Unable to sort "
-                                 "dictionary keys: {}".format(ex))
-
-            path_strings = ['{}[{!r}]'.format(obj_path,
-                            item[0]) if obj_path else item[0]
-                            for item in obj_children]
-
-        assert len(obj_children) == len(path_strings), "sanity check"
         is_attr_list = [False] * len(obj_children)
 
         # Object attributes

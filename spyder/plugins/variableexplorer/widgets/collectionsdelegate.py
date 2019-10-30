@@ -409,8 +409,6 @@ class ToggleColumnDelegate(CollectionsDelegate):
 
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
-        if index.column() < 3:
-            return None
         if self.show_warning(index):
             answer = QMessageBox.warning(
                 self.parent(), _("Warning"),

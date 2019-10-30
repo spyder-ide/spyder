@@ -108,6 +108,17 @@ class ObjectExplorer(QDialog):
         self._proxy_tree_model.setDynamicSortFilter(True)
         # self._proxy_tree_model.setSortCaseSensitivity(Qt.CaseInsensitive)
 
+        # Tree widget
+        self.obj_tree = ToggleColumnTreeView(
+                dataframe_format=self._dataframe_format)
+        self.obj_tree.setAlternatingRowColors(True)
+        self.obj_tree.setModel(self._proxy_tree_model)
+        self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.obj_tree.setUniformRowHeights(True)
+        self.obj_tree.setAnimated(True)
+        self.obj_tree.add_header_context_menu()
+        self.obj_tree.sig_option_changed.connect(self.sig_option_changed.emit)
+
         # Views
         self._setup_actions()
         self._setup_menu(show_callable_attributes=show_callable_attributes,
@@ -152,6 +163,8 @@ class ObjectExplorer(QDialog):
                                 "that are callable (functions, methods, etc)"))
         self.toggle_show_callable_action.toggled.connect(
             self._proxy_tree_model.setShowCallables)
+        self.toggle_show_callable_action.toggled.connect(
+            self.obj_tree.resize_columns_to_contents)
 
         # Show/hide special attributes
         self.toggle_show_special_attribute_action = \
@@ -160,6 +173,8 @@ class ObjectExplorer(QDialog):
                     statusTip=_("Shows or hides __special__ attributes"))
         self.toggle_show_special_attribute_action.toggled.connect(
             self._proxy_tree_model.setShowSpecialAttributes)
+        self.toggle_show_special_attribute_action.toggled.connect(
+            self.obj_tree.resize_columns_to_contents)
 
     def _setup_menu(self, show_callable_attributes=False,
                     show_special_attributes=False):
@@ -234,17 +249,6 @@ class ObjectExplorer(QDialog):
                                       self.central_splitter)
         self.setLayout(layout)
 
-        # Tree widget
-        self.obj_tree = ToggleColumnTreeView(
-                dataframe_format=self._dataframe_format)
-        self.obj_tree.setAlternatingRowColors(True)
-        self.obj_tree.setModel(self._proxy_tree_model)
-        self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.obj_tree.setUniformRowHeights(True)
-        self.obj_tree.setAnimated(True)
-        self.obj_tree.add_header_context_menu()
-        self.obj_tree.sig_option_changed.connect(self.sig_option_changed.emit)
-
         # Stretch last column?
         # It doesn't play nice when columns are hidden and then shown again.
         obj_tree_header = self.obj_tree.header()
@@ -295,12 +299,6 @@ class ObjectExplorer(QDialog):
         self.editor = CodeEditor(self)
         self.editor.setReadOnly(True)
         h_group_layout.addWidget(self.editor)
-
-        # Warining label about repr
-        repr_label = QLabel(_("(*) Some objects have very large repr's, "
-                              "which can freeze Spyder. Please use this "
-                              "with care."))
-        v_group_layout.addWidget(repr_label)
 
         # Save and close buttons
         btn_layout = QHBoxLayout()
@@ -377,11 +375,8 @@ class ObjectExplorer(QDialog):
                 if not self._resize_to_contents and size > 0:  # Just in case
                     header.resizeSection(idx, size)
                 else:
-                    header.setSectionResizeMode(
-                        idx, QHeaderView.ResizeToContents)
-                    width = header.sectionSize(idx)
-                    header.setSectionResizeMode(idx, QHeaderView.Interactive)
-                    header.resizeSection(idx, width)
+                    header.resizeSections(QHeaderView.ResizeToContents)
+                    break
 
             for idx, visible in enumerate(column_visible):
                 elem = self.obj_tree.toggle_column_actions_group.actions()[idx]
