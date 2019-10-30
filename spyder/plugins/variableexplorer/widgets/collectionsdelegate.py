@@ -40,6 +40,10 @@ if DataFrame is not FakeObject:
             DataFrameEditor)
 
 
+LARGE_COLLECTION = 1e5
+LARGE_ARRAY = 5e6
+
+
 class CollectionsDelegate(QItemDelegate):
     """CollectionsEditor Item Delegate"""
     sig_free_memory = Signal()
@@ -72,14 +76,14 @@ class CollectionsDelegate(QItemDelegate):
         val_size = index.sibling(index.row(), 2).data()
 
         if val_type in ['list', 'set', 'tuple', 'dict']:
-            if int(val_size) > 1e5:
+            if int(val_size) > LARGE_COLLECTION:
                 return True
         elif (val_type in ['DataFrame', 'Series'] or 'Array' in val_type or
                 'Index' in val_type):
             # From https://blender.stackexchange.com/a/131849
             shape = [int(s) for s in val_size.strip("()").split(",") if s]
             size = functools.reduce(operator.mul, shape)
-            if size > 5e6:
+            if size > LARGE_ARRAY:
                 return True
 
         return False
