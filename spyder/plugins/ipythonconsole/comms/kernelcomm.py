@@ -43,7 +43,7 @@ class KernelComm(CommBase, QObject):
         self.kernel_client = None
 
     def _set_comm_port(self, port):
-        """Set comm port"""
+        """Set comm port."""
         client = self.kernel_client
         client.comm_port = port
         identity = client.session.bsession
