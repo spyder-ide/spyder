@@ -35,6 +35,7 @@ import sys
 import threading
 import traceback
 import importlib
+import faulthandler
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +98,7 @@ from qtawesome.iconic_font import FontError
 # be set before creating the application.
 #==============================================================================
 from spyder.config.manager import CONF
+from spyder.config.base import get_conf_path
 
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
@@ -3623,13 +3625,19 @@ def main():
                                    args=[spyder.__path__[0]], p_args=['-O'])
         return
 
+    faulthandler_file = get_conf_path('faulthandler.log')
+    previous_crash = ''
+    if osp.exists(faulthandler_file):
+        with open(faulthandler_file, 'r') as f:
+            previous_crash = f.read()
+
     # **** Show crash dialog ****
-    if CONF.get('main', 'crash', False) and not DEV:
+    CONF.set('main', 'previous_crash', '')
+    if (previous_crash or CONF.get('main', 'crash', False)) and not DEV:
         CONF.set('main', 'crash', False)
         if SPLASH is not None:
             SPLASH.hide()
-        QMessageBox.information(
-            None, "Spyder",
+        information_text = _(
             "Spyder crashed during last session.<br><br>"
             "If Spyder does not start at all and <u>before submitting a "
             "bug report</u>, please try to reset settings to defaults by "
@@ -3649,11 +3657,24 @@ def main():
             "Your feedback will always be greatly appreciated."
             "" % (get_conf_path(), __trouble_url__, __project_url__,
                   __forum_url__, __project_url__))
+        buttons = None
+        if previous_crash:
+            information_text += _(
+                "<br><br>A traceback was saved. "
+                "Do you want to open an issue on github?")
+            buttons = QMessageBox.Yes | QMessageBox.No
+        answer = QMessageBox.information(
+            None, "Spyder", information_text, buttons)
+
+        if previous_crash and answer == QMessageBox.Yes:
+            CONF.set('main', 'previous_crash', previous_crash)
 
     # **** Create main window ****
     mainwindow = None
     try:
-        mainwindow = run_spyder(app, options, args)
+        with open(faulthandler_file, 'w') as f:
+            faulthandler.enable(file=f)
+            mainwindow = run_spyder(app, options, args)
     except FontError as fontError:
         QMessageBox.information(None, "Spyder",
                 "Spyder was unable to load the <i>Spyder 3</i> "
