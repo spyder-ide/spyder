@@ -1580,6 +1580,7 @@ class CodeEditor(TextEditBaseWidget):
         """Cursor position has changed"""
         line, column = self.get_cursor_line_column()
         self.sig_cursor_position_changed.emit(line, column)
+
         if self.highlight_current_cell_enabled:
             self.highlight_current_cell()
         else:
@@ -4034,6 +4035,11 @@ class CodeEditor(TextEditBaseWidget):
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
             TextEditBaseWidget.mousePressEvent(self, event)
+
+    def mouseReleaseEvent(self, event):
+        """Override Qt method."""
+        self.document_did_change()
+        TextEditBaseWidget.mouseReleaseEvent(self, event)
 
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""

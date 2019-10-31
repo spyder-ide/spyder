@@ -158,8 +158,6 @@ class DocumentProvider:
     @send_request(method=LSPRequestTypes.DOCUMENT_HOVER)
     def request_hover(self, params):
         text = self.opened_files.get(params['file'], "")
-        params['text'] = text
-        self.document_did_change(params)
         md5 = hashlib.md5(text.encode('utf-8')).hexdigest()
         path = params['file']
         path = path.replace(osp.sep, ':')
