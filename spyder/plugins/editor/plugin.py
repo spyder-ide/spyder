@@ -515,7 +515,7 @@ class Editor(SpyderPluginWidget):
                                     _('Clear breakpoints in all files'),
                                     triggered=self.clear_all_breakpoints)
         pdb_ignore_lib = create_action(
-            self, _("Ignore python libraries while debugging"),
+            self, _("Ignore Python libraries while debugging"),
             toggled=self.toggle_pdb_ignore_lib)
 
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
