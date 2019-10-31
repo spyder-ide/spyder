@@ -114,8 +114,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
         """Set the kernel client and manager"""
         self.kernel_manager = kernel_manager
-        self.kernel_client = self.patch_kernel_client(kernel_client)
+        self.kernel_client = kernel_client
         self.spyder_kernel_comm.open_comm(kernel_client)
+
+        # Redefine the complete method to work while debugging.
+        self.redefine_complete_for_dbg(self.kernel_client)
 
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):

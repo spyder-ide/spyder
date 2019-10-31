@@ -8,20 +8,20 @@
 In addition to the remote_call mechanism implemented in CommBase:
  - Send a message to a debugging kernel
 """
+from contextlib import contextmanager
 import logging
 import pickle
-import zmq
-import jupyter_client
-from contextlib import contextmanager
 
+import jupyter_client
 from qtpy.QtCore import QEventLoop, QObject, QTimer, Signal
+import zmq
 
 from spyder_kernels.comms.commbase import CommBase
 from spyder.py3compat import TimeoutError
 
 logger = logging.getLogger(__name__)
 
-# Patch jupyter_client
+# Patch jupyter_client to define 'comm' as a socket type
 jupyter_client.connect.channel_socket_types['comm'] = zmq.DEALER
 
 
@@ -36,11 +36,13 @@ class KernelComm(CommBase, QObject):
 
     def __init__(self):
         super(KernelComm, self).__init__()
-        self.register_call_handler(
-            '_async_error', self._async_error)
-        self.register_call_handler('_set_comm_port', self._set_comm_port)
         self.comm_port = None
         self.kernel_client = None
+
+        # Register handlers
+        self.register_call_handler('_async_error', self._async_error)
+        self.register_call_handler('_set_comm_port', self._set_comm_port)
+
 
     def _set_comm_port(self, port):
         """Set comm port."""
@@ -53,7 +55,7 @@ class KernelComm(CommBase, QObject):
             socket, client.session, client.ioloop)
 
     def shutdown_comm_channel(self):
-        """shutdown the comm channel."""
+        """Shutdown the comm channel."""
         channel = self.kernel_client.comm_channel
         if channel:
             msg = self.kernel_client.session.msg('shutdown_request', {})
@@ -78,7 +80,7 @@ class KernelComm(CommBase, QObject):
                     self.kernel_client.shell_channel)
 
     def _set_call_return_value(self, call_dict, data, is_error=False):
-        """subclass to use the comm_channel for all replies."""
+        """Override to use the comm_channel for all replies."""
         with self.comm_channel_manager(self.calling_comm_id):
             super(KernelComm, self)._set_call_return_value(
                 call_dict, data, is_error)

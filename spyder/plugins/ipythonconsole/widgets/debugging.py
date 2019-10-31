@@ -209,25 +209,23 @@ class DebuggingWidget(RichJupyterWidget):
             self._pdb_history_index = len(self._pdb_history)
             self._pdb_history_file.store_inputs(line_num, line)
 
-    def patch_kernel_client(self, client):
-        """Patch kernel client to work correctly while debugging."""
+    def redefine_complete_for_dbg(self, client):
+        """Redefine kernel client's complete method to work while debugging."""
 
-        super_complete = client.complete
+        original_complete = client.complete
 
         def complete(code, cursor_pos=None):
-            """Tab complete text in the kernel's namespace."""
             if self.is_waiting_pdb_input() and client.comm_channel:
                 shell_channel = client.shell_channel
                 client._shell_channel = client.comm_channel
                 try:
-                    return super_complete(code, cursor_pos)
+                    return original_complete(code, cursor_pos)
                 finally:
                     client._shell_channel = shell_channel
             else:
-                return super_complete(code, cursor_pos)
+                return original_complete(code, cursor_pos)
 
         client.complete = complete
-        return client
 
     # --- Private API --------------------------------------------------
     def _is_pdb_complete(self, source):
