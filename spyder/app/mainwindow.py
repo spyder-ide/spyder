@@ -3633,8 +3633,7 @@ def main():
 
     # **** Show crash dialog ****
     CONF.set('main', 'previous_crash', '')
-    if (previous_crash or CONF.get('main', 'crash', False)) and not DEV:
-        CONF.set('main', 'crash', False)
+    if previous_crash and not DEV:
         if SPLASH is not None:
             SPLASH.hide()
         information_text = _(
@@ -3656,15 +3655,12 @@ def main():
             "submitting a report to our <a href=\"%s\">issue tracker</a>. "
             "Your feedback will always be greatly appreciated."
             "" % (get_conf_path(), __trouble_url__, __project_url__,
-                  __forum_url__, __project_url__))
-        buttons = None
-        if previous_crash:
-            information_text += _(
-                "<br><br>A traceback was saved. "
-                "Do you want to open an issue on github?")
-            buttons = QMessageBox.Yes | QMessageBox.No
+                  __forum_url__, __project_url__)
+            + "<br><br>A traceback was saved. "
+            "Do you want to open an issue on github?")
+
         answer = QMessageBox.information(
-            None, "Spyder", information_text, buttons)
+            None, "Spyder", information_text, QMessageBox.Yes | QMessageBox.No)
 
         if previous_crash and answer == QMessageBox.Yes:
             CONF.set('main', 'previous_crash', previous_crash)
@@ -3682,11 +3678,6 @@ def main():
                 "theme used in Spyder 2.<br><br>"
                 "For that, please close this window and start Spyder again.")
         CONF.set('appearance', 'icon_theme', 'spyder 2')
-    except BaseException:
-        CONF.set('main', 'crash', True)
-        import traceback
-        traceback.print_exc(file=STDERR)
-        traceback.print_exc(file=open('spyder_crash.log', 'w'))
     if mainwindow is None:
         # An exception occured
         if SPLASH is not None:
