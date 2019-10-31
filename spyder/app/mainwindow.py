@@ -1361,7 +1361,7 @@ class MainWindow(QMainWindow):
         # In MacOS X 10.7 our app is not displayed after initialized (I don't
         # know why because this doesn't happen when started from the terminal),
         # so we need to resort to this hack to make it appear.
-        if running_in_mac_app(check_file=True):
+        if running_in_mac_app():
             idx = __file__.index(MAC_APP_NAME)
             app_path = __file__[:idx]
             subprocess.call(['open', app_path + MAC_APP_NAME])
@@ -1469,12 +1469,18 @@ class MainWindow(QMainWindow):
 
     def report_missing_dependencies(self):
         """Show a QMessageBox with a list of missing hard dependencies"""
+        # Declare dependencies before trying to detect the missing ones
         dependencies.declare_dependencies()
         missing_deps = dependencies.missing_dependencies()
+
         if missing_deps:
+            # Fix html formatting. The last 4 chars correspond to a
+            # '<br>' added by missing_dependencies
+            missing_deps = missing_deps[:-4].replace('<', '&lt;')
+
             QMessageBox.critical(self, _('Error'),
                 _("<b>You have missing dependencies!</b>"
-                  "<br><br><tt>%s</tt><br>"
+                  "<br><br><tt>%s</tt><br><br>"
                   "<b>Please install them to avoid this message.</b>"
                   "<br><br>"
                   "<i>Note</i>: Spyder could work without some of these "
@@ -2271,7 +2277,8 @@ class MainWindow(QMainWindow):
         console, not_readonly, readwrite_editor = textedit_properties
 
         # Editor has focus and there is no file opened in it
-        if not console and not_readonly and not self.editor.is_file_opened():
+        if (not console and not_readonly and self.editor
+                and not self.editor.is_file_opened()):
             return
 
         # Disabling all actions to begin with
@@ -2295,8 +2302,9 @@ class MainWindow(QMainWindow):
         # Comment, uncomment, indent, unindent...
         if not console and not_readonly:
             # This is the editor and current file is writable
-            for action in self.editor.edit_menu_actions:
-                action.setEnabled(True)
+            if self.editor:
+                for action in self.editor.edit_menu_actions:
+                    action.setEnabled(True)
 
     def update_search_menu(self):
         """Update search menu"""
@@ -2322,7 +2330,8 @@ class MainWindow(QMainWindow):
                     pass
 
         # Disable the replace action for read-only files
-        self.search_menu_actions[3].setEnabled(readwrite_editor)
+        if len(self.search_menu_actions) > 3:
+            self.search_menu_actions[3].setEnabled(readwrite_editor)
 
     def create_plugins_menu(self):
         order = ['editor', 'ipython_console', 'variable_explorer',
@@ -3507,7 +3516,7 @@ def run_spyder(app, options, args):
         QCoreApplication.setAttribute(Qt.AA_DontShowIconsInMenus, True)
 
     # Open external files with our Mac app
-    if running_in_mac_app():
+    if sys.platform == "darwin":
         app.sig_open_external_file.connect(main.open_external_file)
         app._has_started = True
         if hasattr(app, '_pending_file_open'):
@@ -3555,6 +3564,7 @@ def main():
         options.opengl_implementation = None
         options.debug_info = None
         options.debug_output = None
+        options.paths = None
 
         if CONF.get('main', 'opengl') != 'automatic':
             option = CONF.get('main', 'opengl')

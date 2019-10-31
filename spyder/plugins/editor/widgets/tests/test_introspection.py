@@ -43,6 +43,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
     code_editor, _ = lsp_codeeditor
     code_editor.toggle_automatic_completions(False)
     code_editor.toggle_code_snippets(False)
+    CONF.set('editor', 'completions_wait_for_ms', 0)
 
     completion = code_editor.completion_widget
 
@@ -200,6 +201,73 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
 
 
 @pytest.mark.slow
+@flaky(max_runs=3)
+def test_automatic_completions_parens_bug(lsp_codeeditor, qtbot):
+    """
+    Test on-the-fly completions.
+
+    Autocompletions for variables don't work inside function calls.
+
+    See: spyder-ide/spyder#10448
+    """
+    code_editor, _ = lsp_codeeditor
+    completion = code_editor.completion_widget
+    code_editor.toggle_code_snippets(False)
+
+    # Parens:
+    # Set cursor to start
+    code_editor.set_text('my_list = [1, 2, 3]\nlist_copy = list((my))')
+    cursor = code_editor.textCursor()
+    code_editor.moveCursor(cursor.End)
+
+    # Move cursor next to list((my$))
+    qtbot.keyPress(code_editor, Qt.Key_Left)
+    qtbot.keyPress(code_editor, Qt.Key_Left)
+    qtbot.wait(500)
+
+    # Complete my_ -> my_list
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=5000) as sig:
+        qtbot.keyClicks(code_editor, '_')
+
+    assert "my_list" in [x['label'] for x in sig.args[0]]
+
+    # Square braces:
+    # Set cursor to start
+    code_editor.set_text('my_dic = {1: 1, 2: 2}\nonesee = 1\none = my_dic[on]')
+    cursor = code_editor.textCursor()
+    code_editor.moveCursor(cursor.End)
+
+    # Move cursor next to my_dic[on$]
+    qtbot.keyPress(code_editor, Qt.Key_Left)
+    qtbot.wait(500)
+
+    # Complete one -> onesee
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=5000) as sig:
+        qtbot.keyClicks(code_editor, 'e')
+
+    assert "onesee" in [x['label'] for x in sig.args[0]]
+
+    # Curly braces:
+    # Set cursor to start
+    code_editor.set_text('my_dic = {1: 1, 2: 2}\nonesee = 1\none = {on}')
+    cursor = code_editor.textCursor()
+    code_editor.moveCursor(cursor.End)
+
+    # Move cursor next to {on*}
+    qtbot.keyPress(code_editor, Qt.Key_Left)
+    qtbot.wait(500)
+
+    # Complete one -> onesee
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=5000) as sig:
+        qtbot.keyClicks(code_editor, 'e')
+
+    assert "onesee" in [x['label'] for x in sig.args[0]]
+
+
+@pytest.mark.slow
 @pytest.mark.first
 @flaky(max_runs=5)
 def test_completions(lsp_codeeditor, qtbot):
@@ -270,6 +338,8 @@ def test_completions(lsp_codeeditor, qtbot):
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
     qtbot.keyPress(code_editor, Qt.Key_Right, delay=300)
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    assert code_editor.toPlainText() == 'import math\nmath.hypot\n'\
+                                        'math.hypot()\n'
 
     # Complete math.a <tab> ... s <enter> to math.asin
     qtbot.keyClicks(code_editor, 'math.a')
@@ -283,11 +353,14 @@ def test_completions(lsp_codeeditor, qtbot):
     # Test if the list is updated
     assert "acos(x)" == completion.completion_list[0]['label']
     qtbot.keyClicks(completion, 's')
-    assert "asin" == completion.item(0).data(Qt.UserRole)
+    data = completion.item(0).data(Qt.UserRole)
+    assert "asin" == data['insertText']
     qtbot.keyPress(completion, Qt.Key_Enter, delay=300)
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    assert code_editor.toPlainText() == 'import math\nmath.hypot\n'\
+                                        'math.hypot()\nmath.asin\n'
 
     # Check can get list back
     qtbot.keyClicks(code_editor, 'math.f')
@@ -306,6 +379,9 @@ def test_completions(lsp_codeeditor, qtbot):
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    assert code_editor.toPlainText() == 'import math\nmath.hypot\n'\
+                                        'math.hypot()\nmath.asin\n'\
+                                        'math.f\n'
 
     # Complete math.a <tab> s ...<enter> to math.asin
     qtbot.keyClicks(code_editor, 'math.a')
@@ -321,6 +397,9 @@ def test_completions(lsp_codeeditor, qtbot):
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    assert code_editor.toPlainText() == 'import math\nmath.hypot\n'\
+                                        'math.hypot()\nmath.asin\n'\
+                                        'math.f\nmath.asin\n'
 
     # Complete math.a|angle <tab> s ...<enter> to math.asin|angle
     qtbot.keyClicks(code_editor, 'math.aangle')
@@ -339,8 +418,13 @@ def test_completions(lsp_codeeditor, qtbot):
     for i in range(len('angle')):
         qtbot.keyClick(code_editor, Qt.Key_Right)
 
-    # Check math.a <tab> <backspace> doesn't emit sig_show_completions
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    assert code_editor.toPlainText() == 'import math\nmath.hypot\n'\
+                                        'math.hypot()\nmath.asin\n'\
+                                        'math.f\nmath.asin\n'\
+                                        'math.asinangle\n'
+
+    # Check math.a <tab> <backspace> doesn't emit sig_show_completions
     qtbot.keyClicks(code_editor, 'math.a')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()

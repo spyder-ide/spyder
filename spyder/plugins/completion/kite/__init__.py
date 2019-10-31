@@ -9,10 +9,13 @@
 from spyder.plugins.completion.languageserver import LSPRequestTypes
 
 
+LOCALHOST = '127.0.0.1'
+
+
 class _KiteEndpoints(type):
     """HTTP endpoints supported by Kite"""
     KITE_PORT = 46624
-    KITE_URL = 'http://localhost:{0}'.format(KITE_PORT)
+    KITE_URL = 'http://{0}:{1}'.format(LOCALHOST, KITE_PORT)
 
     LANGUAGES_ENDPOINT = ('GET', '/clientapi/languages')
     EVENT_ENDPOINT = ('POST', '/clientapi/editor/event')
