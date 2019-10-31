@@ -190,7 +190,7 @@ class Console(SpyderPluginWidget):
         self.add_dockwidget()
         # Connecting the following signal once the dockwidget has been created:
         self.shell.exception_occurred.connect(self.exception_occurred)
-        previous_crash = CONF.get('main', 'previous_crash')
+        previous_crash = CONF.get('main', 'previous_crash', '')
         if previous_crash:
             self.exception_occurred(previous_crash, True)
 
