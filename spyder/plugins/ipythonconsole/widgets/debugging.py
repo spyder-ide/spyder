@@ -296,7 +296,7 @@ class DebuggingWidget(RichJupyterWidget):
         self.call_kernel(interrupt=True).set_pdb_echo_code(state)
 
     def _handle_input_request(self, msg):
-        """Save history and add a %plot magic."""
+        """Process an input request."""
         if self._hidden:
             raise RuntimeError(
                 'Request for raw input during hidden execution.')
