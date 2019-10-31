@@ -51,18 +51,5 @@ def test_get_conf_path(monkeypatch, use_dev_config_dir):
     reload(spyder.config.base)
 
 
-def test_get_conf_paths():
-    """Test that the config paths return the right amount of values."""
-    from spyder.config.base import get_conf_paths
-    config_paths = get_conf_paths()
-
-    if os.name == 'nt':
-        values = [1, 2]
-    else:
-        values = [2, 3]
-
-    assert len(config_paths) in values
-
-
 if __name__ == '__main__':
     pytest.main()
