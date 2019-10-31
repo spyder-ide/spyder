@@ -13,9 +13,9 @@ import os
 import os.path as osp
 
 # Local imports
-from spyder.config.base import get_conf_path, get_home_dir
+from spyder.config.base import get_conf_paths, get_conf_path, get_home_dir
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
-from spyder.config.user import MultiUserConfig, NoDefault
+from spyder.config.user import UserConfig, MultiUserConfig, NoDefault
 
 
 class ConfigurationManager(object):
@@ -31,12 +31,31 @@ class ConfigurationManager(object):
         if not osp.isdir(path):
             os.makedirs(path)
 
+        # Site configuration defines the system defaults if a file
+        # is found in the site location
+        conf_paths = get_conf_paths()
+        site_defaults = DEFAULTS
+        for conf_path in reversed(conf_paths):
+            conf_fpath = os.path.join(conf_path, 'spyder.ini')
+            if os.path.isfile(conf_fpath):
+                site_config = UserConfig(
+                    'spyder',
+                    path=conf_path,
+                    defaults=site_defaults,
+                    load=False,
+                    version=CONF_VERSION,
+                    backup=False,
+                    raw_mode=True,
+                    remove_obsolete=False,
+                )
+                site_defaults = site_config.to_list()
+
         self._parent = parent
         self._active_project_callback = active_project_callback
         self._user_config = MultiUserConfig(
             NAME_MAP,
             path=path,
-            defaults=DEFAULTS,
+            defaults=site_defaults,
             load=True,
             version=CONF_VERSION,
             backup=True,
@@ -46,9 +65,6 @@ class ConfigurationManager(object):
 
         # Store plugin configurations when CONF_FILE = True
         self._plugin_configs = {}
-
-        # TODO: Implementation to be defined in following PR
-        self._site_config = None
 
         # TODO: To be implemented in following PR
         self._project_configs = {}  # Cache project configurations
@@ -88,10 +104,6 @@ class ConfigurationManager(object):
         old_location = osp.join(get_home_dir(), '.spyder.ini')
         if osp.isfile(old_location):
             os.remove(old_location)
-
-    def get_system_config_path(self):
-        """Return the system configuration path."""
-        return None
 
     def get_active_conf(self, section=None):
         """

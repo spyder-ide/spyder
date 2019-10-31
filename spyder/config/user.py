@@ -605,6 +605,23 @@ class UserConfig(DefaultsConfig):
         """Remove .ini file associated to config."""
         os.remove(self.get_config_fpath())
 
+    def to_list(self):
+        """
+        Return in list format.
+
+        The format is [('section1', {'opt-1': value, ...}),
+                       ('section2', {'opt-2': othervalue, ...}), ...]
+        """
+        new_defaults = []
+        self._load_from_ini(self.get_config_fpath())
+        for section in self._sections:
+            sec_data = {}
+            for (option, _) in self.items(section):
+                sec_data[option] = self.get(section, option)
+            new_defaults.append((section, sec_data))
+
+        return new_defaults
+
 
 class SpyderUserConfig(UserConfig):
 
@@ -672,10 +689,7 @@ class SpyderUserConfig(UserConfig):
         Get defaults location based on version.
         """
         if old_version:
-            if check_version(old_version, '3.0.0', '<='):
-                name = '{}-{}'.format('defaults', old_version)
-                path = self._module_source_path
-            elif check_version(old_version, '51.0.0', '<'):
+            if check_version(old_version, '51.0.0', '<'):
                 name = '{}-{}'.format(self._defaults_name_prefix, old_version)
                 path = osp.join(get_conf_path(), 'defaults')
             else:
@@ -694,10 +708,7 @@ class SpyderUserConfig(UserConfig):
 
         Apply any patch to configuration values on version changes.
         """
-        if old_version and check_version(old_version, '2.4.0', '<'):
-            self.reset_to_defaults(save=False)
-        else:
-            self._update_defaults(self.defaults, old_version)
+        self._update_defaults(self.defaults, old_version)
 
         if old_version and check_version(old_version, '44.1.0', '<'):
             run_lines = to_text_string(self.get('ipython_console',
