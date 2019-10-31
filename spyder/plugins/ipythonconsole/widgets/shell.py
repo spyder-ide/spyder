@@ -96,7 +96,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         handlers = {
             'pdb_state': self.set_pdb_state,
             'pdb_continue': self.pdb_continue,
-            'get_breakpoints': self.get_spyder_breakpoints,
+            'get_pdb_settings': self.handle_get_pdb_settings,
             'run_cell': self.handle_run_cell,
             'cell_count': self.handle_cell_count,
             'current_filename': self.handle_current_filename,

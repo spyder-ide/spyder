@@ -132,14 +132,23 @@ class DebuggingWidget(RichJupyterWidget):
 
         self._pdb_input_queue.append((line, hidden))
 
-    def get_spyder_breakpoints(self):
-        """Get spyder breakpoints."""
-        return CONF.get('run', 'breakpoints', {})
+    def handle_get_pdb_settings(self):
+        """Get pdb settings"""
+        return {
+            "breakpoints": CONF.get('run', 'breakpoints', {}),
+            "pdb_ignore_lib": CONF.get(
+                'run', 'pdb_ignore_lib', False),
+            }
 
-    def set_spyder_breakpoints(self, force=False):
+    def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into a debugging session"""
         self.call_kernel(interrupt=True).set_breakpoints(
-            self.get_spyder_breakpoints())
+            CONF.get('run', 'breakpoints', {}))
+
+    def set_pdb_ignore_lib(self):
+        """Set pdb_ignore_lib into a debugging session"""
+        self.call_kernel(interrupt=True).set_pdb_ignore_lib(
+            CONF.get('run', 'pdb_ignore_lib', False))
 
     def dbg_exec_magic(self, magic, args=''):
         """Run an IPython magic while debugging."""
