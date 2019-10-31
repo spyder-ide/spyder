@@ -27,8 +27,9 @@ INSTALL_TIMEOUT = 360000
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None,
-                    reason=("Needs to approve installation on Windows and "
+@pytest.mark.skipif((not sys.platform.startswith('linux')
+                     or os.environ.get('CI', None) is None),
+                    reason=("Only works reliably on Linux and "
                             "it's not meant to be run outside of CIs"))
 def test_kite_install(qtbot):
     """Test the correct execution of the installation process of kite."""
@@ -59,7 +60,7 @@ def test_kite_install(qtbot):
                 FINISHED]
 
         # This status can be obtained the second time our tests are run
-        if not installation_statuses == ['Install finished']:
+        if not installation_statuses == ['Installation finished']:
             assert installation_statuses == expected_installation_status
 
     install_manager.sig_installation_status.connect(installation_status)

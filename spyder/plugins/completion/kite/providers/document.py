@@ -70,9 +70,11 @@ class DocumentProvider:
             'filename': osp.realpath(params['file']),
             'text': params['text'],
             'action': 'focus',
-            'selections': [
-                {'start': params['offset'], 'end': params['offset']}
-            ]
+            'selections': [{
+                'start': params['offset'],
+                'end': params['offset'],
+                'encoding': 'utf-16',
+            }],
         }
 
         with QMutexLocker(self.mutex):
@@ -87,9 +89,11 @@ class DocumentProvider:
             'filename': osp.realpath(params['file']),
             'text': params['text'],
             'action': 'edit',
-            'selections': [
-                {'start': params['offset'], 'end': params['offset']}
-            ]
+            'selections': [{
+                'start': params['offset'],
+                'end': params['offset'],
+                'encoding': 'utf-16',
+            }],
         }
         with QMutexLocker(self.mutex):
             self.opened_files[params['file']] = params['text']
@@ -106,7 +110,7 @@ class DocumentProvider:
             'position': {
                 'begin': params['offset']
             },
-            'placeholders': []
+            'offset_encoding': 'utf-16',
         }
         return request
 
@@ -123,8 +127,14 @@ class DocumentProvider:
                     'kind': KITE_DOCUMENT_TYPES.get(
                         completion['hint'], CompletionItemKind.TEXT),
                     'label': completion['display'],
-                    'insertText': convert_text_snippet(completion['snippet']),
-                    'filterText': completion['display'],
+                    'textEdit': {
+                        'newText': convert_text_snippet(completion['snippet']),
+                        'range': {
+                            'start': completion['replace']['begin'],
+                            'end': completion['replace']['end'],
+                        },
+                    },
+                    'filterText': '',
                     # Use the returned ordering
                     'sortText': (i, 0),
                     'documentation': completion['documentation']['text'],
@@ -133,15 +143,22 @@ class DocumentProvider:
                 spyder_completions.append(entry)
 
                 if 'children' in completion:
-                    children_snippets = completion['children']
-                    for j, child in enumerate(children_snippets):
+                    for j, child in enumerate(completion['children']):
                         child_entry = {
                             'kind': KITE_DOCUMENT_TYPES.get(
                                 child['hint'], CompletionItemKind.TEXT),
                             'label': ' '*2 + child['display'],
+                            'textEdit': {
+                                'newText': convert_text_snippet(
+                                    child['snippet']),
+                                'range': {
+                                    'start': child['replace']['begin'],
+                                    'end': child['replace']['end'],
+                                },
+                            },
                             'insertText': convert_text_snippet(
                                 child['snippet']),
-                            'filterText': child['snippet']['text'],
+                            'filterText': '',
                             # Use the returned ordering
                             'sortText': (i, j+1),
                             'documentation': child['documentation']['text'],
@@ -155,7 +172,7 @@ class DocumentProvider:
     def request_hover(self, params):
         text = self.opened_files.get(params['file'], "")
         md5 = hashlib.md5(text.encode('utf-8')).hexdigest()
-        path = str(params['file'])
+        path = params['file']
         path = path.replace(osp.sep, ':')
         logger.debug(path)
         if os.name == 'nt':
@@ -164,7 +181,8 @@ class DocumentProvider:
         request = {
             'filename': path,
             'hash': md5,
-            'cursor_runes': params['offset']
+            'cursor_runes': params['offset'],
+            'offset_encoding': 'utf-16',
         }
         return None, request
 
@@ -191,7 +209,7 @@ class DocumentProvider:
             'filename': request['file'],
             'text': text,
             'cursor_runes': request['offset'],
-            'offset_encoding': 'utf-32'
+            'offset_encoding': 'utf-16',
         }
         return response
 

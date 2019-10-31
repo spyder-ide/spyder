@@ -358,9 +358,18 @@ class CodeEditor(TextEditBaseWidget):
         # Typing keys / handling on the fly completions
         # See: keyPressEvent
         self._last_key_pressed_text = ''
-        self._timer_key_press = QTimer(self)
-        self._timer_key_press.setSingleShot(True)
-        self._timer_key_press.timeout.connect(self._handle_completions)
+        self._timer_autocomplete = QTimer(self)
+        self._timer_autocomplete.setSingleShot(True)
+        self._timer_autocomplete.timeout.connect(self._handle_completions)
+
+        # Handle completions hints
+        self._completions_hint_idle = False
+        self._timer_completions_hint = QTimer(self)
+        self._timer_completions_hint.setSingleShot(True)
+        self._timer_completions_hint.timeout.connect(
+            self._set_completions_hint_idle)
+        self.completion_widget.sig_completion_hint.connect(
+            self.show_hint_for_completion)
 
         # Goto uri
         self._last_hover_pattern_key = None
@@ -514,6 +523,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Completions hint
         self.completions_hint = True
+        self.completions_hint_after_ms = 500
 
         self.close_parentheses_enabled = True
         self.close_quotes_enabled = False
@@ -585,13 +595,9 @@ class CodeEditor(TextEditBaseWidget):
         self.word_tokens = []
         self.patch = []
 
-        # Handle completions hints
-        self.completion_widget.sig_completion_hint.connect(
-            self.show_hint_for_completion)
-
         # re-use parent of completion_widget (usually the main window)
-        compl_parent = self.completion_widget.parent()
-        self.kite_call_to_action = KiteCallToAction(self, compl_parent)
+        completion_parent = self.completion_widget.parent()
+        self.kite_call_to_action = KiteCallToAction(self, completion_parent)
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -782,6 +788,7 @@ class CodeEditor(TextEditBaseWidget):
                      automatic_completions_after_chars=3,
                      automatic_completions_after_ms=300,
                      completions_hint=True,
+                     completions_hint_after_ms=500,
                      hover_hints=True,
                      code_snippets=True,
                      highlight_current_line=True,
@@ -874,11 +881,11 @@ class CodeEditor(TextEditBaseWidget):
         self.toggle_automatic_completions(automatic_completions)
         self.set_automatic_completions_after_chars(
             automatic_completions_after_chars)
-        self.set_automatic_completions_after_ms(
-            automatic_completions_after_ms)
+        self.set_automatic_completions_after_ms(automatic_completions_after_ms)
 
         # Completions hint
         self.toggle_completions_hint(completions_hint)
+        self.set_completions_hint_after_ms(completions_hint_after_ms)
 
         # Hover hints
         self.toggle_hover_hints(hover_hints)
@@ -947,7 +954,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Configuration and protocol start/end ----------------
     def start_completion_services(self):
-        logger.debug("Completions services available for: {0}".format(
+        logger.debug(u"Completions services available for: {0}".format(
             self.filename))
         self.completions_available = True
         self.document_did_open()
@@ -1062,19 +1069,24 @@ class CodeEditor(TextEditBaseWidget):
         position, automatic = args
         try:
             completions = params['params']
-            cursor = self.textCursor()
-            cursor.select(QTextCursor.WordUnderCursor)
-            text1 = to_text_string(cursor.selectedText())
-
-            cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor, 2)
-            cursor.select(QTextCursor.WordUnderCursor)
-            text2 = to_text_string(cursor.selectedText())
-
-            first_letter = text1[0] if len(text1) > 0 else ''
             completions = [] if completions is None else completions
 
+            replace_end = self.textCursor().position()
+            under_cursor = self.get_current_word_and_position(completion=True)
+            if under_cursor:
+                word, replace_start = under_cursor
+            else:
+                word = ''
+                replace_start = replace_end
+            first_letter = ''
+            if len(word) > 0:
+                first_letter = word[0]
+
             def sort_key(completion):
-                first_insert_letter = completion['insertText'][0]
+                if 'textEdit' in completion:
+                    first_insert_letter = completion['textEdit']['newText'][0]
+                else:
+                    first_insert_letter = completion['insertText'][0]
                 case_mismatch = (
                     (first_letter.isupper() and first_insert_letter.islower())
                     or
@@ -1084,6 +1096,21 @@ class CodeEditor(TextEditBaseWidget):
                 return (case_mismatch, completion['sortText'])
 
             completion_list = sorted(completions, key=sort_key)
+
+            # Allow for textEdit completions to be filtered by Spyder
+            # if on-the-fly completions are disabled, only if the
+            # textEdit range matches the word under the cursor.
+            for completion in completion_list:
+                if 'textEdit' in completion:
+                    c_replace_start = completion['textEdit']['range']['start']
+                    c_replace_end = completion['textEdit']['range']['end']
+                    if (c_replace_start == replace_start
+                            and c_replace_end == replace_end):
+                        insert_text = completion['textEdit']['newText']
+                        completion['filterText'] = insert_text
+                        completion['insertText'] = insert_text
+                        del completion['textEdit']
+
             if len(completion_list) > 0:
                 self.completion_widget.show_list(
                         completion_list, position, automatic)
@@ -1130,7 +1157,7 @@ class CodeEditor(TextEditBaseWidget):
                 parameter_idx = signature_params['activeParameter']
                 parameters = signature_data['parameters']
                 parameter = None
-                if parameter_idx < len(parameters):
+                if len(parameters) > 0 and parameter_idx < len(parameters):
                     parameter_data = parameters[parameter_idx]
                     parameter = parameter_data['label']
 
@@ -1171,7 +1198,7 @@ class CodeEditor(TextEditBaseWidget):
             content = contents['params']
             self.sig_display_object_info.emit(content,
                                               self._request_hover_clicked)
-            if self._show_hint and self._last_point and content:
+            if content is not None and self._show_hint and self._last_point:
                 # This is located in spyder/widgets/mixins.py
                 word = self._last_hover_word,
                 content = content.replace(u'\xa0', ' ')
@@ -1313,6 +1340,12 @@ class CodeEditor(TextEditBaseWidget):
         Set the amount of time in ms after which auto completion is fired.
         """
         self.automatic_completions_after_ms = ms
+
+    def set_completions_hint_after_ms(self, ms):
+        """
+        Set the amount of time in ms after which the completions hint is shown.
+        """
+        self.completions_hint_after_ms = ms
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
@@ -2125,11 +2158,14 @@ class CodeEditor(TextEditBaseWidget):
         self.tooltip_widget.hide()
         self.clear_extra_selections('code_analysis_highlight')
 
+    def _set_completions_hint_idle(self):
+        self._completions_hint_idle = True
+        self.completion_widget.trigger_completion_hint()
+
     # --- Hint for completions
     def show_hint_for_completion(self, word, documentation, at_point):
         """Show hint for completion element."""
-        self.hide_tooltip()
-        if self.completions_hint:
+        if self.completions_hint and self._completions_hint_idle:
             completion_doc = {'name': word,
                               'signature': documentation}
 
@@ -2142,8 +2178,8 @@ class CodeEditor(TextEditBaseWidget):
                     max_lines=self._DEFAULT_MAX_LINES,
                     max_width=self._DEFAULT_COMPLETION_HINT_MAX_WIDTH)
                 self.tooltip_widget.move(at_point)
-            else:
-                self.hide_tooltip()
+                return
+        self.hide_tooltip()
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
@@ -3431,7 +3467,13 @@ class CodeEditor(TextEditBaseWidget):
     def keyPressEvent(self, event):
         """Reimplement Qt method."""
         if self.automatic_completions_after_ms > 0:
-            self._timer_key_press.start(self.automatic_completions_after_ms)
+            self._timer_autocomplete.start(self.automatic_completions_after_ms)
+
+        if self.completions_hint_after_ms > 0:
+            self._completions_hint_idle = False
+            self._timer_completions_hint.start(self.completions_hint_after_ms)
+        else:
+            self._set_completions_hint_idle()
 
         def insert_text(event):
             TextEditBaseWidget.keyPressEvent(self, event)
@@ -3479,9 +3521,6 @@ class CodeEditor(TextEditBaseWidget):
                      '&', '|', '^', '~', '<', '>', '<=', '>=', '==', '!='}
         delimiters = {',', ':', ';', '@', '=', '->', '+=', '-=', '*=', '/=',
                       '//=', '%=', '@=', '&=', '|=', '^=', '>>=', '<<=', '**='}
-
-        if not shift and not ctrl:
-            self.hide_tooltip()
 
         if text not in self.auto_completion_characters:
             if text in operators or text in delimiters:
@@ -3624,8 +3663,16 @@ class CodeEditor(TextEditBaseWidget):
     def _handle_completions(self):
         """Handle on the fly completions with a delay."""
         cursor = self.textCursor()
+        pos = cursor.position()
         cursor.select(QTextCursor.WordUnderCursor)
         text = to_text_string(cursor.selectedText())
+
+        # WordUnderCursor fails if the cursor is next to a right brace.
+        # If the returned text starts with it, we move to the left.
+        if text.startswith((')', ']', '}')):
+            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.select(QTextCursor.WordUnderCursor)
+            text = to_text_string(cursor.selectedText())
 
         if (len(text) >= self.automatic_completions_after_chars
                 and self._last_key_pressed_text):
@@ -3633,7 +3680,8 @@ class CodeEditor(TextEditBaseWidget):
 
             # Perform completion on the fly
             if self.automatic_completions and not self.in_comment_or_string():
-                if text.isalpha():
+                # Variables can include numbers and underscores
+                if text.isalpha() or text.isalnum() or '_' in text:
                     self.do_completion(automatic=True)
                     self._last_key_pressed_text = ''
 

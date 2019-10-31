@@ -124,18 +124,18 @@ scientific computing and software development.
 
 # Beta release
 
-**Subject**: [ANN] Spyder 4.0 sixth public beta release
+**Subject**: [ANN] Spyder 4.0 seventh public beta release
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the sixth beta of our next major version: Spyder **4.0**.
+I'm pleased to announce the seventh beta of our next major version: Spyder **4.0**.
 
 We've been working on this version for more than three years now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
 people who like the bleeding edge to give it a try. This beta version is released
-4 weeks after Spyder 4.0 beta4 and it includes more than 275 commits.
+3 days after Spyder 4.0 beta6 and it includes more than 80 commits.
 
 Spyder 4.0 comes with several interesting and exciting new features. The most
 important ones are:
@@ -165,18 +165,20 @@ important ones are:
 
 - IPython Console
     * Run files in an empty namespace.
-    * Create dedicated consoles for Pylab, Sympy and Cython.
+    * Open dedicated consoles for Pylab, Sympy and Cython.
     * Run cells through a new function called `runcell`.
     * Run cells by name.
 
 - Debugger
-    * `runfile` and `runcell` can be called when the debugger is active.
-    * Debug cells by pressing `Alt+Shift+Return`.
-    * Permanent history.
+    * Code completion.
+    * Execute multi-line statements.
     * Syntax highlighting.
+    * Permanent history.
+    * `runfile` and `runcell` can be called when the debugger is active.
+    * Debug cells with `Alt+Shift+Return`.
 
 - Variable Explorer
-    * New viewer to inspect any Python object in a tree-like view.
+    * New viewer to inspect any Python object in a tree-like representation.
     * Filter variables by name or type.
     * MultiIndex support in the Dataframe viewer.
     * Support for all Pandas indexes.
@@ -201,7 +203,7 @@ For a more complete list of changes, please see our
 You can easily install this beta if you use Anaconda by running:
 
     conda update qt pyqt
-    conda install -c spyder-ide spyder=4.0.0b6
+    conda install -c spyder-ide spyder=4.0.0b7
 
 Or you can use pip with this command:
 

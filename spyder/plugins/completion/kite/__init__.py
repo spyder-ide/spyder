@@ -9,26 +9,32 @@
 from spyder.plugins.completion.languageserver import LSPRequestTypes
 
 
+LOCALHOST = '127.0.0.1'
+
+
 class _KiteEndpoints(type):
     """HTTP endpoints supported by Kite"""
     KITE_PORT = 46624
-    KITE_URL = 'http://localhost:{0}'.format(KITE_PORT)
+    KITE_URL = 'http://{0}:{1}'.format(LOCALHOST, KITE_PORT)
 
     LANGUAGES_ENDPOINT = ('GET', '/clientapi/languages')
     EVENT_ENDPOINT = ('POST', '/clientapi/editor/event')
     HOVER_ENDPOINT = (
-        'GET', '/api/buffer/spyder/{filename}/{hash}/hover?'
+        'GET', u'/api/buffer/spyder/{filename}/{hash}/hover?'
                'cursor_runes={cursor_runes}')
     COMPLETION_ENDPOINT = ('POST', '/clientapi/editor/complete')
     SIGNATURE_ENDPOINT = ('POST', '/clientapi/editor/signatures')
-    FILENAME_STATUS_ENDPOINT = ('GET', '/clientapi/status?filename={filename}')
+    ONBOARDING_ENDPOINT = ('GET',
+                           '/clientapi/plugins/onboarding_file?editor=spyder')
+    FILENAME_STATUS_ENDPOINT = (
+        'GET', u'/clientapi/status?filename={filename}')
     BUFFER_STATUS_ENDPOINT = ('GET', '/clientapi/status?filetype=python')
 
     def __getattribute__(self, attr):
         value = object.__getattribute__(self, attr)
         if attr.endswith('ENDPOINT'):
             verb, path = value
-            url = '{0}{1}'.format(self.KITE_URL, path)
+            url = u'{0}{1}'.format(self.KITE_URL, path)
             return verb.lower(), url
         return value
 

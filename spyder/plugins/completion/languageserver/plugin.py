@@ -391,9 +391,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         # Setup options in json
         python_config['cmd'] = cmd
         if host in self.LOCALHOST and not stdio:
-            python_config['args'] = '--host {host} --port {port} --tcp'
+            python_config['args'] = ('--host {host} --port {port} --tcp '
+                                     '--check-parent-process')
         else:
-            python_config['args'] = ''
+            python_config['args'] = '--check-parent-process'
         python_config['external'] = external_server
         python_config['stdio'] = stdio
         python_config['host'] = host

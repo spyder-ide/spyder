@@ -5,15 +5,11 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   viewBox="0 0 526.79997 526.8"
-   version="1.1"
+   height="16"
+   width="16"
    id="svg10"
-   sodipodi:docname="kite_light.svg"
-   width="526.79999"
-   height="526.79999"
-   inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
+   version="1.1"
+   viewBox="0 0 15.999999 16">
   <metadata
      id="metadata16">
     <rdf:RDF>
@@ -28,41 +24,21 @@
   </metadata>
   <defs
      id="defs14" />
-  <sodipodi:namedview
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1"
-     objecttolerance="10"
-     gridtolerance="10"
-     guidetolerance="10"
-     inkscape:pageopacity="0"
-     inkscape:pageshadow="2"
-     inkscape:window-width="1366"
-     inkscape:window-height="705"
-     id="namedview12"
-     showgrid="false"
-     inkscape:zoom="0.44798786"
-     inkscape:cx="208.07001"
-     inkscape:cy="263.39999"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg10" />
   <title
      id="title2">kite_vector_icon</title>
   <g
-     id="Layer_2"
+     transform="matrix(0.02643405,0,0,0.02657555,1.9999995,1.0000003)"
      data-name="Layer 2"
-     transform="translate(54,4.4140625e-6)">
+     id="Layer_2">
     <g
-       id="Layer_1-2"
-       data-name="Layer 1">
+       data-name="Layer 1"
+       id="Layer_1-2">
       <polygon
-         points="136.59,376.14 313.03,526.8 371.43,301.09 218.04,222.89 "
-         id="polygon4" />
+         id="polygon4"
+         points="313.03,526.8 371.43,301.09 218.04,222.89 136.59,376.14 " />
       <polygon
-         points="0,259.49 102.28,346.83 201.74,171.2 382.72,257.44 416.13,128.29 146.94,0 "
-         id="polygon6" />
+         id="polygon6"
+         points="102.28,346.83 201.74,171.2 382.72,257.44 416.13,128.29 146.94,0 0,259.49 " />
     </g>
   </g>
 </svg>
