@@ -711,6 +711,10 @@ class LanguageServerConfigPage(GeneralConfigPage):
             _("Show completion details"),
             'completions_hint',
             section='editor')
+        self.completions_hint_after_ms = self.create_spinbox(
+            _("Show completion detail after keyboard idle (ms):"), None,
+            'completions_hint_after_ms', min_=0, max_=5000, step=10,
+            tip=_("Default is 500"), section='editor')
         self.automatic_completion_box = newcb(
             _("Show completions on the fly"),
             'automatic_completions',
@@ -728,15 +732,19 @@ class LanguageServerConfigPage(GeneralConfigPage):
         completion_layout = QGridLayout()
         completion_layout.addWidget(self.completion_box, 0, 0)
         completion_layout.addWidget(self.completion_hint_box, 1, 0)
-        completion_layout.addWidget(self.automatic_completion_box, 2, 0)
+        completion_layout.addWidget(self.completions_hint_after_ms.plabel,
+                                    2, 0)
+        completion_layout.addWidget(self.completions_hint_after_ms.spinbox,
+                                    2, 1)
+        completion_layout.addWidget(self.automatic_completion_box, 3, 0)
         completion_layout.addWidget(self.completions_after_characters.plabel,
-                                    3, 0)
+                                    4, 0)
         completion_layout.addWidget(self.completions_after_characters.spinbox,
-                                    3, 1)
-        completion_layout.addWidget(self.completions_after_ms.plabel, 4, 0)
-        completion_layout.addWidget(self.completions_after_ms.spinbox, 4, 1)
-        completion_layout.addWidget(code_snippets_box, 5, 0)
-        completion_layout.setColumnStretch(2, 5)
+                                    4, 1)
+        completion_layout.addWidget(self.completions_after_ms.plabel, 5, 0)
+        completion_layout.addWidget(self.completions_after_ms.spinbox, 5, 1)
+        completion_layout.addWidget(code_snippets_box, 6, 0)
+        completion_layout.setColumnStretch(2, 6)
         completion_widget = QWidget()
         completion_widget.setLayout(completion_layout)
 
@@ -1390,6 +1398,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
             'set_automatic_completions_enabled': ('editor',
                                                   'automatic_completions'),
             'set_completions_hint_enabled': ('editor', 'completions_hint'),
+            'set_completions_hint_after_ms': ('editor',
+                                              'completions_hint_after_ms'),
             'set_underline_errors_enabled': ('editor', 'underline_errors'),
             'set_automatic_completions_after_chars': (
                 'editor', 'automatic_completions_after_chars'),

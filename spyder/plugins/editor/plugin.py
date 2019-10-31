@@ -515,7 +515,7 @@ class Editor(SpyderPluginWidget):
                                     _('Clear breakpoints in all files'),
                                     triggered=self.clear_all_breakpoints)
         pdb_ignore_lib = create_action(
-            self, _("Ignore python libraries while debugging"),
+            self, _("Ignore Python libraries while debugging"),
             toggled=self.toggle_pdb_ignore_lib)
         pdb_execute_events = create_action(
             self, _("Process execute events while debugging"),
@@ -1244,6 +1244,8 @@ class Editor(SpyderPluginWidget):
             ('set_automatic_completions_after_ms',
              'automatic_completions_after_ms'),
             ('set_completions_hint_enabled',        'completions_hint'),
+            ('set_completions_hint_after_ms',
+             'completions_hint_after_ms'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_highlight_current_cell_enabled',  'highlight_current_cell'),
             ('set_occurrence_highlighting_enabled',  'occurrence_highlighting'),
