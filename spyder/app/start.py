@@ -145,10 +145,10 @@ def main():
 
     if options.paths:
         from spyder.config.base import get_conf_paths
-        print('\nconfig:')
+        sys.stdout.write('\nconfig:' + '\n')
         for path in reversed(get_conf_paths()):
-            print('\t' + path)
-        print('\n')
+            sys.stdout.write('\t' + path + '\n')
+        sys.stdout.write('\n' )
         return
 
     if (CONF.get('main', 'single_instance') and not options.new_instance
