@@ -2221,5 +2221,50 @@ def test_debug_unsaved_file(main_window, qtbot):
     assert "1---> 2 print(1)" in control.toPlainText()
 
 
+@flaky(max_runs=1)
+@pytest.mark.parametrize(
+    "debug", [True, False])
+def test_runcell(main_window, qtbot, tmpdir, debug):
+    """Test the runcell command."""
+    # Write code with a cell to a file
+    code = u"result = 10; fname = __file__"
+    p = tmpdir.join("cell-test.py")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    if debug:
+        function = 'debugcell'
+    else:
+        function = 'runcell'
+    # Execute runcell
+    shell.execute(function + u"(0, r'{}')".format(to_text_string(p)))
+    control = main_window.ipyconsole.get_focus_widget()
+
+    if debug:
+        # Continue
+        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+        # Reach the 'name' input
+        shell.pdb_execute('c')
+
+    qtbot.wait(1000)
+
+    # Verify that the `result` variable is defined
+    assert shell.get_value('result') == 10
+
+    # Verify that the `fname` variable is `cell-test.py`
+    assert "cell-test.py" in shell.get_value('fname')
+
+    # Verify that the `__file__` variable is undefined
+    try:
+        shell.get_value('__file__')
+        assert False
+    except KeyError:
+        pass
+
+
 if __name__ == "__main__":
     pytest.main()
