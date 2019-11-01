@@ -1069,19 +1069,24 @@ class CodeEditor(TextEditBaseWidget):
         position, automatic = args
         try:
             completions = params['params']
-            cursor = self.textCursor()
-            cursor.select(QTextCursor.WordUnderCursor)
-            text1 = to_text_string(cursor.selectedText())
-
-            cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor, 2)
-            cursor.select(QTextCursor.WordUnderCursor)
-            text2 = to_text_string(cursor.selectedText())
-
-            first_letter = text1[0] if len(text1) > 0 else ''
             completions = [] if completions is None else completions
 
+            replace_end = self.textCursor().position()
+            under_cursor = self.get_current_word_and_position(completion=True)
+            if under_cursor:
+                word, replace_start = under_cursor
+            else:
+                word = ''
+                replace_start = replace_end
+            first_letter = ''
+            if len(word) > 0:
+                first_letter = word[0]
+
             def sort_key(completion):
-                first_insert_letter = completion['insertText'][0]
+                if 'textEdit' in completion:
+                    first_insert_letter = completion['textEdit']['newText'][0]
+                else:
+                    first_insert_letter = completion['insertText'][0]
                 case_mismatch = (
                     (first_letter.isupper() and first_insert_letter.islower())
                     or
@@ -1091,6 +1096,21 @@ class CodeEditor(TextEditBaseWidget):
                 return (case_mismatch, completion['sortText'])
 
             completion_list = sorted(completions, key=sort_key)
+
+            # Allow for textEdit completions to be filtered by Spyder
+            # if on-the-fly completions are disabled, only if the
+            # textEdit range matches the word under the cursor.
+            for completion in completion_list:
+                if 'textEdit' in completion:
+                    c_replace_start = completion['textEdit']['range']['start']
+                    c_replace_end = completion['textEdit']['range']['end']
+                    if (c_replace_start == replace_start
+                            and c_replace_end == replace_end):
+                        insert_text = completion['textEdit']['newText']
+                        completion['filterText'] = insert_text
+                        completion['insertText'] = insert_text
+                        del completion['textEdit']
+
             if len(completion_list) > 0:
                 self.completion_widget.show_list(
                         completion_list, position, automatic)
@@ -1580,6 +1600,7 @@ class CodeEditor(TextEditBaseWidget):
         """Cursor position has changed"""
         line, column = self.get_cursor_line_column()
         self.sig_cursor_position_changed.emit(line, column)
+
         if self.highlight_current_cell_enabled:
             self.highlight_current_cell()
         else:
@@ -4034,6 +4055,11 @@ class CodeEditor(TextEditBaseWidget):
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
             TextEditBaseWidget.mousePressEvent(self, event)
+
+    def mouseReleaseEvent(self, event):
+        """Override Qt method."""
+        self.document_did_change()
+        TextEditBaseWidget.mouseReleaseEvent(self, event)
 
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""

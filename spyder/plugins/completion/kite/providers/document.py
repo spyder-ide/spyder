@@ -127,8 +127,14 @@ class DocumentProvider:
                     'kind': KITE_DOCUMENT_TYPES.get(
                         completion['hint'], CompletionItemKind.TEXT),
                     'label': completion['display'],
-                    'insertText': convert_text_snippet(completion['snippet']),
-                    'filterText': completion['display'],
+                    'textEdit': {
+                        'newText': convert_text_snippet(completion['snippet']),
+                        'range': {
+                            'start': completion['replace']['begin'],
+                            'end': completion['replace']['end'],
+                        },
+                    },
+                    'filterText': '',
                     # Use the returned ordering
                     'sortText': (i, 0),
                     'documentation': completion['documentation']['text'],
@@ -137,15 +143,22 @@ class DocumentProvider:
                 spyder_completions.append(entry)
 
                 if 'children' in completion:
-                    children_snippets = completion['children']
-                    for j, child in enumerate(children_snippets):
+                    for j, child in enumerate(completion['children']):
                         child_entry = {
                             'kind': KITE_DOCUMENT_TYPES.get(
                                 child['hint'], CompletionItemKind.TEXT),
                             'label': ' '*2 + child['display'],
+                            'textEdit': {
+                                'newText': convert_text_snippet(
+                                    child['snippet']),
+                                'range': {
+                                    'start': child['replace']['begin'],
+                                    'end': child['replace']['end'],
+                                },
+                            },
                             'insertText': convert_text_snippet(
                                 child['snippet']),
-                            'filterText': child['snippet']['text'],
+                            'filterText': '',
                             # Use the returned ordering
                             'sortText': (i, j+1),
                             'documentation': child['documentation']['text'],
