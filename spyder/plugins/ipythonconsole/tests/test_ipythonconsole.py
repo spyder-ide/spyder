@@ -1495,5 +1495,55 @@ def test_pdb_multiline(ipyconsole, qtbot):
     assert "if True:\n   ...:     bb = 10\n" in control.toPlainText()
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="It only works on Linux")
+def test_pdb_ignore_lib(ipyconsole, qtbot):
+    """Test that pdb can avoid closed files."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Tests assume inline backend
+    CONF.set('run', 'pdb_ignore_lib', False)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug print()')
+        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+        qtbot.keyClicks(control, 's')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.wait(500)
+        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+        qtbot.keyClicks(control, 'q')
+        qtbot.keyClick(control, Qt.Key_Enter)
+
+    assert 'iostream.py' in control.toPlainText()
+
+    shell.clear_console()
+    qtbot.wait(500)
+
+    # Tests assume inline backend
+    CONF.set('run', 'pdb_ignore_lib', True)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug print()')
+        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+        qtbot.keyClicks(control, 's')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.wait(500)
+        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+        qtbot.keyClicks(control, 'q')
+        qtbot.keyClick(control, Qt.Key_Enter)
+
+    assert 'iostream.py' not in control.toPlainText()
+
+
 if __name__ == "__main__":
     pytest.main()

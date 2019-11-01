@@ -95,7 +95,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         handlers = {
             'pdb_state': self.set_pdb_state,
             'pdb_continue': self.pdb_continue,
-            'get_breakpoints': self.get_spyder_breakpoints,
+            'get_pdb_settings': self.handle_get_pdb_settings,
             'run_cell': self.handle_run_cell,
             'cell_count': self.handle_cell_count,
             'current_filename': self.handle_current_filename,
@@ -114,8 +114,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
         """Set the kernel client and manager"""
         self.kernel_manager = kernel_manager
-        self.kernel_client = self.patch_kernel_client(kernel_client)
+        self.kernel_client = kernel_client
         self.spyder_kernel_comm.open_comm(kernel_client)
+
+        # Redefine the complete method to work while debugging.
+        self.redefine_complete_for_dbg(self.kernel_client)
 
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):

@@ -101,10 +101,10 @@ def comms(kernel):
     frontend_comm = FrontendComm(kernel)
     kernel_comm = KernelComm()
 
-    class Dummy():
+    class DummyKernelClient():
         comm_channel = None
 
-    kernel_comm.kernel_client = Dummy()
+    kernel_comm.kernel_client = DummyKernelClient()
 
     kernel_comm._register_comm(commA)
 

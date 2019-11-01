@@ -211,6 +211,12 @@ def main_window(request):
             # Print content of shellwidget and close window
             print(window.ipyconsole.get_current_shellwidget(
                 )._control.toPlainText())
+            # Print info page content is not blank
+            console = window.ipyconsole
+            client = console.get_current_client()
+            if client.info_page != client.blank_page:
+                print('info_page')
+                print(client.info_page)
             window.close()
             del main_window.window
 
