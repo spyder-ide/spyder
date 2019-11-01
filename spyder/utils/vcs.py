@@ -141,7 +141,7 @@ def get_vcs_status(vcs_path):
     if not root_path:
         # look in subdirectories for repositories
         paths = []
-        for subdir in os.listdir(root_path):
+        for subdir in os.listdir("."):
             if subdir is not None:
                 root_path = get_vcs_root(subdir)
                 if root_path:
