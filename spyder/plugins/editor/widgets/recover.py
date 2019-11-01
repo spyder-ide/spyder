@@ -16,10 +16,8 @@ import time
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
-                            QGridLayout, QGroupBox, QHBoxLayout, QLabel,
-                            QMessageBox, QPushButton, QRadioButton, QScrollArea,
-                            QTableWidget, QSizePolicy,
-                            QVBoxLayout, QWidget)
+                            QHBoxLayout, QLabel, QMessageBox, QPushButton,
+                            QTableWidget, QVBoxLayout, QWidget)
 # Local imports
 from spyder.config.base import _, running_under_pytest
 
