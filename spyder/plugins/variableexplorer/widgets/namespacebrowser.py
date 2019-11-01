@@ -27,7 +27,6 @@ from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
@@ -209,9 +208,11 @@ class NamespaceBrowser(QWidget):
             self, text=_("Search variable names and types"),
             icon=ima.icon('find'),
             toggled=self.show_finder)
-        config_shortcut(lambda: self.show_finder(set_visible=True),
-                        context='variable_explorer',
-                        name='search', parent=self)
+        CONF.config_shortcut(
+            lambda: self.show_finder(set_visible=True),
+            context='variable_explorer',
+            name='search',
+            parent=self)
 
         self.refresh_button = create_toolbutton(
             self, text=_("Refresh variables"),

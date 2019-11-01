@@ -23,8 +23,6 @@ from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
 # Local imports
 from spyder.config.base import _
 from spyder.config.manager import CONF
-from spyder.config.gui import (get_shortcut, iter_shortcuts,
-                               reset_shortcuts, set_shortcut)
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import get_std_icon, create_toolbutton
@@ -476,10 +474,10 @@ class Shortcut(object):
         return "{0}/{1}: {2}".format(self.context, self.name, self.key)
 
     def load(self):
-        self.key = get_shortcut(self.context, self.name)
+        self.key = CONF.get_shortcut(self.context, self.name)
 
     def save(self):
-        set_shortcut(self.context, self.name, self.key)
+        CONF.set_shortcut(self.context, self.name, self.key)
 
 
 CONTEXT, NAME, SEQUENCE, SEARCH_SCORE = [0, 1, 2, 3]
@@ -682,7 +680,7 @@ class ShortcutsTable(QTableView):
     def load_shortcuts(self):
         """Load shortcuts and assign to table model."""
         shortcuts = []
-        for context, name, keystr in iter_shortcuts():
+        for context, name, keystr in CONF.iter_shortcuts():
             shortcut = Shortcut(context, name, keystr)
             shortcuts.append(shortcut)
         shortcuts = sorted(shortcuts, key=lambda x: x.context+x.name)
@@ -854,7 +852,7 @@ class ShortcutsConfigPage(GeneralConfigPage):
                                     QMessageBox.Yes | QMessageBox.No)
         if reset == QMessageBox.No:
             return
-        reset_shortcuts()
+        CONF.reset_shortcuts()
         self.main.apply_shortcuts()
         self.table.load_shortcuts()
         self.load_from_conf()

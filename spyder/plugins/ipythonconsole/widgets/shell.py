@@ -18,9 +18,8 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.manager import CONF
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
+from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import programs, encoding
 from spyder.utils import syntaxhighlighters as sh
@@ -338,29 +337,53 @@ the sympy module (e.g. plot)
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
-        inspect = config_shortcut(self._control.inspect_current_object,
-                                  context='Console',
-                                  name='Inspect current object', parent=self)
-        clear_console = config_shortcut(self.clear_console, context='Console',
-                                        name='Clear shell', parent=self)
-        restart_kernel = config_shortcut(self.ipyclient.restart_kernel,
-                                         context='ipython_console',
-                                         name='Restart kernel', parent=self)
-        new_tab = config_shortcut(lambda: self.new_client.emit(),
-                                  context='ipython_console', name='new tab',
-                                  parent=self)
-        reset_namespace = config_shortcut(lambda: self._reset_namespace(),
-                                          context='ipython_console',
-                                          name='reset namespace', parent=self)
-        array_inline = config_shortcut(self._control.enter_array_inline,
-                                       context='array_builder',
-                                       name='enter array inline', parent=self)
-        array_table = config_shortcut(self._control.enter_array_table,
-                                      context='array_builder',
-                                      name='enter array table', parent=self)
-        clear_line = config_shortcut(self.ipyclient.clear_line,
-                                     context='console', name='clear line',
-                                     parent=self)
+        inspect = CONF.config_shortcut(
+            self._control.inspect_current_object,
+            context='Console',
+            name='Inspect current object',
+            parent=self)
+
+        clear_console = CONF.config_shortcut(
+            self.clear_console,
+            context='Console',
+            name='Clear shell',
+            parent=self)
+
+        restart_kernel = CONF.config_shortcut(
+            self.ipyclient.restart_kernel,
+            context='ipython_console',
+            name='Restart kernel',
+            parent=self)
+
+        new_tab = CONF.config_shortcut(
+            lambda: self.new_client.emit(),
+            context='ipython_console',
+            name='new tab',
+            parent=self)
+
+        reset_namespace = CONF.config_shortcut(
+            lambda: self._reset_namespace(),
+            context='ipython_console',
+            name='reset namespace',
+            parent=self)
+
+        array_inline = CONF.config_shortcut(
+            self._control.enter_array_inline,
+            context='array_builder',
+            name='enter array inline',
+            parent=self)
+
+        array_table = CONF.config_shortcut(
+            self._control.enter_array_table,
+            context='array_builder',
+            name='enter array table',
+            parent=self)
+
+        clear_line = CONF.config_shortcut(
+            self.ipyclient.clear_line,
+            context='console',
+            name='clear line',
+            parent=self)
 
         return [inspect, clear_console, restart_kernel, new_tab,
                 reset_namespace, array_inline, array_table, clear_line]

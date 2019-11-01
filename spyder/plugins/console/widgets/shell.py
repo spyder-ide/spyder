@@ -28,7 +28,6 @@ from qtpy.QtWidgets import QApplication, QMenu, QToolTip
 
 # Local import
 from spyder.config.base import _, get_conf_path, get_debug_level, STDERR
-from spyder.config.gui import config_shortcut, get_shortcut
 from spyder.config.manager import CONF
 from spyder.py3compat import (builtins, is_string, is_text_string,
                               PY3, str_lower, to_text_string)
@@ -647,16 +646,22 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         self.shortcuts = self.create_shortcuts()
 
     def create_shortcuts(self):
-        array_inline = config_shortcut(lambda: self.enter_array_inline(),
-                                       context='array_builder',
-                                       name='enter array inline', parent=self)
-        array_table = config_shortcut(lambda: self.enter_array_table(),
-                                      context='array_builder',
-                                      name='enter array table', parent=self)
-        inspectsc = config_shortcut(self.inspect_current_object,
-                                    context='Console',
-                                    name='Inspect current object',
-                                    parent=self)
+        array_inline = CONF.config_shortcut(
+            lambda: self.enter_array_inline(),
+            context='array_builder',
+            name='enter array inline',
+            parent=self)
+        array_table = CONF.config_shortcut(
+            lambda: self.enter_array_table(),
+            context='array_builder',
+            name='enter array table',
+            parent=self)
+        inspectsc = CONF.config_shortcut(
+            self.inspect_current_object,
+            context='Console',
+            name='Inspect current object',
+            parent=self)
+
         return [inspectsc, array_inline, array_table]
 
     def get_shortcut_data(self):
@@ -677,13 +682,13 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                                      icon=ima.icon('copywop'),
                                      triggered=self.copy_without_prompts)
         clear_line_action = create_action(self, _("Clear line"),
-                                     QKeySequence(get_shortcut('console',
+                                     QKeySequence(CONF.get_shortcut('console',
                                                                'Clear line')),
                                      icon=ima.icon('editdelete'),
                                      tip=_("Clear line"),
                                      triggered=self.clear_line)
         clear_action = create_action(self, _("Clear shell"),
-                                     QKeySequence(get_shortcut('console',
+                                     QKeySequence(CONF.get_shortcut('console',
                                                                'Clear shell')),
                                      icon=ima.icon('editclear'),
                                      tip=_("Clear shell contents "

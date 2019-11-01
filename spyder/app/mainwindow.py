@@ -176,7 +176,6 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     create_program_action, DialogManager,
                                     create_python_script_action, file_uri,
                                     MENU_SEPARATOR, set_menu_icons)
-from spyder.config.gui import get_shortcut
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
 
@@ -3131,7 +3130,7 @@ class MainWindow(QMainWindow):
         toberemoved = []
         for index, (qobject, context, name,
                     add_shortcut_to_tip) in enumerate(self.shortcut_data):
-            keyseq = QKeySequence( get_shortcut(context, name) )
+            keyseq = QKeySequence(CONF.get_shortcut(context, name))
             try:
                 if isinstance(qobject, QAction):
                     if sys.platform == 'darwin' and \
@@ -3143,7 +3142,7 @@ class MainWindow(QMainWindow):
                         add_shortcut_to_tooltip(qobject, context, name)
                 elif isinstance(qobject, QShortcut):
                     qobject.setKey(keyseq)
-            except RuntimeError:
+            except RuntimeError as e:
                 # Object has been deleted
                 toberemoved.append(index)
         for index in sorted(toberemoved, reverse=True):

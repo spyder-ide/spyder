@@ -27,7 +27,8 @@ if sys.platform == "darwin":
 
 # Local imports
 from spyder.config.base import get_image_path, MAC_APP_NAME
-from spyder.config.gui import get_shortcut, is_dark_interface
+from spyder.config.manager import CONF
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
@@ -313,7 +314,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 def add_shortcut_to_tooltip(action, context, name):
     """Add the shortcut associated with a given action to its tooltip"""
     action.setToolTip(action.toolTip() + ' (%s)' %
-                      get_shortcut(context=context, name=name))
+                      CONF.get_shortcut(context=context, name=name))
 
 
 def add_actions(target, actions, insert_before=None):

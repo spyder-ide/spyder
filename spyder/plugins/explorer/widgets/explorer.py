@@ -33,7 +33,7 @@ from qtpy.QtWidgets import (QApplication, QFileIconProvider, QFileSystemModel,
 
 # Local imports
 from spyder.config.base import _, get_home_dir
-from spyder.config.gui import config_shortcut, get_shortcut
+from spyder.config.manager import CONF
 from spyder.py3compat import str_lower, to_binary_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
@@ -451,21 +451,21 @@ class DirView(QTreeView):
                                              triggered=self.convert_notebooks)
         copy_file_clipboard_action = (
             create_action(self, _("Copy"),
-                          QKeySequence(get_shortcut('explorer', 'copy file')),
+                          QKeySequence(CONF.get_shortcut('explorer', 'copy file')),
                           icon=ima.icon('editcopy'),
                           triggered=self.copy_file_clipboard))
         save_file_clipboard_action = (
             create_action(self, _("Paste"),
-                          QKeySequence(get_shortcut('explorer', 'paste file')),
+                          QKeySequence(CONF.get_shortcut('explorer', 'paste file')),
                           icon=ima.icon('editpaste'),
                           triggered=self.save_file_clipboard))
         copy_absolute_path_action = (
             create_action(self, _("Copy Absolute Path"), QKeySequence(
-                get_shortcut('explorer', 'copy absolute path')),
+                CONF.get_shortcut('explorer', 'copy absolute path')),
                           triggered=self.copy_absolute_path))
         copy_relative_path_action = (
             create_action(self, _("Copy Relative Path"), QKeySequence(
-                get_shortcut('explorer', 'copy relative path')),
+                CONF.get_shortcut('explorer', 'copy relative path')),
                           triggered=self.copy_relative_path))
 
         actions = []
@@ -1181,20 +1181,30 @@ class DirView(QTreeView):
     def create_shortcuts(self):
         """Create shortcuts for this file explorer."""
         # Configurable
-        copy_clipboard_file = config_shortcut(self.copy_file_clipboard,
-                                              context='explorer',
-                                              name='copy file', parent=self)
-        paste_clipboard_file = config_shortcut(self.save_file_clipboard,
-                                               context='explorer',
-                                               name='paste file', parent=self)
-        copy_absolute_path = config_shortcut(self.copy_absolute_path,
-                                             context='explorer',
-                                             name='copy absolute path',
-                                             parent=self)
-        copy_relative_path = config_shortcut(self.copy_relative_path,
-                                             context='explorer',
-                                             name='copy relative path',
-                                             parent=self)
+        copy_clipboard_file = CONF.config_shortcut(
+            self.copy_file_clipboard,
+            context='explorer',
+            name='copy file',
+            parent=self)
+
+        paste_clipboard_file = CONF.config_shortcut(
+            self.save_file_clipboard,
+            context='explorer',
+            name='paste file',
+            parent=self)
+
+        copy_absolute_path = CONF.config_shortcut(
+            self.copy_absolute_path,
+            context='explorer',
+            name='copy absolute path',
+            parent=self)
+
+        copy_relative_path = CONF.config_shortcut(
+            self.copy_relative_path,
+            context='explorer',
+            name='copy relative path',
+            parent=self)
+
         return [copy_clipboard_file, paste_clipboard_file, copy_absolute_path,
                 copy_relative_path]
 
