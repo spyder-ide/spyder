@@ -2355,7 +2355,7 @@ def test_runcell_pdb(main_window, qtbot):
     """Test the runcell command in pdb."""
     # Write code with a cell to a file
     code = ("if 'abba' in dir():\n"
-            "    print('abba', abba)\n"
+            "    print('abba {}'.format(abba))\n"
             "else:\n"
             "    def foo():\n"
             "        abba = 27\n"
