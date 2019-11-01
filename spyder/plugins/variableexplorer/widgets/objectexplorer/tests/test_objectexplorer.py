@@ -135,8 +135,9 @@ def test_objectexplorer_collection_types(objectexplorer, params):
 
 
 @pytest.mark.parametrize('params', [
-            (True, True, 34, ),  # show_callable_, show_special_, rowCount
-            (False, False, 8, )
+            # show_callable_, show_special_, rowCount for python 3 and 2
+            (True, True, [34, 26], ),
+            (False, False, [8, 8], )
         ])
 def test_objectexplorer_types(objectexplorer, params):
     """Test to validate proper handling of data types inside an object."""
@@ -165,7 +166,7 @@ def test_objectexplorer_types(objectexplorer, params):
     # The row for the object
     assert model.rowCount() == 1
     # Rows from the object attributes
-    assert model.rowCount(model.index(0, 0)) == row_count
+    assert model.rowCount(model.index(0, 0)) in row_count
     assert model.columnCount() == 11
 
 
