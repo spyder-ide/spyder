@@ -230,7 +230,11 @@ class ConfigurationManager(object):
     # Shortcut configuration management
     # ------------------------------------------------------------------------
     def _get_shortcut_config(self, context):
-        """Return the shortcut configuration for global or plugin configs."""
+        """
+        Return the shortcut configuration for global or plugin configs.
+
+        Context must be either '_' for global or the name of a plugin.
+        """
         config = self._user_config
         if context in self._plugin_configs:
             plugin_class, config = self._plugin_configs[context]
