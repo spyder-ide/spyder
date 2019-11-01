@@ -28,9 +28,8 @@ from spyder.py3compat import PY2, to_text_string, TimeoutError
 
 logger = logging.getLogger(__name__)
 
-# Max time before giving up when trying to retrieve a value from the
-# kernel
-GET_VALUE_TIMEOUT = 30
+# Max time before giving up when making a blocking call to the kernel
+CALL_KERNEL_TIMEOUT = 30
 
 
 class NamepaceBrowserWidget(RichJupyterWidget):
@@ -94,7 +93,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             return self.call_kernel(
                 interrupt=True,
                 blocking=True,
-                timeout=GET_VALUE_TIMEOUT).get_value(name)
+                timeout=CALL_KERNEL_TIMEOUT).get_value(name)
         except TimeoutError:
             raise ValueError(msg % reason_big)
         except UnpicklingError:
@@ -117,15 +116,19 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def load_data(self, filename, ext):
         try:
-            return self.call_kernel(interrupt=True, blocking=True
-                                    ).load_data(filename, ext)
+            return self.call_kernel(
+                interrupt=True,
+                blocking=True,
+                timeout=CALL_KERNEL_TIMEOUT).load_data(filename, ext)
         except (TimeoutError, UnpicklingError):
             return None
 
     def save_namespace(self, filename):
         try:
-            return self.call_kernel(interrupt=True, blocking=True
-                                    ).save_namespace(filename)
+            return self.call_kernel(
+                interrupt=True,
+                blocking=True,
+                timeout=CALL_KERNEL_TIMEOUT).save_namespace(filename)
         except (TimeoutError, UnpicklingError):
             return None
 
