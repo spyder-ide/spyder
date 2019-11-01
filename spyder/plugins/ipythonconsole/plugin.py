@@ -1037,6 +1037,11 @@ class IPythonConsole(SpyderPluginWidget):
         for cl in self.clients:
             cl.shellwidget.set_spyder_breakpoints()
 
+    def set_pdb_ignore_lib(self):
+        """Set pdb_ignore_lib into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_pdb_ignore_lib()
+
     @Slot(str)
     def create_client_from_path(self, path):
         """Create a client with its cwd pointing to path."""
