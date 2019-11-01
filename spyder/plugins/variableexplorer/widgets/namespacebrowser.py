@@ -216,7 +216,7 @@ class NamespaceBrowser(QWidget):
         self.refresh_button = create_toolbutton(
             self, text=_("Refresh variables"),
             icon=ima.icon('redo'),
-            toggled=self.refresh_table)
+            triggered=self.refresh_table)
         config_shortcut(self.refresh_table,
                         context='variable_explorer',
                         name='refresh', parent=self)
