@@ -434,39 +434,61 @@ class DirView(QTreeView):
             self, _("Open in Spyder"), icon=ima.icon('edit'),
             triggered=self.open)
         open_with_menu = QMenu(_('Open with'), self)
+
         open_external_action = create_action(
-            self, _("Open externally"),
+            self,
+            _("Open externally"),
             triggered=self.open_external)
-        move_action = create_action(self, _("Move..."),
-                                    icon="move.png",
-                                    triggered=self.move)
-        delete_action = create_action(self, _("Delete..."),
-                                      icon=ima.icon('editdelete'),
-                                      triggered=self.delete)
-        rename_action = create_action(self, _("Rename..."),
-                                      icon=ima.icon('rename'),
-                                      triggered=self.rename)
-        ipynb_convert_action = create_action(self, _("Convert to Python script"),
-                                             icon=ima.icon('python'),
-                                             triggered=self.convert_notebooks)
-        copy_file_clipboard_action = (
-            create_action(self, _("Copy"),
-                          QKeySequence(CONF.get_shortcut('explorer', 'copy file')),
-                          icon=ima.icon('editcopy'),
-                          triggered=self.copy_file_clipboard))
-        save_file_clipboard_action = (
-            create_action(self, _("Paste"),
-                          QKeySequence(CONF.get_shortcut('explorer', 'paste file')),
-                          icon=ima.icon('editpaste'),
-                          triggered=self.save_file_clipboard))
-        copy_absolute_path_action = (
-            create_action(self, _("Copy Absolute Path"), QKeySequence(
-                CONF.get_shortcut('explorer', 'copy absolute path')),
-                          triggered=self.copy_absolute_path))
-        copy_relative_path_action = (
-            create_action(self, _("Copy Relative Path"), QKeySequence(
-                CONF.get_shortcut('explorer', 'copy relative path')),
-                          triggered=self.copy_relative_path))
+
+        move_action = create_action(
+            self,
+            _("Move..."),
+            icon="move.png",
+            triggered=self.move)
+
+        delete_action = create_action(
+            self,
+            _("Delete..."),
+            icon=ima.icon('editdelete'),
+            triggered=self.delete)
+
+        rename_action = create_action(
+            self,
+            _("Rename..."),
+            icon=ima.icon('rename'),
+            triggered=self.rename)
+
+        ipynb_convert_action = create_action(
+            self,
+            _("Convert to Python script"),
+            icon=ima.icon('python'),
+            triggered=self.convert_notebooks)
+
+        copy_file_clipboard_action = create_action(
+            self,
+            _("Copy"),
+            QKeySequence(CONF.get_shortcut('explorer', 'copy file')),
+            icon=ima.icon('editcopy'),
+            triggered=self.copy_file_clipboard)
+
+        save_file_clipboard_action = create_action(
+            self,
+            _("Paste"),
+            QKeySequence(CONF.get_shortcut('explorer', 'paste file')),
+            icon=ima.icon('editpaste'),
+            triggered=self.save_file_clipboard)
+
+        copy_absolute_path_action = create_action(
+            self,
+            _("Copy Absolute Path"),
+            QKeySequence(CONF.get_shortcut('explorer', 'copy absolute path')),
+            triggered=self.copy_absolute_path)
+
+        copy_relative_path_action = create_action(
+            self,
+            _("Copy Relative Path"),
+            QKeySequence(CONF.get_shortcut('explorer', 'copy relative path')),
+            triggered=self.copy_relative_path)
 
         actions = []
         if only_modules:

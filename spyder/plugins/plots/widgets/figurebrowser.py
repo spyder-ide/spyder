@@ -286,7 +286,7 @@ class FigureBrowser(QWidget):
             parent=self)
 
         nextfig = CONF.config_shortcut(
-            self.go_next_thumbnail, 
+            self.go_next_thumbnail,
             context='plots',
             name='next figure',
             parent=self)

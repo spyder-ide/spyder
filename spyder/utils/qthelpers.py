@@ -22,8 +22,6 @@ from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
                             QLineEdit, QMenu, QProxyStyle, QStyle, QToolBar,
                             QToolButton, QVBoxLayout, QWidget)
-if sys.platform == "darwin":
-    import applaunchservices as als
 
 # Local imports
 from spyder.config.base import get_image_path, MAC_APP_NAME
@@ -36,6 +34,11 @@ from spyder.utils.icon_manager import get_icon, get_kite_icon, get_std_icon
 from spyder.widgets.waitingspinner import QWaitingSpinner
 from spyder.config.manager import CONF
 
+# Third party imports
+if sys.platform == "darwin":
+    import applaunchservices as als
+
+
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----
 # It has to be done manually:
@@ -45,7 +48,6 @@ from spyder.config.manager import CONF
 # (self.listwidget is widget *a* and self is widget *b*)
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
-
 logger = logging.getLogger(__name__)
 MENU_SEPARATOR = None
 

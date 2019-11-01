@@ -622,8 +622,11 @@ class EditorStack(QWidget):
     def create_shortcuts(self):
         """Create local shortcuts"""
         # --- Configurable shortcuts
-        inspect = CONF.config_shortcut(self.inspect_current_object, context='Editor',
-                                  name='Inspect current object', parent=self)
+        inspect = CONF.config_shortcut(
+            self.inspect_current_object,
+            context='Editor',
+            name='Inspect current object',
+            parent=self)
         # TODO: Cleaner way to do this?
         # This should be called from the plugin and not the widgets
         app = QCoreApplication.instance()
@@ -1511,23 +1514,34 @@ class EditorStack(QWidget):
                 triggered=plugin.create_new_window)
 
         # Splitting
-        self.versplit_action = create_action(self, _("Split vertically"),
-                icon=ima.icon('versplit'),
-                tip=_("Split vertically this editor window"),
-                triggered=lambda: self.sig_split_vertically.emit(),
-                shortcut=CONF.get_shortcut(context='Editor', name='split vertically'),
-                context=Qt.WidgetShortcut)
-        self.horsplit_action = create_action(self, _("Split horizontally"),
-                icon=ima.icon('horsplit'),
-                tip=_("Split horizontally this editor window"),
-                triggered=lambda: self.sig_split_horizontally.emit(),
-                shortcut=CONF.get_shortcut(context='Editor', name='split horizontally'),
-                context=Qt.WidgetShortcut)
-        self.close_action = create_action(self, _("Close this panel"),
-                icon=ima.icon('close_panel'),
-                triggered=self.close_split,
-                shortcut=CONF.get_shortcut(context='Editor', name='close split panel'),
-                context=Qt.WidgetShortcut)
+        self.versplit_action = create_action(
+            self,
+            _("Split vertically"),
+            icon=ima.icon('versplit'),
+            tip=_("Split vertically this editor window"),
+            triggered=lambda: self.sig_split_vertically.emit(),
+            shortcut=CONF.get_shortcut(context='Editor',
+                                       name='split vertically'),
+            context=Qt.WidgetShortcut)
+
+        self.horsplit_action = create_action(
+            self,
+            _("Split horizontally"),
+            icon=ima.icon('horsplit'),
+            tip=_("Split horizontally this editor window"),
+            triggered=lambda: self.sig_split_horizontally.emit(),
+            shortcut=CONF.get_shortcut(context='Editor',
+                                       name='split horizontally'),
+            context=Qt.WidgetShortcut)
+
+        self.close_action = create_action(
+            self,
+            _("Close this panel"),
+            icon=ima.icon('close_panel'),
+            triggered=self.close_split,
+            shortcut=CONF.get_shortcut(context='Editor',
+                                       name='close split panel'),
+            context=Qt.WidgetShortcut)
 
         # Regular actions
         actions = [MENU_SEPARATOR, self.versplit_action,

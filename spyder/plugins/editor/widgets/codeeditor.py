@@ -3371,7 +3371,8 @@ class CodeEditor(TextEditBaseWidget):
             shortcut=CONF.get_shortcut('editor', 'copy'), triggered=self.copy)
         self.paste_action = create_action(
             self, _("Paste"), icon=ima.icon('editpaste'),
-            shortcut=CONF.get_shortcut('editor', 'paste'), triggered=self.paste)
+            shortcut=CONF.get_shortcut('editor', 'paste'),
+            triggered=self.paste)
         selectall_action = create_action(
             self, _("Select All"), icon=ima.icon('selectall'),
             shortcut=CONF.get_shortcut('editor', 'select all'),

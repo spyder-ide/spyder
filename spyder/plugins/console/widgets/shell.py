@@ -677,23 +677,28 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     def setup_context_menu(self):
         """Reimplements ShellBaseWidget method"""
         ShellBaseWidget.setup_context_menu(self)
-        self.copy_without_prompts_action = create_action(self,
-                                     _("Copy without prompts"),
-                                     icon=ima.icon('copywop'),
-                                     triggered=self.copy_without_prompts)
-        clear_line_action = create_action(self, _("Clear line"),
-                                     QKeySequence(CONF.get_shortcut('console',
-                                                               'Clear line')),
-                                     icon=ima.icon('editdelete'),
-                                     tip=_("Clear line"),
-                                     triggered=self.clear_line)
-        clear_action = create_action(self, _("Clear shell"),
-                                     QKeySequence(CONF.get_shortcut('console',
-                                                               'Clear shell')),
-                                     icon=ima.icon('editclear'),
-                                     tip=_("Clear shell contents "
-                                           "('cls' command)"),
-                                     triggered=self.clear_terminal)
+        self.copy_without_prompts_action = create_action(
+            self,
+            _("Copy without prompts"),
+            icon=ima.icon('copywop'),
+            triggered=self.copy_without_prompts)
+
+        clear_line_action = create_action(
+            self,
+            _("Clear line"),
+            QKeySequence(CONF.get_shortcut('console', 'Clear line')),
+            icon=ima.icon('editdelete'),
+            tip=_("Clear line"),
+            triggered=self.clear_line)
+
+        clear_action = create_action(
+            self,
+            _("Clear shell"),
+            QKeySequence(CONF.get_shortcut('console', 'Clear shell')),
+            icon=ima.icon('editclear'),
+            tip=_("Clear shell contents ('cls' command)"),
+            triggered=self.clear_terminal)
+
         add_actions(self.menu, (self.copy_without_prompts_action,
                     clear_line_action, clear_action))
 
