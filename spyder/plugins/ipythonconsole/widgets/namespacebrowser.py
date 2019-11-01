@@ -28,6 +28,10 @@ from spyder.py3compat import PY2, to_text_string, TimeoutError
 
 logger = logging.getLogger(__name__)
 
+# Max time before giving up when trying to retrieve a value from the
+# kernel
+GET_VALUE_TIMEOUT = 30
+
 
 class NamepaceBrowserWidget(RichJupyterWidget):
     """
@@ -88,7 +92,9 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_not_picklable = _('not picklable')
         try:
             return self.call_kernel(
-                interrupt=True, blocking=True).get_value(name)
+                interrupt=True,
+                blocking=True,
+                timeout=GET_VALUE_TIMEOUT).get_value(name)
         except TimeoutError:
             raise ValueError(msg % reason_big)
         except UnpicklingError:
