@@ -2322,5 +2322,36 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
         pass
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_varexp_refresh(main_window, qtbot):
+    """
+    Test refreshing the variable explorer while the kernel is executing.
+    """
+    # Create object
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = main_window.ipyconsole.get_focus_widget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    shell.execute("import time\n"
+                  "for i in range(10):\n"
+                  "    print('i = {}'.format(i))\n"
+                  "    time.sleep(.1)\n")
+
+    qtbot.waitUntil(lambda: "i = 0" in control.toPlainText())
+    qtbot.wait(300)
+    # Get value object
+    nsb = main_window.variableexplorer.get_focus_widget()
+
+    # This is empty
+    assert len(nsb.editor.source_model._data) == 0
+
+    nsb.refresh_table()
+    qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
+
+    assert 0 < int(nsb.editor.source_model._data['i']['view']) < 9
+
+
 if __name__ == "__main__":
     pytest.main()
