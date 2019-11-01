@@ -213,7 +213,6 @@ class NamespaceBrowser(QWidget):
                         context='variable_explorer',
                         name='search', parent=self)
 
-
         self.refresh_button = create_toolbutton(
             self, text=_("Refresh variables"),
             icon=ima.icon('redo'),
