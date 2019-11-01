@@ -288,7 +288,7 @@ class TreeModel(QAbstractItemModel):
         tree_items = []
 
         # Only populate children for objects without their own editor
-        if not is_editable_type(obj) or obj == self.rootItem.obj:
+        if not is_editable_type(obj):
             is_attr_list = [False] * len(obj_children)
 
             # Object attributes
