@@ -71,8 +71,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
-        self.spyder_kernel_comm = KernelComm(
-            interrupt_callback=self._pdb_update)
+        self.spyder_kernel_comm = KernelComm()
         self.spyder_kernel_comm.sig_exception_occurred.connect(
             self.sig_exception_occurred)
         super(ShellWidget, self).__init__(*args, **kw)
@@ -117,6 +116,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
         self.spyder_kernel_comm.open_comm(kernel_client)
+
+        # Redefine the complete method to work while debugging.
+        self.redefine_complete_for_dbg(self.kernel_client)
 
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):

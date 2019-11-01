@@ -101,6 +101,11 @@ def comms(kernel):
     frontend_comm = FrontendComm(kernel)
     kernel_comm = KernelComm()
 
+    class DummyKernelClient():
+        comm_channel = None
+
+    kernel_comm.kernel_client = DummyKernelClient()
+
     kernel_comm._register_comm(commA)
 
     # Bypass the target system as this is not what is being tested
