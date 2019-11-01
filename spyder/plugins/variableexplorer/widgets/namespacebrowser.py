@@ -213,8 +213,18 @@ class NamespaceBrowser(QWidget):
                         context='variable_explorer',
                         name='search', parent=self)
 
+
+        self.refresh_button = create_toolbutton(
+            self, text=_("Refresh variables"),
+            icon=ima.icon('redo'),
+            toggled=self.refresh_table)
+        config_shortcut(self.refresh_table,
+                        context='variable_explorer',
+                        name='refresh', parent=self)
+
         return [load_button, self.save_button, save_as_button,
-                reset_namespace_button, self.search_button]
+                reset_namespace_button, self.search_button,
+                self.refresh_button]
 
     def setup_option_actions(self, exclude_private, exclude_uppercase,
                              exclude_capitalized, exclude_unsupported):
