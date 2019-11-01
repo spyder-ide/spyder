@@ -3142,7 +3142,7 @@ class MainWindow(QMainWindow):
                         add_shortcut_to_tooltip(qobject, context, name)
                 elif isinstance(qobject, QShortcut):
                     qobject.setKey(keyseq)
-            except RuntimeError as e:
+            except RuntimeError:
                 # Object has been deleted
                 toberemoved.append(index)
         for index in sorted(toberemoved, reverse=True):
