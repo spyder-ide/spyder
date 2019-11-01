@@ -38,7 +38,7 @@ conda create -n jedi-test-env -q -y python=3.6 loghub spyder-kernels -c spyder-i
 if errorlevel 1 exit 1
 
 :: Install spyder-kernels from master
-pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
+pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels.git@refs/pull/185/head
 if errorlevel 1 exit 1
 
 :: Install python-language-server from master
