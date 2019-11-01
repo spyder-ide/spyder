@@ -2322,5 +2322,84 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
         pass
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_runcell_edge_cases(main_window, qtbot, tmpdir):
+    """Test the runcell command."""
+    # Write code with a cell to a file
+    code = ('if True:\n'
+            '    a = 1\n'
+            '#%%')
+    p = tmpdir.join("test.py")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    code_editor = main_window.editor.get_focus_widget()
+    # call runcell
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    assert 'runcell(0' in shell._control.toPlainText()
+    assert 'cell is empty' not in shell._control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    assert 'runcell(1' in shell._control.toPlainText()
+    assert 'Error' not in shell._control.toPlainText()
+    assert 'cell is empty' in shell._control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_runcell_pdb(main_window, qtbot):
+    """Test the runcell command in pdb."""
+    # Write code with a cell to a file
+    code = ("if 'abba' in dir():\n"
+            "    print('abba', abba)\n"
+            "else:\n"
+            "    def foo():\n"
+            "        abba = 27\n"
+            "    foo()\n")
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(code)
+
+    # Start debugging
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+
+    for key in ['n', 'n', 's', 'n', 'n']:
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+        qtbot.keyClick(shell._control, key)
+        qtbot.keyClick(shell._control, Qt.Key_Enter)
+
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    assert shell.get_value('abba') == 27
+
+    code_editor.setFocus()
+    # call runcell
+    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.waitUntil(lambda: "!runcell" in shell._control.toPlainText())
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Make sure the local variables are detected
+    assert "abba 27" in shell._control.toPlainText()
+
+
 if __name__ == "__main__":
     pytest.main()

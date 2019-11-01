@@ -160,13 +160,13 @@ class OutlineExplorerData(QObject):
 
         # Count cells
         N_prev = 0
-        for oedata in self._document_cells(forward=False):
+        for oedata in document_cells(self.block, forward=False):
             if check_match(oedata):
                 N_prev += 1
         N_fix_previous = len(existing_numbers)
 
         N_next = 0
-        for oedata in self._document_cells(forward=True):
+        for oedata in document_cells(self.block, forward=True):
             if check_match(oedata):
                 N_next += 1
 
@@ -186,33 +186,6 @@ class OutlineExplorerData(QObject):
         """Set name."""
         self._def_name = value
 
-    def _document_cells(self, forward=True):
-        """
-        Get all cells oedata in the document.
-
-        Parameters
-        ----------
-        forward : bool, optional
-            Whether to iterate forward or backward from the current block.
-        """
-        if not self.is_valid():
-            # Avoid calling blockNumber if not a valid block
-            return
-
-        if forward:
-            block = self.block.next()
-        else:
-            block = self.block.previous()
-
-        while block.isValid():
-            data = block.userData()
-            if data and data.oedata and data.oedata.def_type == self.CELL:
-                yield data.oedata
-            if forward:
-                block = block.next()
-            else:
-                block = block.previous()
-
     def update(self, other):
         """Try to update to avoid reloading everything."""
         if (self.def_type == other.def_type and
@@ -226,7 +199,7 @@ class OutlineExplorerData(QObject):
                 if self.cell_level != other.cell_level:
                     return False
                 # Must update all other cells whose name has changed.
-                for oedata in self._document_cells(forward=True):
+                for oedata in document_cells(self.block, forward=True):
                     if oedata._def_name in [self._def_name, old_def_name]:
                         oedata.sig_update.emit()
             return True
@@ -242,13 +215,6 @@ class OutlineExplorerData(QObject):
                 and block.userData().oedata == self
                 )
 
-    def cell_index(self):
-        """Get the cell index."""
-        if self.def_type != self.CELL:
-            raise RuntimeError("This is not a cell.")
-        # Cell 0 has no header
-        return len(list(self._document_cells(forward=False))) + 1
-
     def has_name(self):
         """Check if cell has a name."""
         if self._def_name:
@@ -262,3 +228,72 @@ class OutlineExplorerData(QObject):
             # Avoid calling blockNumber if not a valid block
             return None
         return self.block.blockNumber()
+
+
+def document_cells(block, forward=True):
+    """
+    Get cells oedata before or after block in the document.
+
+    Parameters
+    ----------
+    forward : bool, optional
+        Whether to iterate forward or backward from the current block.
+    """
+    if not block.isValid():
+        # Not a valid block
+        return
+
+    if forward:
+        block = block.next()
+    else:
+        block = block.previous()
+
+    while block.isValid():
+        data = block.userData()
+        if (data
+                and data.oedata
+                and data.oedata.def_type == OutlineExplorerData.CELL):
+            yield data.oedata
+        if forward:
+            block = block.next()
+        else:
+            block = block.previous()
+
+
+def is_cell_header(block):
+    """Check if the given block is a cell header."""
+    if not block.isValid():
+        return False
+    data = block.userData()
+    return (data
+            and data.oedata
+            and data.oedata.def_type == OutlineExplorerData.CELL)
+
+
+def cell_index(block):
+    """Get the cell index of the given block."""
+    index = len(list(document_cells(block, forward=False)))
+    if is_cell_header(block):
+        return index + 1
+    return index
+
+
+def cell_name(block):
+    """
+    Get the cell name the block is in.
+
+    If the cell is unnamed, return the cell index instead.
+    """
+    if is_cell_header(block):
+        header = block.userData().oedata
+    else:
+        try:
+            header = next(document_cells(block, forward=False))
+        except StopIteration:
+            # This cell has no header, so it is the first cell.
+            return 0
+    if header.has_name():
+        return header.def_name
+    else:
+        # No name, return the index
+        return cell_index(block)
