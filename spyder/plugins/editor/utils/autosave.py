@@ -18,7 +18,7 @@ import re
 from qtpy.QtCore import QTimer
 
 # Local imports
-from spyder.config.base import _, get_conf_path
+from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.plugins.editor.widgets.autosaveerror import AutosaveErrorDialog
 from spyder.plugins.editor.widgets.recover import RecoveryDialog
 from spyder.utils.programs import is_spyder_process
@@ -174,7 +174,8 @@ class AutosaveForPlugin(object):
         the pid files.
         """
         files_to_recover, pidfiles = self.get_files_to_recover()
-        dialog = RecoveryDialog(files_to_recover, parent=self.editor.main)
+        parent = self.editor if running_under_pytest() else self.editor.main
+        dialog = RecoveryDialog(files_to_recover, parent=parent)
         dialog.exec_if_nonempty()
         self.recover_files_to_open = dialog.files_to_open[:]
         for pidfile in pidfiles:
