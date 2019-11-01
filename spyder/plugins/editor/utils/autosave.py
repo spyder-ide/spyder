@@ -174,7 +174,7 @@ class AutosaveForPlugin(object):
         the pid files.
         """
         files_to_recover, pidfiles = self.get_files_to_recover()
-        dialog = RecoveryDialog(files_to_recover, parent=self.editor)
+        dialog = RecoveryDialog(files_to_recover, parent=self.editor.main)
         dialog.exec_if_nonempty()
         self.recover_files_to_open = dialog.files_to_open[:]
         for pidfile in pidfiles:
