@@ -192,9 +192,11 @@ class Console(SpyderPluginWidget):
         self.shell.exception_occurred.connect(self.exception_occurred)
         previous_crash = CONF.get('main', 'previous_crash', '')
         if previous_crash:
-            self.exception_occurred(previous_crash, True)
+            self.exception_occurred(previous_crash, True,
+                                    is_faulthandler_report=True)
 
-    def exception_occurred(self, text, is_traceback, is_pyls_error=False):
+    def exception_occurred(self, text, is_traceback, is_pyls_error=False,
+                           is_faulthandler_report=False):
         """
         Exception ocurred in the internal console.
 
@@ -217,6 +219,17 @@ class Console(SpyderPluginWidget):
                 title = "Internal Python Language Server error"
                 self.error_dlg.set_title(title)
                 self.error_dlg.title.setEnabled(False)
+            if is_faulthandler_report:
+                title = "Faulthandler crash report"
+                self.error_dlg.set_title(title)
+                self.error_dlg.title.setEnabled(False)
+                self.error_dlg.main_label.setText(
+                    "<h3>Spyder crashed during last session</h3>")
+                self.error_dlg.submit_btn.setEnabled(True)
+                self.error_dlg.steps_text.setText(
+                    'Please give any futher informations you might have about'
+                    ' the crash.')
+                self.error_dlg.set_require_minimum_length(False)
             self.error_dlg.append_traceback(text)
             self.error_dlg.show()
         elif DEV or get_debug_level():

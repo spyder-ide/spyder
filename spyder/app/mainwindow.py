@@ -3626,45 +3626,13 @@ def main():
                                    args=[spyder.__path__[0]], p_args=['-O'])
         return
 
+    # **** Read faulthandler log file ****
     faulthandler_file = get_conf_path('faulthandler.log')
     previous_crash = ''
     if osp.exists(faulthandler_file):
         with open(faulthandler_file, 'r') as f:
             previous_crash = f.read()
-
-    # **** Show crash dialog ****
-    CONF.set('main', 'previous_crash', '')
-    if previous_crash and not DEV:
-        if SPLASH is not None:
-            SPLASH.hide()
-        information_text = _(
-            "Spyder crashed during last session.<br><br>"
-            "If Spyder does not start at all and <u>before submitting a "
-            "bug report</u>, please try to reset settings to defaults by "
-            "running Spyder with the command line option '--reset':<br>"
-            "<span style=\'color: #555555\'><b>spyder --reset</b></span>"
-            "<br><br>"
-            "<span style=\'color: #ff5555\'><b>Warning:</b></span> "
-            "this command will remove all your Spyder configuration files "
-            "located in '%s').<br><br>"
-            "If Spyder still fails to launch, you should consult our "
-            "comprehensive <b><a href=\"%s\">Troubleshooting Guide</a></b>, "
-            "which when followed carefully solves the vast majority of "
-            "crashes; also, take "
-            "the time to search for <a href=\"%s\">known bugs</a> or "
-            "<a href=\"%s\">discussions</a> matching your situation before "
-            "submitting a report to our <a href=\"%s\">issue tracker</a>. "
-            "Your feedback will always be greatly appreciated."
-            "" % (get_conf_path(), __trouble_url__, __project_url__,
-                  __forum_url__, __project_url__)
-            + "<br><br>A traceback was saved. "
-            "Do you want to open an issue on github?")
-
-        answer = QMessageBox.information(
-            None, "Spyder", information_text, QMessageBox.Yes | QMessageBox.No)
-
-        if previous_crash and answer == QMessageBox.Yes:
-            CONF.set('main', 'previous_crash', previous_crash)
+    CONF.set('main', 'previous_crash', previous_crash)
 
     # **** Create main window ****
     mainwindow = None
