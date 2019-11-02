@@ -24,6 +24,7 @@ from spyder.plugins.completion.kite.utils.install import (ERRORED, INSTALLING,
                                                           FINISHED, CANCELLED)
 
 
+KITE_SPYDER_URL = "https://kite.com/integrations/spyder"
 KITE_CONTACT_URL = "https://kite.com/contact/"
 
 
@@ -64,13 +65,14 @@ class KiteIntegrationInfo(QWidget):
 
         # Label
         integration_label = QLabel(
-            _("Now Spyder can use <a href=\"https://kite.com/\">Kite</a> to "
+            _("Now Spyder can use <a href=\"{kite_url}\">Kite</a> to "
               "provide better and more accurate code completions in its "
               "editor <br>for the most important packages in the Python "
               "scientific ecosystem, such as Numpy, <br>Matplotlib and "
               "Pandas.<br><br>Would you like to install it or learn more "
               "about it?<br><br><i>Note:</i> Kite is free to use "
-              "but is not an open source program."))
+              "but is not an open source program.")
+            .format(kite_url=KITE_SPYDER_URL))
         integration_label.setOpenExternalLinks(True)
 
         # Buttons
@@ -125,8 +127,8 @@ class KiteWelcome(QWidget):
               "&#10003; 100% local - no internet "
               "connection required<br><br>"
               "&#10003; 100% free to use<br><br>"
-              "<a href=\"https://kite.com/spyder-integration\">"
-              "Go to Kite website</a>"))
+              "<a href=\"{kite_url}\">Learn more on the Kite website</a>")
+            .format(kite_url=KITE_SPYDER_URL))
         install_info.setOpenExternalLinks(True)
 
         # Right side
@@ -326,9 +328,10 @@ class KiteInstallerDialog(QDialog):
             self._parent,
             _('Kite installation error'),
             _("<b>An error ocurred while installing Kite!</b><br><br>"
-              "Please try to install it manually or "
-              "<a href=\"{kite_contact}\">contact Kite</a> "
-              "for help").format(kite_contact=KITE_CONTACT_URL))
+              "Please try to "
+              "<a href=\"{kite_url}\">install it manually</a> or "
+              "<a href=\"{kite_contact}\">contact Kite</a> for help")
+            .format(kite_url=KITE_SPYDER_URL, kite_contact=KITE_CONTACT_URL))
         self.accept()
 
     def setup(self, integration=True, welcome=False, installation=False):
@@ -337,14 +340,6 @@ class KiteInstallerDialog(QDialog):
         self._welcome_widget.setVisible(welcome)
         self._installation_widget.setVisible(installation)
         self.adjustSize()
-        self.center()
-
-    def center(self):
-        """Center the dialog."""
-        screen = QApplication.desktop().screenGeometry(0)
-        x = screen.center().x() - self.width() / 2
-        y = screen.center().y() - self.height() / 2
-        self.move(x, y)
 
     def welcome(self):
         """Show welcome widget."""

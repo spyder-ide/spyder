@@ -2044,7 +2044,7 @@ def test_report_comms_error(qtbot, main_window):
     with qtbot.waitSignal(shell.executed):
         shell.execute("get_ipython().kernel.frontend_comm."
                       "register_call_handler('get_cwd', get_cwd)")
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=3000):
         shell.execute('ls')
 
     error_dlg = main_window.console.error_dlg
@@ -2102,6 +2102,62 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
 
     CONF.set('lsp-server', 'pycodestyle', False)
     CONF.set('lsp-server', 'pydocstyle', False)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_break_while_running(main_window, qtbot, tmpdir):
+    """Test that we can set breakpoints while running."""
+    # Create loop
+    code = ("import time\n"
+            "for i in range(100):\n"
+            "    print(i)\n"
+            "    time.sleep(0.1)\n"
+            )
+    p = tmpdir.join("loop_script.py")
+    p.write(code)
+    test_file = to_text_string(p)
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+
+    # Load test file
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # Click the debug button
+    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    qtbot.wait(1000)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Continue debugging
+    qtbot.keyClick(shell._control, 'c')
+    qtbot.keyClick(shell._control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    # Set a breakpoint
+    code_editor.debugger.toogle_breakpoint(line_number=3)
+
+    # We should drop into the debugger
+    qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    qtbot.keyClick(shell._control, 'q')
+    qtbot.keyClick(shell._control, Qt.Key_Enter)
+    qtbot.wait(500)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
 
 
 @pytest.mark.slow
