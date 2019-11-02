@@ -13,7 +13,7 @@ import os
 import os.path as osp
 
 # Local imports
-from spyder.config.base import get_conf_paths, get_conf_path, get_home_dir
+from spyder.config.base import _, get_conf_paths, get_conf_path, get_home_dir
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.user import UserConfig, MultiUserConfig, NoDefault
 
@@ -235,17 +235,21 @@ class ConfigurationManager(object):
 
         Context must be either '_' for global or the name of a plugin.
         """
+        context = context.lower()
+        extra_valid_contexts = ['_', 'array_builder', 'console',
+                                'find_replace']
         config = self._user_config
+
         if context in self._plugin_configs:
             plugin_class, config = self._plugin_configs[context]
             # Check if plugin has a separate file
             if not plugin_class.CONF_FILE:
                 config = self._user_config
-        elif context == '_':
+        elif context in self._user_config.sections() + extra_valid_contexts:
             config = self._user_config
         else:
-            # Raise error?
-            pass
+            raise ValueError(_("Shortcut context must match '_' or plugin "
+                               "`CONF_SECTION`!"))
 
         return config
 
@@ -274,6 +278,7 @@ class ConfigurationManager(object):
         The data contained in this tuple will be registered in our shortcuts
         preferences page.
         """
+        # We only import on demand to avoid loading Qt modules
         from spyder.config.gui import _config_shortcut
 
         keystr = self.get_shortcut(context, name)
