@@ -73,7 +73,10 @@ class SearchThread(QThread):
     sig_current_folder = Signal(str)
     sig_file_match = Signal(object, int)
     sig_out_print = Signal(object)
-    power = 0
+
+    # Batch power sizes (2**power)
+    power = 0       # 0**1  = 1
+    max_power = 10  # 2**10 = 1024
 
     def __init__(self, parent):
         QThread.__init__(self, parent)
@@ -167,10 +170,7 @@ class SearchThread(QThread):
 
     def find_string_in_file(self, fname):
         self.error_flag = False
-
-        # if (self.total_matches % 100) == 0:
         self.sig_current_file.emit(fname)
-
         try:
             for lineno, line in enumerate(open(fname, 'rb')):
                 for text, enc in self.texts:
@@ -211,15 +211,11 @@ class SearchThread(QThread):
                         )
 
                         if len(self.partial_results) > (2**self.power):
-                            self.sig_file_match.emit(self.partial_results, self.total_matches)
+                            self.sig_file_match.emit(self.partial_results,
+                                                     self.total_matches)
                             self.partial_results = []
-                            self.power += 1
-
-                        # self.sig_file_match.emit((osp.abspath(fname),
-                        #                           lineno + 1,
-                        #                           match.start(),
-                        #                           match.end(), line_dec),
-                        #                          self.total_matches)
+                            if self.power < self.max_power:
+                                self.power += 1
                 else:
                     found = line.find(text)
                     while found > -1:
@@ -236,27 +232,21 @@ class SearchThread(QThread):
                                 line_dec,
                             )
                         )
-                        # self.sig_file_match.emit((osp.abspath(fname),
-                        #                           lineno + 1,
-                        #                           found,
-                        #                           found + len(text), line_dec),
-                        #                          self.total_matches)
                         if len(self.partial_results) > (2**self.power):
-                            self.sig_file_match.emit(self.partial_results, self.total_matches)
+                            self.sig_file_match.emit(self.partial_results,
+                                                     self.total_matches)
                             self.partial_results = []
-                            self.power += 1
+                            if self.power < self.max_power:
+                                self.power += 1
 
                         for text, enc in self.texts:
                             found = line.find(text, found + 1)
                             if found > -1:
                                 break
+
         except IOError as xxx_todo_changeme:
             (_errno, _strerror) = xxx_todo_changeme.args
             self.error_flag = _("permission denied errors were encountered")
-
-        # if self.partial_results:
-        #     self.sig_file_match.emit(self.partial_results, self.total_matches)
-        #     self.partial_results = []
 
         self.completed = True
 
@@ -488,8 +478,9 @@ class FindOptions(QWidget):
         self.edit_regexp.setCheckable(True)
         self.edit_regexp.setChecked(search_text_regexp)
         self.more_widgets = ()
-        self.more_options = create_toolbutton(self,
-                                              toggled=self.toggle_more_options)
+        self.more_options = create_toolbutton(
+            self,
+            toggled=self.toggle_more_options)
         self.more_options.setCheckable(True)
         self.more_options.setChecked(more_options)
 
@@ -536,7 +527,8 @@ class FindOptions(QWidget):
         search_on_label = QLabel(_("Search in:"))
         self.path_selection_combo = SearchInComboBox(
                 external_path_history, parent)
-        self.path_selection_combo.set_current_searchpath_index(search_in_index)
+        self.path_selection_combo.set_current_searchpath_index(
+            search_in_index)
 
         hlayout3.addWidget(search_on_label)
         hlayout3.addWidget(self.path_selection_combo)
@@ -962,7 +954,8 @@ class ResultsBrowser(OneColumnTree):
 
             file_item = self.files[filename]
             line = self.truncate_result(line, colno, match_end)
-            item = LineMatchItem(file_item, lineno, colno, line, self.text_color)
+            item = LineMatchItem(file_item, lineno, colno, line,
+                                 self.text_color)
             self.data[id(item)] = (filename, lineno, colno)
 
         self.setUpdatesEnabled(True)
@@ -987,7 +980,8 @@ class FileProgressBar(QWidget):
         if not folder:
             status_str = _(u' Scanning: {0}').format(text)
         else:
-            status_str = _(u' Searching for files in folder: {0}').format(text)
+            status_str = _(u' Searching for files in folder:'
+                           ' {0}').format(text)
         self.status_text.setText(status_str)
 
     def reset(self):
@@ -1045,7 +1039,7 @@ class FindInFilesWidget(QWidget):
         self.find_options.stop.connect(self.stop_and_reset_thread)
 
         self.result_browser = ResultsBrowser(self, text_color=text_color,
-                                             max_results=100000)
+                                             max_results=500000)
 
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.result_browser)
@@ -1058,7 +1052,8 @@ class FindInFilesWidget(QWidget):
         layout.addWidget(self.status_bar)
         self.setLayout(layout)
 
-        self.result_browser.sig_max_results_reached.connect(self.stop_and_reset_thread)
+        self.result_browser.sig_max_results_reached.connect(
+            self.stop_and_reset_thread)
 
     def set_search_text(self, text):
         """Set search pattern"""
