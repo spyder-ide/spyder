@@ -69,10 +69,9 @@ from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           FoldingPanel, IndentationGuide,
                                           LineNumberArea, PanelsManager,
                                           ScrollFlagArea)
-from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData,
-                                                TextBlockHelper)
+from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData)
 from spyder.plugins.editor.utils.debugger import DebuggerManager
-from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
+# from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.completion.decorators import (
@@ -1466,7 +1465,6 @@ class CodeEditor(TextEditBaseWidget):
                                                   self.color_scheme)
         self._apply_highlighter_color_scheme()
 
-        self.highlighter.fold_detector = IndentFoldDetector()
         self.highlighter.editor = self
 
     def is_json(self):
@@ -1778,17 +1776,17 @@ class CodeEditor(TextEditBaseWidget):
         top = self.blockBoundingGeometry(block).translated(
                                                     self.contentOffset()).top()
         bottom = top + self.blockBoundingRect(block).height()
+        folding_panel = self.panels.get(FoldingPanel)
 
         while block.isValid() and top < event.pos().y():
             block = block.next()
-            collapsed = TextBlockHelper.is_collapsed(block)
+            collapsed = folding_panel.is_collapsed(block)
             if block.isVisible():  # skip collapsed blocks
                 top = bottom
                 bottom = top + self.blockBoundingRect(block).height()
                 line_number += 1
             if collapsed:
-                scope = FoldScope(block)
-                start, end = scope.get_range(ignore_blank_lines=True)
+                start, end = folding_panel.get_range(block)
                 line_number += (end - start)
         return line_number
 
