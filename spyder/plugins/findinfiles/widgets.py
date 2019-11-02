@@ -67,21 +67,23 @@ def truncate_path(text):
 
 
 class SearchThread(QThread):
-    """Find in files search thread"""
+    """Find in files search thread."""
     sig_finished = Signal(bool)
     sig_current_file = Signal(str)
     sig_current_folder = Signal(str)
-    sig_file_match = Signal(object, int)
+    sig_file_match = Signal(object)
+    sig_line_match = Signal(object, object)
     sig_out_print = Signal(object)
 
     # Batch power sizes (2**power)
     power = 0       # 0**1  = 1
-    max_power = 10  # 2**10 = 1024
+    max_power = 9   # 2**10 = 512
 
-    def __init__(self, parent):
+    def __init__(self, parent, search_text):
         QThread.__init__(self, parent)
         self.mutex = QMutex()
         self.stopped = None
+        self.search_text = search_text
         self.pathlist = None
         self.total_matches = None
         self.error_flag = None
@@ -95,6 +97,8 @@ class SearchThread(QThread):
         self.is_file = False
         self.results = {}
 
+        self.num_files = 0
+        self.files = []
         self.partial_results = []
 
     def initialize(self, path, is_file, exclude,
@@ -161,10 +165,9 @@ class SearchThread(QThread):
                 self.error_flag = _("invalid regular expression")
                 return False
 
-        # If any results pending emit them
+        # Process any pending results
         if self.partial_results:
-            self.sig_file_match.emit(self.partial_results, self.total_matches)
-            self.partial_results = []
+            self.process_results()
 
         return True
 
@@ -200,22 +203,16 @@ class SearchThread(QThread):
                             if self.stopped:
                                 return False
                         self.total_matches += 1
-                        self.partial_results.append(
-                            (
-                                osp.abspath(fname),
-                                lineno + 1,
-                                match.start(),
-                                match.end(),
-                                line_dec,
-                            )
-                        )
-
+                        self.partial_results.append((osp.abspath(fname),
+                                                     lineno + 1,
+                                                     match.start(),
+                                                     match.end(),
+                                                     line_dec))
                         if len(self.partial_results) > (2**self.power):
-                            self.sig_file_match.emit(self.partial_results,
-                                                     self.total_matches)
-                            self.partial_results = []
+                            self.process_results()
                             if self.power < self.max_power:
                                 self.power += 1
+
                 else:
                     found = line.find(text)
                     while found > -1:
@@ -223,19 +220,13 @@ class SearchThread(QThread):
                             if self.stopped:
                                 return False
                         self.total_matches += 1
-                        self.partial_results.append(
-                            (
-                                osp.abspath(fname),
-                                lineno + 1,
-                                found,
-                                found + len(text),
-                                line_dec,
-                            )
-                        )
+                        self.partial_results.append((osp.abspath(fname),
+                                                     lineno + 1,
+                                                     found,
+                                                     found + len(text),
+                                                     line_dec))
                         if len(self.partial_results) > (2**self.power):
-                            self.sig_file_match.emit(self.partial_results,
-                                                     self.total_matches)
-                            self.partial_results = []
+                            self.process_results()
                             if self.power < self.max_power:
                                 self.power += 1
 
@@ -249,6 +240,110 @@ class SearchThread(QThread):
             self.error_flag = _("permission denied errors were encountered")
 
         self.completed = True
+
+    def process_results(self):
+        items = []
+        num_matches = self.total_matches
+        for result in self.partial_results:
+            filename, lineno, colno, match_end, line = result
+
+            if filename not in self.files:
+                self.files.append(filename)
+                self.sig_file_match.emit(filename)
+                self.num_files += 1
+
+            line = self.truncate_result(line, colno, match_end)
+            item = (filename, lineno, colno, line)
+            items.append(item)
+
+        # Process title
+        title = "'%s' - " % self.search_text
+        nb_files = self.num_files
+        if nb_files == 0:
+            text = _('String not found')
+        else:
+            text_matches = _('matches in')
+            text_files = _('file')
+            if nb_files > 1:
+                text_files += 's'
+            text = "%d %s %d %s" % (num_matches, text_matches,
+                                    nb_files, text_files)
+        title = title + text
+
+        self.partial_results = []
+        self.sig_line_match.emit(items, title)
+
+    def truncate_result(self, line, start, end):
+        ellipsis = u'...'
+        max_line_length = 80
+        max_num_char_fragment = 40
+
+        html_escape_table = {
+            u"&": u"&amp;",
+            u'"': u"&quot;",
+            u"'": u"&apos;",
+            u">": u"&gt;",
+            u"<": u"&lt;",
+        }
+
+        def html_escape(text):
+            """Produce entities within text."""
+            return u"".join(html_escape_table.get(c, c) for c in text)
+
+        if PY2:
+            line = to_text_string(line, encoding='utf8')
+        else:
+            line = to_text_string(line)
+        left, match, right = line[:start], line[start:end], line[end:]
+
+        if len(line) > max_line_length:
+            offset = (len(line) - len(match)) // 2
+
+            left = left.split(u' ')
+            num_left_words = len(left)
+
+            if num_left_words == 1:
+                left = left[0]
+                if len(left) > max_num_char_fragment:
+                    left = ellipsis + left[-offset:]
+                left = [left]
+
+            right = right.split(u' ')
+            num_right_words = len(right)
+
+            if num_right_words == 1:
+                right = right[0]
+                if len(right) > max_num_char_fragment:
+                    right = right[:offset] + ellipsis
+                right = [right]
+
+            left = left[-4:]
+            right = right[:4]
+
+            if len(left) < num_left_words:
+                left = [ellipsis] + left
+
+            if len(right) < num_right_words:
+                right = right + [ellipsis]
+
+            left = u' '.join(left)
+            right = u' '.join(right)
+
+            if len(left) > max_num_char_fragment:
+                left = ellipsis + left[-30:]
+
+            if len(right) > max_num_char_fragment:
+                right = right[:30] + ellipsis
+
+        line_match_format = (u'<span style="color:{0}">{{0}}'
+                             '<b>{{1}}</b>{{2}}</span>')
+        line_match_format = line_match_format.format(self.text_color)
+
+        left = html_escape(left)
+        right = html_escape(right)
+        match = html_escape(match)
+        trunc_line = line_match_format.format(left, match, right)
+        return trunc_line
 
     def get_results(self):
         return self.results, self.pathlist, self.total_matches, self.error_flag
@@ -847,80 +942,17 @@ class ResultsBrowser(OneColumnTree):
         text = _('String not found')
         self.set_title(title + text)
 
-    def truncate_result(self, line, start, end):
-        ellipsis = u'...'
-        max_line_length = 80
-        max_num_char_fragment = 40
+    @Slot(object)
+    def append_file_result(self, filename):
+        """"""
+        file_item = FileMatchItem(self, filename, self.sorting,
+                                  self.text_color)
+        file_item.setExpanded(True)
+        self.files[filename] = file_item
+        self.num_files += 1
 
-        html_escape_table = {
-            u"&": u"&amp;",
-            u'"': u"&quot;",
-            u"'": u"&apos;",
-            u">": u"&gt;",
-            u"<": u"&lt;",
-        }
-
-        def html_escape(text):
-            """Produce entities within text."""
-            return u"".join(html_escape_table.get(c, c) for c in text)
-
-        if PY2:
-            line = to_text_string(line, encoding='utf8')
-        else:
-            line = to_text_string(line)
-        left, match, right = line[:start], line[start:end], line[end:]
-
-        if len(line) > max_line_length:
-            offset = (len(line) - len(match)) // 2
-
-            left = left.split(u' ')
-            num_left_words = len(left)
-
-            if num_left_words == 1:
-                left = left[0]
-                if len(left) > max_num_char_fragment:
-                    left = ellipsis + left[-offset:]
-                left = [left]
-
-            right = right.split(u' ')
-            num_right_words = len(right)
-
-            if num_right_words == 1:
-                right = right[0]
-                if len(right) > max_num_char_fragment:
-                    right = right[:offset] + ellipsis
-                right = [right]
-
-            left = left[-4:]
-            right = right[:4]
-
-            if len(left) < num_left_words:
-                left = [ellipsis] + left
-
-            if len(right) < num_right_words:
-                right = right + [ellipsis]
-
-            left = u' '.join(left)
-            right = u' '.join(right)
-
-            if len(left) > max_num_char_fragment:
-                left = ellipsis + left[-30:]
-
-            if len(right) > max_num_char_fragment:
-                right = right[:30] + ellipsis
-
-        line_match_format = (u'<span style="color:{0}">{{0}}'
-                             '<b>{{1}}</b>{{2}}</span>')
-        line_match_format = line_match_format.format(self.text_color)
-
-        left = html_escape(left)
-        right = html_escape(right)
-        match = html_escape(match)
-        trunc_line = line_match_format.format(left, match, right)
-        return trunc_line
-
-    @Slot(object, int)
-    def append_result(self, results, num_matches):
+    @Slot(object, object)
+    def append_result(self, items, title):
         """Real-time update of search results."""
         if len(self.data) >= self.max_results:
             self.set_title(_('Maximum number of results reached! Try '
@@ -929,35 +961,13 @@ class ResultsBrowser(OneColumnTree):
             return
 
         self.setUpdatesEnabled(False)
-        for result in results:
-            filename, lineno, colno, match_end, line = result
-            if filename not in self.files:
-                file_item = FileMatchItem(self, filename, self.sorting,
-                                          self.text_color)
-                file_item.setExpanded(True)
-                self.files[filename] = file_item
-                self.num_files += 1
-
-            search_text = self.search_text
-            title = "'%s' - " % search_text
-            nb_files = self.num_files
-            if nb_files == 0:
-                text = _('String not found')
-            else:
-                text_matches = _('matches in')
-                text_files = _('file')
-                if nb_files > 1:
-                    text_files += 's'
-                text = "%d %s %d %s" % (num_matches, text_matches,
-                                        nb_files, text_files)
-            self.set_title(title + text)
-
+        self.set_title(title)
+        for item in items:
+            filename, lineno, colno, line = item
             file_item = self.files[filename]
-            line = self.truncate_result(line, colno, match_end)
             item = LineMatchItem(file_item, lineno, colno, line,
                                  self.text_color)
             self.data[id(item)] = (filename, lineno, colno)
-
         self.setUpdatesEnabled(True)
 
 
@@ -1022,6 +1032,7 @@ class FindInFilesWidget(QWidget):
         self.setWindowTitle(_('Find in files'))
 
         self.search_thread = None
+        self.text_color = text_color
         self.status_bar = FileProgressBar(self)
         self.status_bar.hide()
 
@@ -1039,7 +1050,7 @@ class FindInFilesWidget(QWidget):
         self.find_options.stop.connect(self.stop_and_reset_thread)
 
         self.result_browser = ResultsBrowser(self, text_color=text_color,
-                                             max_results=500000)
+                                             max_results=100000)
 
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.result_browser)
@@ -1061,11 +1072,13 @@ class FindInFilesWidget(QWidget):
 
     def find(self):
         """Call the find function"""
+        search_text = self.find_options.search_text.currentText()
         options = self.find_options.get_options()
         if options is None:
             return
         self.stop_and_reset_thread(ignore_results=True)
-        self.search_thread = SearchThread(self)
+        self.search_thread = SearchThread(self, search_text)
+        self.search_thread.text_color = self.text_color
         self.search_thread.sig_finished.connect(self.search_complete)
         self.search_thread.sig_current_file.connect(
             lambda x: self.status_bar.set_label_path(x, folder=False)
@@ -1074,14 +1087,16 @@ class FindInFilesWidget(QWidget):
             lambda x: self.status_bar.set_label_path(x, folder=True)
         )
         self.search_thread.sig_file_match.connect(
+            self.result_browser.append_file_result
+        )
+        self.search_thread.sig_line_match.connect(
             self.result_browser.append_result
         )
         self.search_thread.sig_out_print.connect(
             lambda x: sys.stdout.write(str(x) + "\n")
         )
         self.status_bar.reset()
-        self.result_browser.clear_title(
-            self.find_options.search_text.currentText())
+        self.result_browser.clear_title(search_text)
         self.search_thread.initialize(*options)
         self.search_thread.start()
         self.find_options.ok_button.setEnabled(False)
