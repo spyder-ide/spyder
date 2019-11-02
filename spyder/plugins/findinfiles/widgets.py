@@ -933,7 +933,7 @@ class ResultsBrowser(OneColumnTree):
             filename, lineno, colno, match_end, line = result
             if filename not in self.files:
                 file_item = FileMatchItem(self, filename, self.sorting,
-                                        self.text_color)
+                                          self.text_color)
                 file_item.setExpanded(True)
                 self.files[filename] = file_item
                 self.num_files += 1
