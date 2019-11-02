@@ -2196,7 +2196,8 @@ def test_preferences_change_font_regression(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
-@pytest.mark.skipif(os.name == 'nt', reason="It times out on Windows")
+@pytest.mark.skipif(os.name == 'nt' or (sys.platform == 'darwin' and PY2),
+                    reason="It times out on Windows and macOS/PY2")
 def test_go_to_definition(main_window, qtbot, capsys):
     """Test that go-to-definition works as expected."""
     # --- Code that gives no definition
