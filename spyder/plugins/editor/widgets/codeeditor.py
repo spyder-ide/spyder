@@ -1017,14 +1017,9 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Linting ---------------------------------------
 
-    def document_did_change(self, text=None):
-        """Call LSP functions each time the document is changed."""
-        self._document_did_change()
-        self.request_folding()
-
     @request(
         method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
-    def _document_did_change(self, text=None):
+    def document_did_change(self, text=None):
         """Send textDocument/didChange request to the server."""
         self.text_version += 1
         text = self.toPlainText()
@@ -2049,6 +2044,7 @@ class CodeEditor(TextEditBaseWidget):
             self.skip_rstrip = True
             TextEditBaseWidget.undo(self)
             self.document_did_change('')
+            self.request_folding()
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
             self.skip_rstrip = False
@@ -2061,6 +2057,7 @@ class CodeEditor(TextEditBaseWidget):
             self.skip_rstrip = True
             TextEditBaseWidget.redo(self)
             self.document_did_change('text')
+            self.request_folding()
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
             self.skip_rstrip = False

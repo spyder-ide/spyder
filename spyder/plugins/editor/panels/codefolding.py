@@ -19,6 +19,7 @@ Original file:
 # Standard library imports
 import sys
 from math import ceil
+from intervaltree import IntervalTree
 
 # Third party imports
 from qtpy.QtCore import Signal, QSize, QPointF, QRectF, QRect, Qt
@@ -170,6 +171,7 @@ class FoldingPanel(Panel):
         self._highlight_runner = DelayJobRunner(delay=250)
         self.folding_regions = {}
         self.folding_status = {}
+        self.folding_levels = {}
 
     def __compute_line_offsets(self, text, reverse=False):
         lines = text.splitlines(keepends=True)
@@ -185,6 +187,8 @@ class FoldingPanel(Panel):
 
     def update_folding(self, ranges):
         """Update folding panel folding ranges."""
+        if ranges is None:
+            return
         new_folding_ranges = {}
         for starting_line, ending_line in ranges:
             new_folding_ranges[starting_line + 1] = ending_line + 1
@@ -213,6 +217,14 @@ class FoldingPanel(Panel):
                 if new_line in self.folding_regions:
                     folding_status[new_line] = self.folding_status[line]
             self.folding_status = folding_status
+        # Compute region nesting level
+        self.folding_levels = {start_line: 0 for start_line in self.folding_regions}
+        tree = IntervalTree.from_tuples(self.folding_regions.items())
+        for (start, end) in self.folding_regions.items():
+            nested_regions = tree.envelop(start, end)
+            for region in nested_regions:
+                if region.begin != start:
+                    self.folding_levels[region.begin] += 1
         self.update()
 
     def sizeHint(self):
@@ -767,4 +779,4 @@ class FoldingPanel(Panel):
         end_number = line_number
         if line_number in self.folding_regions:
             end_number = self.folding_regions[line_number]
-        return end_number
+        return line_number, end_number

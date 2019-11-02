@@ -50,6 +50,7 @@ NUMPY_REQVER = '>=1.7'
 SCIPY_REQVER = '>=0.17.0'
 PYLS_REQVER = '>=0.29.2;<0.30.0'
 APPLAUNCHSERVICES_REQVER = '>=0.1.7'
+INTERVALTREE_REQVER = '>=3.0.2'
 
 
 DEPENDENCIES_BASE = [
@@ -121,6 +122,10 @@ DEPENDENCIES_BASE = [
      'package_name': "diff_match_patch",
      'features': _("Compute text file diff changes during edition"),
      'required_version': DIFF_MATCH_PATCH_REQVER},
+    {'modname': "intervaltree",
+     'package_name': "intervaltree",
+     'features': _("Compute folding range nesting levels"),
+     'required_version': INTERVALTREE_REQVER},
     {'modname': "watchdog",
      'package_name': "watchdog",
      'features': _("Watch file changes on project directories"),

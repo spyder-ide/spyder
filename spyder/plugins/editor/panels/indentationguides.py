@@ -11,6 +11,7 @@ This module contains the indentation guide panel.
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QPainter, QColor
+from intervaltree import IntervalTree
 
 # Local imports
 from spyder.plugins.editor.utils.editor import TextBlockHelper
@@ -39,46 +40,25 @@ class IndentationGuide(Panel):
         painter.setPen(color)
         offset = self.editor.document().documentMargin() + \
             self.editor.contentOffset().x()
-
-        for _, line_number, block in self.editor.visible_blocks:
-
-            indentation = TextBlockHelper.get_fold_lvl(block)
-            ref_lvl = indentation
-            block = block.next()
-            last_line = block.blockNumber()
-            lvl = TextBlockHelper.get_fold_lvl(block)
-            if ref_lvl == lvl:  # for zone set programmatically such as imports
-                # in pyqode.python
-                ref_lvl -= 1
-
-            while (block.isValid() and
-                   TextBlockHelper.get_fold_lvl(block) > ref_lvl):
-                last_line = block.blockNumber()
-                block = block.next()
-
-            end_of_sub_fold = block
-            if last_line:
-                block = block.document().findBlockByNumber(last_line)
-                while ((block.blockNumber()) and (block.text().strip() == ''
-                       or block.text().strip().startswith('#'))):
-                    block = block.previous()
-                    last_line = block.blockNumber()
-
-            block = self.editor.document().findBlockByNumber(line_number)
-            top = int(self.editor.blockBoundingGeometry(block).translated(
-                self.editor.contentOffset()).top())
-            bottom = top + int(self.editor.blockBoundingRect(block).height())
-
-            indentation = TextBlockHelper.get_fold_lvl(block)
-
-            for i in range(1, indentation):
-                if (line_number > last_line and
-                        TextBlockHelper.get_fold_lvl(end_of_sub_fold) <= i):
-                    continue
-                else:
-                    x = self.editor.fontMetrics().width(i * self.i_width *
-                                                        '9') + offset
-                    painter.drawLine(x, top, x, bottom)
+        folding_panel = self.editor.panels.get('FoldingPanel')
+        folding_regions = folding_panel.folding_regions
+        folding_status = folding_panel.folding_status
+        folding_levels = folding_panel.folding_levels
+        for line_number in folding_regions:
+            # if line_number in folding_status:
+            post_update = False
+            end_line = folding_regions[line_number]
+            start_block = self.editor.document().findBlockByNumber(
+                line_number)
+            end_block = self.editor.document().findBlockByNumber(end_line - 1)
+            top = int(self.editor.blockBoundingGeometry(
+                start_block).translated(self.editor.contentOffset()).top())
+            bottom = int(self.editor.blockBoundingGeometry(
+                end_block).translated(self.editor.contentOffset()).bottom())
+            current_level = folding_levels[line_number]
+            x = (self.editor.fontMetrics().width(
+                    current_level * self.i_width * '9') + offset)
+            painter.drawLine(x, top, x, bottom)
 
     # --- Other methods
     # -----------------------------------------------------------------

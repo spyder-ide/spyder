@@ -25,3 +25,4 @@ rtree
 sphinx
 spyder-kernels >=1.6.0
 watchdog
+intervaltree

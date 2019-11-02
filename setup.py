@@ -205,6 +205,7 @@ install_requires = [
     'chardet>=2.0.0',
     'cloudpickle',
     'diff-match-patch',
+    'intervaltree',
     # This is here until Jedi 0.15+ fixes completions for
     # Numpy and Pandas
     'jedi==0.14.1',
