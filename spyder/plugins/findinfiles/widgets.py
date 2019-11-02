@@ -79,11 +79,12 @@ class SearchThread(QThread):
     power = 0       # 0**1  = 1
     max_power = 9   # 2**10 = 512
 
-    def __init__(self, parent, search_text):
+    def __init__(self, parent, search_text, text_color=None):
         QThread.__init__(self, parent)
         self.mutex = QMutex()
         self.stopped = None
         self.search_text = search_text
+        self.text_color = text_color
         self.pathlist = None
         self.total_matches = None
         self.error_flag = None
@@ -1077,8 +1078,7 @@ class FindInFilesWidget(QWidget):
         if options is None:
             return
         self.stop_and_reset_thread(ignore_results=True)
-        self.search_thread = SearchThread(self, search_text)
-        self.search_thread.text_color = self.text_color
+        self.search_thread = SearchThread(self, search_text, self.text_color)
         self.search_thread.sig_finished.connect(self.search_complete)
         self.search_thread.sig_current_file.connect(
             lambda x: self.status_bar.set_label_path(x, folder=False)
