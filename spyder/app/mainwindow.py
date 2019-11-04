@@ -1422,6 +1422,9 @@ class MainWindow(QMainWindow):
         # Connect Editor to Kite completions plugin status
         self.editor.kite_completions_file_status()
 
+        # Connect Editor debug action with Console
+        self.ipyconsole.sig_debug_state.connect(self.editor.update_pdb_state)
+
         # Setup menus
         self.setup_menus()
 

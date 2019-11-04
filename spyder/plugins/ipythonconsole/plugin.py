@@ -75,6 +75,7 @@ class IPythonConsole(SpyderPluginWidget):
     # Signals
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
+    sig_debug_state = Signal(bool)
 
     # Error messages
     permission_error_msg = _("The directory {} is not writable and it is "
@@ -270,6 +271,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.variableexplorer.set_shellwidget_from_id(id(sw))
             self.main.plots.set_shellwidget_from_id(id(sw))
             self.main.help.set_shell(sw)
+            self.sig_debug_state.emit(sw.in_debug_loop())
         self.update_tabs_text()
         self.sig_update_plugin_title.emit()
 
@@ -852,6 +854,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.sig_pdb_step.connect(
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
+        shellwidget.sig_debug_state.connect(self.sig_debug_state)
 
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)

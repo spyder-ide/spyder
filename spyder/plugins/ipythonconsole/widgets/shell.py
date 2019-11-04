@@ -51,6 +51,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
+    sig_debug_state = Signal(bool)
 
     # For ShellWidget
     focus_changed = Signal()

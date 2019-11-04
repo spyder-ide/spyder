@@ -1295,6 +1295,14 @@ class CodeEditor(TextEditBaseWidget):
         else:
             debugger_panel.setVisible(False)
 
+    def update_debug_state(self, state):
+        """Update debug state."""
+        debugger_panel = self.panels.get(DebuggerPanel)
+        if state:
+            debugger_panel.start_clean()
+        else:
+            debugger_panel.stop_clean()
+
     def set_folding_panel(self, folding):
         """Enable/disable folding panel."""
         folding_panel = self.panels.get(FoldingPanel)

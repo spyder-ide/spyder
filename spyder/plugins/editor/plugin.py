@@ -523,44 +523,51 @@ class Editor(SpyderPluginWidget):
         self.winpdb_action.setEnabled(WINPDB_PATH is not None and PY2)
 
         # --- Debug toolbar ---
-        debug_action = create_action(self, _("&Debug"),
-                                     icon=ima.icon('debug'),
-                                     tip=_("Debug file"),
-                                     triggered=self.debug_file)
-        self.register_shortcut(debug_action, context="_", name="Debug",
+        self.debug_action = create_action(self, _("&Debug"),
+                                          icon=ima.icon('debug'),
+                                          tip=_("Debug file"),
+                                          triggered=self.debug_file)
+        self.register_shortcut(self.debug_action, context="_", name="Debug",
                                add_shortcut_to_tip=True)
 
-        debug_next_action = create_action(self, _("Step"),
-               icon=ima.icon('arrow-step-over'), tip=_("Run current line"),
-               triggered=lambda: self.debug_command("next"))
-        self.register_shortcut(debug_next_action, "_", "Debug Step Over",
+        self.debug_next_action = create_action(
+            self, _("Step"),
+            icon=ima.icon('arrow-step-over'), tip=_("Run current line"),
+            triggered=lambda: self.debug_command("next"))
+        self.register_shortcut(self.debug_next_action, "_", "Debug Step Over",
                                add_shortcut_to_tip=True)
 
-        debug_continue_action = create_action(self, _("Continue"),
-               icon=ima.icon('arrow-continue'),
-               tip=_("Continue execution until next breakpoint"),
-               triggered=lambda: self.debug_command("continue"))
-        self.register_shortcut(debug_continue_action, "_", "Debug Continue",
+        self.debug_continue_action = create_action(
+            self, _("Continue"),
+            icon=ima.icon('arrow-continue'),
+            tip=_("Continue execution until next breakpoint"),
+            triggered=lambda: self.debug_command("continue"))
+        self.register_shortcut(
+            self.debug_continue_action, "_", "Debug Continue",
+            add_shortcut_to_tip=True)
+
+        self.debug_step_action = create_action(
+            self, _("Step Into"),
+            icon=ima.icon('arrow-step-in'),
+            tip=_("Step into function or method of current line"),
+            triggered=lambda: self.debug_command("step"))
+        self.register_shortcut(self.debug_step_action, "_", "Debug Step Into",
                                add_shortcut_to_tip=True)
 
-        debug_step_action = create_action(self, _("Step Into"),
-               icon=ima.icon('arrow-step-in'),
-               tip=_("Step into function or method of current line"),
-               triggered=lambda: self.debug_command("step"))
-        self.register_shortcut(debug_step_action, "_", "Debug Step Into",
-                               add_shortcut_to_tip=True)
+        self.debug_return_action = create_action(
+            self, _("Step Return"),
+            icon=ima.icon('arrow-step-out'),
+            tip=_("Run until current function or method returns"),
+            triggered=lambda: self.debug_command("return"))
+        self.register_shortcut(
+            self.debug_return_action, "_", "Debug Step Return",
+            add_shortcut_to_tip=True)
 
-        debug_return_action = create_action(self, _("Step Return"),
-               icon=ima.icon('arrow-step-out'),
-               tip=_("Run until current function or method returns"),
-               triggered=lambda: self.debug_command("return"))
-        self.register_shortcut(debug_return_action, "_", "Debug Step Return",
-                               add_shortcut_to_tip=True)
-
-        debug_exit_action = create_action(self, _("Stop"),
-               icon=ima.icon('stop_debug'), tip=_("Stop debugging"),
-               triggered=lambda: self.debug_command("exit"))
-        self.register_shortcut(debug_exit_action, "_", "Debug Exit",
+        self.debug_exit_action = create_action(
+            self, _("Stop"),
+            icon=ima.icon('stop_debug'), tip=_("Stop debugging"),
+            triggered=lambda: self.debug_command("exit"))
+        self.register_shortcut(self.debug_exit_action, "_", "Debug Exit",
                                add_shortcut_to_tip=True)
 
         # --- Run toolbar ---
@@ -613,7 +620,7 @@ class Editor(SpyderPluginWidget):
                    triggered=self.run_cell_and_advance,
                    context=Qt.WidgetShortcut)
 
-        debug_cell_action = create_action(
+        self.debug_cell_action = create_action(
             self,
             _("Debug cell"),
             icon=ima.icon('debug_cell'),
@@ -934,13 +941,13 @@ class Editor(SpyderPluginWidget):
         # plugin to add its "List breakpoints" action to this
         # menu
         debug_menu_actions = [
-            debug_action,
-            debug_cell_action,
-            debug_next_action,
-            debug_step_action,
-            debug_return_action,
-            debug_continue_action,
-            debug_exit_action,
+            self.debug_action,
+            self.debug_cell_action,
+            self.debug_next_action,
+            self.debug_step_action,
+            self.debug_return_action,
+            self.debug_continue_action,
+            self.debug_exit_action,
             MENU_SEPARATOR,
             pdb_ignore_lib,
             set_clear_breakpoint_action,
@@ -952,12 +959,12 @@ class Editor(SpyderPluginWidget):
         ]
         self.main.debug_menu_actions += debug_menu_actions
         debug_toolbar_actions = [
-            debug_action,
-            debug_next_action,
-            debug_step_action,
-            debug_return_action,
-            debug_continue_action,
-            debug_exit_action
+            self.debug_action,
+            self.debug_next_action,
+            self.debug_step_action,
+            self.debug_return_action,
+            self.debug_continue_action,
+            self.debug_exit_action
         ]
         self.main.debug_toolbar_actions += debug_toolbar_actions
 
@@ -1015,8 +1022,8 @@ class Editor(SpyderPluginWidget):
             configure_action,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
-            debug_action,
-            debug_cell_action,
+            self.debug_action,
+            self.debug_cell_action,
             run_selected_action,
             run_cell_action,
             run_cell_advance_action,
@@ -1054,6 +1061,19 @@ class Editor(SpyderPluginWidget):
         CONF.set('run', 'pdb_ignore_lib', checked)
         self.main.ipyconsole.set_pdb_ignore_lib()
 
+    def update_pdb_state(self, state):
+        """Enable/disable debugging actions and handle pdb state change."""
+        self.debug_action.setEnabled(not state)
+        self.debug_cell_action.setEnabled(not state)
+        self.debug_next_action.setEnabled(state)
+        self.debug_step_action.setEnabled(state)
+        self.debug_return_action.setEnabled(state)
+        self.debug_continue_action.setEnabled(state)
+        self.debug_exit_action.setEnabled(state)
+        current_editor = self.get_current_editor()
+        if current_editor:
+            current_editor.update_debug_state(state)
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.restore_scrollbar_position.connect(
@@ -1069,6 +1089,7 @@ class Editor(SpyderPluginWidget):
         if not editorstack.data:
             self.__load_temp_file()
         self.add_dockwidget()
+        self.update_pdb_state(False)
 
         # Add modes to switcher
         self.switcher_manager = EditorSwitcherManager(

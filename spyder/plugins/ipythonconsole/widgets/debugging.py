@@ -80,6 +80,7 @@ class DebuggingWidget(RichJupyterWidget):
             self._pdb_history_file.new_session()
         else:
             self._pdb_history_file.end_session()
+        self.sig_debug_state.emit(self._pdb_in_loop)
 
     # --- Public API --------------------------------------------------
     def pdb_execute(self, line, hidden=False):
