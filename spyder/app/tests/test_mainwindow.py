@@ -933,6 +933,62 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
+    """Test that file are run from the Project explorer."""
+    projects = main_window.projects
+    editorstack = main_window.editor.get_current_editorstack()
+
+    # Create a temp project directory
+    project_dir = to_text_string(tmpdir.mkdir('test'))
+
+    # Create an empty file in the project dir
+    test_file = osp.join(LOCATION, 'script.py')
+    shutil.copy(test_file, osp.join(project_dir, 'script.py'))
+
+    # Create project
+    with qtbot.waitSignal(projects.sig_project_loaded):
+        projects._create_project(project_dir)
+
+    # Select notebook in the project explorer
+    idx = projects.explorer.treewidget.get_index('script.py')
+    projects.explorer.treewidget.setCurrentIndex(idx)
+
+    # Prese Enter there
+    qtbot.keyClick(projects.explorer.treewidget, Qt.Key_Enter)
+
+    # Assert that the file was open
+    assert 'script.py' in editorstack.get_current_filename()
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Run Python file
+    projects.explorer.treewidget.run([osp.join(project_dir, 'script.py')])
+
+    # Wait until the new console is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Wait until all objects have appeared in the variable explorer
+    nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.waitUntil(lambda: nsb.editor.source_model.rowCount() == 4,
+                    timeout=EVAL_TIMEOUT)
+
+    # Check variables value
+    assert shell.get_value('a') == 10
+    assert shell.get_value('s') == "Z:\\escape\\test\\string\n"
+    assert shell.get_value('li') == [1, 2, 3]
+    assert_array_equal(shell.get_value('arr'), np.array([1, 2, 3]))
+
+    # Close project
+    projects.close_project()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
 def test_set_new_breakpoints(main_window, qtbot):
     """Test that new breakpoints are set in the IPython console."""
