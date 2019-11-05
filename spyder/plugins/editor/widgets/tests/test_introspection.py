@@ -68,7 +68,6 @@ def test_space_completion(lsp_codeeditor, qtbot):
     code_editor.toggle_automatic_completions(True)
     code_editor.toggle_code_snippets(True)
 
-
 @pytest.mark.slow
 @pytest.mark.first
 @flaky(max_runs=5)

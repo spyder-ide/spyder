@@ -522,6 +522,9 @@ class CodeEditor(TextEditBaseWidget):
         self.automatic_completions_after_chars = 3
         self.automatic_completions_after_ms = 300
 
+        # Code Folding
+        self.code_folding = True
+
         # Completions hint
         self.completions_hint = True
         self.completions_hint_after_ms = 500
@@ -582,6 +585,7 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_characters = []
         self.rename_support = False
         self.completion_args = None
+        self.folding_supported = False
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
@@ -827,6 +831,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Show/hide folding panel depending on parameter
         self.set_folding_panel(folding)
+        self.toggle_code_folding(folding)
 
         # Scrollbar flag area
         self.scrollflagarea.set_enabled(scrollflagarea)
@@ -988,6 +993,7 @@ class CodeEditor(TextEditBaseWidget):
                                                        False)
         self.save_include_text = sync_options['save']['includeText']
         self.enable_hover = config['hoverProvider']
+        self.folding_supported = config.get('foldingRangeProvider', False)
         self.auto_completion_characters = (
             completion_options['triggerCharacters'])
         self.signature_completion_characters = (
@@ -1274,6 +1280,8 @@ class CodeEditor(TextEditBaseWidget):
     # ------------- LSP: Code folding ranges -------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def request_folding(self):
+        if not self.folding_supported or not self.code_folding:
+            return
         params = {'file': self.filename}
         return params
 
@@ -1343,6 +1351,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def toggle_code_snippets(self, state):
         self.code_snippets = state
+
+    def toggle_code_folding(self, state):
+        self.code_folding = state
 
     def toggle_completions_hint(self, state):
         """Enable/disable completion hint."""

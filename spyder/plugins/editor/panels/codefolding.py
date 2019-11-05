@@ -191,7 +191,8 @@ class FoldingPanel(Panel):
             return
         new_folding_ranges = {}
         for starting_line, ending_line in ranges:
-            new_folding_ranges[starting_line + 1] = ending_line + 1
+            if ending_line > starting_line:
+                new_folding_ranges[starting_line + 1] = ending_line + 1
 
         past_folding_regions = dict(self.folding_regions)
         self.folding_regions = new_folding_ranges

@@ -291,9 +291,10 @@ class BaseSH(QSyntaxHighlighter):
         """
         self.highlight_block(text)
         if self.editor:
-            diff, _ = self.editor.text_diff
-            if len(diff) > 0:
-                self.editor.request_folding()
+            if self.editor.folding_supported and self.editor.code_folding:
+                diff, _ = self.editor.text_diff
+                if len(diff) > 0:
+                    self.editor.request_folding()
 
         # Process blocks for fold detection
         # current_block = self.currentBlock()
