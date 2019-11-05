@@ -595,7 +595,7 @@ class CodeEditor(TextEditBaseWidget):
         self.previous_text = ''
         self.word_tokens = []
         self.patch = []
-        self.text_diff = []
+        self.text_diff = ([], '')
 
         # re-use parent of completion_widget (usually the main window)
         completion_parent = self.completion_widget.parent()
