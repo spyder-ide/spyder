@@ -909,8 +909,8 @@ class CodeEditor(TextEditBaseWidget):
         self.toggle_wrap_mode(wrap)
 
         # Class/Function dropdown will be disabled if we're not in a Python file.
-        self.classfuncdropdown.setVisible(show_class_func_dropdown
-                                          and self.is_python_like())
+        # self.classfuncdropdown.setVisible(show_class_func_dropdown
+        #                                   and self.is_python_like())
 
         self.set_strip_mode(strip_mode)
 
@@ -2164,7 +2164,7 @@ class CodeEditor(TextEditBaseWidget):
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
-        self.classfuncdropdown.update()
+        # self.classfuncdropdown.update()
 
     def hide_tooltip(self):
         """
