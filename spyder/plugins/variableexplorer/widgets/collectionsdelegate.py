@@ -37,6 +37,11 @@ if DataFrame is not FakeObject:
     from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
             DataFrameEditor)
 
+try:
+    from numpy import void
+except:
+    void = FakeObject
+
 
 class CollectionsDelegate(QItemDelegate):
     """CollectionsEditor Item Delegate"""
@@ -106,7 +111,11 @@ class CollectionsDelegate(QItemDelegate):
         readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
                     or not is_known_type(value))
         # CollectionsEditor for a list, tuple, dict, etc.
-        if isinstance(value, (list, set, tuple, dict)) and not object_explorer:
+        if isinstance(value, void):
+            # We can't edit that as this could be anything, and it might crash
+            # https://github.com/spyder-ide/spyder/issues/10603
+            return None
+        elif isinstance(value, (list, set, tuple, dict)) and not object_explorer:
             from spyder.plugins.variableexplorer.widgets.collectionseditor \
                 import CollectionsEditor
             editor = CollectionsEditor(parent=parent)
