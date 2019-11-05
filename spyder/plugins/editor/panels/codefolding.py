@@ -174,7 +174,7 @@ class FoldingPanel(Panel):
         self.folding_levels = {}
 
     def __compute_line_offsets(self, text, reverse=False):
-        lines = text.splitlines(keepends=True)
+        lines = text.splitlines(True)
         line_start_offset = {}
         offset = 0
         for i, line in enumerate(lines):
