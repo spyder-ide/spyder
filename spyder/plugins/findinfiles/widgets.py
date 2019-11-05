@@ -76,8 +76,8 @@ class SearchThread(QThread):
     sig_out_print = Signal(object)
 
     # Batch power sizes (2**power)
-    power = 0       # 0**1  = 1
-    max_power = 9   # 2**10 = 512
+    power = 0       # 0**1 = 1
+    max_power = 9   # 2**9 = 512
 
     def __init__(self, parent, search_text, text_color=None):
         QThread.__init__(self, parent)
@@ -788,21 +788,24 @@ class FindOptions(QWidget):
 
 
 class LineMatchItem(QTreeWidgetItem):
-    def __init__(self, parent, lineno, colno, match, text_color=None):
+
+    def __init__(self, parent, lineno, colno, match, font,
+                 text_color=None):
         self.lineno = lineno
         self.colno = colno
         self.match = match
         self.text_color = text_color
+        self.font = font
         QTreeWidgetItem.__init__(self, parent, [self.__repr__()],
                                  QTreeWidgetItem.Type)
 
     def __repr__(self):
         match = to_text_string(self.match).rstrip()
-        font = get_font()
-        _str = to_text_string("<p style=color:'{4}'><b>{1}</b> ({2}): "
+        _str = to_text_string("<!-- LineMatchItem -->"
+                              "<p style=\"color:'{4}';\"><b>{1}</b> ({2}): "
                               "<span style='font-family:{0};"
                               "font-size:75%;'>{3}</span></p>")
-        return _str.format(font.family(), self.lineno, self.colno, match,
+        return _str.format(self.font.family(), self.lineno, self.colno, match,
                            self.text_color)
 
     def __unicode__(self):
@@ -819,12 +822,14 @@ class LineMatchItem(QTreeWidgetItem):
 
 
 class FileMatchItem(QTreeWidgetItem):
+
     def __init__(self, parent, filename, sorting, text_color=None):
 
         self.sorting = sorting
         self.filename = osp.basename(filename)
 
-        title_format = to_text_string('<b style="color:{2}">{0}</b><br>'
+        title_format = to_text_string('<!-- FileMatchItem -->'
+                                      '<b style="color:{2}">{0}</b><br>'
                                       '<small style="color:{2}"><em>{1}</em>'
                                       '</small>')
         title = (title_format.format(osp.basename(filename),
@@ -848,8 +853,10 @@ class FileMatchItem(QTreeWidgetItem):
 
 
 class ItemDelegate(QStyledItemDelegate):
+
     def __init__(self, parent):
         QStyledItemDelegate.__init__(self, parent)
+        self._margin = None
 
     def paint(self, painter, option, index):
         options = QStyleOptionViewItem(option)
@@ -859,9 +866,21 @@ class ItemDelegate(QStyledItemDelegate):
                  else options.widget.style())
 
         doc = QTextDocument()
-        doc.setDocumentMargin(0)
-        doc.setHtml(options.text)
+        text = options.text
+        doc.setHtml(text)
 
+        if 'FileMatchItem' in text:
+            doc.setDocumentMargin(0)
+        else:
+            if self._margin is None:
+                # To increase performance setUniformRowHeights is now True
+                # so we add a margin to file items to center them vertically
+                self._margin = int(doc.size().height() / 3)
+
+            doc.setDocumentMargin(self._margin)
+
+        # This needs to be an empty string to avoid the overlapping the
+        # normal text of the QTreeWidgetItem
         options.text = ""
         style.drawControl(QStyle.CE_ItemViewItem, options, painter)
 
@@ -882,7 +901,9 @@ class ItemDelegate(QStyledItemDelegate):
         doc = QTextDocument()
         doc.setHtml(options.text)
         doc.setTextWidth(options.rect.width())
-        return QSize(int(doc.idealWidth()), int(doc.size().height()))
+        size = QSize(int(doc.idealWidth()),
+                        int(doc.size().height()))
+        return size
 
 
 class ResultsBrowser(OneColumnTree):
@@ -898,21 +919,25 @@ class ResultsBrowser(OneColumnTree):
         self.error_flag = None
         self.completed = None
         self.sorting = {}
+        self.font = get_font()
         self.data = None
         self.files = None
+        self.root_items = None
+        self.text_color = text_color
+
+        # Setup
         self.set_title('')
         self.set_sorting(OFF)
         self.setSortingEnabled(False)
-        self.root_items = None
-        self.text_color = text_color
-        self.sortByColumn(0, Qt.AscendingOrder)
         self.setItemDelegate(ItemDelegate(self))
-        self.setUniformRowHeights(False)
+        self.setUniformRowHeights(True)  # Needed for performance
+        self.sortByColumn(0, Qt.AscendingOrder)
+
+        # Signals
         self.header().sectionClicked.connect(self.sort_section)
-        self.setUniformRowHeights(True)
 
     def activated(self, item):
-        """Double-click event"""
+        """Double-click event."""
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
             filename, lineno, colno = itemdata
@@ -928,10 +953,11 @@ class ResultsBrowser(OneColumnTree):
         self.setSortingEnabled(True)
 
     def clicked(self, item):
-        """Click event"""
+        """Click event."""
         self.activated(item)
 
     def clear_title(self, search_text):
+        self.font = get_font()
         self.clear()
         self.setSortingEnabled(False)
         self.num_files = 0
@@ -945,7 +971,7 @@ class ResultsBrowser(OneColumnTree):
 
     @Slot(object)
     def append_file_result(self, filename):
-        """"""
+        """Real-time update of file items."""
         file_item = FileMatchItem(self, filename, self.sorting,
                                   self.text_color)
         file_item.setExpanded(True)
@@ -954,7 +980,7 @@ class ResultsBrowser(OneColumnTree):
 
     @Slot(object, object)
     def append_result(self, items, title):
-        """Real-time update of search results."""
+        """Real-time update of line items."""
         if len(self.data) >= self.max_results:
             self.set_title(_('Maximum number of results reached! Try '
                              'narrowing the search.'))
@@ -966,14 +992,14 @@ class ResultsBrowser(OneColumnTree):
         for item in items:
             filename, lineno, colno, line = item
             file_item = self.files[filename]
-            item = LineMatchItem(file_item, lineno, colno, line,
+            item = LineMatchItem(file_item, lineno, colno, line, self.font,
                                  self.text_color)
             self.data[id(item)] = (filename, lineno, colno)
         self.setUpdatesEnabled(True)
 
 
 class FileProgressBar(QWidget):
-    """Simple progress spinner with a label"""
+    """Simple progress spinner with a label."""
 
     def __init__(self, parent):
         QWidget.__init__(self, parent)
@@ -1051,7 +1077,7 @@ class FindInFilesWidget(QWidget):
         self.find_options.stop.connect(self.stop_and_reset_thread)
 
         self.result_browser = ResultsBrowser(self, text_color=text_color,
-                                             max_results=100000)
+                                             max_results=10000)
 
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.result_browser)
