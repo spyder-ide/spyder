@@ -232,7 +232,7 @@ install_requires = [
     'qtconsole>=4.5.5',
     'qtpy>=1.5.0',
     'sphinx',
-    'spyder-kernels>=1.6.0,<1.7.0',
+    'spyder-kernels>=1.7.0,<1.8.0',
     'watchdog',
 ]
 
