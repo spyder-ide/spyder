@@ -949,20 +949,15 @@ def test_runfile_from_project_explorer(main_window, qtbot, tmpdir):
     with qtbot.waitSignal(projects.sig_project_loaded):
         projects._create_project(project_dir)
 
-    # Select notebook in the project explorer
+    # Select file in the project explorer
     idx = projects.explorer.treewidget.get_index('script.py')
     projects.explorer.treewidget.setCurrentIndex(idx)
 
-    # Prese Enter there
+    # Press Enter there
     qtbot.keyClick(projects.explorer.treewidget, Qt.Key_Enter)
 
     # Assert that the file was open
     assert 'script.py' in editorstack.get_current_filename()
-
-    # Wait until the window is fully up
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
 
     # Run Python file
     projects.explorer.treewidget.run([osp.join(project_dir, 'script.py')])
