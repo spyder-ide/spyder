@@ -146,7 +146,7 @@ class Projects(SpyderPluginWidget):
         treewidget.sig_run.connect(
             lambda fname:
             ipyconsole.run_script(fname, osp.dirname(fname), '', False, False,
-                                  False, True))
+                                  False, True, False))
 
         # New project connections. Order matters!
         self.sig_project_loaded.connect(
