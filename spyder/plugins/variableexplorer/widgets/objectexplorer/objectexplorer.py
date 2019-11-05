@@ -115,7 +115,6 @@ class ObjectExplorer(QDialog):
         self.obj_tree.setModel(self._proxy_tree_model)
         self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.obj_tree.setUniformRowHeights(True)
-        self.obj_tree.setAnimated(True)
         self.obj_tree.add_header_context_menu()
         self.obj_tree.sig_option_changed.connect(self.sig_option_changed.emit)
 
