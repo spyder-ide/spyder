@@ -2266,6 +2266,9 @@ class Editor(SpyderPluginWidget):
         current_stack = self.get_current_editorstack()
         if current_stack is not None:
             current_stack.hide_tooltip()
+        if self.main.ipyconsole is not None:
+            pdb_state = self.main.ipyconsole.get_pdb_state()
+            self.update_pdb_state(pdb_state)
 
     @Slot()
     def go_to_last_edit_location(self):

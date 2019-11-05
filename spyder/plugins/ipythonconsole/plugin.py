@@ -589,6 +589,13 @@ class IPythonConsole(SpyderPluginWidget):
             except AttributeError:
                 pass
 
+    def get_pdb_state(self):
+        """Get if the current console is in debugging state or not."""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            return sw.in_debug_loop()
+        return False
+
     @Slot()
     @Slot(bool)
     @Slot(str)
