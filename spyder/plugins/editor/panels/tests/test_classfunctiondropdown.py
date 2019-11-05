@@ -25,6 +25,9 @@ from spyder.plugins.editor.utils.editor import TextBlockHelper
 from spyder.plugins.editor.utils.folding import IndentFoldDetector
 
 
+# Skip whole CFD test suite until the functionality is migrated
+pytestmark = pytest.mark.skip
+
 # ---------------------------------------------------------------------------
 # Helper Functions
 # ---------------------------------------------------------------------------
