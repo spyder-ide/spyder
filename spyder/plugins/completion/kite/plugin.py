@@ -167,7 +167,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         """Request the onboarding file."""
         # No need to check installed status,
         # since the get_onboarding_file call fails fast.
-        self.client.sig_perform_onboarding_request.emit()
+        if self._show_onboarding:
+            self.client.sig_perform_onboarding_request.emit()
 
     @Slot(str)
     def _show_onboarding_file(self, onboarding_file):
