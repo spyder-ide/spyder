@@ -405,10 +405,12 @@ class CodeEditor(TextEditBaseWidget):
         self.linenumberarea = self.panels.register(LineNumberArea(self))
 
         # Class and Method/Function Dropdowns
-        self.classfuncdropdown = self.panels.register(
-            ClassFunctionDropdown(self),
-            Panel.Position.TOP,
-        )
+        # NOTE: This panel will be disabled until it is migrated to use LSP
+        # calls
+        # self.classfuncdropdown = self.panels.register(
+        #     ClassFunctionDropdown(self),
+        #     Panel.Position.TOP,
+        # )
 
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
