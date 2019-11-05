@@ -100,7 +100,8 @@ def run_vcs_tool(path, action):
 
 def git_status(out_str, path):
     """Decode git status from the vcs output"""
-    vcsst = {}
+    files = {}
+    folders = {}
     for f_string in (x for x in out_str.split("\n") if x):
         status = f_string[:2]
         if "U" in status or status == "AA":
@@ -114,25 +115,32 @@ def git_status(out_str, path):
                 index = ["??", "!!"].index(status)
             except ValueError:
                 continue
-        relative_string = f_string[3:].replace("\"", "")
-        vcsst[osp.abspath(osp.join(path, relative_string))] = index
-    return vcsst
+        new_path = osp.join(path, f_string[3:].replace("\"", ""))
+        if os.path.isdir(new_path):
+            folders[osp.abspath(new_path)] = index
+        else:
+            files[osp.abspath(new_path)] = index
+    return files, folders
 
 
 def hg_status(out_str, path):
     """Decode mercurial status from the vcs output"""
-    stat = ["?", "I", "M", "A", "U"]
-    vcsst = {}
+    files = {}
+    folders = {}
     for f_string in (x for x in out_str.split("\n") if x):
         status = f_string[:1].strip()
         if len(status) > 1:
             status = status[1]
         try:
-            index = stat.index(status)
+            index = ["?", "I", "M", "A", "U"].index(status)
         except ValueError:
             continue
-        vcsst[osp.abspath(osp.join(path, f_string[2:]))] = index
-    return vcsst
+        new_path = osp.join(path, f_string[2:].replace("\"", ""))
+        if os.path.isdir(new_path):
+            folders[osp.abspath(new_path)] = index
+        else:
+            files[osp.abspath(new_path)] = index
+    return files, folders
 
 
 def get_vcs_status(vcs_path):
@@ -148,10 +156,11 @@ def get_vcs_status(vcs_path):
                     paths.append(root_path)
         # root_path and subdirectories are not version controlled.
         if paths == []:
-            return []
+            return {}, {}
     else:
         paths = [root_path]
     vcsst = {}
+    vcs_dirs = {}
     for path in paths:
         # Status list (in Order): untracked, ignored, modified, added
         tool, args = get_vcs_info(path)['actions']['cstate'][0]
@@ -160,13 +169,16 @@ def get_vcs_status(vcs_path):
             out, err = proc.communicate()
             out = escape_decode(out)[0]
             if proc.returncode >= 0 and err == b'' and out:
+                filename = out.decode("utf-8")[:-1]
                 if tool == 'git':
-                    vcsst.update(git_status(out.decode("utf-8")[:-1], path))
+                    filelist, folderlist = git_status(filename, path)
                 elif tool == 'hg':
-                    vcsst.update(hg_status(out.decode("utf-8")[:-1], path))
+                    filelist, folderlist = hg_status(filename, path)
+                vcsst.update(filelist)
+                vcs_dirs.update(folderlist)
             else:
                 continue
-    return vcsst
+    return vcsst, vcs_dirs
 
 
 def get_vcs_file_status(filename):
@@ -180,9 +192,9 @@ def get_vcs_file_status(filename):
         out, err = proc.communicate()
         if proc.returncode >= 0 and err == b'':
             if tool == 'git':
-                vcsst = git_status(out.decode("utf-8")[:-1], path)
+                vcsst, _ = git_status(out.decode("utf-8")[:-1], path)
             elif tool == 'hg':
-                vcsst = hg_status(out.decode("utf-8")[:-1], path)
+                vcsst, _ = hg_status(out.decode("utf-8")[:-1], path)
             if vcsst:
                 return [vcsst[b] for n, b in enumerate(vcsst)][0]
     return 0

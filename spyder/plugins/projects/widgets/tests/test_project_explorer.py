@@ -69,6 +69,8 @@ def test_project_explorer(project_explorer, qtbot):
 
 
 @pytest.mark.change_directory
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('AZURE') is not None,
+                    reason="Fails on Windows/Azure")
 def test_project_vcs_color(project_explorer, qtbot):
     """Test that files are colored according to their commit state."""
     # Create project

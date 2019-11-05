@@ -139,6 +139,7 @@ class ColorModel(QFileSystemModel):
     """FileSystemModel providing a color-code for different commit-status."""
     def __init__(self, *args, **kwargs):
         self.vcs_state = {}
+        self.vcs_dirs = {}
         self.color_array = [
             QColor('#ff0000'),  # untracked
             QColor('#808080'),  # ignored
@@ -187,6 +188,7 @@ class ColorModel(QFileSystemModel):
     def on_project_closed(self):
         """Clear file list and disable checks."""
         self.vcs_state = {}
+        self.vcs_dirs = {}
         self.rowsInserted.disconnect(self.func)
 
     @Slot()
@@ -198,7 +200,7 @@ class ColorModel(QFileSystemModel):
         if root_path is None:
             if self.root_path is None:
                 return
-            self.vcs_state = vcs.get_vcs_status(self.root_path)
+            self.vcs_state, self.vcs_dirs = vcs.get_vcs_status(self.root_path)
         elif osp.isfile(root_path):
             # root_path is a file -> add the new state to vcs_state
             status = vcs.get_vcs_file_status(root_path)
@@ -208,18 +210,27 @@ class ColorModel(QFileSystemModel):
         else:
             # root_path is a directory -> get a new vcs_state
             self.root_path = osp.abspath(root_path)
-            self.vcs_state = vcs.get_vcs_status(self.root_path)
+            self.vcs_state, vcs_dirs = vcs.get_vcs_status(self.root_path)
         self.dataChanged.emit(QModelIndex(), QModelIndex())
 
     def data(self, index, role=Qt.DisplayRole):
         """Set the colors of the elements in the Treeview."""
-        if self.use_vcs and self.vcs_state and role == Qt.TextColorRole:
+        if role == Qt.TextColorRole and self.use_vcs and self.vcs_state:
             filename = osp.abspath(self.filePath(index))
             if filename in self.vcs_state:
                 color_index = self.vcs_state[filename]
-                return self.color_array[color_index]
+            elif filename in self.vcs_dirs:
+                color_index = self.vcs_dirs[filename]
             else:
-                return self.color_array[-1]
+                found = False
+                for folder in self.vcs_dirs:
+                    if folder in filename:
+                        color_index = self.vcs_dirs[folder]
+                        found = True
+                        break
+                if not found:
+                    color_index = -1
+            return self.color_array[color_index]
         return super(ColorModel, self).data(index, role)
 
 

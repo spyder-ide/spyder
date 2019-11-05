@@ -14,7 +14,6 @@ import os.path as osp
 import sys
 
 # Test library imports
-from spyder.utils import programs
 import pytest
 
 # Local imports
@@ -86,8 +85,8 @@ def test_vcs_state(tmpdir):
     proc.communicate()
     file = osp.join(subdir, 'test.py')
     open(file, 'w').close()
-    assert get_vcs_status(subdir) != []
-    assert get_vcs_status(str(tmpdir)) != []
+    assert get_vcs_status(subdir) != ({}, {})
+    assert get_vcs_status(str(tmpdir)) != ({}, {})
     os.chdir(test_dir)
 
 
