@@ -42,7 +42,7 @@ class PydocServer(QThread):
             except TypeError:
                 # Python 3.7
                 self.callback(pydoc._start_server(pydoc._url_handler,
-                                                  hostname='localhost',
+                                                  hostname='127.0.0.1',
                                                   port=self.port))
         else:
             # Python 2
@@ -105,7 +105,7 @@ class PydocBrowser(WebBrowser):
         """Start pydoc server"""
         if self.server is None:
             self.port = select_port(default_port=self.DEFAULT_PORT)
-            self.set_home_url('http://localhost:%d/' % self.port)
+            self.set_home_url('http://127.0.0.1:%d/' % self.port)
         elif self.server.isRunning():
             self.server.server_started.disconnect(self.initialize_continued)
             self.server.quit()

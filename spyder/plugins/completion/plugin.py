@@ -16,7 +16,7 @@ import os.path as osp
 import functools
 
 # Third-party imports
-from qtpy.QtCore import QObject, Slot, QMutex, QMutexLocker
+from qtpy.QtCore import QObject, Slot, QMutex, QMutexLocker, QTimer
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
@@ -83,6 +83,8 @@ class CompletionManager(SpyderCompletionPlugin):
         self.req_id = 0
         self.collection_mutex = QMutex(QMutex.Recursive)
 
+        self.update_configuration()
+
         for plugin in plugins:
             if plugin in self.BASE_PLUGINS:
                 Plugin = self.BASE_PLUGINS[plugin]
@@ -115,27 +117,48 @@ class CompletionManager(SpyderCompletionPlugin):
             request_responses = self.requests[req_id]
             request_responses['sources'][completion_source] = resp
 
-            wait_for = self.WAIT_FOR_SOURCE[request_responses['req_type']]
-            if not resp:
-                # Any response is better than no response
-                keep_waiting = any(
-                    self._is_client_running(source) and
-                    source not in request_responses['sources']
-                    for source in self.clients)
-            elif completion_source not in wait_for:
-                # A wait_for response is better than non-wait_for
-                keep_waiting = any(
-                    self._is_client_running(source) and
-                    source not in request_responses['sources']
-                    for source in wait_for)
-            else:
-                keep_waiting = False
+            self._maybe_send_locked(req_id)
 
-            if keep_waiting:
-                return
+    @Slot(int)
+    def receive_timeout(self, req_id):
+        # On timeout, collect all completions and return to the user
+        if req_id not in self.requests:
+            return
 
+        logger.debug("Completion plugin: Request {} timed out".format(req_id))
+
+        with QMutexLocker(self.collection_mutex):
+            request_responses = self.requests[req_id]
+            request_responses['timed_out'] = True
+
+            self._maybe_send_locked(req_id)
+
+    def _maybe_send_locked(self, req_id):
+        if req_id not in self.requests:
+            return
+        request_responses = self.requests[req_id]
+
+        def send():
             del self.requests[req_id]
             self.gather_and_send(request_responses)
+
+        wait_for = set(source for source
+                       in self.WAIT_FOR_SOURCE[request_responses['req_type']]
+                       if self._is_client_running(source))
+        timed_out = request_responses['timed_out']
+
+        all_returned = all(source in request_responses['sources']
+                           for source in wait_for)
+        if not timed_out:
+            # Before the timeout
+            if all_returned:
+                send()
+        else:
+            # After the timeout
+            any_nonempty = any(request_responses['sources'].get(source)
+                               for source in wait_for)
+            if all_returned or any_nonempty:
+                send()
 
     @Slot(str)
     def client_available(self, client_name):
@@ -209,7 +232,16 @@ class CompletionManager(SpyderCompletionPlugin):
             'req_type': req_type,
             'response_instance': req['response_instance'],
             'sources': {},
+            'timed_out': False,
         }
+
+        # Start the timer on this request
+        if self.wait_for_ms > 0:
+            QTimer.singleShot(self.wait_for_ms,
+                              lambda: self.receive_timeout(req_id))
+        else:
+            self.requests[req_id]['timed_out'] = True
+
         for client_name in self.clients:
             client_info = self.clients[client_name]
             client_info['plugin'].send_request(
@@ -246,6 +278,8 @@ class CompletionManager(SpyderCompletionPlugin):
                 )
 
     def update_configuration(self):
+        self.wait_for_ms = self.get_option('completions_wait_for_ms',
+                                           section='editor')
         for client_name in self.clients:
             client_info = self.clients[client_name]
             if client_info['status'] == self.RUNNING:

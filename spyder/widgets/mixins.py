@@ -64,6 +64,8 @@ class BaseEditMixin(object):
     sig_will_remove_selection = None
     sig_text_was_inserted = None
 
+    _styled_widgets = set()
+
     def __init__(self):
         self.eol_chars = None
         self.calltip_size = 600
@@ -93,7 +95,8 @@ class BaseEditMixin(object):
 
         if at_point is not None:
             # Showing tooltip at point position
-            cx, cy = at_point.x(), at_point.y()
+            margin = (self.document().documentMargin() / 2) + 1
+            cx, cy = at_point.x() - margin, at_point.y() - margin
         elif at_line is not None:
             # Showing tooltip at line
             cx = 5
@@ -124,6 +127,12 @@ class BaseEditMixin(object):
 
     def _update_stylesheet(self, widget):
         """Update the background stylesheet to make it lighter."""
+        # Update the stylesheet for a given widget at most once
+        # because Qt is slow to repeatedly parse & apply CSS
+        if id(widget) in self._styled_widgets:
+            return
+        self._styled_widgets.add(id(widget))
+
         if is_dark_interface():
             css = qdarkstyle.load_stylesheet_from_environment()
             widget.setStyleSheet(css)

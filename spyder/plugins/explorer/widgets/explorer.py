@@ -25,7 +25,7 @@ import sys
 from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QModelIndex, QSize,
                          QSortFilterProxyModel, Qt, QTimer, QUrl, Signal, Slot)
-from qtpy.QtGui import QColor, QDrag, QIcon, QKeySequence
+from qtpy.QtGui import QColor, QDrag, QKeySequence
 from qtpy.QtWidgets import (QApplication, QFileIconProvider, QFileSystemModel,
                             QHBoxLayout, QInputDialog, QLabel, QLineEdit,
                             QMenu, QMessageBox, QToolButton, QTreeView,
@@ -155,10 +155,6 @@ class ColorModel(QFileSystemModel):
         self.vcs_state_timer.timeout.connect(self.set_vcs_state)
         if self.use_vcs:
             self.vcs_state_timer.start(8000)
-
-    def set_color(self, n, name):
-        """Set a specific color of the color_array"""
-        self.color_array[n] = QColor(name)
 
     def set_highlighting(self, state):
         """Enable/Disable the highlighting"""

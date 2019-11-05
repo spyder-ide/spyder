@@ -30,7 +30,7 @@ PICKLESHARE_REQVER = '>=0.4'
 PYZMQ_REQVER = '>=17'
 CHARDET_REQVER = '>=2.0.0'
 NUMPYDOC_REQVER = '>=0.6.0'
-SPYDER_KERNELS_REQVER = '>=1.5.0;<2.0.0'
+SPYDER_KERNELS_REQVER = '>=1.7.0;<2.0.0'
 QDARKSTYLE_REQVER = '>=2.7'
 ATOMICWRITES_REQVER = '>=1.2.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
@@ -48,8 +48,8 @@ MATPLOTLIB_REQVER = '>=2.0.0'
 PANDAS_REQVER = '>=0.13.1'
 NUMPY_REQVER = '>=1.7'
 SCIPY_REQVER = '>=0.17.0'
-PYLS_REQVER = '>=0.28.2;<0.29.0'
-
+PYLS_REQVER = '>=0.29.3;<0.30.0'
+APPLAUNCHSERVICES_REQVER = '>=0.1.7'
 
 
 DEPENDENCIES_BASE = [
@@ -176,6 +176,12 @@ DEPENDENCIES_BASE = [
      'features': _("Code completion and linting for the Editor"),
      'required_version': PYLS_REQVER}]
 
+if sys.platform == "darwin":
+    DEPENDENCIES_BASE.append(
+        {'modname': "applaunchservices",
+         'package_name': "applaunchservices",
+         'features': _("Notify macOS that Spyder can open Python files"),
+         'required_version': APPLAUNCHSERVICES_REQVER})
 
 if sys.platform.startswith('linux'):
     DEPENDENCIES_BASE.append(
