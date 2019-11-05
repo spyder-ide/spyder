@@ -120,7 +120,10 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 interrupt=True,
                 blocking=True,
                 timeout=CALL_KERNEL_TIMEOUT).load_data(filename, ext)
-        except (TimeoutError, UnpicklingError):
+        except TimeoutError:
+            msg = _("Data is too big to be loaded")
+            return msg
+        except UnpicklingError:
             return None
 
     def save_namespace(self, filename):
@@ -129,7 +132,10 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 interrupt=True,
                 blocking=True,
                 timeout=CALL_KERNEL_TIMEOUT).save_namespace(filename)
-        except (TimeoutError, UnpicklingError):
+        except TimeoutError:
+            msg = _("Data is too big to be saved")
+            return msg
+        except UnpicklingError:
             return None
 
     # ---- Private API (overrode by us) ----------------------------
