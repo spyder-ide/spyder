@@ -80,11 +80,16 @@ class CollectionsDelegate(QItemDelegate):
                 return True
         elif (val_type in ['DataFrame', 'Series'] or 'Array' in val_type or
                 'Index' in val_type):
-            # From https://blender.stackexchange.com/a/131849
-            shape = [int(s) for s in val_size.strip("()").split(",") if s]
-            size = functools.reduce(operator.mul, shape)
-            if size > LARGE_ARRAY:
-                return True
+            # Avoid errors for user declared types that contain words like
+            # the ones we're looking for above
+            try:
+                # From https://blender.stackexchange.com/a/131849
+                shape = [int(s) for s in val_size.strip("()").split(",") if s]
+                size = functools.reduce(operator.mul, shape)
+                if size > LARGE_ARRAY:
+                    return True
+            except Exception:
+                pass
 
         return False
 
