@@ -90,3 +90,104 @@ class SpyderPaneToolbar(QToolBar):
         else:
             self.setStyleSheet("QToolBar {border: 0px;}")
 
+
+class SpyderPaneWidget(QMainWindow):
+    """
+    Spyder pane widget class.
+
+    All Spyder plugins that need to add a pane to the Spyder mainwindow
+    *must* use a Spyder pane widget to encapsulate their main interface.
+
+    A Spyder pane widget is a Qt main window that consists of a central
+    widget and a set of toolbars that are stacked above or below the central
+    widget. The toolbars are not moveable nor floatable and must occupy
+    the entire horizontal space available for the pane, i.e. that toolbars
+    must be stacked vertically and cannot be placed horizontally
+    next to each others.
+    """
+
+    def __init__(self, parent=None, options_button=None):
+        super().__init__(parent)
+        self.setWindowFlags(Qt.Widget)
+
+        self._main_toolbar = SpyderPaneToolbar(corner_widget=options_button)
+        self.addToolBar(self._main_toolbar)
+        self._aux_toolbars = {Qt.TopToolBarArea: [], Qt.BottomToolBarArea: []}
+
+    # ---- Public methods
+    def create_auxialiary_toolbar(self, where='above'):
+        """
+        Add to this pane an auxiliary toolbar above or below this
+        pane central widget.
+
+        Parameters
+        ----------
+        where: str
+            A string whose value is used to determine where to add the
+            toolbar in the pane. The toolbar is added above the pane's central
+            widget when the value of 'where' is 'above', while it is added
+            below the central widget when it is 'below'.
+
+        Returns
+        -------
+        QToolBar
+            The toolbar that was created and added as an auxiliary toolbar
+            to this pane.
+        """
+        where = (Qt.BottomToolBarArea if where == 'below'
+                 else Qt.TopToolBarArea)
+        toolbar = SpyderPaneToolbar(areas=where)
+
+        if (where == Qt.TopToolBarArea or
+                where == Qt.BottomToolBarArea and self._aux_toolbars[where]):
+            self.addToolBarBreak(where)
+        self.addToolBar(toolbar)
+        self._aux_toolbars[where].append(toolbar)
+
+        return toolbar
+
+    def get_main_toolbar(self):
+        """
+        Return the main toolbar of this pane.
+
+        Returns
+        -------
+        QToolBar
+            The main toolbar of this pane.
+        """
+        return self._main_toolbar
+
+    def get_central_widget(self):
+        """
+        Return the central widget of this pane.
+
+        Returns
+        -------
+        (QWidget, None)
+            The central widget of this pane or None if the central widget has
+            not been set.
+        """
+        return self.centralWidget()
+
+    def set_central_widget(self, widget):
+        """
+        Set the given widget to be the central widget of this pane.
+
+        Parameters
+        ----------
+        widget: QWidget
+            Widget to set as the central widget of this pane.
+        """
+        self.setCentralWidget(widget)
+
+    def set_iconsize(self, iconsize):
+        """
+        Set the icon size of this pane toolbars.
+
+        Parameters
+        ----------
+        iconsize: int
+            An integer corresponding to the size in pixels to which the icons
+            of this pane toolbars need to be set.
+        """
+        pass
