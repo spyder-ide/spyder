@@ -379,7 +379,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         else:
             environment = self.get_option('custom_interpreter',
                                           section='main_interpreter')
-        jedi_script = {
+        jedi = {
             'environment': environment,
             'extra_paths': self.get_option('spyder_pythonpath', section='main')
         }
@@ -415,7 +415,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         plugins['pycodestyle'] = pycodestyle
         plugins['pyflakes'] = pyflakes
         plugins['pydocstyle'] = pydocstyle
-        plugins['jedi_script'] = jedi_script
+        plugins['jedi'] = jedi
         plugins['jedi_completion'] = jedi_completion
         plugins['jedi_signature_help'] = jedi_signature_help
         plugins['jedi_definition'] = jedi_definition
