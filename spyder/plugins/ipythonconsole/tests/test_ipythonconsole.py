@@ -164,6 +164,8 @@ def ipyconsole(qtbot, request):
                               is_sympy=is_sympy,
                               is_cython=is_cython)
     window.setCentralWidget(console)
+
+    qtbot.addWidget(window)
     window.show()
 
     yield console
