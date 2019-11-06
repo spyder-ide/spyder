@@ -322,6 +322,7 @@ class MainWindow(QMainWindow):
     sig_setup_finished = Signal()
     all_actions_defined = Signal()
     sig_pythonpath_changed = Signal()
+    sig_main_interpreter_changed = Signal()
     sig_open_external_file = Signal(str)
     sig_resized = Signal("QResizeEvent")     # Related to interactive tour
     sig_moved = Signal("QMoveEvent")         # Related to interactive tour
