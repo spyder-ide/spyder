@@ -400,14 +400,14 @@ class NamespaceBrowser(QWidget):
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 QApplication.processEvents()
                 error_message = self.shellwidget.load_data(self.filename, ext)
-                self.shellwidget._kernel_reply = None
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
     
             if error_message is not None:
                 QMessageBox.critical(self, title,
                                      _("<b>Unable to load '%s'</b>"
-                                       "<br><br>Error message:<br>%s"
+                                       "<br><br>"
+                                       "The error message was:<br>%s"
                                        ) % (self.filename, error_message))
             self.refresh_table()
 
@@ -435,20 +435,20 @@ class NamespaceBrowser(QWidget):
         QApplication.processEvents()
 
         error_message = self.shellwidget.save_namespace(self.filename)
-        self.shellwidget._kernel_reply = None
 
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()
         if error_message is not None:
             if 'Some objects could not be saved:' in error_message:
                 save_data_message = (
-                    _('<b>Some objects could not be saved:</b>')
-                    + '<br><br><code>{obj_list}</code>'.format(
+                    _("<b>Some objects could not be saved:</b>")
+                    + "<br><br><code>{obj_list}</code>".format(
                         obj_list=error_message.split(': ')[1]))
             else:
                 save_data_message = _(
-                    '<b>Unable to save current workspace</b>'
-                    '<br><br>Error message:<br>') + error_message
+                    "<b>Unable to save current workspace</b>"
+                    "<br><br>"
+                    "The error message was:<br>") + error_message
             QMessageBox.critical(self, _("Save data"), save_data_message)
         self.save_button.setEnabled(self.filename is not None)
 
