@@ -727,7 +727,7 @@ class OutlineExplorerWidget(SpyderPaneWidget):
                  sort_files_alphabetically=False,
                  follow_cursor=True,
                  options_button=None):
-        super().__init__(parent, options_button)
+        super(OutlineExplorerWidget, self).__init__(parent, options_button)
 
         self.treewidget = OutlineExplorerTreeWidget(
             self,

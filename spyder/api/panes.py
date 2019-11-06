@@ -33,7 +33,7 @@ class SpyderPaneToolbar(QToolBar):
 
     def __init__(self, parent=None, areas=Qt.TopToolBarArea,
                  corner_widget=None):
-        super().__init__(parent)
+        super(SpyderPaneToolbar, self).__init__(parent)
         self._set_corner_widget(corner_widget)
         self.setObjectName("pane_toolbar_{}".format(str(uuid.uuid4())[:8]))
         self.setFloatable(False)
@@ -48,9 +48,10 @@ class SpyderPaneToolbar(QToolBar):
         widget when adding a new widget in this toolbar.
         """
         if self._corner_widget is not None:
-            super().insertWidget(self._corner_separator_action, widget)
+            super(SpyderPaneToolbar, self).insertWidget(
+                self._corner_separator_action, widget)
         else:
-            super().addWidget(widget)
+            super(SpyderPaneToolbar, self).addWidget(widget)
 
     def addAction(self, action):
         """
@@ -58,9 +59,10 @@ class SpyderPaneToolbar(QToolBar):
         widget when adding a new action in this toolbar.
         """
         if self._corner_widget is not None:
-            super().insertAction(self._corner_separator_action, action)
+            super(SpyderPaneToolbar, self).insertAction(
+                self._corner_separator_action, action)
         else:
-            super().addAction(action)
+            super(SpyderPaneToolbar, self).addAction(action)
 
     def _set_corner_widget(self, corner_widget):
         """
@@ -72,9 +74,9 @@ class SpyderPaneToolbar(QToolBar):
         """
         self._corner_widget = corner_widget
         if corner_widget is not None:
-            self._corner_separator_action = super().addWidget(
-                create_toolbar_stretcher())
-            super().addWidget(self._corner_widget)
+            self._corner_separator_action = super(
+                SpyderPaneToolbar, self).addWidget(create_toolbar_stretcher())
+            super(SpyderPaneToolbar, self).addWidget(self._corner_widget)
         else:
             self._corner_separator_action = None
 
@@ -107,7 +109,7 @@ class SpyderPaneWidget(QMainWindow):
     """
 
     def __init__(self, parent=None, options_button=None):
-        super().__init__(parent)
+        super(SpyderPaneWidget, self).__init__(parent)
         self.setWindowFlags(Qt.Widget)
 
         self._main_toolbar = SpyderPaneToolbar(corner_widget=options_button)
