@@ -383,6 +383,9 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget.currentChanged.connect(self.update_working_directory)
         self._remove_old_stderr_files()
 
+        # Update kernels if python path is changed
+        self.main.sig_pythonpath_changed.connect(self.update_path)
+
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
         """Return clients list"""
@@ -557,6 +560,7 @@ class IPythonConsole(SpyderPluginWidget):
         for client in self.get_clients():
             shell = client.shellwidget
             if shell is not None:
+                self.main.get_spyder_pythonpath()
                 shell.update_syspath(path_dict, new_path_dict)
 
     def execute_code(self, lines, current_client=True, clear_variables=False):

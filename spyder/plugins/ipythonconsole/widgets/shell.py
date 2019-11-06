@@ -101,6 +101,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'current_filename': self.handle_current_filename,
             'get_file_code': self.handle_get_file_code,
             'set_debug_state': self.handle_debug_state,
+            'update_syspath': self.update_syspath,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(

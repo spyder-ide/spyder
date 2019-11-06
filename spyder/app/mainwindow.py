@@ -321,7 +321,7 @@ class MainWindow(QMainWindow):
     restore_scrollbar_position = Signal()
     sig_setup_finished = Signal()
     all_actions_defined = Signal()
-    sig_pythonpath_changed = Signal()
+    sig_pythonpath_changed = Signal(object, object)  # odict, odict
     sig_open_external_file = Signal(str)
     sig_resized = Signal("QResizeEvent")     # Related to interactive tour
     sig_moved = Signal("QMoveEvent")         # Related to interactive tour
@@ -607,10 +607,13 @@ class MainWindow(QMainWindow):
         """Setup main window"""
         logger.info("*** Start of MainWindow setup ***")
 
+        logger.info("Updating PYTHONPATH")
+        path_dict = self.get_spyder_pythonpath_dict()
+        self.update_python_path(path_dict)
+
         logger.info("Applying theme configuration...")
         ui_theme = CONF.get('appearance', 'ui_theme')
         color_scheme = CONF.get('appearance', 'selected')
-
 
         if ui_theme == 'dark':
             if not running_under_pytest():
@@ -1336,10 +1339,6 @@ class MainWindow(QMainWindow):
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
         was triggered"""
-        # TODO: Move this to a different place?
-        path_dict = self.get_spyder_pythonpath(force_reload=True)
-        self.update_python_path(path_dict)
-
         self.restore_scrollbar_position.emit()
 
         logger.info('Deleting previous Spyder instance LSP logs...')
@@ -2942,17 +2941,17 @@ class MainWindow(QMainWindow):
             encoding.writelines(path, self.SPYDER_PATH)
             encoding.writelines(not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
         except EnvironmentError as e:
+            print(e)
             logger.debug(str(e))
 
-    def get_spyder_pythonpath(self, force_reload=True):
+    def get_spyder_pythonpath_dict(self):
         """
         Return Spyder PYTHONPATH.
 
         The returned ordered dictionary contains all paths and the value
         represents the active state.
         """
-        if force_reload:
-            self.load_python_path()
+        self.load_python_path()
 
         path_dict = OrderedDict()
         for path in self.path:
@@ -2963,10 +2962,18 @@ class MainWindow(QMainWindow):
 
         return path_dict
 
+    def get_spyder_pythonpath(self):
+        """
+        Return Spyder PYTHONPATH.
+        """
+        path_dict = self.get_spyder_pythonpath_dict()
+        path = [k for k, v in path_dict.items() if v]
+        return path
+
     def update_python_path(self, new_path_dict):
         """Update python path on Spyder interpreter and kernels."""
         # Load previous path
-        path_dict = self.get_spyder_pythonpath()
+        path_dict = self.get_spyder_pythonpath_dict()
 
         # Save path
         if path_dict != new_path_dict:
@@ -2974,22 +2981,20 @@ class MainWindow(QMainWindow):
             self.save_python_path(new_path_dict)
 
         # Load new path
-        new_path_dict_p = self.get_spyder_pythonpath()  # Includes project
+        new_path_dict_p = self.get_spyder_pythonpath_dict()  # Includes project
 
-        # Update Spyder
+        # Update Spyder interpreter
         for path in path_dict:
             while path in sys.path:
                 sys.path.remove(path)
-    
+
         for path, active in reversed(new_path_dict_p.items()):
             if active:
                 sys.path.insert(1, path)
 
-        # Update kernels
-        if self.ipyconsole is not None:
-            self.ipyconsole.update_path(path_dict, new_path_dict_p)
-
-        self.sig_pythonpath_changed.emit()
+        # Any plugin that needs to do some work based on this sigal should
+        # connext to it on plugin registration
+        self.sig_pythonpath_changed.emit(path_dict, new_path_dict_p)
 
     @Slot()
     def show_path_manager(self):
@@ -3002,13 +3007,12 @@ class MainWindow(QMainWindow):
                              self.not_active_path, sync=False)
         dialog.sig_path_changed.connect(self.update_python_path)
         dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
-        if dialog.exec_():
-            pass
+        dialog.exec_()
 
     def pythonpath_changed(self):
         """Projects PYTHONPATH contribution has changed."""
         self.project_path = tuple(self.projects.get_pythonpath())
-        path_dict = self.get_spyder_pythonpath()
+        path_dict = self.get_spyder_pythonpath_dict()
         self.update_python_path(path_dict)
 
     @Slot()
