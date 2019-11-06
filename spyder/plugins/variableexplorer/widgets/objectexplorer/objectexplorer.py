@@ -20,11 +20,12 @@ from qtpy.QtCore import Slot, Signal, QModelIndex, QPoint, QSize, Qt
 from qtpy.QtGui import QKeySequence, QTextOption
 from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
                             QDialog, QGroupBox, QHBoxLayout, QHeaderView,
-                            QLabel, QMenu, QPushButton, QRadioButton,
-                            QSplitter, QToolButton, QVBoxLayout, QWidget)
+                            QMenu, QPushButton, QRadioButton, QSplitter,
+                            QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, is_dark_interface
 from spyder.config.manager import CONF
 from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
@@ -423,11 +424,12 @@ class ObjectExplorer(QDialog):
             show_blanks = CONF.get('editor', 'blank_spaces')
             update_scrollbar = CONF.get('editor', 'scroll_past_end')
             scheme_name = CONF.get('appearance', 'selected')
-            self.editor.setup_editor(tab_mode=False,
-                                     font=get_font(),
-                                     show_blanks=show_blanks,
-                                     color_scheme=scheme_name,
-                                     scroll_past_end=update_scrollbar)
+            self.editor.setup_editor(
+                tab_mode=False,
+                font=get_font(font_size_delta=DEFAULT_SMALL_DELTA),
+                show_blanks=show_blanks,
+                color_scheme=scheme_name,
+                scroll_past_end=update_scrollbar)
             self.editor.set_text(data)
             if attr_details.name == 'Source code':
                 self.editor.set_language('Python')
