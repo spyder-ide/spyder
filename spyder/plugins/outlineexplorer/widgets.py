@@ -12,16 +12,16 @@ import os.path as osp
 
 # Third party imports
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
-                            QTreeWidgetItemIterator)
+from qtpy.QtCore import Qt, Signal, Slot
+from qtpy.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator
 
 # Local imports
+from spyder.api.panes import SpyderPaneWidget
 from spyder.config.base import _, STDOUT
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
-                                    set_item_user_text, create_plugin_layout)
+                                    set_item_user_text)
 from spyder.widgets.onecolumntree import OneColumnTree
 
 
@@ -716,7 +716,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.activated(item)
 
 
-class OutlineExplorerWidget(QWidget):
+class OutlineExplorerWidget(SpyderPaneWidget):
     """Class browser"""
     edit_goto = Signal(str, int, str)
     edit = Signal(str)
@@ -727,7 +727,7 @@ class OutlineExplorerWidget(QWidget):
                  sort_files_alphabetically=False,
                  follow_cursor=True,
                  options_button=None):
-        QWidget.__init__(self, parent)
+        super().__init__(parent, options_button)
 
         self.treewidget = OutlineExplorerTreeWidget(
             self,
@@ -738,6 +738,7 @@ class OutlineExplorerWidget(QWidget):
             sort_files_alphabetically=sort_files_alphabetically,
             follow_cursor=follow_cursor,
             )
+        self.set_central_widget(self.treewidget)
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),
@@ -745,17 +746,7 @@ class OutlineExplorerWidget(QWidget):
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
 
-        btn_layout = QHBoxLayout()
-        for btn in self.setup_buttons():
-            btn.setAutoRaise(True)
-            btn.setIconSize(QSize(16, 16))
-            btn_layout.addWidget(btn)
-        if options_button:
-            btn_layout.addStretch()
-            btn_layout.addWidget(options_button, Qt.AlignRight)
-
-        layout = create_plugin_layout(btn_layout, self.treewidget)
-        self.setLayout(layout)
+        self.setup_toolbar()
 
     @Slot(bool)
     def toggle_visibility(self, state):
@@ -766,21 +757,21 @@ class OutlineExplorerWidget(QWidget):
             if state:
                 self.is_visible.emit()
 
-    def setup_buttons(self):
+    def setup_toolbar(self):
         """Setup the buttons of the outline explorer widget toolbar."""
+        toolbar = self.get_main_toolbar()
+
         self.fromcursor_btn = create_toolbutton(
             self, icon=ima.icon('fromcursor'), tip=_('Go to cursor position'),
             triggered=self.treewidget.go_to_cursor_position)
+        toolbar.addWidget(self.fromcursor_btn)
 
-        buttons = [self.fromcursor_btn]
         for action in [self.treewidget.collapse_all_action,
                        self.treewidget.expand_all_action,
                        self.treewidget.restore_action,
                        self.treewidget.collapse_selection_action,
                        self.treewidget.expand_selection_action]:
-            buttons.append(create_toolbutton(self))
-            buttons[-1].setDefaultAction(action)
-        return buttons
+            toolbar.addAction(action)
 
     def set_current_editor(self, editor, update, clear):
         if clear:
