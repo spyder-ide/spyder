@@ -552,6 +552,13 @@ class IPythonConsole(SpyderPluginWidget):
         if shellwidget is not None:
             shellwidget.update_cwd()
 
+    def update_path(self, path_dict, new_path_dict):
+        """Update path on consoles."""
+        for client in self.get_clients():
+            shell = client.shellwidget
+            if shell is not None:
+                shell.update_syspath(path_dict, new_path_dict)
+
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()

@@ -197,6 +197,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 interrupt=True,
                 blocking=False).set_sympy_forecolor(background_color='light')
 
+    def update_syspath(self, path_dict, new_path_dict):
+        """Update sys.path contents on kernel."""
+        self.call_kernel(
+            interrupt=True,
+            blocking=False).update_syspath(path_dict, new_path_dict)
+
     def request_syspath(self):
         """Ask the kernel for sys.path contents."""
         self.call_kernel(

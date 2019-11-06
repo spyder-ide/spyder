@@ -20,7 +20,7 @@ Licensed under the terms of the MIT License
 # Stdlib imports
 # =============================================================================
 from __future__ import print_function
-
+from collections import OrderedDict
 import errno
 import gc
 import logging
@@ -384,20 +384,10 @@ class MainWindow(QMainWindow):
         # Shortcut management data
         self.shortcut_data = []
 
-        # Loading Spyder path
-        self.path = []
-        self.not_active_path = []
-        self.project_path = []
-        if osp.isfile(self.SPYDER_PATH):
-            self.path, _x = encoding.readlines(self.SPYDER_PATH)
-            self.path = [name for name in self.path if osp.isdir(name)]
-        if osp.isfile(self.SPYDER_NOT_ACTIVE_PATH):
-            self.not_active_path, _x = \
-                encoding.readlines(self.SPYDER_NOT_ACTIVE_PATH)
-            self.not_active_path = \
-                [name for name in self.not_active_path if osp.isdir(name)]
-        self.remove_path_from_sys_path()
-        self.add_path_to_sys_path()
+        # Handle Spyder and kernels path
+        self.path = ()
+        self.not_active_path = ()
+        self.project_path = ()
 
         # Plugins
         self.console = None
@@ -786,7 +776,7 @@ class MainWindow(QMainWindow):
         spyder_path_action = create_action(self,
                                 _("PYTHONPATH manager"),
                                 None, icon=ima.icon('pythonpath'),
-                                triggered=self.path_manager_callback,
+                                triggered=self.show_path_manager,
                                 tip=_("Python Path Manager"),
                                 menurole=QAction.ApplicationSpecificRole)
         reset_spyder_action = create_action(
@@ -1346,6 +1336,10 @@ class MainWindow(QMainWindow):
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
         was triggered"""
+        # TODO: Move this to a different place?
+        path_dict = self.get_spyder_pythonpath(force_reload=True)
+        self.update_python_path(path_dict)
+
         self.restore_scrollbar_position.emit()
 
         logger.info('Deleting previous Spyder instance LSP logs...')
@@ -2926,54 +2920,103 @@ class MainWindow(QMainWindow):
         elif osp.isfile(osp.join(CWD, fname)):
             self.open_file(osp.join(CWD, fname), external=True)
 
-    # ---- PYTHONPATH management, etc.
-    def get_spyder_pythonpath(self):
-        """Return Spyder PYTHONPATH"""
-        active_path = [p for p in self.path if p not in self.not_active_path]
-        return active_path + self.project_path
+    # --- Path Manager
+    # ------------------------------------------------------------------------
+    def load_python_path(self):
+        """Load path stored in spyder configuration folder."""
+        if osp.isfile(self.SPYDER_PATH):
+            path, _x = encoding.readlines(self.SPYDER_PATH)
+            self.path = tuple(name for name in path if osp.isdir(name))
 
-    def add_path_to_sys_path(self):
-        """Add Spyder path to sys.path"""
-        for path in reversed(self.get_spyder_pythonpath()):
-            sys.path.insert(1, path)
+        if osp.isfile(self.SPYDER_NOT_ACTIVE_PATH):
+            not_active_path, _x = encoding.readlines(
+                self.SPYDER_NOT_ACTIVE_PATH)
+            self.not_active_path = tuple(name for name in not_active_path
+                                         if osp.isdir(name))
 
-    def remove_path_from_sys_path(self):
-        """Remove Spyder path from sys.path"""
-        for path in self.path + self.project_path:
+    def save_python_path(self, new_path_dict):
+        """Save path in spyder configuration folder."""
+        path = [p for p in new_path_dict]
+        not_active_path = [p for p in new_path_dict if not new_path_dict[p]]
+        try:
+            encoding.writelines(path, self.SPYDER_PATH)
+            encoding.writelines(not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
+        except EnvironmentError as e:
+            logger.debug(str(e))
+
+    def get_spyder_pythonpath(self, force_reload=True):
+        """
+        Return Spyder PYTHONPATH.
+
+        The returned ordered dictionary contains all paths and the value
+        represents the active state.
+        """
+        if force_reload:
+            self.load_python_path()
+
+        path_dict = OrderedDict()
+        for path in self.path:
+            path_dict[path] = path not in self.not_active_path
+
+        for path in self.project_path:
+            path_dict[path] = True
+
+        return path_dict
+
+    def update_python_path(self, new_path_dict):
+        """Update python path on Spyder interpreter and kernels."""
+        # Load previous path
+        path_dict = self.get_spyder_pythonpath()
+
+        # Save path
+        if path_dict != new_path_dict:
+            # Does not include project_path
+            self.save_python_path(new_path_dict)
+
+        # Load new path
+        new_path_dict_p = self.get_spyder_pythonpath()  # Includes project
+
+        # Update Spyder
+        for path in path_dict:
             while path in sys.path:
                 sys.path.remove(path)
+    
+        for path, active in reversed(new_path_dict_p.items()):
+            if active:
+                sys.path.insert(1, path)
+
+        # Update kernels
+        if self.ipyconsole is not None:
+            self.ipyconsole.update_path(path_dict, new_path_dict_p)
+
+        self.sig_pythonpath_changed.emit()
 
     @Slot()
-    def path_manager_callback(self):
-        """Spyder path manager"""
+    def show_path_manager(self):
+        """Show Spyder path manager dialog."""
         from spyder.widgets.pathmanager import PathManager
-        self.remove_path_from_sys_path()
-        project_path = self.projects.get_pythonpath()
-        dialog = PathManager(self, self.path, project_path,
-                             self.not_active_path, sync=True)
+        read_only_path =  self.projects.get_pythonpath()
+
+        # TODO: update sync on windows
+        dialog = PathManager(self, self.path, read_only_path,
+                             self.not_active_path, sync=False)
+        dialog.sig_path_changed.connect(self.update_python_path)
         dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
-        dialog.exec_()
-        self.add_path_to_sys_path()
-        try:
-            encoding.writelines(self.path, self.SPYDER_PATH) # Saving path
-            encoding.writelines(self.not_active_path,
-                                self.SPYDER_NOT_ACTIVE_PATH)
-        except EnvironmentError:
+        if dialog.exec_():
             pass
-        self.sig_pythonpath_changed.emit()
 
     def pythonpath_changed(self):
-        """Projects PYTHONPATH contribution has changed"""
-        self.remove_path_from_sys_path()
-        self.project_path = self.projects.get_pythonpath()
-        self.add_path_to_sys_path()
-        self.sig_pythonpath_changed.emit()
+        """Projects PYTHONPATH contribution has changed."""
+        self.project_path = tuple(self.projects.get_pythonpath())
+        path_dict = self.get_spyder_pythonpath()
+        self.update_python_path(path_dict)
 
     @Slot()
     def win_env(self):
-        """Show Windows current user environment variables"""
+        """Show Windows current user environment variables."""
         self.dialog_manager.show(WinUserEnvDialog(self))
 
+    # --- Kite
     def show_kite_installation(self):
         """Show installation dialog for Kite."""
         self.completions.get_client('kite').show_installation_dialog()
