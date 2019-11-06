@@ -11,6 +11,7 @@ from __future__ import print_function
 from collections import OrderedDict
 import os
 import os.path as osp
+import re
 import sys
 
 # Third party imports
@@ -30,8 +31,8 @@ from spyder.utils.qthelpers import create_toolbutton
 
 class PathManager(QDialog):
     """Path manager dialog."""
-    sig_path_changed = Signal(object)
     redirect_stdio = Signal(bool)
+    sig_path_changed = Signal(object)
 
     def __init__(self, parent, path=None, read_only_path=None,
                  not_active_path=None, sync=True):
@@ -52,11 +53,12 @@ class PathManager(QDialog):
         self.movebottom_button = None
         self.sync_button = None
         self.selection_widgets = []
-        self.top_toolbar_widgets = self.setup_top_toolbar()
-        self.bottom_toolbar_widgets = self.setup_bottom_toolbar()
+        self.top_toolbar_widgets = self._setup_top_toolbar()
+        self.bottom_toolbar_widgets = self._setup_bottom_toolbar()
         self.listwidget = QListWidget(self)
         self.bbox = QDialogButtonBox(QDialogButtonBox.Ok
                                      | QDialogButtonBox.Cancel)
+        self.button_ok = self.bbox.button(QDialogButtonBox.Ok)
 
         # Widget setup
         # Destroying the C++ object right after closing the dialog box,
@@ -86,6 +88,7 @@ class PathManager(QDialog):
 
         # Signals
         self.listwidget.currentRowChanged.connect(lambda x: self.refresh())
+        self.listwidget.itemChanged.connect(lambda x: self.refresh())
         self.bbox.accepted.connect(self.accept)
         self.bbox.rejected.connect(self.reject)
 
@@ -101,7 +104,7 @@ class PathManager(QDialog):
             else:
                 layout.addWidget(widget)
 
-    def setup_top_toolbar(self):
+    def _setup_top_toolbar(self):
         """Create top toolbar and actions."""
         self.movetop_button = create_toolbutton(
             self,
@@ -133,7 +136,7 @@ class PathManager(QDialog):
         self.selection_widgets.extend(toolbar)
         return toolbar
 
-    def setup_bottom_toolbar(self):
+    def _setup_bottom_toolbar(self):
         """Create bottom toolbar and actions."""
         add_button = create_toolbutton(
             self,
@@ -176,16 +179,25 @@ class PathManager(QDialog):
 
         return item
 
+    @property
+    def editable_bottom_row(self):
+        """Maximum bottom row count that is editable."""
+        read_only_count = len(self.read_only_path)
+        if read_only_count == 0:
+            max_row = self.listwidget.count() - 1
+        else:
+            max_row = self.listwidget.count() - read_only_count - 1
+        return max_row
+
     def setup(self):
         """Populate list widget."""
         self.listwidget.clear()
         for path in self.path + self.read_only_path:
             item = self._create_item(path)
             self.listwidget.addItem(item)
-
-        self.original_path_dict = self.get_path_dict(read_only=False)
-        self.refresh()
         self.listwidget.setCurrentRow(0)
+        self.original_path_dict = self.get_path_dict()
+        self.refresh()
 
     @Slot()
     def synchronize(self):
@@ -200,30 +212,36 @@ class PathManager(QDialog):
               "<b>PYTHONPATH</b> environment variable for current user, "
               "allowing you to run your Python modules outside Spyder "
               "without having to configure sys.path. "
-              "<br>Do you want to clear contents of PYTHONPATH before "
+              "<br>"
+              "Do you want to clear contents of PYTHONPATH before "
               "adding Spyder's path list?"),
             QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
 
         if answer == QMessageBox.Cancel:
             return
-
         elif answer == QMessageBox.Yes:
             remove = True
         else:
             remove = False
 
-        from spyder.utils.environ import (get_user_env, set_user_env,
-                                          listdict2envdict)
+        from spyder.utils.environ import (get_user_env, listdict2envdict,
+                                          set_user_env)
         env = get_user_env()
+
+        # Includes read only paths
+        active_path = tuple(k for k, v in self.get_path_dict().items() if v)
+
         if remove:
-            ppath = self.active_pathlist + self.project_path
+            ppath = active_path
         else:
             ppath = env.get('PYTHONPATH', [])
+
             if not isinstance(ppath, list):
                 ppath = [ppath]
-            ppath = [path for path in ppath
-                     if path not in (self.active_pathlist+self.project_path)]
-            ppath.extend(self.active_pathlist+self.project_path)
+
+            ppath = tuple(p for p in ppath if p not in active_path)
+            ppath = ppath + active_path
+
         env['PYTHONPATH'] = ppath
         set_user_env(listdict2envdict(env), parent=self)
 
@@ -249,31 +267,44 @@ class PathManager(QDialog):
         for widget in self.selection_widgets:
             widget.setEnabled(enabled)
 
-        # Disable buttons based on location
+        # Disable buttons based on row
         row = self.listwidget.currentRow()
         disable_widgets = []
-        if row == 0:
-            disable_widgets = [self.movetop_button, self.moveup_button]
-        elif row == (self.listwidget.count() - 1):
-            disable_widgets = [self.movebottom_button, self.movedown_button]
 
+        # Move up/top disabled for top item
+        if row == 0:
+            disable_widgets.extend([self.movetop_button, self.moveup_button])
+
+        # Move down/bottom disabled for bottom item
+        if row == self.editable_bottom_row:
+            disable_widgets.extend([self.movebottom_button,
+                                    self.movedown_button])
         for widget in disable_widgets:
             widget.setEnabled(False)
 
         self.sync_button.setEnabled(self.listwidget.count() > 0)
 
+        # Ok button only enabled if actual changes occur
+        self.button_ok.setEnabled(
+            self.original_path_dict != self.get_path_dict())
+
     def check_path(self, path):
         """Check that the path is not a [site|dist]-packages folder."""
-        reg = r'lib/python.../(?:site|dist)-packages'
-        reg = r'lib/(?:site|dist)-packages'
+        if os.name == 'nt':
+            pat = re.compile(r'.*lib/(?:site|dist)-packages.*')
+        else:
+            pat = re.compile(r'.*lib/python.../(?:site|dist)-packages.*')
+
         path_norm = path.replace('\\', '/')
-        site_check = '/site-packages' not in path_norm
-        dist_check = '/dist-packages' not in path_norm
-        return site_check and dist_check
+        return pat.match(path_norm) is None
 
     @Slot()
     def add_path(self, directory=None):
-        """Add path to list widget."""
+        """
+        Add path to list widget.
+
+        If `directory` is provided, the folder dialog is overriden.
+        """
         if directory is None:
             self.redirect_stdio.emit(False)
             directory = getexistingdirectory(self, _("Select directory"),
@@ -292,7 +323,8 @@ class PathManager(QDialog):
                     self,
                     _("Add path"),
                     _("You are using Python 2 and the path selected has "
-                      "Unicode characters. <br>"
+                      "Unicode characters."
+                      "<br> "
                       "The new path will not be added."),
                     QMessageBox.Ok)
                 return
@@ -301,36 +333,44 @@ class PathManager(QDialog):
         self.last_path = directory
 
         if directory in self.get_path_dict():
-            item = self.listwidget.findItems(directory,
-                                                Qt.MatchExactly)[0]
+            item = self.listwidget.findItems(directory, Qt.MatchExactly)[0]
             item.setCheckState(Qt.Checked)
             answer = QMessageBox.question(
                 self,
                 _("Add path"),
                 _("This directory is already included in the list."
-                    "<br>"
-                    "Do you want to move it to the top of the list?"),
+                  "<br> "
+                  "Do you want to move it to the top of the list?"),
                 QMessageBox.Yes | QMessageBox.No)
 
             if answer == QMessageBox.Yes:
                 item = self.listwidget.takeItem(self.listwidget.row(item))
                 self.listwidget.insertItem(0, item)
+                self.listwidget.setCurrentRow(0)
         else:
             if self.check_path(directory):
                 item = self._create_item(directory)
                 self.listwidget.insertItem(0, item)
+                self.listwidget.setCurrentRow(0)
             else:
                 answer = QMessageBox.warning(
                     self,
                     _("Add path"),
-                    _("This directory cannot be added to the path!"),
+                    _("This directory cannot be added to the path!"
+                      "<br><br>"
+                      "If you want to set a different Python interpreter, "
+                      "select one in the preferences."),
                     QMessageBox.Ok)
 
         self.refresh()
 
     @Slot()
     def remove_path(self, force=False):
-        """Remove path from list widget."""
+        """
+        Remove path from list widget.
+
+        If `force` is True, the message box is overriden.
+        """
         if self.listwidget.currentItem():
             if not force:
                 answer = QMessageBox.warning(
@@ -354,7 +394,7 @@ class PathManager(QDialog):
         else:
             new_index = index + relative
 
-        new_index = max(0, min(self.listwidget.count() - 1, new_index))
+        new_index = max(0, min(self.editable_bottom_row, new_index))
         item = self.listwidget.takeItem(index)
         self.listwidget.insertItem(new_index, item)
         self.listwidget.setCurrentRow(new_index)
@@ -363,7 +403,7 @@ class PathManager(QDialog):
     def accept(self):
         """Override Qt method."""
         path_dict = self.get_path_dict()
-        if path_dict != self.original_path_dict:
+        if self.original_path_dict != path_dict:
             self.sig_path_changed.emit(path_dict)
         super(PathManager, self).accept()
 
@@ -371,13 +411,19 @@ class PathManager(QDialog):
 def test():
     """Run path manager test."""
     from spyder.utils.qthelpers import qapplication
-    _app = qapplication()  # analysis:ignore
-    test = PathManager(
+
+    _ = qapplication()
+    dlg = PathManager(
         None,
         path=tuple(sys.path[:-2]),
-        # read_only_path=tuple(sys.path[-3:]),
+        read_only_path=tuple(sys.path[-2:]),
     )
-    test.exec_()
+
+    def callback(path_dict):
+        sys.stdout.write(str(path_dict))
+
+    dlg.sig_path_changed.connect(callback)
+    dlg.exec_()
 
 
 if __name__ == "__main__":
