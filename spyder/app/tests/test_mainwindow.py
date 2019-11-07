@@ -2245,6 +2245,24 @@ def test_preferences_change_font_regression(main_window, qtbot):
 
 
 @pytest.mark.slow
+def test_preferences_change_interpreter(main_window, qtbot):
+    """Test that on main interpreter change, the signals are emitted."""
+    main_window.show_preferences()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance != None,
+                    timeout=5000)
+    section = 'main_interpreter'
+    pref = main_window.prefs_dialog_instance
+    index = pref.get_index_by_name(section)
+    page = pref.get_page(index)
+    pref.set_current_index(index)
+    page.cus_exec_radio.setChecked(True)
+    page.cus_exec_combo.combobox.setCurrentText(sys.executable)
+    with qtbot.waitSignal(main_window.sig_main_interpreter_changed,
+                          timeout=5000, raising=True):
+        pref.ok_btn.animateClick(500)
+
+
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.use_introspection
 @pytest.mark.skipif(os.name == 'nt' or (sys.platform == 'darwin' and PY2),

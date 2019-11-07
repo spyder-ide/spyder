@@ -3051,10 +3051,10 @@ class MainWindow(QMainWindow):
             self.prefs_dialog_instance = None
 
         if self.prefs_dialog_instance is None:
-            dlg = ConfigDialog(self)
+            self.prefs_dialog_instance = ConfigDialog(self)
+            dlg = self.prefs_dialog_instance
             dlg.setStyleSheet("QTabWidget::tab-bar {"
                               "alignment: left;}")
-            self.prefs_dialog_instance = dlg
 
             # Signals
             dlg.finished.connect(_dialog_finished)
@@ -3102,7 +3102,7 @@ class MainWindow(QMainWindow):
             # Check settings and show dialog
             dlg.show()
             dlg.check_all_settings()
-            dlg.exec_()
+            # dlg.exec_()  # Why?
         else:
             self.prefs_dialog_instance.show()
             self.prefs_dialog_instance.activateWindow()

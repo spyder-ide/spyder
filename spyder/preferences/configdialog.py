@@ -207,6 +207,16 @@ class ConfigDialog(QDialog):
         if widget:
             return widget.widget()
 
+    def get_index_by_name(self, name):
+        """Return page widget by CONF_SECTION name."""
+        for idx in range(self.pages_widget.count()):
+            widget = self.pages_widget.widget(idx)
+            widget = widget.widget()
+            if widget.CONF_SECTION == name:
+                return idx
+        else:
+            return None
+
     @Slot()
     def accept(self):
         """Reimplement Qt method"""
