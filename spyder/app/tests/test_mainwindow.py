@@ -2208,14 +2208,18 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
                     timeout=5000)
 
     # Check the menus are correctly updated
+    count = 0
     for menu_item in main_window.source_menu_actions:
         if menu_item and isinstance(menu_item, QAction):
             print(menu_item.text(), menu_item.isChecked())
 
             if 'code style' in menu_item.text():
                 assert menu_item.isChecked()
+                count += 1
             elif 'docstring style' in menu_item.text():
                 assert menu_item.isChecked()
+                count += 1
+    assert count == 2
 
     # Reset config
     CONF.set('lsp-server', 'pycodestyle', False)
