@@ -20,11 +20,11 @@ from difflib import SequenceMatcher
 from qtpy.QtCore import (QAbstractItemModel, QModelIndex, Qt,
                          QSortFilterProxyModel, Signal)
 from qtpy.QtGui import QBrush, QColor
+from spyder_kernels.utils.nsview import is_editable_type
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import get_font
-from spyder_kernels.utils.nsview import is_editable_type
 from spyder.plugins.variableexplorer.widgets.objectexplorer.utils import (
     cut_off_str)
 from spyder.plugins.variableexplorer.widgets.objectexplorer.tree_item import (

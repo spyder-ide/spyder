@@ -423,8 +423,6 @@ class ToggleColumnDelegate(CollectionsDelegate):
                 self.old_obj = value.copy()
             except AttributeError:
                 self.old_obj = copy.deepcopy(value)
-            except Exception:
-                value = None
             if value is None:
                 return None
         except Exception as msg:
