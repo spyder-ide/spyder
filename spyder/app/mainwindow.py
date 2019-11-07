@@ -3102,8 +3102,6 @@ class MainWindow(QMainWindow):
             dlg.pages_widget.currentChanged.connect(
                 self.__preference_page_changed)
             dlg.size_change.connect(self.set_prefs_size)
-
-            # dlg.exec_()  # Why?
         else:
             self.prefs_dialog_instance.show()
             self.prefs_dialog_instance.activateWindow()
