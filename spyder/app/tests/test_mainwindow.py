@@ -2325,7 +2325,10 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_runcell_edge_cases(main_window, qtbot, tmpdir):
-    """Test the runcell command."""
+    """
+    Test if runcell works with an unnamed cell at the top of the file
+    and with an empty cell.
+    """
     # Write code with a cell to a file
     code = ('if True:\n'
             '    a = 1\n'
