@@ -196,8 +196,10 @@ class SearchThread(QThread):
                     line_dec = line.decode(enc)
                 except UnicodeDecodeError:
                     line_dec = line
+
                 if not self.case_sensitive:
                     line = line.lower()
+
                 if self.text_re:
                     for match in re.finditer(text, line):
                         with QMutexLocker(self.mutex):
@@ -213,7 +215,6 @@ class SearchThread(QThread):
                             self.process_results()
                             if self.power < self.max_power:
                                 self.power += 1
-
                 else:
                     found = line.find(text)
                     while found > -1:
@@ -548,7 +549,7 @@ class FindOptions(QWidget):
                  case_sensitive, external_path_history, search_in_index,
                  options_button=None):
         QWidget.__init__(self, parent)
-
+        self._running = False
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
         if not isinstance(exclude, (list, tuple)):
@@ -592,7 +593,6 @@ class FindOptions(QWidget):
                                              self.stop.emit(),
                                              tip=_("Stop search"),
                                              text_beside_icon=True)
-        self.stop_button.setEnabled(False)
         for widget in [self.search_text, self.edit_regexp, self.case_button,
                        self.ok_button, self.stop_button, self.more_options]:
             hlayout1.addWidget(widget)
@@ -629,8 +629,8 @@ class FindOptions(QWidget):
         hlayout3.addWidget(search_on_label)
         hlayout3.addWidget(self.path_selection_combo)
 
-        self.search_text.valid.connect(lambda valid: self.find.emit())
-        self.exclude_pattern.valid.connect(lambda valid: self.find.emit())
+        self.search_text.valid.connect(lambda valid: self._check_find())
+        self.exclude_pattern.valid.connect(lambda valid: self._check_find())
 
         vlayout = QVBoxLayout()
         vlayout.setContentsMargins(0, 0, 0, 0)
@@ -642,6 +642,30 @@ class FindOptions(QWidget):
         self.setLayout(vlayout)
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        fm = self.ok_button.fontMetrics()
+        width = fm.width('Search') * 1.8
+        self.ok_button.setMinimumWidth(width)
+        self.stop_button.setMinimumWidth(width)
+        self.refresh_buttons(start=False)
+
+    def _check_find(self):
+        """
+        Check if find signal should be emitted.
+
+        This allows the Enter to function as starting and stopping action
+        depending on the state.
+        """
+        if self._running:
+            self.stop.emit()
+        else:
+            self.find.emit()
+
+    def refresh_buttons(self, start=False):
+        """Refresh start/stop of buttons."""
+        self._running = start
+        self.ok_button.setVisible(not start)
+        self.stop_button.setVisible(start)
 
     @Slot(bool)
     def toggle_more_options(self, state):
@@ -910,7 +934,7 @@ class ResultsBrowser(OneColumnTree):
     sig_edit_goto = Signal(str, int, str)
     sig_max_results_reached = Signal()
 
-    def __init__(self, parent, text_color=None, max_results=100000):
+    def __init__(self, parent, text_color=None, max_results=1000):
         OneColumnTree.__init__(self, parent)
         self.search_text = None
         self.results = None
@@ -972,11 +996,12 @@ class ResultsBrowser(OneColumnTree):
     @Slot(object)
     def append_file_result(self, filename):
         """Real-time update of file items."""
-        file_item = FileMatchItem(self, filename, self.sorting,
-                                  self.text_color)
-        file_item.setExpanded(True)
-        self.files[filename] = file_item
-        self.num_files += 1
+        if len(self.data) < self.max_results:
+            file_item = FileMatchItem(self, filename, self.sorting,
+                                    self.text_color)
+            file_item.setExpanded(True)
+            self.files[filename] = file_item
+            self.num_files += 1
 
     @Slot(object, object)
     def append_result(self, items, title):
@@ -987,6 +1012,10 @@ class ResultsBrowser(OneColumnTree):
             self.sig_max_results_reached.emit()
             return
 
+        available = self.max_results - len(self.data)
+        if available < len(items):
+            items = items[:available]
+
         self.setUpdatesEnabled(False)
         self.set_title(title)
         for item in items:
@@ -996,6 +1025,10 @@ class ResultsBrowser(OneColumnTree):
                                  self.text_color)
             self.data[id(item)] = (filename, lineno, colno)
         self.setUpdatesEnabled(True)
+
+    def set_max_results(self, value):
+        """Set maximum amount of results to add."""
+        self.max_results = value
 
 
 class FileProgressBar(QWidget):
@@ -1033,13 +1066,14 @@ class FileProgressBar(QWidget):
         """Override hide event to stop waiting spinner."""
         QWidget.hideEvent(self, event)
         self.spinner.stop()
-
+    
 
 class FindInFilesWidget(QWidget):
     """
     Find in files widget
     """
     sig_finished = Signal()
+    sig_option_changed = Signal(object, object)  # option, value
 
     def __init__(self, parent,
                  search_text="",
@@ -1048,12 +1082,13 @@ class FindInFilesWidget(QWidget):
                  exclude_idx=None,
                  exclude_regexp=False,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
-                 more_options=True,
+                 more_options=False,
                  case_sensitive=False,
                  external_path_history=[],
                  search_in_index=0,
                  options_button=None,
-                 text_color=None):
+                 text_color=None,
+                 max_results=1000):
         QWidget.__init__(self, parent)
 
         self.setWindowTitle(_('Find in files'))
@@ -1077,7 +1112,7 @@ class FindInFilesWidget(QWidget):
         self.find_options.stop.connect(self.stop_and_reset_thread)
 
         self.result_browser = ResultsBrowser(self, text_color=text_color,
-                                             max_results=10000)
+                                             max_results=max_results)
 
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.result_browser)
@@ -1124,13 +1159,15 @@ class FindInFilesWidget(QWidget):
         self.status_bar.reset()
         self.result_browser.clear_title(search_text)
         self.search_thread.initialize(*options)
+
+        self.find_options.refresh_buttons(start=True)
         self.search_thread.start()
-        self.find_options.ok_button.setEnabled(False)
-        self.find_options.stop_button.setEnabled(True)
+
         self.status_bar.show()
 
     def stop_and_reset_thread(self, ignore_results=False):
         """Stop current search thread and clean-up"""
+        self.find_options.refresh_buttons(start=False)
         if self.search_thread is not None:
             if self.search_thread.isRunning():
                 if ignore_results:
@@ -1149,7 +1186,6 @@ class FindInFilesWidget(QWidget):
         """Current search thread has finished"""
         self.result_browser.set_sorting(ON)
         self.find_options.ok_button.setEnabled(True)
-        self.find_options.stop_button.setEnabled(False)
         self.status_bar.hide()
         self.result_browser.expandAll()
         if self.search_thread is None:
@@ -1160,6 +1196,10 @@ class FindInFilesWidget(QWidget):
         if found is not None:
             results, pathlist, nb, error_flag = found
             self.result_browser.show()
+
+    def set_max_results(self, value):
+        """Set maximum amount of results to add to result browser."""
+        self.result_browser.set_max_results(value)
 
 
 def test():
