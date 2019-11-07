@@ -770,13 +770,13 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
 @pytest.mark.slow
 @pytest.mark.first
 @flaky(max_runs=5)
-def test_kite_textEdit_completions(mock_codeeditor, qtbot):
+def test_kite_textEdit_completions(mock_completions_codeeditor, qtbot):
     """Test textEdit completions such as those returned by the Kite provider.
 
     This mocks out the completions response, and does not test the Kite
     provider directly.
     """
-    code_editor, mock = mock_codeeditor
+    code_editor, mock_response = mock_completions_codeeditor
     completion = code_editor.completion_widget
 
     code_editor.toggle_automatic_completions(False)
@@ -788,7 +788,7 @@ def test_kite_textEdit_completions(mock_codeeditor, qtbot):
     qtbot.keyClicks(code_editor, 'my_dict.')
 
     # Complete my_dict. -> my_dict["dict-key"]
-    mock.side_effect = lambda lang, method, params: {'params': [{
+    mock_response.side_effect = lambda lang, method, params: {'params': [{
         'kind': CompletionItemKind.TEXT,
         'label': '["dict-key"]',
         'textEdit': {
@@ -806,7 +806,7 @@ def test_kite_textEdit_completions(mock_codeeditor, qtbot):
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
-    mock.side_effect = None
+    mock_response.side_effect = None
 
     assert '["dict-key"]' in [x['label'] for x in sig.args[0]]
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)

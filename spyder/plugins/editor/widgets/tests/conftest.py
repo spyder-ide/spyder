@@ -139,7 +139,6 @@ def mock_completions_codeeditor(qtbot_module, request):
     editor.show()
 
     mock_response = Mock()
-    mock_response.side_effect = lambda *args: None
 
     def perform_request(lang, method, params):
         resp = mock_response(lang, method, params)
