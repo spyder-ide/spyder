@@ -187,6 +187,7 @@ _qtaargs = {
     'replace':                 [('fa.exchange',), {'color': MAIN_FG_COLOR}],
     'undo':                    [('fa.undo',), {'color': MAIN_FG_COLOR}],
     'redo':                    [('fa.repeat',), {'color': MAIN_FG_COLOR}],
+    'refresh':                 [('mdi.refresh',), {'color': MAIN_FG_COLOR}],
     'restart':                 [('fa.repeat',), {'color': MAIN_FG_COLOR}],
     'editcopy':                [('fa.copy',), {'color': MAIN_FG_COLOR}],
     'editcut':                 [('fa.scissors',), {'color': MAIN_FG_COLOR}],

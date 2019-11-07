@@ -95,7 +95,8 @@ class BaseEditMixin(object):
 
         if at_point is not None:
             # Showing tooltip at point position
-            cx, cy = at_point.x(), at_point.y()
+            margin = (self.document().documentMargin() / 2) + 1
+            cx, cy = at_point.x() - margin, at_point.y() - margin
         elif at_line is not None:
             # Showing tooltip at line
             cx = 5

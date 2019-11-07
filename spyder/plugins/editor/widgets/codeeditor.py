@@ -1069,7 +1069,9 @@ class CodeEditor(TextEditBaseWidget):
         position, automatic = args
         try:
             completions = params['params']
-            completions = [] if completions is None else completions
+            completions = ([] if completions is None else
+                           [completion for completion in completions
+                            if completion['insertText']])
 
             replace_end = self.textCursor().position()
             under_cursor = self.get_current_word_and_position(completion=True)

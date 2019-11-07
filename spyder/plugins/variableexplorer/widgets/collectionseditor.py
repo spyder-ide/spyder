@@ -157,8 +157,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self._data = data
         data_type = get_type_string(data)
 
-        if coll_filter is not None and not self.remote and \
-          isinstance(data, (tuple, list, dict, set)):
+        if (coll_filter is not None and not self.remote and
+                isinstance(data, (tuple, list, dict, set))):
             data = coll_filter(data)
         self.showndata = data
 
@@ -1101,8 +1101,8 @@ class CollectionsEditorTableView(BaseTableView):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, (tuple, set))
-        CollectionsModelClass = ReadOnlyCollectionsModel if self.readonly \
-                                else CollectionsModel
+        CollectionsModelClass = (ReadOnlyCollectionsModel if self.readonly
+                                 else CollectionsModel)
         self.source_model = CollectionsModelClass(self, data, title,
                                                   names=names,
                                                   minmax=minmax)
