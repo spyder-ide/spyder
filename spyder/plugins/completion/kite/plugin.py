@@ -175,8 +175,6 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             return
         if not self.available_languages:
             return
-        if not self._show_onboarding:
-            return
         # Don't send another request until this request fails.
         self._show_onboarding = False
         self.client.sig_perform_onboarding_request.emit()
