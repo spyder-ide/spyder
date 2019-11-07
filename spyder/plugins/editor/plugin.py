@@ -1061,7 +1061,7 @@ class Editor(SpyderPluginWidget):
         CONF.set('run', 'pdb_ignore_lib', checked)
         self.main.ipyconsole.set_pdb_ignore_lib()
 
-    def update_pdb_state(self, state):
+    def update_pdb_state(self, state, last_step):
         """Enable/disable debugging actions and handle pdb state change."""
         self.debug_action.setEnabled(not state)
         self.debug_cell_action.setEnabled(not state)
@@ -1072,7 +1072,7 @@ class Editor(SpyderPluginWidget):
         self.debug_exit_action.setEnabled(state)
         current_editor = self.get_current_editor()
         if current_editor:
-            current_editor.update_debug_state(state)
+            current_editor.update_debug_state(state, last_step)
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
@@ -1089,7 +1089,7 @@ class Editor(SpyderPluginWidget):
         if not editorstack.data:
             self.__load_temp_file()
         self.add_dockwidget()
-        self.update_pdb_state(False)
+        self.update_pdb_state(False, {})
 
         # Add modes to switcher
         self.switcher_manager = EditorSwitcherManager(
@@ -1953,6 +1953,9 @@ class Editor(SpyderPluginWidget):
                 current_sw = self.main.ipyconsole.get_current_shellwidget()
                 current_sw.sig_prompt_ready.connect(
                     current_editor.sig_debug_stop[()].emit)
+                current_pdb_state = self.main.ipyconsole.get_pdb_state()
+                pdb_last_step = self.main.ipyconsole.get_pdb_last_step()
+                self.update_pdb_state(current_pdb_state, pdb_last_step)
 
     @Slot()
     def print_file(self):
@@ -1991,12 +1994,21 @@ class Editor(SpyderPluginWidget):
     @Slot()
     def close_file(self):
         """Close current file"""
+        debugging = self.main.ipyconsole.get_pdb_state()
+        last_pdb_step = self.main.ipyconsole.get_last_pdb_step()
+        if debugging and 'fname' in last_pdb_step:
+            filename = self.get_current_filename()
+            if osp.normcase(last_pdb_step['fname']) == osp.normcase(filename):
+                return
         editorstack = self.get_current_editorstack()
         editorstack.close_file()
+
     @Slot()
     def close_all_files(self):
         """Close all opened scripts"""
-        self.editorstacks[0].close_all_files()
+        debugging = self.main.ipyconsole.get_pdb_state()
+        if not debugging:
+            self.editorstacks[0].close_all_files()
 
     @Slot()
     def save(self, index=None, force=False):
@@ -2266,9 +2278,12 @@ class Editor(SpyderPluginWidget):
         current_stack = self.get_current_editorstack()
         if current_stack is not None:
             current_stack.hide_tooltip()
+
+        # Update debugging state
         if self.main.ipyconsole is not None:
             pdb_state = self.main.ipyconsole.get_pdb_state()
-            self.update_pdb_state(pdb_state)
+            pdb_last_step = self.main.ipyconsole.get_pdb_last_step()
+            self.update_pdb_state(pdb_state, pdb_last_step)
 
     @Slot()
     def go_to_last_edit_location(self):

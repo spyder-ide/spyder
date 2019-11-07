@@ -59,6 +59,7 @@ class DebuggingWidget(RichJupyterWidget):
         self._pdb_last_cmd = ''
         self._pdb_line_num = 0
         self._pdb_history_file = PdbHistory()
+        self._pdb_last_step = {}
 
         self._pdb_history = [
             line[-1] for line in self._pdb_history_file.get_tail(
@@ -80,7 +81,8 @@ class DebuggingWidget(RichJupyterWidget):
             self._pdb_history_file.new_session()
         else:
             self._pdb_history_file.end_session()
-        self.sig_debug_state.emit(self._pdb_in_loop)
+
+        self.sig_pdb_state.emit(self._pdb_in_loop, self._pdb_last_step)
 
     # --- Public API --------------------------------------------------
     def pdb_execute(self, line, hidden=False):
@@ -159,6 +161,8 @@ class DebuggingWidget(RichJupyterWidget):
         if 'step' in pdb_state and 'fname' in pdb_state['step']:
             fname = pdb_state['step']['fname']
             lineno = pdb_state['step']['lineno']
+            self._pdb_last_step = {'fname': fname,
+                                   'lineno': lineno}
             self.sig_pdb_step.emit(fname, lineno)
 
         if 'namespace_view' in pdb_state:
@@ -171,6 +175,10 @@ class DebuggingWidget(RichJupyterWidget):
         """Set current pdb state."""
         if pdb_state is not None and isinstance(pdb_state, dict):
             self.refresh_from_pdb(pdb_state)
+
+    def get_pdb_last_step(self):
+        """Get last pdb step retrieved from a Pdb session."""
+        return self._pdb_last_step
 
     def pdb_continue(self):
         """Continue debugging."""

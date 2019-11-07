@@ -75,7 +75,7 @@ class IPythonConsole(SpyderPluginWidget):
     # Signals
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
-    sig_debug_state = Signal(bool)
+    sig_pdb_state = Signal(bool, dict)
 
     # Error messages
     permission_error_msg = _("The directory {} is not writable and it is "
@@ -271,7 +271,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.variableexplorer.set_shellwidget_from_id(id(sw))
             self.main.plots.set_shellwidget_from_id(id(sw))
             self.main.help.set_shell(sw)
-            self.sig_debug_state.emit(sw.in_debug_loop())
+            self.sig_pdb_state.emit(sw.in_debug_loop(), sw.get_pdb_last_step())
         self.update_tabs_text()
         self.sig_update_plugin_title.emit()
 
@@ -383,6 +383,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.workingdirectory.set_current_console_wd.connect(
             self.set_current_client_working_directory)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
+        self.tabwidget.currentChanged.connect(self.pdb_state_check)
         self._remove_old_stderr_files()
 
     #------ Public API (for clients) ------------------------------------------
@@ -590,11 +591,31 @@ class IPythonConsole(SpyderPluginWidget):
                 pass
 
     def get_pdb_state(self):
-        """Get if the current console is in debugging state or not."""
+        """Get debugging state of the current console."""
         sw = self.get_current_shellwidget()
         if sw is not None:
             return sw.in_debug_loop()
         return False
+
+    def get_pdb_last_step(self):
+        """Get last pdb step of the current console."""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            return sw.get_pdb_last_step()
+        return {}
+
+    def pdb_state_check(self):
+        """
+        Check if actions need to be taken checking the last pdb state.
+        """
+        pdb_state = self.get_pdb_state()
+        if pdb_state:
+            pdb_last_step = self.get_pdb_last_step()
+            sw = self.get_current_shellwidget()
+            if 'fname' in pdb_last_step and sw is not None:
+                fname = pdb_last_step['fname']
+                line = pdb_last_step['lineno']
+                self.pdb_has_stopped(fname, line, sw)
 
     @Slot()
     @Slot(bool)
@@ -861,7 +882,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.sig_pdb_step.connect(
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
-        shellwidget.sig_debug_state.connect(self.sig_debug_state)
+        shellwidget.sig_pdb_state.connect(self.sig_pdb_state)
 
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)

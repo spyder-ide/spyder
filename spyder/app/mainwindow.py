@@ -1423,7 +1423,7 @@ class MainWindow(QMainWindow):
         self.editor.kite_completions_file_status()
 
         # Connect Editor debug action with Console
-        self.ipyconsole.sig_debug_state.connect(self.editor.update_pdb_state)
+        self.ipyconsole.sig_pdb_state.connect(self.editor.update_pdb_state)
 
         # Setup menus
         self.setup_menus()
