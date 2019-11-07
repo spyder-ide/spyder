@@ -116,6 +116,9 @@ class DocumentProvider:
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def convert_completion_request(self, response):
+        # The response schema is tested via mocking in
+        # spyder/plugins/editor/widgets/tests/test_introspection.py
+
         logger.debug(response)
         if response is None:
             return {'params': []}
