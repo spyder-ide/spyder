@@ -2001,6 +2001,7 @@ class EditorStack(QWidget):
             self.set_stack_index(new_index)
             return ok
         else:
+            finfo.newly_created = False
             return False
 
     def save_copy_as(self, index=None):
