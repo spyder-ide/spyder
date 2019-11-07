@@ -2329,6 +2329,7 @@ def test_debug_unsaved_file(main_window, qtbot):
     assert "1---> 2 print(1)" in control.toPlainText()
 
 
+@pytest.mark.slow
 @flaky(max_runs=1)
 @pytest.mark.parametrize(
     "debug", [True, False])

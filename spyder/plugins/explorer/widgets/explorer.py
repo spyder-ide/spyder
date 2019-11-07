@@ -1702,6 +1702,7 @@ class FileExplorerTest(QWidget):
             self.directory = directory
         else:
             self.directory = osp.dirname(osp.abspath(__file__))
+        self.explorer.treewidget.set_current_folder(self.directory)
         vlayout.addWidget(self.explorer)
 
         hlayout1 = QHBoxLayout()
