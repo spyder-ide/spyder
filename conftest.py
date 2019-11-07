@@ -45,7 +45,7 @@ def pytest_collection_modifyitems(config, items):
 
     for item in items:
         if slow_option:
-            if not "slow" in item.keywords:
+            if "slow" not in item.keywords:
                 item.add_marker(skip_fast)
         else:
             if "slow" in item.keywords:
