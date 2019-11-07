@@ -771,7 +771,11 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
 @pytest.mark.first
 @flaky(max_runs=5)
 def test_kite_textEdit_completions(mock_codeeditor, qtbot):
-    """Test on-the-fly completions."""
+    """Test textEdit completions such as those returned by the Kite provider.
+
+    This mocks out the completions response, and does not test the Kite
+    provider directly.
+    """
     code_editor, mock = mock_codeeditor
     completion = code_editor.completion_widget
 
@@ -783,7 +787,7 @@ def test_kite_textEdit_completions(mock_codeeditor, qtbot):
 
     qtbot.keyClicks(code_editor, 'my_dict.')
 
-    # Complete f -> from
+    # Complete my_dict. -> my_dict["dict-key"]
     mock.side_effect = lambda lang, method, params: {'params': [{
         'kind': CompletionItemKind.TEXT,
         'label': '["dict-key"]',

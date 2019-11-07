@@ -127,18 +127,22 @@ def lsp_plugin(qtbot_module, request):
 
 
 @pytest.fixture
-def mock_codeeditor(qtbot_module, request):
-    """CodeEditor instance with ability to mock the completions response"""
+def mock_completions_codeeditor(qtbot_module, request):
+    """CodeEditor instance with ability to mock the completions response.
+
+    Returns a tuple of (editor, mock_response). Tests using this fixture should
+    set `mock_response.side_effect = lambda lang, method, params: {}`.
+    """
     # Create a CodeEditor instance
     editor = codeeditor_factory()
     qtbot_module.addWidget(editor)
     editor.show()
 
-    mock = Mock()
-    mock.side_effect = lambda *args: None
+    mock_response = Mock()
+    mock_response.side_effect = lambda *args: None
 
     def perform_request(lang, method, params):
-        resp = mock(lang, method, params)
+        resp = mock_response(lang, method, params)
         print("DEBUG {}".format(resp))
         if resp is not None:
             editor.handle_response(method, resp)
@@ -154,7 +158,7 @@ def mock_codeeditor(qtbot_module, request):
         editor.completion_widget.hide()
     request.addfinalizer(teardown)
 
-    return editor, mock
+    return editor, mock_response
 
 
 @pytest.fixture
