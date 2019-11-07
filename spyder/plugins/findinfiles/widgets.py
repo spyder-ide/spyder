@@ -925,8 +925,7 @@ class ItemDelegate(QStyledItemDelegate):
         doc = QTextDocument()
         doc.setHtml(options.text)
         doc.setTextWidth(options.rect.width())
-        size = QSize(int(doc.idealWidth()),
-                        int(doc.size().height()))
+        size = QSize(int(doc.idealWidth()), int(doc.size().height()))
         return size
 
 
@@ -998,7 +997,7 @@ class ResultsBrowser(OneColumnTree):
         """Real-time update of file items."""
         if len(self.data) < self.max_results:
             file_item = FileMatchItem(self, filename, self.sorting,
-                                    self.text_color)
+                                      self.text_color)
             file_item.setExpanded(True)
             self.files[filename] = file_item
             self.num_files += 1
@@ -1066,7 +1065,7 @@ class FileProgressBar(QWidget):
         """Override hide event to stop waiting spinner."""
         QWidget.hideEvent(self, event)
         self.spinner.stop()
-    
+
 
 class FindInFilesWidget(QWidget):
     """
