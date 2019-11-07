@@ -1991,24 +1991,30 @@ class Editor(SpyderPluginWidget):
         preview.exec_()
         self.redirect_stdio.emit(True)
 
+    def can_close_file(self, filename=None):
+        """Check if a file can be close taking into account debugging state."""
+        debugging = self.main.ipyconsole.get_pdb_state()
+        last_pdb_step = self.main.ipyconsole.get_pdb_last_step()
+        can_close = True
+        if debugging and 'fname' in last_pdb_step and filename:
+            if osp.normcase(last_pdb_step['fname']) == osp.normcase(filename):
+                can_close = False
+        elif debugging:
+            can_close = False
+        return can_close
+
     @Slot()
     def close_file(self):
         """Close current file"""
-        debugging = self.main.ipyconsole.get_pdb_state()
-        last_pdb_step = self.main.ipyconsole.get_last_pdb_step()
-        if debugging and 'fname' in last_pdb_step:
-            filename = self.get_current_filename()
-            if osp.normcase(last_pdb_step['fname']) == osp.normcase(filename):
-                return
-        editorstack = self.get_current_editorstack()
-        editorstack.close_file()
+        filename = self.get_current_filename()
+        if self.can_close_file(filename=filename):
+            editorstack = self.get_current_editorstack()
+            editorstack.close_file()
 
     @Slot()
     def close_all_files(self):
         """Close all opened scripts"""
-        debugging = self.main.ipyconsole.get_pdb_state()
-        if not debugging:
-            self.editorstacks[0].close_all_files()
+        self.editorstacks[0].close_all_files()
 
     @Slot()
     def save(self, index=None, force=False):

@@ -1586,7 +1586,8 @@ class EditorStack(QWidget):
             else:
                 new_index = current_index
 
-        is_ok = force or self.save_if_changed(cancelable=True, index=index)
+        is_ok = (force or self.save_if_changed(cancelable=True, index=index)
+                 and self.parent().plugin.can_close_file(self.data[index].filename))
         if is_ok:
             finfo = self.data[index]
             self.threadmanager.close_threads(finfo)
