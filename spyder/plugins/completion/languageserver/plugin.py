@@ -203,7 +203,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """Register signals emmited by a client instance."""
         if self.main:
             self.main.sig_pythonpath_changed.connect(
-                lambda x, y: self.update_configuration())
+                self.update_configuration)
             self.main.sig_main_interpreter_changed.connect(
                 self.update_configuration)
             if self.main.editor:
