@@ -2193,10 +2193,16 @@ def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     # Open completion prefences and update options
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
                                                  'lsp-server')
-    for idx, check in enumerate([page.code_style_check,
-                                 page.docstring_style_check]):
-        page.tabs.setCurrentIndex(idx + 2)
+    # Get the correct tab pages inside the Completion preferences page
+    tnames = [page.tabs.tabText(i).lower() for i in range(page.tabs.count())]
+    tab_widgets = {
+        tnames.index('code style'): page.code_style_check,
+        tnames.index('docstring style'): page.docstring_style_check,
+    }
+    for idx, check in tab_widgets.items():
+        page.tabs.setCurrentIndex(idx)
         check.animateClick()
+        qtbot.wait(500)
     dlg.ok_btn.animateClick()
     qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
                     timeout=5000)
@@ -2243,6 +2249,7 @@ def test_preferences_change_interpreter(qtbot, main_window):
     config = lsp.generate_python_config()
     jedi = config['configurations']['pyls']['plugins']['jedi']
     assert jedi['environment'] is None
+    assert jedi['extra_paths'] == []
 
     # Change main interpreter on preferences
     dlg, index, page = preferences_dialog_helper(qtbot, main_window,
@@ -2257,17 +2264,29 @@ def test_preferences_change_interpreter(qtbot, main_window):
     config = lsp.generate_python_config()
     jedi = config['configurations']['pyls']['plugins']['jedi']
     assert jedi['environment'] == sys.executable
+    assert jedi['extra_paths'] == []
 
+
+@pytest.mark.slow
+def test_preferences_last_page_is_loaded(qtbot, main_window):
     # Test that the last page is updated on re open
+    dlg, index, page = preferences_dialog_helper(qtbot, main_window,
+                                                 'main_interpreter')
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is not None,
+                    timeout=5000)
+    dlg.ok_btn.animateClick()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+                    timeout=5000)
+
     main_window.show_preferences()
     qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is not None,
                     timeout=5000)
     dlg = main_window.prefs_dialog_instance
     assert dlg.get_current_index() == index
     dlg.ok_btn.animateClick()
-
     qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
                     timeout=5000)
+
 
 @pytest.mark.slow
 @flaky(max_runs=3)
