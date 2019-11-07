@@ -664,8 +664,10 @@ class FindOptions(QWidget):
     def refresh_buttons(self, start=False):
         """Refresh start/stop of buttons."""
         self._running = start
+        self.setUpdatesEnabled(False)
         self.ok_button.setVisible(not start)
         self.stop_button.setVisible(start)
+        self.setUpdatesEnabled(True)
 
     @Slot(bool)
     def toggle_more_options(self, state):
@@ -996,10 +998,9 @@ class ResultsBrowser(OneColumnTree):
     def append_file_result(self, filename):
         """Real-time update of file items."""
         if len(self.data) < self.max_results:
-            file_item = FileMatchItem(self, filename, self.sorting,
-                                      self.text_color)
-            file_item.setExpanded(True)
-            self.files[filename] = file_item
+            self.files[filename] = FileMatchItem(
+                self, filename, self.sorting, self.text_color)
+            self.files[filename].setExpanded(True)
             self.num_files += 1
 
     @Slot(object, object)
@@ -1019,10 +1020,11 @@ class ResultsBrowser(OneColumnTree):
         self.set_title(title)
         for item in items:
             filename, lineno, colno, line = item
-            file_item = self.files[filename]
-            item = LineMatchItem(file_item, lineno, colno, line, self.font,
-                                 self.text_color)
-            self.data[id(item)] = (filename, lineno, colno)
+            file_item = self.files.get(filename, None)
+            if file_item:
+                item = LineMatchItem(file_item, lineno, colno, line,
+                                     self.font, self.text_color)
+                self.data[id(item)] = (filename, lineno, colno)
         self.setUpdatesEnabled(True)
 
     def set_max_results(self, value):
@@ -1072,8 +1074,10 @@ class FindInFilesWidget(QWidget):
     Find in files widget
     """
     sig_finished = Signal()
+    sig_max_results_reached = Signal()
 
-    def __init__(self, parent,
+    def __init__(self,
+                 parent,
                  search_text="",
                  search_text_regexp=False,
                  exclude=EXCLUDE_PATTERNS[0],
@@ -1089,29 +1093,32 @@ class FindInFilesWidget(QWidget):
                  max_results=1000):
         QWidget.__init__(self, parent)
 
-        self.setWindowTitle(_('Find in files'))
-
         self.search_thread = None
         self.text_color = text_color
-        self.status_bar = FileProgressBar(self)
-        self.status_bar.hide()
 
-        self.find_options = FindOptions(self, search_text,
-                                        search_text_regexp,
-                                        exclude, exclude_idx,
-                                        exclude_regexp,
-                                        supported_encodings,
-                                        more_options,
-                                        case_sensitive,
-                                        external_path_history,
-                                        search_in_index,
-                                        options_button=options_button)
-        self.find_options.find.connect(self.find)
-        self.find_options.stop.connect(self.stop_and_reset_thread)
+        # Widgets
+        self.status_bar = FileProgressBar(self)
+        self.find_options = FindOptions(
+            self,
+            search_text,
+            search_text_regexp,
+            exclude,
+            exclude_idx,
+            exclude_regexp,
+            supported_encodings,
+            more_options,
+            case_sensitive,
+            external_path_history,
+            search_in_index,
+            options_button=options_button)
 
         self.result_browser = ResultsBrowser(self, text_color=text_color,
                                              max_results=max_results)
+        # Widget setup
+        self.setWindowTitle(_('Find in files'))
+        self.status_bar.hide()
 
+        # Layout
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.result_browser)
 
@@ -1123,8 +1130,13 @@ class FindInFilesWidget(QWidget):
         layout.addWidget(self.status_bar)
         self.setLayout(layout)
 
+        # Signals
+        self.find_options.find.connect(self.find)
+        self.find_options.stop.connect(self.stop_and_reset_thread)
         self.result_browser.sig_max_results_reached.connect(
             self.stop_and_reset_thread)
+        self.result_browser.sig_max_results_reached.connect(
+            self.sig_max_results_reached)
 
     def set_search_text(self, text):
         """Set search pattern"""

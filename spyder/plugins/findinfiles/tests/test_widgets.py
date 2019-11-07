@@ -565,5 +565,23 @@ def test_max_history(searchin_combobox, mocker):
     assert searchin_combobox.get_external_paths() == expected_results
 
 
+def test_max_results(findinfiles, qtbot):
+    """Test max results correspond to expected results."""
+    value = 2
+    findinfiles.set_max_results(value)
+    findinfiles.set_search_text("spam")
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+
+    findinfiles.find()
+    blocker = qtbot.waitSignal(findinfiles.sig_max_results_reached)
+    blocker.wait()
+
+    print(len(findinfiles.result_browser.data), value)
+    assert len(findinfiles.result_browser.data) == value
+
+    # Restore defaults
+    findinfiles.set_max_results(1000)
+
+
 if __name__ == "__main__":
     pytest.main(['-x', osp.basename(__file__), '-v', '-rw'])
