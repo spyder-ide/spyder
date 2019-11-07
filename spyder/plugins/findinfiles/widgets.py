@@ -1073,7 +1073,6 @@ class FindInFilesWidget(QWidget):
     Find in files widget
     """
     sig_finished = Signal()
-    sig_option_changed = Signal(object, object)  # option, value
 
     def __init__(self, parent,
                  search_text="",
