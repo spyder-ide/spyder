@@ -2259,7 +2259,15 @@ def test_preferences_change_interpreter(main_window, qtbot):
     page.cus_exec_combo.combobox.setCurrentText(sys.executable)
     with qtbot.waitSignal(main_window.sig_main_interpreter_changed,
                           timeout=5000, raising=True):
-        pref.ok_btn.animateClick(500)
+        pref.ok_btn.animateClick(300)
+
+    # Test that the last page is updated on reload
+    main_window.show_preferences()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is not None,
+                    timeout=5000)
+    pref = main_window.prefs_dialog_instance
+    assert pref.get_current_index() == index
+    pref.ok_btn.animateClick(300)
 
 
 @pytest.mark.slow

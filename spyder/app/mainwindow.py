@@ -3056,12 +3056,6 @@ class MainWindow(QMainWindow):
             dlg.setStyleSheet("QTabWidget::tab-bar {"
                               "alignment: left;}")
 
-            # Signals
-            dlg.finished.connect(_dialog_finished)
-            dlg.pages_widget.currentChanged.connect(
-                self.__preference_page_changed)
-            dlg.size_change.connect(self.set_prefs_size)
-
             # Setup
             if self.prefs_dialog_size is not None:
                 dlg.resize(self.prefs_dialog_size)
@@ -3102,6 +3096,13 @@ class MainWindow(QMainWindow):
             # Check settings and show dialog
             dlg.show()
             dlg.check_all_settings()
+
+            # Signals
+            dlg.finished.connect(_dialog_finished)
+            dlg.pages_widget.currentChanged.connect(
+                self.__preference_page_changed)
+            dlg.size_change.connect(self.set_prefs_size)
+
             # dlg.exec_()  # Why?
         else:
             self.prefs_dialog_instance.show()
@@ -3110,7 +3111,7 @@ class MainWindow(QMainWindow):
             self.prefs_dialog_instance.setFocus()
 
     def __preference_page_changed(self, index):
-        """Preference page index has changed"""
+        """Preference page index has changed."""
         self.prefs_index = index
 
     def set_prefs_size(self, size):
