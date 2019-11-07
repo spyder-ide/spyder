@@ -74,3 +74,35 @@ def test_simple_folding(code_editor):
     for expected_lvl, (line, lvl, visible) in zip(expected_folding_levels,
                                                   output_fold):
         assert expected_lvl == lvl
+
+
+def test_unfold_when_searching(editor_folding_bot, qtbot):
+    editor_stack, editor, finder = editor_folding_bot
+    folding_panel = editor.panels.get('FoldingPanel')
+    line_search = editor.document().findBlockByLineNumber(3)
+
+    # fold region
+    block = editor.document().findBlockByLineNumber(1)
+    folding_panel.toggle_fold_trigger(block)
+    assert not line_search.isVisible()
+
+    # unfolded when searching
+    finder.show()
+    qtbot.keyClicks(finder.search_text, 'print')
+    qtbot.keyPress(finder.search_text, Qt.Key_Return)
+    assert line_search.isVisible()
+
+
+def test_unfold_goto(editor_folding_bot):
+    editor_stack, editor, finder = editor_folding_bot
+    folding_panel = editor.panels.get('FoldingPanel')
+    line_goto = editor.document().findBlockByLineNumber(5)
+
+    # fold region
+    block = editor.document().findBlockByLineNumber(1)
+    folding_panel.toggle_fold_trigger(block)
+    assert not line_goto.isVisible()
+
+    # unfolded when goto
+    editor.go_to_line(6)
+    assert line_goto.isVisible()
