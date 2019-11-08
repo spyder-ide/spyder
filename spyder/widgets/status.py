@@ -44,6 +44,14 @@ class StatusBarWidget(QWidget):
         self.label_icon = QLabel()
         self.label_value = QLabel()
 
+        # Layout setup
+        layout = QHBoxLayout(self)
+        layout.setSpacing(0)  # Reduce space between icon and label
+        layout.addWidget(self.label_icon)
+        layout.addWidget(self.label_value)
+        layout.addSpacing(20)
+        layout.setContentsMargins(0, 0, 0, 0)
+
         # Widget setup
         self.set_icon(icon)
 
@@ -51,20 +59,6 @@ class StatusBarWidget(QWidget):
         self.text_font = QFont(QFont().defaultFamily(), weight=QFont.Normal)
         self.label_value.setAlignment(Qt.AlignRight)
         self.label_value.setFont(self.text_font)
-
-        # Layout
-        layout = QHBoxLayout()
-        layout.setSpacing(0)  # Reduce space between icon and label
-        layout.addWidget(self.label_icon)
-        self.label_icon.setVisible(icon is not None)
-
-
-        layout.addWidget(self.label_value)
-        layout.addSpacing(20)
-
-        # Layout setup
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
 
         # Setup
         statusbar.addPermanentWidget(self)
