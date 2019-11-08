@@ -516,6 +516,10 @@ DEFAULTS = [
               'show_installation_dialog': True,
               'show_onboarding': True,
              }),
+            ('find_in_files',
+             {
+              'max_results': 1000,
+              }),
             ]
 
 

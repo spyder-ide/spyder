@@ -244,6 +244,17 @@ class SearchThread(QThread):
         self.completed = True
 
     def process_results(self):
+        """
+        Process all matches found inside a file.
+
+        Creates the necessary files and emits signal for the creation of file
+        item.
+
+        Creates the necessary data for lines found and emits signal for the
+        creation of line items in batch.
+
+        Creates the title based on the last entry of the lines batch.
+        """
         items = []
         num_matches = self.total_matches
         for result in self.partial_results:
@@ -276,6 +287,9 @@ class SearchThread(QThread):
         self.sig_line_match.emit(items, title)
 
     def truncate_result(self, line, start, end):
+        """
+        Shorten text on line to display the match within `max_line_length`.
+        """
         ellipsis = u'...'
         max_line_length = 80
         max_num_char_fragment = 40
