@@ -31,6 +31,7 @@ from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
+from spyder.plugins.outlineexplorer.api import is_cell_header
 
 
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
@@ -436,23 +437,23 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         return leading_lines_str + ls.join(lines)
 
-    def __exec_cell(self, cursor=None):
-        """Get text and line number from cursor or current position."""
+    def get_cell_as_executable_code(self, cursor=None):
+        """Return cell contents as executable code."""
         if cursor is None:
             cursor = self.textCursor()
         ls = self.get_line_separator()
         cursor, whole_file_selected = self.select_current_cell(cursor)
         line_from, line_to = self.get_selection_bounds(cursor)
-        block = self.get_selection_first_block(cursor)
+        # Get the block for the first cell line
+        start = cursor.selectionStart()
+        block = self.document().findBlock(start)
+        if not is_cell_header(block) and start > 0:
+            block = self.document().findBlock(start - 1)
+        # Get text
         text = self.get_selection_as_executable_code(cursor)
-
         if text is not None:
             text = ls * line_from + text
         return text, block
-
-    def get_cell_as_executable_code(self, cursor=None):
-        """Return cell contents as executable code."""
-        return self.__exec_cell(cursor)
 
     def is_cell_separator(self, cursor=None, block=None):
         """Return True if cursor (or text block) is on a block separator"""

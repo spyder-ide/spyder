@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Find in Files Plugin"""
+"""Find in Files Plugin."""
 
 # pylint: disable=C0103
 # pylint: disable=R0903
@@ -17,7 +17,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import Signal, Qt
 from qtpy.QtGui import QKeySequence
-from qtpy.QtWidgets import QApplication, QVBoxLayout
+from qtpy.QtWidgets import QApplication, QInputDialog, QVBoxLayout
 
 # Local imports
 from spyder.api.plugins import SpyderPluginWidget
@@ -42,7 +42,7 @@ class FindInFiles(SpyderPluginWidget):
         supported_encodings = self.get_option('supported_encodings')
         self.search_text_samples = self.get_option('search_text_samples')
         search_text = self.get_option('search_text')
-        search_text = [txt for txt in search_text \
+        search_text = [txt for txt in search_text
                        if txt not in self.search_text_samples]
         search_text += self.search_text_samples
         search_text_regexp = self.get_option('search_text_regexp')
@@ -53,24 +53,30 @@ class FindInFiles(SpyderPluginWidget):
         case_sensitive = self.get_option('case_sensitive')
         path_history = self.get_option('path_history', [])
         search_in_index = self.get_option('search_in_index', default=0)
+        max_results = self.get_option('max_results')
 
         self.findinfiles = FindInFilesWidget(
-                                   self,
-                                   search_text, search_text_regexp,
-                                   exclude, exclude_idx, exclude_regexp,
-                                   supported_encodings,
-                                   more_options,
-                                   case_sensitive, path_history,
-                                   search_in_index,
-                                   options_button=self.options_button,
-                                   text_color=ima.MAIN_FG_COLOR)
+            self,
+            search_text,
+            search_text_regexp,
+            exclude,
+            exclude_idx,
+            exclude_regexp,
+            supported_encodings,
+            more_options,
+            case_sensitive,
+            path_history,
+            search_in_index,
+            options_button=self.options_button,
+            text_color=ima.MAIN_FG_COLOR,
+            max_results=max_results)
 
         layout = QVBoxLayout()
         layout.addWidget(self.findinfiles)
         self.setLayout(layout)
 
         self.toggle_visibility.connect(self.toggle)
-        
+
     def toggle(self, state):
         """Toggle widget visibility"""
         if self.dockwidget:
@@ -107,6 +113,24 @@ class FindInFiles(SpyderPluginWidget):
         if text:
             self.findinfiles.find()
 
+    def show_max_results_input(self):
+        """Show input dialog to set maximum amount of results."""
+        value, valid = QInputDialog.getInt(
+            self,
+            self.get_plugin_title(),
+            _('Set maximum number of results: '),
+            value=self.get_option('max_results'),
+            min=1,
+            step=1,
+        )
+        if valid:
+            self.set_max_results(value)
+
+    def set_max_results(self, value):
+        """Set maximum amount of results to add to result browser."""
+        self.set_option('max_results', value)
+        self.findinfiles.set_max_results(value)
+
     #------ SpyderPluginMixin API ---------------------------------------------
     def switch_to_plugin(self):
         """
@@ -129,11 +153,16 @@ class FindInFiles(SpyderPluginWidget):
         this plugin's dockwidget is raised on top-level
         """
         return self.findinfiles.find_options.search_text
-    
+
     def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        return self.findinfiles.result_browser.get_menu_actions()
-    
+        """Return a list of actions related to plugin."""
+        set_max_results_action = create_action(
+            self,
+            _("Set maximum number of results"),
+            triggered=self.show_max_results_input)
+        browser_actions = self.findinfiles.result_browser.get_menu_actions()
+        return [set_max_results_action, None] + browser_actions
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.add_dockwidget()
@@ -147,12 +176,13 @@ class FindInFiles(SpyderPluginWidget):
         self.main.editor.open_file_update.connect(self.set_current_opened_file)
 
         findinfiles_action = create_action(
-                                   self, _("&Find in files"),
-                                   icon=ima.icon('findf'),
-                                   triggered=self.switch_to_plugin,
-                                   shortcut=QKeySequence(self.shortcut),
-                                   context=Qt.WidgetShortcut,
-                                   tip=_("Search text in multiple files"))
+            self,
+            _("&Find in files"),
+            icon=ima.icon('findf'),
+            triggered=self.switch_to_plugin,
+            shortcut=QKeySequence(self.shortcut),
+            context=Qt.WidgetShortcut,
+            tip=_("Search text in multiple files"))
 
         self.main.search_menu_actions += [MENU_SEPARATOR, findinfiles_action]
         self.main.search_toolbar_actions += [MENU_SEPARATOR,
