@@ -288,8 +288,9 @@ DEFAULTS = [
               'search_text_regexp': False,
               'search_text': [''],
               'search_text_samples': [TASKS_PATTERN],
-              'more_options': True,
+              'more_options': False,
               'case_sensitive': False,
+              'max_results': 1000,
               }),
             ('breakpoints',
              {
@@ -516,10 +517,6 @@ DEFAULTS = [
               'show_installation_dialog': True,
               'show_onboarding': True,
              }),
-            ('find_in_files',
-             {
-              'max_results': 1000,
-              }),
             ]
 
 
