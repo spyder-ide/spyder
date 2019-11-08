@@ -16,9 +16,11 @@ from qtpy.QtWidgets import QDialog, QMessageBox
 
 # Local imports
 from spyder.config.base import _
-from spyder.utils import icon_manager as ima
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
         CollectionsEditor)
+from spyder.py3compat import PY2, iteritems, to_text_string, to_binary_string
+from spyder.utils import icon_manager as ima
+from spyder.utils.encoding import to_unicode_from_fs
 
 
 def envdict2listdict(envdict):
@@ -36,6 +38,34 @@ def listdict2envdict(listdict):
         if isinstance(listdict[key], list):
             listdict[key] = os.path.pathsep.join(listdict[key])
     return listdict
+
+
+def clean_env(env_vars):
+    """Remove non ascii entries on PYTHONPATH string."""
+    new_env_vars = env_vars.copy()
+    for key, var in iteritems(env_vars):
+        if PY2:
+            # Try to convert vars first to utf-8.
+            try:
+                unicode_var = to_text_string(var)
+            except UnicodeDecodeError:
+                # If that fails, try to use the file system
+                # encoding because one of our vars is our
+                # PYTHONPATH, and that contains file system
+                # directories
+                try:
+                    unicode_var = to_unicode_from_fs(var)
+                except Exception:
+                    # If that also fails, make the var empty
+                    # to be able to start Spyder.
+                    # See https://stackoverflow.com/q/44506900/438386
+                    # for details.
+                    unicode_var = ''
+            new_env_vars[key] = to_binary_string(unicode_var, encoding='utf-8')
+        else:
+            new_env_vars[key] = to_text_string(var)
+
+    return new_env_vars
 
 
 class RemoteEnvDialog(CollectionsEditor):

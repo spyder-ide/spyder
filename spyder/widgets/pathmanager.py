@@ -47,6 +47,8 @@ class PathManager(QDialog):
         self.original_path_dict = None
 
         # Widgets
+        self.add_button = None
+        self.remove_button = None
         self.movetop_button = None
         self.moveup_button = None
         self.movedown_button = None
@@ -138,13 +140,13 @@ class PathManager(QDialog):
 
     def _setup_bottom_toolbar(self):
         """Create bottom toolbar and actions."""
-        add_button = create_toolbutton(
+        self.add_button = create_toolbutton(
             self,
             text=_('Add path'),
             icon=ima.icon('edit_add'),
             triggered=lambda x: self.add_path(),
             text_beside_icon=True)
-        remove_button = create_toolbutton(
+        self.remove_button = create_toolbutton(
             self,
             text=_('Remove path'),
             icon=ima.icon('edit_remove'),
@@ -159,8 +161,8 @@ class PathManager(QDialog):
                   "environment variable"),
             text_beside_icon=True)
 
-        self.selection_widgets.append(remove_button)
-        return [add_button, remove_button, None, self.sync_button]
+        self.selection_widgets.append(self.remove_button)
+        return [self.add_button, self.remove_button, None, self.sync_button]
 
     def _create_item(self, path):
         """Helper to create a new list item."""
@@ -315,7 +317,7 @@ class PathManager(QDialog):
             is_unicode = False
             try:
                 directory.decode('ascii')
-            except UnicodeEncodeError:
+            except (UnicodeEncodeError, UnicodeDecodeError):
                 is_unicode = True
 
             if is_unicode:
@@ -399,6 +401,28 @@ class PathManager(QDialog):
         self.listwidget.insertItem(new_index, item)
         self.listwidget.setCurrentRow(new_index)
         self.refresh()
+
+    def current_row(self):
+        """Returns the current row of the list."""
+        return self.listwidget.currentRow()
+
+    def set_current_row(self, row):
+        """Set the current row of the list."""
+        self.listwidget.setCurrentRow(row)
+
+    def row_check_state(self, row):
+        """Retunr the checked state for item in row."""
+        item = self.listwidget.item(row)
+        return item.checkState()
+
+    def set_row_check_state(self, row, value):
+        """Set the current checked state for item in row."""
+        item = self.listwidget.item(row)
+        item.setCheckState(value)
+
+    def count(self):
+        """Return the number of items."""
+        return self.listwidget.count()
 
     def accept(self):
         """Override Qt method."""

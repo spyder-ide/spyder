@@ -2941,7 +2941,6 @@ class MainWindow(QMainWindow):
             encoding.writelines(path, self.SPYDER_PATH)
             encoding.writelines(not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
         except EnvironmentError as e:
-            print(e)
             logger.debug(str(e))
 
     def get_spyder_pythonpath_dict(self):
@@ -3000,14 +2999,15 @@ class MainWindow(QMainWindow):
     def show_path_manager(self):
         """Show Spyder path manager dialog."""
         from spyder.widgets.pathmanager import PathManager
-        read_only_path =  self.projects.get_pythonpath()
+        read_only_path = self.projects.get_pythonpath()
 
         # TODO: update sync on windows
         dialog = PathManager(self, self.path, read_only_path,
                              self.not_active_path, sync=False)
+        self._path_manager = dialog
         dialog.sig_path_changed.connect(self.update_python_path)
         dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
-        dialog.exec_()
+        dialog.show()
 
     def pythonpath_changed(self):
         """Projects PYTHONPATH contribution has changed."""

@@ -2488,5 +2488,46 @@ def test_runcell_pdb(main_window, qtbot):
     assert "abba 27" in shell._control.toPlainText()
 
 
+# --- Path manager
+# ----------------------------------------------------------------------------
+@pytest.mark.slow
+def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
+    """Check that on path manager updates, consoles correctly update."""
+    main_window.show_path_manager()
+    dlg = main_window._path_manager
+
+    test_folder = 'foo-spam-bar-123'
+    folder = str(tmpdir.mkdir(test_folder))
+    print(folder)
+    dlg.add_path(folder)
+    qtbot.waitUntil(lambda: dlg.button_ok.isEnabled(), timeout=5000)
+
+    with qtbot.waitSignal(dlg.sig_path_changed):
+        dlg.button_ok.animateClick()
+
+    cmd = 'import sys;print(sys.path)'
+
+    # Check spyder is updated
+    main_window.console.execute_lines(cmd)
+    syspath = main_window.console.get_sys_path()
+    print(syspath)
+    assert folder in syspath
+
+    # Check clients are updated
+    count = 0
+    for client in main_window.ipyconsole.get_clients():
+        shell = client.shellwidget
+        if shell is not None:
+            syspath = shell.execute(cmd)
+            control = shell._control
+            qtbot.waitUntil(lambda: 'In [2]:' in control.toPlainText(),
+                            timeout=EVAL_TIMEOUT)
+            content = control.toPlainText()
+            print(content)
+            assert test_folder in content
+            count += 1
+    assert count >= 1
+
+
 if __name__ == "__main__":
     pytest.main()
