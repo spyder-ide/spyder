@@ -869,7 +869,8 @@ class FileMatchItem(QTreeWidgetItem):
         self.filename = osp.basename(filename)
 
         title_format = to_text_string('<!-- FileMatchItem -->'
-                                      '<b style="color:{2}">{0}</b><br>'
+                                      '<b style="color:{2}">{0}</b>'
+                                      '&nbsp;&nbsp;&nbsp;'
                                       '<small style="color:{2}"><em>{1}</em>'
                                       '</small>')
         title = (title_format.format(osp.basename(filename),
@@ -908,16 +909,7 @@ class ItemDelegate(QStyledItemDelegate):
         doc = QTextDocument()
         text = options.text
         doc.setHtml(text)
-
-        if 'FileMatchItem' in text:
-            doc.setDocumentMargin(0)
-        else:
-            if self._margin is None:
-                # To increase performance setUniformRowHeights is now True
-                # so we add a margin to file items to center them vertically
-                self._margin = int(doc.size().height() / 3)
-
-            doc.setDocumentMargin(self._margin)
+        doc.setDocumentMargin(0)
 
         # This needs to be an empty string to avoid the overlapping the
         # normal text of the QTreeWidgetItem
