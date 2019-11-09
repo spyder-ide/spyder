@@ -4,19 +4,18 @@
 # Licensed under the terms of the MIT License
 #
 
-"""
-Tests for the autoindent features
-"""
+"""Tests for the folding features."""
+
+# Standard library imports
+import os
 
 # Third party imports
+from flaky import flaky
 import pytest
+from qtpy.QtCore import Qt
 
 # Local imports
 from spyder.widgets.findreplace import FindReplace
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
-from spyder.plugins.editor.api.folding import print_tree
-
-from qtpy.QtCore import Qt
 
 # ---Fixtures-----------------------------------------------------------------
 text = """
@@ -56,19 +55,38 @@ responses = {
         'No payment -- see charging schemes')
 }"""
 
-# --- Fixtures-----------------------------------------------------------------
-@pytest.fixture
-def search_codeeditor(lsp_codeeditor, qtbot):
-    code_editor, _ = lsp_codeeditor
-    find_replace = FindReplace(None, enable_replace=True)
-    find_replace.set_editor(code_editor)
-    qtbot.addWidget(find_replace)
-    return code_editor, find_replace
 
-
-# --- Tests--------------------------------------------------------------------
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.second
+@flaky(max_runs=5)
+def test_folding(lsp_codeeditor, qtbot):
+    code_editor, _ = lsp_codeeditor
+    code_editor.toggle_code_folding(True)
+    code_editor.insert_text(text)
+
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.request_folding()
+
+    folding_panel = code_editor.panels.get('FoldingPanel')
+    folding_regions = folding_panel.folding_regions
+    folding_levels = folding_panel.folding_levels
+
+    expected_regions = {2: 6, 3: 4, 8: 36, 22: 23, 24: 26, 27: 28,
+                        30: 31, 32: 33, 34: 35}
+    expected_levels = {2: 0, 3: 1, 8: 0, 22: 1, 24: 1, 27: 1, 30: 1,
+                       32: 1, 34: 1}
+    assert folding_regions == expected_regions
+    assert expected_levels == folding_levels
+    code_editor.toggle_code_folding(False)
+
+
+@pytest.mark.slow
+@pytest.mark.second
+@flaky(max_runs=5)
+@pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
 def test_unfold_when_searching(search_codeeditor, qtbot):
     editor, finder = search_codeeditor
     editor.toggle_code_folding(True)
@@ -98,7 +116,9 @@ def test_unfold_when_searching(search_codeeditor, qtbot):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.second
+@flaky(max_runs=5)
+@pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
 def test_unfold_goto(search_codeeditor, qtbot):
     editor, finder = search_codeeditor
     editor.toggle_code_folding(True)
@@ -122,28 +142,3 @@ def test_unfold_goto(search_codeeditor, qtbot):
     editor.go_to_line(6)
     assert line_goto.isVisible()
     editor.toggle_code_folding(False)
-
-@pytest.mark.slow
-@pytest.mark.first
-def test_folding(lsp_codeeditor, qtbot):
-    code_editor, _ = lsp_codeeditor
-    code_editor.toggle_code_folding(True)
-    code_editor.insert_text(text)
-
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.document_did_change()
-
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.request_folding()
-
-    folding_panel = code_editor.panels.get('FoldingPanel')
-    folding_regions = folding_panel.folding_regions
-    folding_levels = folding_panel.folding_levels
-
-    expected_regions = {2: 6, 3: 4, 8: 36, 22: 23, 24: 26, 27: 28,
-                        30: 31, 32: 33, 34: 35}
-    expected_levels = {2: 0, 3: 1, 8: 0, 22: 1, 24: 1, 27: 1, 30: 1,
-                       32: 1, 34: 1}
-    assert folding_regions == expected_regions
-    assert expected_levels == folding_levels
-    code_editor.toggle_code_folding(False)
