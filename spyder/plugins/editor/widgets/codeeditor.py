@@ -3612,8 +3612,10 @@ class CodeEditor(TextEditBaseWidget):
             self.insert_text(text)
             if text == ".":
                 if not self.in_comment_or_string():
-                    last_obj = getobj(self.get_text('sol', 'cursor'))
-                    if last_obj and not last_obj.isdigit():
+                    text = self.get_text('sol', 'cursor')
+                    last_obj = getobj(text)
+                    prev_char = text[-2] if len(text) > 1 else ''
+                    if prev_char in {')', ']', '}'} or (last_obj and not last_obj.isdigit()):
                         self.do_completion(automatic=True)
             else:
                 self.do_completion(automatic=True)
