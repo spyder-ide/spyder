@@ -12,8 +12,11 @@ Tests for the autoindent features
 import pytest
 
 # Local imports
+from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.api.folding import print_tree
+
+from qtpy.QtCore import Qt
 
 # ---Fixtures-----------------------------------------------------------------
 text = """
@@ -54,35 +57,35 @@ responses = {
 }"""
 
 # --- Fixtures-----------------------------------------------------------------
-@pytest.fixture()
-def code_editor():
-    """setup editor and return fold levels."""
-    editor = CodeEditor(parent=None)
-    editor.setup_editor(language='Python')
-    editor.set_text(text)
-    return editor
+@pytest.fixture
+def search_codeeditor(lsp_codeeditor, qtbot):
+    code_editor, _ = lsp_codeeditor
+    find_replace = FindReplace(None, enable_replace=True)
+    find_replace.set_editor(code_editor)
+    qtbot.addWidget(find_replace)
+    return code_editor, find_replace
 
 
 # --- Tests--------------------------------------------------------------------
-def test_simple_folding(code_editor):
-    """Test folding by the levels."""
-    expected_folding_levels = [0, 0, 1, 2, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-                               1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1,
-                               2, 1, 2, 0]
+@pytest.mark.slow
+@pytest.mark.first
+def test_unfold_when_searching(search_codeeditor, qtbot):
+    editor, finder = search_codeeditor
+    editor.toggle_code_folding(True)
 
-    output_fold = print_tree(code_editor, return_list=True)
-    for expected_lvl, (line, lvl, visible) in zip(expected_folding_levels,
-                                                  output_fold):
-        assert expected_lvl == lvl
-
-
-def test_unfold_when_searching(editor_folding_bot, qtbot):
-    editor_stack, editor, finder = editor_folding_bot
     folding_panel = editor.panels.get('FoldingPanel')
+    editor.insert_text(text)
+
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
+
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.request_folding()
+
     line_search = editor.document().findBlockByLineNumber(3)
 
     # fold region
-    block = editor.document().findBlockByLineNumber(1)
+    block = editor.document().findBlockByLineNumber(2)
     folding_panel.toggle_fold_trigger(block)
     assert not line_search.isVisible()
 
@@ -91,18 +94,56 @@ def test_unfold_when_searching(editor_folding_bot, qtbot):
     qtbot.keyClicks(finder.search_text, 'print')
     qtbot.keyPress(finder.search_text, Qt.Key_Return)
     assert line_search.isVisible()
+    editor.toggle_code_folding(False)
 
 
-def test_unfold_goto(editor_folding_bot):
-    editor_stack, editor, finder = editor_folding_bot
+@pytest.mark.slow
+@pytest.mark.first
+def test_unfold_goto(search_codeeditor, qtbot):
+    editor, finder = search_codeeditor
+    editor.toggle_code_folding(True)
+    editor.insert_text(text)
+
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
+
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.request_folding()
+
     folding_panel = editor.panels.get('FoldingPanel')
     line_goto = editor.document().findBlockByLineNumber(5)
 
     # fold region
-    block = editor.document().findBlockByLineNumber(1)
+    block = editor.document().findBlockByLineNumber(2)
     folding_panel.toggle_fold_trigger(block)
     assert not line_goto.isVisible()
 
     # unfolded when goto
     editor.go_to_line(6)
     assert line_goto.isVisible()
+    editor.toggle_code_folding(False)
+
+@pytest.mark.slow
+@pytest.mark.first
+def test_folding(lsp_codeeditor, qtbot):
+    code_editor, _ = lsp_codeeditor
+    code_editor.toggle_code_folding(True)
+    code_editor.insert_text(text)
+
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.request_folding()
+
+    folding_panel = code_editor.panels.get('FoldingPanel')
+    folding_regions = folding_panel.folding_regions
+    folding_levels = folding_panel.folding_levels
+
+    expected_regions = {2: 6, 3: 4, 8: 36, 22: 23, 24: 26, 27: 28,
+                        30: 31, 32: 33, 34: 35}
+    expected_levels = {2: 0, 3: 1, 8: 0, 22: 1, 24: 1, 27: 1, 30: 1,
+                       32: 1, 34: 1}
+    assert folding_regions == expected_regions
+    assert expected_levels == folding_levels
+    code_editor.toggle_code_folding(False)

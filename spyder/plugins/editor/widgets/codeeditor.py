@@ -830,7 +830,6 @@ class CodeEditor(TextEditBaseWidget):
         self.set_debug_panel(debug_panel, language)
 
         # Show/hide folding panel depending on parameter
-        self.set_folding_panel(folding)
         self.toggle_code_folding(folding)
 
         # Scrollbar flag area
@@ -1354,6 +1353,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def toggle_code_folding(self, state):
         self.code_folding = state
+        self.set_folding_panel(state)
 
     def toggle_completions_hint(self, state):
         """Enable/disable completion hint."""
