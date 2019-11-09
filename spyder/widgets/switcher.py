@@ -15,7 +15,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import (QEvent, QObject, QSize, QSortFilterProxyModel, Qt,
                          Signal, Slot, QModelIndex)
-from qtpy.QtGui import QStandardItem, QStandardItemModel
+from qtpy.QtGui import QStandardItem, QStandardItemModel, QTextDocument
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QLineEdit, QListWidgetItem, QVBoxLayout, QListView)
 
@@ -80,7 +80,6 @@ class SwitcherBaseItem(QStandardItem):
 
     _PADDING = 5
     _WIDTH = 400
-    _HEIGHT = None
     _STYLES = None
     _TEMPLATE = None
 
@@ -90,14 +89,14 @@ class SwitcherBaseItem(QStandardItem):
 
         # Style
         self._width = self._WIDTH
-        self._height = self._HEIGHT
         self._padding = self._PADDING
         self._styles = styles if styles else {}
         self._action_item = False
         self._score = -1
+        self._height = self._get_height()
 
         # Setup
-        self.setSizeHint(QSize(0, self._HEIGHT))
+        self.setSizeHint(QSize(0, self._height))
 
     def _render_text(self):
         """Render the html template for this item."""
@@ -109,6 +108,13 @@ class SwitcherBaseItem(QStandardItem):
 
     def _set_styles(self):
         """Set the styles for this item."""
+        raise NotImplementedError
+
+    def _get_height(self):
+        """
+        Return the expected height of this item's text, including
+        the text margins.
+        """
         raise NotImplementedError
 
     # --- API
@@ -152,7 +158,6 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
     """
 
     _SEPARATOR = '_'
-    _HEIGHT = 15
     _STYLE_ATTRIBUTES = ['color', 'font_size']
     _STYLES = {
         'color': QApplication.palette().text().color().name(),
@@ -195,10 +200,20 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
         """Render the html template for this item."""
         padding = self._padding
         width = self._width
-        height = self._HEIGHT
+        height = self.get_height()
         text = self._TEMPLATE.format(width=width, height=height,
                                      padding=padding, **self._styles)
         return text
+
+    def _get_height(self):
+        """
+        Return the expected height of this item's text, including
+        the text margins.
+        """
+        doc = QTextDocument()
+        doc.setHtml('<hr>')
+        doc.setDocumentMargin(self._PADDING)
+        return doc.size().height()
 
 
 class SwitcherItem(SwitcherBaseItem):
@@ -212,7 +227,6 @@ class SwitcherItem(SwitcherBaseItem):
     """
 
     _FONT_SIZE = 10
-    _HEIGHT = 20
     _STYLE_ATTRIBUTES = ['title_color', 'description_color', 'section_color',
                          'shortcut_color', 'title_font_size',
                          'description_font_size', 'section_font_size',
@@ -299,7 +313,7 @@ class SwitcherItem(SwitcherBaseItem):
 
         padding = self._PADDING
         width = self._width - self._icon_width
-        height = self._HEIGHT
+        height = self.get_height()
         self.setSizeHint(QSize(width, height))
 
         shortcut = '&lt;' + self._shortcut + '&gt;' if self._shortcut else ''
@@ -333,6 +347,17 @@ class SwitcherItem(SwitcherBaseItem):
 
         self._styles['description_font_size'] = description_font_size
         self._styles['section_font_size'] = description_font_size
+
+    def _get_height(self):
+        """
+        Return the expected height of this item's text, including
+        the text margins.
+        """
+        doc = QTextDocument()
+        doc.setHtml('<span style="font-size:{}pt">Title</span>'
+                    .format(self._styles['title_font_size']))
+        doc.setDocumentMargin(self._PADDING)
+        return doc.size().height()
 
     # --- API
     def set_icon(self, icon):
