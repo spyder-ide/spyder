@@ -525,7 +525,6 @@ class Switcher(QDialog):
         self.edit.installEventFilter(self.filter)
         self.edit.setPlaceholderText(help_text if help_text else '')
         self.list.setMinimumWidth(self._MIN_WIDTH)
-        self.list.setSpacing(-2)
         self.list.setItemDelegate(HTMLDelegate(self))
         self.list.setFocusPolicy(Qt.NoFocus)
         self.list.setSelectionBehavior(self.list.SelectItems)
