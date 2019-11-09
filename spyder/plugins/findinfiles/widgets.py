@@ -869,7 +869,8 @@ class FileMatchItem(QTreeWidgetItem):
         self.filename = osp.basename(filename)
 
         title_format = to_text_string('<!-- FileMatchItem -->'
-                                      '<b style="color:{2}">{0}</b><br>'
+                                      '<b style="color:{2}">{0}</b>'
+                                      '&nbsp;&nbsp;&nbsp;'
                                       '<small style="color:{2}"><em>{1}</em>'
                                       '</small>')
         title = (title_format.format(osp.basename(filename),
