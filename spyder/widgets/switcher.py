@@ -354,8 +354,11 @@ class SwitcherItem(SwitcherBaseItem):
         the text margins.
         """
         doc = QTextDocument()
-        doc.setHtml('<span style="font-size:{}pt">Title</span>'
-                    .format(self._styles['title_font_size']))
+        try:
+            doc.setHtml('<span style="font-size:{}pt">Title</span>'
+                        .format(self._styles['title_font_size']))
+        except KeyError:
+            doc.setHtml('<span>Title</span>')
         doc.setDocumentMargin(self._PADDING)
         return doc.size().height()
 
