@@ -78,11 +78,14 @@ class KeyPressFilter(QObject):
 
 class SwitcherDelegate(HTMLDelegate):
     """
-    This delegate allow the list view of the switcher to look like it has
+    This delegate allows the list view of the switcher to look like it has
     the focus, even when its focus policy is set to Qt.NoFocus.
     """
 
     def paint(self, painter, option, index):
+        """
+        Override Qt method to force this delegate to look active at all times.
+        """
         option.state |= QStyle.State_Active
         super().paint(painter, option, index)
 
