@@ -2499,7 +2499,7 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
     test_folder = 'foo-spam-bar-123'
     folder = str(tmpdir.mkdir(test_folder))
     dlg.add_path(folder)
-    qtbot.waitUntil(lambda: dlg.button_ok.isEnabled(), timeout=5000)
+    qtbot.waitUntil(lambda: dlg.button_ok.isEnabled(), timeout=EVAL_TIMEOUT)
 
     with qtbot.waitSignal(dlg.sig_path_changed):
         dlg.button_ok.animateClick()
@@ -2518,8 +2518,9 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
         if shell is not None:
             syspath = shell.execute(cmd)
             control = shell._control
-            with qtbot.waitSignal(shell.executed, timeout=EVAL_TIMEOUT):
-                shell.execute(cmd)
+            # `shell.executed` signal was not working so we use waitUntil
+            qtbot.waitUntil(lambda: 'In [2]:' in control.toPlainText(),
+                            timeout=EVAL_TIMEOUT)
             assert test_folder in control.toPlainText()
             count += 1
     assert count >= 1
