@@ -908,11 +908,17 @@ class EditorStack(QWidget):
     def open_symbolfinder_dlg(self):
         self.open_switcher_dlg(initial_text='@')
 
+    def get_plugin(self):
+        """Get the plugin of the parent widget."""
+        # Needed for the editor stack to use its own switcher instance.
+        # See spyder-ide/spyder#10684.
+        return self.parent().plugin
+
     def get_plugin_title(self):
         """Get the plugin title of the parent widget."""
         # Needed for the editor stack to use its own switcher instance.
         # See spyder-ide/spyder#9469.
-        return self.parent().plugin.get_plugin_title()
+        return self.get_plugin().get_plugin_title()
 
     def go_to_line(self, line=None):
         """Go to line dialog"""
