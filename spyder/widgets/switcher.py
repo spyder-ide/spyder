@@ -87,7 +87,7 @@ class SwitcherDelegate(HTMLDelegate):
         Override Qt method to force this delegate to look active at all times.
         """
         option.state |= QStyle.State_Active
-        super().paint(painter, option, index)
+        super(SwitcherDelegate, self).paint(painter, option, index)
 
 
 class SwitcherBaseItem(QStandardItem):
