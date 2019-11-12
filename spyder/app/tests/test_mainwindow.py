@@ -1815,6 +1815,28 @@ def example_def_2():
     switcher.close()
 
 
+@flaky(max_runs=3)
+@pytest.mark.slow
+def test_edidorstack_open_switcher_dlg(main_window, tmpdir):
+    """
+    Test that the file switcher is working as expected when called from the
+    editorstack.
+
+    Regression test for spyder-ide/spyder#10684
+    """
+    # Add some files to the editor.
+    for i in range(3):
+        file = tmpdir.join('test_file{}.py'.format(i))
+        file.write("some_content_for_test_file_{}".format(i))
+        main_window.editor.load(str(file))
+
+    # Test that the file switcher opens as expected from the editorstack.
+    editorstack = main_window.editor.get_current_editorstack()
+    assert editorstack.switcher_dlg is None
+    editorstack.open_switcher_dlg()
+    assert editorstack.switcher_dlg
+    assert editorstack.switcher_dlg.count() == 3
+
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_run_static_code_analysis(main_window, qtbot):
