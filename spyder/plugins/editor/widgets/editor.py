@@ -891,6 +891,7 @@ class EditorStack(QWidget):
             from spyder.widgets.switcher import Switcher
             self.switcher_dlg = Switcher(self)
             self.switcher_manager = EditorSwitcherManager(
+                self.get_plugin(),
                 self.switcher_dlg,
                 lambda: self.get_current_editor(),
                 lambda: self,
