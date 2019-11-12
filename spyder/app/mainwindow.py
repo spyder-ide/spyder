@@ -321,7 +321,8 @@ class MainWindow(QMainWindow):
     restore_scrollbar_position = Signal()
     sig_setup_finished = Signal()
     all_actions_defined = Signal()
-    sig_pythonpath_changed = Signal(object, object)  # odict, odict
+    # type: (OrderedDict, OrderedDict)
+    sig_pythonpath_changed = Signal(object, object)
     sig_open_external_file = Signal(str)
     sig_resized = Signal("QResizeEvent")     # Related to interactive tour
     sig_moved = Signal("QMoveEvent")         # Related to interactive tour
@@ -384,7 +385,7 @@ class MainWindow(QMainWindow):
         # Shortcut management data
         self.shortcut_data = []
 
-        # Handle Spyder and kernels path
+        # Handle Spyder path
         self.path = ()
         self.not_active_path = ()
         self.project_path = ()
@@ -2922,7 +2923,7 @@ class MainWindow(QMainWindow):
     # --- Path Manager
     # ------------------------------------------------------------------------
     def load_python_path(self):
-        """Load path stored in spyder configuration folder."""
+        """Load path stored in Spyder configuration folder."""
         if osp.isfile(self.SPYDER_PATH):
             path, _x = encoding.readlines(self.SPYDER_PATH)
             self.path = tuple(name for name in path if osp.isdir(name))
@@ -2934,21 +2935,30 @@ class MainWindow(QMainWindow):
                                          if osp.isdir(name))
 
     def save_python_path(self, new_path_dict):
-        """Save path in spyder configuration folder."""
+        """
+        Save path in Spyder configuration folder.
+
+        `new_path_dict` is an OrderedDict that has the new paths as keys and
+        the state as values. The state is `True` for active and `False` for
+        inactive.
+        """
         path = [p for p in new_path_dict]
         not_active_path = [p for p in new_path_dict if not new_path_dict[p]]
         try:
             encoding.writelines(path, self.SPYDER_PATH)
             encoding.writelines(not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
         except EnvironmentError as e:
-            logger.debug(str(e))
+            logger.error(str(e))
 
     def get_spyder_pythonpath_dict(self):
         """
         Return Spyder PYTHONPATH.
 
-        The returned ordered dictionary contains all paths and the value
-        represents the active state.
+        The returned ordered dictionary has the paths as keys and the state
+        as values. The state is `True` for active and `False` for inactive.
+
+        Example:
+            OrderedDict([('/some/path, True), ('/some/other/path, False)])
         """
         self.load_python_path()
 
@@ -2976,7 +2986,7 @@ class MainWindow(QMainWindow):
 
         # Save path
         if path_dict != new_path_dict:
-            # Does not include project_path
+            # It doesn't include the project_path
             self.save_python_path(new_path_dict)
 
         # Load new path
@@ -2992,12 +3002,12 @@ class MainWindow(QMainWindow):
                 sys.path.insert(1, path)
 
         # Any plugin that needs to do some work based on this sigal should
-        # connext to it on plugin registration
+        # connect to it on plugin registration
         self.sig_pythonpath_changed.emit(path_dict, new_path_dict_p)
 
     @Slot()
     def show_path_manager(self):
-        """Show Spyder path manager dialog."""
+        """Show path manager dialog."""
         from spyder.widgets.pathmanager import PathManager
         read_only_path = self.projects.get_pythonpath()
 
@@ -3010,7 +3020,7 @@ class MainWindow(QMainWindow):
         dialog.show()
 
     def pythonpath_changed(self):
-        """Projects PYTHONPATH contribution has changed."""
+        """Project's PYTHONPATH contribution has changed."""
         self.project_path = tuple(self.projects.get_pythonpath())
         path_dict = self.get_spyder_pythonpath_dict()
         self.update_python_path(path_dict)

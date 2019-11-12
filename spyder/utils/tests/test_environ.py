@@ -45,8 +45,7 @@ def test_environ(environ_dialog, qtbot):
     assert environ_dialog
 
 
-@pytest.mark.skipif(PY3,
-                    reason=("This tests only applies to Python 2"))
+@pytest.mark.skipif(PY3, reason=("This tests only applies to Python 2."))
 def test_clean_env():
     env = {
         'foo': '/foo/bar/測試',
@@ -54,7 +53,6 @@ def test_clean_env():
         'PYTHONPATH': u'\u6e2c\u8a66',
     }
     new_env = clean_env(env)
-    print(new_env)
     assert new_env['foo'] == '/foo/bar/\xe6\xb8\xac\xe8\xa9\xa6'
     assert new_env['PYTHONPATH'] == '\xe6\xb8\xac\xe8\xa9\xa6'
 

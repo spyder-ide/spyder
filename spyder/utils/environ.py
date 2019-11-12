@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Environment variable utilities
+Environment variable utilities.
 """
 
 # Standard library imports
@@ -41,7 +41,12 @@ def listdict2envdict(listdict):
 
 
 def clean_env(env_vars):
-    """Remove non ascii entries on PYTHONPATH string."""
+    """
+    Remove non-ascii entries from a dictionary of environments variables.
+
+    The values will be converted to strings or bytes (on Python 2). If an
+    exception is raised, an empty string will be used.
+    """
     new_env_vars = env_vars.copy()
     for key, var in iteritems(env_vars):
         if PY2:

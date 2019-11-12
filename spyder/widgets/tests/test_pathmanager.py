@@ -138,7 +138,8 @@ def test_invalid_directories(qtbot, pathmanager):
 @pytest.mark.parametrize('pathmanager',
                          [(('/spam', '/bar'), ('/foo', ), ())],
                          indirect=True)
-def test_remove_no(qtbot, pathmanager):
+def test_remove_item_and_reply_no(qtbot, pathmanager):
+    """Check that the item is not removed after answering 'No'."""
     pathmanager.show()
     count = pathmanager.count()
 
@@ -163,7 +164,8 @@ def test_remove_no(qtbot, pathmanager):
 @pytest.mark.parametrize('pathmanager',
                          [(('/spam', '/bar'), ('/foo', ), ())],
                          indirect=True)
-def test_remove_yes(qtbot, pathmanager):
+def test_remove_item_and_reply_yes(qtbot, pathmanager):
+    """Check that the item is indeed removed after answering 'Yes'."""
     pathmanager.show()
     count = pathmanager.count()
 
@@ -188,7 +190,12 @@ def test_remove_yes(qtbot, pathmanager):
 @pytest.mark.parametrize('pathmanager',
                          [((), (), ())],
                          indirect=True)
-def test_add_repeated(qtbot, pathmanager, tmpdir):
+def test_add_repeated_item(qtbot, pathmanager, tmpdir):
+    """
+    Check behavior when an uncheked item that is already on the list is added.
+    The checkbox should then be checked and if replying 'yes' to the question,
+    then the item should be moved to the top.
+    """
     pathmanager.show()
     dir1 = str(tmpdir.mkdir("foo"))
     dir2 = str(tmpdir.mkdir("bar"))
@@ -220,9 +227,9 @@ def test_add_repeated(qtbot, pathmanager, tmpdir):
     assert all(pathmanager.get_path_dict().values())
 
 
-@pytest.mark.skipif(PY3 or sys.platform.startswith('linux'),
+@pytest.mark.skipif(PY3 or (os.environ.get('CI') is not None and sys.platform.startswith('linux')),
                     reason=('This tests only applies to Python 2.'
-                            'It is failing on linux CI. Works locally!'))
+                            'It is failing on Linux CI. Works locally!'))
 @pytest.mark.parametrize('pathmanager',
                          [(('/spam', '/bar'), ('/foo', ), ('/bar', ))],
                          indirect=True)
@@ -256,7 +263,7 @@ def test_add_invalid_path(qtbot, pathmanager):
                          [(('/spam', '/bar'), ('/foo', ), ())],
                          indirect=True)
 def test_buttons_state(qtbot, pathmanager, tmpdir):
-    """Check [site/dist]-packages are invalid paths."""
+    """Check buttons are enabled/disabled based on items and position."""
     pathmanager.show()
     assert not pathmanager.button_ok.isEnabled()
     assert not pathmanager.movetop_button.isEnabled()

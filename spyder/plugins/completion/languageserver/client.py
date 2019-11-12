@@ -36,8 +36,8 @@ from spyder.plugins.completion.languageserver.transport import MessageKind
 from spyder.plugins.completion.languageserver.providers import (
     LSPMethodProviderMixIn)
 from spyder.py3compat import PY2
-from spyder.utils.misc import getcwd_or_home, select_port
 from spyder.utils.environ import clean_env
+from spyder.utils.misc import getcwd_or_home, select_port
 
 # Conditional imports
 if PY2:
@@ -226,11 +226,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         python_path = os.pathsep.join(sys.path)[1:]
         new_env['PYTHONPATH'] = python_path
 
-        sys.stdout.write('BEFORE:\n')
-        for k, v in new_env.items():
-            sys.stdout.write(str((k, v, [k, v])))
-            sys.stdout.write(',\n')
-
         # This allows running LSP tests directly without having to install
         # Spyder
         if running_under_pytest():
@@ -240,11 +235,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # which raise errors if not removed
         if PY2:
             new_env = clean_env(new_env)
-
-        sys.stdout.write('\nAFTER:\n')
-        for k, v in new_env.items():
-            sys.stdout.write(repr((k, v, [k, v])))
-            sys.stdout.write(',\n')
 
         self.transport_args = list(map(str, self.transport_args))
         logger.info('Starting transport: {0}'

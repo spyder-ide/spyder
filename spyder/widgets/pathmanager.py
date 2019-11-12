@@ -211,7 +211,7 @@ class PathManager(QDialog):
             self,
             _("Synchronize"),
             _("This will synchronize Spyder's path list with "
-              "<b>PYTHONPATH</b> environment variable for current user, "
+              "<b>PYTHONPATH</b> environment variable for the current user, "
               "allowing you to run your Python modules outside Spyder "
               "without having to configure sys.path. "
               "<br>"
@@ -253,6 +253,7 @@ class PathManager(QDialog):
         state as the value.
 
         If `read_only` is True, the read_only entries are also included.
+        `read_only` entry refers to the project path entry.
         """
         odict = OrderedDict()
         for row in range(self.listwidget.count()):
@@ -324,10 +325,10 @@ class PathManager(QDialog):
                 QMessageBox.warning(
                     self,
                     _("Add path"),
-                    _("You are using Python 2 and the path selected has "
+                    _("You are using Python 2 and the selected path has "
                       "Unicode characters."
                       "<br> "
-                      "The new path will not be added."),
+                      "Therefore, this path will not be added."),
                     QMessageBox.Ok)
                 return
 
@@ -342,7 +343,7 @@ class PathManager(QDialog):
                 _("Add path"),
                 _("This directory is already included in the list."
                   "<br> "
-                  "Do you want to move it to the top of the list?"),
+                  "Do you want to move it to the top of it?"),
                 QMessageBox.Yes | QMessageBox.No)
 
             if answer == QMessageBox.Yes:
@@ -361,7 +362,8 @@ class PathManager(QDialog):
                     _("This directory cannot be added to the path!"
                       "<br><br>"
                       "If you want to set a different Python interpreter, "
-                      "select one in the preferences."),
+                      "please go to <tt>Preferences > Main interpreter</tt>"
+                      "."),
                     QMessageBox.Ok)
 
         self.refresh()
@@ -378,7 +380,7 @@ class PathManager(QDialog):
                 answer = QMessageBox.warning(
                     self,
                     _("Remove path"),
-                    _("Do you really want to remove selected path?"),
+                    _("Do you really want to remove the selected path?"),
                     QMessageBox.Yes | QMessageBox.No)
 
             if force or answer == QMessageBox.Yes:
