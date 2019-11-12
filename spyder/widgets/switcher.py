@@ -17,7 +17,8 @@ from qtpy.QtCore import (QEvent, QObject, QSize, QSortFilterProxyModel, Qt,
                          Signal, Slot, QModelIndex)
 from qtpy.QtGui import QStandardItem, QStandardItemModel, QTextDocument
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
-                            QLineEdit, QListWidgetItem, QVBoxLayout, QListView)
+                            QLineEdit, QListView, QListWidgetItem, QStyle,
+                            QVBoxLayout)
 
 # Local imports
 from spyder.config.base import _
@@ -73,6 +74,17 @@ class KeyPressFilter(QObject):
                 self.sig_enter_key_pressed.emit()
                 return True
         return super(KeyPressFilter, self).eventFilter(src, e)
+
+
+class SwitcherDelegate(HTMLDelegate):
+    """
+    This delegate allow the list view of the switcher to look like it has
+    the focus, even when its focus policy is set to Qt.NoFocus.
+    """
+
+    def paint(self, painter, option, index):
+        option.state |= QStyle.State_Active
+        super().paint(painter, option, index)
 
 
 class SwitcherBaseItem(QStandardItem):
@@ -528,7 +540,7 @@ class Switcher(QDialog):
         self.edit.installEventFilter(self.filter)
         self.edit.setPlaceholderText(help_text if help_text else '')
         self.list.setMinimumWidth(self._MIN_WIDTH)
-        self.list.setItemDelegate(HTMLDelegate(self))
+        self.list.setItemDelegate(SwitcherDelegate(self))
         self.list.setFocusPolicy(Qt.NoFocus)
         self.list.setSelectionBehavior(self.list.SelectItems)
         self.list.setSelectionMode(self.list.SingleSelection)
