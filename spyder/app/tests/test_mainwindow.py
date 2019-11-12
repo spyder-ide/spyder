@@ -1835,6 +1835,7 @@ def test_edidorstack_open_switcher_dlg(main_window, tmpdir):
     assert editorstack.switcher_dlg is None
     editorstack.open_switcher_dlg()
     assert editorstack.switcher_dlg
+    assert editorstack.switcher_dlg.isVisible()
     assert editorstack.switcher_dlg.count() == 3
 
 
@@ -1863,6 +1864,7 @@ def test_edidorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
     assert editorstack.switcher_dlg is None
     editorstack.open_symbolfinder_dlg()
     assert editorstack.switcher_dlg
+    assert editorstack.switcher_dlg.isVisible()
     assert editorstack.switcher_dlg.count() == 2
 
 
