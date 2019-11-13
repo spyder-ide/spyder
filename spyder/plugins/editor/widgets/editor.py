@@ -1874,7 +1874,7 @@ class EditorStack(QWidget):
             # rehighlighting text means searching for all syntax coloring
             # patterns instead of only searching for class/def patterns which
             # would be sufficient for outline explorer data.
-            finfo.editor.rehighlight()
+            # finfo.editor.rehighlight()
 
             self._refresh_outlineexplorer(index)
 
