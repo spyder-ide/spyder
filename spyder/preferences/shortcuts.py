@@ -141,7 +141,7 @@ class ShortcutEditor(QDialog):
         self.context = context
         self.name = name
         self.shortcuts = shortcuts
-        self.current_sequence = sequence
+        self.current_sequence = sequence or _('<None>')
         self._qsequences = list()
 
         self.setup()
