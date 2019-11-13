@@ -1343,10 +1343,6 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbba')
 
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('abba = 1')
-    qtbot.waitUntil(lambda: check_value('abba', 1))
-
     # Generate a traceback and enter debugging mode
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
@@ -1355,10 +1351,10 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Test complete in debug mode
-    # check abba is completed twice (as the cursor moves)
+    # check abs is completed twice (as the cursor moves)
     qtbot.keyClicks(control, '!ab')
     qtbot.keyClick(control, Qt.Key_Tab)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!abba')
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!abs')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
@@ -1366,7 +1362,7 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.keyClicks(control, 'print(ab')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(
-        lambda: control.toPlainText().split()[-1] == 'print(abba')
+        lambda: control.toPlainText().split()[-1] == 'print(abs')
     qtbot.keyClicks(control, ')')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
@@ -1379,26 +1375,24 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: check_value('baab', 10))
 
     # Check baab is completed
-    qtbot.keyClicks(control, 'ba')
+    qtbot.keyClicks(control, 'baa')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'baab')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
-    # Get a second ba*
-    qtbot.keyClicks(control, 'ba2ab = 10')
+    # Check the completion widget is shown for abba, abs
+    qtbot.keyClicks(control, 'abba = 10')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(100)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-    qtbot.waitUntil(lambda: check_value('ba2ab', 10))
-
-    # Check the completion widget is shown
-    qtbot.keyClicks(control, 'ba')
+    qtbot.waitUntil(lambda: check_value('abba', 10))
+    qtbot.keyClicks(control, 'ab')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(shell._completion_widget.isVisible)
-    assert control.toPlainText().split()[-1] == 'ba'
+    assert control.toPlainText().split()[-1] == 'ab'
     qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'baab')
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abba')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
