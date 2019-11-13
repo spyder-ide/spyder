@@ -468,24 +468,25 @@ class SwitcherProxyModel(QSortFilterProxyModel):
         self.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setSortCaseSensitivity(Qt.CaseInsensitive)
         self.setDynamicSortFilter(True)
-        self.__filter_on = False
+        self.__filter_by_score = False
 
-    def set_filter_on(self, value):
+    def set_filter_by_score(self, value):
         """
-        Set whether the items should be filtered.
+        Set whether the items should be filtered by their score result.
 
         Parameters
         ----------
         value : bool
-           Indicates whether the items should be filtered.
+           Indicates whether the items should be filtered by their
+           score result.
         """
-        self.__filter_on = value
+        self.__filter_by_score = value
         self.invalidateFilter()
 
     def filterAcceptsRow(self, source_row, source_parent):
         """Override Qt method to filter items by their score result."""
         item = self.sourceModel().item(source_row)
-        if self._filter_on is False or item.is_action_item():
+        if self.__filter_by_score is False or item.is_action_item():
             return True
         else:
             return not item.get_score() == -1
@@ -674,7 +675,7 @@ class Switcher(QDialog):
         if self.search_text() == '':
             self._mode_on = ''
             self.clear()
-            self.proxy.set_filter_on(False)
+            self.proxy.set_filter_by_score(False)
             self.sig_mode_selected.emit(self._mode_on)
             return
 
@@ -686,7 +687,6 @@ class Switcher(QDialog):
                 return
 
         # Filter by text
-        self.proxy.set_filter_on(True)
         titles = []
         for row in range(self.model.rowCount()):
             item = self.model.item(row)
@@ -706,6 +706,7 @@ class Switcher(QDialog):
                 rich_title = rich_title.replace(" ", "&nbsp;")
                 item.set_rich_title(rich_title)
             item.set_score(score_value)
+        self.proxy.set_filter_by_score(True)
 
         self.setup_sections()
         if self.count():
