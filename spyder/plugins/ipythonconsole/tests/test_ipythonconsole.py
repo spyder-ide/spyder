@@ -1429,9 +1429,11 @@ def test_console_complete(ipyconsole, qtbot):
         with os.fdopen(fd, 'w') as tmp:
             # Write stuff
             tmp.write('stuff\n')
+        # Set a breakpoint in the new file
         qtbot.keyClicks(control, 'b ' + path + ':1')
         qtbot.keyClick(control, Qt.Key_Enter)
         qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+        # Check we can complete the breakpoint number
         qtbot.keyClicks(control, 'ignore ')
         qtbot.keyClick(control, Qt.Key_Tab)
         qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '1')
