@@ -1414,15 +1414,15 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!a.baba')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-    
+
     # Check we can complete pdb command names
     qtbot.keyClicks(control, 'longl')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'longlist')
-    
+
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-    
+
     # Check we can use custom complete for pdb
     fd, path = tempfile.mkstemp('test.py')
     try:
