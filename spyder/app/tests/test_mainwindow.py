@@ -1824,11 +1824,10 @@ def test_edidorstack_open_switcher_dlg(main_window, tmpdir):
 
     Regression test for spyder-ide/spyder#10684
     """
-    # Add some files to the editor.
-    for i in range(3):
-        file = tmpdir.join('test_file{}.py'.format(i))
-        file.write("some_content_for_test_file_{}".format(i))
-        main_window.editor.load(str(file))
+    # Add a file to the editor.
+    file = tmpdir.join('test_file_open_switcher_dlg.py')
+    file.write("a test file for test_edidorstack_open_switcher_dlg")
+    main_window.editor.load(str(file))
 
     # Test that the file switcher opens as expected from the editorstack.
     editorstack = main_window.editor.get_current_editorstack()
@@ -1836,7 +1835,8 @@ def test_edidorstack_open_switcher_dlg(main_window, tmpdir):
     editorstack.open_switcher_dlg()
     assert editorstack.switcher_dlg
     assert editorstack.switcher_dlg.isVisible()
-    assert editorstack.switcher_dlg.count() == 3
+    assert (editorstack.switcher_dlg.count() ==
+            len(main_window.editor.get_filenames()))
 
 
 @flaky(max_runs=3)
