@@ -483,7 +483,7 @@ class SwitcherProxyModel(QSortFilterProxyModel):
         self.invalidateFilter()
 
     def filterAcceptsRow(self, source_row, source_parent):
-        """Override Qt method to filter items by ther score result."""
+        """Override Qt method to filter items by their score result."""
         item = self.sourceModel().item(source_row)
         if self._filter_on is False or item.is_action_item():
             return True
