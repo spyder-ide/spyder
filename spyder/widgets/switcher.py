@@ -543,7 +543,6 @@ class Switcher(QDialog):
                  item_separator_styles=ITEM_SEPARATOR_STYLES):
         """Multi purpose switcher."""
         super(Switcher, self).__init__(parent)
-        self._visible_rows = 0
         self._modes = {}
         self._mode_on = ''
         self._item_styles = item_styles
@@ -596,7 +595,6 @@ class Switcher(QDialog):
         """Perform common actions when adding items."""
         item.set_width(self._ITEM_WIDTH)
         self.model.appendRow(item)
-        self._visible_rows = self.model.rowCount()
         if last_item:
             # Only set the current row to the first item when the added item is
             # the last one in order to prevent performance issues when
@@ -676,6 +674,7 @@ class Switcher(QDialog):
         if self.search_text() == '':
             self._mode_on = ''
             self.clear()
+            self.proxy.set_filter_on(False)
             self.sig_mode_selected.emit(self._mode_on)
             return
 
@@ -687,6 +686,7 @@ class Switcher(QDialog):
                 return
 
         # Filter by text
+        self.proxy.set_filter_on(True)
         titles = []
         for row in range(self.model.rowCount()):
             item = self.model.item(row)
@@ -700,30 +700,18 @@ class Switcher(QDialog):
         scores = get_search_scores(to_text_string(search_text),
                                    titles, template=u"<b>{0}</b>")
 
-        self._visible_rows = self.model.rowCount()
-        for idx, score in enumerate(scores):
-            title, rich_title, score_value = score
+        for idx, (title, rich_title, score_value) in enumerate(scores):
             item = self.model.item(idx)
-
             if not self._is_separator(item) and not item.is_action_item():
                 rich_title = rich_title.replace(" ", "&nbsp;")
                 item.set_rich_title(rich_title)
-
             item.set_score(score_value)
-            proxy_index = self.proxy.mapFromSource(self.model.index(idx, 0))
 
-            if not item.is_action_item():
-                self.list.setRowHidden(proxy_index.row(), score_value == -1)
-
-                if score_value == -1:
-                    self._visible_rows -= 1
-
-        if self._visible_rows:
+        self.setup_sections()
+        if self.count():
             self.set_current_row(0)
         else:
             self.set_current_row(-1)
-
-        self.setup_sections()
         self.set_height()
 
     def setup_sections(self):
@@ -761,12 +749,12 @@ class Switcher(QDialog):
 
     def set_height(self):
         """Set height taking into account the number of items."""
-        if self._visible_rows >= self._MAX_NUM_ITEMS:
+        if self.count() >= self._MAX_NUM_ITEMS:
             switcher_height = self._MAX_HEIGHT
-        elif self._visible_rows != 0 and self.current_item():
+        elif self.count() != 0 and self.current_item():
             current_item = self.current_item()
             item_height = current_item.get_height()
-            list_height = item_height * (self._visible_rows + 3)
+            list_height = item_height * (self.count() + 3)
             edit_height = self.edit.height()
             spacing_height = self.layout().spacing() * 4
             switcher_height = list_height + edit_height + spacing_height
@@ -849,7 +837,7 @@ class Switcher(QDialog):
 
     def count(self):
         """Get the item count in the list widget."""
-        return self._visible_rows
+        return self.proxy.rowCount()
 
     def current_row(self):
         """Return the current selected row in the list widget."""
@@ -864,14 +852,14 @@ class Switcher(QDialog):
 
     def set_current_row(self, row):
         """Set the current selected row in the list widget."""
-        index = self.model.index(row, 0)
+        proxy_index = self.proxy.index(row, 0)
         selection_model = self.list.selectionModel()
 
         # https://doc.qt.io/qt-5/qitemselectionmodel.html#SelectionFlag-enum
-        selection_model.setCurrentIndex(index, selection_model.ClearAndSelect)
+        selection_model.setCurrentIndex(
+            proxy_index, selection_model.ClearAndSelect)
 
         # Ensure that the selected item is visible
-        proxy_index = self.proxy.mapFromSource(index)
         self.list.scrollTo(proxy_index, QAbstractItemView.EnsureVisible)
 
     def previous_row(self):
