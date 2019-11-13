@@ -155,3 +155,12 @@ def lsp_codeeditor(lsp_plugin, qtbot_module, request):
     request.addfinalizer(teardown)
     lsp_plugin = lsp_plugin.get_client('lsp')
     return editor, lsp_plugin
+
+
+@pytest.fixture
+def search_codeeditor(lsp_codeeditor, qtbot_module):
+    code_editor, _ = lsp_codeeditor
+    find_replace = FindReplace(None, enable_replace=True)
+    find_replace.set_editor(code_editor)
+    qtbot_module.addWidget(find_replace)
+    return code_editor, find_replace

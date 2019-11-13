@@ -38,7 +38,7 @@ pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
 if errorlevel 1 exit 1
 
 :: Install python-language-server from master
-pip install -q --no-deps git+https://github.com/palantir/python-language-server
+pip install -q --no-deps git+https://github.com/palantir/python-language-server.git@refs/pull/692/head
 if errorlevel 1 exit 1
 
 :: Install codecov
