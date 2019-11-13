@@ -71,8 +71,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
-        self.spyder_kernel_comm = KernelComm(
-            interrupt_callback=self._pdb_update)
+        self.spyder_kernel_comm = KernelComm()
         self.spyder_kernel_comm.sig_exception_occurred.connect(
             self.sig_exception_occurred)
         super(ShellWidget, self).__init__(*args, **kw)
@@ -102,21 +101,30 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'current_filename': self.handle_current_filename,
             'get_file_code': self.handle_get_file_code,
             'set_debug_state': self.handle_debug_state,
+            'update_syspath': self.update_syspath,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
 
-    def call_kernel(self, interrupt=False, blocking=False, callback=None):
+    def call_kernel(self, interrupt=False, blocking=False, callback=None,
+                    timeout=None):
         """Send message to spyder."""
         return self.spyder_kernel_comm.remote_call(
-            interrupt=interrupt, blocking=blocking, callback=callback)
+            interrupt=interrupt,
+            blocking=blocking,
+            callback=callback,
+            timeout=timeout
+        )
 
     def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
         """Set the kernel client and manager"""
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
         self.spyder_kernel_comm.open_comm(kernel_client)
+
+        # Redefine the complete method to work while debugging.
+        self.redefine_complete_for_dbg(self.kernel_client)
 
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
@@ -189,6 +197,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.call_kernel(
                 interrupt=True,
                 blocking=False).set_sympy_forecolor(background_color='light')
+
+    def update_syspath(self, path_dict, new_path_dict):
+        """Update sys.path contents on kernel."""
+        self.call_kernel(
+            interrupt=True,
+            blocking=False).update_syspath(path_dict, new_path_dict)
 
     def request_syspath(self):
         """Ask the kernel for sys.path contents."""

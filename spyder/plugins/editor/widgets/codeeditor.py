@@ -1003,13 +1003,16 @@ class CodeEditor(TextEditBaseWidget):
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
         self.document_opened = True
+        cursor = self.textCursor()
         params = {
             'file': self.filename,
             'language': self.language,
             'version': self.text_version,
             'text': self.toPlainText(),
             'codeeditor': self,
-            'offset': self.get_position('cursor')
+            'offset': cursor.position(),
+            'selection_start': cursor.selectionStart(),
+            'selection_end': cursor.selectionEnd(),
         }
         return params
 
@@ -1022,12 +1025,15 @@ class CodeEditor(TextEditBaseWidget):
         text = self.toPlainText()
         self.patch = self.differ.patch_make(self.previous_text, text)
         self.previous_text = text
+        cursor = self.textCursor()
         params = {
             'file': self.filename,
             'version': self.text_version,
             'text': text,
             'diff': self.patch,
-            'offset': self.get_position('cursor')
+            'offset': cursor.position(),
+            'selection_start': cursor.selectionStart(),
+            'selection_end': cursor.selectionEnd(),
         }
         return params
 
@@ -1048,12 +1054,14 @@ class CodeEditor(TextEditBaseWidget):
     def do_completion(self, automatic=False):
         """Trigger completion."""
         self.document_did_change('')
-        line, column = self.get_cursor_line_column()
+        cursor = self.textCursor()
         params = {
             'file': self.filename,
-            'line': line,
-            'column': column,
-            'offset': self.get_position('cursor')
+            'line': cursor.blockNumber(),
+            'column': cursor.columnNumber(),
+            'offset': cursor.position(),
+            'selection_start': cursor.selectionStart(),
+            'selection_end': cursor.selectionEnd(),
         }
         self.completion_args = (self.textCursor().position(), automatic)
         return params
@@ -1069,7 +1077,10 @@ class CodeEditor(TextEditBaseWidget):
         position, automatic = args
         try:
             completions = params['params']
-            completions = [] if completions is None else completions
+            completions = ([] if completions is None else
+                           [completion for completion in completions
+                            if completion.get('insertText')
+                            or completion.get('textEdit', {}).get('newText')])
 
             replace_end = self.textCursor().position()
             under_cursor = self.get_current_word_and_position(completion=True)
@@ -3601,8 +3612,10 @@ class CodeEditor(TextEditBaseWidget):
             self.insert_text(text)
             if text == ".":
                 if not self.in_comment_or_string():
-                    last_obj = getobj(self.get_text('sol', 'cursor'))
-                    if last_obj and not last_obj.isdigit():
+                    text = self.get_text('sol', 'cursor')
+                    last_obj = getobj(text)
+                    prev_char = text[-2] if len(text) > 1 else ''
+                    if prev_char in {')', ']', '}'} or (last_obj and not last_obj.isdigit()):
                         self.do_completion(automatic=True)
             else:
                 self.do_completion(automatic=True)

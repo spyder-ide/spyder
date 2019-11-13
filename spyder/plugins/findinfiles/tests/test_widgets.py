@@ -22,7 +22,7 @@ from spyder.plugins.findinfiles import widgets
 from spyder.plugins.findinfiles.widgets import (FindInFilesWidget, SearchInComboBox,
                                                 EXTERNAL_PATHS, SELECT_OTHER, CWD,
                                                 CLEAR_LIST, PROJECT, FILE_PATH,
-                                                QMessageBox)
+                                                QMessageBox, SearchThread)
 from spyder.py3compat import PY2
 
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
@@ -230,9 +230,9 @@ def test_truncate_result_with_different_input(findinfiles, qtbot, line_input):
         line_input_expected[slice_end:])
 
     # when
-    truncated_line = findinfiles.result_browser.truncate_result(
-        line_input, slice_start, slice_end)
-
+    thread = SearchThread(None, '')
+    truncated_line = thread.truncate_result(line_input, slice_start,
+                                            slice_end)
     # then
     assert truncated_line == expected_result
 
@@ -563,6 +563,24 @@ def test_max_history(searchin_combobox, mocker):
     ]
     assert searchin_combobox.count() == len(expected_results) + EXTERNAL_PATHS
     assert searchin_combobox.get_external_paths() == expected_results
+
+
+def test_max_results(findinfiles, qtbot):
+    """Test max results correspond to expected results."""
+    value = 2
+    findinfiles.set_max_results(value)
+    findinfiles.set_search_text("spam")
+    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+
+    findinfiles.find()
+    blocker = qtbot.waitSignal(findinfiles.sig_max_results_reached)
+    blocker.wait()
+
+    print(len(findinfiles.result_browser.data), value)
+    assert len(findinfiles.result_browser.data) == value
+
+    # Restore defaults
+    findinfiles.set_max_results(1000)
 
 
 if __name__ == "__main__":

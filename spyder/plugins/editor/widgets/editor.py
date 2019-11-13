@@ -59,6 +59,7 @@ from spyder.widgets.tabs import BaseTabs
 from spyder.config.manager import CONF
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
+from spyder.plugins.outlineexplorer.api import cell_name
 
 
 logger = logging.getLogger(__name__)
@@ -890,6 +891,7 @@ class EditorStack(QWidget):
             from spyder.widgets.switcher import Switcher
             self.switcher_dlg = Switcher(self)
             self.switcher_manager = EditorSwitcherManager(
+                self.get_plugin(),
                 self.switcher_dlg,
                 lambda: self.get_current_editor(),
                 lambda: self,
@@ -907,11 +909,17 @@ class EditorStack(QWidget):
     def open_symbolfinder_dlg(self):
         self.open_switcher_dlg(initial_text='@')
 
+    def get_plugin(self):
+        """Get the plugin of the parent widget."""
+        # Needed for the editor stack to use its own switcher instance.
+        # See spyder-ide/spyder#10684.
+        return self.parent().plugin
+
     def get_plugin_title(self):
         """Get the plugin title of the parent widget."""
         # Needed for the editor stack to use its own switcher instance.
         # See spyder-ide/spyder#9469.
-        return self.parent().plugin.get_plugin_title()
+        return self.get_plugin().get_plugin_title()
 
     def go_to_line(self, line=None):
         """Go to line dialog"""
@@ -2001,6 +2009,7 @@ class EditorStack(QWidget):
             self.set_stack_index(new_index)
             return ok
         else:
+            finfo.newly_created = False
             return False
 
     def save_copy_as(self, index=None):
@@ -2635,10 +2644,10 @@ class EditorStack(QWidget):
         text, block = self.get_current_editor().get_cell_as_executable_code()
         finfo = self.get_current_finfo()
         editor = self.get_current_editor()
-        cell_name = self._get_cell_name(block)
+        name = cell_name(block)
         filename = finfo.filename
 
-        self._run_cell_text(text, editor, (filename, cell_name), debug)
+        self._run_cell_text(text, editor, (filename, name), debug)
 
     def debug_cell(self):
         """Debug current cell."""
@@ -2686,21 +2695,6 @@ class EditorStack(QWidget):
 
         self._run_cell_text(text, editor, (filename, cell_name))
 
-    def _get_cell_name(self, block):
-        """Get the cell name from the block."""
-        oe_data = block.userData()
-        if oe_data and oe_data.oedata:
-            if oe_data.oedata.has_name():
-                cell_name = oe_data.oedata.def_name
-            else:
-                cell_name = oe_data.oedata.cell_index()
-        else:
-            if block.blockNumber() == 0:
-                # There is no name for the first cell, refer by cell number
-                cell_name = 0
-            else:
-                raise RuntimeError('Not a cell?')
-        return cell_name
 
     def _run_cell_text(self, text, editor, cell_id, debug=False):
         """Run cell code in the console.
@@ -2717,7 +2711,7 @@ class EditorStack(QWidget):
             The starting line number of the cell in the file.
         """
         (filename, cell_name) = cell_id
-        if editor.is_python() and text:
+        if editor.is_python():
             args = (text, cell_name, filename, self.run_cell_copy)
             if debug:
                 self.debug_cell_in_ipyclient.emit(*args)
