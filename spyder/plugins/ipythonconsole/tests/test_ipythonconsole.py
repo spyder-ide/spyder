@@ -1412,6 +1412,31 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.keyClicks(control, '!a.ba')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!a.baba')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    
+    # Check we can complete pdb command names
+    qtbot.keyClicks(control, 'longl')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'longlist')
+    
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    
+    # Check we can use custom complete for pdb
+    fd, path = tempfile.mkstemp('test.py')
+    try:
+        with os.fdopen(fd, 'w') as tmp:
+            # Write stuff
+            tmp.write('stuff\n')
+        qtbot.keyClicks(control, 'b ' + path + ':1')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+        qtbot.keyClicks(control, 'ignore ')
+        qtbot.keyClick(control, Qt.Key_Tab)
+        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '1')
+    finally:
+        os.remove(path)
 
 
 @pytest.mark.use_startup_wdir
