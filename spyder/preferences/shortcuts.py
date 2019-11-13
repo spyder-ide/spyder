@@ -135,6 +135,8 @@ class ShortcutEditor(QDialog):
     def __init__(self, parent, context, name, sequence, shortcuts):
         super(ShortcutEditor, self).__init__(parent)
         self._parent = parent
+        self.setWindowFlags(self.windowFlags() &
+                            ~Qt.WindowContextHelpButtonHint)
 
         self.context = context
         self.name = name
