@@ -468,6 +468,27 @@ class SwitcherProxyModel(QSortFilterProxyModel):
         self.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setSortCaseSensitivity(Qt.CaseInsensitive)
         self.setDynamicSortFilter(True)
+        self.__filter_on = False
+
+    def set_filter_on(self, value):
+        """
+        Set whether the items should be filtered.
+
+        Parameters
+        ----------
+        value : bool
+           Indicates whether the items should be filtered.
+        """
+        self.__filter_on = value
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, source_row, source_parent):
+        """Override Qt method to filter items by ther score result."""
+        item = self.sourceModel().item(source_row)
+        if self._filter_on is False or item.is_action_item():
+            return True
+        else:
+            return not item.get_score() == -1
 
     def sortBy(self, attr):
         """Override Qt method."""
