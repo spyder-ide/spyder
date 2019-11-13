@@ -422,7 +422,7 @@ class FoldingPanel(Panel):
         """
         color = self._get_scope_highlight_color()
         draw_order = DRAW_ORDERS.get('codefolding')
-        d = TextDecoration(self.editor.document(), start_line=start,
+        d = TextDecoration(self.editor.document(), start_line=max(0, start - 1),
                            end_line=end, draw_order=draw_order)
         d.set_background(color)
         d.set_full_width(True, clear=False)
