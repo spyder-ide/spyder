@@ -146,6 +146,10 @@ class SwitcherBaseItem(QStandardItem):
         """Return the content height."""
         return self._height
 
+    def get_score(self):
+        """Return the fuzzy matchig score."""
+        return self._score
+
     def set_score(self, value):
         """Set the search text fuzzy match score."""
         self._score = value
@@ -434,10 +438,6 @@ class SwitcherItem(SwitcherBaseItem):
     def get_data(self):
         """Return the additional data associated to the item."""
         return self._data
-
-    def get_score(self):
-        """Return the fuzzy matchig score."""
-        return self._score
 
     def set_section(self, value):
         """Set the item section name."""
