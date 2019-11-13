@@ -494,7 +494,7 @@ class SwitcherProxyModel(QSortFilterProxyModel):
         """Override Qt method."""
         self.__sort_by = attr
         self.invalidate()
-        self.sort(0, Qt.DescendingOrder)
+        self.sort(0, Qt.AscendingOrder)
 
     def lessThan(self, left, right):
         """Override Qt method."""
