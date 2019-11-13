@@ -3009,7 +3009,7 @@ class MainWindow(QMainWindow):
     def show_path_manager(self):
         """Show path manager dialog."""
         from spyder.widgets.pathmanager import PathManager
-        read_only_path = self.projects.get_pythonpath()
+        read_only_path = tuple(self.projects.get_pythonpath())
 
         # TODO: update sync on windows
         dialog = PathManager(self, self.path, read_only_path,
