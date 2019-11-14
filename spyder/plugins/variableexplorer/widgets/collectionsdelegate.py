@@ -10,6 +10,8 @@
 # Standard library imports
 import copy
 import datetime
+import functools
+import operator
 
 # Third party imports
 from qtpy.compat import to_qvariant
@@ -38,6 +40,10 @@ if DataFrame is not FakeObject:
             DataFrameEditor)
 
 
+LARGE_COLLECTION = 1e5
+LARGE_ARRAY = 5e6
+
+
 class CollectionsDelegate(QItemDelegate):
     """CollectionsEditor Item Delegate"""
     sig_free_memory = Signal()
@@ -57,25 +63,35 @@ class CollectionsDelegate(QItemDelegate):
     def show_warning(self, index):
         """
         Decide if showing a warning when the user is trying to view
-        a big variable associated to a Tablemodel index
+        a big variable associated to a Tablemodel index.
 
         This avoids getting the variables' value to know its
         size and type, using instead those already computed by
         the TableModel.
 
         The problem is when a variable is too big, it can take a
-        lot of time just to get its value
+        lot of time just to get its value.
         """
-        try:
-            val_size = index.model().sizes[index.row()]
-            val_type = index.model().types[index.row()]
-        except Exception:
-            return False
-        if val_type in ['list', 'set', 'tuple', 'dict'] and \
-                int(val_size) > 1e5:
-            return True
-        else:
-            return False
+        val_type = index.sibling(index.row(), 1).data()
+        val_size = index.sibling(index.row(), 2).data()
+
+        if val_type in ['list', 'set', 'tuple', 'dict']:
+            if int(val_size) > LARGE_COLLECTION:
+                return True
+        elif (val_type in ['DataFrame', 'Series'] or 'Array' in val_type or
+                'Index' in val_type):
+            # Avoid errors for user declared types that contain words like
+            # the ones we're looking for above
+            try:
+                # From https://blender.stackexchange.com/a/131849
+                shape = [int(s) for s in val_size.strip("()").split(",") if s]
+                size = functools.reduce(operator.mul, shape)
+                if size > LARGE_ARRAY:
+                    return True
+            except Exception:
+                pass
+
+        return False
 
     def createEditor(self, parent, option, index, object_explorer=False):
         """Overriding method createEditor"""
@@ -99,7 +115,7 @@ class CollectionsDelegate(QItemDelegate):
                 _("Spyder was unable to retrieve the value of "
                   "this variable from the console.<br><br>"
                   "The error message was:<br>"
-                  "<i>%s</i>") % to_text_string(msg))
+                  "%s") % to_text_string(msg))
             return
 
         key = index.model().get_key(index)
@@ -383,34 +399,8 @@ class ToggleColumnDelegate(CollectionsDelegate):
         if index.isValid():
             index.model().set_value(index, value)
 
-    def show_warning(self, index):
-        """
-        Decide if showing a warning when the user is trying to view
-        a big variable associated to a Tablemodel index
-
-        This avoids getting the variables' value to know its
-        size and type, using instead those already computed by
-        the TableModel.
-
-        The problem is when a variable is too big, it can take a
-        lot of time just to get its value
-        """
-        try:
-            tree_item = index.model().treeItem(index)
-            val_size = safe_tio_call(len, tree_item)
-            val_type = type(tree_item.obj).__name__
-        except Exception:
-            return False
-        if val_type in ['list', 'set', 'tuple', 'dict'] and \
-                int(val_size) > 1e5:
-            return True
-        else:
-            return False
-
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
-        if index.column() < 3:
-            return None
         if self.show_warning(index):
             answer = QMessageBox.warning(
                 self.parent(), _("Warning"),

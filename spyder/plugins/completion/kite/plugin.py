@@ -167,6 +167,16 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         """Request the onboarding file."""
         # No need to check installed status,
         # since the get_onboarding_file call fails fast.
+        if not self.enabled:
+            return
+        if not self._show_onboarding:
+            return
+        if self.main.is_setting_up:
+            return
+        if not self.available_languages:
+            return
+        # Don't send another request until this request fails.
+        self._show_onboarding = False
         self.client.sig_perform_onboarding_request.emit()
 
     @Slot(str)
@@ -176,15 +186,9 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         from the Kite HTTP endpoint. This skips onboarding if onboarding
         is not possible yet or has already been displayed before.
         """
-        if not self.enabled:
+        if not onboarding_file:
+            # retry
+            self._show_onboarding = True
             return
-        if not self._show_onboarding:
-            return
-        if self.main.is_setting_up:
-            return
-        if not self.available_languages:
-            return
-        if onboarding_file:
-            self._show_onboarding = False
-            self.set_option('show_onboarding', False)
-            self.main.open_file(onboarding_file)
+        self.set_option('show_onboarding', False)
+        self.main.open_file(onboarding_file)

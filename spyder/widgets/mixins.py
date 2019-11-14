@@ -95,7 +95,8 @@ class BaseEditMixin(object):
 
         if at_point is not None:
             # Showing tooltip at point position
-            cx, cy = at_point.x(), at_point.y()
+            margin = (self.document().documentMargin() / 2) + 1
+            cx, cy = at_point.x() - margin, at_point.y() - margin
         elif at_line is not None:
             # Showing tooltip at line
             cx = 5
@@ -1017,16 +1018,6 @@ class BaseEditMixin(object):
         end_cursor.setPosition(end)
         end_position = self.get_cursor_line_column(end_cursor)
         return start_position, end_position
-
-    def get_selection_first_block(self, cursor=None):
-        """Return the first block of the selection."""
-        if cursor is None:
-            cursor = self.textCursor()
-        start = cursor.selectionStart()
-        if start > 0:
-            start = start - 1
-        return self.document().findBlock(start)
-
 
     #------Text selection
     def has_selected_text(self):

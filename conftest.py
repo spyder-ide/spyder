@@ -35,12 +35,18 @@ def pytest_addoption(parser):
 
 
 def pytest_collection_modifyitems(config, items):
-    """Skip tests with the slow marker"""
-    if config.getoption("--run-slow"):
-        # --run-slow given in cli: do not skip slow tests
-        return
+    """
+    Decide what tests to run (slow or fast) according to the --run-slow
+    option.
+    """
+    slow_option = config.getoption("--run-slow")
+    skip_slow = pytest.mark.skip(reason="Need --run-slow option to run")
+    skip_fast = pytest.mark.skip(reason="Don't need --run-slow option to run")
 
-    skip_slow = pytest.mark.skip(reason="need --run-slow option to run")
     for item in items:
-        if "slow" in item.keywords:
-            item.add_marker(skip_slow)
+        if slow_option:
+            if "slow" not in item.keywords:
+                item.add_marker(skip_fast)
+        else:
+            if "slow" in item.keywords:
+                item.add_marker(skip_slow)
