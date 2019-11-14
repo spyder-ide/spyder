@@ -251,11 +251,11 @@ class ShortcutEditor(QDialog):
         layout_sequence.setColumnStretch(2, 100)
         layout_sequence.setRowStretch(4, 100)
 
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
         layout.addLayout(layout_sequence)
         layout.addSpacing(10)
         layout.addLayout(button_box)
-        self.setLayout(layout)
+        layout.setSizeConstraint(layout.SetFixedSize)
 
         # Signals
         self.button_ok.clicked.connect(self.accept_override)
@@ -420,9 +420,6 @@ class ShortcutEditor(QDialog):
         self.button_ok.setEnabled(
             self.warning in [NO_WARNING, SEQUENCE_CONFLICT])
         self.label_warning.setText(tip)
-        # Everytime after update warning message, update the label height
-        new_height = self.label_warning.sizeHint().height()
-        self.label_warning.setMaximumHeight(new_height)
 
     def set_sequence_from_str(self, sequence):
         """
