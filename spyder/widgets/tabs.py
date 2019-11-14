@@ -447,16 +447,19 @@ class Tabs(BaseTabs):
             context='editor',
             name='go to next file',
             parent=parent)
+
         CONF.config_shortcut(
             lambda: self.tab_navigate(-1),
             context='editor',
             name='go to previous file',
             parent=parent)
+
         CONF.config_shortcut(
             lambda: self.sig_close_tab.emit(self.currentIndex()),
             context='editor',
             name='close file 1',
             parent=parent)
+
         CONF.config_shortcut(
             lambda: self.sig_close_tab.emit(self.currentIndex()),
             context='editor',
