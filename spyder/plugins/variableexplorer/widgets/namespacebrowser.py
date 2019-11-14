@@ -208,6 +208,7 @@ class NamespaceBrowser(QWidget):
             self, text=_("Search variable names and types"),
             icon=ima.icon('find'),
             toggled=self.show_finder)
+
         CONF.config_shortcut(
             lambda: self.show_finder(set_visible=True),
             context='variable_explorer',
@@ -218,7 +219,8 @@ class NamespaceBrowser(QWidget):
             self, text=_("Refresh variables"),
             icon=ima.icon('refresh'),
             triggered=self.refresh_table)
-        config_shortcut(self.refresh_table,
+
+        CONF.config_shortcut(self.refresh_table,
                         context='variable_explorer',
                         name='refresh', parent=self)
 

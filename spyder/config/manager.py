@@ -236,8 +236,12 @@ class ConfigurationManager(object):
         Context must be either '_' for global or the name of a plugin.
         """
         context = context.lower()
-        extra_valid_contexts = ['_', 'array_builder', 'console',
-                                'find_replace']
+        extra_valid_contexts = [
+            '_',
+            'array_builder',
+            'console',
+            'find_replace',
+        ]
         config = self._user_config
 
         if context in self._plugin_configs:
