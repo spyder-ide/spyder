@@ -1095,9 +1095,10 @@ class CodeEditor(TextEditBaseWidget):
 
             def sort_key(completion):
                 if 'textEdit' in completion:
-                    first_insert_letter = completion['textEdit']['newText'][0]
+                    text_insertion =  completion['textEdit']['newText']
                 else:
-                    first_insert_letter = completion['insertText'][0]
+                    text_insertion = completion['insertText']
+                first_insert_letter = text_insertion[0]
                 case_mismatch = (
                     (first_letter.isupper() and first_insert_letter.islower())
                     or

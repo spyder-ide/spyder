@@ -789,6 +789,7 @@ class SnippetsExtension(EditorExtension):
 
         self.editor.setTextCursor(cursor)
         self.editor.request_signature()
+        self.editor.do_completion(True)
 
     def _update_ast(self):
         if self.starting_position is not None:
