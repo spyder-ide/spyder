@@ -100,7 +100,7 @@ def test_synchronize_with_PYTHONPATH(pathmanager, mocker):
     # is synchronized with Spyder's path list
     pathmanager.listwidget.item(2).setCheckState(Qt.Unchecked)
     pathmanager.synchronize()
-    expected_pathlist = ['path3', 'path1', 'path4', 'path5', 'path6']
+    expected_pathlist = ['p3', 'p1', 'p4', 'p5', 'p6']
     env = get_user_env()
     assert env['PYTHONPATH'] == expected_pathlist
 
