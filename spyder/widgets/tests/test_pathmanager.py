@@ -61,7 +61,7 @@ def test_check_uncheck_path(pathmanager):
                     reason=("This feature is not applicable for Unix "
                             "systems and pywin32 is needed"))
 @pytest.mark.parametrize('pathmanager',
-                         [(['path1', 'path2', 'path3'], ['path4', 'path5', 'path6'], '')],
+                         [(['p1', 'p2', 'p3'], ['p4', 'p5', 'p6'], [])],
                          indirect=True)
 def test_synchronize_with_PYTHONPATH(pathmanager, mocker):
     # Import here to prevent an ImportError when testing on unix systems
@@ -79,7 +79,7 @@ def test_synchronize_with_PYTHONPATH(pathmanager, mocker):
 
     # Assert that PYTHONPATH is synchronized correctly with Spyder's path list
     pathmanager.synchronize()
-    expected_pathlist = ['path1', 'path2', 'path3', 'path4', 'path5', 'path6']
+    expected_pathlist = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6']
     env = get_user_env()
     assert env['PYTHONPATH'] == expected_pathlist
 
@@ -87,7 +87,7 @@ def test_synchronize_with_PYTHONPATH(pathmanager, mocker):
     # is synchronized with Spyder's path list
     pathmanager.listwidget.item(1).setCheckState(Qt.Unchecked)
     pathmanager.synchronize()
-    expected_pathlist = ['path1', 'path3', 'path4', 'path5', 'path6']
+    expected_pathlist = ['p1', 'p3', 'p4', 'p5', 'p6']
     env = get_user_env()
     assert env['PYTHONPATH'] == expected_pathlist
 

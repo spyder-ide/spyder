@@ -231,7 +231,8 @@ class PathManager(QDialog):
         env = get_user_env()
 
         # Includes read only paths
-        active_path = tuple(k for k, v in self.get_path_dict(True).items() if v)
+        active_path = tuple(k for k, v in self.get_path_dict(True).items()
+                            if v)
 
         if remove:
             ppath = active_path
