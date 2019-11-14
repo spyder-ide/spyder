@@ -295,10 +295,12 @@ class ConfigurationManager(object):
             context, name = context_name.split('/', 1)
             yield context, name, keystr
 
-        for plugin_config in self._plugin_configs:
-            for context_name, keystr in plugin_config.items('shortcuts'):
-                context, name = context_name.split('/', 1)
-                yield context, name, keystr
+        for p_section, (p_class, p_config) in self._plugin_configs.items():
+            items = p_config.items('shortcuts')
+            if items:
+                for context_name, keystr in items:
+                    context, name = context_name.split('/', 1)
+                    yield context, name, keystr
 
     def reset_shortcuts(self):
         """Reset keyboard shortcuts to default values."""
