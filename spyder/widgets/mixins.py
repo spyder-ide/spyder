@@ -1019,16 +1019,6 @@ class BaseEditMixin(object):
         end_position = self.get_cursor_line_column(end_cursor)
         return start_position, end_position
 
-    def get_selection_first_block(self, cursor=None):
-        """Return the first block of the selection."""
-        if cursor is None:
-            cursor = self.textCursor()
-        start = cursor.selectionStart()
-        if start > 0:
-            start = start - 1
-        return self.document().findBlock(start)
-
-
     #------Text selection
     def has_selected_text(self):
         """Returns True if some text is selected."""

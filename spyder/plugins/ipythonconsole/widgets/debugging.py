@@ -128,6 +128,8 @@ class DebuggingWidget(RichJupyterWidget):
             "breakpoints": CONF.get('run', 'breakpoints', {}),
             "pdb_ignore_lib": CONF.get(
                 'run', 'pdb_ignore_lib', False),
+            "pdb_execute_events": CONF.get(
+                'run', 'pdb_execute_events', False),
             }
 
     def set_spyder_breakpoints(self):
@@ -139,6 +141,11 @@ class DebuggingWidget(RichJupyterWidget):
         """Set pdb_ignore_lib into a debugging session"""
         self.call_kernel(interrupt=True).set_pdb_ignore_lib(
             CONF.get('run', 'pdb_ignore_lib', False))
+
+    def set_pdb_execute_events(self):
+        """Set pdb_execute_events into a debugging session"""
+        self.call_kernel(interrupt=True).set_pdb_execute_events(
+            CONF.get('run', 'pdb_execute_events', False))
 
     def dbg_exec_magic(self, magic, args=''):
         """Run an IPython magic while debugging."""
@@ -289,22 +296,15 @@ class DebuggingWidget(RichJupyterWidget):
             self._finalize_input_request()
             return self.kernel_client.input(line)
 
-        # This is the Spyder addition: add a %plot magic to display
-        # plots while debugging
-        if line.startswith('%plot '):
-            line = line.split()[-1]
-            line = "__spy_code__ = get_ipython().run_cell('%s')" % line
-            self.pdb_execute(line, hidden=True)
-        else:
-            self.set_pdb_echo_code(True)
-            self.pdb_execute(line)
+        self.set_pdb_echo_code(True)
+        self.pdb_execute(line)
 
     def set_pdb_echo_code(self, state):
         """Choose if the code should echo in the console."""
         self.call_kernel(interrupt=True).set_pdb_echo_code(state)
 
     def _handle_input_request(self, msg):
-        """Save history and add a %plot magic."""
+        """Process an input request."""
         if self._hidden:
             raise RuntimeError(
                 'Request for raw input during hidden execution.')

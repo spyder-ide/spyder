@@ -71,8 +71,8 @@ class DocumentProvider:
             'text': params['text'],
             'action': 'focus',
             'selections': [{
-                'start': params['offset'],
-                'end': params['offset'],
+                'start': params['selection_start'],
+                'end': params['selection_end'],
                 'encoding': 'utf-16',
             }],
         }
@@ -90,8 +90,8 @@ class DocumentProvider:
             'text': params['text'],
             'action': 'edit',
             'selections': [{
-                'start': params['offset'],
-                'end': params['offset'],
+                'start': params['selection_start'],
+                'end': params['selection_end'],
                 'encoding': 'utf-16',
             }],
         }
@@ -108,7 +108,8 @@ class DocumentProvider:
             'no_snippets': not self.enable_code_snippets,
             'text': text,
             'position': {
-                'begin': params['offset']
+                'begin': params['selection_start'],
+                'end': params['selection_end'],
             },
             'offset_encoding': 'utf-16',
         }
@@ -116,6 +117,9 @@ class DocumentProvider:
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def convert_completion_request(self, response):
+        # The response schema is tested via mocking in
+        # spyder/plugins/editor/widgets/tests/test_introspection.py
+
         logger.debug(response)
         if response is None:
             return {'params': []}

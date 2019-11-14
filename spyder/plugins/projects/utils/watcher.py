@@ -18,6 +18,7 @@ from watchdog.events import FileSystemEventHandler
 
 # Local imports
 from spyder.config.base import _
+from spyder.py3compat import to_text_string
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +100,7 @@ class WorkspaceWatcher(QObject):
                 self.event_handler, workspace_folder, recursive=True)
             self.observer.start()
         except OSError as e:
-            if u'inotify' in e:
+            if u'inotify' in to_text_string(e):
                 QMessageBox.warning(
                     self.parent(),
                     "Spyder",

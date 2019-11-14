@@ -156,8 +156,8 @@ class FigureBrowser(QWidget):
 
         copyfig_btn = create_toolbutton(
             self, icon=ima.icon('editcopy'),
-            tip=_("Copy plot to clipboard as image (%s)" %
-                  get_shortcut('plots', 'copy')),
+            tip=_("Copy plot to clipboard as image (%s)") %
+                  get_shortcut('plots', 'copy'),
             triggered=self.copy_figure)
 
         closefig_btn = create_toolbutton(
@@ -175,14 +175,14 @@ class FigureBrowser(QWidget):
 
         goback_btn = create_toolbutton(
                 self, icon=ima.icon('ArrowBack'),
-                tip=_("Previous Figure ({})".format(
-                      get_shortcut('plots', 'previous figure'))),
+                tip=_("Previous Figure ({})").format(
+                      get_shortcut('plots', 'previous figure')),
                 triggered=self.go_previous_thumbnail)
 
         gonext_btn = create_toolbutton(
                 self, icon=ima.icon('ArrowForward'),
-                tip=_("Next Figure ({})".format(
-                      get_shortcut('plots', 'next figure'))),
+                tip=_("Next Figure ({})").format(
+                      get_shortcut('plots', 'next figure')),
                 triggered=self.go_next_thumbnail)
 
         vsep2 = QFrame()
