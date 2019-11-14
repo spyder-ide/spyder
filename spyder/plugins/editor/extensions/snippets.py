@@ -361,6 +361,9 @@ class SnippetsExtension(EditorExtension):
             self._remove_selection(start, end)
             line, column = start
         node, snippet, text_node = self._find_node_by_position(line, column)
+        if node is None:
+            self.reset()
+            return
         tokens = tokenize(text)
         token_nodes = [nodes.LeafNode(t.token, t.value) for t in tokens]
         for token in token_nodes:

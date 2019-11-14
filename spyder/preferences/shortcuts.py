@@ -133,11 +133,13 @@ class ShortcutEditor(QDialog):
     def __init__(self, parent, context, name, sequence, shortcuts):
         super(ShortcutEditor, self).__init__(parent)
         self._parent = parent
+        self.setWindowFlags(self.windowFlags() &
+                            ~Qt.WindowContextHelpButtonHint)
 
         self.context = context
         self.name = name
         self.shortcuts = shortcuts
-        self.current_sequence = sequence
+        self.current_sequence = sequence or _('<None>')
         self._qsequences = list()
 
         self.setup()
@@ -247,11 +249,11 @@ class ShortcutEditor(QDialog):
         layout_sequence.setColumnStretch(2, 100)
         layout_sequence.setRowStretch(4, 100)
 
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
         layout.addLayout(layout_sequence)
-        layout.addSpacing(5)
+        layout.addSpacing(10)
         layout.addLayout(button_box)
-        self.setLayout(layout)
+        layout.setSizeConstraint(layout.SetFixedSize)
 
         # Signals
         self.button_ok.clicked.connect(self.accept_override)
@@ -378,35 +380,31 @@ class ShortcutEditor(QDialog):
             icon = QIcon()
         elif conflicts:
             warning = SEQUENCE_CONFLICT
-            template = '<i>{0}<b>{1}</b>{2}</i>'
-            tip_title = _('The new shortcut conflicts with:') + '<br>'
+            template = '<p style="margin-bottom: 0.3em">{0}</p>{1}{2}'
+            tip_title = _('This key sequence conflicts with:')
             tip_body = ''
             for s in conflicts:
-                tip_body += ' - {0}: {1}<br>'.format(s.context, s.name)
-            tip_body = tip_body[:-4]  # Removing last <br>
-            tip_override = '<br>Press <b>OK</b> to unbind '
-            tip_override += 'it' if len(conflicts) == 1 else 'them'
-            tip_override += ' and assign it to <b>{}</b>'.format(self.name)
+                tip_body += '&nbsp;' * 2
+                tip_body += ' - {0}: <b>{1}</b><br>'.format(s.context, s.name)
+            tip_body += '<br>'
+            if len(conflicts) == 1:
+                tip_override = _("Press 'Ok' to unbind it and assign it to")
+            else:
+                tip_override = _("Press 'Ok' to unbind them and assign it to")
+            tip_override += ' <b>{}</b>.'.format(self.name)
             tip = template.format(tip_title, tip_body, tip_override)
             icon = get_std_icon('MessageBoxWarning')
         elif new_sequence in BLACKLIST:
             warning = IN_BLACKLIST
-            template = '<i>{0}<b>{1}</b></i>'
-            tip_title = _('Forbidden key sequence!') + '<br>'
-            tip_body = ''
-            use = BLACKLIST[new_sequence]
-            if use is not None:
-                tip_body = use
-            tip = template.format(tip_title, tip_body)
+            tip = _('This key sequence is forbidden.')
             icon = get_std_icon('MessageBoxWarning')
         elif self.check_singlekey() is False or self.check_ascii() is False:
             warning = INVALID_KEY
-            template = '<i>{0}</i>'
-            tip = _('Invalid key sequence entered') + '<br>'
+            tip = _('This key sequence is invalid.')
             icon = get_std_icon('MessageBoxWarning')
         else:
             warning = NO_WARNING
-            tip = 'This shortcut is valid.'
+            tip = _('This key sequence is valid.')
             icon = get_std_icon('DialogApplyButton')
 
         self.warning = warning
@@ -416,9 +414,6 @@ class ShortcutEditor(QDialog):
         self.button_ok.setEnabled(
             self.warning in [NO_WARNING, SEQUENCE_CONFLICT])
         self.label_warning.setText(tip)
-        # Everytime after update warning message, update the label height
-        new_height = self.label_warning.sizeHint().height()
-        self.label_warning.setMaximumHeight(new_height)
 
     def set_sequence_from_str(self, sequence):
         """

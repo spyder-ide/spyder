@@ -516,6 +516,9 @@ class Editor(SpyderPluginWidget):
         pdb_ignore_lib = create_action(
             self, _("Ignore Python libraries while debugging"),
             toggled=self.toggle_pdb_ignore_lib)
+        pdb_execute_events = create_action(
+            self, _("Process execute events while debugging"),
+            toggled=self.toggle_pdb_execute_events)
 
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
@@ -946,6 +949,7 @@ class Editor(SpyderPluginWidget):
             debug_exit_action,
             MENU_SEPARATOR,
             pdb_ignore_lib,
+            pdb_execute_events,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             clear_all_breakpoints_action,
@@ -1056,6 +1060,11 @@ class Editor(SpyderPluginWidget):
         """"Set pdb_ignore_lib"""
         CONF.set('run', 'pdb_ignore_lib', checked)
         self.main.ipyconsole.set_pdb_ignore_lib()
+
+    def toggle_pdb_execute_events(self, checked):
+        """"Set pdb_execute_events"""
+        CONF.set('run', 'pdb_execute_events', checked)
+        self.main.ipyconsole.set_pdb_execute_events()
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""

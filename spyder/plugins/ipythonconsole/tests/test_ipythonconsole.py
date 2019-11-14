@@ -874,12 +874,10 @@ def test_values_dbg(ipyconsole, qtbot):
     assert "*** NameError: name 'aa' is not defined" in control.toPlainText()
 
 
-@flaky(max_runs=10)
-@pytest.mark.skipif(
-    os.environ.get('AZURE', None) is not None,
-    reason="It doesn't work on Windows and fails often on macOS")
-def test_plot_magic_dbg(ipyconsole, qtbot):
-    """Test our plot magic while debugging"""
+@flaky(max_runs=3)
+def test_execute_events_dbg(ipyconsole, qtbot):
+    """Test execute events while debugging"""
+
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
@@ -897,13 +895,37 @@ def test_plot_magic_dbg(ipyconsole, qtbot):
     shell.execute('%debug')
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
+    # Set processing events to True
+    CONF.set('run', 'pdb_execute_events', True)
+    ipyconsole.set_pdb_execute_events()
+
     # Test reset magic
-    qtbot.keyClicks(control, '%plot plt.plot(range(10))')
+    qtbot.keyClicks(control, 'plt.plot(range(10))')
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(1000)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Assert that there's a plot in the console
     assert shell._control.toHtml().count('img src') == 1
+
+    # Set processing events to False
+    CONF.set('run', 'pdb_execute_events', False)
+    ipyconsole.set_pdb_execute_events()
+
+    # Test reset magic
+    qtbot.keyClicks(control, 'plt.plot(range(10))')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Assert that there's no new plots in the console
+    assert shell._control.toHtml().count('img src') == 1
+
+    # Test if the plot is shown with plt.show()
+    qtbot.keyClicks(control, 'plt.show()')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Assert that there's a new plots in the console
+    assert shell._control.toHtml().count('img src') == 2
 
 
 @flaky(max_runs=3)

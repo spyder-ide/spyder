@@ -1815,6 +1815,59 @@ def example_def_2():
     switcher.close()
 
 
+@flaky(max_runs=3)
+@pytest.mark.slow
+def test_edidorstack_open_switcher_dlg(main_window, tmpdir):
+    """
+    Test that the file switcher is working as expected when called from the
+    editorstack.
+
+    Regression test for spyder-ide/spyder#10684
+    """
+    # Add a file to the editor.
+    file = tmpdir.join('test_file_open_switcher_dlg.py')
+    file.write("a test file for test_edidorstack_open_switcher_dlg")
+    main_window.editor.load(str(file))
+
+    # Test that the file switcher opens as expected from the editorstack.
+    editorstack = main_window.editor.get_current_editorstack()
+    assert editorstack.switcher_dlg is None
+    editorstack.open_switcher_dlg()
+    assert editorstack.switcher_dlg
+    assert editorstack.switcher_dlg.isVisible()
+    assert (editorstack.switcher_dlg.count() ==
+            len(main_window.editor.get_filenames()))
+
+
+@flaky(max_runs=3)
+@pytest.mark.slow
+def test_edidorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
+    """
+    Test that the symbol finder is working as expected when called from the
+    editorstack.
+
+    Regression test for spyder-ide/spyder#10684
+    """
+    # Add a file to the editor.
+    file = tmpdir.join('test_file.py')
+    file.write('''
+               def example_def():
+                   pass
+
+               def example_def_2():
+                   pass
+               ''')
+    main_window.editor.load(str(file))
+
+    # Test that the symbol finder opens as expected from the editorstack.
+    editorstack = main_window.editor.get_current_editorstack()
+    assert editorstack.switcher_dlg is None
+    editorstack.open_symbolfinder_dlg()
+    assert editorstack.switcher_dlg
+    assert editorstack.switcher_dlg.isVisible()
+    assert editorstack.switcher_dlg.count() == 2
+
+
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_run_static_code_analysis(main_window, qtbot):
@@ -2486,6 +2539,44 @@ def test_runcell_pdb(main_window, qtbot):
 
     # Make sure the local variables are detected
     assert "abba 27" in shell._control.toPlainText()
+
+
+# --- Path manager
+# ----------------------------------------------------------------------------
+@pytest.mark.slow
+def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
+    """Check that on path manager updates, consoles correctly update."""
+    main_window.show_path_manager()
+    dlg = main_window._path_manager
+
+    test_folder = 'foo-spam-bar-123'
+    folder = str(tmpdir.mkdir(test_folder))
+    dlg.add_path(folder)
+    qtbot.waitUntil(lambda: dlg.button_ok.isEnabled(), timeout=EVAL_TIMEOUT)
+
+    with qtbot.waitSignal(dlg.sig_path_changed):
+        dlg.button_ok.animateClick()
+
+    cmd = 'import sys;print(sys.path)'
+
+    # Check Spyder is updated
+    main_window.console.execute_lines(cmd)
+    syspath = main_window.console.get_sys_path()
+    assert folder in syspath
+
+    # Check clients are updated
+    count = 0
+    for client in main_window.ipyconsole.get_clients():
+        shell = client.shellwidget
+        if shell is not None:
+            syspath = shell.execute(cmd)
+            control = shell._control
+            # `shell.executed` signal was not working so we use waitUntil
+            qtbot.waitUntil(lambda: 'In [2]:' in control.toPlainText(),
+                            timeout=EVAL_TIMEOUT)
+            assert test_folder in control.toPlainText()
+            count += 1
+    assert count >= 1
 
 
 if __name__ == "__main__":
