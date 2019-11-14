@@ -18,6 +18,14 @@ from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.user import UserConfig, MultiUserConfig, NoDefault
 
 
+EXTRA_VALID_SHORTCUT_CONTEXTS = [
+    '_',
+    'array_builder',
+    'console',
+    'find_replace',
+]
+
+
 class ConfigurationManager(object):
     """
     Configuration manager to provide access to user/site/project config.
@@ -229,27 +237,31 @@ class ConfigurationManager(object):
 
     # Shortcut configuration management
     # ------------------------------------------------------------------------
-    def _get_shortcut_config(self, context):
+    def _get_shortcut_config(self, context, plugin_name=None):
         """
         Return the shortcut configuration for global or plugin configs.
 
         Context must be either '_' for global or the name of a plugin.
         """
         context = context.lower()
-        extra_valid_contexts = [
-            '_',
-            'array_builder',
-            'console',
-            'find_replace',
-        ]
         config = self._user_config
 
-        if context in self._plugin_configs:
-            plugin_class, config = self._plugin_configs[context]
+        if plugin_name in self._plugin_configs:
+            plugin_class, config = self._plugin_configs[plugin_name]
+
             # Check if plugin has a separate file
             if not plugin_class.CONF_FILE:
                 config = self._user_config
-        elif context in self._user_config.sections() + extra_valid_contexts:
+
+        elif context in self._plugin_configs:
+            plugin_class, config = self._plugin_configs[context]
+
+            # Check if plugin has a separate file
+            if not plugin_class.CONF_FILE:
+                config = self._user_config
+
+        elif context in (self._user_config.sections()
+                         + EXTRA_VALID_SHORTCUT_CONTEXTS):
             config = self._user_config
         else:
             raise ValueError(_("Shortcut context must match '_' or plugin "
@@ -257,22 +269,22 @@ class ConfigurationManager(object):
 
         return config
 
-    def get_shortcut(self, context, name):
+    def get_shortcut(self, context, name, plugin_name=None):
         """
         Get keyboard shortcut (key sequence string).
 
         Context must be either '_' for global or the name of a plugin.
         """
-        config = self._get_shortcut_config(context)
-        return config.get('shortcuts', context + '/' + name)
+        config = self._get_shortcut_config(context, plugin_name)
+        return config.get('shortcuts', context + '/' + name.lower())
 
-    def set_shortcut(self, context, name, keystr):
+    def set_shortcut(self, context, name, keystr, plugin_name=None):
         """
         Set keyboard shortcut (key sequence string).
 
         Context must be either '_' for global or the name of a plugin.
         """
-        config = self._get_shortcut_config(context)
+        config = self._get_shortcut_config(context, plugin_name)
         config.set('shortcuts', context + '/' + name, keystr)
 
     def config_shortcut(self, action, context, name, parent):
