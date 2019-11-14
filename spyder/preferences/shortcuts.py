@@ -253,7 +253,7 @@ class ShortcutEditor(QDialog):
 
         layout = QVBoxLayout()
         layout.addLayout(layout_sequence)
-        layout.addSpacing(5)
+        layout.addSpacing(10)
         layout.addLayout(button_box)
         self.setLayout(layout)
 
