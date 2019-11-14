@@ -264,8 +264,8 @@ class ConfigurationManager(object):
                          + EXTRA_VALID_SHORTCUT_CONTEXTS):
             config = self._user_config
         else:
-            raise ValueError(_("Shortcut context must match '_' or plugin "
-                               "`CONF_SECTION`!"))
+            raise ValueError(_("Shortcut context must match '_' or the "
+                               "plugin `CONF_SECTION`!"))
 
         return config
 
