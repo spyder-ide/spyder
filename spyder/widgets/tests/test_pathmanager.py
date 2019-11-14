@@ -57,12 +57,11 @@ def test_check_uncheck_path(pathmanager):
         assert pathmanager.listwidget.item(row).checkState() == Qt.Checked
 
 
-# @pytest.mark.skipif(os.name != 'nt' or not is_module_installed('win32con'),
-@pytest.mark.skipif(True,
+@pytest.mark.skipif(os.name != 'nt' or not is_module_installed('win32con'),
                     reason=("This feature is not applicable for Unix "
                             "systems and pywin32 is needed"))
 @pytest.mark.parametrize('pathmanager',
-                         [(['path1', 'path2', 'path3'], ['path4', 'path5', 'path6'])],
+                         [(['path1', 'path2', 'path3'], ['path4', 'path5', 'path6'], '')],
                          indirect=True)
 def test_synchronize_with_PYTHONPATH(pathmanager, mocker):
     # Import here to prevent an ImportError when testing on unix systems
