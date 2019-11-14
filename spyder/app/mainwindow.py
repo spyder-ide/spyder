@@ -3187,7 +3187,8 @@ class MainWindow(QMainWindow):
         toberemoved = []
         for index, (qobject, context, name, add_shortcut_to_tip,
                     plugin_name) in enumerate(self.shortcut_data):
-            keyseq = QKeySequence(CONF.get_shortcut(context, name, plugin_name))
+            keyseq = QKeySequence(CONF.get_shortcut(context, name,
+                                                    plugin_name))
             try:
                 if isinstance(qobject, QAction):
                     if sys.platform == 'darwin' and \
