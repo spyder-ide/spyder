@@ -159,7 +159,9 @@ def ipyconsole(qtbot, request):
                               is_cython=is_cython)
     window.setCentralWidget(console)
 
-    qtbot.addWidget(window)
+    # This segfaults on macOS
+    if not sys.platform == "darwin":
+        qtbot.addWidget(window)
     window.show()
 
     yield console

@@ -2522,7 +2522,8 @@ def test_runcell_pdb(main_window, qtbot):
 
     for key in ['n', 'n', 's', 'n', 'n']:
         qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>',
+            timeout=3000)
         qtbot.keyClick(shell._control, key)
         qtbot.keyClick(shell._control, Qt.Key_Enter)
 
