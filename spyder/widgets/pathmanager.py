@@ -231,20 +231,20 @@ class PathManager(QDialog):
         env = get_user_env()
 
         # Includes read only paths
-        active_path = tuple(k for k, v in self.get_path_dict().items() if v)
+        active_path = tuple(k for k, v in self.get_path_dict(True).items()
+                            if v)
 
         if remove:
             ppath = active_path
         else:
             ppath = env.get('PYTHONPATH', [])
-
             if not isinstance(ppath, list):
                 ppath = [ppath]
 
             ppath = tuple(p for p in ppath if p not in active_path)
             ppath = ppath + active_path
 
-        env['PYTHONPATH'] = ppath
+        env['PYTHONPATH'] = list(ppath)
         set_user_env(listdict2envdict(env), parent=self)
 
     def get_path_dict(self, read_only=False):

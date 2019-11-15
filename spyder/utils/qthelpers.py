@@ -22,18 +22,22 @@ from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
                             QLineEdit, QMenu, QProxyStyle, QStyle, QToolBar,
                             QToolButton, QVBoxLayout, QWidget)
-if sys.platform == "darwin":
-    import applaunchservices as als
 
 # Local imports
 from spyder.config.base import get_image_path, MAC_APP_NAME
-from spyder.config.gui import get_shortcut, is_dark_interface
+from spyder.config.manager import CONF
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.icon_manager import get_icon, get_kite_icon, get_std_icon
 from spyder.widgets.waitingspinner import QWaitingSpinner
 from spyder.config.manager import CONF
+
+# Third party imports
+if sys.platform == "darwin":
+    import applaunchservices as als
+
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----
@@ -44,7 +48,6 @@ from spyder.config.manager import CONF
 # (self.listwidget is widget *a* and self is widget *b*)
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
-
 logger = logging.getLogger(__name__)
 MENU_SEPARATOR = None
 
@@ -313,7 +316,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 def add_shortcut_to_tooltip(action, context, name):
     """Add the shortcut associated with a given action to its tooltip"""
     action.setToolTip(action.toolTip() + ' (%s)' %
-                      get_shortcut(context=context, name=name))
+                      CONF.get_shortcut(context=context, name=name))
 
 
 def add_actions(target, actions, insert_before=None):
