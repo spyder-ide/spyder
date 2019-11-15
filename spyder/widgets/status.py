@@ -284,6 +284,28 @@ class CondaStatus(StatusBarWidget):
         self.update_tooltip()
 
 
+class ClockStatus(BaseTimerStatus):
+    """"Add clock to statusbar in a fullscreen mode"""
+
+    def import_test(self):
+        pass
+
+    def get_value(self):
+        """Return the time"""
+        from time import localtime, strftime
+        text = strftime("%H:%M", localtime())
+
+        return text.rjust(3)
+
+    def get_tooltip(self):
+        """Return the widget tooltip text."""
+        return _('Clock')
+
+    def get_icon(self):
+        """Return the widget tooltip text."""
+        return QIcon()
+
+
 def test():
     from qtpy.QtWidgets import QMainWindow
     from spyder.utils.qthelpers import qapplication
@@ -294,7 +316,7 @@ def test():
     win.resize(900, 300)
     statusbar = win.statusBar()
     status_widgets = []
-    for status_class in (MemoryStatus, CPUStatus):
+    for status_class in (MemoryStatus, CPUStatus, ClockStatus):
         status_widget = status_class(win, statusbar)
         status_widgets.append(status_widget)
     win.show()
