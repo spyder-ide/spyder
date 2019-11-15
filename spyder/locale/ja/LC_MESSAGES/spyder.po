@@ -16,7 +16,7 @@ msgstr ""
 "Project-Id-Version: Spyder3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-11-11 00:15+-05\n"
-"PO-Revision-Date: 2019-11-15 09:58+0900\n"
+"PO-Revision-Date: 2019-11-15 10:21+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese <s.ohnishi77+github@gmail.com>\n"
 "Language: ja\n"
@@ -296,7 +296,7 @@ msgstr ""
 "Spyder 内部コンソール\n"
 "\n"
 "このコンソールは下記コマンド\n"
-"  spy.app, spy.window, dir (spy)\n"
+" spy.app, spy.window, dir (spy)\n"
 "により、アプリケーション内部エラーの報告と\n"
 "Spyder内部検査のために使われます。\n"
 "\n"
@@ -657,10 +657,10 @@ msgid ""
 "new version. <br><br>If you are not sure how to proceed to update Spyder "
 "please refer to our  <a href=\"%s\">Installation</a> instructions."
 msgstr ""
-"<b>Spyder %s is available!</b> <br><br>Please use your package manager to "
-"update Spyder or go to our <a href=\"%s\">Releases</a> page to download this "
-"new version. <br><br>If you are not sure how to proceed to update Spyder "
-"please refer to our  <a href=\"%s\">Installation</a> instructions."
+"<b>Spyder %s が利用できます!</b> <br><br>パッケージマネージャーでSpyderをアッ"
+"プデートするか、webの <a href=\"%s\">リリース</a> ページで新しいバージョンを"
+"ダウンロードして下さい。 <br><br>アップデート方法が良くわからない場合は <a "
+"href=\"%s\">インストール</a> ガイドを参照して下さい"
 
 #: spyder/app/mainwindow.py:3367
 msgid "Spyder is up to date."
@@ -3790,7 +3790,7 @@ msgstr " フォルダ内のファイルを検索中: {0}"
 
 #: spyder/plugins/findinfiles/widgets.py:1065
 msgid "  Searching for files..."
-msgstr "  ファイルを検索しています..."
+msgstr " ファイルを検索しています..."
 
 #: spyder/plugins/findinfiles/widgets.py:1124
 msgid "Find in files"
@@ -5033,7 +5033,7 @@ msgstr "合計コール回数 (再帰呼出しを含む)"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:690
 msgid "File:line where function is defined"
-msgstr "関数の定義されている  ファイル:行"
+msgstr "関数の定義されている ファイル:行"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:695
 msgid "recursion"
@@ -5906,7 +5906,7 @@ msgstr "オブジェクトの長さあるいは形状"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:309
 msgid "The identifier of the object with calculated using the id() function"
-msgstr "id()  関数を使用して計算されたオブジェクトの識別子"
+msgstr "id() 関数を使用して計算されたオブジェクトの識別子"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:319
 msgid ""
