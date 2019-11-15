@@ -518,6 +518,8 @@ class BaseTableView(QTableView):
         self.last_regex = ''
         self.view_action = None
         self.delegate = None
+        self.proxy_model = None
+        self.source_model = None
         self.setAcceptDrops(True)
         self.automatic_column_width = True
         self.setHorizontalHeader(BaseHeaderView(parent=self))
@@ -871,7 +873,8 @@ class BaseTableView(QTableView):
                                       one if len(indexes) == 1 else more,
                                       QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
-            idx_rows = unsorted_unique([idx.row() for idx in indexes])
+            idx_rows = unsorted_unique(
+                [self.proxy_model.mapToSource(idx).row() for idx in indexes])
             keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
             self.remove_values(keys)
 
