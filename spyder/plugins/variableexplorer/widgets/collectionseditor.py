@@ -859,7 +859,7 @@ class BaseTableView(QTableView):
         self.edit(index.child(index.row(), 3))
 
     @Slot()
-    def remove_item(self):
+    def remove_item(self, force=False):
         """Remove item"""
         indexes = self.selectedIndexes()
         if not indexes:
@@ -867,12 +867,13 @@ class BaseTableView(QTableView):
         for index in indexes:
             if not index.isValid():
                 return
-        one = _("Do you want to remove the selected item?")
-        more = _("Do you want to remove all selected items?")
-        answer = QMessageBox.question(self, _( "Remove"),
-                                      one if len(indexes) == 1 else more,
-                                      QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.Yes:
+        if not force:
+            one = _("Do you want to remove the selected item?")
+            more = _("Do you want to remove all selected items?")
+            answer = QMessageBox.question(self, _("Remove"),
+                                          one if len(indexes) == 1 else more,
+                                          QMessageBox.Yes | QMessageBox.No)
+        if force or answer == QMessageBox.Yes:
             idx_rows = unsorted_unique(
                 [self.proxy_model.mapToSource(idx).row() for idx in indexes])
             keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
