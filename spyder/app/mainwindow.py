@@ -176,7 +176,6 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     create_program_action, DialogManager,
                                     create_python_script_action, file_uri,
                                     MENU_SEPARATOR, set_menu_icons)
-from spyder.config.gui import get_shortcut
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
 
@@ -3173,20 +3172,21 @@ class MainWindow(QMainWindow):
 
     #---- Shortcuts
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          add_shortcut_to_tip=False):
+                          add_shortcut_to_tip=False, plugin_name=None):
         """
         Register QAction or QShortcut to Spyder main application,
         with shortcut (context, name, default)
         """
         self.shortcut_data.append((qaction_or_qshortcut, context,
-                                   name, add_shortcut_to_tip))
+                                   name, add_shortcut_to_tip, plugin_name))
 
     def apply_shortcuts(self):
         """Apply shortcuts settings to all widgets/plugins"""
         toberemoved = []
-        for index, (qobject, context, name,
-                    add_shortcut_to_tip) in enumerate(self.shortcut_data):
-            keyseq = QKeySequence( get_shortcut(context, name) )
+        for index, (qobject, context, name, add_shortcut_to_tip,
+                    plugin_name) in enumerate(self.shortcut_data):
+            keyseq = QKeySequence(CONF.get_shortcut(context, name,
+                                                    plugin_name))
             try:
                 if isinstance(qobject, QAction):
                     if sys.platform == 'darwin' and \

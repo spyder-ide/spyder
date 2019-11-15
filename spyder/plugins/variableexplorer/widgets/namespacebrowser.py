@@ -27,7 +27,6 @@ from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
@@ -190,36 +189,53 @@ class NamespaceBrowser(QWidget):
 
     def setup_toolbar(self):
         """Setup toolbar"""
-        load_button = create_toolbutton(self, text=_('Import data'),
-                                        icon=ima.icon('fileimport'),
-                                        triggered=lambda: self.import_data())
-        self.save_button = create_toolbutton(self, text=_("Save data"),
-                            icon=ima.icon('filesave'),
-                            triggered=lambda: self.save_data(self.filename))
+        load_button = create_toolbutton(
+            self,
+            text=_('Import data'),
+            icon=ima.icon('fileimport'),
+            triggered=lambda: self.import_data())
+
+        self.save_button = create_toolbutton(
+            self, text=_("Save data"),
+            icon=ima.icon('filesave'),
+            triggered=lambda: self.save_data(self.filename))
+
         self.save_button.setEnabled(False)
-        save_as_button = create_toolbutton(self,
-                                           text=_("Save data as..."),
-                                           icon=ima.icon('filesaveas'),
-                                           triggered=self.save_data)
+
+        save_as_button = create_toolbutton(
+            self,
+            text=_("Save data as..."),
+            icon=ima.icon('filesaveas'),
+            triggered=self.save_data)
+
         reset_namespace_button = create_toolbutton(
-                self, text=_("Remove all variables"),
-                icon=ima.icon('editdelete'), triggered=self.reset_namespace)
+            self, text=_("Remove all variables"),
+            icon=ima.icon('editdelete'),
+            triggered=self.reset_namespace)
 
         self.search_button = create_toolbutton(
-            self, text=_("Search variable names and types"),
+            self,
+            text=_("Search variable names and types"),
             icon=ima.icon('find'),
             toggled=self.show_finder)
-        config_shortcut(lambda: self.show_finder(set_visible=True),
-                        context='variable_explorer',
-                        name='search', parent=self)
+
+        CONF.config_shortcut(
+            lambda: self.show_finder(set_visible=True),
+            context='variable_explorer',
+            name='search',
+            parent=self)
 
         self.refresh_button = create_toolbutton(
-            self, text=_("Refresh variables"),
+            self,
+            text=_("Refresh variables"),
             icon=ima.icon('refresh'),
             triggered=self.refresh_table)
-        config_shortcut(self.refresh_table,
-                        context='variable_explorer',
-                        name='refresh', parent=self)
+
+        CONF.config_shortcut(
+            self.refresh_table,
+            context='variable_explorer',
+            name='refresh',
+            parent=self)
 
         return [load_button, self.save_button, save_as_button,
                 reset_namespace_button, self.search_button,
