@@ -100,7 +100,9 @@ class RecoveryDialog(QDialog):
         self.add_cancel_button()
         self.setWindowTitle(_('Recover from autosave'))
         self.setFixedSize(670, 400)
-        self.setWindowFlags(Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint)
+        self.setWindowFlags(
+            Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint |
+            Qt.WindowStaysOnTopHint)
 
     def gather_data(self, autosave_mapping):
         """
