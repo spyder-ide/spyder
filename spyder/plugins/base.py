@@ -270,11 +270,12 @@ class BasePluginWidgetMixin(object):
         except configparser.NoOptionError:
             pass
 
-        if self.shortcut is not None:
+        if self.shortcut is not None and self.main is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
                            self.switch_to_plugin)
             self.register_shortcut(sc, "_", "Switch to {}".format(
                 self.CONF_SECTION))
+
         return (dock, self._LOCATION)
 
     def _switch_to_plugin(self):
