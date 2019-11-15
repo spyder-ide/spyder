@@ -316,6 +316,10 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 def add_shortcut_to_tooltip(action, context, name):
     """Add the shortcut associated with a given action to its tooltip"""
     if not hasattr(action, '_tooltip_backup'):
+        # We store the original tooltip of the action without its associated
+        # shortcut so that we can update the tooltip properly if shortcuts
+        # are changed by the user over the course of the current session.
+        # See spyder-ide/spyder#10726.
         action._tooltip_backup = action.toolTip()
     action.setToolTip(action._tooltip_backup + ' (%s)' %
                       CONF.get_shortcut(context=context, name=name))
