@@ -30,25 +30,26 @@ DEFAULT_COMPLETION_ITEM_WIDTH = 250
 
 class CompletionWidget(QListWidget):
     """Completion list widget."""
-    ITEM_TYPE_MAP = {CompletionItemKind.TEXT: 'text',
-                     CompletionItemKind.METHOD: 'method',
-                     CompletionItemKind.FUNCTION: 'function',
-                     CompletionItemKind.CONSTRUCTOR: 'constructor',
-                     CompletionItemKind.FIELD: 'field',
-                     CompletionItemKind.VARIABLE: 'variable',
-                     CompletionItemKind.CLASS: 'class',
-                     CompletionItemKind.INTERFACE: 'interface',
-                     CompletionItemKind.MODULE: 'module',
-                     CompletionItemKind.PROPERTY: 'property',
-                     CompletionItemKind.UNIT: 'unit',
-                     CompletionItemKind.VALUE: 'value',
-                     CompletionItemKind.ENUM: 'enum',
-                     CompletionItemKind.KEYWORD: 'keyword',
-                     CompletionItemKind.SNIPPET: 'snippet',
-                     CompletionItemKind.COLOR: 'color',
-                     CompletionItemKind.FILE: 'filenew',
-                     CompletionItemKind.REFERENCE: 'reference',
-                     }
+    ITEM_TYPE_MAP = {
+        CompletionItemKind.TEXT: 'text',
+        CompletionItemKind.METHOD: 'method',
+        CompletionItemKind.FUNCTION: 'function',
+        CompletionItemKind.CONSTRUCTOR: 'constructor',
+        CompletionItemKind.FIELD: 'field',
+        CompletionItemKind.VARIABLE: 'variable',
+        CompletionItemKind.CLASS: 'class',
+        CompletionItemKind.INTERFACE: 'interface',
+        CompletionItemKind.MODULE: 'module',
+        CompletionItemKind.PROPERTY: 'property',
+        CompletionItemKind.UNIT: 'unit',
+        CompletionItemKind.VALUE: 'value',
+        CompletionItemKind.ENUM: 'enum',
+        CompletionItemKind.KEYWORD: 'keyword',
+        CompletionItemKind.SNIPPET: 'snippet',
+        CompletionItemKind.COLOR: 'color',
+        CompletionItemKind.FILE: 'filenew',
+        CompletionItemKind.REFERENCE: 'reference',
+        }
     ICON_MAP = {}
 
     sig_show_completions = Signal(object)
@@ -120,6 +121,7 @@ class CompletionWidget(QListWidget):
         if not isinstance(completion_list[0], dict):
             self.is_internal_console = True
         self.completion_list = completion_list
+
         # Check everything is in order
         self.update_current(new=True)
 
@@ -179,7 +181,7 @@ class CompletionWidget(QListWidget):
             else:
                 completion_label = completion[0]
 
-            if not self.check_can_complete(completion_label, current_word):
+            if not self.check_can_complete(completion_label, current_word, completion):
                 continue
             item = QListWidgetItem()
 
@@ -347,14 +349,25 @@ class CompletionWidget(QListWidget):
             filter_text = completion
         return self.check_can_complete(filter_text, current_word)
 
-    def check_can_complete(self, filter_text, current_word):
+    def check_can_complete(self, filter_text, current_word, params=None):
         """Check if current_word matches filter_text."""
         if not filter_text:
             return True
+
         if not current_word:
             return True
-        if not filter_text[0].isalpha():
-            current_word = filter_text[0] + current_word
+
+        # https://github.com/spyder-ide/spyder/commit/96ff608af2059865f74c225c065c0102a4da3f45#diff-a020df4c2a52279746bacc37a5fc8ce7R332
+        # if not filter_text[0].isalpha():
+        #     current_word = filter_text[0] + current_word
+        # if params:
+        #     print('\n')
+        #     print('filter_text', [filter_text])
+        #     print('insert_text', [params.get('insertText')])
+        #     print('currentword', [current_word])
+        #     print(params)
+        #     print('\n')
+
         return to_text_string(filter_text).lower().startswith(
                 to_text_string(current_word).lower())
 

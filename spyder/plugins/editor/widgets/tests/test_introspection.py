@@ -270,9 +270,9 @@ def test_automatic_completions_parens_bug(lsp_codeeditor, qtbot):
     assert "onesee" in [x['label'] for x in sig.args[0]]
 
 
-@pytest.mark.slow
-@pytest.mark.first
-@flaky(max_runs=5)
+# @pytest.mark.slow
+# @pytest.mark.first
+# @flaky(max_runs=5)
 def test_completions(lsp_codeeditor, qtbot):
     """Exercise code completion in several ways."""
     code_editor, _ = lsp_codeeditor
@@ -282,6 +282,34 @@ def test_completions(lsp_codeeditor, qtbot):
     code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
+    code_editor.go_to_line(1)
+
+    # Complete dunder imports from _ --> import 
+    qtbot.keyClicks(code_editor, 'from _')
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    # press tab and get completions
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert "__future__" in [x['label'] for x in sig.args[0]]
+    code_editor.set_text('')  # Delete line
+    code_editor.go_to_line(1)
+
+    # Complete underscore variables
+    qtbot.keyClicks(code_editor, '_foo = 1;_foom = 2;_fo')
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    # press tab and get completions
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+    completions = [x['label'] for x in sig.args[0]]
+    assert "_foo" in completions
+    assert "_foom" in completions
+    code_editor.set_text('')  # Delete line
     code_editor.go_to_line(1)
 
     # Complete import mat--> import math
