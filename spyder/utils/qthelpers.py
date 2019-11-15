@@ -315,7 +315,9 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 
 def add_shortcut_to_tooltip(action, context, name):
     """Add the shortcut associated with a given action to its tooltip"""
-    action.setToolTip(action.toolTip() + ' (%s)' %
+    if not hasattr(action, '_tooltip_backup'):
+        action._tooltip_backup = action.toolTip()
+    action.setToolTip(action._tooltip_backup + ' (%s)' %
                       CONF.get_shortcut(context=context, name=name))
 
 
