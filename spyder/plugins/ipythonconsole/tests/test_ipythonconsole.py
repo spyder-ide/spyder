@@ -1327,7 +1327,7 @@ def test_console_working_directory(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
                     reason="It only works on Linux with python 3.")
-def test_console_complete(ipyconsole, qtbot):
+def test_console_complete(ipyconsole, qtbot, tmpdir):
     """Test for checking the working directory."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -1448,21 +1448,16 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Check we can use custom complete for pdb
-    fd, path = tempfile.mkstemp('test.py')
-    try:
-        with os.fdopen(fd, 'w') as tmp:
-            # Write stuff
-            tmp.write('stuff\n')
-        # Set a breakpoint in the new file
-        qtbot.keyClicks(control, 'b ' + path + ':1')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-        # Check we can complete the breakpoint number
-        qtbot.keyClicks(control, 'ignore ')
-        qtbot.keyClick(control, Qt.Key_Tab)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '1')
-    finally:
-        os.remove(path)
+    test_file = tmpdir.join('test.py')
+    test_file.write('stuff\n')
+    # Set a breakpoint in the new file
+    qtbot.keyClicks(control, 'b ' + str(test_file) + ':1')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    # Check we can complete the breakpoint number
+    qtbot.keyClicks(control, 'ignore ')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '1')
 
 
 @pytest.mark.use_startup_wdir
