@@ -284,7 +284,7 @@ def test_completions(lsp_codeeditor, qtbot):
     # Set cursor to start
     code_editor.go_to_line(1)
 
-    # Complete dunder imports from _ --> import 
+    # Complete dunder imports from _ --> import _foo/_foom
     qtbot.keyClicks(code_editor, 'from _')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()

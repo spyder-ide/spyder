@@ -181,7 +181,7 @@ class CompletionWidget(QListWidget):
             else:
                 completion_label = completion[0]
 
-            if not self.check_can_complete(completion_label, current_word, completion):
+            if not self.check_can_complete(completion_label, current_word):
                 continue
             item = QListWidgetItem()
 
@@ -349,7 +349,7 @@ class CompletionWidget(QListWidget):
             filter_text = completion
         return self.check_can_complete(filter_text, current_word)
 
-    def check_can_complete(self, filter_text, current_word, params=None):
+    def check_can_complete(self, filter_text, current_word):
         """Check if current_word matches filter_text."""
         if not filter_text:
             return True
