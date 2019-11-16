@@ -3,6 +3,7 @@ atomicwrites
 chardet >=2.0.0
 cloudpickle
 diff-match-patch
+intervaltree
 jedi =0.14.1
 keyring
 nbconvert
@@ -28,4 +29,3 @@ spyder-kernels >=1.7.0
 # which depends on ujson
 ujson
 watchdog
-intervaltree
