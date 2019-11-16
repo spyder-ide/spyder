@@ -382,8 +382,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                                           section='main_interpreter')
         jedi = {
             'environment': environment,
-            'extra_paths': self.get_option('spyder_pythonpath', section='main',
-                                           default=None),
+            'extra_paths': self.get_option('spyder_pythonpath',
+                                           section='main', default=[]),
         }
         jedi_completion = {
             'enabled': self.get_option('code_completion'),

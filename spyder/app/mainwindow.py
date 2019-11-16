@@ -2949,6 +2949,7 @@ class MainWindow(QMainWindow):
             encoding.writelines(not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
         except EnvironmentError as e:
             logger.error(str(e))
+        CONF.set('main', 'spyder_pythonpath', self.get_spyder_pythonpath())
 
     def get_spyder_pythonpath_dict(self):
         """
