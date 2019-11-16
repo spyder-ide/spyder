@@ -172,6 +172,7 @@ class FoldingPanel(Panel):
         self.folding_regions = {}
         self.folding_status = {}
         self.folding_levels = {}
+        self.folding_nesting = {}
 
     def __compute_line_offsets(self, text, reverse=False):
         lines = text.splitlines(True)
@@ -220,12 +221,14 @@ class FoldingPanel(Panel):
             self.folding_status = folding_status
         # Compute region nesting level
         self.folding_levels = {start_line: 0 for start_line in self.folding_regions}
+        self.folding_nesting = {start_line: -1 for start_line in self.folding_regions}
         tree = IntervalTree.from_tuples(self.folding_regions.items())
         for (start, end) in self.folding_regions.items():
             nested_regions = tree.envelop(start, end)
             for region in nested_regions:
                 if region.begin != start:
                     self.folding_levels[region.begin] += 1
+                    self.folding_nesting[region.begin] = start
         self.update()
 
     def sizeHint(self):

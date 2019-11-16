@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 #
 # Copyright © Spyder Project Contributors
@@ -30,6 +29,13 @@ class IndentationGuide(Panel):
         Panel.__init__(self, editor)
         self.color = Qt.darkGray
         self.i_width = 4
+        self.bar_offset = 0
+        horizontal_scrollbar = editor.horizontalScrollBar()
+        horizontal_scrollbar.valueChanged.connect(self.update_bar_position)
+        horizontal_scrollbar.sliderReleased.connect(self.update)
+
+    def update_bar_position(self, value):
+        self.bar_offset = value
 
     def paintEvent(self, event):
         """Override Qt method."""
@@ -43,9 +49,8 @@ class IndentationGuide(Panel):
         folding_panel = self.editor.panels.get('FoldingPanel')
         folding_regions = folding_panel.folding_regions
         folding_status = folding_panel.folding_status
-        folding_levels = folding_panel.folding_levels
+        leading_whitespaces = self.editor.leading_whitespaces
         for line_number in folding_regions:
-            # if line_number in folding_status:
             post_update = False
             end_line = folding_regions[line_number]
             start_block = self.editor.document().findBlockByNumber(
@@ -55,9 +60,10 @@ class IndentationGuide(Panel):
                 start_block).translated(self.editor.contentOffset()).top())
             bottom = int(self.editor.blockBoundingGeometry(
                 end_block).translated(self.editor.contentOffset()).bottom())
-            current_level = folding_levels[line_number]
-            x = (self.editor.fontMetrics().width(
-                    current_level * self.i_width * '9') + offset)
+            total_whitespace = leading_whitespaces[max(line_number - 1, 0)]
+
+            x = (self.editor.fontMetrics().width(total_whitespace * '9') +
+                 self.bar_offset + offset)
             painter.drawLine(x, top, x, bottom)
 
     # --- Other methods
