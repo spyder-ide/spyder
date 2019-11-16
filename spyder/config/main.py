@@ -164,6 +164,7 @@ DEFAULTS = [
               'exclude_uppercase': True,
               'exclude_capitalized': False,
               'exclude_unsupported': True,
+              'exclude_callables_and_modules': True,
               'truncate': True,
               'minmax': False,
               'show_callable_attributes': True,
