@@ -335,6 +335,15 @@ def _get_win_reg_info(key_path, hive, flag, subkeys):
     return software_list
 
 
+def _clean_win_application_path(path):
+    """Normalize windows path and remove extra quotes."""
+    path = path.replace('\\', '/').lower()
+    # Check for quotes at start and end
+    if path[0] == '"' and path[-1] == '"':
+        path = literal_eval(path)
+    return path
+
+
 def _get_win_applications():
     """Return all system installed windows applications."""
     import winreg
@@ -357,9 +366,8 @@ def _get_win_applications():
     for software in sorted(software_list, key=lambda x: x[sort_key]):
         if software[None]:
             key = software['key'].capitalize().replace('.exe', '')
-            expanded_fpath = os.path.expandvars(software[None]).lower()
-            if '"' in expanded_fpath or "'" in expanded_fpath:
-                expanded_fpath = literal_eval(expanded_fpath)
+            expanded_fpath = os.path.expandvars(software[None])
+            expanded_fpath = _clean_win_application_path(expanded_fpath)
             app_paths[key] = expanded_fpath
 
     # See:
@@ -377,7 +385,7 @@ def _get_win_applications():
         icon = software['DisplayIcon']
         key = software['key']
         if name and icon:
-            icon = icon.replace('"', '').replace("'", '')
+            icon = icon.replace('"', '')
             icon = icon.split(',')[0]
 
             if location == '' and icon:
@@ -395,9 +403,9 @@ def _get_win_applications():
                         valid_file = fn_low.endswith(('.exe', '.com', '.bat'))
                         if valid_file and not fn_low.startswith('unins'):
                             fpath = os.path.join(location, fname)
-                            expanded_fpath = os.path.expandvars(fpath.lower())
-                            if '"' in expanded_fpath or "'" in expanded_fpath:
-                                expanded_fpath = literal_eval(expanded_fpath)
+                            expanded_fpath = os.path.expandvars(fpath)
+                            expanded_fpath = _clean_win_application_path(
+                                expanded_fpath)
                             apps[name + ' (' + fname + ')'] = expanded_fpath
     # Join data
     values = list(zip(*apps.values()))[-1]
