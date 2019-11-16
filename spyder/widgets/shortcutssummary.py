@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QDialog, QLabel, QGridLayout, QGroupBox,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import iter_shortcuts
+from spyder.config.manager import CONF
 
 # Constants
 MAX_FONT_SIZE = 16
@@ -78,7 +78,7 @@ class ShortcutsSummaryDialog(QDialog):
         added_shortcuts = 0
         group = None
         # group shortcuts by context
-        shortcuts = groupby(sorted(iter_shortcuts()), key=itemgetter(0))
+        shortcuts = groupby(sorted(CONF.iter_shortcuts()), key=itemgetter(0))
 
         for context, group_shortcuts in shortcuts:
             for i, (context, name, keystr) in enumerate(group_shortcuts):
