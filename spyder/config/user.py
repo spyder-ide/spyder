@@ -907,13 +907,25 @@ class MultiUserConfig(object):
         """Return the UserConfig class to use."""
         return SpyderUserConfig
 
+    def sections(self):
+        """Return all sections of the configuration file."""
+        sections = set()
+        for _, config in self._configs_map.items():
+            for section in config.sections():
+                sections.add(section)
+
+        return list(sorted(sections))
+
     def items(self, section):
         """Return all the items option/values for the given section."""
         config = self._get_config(section, None)
         if config is None:
             config = self._configs_map[self.DEFAULT_FILE_NAME]
 
-        return config.items(section=section)
+        if config.has_section(section):
+            return config.items(section=section)
+        else:
+            return None
 
     def options(self, section):
         """Return all the options for the given section."""

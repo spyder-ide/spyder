@@ -24,5 +24,8 @@ qtpy >=1.5.0
 rtree
 sphinx
 spyder-kernels >=1.7.0
+# This is here until a new version of the PyLS is released,
+# which depends on ujson
+ujson
 watchdog
 intervaltree

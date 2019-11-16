@@ -283,6 +283,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.changed_options = set()
         self.restart_options = dict()  # Dict to store name and localized text
         self.default_button_group = None
+        self.main = parent.main
 
     def apply_settings(self, options):
         raise NotImplementedError
@@ -859,31 +860,6 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         widget.setLayout(layout)
         return widget
 
-
-class GeneralConfigPage(SpyderConfigPage):
-    """Config page that maintains reference to main Spyder window
-       and allows to specify page name and icon declaratively
-    """
-    CONF_SECTION = None
-
-    NAME = None    # configuration page name, e.g. _("General")
-    ICON = None    # name of icon resource (24x24)
-
-    def __init__(self, parent, main):
-        SpyderConfigPage.__init__(self, parent)
-        self.main = main
-
-    def get_name(self):
-        """Configuration page name"""
-        return self.NAME
-
-    def get_icon(self):
-        """Loads page icon named by self.ICON"""
-        return self.ICON
-
-    def apply_settings(self, options):
-        raise NotImplementedError
-
     def prompt_restart_required(self):
         """Prompt the user with a request to restart."""
         restart_opts = self.restart_options
@@ -912,3 +888,28 @@ class GeneralConfigPage(SpyderConfigPage):
     def restart(self):
         """Restart Spyder."""
         self.main.restart()
+
+
+class GeneralConfigPage(SpyderConfigPage):
+    """Config page that maintains reference to main Spyder window
+       and allows to specify page name and icon declaratively
+    """
+    CONF_SECTION = None
+
+    NAME = None    # configuration page name, e.g. _("General")
+    ICON = None    # name of icon resource (24x24)
+
+    def __init__(self, parent, main):
+        SpyderConfigPage.__init__(self, parent)
+        self.main = main
+
+    def get_name(self):
+        """Configuration page name"""
+        return self.NAME
+
+    def get_icon(self):
+        """Loads page icon named by self.ICON"""
+        return self.ICON
+
+    def apply_settings(self, options):
+        raise NotImplementedError

@@ -28,6 +28,9 @@ except Exception:
     rtree_available = False
 
 # Local imports
+from spyder.plugins.completion.languageserver import (
+    LSPRequestTypes, CompletionItemKind)
+from spyder.plugins.completion.kite.providers.document import KITE_COMPLETION
 from spyder.py3compat import PY2
 from spyder.config.manager import CONF
 
@@ -765,6 +768,55 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
     word_set = {x['insertText'] for x in sig.args[0]}
     assert 'another' not in word_set
+
+    code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
+
+
+@pytest.mark.slow
+@pytest.mark.first
+@flaky(max_runs=5)
+def test_kite_textEdit_completions(mock_completions_codeeditor, qtbot):
+    """Test textEdit completions such as those returned by the Kite provider.
+
+    This mocks out the completions response, and does not test the Kite
+    provider directly.
+    """
+    code_editor, mock_response = mock_completions_codeeditor
+    completion = code_editor.completion_widget
+
+    code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
+
+    # Set cursor to start
+    code_editor.go_to_line(1)
+
+    qtbot.keyClicks(code_editor, 'my_dict.')
+
+    # Complete my_dict. -> my_dict["dict-key"]
+    mock_response.side_effect = lambda lang, method, params: {'params': [{
+        'kind': CompletionItemKind.TEXT,
+        'label': '["dict-key"]',
+        'textEdit': {
+            'newText': '["dict-key"]',
+            'range': {
+                'start': 7,
+                'end': 8,
+            },
+        },
+        'filterText': '',
+        'sortText': '',
+        'documentation': '',
+        'provider': KITE_COMPLETION,
+    }]} if method == LSPRequestTypes.DOCUMENT_COMPLETION else None
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
+    mock_response.side_effect = None
+
+    assert '["dict-key"]' in [x['label'] for x in sig.args[0]]
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    assert code_editor.toPlainText() == 'my_dict["dict-key"]\n'
 
     code_editor.toggle_automatic_completions(True)
     code_editor.toggle_code_snippets(True)

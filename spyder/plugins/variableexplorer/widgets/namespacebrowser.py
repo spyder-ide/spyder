@@ -27,7 +27,6 @@ from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
@@ -190,31 +189,57 @@ class NamespaceBrowser(QWidget):
 
     def setup_toolbar(self):
         """Setup toolbar"""
-        load_button = create_toolbutton(self, text=_('Import data'),
-                                        icon=ima.icon('fileimport'),
-                                        triggered=lambda: self.import_data())
-        self.save_button = create_toolbutton(self, text=_("Save data"),
-                            icon=ima.icon('filesave'),
-                            triggered=lambda: self.save_data(self.filename))
+        load_button = create_toolbutton(
+            self,
+            text=_('Import data'),
+            icon=ima.icon('fileimport'),
+            triggered=lambda: self.import_data())
+
+        self.save_button = create_toolbutton(
+            self, text=_("Save data"),
+            icon=ima.icon('filesave'),
+            triggered=lambda: self.save_data(self.filename))
+
         self.save_button.setEnabled(False)
-        save_as_button = create_toolbutton(self,
-                                           text=_("Save data as..."),
-                                           icon=ima.icon('filesaveas'),
-                                           triggered=self.save_data)
+
+        save_as_button = create_toolbutton(
+            self,
+            text=_("Save data as..."),
+            icon=ima.icon('filesaveas'),
+            triggered=self.save_data)
+
         reset_namespace_button = create_toolbutton(
-                self, text=_("Remove all variables"),
-                icon=ima.icon('editdelete'), triggered=self.reset_namespace)
+            self, text=_("Remove all variables"),
+            icon=ima.icon('editdelete'),
+            triggered=self.reset_namespace)
 
         self.search_button = create_toolbutton(
-            self, text=_("Search variable names and types"),
+            self,
+            text=_("Search variable names and types"),
             icon=ima.icon('find'),
             toggled=self.show_finder)
-        config_shortcut(lambda: self.show_finder(set_visible=True),
-                        context='variable_explorer',
-                        name='search', parent=self)
+
+        CONF.config_shortcut(
+            lambda: self.show_finder(set_visible=True),
+            context='variable_explorer',
+            name='search',
+            parent=self)
+
+        self.refresh_button = create_toolbutton(
+            self,
+            text=_("Refresh variables"),
+            icon=ima.icon('refresh'),
+            triggered=self.refresh_table)
+
+        CONF.config_shortcut(
+            self.refresh_table,
+            context='variable_explorer',
+            name='refresh',
+            parent=self)
 
         return [load_button, self.save_button, save_as_button,
-                reset_namespace_button, self.search_button]
+                reset_namespace_button, self.search_button,
+                self.refresh_button]
 
     def setup_option_actions(self, exclude_private, exclude_uppercase,
                              exclude_capitalized, exclude_unsupported):
@@ -391,14 +416,14 @@ class NamespaceBrowser(QWidget):
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 QApplication.processEvents()
                 error_message = self.shellwidget.load_data(self.filename, ext)
-                self.shellwidget._kernel_reply = None
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
     
             if error_message is not None:
                 QMessageBox.critical(self, title,
                                      _("<b>Unable to load '%s'</b>"
-                                       "<br><br>Error message:<br>%s"
+                                       "<br><br>"
+                                       "The error message was:<br>%s"
                                        ) % (self.filename, error_message))
             self.refresh_table()
 
@@ -426,20 +451,20 @@ class NamespaceBrowser(QWidget):
         QApplication.processEvents()
 
         error_message = self.shellwidget.save_namespace(self.filename)
-        self.shellwidget._kernel_reply = None
 
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()
         if error_message is not None:
             if 'Some objects could not be saved:' in error_message:
                 save_data_message = (
-                    _('<b>Some objects could not be saved:</b>')
-                    + '<br><br><code>{obj_list}</code>'.format(
+                    _("<b>Some objects could not be saved:</b>")
+                    + "<br><br><code>{obj_list}</code>".format(
                         obj_list=error_message.split(': ')[1]))
             else:
                 save_data_message = _(
-                    '<b>Unable to save current workspace</b>'
-                    '<br><br>Error message:<br>') + error_message
+                    "<b>Unable to save current workspace</b>"
+                    "<br><br>"
+                    "The error message was:<br>") + error_message
             QMessageBox.critical(self, _("Save data"), save_data_message)
         self.save_button.setEnabled(self.filename is not None)
 

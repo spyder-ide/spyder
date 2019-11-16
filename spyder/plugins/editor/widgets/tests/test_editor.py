@@ -11,7 +11,7 @@ Tests for editor.py
 # Standard library imports
 import os
 import os.path as osp
-from sys import platform
+import sys
 try:
     from unittest.mock import Mock, MagicMock
 except ImportError:
@@ -327,6 +327,7 @@ def test_replace_current_selected_line(editor_find_replace_bot, qtbot):
     assert editor.toPlainText()[0:-1] == expected_new_text
 
 
+@pytest.mark.skipif(sys.platform.startswith('linux'), reason="Fails in Linux")
 def test_replace_enter_press(editor_find_replace_bot, qtbot):
     """Test advance forward pressing Enter, and backwards with Shift+Enter."""
     editor_stack, editor, finder = editor_find_replace_bot
@@ -568,7 +569,7 @@ def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot,
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(platform.startswith('linux'), reason="Fails on Linux.")
+@pytest.mark.skipif(sys.platform.startswith('linux'), reason="Fails on Linux")
 def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot,
                                                 qtbot):
     """

@@ -157,8 +157,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self._data = data
         data_type = get_type_string(data)
 
-        if coll_filter is not None and not self.remote and \
-          isinstance(data, (tuple, list, dict, set)):
+        if (coll_filter is not None and not self.remote and
+                isinstance(data, (tuple, list, dict, set))):
             data = coll_filter(data)
         self.showndata = data
 
@@ -518,6 +518,8 @@ class BaseTableView(QTableView):
         self.last_regex = ''
         self.view_action = None
         self.delegate = None
+        self.proxy_model = None
+        self.source_model = None
         self.setAcceptDrops(True)
         self.automatic_column_width = True
         self.setHorizontalHeader(BaseHeaderView(parent=self))
@@ -857,7 +859,7 @@ class BaseTableView(QTableView):
         self.edit(index.child(index.row(), 3))
 
     @Slot()
-    def remove_item(self):
+    def remove_item(self, force=False):
         """Remove item"""
         indexes = self.selectedIndexes()
         if not indexes:
@@ -865,13 +867,15 @@ class BaseTableView(QTableView):
         for index in indexes:
             if not index.isValid():
                 return
-        one = _("Do you want to remove the selected item?")
-        more = _("Do you want to remove all selected items?")
-        answer = QMessageBox.question(self, _( "Remove"),
-                                      one if len(indexes) == 1 else more,
-                                      QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            idx_rows = unsorted_unique([idx.row() for idx in indexes])
+        if not force:
+            one = _("Do you want to remove the selected item?")
+            more = _("Do you want to remove all selected items?")
+            answer = QMessageBox.question(self, _("Remove"),
+                                          one if len(indexes) == 1 else more,
+                                          QMessageBox.Yes | QMessageBox.No)
+        if force or answer == QMessageBox.Yes:
+            idx_rows = unsorted_unique(
+                [self.proxy_model.mapToSource(idx).row() for idx in indexes])
             keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
             self.remove_values(keys)
 
@@ -1101,8 +1105,8 @@ class CollectionsEditorTableView(BaseTableView):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, (tuple, set))
-        CollectionsModelClass = ReadOnlyCollectionsModel if self.readonly \
-                                else CollectionsModel
+        CollectionsModelClass = (ReadOnlyCollectionsModel if self.readonly
+                                 else CollectionsModel)
         self.source_model = CollectionsModelClass(self, data, title,
                                                   names=names,
                                                   minmax=minmax)
