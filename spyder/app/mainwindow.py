@@ -484,6 +484,7 @@ class MainWindow(QMainWindow):
         self.conda_status = None
         self.mem_status = None
         self.cpu_status = None
+        self.clock_status = None
 
         # Toolbars
         self.visible_toolbars = []
@@ -1204,9 +1205,10 @@ class MainWindow(QMainWindow):
         self.help_menu_actions += [MENU_SEPARATOR, about_action]
 
         # Status bar widgets
-        from spyder.widgets.status import MemoryStatus, CPUStatus
+        from spyder.widgets.status import MemoryStatus, CPUStatus, ClockStatus
         self.mem_status = MemoryStatus(self, status)
         self.cpu_status = CPUStatus(self, status)
+        self.clock_status = ClockStatus(self, status)
         self.apply_statusbar_settings()
 
         # ----- View
@@ -3082,7 +3084,8 @@ class MainWindow(QMainWindow):
 
         if show_status_bar:
             for widget, name in ((self.mem_status, 'memory_usage'),
-                                 (self.cpu_status, 'cpu_usage')):
+                                 (self.cpu_status, 'cpu_usage'),
+                                 (self.clock_status, 'clock')):
                 if widget is not None:
                     widget.setVisible(CONF.get('main', '%s/enable' % name))
                     widget.set_interval(CONF.get('main', '%s/timeout' % name))
