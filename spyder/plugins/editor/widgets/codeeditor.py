@@ -1154,6 +1154,7 @@ class CodeEditor(TextEditBaseWidget):
         """Handle signature response."""
         try:
             signature_params = params['params']
+
             if (signature_params is not None and
                     'activeParameter' in signature_params):
                 self.sig_signature_invoked.emit(signature_params)
@@ -1440,6 +1441,7 @@ class CodeEditor(TextEditBaseWidget):
             if self.support_language:
                 self.language = sh_class._lexer.name
         self._set_highlighter(sh_class)
+        self.completion_widget.set_language(self.language)
 
     def _set_highlighter(self, sh_class):
         self.highlighter_class = sh_class
@@ -2177,6 +2179,7 @@ class CodeEditor(TextEditBaseWidget):
     def show_hint_for_completion(self, word, documentation, at_point):
         """Show hint for completion element."""
         if self.completions_hint and self._completions_hint_idle:
+            documentation = documentation.replace(u'\xa0', ' ')
             completion_doc = {'name': word,
                               'signature': documentation}
 
