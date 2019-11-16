@@ -3476,10 +3476,17 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return super(CodeEditor, self).event(event)
 
+    def _start_completion_timer(self):
+        """Helper to start timer or complete."""
+        if self.automatic_completions_after_ms > 0:
+            self._timer_autocomplete.start(
+                self.automatic_completions_after_ms)
+        else:
+            self._handle_completions()
+
     def keyPressEvent(self, event):
         """Reimplement Qt method."""
-        if self.automatic_completions_after_ms > 0:
-            self._timer_autocomplete.start(self.automatic_completions_after_ms)
+        self._start_completion_timer()
 
         if self.completions_hint_after_ms > 0:
             self._completions_hint_idle = False
@@ -3616,7 +3623,7 @@ class CodeEditor(TextEditBaseWidget):
                     last_obj = getobj(text)
                     prev_char = text[-2] if len(text) > 1 else ''
                     if prev_char in {')', ']', '}'} or (last_obj and not last_obj.isdigit()):
-                        self.do_completion(automatic=True)
+                        self._start_completion_timer()
             else:
                 self.do_completion(automatic=True)
         elif (text != '(' and text in self.signature_completion_characters and
@@ -3675,11 +3682,19 @@ class CodeEditor(TextEditBaseWidget):
             event.accept()
 
     def _handle_completions(self):
-        """Handle on the fly completions with a delay."""
+        """Handle on the fly completions after delay."""
         cursor = self.textCursor()
         pos = cursor.position()
         cursor.select(QTextCursor.WordUnderCursor)
         text = to_text_string(cursor.selectedText())
+
+        # Text might be after a dot '.'
+        if text == '':
+            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.select(QTextCursor.WordUnderCursor)
+            text = to_text_string(cursor.selectedText())
+            if text != '.':
+                text = ''
 
         # WordUnderCursor fails if the cursor is next to a right brace.
         # If the returned text starts with it, we move to the left.
@@ -3695,7 +3710,8 @@ class CodeEditor(TextEditBaseWidget):
             # Perform completion on the fly
             if self.automatic_completions and not self.in_comment_or_string():
                 # Variables can include numbers and underscores
-                if text.isalpha() or text.isalnum() or '_' in text:
+                if (text.isalpha() or text.isalnum() or '_' in text
+                        or '.' in text):
                     self.do_completion(automatic=True)
                     self._last_key_pressed_text = ''
 
