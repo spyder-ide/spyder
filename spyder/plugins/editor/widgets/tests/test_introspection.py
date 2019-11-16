@@ -270,9 +270,9 @@ def test_automatic_completions_parens_bug(lsp_codeeditor, qtbot):
     assert "onesee" in [x['label'] for x in sig.args[0]]
 
 
-# @pytest.mark.slow
-# @pytest.mark.first
-# @flaky(max_runs=5)
+@pytest.mark.slow
+@pytest.mark.first
+@flaky(max_runs=5)
 def test_completions(lsp_codeeditor, qtbot):
     """Exercise code completion in several ways."""
     code_editor, _ = lsp_codeeditor

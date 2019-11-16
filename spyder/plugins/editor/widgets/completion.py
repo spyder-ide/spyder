@@ -357,17 +357,6 @@ class CompletionWidget(QListWidget):
         if not current_word:
             return True
 
-        # https://github.com/spyder-ide/spyder/commit/96ff608af2059865f74c225c065c0102a4da3f45#diff-a020df4c2a52279746bacc37a5fc8ce7R332
-        # if not filter_text[0].isalpha():
-        #     current_word = filter_text[0] + current_word
-        # if params:
-        #     print('\n')
-        #     print('filter_text', [filter_text])
-        #     print('insert_text', [params.get('insertText')])
-        #     print('currentword', [current_word])
-        #     print(params)
-        #     print('\n')
-
         return to_text_string(filter_text).lower().startswith(
                 to_text_string(current_word).lower())
 
