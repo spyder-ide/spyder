@@ -3111,12 +3111,6 @@ class MainWindow(QMainWindow):
                               "alignment: left;}")
             self.prefs_dialog_instance = dlg
 
-            # Signals
-            dlg.finished.connect(_dialog_finished)
-            dlg.pages_widget.currentChanged.connect(
-                self.__preference_page_changed)
-            dlg.size_change.connect(self.set_prefs_size)
-
             # Setup
             if self.prefs_dialog_size is not None:
                 dlg.resize(self.prefs_dialog_size)
