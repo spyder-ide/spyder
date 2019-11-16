@@ -285,13 +285,13 @@ class CondaStatus(StatusBarWidget):
 
 
 class ClockStatus(BaseTimerStatus):
-    """"Add clock to statusbar in a fullscreen mode"""
+    """"Add clock to statusbar in a fullscreen mode."""
 
     def import_test(self):
         pass
 
     def get_value(self):
-        """Return the time"""
+        """Return the time."""
         from time import localtime, strftime
         text = strftime("%H:%M", localtime())
 
