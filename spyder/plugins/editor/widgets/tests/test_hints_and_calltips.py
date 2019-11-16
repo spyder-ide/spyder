@@ -58,7 +58,7 @@ def test_hide_calltip(lsp_codeeditor, qtbot):
     assert not calltip.isVisible()
 
 
-@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.second
 @pytest.mark.parametrize('params', [
             # Parameter, Expected Output
