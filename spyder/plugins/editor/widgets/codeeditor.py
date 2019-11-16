@@ -3608,7 +3608,8 @@ class CodeEditor(TextEditBaseWidget):
             # redefine this basic action which should have been implemented
             # natively
             self.stdkey_end(shift, ctrl)
-        elif text in self.auto_completion_characters:
+        elif (CONF.get('editor', 'automatic_completions')
+                  and text in self.auto_completion_characters):
             self.insert_text(text)
             if text == ".":
                 if not self.in_comment_or_string():
