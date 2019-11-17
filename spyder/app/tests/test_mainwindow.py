@@ -2160,55 +2160,6 @@ def test_report_comms_error(qtbot, main_window):
 
 
 @pytest.mark.slow
-def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
-    """
-    Test for spyder-ide/spyder/#10139 regression.
-
-    Enabling codestyle/docstyle on the completion section of preferences,
-    was not updating correctly.
-    """
-    def trigger():
-        pref = main_window.prefs_dialog_instance
-        index = 5
-        page = pref.get_page(index)
-        pref.set_current_index(index)
-        qtbot.wait(1000)
-
-        for idx, check in enumerate([page.code_style_check,
-                                     page.docstring_style_check]):
-            page.tabs.setCurrentIndex(idx + 2)
-            check.animateClick(200)
-            qtbot.wait(1000)
-
-        qtbot.wait(4000)
-        pref.ok_btn.animateClick(300)
-
-
-    CONF.set('lsp-server', 'pycodestyle', False)
-    CONF.set('lsp-server', 'pydocstyle', False)
-
-    timer = QTimer()
-    timer.setSingleShot(True)
-    timer.timeout.connect(trigger)
-    timer.start(5000)
-
-    main_window.show_preferences()
-    qtbot.wait(5000)
-
-    for menu_item in main_window.source_menu_actions:
-        if menu_item and isinstance(menu_item, QAction):
-            print(menu_item.text(), menu_item.isChecked())
-
-            if 'code style' in menu_item.text():
-                assert menu_item.isChecked()
-            elif 'docstring style' in menu_item.text():
-                assert menu_item.isChecked()
-
-    CONF.set('lsp-server', 'pycodestyle', False)
-    CONF.set('lsp-server', 'pydocstyle', False)
-
-
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_break_while_running(main_window, qtbot, tmpdir):
     """Test that we can set breakpoints while running."""
@@ -2264,6 +2215,70 @@ def test_break_while_running(main_window, qtbot, tmpdir):
     main_window.editor.clear_all_breakpoints()
 
 
+# --- Preferences
+# ----------------------------------------------------------------------------
+def preferences_dialog_helper(qtbot, main_window, section):
+    """
+    Open preferences dialog and select page with `section` (CONF_SECTION).
+    """
+    main_window.show_preferences()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is not None,
+                    timeout=5000)
+    dlg = main_window.prefs_dialog_instance
+    index = dlg.get_index_by_name(section)
+    page = dlg.get_page(index)
+    dlg.set_current_index(index)
+    return dlg, index, page
+
+
+@pytest.mark.slow
+def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
+    """
+    Test for spyder-ide/spyder/#10139 regression.
+
+    Enabling codestyle/docstyle on the completion section of preferences,
+    was not updating correctly.
+    """
+    # Reset config
+    CONF.set('lsp-server', 'pycodestyle', False)
+    CONF.set('lsp-server', 'pydocstyle', False)
+
+    # Open completion prefences and update options
+    dlg, index, page = preferences_dialog_helper(qtbot, main_window,
+                                                 'lsp-server')
+    # Get the correct tab pages inside the Completion preferences page
+    tnames = [page.tabs.tabText(i).lower() for i in range(page.tabs.count())]
+    tab_widgets = {
+        tnames.index('code style'): page.code_style_check,
+        tnames.index('docstring style'): page.docstring_style_check,
+    }
+    for idx, check in tab_widgets.items():
+        page.tabs.setCurrentIndex(idx)
+        check.animateClick()
+        qtbot.wait(500)
+    dlg.ok_btn.animateClick()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+                    timeout=5000)
+
+    # Check the menus are correctly updated
+    count = 0
+    for menu_item in main_window.source_menu_actions:
+        if menu_item and isinstance(menu_item, QAction):
+            print(menu_item.text(), menu_item.isChecked())
+
+            if 'code style' in menu_item.text():
+                assert menu_item.isChecked()
+                count += 1
+            elif 'docstring style' in menu_item.text():
+                assert menu_item.isChecked()
+                count += 1
+    assert count == 2
+
+    # Reset config
+    CONF.set('lsp-server', 'pycodestyle', False)
+    CONF.set('lsp-server', 'pydocstyle', False)
+
+
 @pytest.mark.slow
 def test_preferences_change_font_regression(main_window, qtbot):
     """
@@ -2271,30 +2286,63 @@ def test_preferences_change_font_regression(main_window, qtbot):
 
     Changing font resulted in error.
     """
-    def trigger():
-        pref = main_window.prefs_dialog_instance
-        index = 1
-        page = pref.get_page(index)
-        pref.set_current_index(index)
-        qtbot.wait(1000)
+    dlg, index, page = preferences_dialog_helper(qtbot, main_window,
+                                                 'appearance')
+    for fontbox in [page.plain_text_font.fontbox,
+                    page.rich_text_font.fontbox]:
+        fontbox.setFocus()
+        idx = fontbox.currentIndex()
+        fontbox.setCurrentIndex(idx + 1)
+    dlg.ok_btn.animateClick()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+                    timeout=5000)
 
-        for fontbox in [page.plain_text_font.fontbox,
-                        page.rich_text_font.fontbox]:
-            fontbox.setFocus()
-            idx = fontbox.currentIndex()
-            fontbox.setCurrentIndex(idx + 1)
-            qtbot.wait(1000)
 
-        qtbot.wait(4000)
-        pref.ok_btn.animateClick(300)
+@pytest.mark.slow
+def test_preferences_change_interpreter(qtbot, main_window):
+    """Test that on main interpreter change signal is emitted."""
+    # Check original pyls configuration
+    lsp = main_window.completions.get_client('lsp')
+    config = lsp.generate_python_config()
+    jedi = config['configurations']['pyls']['plugins']['jedi']
+    assert jedi['environment'] is None
+    assert jedi['extra_paths'] == []
 
-    timer = QTimer()
-    timer.setSingleShot(True)
-    timer.timeout.connect(trigger)
-    timer.start(5000)
+    # Change main interpreter on preferences
+    dlg, index, page = preferences_dialog_helper(qtbot, main_window,
+                                                 'main_interpreter')
+    page.cus_exec_radio.setChecked(True)
+    page.cus_exec_combo.combobox.setCurrentText(sys.executable)
+    with qtbot.waitSignal(main_window.sig_main_interpreter_changed,
+                          timeout=5000, raising=True):
+        dlg.ok_btn.animateClick()
+
+    # Check updated pyls configuration
+    config = lsp.generate_python_config()
+    jedi = config['configurations']['pyls']['plugins']['jedi']
+    assert jedi['environment'] == sys.executable
+    assert jedi['extra_paths'] == []
+
+
+@pytest.mark.slow
+def test_preferences_last_page_is_loaded(qtbot, main_window):
+    # Test that the last page is updated on re open
+    dlg, index, page = preferences_dialog_helper(qtbot, main_window,
+                                                 'main_interpreter')
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is not None,
+                    timeout=5000)
+    dlg.ok_btn.animateClick()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+                    timeout=5000)
 
     main_window.show_preferences()
-    qtbot.wait(5000)
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is not None,
+                    timeout=5000)
+    dlg = main_window.prefs_dialog_instance
+    assert dlg.get_current_index() == index
+    dlg.ok_btn.animateClick()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+                    timeout=5000)
 
 
 @pytest.mark.slow
