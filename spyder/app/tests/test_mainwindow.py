@@ -2464,7 +2464,7 @@ def test_varexp_rename(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
                     timeout=EVAL_TIMEOUT)
 
-    # Remove one element
+    # Rename one element
     nsb.editor.setCurrentIndex(nsb.editor.model.index(1, 0))
     nsb.editor.rename_item(new_name='arr2')
 
