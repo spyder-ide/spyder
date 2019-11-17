@@ -72,6 +72,45 @@ def nonsettable_objects_data():
 # =============================================================================
 # Tests
 # ============================================================================
+def test_rename_variable(qtbot):
+    """Test renaming of the correct variable."""
+    variables = {'a': 1,
+                 'b': 2,
+                 'c': 3,
+                 'd': '4',
+                 'e': 5}
+    editor = CollectionsEditorTableView(None, variables.copy())
+    qtbot.addWidget(editor)
+    editor.setCurrentIndex(editor.model.index(1, 0))
+
+    editor.rename_item(new_name='b2')
+    assert editor.model.rowCount() == 5
+    assert data(editor.model, 0, 0) == 'a'
+    assert data(editor.model, 1, 0) == 'b2'
+    assert data(editor.model, 2, 0) == 'c'
+    assert data(editor.model, 3, 0) == 'd'
+    assert data(editor.model, 4, 0) == 'e'
+
+    # Reset variables and try renaming one again
+    new_variables = {'a': 1,
+                     'b': 2,
+                     'b2': 2,
+                     'c': 3,
+                     'd': '4',
+                     'e': 5}
+    editor.set_data(new_variables.copy())
+    editor.adjust_columns()
+    editor.setCurrentIndex(editor.model.index(1, 0))
+    editor.rename_item(new_name='b3')
+    assert editor.model.rowCount() == 6
+    assert data(editor.model, 0, 0) == 'a'
+    assert data(editor.model, 1, 0) == 'b2'
+    assert data(editor.model, 2, 0) == 'b3'
+    assert data(editor.model, 3, 0) == 'c'
+    assert data(editor.model, 4, 0) == 'd'
+    assert data(editor.model, 5, 0) == 'e'
+
+
 def test_remove_variable(qtbot):
     """Test removing of the correct variable."""
     variables = {'a': 1,
@@ -362,7 +401,7 @@ def test_rename_and_duplicate_item_in_collection_editor():
         editor = CollectionsEditorTableView(None, coll)
         assert editor.rename_action.isEnabled()
         assert editor.duplicate_action.isEnabled()
-        editor.setCurrentIndex(editor.source_model.index(0, 0))
+        editor.setCurrentIndex(editor.model.index(0, 0))
         editor.refresh_menu()
         assert editor.rename_action.isEnabled() == rename_enabled
         assert editor.duplicate_action.isEnabled() == duplicate_enabled
