@@ -39,6 +39,22 @@ from spyder.config.manager import CONF
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 
+def set_executable_config_helper(executable=None):
+    if executable is None:
+        CONF.set('main_interpreter', 'default', True)
+        CONF.set('main_interpreter', 'custom', False)
+        CONF.set('main_interpreter', 'custom_interpreter', sys.executable)
+        CONF.set('main_interpreter', 'custom_interpreters_list',
+                 [sys.executable])
+        CONF.set('main_interpreter', 'executable', sys.executable)
+    else:
+        CONF.set('main_interpreter', 'default', False)
+        CONF.set('main_interpreter', 'custom', True)
+        CONF.set('main_interpreter', 'custom_interpreter', executable)
+        CONF.set('main_interpreter', 'custom_interpreters_list', [executable])
+        CONF.set('main_interpreter', 'executable', executable)
+
+
 @pytest.mark.slow
 @pytest.mark.first
 def test_space_completion(lsp_codeeditor, qtbot):
@@ -817,6 +833,7 @@ def test_kite_textEdit_completions(mock_completions_codeeditor, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.first
 @flaky(max_runs=5)
 def test_completions_extra_paths(lsp_codeeditor, qtbot, tmpdir):
     """Exercise code completion when adding extra paths."""
@@ -863,22 +880,6 @@ def spam():
     CONF.set('main', 'spyder_pythonpath', [])
     lsp_plugin.update_configuration()
     qtbot.wait(500)
-
-
-def set_executable_config_helper(executable=None):
-    if executable is None:
-        CONF.set('main_interpreter', 'default', True)
-        CONF.set('main_interpreter', 'custom', False)
-        CONF.set('main_interpreter', 'custom_interpreter', sys.executable)
-        CONF.set('main_interpreter', 'custom_interpreters_list',
-                 [sys.executable])
-        CONF.set('main_interpreter', 'executable', sys.executable)
-    else:
-        CONF.set('main_interpreter', 'default', False)
-        CONF.set('main_interpreter', 'custom', True)
-        CONF.set('main_interpreter', 'custom_interpreter', executable)
-        CONF.set('main_interpreter', 'custom_interpreters_list', [executable])
-        CONF.set('main_interpreter', 'executable', executable)
 
 
 @pytest.mark.slow
@@ -938,14 +939,3 @@ def test_completions_environment(lsp_codeeditor, qtbot, tmpdir):
 
 if __name__ == '__main__':
     pytest.main(['test_introspection.py', '--run-slow'])
-
-    # Modify PYTHONPATH
-    # editor.introspector.change_extra_path([LOCATION])
-    # qtbot.wait(10000)
-    #
-    # # Type 'from test' and try to get completion
-    # with qtbot.waitSignal(completion.sig_show_completions,
-    #                       timeout=10000) as sig:
-    #     qtbot.keyClicks(code_editor, ' test_')
-    #     qtbot.keyPress(code_editor, Qt.Key_Tab)
-    # assert "test_introspection" in sig.args[0]
