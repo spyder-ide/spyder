@@ -835,6 +835,7 @@ def test_kite_textEdit_completions(mock_completions_codeeditor, qtbot):
 @pytest.mark.slow
 @pytest.mark.first
 @flaky(max_runs=5)
+@pytest.mark.skipif(os.name == 'nt', reason='Hangs on Windows')
 def test_completions_extra_paths(lsp_codeeditor, qtbot, tmpdir):
     """Exercise code completion when adding extra paths."""
     code_editor, lsp_plugin = lsp_codeeditor
