@@ -2430,6 +2430,72 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+def test_varexp_rename(main_window, qtbot, tmpdir):
+    """
+    Test renaming a variable.
+    Regression test for spyder-ide/spyder#10735
+    """
+    # ---- Setup ----
+    p = (tmpdir.mkdir(u"varexp_rename").join(u"script.py"))
+    filepath = to_text_string(p)
+    shutil.copyfile(osp.join(LOCATION, 'script.py'), filepath)
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Load test file
+    main_window.editor.load(filepath)
+
+    # Move to the editor's first line
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.setFocus()
+    qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+
+    # Get a reference to the namespace browser widget
+    nsb = main_window.variableexplorer.get_focus_widget()
+
+    # ---- Run file ----
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_F5)
+
+    # Wait until all objects have appeared in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+                    timeout=EVAL_TIMEOUT)
+
+    # Remove one element
+    nsb.editor.setCurrentIndex(nsb.editor.model.index(1, 0))
+    nsb.editor.rename_item(new_name='arr2')
+
+    # Wait until all objects have updated in the variable explorer
+    def data(cm, i, j):
+        return cm.data(cm.index(i, j))
+    qtbot.waitUntil(lambda: data(nsb.editor.model, 1, 0) == 'arr2',
+                    timeout=EVAL_TIMEOUT)
+
+    assert data(nsb.editor.model, 0, 0) == 'a'
+    assert data(nsb.editor.model, 1, 0) == 'arr2'
+    assert data(nsb.editor.model, 2, 0) == 'li'
+    assert data(nsb.editor.model, 3, 0) == 's'
+
+    # ---- Run file again ----
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_F5)
+
+    # Wait until all objects have appeared in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 5,
+                    timeout=EVAL_TIMEOUT)
+
+    assert data(nsb.editor.model, 0, 0) == 'a'
+    assert data(nsb.editor.model, 1, 0) == 'arr'
+    assert data(nsb.editor.model, 2, 0) == 'arr2'
+    assert data(nsb.editor.model, 3, 0) == 'li'
+    assert data(nsb.editor.model, 4, 0) == 's'
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_varexp_remove(main_window, qtbot, tmpdir):
     """
     Test removing a variable.
