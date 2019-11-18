@@ -49,3 +49,6 @@ else
     # Install python-language-server from Github
     pip install -q git+https://github.com/palantir/python-language-server.git@refs/pull/692/head
 fi
+
+# Create environment for Jedi environments testsTest for Jedi environments
+conda create -n jedi-test-env -q -y python=3.6 loghub spyder-kernels -c spyder-ide

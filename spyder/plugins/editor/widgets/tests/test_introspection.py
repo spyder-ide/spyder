@@ -39,6 +39,22 @@ from spyder.config.manager import CONF
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 
+def set_executable_config_helper(executable=None):
+    if executable is None:
+        CONF.set('main_interpreter', 'default', True)
+        CONF.set('main_interpreter', 'custom', False)
+        CONF.set('main_interpreter', 'custom_interpreter', sys.executable)
+        CONF.set('main_interpreter', 'custom_interpreters_list',
+                 [sys.executable])
+        CONF.set('main_interpreter', 'executable', sys.executable)
+    else:
+        CONF.set('main_interpreter', 'default', False)
+        CONF.set('main_interpreter', 'custom', True)
+        CONF.set('main_interpreter', 'custom_interpreter', executable)
+        CONF.set('main_interpreter', 'custom_interpreters_list', [executable])
+        CONF.set('main_interpreter', 'executable', executable)
+
+
 @pytest.mark.slow
 @pytest.mark.first
 def test_space_completion(lsp_codeeditor, qtbot):
@@ -822,16 +838,111 @@ def test_kite_textEdit_completions(mock_completions_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
+@pytest.mark.slow
+@pytest.mark.first
+@flaky(max_runs=5)
+@pytest.mark.skipif(os.name == 'nt', reason='Hangs on Windows')
+def test_completions_extra_paths(lsp_codeeditor, qtbot, tmpdir):
+    """Exercise code completion when adding extra paths."""
+    code_editor, lsp_plugin = lsp_codeeditor
+    completion = code_editor.completion_widget
+    code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
+
+    # Create a file to use as extra path
+    temp_content = '''
+def spam():
+    pass
+'''
+    CONF.set('main', 'spyder_pythonpath', [])
+    lsp_plugin.update_configuration()
+    qtbot.wait(500)
+    qtbot.keyClicks(code_editor, 'import foo')
+    qtbot.keyPress(code_editor, Qt.Key_Enter)
+    qtbot.keyClicks(code_editor, 'foo.s')
+    code_editor.document_did_change()
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.wait(500)
+    assert code_editor.toPlainText() == 'import foo\nfoo.s'
+
+    p = tmpdir.mkdir("extra_path")
+    extra_paths = [str(p)]
+    p = p.join("foo.py")
+    p.write(temp_content)
+
+    # Set extra paths
+    print(extra_paths)
+    CONF.set('main', 'spyder_pythonpath', extra_paths)
+    lsp_plugin.update_configuration()
+    code_editor.document_did_change()
+    qtbot.wait(500)
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert "spam()" in [x['label'] for x in sig.args[0]]
+    assert code_editor.toPlainText() == 'import foo\nfoo.spam'
+
+    # Reset extra paths
+    CONF.set('main', 'spyder_pythonpath', [])
+    lsp_plugin.update_configuration()
+    qtbot.wait(500)
+
+
+@pytest.mark.slow
+@pytest.mark.first
+@pytest.mark.skipif(os.environ.get('CI') is None,
+                    reason='Run tests only on CI.')
+@flaky(max_runs=5)
+def test_completions_environment(lsp_codeeditor, qtbot, tmpdir):
+    """Exercise code completion when adding extra paths."""
+    code_editor, lsp_plugin = lsp_codeeditor
+    completion = code_editor.completion_widget
+    code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
+
+    # Get jedi test env
+    if sys.platform == 'darwin':
+        conda_jedi_env = '/Users/runner/.conda/envs/jedi-test-env'
+    else:
+        conda_envs_path = os.path.dirname(sys.prefix)
+        conda_jedi_env = os.path.join(conda_envs_path, 'jedi-test-env')
+
+    if os.name == 'nt':
+        py_exe = os.path.join(conda_jedi_env, 'python.exe')
+    else:
+        py_exe = os.path.join(conda_jedi_env, 'bin', 'python')
+
+    print(sys.executable)
+    print(py_exe)
+
+    assert os.path.isfile(py_exe)
+
+    # Set environment
+    set_executable_config_helper()
+    lsp_plugin.update_configuration()
+
+    qtbot.keyClicks(code_editor, 'import logh')
+    qtbot.keyPress(code_editor, Qt.Key_Tab)
+    qtbot.wait(2000)
+    assert code_editor.toPlainText() == 'import logh'
+
+    # Reset extra paths
+    set_executable_config_helper(py_exe)
+    lsp_plugin.update_configuration()
+
+    code_editor.set_text('')
+    qtbot.keyClicks(code_editor, 'import logh')
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    assert "loghub" in [x['label'] for x in sig.args[0]]
+    assert code_editor.toPlainText() == 'import loghub'
+
+    set_executable_config_helper()
+    lsp_plugin.update_configuration()
+
+
 if __name__ == '__main__':
     pytest.main(['test_introspection.py', '--run-slow'])
-
-    # Modify PYTHONPATH
-    # editor.introspector.change_extra_path([LOCATION])
-    # qtbot.wait(10000)
-    #
-    # # Type 'from test' and try to get completion
-    # with qtbot.waitSignal(completion.sig_show_completions,
-    #                       timeout=10000) as sig:
-    #     qtbot.keyClicks(code_editor, ' test_')
-    #     qtbot.keyPress(code_editor, Qt.Key_Tab)
-    # assert "test_introspection" in sig.args[0]

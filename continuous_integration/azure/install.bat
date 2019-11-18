@@ -33,6 +33,10 @@ if %USE_CONDA% == yes (
     if errorlevel 1 exit 1
 )
 
+:: Create environment for Jedi environments tests
+conda create -n jedi-test-env -q -y python=3.6 loghub spyder-kernels -c spyder-ide
+if errorlevel 1 exit 1
+
 :: Install spyder-kernels from master
 pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
 if errorlevel 1 exit 1

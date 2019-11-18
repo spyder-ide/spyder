@@ -322,6 +322,7 @@ class MainWindow(QMainWindow):
     all_actions_defined = Signal()
     # type: (OrderedDict, OrderedDict)
     sig_pythonpath_changed = Signal(object, object)
+    sig_main_interpreter_changed = Signal()
     sig_open_external_file = Signal(str)
     sig_resized = Signal("QResizeEvent")     # Related to interactive tour
     sig_moved = Signal("QMoveEvent")         # Related to interactive tour
@@ -2950,6 +2951,7 @@ class MainWindow(QMainWindow):
             encoding.writelines(not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
         except EnvironmentError as e:
             logger.error(str(e))
+        CONF.set('main', 'spyder_pythonpath', self.get_spyder_pythonpath())
 
     def get_spyder_pythonpath_dict(self):
         """
@@ -3112,12 +3114,6 @@ class MainWindow(QMainWindow):
                               "alignment: left;}")
             self.prefs_dialog_instance = dlg
 
-            # Signals
-            dlg.finished.connect(_dialog_finished)
-            dlg.pages_widget.currentChanged.connect(
-                self.__preference_page_changed)
-            dlg.size_change.connect(self.set_prefs_size)
-
             # Setup
             if self.prefs_dialog_size is not None:
                 dlg.resize(self.prefs_dialog_size)
@@ -3158,7 +3154,12 @@ class MainWindow(QMainWindow):
             # Check settings and show dialog
             dlg.show()
             dlg.check_all_settings()
-            dlg.exec_()
+
+            # Signals
+            dlg.finished.connect(_dialog_finished)
+            dlg.pages_widget.currentChanged.connect(
+                self.__preference_page_changed)
+            dlg.size_change.connect(self.set_prefs_size)
         else:
             self.prefs_dialog_instance.show()
             self.prefs_dialog_instance.activateWindow()
@@ -3166,7 +3167,7 @@ class MainWindow(QMainWindow):
             self.prefs_dialog_instance.setFocus()
 
     def __preference_page_changed(self, index):
-        """Preference page index has changed"""
+        """Preference page index has changed."""
         self.prefs_index = index
 
     def set_prefs_size(self, size):
