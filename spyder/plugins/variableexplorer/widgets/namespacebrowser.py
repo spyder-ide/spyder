@@ -69,6 +69,7 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase = None
         self.exclude_capitalized = None
         self.exclude_unsupported = None
+        self.exclude_callables_and_modules = None
         self.excluded_names = None
         self.minmax = None
 
@@ -82,6 +83,7 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase_action = None
         self.exclude_capitalized_action = None
         self.exclude_unsupported_action = None
+        self.exclude_callables_and_modules_action = None
         self.finder = None
         self.options_button = options_button
         self.actions = None
@@ -92,9 +94,10 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
+              exclude_callables_and_modules=None,
               minmax=None, dataframe_format=None,
               show_callable_attributes=None,
-              show_special_attributes=None):
+              show_special_attributes=None,):
         """
         Setup the namespace browser with provided settings.
 
@@ -109,6 +112,7 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase = exclude_uppercase
         self.exclude_capitalized = exclude_capitalized
         self.exclude_unsupported = exclude_unsupported
+        self.exclude_callables_and_modules = exclude_callables_and_modules
         self.excluded_names = excluded_names
         self.minmax = minmax
         self.dataframe_format = dataframe_format
@@ -122,6 +126,8 @@ class NamespaceBrowser(QWidget):
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
+            self.exclude_callables_and_modules_action.setChecked(
+                exclude_callables_and_modules)
             self.refresh_table()
             return
 
@@ -139,8 +145,13 @@ class NamespaceBrowser(QWidget):
         self.editor.sig_files_dropped.connect(self.import_data)
         self.editor.sig_free_memory.connect(self.sig_free_memory.emit)
 
-        self.setup_option_actions(exclude_private, exclude_uppercase,
-                                  exclude_capitalized, exclude_unsupported)
+        self.setup_option_actions(
+            exclude_private,
+            exclude_uppercase,
+            exclude_capitalized,
+            exclude_unsupported,
+            exclude_callables_and_modules
+        )
 
         # Setup toolbar layout.
 
@@ -229,7 +240,7 @@ class NamespaceBrowser(QWidget):
             self,
             text=_("Refresh variables"),
             icon=ima.icon('refresh'),
-            triggered=self.refresh_table)
+            triggered=lambda: self.refresh_table(interrupt=True))
 
         CONF.config_shortcut(
             self.refresh_table,
@@ -242,7 +253,8 @@ class NamespaceBrowser(QWidget):
                 self.refresh_button]
 
     def setup_option_actions(self, exclude_private, exclude_uppercase,
-                             exclude_capitalized, exclude_unsupported):
+                             exclude_capitalized, exclude_unsupported,
+                             exclude_callables_and_modules):
         """Setup the actions to show in the cog menu."""
         self.setup_in_progress = True
 
@@ -271,15 +283,29 @@ class NamespaceBrowser(QWidget):
         
         self.exclude_unsupported_action = create_action(self,
                 _("Exclude unsupported data types"),
-                tip=_("Exclude references to unsupported data types"
-                            " (i.e. which won't be handled/saved correctly)"),
+                tip=_("Exclude references to data types that don't have "
+                      "an specialized viewer or can't be edited."),
                 toggled=lambda state:
                 self.sig_option_changed.emit('exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
 
+        self.exclude_callables_and_modules_action = create_action(self,
+                _("Exclude callables and modules"),
+                tip=_("Exclude references to functions, modules and "
+                      "any other callable."),
+                toggled=lambda state:
+                self.sig_option_changed.emit('exclude_callables_and_modules',
+                                             state))
+        self.exclude_callables_and_modules_action.setChecked(
+            exclude_callables_and_modules)
+
         self.actions = [
-            self.exclude_private_action, self.exclude_uppercase_action,
-            self.exclude_capitalized_action, self.exclude_unsupported_action]
+            self.exclude_private_action,
+            self.exclude_uppercase_action,
+            self.exclude_capitalized_action,
+            self.exclude_unsupported_action,
+            self.exclude_callables_and_modules_action
+        ]
         if is_module_installed('numpy'):
             self.actions.extend([MENU_SEPARATOR, self.editor.minmax_action])
 
@@ -326,10 +352,10 @@ class NamespaceBrowser(QWidget):
         else:
             self.editor.setFocus()
 
-    def refresh_table(self):
+    def refresh_table(self, interrupt=False):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
-            self.shellwidget.refresh_namespacebrowser()
+            self.shellwidget.refresh_namespacebrowser(interrupt=interrupt)
             try:
                 self.editor.resizeRowToContents()
             except TypeError:

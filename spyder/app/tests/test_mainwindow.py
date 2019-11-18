@@ -2619,7 +2619,7 @@ def test_varexp_refresh(main_window, qtbot):
     # This is empty
     assert len(nsb.editor.source_model._data) == 0
 
-    nsb.refresh_table()
+    nsb.refresh_table(interrupt=True)
     qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
 
     assert 0 < int(nsb.editor.source_model._data['i']['view']) < 9
