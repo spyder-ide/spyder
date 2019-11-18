@@ -290,7 +290,7 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
 
         self.exclude_callables_and_modules_action = create_action(self,
-                _("Exclude functions and modules"),
+                _("Exclude callables and modules"),
                 tip=_("Exclude references to functions, modules and "
                       "any other callable."),
                 toggled=lambda state:

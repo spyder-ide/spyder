@@ -23,7 +23,7 @@ class VariableExplorerConfigPage(PluginConfigPage):
             ('exclude_uppercase', _("Exclude all-uppercase references")),
             ('exclude_unsupported', _("Exclude unsupported data types")),
             ('exclude_callables_and_modules',
-             _("Exclude functions and modules"))
+             _("Exclude callables and modules"))
         ]
         filter_boxes = [self.create_checkbox(text, option)
                         for option, text in filter_data]
