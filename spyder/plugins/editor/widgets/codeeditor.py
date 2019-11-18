@@ -1040,20 +1040,11 @@ class CodeEditor(TextEditBaseWidget):
             return total_whitespace
 
         tab_size = self.tab_stop_width_spaces
-        if len(self.leading_whitespaces) == 0:
-            lines = to_text_string(self.toPlainText()).splitlines()
-            for i, text in enumerate(lines):
-                total_whitespace = compute_whitespace(text)
-                self.leading_whitespaces[i] = total_whitespace
-        else:
-            if line in self.leading_whitespaces:
-                total_whitespaces = self.leading_whitespaces[line]
-                if column < total_whitespaces:
-                    text = self.get_text_line(line)
-                    self.leading_whitespaces[line] = compute_whitespace(text)
-            else:
-                text = self.get_text_line(line)
-                self.leading_whitespaces[line] = compute_whitespace(text)
+        self.leading_whitespaces = {}
+        lines = to_text_string(self.toPlainText()).splitlines()
+        for i, text in enumerate(lines):
+            total_whitespace = compute_whitespace(text)
+            self.leading_whitespaces[i] = total_whitespace
 
     @request(
         method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
