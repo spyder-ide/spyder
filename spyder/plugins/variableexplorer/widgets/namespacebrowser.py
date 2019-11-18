@@ -240,7 +240,7 @@ class NamespaceBrowser(QWidget):
             self,
             text=_("Refresh variables"),
             icon=ima.icon('refresh'),
-            triggered=self.refresh_table)
+            triggered=lambda: self.refresh_table(interrupt=True))
 
         CONF.config_shortcut(
             self.refresh_table,
@@ -352,10 +352,10 @@ class NamespaceBrowser(QWidget):
         else:
             self.editor.setFocus()
 
-    def refresh_table(self):
+    def refresh_table(self, interrupt=False):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
-            self.shellwidget.refresh_namespacebrowser()
+            self.shellwidget.refresh_namespacebrowser(interrupt=interrupt)
             try:
                 self.editor.resizeRowToContents()
             except TypeError:
