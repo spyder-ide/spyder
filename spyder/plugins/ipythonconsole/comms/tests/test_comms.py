@@ -35,7 +35,7 @@ def kernel(request):
         'exclude_private': True,
         'exclude_uppercase': True,
         'exclude_capitalized': False,
-        'exclude_unsupported': True,
+        'exclude_unsupported': False,
         'exclude_callables_and_modules': True,
         'excluded_names': [
             'nan',
