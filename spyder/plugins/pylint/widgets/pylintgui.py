@@ -317,7 +317,7 @@ class PylintWidget(QWidget):
 
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
-        self.process.setWorkingDirectory(osp.dirname(filename))
+        self.process.setWorkingDirectory(getcwd_or_home())
         self.process.readyReadStandardOutput.connect(self.read_output)
         self.process.readyReadStandardError.connect(
                                           lambda: self.read_output(error=True))
@@ -338,9 +338,9 @@ class PylintWidget(QWidget):
                 # 1.0
                 p_args += ["--msg-template='{msg_id}:{line:3d},"\
                            "{column}: {obj}: {msg}"]
-            p_args += [osp.basename(filename)]
+            p_args += [filename]
         else:
-            p_args = [osp.basename(filename)]
+            p_args = [filename]
         processEnvironment = QProcessEnvironment()
         processEnvironment.insert("PYTHONIOENCODING", "utf8")
         self.process.setProcessEnvironment(processEnvironment)
