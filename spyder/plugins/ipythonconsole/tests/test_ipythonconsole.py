@@ -159,7 +159,9 @@ def ipyconsole(qtbot, request):
                               is_cython=is_cython)
     window.setCentralWidget(console)
 
-    qtbot.addWidget(window)
+    # This segfaults on macOS
+    if not sys.platform == "darwin":
+        qtbot.addWidget(window)
     window.show()
 
     yield console
@@ -874,12 +876,10 @@ def test_values_dbg(ipyconsole, qtbot):
     assert "*** NameError: name 'aa' is not defined" in control.toPlainText()
 
 
-@flaky(max_runs=10)
-@pytest.mark.skipif(
-    os.environ.get('AZURE', None) is not None,
-    reason="It doesn't work on Windows and fails often on macOS")
-def test_plot_magic_dbg(ipyconsole, qtbot):
-    """Test our plot magic while debugging"""
+@flaky(max_runs=3)
+def test_execute_events_dbg(ipyconsole, qtbot):
+    """Test execute events while debugging"""
+
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
@@ -897,13 +897,37 @@ def test_plot_magic_dbg(ipyconsole, qtbot):
     shell.execute('%debug')
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
+    # Set processing events to True
+    CONF.set('run', 'pdb_execute_events', True)
+    ipyconsole.set_pdb_execute_events()
+
     # Test reset magic
-    qtbot.keyClicks(control, '%plot plt.plot(range(10))')
+    qtbot.keyClicks(control, 'plt.plot(range(10))')
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(1000)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Assert that there's a plot in the console
     assert shell._control.toHtml().count('img src') == 1
+
+    # Set processing events to False
+    CONF.set('run', 'pdb_execute_events', False)
+    ipyconsole.set_pdb_execute_events()
+
+    # Test reset magic
+    qtbot.keyClicks(control, 'plt.plot(range(10))')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Assert that there's no new plots in the console
+    assert shell._control.toHtml().count('img src') == 1
+
+    # Test if the plot is shown with plt.show()
+    qtbot.keyClicks(control, 'plt.show()')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Assert that there's a new plots in the console
+    assert shell._control.toHtml().count('img src') == 2
 
 
 @flaky(max_runs=3)
@@ -1303,7 +1327,7 @@ def test_console_working_directory(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
                     reason="It only works on Linux with python 3.")
-def test_console_complete(ipyconsole, qtbot):
+def test_console_complete(ipyconsole, qtbot, tmpdir):
     """Test for checking the working directory."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -1343,10 +1367,6 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbba')
 
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('abba = 1')
-    qtbot.waitUntil(lambda: check_value('abba', 1))
-
     # Generate a traceback and enter debugging mode
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
@@ -1355,10 +1375,10 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Test complete in debug mode
-    # check abba is completed twice (as the cursor moves)
+    # check abs is completed twice (as the cursor moves)
     qtbot.keyClicks(control, '!ab')
     qtbot.keyClick(control, Qt.Key_Tab)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!abba')
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!abs')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
@@ -1366,7 +1386,7 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.keyClicks(control, 'print(ab')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(
-        lambda: control.toPlainText().split()[-1] == 'print(abba')
+        lambda: control.toPlainText().split()[-1] == 'print(abs')
     qtbot.keyClicks(control, ')')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
@@ -1379,26 +1399,24 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: check_value('baab', 10))
 
     # Check baab is completed
-    qtbot.keyClicks(control, 'ba')
+    qtbot.keyClicks(control, 'baa')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'baab')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
-    # Get a second ba*
-    qtbot.keyClicks(control, 'ba2ab = 10')
+    # Check the completion widget is shown for abba, abs
+    qtbot.keyClicks(control, 'abba = 10')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(100)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-    qtbot.waitUntil(lambda: check_value('ba2ab', 10))
-
-    # Check the completion widget is shown
-    qtbot.keyClicks(control, 'ba')
+    qtbot.waitUntil(lambda: check_value('abba', 10))
+    qtbot.keyClicks(control, 'ab')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(shell._completion_widget.isVisible)
-    assert control.toPlainText().split()[-1] == 'ba'
+    assert control.toPlainText().split()[-1] == 'ab'
     qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'baab')
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abba')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
@@ -1418,6 +1436,28 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.keyClicks(control, '!a.ba')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!a.baba')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Check we can complete pdb command names
+    qtbot.keyClicks(control, 'longl')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'longlist')
+
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Check we can use custom complete for pdb
+    test_file = tmpdir.join('test.py')
+    test_file.write('stuff\n')
+    # Set a breakpoint in the new file
+    qtbot.keyClicks(control, 'b ' + str(test_file) + ':1')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    # Check we can complete the breakpoint number
+    qtbot.keyClicks(control, 'ignore ')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '1')
 
 
 @pytest.mark.use_startup_wdir

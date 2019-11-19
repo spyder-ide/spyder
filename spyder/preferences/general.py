@@ -197,15 +197,19 @@ class MainConfigPage(GeneralConfigPage):
         cpu_box.setEnabled(self.main.cpu_status.is_supported())
         cpu_spin.setEnabled(self.main.cpu_status.is_supported())
 
+        clock_box = newcb(_("Show clock"), 'clock/enable')
+
         status_bar_o = self.get_option('show_status_bar')
         show_status_bar.toggled.connect(memory_box.setEnabled)
         show_status_bar.toggled.connect(memory_spin.setEnabled)
         show_status_bar.toggled.connect(cpu_box.setEnabled)
         show_status_bar.toggled.connect(cpu_spin.setEnabled)
+        show_status_bar.toggled.connect(clock_box.setEnabled)
         memory_box.setEnabled(status_bar_o)
         memory_spin.setEnabled(status_bar_o)
         cpu_box.setEnabled(status_bar_o)
         cpu_spin.setEnabled(status_bar_o)
+        clock_box.setEnabled(status_bar_o)
 
         # Layout status bar
         cpu_memory_layout = QGridLayout()
@@ -213,6 +217,7 @@ class MainConfigPage(GeneralConfigPage):
         cpu_memory_layout.addWidget(memory_spin, 0, 1)
         cpu_memory_layout.addWidget(cpu_box, 1, 0)
         cpu_memory_layout.addWidget(cpu_spin, 1, 1)
+        cpu_memory_layout.addWidget(clock_box, 2, 0)
 
         sbar_layout = QVBoxLayout()
         sbar_layout.addWidget(show_status_bar)
