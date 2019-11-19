@@ -145,8 +145,8 @@ def test_get_hints(qtbot, lsp_codeeditor, params):
         code_editor.tooltip_widget.hide()
 
 
-# @pytest.mark.slow
-# @pytest.mark.second
+@pytest.mark.slow
+@pytest.mark.second
 def test_get_function_hover_hints(qtbot, lsp_codeeditor, capsys):
     """Test that the editor is returning hover hints and not failing."""
     code_editor, _ = lsp_codeeditor

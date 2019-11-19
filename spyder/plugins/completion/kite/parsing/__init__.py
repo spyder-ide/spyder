@@ -7,7 +7,7 @@
 import logging
 import re
 
-from spyder.py3compat import PY2, to_binary_string
+from spyder.py3compat import PY2
 
 
 ident_re = r'[a-zA-Z_][a-zA-Z0-9_]*'
@@ -43,7 +43,7 @@ def find_returning_function_path(text, cursor, line_start='\n'):
     name = expr.split('.', 1)[0]
     if not re.match(ident_full_re, name):
         return None
-    
+
     if PY2:
         line_start = line_start.encode('utf-8')
 
