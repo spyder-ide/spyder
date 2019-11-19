@@ -143,3 +143,34 @@ def test_get_hints(qtbot, lsp_codeeditor, params):
         output_text = args[0]
         assert expected_output_text in output_text
         code_editor.tooltip_widget.hide()
+
+
+@pytest.mark.slow
+@pytest.mark.second
+def test_get_function_hover_hints(qtbot, lsp_codeeditor, capsys):
+    """Test that the editor is returning hover hints and not failing."""
+    code_editor, _ = lsp_codeeditor
+
+    # Set text in editor
+    code_editor.set_text('''def pretty_print():
+    pass''')
+
+    # Move cursor to end of line
+    code_editor.moveCursor(QTextCursor.Start)
+    for i in range(5):
+        qtbot.keyPress(code_editor, Qt.Key_Right)
+
+    # Get cursor coordinates
+    x, y = code_editor.get_coordinates('cursor')
+
+    # Get cursor position in characters
+    offset = code_editor.get_position('cursor')
+    point = code_editor.calculate_real_position(QPoint(x, y))
+
+    qtbot.mouseMove(code_editor, point, delay=300)
+    qtbot.mouseClick(code_editor, Qt.LeftButton, pos=point, delay=300)
+    qtbot.wait(1000)
+
+    # This checks that code_editor.log_lsp_handle_errors was not called
+    captured = capsys.readouterr()
+    assert captured.err == ''
