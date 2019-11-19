@@ -16,7 +16,7 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QTreeWidgetItem, QTreeWidgetItemIterator
 
 # Local imports
-from spyder.api.panes import SpyderPaneWidget
+from spyder.api.widgets import PluginCentralWidget
 from spyder.config.base import _, STDOUT
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
@@ -716,7 +716,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.activated(item)
 
 
-class OutlineExplorerWidget(SpyderPaneWidget):
+class OutlineExplorerWidget(PluginCentralWidget):
     """Class browser"""
     edit_goto = Signal(str, int, str)
     edit = Signal(str)
@@ -738,7 +738,7 @@ class OutlineExplorerWidget(SpyderPaneWidget):
             sort_files_alphabetically=sort_files_alphabetically,
             follow_cursor=follow_cursor,
             )
-        self.set_central_widget(self.treewidget)
+        self.set_widget(self.treewidget)
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),
