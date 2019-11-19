@@ -145,8 +145,8 @@ def test_get_hints(qtbot, lsp_codeeditor, params):
         code_editor.tooltip_widget.hide()
 
 
-@pytest.mark.slow
-@pytest.mark.second
+# @pytest.mark.slow
+# @pytest.mark.second
 def test_get_function_hover_hints(qtbot, lsp_codeeditor, capsys):
     """Test that the editor is returning hover hints and not failing."""
     code_editor, _ = lsp_codeeditor
@@ -171,6 +171,6 @@ def test_get_function_hover_hints(qtbot, lsp_codeeditor, capsys):
     qtbot.mouseClick(code_editor, Qt.LeftButton, pos=point, delay=300)
     qtbot.wait(1000)
 
-    # This checks that code_editor.log_lsp_handle_errors was not called
+    # # This checks that code_editor.log_lsp_handle_errors was not called
     captured = capsys.readouterr()
     assert captured.err == ''

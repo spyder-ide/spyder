@@ -162,7 +162,7 @@ def mock_completions_codeeditor(qtbot_module, request):
 
 
 @pytest.fixture
-def lsp_codeeditor(lsp_plugin, qtbot_module, request):
+def lsp_codeeditor(lsp_plugin, qtbot_module, request, capsys):
     """CodeEditor instance with LSP services activated."""
     # Create a CodeEditor instance
     editor = codeeditor_factory()
@@ -185,6 +185,11 @@ def lsp_codeeditor(lsp_plugin, qtbot_module, request):
     def teardown():
         editor.hide()
         editor.completion_widget.hide()
+
+        # This checks that code_editor.log_lsp_handle_errors was not called
+        captured = capsys.readouterr()
+        assert 'log_lsp_handle_errors' not in captured.err
+        assert captured.err == ''
 
     request.addfinalizer(teardown)
     lsp_plugin = lsp_plugin.get_client('lsp')
