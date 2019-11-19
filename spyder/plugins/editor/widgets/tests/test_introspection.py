@@ -300,6 +300,34 @@ def test_completions(lsp_codeeditor, qtbot):
     # Set cursor to start
     code_editor.go_to_line(1)
 
+    # Complete dunder imports from _ --> import _foo/_foom
+    qtbot.keyClicks(code_editor, 'from _')
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    # press tab and get completions
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+    assert "__future__" in [x['label'] for x in sig.args[0]]
+    code_editor.set_text('')  # Delete line
+    code_editor.go_to_line(1)
+
+    # Complete underscore variables
+    qtbot.keyClicks(code_editor, '_foo = 1;_foom = 2;_fo')
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    # press tab and get completions
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+    completions = [x['label'] for x in sig.args[0]]
+    assert "_foo" in completions
+    assert "_foom" in completions
+    code_editor.set_text('')  # Delete line
+    code_editor.go_to_line(1)
+
     # Complete import mat--> import math
     qtbot.keyClicks(code_editor, 'import mat')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
