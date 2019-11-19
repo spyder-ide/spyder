@@ -5,11 +5,11 @@
 # (see spyder/__init__.py for details)
 
 """
-spyder.api.panes
+spyder.api.widgets
 ==================
 
-Here, 'panes' are Qt main windows that should be used to encapsulate the
-main interface of Spyder plugins.
+Here, 'plugin central widgets' are Qt main windows that should be used
+to encapsulate the main interface of Spyder plugins.
 """
 
 # ---- Standard library imports
