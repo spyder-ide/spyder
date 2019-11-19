@@ -9,7 +9,6 @@
 # Standard library imports
 import os.path as osp
 import pydoc
-from pydoc import safeimport
 import sys
 
 # Third party imports
@@ -26,12 +25,14 @@ from spyder.widgets.browser import WebBrowser
 # =====================================================================
 # Pydoc adjustments
 # =====================================================================
-# This is needed to prevent pydoc raise and ErrorDuringImport when
+# This is needed to prevent pydoc raise an ErrorDuringImport when
 # trying to import numpy.
 # See spyder-ide/spyder#10740
 DIRECT_PYDOC_IMPORT_MODULES = ['numpy']
 
 try:
+    from pydoc import safeimport
+
     def spyder_safeimport(path, forceload=0, cache={}):
         if path in DIRECT_PYDOC_IMPORT_MODULES:
             forceload = 0
@@ -77,11 +78,11 @@ class PydocServer(QThread):
     def quit_server(self):
         if PY3:
             # Python 3
-            if self.is_server_running() and self.server.serving:
+            if self.isRunning() and self.server.serving:
                 self.server.stop()
         else:
             # Python 2
-            if self.is_server_running():
+            if self.isRunning():
                 self.server.quit = 1
 
 
