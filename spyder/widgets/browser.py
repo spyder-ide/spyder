@@ -46,8 +46,9 @@ class WebPage(QWebEnginePage):
         """
         if navigation_type == QWebEnginePage.NavigationTypeLinkClicked:
             self.linkClicked.emit(url)
-            return False
-        return True
+
+        return super(WebPage, self).acceptNavigationRequest(
+            url, navigation_type, isMainFrame)
 
 
 class WebView(QWebEngineView):
