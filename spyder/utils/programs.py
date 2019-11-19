@@ -519,19 +519,8 @@ def open_files_with_application(app_path, fnames):
     """
     return_codes = {}
 
-    # Add quotes as needed
-    if sys.platform != 'darwin':
-        new_fnames = []
-        for fname in fnames:
-            if ' ' in fname:
-                if '"' in fname:
-                    fname = '"{}"'.format(fname)
-                else:
-                    fname = "'{}'".format(fname)
-                new_fnames.append(fname)
-            else:
-                new_fnames.append(fname)
-        fnames = new_fnames
+    if os.name == 'nt':
+        fnames = [fname.replace('\\', '/') for fname in fnames]
 
     if sys.platform == 'darwin':
         if not (app_path.endswith('.app') and os.path.isdir(app_path)):
