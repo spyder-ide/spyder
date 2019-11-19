@@ -24,23 +24,24 @@ from spyder.config.gui import is_dark_interface
 from spyder.utils.qthelpers import create_toolbar_stretcher
 
 
-class SpyderPaneToolbar(QToolBar):
+class SpyderPluginToolbar(QToolBar):
     """
-    Spyder pane toolbar class.
+    Spyder plugin toolbar class.
 
-    A toolbar class that is used by the spyder pane widget class.
+    A toolbar used in Spyder plugins to add internal toolbars
+    to their interface.
     """
 
     def __init__(self, parent=None, areas=Qt.TopToolBarArea,
                  corner_widget=None):
-        super(SpyderPaneToolbar, self).__init__(parent)
+        super(SpyderPluginToolbar, self).__init__(parent)
         self._set_corner_widget(corner_widget)
-        self.setObjectName("pane_toolbar_{}".format(str(uuid.uuid4())[:8]))
+        self.setObjectName("plugin_toolbar_{}".format(str(uuid.uuid4())[:8]))
         self.setFloatable(False)
         self.setMovable(False)
         self.setAllowedAreas(areas)
         self.setContextMenuPolicy(Qt.PreventContextMenu)
-        self._set_style()
+        self._setup_style()
 
     def addWidget(self, widget):
         """
@@ -48,10 +49,10 @@ class SpyderPaneToolbar(QToolBar):
         widget when adding a new widget in this toolbar.
         """
         if self._corner_widget is not None:
-            super(SpyderPaneToolbar, self).insertWidget(
+            super(SpyderPluginToolbar, self).insertWidget(
                 self._corner_separator_action, widget)
         else:
-            super(SpyderPaneToolbar, self).addWidget(widget)
+            super(SpyderPluginToolbar, self).addWidget(widget)
 
     def addAction(self, action):
         """
@@ -59,10 +60,10 @@ class SpyderPaneToolbar(QToolBar):
         widget when adding a new action in this toolbar.
         """
         if self._corner_widget is not None:
-            super(SpyderPaneToolbar, self).insertAction(
+            super(SpyderPluginToolbar, self).insertAction(
                 self._corner_separator_action, action)
         else:
-            super(SpyderPaneToolbar, self).addAction(action)
+            super(SpyderPluginToolbar, self).addAction(action)
 
     def _set_corner_widget(self, corner_widget):
         """
@@ -74,13 +75,14 @@ class SpyderPaneToolbar(QToolBar):
         """
         self._corner_widget = corner_widget
         if corner_widget is not None:
-            self._corner_separator_action = super(
-                SpyderPaneToolbar, self).addWidget(create_toolbar_stretcher())
-            super(SpyderPaneToolbar, self).addWidget(self._corner_widget)
+            stretcher = create_toolbar_stretcher()
+            self._corner_separator_action = (
+                super(SpyderPluginToolbar, self).addWidget(stretcher))
+            super(SpyderPluginToolbar, self).addWidget(self._corner_widget)
         else:
             self._corner_separator_action = None
 
-    def _set_style(self):
+    def _setup_style(self):
         """
         Set the style of this toolbar with a stylesheet.
         """
