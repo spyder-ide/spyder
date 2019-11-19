@@ -519,7 +519,7 @@ def open_files_with_application(app_path, fnames):
     """
     return_codes = {}
 
-     if os.name == 'nt':
+    if os.name == 'nt':
         fnames = [fname.replace('\\', '/') for fname in fnames]
 
     if sys.platform == 'darwin':
