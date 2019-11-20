@@ -173,11 +173,12 @@ def test_get_function_hover_hints(qtbot, lsp_codeeditor, capsys, params):
     point = code_editor.calculate_real_position(QPoint(x, y))
 
     with qtbot.waitSignal(code_editor.sig_display_object_info,
-                          timeout=30000) as blocker:
+                          timeout=10000) as blocker:
         qtbot.mouseMove(code_editor, point, delay=300)
         qtbot.mouseClick(code_editor, Qt.LeftButton, pos=point, delay=300)
 
-        qtbot.waitUntil(lambda: code_editor.tooltip_widget.isVisible(), timeout=3000)
+        qtbot.waitUntil(lambda: code_editor.tooltip_widget.isVisible(),
+                        timeout=5000)
         content = blocker.args[0]
         assert expected_content in content
 
