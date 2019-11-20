@@ -26,7 +26,7 @@ def pydocbrowser(qtbot):
 def test_pydocbrowser(pydocbrowser):
     """Run Pydoc Browser."""
     qtbot, browser = pydocbrowser
-    assert pydocbrowser
+    assert browser
 
 
 @pytest.mark.parametrize(
@@ -42,12 +42,13 @@ def test_get_pydoc(pydocbrowser, lib):
     webview = browser.webview
     with qtbot.waitSignal(webview.loadFinished, timeout=2000):
         browser.initialize()
-    browser.show()
     element_url = browser.text_to_url(element)
     with qtbot.waitSignal(webview.loadFinished):
         browser.set_url(element_url)
-
-    qtbot.waitUntil(lambda: webview.get_number_matches(doc) == matches)
+    # Check number of matches. In Python 2 are 3 matches instead
+    # of 2 for numpy.compat
+    qtbot.waitUntil(
+        lambda: webview.get_number_matches(doc) in [matches, matches + 1])
 
 
 if __name__ == "__main__":
