@@ -68,6 +68,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     #  facilities.
     sig_server_error = Signal(str)
 
+    #: Signal to warn the user about the transport layer being
+    #  down
+    sig_transport_down = Signal(str)
+
     def __init__(self, parent,
                  server_settings={},
                  folder=getcwd_or_home(),
@@ -276,9 +280,16 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.lsp_server.kill()
 
     def send(self, method, params, kind):
-        if (self.transport_client.poll() is not None or
-                self.transport_unresponsive):
+        # Detect when the transport layer is down to show a message
+        # to our users about it.
+        if (self.transport_client is not None and
+                self.transport_client.poll() is not None):
+            logger.debug("Transport layer is down!!")
+            if not self.transport_unresponsive:
+                self.transport_unresponsive = True
+                self.sig_transport_down.emit(self.language)
             return
+
         if ClientConstants.CANCEL in params:
             return
         _id = self.request_seq
