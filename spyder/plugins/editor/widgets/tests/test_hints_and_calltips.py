@@ -147,30 +147,40 @@ def test_get_hints(qtbot, lsp_codeeditor, params):
 
 @pytest.mark.slow
 @pytest.mark.second
-def test_get_function_hover_hints(qtbot, lsp_codeeditor, capsys):
+@pytest.mark.parametrize('params', [
+            ('test = range(1, 20, 2)', 'arithmetic progression of integers'),
+            ('''def pretty_print():
+    pass''', 'pretty_print'),
+        ]
+    )
+def test_get_function_hover_hints(qtbot, lsp_codeeditor, capsys, params):
     """Test that the editor is returning hover hints and not failing."""
     code_editor, _ = lsp_codeeditor
 
-    # Set text in editor
-    code_editor.set_text('''def pretty_print():
-    pass''')
+    text, expected_content = params
 
-    # Move cursor to end of line
-    code_editor.moveCursor(QTextCursor.Start)
-    for i in range(5):
+    # Set text in editor
+    code_editor.set_text(text)
+
+    # Move cursor to middle of word
+    for _ in range(10):
         qtbot.keyPress(code_editor, Qt.Key_Right)
 
     # Get cursor coordinates
     x, y = code_editor.get_coordinates('cursor')
 
     # Get cursor position in characters
-    offset = code_editor.get_position('cursor')
     point = code_editor.calculate_real_position(QPoint(x, y))
 
-    qtbot.mouseMove(code_editor, point, delay=300)
-    qtbot.mouseClick(code_editor, Qt.LeftButton, pos=point, delay=300)
-    qtbot.wait(1000)
+    with qtbot.waitSignal(code_editor.sig_display_object_info,
+                          timeout=30000) as blocker:
+        qtbot.mouseMove(code_editor, point, delay=300)
+        qtbot.mouseClick(code_editor, Qt.LeftButton, pos=point, delay=300)
 
-    # # This checks that code_editor.log_lsp_handle_errors was not called
+        qtbot.waitUntil(lambda: code_editor.tooltip_widget.isVisible(), timeout=3000)
+        content = blocker.args[0]
+        assert expected_content in content
+
+    # This checks that code_editor.log_lsp_handle_errors was not called
     captured = capsys.readouterr()
     assert captured.err == ''
