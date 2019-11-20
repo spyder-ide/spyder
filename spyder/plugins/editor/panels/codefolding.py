@@ -215,8 +215,8 @@ class FoldingPanel(Panel):
             for line in past_folding_regions:
                 offset = prev_offsets[line]
                 new_offset = differ.diff_xIndex(diff, offset)
-                new_line = current_lines[new_offset]
-                if new_line in self.folding_regions:
+                new_line = current_lines.get(new_offset)
+                if new_line and new_line in self.folding_regions:
                     folding_status[new_line] = self.folding_status[line]
             self.folding_status = folding_status
         # Compute region nesting level

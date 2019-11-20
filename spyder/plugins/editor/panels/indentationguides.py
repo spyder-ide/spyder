@@ -61,8 +61,8 @@ class IndentationGuide(Panel):
             bottom = int(self.editor.blockBoundingGeometry(
                 end_block).translated(self.editor.contentOffset()).bottom())
             total_whitespace = leading_whitespaces[max(line_number - 1, 0)]
-            end_whitespace = leading_whitespaces[end_line - 1]
-            if end_whitespace != total_whitespace:
+            end_whitespace = leading_whitespaces.get(end_line - 1)
+            if end_whitespace and end_whitespace != total_whitespace:
                 x = (self.editor.fontMetrics().width(total_whitespace * '9') +
                      self.bar_offset + offset)
                 painter.drawLine(x, top, x, bottom)
