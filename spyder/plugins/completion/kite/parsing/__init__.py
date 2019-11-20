@@ -4,9 +4,11 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+# Standard library imports
 import logging
 import re
 
+# Local imports
 from spyder.py3compat import PY2
 
 

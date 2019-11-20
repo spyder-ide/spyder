@@ -2132,6 +2132,12 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
 
+    # Close split panel
+    for editorstack in reversed(main_window.editor.editorstacks):
+        editorstack.close_split()
+        break
+    qtbot.wait(1000)
+
 
 @pytest.mark.slow
 @flaky(max_runs=3)

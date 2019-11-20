@@ -29,6 +29,7 @@ from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.plugins.completion.plugin import CompletionManager
 from spyder.plugins.explorer.widgets.tests.conftest import create_folders_files
+from spyder.py3compat import PY2, to_text_string
 from spyder.widgets.findreplace import FindReplace
 
 
@@ -99,7 +100,14 @@ def fallback_codeeditor(qtbot_module, request):
     return editor, fallback
 
 
-@pytest.fixture(scope="module")
+# Windows tests fail if using module scope
+if os.name == 'nt':
+    LSP_PLUGIN_SCOPE = 'module'
+else:
+    LSP_PLUGIN_SCOPE = 'function'
+
+
+@pytest.fixture(scope=LSP_PLUGIN_SCOPE)
 def lsp_plugin(qtbot_module, request):
     # Activate pycodestyle and pydocstyle
     CONF.set('lsp-server', 'pycodestyle', True)
@@ -167,7 +175,6 @@ def lsp_codeeditor(lsp_plugin, qtbot_module, request, capsys):
     # Create a CodeEditor instance
     editor = codeeditor_factory()
     qtbot_module.addWidget(editor)
-    editor.show()
 
     # Redirect editor LSP requests to lsp_manager
     editor.sig_perform_completion_request.connect(lsp_plugin.send_request)
@@ -183,23 +190,36 @@ def lsp_codeeditor(lsp_plugin, qtbot_module, request, capsys):
         editor.document_did_open()
 
     def teardown():
-        editor.hide()
         editor.completion_widget.hide()
+        editor.tooltip_widget.hide()
+        editor.hide()
 
-        # This checks that code_editor.log_lsp_handle_errors was not called
-        captured = capsys.readouterr()
-        assert 'log_lsp_handle_errors' not in captured.err
-        assert captured.err == ''
+        # Capture stderr and assert there are no errors
+        sys_stream = capsys.readouterr()
+        sys_err = sys_stream.err
+
+        if PY2:
+            sys_err = to_text_string(sys_err).encode('utf-8')
+        assert sys_err == ''
 
     request.addfinalizer(teardown)
     lsp_plugin = lsp_plugin.get_client('lsp')
+
+    editor.show()
+
     return editor, lsp_plugin
 
 
 @pytest.fixture
-def search_codeeditor(lsp_codeeditor, qtbot_module):
+def search_codeeditor(lsp_codeeditor, qtbot_module, request):
     code_editor, _ = lsp_codeeditor
     find_replace = FindReplace(None, enable_replace=True)
     find_replace.set_editor(code_editor)
     qtbot_module.addWidget(find_replace)
+
+    def teardown():
+        find_replace.hide()
+
+    request.addfinalizer(teardown)
+
     return code_editor, find_replace

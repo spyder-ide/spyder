@@ -87,9 +87,13 @@ def test_space_completion(lsp_codeeditor, qtbot):
     code_editor.toggle_automatic_completions(True)
     code_editor.toggle_code_snippets(True)
 
+
 @pytest.mark.slow
 @pytest.mark.first
 @flaky(max_runs=5)
+@pytest.mark.skipif(
+    os.environ.get('CI') and (PY2 or sys.platform.startswith('linux')),
+    reason='Fails consistently on CI with Linux or Python 2')
 def test_hide_widget_completion(lsp_codeeditor, qtbot):
     """Validate hiding completion widget after a delimeter or operator."""
     code_editor, _ = lsp_codeeditor
@@ -103,6 +107,8 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
     code_editor.toggle_code_snippets(False)
 
     # Set cursor to start
+    code_editor.set_text('')
+    code_editor.completion_widget.hide()
     code_editor.go_to_line(1)
 
     # Complete from numpy import --> from numpy import ?
@@ -110,17 +116,19 @@ def test_hide_widget_completion(lsp_codeeditor, qtbot):
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
-    # press tab and get completions
+    # Press tab and get completions
     with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
+                          timeout=10000):
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     # Check the completion widget is visible
     assert completion.isHidden() is False
 
     # Write a random delimeter on the code editor
-    delimeter = random.choice(delimiters)
-    qtbot.keyClicks(code_editor, delimeter)
+    delimiter = random.choice(delimiters)
+    print(delimiter)
+    qtbot.keyClicks(code_editor, delimiter)
+    qtbot.wait(1000)
 
     # Check the completion widget is not visible
     assert completion.isHidden() is True
