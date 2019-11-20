@@ -1570,10 +1570,7 @@ class CodeEditor(TextEditBaseWidget):
             self.unindent()
 
     def rehighlight(self):
-        """
-        Rehighlight the whole document to rebuild outline explorer data
-        and import statements data from scratch
-        """
+        """Rehighlight the whole document."""
         if self.highlighter is not None:
             self.highlighter.rehighlight()
         if self.highlight_current_cell_enabled:
