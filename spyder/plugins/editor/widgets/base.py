@@ -31,6 +31,7 @@ from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
+from spyder.plugins.outlineexplorer.api import is_cell_header
 
 
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
@@ -436,23 +437,23 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         return leading_lines_str + ls.join(lines)
 
-    def __exec_cell(self, cursor=None):
-        """Get text and line number from cursor or current position."""
+    def get_cell_as_executable_code(self, cursor=None):
+        """Return cell contents as executable code."""
         if cursor is None:
             cursor = self.textCursor()
         ls = self.get_line_separator()
         cursor, whole_file_selected = self.select_current_cell(cursor)
         line_from, line_to = self.get_selection_bounds(cursor)
-        block = self.get_selection_first_block(cursor)
+        # Get the block for the first cell line
+        start = cursor.selectionStart()
+        block = self.document().findBlock(start)
+        if not is_cell_header(block) and start > 0:
+            block = self.document().findBlock(start - 1)
+        # Get text
         text = self.get_selection_as_executable_code(cursor)
-
         if text is not None:
             text = ls * line_from + text
         return text, block
-
-    def get_cell_as_executable_code(self, cursor=None):
-        """Return cell contents as executable code."""
-        return self.__exec_cell(cursor)
 
     def is_cell_separator(self, cursor=None, block=None):
         """Return True if cursor (or text block) is on a block separator"""
@@ -854,11 +855,31 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Completion list is active, Enter was just pressed"""
         self.completion_widget.item_selected()
 
-    def insert_completion(self, text, completion_position):
-        if text:
+    def insert_completion(self, completion, completion_position):
+        """Insert a completion into the editor.
+
+        completion_position is where the completion was generated.
+
+        The replacement range is computed using the (LSP) completion's
+        textEdit field if it exists. Otherwise, we replace from the
+        start of the word under the cursor.
+        """
+        if not completion:
+            return
+        cursor = self.textCursor()
+        if isinstance(completion, dict) and 'textEdit' in completion:
+            cursor.setPosition(completion['textEdit']['range']['start'])
+            cursor.setPosition(completion['textEdit']['range']['end'],
+                               QTextCursor.KeepAnchor)
+            text = to_text_string(completion['textEdit']['newText'])
+        else:
+            text = completion
+            if isinstance(completion, dict):
+                text = completion['insertText']
+            text = to_text_string(text)
+
             # Get word on the left of the cursor.
             result = self.get_current_word_and_position(completion=True)
-            cursor = self.textCursor()
             if result is not None:
                 current_text, start_position = result
                 end_position = start_position + len(current_text)
@@ -869,18 +890,20 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 # Remove the word under the cursor
                 cursor.setPosition(end_position,
                                    QTextCursor.KeepAnchor)
-                cursor.removeSelectedText()
-                self.setTextCursor(cursor)
             else:
                 # Check if we are in the correct position
                 if cursor.position() != completion_position:
                     return
-            # Add text
-            if self.code_snippets:
-                self.sig_insert_completion.emit(text)
-            else:
-                self.insert_text(text)
-                self.document_did_change()
+
+        cursor.removeSelectedText()
+        self.setTextCursor(cursor)
+
+        # Add text
+        if self.code_snippets:
+            self.sig_insert_completion.emit(text)
+        else:
+            self.insert_text(text)
+        self.document_did_change()
 
     def is_completion_widget_visible(self):
         """Return True is completion list widget is visible"""

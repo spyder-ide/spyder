@@ -9,10 +9,13 @@
 from spyder.plugins.completion.languageserver import LSPRequestTypes
 
 
+LOCALHOST = '127.0.0.1'
+
+
 class _KiteEndpoints(type):
     """HTTP endpoints supported by Kite"""
     KITE_PORT = 46624
-    KITE_URL = 'http://localhost:{0}'.format(KITE_PORT)
+    KITE_URL = 'http://{0}:{1}'.format(LOCALHOST, KITE_PORT)
 
     LANGUAGES_ENDPOINT = ('GET', '/clientapi/languages')
     EVENT_ENDPOINT = ('POST', '/clientapi/editor/event')
@@ -21,6 +24,8 @@ class _KiteEndpoints(type):
                'cursor_runes={cursor_runes}')
     COMPLETION_ENDPOINT = ('POST', '/clientapi/editor/complete')
     SIGNATURE_ENDPOINT = ('POST', '/clientapi/editor/signatures')
+    ONBOARDING_ENDPOINT = ('GET',
+                           '/clientapi/plugins/onboarding_file?editor=spyder')
     FILENAME_STATUS_ENDPOINT = (
         'GET', u'/clientapi/status?filename={filename}')
     BUFFER_STATUS_ENDPOINT = ('GET', '/clientapi/status?filetype=python')

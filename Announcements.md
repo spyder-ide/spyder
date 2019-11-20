@@ -124,18 +124,18 @@ scientific computing and software development.
 
 # Beta release
 
-**Subject**: [ANN] Spyder 4.0 seventh public beta release
+**Subject**: [ANN] Spyder 4.0 second release candidate
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce the seventh beta of our next major version: Spyder **4.0**.
+I'm pleased to announce the second release candidate of our next major version: Spyder **4.0**.
 
 We've been working on this version for more than three years now and as far as we know
 it's working very well. There are still several bugs to squash but we encourage all
 people who like the bleeding edge to give it a try. This beta version is released
-3 days after Spyder 4.0 beta6 and it includes more than 80 commits.
+two weeks after Spyder 4.0 rc1 and it includes almost 240 commits.
 
 Spyder 4.0 comes with several interesting and exciting new features. The most
 important ones are:
@@ -184,6 +184,7 @@ important ones are:
     * Support for all Pandas indexes.
     * Support for sets.
     * Support for Numpy object arrays.
+    * Restore the ability to refresh it while code is being executed.
 
 - Files
     * Associate external applications to open specific file extensions.
@@ -203,7 +204,7 @@ For a more complete list of changes, please see our
 You can easily install this beta if you use Anaconda by running:
 
     conda update qt pyqt
-    conda install -c spyder-ide spyder=4.0.0b7
+    conda install -c spyder-ide spyder=4.0.0rc1
 
 Or you can use pip with this command:
 

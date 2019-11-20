@@ -34,7 +34,8 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
 # Local imports
 from spyder.config.base import (_, get_image_path, get_module_source_path,
                                 running_under_pytest)
-from spyder.config.gui import get_shortcut, is_dark_interface
+from spyder.config.gui import is_dark_interface
+from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
 from spyder.utils.encoding import get_coding
@@ -434,32 +435,39 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def add_actions_to_context_menu(self, menu):
         """Add actions to IPython widget context menu"""
-        inspect_action = create_action(self, _("Inspect current object"),
-                                    QKeySequence(get_shortcut('console',
-                                                    'inspect current object')),
-                                    icon=ima.icon('MessageBoxInformation'),
-                                    triggered=self.inspect_object)
+        inspect_action = create_action(
+            self,
+            _("Inspect current object"),
+            QKeySequence(CONF.get_shortcut('console',
+                                           'inspect current object')),
+            icon=ima.icon('MessageBoxInformation'),
+            triggered=self.inspect_object)
 
-        clear_line_action = create_action(self, _("Clear line or block"),
-                                          QKeySequence(get_shortcut(
-                                                  'console',
-                                                  'clear line')),
-                                          triggered=self.clear_line)
+        clear_line_action = create_action(
+            self,
+            _("Clear line or block"),
+            QKeySequence(CONF.get_shortcut('console', 'clear line')),
+            triggered=self.clear_line)
 
-        reset_namespace_action = create_action(self, _("Remove all variables"),
-                                               QKeySequence(get_shortcut(
-                                                       'ipython_console',
-                                                       'reset namespace')),
-                                               icon=ima.icon('editdelete'),
-                                               triggered=self.reset_namespace)
+        reset_namespace_action = create_action(
+            self,
+            _("Remove all variables"),
+            QKeySequence(CONF.get_shortcut('ipython_console',
+                                           'reset namespace')),
+            icon=ima.icon('editdelete'),
+            triggered=self.reset_namespace)
 
-        clear_console_action = create_action(self, _("Clear console"),
-                                             QKeySequence(get_shortcut('console',
-                                                               'clear shell')),
-                                             triggered=self.clear_console)
+        clear_console_action = create_action(
+            self,
+            _("Clear console"),
+            QKeySequence(CONF.get_shortcut('console', 'clear shell')),
+            triggered=self.clear_console)
 
-        quit_action = create_action(self, _("&Quit"), icon=ima.icon('exit'),
-                                    triggered=self.exit_callback)
+        quit_action = create_action(
+            self,
+            _("&Quit"),
+            icon=ima.icon('exit'),
+            triggered=self.exit_callback)
 
         add_actions(menu, (None, inspect_action, clear_line_action,
                            clear_console_action, reset_namespace_action,
@@ -488,6 +496,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             if running_under_pytest():
                 now = False
             self.shellwidget.spyder_kernel_comm.close()
+            self.shellwidget.spyder_kernel_comm.shutdown_comm_channel()
             self.shellwidget.kernel_manager.shutdown_kernel(now=now)
             self.shellwidget._pdb_history_file.save_thread.stop()
         if self.shellwidget.kernel_client is not None:

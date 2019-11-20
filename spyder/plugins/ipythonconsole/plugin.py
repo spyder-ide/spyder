@@ -383,6 +383,9 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget.currentChanged.connect(self.update_working_directory)
         self._remove_old_stderr_files()
 
+        # Update kernels if python path is changed
+        self.main.sig_pythonpath_changed.connect(self.update_path)
+
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
         """Return clients list"""
@@ -551,6 +554,14 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget = self.get_current_shellwidget()
         if shellwidget is not None:
             shellwidget.update_cwd()
+
+    def update_path(self, path_dict, new_path_dict):
+        """Update path on consoles."""
+        for client in self.get_clients():
+            shell = client.shellwidget
+            if shell is not None:
+                self.main.get_spyder_pythonpath()
+                shell.update_syspath(path_dict, new_path_dict)
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""
@@ -1036,6 +1047,16 @@ class IPythonConsole(SpyderPluginWidget):
         """Set Spyder breakpoints into all clients"""
         for cl in self.clients:
             cl.shellwidget.set_spyder_breakpoints()
+
+    def set_pdb_ignore_lib(self):
+        """Set pdb_ignore_lib into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_pdb_ignore_lib()
+
+    def set_pdb_execute_events(self):
+        """Set pdb_execute_events into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_pdb_execute_events()
 
     @Slot(str)
     def create_client_from_path(self, path):

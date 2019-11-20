@@ -43,7 +43,8 @@ def codeeditor_factory():
                         font=QFont("Monospace", 10),
                         automatic_completions=True,
                         automatic_completions_after_chars=1,
-                        automatic_completions_after_ms=200)
+                        automatic_completions_after_ms=200,
+                        folding=False)
     editor.resize(640, 480)
     return editor
 
@@ -127,6 +128,40 @@ def lsp_plugin(qtbot_module, request):
 
 
 @pytest.fixture
+def mock_completions_codeeditor(qtbot_module, request):
+    """CodeEditor instance with ability to mock the completions response.
+
+    Returns a tuple of (editor, mock_response). Tests using this fixture should
+    set `mock_response.side_effect = lambda lang, method, params: {}`.
+    """
+    # Create a CodeEditor instance
+    editor = codeeditor_factory()
+    qtbot_module.addWidget(editor)
+    editor.show()
+
+    mock_response = Mock()
+
+    def perform_request(lang, method, params):
+        resp = mock_response(lang, method, params)
+        print("DEBUG {}".format(resp))
+        if resp is not None:
+            editor.handle_response(method, resp)
+    editor.sig_perform_completion_request.connect(perform_request)
+
+    editor.filename = 'test.py'
+    editor.language = 'Python'
+    editor.completions_available = True
+    qtbot_module.wait(2000)
+
+    def teardown():
+        editor.hide()
+        editor.completion_widget.hide()
+    request.addfinalizer(teardown)
+
+    return editor, mock_response
+
+
+@pytest.fixture
 def lsp_codeeditor(lsp_plugin, qtbot_module, request):
     """CodeEditor instance with LSP services activated."""
     # Create a CodeEditor instance
@@ -154,3 +189,12 @@ def lsp_codeeditor(lsp_plugin, qtbot_module, request):
     request.addfinalizer(teardown)
     lsp_plugin = lsp_plugin.get_client('lsp')
     return editor, lsp_plugin
+
+
+@pytest.fixture
+def search_codeeditor(lsp_codeeditor, qtbot_module):
+    code_editor, _ = lsp_codeeditor
+    find_replace = FindReplace(None, enable_replace=True)
+    find_replace.set_editor(code_editor)
+    qtbot_module.addWidget(find_replace)
+    return code_editor, find_replace

@@ -18,9 +18,8 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.manager import CONF
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
+from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import programs, encoding
 from spyder.utils import syntaxhighlighters as sh
@@ -71,8 +70,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
-        self.spyder_kernel_comm = KernelComm(
-            interrupt_callback=self._pdb_update)
+        self.spyder_kernel_comm = KernelComm()
         self.spyder_kernel_comm.sig_exception_occurred.connect(
             self.sig_exception_occurred)
         super(ShellWidget, self).__init__(*args, **kw)
@@ -96,27 +94,55 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         handlers = {
             'pdb_state': self.set_pdb_state,
             'pdb_continue': self.pdb_continue,
-            'get_breakpoints': self.get_spyder_breakpoints,
+            'get_pdb_settings': self.handle_get_pdb_settings,
             'run_cell': self.handle_run_cell,
             'cell_count': self.handle_cell_count,
             'current_filename': self.handle_current_filename,
             'get_file_code': self.handle_get_file_code,
             'set_debug_state': self.handle_debug_state,
+            'update_syspath': self.update_syspath,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
 
-    def call_kernel(self, interrupt=False, blocking=False, callback=None):
-        """Send message to spyder."""
+    def call_kernel(self, interrupt=False, blocking=False, callback=None,
+                    timeout=None):
+        """
+        Send message to Spyder kernel connected to this console.
+
+        Parameters
+        ----------
+        interrupt: bool
+            Interrupt the kernel while running or in Pdb to perform
+            the call.
+        blocking: bool
+            Make a blocking call, i.e. wait on this side until the
+            kernel sends its response.
+        callback: callable
+            Callable to process the response sent from the kernel
+            on the Spyder side.
+        timeout: int or None
+            Maximum time (in seconds) before giving up when making a
+            blocking call to the kernel. If None, a default timeout
+            (defined in commbase.py, present in spyder-kernels) is
+            used.
+        """
         return self.spyder_kernel_comm.remote_call(
-            interrupt=interrupt, blocking=blocking, callback=callback)
+            interrupt=interrupt,
+            blocking=blocking,
+            callback=callback,
+            timeout=timeout
+        )
 
     def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
         """Set the kernel client and manager"""
         self.kernel_manager = kernel_manager
         self.kernel_client = kernel_client
         self.spyder_kernel_comm.open_comm(kernel_client)
+
+        # Redefine the complete method to work while debugging.
+        self.redefine_complete_for_dbg(self.kernel_client)
 
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
@@ -189,6 +215,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.call_kernel(
                 interrupt=True,
                 blocking=False).set_sympy_forecolor(background_color='light')
+
+    def update_syspath(self, path_dict, new_path_dict):
+        """Update sys.path contents on kernel."""
+        self.call_kernel(
+            interrupt=True,
+            blocking=False).update_syspath(path_dict, new_path_dict)
 
     def request_syspath(self):
         """Ask the kernel for sys.path contents."""
@@ -331,29 +363,53 @@ the sympy module (e.g. plot)
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
-        inspect = config_shortcut(self._control.inspect_current_object,
-                                  context='Console',
-                                  name='Inspect current object', parent=self)
-        clear_console = config_shortcut(self.clear_console, context='Console',
-                                        name='Clear shell', parent=self)
-        restart_kernel = config_shortcut(self.ipyclient.restart_kernel,
-                                         context='ipython_console',
-                                         name='Restart kernel', parent=self)
-        new_tab = config_shortcut(lambda: self.new_client.emit(),
-                                  context='ipython_console', name='new tab',
-                                  parent=self)
-        reset_namespace = config_shortcut(lambda: self._reset_namespace(),
-                                          context='ipython_console',
-                                          name='reset namespace', parent=self)
-        array_inline = config_shortcut(self._control.enter_array_inline,
-                                       context='array_builder',
-                                       name='enter array inline', parent=self)
-        array_table = config_shortcut(self._control.enter_array_table,
-                                      context='array_builder',
-                                      name='enter array table', parent=self)
-        clear_line = config_shortcut(self.ipyclient.clear_line,
-                                     context='console', name='clear line',
-                                     parent=self)
+        inspect = CONF.config_shortcut(
+            self._control.inspect_current_object,
+            context='Console',
+            name='Inspect current object',
+            parent=self)
+
+        clear_console = CONF.config_shortcut(
+            self.clear_console,
+            context='Console',
+            name='Clear shell',
+            parent=self)
+
+        restart_kernel = CONF.config_shortcut(
+            self.ipyclient.restart_kernel,
+            context='ipython_console',
+            name='Restart kernel',
+            parent=self)
+
+        new_tab = CONF.config_shortcut(
+            lambda: self.new_client.emit(),
+            context='ipython_console',
+            name='new tab',
+            parent=self)
+
+        reset_namespace = CONF.config_shortcut(
+            lambda: self._reset_namespace(),
+            context='ipython_console',
+            name='reset namespace',
+            parent=self)
+
+        array_inline = CONF.config_shortcut(
+            self._control.enter_array_inline,
+            context='array_builder',
+            name='enter array inline',
+            parent=self)
+
+        array_table = CONF.config_shortcut(
+            self._control.enter_array_table,
+            context='array_builder',
+            name='enter array table',
+            parent=self)
+
+        clear_line = CONF.config_shortcut(
+            self.ipyclient.clear_line,
+            context='console',
+            name='clear line',
+            parent=self)
 
         return [inspect, clear_console, restart_kernel, new_tab,
                 reset_namespace, array_inline, array_table, clear_line]

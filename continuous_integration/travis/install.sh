@@ -36,6 +36,9 @@ if [ "$USE_CONDA" = "yes" ]; then
 
     # Install spyder-kernels from Github with no deps
     pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
+
+    # Install python-language-server from Github with no deps
+    pip install -q --no-deps git+https://github.com/palantir/python-language-server
 else
     # Downgrade to Python 3.7.3 because 3.7.4 is not pulling
     # wheels for all packages
@@ -67,6 +70,12 @@ else
     # Install spyder-kernels from Github
     pip install -q git+https://github.com/spyder-ide/spyder-kernels
 
+    # Install python-language-server from Github
+    pip install -q git+https://github.com/palantir/python-language-server
+
     # Install coveralls
     pip install -q coveralls
 fi
+
+# Create environment for Jedi environments testsTest for Jedi environments
+conda create -n jedi-test-env -q -y python=3.6 loghub spyder-kernels -c spyder-ide

@@ -10,10 +10,11 @@ in our Preferences.
 """
 
 # Standard library imports
+import functools
 import logging
 import os
 import os.path as osp
-import functools
+import sys
 
 # Third-party imports
 from qtpy.QtCore import Slot
@@ -201,6 +202,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     def register_client_instance(self, instance):
         """Register signals emmited by a client instance."""
         if self.main:
+            self.main.sig_pythonpath_changed.connect(
+                self.update_configuration)
+            self.main.sig_main_interpreter_changed.connect(
+                self.update_configuration)
             if self.main.editor:
                 instance.sig_initialize.connect(
                     self.main.editor.register_completion_server_settings)
@@ -369,16 +374,24 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             'matchDir': self.get_option('pydocstyle/match_dir')
         }
 
-        # Code completion
+        # Jedi configuration
+        if self.get_option('default', section='main_interpreter'):
+            environment = None
+        else:
+            environment = self.get_option('custom_interpreter',
+                                          section='main_interpreter')
+        jedi = {
+            'environment': environment,
+            'extra_paths': self.get_option('spyder_pythonpath',
+                                           section='main', default=[]),
+        }
         jedi_completion = {
             'enabled': self.get_option('code_completion'),
             'include_params':  self.get_option('code_snippets')
         }
-
         jedi_signature_help = {
             'enabled': self.get_option('jedi_signature_help')
         }
-
         jedi_definition = {
             'enabled': self.get_option('jedi_definition'),
             'follow_imports': self.get_option('jedi_definition/follow_imports')
@@ -391,9 +404,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         # Setup options in json
         python_config['cmd'] = cmd
         if host in self.LOCALHOST and not stdio:
-            python_config['args'] = '--host {host} --port {port} --tcp'
+            python_config['args'] = ('--host {host} --port {port} --tcp '
+                                     '--check-parent-process')
         else:
-            python_config['args'] = ''
+            python_config['args'] = '--check-parent-process'
         python_config['external'] = external_server
         python_config['stdio'] = stdio
         python_config['host'] = host
@@ -403,9 +417,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         plugins['pycodestyle'] = pycodestyle
         plugins['pyflakes'] = pyflakes
         plugins['pydocstyle'] = pydocstyle
+        plugins['jedi'] = jedi
         plugins['jedi_completion'] = jedi_completion
         plugins['jedi_signature_help'] = jedi_signature_help
-        plugins['preload']['modules'] = self.get_option('preload_modules')
         plugins['jedi_definition'] = jedi_definition
+        plugins['preload']['modules'] = self.get_option('preload_modules')
 
         return python_config

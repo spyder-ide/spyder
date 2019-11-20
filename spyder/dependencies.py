@@ -19,7 +19,7 @@ from spyder.py3compat import PY2
 
 CLOUDPICKLE_REQVER = '>=0.5.0'
 PYGMENTS_REQVER = '>=2.0'
-QTCONSOLE_REQVER = '>=4.5.5'
+QTCONSOLE_REQVER = '>=4.6.0'
 NBCONVERT_REQVER = '>=4.0'
 SPHINX_REQVER = '>=0.6.6'
 PYLINT_REQVER = '>=0.25'
@@ -30,7 +30,7 @@ PICKLESHARE_REQVER = '>=0.4'
 PYZMQ_REQVER = '>=17'
 CHARDET_REQVER = '>=2.0.0'
 NUMPYDOC_REQVER = '>=0.6.0'
-SPYDER_KERNELS_REQVER = '>=1.5.0;<2.0.0'
+SPYDER_KERNELS_REQVER = '>=1.8.0;<2.0.0'
 QDARKSTYLE_REQVER = '>=2.7'
 ATOMICWRITES_REQVER = '>=1.2.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
@@ -48,8 +48,9 @@ MATPLOTLIB_REQVER = '>=2.0.0'
 PANDAS_REQVER = '>=0.13.1'
 NUMPY_REQVER = '>=1.7'
 SCIPY_REQVER = '>=0.17.0'
-PYLS_REQVER = '>=0.28.2;<0.29.0'
-
+PYLS_REQVER = '>=0.31.0;<0.32.0'
+APPLAUNCHSERVICES_REQVER = '>=0.1.7'
+INTERVALTREE_REQVER = None
 
 
 DEPENDENCIES_BASE = [
@@ -121,6 +122,10 @@ DEPENDENCIES_BASE = [
      'package_name': "diff_match_patch",
      'features': _("Compute text file diff changes during edition"),
      'required_version': DIFF_MATCH_PATCH_REQVER},
+    {'modname': "intervaltree",
+     'package_name': "intervaltree",
+     'features': _("Compute folding range nesting levels"),
+     'required_version': INTERVALTREE_REQVER},
     {'modname': "watchdog",
      'package_name': "watchdog",
      'features': _("Watch file changes on project directories"),
@@ -176,6 +181,12 @@ DEPENDENCIES_BASE = [
      'features': _("Code completion and linting for the Editor"),
      'required_version': PYLS_REQVER}]
 
+if sys.platform == "darwin":
+    DEPENDENCIES_BASE.append(
+        {'modname': "applaunchservices",
+         'package_name': "applaunchservices",
+         'features': _("Notify macOS that Spyder can open Python files"),
+         'required_version': APPLAUNCHSERVICES_REQVER})
 
 if sys.platform.startswith('linux'):
     DEPENDENCIES_BASE.append(

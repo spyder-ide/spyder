@@ -25,7 +25,6 @@ from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
 import zmq
 
 # Local imports
-from spyder.py3compat import PY2
 from spyder.config.base import (get_conf_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.completion.languageserver import (
@@ -37,6 +36,8 @@ from spyder.plugins.completion.languageserver.decorators import (
 from spyder.plugins.completion.languageserver.transport import MessageKind
 from spyder.plugins.completion.languageserver.providers import (
     LSPMethodProviderMixIn)
+from spyder.py3compat import PY2
+from spyder.utils.environ import clean_env
 from spyder.utils.misc import getcwd_or_home, select_port
 
 # Conditional imports
@@ -232,6 +233,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if running_under_pytest():
             new_env['PYTHONPATH'] = os.pathsep.join(sys.path)[:]
 
+        # On some CI systems there are unicode characters inside PYTHOPATH
+        # which raise errors if not removed
+        if PY2:
+            new_env = clean_env(new_env)
+
         self.transport_args = list(map(str, self.transport_args))
         logger.info('Starting transport: {0}'
                     .format(' '.join(self.transport_args)))
@@ -385,8 +391,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     @handles(SERVER_READY)
     @send_request(method=LSPRequestTypes.INITIALIZE)
     def initialize(self, *args, **kwargs):
+        pid = self.transport_client.pid if not self.external_server else None
         params = {
-            'processId': self.transport_client.pid,
+            'processId': pid,
             'rootUri': pathlib.Path(osp.abspath(self.folder)).as_uri(),
             'capabilities': self.client_capabilites,
             'trace': TRACE
