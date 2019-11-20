@@ -19,7 +19,6 @@ import signal
 import subprocess
 import sys
 import time
-import socket
 
 # Third-party imports
 from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
@@ -308,17 +307,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     # Try again in 10ms
                     time.sleep(0.01)
                 else:
-                    self.transport_unresponsive = True
                     # The server doesn't reply
-                    try:
-                        localhost = socket.gethostbyname('localhost')
-                    except:
-                        localhost = None
-                    if localhost is None:
-                        raise RuntimeError(
-                            'LSP server is not responding.'
-                            ' Make sure your hosts file (/etc/hosts)'
-                            ' is correct (localhost is not defined)')
+                    self.transport_unresponsive = True
                     raise RuntimeError('LSP server is not responding.')
         self.request_seq += 1
         return int(_id)
