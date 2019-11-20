@@ -855,13 +855,24 @@ class BaseEditMixin(object):
 
     def get_text_line(self, line_nb):
         """Return text line at line number *line_nb*"""
-        # Taking into account the case when a file ends in an empty line,
-        # since splitlines doesn't return that line as the last element
-        # TODO: Make this function more efficient
-        try:
-            return to_text_string(self.toPlainText()).splitlines()[line_nb]
-        except IndexError:
-            return self.get_line_separator()
+        block = self.document().findBlockByNumber(line_nb)
+        cursor = QTextCursor(block)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.movePosition(QTextCursor.EndOfBlock, mode=QTextCursor.KeepAnchor)
+        return to_text_string(cursor.selectedText())
+
+    def get_text_region(self, start_line, end_line):
+        """Return text lines spanned from *start_line* to *end_line*."""
+        start_block = self.document().findBlockByNumber(start_line)
+        end_block = self.document().findBlockByNumber(end_line)
+
+        start_cursor = QTextCursor(start_block)
+        start_cursor.movePosition(QTextCursor.StartOfBlock)
+        end_cursor = QTextCursor(end_block)
+        end_cursor.movePosition(QTextCursor.EndOfBlock)
+        end_position = end_cursor.position()
+        start_cursor.setPosition(end_position, mode=QTextCursor.KeepAnchor)
+        return self.get_selected_text(start_cursor)
 
     def get_text(self, position_from, position_to):
         """

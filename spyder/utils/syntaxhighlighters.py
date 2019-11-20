@@ -290,15 +290,20 @@ class BaseSH(QSyntaxHighlighter):
         :param text: text to highlight.
         """
         self.highlight_block(text)
+        if self.editor:
+            if self.editor.folding_supported and self.editor.code_folding:
+                diff, _ = self.editor.text_diff
+                if len(diff) > 0:
+                    self.editor.request_folding()
 
         # Process blocks for fold detection
-        current_block = self.currentBlock()
-        previous_block = self._find_prev_non_blank_block(current_block)
-        if self.editor:
-            if self.fold_detector is not None:
-                self.fold_detector._editor = weakref.ref(self.editor)
-                self.fold_detector.process_block(
-                    current_block, previous_block, text)
+        # current_block = self.currentBlock()
+        # previous_block = self._find_prev_non_blank_block(current_block)
+        # if self.editor:
+        #     if self.fold_detector is not None:
+        #         self.fold_detector._editor = weakref.ref(self.editor)
+        #         self.fold_detector.process_block(
+        #             current_block, previous_block, text)
 
     def highlight_block(self, text):
         """

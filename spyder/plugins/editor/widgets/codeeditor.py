@@ -68,10 +68,9 @@ from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           FoldingPanel, IndentationGuide,
                                           LineNumberArea, PanelsManager,
                                           ScrollFlagArea)
-from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData,
-                                                TextBlockHelper)
+from spyder.plugins.editor.utils.editor import (TextHelper, BlockUserData)
 from spyder.plugins.editor.utils.debugger import DebuggerManager
-from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
+# from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
 from spyder.plugins.completion.decorators import (
@@ -405,10 +404,12 @@ class CodeEditor(TextEditBaseWidget):
         self.linenumberarea = self.panels.register(LineNumberArea(self))
 
         # Class and Method/Function Dropdowns
-        self.classfuncdropdown = self.panels.register(
-            ClassFunctionDropdown(self),
-            Panel.Position.TOP,
-        )
+        # NOTE: This panel will be disabled until it is migrated to use LSP
+        # calls
+        # self.classfuncdropdown = self.panels.register(
+        #     ClassFunctionDropdown(self),
+        #     Panel.Position.TOP,
+        # )
 
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
@@ -520,6 +521,9 @@ class CodeEditor(TextEditBaseWidget):
         self.automatic_completions_after_chars = 3
         self.automatic_completions_after_ms = 300
 
+        # Code Folding
+        self.code_folding = True
+
         # Completions hint
         self.completions_hint = True
         self.completions_hint_after_ms = 500
@@ -580,6 +584,7 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_characters = []
         self.rename_support = False
         self.completion_args = None
+        self.folding_supported = False
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
@@ -593,6 +598,8 @@ class CodeEditor(TextEditBaseWidget):
         self.previous_text = ''
         self.word_tokens = []
         self.patch = []
+        self.text_diff = ([], '')
+        self.leading_whitespaces = {}
 
         # re-use parent of completion_widget (usually the main window)
         completion_parent = self.completion_widget.parent()
@@ -823,7 +830,7 @@ class CodeEditor(TextEditBaseWidget):
         self.set_debug_panel(debug_panel, language)
 
         # Show/hide folding panel depending on parameter
-        self.set_folding_panel(folding)
+        self.toggle_code_folding(folding)
 
         # Scrollbar flag area
         self.scrollflagarea.set_enabled(scrollflagarea)
@@ -906,8 +913,8 @@ class CodeEditor(TextEditBaseWidget):
         self.toggle_wrap_mode(wrap)
 
         # Class/Function dropdown will be disabled if we're not in a Python file.
-        self.classfuncdropdown.setVisible(show_class_func_dropdown
-                                          and self.is_python_like())
+        # self.classfuncdropdown.setVisible(show_class_func_dropdown
+        #                                   and self.is_python_like())
 
         self.set_strip_mode(strip_mode)
 
@@ -957,6 +964,7 @@ class CodeEditor(TextEditBaseWidget):
             self.filename))
         self.completions_available = True
         self.document_did_open()
+        self.request_folding()
 
     def update_completion_configuration(self, config):
         """Start LSP integration if it wasn't done before."""
@@ -964,6 +972,7 @@ class CodeEditor(TextEditBaseWidget):
         self.parse_lsp_config(config)
         self.completions_available = True
         self.document_did_open()
+        self.request_folding()
 
     def stop_completion_services(self):
         logger.debug('Stopping completion services for %s' % self.filename)
@@ -983,6 +992,7 @@ class CodeEditor(TextEditBaseWidget):
                                                        False)
         self.save_include_text = sync_options['save']['includeText']
         self.enable_hover = config['hoverProvider']
+        self.folding_supported = config.get('foldingRangeProvider', False)
         self.auto_completion_characters = (
             completion_options['triggerCharacters'])
         self.signature_completion_characters = (
@@ -1016,6 +1026,26 @@ class CodeEditor(TextEditBaseWidget):
         return params
 
     # ------------- LSP: Linting ---------------------------------------
+
+    def update_whitespace_count(self, line, column):
+        def compute_whitespace(line):
+            whitespace_regex = re.compile(r'(\s+).*')
+            whitespace_match = whitespace_regex.match(line)
+            total_whitespace = 0
+            if whitespace_match is not None:
+                whitespace_chars = whitespace_match.group(1)
+                whitespace_chars = whitespace_chars.replace(
+                    '\t', tab_size * ' ')
+                total_whitespace = len(whitespace_chars)
+            return total_whitespace
+
+        tab_size = self.tab_stop_width_spaces
+        self.leading_whitespaces = {}
+        lines = to_text_string(self.toPlainText()).splitlines()
+        for i, text in enumerate(lines):
+            total_whitespace = compute_whitespace(text)
+            self.leading_whitespaces[i] = total_whitespace
+
     @request(
         method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
     def document_did_change(self, text=None):
@@ -1023,7 +1053,12 @@ class CodeEditor(TextEditBaseWidget):
         self.text_version += 1
         text = self.toPlainText()
         self.patch = self.differ.patch_make(self.previous_text, text)
+        self.text_diff = (self.differ.diff_main(self.previous_text, text),
+                          self.previous_text)
         self.previous_text = text
+        if len(self.patch) > 0:
+            line, column = self.get_cursor_line_column()
+            self.update_whitespace_count(line, column)
         cursor = self.textCursor()
         params = {
             'file': self.filename,
@@ -1275,6 +1310,20 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors(
                 "Error when processing go to definition")
 
+    # ------------- LSP: Code folding ranges -------------------------------
+    @request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
+    def request_folding(self):
+        if not self.folding_supported or not self.code_folding:
+            return
+        params = {'file': self.filename}
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
+    def handle_folding_range(self, response):
+        ranges = response['params']
+        folding_panel = self.panels.get(FoldingPanel)
+        folding_panel.update_folding(ranges)
+
     # ------------- LSP: Save/close file -----------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
              requires_response=False)
@@ -1335,6 +1384,10 @@ class CodeEditor(TextEditBaseWidget):
 
     def toggle_code_snippets(self, state):
         self.code_snippets = state
+
+    def toggle_code_folding(self, state):
+        self.code_folding = state
+        self.set_folding_panel(state)
 
     def toggle_completions_hint(self, state):
         """Enable/disable completion hint."""
@@ -1455,7 +1508,6 @@ class CodeEditor(TextEditBaseWidget):
                                                   self.color_scheme)
         self._apply_highlighter_color_scheme()
 
-        self.highlighter.fold_detector = IndentFoldDetector()
         self.highlighter.editor = self
 
     def is_json(self):
@@ -1767,18 +1819,14 @@ class CodeEditor(TextEditBaseWidget):
         top = self.blockBoundingGeometry(block).translated(
                                                     self.contentOffset()).top()
         bottom = top + self.blockBoundingRect(block).height()
+        folding_panel = self.panels.get(FoldingPanel)
 
         while block.isValid() and top < event.pos().y():
             block = block.next()
-            collapsed = TextBlockHelper.is_collapsed(block)
             if block.isVisible():  # skip collapsed blocks
                 top = bottom
                 bottom = top + self.blockBoundingRect(block).height()
                 line_number += 1
-            if collapsed:
-                scope = FoldScope(block)
-                start, end = scope.get_range(ignore_blank_lines=True)
-                line_number += (end - start)
         return line_number
 
     def select_lines(self, linenumber_pressed, linenumber_released):
@@ -2040,6 +2088,7 @@ class CodeEditor(TextEditBaseWidget):
             self.skip_rstrip = True
             TextEditBaseWidget.undo(self)
             self.document_did_change('')
+            self.request_folding()
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
             self.skip_rstrip = False
@@ -2052,6 +2101,7 @@ class CodeEditor(TextEditBaseWidget):
             self.skip_rstrip = True
             TextEditBaseWidget.redo(self)
             self.document_did_change('text')
+            self.request_folding()
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
             self.skip_rstrip = False
@@ -2156,7 +2206,7 @@ class CodeEditor(TextEditBaseWidget):
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
-        self.classfuncdropdown.update()
+        # self.classfuncdropdown.update()
 
     def hide_tooltip(self):
         """
@@ -4087,8 +4137,8 @@ class CodeEditor(TextEditBaseWidget):
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
             TextEditBaseWidget.mousePressEvent(self, event)
-    def mouseReleaseEvent(self, event):
 
+    def mouseReleaseEvent(self, event):
         """Override Qt method."""
         self.document_did_change()
         TextEditBaseWidget.mouseReleaseEvent(self, event)
