@@ -29,7 +29,6 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 
 # Local imports
 from spyder.config.base import _, get_conf_path, running_under_pytest
-from spyder.config.gui import get_shortcut
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
@@ -517,6 +516,9 @@ class Editor(SpyderPluginWidget):
         pdb_ignore_lib = create_action(
             self, _("Ignore Python libraries while debugging"),
             toggled=self.toggle_pdb_ignore_lib)
+        pdb_execute_events = create_action(
+            self, _("Process execute events while debugging"),
+            toggled=self.toggle_pdb_execute_events)
 
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
@@ -570,11 +572,14 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(run_action, context="_", name="Run",
                                add_shortcut_to_tip=True)
 
-        configure_action = create_action(self, _("&Configuration per file..."),
-                                         icon=ima.icon('run_settings'),
-                               tip=_("Run settings"),
-                               menurole=QAction.NoRole,
-                               triggered=self.edit_run_configurations)
+        configure_action = create_action(
+            self,
+            _("&Configuration per file..."),
+            icon=ima.icon('run_settings'),
+            tip=_("Run settings"),
+            menurole=QAction.NoRole,
+            triggered=self.edit_run_configurations)
+
         self.register_shortcut(configure_action, context="_",
                                name="Configure", add_shortcut_to_tip=True)
 
@@ -599,25 +604,26 @@ class Editor(SpyderPluginWidget):
         run_cell_action = create_action(self,
                             _("Run cell"),
                             icon=ima.icon('run_cell'),
-                            shortcut=get_shortcut('editor', 'run cell'),
+                            shortcut=CONF.get_shortcut('editor', 'run cell'),
                             tip=_("Run current cell \n"
                                   "[Use #%% to create cells]"),
                             triggered=self.run_cell,
                             context=Qt.WidgetShortcut)
 
-        run_cell_advance_action = create_action(self,
-                   _("Run cell and advance"),
-                   icon=ima.icon('run_cell_advance'),
-                   shortcut=get_shortcut('editor', 'run cell and advance'),
-                   tip=_("Run current cell and go to the next one "),
-                   triggered=self.run_cell_and_advance,
-                   context=Qt.WidgetShortcut)
+        run_cell_advance_action = create_action(
+            self,
+            _("Run cell and advance"),
+            icon=ima.icon('run_cell_advance'),
+            shortcut=CONF.get_shortcut('editor', 'run cell and advance'),
+            tip=_("Run current cell and go to the next one "),
+            triggered=self.run_cell_and_advance,
+            context=Qt.WidgetShortcut)
 
         debug_cell_action = create_action(
             self,
             _("Debug cell"),
             icon=ima.icon('debug_cell'),
-            shortcut=get_shortcut('editor', 'debug cell'),
+            shortcut=CONF.get_shortcut('editor', 'debug cell'),
             tip=_("Debug current cell "
                   "(Alt+Shift+Enter)"),
             triggered=self.debug_cell,
@@ -835,13 +841,13 @@ class Editor(SpyderPluginWidget):
             self.go_to_next_file_action = create_action(
                 self,
                 _("Go to next file"),
-                shortcut=get_shortcut('editor', 'go to previous file'),
+                shortcut=CONF.get_shortcut('editor', 'go to previous file'),
                 triggered=self.go_to_next_file,
             )
             self.go_to_previous_file_action = create_action(
                 self,
                 _("Go to previous file"),
-                shortcut=get_shortcut('editor', 'go to next file'),
+                shortcut=CONF.get_shortcut('editor', 'go to next file'),
                 triggered=self.go_to_previous_file,
             )
             self.register_shortcut(
@@ -943,6 +949,7 @@ class Editor(SpyderPluginWidget):
             debug_exit_action,
             MENU_SEPARATOR,
             pdb_ignore_lib,
+            pdb_execute_events,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             clear_all_breakpoints_action,
@@ -1053,6 +1060,11 @@ class Editor(SpyderPluginWidget):
         """"Set pdb_ignore_lib"""
         CONF.set('run', 'pdb_ignore_lib', checked)
         self.main.ipyconsole.set_pdb_ignore_lib()
+
+    def toggle_pdb_execute_events(self, checked):
+        """"Set pdb_execute_events"""
+        CONF.set('run', 'pdb_execute_events', checked)
+        self.main.ipyconsole.set_pdb_execute_events()
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""

@@ -14,14 +14,14 @@ pygments >=2.0
 pylint
 pympler
 pyqt <5.13
-python-language-server >=0.29.3,<0.30.0
+python-language-server >=0.31.0,<0.32.0
 pyxdg
 pyzmq
 qdarkstyle >=2.7
 qtawesome >=0.5.7
-qtconsole >=4.5.5
+qtconsole >=4.6.0
 qtpy >=1.5.0
 rtree
 sphinx
-spyder-kernels >=1.7.0
+spyder-kernels >=1.8.0
 watchdog

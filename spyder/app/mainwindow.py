@@ -176,7 +176,6 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     create_program_action, DialogManager,
                                     create_python_script_action, file_uri,
                                     MENU_SEPARATOR, set_menu_icons)
-from spyder.config.gui import get_shortcut
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
 
@@ -323,6 +322,7 @@ class MainWindow(QMainWindow):
     all_actions_defined = Signal()
     # type: (OrderedDict, OrderedDict)
     sig_pythonpath_changed = Signal(object, object)
+    sig_main_interpreter_changed = Signal()
     sig_open_external_file = Signal(str)
     sig_resized = Signal("QResizeEvent")     # Related to interactive tour
     sig_moved = Signal("QMoveEvent")         # Related to interactive tour
@@ -485,6 +485,7 @@ class MainWindow(QMainWindow):
         self.conda_status = None
         self.mem_status = None
         self.cpu_status = None
+        self.clock_status = None
 
         # Toolbars
         self.visible_toolbars = []
@@ -1205,9 +1206,10 @@ class MainWindow(QMainWindow):
         self.help_menu_actions += [MENU_SEPARATOR, about_action]
 
         # Status bar widgets
-        from spyder.widgets.status import MemoryStatus, CPUStatus
+        from spyder.widgets.status import MemoryStatus, CPUStatus, ClockStatus
         self.mem_status = MemoryStatus(self, status)
         self.cpu_status = CPUStatus(self, status)
+        self.clock_status = ClockStatus(self, status)
         self.apply_statusbar_settings()
 
         # ----- View
@@ -2949,6 +2951,7 @@ class MainWindow(QMainWindow):
             encoding.writelines(not_active_path, self.SPYDER_NOT_ACTIVE_PATH)
         except EnvironmentError as e:
             logger.error(str(e))
+        CONF.set('main', 'spyder_pythonpath', self.get_spyder_pythonpath())
 
     def get_spyder_pythonpath_dict(self):
         """
@@ -3009,11 +3012,9 @@ class MainWindow(QMainWindow):
     def show_path_manager(self):
         """Show path manager dialog."""
         from spyder.widgets.pathmanager import PathManager
-        read_only_path = self.projects.get_pythonpath()
-
-        # TODO: update sync on windows
+        read_only_path = tuple(self.projects.get_pythonpath())
         dialog = PathManager(self, self.path, read_only_path,
-                             self.not_active_path, sync=False)
+                             self.not_active_path, sync=True)
         self._path_manager = dialog
         dialog.sig_path_changed.connect(self.update_python_path)
         dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
@@ -3085,7 +3086,8 @@ class MainWindow(QMainWindow):
 
         if show_status_bar:
             for widget, name in ((self.mem_status, 'memory_usage'),
-                                 (self.cpu_status, 'cpu_usage')):
+                                 (self.cpu_status, 'cpu_usage'),
+                                 (self.clock_status, 'clock')):
                 if widget is not None:
                     widget.setVisible(CONF.get('main', '%s/enable' % name))
                     widget.set_interval(CONF.get('main', '%s/timeout' % name))
@@ -3111,12 +3113,6 @@ class MainWindow(QMainWindow):
             dlg.setStyleSheet("QTabWidget::tab-bar {"
                               "alignment: left;}")
             self.prefs_dialog_instance = dlg
-
-            # Signals
-            dlg.finished.connect(_dialog_finished)
-            dlg.pages_widget.currentChanged.connect(
-                self.__preference_page_changed)
-            dlg.size_change.connect(self.set_prefs_size)
 
             # Setup
             if self.prefs_dialog_size is not None:
@@ -3158,7 +3154,12 @@ class MainWindow(QMainWindow):
             # Check settings and show dialog
             dlg.show()
             dlg.check_all_settings()
-            dlg.exec_()
+
+            # Signals
+            dlg.finished.connect(_dialog_finished)
+            dlg.pages_widget.currentChanged.connect(
+                self.__preference_page_changed)
+            dlg.size_change.connect(self.set_prefs_size)
         else:
             self.prefs_dialog_instance.show()
             self.prefs_dialog_instance.activateWindow()
@@ -3166,7 +3167,7 @@ class MainWindow(QMainWindow):
             self.prefs_dialog_instance.setFocus()
 
     def __preference_page_changed(self, index):
-        """Preference page index has changed"""
+        """Preference page index has changed."""
         self.prefs_index = index
 
     def set_prefs_size(self, size):
@@ -3175,20 +3176,21 @@ class MainWindow(QMainWindow):
 
     #---- Shortcuts
     def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          add_shortcut_to_tip=False):
+                          add_shortcut_to_tip=False, plugin_name=None):
         """
         Register QAction or QShortcut to Spyder main application,
         with shortcut (context, name, default)
         """
         self.shortcut_data.append((qaction_or_qshortcut, context,
-                                   name, add_shortcut_to_tip))
+                                   name, add_shortcut_to_tip, plugin_name))
 
     def apply_shortcuts(self):
         """Apply shortcuts settings to all widgets/plugins"""
         toberemoved = []
-        for index, (qobject, context, name,
-                    add_shortcut_to_tip) in enumerate(self.shortcut_data):
-            keyseq = QKeySequence( get_shortcut(context, name) )
+        for index, (qobject, context, name, add_shortcut_to_tip,
+                    plugin_name) in enumerate(self.shortcut_data):
+            keyseq = QKeySequence(CONF.get_shortcut(context, name,
+                                                    plugin_name))
             try:
                 if isinstance(qobject, QAction):
                     if sys.platform == 'darwin' and \

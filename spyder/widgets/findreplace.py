@@ -22,7 +22,7 @@ from qtpy.QtWidgets import (QGridLayout, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
+from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import regexp_error_msg
@@ -209,18 +209,35 @@ class FindReplace(QWidget):
     def create_shortcuts(self, parent):
         """Create shortcuts for this widget"""
         # Configurable
-        findnext = config_shortcut(self.find_next, context='find_replace',
-                                   name='Find next', parent=parent)
-        findprev = config_shortcut(self.find_previous, context='find_replace',
-                                   name='Find previous', parent=parent)
-        togglefind = config_shortcut(self.show, context='find_replace',
-                                     name='Find text', parent=parent)
-        togglereplace = config_shortcut(self.show_replace,
-                                        context='find_replace',
-                                        name='Replace text',
-                                        parent=parent)
-        hide = config_shortcut(self.hide, context='find_replace',
-                               name='hide find and replace', parent=self)
+        findnext = CONF.config_shortcut(
+            self.find_next,
+            context='find_replace',
+            name='Find next',
+            parent=parent)
+
+        findprev = CONF.config_shortcut(
+            self.find_previous,
+            context='find_replace',
+            name='Find previous',
+            parent=parent)
+
+        togglefind = CONF.config_shortcut(
+            self.show,
+            context='find_replace',
+            name='Find text',
+            parent=parent)
+
+        togglereplace = CONF.config_shortcut(
+            self.show_replace,
+            context='find_replace',
+            name='Replace text',
+            parent=parent)
+
+        hide = CONF.config_shortcut(
+            self.hide,
+            context='find_replace',
+            name='hide find and replace',
+            parent=self)
 
         return [findnext, findprev, togglefind, togglereplace, hide]
 

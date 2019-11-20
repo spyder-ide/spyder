@@ -83,6 +83,8 @@ DEFAULTS = [
               'memory_usage/timeout': 2000,
               'cpu_usage/enable': False,
               'cpu_usage/timeout': 2000,
+              'clock/enable': False,
+              'clock/timeout': 1000,
               'use_custom_margin': True,
               'custom_margin': 0,
               'use_custom_cursor_blinking': False,
@@ -163,7 +165,8 @@ DEFAULTS = [
               'exclude_private': True,
               'exclude_uppercase': True,
               'exclude_capitalized': False,
-              'exclude_unsupported': True,
+              'exclude_unsupported': False,
+              'exclude_callables_and_modules': True,
               'truncate': True,
               'minmax': False,
               'show_callable_attributes': True,
@@ -611,4 +614,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '53.2.0'
+CONF_VERSION = '53.3.0'

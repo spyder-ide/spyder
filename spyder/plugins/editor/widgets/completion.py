@@ -62,7 +62,7 @@ class CompletionWidget(QListWidget):
     def __init__(self, parent, ancestor):
         super(CompletionWidget, self).__init__(ancestor)
         self.textedit = parent
-
+        self._language = None
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.hide()
         self.itemActivated.connect(self.item_selected)
@@ -95,7 +95,6 @@ class CompletionWidget(QListWidget):
 
     def show_list(self, completion_list, position, automatic):
         """Show list corresponding to position."""
-
         if not completion_list:
             self.hide()
             return
@@ -153,6 +152,10 @@ class CompletionWidget(QListWidget):
 
         # signal used for testing
         self.sig_show_completions.emit(completion_list)
+
+    def set_language(self, language):
+        """Set the completion language."""
+        self._language = language.lower()
 
     def update_list(self, current_word, new=True):
         """
@@ -444,6 +447,14 @@ class CompletionWidget(QListWidget):
             insert_text = item['textEdit']['newText']
         else:
             insert_text = item['insertText']
+
+            # Split by starting $ or language specific chars
+            chars = ['$']
+            if self._language == 'python':
+                chars.append('(')
+
+            for ch in chars:
+                insert_text = insert_text.split(ch)[0]
 
         self.sig_completion_hint.emit(
             insert_text,

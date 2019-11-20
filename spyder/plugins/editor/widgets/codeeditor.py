@@ -50,7 +50,6 @@ from spyder_kernels.utils.dochelpers import getobj
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _, get_debug_level, running_under_pytest
-from spyder.config.gui import get_shortcut, config_shortcut
 from spyder.config.manager import CONF
 from spyder.plugins.editor.api.decoration import TextDecoration
 from spyder.plugins.editor.extensions import (CloseBracketsExtension,
@@ -729,7 +728,7 @@ class CodeEditor(TextEditBaseWidget):
         shortcuts = []
         for context, name, callback in shortcut_context_name_callbacks:
             shortcuts.append(
-                config_shortcut(
+                CONF.config_shortcut(
                     callback, context=context, name=name, parent=self))
         return shortcuts
 
@@ -1156,6 +1155,7 @@ class CodeEditor(TextEditBaseWidget):
         """Handle signature response."""
         try:
             signature_params = params['params']
+
             if (signature_params is not None and
                     'activeParameter' in signature_params):
                 self.sig_signature_invoked.emit(signature_params)
@@ -1442,6 +1442,7 @@ class CodeEditor(TextEditBaseWidget):
             if self.support_language:
                 self.language = sh_class._lexer.name
         self._set_highlighter(sh_class)
+        self.completion_widget.set_language(self.language)
 
     def _set_highlighter(self, sh_class):
         self.highlighter_class = sh_class
@@ -2179,6 +2180,7 @@ class CodeEditor(TextEditBaseWidget):
     def show_hint_for_completion(self, word, documentation, at_point):
         """Show hint for completion element."""
         if self.completions_hint and self._completions_hint_idle:
+            documentation = documentation.replace(u'\xa0', ' ')
             completion_doc = {'name': word,
                               'signature': documentation}
 
@@ -3361,26 +3363,27 @@ class CodeEditor(TextEditBaseWidget):
         """Setup context menu"""
         self.undo_action = create_action(
             self, _("Undo"), icon=ima.icon('undo'),
-            shortcut=get_shortcut('editor', 'undo'), triggered=self.undo)
+            shortcut=CONF.get_shortcut('editor', 'undo'), triggered=self.undo)
         self.redo_action = create_action(
             self, _("Redo"), icon=ima.icon('redo'),
-            shortcut=get_shortcut('editor', 'redo'), triggered=self.redo)
+            shortcut=CONF.get_shortcut('editor', 'redo'), triggered=self.redo)
         self.cut_action = create_action(
             self, _("Cut"), icon=ima.icon('editcut'),
-            shortcut=get_shortcut('editor', 'cut'), triggered=self.cut)
+            shortcut=CONF.get_shortcut('editor', 'cut'), triggered=self.cut)
         self.copy_action = create_action(
             self, _("Copy"), icon=ima.icon('editcopy'),
-            shortcut=get_shortcut('editor', 'copy'), triggered=self.copy)
+            shortcut=CONF.get_shortcut('editor', 'copy'), triggered=self.copy)
         self.paste_action = create_action(
             self, _("Paste"), icon=ima.icon('editpaste'),
-            shortcut=get_shortcut('editor', 'paste'), triggered=self.paste)
+            shortcut=CONF.get_shortcut('editor', 'paste'),
+            triggered=self.paste)
         selectall_action = create_action(
             self, _("Select All"), icon=ima.icon('selectall'),
-            shortcut=get_shortcut('editor', 'select all'),
+            shortcut=CONF.get_shortcut('editor', 'select all'),
             triggered=self.selectAll)
         toggle_comment_action = create_action(
             self, _("Comment")+"/"+_("Uncomment"), icon=ima.icon('comment'),
-            shortcut=get_shortcut('editor', 'toggle comment'),
+            shortcut=CONF.get_shortcut('editor', 'toggle comment'),
             triggered=self.toggle_comment)
         self.clear_all_output_action = create_action(
             self, _("Clear all ouput"), icon=ima.icon('ipython_console'),
@@ -3390,31 +3393,31 @@ class CodeEditor(TextEditBaseWidget):
             triggered=self.convert_notebook)
         self.gotodef_action = create_action(
             self, _("Go to definition"),
-            shortcut=get_shortcut('editor', 'go to definition'),
+            shortcut=CONF.get_shortcut('editor', 'go to definition'),
             triggered=self.go_to_definition_from_cursor)
 
         # Run actions
         self.run_cell_action = create_action(
             self, _("Run cell"), icon=ima.icon('run_cell'),
-            shortcut=get_shortcut('editor', 'run cell'),
+            shortcut=CONF.get_shortcut('editor', 'run cell'),
             triggered=self.sig_run_cell.emit)
         self.run_cell_and_advance_action = create_action(
             self, _("Run cell and advance"), icon=ima.icon('run_cell'),
-            shortcut=get_shortcut('editor', 'run cell and advance'),
+            shortcut=CONF.get_shortcut('editor', 'run cell and advance'),
             triggered=self.sig_run_cell_and_advance.emit)
         self.re_run_last_cell_action = create_action(
             self, _("Re-run last cell"), icon=ima.icon('run_cell'),
-            shortcut=get_shortcut('editor', 're-run last cell'),
+            shortcut=CONF.get_shortcut('editor', 're-run last cell'),
             triggered=self.sig_re_run_last_cell.emit)
         self.run_selection_action = create_action(
             self, _("Run &selection or current line"),
             icon=ima.icon('run_selection'),
-            shortcut=get_shortcut('editor', 'run selection'),
+            shortcut=CONF.get_shortcut('editor', 'run selection'),
             triggered=self.sig_run_selection.emit)
 
         self.debug_cell_action = create_action(
             self, _("Debug cell"), icon=ima.icon('debug_cell'),
-            shortcut=get_shortcut('editor', 'debug cell'),
+            shortcut=CONF.get_shortcut('editor', 'debug cell'),
             triggered=self.sig_debug_cell.emit)
 
         # Zoom actions
@@ -3434,7 +3437,7 @@ class CodeEditor(TextEditBaseWidget):
         writer = self.writer_docstring
         self.docstring_action = create_action(
             self, _("Generate docstring"),
-            shortcut=get_shortcut('editor', 'docstring'),
+            shortcut=CONF.get_shortcut('editor', 'docstring'),
             triggered=writer.write_docstring_at_first_line_of_function)
 
         # Build menu
@@ -3477,10 +3480,17 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return super(CodeEditor, self).event(event)
 
+    def _start_completion_timer(self):
+        """Helper to start timer or complete."""
+        if self.automatic_completions_after_ms > 0:
+            self._timer_autocomplete.start(
+                self.automatic_completions_after_ms)
+        else:
+            self._handle_completions()
+
     def keyPressEvent(self, event):
         """Reimplement Qt method."""
-        if self.automatic_completions_after_ms > 0:
-            self._timer_autocomplete.start(self.automatic_completions_after_ms)
+        self._start_completion_timer()
 
         if self.completions_hint_after_ms > 0:
             self._completions_hint_idle = False
@@ -3617,7 +3627,7 @@ class CodeEditor(TextEditBaseWidget):
                     last_obj = getobj(text)
                     prev_char = text[-2] if len(text) > 1 else ''
                     if prev_char in {')', ']', '}'} or (last_obj and not last_obj.isdigit()):
-                        self.do_completion(automatic=True)
+                        self._start_completion_timer()
             else:
                 self.do_completion(automatic=True)
         elif (text != '(' and text in self.signature_completion_characters and
@@ -3676,11 +3686,19 @@ class CodeEditor(TextEditBaseWidget):
             event.accept()
 
     def _handle_completions(self):
-        """Handle on the fly completions with a delay."""
+        """Handle on the fly completions after delay."""
         cursor = self.textCursor()
         pos = cursor.position()
         cursor.select(QTextCursor.WordUnderCursor)
         text = to_text_string(cursor.selectedText())
+
+        # Text might be after a dot '.'
+        if text == '':
+            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.select(QTextCursor.WordUnderCursor)
+            text = to_text_string(cursor.selectedText())
+            if text != '.':
+                text = ''
 
         # WordUnderCursor fails if the cursor is next to a right brace.
         # If the returned text starts with it, we move to the left.
@@ -3696,7 +3714,8 @@ class CodeEditor(TextEditBaseWidget):
             # Perform completion on the fly
             if self.automatic_completions and not self.in_comment_or_string():
                 # Variables can include numbers and underscores
-                if text.isalpha() or text.isalnum() or '_' in text:
+                if (text.isalpha() or text.isalnum() or '_' in text
+                        or '.' in text):
                     self.do_completion(automatic=True)
                     self._last_key_pressed_text = ''
 
@@ -4069,8 +4088,8 @@ class CodeEditor(TextEditBaseWidget):
             self.sig_alt_left_mouse_pressed.emit(event)
         else:
             TextEditBaseWidget.mousePressEvent(self, event)
-
     def mouseReleaseEvent(self, event):
+
         """Override Qt method."""
         self.document_did_change()
         TextEditBaseWidget.mouseReleaseEvent(self, event)
