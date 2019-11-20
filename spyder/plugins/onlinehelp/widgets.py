@@ -22,14 +22,14 @@ from spyder.py3compat import PY3, to_text_string
 from spyder.utils.misc import select_port
 from spyder.widgets.browser import WebBrowser
 
-# =====================================================================
+
+# =============================================================================
 # Pydoc adjustments
-# =====================================================================
+# =============================================================================
 # This is needed to prevent pydoc raise an ErrorDuringImport when
 # trying to import numpy.
 # See spyder-ide/spyder#10740
 DIRECT_PYDOC_IMPORT_MODULES = ['numpy']
-
 try:
     from pydoc import safeimport
 
@@ -151,6 +151,8 @@ class PydocBrowser(WebBrowser):
 
     def url_to_text(self, url):
         """Convert QUrl object to displayed text in combo box"""
+        if 'get?key=' in url.toString() or 'search?key=' in url.toString():
+            return url.toString().split('=')[-1]
         return osp.splitext(to_text_string(url.path()))[0][1:]
 
 

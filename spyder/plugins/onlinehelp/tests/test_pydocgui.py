@@ -30,7 +30,7 @@ def test_pydocbrowser(pydocbrowser):
 
 
 @pytest.mark.parametrize(
-    "lib", [('pandas', 'pandas', 11),
+    "lib", [('numpy.compat', 'numpy.compat', 2),
             ('str', 'class str', 1)])
 def test_get_pydoc(pydocbrowser, lib):
     """
@@ -46,6 +46,7 @@ def test_get_pydoc(pydocbrowser, lib):
     element_url = browser.text_to_url(element)
     with qtbot.waitSignal(webview.loadFinished):
         browser.set_url(element_url)
+
     qtbot.waitUntil(lambda: webview.get_number_matches(doc) == matches)
 
 
