@@ -18,7 +18,6 @@ import os.path as osp
 import signal
 import subprocess
 import sys
-import time
 
 # Third-party imports
 from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
@@ -68,9 +67,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     #  facilities.
     sig_server_error = Signal(str)
 
-    #: Signal to warn the user about the transport layer being
-    #  down
-    sig_transport_down = Signal(str)
+    #: Signal to warn the user when either the transport layer or the
+    #  server are down
+    sig_lsp_down = Signal(str)
 
     def __init__(self, parent,
                  server_settings={},
@@ -83,6 +82,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.zmq_in_port = None
         self.zmq_out_port = None
         self.transport_client = None
+        self.lsp_server = None
         self.notifier = None
         self.language = language
 
@@ -140,6 +140,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_args += [server_settings['cmd']]
         if len(server_args) > 0:
             self.server_args += server_args.split(' ')
+        self.server_unresponsive = False
 
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
@@ -284,10 +285,19 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # to our users about it.
         if (self.transport_client is not None and
                 self.transport_client.poll() is not None):
-            logger.debug("Transport layer is down!!")
+            logger.debug(
+                "Transport layer for {} is down!!".format(self.language))
             if not self.transport_unresponsive:
                 self.transport_unresponsive = True
-                self.sig_transport_down.emit(self.language)
+                self.sig_lsp_down.emit(self.language)
+            return
+
+        if (self.lsp_server is not None and
+                self.lsp_server.poll() is not None):
+            logger.debug("LSP server for {} is down!!".format(self.language))
+            if not self.server_unresponsive:
+                self.server_unresponsive = True
+                self.sig_lsp_down.emit(self.language)
             return
 
         if ClientConstants.CANCEL in params:
@@ -312,21 +322,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             }
 
         logger.debug('{} request: {}'.format(self.language, method))
-        # Wait maximum 1 second
-        timeout = time.time() + 1
-        success = False
-        while not success:
-            try:
-                self.zmq_out_socket.send_pyobj(msg, flags=zmq.NOBLOCK)
-                success = True
-            except zmq.error.Again:
-                if time.time() < timeout:
-                    # Try again in 10ms
-                    time.sleep(0.01)
-                else:
-                    # The server doesn't reply
-                    self.transport_unresponsive = True
-                    raise RuntimeError('LSP server is not responding.')
+        self.zmq_out_socket.send_pyobj(msg)
         self.request_seq += 1
         return int(_id)
 

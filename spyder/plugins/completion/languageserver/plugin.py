@@ -154,13 +154,16 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         )
 
     @Slot(str)
-    def report_transport_down(self, language):
-        """Report that the transport layer is down."""
+    def report_lsp_down(self, language):
+        """
+        Report that either the transport layer or the LSP server are
+        down.
+        """
         QMessageBox.critical(
             self.main,
             _("Error"),
-            _("Completion and linting in the editor for {language} will "
-              "not work during the current session, or stopped working."
+            _("Completion and linting in the editor for {language} files "
+              "will not work during the current session, or stopped working."
               "<br><br>"
               "To fix this, please verify that your firewall or antivirus "
               "allows Python processes to open ports in your system, or "
@@ -220,8 +223,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.update_configuration)
             self.main.sig_main_interpreter_changed.connect(
                 self.update_configuration)
-            instance.sig_transport_down.connect(
-                self.report_transport_down)
+            instance.sig_lsp_down.connect(self.report_lsp_down)
             if self.main.editor:
                 instance.sig_initialize.connect(
                     self.main.editor.register_completion_server_settings)
