@@ -23,7 +23,7 @@ if [ "$USE_CONDA" = "yes" ]; then
     pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
 
     # Install python-language-server from Github with no deps
-    pip install -q --no-deps git+https://github.com/palantir/python-language-server.git@refs/pull/692/head
+    pip install -q --no-deps git+https://github.com/palantir/python-language-server
 else
     # Github backend tests are failing with 1.1.1d
     conda install -q -y openssl=1.1.1c
@@ -47,7 +47,7 @@ else
     pip install -q git+https://github.com/spyder-ide/spyder-kernels
 
     # Install python-language-server from Github
-    pip install -q git+https://github.com/palantir/python-language-server.git@refs/pull/692/head
+    pip install -q git+https://github.com/palantir/python-language-server
 fi
 
 # Create environment for Jedi environments testsTest for Jedi environments
