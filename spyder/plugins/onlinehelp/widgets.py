@@ -43,6 +43,169 @@ except Exception:
     pass
 
 
+# A reimplementation of pydoc._start_server to handle connection errors
+# for 'do_GET'.
+def _start_server(urlhandler, hostname, port):
+    """Start an HTTP server thread on a specific port.
+
+    Taken from PyDoc: https://github.com/python/cpython/blob/3.7/Lib/pydoc.py
+    Start an HTML/text server thread, so HTML or text documents can be
+    browsed dynamically and interactively with a Web browser.  Example use:
+
+        >>> import time
+        >>> import pydoc
+
+        Define a URL handler.  To determine what the client is asking
+        for, check the URL and content_type.
+
+        Then get or generate some text or HTML code and return it.
+
+        >>> def my_url_handler(url, content_type):
+        ...     text = 'the URL sent was: (%s, %s)' % (url, content_type)
+        ...     return text
+
+        Start server thread on port 0.
+        If you use port 0, the server will pick a random port number.
+        You can then use serverthread.port to get the port number.
+
+        >>> port = 0
+        >>> serverthread = pydoc._start_server(my_url_handler, port)
+
+        Check that the server is really started.  If it is, open browser
+        and get first page.  Use serverthread.url as the starting page.
+
+        >>> if serverthread.serving:
+        ...    import webbrowser
+
+        The next two lines are commented out so a browser doesn't open if
+        doctest is run on this module.
+
+        #...    webbrowser.open(serverthread.url)
+        #True
+
+        Let the server do its thing. We just need to monitor its status.
+        Use time.sleep so the loop doesn't hog the CPU.
+
+        >>> starttime = time.monotonic()
+        >>> timeout = 1                    #seconds
+
+        This is a short timeout for testing purposes.
+
+        > while serverthread.serving:
+        .   time.sleep(.01)
+        .   if serverthread.serving and time.monotonic() - starttime > timeout:
+        .        serverthread.stop()
+        .        break
+
+        Print any errors that may have occurred.
+
+        >>> print(serverthread.error)
+        None
+   """
+    import http.server
+    import email.message
+    import select
+    import threading
+    import time
+
+    class DocHandler(http.server.BaseHTTPRequestHandler):
+
+        def do_GET(self):
+            """Process a request from an HTML browser.
+
+            The URL received is in self.path.
+            Get an HTML page from self.urlhandler and send it.
+            """
+            if self.path.endswith('.css'):
+                content_type = 'text/css'
+            else:
+                content_type = 'text/html'
+            self.send_response(200)
+            self.send_header(
+                'Content-Type', '%s; charset=UTF-8' % content_type)
+            self.end_headers()
+            try:
+                self.wfile.write(self.urlhandler(
+                    self.path, content_type).encode('utf-8'))
+            except ConnectionAbortedError:
+                # Needed to handle error when client closes the connection,
+                # for example when the client stops the load of the previously
+                # requested page. See spyder-ide/spyder#10755
+                pass
+
+        def log_message(self, *args):
+            # Don't log messages.
+            pass
+
+    class DocServer(http.server.HTTPServer):
+
+        def __init__(self, host, port, callback):
+            self.host = host
+            self.address = (self.host, port)
+            self.callback = callback
+            self.base.__init__(self, self.address, self.handler)
+            self.quit = False
+
+        def serve_until_quit(self):
+            while not self.quit:
+                rd, wr, ex = select.select([self.socket.fileno()], [], [], 1)
+                if rd:
+                    self.handle_request()
+            self.server_close()
+
+        def server_activate(self):
+            self.base.server_activate(self)
+            if self.callback:
+                self.callback(self)
+
+    class ServerThread(threading.Thread):
+
+        def __init__(self, urlhandler, host, port):
+            self.urlhandler = urlhandler
+            self.host = host
+            self.port = int(port)
+            threading.Thread.__init__(self)
+            self.serving = False
+            self.error = None
+
+        def run(self):
+            """Start the server."""
+            try:
+                DocServer.base = http.server.HTTPServer
+                DocServer.handler = DocHandler
+                DocHandler.MessageClass = email.message.Message
+                DocHandler.urlhandler = staticmethod(self.urlhandler)
+                docsvr = DocServer(self.host, self.port, self.ready)
+                self.docserver = docsvr
+                docsvr.serve_until_quit()
+            except Exception as e:
+                self.error = e
+
+        def ready(self, server):
+            self.serving = True
+            self.host = server.host
+            self.port = server.server_port
+            self.url = 'http://%s:%d/' % (self.host, self.port)
+
+        def stop(self):
+            """Stop the server and this thread nicely"""
+            self.docserver.quit = True
+            self.join()
+            # explicitly break a reference cycle: DocServer.callback
+            # has indirectly a reference to ServerThread.
+            self.docserver = None
+            self.serving = False
+            self.url = None
+
+    thread = ServerThread(urlhandler, hostname, port)
+    thread.start()
+    # Wait until thread.serving is True to make sure we are
+    # really up before returning.
+    while not thread.error and not thread.serving:
+        time.sleep(.01)
+    return thread
+
+
 class PydocServer(QThread):
     """Pydoc server"""
     server_started = Signal()
@@ -56,14 +219,9 @@ class PydocServer(QThread):
     def run(self):
         if PY3:
             # Python 3
-            try:
-                self.callback(pydoc._start_server(pydoc._url_handler,
-                                                  port=self.port))
-            except TypeError:
-                # Python 3.7
-                self.callback(pydoc._start_server(pydoc._url_handler,
-                                                  hostname='127.0.0.1',
-                                                  port=self.port))
+            self.callback(_start_server(pydoc._url_handler,
+                                        hostname='127.0.0.1',
+                                        port=self.port))
         else:
             # Python 2
             pydoc.serve(self.port, self.callback, self.completer)
@@ -92,8 +250,9 @@ class PydocBrowser(WebBrowser):
     """
     DEFAULT_PORT = 30128
 
-    def __init__(self, parent, options_button=None):
-        WebBrowser.__init__(self, parent, options_button=options_button)
+    def __init__(self, parent, options_button=None, handle_links=False):
+        WebBrowser.__init__(self, parent, options_button=options_button,
+                            handle_links=handle_links)
         self.server = None
         self.port = None
 
@@ -143,15 +302,25 @@ class PydocBrowser(WebBrowser):
         self.start_server()
         WebBrowser.reload(self)
 
+    def load_finished(self, ok):
+        """Handle load finished."""
+        pass
+
     def text_to_url(self, text):
         """Convert text address into QUrl object"""
+        if text != 'about:blank':
+            text += '.html'
         if text.startswith('/'):
             text = text[1:]
-        return QUrl(self.home_url.toString()+text+'.html')
+
+        return QUrl(self.home_url.toString() + text)
 
     def url_to_text(self, url):
         """Convert QUrl object to displayed text in combo box"""
-        if 'get?key=' in url.toString() or 'search?key=' in url.toString():
+        string_url = url.toString()
+        if 'about:blank' in string_url:
+            return 'about:blank'
+        elif 'get?key=' in string_url or 'search?key=' in string_url:
             return url.toString().split('=')[-1]
         return osp.splitext(to_text_string(url.path()))[0][1:]
 
