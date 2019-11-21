@@ -29,7 +29,7 @@ from spyder.widgets.browser import WebBrowser
 # This is needed to prevent pydoc raise an ErrorDuringImport when
 # trying to import numpy.
 # See spyder-ide/spyder#10740
-DIRECT_PYDOC_IMPORT_MODULES = ['numpy']
+DIRECT_PYDOC_IMPORT_MODULES = ['numpy', 'numpy.core']
 try:
     from pydoc import safeimport
 

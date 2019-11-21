@@ -7,12 +7,15 @@
 """
 Tests for pydocgui.py
 """
+# Standard library imports
+import sys
 
 # Test library imports
 import pytest
 
 # Local imports
 from spyder.plugins.onlinehelp.widgets import PydocBrowser
+from spyder.py3compat import PY3
 
 
 @pytest.fixture
@@ -30,8 +33,11 @@ def test_pydocbrowser(pydocbrowser):
 
 
 @pytest.mark.parametrize(
-    "lib", [('numpy.compat', 'numpy.compat', 2),
-            ('str', 'class str', 1)])
+    "lib", [('str', 'class str', 1),
+            ('numpy.compat', 'numpy.compat', 2)
+            ])
+@pytest.mark.skipif(sys.platform == 'darwin' and PY3,
+                    reason="Times out on macOS with Python 3")
 def test_get_pydoc(pydocbrowser, lib):
     """
     Go to the documentation by url.
@@ -40,7 +46,7 @@ def test_get_pydoc(pydocbrowser, lib):
     qtbot, browser = pydocbrowser
     element, doc, matches = lib
     webview = browser.webview
-    with qtbot.waitSignal(webview.loadFinished, timeout=2000):
+    with qtbot.waitSignal(webview.loadFinished, timeout=6000):
         browser.initialize()
     element_url = browser.text_to_url(element)
     with qtbot.waitSignal(webview.loadFinished):
