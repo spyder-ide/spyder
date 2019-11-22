@@ -516,7 +516,8 @@ class SnippetsExtension(EditorExtension):
     def _region_to_polygon(self, start, end):
         start_line, start_column = start
         end_line, end_column = end
-        root_position, _ = self.node_position[0]
+        root_col = min(self.node_position)
+        root_position, _ = self.node_position[root_col]
         line_limits = {}
         for segment in root_position:
             (_, start), (line, end) = segment
@@ -792,7 +793,6 @@ class SnippetsExtension(EditorExtension):
 
         self.editor.setTextCursor(cursor)
         self.editor.request_signature()
-        self.editor.do_completion(True)
 
     def _update_ast(self):
         if self.starting_position is not None:
@@ -830,7 +830,6 @@ class SnippetsExtension(EditorExtension):
                 # This is a nested snippet / text on snippet
                 leaf, snippet_root, _ = self._find_node_by_position(
                     line, column)
-
                 if snippet_root is not None:
                     new_snippet = False
                     root_number = snippet_root.number
@@ -853,6 +852,7 @@ class SnippetsExtension(EditorExtension):
                     self._update_ast()
                     if len(snippet_map) > 0:
                         self.select_snippet(snippet_number=root_number + 1)
+                    self.draw_snippets()
                 elif leaf is not None:
                     self.reset()
 
