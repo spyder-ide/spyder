@@ -4248,7 +4248,7 @@ class CodeEditor(TextEditBaseWidget):
             painter.setPen(pen)
 
             for top, line_number, block in self.visible_blocks:
-                if self.is_cell_separator(block):
+                if self.is_cell_separator(block=block):
                     painter.drawLine(4, top, self.width(), top)
 
     @property
