@@ -217,7 +217,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if self.cell_separators is None or \
           not self.highlight_current_cell_enabled:
             return
-        cursor, whole_file_selected, _ =\
+        cursor, whole_file_selected =\
             self.select_current_cell_in_visible_portion()
         selection = TextDecoration(cursor)
         selection.format.setProperty(QTextFormat.FullWidthSelection,
@@ -518,11 +518,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
          -the textCursor
          -a boolean indicating if the entire file is selected
          -a boolean indicating if the entire visible portion of the file is selected"""
-         #
-        beg_pos = self.cursorForPosition(QPoint(0, 0)).position()
-        bottom_right = QPoint(self.viewport().width() - 1,
-                              self.viewport().height() - 1)
-        end_pos = self.cursorForPosition(bottom_right).position()
 
         cursor = self.textCursor()
         if self.current_cell:
@@ -531,9 +526,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             cell_end_position = current_cell.selectionEnd()
             # Check if the saved current cell is still valid
             if cell_start_pos <= cursor.position() <= cell_end_position:
-                return current_cell,\
-                   cell_full_file,\
-                   cell_start_pos <= beg_pos and cell_end_position >= end_pos
+                return current_cell, cell_full_file
             else:
                 self.current_cell = None
 
@@ -541,33 +534,27 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         try:
             header = next(document_cells(block, forward=False))
             cell_start_pos = header.block.position()
-            cell_at_screen_start = cell_start_pos <= beg_pos
             cell_at_file_start = False
             cursor.setPosition(cell_start_pos)
         except StopIteration:
             # This cell has no header, so it is the first cell.
-            cell_at_screen_start = True
             cell_at_file_start = True
             cursor.movePosition(QTextCursor.Start)
 
         try:
             footer = next(document_cells(block, forward=True))
             cell_end_position = footer.block.position()
-            cell_at_screen_end = cell_end_position >= end_pos
             cell_at_file_end = False
             cursor.setPosition(cell_end_position, QTextCursor.KeepAnchor)
         except StopIteration:
             # This cell has no next header, so it is the last cell.
             cell_at_file_end = True
-            cell_at_screen_end = True
             cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
 
         cell_full_file = cell_at_file_start and cell_at_file_end
         self.current_cell = (cursor, cell_full_file)
 
-        return cursor,\
-               cell_full_file,\
-               cell_at_screen_start and cell_at_screen_end
+        return cursor, cell_full_file
 
 
     def go_to_next_cell(self):
