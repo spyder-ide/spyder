@@ -31,7 +31,7 @@ from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
 from spyder.plugins.editor.widgets.completion import CompletionWidget
-from spyder.plugins.outlineexplorer.api import is_cell_header
+from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
 
 
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
@@ -93,6 +93,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.unmatched_p_color = QColor(Qt.red)
 
         self.decorations = TextDecorationsManager(self)
+
+        # Save current cell. This is invalidated as soon as the text changes.
+        # Useful to avoid recomputing while scrolling.
+        self.current_cell = None
+        def reset_current_cell():
+            self.current_cell = None
+        self.textChanged.connect(reset_current_cell)
 
     def setup_completion(self):
         size = CONF.get('main', 'completion/size')
@@ -210,7 +217,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         if self.cell_separators is None or \
           not self.highlight_current_cell_enabled:
             return
-        cursor, whole_file_selected, whole_screen_selected =\
+        cursor, whole_file_selected, _ =\
             self.select_current_cell_in_visible_portion()
         selection = TextDecoration(cursor)
         selection.format.setProperty(QTextFormat.FullWidthSelection,
@@ -219,17 +226,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         if whole_file_selected:
             self.clear_extra_selections('current_cell')
-        elif whole_screen_selected:
-            has_cell_separators = False
-            for oedata in self.outlineexplorer_data_list():
-                if oedata.def_type == oedata.CELL:
-                    has_cell_separators = True
-                    break
-            if has_cell_separators:
-                self.set_extra_selections('current_cell', [selection])
-                self.update_extra_selections()
-            else:
-                self.clear_extra_selections('current_cell')
         else:
             self.set_extra_selections('current_cell', [selection])
             self.update_extra_selections()
@@ -459,11 +455,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Return True if cursor (or text block) is on a block separator"""
         assert cursor is not None or block is not None
         if cursor is not None:
-            cursor0 = QTextCursor(cursor)
-            cursor0.select(QTextCursor.BlockUnderCursor)
-            text = to_text_string(cursor0.selectedText())
-        else:
-            text = to_text_string(block.text())
+            block = cursor.block()
+        text = to_text_string(block.text())
         if self.cell_separators is None:
             return False
         else:
@@ -525,61 +518,57 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
          -the textCursor
          -a boolean indicating if the entire file is selected
          -a boolean indicating if the entire visible portion of the file is selected"""
-        cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.StartOfBlock)
-        cur_pos = prev_pos = cursor.position()
-
+         #
         beg_pos = self.cursorForPosition(QPoint(0, 0)).position()
         bottom_right = QPoint(self.viewport().width() - 1,
                               self.viewport().height() - 1)
         end_pos = self.cursorForPosition(bottom_right).position()
 
-        # Moving to the next line that is not a separator, if we are
-        # exactly at one of them
-        while self.is_cell_separator(cursor):
-            cursor.movePosition(QTextCursor.NextBlock)
-            prev_pos = cur_pos
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                return cursor, False, False
-        prev_pos = cur_pos
-        # If not, move backwards to find the previous separator
-        while not self.is_cell_separator(cursor)\
-          and cursor.position() >= beg_pos:
-            cursor.movePosition(QTextCursor.PreviousBlock)
-            prev_pos = cur_pos
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                if self.is_cell_separator(cursor):
-                    return cursor, False, False
-                else:
-                    break
-        cell_at_screen_start = cursor.position() <= beg_pos
-        cursor.setPosition(prev_pos)
-        cell_at_file_start = cursor.atStart()
-        # Selecting cell header
-        if not cell_at_file_start:
-            cursor.movePosition(QTextCursor.PreviousBlock)
-            cursor.movePosition(QTextCursor.NextBlock,
-                                QTextCursor.KeepAnchor)
-        # Once we find it (or reach the beginning of the file)
-        # move to the next separator (or the end of the file)
-        # so we can grab the cell contents
-        while not self.is_cell_separator(cursor)\
-          and cursor.position() <= end_pos:
-            cursor.movePosition(QTextCursor.NextBlock,
-                                QTextCursor.KeepAnchor)
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                cursor.movePosition(QTextCursor.EndOfBlock,
-                                    QTextCursor.KeepAnchor)
-                break
-            prev_pos = cur_pos
-        cell_at_file_end = cursor.atEnd()
-        cell_at_screen_end = cursor.position() >= end_pos
+        cursor = self.textCursor()
+        if self.current_cell:
+            current_cell, cell_full_file = self.current_cell
+            cell_start_pos = current_cell.selectionStart()
+            cell_end_position = current_cell.selectionEnd()
+            # Check if the saved current cell is still valid
+            if cell_start_pos <= cursor.position() <= cell_end_position:
+                return current_cell,\
+                   cell_full_file,\
+                   cell_start_pos <= beg_pos and cell_end_position >= end_pos
+            else:
+                self.current_cell = None
+
+        block = cursor.block()
+        try:
+            header = next(document_cells(block, forward=False))
+            cell_start_pos = header.block.position()
+            cell_at_screen_start = cell_start_pos <= beg_pos
+            cell_at_file_start = False
+            cursor.setPosition(cell_start_pos)
+        except StopIteration:
+            # This cell has no header, so it is the first cell.
+            cell_at_screen_start = True
+            cell_at_file_start = True
+            cursor.movePosition(QTextCursor.Start)
+
+        try:
+            footer = next(document_cells(block, forward=True))
+            cell_end_position = footer.block.position()
+            cell_at_screen_end = cell_end_position >= end_pos
+            cell_at_file_end = False
+            cursor.setPosition(cell_end_position, QTextCursor.KeepAnchor)
+        except StopIteration:
+            # This cell has no next header, so it is the last cell.
+            cell_at_file_end = True
+            cell_at_screen_end = True
+            cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
+
+        cell_full_file = cell_at_file_start and cell_at_file_end
+        self.current_cell = (cursor, cell_full_file)
+
         return cursor,\
-               cell_at_file_start and cell_at_file_end,\
+               cell_full_file,\
                cell_at_screen_start and cell_at_screen_end
+
 
     def go_to_next_cell(self):
         """Go to the next cell of lines"""
