@@ -97,8 +97,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # Save current cell. This is invalidated as soon as the text changes.
         # Useful to avoid recomputing while scrolling.
         self.current_cell = None
+
         def reset_current_cell():
             self.current_cell = None
+
         self.textChanged.connect(reset_current_cell)
 
     def setup_completion(self):
