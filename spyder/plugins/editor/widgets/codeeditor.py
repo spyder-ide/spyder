@@ -356,6 +356,7 @@ class CodeEditor(TextEditBaseWidget):
         # Typing keys / handling on the fly completions
         # See: keyPressEvent
         self._last_key_pressed_text = ''
+        self._last_pressed_key = None
         self._timer_autocomplete = QTimer(self)
         self._timer_autocomplete.setSingleShot(True)
         self._timer_autocomplete.timeout.connect(self._handle_completions)
@@ -3722,6 +3723,7 @@ class CodeEditor(TextEditBaseWidget):
             insert_text(event)
 
         self._last_key_pressed_text = text
+        self._last_pressed_key = key
         if self.automatic_completions_after_ms == 0:
             self._handle_completions()
 
@@ -3737,6 +3739,12 @@ class CodeEditor(TextEditBaseWidget):
         pos = cursor.position()
         cursor.select(QTextCursor.WordUnderCursor)
         text = to_text_string(cursor.selectedText())
+
+        key = self._last_pressed_key
+        if key is not None:
+            if key == Qt.Key_Backspace or key == Qt.Key_Return:
+                self._last_pressed_key = None
+                return
 
         # Text might be after a dot '.'
         if text == '':
@@ -3764,6 +3772,7 @@ class CodeEditor(TextEditBaseWidget):
                         or '.' in text):
                     self.do_completion(automatic=True)
                     self._last_key_pressed_text = ''
+                    self._last_pressed_key = None
 
     def fix_and_strip_indent(self, comment_or_string=False):
         """Automatically fix indent and strip previous automatic indent."""
