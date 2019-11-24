@@ -2388,8 +2388,11 @@ def test_go_to_definition(main_window, qtbot, capsys):
     with qtbot.waitSignal(code_editor.lsp_response_signal):
         code_editor.go_to_definition_from_cursor()
 
-    # Assert there's one more file open than before
-    assert len(main_window.editor.get_filenames()) == n_editors + 1
+    def _get_filenames():
+        return [osp.basename(f) for f in main_window.editor.get_filenames()]
+
+    qtbot.waitUntil(lambda: 'QtCore.py' in _get_filenames())
+    assert 'QtCore.py' in _get_filenames()
 
 
 @pytest.mark.slow
