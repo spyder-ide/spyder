@@ -267,7 +267,7 @@ class BasePluginWidgetMixin(object):
             name = 'switch to {}'.format(self.CONF_SECTION)
             self.shortcut = CONF.get_shortcut(context, name,
                                               plugin_name=self.CONF_SECTION)
-        except configparser.NoOptionError:
+        except (configparser.NoSectionError, configparser.NoOptionError):
             pass
 
         if self.shortcut is not None and self.main is not None:
