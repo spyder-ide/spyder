@@ -1241,21 +1241,23 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
     def handle_hover_response(self, contents):
         """Handle hover response."""
-        try:
-            from unittest.mock import Mock
-        except ImportError:
-            from mock import Mock  # Python 2
+        if running_under_pytest():
+            try:
+                from unittest.mock import Mock
+            except ImportError:
+                from mock import Mock  # Python 2
 
-        # On some tests this is returning a Mock
-        if isinstance(contents, Mock):
-            return
+            # On some tests this is returning a Mock
+            if isinstance(contents, Mock):
+                return
 
         try:
             content = contents['params']
 
-            # On some tests this is returning a list
-            if isinstance(content, list):
-                return
+            if running_under_pytest():
+                # On some tests this is returning a list
+                if isinstance(content, list):
+                    return
 
             self.sig_display_object_info.emit(content,
                                               self._request_hover_clicked)
