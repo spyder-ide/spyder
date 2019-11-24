@@ -107,9 +107,9 @@ class Projects(SpyderPluginWidget):
                           triggered=self.clear_recent_projects)
         self.recent_project_menu = QMenu(_("Recent Projects"), self)
 
-        self.max_recent_action = create_action(self,
-                                 _("Maximum number of recent projects..."),
-                                 triggered=self.change_max_recent_projects)
+        self.max_recent_action =\
+            create_action(self, _("Maximum number of recent projects..."),
+                          triggered=self.change_max_recent_projects)
 
         if self.main is not None:
             self.main.projects_menu_actions += [self.new_project_action,
@@ -392,11 +392,15 @@ class Projects(SpyderPluginWidget):
         self.setup_menu_actions()
 
     def change_max_recent_projects(self):
-        "Change max recent projects entries"""
+        """Change max recent projects entries."""
 
-        mrf, valid = QInputDialog.getInt(self, _('Projects'),
-                                _('Maximum number of recent projects'),
-                                self.get_option('max_recent_projects'), 1,35)
+        mrf, valid = QInputDialog.getInt(
+            self,
+            _('Projects'),
+            _('Maximum number of recent projects'),
+            self.get_option('max_recent_projects'),
+            1,
+            35)
 
         if valid:
             self.set_option('max_recent_projects', mrf)
@@ -523,7 +527,7 @@ class Projects(SpyderPluginWidget):
         if project not in self.recent_projects:
             self.recent_projects.insert(0, project)
         if len(self.recent_projects) > self.get_option('max_recent_projects'):
-                self.recent_projects.pop(-1)
+            self.recent_projects.pop(-1)
 
     def register_lsp_server_settings(self, settings):
         """Enable LSP workspace functions."""
