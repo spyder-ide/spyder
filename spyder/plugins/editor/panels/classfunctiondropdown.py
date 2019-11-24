@@ -83,6 +83,9 @@ class ClassFunctionDropdown(Panel):
             line = item['location']['range']['start']['line'] + 1
             self.editor.go_to_line(line)
 
+        if sender == self.class_cb:
+            self.method_cb.setCurrentIndex(0)
+
     def update_selected(self, linenum):
         """Updates the dropdowns to reflect the current class and function."""
         possible_parents = list(sorted(self._tree[linenum]))
