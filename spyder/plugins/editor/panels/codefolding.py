@@ -195,7 +195,7 @@ class FoldingPanel(Panel):
             if ending_line > starting_line:
                 new_folding_ranges[starting_line + 1] = ending_line + 1
 
-        past_folding_regions = dict(self.folding_regions)
+        past_folding_regions = dict(self.folding_regions.copy())
         self.folding_regions = new_folding_ranges
         folding_status = {line: False for line in self.folding_regions}
 
@@ -213,11 +213,15 @@ class FoldingPanel(Panel):
             current_lines = self.__compute_line_offsets(current_text, True)
 
             for line in past_folding_regions:
-                offset = prev_offsets[line]
-                new_offset = differ.diff_xIndex(diff, offset)
-                new_line = current_lines.get(new_offset)
-                if new_line and new_line in self.folding_regions:
-                    folding_status[new_line] = self.folding_status[line]
+                offset = prev_offsets.get(line)
+                if offset:
+                    new_offset = differ.diff_xIndex(diff, offset)
+                    new_line = current_lines.get(new_offset)
+                    if new_line and new_line in self.folding_regions:
+                        try:
+                            folding_status[new_line] = self.folding_status[line]
+                        except KeyError:
+                            pass
             self.folding_status = folding_status
         # Compute region nesting level
         self.folding_levels = {start_line: 0 for start_line in self.folding_regions}
