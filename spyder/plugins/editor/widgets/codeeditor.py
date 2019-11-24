@@ -405,12 +405,10 @@ class CodeEditor(TextEditBaseWidget):
         self.linenumberarea = self.panels.register(LineNumberArea(self))
 
         # Class and Method/Function Dropdowns
-        # NOTE: This panel will be disabled until it is migrated to use LSP
-        # calls
-        # self.classfuncdropdown = self.panels.register(
-        #     ClassFunctionDropdown(self),
-        #     Panel.Position.TOP,
-        # )
+        self.classfuncdropdown = self.panels.register(
+            ClassFunctionDropdown(self),
+            Panel.Position.TOP,
+        )
 
         # Colors to be defined in _apply_highlighter_color_scheme()
         # Currentcell color and current line color are defined in base.py
@@ -914,8 +912,8 @@ class CodeEditor(TextEditBaseWidget):
         self.toggle_wrap_mode(wrap)
 
         # Class/Function dropdown will be disabled if we're not in a Python file.
-        # self.classfuncdropdown.setVisible(show_class_func_dropdown
-        #                                   and self.is_python_like())
+        self.classfuncdropdown.setVisible(show_class_func_dropdown
+                                          and self.is_python_like())
 
         self.set_strip_mode(strip_mode)
 
@@ -1026,8 +1024,21 @@ class CodeEditor(TextEditBaseWidget):
         }
         return params
 
-    # ------------- LSP: Linting ---------------------------------------
+    # ------------- LSP: Symbols ---------------------------------------
+    @request(method=LSPRequestTypes.DOCUMENT_SYMBOL)
+    def request_symbols(self):
+        """Trigger document symbols."""
+        params = {'file': self.filename}
+        return params
 
+    @handles(LSPRequestTypes.DOCUMENT_SYMBOL)
+    def process_symbols(self, params):
+        """Handle symbols response."""
+        symbols = params['params']
+        if symbols:
+            self.classfuncdropdown.update_data(symbols)
+
+    # ------------- LSP: Linting ---------------------------------------
     def update_whitespace_count(self, line, column):
         def compute_whitespace(line):
             whitespace_regex = re.compile(r'(\s+).*')
@@ -1324,6 +1335,7 @@ class CodeEditor(TextEditBaseWidget):
         ranges = response['params']
         folding_panel = self.panels.get(FoldingPanel)
         folding_panel.update_folding(ranges)
+        self.request_symbols()
 
     # ------------- LSP: Save/close file -----------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
@@ -2204,7 +2216,6 @@ class CodeEditor(TextEditBaseWidget):
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
-        # self.classfuncdropdown.update()
 
     def hide_tooltip(self):
         """
@@ -3795,7 +3806,7 @@ class CodeEditor(TextEditBaseWidget):
             self.highlighter.make_charlist()
 
     def get_pattern_at(self, coordinates):
-        """
+        """')
         Return key, text and cursor for pattern (if found at coordinates).
         """
         return self.get_pattern_cursor_at(self.highlighter.patterns,
