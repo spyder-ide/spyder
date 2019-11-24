@@ -199,9 +199,7 @@ class ClassFunctionDropdown(Panel):
             kind = item.get('kind')
 
             block = self._editor.document().findBlockByLineNumber(line_start)
-            line_text = ''
-            if block:
-                line_text = block.text()
+            line_text = line_text = block.text() if block else ''
 
             # The symbol finder returns classes in import statements as well
             # so we filter them out
@@ -215,5 +213,5 @@ class ClassFunctionDropdown(Panel):
 
         self.class_cb.clear()
         self.method_cb.clear()
-        self.populate(self.class_cb, self.classes, False)
-        self.populate(self.method_cb, self.funcs, True)
+        self.populate(self.class_cb, self.classes, add_parents=False)
+        self.populate(self.method_cb, self.funcs, add_parents=True)

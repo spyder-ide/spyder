@@ -73,7 +73,7 @@ def test_class_func_selector(lsp_codeeditor, qtbot):
     assert panel.class_cb.currentText() == 'SomeObject'
     assert panel.method_cb.currentText() == 'SomeObject.__init__'
 
-    for i in range(18):
+    for _ in range(18):
         qtbot.keyPress(code_editor, Qt.Key_Down)
     assert panel.class_cb.currentText() == 'SomeOtherObject'
     assert (panel.method_cb.currentText()
