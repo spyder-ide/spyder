@@ -180,7 +180,8 @@ class DocumentProvider:
     @handles(LSPRequestTypes.DOCUMENT_SYMBOL)
     def process_document_symbol_request(self, result, req_id):
         if req_id in self.req_reply:
-            self.req_reply[req_id](LSPRequestTypes.DOCUMENT_SYMBOL, {'params': result})
+            self.req_reply[req_id](LSPRequestTypes.DOCUMENT_SYMBOL,
+                                   {'params': result})
 
     @send_request(method=LSPRequestTypes.DOCUMENT_DEFINITION)
     def go_to_definition_request(self, params):

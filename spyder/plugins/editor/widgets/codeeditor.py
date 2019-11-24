@@ -3806,7 +3806,7 @@ class CodeEditor(TextEditBaseWidget):
             self.highlighter.make_charlist()
 
     def get_pattern_at(self, coordinates):
-        """')
+        """
         Return key, text and cursor for pattern (if found at coordinates).
         """
         return self.get_pattern_cursor_at(self.highlighter.patterns,

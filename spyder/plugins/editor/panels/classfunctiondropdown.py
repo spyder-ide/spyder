@@ -140,7 +140,7 @@ class ClassFunctionDropdown(Panel):
         cb_data = []
         for item in data:
             fqn = item['name']
-            
+
             # Create a list of fully-qualified names if requested
             if add_parents:
                 begin = item['location']['range']['start']['line']
