@@ -235,7 +235,8 @@ def cleanup(request):
 # =============================================================================
 @pytest.mark.slow
 @pytest.mark.single_instance
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
+@pytest.mark.skipif((os.environ.get('CI', None) is None or (PY2
+                     and sys.platform == 'darwin')),
                     reason="It's not meant to be run outside of CIs")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and %edit magic."""
