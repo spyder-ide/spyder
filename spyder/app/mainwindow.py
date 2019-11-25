@@ -1833,7 +1833,8 @@ class MainWindow(QMainWindow):
         # Make every widget visible
         for widget in widgets:
             widget.toggle_view(True)
-            widget._toggle_view_action.setChecked(True)
+            if widget._toggle_view_action:
+                widget._toggle_view_action.setChecked(True)
 
         # We use both directions to ensure proper update when moving from
         # 'Horizontal Split' to 'Spyder Default'
