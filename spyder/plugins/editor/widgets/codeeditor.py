@@ -1224,7 +1224,21 @@ class CodeEditor(TextEditBaseWidget):
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
 
-    # ------------- LSP: Hover ---------------------------------------
+    # ------------- LSP: Hover/Mouse ---------------------------------------
+    @request(method=LSPRequestTypes.DOCUMENT_CURSOR_EVENT)
+    def request_cursor_event(self):
+        text = self.toPlainText()
+        cursor = self.textCursor()
+        params = {
+            'file': self.filename,
+            'version': self.text_version,
+            'text': text,
+            'offset': cursor.position(),
+            'selection_start': cursor.selectionStart(),
+            'selection_end': cursor.selectionEnd(),
+        }
+        return params
+
     @request(method=LSPRequestTypes.DOCUMENT_HOVER)
     def request_hover(self, line, col, offset, show_hint=True, clicked=True):
         """Request hover information."""
@@ -3530,6 +3544,10 @@ class CodeEditor(TextEditBaseWidget):
     def keyReleaseEvent(self, event):
         """Override Qt method."""
         self.sig_key_released.emit(event)
+        key = event.key()
+        direction_keys = {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}
+        if key in direction_keys:
+            self.request_cursor_event()
         self.timer_syntax_highlight.start()
         self._restore_editor_cursor_and_selections()
         super(CodeEditor, self).keyReleaseEvent(event)
@@ -3736,7 +3754,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.unindent()
             event.accept()
         elif not event.isAccepted():
-            insert_text(event)
+            TextEditBaseWidget.keyPressEvent(self, event)
 
         self._last_key_pressed_text = text
         self._last_pressed_key = key
@@ -4162,7 +4180,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseReleaseEvent(self, event):
         """Override Qt method."""
-        self.document_did_change()
+        self.request_cursor_event()
         TextEditBaseWidget.mouseReleaseEvent(self, event)
 
     def contextMenuEvent(self, event):
