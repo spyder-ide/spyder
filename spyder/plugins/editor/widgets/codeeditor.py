@@ -283,7 +283,7 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emitted when a response is received from an LSP server
     # For now it's only used on tests, but it could be used to track
     # and profile LSP diagnostics.
-    lsp_response_signal = Signal(str, dict)
+    lsp_response_signal = Signal(str, object)
 
     #: Signal to display object information on the Help plugin
     sig_display_object_info = Signal(str, bool)
@@ -1039,25 +1039,6 @@ class CodeEditor(TextEditBaseWidget):
             self.classfuncdropdown.update_data(symbols)
 
     # ------------- LSP: Linting ---------------------------------------
-    def update_whitespace_count(self, line, column):
-        def compute_whitespace(line):
-            whitespace_regex = re.compile(r'(\s+).*')
-            whitespace_match = whitespace_regex.match(line)
-            total_whitespace = 0
-            if whitespace_match is not None:
-                whitespace_chars = whitespace_match.group(1)
-                whitespace_chars = whitespace_chars.replace(
-                    '\t', tab_size * ' ')
-                total_whitespace = len(whitespace_chars)
-            return total_whitespace
-
-        tab_size = self.tab_stop_width_spaces
-        self.leading_whitespaces = {}
-        lines = to_text_string(self.toPlainText()).splitlines()
-        for i, text in enumerate(lines):
-            total_whitespace = compute_whitespace(text)
-            self.leading_whitespaces[i] = total_whitespace
-
     @request(
         method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
     def document_did_change(self, text=None):
@@ -1087,6 +1068,13 @@ class CodeEditor(TextEditBaseWidget):
     def process_diagnostics(self, params):
         """Handle linting response."""
         try:
+            # The LSP spec doesn't require that folding be treated
+            # in the same way as linting, i.e. to be recomputed on
+            # didChange, didOpen and didSave. However, we think
+            # that's necessary to maintain accurate folding all the
+            # time. Therefore, we decided to add this request here.
+            self.request_folding()
+
             self.process_code_analysis(params['params'])
         except RuntimeError:
             # This is triggered when a codeeditor instance has been
@@ -1235,7 +1223,21 @@ class CodeEditor(TextEditBaseWidget):
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
 
-    # ------------- LSP: Hover ---------------------------------------
+    # ------------- LSP: Hover/Mouse ---------------------------------------
+    @request(method=LSPRequestTypes.DOCUMENT_CURSOR_EVENT)
+    def request_cursor_event(self):
+        text = self.toPlainText()
+        cursor = self.textCursor()
+        params = {
+            'file': self.filename,
+            'version': self.text_version,
+            'text': text,
+            'offset': cursor.position(),
+            'selection_start': cursor.selectionStart(),
+            'selection_end': cursor.selectionEnd(),
+        }
+        return params
+
     @request(method=LSPRequestTypes.DOCUMENT_HOVER)
     def request_hover(self, line, col, offset, show_hint=True, clicked=True):
         """Request hover information."""
@@ -1252,13 +1254,29 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_HOVER)
     def handle_hover_response(self, contents):
         """Handle hover response."""
+        if running_under_pytest():
+            try:
+                from unittest.mock import Mock
+            except ImportError:
+                from mock import Mock  # Python 2
+
+            # On some tests this is returning a Mock
+            if isinstance(contents, Mock):
+                return
+
         try:
             content = contents['params']
+
+            if running_under_pytest():
+                # On some tests this is returning a list
+                if isinstance(content, list):
+                    return
+
             self.sig_display_object_info.emit(content,
                                               self._request_hover_clicked)
             if content is not None and self._show_hint and self._last_point:
                 # This is located in spyder/widgets/mixins.py
-                word = self._last_hover_word,
+                word = self._last_hover_word
                 content = content.replace(u'\xa0', ' ')
                 self.show_hint(content, inspect_word=word,
                                at_point=self._last_point)
@@ -1323,8 +1341,28 @@ class CodeEditor(TextEditBaseWidget):
                 "Error when processing go to definition")
 
     # ------------- LSP: Code folding ranges -------------------------------
+    def update_whitespace_count(self, line, column):
+        def compute_whitespace(line):
+            whitespace_regex = re.compile(r'(\s+).*')
+            whitespace_match = whitespace_regex.match(line)
+            total_whitespace = 0
+            if whitespace_match is not None:
+                whitespace_chars = whitespace_match.group(1)
+                whitespace_chars = whitespace_chars.replace(
+                    '\t', tab_size * ' ')
+                total_whitespace = len(whitespace_chars)
+            return total_whitespace
+
+        tab_size = self.tab_stop_width_spaces
+        self.leading_whitespaces = {}
+        lines = to_text_string(self.toPlainText()).splitlines()
+        for i, text in enumerate(lines):
+            total_whitespace = compute_whitespace(text)
+            self.leading_whitespaces[i] = total_whitespace
+
     @request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def request_folding(self):
+        """Request folding."""
         if not self.folding_supported or not self.code_folding:
             return
         params = {'file': self.filename}
@@ -1332,10 +1370,27 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
-        ranges = response['params']
-        folding_panel = self.panels.get(FoldingPanel)
-        folding_panel.update_folding(ranges)
-        self.request_symbols()
+        """Handle folding response."""
+        try:
+            ranges = response['params']
+            folding_panel = self.panels.get(FoldingPanel)
+
+            # Update folding
+            text = self.toPlainText()
+            self.text_diff = (self.differ.diff_main(self.previous_text, text),
+                              self.previous_text)
+            folding_panel.update_folding(ranges)
+
+            # Update indent guides, which depend on folding
+            if self.indent_guides._enabled and len(self.patch) > 0:
+                line, column = self.get_cursor_line_column()
+                self.update_whitespace_count(line, column)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors("Error when processing folding")
 
     # ------------- LSP: Save/close file -----------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
@@ -3525,6 +3580,10 @@ class CodeEditor(TextEditBaseWidget):
     def keyReleaseEvent(self, event):
         """Override Qt method."""
         self.sig_key_released.emit(event)
+        key = event.key()
+        direction_keys = {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}
+        if key in direction_keys:
+            self.request_cursor_event()
         self.timer_syntax_highlight.start()
         self._restore_editor_cursor_and_selections()
         super(CodeEditor, self).keyReleaseEvent(event)
@@ -4157,7 +4216,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseReleaseEvent(self, event):
         """Override Qt method."""
-        self.document_did_change()
+        self.request_cursor_event()
         TextEditBaseWidget.mouseReleaseEvent(self, event)
 
     def contextMenuEvent(self, event):

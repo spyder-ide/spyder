@@ -43,17 +43,7 @@ def test_ignore_warnings(qtbot, lsp_codeeditor):
 
     # After this call the manager needs to be reinitialized
     manager.update_configuration()
-
-    if os.environ.get('CI', None) is None and sys.platform == 'darwin':
-        # To be able to run local tests on mac this modification is needed
-        editorstack = manager.main.editor
-        with qtbot.waitSignal(editorstack.sig_lsp_initialized, timeout=30000):
-            manager.start_client('python')
-
-        with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
-            editor.document_did_open()
-    else:
-        qtbot.wait(2000)
+    qtbot.wait(2000)
 
     # Notify changes
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
