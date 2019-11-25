@@ -965,7 +965,6 @@ class CodeEditor(TextEditBaseWidget):
             self.filename))
         self.completions_available = True
         self.document_did_open()
-        self.request_folding()
 
     def update_completion_configuration(self, config):
         """Start LSP integration if it wasn't done before."""
@@ -973,7 +972,6 @@ class CodeEditor(TextEditBaseWidget):
         self.parse_lsp_config(config)
         self.completions_available = True
         self.document_did_open()
-        self.request_folding()
 
     def stop_completion_services(self):
         logger.debug('Stopping completion services for %s' % self.filename)
@@ -1027,26 +1025,6 @@ class CodeEditor(TextEditBaseWidget):
         return params
 
     # ------------- LSP: Linting ---------------------------------------
-
-    def update_whitespace_count(self, line, column):
-        def compute_whitespace(line):
-            whitespace_regex = re.compile(r'(\s+).*')
-            whitespace_match = whitespace_regex.match(line)
-            total_whitespace = 0
-            if whitespace_match is not None:
-                whitespace_chars = whitespace_match.group(1)
-                whitespace_chars = whitespace_chars.replace(
-                    '\t', tab_size * ' ')
-                total_whitespace = len(whitespace_chars)
-            return total_whitespace
-
-        tab_size = self.tab_stop_width_spaces
-        self.leading_whitespaces = {}
-        lines = to_text_string(self.toPlainText()).splitlines()
-        for i, text in enumerate(lines):
-            total_whitespace = compute_whitespace(text)
-            self.leading_whitespaces[i] = total_whitespace
-
     @request(
         method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
     def document_did_change(self, text=None):
@@ -1054,12 +1032,7 @@ class CodeEditor(TextEditBaseWidget):
         self.text_version += 1
         text = self.toPlainText()
         self.patch = self.differ.patch_make(self.previous_text, text)
-        self.text_diff = (self.differ.diff_main(self.previous_text, text),
-                          self.previous_text)
         self.previous_text = text
-        if len(self.patch) > 0:
-            line, column = self.get_cursor_line_column()
-            self.update_whitespace_count(line, column)
         cursor = self.textCursor()
         params = {
             'file': self.filename,
@@ -1076,10 +1049,17 @@ class CodeEditor(TextEditBaseWidget):
     def process_diagnostics(self, params):
         """Handle linting response."""
         try:
+            # The LSP spec doesn't require that folding be treated
+            # in the same way as linting, i.e. to be recomputed on
+            # didChange, didOpen and didSave. However, we think
+            # that's necessary to maintain accurate folding all the
+            # time. Therefore, we decided to add this request here.
+            self.request_folding()
+
             self.process_code_analysis(params['params'])
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing linting")
@@ -1163,8 +1143,8 @@ class CodeEditor(TextEditBaseWidget):
 
             self.kite_call_to_action.handle_processed_completions(completions)
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             self.kite_call_to_action.hide_coverage_cta()
             return
         except Exception:
@@ -1218,8 +1198,8 @@ class CodeEditor(TextEditBaseWidget):
                     documentation=documentation,
                 )
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
@@ -1283,8 +1263,8 @@ class CodeEditor(TextEditBaseWidget):
                                at_point=self._last_point)
                 self._last_point = None
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
@@ -1334,16 +1314,36 @@ class CodeEditor(TextEditBaseWidget):
                                                start['line'] + 1,
                                                start['character'])
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors(
                 "Error when processing go to definition")
 
     # ------------- LSP: Code folding ranges -------------------------------
+    def update_whitespace_count(self, line, column):
+        def compute_whitespace(line):
+            whitespace_regex = re.compile(r'(\s+).*')
+            whitespace_match = whitespace_regex.match(line)
+            total_whitespace = 0
+            if whitespace_match is not None:
+                whitespace_chars = whitespace_match.group(1)
+                whitespace_chars = whitespace_chars.replace(
+                    '\t', tab_size * ' ')
+                total_whitespace = len(whitespace_chars)
+            return total_whitespace
+
+        tab_size = self.tab_stop_width_spaces
+        self.leading_whitespaces = {}
+        lines = to_text_string(self.toPlainText()).splitlines()
+        for i, text in enumerate(lines):
+            total_whitespace = compute_whitespace(text)
+            self.leading_whitespaces[i] = total_whitespace
+
     @request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def request_folding(self):
+        """Request folding."""
         if not self.folding_supported or not self.code_folding:
             return
         params = {'file': self.filename}
@@ -1351,9 +1351,27 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
-        ranges = response['params']
-        folding_panel = self.panels.get(FoldingPanel)
-        folding_panel.update_folding(ranges)
+        """Handle folding response."""
+        try:
+            ranges = response['params']
+            folding_panel = self.panels.get(FoldingPanel)
+
+            # Update folding
+            text = self.toPlainText()
+            self.text_diff = (self.differ.diff_main(self.previous_text, text),
+                              self.previous_text)
+            folding_panel.update_folding(ranges)
+
+            # Update indent guides, which depend on folding
+            if self.indent_guides._enabled and len(self.patch) > 0:
+                line, column = self.get_cursor_line_column()
+                self.update_whitespace_count(line, column)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors("Error when processing folding")
 
     # ------------- LSP: Save/close file -----------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
@@ -2116,7 +2134,6 @@ class CodeEditor(TextEditBaseWidget):
             self.skip_rstrip = True
             TextEditBaseWidget.undo(self)
             self.document_did_change('')
-            self.request_folding()
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
             self.skip_rstrip = False
@@ -2129,7 +2146,6 @@ class CodeEditor(TextEditBaseWidget):
             self.skip_rstrip = True
             TextEditBaseWidget.redo(self)
             self.document_did_change('text')
-            self.request_folding()
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
             self.skip_rstrip = False
@@ -3754,7 +3770,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.unindent()
             event.accept()
         elif not event.isAccepted():
-            TextEditBaseWidget.keyPressEvent(self, event)
+            insert_text(event)
 
         self._last_key_pressed_text = text
         self._last_pressed_key = key
