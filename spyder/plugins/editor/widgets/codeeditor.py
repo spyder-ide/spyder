@@ -3770,7 +3770,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.unindent()
             event.accept()
         elif not event.isAccepted():
-            TextEditBaseWidget.keyPressEvent(self, event)
+            insert_text(event)
 
         self._last_key_pressed_text = text
         self._last_pressed_key = key
