@@ -10,7 +10,7 @@ jobs:
   pool:
     vmImage: 'macOS-10.13'
 
-  timeoutInMinutes: 100
+  timeoutInMinutes: 30
 
   variables:
     USE_CONDA: "yes"

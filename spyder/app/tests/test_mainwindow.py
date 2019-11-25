@@ -235,7 +235,8 @@ def cleanup(request):
 # =============================================================================
 @pytest.mark.slow
 @pytest.mark.single_instance
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
+@pytest.mark.skipif((os.environ.get('CI', None) is None or (PY2
+                     and sys.platform == 'darwin')),
                     reason="It's not meant to be run outside of CIs")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and %edit magic."""
@@ -2132,6 +2133,12 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
 
+    # Close split panel
+    for editorstack in reversed(main_window.editor.editorstacks):
+        editorstack.close_split()
+        break
+    qtbot.wait(1000)
+
 
 @pytest.mark.slow
 @flaky(max_runs=3)
@@ -2388,8 +2395,11 @@ def test_go_to_definition(main_window, qtbot, capsys):
     with qtbot.waitSignal(code_editor.lsp_response_signal):
         code_editor.go_to_definition_from_cursor()
 
-    # Assert there's one more file open than before
-    assert len(main_window.editor.get_filenames()) == n_editors + 1
+    def _get_filenames():
+        return [osp.basename(f) for f in main_window.editor.get_filenames()]
+
+    qtbot.waitUntil(lambda: 'QtCore.py' in _get_filenames())
+    assert 'QtCore.py' in _get_filenames()
 
 
 @pytest.mark.slow

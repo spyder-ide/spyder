@@ -8,6 +8,7 @@
 
 # Standard library imports
 import os.path as osp
+import pydoc
 import sys
 
 # Third party imports
@@ -17,9 +18,30 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.config.base import _
+from spyder.plugins.onlinehelp.pydoc_patch import _start_server
 from spyder.py3compat import PY3, to_text_string
 from spyder.utils.misc import select_port
 from spyder.widgets.browser import WebBrowser
+
+
+# =============================================================================
+# Pydoc adjustments
+# =============================================================================
+# This is needed to prevent pydoc raise an ErrorDuringImport when
+# trying to import numpy.
+# See spyder-ide/spyder#10740
+DIRECT_PYDOC_IMPORT_MODULES = ['numpy', 'numpy.core']
+try:
+    from pydoc import safeimport
+
+    def spyder_safeimport(path, forceload=0, cache={}):
+        if path in DIRECT_PYDOC_IMPORT_MODULES:
+            forceload = 0
+        return safeimport(path, forceload=forceload, cache=cache)
+
+    pydoc.safeimport = spyder_safeimport
+except Exception:
+    pass
 
 
 class PydocServer(QThread):
@@ -33,17 +55,11 @@ class PydocServer(QThread):
         self.complete = False
 
     def run(self):
-        import pydoc
         if PY3:
             # Python 3
-            try:
-                self.callback(pydoc._start_server(pydoc._url_handler,
-                                                  port=self.port))
-            except TypeError:
-                # Python 3.7
-                self.callback(pydoc._start_server(pydoc._url_handler,
-                                                  hostname='127.0.0.1',
-                                                  port=self.port))
+            self.callback(_start_server(pydoc._url_handler,
+                                        hostname='127.0.0.1',
+                                        port=self.port))
         else:
             # Python 2
             pydoc.serve(self.port, self.callback, self.completer)
@@ -58,11 +74,11 @@ class PydocServer(QThread):
     def quit_server(self):
         if PY3:
             # Python 3
-            if self.is_server_running() and self.server.serving:
+            if self.isRunning() and self.server.serving:
                 self.server.stop()
         else:
             # Python 2
-            if self.is_server_running():
+            if self.isRunning():
                 self.server.quit = 1
 
 
@@ -72,8 +88,9 @@ class PydocBrowser(WebBrowser):
     """
     DEFAULT_PORT = 30128
 
-    def __init__(self, parent, options_button=None):
-        WebBrowser.__init__(self, parent, options_button=options_button)
+    def __init__(self, parent, options_button=None, handle_links=False):
+        WebBrowser.__init__(self, parent, options_button=options_button,
+                            handle_links=handle_links)
         self.server = None
         self.port = None
 
@@ -123,14 +140,26 @@ class PydocBrowser(WebBrowser):
         self.start_server()
         WebBrowser.reload(self)
 
+    def load_finished(self, ok):
+        """Handle load finished."""
+        pass
+
     def text_to_url(self, text):
         """Convert text address into QUrl object"""
+        if text != 'about:blank':
+            text += '.html'
         if text.startswith('/'):
             text = text[1:]
-        return QUrl(self.home_url.toString()+text+'.html')
+
+        return QUrl(self.home_url.toString() + text)
 
     def url_to_text(self, url):
         """Convert QUrl object to displayed text in combo box"""
+        string_url = url.toString()
+        if 'about:blank' in string_url:
+            return 'about:blank'
+        elif 'get?key=' in string_url or 'search?key=' in string_url:
+            return url.toString().split('=')[-1]
         return osp.splitext(to_text_string(url.path()))[0][1:]
 
 
