@@ -75,6 +75,10 @@ class IndentationGuide(Panel):
         self._enabled = state
         self.setVisible(state)
 
+        # We need to request folding when toggling state so the lines
+        # are computed when handling the folding response.
+        self.editor.request_folding()
+
     def update_color(self):
         """Set color using syntax highlighter color for comments."""
         self.color = self.editor.highlighter.get_color_name('comment')

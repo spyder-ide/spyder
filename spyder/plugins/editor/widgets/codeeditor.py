@@ -1332,7 +1332,7 @@ class CodeEditor(TextEditBaseWidget):
             folding_panel.update_folding(ranges)
 
             # Update indent guides, which depend on folding
-            if len(self.patch) > 0:
+            if self.indent_guides._enabled and len(self.patch) > 0:
                 line, column = self.get_cursor_line_column()
                 self.update_whitespace_count(line, column)
         except RuntimeError:
