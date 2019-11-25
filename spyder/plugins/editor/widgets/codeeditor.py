@@ -1024,26 +1024,6 @@ class CodeEditor(TextEditBaseWidget):
         return params
 
     # ------------- LSP: Linting ---------------------------------------
-
-    def update_whitespace_count(self, line, column):
-        def compute_whitespace(line):
-            whitespace_regex = re.compile(r'(\s+).*')
-            whitespace_match = whitespace_regex.match(line)
-            total_whitespace = 0
-            if whitespace_match is not None:
-                whitespace_chars = whitespace_match.group(1)
-                whitespace_chars = whitespace_chars.replace(
-                    '\t', tab_size * ' ')
-                total_whitespace = len(whitespace_chars)
-            return total_whitespace
-
-        tab_size = self.tab_stop_width_spaces
-        self.leading_whitespaces = {}
-        lines = to_text_string(self.toPlainText()).splitlines()
-        for i, text in enumerate(lines):
-            total_whitespace = compute_whitespace(text)
-            self.leading_whitespaces[i] = total_whitespace
-
     @request(
         method=LSPRequestTypes.DOCUMENT_DID_CHANGE, requires_response=False)
     def document_did_change(self, text=None):
@@ -1051,12 +1031,7 @@ class CodeEditor(TextEditBaseWidget):
         self.text_version += 1
         text = self.toPlainText()
         self.patch = self.differ.patch_make(self.previous_text, text)
-        self.text_diff = (self.differ.diff_main(self.previous_text, text),
-                          self.previous_text)
         self.previous_text = text
-        if len(self.patch) > 0:
-            line, column = self.get_cursor_line_column()
-            self.update_whitespace_count(line, column)
         cursor = self.textCursor()
         params = {
             'file': self.filename,
@@ -1316,8 +1291,28 @@ class CodeEditor(TextEditBaseWidget):
                 "Error when processing go to definition")
 
     # ------------- LSP: Code folding ranges -------------------------------
+    def update_whitespace_count(self, line, column):
+        def compute_whitespace(line):
+            whitespace_regex = re.compile(r'(\s+).*')
+            whitespace_match = whitespace_regex.match(line)
+            total_whitespace = 0
+            if whitespace_match is not None:
+                whitespace_chars = whitespace_match.group(1)
+                whitespace_chars = whitespace_chars.replace(
+                    '\t', tab_size * ' ')
+                total_whitespace = len(whitespace_chars)
+            return total_whitespace
+
+        tab_size = self.tab_stop_width_spaces
+        self.leading_whitespaces = {}
+        lines = to_text_string(self.toPlainText()).splitlines()
+        for i, text in enumerate(lines):
+            total_whitespace = compute_whitespace(text)
+            self.leading_whitespaces[i] = total_whitespace
+
     @request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def request_folding(self):
+        """Request folding."""
         if not self.folding_supported or not self.code_folding:
             return
         params = {'file': self.filename}
@@ -1325,10 +1320,21 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
+        """Handle folding response."""
         try:
             ranges = response['params']
             folding_panel = self.panels.get(FoldingPanel)
+
+            # Update folding
+            text = self.toPlainText()
+            self.text_diff = (self.differ.diff_main(self.previous_text, text),
+                              self.previous_text)
             folding_panel.update_folding(ranges)
+
+            # Update indent guides, which depend on folding
+            if len(self.patch) > 0:
+                line, column = self.get_cursor_line_column()
+                self.update_whitespace_count(line, column)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
