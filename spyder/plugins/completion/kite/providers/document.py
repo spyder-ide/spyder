@@ -41,7 +41,8 @@ def convert_text_snippet(snippet_info):
     text_builder = []
     prev_pos = 0
     next_pos = None
-    total_placeholders = len(snippet_info['placeholders']) + 1
+    num_placeholders = len(snippet_info['placeholders'])
+    total_placeholders = num_placeholders + 1
     for i, placeholder in enumerate(snippet_info['placeholders']):
         placeholder_begin = placeholder['begin']
         placeholder_end = placeholder['end']
@@ -57,7 +58,8 @@ def convert_text_snippet(snippet_info):
             snippet = '$%d' % (placeholder_number)
         text_builder.append(snippet)
     text_builder.append(text[prev_pos:])
-    text_builder.append('$0')
+    if num_placeholders > 0:
+        text_builder.append('$0')
     return ''.join(text_builder)
 
 

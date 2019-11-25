@@ -82,6 +82,7 @@ class SnippetsExtension(EditorExtension):
     def __init__(self):
         EditorExtension.__init__(self)
         self.is_snippet_active = False
+        self.inserting_snippet = False
         self.active_snippet = -1
         self.node_number = 0
         self.index = None
@@ -493,7 +494,10 @@ class SnippetsExtension(EditorExtension):
                     first_tokens = list(new_node.tokens)
                     second_tokens = []
             if not single_token:
-                first_tokens.append(new_node)
+                if isinstance(new_node, nodes.TextNode):
+                    first_tokens += list(new_node.tokens)
+                else:
+                    first_tokens.append(new_node)
                 if not new_node.text().startswith(value):
                     first_tokens.append(leaf)
         elif leaf_end == (line, column):
@@ -691,7 +695,11 @@ class SnippetsExtension(EditorExtension):
     def cursor_changed(self, line, col):
         if not rtree_available:
             return
-        # with QMutexLocker(self.reset_lock):
+
+        if self.inserting_snippet:
+            self.insert_snippet = False
+            return
+
         ignore_calls = {'undo', 'redo'}
         node, nearest_snippet, _ = self._find_node_by_position(line, col)
         if node is None:
@@ -815,6 +823,7 @@ class SnippetsExtension(EditorExtension):
         ast.compute_position((line, column))
         ast.accept(visitor)
 
+        self.inserting_snippet = True
         self.editor.insert_text(ast.text(), will_insert_text=False)
         self.editor.document_did_change()
 
