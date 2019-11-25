@@ -1075,7 +1075,6 @@ class CodeEditor(TextEditBaseWidget):
             # all the time. Therefore, we decided to add this request
             # here.
             self.request_folding()
-            self.request_symbols()
 
             self.process_code_analysis(params['params'])
         except RuntimeError:
@@ -1373,6 +1372,7 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
         """Handle folding response."""
+        self.request_symbols()
         try:
             ranges = response['params']
             folding_panel = self.panels.get(FoldingPanel)
