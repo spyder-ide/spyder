@@ -1082,8 +1082,8 @@ class CodeEditor(TextEditBaseWidget):
 
             self.process_code_analysis(params['params'])
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing linting")
@@ -1167,8 +1167,8 @@ class CodeEditor(TextEditBaseWidget):
 
             self.kite_call_to_action.handle_processed_completions(completions)
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             self.kite_call_to_action.hide_coverage_cta()
             return
         except Exception:
@@ -1222,8 +1222,8 @@ class CodeEditor(TextEditBaseWidget):
                     documentation=documentation,
                 )
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
@@ -1257,8 +1257,8 @@ class CodeEditor(TextEditBaseWidget):
                                at_point=self._last_point)
                 self._last_point = None
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
@@ -1308,8 +1308,8 @@ class CodeEditor(TextEditBaseWidget):
                                                start['line'] + 1,
                                                start['character'])
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors(
@@ -1330,8 +1330,8 @@ class CodeEditor(TextEditBaseWidget):
             folding_panel = self.panels.get(FoldingPanel)
             folding_panel.update_folding(ranges)
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing folding")
