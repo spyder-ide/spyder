@@ -963,7 +963,6 @@ class CodeEditor(TextEditBaseWidget):
             self.filename))
         self.completions_available = True
         self.document_did_open()
-        self.request_folding()
 
     def update_completion_configuration(self, config):
         """Start LSP integration if it wasn't done before."""
@@ -971,7 +970,6 @@ class CodeEditor(TextEditBaseWidget):
         self.parse_lsp_config(config)
         self.completions_available = True
         self.document_did_open()
-        self.request_folding()
 
     def stop_completion_services(self):
         logger.debug('Stopping completion services for %s' % self.filename)
@@ -1027,16 +1025,23 @@ class CodeEditor(TextEditBaseWidget):
     # ------------- LSP: Symbols ---------------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_SYMBOL)
     def request_symbols(self):
-        """Trigger document symbols."""
+        """Request document symbols."""
         params = {'file': self.filename}
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_SYMBOL)
     def process_symbols(self, params):
         """Handle symbols response."""
-        symbols = params['params']
-        if symbols:
-            self.classfuncdropdown.update_data(symbols)
+        try:
+            symbols = params['params']
+            if symbols:
+                self.classfuncdropdown.update_data(symbols)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors("Error when processing symbols")
 
     # ------------- LSP: Linting ---------------------------------------
     @request(
@@ -1046,12 +1051,7 @@ class CodeEditor(TextEditBaseWidget):
         self.text_version += 1
         text = self.toPlainText()
         self.patch = self.differ.patch_make(self.previous_text, text)
-        self.text_diff = (self.differ.diff_main(self.previous_text, text),
-                          self.previous_text)
         self.previous_text = text
-        if len(self.patch) > 0:
-            line, column = self.get_cursor_line_column()
-            self.update_whitespace_count(line, column)
         cursor = self.textCursor()
         params = {
             'file': self.filename,
@@ -1077,8 +1077,8 @@ class CodeEditor(TextEditBaseWidget):
 
             self.process_code_analysis(params['params'])
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing linting")
@@ -1162,8 +1162,8 @@ class CodeEditor(TextEditBaseWidget):
 
             self.kite_call_to_action.handle_processed_completions(completions)
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             self.kite_call_to_action.hide_coverage_cta()
             return
         except Exception:
@@ -1217,8 +1217,8 @@ class CodeEditor(TextEditBaseWidget):
                     documentation=documentation,
                 )
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing signature")
@@ -1282,8 +1282,8 @@ class CodeEditor(TextEditBaseWidget):
                                at_point=self._last_point)
                 self._last_point = None
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing hover")
@@ -1333,8 +1333,8 @@ class CodeEditor(TextEditBaseWidget):
                                                start['line'] + 1,
                                                start['character'])
         except RuntimeError:
-            # This is triggered when a codeeditor instance has been
-            # removed before the response can be processed.
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
             return
         except Exception:
             self.log_lsp_handle_errors(
@@ -2153,7 +2153,6 @@ class CodeEditor(TextEditBaseWidget):
             self.skip_rstrip = True
             TextEditBaseWidget.undo(self)
             self.document_did_change('')
-            self.request_folding()
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
             self.skip_rstrip = False
@@ -2166,7 +2165,6 @@ class CodeEditor(TextEditBaseWidget):
             self.skip_rstrip = True
             TextEditBaseWidget.redo(self)
             self.document_did_change('text')
-            self.request_folding()
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
             self.skip_rstrip = False
