@@ -1325,9 +1325,16 @@ class CodeEditor(TextEditBaseWidget):
 
     @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
-        ranges = response['params']
-        folding_panel = self.panels.get(FoldingPanel)
-        folding_panel.update_folding(ranges)
+        try:
+            ranges = response['params']
+            folding_panel = self.panels.get(FoldingPanel)
+            folding_panel.update_folding(ranges)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance has been
+            # removed before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors("Error when processing folding")
 
     # ------------- LSP: Save/close file -----------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
