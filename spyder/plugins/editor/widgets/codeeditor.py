@@ -1068,12 +1068,14 @@ class CodeEditor(TextEditBaseWidget):
     def process_diagnostics(self, params):
         """Handle linting response."""
         try:
-            # The LSP spec doesn't require that folding be treated
-            # in the same way as linting, i.e. to be recomputed on
-            # didChange, didOpen and didSave. However, we think
-            # that's necessary to maintain accurate folding all the
-            # time. Therefore, we decided to add this request here.
+            # The LSP spec doesn't require that folding and symbols
+            # are treated in the same way as linting, i.e. to be
+            # recomputed on didChange, didOpen and didSave. However,
+            # we think that's necessary to maintain accurate folding
+            # all the time. Therefore, we decided to add this request
+            # here.
             self.request_folding()
+            self.request_symbols()
 
             self.process_code_analysis(params['params'])
         except RuntimeError:
