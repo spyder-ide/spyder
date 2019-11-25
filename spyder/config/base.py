@@ -270,7 +270,8 @@ LANGUAGE_CODES = {'en': u'English',
                   'hu': u'Magyar',
                   'pt_BR': u'Português',
                   'ru': u'Русский',
-                  'ja': u'日本語'
+                  'ja': u'日本語',
+                  'zh_CN': u'简体中文',
                   }
 
 # Disabled languages (because their translations are outdated)
