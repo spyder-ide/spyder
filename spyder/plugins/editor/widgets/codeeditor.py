@@ -964,7 +964,6 @@ class CodeEditor(TextEditBaseWidget):
             self.filename))
         self.completions_available = True
         self.document_did_open()
-        self.request_folding()
 
     def update_completion_configuration(self, config):
         """Start LSP integration if it wasn't done before."""
@@ -972,7 +971,6 @@ class CodeEditor(TextEditBaseWidget):
         self.parse_lsp_config(config)
         self.completions_available = True
         self.document_did_open()
-        self.request_folding()
 
     def stop_completion_services(self):
         logger.debug('Stopping completion services for %s' % self.filename)
@@ -1075,6 +1073,13 @@ class CodeEditor(TextEditBaseWidget):
     def process_diagnostics(self, params):
         """Handle linting response."""
         try:
+            # The LSP spec doesn't require that folding be treated
+            # in the same way as linting, i.e. to be recomputed on
+            # didChange, didOpen and didSave. However, we think
+            # that's necessary to maintain accurate folding all the
+            # time. Therefore, we decided to add this request here.
+            self.request_folding()
+
             self.process_code_analysis(params['params'])
         except RuntimeError:
             # This is triggered when a codeeditor instance has been
@@ -2085,7 +2090,6 @@ class CodeEditor(TextEditBaseWidget):
             self.skip_rstrip = True
             TextEditBaseWidget.undo(self)
             self.document_did_change('')
-            self.request_folding()
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
             self.skip_rstrip = False
@@ -2098,7 +2102,6 @@ class CodeEditor(TextEditBaseWidget):
             self.skip_rstrip = True
             TextEditBaseWidget.redo(self)
             self.document_did_change('text')
-            self.request_folding()
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
             self.skip_rstrip = False
