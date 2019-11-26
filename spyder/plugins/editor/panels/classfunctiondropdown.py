@@ -122,7 +122,7 @@ class ClassFunctionDropdown(Panel):
 
         Parameters
         ----------
-        combobox : :class:`qtpy.QtWidets.QComboBox`
+        combobox : :class:`qtpy.QtWidgets.QComboBox`
             The combobox to populate
         data : list of :class:`dict`
             The data to populate with. There should be one list element per
@@ -182,6 +182,9 @@ class ClassFunctionDropdown(Panel):
                 combobox.addItem(icon, fqn, item)
             else:
                 combobox.addItem(fqn, item)
+
+        line, column = self._editor.get_cursor_line_column()
+        self.update_selected(line)
 
     def update_data(self, data):
         """Update and process symbol data."""
