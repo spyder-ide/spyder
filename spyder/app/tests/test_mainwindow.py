@@ -2790,9 +2790,11 @@ def test_pbd_key_leak(main_window, qtbot, tmpdir):
 
     # Replace QApplication.processEvents to make sure it is not called
     super_processEvents = QApplication.processEvents
+
     def processEvents():
         processEvents.called = True
         return super_processEvents()
+
     processEvents.called = False
     try:
         QApplication.processEvents = processEvents
