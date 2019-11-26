@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2019-11-11 00:15+-05\n"
-"PO-Revision-Date: 2019-11-26 13:38-0500\n"
+"PO-Revision-Date: 2019-11-26 13:54-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -1347,9 +1347,8 @@ msgid "Check if the server communicates using stdin/out pipes"
 msgstr "Vérifiez si le serveur communique à l'aide de canaux stdin / out"
 
 #: spyder/plugins/completion/languageserver/confpage.py:231 spyder/plugins/completion/languageserver/confpage.py:549
-#, fuzzy
 msgid "Language"
-msgstr "La langue"
+msgstr "Langue"
 
 #: spyder/plugins/completion/languageserver/confpage.py:237
 #, fuzzy
@@ -1566,12 +1565,10 @@ msgid "Example codes: E201, E303"
 msgstr "Exemple de code: E201, E303"
 
 #: spyder/plugins/completion/languageserver/confpage.py:867
-#, fuzzy
 msgid "Maximum allowed line length:"
-msgstr "Longueur de ligne maximale autorisée:"
+msgstr "Longueur de ligne maximale autorisée :"
 
 #: spyder/plugins/completion/languageserver/confpage.py:869
-#, fuzzy
 msgid "Default is 79"
 msgstr "La valeur par défaut est 79"
 
@@ -1597,18 +1594,16 @@ msgid "Choose the convention used to lint docstrings: "
 msgstr "Choisissez la convention utilisée pour lint docstrings:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:934 spyder/plugins/completion/languageserver/confpage.py:1218
-#, fuzzy
 msgid "Show the following errors:"
-msgstr "Afficher les erreurs suivantes:"
+msgstr "Afficher les erreurs suivantes :"
 
 #: spyder/plugins/completion/languageserver/confpage.py:936
 msgid "Example codes: D413, D414"
 msgstr "Exemple de code: D413, D414"
 
 #: spyder/plugins/completion/languageserver/confpage.py:938 spyder/plugins/completion/languageserver/confpage.py:1220
-#, fuzzy
 msgid "Ignore the following errors:"
-msgstr "Ignorer les erreurs suivantes:"
+msgstr "Ignorer les erreurs suivantes :"
 
 #: spyder/plugins/completion/languageserver/confpage.py:940
 msgid "Example codes: D107, D402"
@@ -1627,9 +1622,8 @@ msgid "Skip dot directories: [^\\.].*"
 msgstr "Ignorer les répertoires de points: [^ \\.]. *"
 
 #: spyder/plugins/completion/languageserver/confpage.py:997
-#, fuzzy
 msgid "Providers"
-msgstr "Fournisseuses"
+msgstr "Fournisseurs"
 
 #: spyder/plugins/completion/languageserver/confpage.py:998
 msgid "Enable Kite (if the Kite engine is running)"
@@ -1667,7 +1661,6 @@ msgid "<b>Warning</b>: Only modify these values if you know what you're doing!"
 msgstr "<b> Avertissement </ b>: modifiez ces valeurs uniquement si vous savez ce que vous faites!"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1040
-#, fuzzy
 msgid "Enable advanced settings"
 msgstr "Activer les paramètres avancés"
 
@@ -1699,9 +1692,8 @@ msgstr ""
 "Python. Spyder peut donc fournir de telles fonctionnalités pour ces langues."
 
 #: spyder/plugins/completion/languageserver/confpage.py:1114
-#, fuzzy
 msgid "Available servers:"
-msgstr "Serveurs disponibles:"
+msgstr "Serveurs disponibles :"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1122 spyder/preferences/shortcuts.py:815
 msgid "Reset to default values"
@@ -2984,17 +2976,14 @@ msgstr ""
 "prochain démarrage si des fichiers enregistrés automatiquement ne sont pas restaurés, déplacés ou supprimés."
 
 #: spyder/plugins/editor/widgets/recover.py:148
-#, fuzzy
 msgid "Actions"
 msgstr "Actions"
 
 #: spyder/plugins/editor/widgets/recover.py:148
-#, fuzzy
 msgid "Autosave file"
 msgstr "Fichier de sauvegarde automatique"
 
 #: spyder/plugins/editor/widgets/recover.py:148
-#, fuzzy
 msgid "Original file"
 msgstr "Fichier original"
 
@@ -3009,7 +2998,6 @@ msgid "Restore"
 msgstr "Restaurer"
 
 #: spyder/plugins/editor/widgets/recover.py:175
-#, fuzzy
 msgid "Delete the autosave file."
 msgstr "Supprimez le fichier de sauvegarde automatique."
 
@@ -3038,7 +3026,6 @@ msgid "Unable to restore {} using {}"
 msgstr "Impossible de restaurer {} en utilisant {}"
 
 #: spyder/plugins/editor/widgets/recover.py:243
-#, fuzzy
 msgid "Unable to discard {}"
 msgstr "Impossible de supprimer {}"
 
@@ -3057,7 +3044,6 @@ msgid "Encoding"
 msgstr "Codage"
 
 #: spyder/plugins/editor/widgets/status.py:67
-#, fuzzy
 msgid "Cursor position"
 msgstr "Position du curseur"
 
@@ -3092,7 +3078,6 @@ msgid "File associations"
 msgstr "Les associations de fichiers"
 
 #: spyder/plugins/explorer/plugin.py:64
-#, fuzzy
 msgid "Files"
 msgstr "Fichiers"
 
@@ -3173,7 +3158,6 @@ msgid "Copy Relative Path"
 msgstr "Copier le chemin relatif"
 
 #: spyder/plugins/explorer/widgets/explorer.py:489 spyder/plugins/explorer/widgets/fileassociations.py:386
-#, fuzzy
 msgid " (Application not found!)"
 msgstr "(Application non trouvée!)"
 
@@ -3497,9 +3481,8 @@ msgstr ""
 "Entrez une nouvelle extension de fichier. Vous pouvez ajouter plusieurs valeurs séparées par des virgules. <br> Exemples:"
 
 #: spyder/plugins/findinfiles/plugin.py:121
-#, fuzzy
 msgid "Set maximum number of results: "
-msgstr "Définir le nombre maximum de résultats:"
+msgstr "Définir le nombre maximum de résultats :"
 
 #: spyder/plugins/findinfiles/plugin.py:148
 #, fuzzy
@@ -4962,9 +4945,8 @@ msgid "The following option will be applied at next startup."
 msgstr "L'option suivante ne sera appliquée qu'au prochain démarrage."
 
 #: spyder/plugins/pylint/confpage.py:30
-#, fuzzy
 msgid "History: "
-msgstr "Histoire:"
+msgstr "Historique :"
 
 #: spyder/plugins/pylint/confpage.py:31
 msgid " results"
