@@ -1539,5 +1539,24 @@ def test_pdb_ignore_lib(ipyconsole, qtbot):
     assert 'iostream.py' not in control.toPlainText()
 
 
+def test_ipython_calltip(ipyconsole, qtbot):
+    """
+    Test Calltip.
+
+    See spyder-ide/spyder#10842
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = {"a": 1}')
+    qtbot.keyClicks(control, 'a[sorted(a.keys(')
+    qtbot.wait(500)
+
+
 if __name__ == "__main__":
     pytest.main()
