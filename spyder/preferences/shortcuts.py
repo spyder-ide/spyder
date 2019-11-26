@@ -111,22 +111,6 @@ class ShortcutLineEdit(QLineEdit):
         super(ShortcutLineEdit, self).setText(sequence)
 
 
-class ShortcutFinder(FinderLineEdit):
-    """Textbox for filtering listed shortcuts in the table."""
-
-    def keyPressEvent(self, event):
-        """Qt and FilterLineEdit Override."""
-        key = event.key()
-        if key in [Qt.Key_Up]:
-            self._parent.previous_row()
-        elif key in [Qt.Key_Down]:
-            self._parent.next_row()
-        elif key in [Qt.Key_Enter, Qt.Key_Return]:
-            self._parent.show_editor()
-        else:
-            super(ShortcutFinder, self).keyPressEvent(event)
-
-
 class ShortcutEditor(QDialog):
     """A dialog for entering key sequences."""
 
@@ -750,22 +734,6 @@ class ShortcutsTable(QTableView):
             self.selectRow(0)
         self.last_regex = regex
 
-    def next_row(self):
-        """Move to next row from currently selected row."""
-        row = self.currentIndex().row()
-        rows = self.proxy_model.rowCount()
-        if row + 1 == rows:
-            row = -1
-        self.selectRow(row + 1)
-
-    def previous_row(self):
-        """Move to previous row from currently selected row."""
-        row = self.currentIndex().row()
-        rows = self.proxy_model.rowCount()
-        if row == 0:
-            row = rows
-        self.selectRow(row - 1)
-
     def keyPressEvent(self, event):
         """Qt Override."""
         key = event.key()
@@ -800,7 +768,7 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.ICON = ima.icon('keyboard')
         # Widgets
         self.table = ShortcutsTable(self, text_color=ima.MAIN_FG_COLOR)
-        self.finder = ShortcutFinder(self.table, self.table.set_regex)
+        self.finder = FinderLineEdit(self.table, self.table.set_regex)
         self.table.finder = self.finder
         self.table.finder.setPlaceholderText(
             _("Search for a shortcut in the table above"))
