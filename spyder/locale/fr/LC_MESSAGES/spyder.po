@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2019-11-11 00:15+-05\n"
-"PO-Revision-Date: 2019-11-22 16:39-0500\n"
+"PO-Revision-Date: 2019-11-26 13:38-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -2986,7 +2986,7 @@ msgstr ""
 #: spyder/plugins/editor/widgets/recover.py:148
 #, fuzzy
 msgid "Actions"
-msgstr "actes"
+msgstr "Actions"
 
 #: spyder/plugins/editor/widgets/recover.py:148
 #, fuzzy
@@ -3094,7 +3094,7 @@ msgstr "Les associations de fichiers"
 #: spyder/plugins/explorer/plugin.py:64
 #, fuzzy
 msgid "Files"
-msgstr "Des dossiers"
+msgstr "Fichiers"
 
 #: spyder/plugins/explorer/widgets/explorer.py:216
 msgid "Kind"
@@ -3329,7 +3329,9 @@ msgstr "Erreur de collage du fichier"
 msgid ""
 "Unsupported copy operation. The error was:\n"
 "\n"
-msgstr "Opération de copie non prise en charge. L'erreur était:"
+msgstr ""
+"Opération de copie non supportée. L'erreur était :\n"
+"\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1158
 #, fuzzy
@@ -3347,7 +3349,7 @@ msgstr "Erreur de collage du dossier"
 #: spyder/plugins/explorer/widgets/explorer.py:1171
 #, fuzzy
 msgid "No file in clipboard"
-msgstr "Aucun fichier dans le presse papier"
+msgstr "Aucun fichier dans le presse-papier"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1172
 msgid "No file in the clipboard. Please copy a file to the clipboard first."
