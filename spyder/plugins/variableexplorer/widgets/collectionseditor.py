@@ -239,9 +239,14 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self.sizes = sizes
             self.types = types
 
+    def load_all(self):
+        """Load all the data."""
+        self.fetchMore(number_to_fetch=self.total_rows)
+
     def sort(self, column, order=Qt.AscendingOrder):
         """Overriding sort method"""
-        reverse = (order==Qt.DescendingOrder)
+        reverse = (order == Qt.DescendingOrder)
+
         if column == 0:
             self.sizes = sort_against(self.sizes, self.keys, reverse)
             self.types = sort_against(self.types, self.keys, reverse)
@@ -290,9 +295,12 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             return False
 
-    def fetchMore(self, index=QModelIndex()):
+    def fetchMore(self, index=QModelIndex(), number_to_fetch=None):
         reminder = self.total_rows - self.rows_loaded
-        items_to_fetch = min(reminder, ROWS_TO_LOAD)
+        if number_to_fetch is not None:
+            items_to_fetch = min(reminder, number_to_fetch)
+        else:
+            items_to_fetch = min(reminder, ROWS_TO_LOAD)
         self.set_size_and_type(self.rows_loaded,
                                self.rows_loaded + items_to_fetch)
         self.beginInsertRows(QModelIndex(), self.rows_loaded,
@@ -1115,6 +1123,8 @@ class CollectionsEditorTableView(BaseTableView):
         self.source_model = CollectionsModelClass(self, data, title,
                                                   names=names,
                                                   minmax=minmax)
+        self.horizontalHeader().sortIndicatorChanged.connect(
+            self.source_model.load_all)
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
         self.model = self.proxy_model
 
@@ -1415,6 +1425,9 @@ class RemoteCollectionsEditorTableView(BaseTableView):
             show_callable_attributes=show_callable_attributes,
             show_special_attributes=show_special_attributes,
             remote=True)
+
+        self.horizontalHeader().sortIndicatorChanged.connect(
+            self.source_model.load_all)
 
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
         self.model = self.proxy_model
