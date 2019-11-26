@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-11-11 00:15+-05\n"
-"PO-Revision-Date: 2019-11-26 16:13+0800\n"
+"PO-Revision-Date: 2019-11-26 17:13+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -3953,7 +3953,7 @@ msgstr "补全类型"
 
 #: spyder/plugins/ipythonconsole/confpage.py:72
 msgid "Decide what type of completion to use"
-msgstr "在完成时决定使用什么类型"
+msgstr "确定使用哪种补全方式"
 
 #: spyder/plugins/ipythonconsole/confpage.py:74
 msgid "Graphical"
@@ -3961,7 +3961,7 @@ msgstr "图形"
 
 #: spyder/plugins/ipythonconsole/confpage.py:74
 msgid "Plain"
-msgstr "原始"
+msgstr "文本"
 
 #: spyder/plugins/ipythonconsole/confpage.py:74
 msgid "Terminal"
@@ -3969,7 +3969,7 @@ msgstr "终端"
 
 #: spyder/plugins/ipythonconsole/confpage.py:75
 msgid "Completion:"
-msgstr "完成："
+msgstr "补全："
 
 #: spyder/plugins/ipythonconsole/confpage.py:85
 msgid " lines"
@@ -4013,7 +4013,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:114
 msgid "Inline"
-msgstr "内联"
+msgstr "行内"
 
 #: spyder/plugins/ipythonconsole/confpage.py:115
 msgid "Automatic"
@@ -4115,7 +4115,7 @@ msgstr "行："
 
 #: spyder/plugins/ipythonconsole/confpage.py:224
 msgid "Run a file"
-msgstr "运行一个文件"
+msgstr "运行文件"
 
 #: spyder/plugins/ipythonconsole/confpage.py:225
 msgid ""
@@ -5094,7 +5094,7 @@ msgstr "结果对应于 "
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:85
 msgid "Convention"
-msgstr "约定"
+msgstr "惯例"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:87
 msgid "Refactor"
@@ -5127,7 +5127,7 @@ msgstr "Pylint输出"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:455
 msgid "Source code has not been rated yet."
-msgstr "源码尚未评估。"
+msgstr "尚未对源代码进行评分"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:461
 msgid "Analysis did not succeed (see output for more details)."
@@ -5953,7 +5953,7 @@ msgstr "浏览工作目录"
 
 #: spyder/plugins/workingdirectory/plugin.py:109
 msgid "Change to parent directory"
-msgstr "更改为父目录"
+msgstr "切换到上级目录"
 
 #: spyder/preferences/appearance.py:29
 msgid "Appearance"
