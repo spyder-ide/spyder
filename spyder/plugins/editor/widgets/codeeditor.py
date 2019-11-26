@@ -535,6 +535,7 @@ class CodeEditor(TextEditBaseWidget):
         # Mouse tracking
         self.setMouseTracking(True)
         self.__cursor_changed = False
+        self._mouse_left_button_pressed = False
         self.ctrl_click_color = QColor(Qt.blue)
 
         self.bookmarks = self.get_bookmarks()
@@ -610,7 +611,9 @@ class CodeEditor(TextEditBaseWidget):
     # --- Hover/Hints
     def _should_display_hover(self, point):
         """Check if a hover hint should be displayed:"""
-        return self.hover_hints_enabled and point and self.get_word_at(point)
+        if not self._mouse_left_button_pressed:
+            return (self.hover_hints_enabled and point
+                    and self.get_word_at(point))
 
     def _handle_hover(self):
         """Handle hover hint trigger after delay."""
@@ -3645,6 +3648,10 @@ class CodeEditor(TextEditBaseWidget):
 
         if text:
             self.__clear_occurrences()
+
+        if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
+            self.hide_tooltip()
+
         if QToolTip.isVisible():
             self.hide_tooltip_if_necessary(key)
 
@@ -4212,6 +4219,8 @@ class CodeEditor(TextEditBaseWidget):
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier
         pos = event.pos()
+        self._mouse_left_button_pressed = event.button() == Qt.LeftButton
+
         if event.button() == Qt.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(pos)
@@ -4227,6 +4236,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseReleaseEvent(self, event):
         """Override Qt method."""
+        self._mouse_left_button_pressed = False
         self.request_cursor_event()
         TextEditBaseWidget.mouseReleaseEvent(self, event)
 
