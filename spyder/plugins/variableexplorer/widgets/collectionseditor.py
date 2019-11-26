@@ -176,7 +176,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self.title += _("Set")
             self._data = list(data)
         elif isinstance(data, dict):
-            self.keys = list(data.keys())
+            self.keys = sorted(list(data.keys()))
             self.title += _("Dictionary")
             if not self.names:
                 self.header0 = _("Key")
