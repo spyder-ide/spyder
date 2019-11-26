@@ -10,12 +10,13 @@ Language server preferences
 
 # Standard library imports
 import json
+import os
 import re
 import sys
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize
+from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize, QProcess
 from qtpy.QtWidgets import (QAbstractItemView, QButtonGroup, QCheckBox,
                             QComboBox, QDialog, QDialogButtonBox, QGroupBox,
                             QGridLayout, QHBoxLayout, QLabel, QLineEdit,
@@ -23,7 +24,7 @@ from qtpy.QtWidgets import (QAbstractItemView, QButtonGroup, QCheckBox,
                             QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, get_home_dir
 from spyder.config.manager import CONF
 from spyder.config.gui import get_font, is_dark_interface
 from spyder.plugins.completion.languageserver import LSP_LANGUAGES
@@ -31,11 +32,46 @@ from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import check_connection_port
-from spyder.utils.programs import find_program
+from spyder.utils.programs import find_program, run_program
 from spyder.widgets.helperwidgets import ItemDelegate
 
 LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
 LSP_URL = "https://microsoft.github.io/language-server-protocol"
+
+
+
+def get_pylint_default_path():
+    """Get pyling default location on user home directory."""
+    return os.path.join(get_home_dir(), '.pylintrc')
+
+
+def get_pylint_config():
+    """Get location of current pylint configurtion file."""
+    try:
+        from pylint.config  import find_pylintrc
+        pylint_rc = find_pylintrc()
+    except Exception:
+        pylint_rc = None
+
+    return pylint_rc
+
+
+def generate_pylint_config():
+    """Create a defaut pylint configuration file."""
+
+    def _callback(qprocess_out):
+        """Handle QProcess return."""
+        data = qprocess_out.readAllStandardOutput()
+        fpath = get_pylint_default_path()
+        if not os.path.isfile(fpath):
+            with open(fpath, 'w') as fh:
+                fh.write(data)
+
+    pylint = find_program('pylint')
+    if pylint:
+        qprocess = QProcess()
+        qprocess.finished.connect(lambda e, c: _callback(qprocess))
+        qprocess.start(pylint, ['--generate-rcfile'])
 
 
 def iter_servers():
@@ -820,14 +856,23 @@ class LanguageServerConfigPage(GeneralConfigPage):
             _("Enable advanced linting with Pylint (slower)"),
             'pylint',
             button_group=linting_bg)
+        pylintrc = get_pylint_config()
+        if pylintrc is None:
+            generate_pylint_config()
+            pylintrc = get_pylint_default_path()
+        
+        current_pylint_file = QLabel(
+            _('Using') + ': <a href="{0}">{0}</a>'.format(pylintrc))
         underline_errors_box = newcb(
             _("Underline warnings and errors"),
             'underline_errors',
             section='editor')
+        current_pylint_file.linkActivated.connect(self.open_pyling_file)
 
         warnings_errors_layout = QVBoxLayout()
         warnings_errors_layout.addWidget(linting_pyflakes_radio)
         warnings_errors_layout.addWidget(linting_pylint_radio)
+        warnings_errors_layout.addWidget(current_pylint_file)
         warnings_errors_layout.addWidget(underline_errors_box)
         warnings_errors_group.setLayout(warnings_errors_layout)
 
@@ -1201,6 +1246,11 @@ class LanguageServerConfigPage(GeneralConfigPage):
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)
+
+    def open_pyling_file(self, fpath):
+        """"""
+        print([fpath])
+        self.main.open_file(fpath)
 
     def check_completion_options(self, state):
         """Update enabled status of completion checboxes and spinboxes."""
