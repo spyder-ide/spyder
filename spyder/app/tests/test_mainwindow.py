@@ -2758,6 +2758,8 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt' or sys.platform == 'darwin',
+                    reason="It times out on macOS and Windows")
 def test_pbd_key_leak(main_window, qtbot, tmpdir):
     """
     Check that pdb notify spyder doesn't call
@@ -2784,8 +2786,8 @@ def test_pbd_key_leak(main_window, qtbot, tmpdir):
 
     # Run tmp2 and get an error
     with qtbot.waitSignal(shell.executed):
-        shell.execute('runfile("' + str(test_file2) +
-                      '", wdir="' + str(folder) + '")')
+        shell.execute('runfile("' + str(test_file2).replace("\\", "/") +
+                      '", wdir="' + str(folder).replace("\\", "/") + '")')
     assert '1/0' in control.toPlainText()
 
     # Replace QApplication.processEvents to make sure it is not called
@@ -2807,9 +2809,11 @@ def test_pbd_key_leak(main_window, qtbot, tmpdir):
 
         # Wait until both files are open
         qtbot.waitUntil(
-            lambda: str(test_file) in main_window.editor.get_filenames())
+            lambda: osp.normpath(str(test_file)) in [
+                osp.normpath(p) for p in main_window.editor.get_filenames()])
         qtbot.waitUntil(
-            lambda: str(test_file2) in main_window.editor.get_filenames())
+            lambda: str(test_file2) in [
+                osp.normpath(p) for p in main_window.editor.get_filenames()])
 
         # Make sure the events are not processed.
         assert not processEvents.called
