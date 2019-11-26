@@ -515,7 +515,7 @@ the sympy module (e.g. plot)
                 self.silent_execute(command)
 
     # ---- Spyder-kernels methods -------------------------------------------
-    def get_editor(self, filename, switch_tab=False):
+    def get_editor(self, filename):
         """Get editor for filename and set it as the current editor."""
         editorstack = self.get_editorstack()
         if editorstack is None:
@@ -528,10 +528,7 @@ the sympy module (e.g. plot)
         if index is None:
             return None
 
-        editor = editorstack.data[index].editor
-        if switch_tab:
-            editorstack.set_stack_index(index)
-        return editor
+        return editorstack.data[index].editor
 
     def get_editorstack(self):
         """Get the current editorstack."""
@@ -566,7 +563,7 @@ the sympy module (e.g. plot)
         editorstack = self.get_editorstack()
         if CONF.get('editor', 'save_all_before_run', True):
             editorstack.save_all(save_new_files=False)
-        editor = self.get_editor(filename, switch_tab=True)
+        editor = self.get_editor(filename)
 
         if editor is None:
             raise RuntimeError(
