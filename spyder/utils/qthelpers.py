@@ -27,7 +27,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
 from spyder.config.base import get_image_path, MAC_APP_NAME
 from spyder.config.manager import CONF
 from spyder.config.gui import is_dark_interface
-from spyder.py3compat import is_text_string, to_text_string
+from spyder.py3compat import is_text_string, to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.icon_manager import get_icon, get_kite_icon, get_std_icon
@@ -37,6 +37,11 @@ from spyder.config.manager import CONF
 # Third party imports
 if sys.platform == "darwin":
     import applaunchservices as als
+
+if PY2:
+    from urllib import unquote
+else:
+    from urllib.parse import unquote
 
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
@@ -148,7 +153,7 @@ def _process_mime_path(path, extlist):
                 path = path[5:]
         else:
             path = path[7:]
-    path = path.replace('%5C' , os.sep)  # Transforming backslashes
+    path = path.replace('\\' , os.sep)  # Transforming backslashes
     if osp.exists(path):
         if extlist is None or osp.splitext(path)[1] in extlist:
             return path
@@ -162,7 +167,8 @@ def mimedata2url(source, extlist=None):
     pathlist = []
     if source.hasUrls():
         for url in source.urls():
-            path = _process_mime_path(to_text_string(url.toString()), extlist)
+            path = _process_mime_path(
+                unquote(to_text_string(url.toString())), extlist)
             if path is not None:
                 pathlist.append(path)
     elif source.hasText():
