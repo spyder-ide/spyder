@@ -697,7 +697,7 @@ class SnippetsExtension(EditorExtension):
             return
 
         if self.inserting_snippet:
-            self.insert_snippet = False
+            self.inserting_snippet = False
             return
 
         ignore_calls = {'undo', 'redo'}
