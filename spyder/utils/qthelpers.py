@@ -147,13 +147,13 @@ def _process_mime_path(path, extlist):
         if os.name == 'nt':
             # On Windows platforms, a local path reads: file:///c:/...
             # and a UNC based path reads like: file://server/share
-            if path.startswith(r"file:///"): # this is a local path
-                path=path[8:]
-            else: # this is a unc path
+            if path.startswith(r"file:///"):  # this is a local path
+                path = path[8:]
+            else:  # this is a unc path
                 path = path[5:]
         else:
             path = path[7:]
-    path = path.replace('\\' , os.sep)  # Transforming backslashes
+    path = path.replace('\\', os.sep)  # Transforming backslashes
     if osp.exists(path):
         if extlist is None or osp.splitext(path)[1] in extlist:
             return path
