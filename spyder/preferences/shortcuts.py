@@ -296,11 +296,9 @@ class ShortcutEditor(QDialog):
         # Qt shortcuts for which no key press event are emitted.
         # See spyder-ide/spyder/issues/10786.
         if event.type() == QEvent.ShortcutOverride:
-            event.accept()
             self.keyPressEvent(event)
             return True
-        elif event.type() == QEvent.KeyPress:
-            event.accept()
+        elif event.type() in [QEvent.KeyPress, QEvent.Shortcut]:
             return True
         else:
             return super(ShortcutEditor, self).event(event)
