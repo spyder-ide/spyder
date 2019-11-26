@@ -110,27 +110,39 @@ class HTMLDelegate(QStyledItemDelegate):
 
     Taken from https://stackoverflow.com/a/5443112/2399799
     """
+
     def __init__(self, parent, margin=0):
         super(HTMLDelegate, self).__init__(parent)
         self._margin = margin
 
-    def paint(self, painter, option, index):
+    def _prepare_text_document(self, option, index):
+        # This logic must be shared between paint and sizeHint for consitency
         options = QStyleOptionViewItem(option)
         self.initStyleOption(options, index)
-
-        style = (QApplication.style() if options.widget is None
-                 else options.widget.style())
 
         doc = QTextDocument()
         doc.setDocumentMargin(self._margin)
         doc.setHtml(options.text)
+        return options, doc
 
+    def paint(self, painter, option, index):
+        options, doc = self._prepare_text_document(option, index)
+
+        style = (QApplication.style() if options.widget is None
+                 else options.widget.style())
         options.text = ""
-        style.drawControl(QStyle.CE_ItemViewItem, options, painter)
+
+        # Note: We need to pass the options widget as an argument of
+        # drawCrontol to make sure the delegate is painted with a style
+        # consistent with the widget in which it is used.
+        # See spyder-ide/spyder#10677.
+        style.drawControl(QStyle.CE_ItemViewItem, options, painter,
+                          options.widget)
 
         ctx = QAbstractTextDocumentLayout.PaintContext()
 
-        textRect = style.subElementRect(QStyle.SE_ItemViewItemText, options)
+        textRect = style.subElementRect(QStyle.SE_ItemViewItemText,
+                                        options, None)
         painter.save()
 
         # Adjustments for the file switcher
@@ -151,12 +163,7 @@ class HTMLDelegate(QStyledItemDelegate):
         painter.restore()
 
     def sizeHint(self, option, index):
-        options = QStyleOptionViewItem(option)
-        self.initStyleOption(options, index)
-
-        doc = QTextDocument()
-        doc.setHtml(options.text)
-
+        __, doc = self._prepare_text_document(option, index)
         return QSize(round(doc.idealWidth()), round(doc.size().height() - 2))
 
 
@@ -180,7 +187,8 @@ class ItemDelegate(QStyledItemDelegate):
 
         ctx = QAbstractTextDocumentLayout.PaintContext()
 
-        textRect = style.subElementRect(QStyle.SE_ItemViewItemText, options)
+        textRect = style.subElementRect(QStyle.SE_ItemViewItemText,
+                                        options, None)
         painter.save()
 
         painter.translate(textRect.topLeft())

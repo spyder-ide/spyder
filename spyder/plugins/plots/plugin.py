@@ -28,6 +28,7 @@ class Plots(SpyderPluginWidget):
     """Plots plugin."""
 
     CONF_SECTION = 'plots'
+    CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     def __init__(self, parent):

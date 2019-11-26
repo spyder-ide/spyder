@@ -36,24 +36,37 @@ from spyder.widgets.dock import SpyderDockWidget
 class BasePluginMixin(object):
     """Implementation of the basic functionality for Spyder plugins."""
 
+    # Define configuration name map for plugin to split configuration
+    # among several files. See spyder/config/main.py
+    # Status: Hidden
+    _CONF_NAME_MAP = None
+
     def __init__(self, parent=None):
         super(BasePluginMixin, self).__init__()
 
         # Check compatibility
         check_compatibility, message = self.check_compatibility()
 
+        self._register_plugin()
+
         self._is_compatible = True
         if not check_compatibility:
             self._is_compatible = False
             self._show_compatibility_message(message)
 
-    def _set_option(self, option, value):
-        """Set option in spyder.ini"""
-        CONF.set(self.CONF_SECTION, str(option), value)
+    def _register_plugin(self):
+        """Register plugin configuration."""
+        CONF.register_plugin(self)
 
-    def _get_option(self, option, default=NoDefault):
+    def _set_option(self, option, value, section=None):
+        """Set option in spyder.ini"""
+        section = self.CONF_SECTION if section is None else section
+        CONF.set(section, str(option), value)
+
+    def _get_option(self, option, default=NoDefault, section=None):
         """Get option from spyder.ini."""
-        return CONF.get(self.CONF_SECTION, option, default)
+        section = self.CONF_SECTION if section is None else section
+        return CONF.get(section, option, default)
 
     def _show_status_message(self, message, timeout=0):
         """Show message in main window's status bar."""
@@ -148,6 +161,8 @@ class BasePluginWidgetMixin(object):
         self._default_margins = None
         self._isvisible = False
 
+        self.shortcut = None
+
         # Options buttons
         self.options_button = create_toolbutton(self, text=_('Options'),
                                                 icon=ima.icon('tooloptions'))
@@ -164,15 +179,6 @@ class BasePluginWidgetMixin(object):
 
         # Options menu
         self._options_menu = QMenu(self)
-
-        # NOTE: Don't use the default option of CONF.get to assign a
-        # None shortcut to plugins that don't have one. That will mess
-        # the creation of our Keyboard Shortcuts prefs page
-        try:
-            self.shortcut = CONF.get('shortcuts', '_/switch to %s' %
-                                     self.CONF_SECTION)
-        except configparser.NoOptionError:
-            pass
 
         # We decided to create our own toggle action instead of using
         # the one that comes with dockwidget because it's not possible
@@ -252,10 +258,24 @@ class BasePluginWidgetMixin(object):
         dock.topLevelChanged.connect(self._on_top_level_changed)
         dock.sig_plugin_closed.connect(self._plugin_closed)
         self.dockwidget = dock
-        if self.shortcut is not None:
+
+        # NOTE: Don't use the default option of CONF.get to assign a
+        # None shortcut to plugins that don't have one. That will mess
+        # the creation of our Keyboard Shortcuts prefs page
+        try:
+            context = '_'
+            name = 'switch to {}'.format(self.CONF_SECTION)
+            self.shortcut = CONF.get_shortcut(context, name,
+                                              plugin_name=self.CONF_SECTION)
+        except (configparser.NoSectionError, configparser.NoOptionError):
+            pass
+
+        if self.shortcut is not None and self.main is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
-                            self.switch_to_plugin)
-            self.register_shortcut(sc, "_", "Switch to %s" % self.CONF_SECTION)
+                           self.switch_to_plugin)
+            self.register_shortcut(sc, "_", "Switch to {}".format(
+                self.CONF_SECTION))
+
         return (dock, self._LOCATION)
 
     def _switch_to_plugin(self):
@@ -270,8 +290,9 @@ class BasePluginWidgetMixin(object):
 
     @Slot()
     def _plugin_closed(self):
-        """DockWidget was closed"""
-        self._toggle_view_action.setChecked(False)
+        """DockWidget was closed."""
+        if self._toggle_view_action:
+            self._toggle_view_action.setChecked(False)
 
     def _get_font(self, rich_text=False):
         """Return plugin font."""
@@ -412,8 +433,12 @@ class BasePluginWidgetMixin(object):
     def _register_shortcut(self, qaction_or_qshortcut, context, name,
                            add_shortcut_to_tip=False):
         """Register a shortcut associated to a QAction or QShortcut."""
-        self.main.register_shortcut(qaction_or_qshortcut, context,
-                                    name, add_shortcut_to_tip)
+        self.main.register_shortcut(
+            qaction_or_qshortcut,
+            context,
+            name,
+            add_shortcut_to_tip,
+            self.CONF_SECTION)
 
     def _get_color_scheme(self):
         """Get the current color scheme."""

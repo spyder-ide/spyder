@@ -63,6 +63,7 @@ DEFAULTS = [
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
+              'mac_open_file': False,
               'normal_screen_resolution': True,
               'high_dpi_scaling': False,
               'high_dpi_custom_scale_factor': False,
@@ -82,6 +83,8 @@ DEFAULTS = [
               'memory_usage/timeout': 2000,
               'cpu_usage/enable': False,
               'cpu_usage/timeout': 2000,
+              'clock/enable': False,
+              'clock/timeout': 1000,
               'use_custom_margin': True,
               'custom_margin': 0,
               'use_custom_cursor_blinking': False,
@@ -162,7 +165,8 @@ DEFAULTS = [
               'exclude_private': True,
               'exclude_uppercase': True,
               'exclude_capitalized': False,
-              'exclude_unsupported': True,
+              'exclude_unsupported': False,
+              'exclude_callables_and_modules': True,
               'truncate': True,
               'minmax': False,
               'show_callable_attributes': True,
@@ -205,7 +209,11 @@ DEFAULTS = [
               'tab_always_indent': False,
               'intelligent_backspace': True,
               'automatic_completions': True,
+              'automatic_completions_after_chars': 3,
+              'automatic_completions_after_ms': 300,
+              'completions_wait_for_ms': 200,
               'completions_hint': True,
+              'completions_hint_after_ms': 500,
               'underline_errors': False,
               'highlight_current_line': True,
               'highlight_current_cell': True,
@@ -222,7 +230,7 @@ DEFAULTS = [
               'autosave_enabled': True,
               'autosave_interval': 60,
               'docstring_type': 'Numpydoc',
-              'strip_trailing_spaces_on_modify': True,
+              'strip_trailing_spaces_on_modify': False,
               }),
             ('historylog',
              {
@@ -283,8 +291,9 @@ DEFAULTS = [
               'search_text_regexp': False,
               'search_text': [''],
               'search_text_samples': [TASKS_PATTERN],
-              'more_options': True,
+              'more_options': False,
               'case_sensitive': False,
+              'max_results': 1000,
               }),
             ('breakpoints',
              {
@@ -455,6 +464,7 @@ DEFAULTS = [
               'variable_explorer/copy': 'Ctrl+C',
               # ---- In widgets/variableexplorer/namespacebrowser.py ----
               'variable_explorer/search': 'Ctrl+F',
+              'variable_explorer/refresh': 'Ctrl+R',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
@@ -472,6 +482,7 @@ DEFAULTS = [
               # It is used to disable hover hints in the editor
               'enable_hover_hints': True,
               'code_completion': True,
+              'code_snippets': True,
               'jedi_definition': True,
               'jedi_definition/follow_imports': True,
               'jedi_signature_help': True,
@@ -492,11 +503,24 @@ DEFAULTS = [
               'pydocstyle/ignore': '',
               'pydocstyle/match': '(?!test_).*\\.py',
               'pydocstyle/match_dir': '[^\\.].*',
-              'advanced/command_launch': 'pyls',
+              'advanced/enabled': False,
+              'advanced/module': 'pyls',
               'advanced/host': '127.0.0.1',
               'advanced/port': 2087,
               'advanced/external': False,
               'advanced/stdio': False
+             }),
+            ('fallback-completions',
+             {
+              'enable': True,
+             }),
+            ('kite',
+             {
+              'enable': True,
+              'call_to_action': True,
+              # Enable the installation dialog
+              'show_installation_dialog': True,
+              'show_onboarding': True,
              }),
             ]
 
@@ -592,4 +616,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '52.1.0'
+CONF_VERSION = '53.3.0'

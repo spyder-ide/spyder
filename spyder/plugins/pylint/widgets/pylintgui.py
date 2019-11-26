@@ -21,12 +21,11 @@ import time
 # Third party imports
 import pylint
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import QByteArray, QProcess, Signal, Slot
+from qtpy.QtCore import QByteArray, QProcess, Signal, Slot, QProcessEnvironment
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
                             QVBoxLayout, QWidget)
 
 # Local imports
-from spyder import dependencies
 from spyder.config.base import get_conf_path, get_translation
 from spyder.py3compat import pickle, to_text_string
 from spyder.utils import icon_manager as ima
@@ -45,12 +44,7 @@ except KeyError as error:
     import gettext
     _ = gettext.gettext
 
-PYLINT_REQVER = '>=0.25'
 PYLINT_VER = pylint.__version__
-dependencies.add("pylint", "pylint", _("Static code analysis"),
-                 required_version=PYLINT_REQVER, installed_version=PYLINT_VER)
-
-
 #TODO: display results on 3 columns instead of 1: msg_id, lineno, message
 class ResultsTree(OneColumnTree):
     sig_edit_goto = Signal(str, int, str)
@@ -347,6 +341,10 @@ class PylintWidget(QWidget):
             p_args += [osp.basename(filename)]
         else:
             p_args = [osp.basename(filename)]
+        processEnvironment = QProcessEnvironment()
+        processEnvironment.insert("PYTHONIOENCODING", "utf8")
+        self.process.setProcessEnvironment(processEnvironment)
+
         self.process.start(sys.executable, p_args)
 
         running = self.process.waitForStarted()

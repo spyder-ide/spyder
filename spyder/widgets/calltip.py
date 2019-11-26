@@ -113,17 +113,26 @@ class ToolTipWidget(QLabel):
     # ------------------------------------------------------------------------
     # --- 'ToolTipWidget' interface
     # ------------------------------------------------------------------------
+    def show_basic_tip(self, point, tip):
+        """Show basic tip."""
+        self.tip = tip
+        self.setText(tip)
+        self.resize(self.sizeHint())
+        y = point.y() - self.height()
+        self.move(point.x(), y)
+        self.show()
+        return True
+
     def show_tip(self, point, tip, cursor=None, completion_doc=None):
         """
         Attempts to show the specified tip at the current cursor location.
         """
         # Don't attempt to show it if it's already visible and the text
         # to be displayed is the same as the one displayed before.
-        if self.isVisible():
-            if self.tip == tip:
-                return True
-            else:
-                self.hide()
+        if self.tip == tip:
+            if not self.isVisible():
+                self.show()
+            return
 
         # Set the text and resize the widget accordingly.
         self.tip = tip
@@ -187,7 +196,8 @@ class ToolTipWidget(QLabel):
             point.setX(adjusted_point.x() - tip_width - padding)
 
         self.move(point)
-        self.show()
+        if not self.isVisible():
+            self.show()
         return True
 
     def mousePressEvent(self, event):

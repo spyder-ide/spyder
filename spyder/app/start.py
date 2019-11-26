@@ -83,6 +83,7 @@ def main():
         options.new_instance = False
         options.reset_config_files = False
         options.debug_info = None
+        options.paths = False
         args = None
     else:
         options, args = get_options()
@@ -142,9 +143,17 @@ def main():
         levels = {'minimal': '2', 'verbose': '3'}
         os.environ['SPYDER_DEBUG'] = levels[options.debug_info]
 
+    if options.paths:
+        from spyder.config.base import get_conf_paths
+        sys.stdout.write('\nconfig:' + '\n')
+        for path in reversed(get_conf_paths()):
+            sys.stdout.write('\t' + path + '\n')
+        sys.stdout.write('\n' )
+        return
+
     if (CONF.get('main', 'single_instance') and not options.new_instance
             and not options.reset_config_files
-            and not running_in_mac_app(check_file=True)):
+            and not running_in_mac_app()):
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file

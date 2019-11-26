@@ -48,6 +48,7 @@ class Console(SpyderPluginWidget):
     Console widget
     """
     CONF_SECTION = 'internal_console'
+    CONF_FILE = False
     focus_changed = Signal()
     redirect_stdio = Signal(bool)
     edit_goto = Signal(str, int, str)
@@ -239,6 +240,10 @@ class Console(SpyderPluginWidget):
         """Show environment variables"""
         self.dialog_manager.show(EnvDialog(parent=self))
     
+    def get_sys_path(self):
+        """Return the `sys.path`."""
+        return sys.path
+
     @Slot()
     def show_syspath(self):
         """Show sys.path"""

@@ -33,7 +33,7 @@ from qtpy.QtWidgets import (QApplication, QFileIconProvider, QFileSystemModel,
 
 # Local imports
 from spyder.config.base import _, get_home_dir
-from spyder.config.gui import config_shortcut, get_shortcut
+from spyder.config.manager import CONF
 from spyder.py3compat import str_lower, to_binary_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
@@ -156,8 +156,14 @@ class DirView(QTreeView):
         self.show_all = None
         self.single_click_to_open = False
         self.file_associations = {}
+        self._last_column = 0
+        self._last_order = True
+
+        header = self.header()
+        header.setContextMenuPolicy(Qt.CustomContextMenu)
 
         self.menu = None
+        self.menu_header = QMenu(self)
         self.common_actions = None
         self.__expanded_state = None
         self._to_be_loaded = None
@@ -166,6 +172,9 @@ class DirView(QTreeView):
         self._scrollbar_positions = None
         self.setSelectionMode(self.ExtendedSelection)
         self.shortcuts = self.create_shortcuts()
+
+        # Signals
+        header.customContextMenuRequested.connect(self.show_header_menu)
 
     #---- Model
     def setup_fs_model(self):
@@ -191,6 +200,50 @@ class DirView(QTreeView):
         self.reset_icon_provider()
         # Disable the view of .spyproject.
         self.filter_directories()
+
+    def sortByColumn(self, column, order=Qt.AscendingOrder):
+        """Override Qt method."""
+        header = self.header()
+        header.setSortIndicatorShown(True)
+        QTreeView.sortByColumn(self, column, order)
+        header.setSortIndicator(0, order)
+        self._last_column = column
+        self._last_order = not self._last_order
+
+    def show_header_menu(self, pos):
+        """Display header menu."""
+        self.menu_header.clear()
+        kind = _('Kind') if sys.platform == 'darwin' else _('Type')
+        items = [_('Size'), kind, _("Date modified")]
+        header_actions = []
+        for idx, item in enumerate(items):
+            column = idx + 1
+            action = create_action(
+                self,
+                item,
+                None,
+                None,
+                toggled=lambda x, c=column: self.toggle_column(c),
+            )
+            action.blockSignals(True)
+            action.setChecked(not self.isColumnHidden(column))
+            action.blockSignals(False)
+            header_actions.append(action)
+
+        add_actions(self.menu_header, header_actions)
+        self.menu_header.popup(self.mapToGlobal(pos))
+
+    def toggle_column(self, column):
+        """Toggle visibility of column."""
+        is_hidden = self.isColumnHidden(column)
+        self.setColumnHidden(column, not is_hidden)
+        visible_columns = [0]
+        for col in range(1, 4):
+            if not self.isColumnHidden(col):
+                visible_columns.append(col)
+
+        self.parent_widget.sig_option_changed.emit('visible_columns',
+                                                   visible_columns)
 
     def set_single_click_to_open(self, value):
         """Set single click to open items."""
@@ -381,39 +434,61 @@ class DirView(QTreeView):
             self, _("Open in Spyder"), icon=ima.icon('edit'),
             triggered=self.open)
         open_with_menu = QMenu(_('Open with'), self)
+
         open_external_action = create_action(
-            self, _("Open extenally"),
+            self,
+            _("Open externally"),
             triggered=self.open_external)
-        move_action = create_action(self, _("Move..."),
-                                    icon="move.png",
-                                    triggered=self.move)
-        delete_action = create_action(self, _("Delete..."),
-                                      icon=ima.icon('editdelete'),
-                                      triggered=self.delete)
-        rename_action = create_action(self, _("Rename..."),
-                                      icon=ima.icon('rename'),
-                                      triggered=self.rename)
-        ipynb_convert_action = create_action(self, _("Convert to Python script"),
-                                             icon=ima.icon('python'),
-                                             triggered=self.convert_notebooks)
-        copy_file_clipboard_action = (
-            create_action(self, _("Copy"),
-                          QKeySequence(get_shortcut('explorer', 'copy file')),
-                          icon=ima.icon('editcopy'),
-                          triggered=self.copy_file_clipboard))
-        save_file_clipboard_action = (
-            create_action(self, _("Paste"),
-                          QKeySequence(get_shortcut('explorer', 'paste file')),
-                          icon=ima.icon('editpaste'),
-                          triggered=self.save_file_clipboard))
-        copy_absolute_path_action = (
-            create_action(self, _("Copy Absolute Path"), QKeySequence(
-                get_shortcut('explorer', 'copy absolute path')),
-                          triggered=self.copy_absolute_path))
-        copy_relative_path_action = (
-            create_action(self, _("Copy Relative Path"), QKeySequence(
-                get_shortcut('explorer', 'copy relative path')),
-                          triggered=self.copy_relative_path))
+
+        move_action = create_action(
+            self,
+            _("Move..."),
+            icon="move.png",
+            triggered=self.move)
+
+        delete_action = create_action(
+            self,
+            _("Delete..."),
+            icon=ima.icon('editdelete'),
+            triggered=self.delete)
+
+        rename_action = create_action(
+            self,
+            _("Rename..."),
+            icon=ima.icon('rename'),
+            triggered=self.rename)
+
+        ipynb_convert_action = create_action(
+            self,
+            _("Convert to Python script"),
+            icon=ima.icon('python'),
+            triggered=self.convert_notebooks)
+
+        copy_file_clipboard_action = create_action(
+            self,
+            _("Copy"),
+            QKeySequence(CONF.get_shortcut('explorer', 'copy file')),
+            icon=ima.icon('editcopy'),
+            triggered=self.copy_file_clipboard)
+
+        save_file_clipboard_action = create_action(
+            self,
+            _("Paste"),
+            QKeySequence(CONF.get_shortcut('explorer', 'paste file')),
+            icon=ima.icon('editpaste'),
+            triggered=self.save_file_clipboard)
+
+        copy_absolute_path_action = create_action(
+            self,
+            _("Copy Absolute Path"),
+            QKeySequence(CONF.get_shortcut('explorer', 'copy absolute path')),
+            triggered=self.copy_absolute_path)
+
+        copy_relative_path_action = create_action(
+            self,
+            _("Copy Relative Path"),
+            QKeySequence(CONF.get_shortcut('explorer', 'copy relative path')),
+            triggered=self.copy_relative_path)
 
         actions = []
         if only_modules:
@@ -1128,20 +1203,30 @@ class DirView(QTreeView):
     def create_shortcuts(self):
         """Create shortcuts for this file explorer."""
         # Configurable
-        copy_clipboard_file = config_shortcut(self.copy_file_clipboard,
-                                              context='explorer',
-                                              name='copy file', parent=self)
-        paste_clipboard_file = config_shortcut(self.save_file_clipboard,
-                                               context='explorer',
-                                               name='paste file', parent=self)
-        copy_absolute_path = config_shortcut(self.copy_absolute_path,
-                                             context='explorer',
-                                             name='copy absolute path',
-                                             parent=self)
-        copy_relative_path = config_shortcut(self.copy_relative_path,
-                                             context='explorer',
-                                             name='copy relative path',
-                                             parent=self)
+        copy_clipboard_file = CONF.config_shortcut(
+            self.copy_file_clipboard,
+            context='explorer',
+            name='copy file',
+            parent=self)
+
+        paste_clipboard_file = CONF.config_shortcut(
+            self.save_file_clipboard,
+            context='explorer',
+            name='paste file',
+            parent=self)
+
+        copy_absolute_path = CONF.config_shortcut(
+            self.copy_absolute_path,
+            context='explorer',
+            name='copy absolute path',
+            parent=self)
+
+        copy_relative_path = CONF.config_shortcut(
+            self.copy_relative_path,
+            context='explorer',
+            name='copy relative path',
+            parent=self)
+
         return [copy_clipboard_file, paste_clipboard_file, copy_absolute_path,
                 copy_relative_path]
 
@@ -1298,6 +1383,7 @@ class ProxyModel(QSortFilterProxyModel):
             if index.data() == root_dir:
                 return osp.join(self.root_path, root_dir)
         return QSortFilterProxyModel.data(self, index, role)
+
 
 class FilteredDirView(DirView):
     """Filtered file/directory tree view"""
@@ -1521,7 +1607,7 @@ class ExplorerWidget(QWidget):
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  show_all=False, show_cd_only=None, show_icontext=True,
                  single_click_to_open=False, file_associations={},
-                 options_button=None):
+                 options_button=None, visible_columns=[0, 3]):
         QWidget.__init__(self, parent)
 
         # Widgets
@@ -1553,8 +1639,32 @@ class ExplorerWidget(QWidget):
             single_click_to_open=single_click_to_open,
             file_associations=file_associations,
         )
+
+        # Setup of actions
+        ismac = sys.platform == 'darwin'
+        kind = _('Display kind') if ismac else _('Display type')
+        self.display_column_actions = []
+        for idx, text in enumerate([_('Display size'), kind,
+                                   _('Display date modified')]):
+            col = idx + 1
+            action = create_action(
+                self, text=text,
+                toggled=lambda x, c=col: self.treewidget.toggle_column(c))
+
+            if col in visible_columns:
+                self.treewidget.showColumn(col)
+            else:
+                self.treewidget.hideColumn(col)
+
+            action.blockSignals(True)
+            action.setChecked(not self.treewidget.isColumnHidden(col))
+            action.blockSignals(False)
+
+            self.display_column_actions.append(action)
+
         self.treewidget.chdir(getcwd_or_home())
-        self.treewidget.common_actions += [None, icontext_action]
+        self.treewidget.common_actions += [None, icontext_action, None]
+        self.treewidget.common_actions += self.display_column_actions
 
         button_previous.setDefaultAction(previous_action)
         previous_action.setEnabled(False)
@@ -1586,6 +1696,17 @@ class ExplorerWidget(QWidget):
         self.treewidget.set_previous_enabled.connect(
                                                previous_action.setEnabled)
         self.treewidget.set_next_enabled.connect(next_action.setEnabled)
+        self.sig_option_changed.connect(self.refresh_actions)
+
+    def refresh_actions(self, option, value):
+        """Refresh column visibility actions."""
+        if option == 'visible_columns':
+            for col in range(1, 4):
+                is_hidden = self.treewidget.isColumnHidden(col)
+                action = self.display_column_actions[col - 1]
+                action.blockSignals(True)
+                action.setChecked(not is_hidden)
+                action.blockSignals(False)
 
     @Slot(bool)
     def toggle_icontext(self, state):
@@ -1613,6 +1734,7 @@ class FileExplorerTest(QWidget):
             self.directory = directory
         else:
             self.directory = osp.dirname(osp.abspath(__file__))
+        self.explorer.treewidget.set_current_folder(self.directory)
         vlayout.addWidget(self.explorer)
 
         hlayout1 = QHBoxLayout()

@@ -19,8 +19,8 @@ from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize
 from qtpy.QtWidgets import (QAbstractItemView, QButtonGroup, QCheckBox,
                             QComboBox, QDialog, QDialogButtonBox, QGroupBox,
                             QGridLayout, QHBoxLayout, QLabel, QLineEdit,
-                            QPushButton, QSpinBox, QTableView, QTabWidget,
-                            QVBoxLayout, QWidget)
+                            QMessageBox, QPushButton, QSpinBox, QTableView,
+                            QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -30,6 +30,7 @@ from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
+from spyder.utils.misc import check_connection_port
 from spyder.utils.programs import find_program
 from spyder.widgets.helperwidgets import ItemDelegate
 
@@ -173,12 +174,13 @@ class LSPServerEditor(QDialog):
 
         self.host_input.setPlaceholderText('127.0.0.1')
         self.host_input.setText(host)
-        self.host_input.textChanged.connect(lambda x: self.validate())
+        self.host_input.textChanged.connect(lambda _: self.validate())
 
         self.port_spinner.setToolTip(_('TCP port number of the server'))
         self.port_spinner.setMinimum(1)
         self.port_spinner.setMaximum(60000)
         self.port_spinner.setValue(port)
+        self.port_spinner.valueChanged.connect(lambda _: self.validate())
 
         self.cmd_input.setText(cmd)
         self.cmd_input.setPlaceholderText('/absolute/path/to/command')
@@ -301,6 +303,10 @@ class LSPServerEditor(QDialog):
         host_text = self.host_input.text()
         cmd_text = self.cmd_input.text()
 
+        if host_text not in ['127.0.0.1', 'localhost']:
+            self.external = True
+            self.external_cb.setChecked(True)
+
         if not self.HOST_REGEX.match(host_text):
             self.button_ok.setEnabled(False)
             self.host_input.setStyleSheet(self.INVALID_CSS)
@@ -334,6 +340,11 @@ class LSPServerEditor(QDialog):
                 self.cmd_input.setToolTip(_('Program was found on your '
                                             'system'))
                 self.button_ok.setEnabled(True)
+        else:
+            port = int(self.port_spinner.text())
+            response = check_connection_port(host_text, port)
+            if not response:
+                self.button_ok.setEnabled(False)
 
         try:
             json.loads(self.conf_input.toPlainText())
@@ -692,34 +703,82 @@ class LanguageServerConfigPage(GeneralConfigPage):
     def setup_page(self):
         newcb = self.create_checkbox
 
-        # --- Introspection tab ---
-        # Basic features group
-        basic_features_group = QGroupBox(_("Basic features"))
-        completion_box = newcb(_("Enable code completion"), 'code_completion')
+        # --- Completion ---
+        # Completion group
+        self.completion_box = newcb(_("Enable code completion"),
+                                    'code_completion')
+        self.completion_hint_box = newcb(
+            _("Show completion details"),
+            'completions_hint',
+            section='editor')
+        self.completions_hint_after_ms = self.create_spinbox(
+            _("Show completion detail after keyboard idle (ms):"), None,
+            'completions_hint_after_ms', min_=0, max_=5000, step=10,
+            tip=_("Default is 500"), section='editor')
+        self.automatic_completion_box = newcb(
+            _("Show completions on the fly"),
+            'automatic_completions',
+            section='editor')
+        self.completions_after_characters = self.create_spinbox(
+            _("Show automatic completions after characters entered:"), None,
+            'automatic_completions_after_chars', min_=1, step=1,
+            tip=_("Default is 3"), section='editor')
+        self.completions_after_ms = self.create_spinbox(
+            _("Show automatic completions after keyboard idle (ms):"), None,
+            'automatic_completions_after_ms', min_=0, max_=5000, step=10,
+            tip=_("Default is 300"), section='editor')
+        code_snippets_box = newcb(_("Enable code snippets"), 'code_snippets')
+
+        completion_layout = QGridLayout()
+        completion_layout.addWidget(self.completion_box, 0, 0)
+        completion_layout.addWidget(self.completion_hint_box, 1, 0)
+        completion_layout.addWidget(self.completions_hint_after_ms.plabel,
+                                    2, 0)
+        completion_layout.addWidget(self.completions_hint_after_ms.spinbox,
+                                    2, 1)
+        completion_layout.addWidget(self.automatic_completion_box, 3, 0)
+        completion_layout.addWidget(self.completions_after_characters.plabel,
+                                    4, 0)
+        completion_layout.addWidget(self.completions_after_characters.spinbox,
+                                    4, 1)
+        completion_layout.addWidget(self.completions_after_ms.plabel, 5, 0)
+        completion_layout.addWidget(self.completions_after_ms.spinbox, 5, 1)
+        completion_layout.addWidget(code_snippets_box, 6, 0)
+        completion_layout.setColumnStretch(2, 6)
+        completion_widget = QWidget()
+        completion_widget.setLayout(completion_layout)
+
+        self.completion_box.toggled.connect(self.check_completion_options)
+        self.automatic_completion_box.toggled.connect(
+            self.check_completion_options)
+
+        # --- Introspection ---
+        # Introspection group
+        introspection_group = QGroupBox(_("Basic features"))
+        goto_definition_box = newcb(
+            _("Enable Go to definition"),
+            'jedi_definition',
+            tip=_("If enabled, left-clicking on an object name while \n"
+                  "pressing the {} key will go to that object's definition\n"
+                  "(if resolved).").format(self.CTRL))
+        follow_imports_box = newcb(_("Follow imports when going to a "
+                                     "definition"),
+                                   'jedi_definition/follow_imports')
+        show_signature_box = newcb(_("Show calltips"), 'jedi_signature_help')
         enable_hover_hints_box = newcb(
             _("Enable hover hints"),
             'enable_hover_hints',
             tip=_("If enabled, hovering the mouse pointer over an object\n"
                   "name will display that object's signature and/or\n"
                   "docstring (if present)."))
-        goto_definition_box = newcb(
-            _("Enable Go to definition"),
-            'jedi_definition',
-            tip=_("If enabled, left-clicking on an object name while \n"
-                  "pressing the {} key will go to that object's definition\n"
-                  "(if resolved).".format(self.CTRL)))
-        follow_imports_box = newcb(_("Follow imports when going to a "
-                                     "definition"),
-                                   'jedi_definition/follow_imports')
-        show_signature_box = newcb(_("Show calltips"), 'jedi_signature_help')
+        introspection_layout = QVBoxLayout()
+        introspection_layout.addWidget(goto_definition_box)
+        introspection_layout.addWidget(follow_imports_box)
+        introspection_layout.addWidget(show_signature_box)
+        introspection_layout.addWidget(enable_hover_hints_box)
+        introspection_group.setLayout(introspection_layout)
 
-        basic_features_layout = QVBoxLayout()
-        basic_features_layout.addWidget(completion_box)
-        basic_features_layout.addWidget(enable_hover_hints_box)
-        basic_features_layout.addWidget(goto_definition_box)
-        basic_features_layout.addWidget(follow_imports_box)
-        basic_features_layout.addWidget(show_signature_box)
-        basic_features_group.setLayout(basic_features_layout)
+        goto_definition_box.toggled.connect(follow_imports_box.setEnabled)
 
         # Advanced group
         advanced_group = QGroupBox(_("Advanced"))
@@ -792,6 +851,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         linting_widget = QWidget()
         linting_widget.setLayout(linting_layout)
+
+        linting_check.toggled.connect(underline_errors_box.setEnabled)
 
         # --- Code style tab ---
         # Code style label
@@ -961,17 +1022,56 @@ class LanguageServerConfigPage(GeneralConfigPage):
         docstring_style_widget.setLayout(docstring_style_layout)
 
         # --- Advanced tab ---
+        # Clients group
+        clients_group = QGroupBox(_("Providers"))
+        self.kite_enabled = newcb(_("Enable Kite "
+                                    "(if the Kite engine is running)"),
+                                  'enable',
+                                  section='kite')
+        self.fallback_enabled = newcb(_("Enable fallback completions"),
+                                      'enable',
+                                      section='fallback-completions')
+        self.completions_wait_for_ms = self.create_spinbox(
+            _("Time to wait for all providers to return (ms):"), None,
+            'completions_wait_for_ms', min_=0, max_=5000, step=10,
+            tip=_("Beyond this timeout, "
+                  "the first available provider will be returned"),
+            section='editor')
+
+        clients_layout = QVBoxLayout()
+        clients_layout.addWidget(self.kite_enabled)
+        clients_layout.addWidget(self.fallback_enabled)
+        clients_layout.addWidget(self.completions_wait_for_ms)
+        clients_group.setLayout(clients_layout)
+
+        kite_layout = QVBoxLayout()
+        self.kite_cta = self.create_checkbox(
+            _("Notify me when Kite can provide missing completions"
+              " (but is unavailable)"),
+            'call_to_action',
+            section='kite')
+        kite_layout.addWidget(self.kite_cta)
+        kite_group = QGroupBox(_(
+            'Kite configuration'))
+        kite_group.setLayout(kite_layout)
+
         # Advanced label
+        lsp_advanced_group = QGroupBox(_(
+            'Python Language Server configuration'))
         advanced_label = QLabel(
             _("<b>Warning</b>: Only modify these values if "
               "you know what you're doing!"))
         advanced_label.setWordWrap(True)
         advanced_label.setAlignment(Qt.AlignJustify)
 
+        # Advanced settings checkbox
+        self.advanced_options_check = self.create_checkbox(
+            _("Enable advanced settings"), 'advanced/enabled')
+
         # Advanced options
-        self.advanced_command_launch = self.create_lineedit(
-            _("Command to launch the Python language server: "),
-            'advanced/command_launch', alignment=Qt.Horizontal,
+        self.advanced_module = self.create_lineedit(
+            _("Module for the Python language server: "),
+            'advanced/module', alignment=Qt.Horizontal,
             word_wrap=False)
         self.advanced_host = self.create_lineedit(
             _("IP Address and port to bind the server to: "),
@@ -990,8 +1090,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         # Advanced layout
         advanced_g_layout = QGridLayout()
-        advanced_g_layout.addWidget(self.advanced_command_launch.label, 1, 0)
-        advanced_g_layout.addWidget(self.advanced_command_launch.textbox, 1, 1)
+        advanced_g_layout.addWidget(self.advanced_module.label, 1, 0)
+        advanced_g_layout.addWidget(self.advanced_module.textbox, 1, 1)
         advanced_g_layout.addWidget(self.advanced_host.label, 2, 0)
 
         advanced_host_port_g_layout = QGridLayout()
@@ -1000,14 +1100,31 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_host_port_g_layout.addWidget(self.advanced_port.spinbox, 1, 2)
         advanced_g_layout.addLayout(advanced_host_port_g_layout, 2, 1)
 
-        advanced_widget = QWidget()
+        # External server and stdio options layout
+        advanced_server_layout = QVBoxLayout()
+        advanced_server_layout.addWidget(self.external_server)
+        advanced_server_layout.addWidget(self.use_stdio)
+
+        advanced_options_layout = QVBoxLayout()
+        advanced_options_layout.addLayout(advanced_g_layout)
+        advanced_options_layout.addLayout(advanced_server_layout)
+
+        # Set advanced options enabled/disabled
+        advanced_options_widget = QWidget()
+        advanced_options_widget.setLayout(advanced_options_layout)
+        advanced_options_widget.setEnabled(self.get_option('advanced/enabled'))
+        self.advanced_options_check.toggled.connect(
+            advanced_options_widget.setEnabled)
+        self.advanced_options_check.toggled.connect(
+            self.show_advanced_warning)
+
+        # Advanced options layout
         advanced_layout = QVBoxLayout()
         advanced_layout.addWidget(advanced_label)
-        advanced_layout.addSpacing(12)
-        advanced_layout.addLayout(advanced_g_layout)
-        advanced_layout.addWidget(self.external_server)
-        advanced_layout.addWidget(self.use_stdio)
-        advanced_widget.setLayout(advanced_layout)
+        advanced_layout.addWidget(self.advanced_options_check)
+        advanced_layout.addWidget(advanced_options_widget)
+
+        lsp_advanced_group.setLayout(advanced_layout)
 
         # --- Other servers tab ---
         # Section label
@@ -1062,30 +1179,44 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         # --- Tabs organization ---
         self.tabs = QTabWidget()
-        self.tabs.addTab(self.create_tab(basic_features_group, advanced_group),
-                    _('Introspection'))
+        self.tabs.addTab(self.create_tab(completion_widget),
+                         _('Completion'))
         self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
+        self.tabs.addTab(self.create_tab(introspection_group, advanced_group),
+                         _('Introspection'))
         self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
         self.tabs.addTab(self.create_tab(docstring_style_widget),
-                    _('Docstring style'))
-        self.tabs.addTab(self.create_tab(advanced_widget),
-                    _('Advanced'))
+                         _('Docstring style'))
+        self.tabs.addTab(self.create_tab(clients_group,
+                                         lsp_advanced_group,
+                                         kite_group),
+                         _('Advanced'))
         self.tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.tabs)
         self.setLayout(vlayout)
 
+    def check_completion_options(self, state):
+        """Update enabled status of completion checboxes and spinboxes."""
+        state = self.completion_box.isChecked()
+        self.completion_hint_box.setEnabled(state)
+        self.automatic_completion_box.setEnabled(state)
+
+        state = state and self.automatic_completion_box.isChecked()
+        self.completions_after_characters.spinbox.setEnabled(state)
+        self.completions_after_characters.plabel.setEnabled(state)
+        self.completions_after_ms.spinbox.setEnabled(state)
+        self.completions_after_ms.plabel.setEnabled(state)
+
     def disable_tcp(self, state):
         if state == Qt.Checked:
-            # self.advanced_command_launch.textbox.setEnabled(False)
             self.advanced_host.textbox.setEnabled(False)
             self.advanced_port.spinbox.setEnabled(False)
             self.external_server.stateChanged.disconnect()
             self.external_server.setChecked(False)
             self.external_server.setEnabled(False)
         else:
-            # self.advanced_command_launch.textbox.setEnabled(True)
             self.advanced_host.textbox.setEnabled(True)
             self.advanced_port.spinbox.setEnabled(True)
             self.external_server.setChecked(False)
@@ -1094,18 +1225,16 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
     def disable_stdio(self, state):
         if state == Qt.Checked:
-            # self.advanced_command_launch.textbox.setEnabled(False)
             self.advanced_host.textbox.setEnabled(True)
             self.advanced_port.spinbox.setEnabled(True)
-            self.advanced_command_launch.textbox.setEnabled(False)
+            self.advanced_module.textbox.setEnabled(False)
             self.use_stdio.stateChanged.disconnect()
             self.use_stdio.setChecked(False)
             self.use_stdio.setEnabled(False)
         else:
-            # self.advanced_command_launch.textbox.setEnabled(True)
             self.advanced_host.textbox.setEnabled(True)
             self.advanced_port.spinbox.setEnabled(True)
-            self.advanced_command_launch.textbox.setEnabled(True)
+            self.advanced_module.textbox.setEnabled(True)
             self.use_stdio.setChecked(False)
             self.use_stdio.setEnabled(True)
             self.use_stdio.stateChanged.connect(self.disable_tcp)
@@ -1126,6 +1255,32 @@ class LanguageServerConfigPage(GeneralConfigPage):
                 _("Ignore the following errors in addition "
                   "to the specified convention:"))
 
+    @Slot(bool)
+    def show_advanced_warning(self, state):
+        """
+        Show a warning when trying to modify the PyLS advanced
+        settings.
+        """
+        # Don't show warning if the option is already enabled.
+        # This avoids showing it when the Preferences dialog
+        # is created.
+        if self.get_option('advanced/enabled'):
+            return
+
+        # Show warning when toggling the button state
+        if state:
+            QMessageBox.warning(
+                self,
+                _("Warning"),
+                _("<b>Modifying these options can break code completion!!</b>"
+                  "<br><br>"
+                  "If that's the case, please reset your Spyder preferences "
+                  "by going to the menu"
+                  "<br><br>"
+                  "<tt>Tools > Reset Spyder to factory defaults</tt>"
+                  "<br><br>"
+                  "instead of reporting a bug."))
+
     def reset_to_default(self):
         CONF.reset_to_defaults(section='lsp-server')
         self.table.load_servers()
@@ -1140,6 +1295,75 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.table.delete_server(idx)
         self.set_modified(True)
         self.delete_btn.setEnabled(False)
+
+    def report_no_external_server(self, host, port, language):
+        """
+        Report that connection couldn't be established with
+        an external server.
+        """
+        QMessageBox.critical(
+            self,
+            _("Error"),
+            _("It appears there is no {language} language server listening "
+              "at address:"
+              "<br><br>"
+              "<tt>{host}:{port}</tt>"
+              "<br><br>"
+              "Please verify that the provided information is correct "
+              "and try again.").format(host=host, port=port,
+                                       language=language.capitalize())
+        )
+
+    def report_no_address_change(self):
+        """
+        Report that server address has no changed after checking the
+        external server option.
+        """
+        QMessageBox.critical(
+            self,
+            _("Error"),
+            _("The address of the external server you are trying to connect "
+              "to is the same as the one of the current internal server "
+              "started by Spyder."
+              "<br><br>"
+              "Please provide a different address!")
+        )
+
+    def is_valid(self):
+        """Check if config options are valid."""
+        host = self.advanced_host.textbox.text()
+
+        # If host is not local, the server must be external
+        # and we need to automatically check the corresponding
+        # option
+        if host not in ['127.0.0.1', 'localhost']:
+            self.external_server.setChecked(True)
+
+        # Checks for extenal PyLS
+        if self.external_server.isChecked():
+            port = int(self.advanced_port.spinbox.text())
+
+            # Check that host and port of the current server are
+            # different from the new ones provided to connect to
+            # an external server.
+            lsp = self.main.completions.get_client('lsp')
+            pyclient = lsp.clients.get('python')
+            if pyclient is not None:
+                instance = pyclient['instance']
+                if (instance is not None and
+                        not pyclient['config']['external']):
+                    if (instance.server_host == host and
+                            instance.server_port == port):
+                        self.report_no_address_change()
+                        return False
+
+            # Check connection to LSP server using a TCP socket
+            response = check_connection_port(host, port)
+            if not response:
+                self.report_no_external_server(host, port, 'python')
+                return False
+
+        return super(GeneralConfigPage, self).is_valid()
 
     def apply_settings(self, options):
         # Check regex of code style options
@@ -1179,14 +1403,40 @@ class LanguageServerConfigPage(GeneralConfigPage):
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
             if name in options:
+                section = self.CONF_SECTION
+                if name == 'underline_errors':
+                    section = 'editor'
+
+                state = self.get_option(name, section=section)
+
                 # Avoid triggering the action when this action changes state
+                # See: spyder-ide/spyder#9915
                 action.blockSignals(True)
-                state = self.get_option(name)
                 action.setChecked(state)
                 action.blockSignals(False)
-                # See: spyder-ide/spyder#9915
-                # action.trigger()
 
         # TODO: Reset Manager
-        lsp = self.main.completions.get_client('lsp')
-        lsp.update_server_list()
+        self.main.completions.update_configuration()
+
+        # Update editor plugin options
+        editor = self.main.editor
+        editor_method_sec_opts = {
+            'set_code_snippets_enabled': (self.CONF_SECTION, 'code_snippets'),
+            'set_hover_hints_enabled':  (self.CONF_SECTION,
+                                         'enable_hover_hints'),
+            'set_automatic_completions_enabled': ('editor',
+                                                  'automatic_completions'),
+            'set_completions_hint_enabled': ('editor', 'completions_hint'),
+            'set_completions_hint_after_ms': ('editor',
+                                              'completions_hint_after_ms'),
+            'set_underline_errors_enabled': ('editor', 'underline_errors'),
+            'set_automatic_completions_after_chars': (
+                'editor', 'automatic_completions_after_chars'),
+            'set_automatic_completions_after_ms': (
+                'editor', 'automatic_completions_after_ms'),
+        }
+        for editorstack in editor.editorstacks:
+            for method_name, (sec, opt) in editor_method_sec_opts.items():
+                if opt in options:
+                    method = getattr(editorstack, method_name)
+                    method(self.get_option(opt, section=sec))

@@ -11,7 +11,15 @@ if %USE_CONDA% == yes (
 
     conda install -q -y -c spyder-ide --file requirements/tests.txt
     if errorlevel 1 exit 1
+
+    :: Github backend tests are failing with 1.1.1d
+    conda install -q -y openssl=1.1.1c
+    if errorlevel 1 exit 1
 ) else (
+    :: Github backend tests are failing with 1.1.1d
+    conda install -q -y openssl=1.1.1c
+    if errorlevel 1 exit 1
+
     :: Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
     if errorlevel 1 exit 1
@@ -25,8 +33,16 @@ if %USE_CONDA% == yes (
     if errorlevel 1 exit 1
 )
 
+:: Create environment for Jedi environments tests
+conda create -n jedi-test-env -q -y python=3.6 loghub spyder-kernels -c spyder-ide
+if errorlevel 1 exit 1
+
 :: Install spyder-kernels from master
 pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
+if errorlevel 1 exit 1
+
+:: Install python-language-server from master
+pip install -q --no-deps git+https://github.com/palantir/python-language-server
 if errorlevel 1 exit 1
 
 :: Install codecov

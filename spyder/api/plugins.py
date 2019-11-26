@@ -31,7 +31,6 @@ class BasePlugin(BasePluginMixin):
 
     WARNING: Don't override any methods or attributes present here!
     """
-
     # Use this signal to display a message in the status bar.
     # str: The message you want to display
     # int: Amount of time to display the message
@@ -65,14 +64,14 @@ class BasePlugin(BasePluginMixin):
         Parameters
         ----------
         message: str
-            Message to display in the status bar
+            Message to display in the status bar.
         timeout: int
-            Amound of time to display the message
+            Amount of time to display the message.
         """
         super(BasePlugin, self)._show_status_message(message, timeout)
 
     @Slot(str, object)
-    def set_option(self, option, value):
+    def set_option(self, option, value, section=None):
         """
         Set an option in Spyder configuration file.
 
@@ -90,9 +89,9 @@ class BasePlugin(BasePluginMixin):
           same or another plugin.
         * CONF_SECTION needs to be defined for this to work.
         """
-        super(BasePlugin, self)._set_option(option, value)
+        super(BasePlugin, self)._set_option(option, value, section=section)
 
-    def get_option(self, option, default=NoDefault):
+    def get_option(self, option, default=NoDefault, section=None):
         """
         Get an option from Spyder configuration file.
 
@@ -106,7 +105,8 @@ class BasePlugin(BasePluginMixin):
         bool, int, str, tuple, list, dict
             Value associated with `option`.
         """
-        return super(BasePlugin, self)._get_option(option, default)
+        return super(BasePlugin, self)._get_option(option, default,
+                                                   section=section)
 
     def starting_long_process(self, message):
         """
@@ -149,10 +149,38 @@ class SpyderPlugin(BasePlugin):
     # Status: Optional
     CONF_SECTION = None
 
-    # Widget to be used as entry in Spyder Preferences
-    # dialog
+    # Widget to be used as entry in Spyder Preferences dialog
     # Status: Optional
     CONFIGWIDGET_CLASS = None
+
+    # Use separate configuration file for plugin
+    # Status: Optional
+    CONF_FILE = True
+
+    # Define configuration defaults if using a separate file.
+    # List of tuples, with the first item in the tuple being the section
+    # name and the second item being the default options dictionary.
+    # Status: Optional
+    #
+    # CONF_DEFAULTS_EXAMPLE = [
+    #     ('section-name', {'option-1': 'some-value',
+    #                       'option-2': True,}),
+    #     ('another-section-name', {'option-3': 'some-other-value',
+    #                               'option-4': [1, 2, 3],}),
+    # ]
+    CONF_DEFAULTS = None
+
+    # Define configuration version if using a separate file
+    # Status: Optional
+    #
+    # IMPORTANT NOTES:
+    # 1. If you want to *change* the default value of a current option, you
+    #    need to do a MINOR update in config version, e.g. from 3.0.0 to 3.1.0
+    # 2. If you want to *remove* options that are no longer needed or if you
+    #    want to *rename* options, then you need to do a MAJOR update in
+    #    version, e.g. from 3.0.0 to 4.0.0
+    # 3. You don't need to touch this value if you're just adding a new option
+    CONF_VERSION = None
 
     # ------------------------------ METHODS ----------------------------------
 

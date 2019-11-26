@@ -24,7 +24,6 @@ from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
 import zmq
 
 # Local imports
-from spyder.py3compat import PY2
 from spyder.config.base import (get_conf_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.completion.languageserver import (
@@ -36,7 +35,9 @@ from spyder.plugins.completion.languageserver.decorators import (
 from spyder.plugins.completion.languageserver.transport import MessageKind
 from spyder.plugins.completion.languageserver.providers import (
     LSPMethodProviderMixIn)
-from spyder.utils.misc import getcwd_or_home
+from spyder.py3compat import PY2
+from spyder.utils.environ import clean_env
+from spyder.utils.misc import getcwd_or_home, select_port
 
 # Conditional imports
 if PY2:
@@ -66,22 +67,23 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     #  facilities.
     sig_server_error = Signal(str)
 
-    # Constants
-    external_server_fmt = ('--server-host %(host)s '
-                           '--server-port %(port)s ')
+    #: Signal to warn the user when either the transport layer or the
+    #  server are down
+    sig_lsp_down = Signal(str)
 
     def __init__(self, parent,
                  server_settings={},
                  folder=getcwd_or_home(),
                  language='python'):
         QObject.__init__(self)
-        # LSPMethodProviderMixIn.__init__(self)
         self.manager = parent
         self.zmq_in_socket = None
         self.zmq_out_socket = None
         self.zmq_in_port = None
         self.zmq_out_port = None
         self.transport_client = None
+        self.lsp_server = None
+        self.notifier = None
         self.language = language
 
         self.initialized = False
@@ -92,10 +94,24 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.watched_folders = {}
         self.req_reply = {}
 
+        # Select a free port to start the server.
+        # NOTE: Don't use the new value to set server_setttings['port']!!
+        # That's not required because this doesn't really correspond to a
+        # change in the config settings of the server. Else a server
+        # restart would be generated when doing a
+        # workspace/didChangeConfiguration request.
+        if not server_settings['external']:
+            self.server_port = select_port(
+                default_port=server_settings['port'])
+        else:
+            self.server_port = server_settings['port']
+        self.server_host = server_settings['host']
+
         self.transport_args = [sys.executable, '-u',
                                osp.join(LOCATION, 'transport', 'main.py')]
         self.external_server = server_settings.get('external', False)
         self.stdio = server_settings.get('stdio', False)
+
         # Setting stdio on implies that external_server is off
         if self.stdio and self.external_server:
             error = ('If server is set to use stdio communication, '
@@ -110,15 +126,21 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.context = zmq.Context()
 
         server_args_fmt = server_settings.get('args', '')
-        server_args = server_args_fmt.format(**server_settings)
-        transport_args = self.external_server_fmt % (server_settings)
+        server_args = server_args_fmt.format(
+            host=self.server_host,
+            port=self.server_port)
+        transport_args_fmt = '--server-host {host} --server-port {port} '
+        transport_args = transport_args_fmt.format(
+            host=self.server_host,
+            port=self.server_port)
 
         self.server_args = []
-        if language == 'python':
+        if self.language == 'python':
             self.server_args += [sys.executable, '-m']
         self.server_args += [server_settings['cmd']]
         if len(server_args) > 0:
             self.server_args += server_args.split(' ')
+        self.server_unresponsive = False
 
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
@@ -128,6 +150,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         else:
             self.transport_args += ['--stdio-server']
             self.external_server = True
+        self.transport_unresponsive = False
 
     def start(self):
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
@@ -141,9 +164,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                 '--zmq-out-port', self.zmq_in_port]
 
         server_log = subprocess.PIPE
+        pid = os.getpid()
         if get_debug_level() > 0:
             # Create server log file
-            server_log_fname = 'server_{0}.log'.format(self.language)
+            server_log_fname = 'server_{0}_{1}.log'.format(self.language, pid)
             server_log_file = get_conf_path(osp.join('lsp_logs',
                                                      server_log_fname))
             if not osp.exists(osp.dirname(server_log_file)):
@@ -198,7 +222,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         client_log = subprocess.PIPE
         if get_debug_level() > 0:
             # Client log file
-            client_log_fname = 'client_{0}.log'.format(self.language)
+            client_log_fname = 'client_{0}_{1}.log'.format(self.language, pid)
             client_log_file = get_conf_path(osp.join('lsp_logs',
                                                      client_log_fname))
             if not osp.exists(osp.dirname(client_log_file)):
@@ -213,6 +237,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # Spyder
         if running_under_pytest():
             new_env['PYTHONPATH'] = os.pathsep.join(sys.path)[:]
+
+        # On some CI systems there are unicode characters inside PYTHOPATH
+        # which raise errors if not removed
+        if PY2:
+            new_env = clean_env(new_env)
 
         self.transport_args = list(map(str, self.transport_args))
         logger.info('Starting transport: {0}'
@@ -240,22 +269,37 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         logger.debug('LSP {} client started!'.format(self.language))
 
     def stop(self):
-        # self.shutdown()
-        # self.exit()
         logger.info('Stopping {} client...'.format(self.language))
         if self.notifier is not None:
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
             self.notifier = None
-        # if os.name == 'nt':
-        #     self.transport_client.send_signal(signal.CTRL_BREAK_EVENT)
-        # else:
-        self.transport_client.kill()
+        if self.transport_client is not None:
+            self.transport_client.kill()
         self.context.destroy()
         if not self.external_server:
             self.lsp_server.kill()
 
     def send(self, method, params, kind):
+        # Detect when the transport layer is down to show a message
+        # to our users about it.
+        if (self.transport_client is not None and
+                self.transport_client.poll() is not None):
+            logger.debug(
+                "Transport layer for {} is down!!".format(self.language))
+            if not self.transport_unresponsive:
+                self.transport_unresponsive = True
+                self.sig_lsp_down.emit(self.language)
+            return
+
+        if (self.lsp_server is not None and
+                self.lsp_server.poll() is not None):
+            logger.debug("LSP server for {} is down!!".format(self.language))
+            if not self.server_unresponsive:
+                self.server_unresponsive = True
+                self.sig_lsp_down.emit(self.language)
+            return
+
         if ClientConstants.CANCEL in params:
             return
         _id = self.request_seq
@@ -308,6 +352,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                             traceback = ''.join(traceback)
                             traceback = traceback + '\n' + message
                             self.sig_server_error.emit(traceback)
+                        req_id = resp['id']
+                        if req_id in self.req_reply:
+                            self.req_reply[req_id](None, {'params': []})
                 elif 'method' in resp:
                     if resp['method'][0] != '$':
                         if 'id' in resp:
@@ -351,8 +398,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     @handles(SERVER_READY)
     @send_request(method=LSPRequestTypes.INITIALIZE)
     def initialize(self, *args, **kwargs):
+        pid = self.transport_client.pid if not self.external_server else None
         params = {
-            'processId': self.transport_client.pid,
+            'processId': pid,
             'rootUri': pathlib.Path(osp.abspath(self.folder)).as_uri(),
             'capabilities': self.client_capabilites,
             'trace': TRACE

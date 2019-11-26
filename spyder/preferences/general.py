@@ -13,18 +13,23 @@ For historical reasons (dating back to Spyder 2) the main class here is called
 """
 
 import traceback
+import sys
 
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QMessageBox, QTabWidget,
                             QVBoxLayout)
+if sys.platform == "darwin":
+    import applaunchservices as als
 
 from spyder.config.base import (_, LANGUAGE_CODES, running_in_mac_app,
                                 save_lang_conf)
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import to_text_string
 import spyder.utils.icon_manager as ima
+from spyder.utils.qthelpers import (register_app_launchservices,
+                                    restore_launchservices)
 
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
@@ -69,7 +74,7 @@ class MainConfigPage(GeneralConfigPage):
                               'check_updates_on_startup')
 
         # Decide if it's possible to activate or not single instance mode
-        if running_in_mac_app(check_file=True):
+        if running_in_mac_app():
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)
 
@@ -105,7 +110,7 @@ class MainConfigPage(GeneralConfigPage):
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
-                                          0, 0, 30)
+                                          default=0, min_=0, max_=30)
         margin_box.toggled.connect(margin_spin.spinbox.setEnabled)
         margin_box.toggled.connect(margin_spin.slabel.setEnabled)
         margin_spin.spinbox.setEnabled(self.get_option('use_custom_margin'))
@@ -143,6 +148,32 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addLayout(margins_cursor_layout)
         interface_group.setLayout(interface_layout)
 
+        if sys.platform == "darwin":
+
+            def set_open_file(state):
+                if state:
+                    register_app_launchservices()
+                else:
+                    restore_launchservices()
+
+            macOS_group = QGroupBox(_("macOS integration"))
+            mac_open_file_box = newcb(
+                _("Open files from Finder with Spyder"),
+                'mac_open_file',
+                tip=_("Register Spyder with the Launch Services"))
+            mac_open_file_box.toggled.connect(set_open_file)
+            macOS_layout = QVBoxLayout()
+            macOS_layout.addWidget(mac_open_file_box)
+            if als.get_bundle_identifier() is None:
+                # Disable setting
+                mac_open_file_box.setDisabled(True)
+                macOS_layout.addWidget(QLabel(
+                    _('Launch Spyder with <code>python.app</code> to enable'
+                      ' Apple event integrations.')))
+
+            macOS_group.setLayout(macOS_layout)
+
+
         # --- Status bar
         sbar_group = QGroupBox(_("Status bar"))
         show_status_bar = newcb(_("Show status bar"), 'show_status_bar')
@@ -166,15 +197,19 @@ class MainConfigPage(GeneralConfigPage):
         cpu_box.setEnabled(self.main.cpu_status.is_supported())
         cpu_spin.setEnabled(self.main.cpu_status.is_supported())
 
+        clock_box = newcb(_("Show clock"), 'clock/enable')
+
         status_bar_o = self.get_option('show_status_bar')
         show_status_bar.toggled.connect(memory_box.setEnabled)
         show_status_bar.toggled.connect(memory_spin.setEnabled)
         show_status_bar.toggled.connect(cpu_box.setEnabled)
         show_status_bar.toggled.connect(cpu_spin.setEnabled)
+        show_status_bar.toggled.connect(clock_box.setEnabled)
         memory_box.setEnabled(status_bar_o)
         memory_spin.setEnabled(status_bar_o)
         cpu_box.setEnabled(status_bar_o)
         cpu_spin.setEnabled(status_bar_o)
+        clock_box.setEnabled(status_bar_o)
 
         # Layout status bar
         cpu_memory_layout = QGridLayout()
@@ -182,6 +217,7 @@ class MainConfigPage(GeneralConfigPage):
         cpu_memory_layout.addWidget(memory_spin, 0, 1)
         cpu_memory_layout.addWidget(cpu_box, 1, 0)
         cpu_memory_layout.addWidget(cpu_spin, 1, 1)
+        cpu_memory_layout.addWidget(clock_box, 2, 0)
 
         sbar_layout = QVBoxLayout()
         sbar_layout.addWidget(show_status_bar)
@@ -224,8 +260,8 @@ class MainConfigPage(GeneralConfigPage):
             "",
             'high_dpi_custom_scale_factors',
             tip=_("Enter values for different screens "
-                  "separated by semicolons ';', "
-                  "float values are supported"),
+                  "separated by semicolons ';'.\n"
+                  "Float values are supported"),
             alignment=Qt.Horizontal,
             regex=r"[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
             restart=True)
@@ -246,10 +282,15 @@ class MainConfigPage(GeneralConfigPage):
 
         screen_resolution_layout.addLayout(screen_resolution_inner_layout)
         screen_resolution_group.setLayout(screen_resolution_layout)
+        if sys.platform == "darwin":
+            interface_tab = self.create_tab(screen_resolution_group,
+                                            interface_group, macOS_group)
+        else:
+            interface_tab = self.create_tab(screen_resolution_group,
+                                            interface_group)
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(screen_resolution_group, interface_group),
-                    _("Interface"))
+        tabs.addTab(interface_tab, _("Interface"))
         tabs.addTab(self.create_tab(general_group, sbar_group),
                     _("Advanced settings"))
 
@@ -264,8 +305,8 @@ class MainConfigPage(GeneralConfigPage):
         """
         Get selected language setting and save to language configuration file.
         """
-        for combobox, (option, _default) in list(self.comboboxes.items()):
-            if option == 'interface_language':
+        for combobox, (sec, opt, _default) in list(self.comboboxes.items()):
+            if opt == 'interface_language':
                 data = combobox.itemData(combobox.currentIndex())
                 value = from_qvariant(data, to_text_string)
                 break

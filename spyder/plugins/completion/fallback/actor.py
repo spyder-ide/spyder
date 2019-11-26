@@ -29,6 +29,8 @@ from spyder.plugins.completion.languageserver import LSPRequestTypes
 from spyder.plugins.completion.fallback.utils import get_keywords, get_words
 
 
+FALLBACK_COMPLETION = "Fallback"
+
 logger = logging.getLogger(__name__)
 
 
@@ -51,7 +53,7 @@ class FallbackActor(QObject):
         self.thread.started.connect(self.started)
         self.sig_mailbox.connect(self.handle_msg)
 
-    def tokenize(self, text, language):
+    def tokenize(self, text, offset, language):
         """
         Return all tokens in `text` and all keywords associated by
         Pygments to `language`.
@@ -64,16 +66,22 @@ class FallbackActor(QObject):
         keyword_set = set(keywords)
         keywords = [{'kind': CompletionItemKind.KEYWORD,
                      'insertText': keyword,
-                     'sortText': u'zz{0}'.format(keyword[0].lower()),
-                     'filterText': keyword, 'documentation': ''}
+                     'label': keyword,
+                     'sortText': keyword,
+                     'filterText': keyword,
+                     'documentation': '',
+                     'provider': FALLBACK_COMPLETION}
                     for keyword in keywords]
         # logger.debug(keywords)
         # tokens = list(lexer.get_tokens(text))
         # logger.debug(tokens)
-        tokens = get_words(text, language)
+        tokens = get_words(text, offset, language)
         tokens = [{'kind': CompletionItemKind.TEXT, 'insertText': token,
-                   'sortText': u'zz{0}'.format(token[0].lower()),
-                   'filterText': token, 'documentation': ''}
+                   'label': token,
+                   'sortText': token,
+                   'filterText': token,
+                   'documentation': '',
+                   'provider': FALLBACK_COMPLETION}
                   for token in tokens]
         for token in tokens:
             if token['insertText'] not in keyword_set:
@@ -100,17 +108,24 @@ class FallbackActor(QObject):
         """Handle one message"""
         msg_type, _id, file, msg = [
             message[k] for k in ('type', 'id', 'file', 'msg')]
-        logger.debug('Got request id {0}: {1} for file {2}'.format(
+        logger.debug(u'Got request id {0}: {1} for file {2}'.format(
             _id, msg_type, file))
         if msg_type == LSPRequestTypes.DOCUMENT_DID_OPEN:
             self.file_tokens[file] = {
-                'text': msg['text'], 'language': msg['language']}
+                'text': msg['text'],
+                'offset': msg['offset'],
+                'language': msg['language'],
+            }
         elif msg_type == LSPRequestTypes.DOCUMENT_DID_CHANGE:
             if file not in self.file_tokens:
                 self.file_tokens[file] = {
-                    'text': '', 'language': msg['language']}
+                    'text': '',
+                    'offset': msg['offset'],
+                    'language': msg['language'],
+                }
             diff = msg['diff']
             text = self.file_tokens[file]
+            text['offset'] = msg['offset']
             text, _ = self.diff_patch.patch_apply(
                 diff, text['text'])
             self.file_tokens[file]['text'] = text
@@ -121,6 +136,8 @@ class FallbackActor(QObject):
             if file in self.file_tokens:
                 text_info = self.file_tokens[file]
                 tokens = self.tokenize(
-                    text_info['text'], text_info['language'])
+                    text_info['text'],
+                    text_info['offset'],
+                    text_info['language'])
             tokens = {'params': tokens}
             self.sig_set_tokens.emit(_id, tokens)

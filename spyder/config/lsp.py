@@ -64,9 +64,13 @@ PYTHON_CONFIG = {
                 'rope_completion': {
                     'enabled': False
                 },
+                'jedi': {
+                    'environment': None,
+                    'extra_paths': None,
+                },
                 'jedi_completion': {
                     'enabled': True,
-                    'include_params': False
+                    'include_params': True
                 },
                 'jedi_definition': {
                     'enabled': True,

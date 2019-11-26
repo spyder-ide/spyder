@@ -14,10 +14,11 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import (QEvent, QObject, QSize, QSortFilterProxyModel, Qt,
-                         Signal, Slot)
-from qtpy.QtGui import QStandardItem, QStandardItemModel
-from qtpy.QtWidgets import (QApplication, QDialog, QLineEdit, QListWidgetItem,
-                            QVBoxLayout, QListView)
+                         Signal, Slot, QModelIndex)
+from qtpy.QtGui import QStandardItem, QStandardItemModel, QTextDocument
+from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
+                            QLineEdit, QListView, QListWidgetItem, QStyle,
+                            QVBoxLayout)
 
 # Local imports
 from spyder.config.base import _
@@ -29,7 +30,7 @@ from spyder.utils.stringmatching import get_search_scores
 from spyder.widgets.helperwidgets import HTMLDelegate
 
 # Style dict constants
-FONT_SIZE = CONF.get('appearance', 'rich_font/size', 10)
+FONT_SIZE = 10
 ITEM_STYLES = {
         'title_color': ima.MAIN_FG_COLOR,
         'description_color': 'rgb(153, 153, 153)',
@@ -75,12 +76,25 @@ class KeyPressFilter(QObject):
         return super(KeyPressFilter, self).eventFilter(src, e)
 
 
+class SwitcherDelegate(HTMLDelegate):
+    """
+    This delegate allows the list view of the switcher to look like it has
+    the focus, even when its focus policy is set to Qt.NoFocus.
+    """
+
+    def paint(self, painter, option, index):
+        """
+        Override Qt method to force this delegate to look active at all times.
+        """
+        option.state |= QStyle.State_Active
+        super(SwitcherDelegate, self).paint(painter, option, index)
+
+
 class SwitcherBaseItem(QStandardItem):
     """Base List Item."""
 
     _PADDING = 5
     _WIDTH = 400
-    _HEIGHT = None
     _STYLES = None
     _TEMPLATE = None
 
@@ -90,14 +104,14 @@ class SwitcherBaseItem(QStandardItem):
 
         # Style
         self._width = self._WIDTH
-        self._height = self._HEIGHT
         self._padding = self._PADDING
         self._styles = styles if styles else {}
         self._action_item = False
         self._score = -1
+        self._height = self._get_height()
 
         # Setup
-        self.setSizeHint(QSize(0, self._HEIGHT))
+        self.setSizeHint(QSize(0, self._height))
 
     def _render_text(self):
         """Render the html template for this item."""
@@ -111,6 +125,13 @@ class SwitcherBaseItem(QStandardItem):
         """Set the styles for this item."""
         raise NotImplementedError
 
+    def _get_height(self):
+        """
+        Return the expected height of this item's text, including
+        the text margins.
+        """
+        raise NotImplementedError
+
     # --- API
     def set_width(self, value):
         """Set the content width."""
@@ -120,6 +141,14 @@ class SwitcherBaseItem(QStandardItem):
     def get_width(self):
         """Return the content width."""
         return self._width
+
+    def get_height(self):
+        """Return the content height."""
+        return self._height
+
+    def get_score(self):
+        """Return the fuzzy matchig score."""
+        return self._score
 
     def set_score(self, value):
         """Set the search text fuzzy match score."""
@@ -148,7 +177,6 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
     """
 
     _SEPARATOR = '_'
-    _HEIGHT = 15
     _STYLE_ATTRIBUTES = ['color', 'font_size']
     _STYLES = {
         'color': QApplication.palette().text().color().name(),
@@ -191,10 +219,20 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
         """Render the html template for this item."""
         padding = self._padding
         width = self._width
-        height = self._HEIGHT
+        height = self.get_height()
         text = self._TEMPLATE.format(width=width, height=height,
                                      padding=padding, **self._styles)
         return text
+
+    def _get_height(self):
+        """
+        Return the expected height of this item's text, including
+        the text margins.
+        """
+        doc = QTextDocument()
+        doc.setHtml('<hr>')
+        doc.setDocumentMargin(self._PADDING)
+        return doc.size().height()
 
 
 class SwitcherItem(SwitcherBaseItem):
@@ -208,7 +246,6 @@ class SwitcherItem(SwitcherBaseItem):
     """
 
     _FONT_SIZE = 10
-    _HEIGHT = 20
     _STYLE_ATTRIBUTES = ['title_color', 'description_color', 'section_color',
                          'shortcut_color', 'title_font_size',
                          'description_font_size', 'section_font_size',
@@ -223,10 +260,10 @@ class SwitcherItem(SwitcherBaseItem):
         'section_font_size': _FONT_SIZE,
         'shortcut_font_size': _FONT_SIZE,
     }
-    _TEMPLATE = '''<table width="{width}" height="{height}"
+    _TEMPLATE = '''<table width="{width}" max_width="{width}" height="{height}"
                           cellpadding="{padding}">
   <tr>
-    <td valign="bottom">
+    <td valign="middle">
       <span style="color:{title_color};font-size:{title_font_size}pt">
         {title}
       </span>&nbsp;
@@ -269,6 +306,10 @@ class SwitcherItem(SwitcherBaseItem):
 
         if icon:
             self.setIcon(icon)
+            # TODO: Change fixed icon size value
+            self._icon_width = 20
+        else:
+            self._icon_width = 0
 
         self._set_styles()
         self._set_rendered_text()
@@ -290,9 +331,12 @@ class SwitcherItem(SwitcherBaseItem):
             section = ''
 
         padding = self._PADDING
-        width = self._width
-        height = self._HEIGHT
+        width = self._width - self._icon_width
+        height = self.get_height()
+        self.setSizeHint(QSize(width, height))
+
         shortcut = '&lt;' + self._shortcut + '&gt;' if self._shortcut else ''
+
         text = self._TEMPLATE.format(width=width, height=height, title=title,
                                      section=section, description=description,
                                      padding=padding, shortcut=shortcut,
@@ -322,6 +366,20 @@ class SwitcherItem(SwitcherBaseItem):
 
         self._styles['description_font_size'] = description_font_size
         self._styles['section_font_size'] = description_font_size
+
+    def _get_height(self):
+        """
+        Return the expected height of this item's text, including
+        the text margins.
+        """
+        doc = QTextDocument()
+        try:
+            doc.setHtml('<span style="font-size:{}pt">Title</span>'
+                        .format(self._styles['title_font_size']))
+        except KeyError:
+            doc.setHtml('<span>Title</span>')
+        doc.setDocumentMargin(self._PADDING)
+        return doc.size().height()
 
     # --- API
     def set_icon(self, icon):
@@ -381,10 +439,6 @@ class SwitcherItem(SwitcherBaseItem):
         """Return the additional data associated to the item."""
         return self._data
 
-    def get_score(self):
-        """Return the fuzzy matchig score."""
-        return self._score
-
     def set_section(self, value):
         """Set the item section name."""
         self._section = value
@@ -400,7 +454,7 @@ class SwitcherItem(SwitcherBaseItem):
         self._set_rendered_text()
 
     def set_action_item(self, value):
-        """Enable/disbale the action type for the item."""
+        """Enable/disable the action type for the item."""
         self._action_item = value
         self._set_rendered_text()
 
@@ -414,12 +468,34 @@ class SwitcherProxyModel(QSortFilterProxyModel):
         self.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setSortCaseSensitivity(Qt.CaseInsensitive)
         self.setDynamicSortFilter(True)
+        self.__filter_by_score = False
+
+    def set_filter_by_score(self, value):
+        """
+        Set whether the items should be filtered by their score result.
+
+        Parameters
+        ----------
+        value : bool
+           Indicates whether the items should be filtered by their
+           score result.
+        """
+        self.__filter_by_score = value
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, source_row, source_parent):
+        """Override Qt method to filter items by their score result."""
+        item = self.sourceModel().item(source_row)
+        if self.__filter_by_score is False or item.is_action_item():
+            return True
+        else:
+            return not item.get_score() == -1
 
     def sortBy(self, attr):
         """Override Qt method."""
         self.__sort_by = attr
         self.invalidate()
-        self.sort(0, Qt.DescendingOrder)
+        self.sort(0, Qt.AscendingOrder)
 
     def lessThan(self, left, right):
         """Override Qt method."""
@@ -448,19 +524,26 @@ class Switcher(QDialog):
       SwitcherItem:      [title description    <shortcut> section]
     """
 
+    # Dismissed switcher
+    sig_rejected = Signal()
     # Search/Filter text changes
     sig_text_changed = Signal(TEXT_TYPES[-1])
+    # Current item changed
+    sig_item_changed = Signal(object)
     # List item selected, mode and cleaned search text
     sig_item_selected = Signal(object, TEXT_TYPES[-1], TEXT_TYPES[-1], )
     sig_mode_selected = Signal(TEXT_TYPES[-1])
 
-    _MIN_WIDTH = 500
+    _MAX_NUM_ITEMS = 15
+    _MIN_WIDTH = 580
+    _MIN_HEIGHT = 200
+    _MAX_HEIGHT = 390
+    _ITEM_WIDTH = _MIN_WIDTH - 20
 
     def __init__(self, parent, help_text=None, item_styles=ITEM_STYLES,
                  item_separator_styles=ITEM_SEPARATOR_STYLES):
         """Multi purpose switcher."""
         super(Switcher, self).__init__(parent)
-        self._visible_rows = 0
         self._modes = {}
         self._mode_on = ''
         self._item_styles = item_styles
@@ -474,15 +557,18 @@ class Switcher(QDialog):
         self.filter = KeyPressFilter()
 
         # Widgets setup
-        # self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.Popup | Qt.FramelessWindowHint)
         self.setWindowOpacity(0.95)
+#        self.setMinimumHeight(self._MIN_HEIGHT)
+        self.setMaximumHeight(self._MAX_HEIGHT)
         self.edit.installEventFilter(self.filter)
         self.edit.setPlaceholderText(help_text if help_text else '')
         self.list.setMinimumWidth(self._MIN_WIDTH)
-        self.list.setItemDelegate(HTMLDelegate(self))
+        self.list.setItemDelegate(SwitcherDelegate(self))
         self.list.setFocusPolicy(Qt.NoFocus)
-        self.list.setSelectionBehavior(self.list.SelectRows)
+        self.list.setSelectionBehavior(self.list.SelectItems)
         self.list.setSelectionMode(self.list.SingleSelection)
+        self.list.setVerticalScrollMode(QAbstractItemView.ScrollPerItem)
         self.proxy.setSourceModel(self.model)
         self.list.setModel(self.proxy)
 
@@ -501,14 +587,21 @@ class Switcher(QDialog):
         self.edit.returnPressed.connect(self.enter)
         self.list.clicked.connect(self.enter)
         self.list.clicked.connect(self.edit.setFocus)
+        self.list.selectionModel().currentChanged.connect(
+            self.current_item_changed)
+        self.edit.setFocus()
 
     # --- Helper methods
-    def _add_item(self, item):
+    def _add_item(self, item, last_item=True):
         """Perform common actions when adding items."""
-        item.set_width(self._MIN_WIDTH)
+        item.set_width(self._ITEM_WIDTH)
         self.model.appendRow(item)
-        self.set_current_row(0)
-        self._visible_rows = self.model.rowCount()
+        if last_item:
+            # Only set the current row to the first item when the added item is
+            # the last one in order to prevent performance issues when
+            # adding multiple items
+            self.set_current_row(0)
+            self.set_height()
         self.setup_sections()
 
     # --- API
@@ -518,6 +611,7 @@ class Switcher(QDialog):
         self.model.beginResetModel()
         self.model.clear()
         self.model.endResetModel()
+        self.setMinimumHeight(self._MIN_HEIGHT)
 
     def set_placeholder_text(self, text):
         """Set the text appearing on the empty line edit."""
@@ -530,6 +624,10 @@ class Switcher(QDialog):
         else:
             raise Exception('Token must be of length 1!')
 
+    def get_mode(self):
+        """Get the current mode the switcher is in."""
+        return self._mode_on
+
     def remove_mode(self, token):
         """Remove mode by token key."""
         if token in self._modes:
@@ -541,7 +639,8 @@ class Switcher(QDialog):
         self._modes = {}
 
     def add_item(self, icon=None, title=None, description=None, shortcut=None,
-                 section=None, data=None, tool_tip=None, action_item=False):
+                 section=None, data=None, tool_tip=None, action_item=False,
+                 last_item=True):
         """Add switcher list item."""
         item = SwitcherItem(
             parent=self.list,
@@ -555,7 +654,7 @@ class Switcher(QDialog):
             tool_tip=tool_tip,
             styles=self._item_styles
         )
-        self._add_item(item)
+        self._add_item(item, last_item=last_item)
 
     def add_separator(self):
         """Add separator item."""
@@ -573,8 +672,10 @@ class Switcher(QDialog):
             search_text = self.search_text()
 
         # Check exited mode
-        if mode and self.search_text() == '':
+        if self.search_text() == '':
             self._mode_on = ''
+            self.clear()
+            self.proxy.set_filter_by_score(False)
             self.sig_mode_selected.emit(self._mode_on)
             return
 
@@ -599,29 +700,20 @@ class Switcher(QDialog):
         scores = get_search_scores(to_text_string(search_text),
                                    titles, template=u"<b>{0}</b>")
 
-        self._visible_rows = self.model.rowCount()
-        for idx, score in enumerate(scores):
-            title, rich_title, score_value = score
+        for idx, (title, rich_title, score_value) in enumerate(scores):
             item = self.model.item(idx)
-
-            if not self._is_separator(item):
+            if not self._is_separator(item) and not item.is_action_item():
+                rich_title = rich_title.replace(" ", "&nbsp;")
                 item.set_rich_title(rich_title)
-
             item.set_score(score_value)
-            proxy_index = self.proxy.mapFromSource(self.model.index(idx, 0))
+        self.proxy.set_filter_by_score(True)
 
-            if not item.is_action_item():
-                self.list.setRowHidden(proxy_index.row(), score_value == -1)
-
-                if score_value == -1:
-                    self._visible_rows -= 1
-
-        if self._visible_rows:
+        self.setup_sections()
+        if self.count():
             self.set_current_row(0)
         else:
             self.set_current_row(-1)
-
-        self.setup_sections()
+        self.set_height()
 
     def setup_sections(self):
         """Set-up which sections appear on the item list."""
@@ -654,6 +746,44 @@ class Switcher(QDialog):
                     item.set_section_visible(True)
 
         self.proxy.sortBy('_score')
+        self.sig_item_changed.emit(self.current_item())
+
+    def set_height(self):
+        """Set height taking into account the number of items."""
+        if self.count() >= self._MAX_NUM_ITEMS:
+            switcher_height = self._MAX_HEIGHT
+        elif self.count() != 0 and self.current_item():
+            current_item = self.current_item()
+            item_height = current_item.get_height()
+            list_height = item_height * (self.count() + 3)
+            edit_height = self.edit.height()
+            spacing_height = self.layout().spacing() * 4
+            switcher_height = list_height + edit_height + spacing_height
+            switcher_height = max(switcher_height, self._MIN_HEIGHT)
+        else:
+            switcher_height = self._MIN_HEIGHT
+        self.setFixedHeight(switcher_height)
+
+    def set_position(self, top):
+        """Set the position of the dialog."""
+        parent = self.parent()
+        if parent is not None:
+            geo = parent.geometry()
+            width = self.list.width()  # This has been set in setup
+            left = parent.geometry().width()/2 - width/2
+
+            while parent:
+                geo = parent.geometry()
+                top += geo.top()
+                left += geo.left()
+                parent = parent.parent()
+
+            self.move(round(left), top)
+
+    @Slot(QModelIndex, QModelIndex)
+    def current_item_changed(self, current, previous):
+        """Handle item selection."""
+        self.sig_item_changed.emit(self.current_item())
 
     # --- Qt overrides
     # ------------------------------------------------------------------------
@@ -672,6 +802,12 @@ class Switcher(QDialog):
     def accept(self):
         """Override Qt method."""
         super(Switcher, self).accept()
+
+    def reject(self):
+        """Override Qt method."""
+        self.set_search_text('')
+        self.sig_rejected.emit()
+        super(Switcher, self).reject()
 
     def resizeEvent(self, event):
         """Override Qt method."""
@@ -702,19 +838,30 @@ class Switcher(QDialog):
 
     def count(self):
         """Get the item count in the list widget."""
-        return self._visible_rows
+        return self.proxy.rowCount()
 
     def current_row(self):
         """Return the current selected row in the list widget."""
         return self.list.currentIndex().row()
 
+    def current_item(self):
+        """Return the current selected item in the list widget."""
+        row = self.current_row()
+        model_index = self.proxy.mapToSource(self.proxy.index(row, 0))
+        item = self.model.item(model_index.row())
+        return item
+
     def set_current_row(self, row):
         """Set the current selected row in the list widget."""
-        index = self.model.index(row, 0)
+        proxy_index = self.proxy.index(row, 0)
         selection_model = self.list.selectionModel()
 
         # https://doc.qt.io/qt-5/qitemselectionmodel.html#SelectionFlag-enum
-        selection_model.setCurrentIndex(index, selection_model.ClearAndSelect)
+        selection_model.setCurrentIndex(
+            proxy_index, selection_model.ClearAndSelect)
+
+        # Ensure that the selected item is visible
+        self.list.scrollTo(proxy_index, QAbstractItemView.EnsureVisible)
 
     def previous_row(self):
         """Select previous row in list widget."""

@@ -29,11 +29,14 @@ class Explorer(SpyderPluginWidget):
 
     CONF_SECTION = 'explorer'
     CONFIGWIDGET_CLASS = ExplorerConfigPage
+    CONF_FILE = False
 
     def __init__(self, parent=None):
         """Initialization."""
         SpyderPluginWidget.__init__(self, parent)
 
+        visible_columns = self.get_option('visible_columns',
+                                          default=[0, 3])  # Name & Last Mod
         self.fileexplorer = ExplorerWidget(
             self,
             name_filters=self.get_option('name_filters'),
@@ -43,12 +46,11 @@ class Explorer(SpyderPluginWidget):
             single_click_to_open=self.get_option('single_click_to_open'),
             file_associations=self.get_option('file_associations',
                                               default={}),
+            visible_columns=visible_columns,
         )
-
         layout = QVBoxLayout()
         layout.addWidget(self.fileexplorer)
         self.setLayout(layout)
-
         self.fileexplorer.sig_option_changed.connect(
             self._update_config_options)
 
@@ -117,7 +119,9 @@ class Explorer(SpyderPluginWidget):
                                              force_current=force_current)
 
     def on_first_registration(self):
-        """Action to be performed on first plugin registration"""
+        """Action to be performed on first plugin registration."""
+        # TODO: Remove this for spyder 5
+        # self.tabify(self.main.projects)
         self.tabify(self.main.variableexplorer)
 
     def apply_plugin_settings(self, options):

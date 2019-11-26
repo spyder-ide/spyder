@@ -25,6 +25,8 @@ from spyder.plugins.completion.languageserver.transport.tcp.consumer import (
     TCPIncomingMessageThread)
 from spyder.plugins.completion.languageserver.transport.common.producer import (
     LanguageServerClient)
+from spyder.py3compat import ConnectionError, BrokenPipeError
+
 
 logger = logging.getLogger(__name__)
 
@@ -58,14 +60,18 @@ class TCPLanguageServerClient(LanguageServerClient):
         self.socket.close()
         logger.info('Closing consumer thread...')
         self.reading_thread.stop()
-        logger.debug('Joining thread...')
-        self.reading_thread.join()
         logger.debug('Exit routine should be complete')
 
     def transport_send(self, content_length, body):
         logger.debug('Sending message via TCP')
-        self.socket.send(content_length)
-        self.socket.send(body)
+        try:
+            self.socket.send(content_length)
+            self.socket.send(body)
+        except (BrokenPipeError, ConnectionError) as e:
+            # This avoids a total freeze at startup
+            # when we're trying to connect to a TCP
+            # socket that rejects our connection
+            logger.error(e)
 
     def is_server_alive(self):
         connected = False

@@ -13,6 +13,7 @@ This is the main widget used in the Plots plugin
 # ---- Standard library imports
 from __future__ import division
 import os.path as osp
+import sys
 
 # ---- Third library imports
 from qtconsole.svg import svg_to_image, svg_to_clipboard
@@ -21,18 +22,19 @@ from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, QSize, QTimer, Slot
 from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
-                            QScrollArea, QPushButton, QScrollBar, QSizePolicy,
-                            QSpinBox, QSplitter, QStyle)
+                            QScrollArea, QPushButton, QScrollBar, QSpinBox,
+                            QSplitter, QStyle)
 
 # ---- Local library imports
 from spyder.config.base import _
+from spyder.config.manager import CONF
 from spyder.py3compat import is_unicode, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout,
                                     MENU_SEPARATOR)
 from spyder.utils.misc import getcwd_or_home
-from spyder.config.gui import config_shortcut, get_shortcut
+from spyder.config.gui import is_dark_interface
 
 
 def save_figure_tofile(fig, fmt, fname):
@@ -156,7 +158,7 @@ class FigureBrowser(QWidget):
         copyfig_btn = create_toolbutton(
             self, icon=ima.icon('editcopy'),
             tip=_("Copy plot to clipboard as image (%s)" %
-                  get_shortcut('plots', 'copy')),
+                  CONF.get_shortcut('plots', 'copy')),
             triggered=self.copy_figure)
 
         closefig_btn = create_toolbutton(
@@ -175,13 +177,13 @@ class FigureBrowser(QWidget):
         goback_btn = create_toolbutton(
                 self, icon=ima.icon('ArrowBack'),
                 tip=_("Previous Figure ({})".format(
-                      get_shortcut('plots', 'previous figure'))),
+                      CONF.get_shortcut('plots', 'previous figure'))),
                 triggered=self.go_previous_thumbnail)
 
         gonext_btn = create_toolbutton(
                 self, icon=ima.icon('ArrowForward'),
                 tip=_("Next Figure ({})".format(
-                      get_shortcut('plots', 'next figure'))),
+                      CONF.get_shortcut('plots', 'next figure'))),
                 triggered=self.go_next_thumbnail)
 
         vsep2 = QFrame()
@@ -271,12 +273,23 @@ class FigureBrowser(QWidget):
     def create_shortcuts(self):
         """Create shortcuts for this widget."""
         # Configurable
-        copyfig = config_shortcut(self.copy_figure, context='plots',
-                                  name='copy', parent=self)
-        prevfig = config_shortcut(self.go_previous_thumbnail, context='plots',
-                                  name='previous figure', parent=self)
-        nextfig = config_shortcut(self.go_next_thumbnail, context='plots',
-                                  name='next figure', parent=self)
+        copyfig = CONF.config_shortcut(
+            self.copy_figure,
+            context='plots',
+            name='copy',
+            parent=self)
+
+        prevfig = CONF.config_shortcut(
+            self.go_previous_thumbnail,
+            context='plots',
+            name='previous figure',
+            parent=self)
+
+        nextfig = CONF.config_shortcut(
+            self.go_next_thumbnail,
+            context='plots',
+            name='next figure',
+            parent=self)
 
         return [copyfig, prevfig, nextfig]
 
@@ -512,7 +525,7 @@ class FigureViewer(QScrollArea):
             new_height = int(fheight * self._scalestep ** self._scalefactor)
 
         # Auto fit plotting
-        # Scale the image to fit figviewer size while respect the ratio
+        # Scale the image to fit the figviewer size while respecting the ratio.
         else:
             size = self.size()
             style = self.style()
@@ -563,6 +576,7 @@ class ThumbnailScrollBar(QFrame):
     that controls what is displayed in the FigureViewer.
     """
     redirect_stdio = Signal(bool)
+    _min_scrollbar_width = 100
 
     def __init__(self, figure_viewer, parent=None, background_color=None):
         super(ThumbnailScrollBar, self).__init__(parent)
@@ -577,7 +591,6 @@ class ThumbnailScrollBar(QFrame):
         scrollarea = self.setup_scrollarea()
         up_btn, down_btn = self.setup_arrow_buttons()
 
-        self.setFixedWidth(150)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
@@ -590,22 +603,24 @@ class ThumbnailScrollBar(QFrame):
         self.view = QWidget()
 
         self.scene = QGridLayout(self.view)
-        self.scene.setColumnStretch(0, 100)
-        self.scene.setColumnStretch(2, 100)
+        self.scene.setContentsMargins(0, 0, 0, 0)
 
         self.scrollarea = QScrollArea()
         self.scrollarea.setWidget(self.view)
         self.scrollarea.setWidgetResizable(True)
         self.scrollarea.setFrameStyle(0)
+        self.scrollarea.setViewportMargins(2, 2, 2, 2)
         self.scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.scrollarea.setSizePolicy(QSizePolicy(QSizePolicy.Ignored,
-                                                  QSizePolicy.Preferred))
+        self.scrollarea.setMinimumWidth(self._min_scrollbar_width)
 
-        # Set the vertical scrollbar explicitely :
+        # Set the vertical scrollbar explicitely.
         # This is required to avoid a "RuntimeError: no access to protected
         # functions or signals for objects not created from Python" in Linux.
         self.scrollarea.setVerticalScrollBar(QScrollBar())
+
+        # Install an event filter on the scrollbar.
+        self.scrollarea.installEventFilter(self)
 
         return self.scrollarea
 
@@ -633,6 +648,15 @@ class ThumbnailScrollBar(QFrame):
     def set_figureviewer(self, figure_viewer):
         """Set the bamespace for the FigureViewer."""
         self.figure_viewer = figure_viewer
+
+    def eventFilter(self, widget, event):
+        """
+        An event filter to trigger an update of the thumbnails size so that
+        their width fit that of the scrollarea.
+        """
+        if event.type() == QEvent.Resize:
+            self._update_thumbnail_size()
+        return super(ThumbnailScrollBar, self).eventFilter(widget, event)
 
     # ---- Save Figure
     def save_all_figures_as(self):
@@ -685,33 +709,70 @@ class ThumbnailScrollBar(QFrame):
             save_figure_tofile(fig, fmt, fname)
 
     # ---- Thumbails Handlers
+    def _calculate_figure_canvas_width(self, thumbnail):
+        """
+        Calculate the witdh the thumbnail's figure canvas need to have for the
+        thumbnail to fit the scrollarea.
+        """
+        extra_padding = 10 if sys.platform == 'darwin' else 0
+        figure_canvas_width = (
+            self.scrollarea.width() -
+            2 * self.lineWidth() -
+            self.scrollarea.viewportMargins().left() -
+            self.scrollarea.viewportMargins().right() -
+            thumbnail.savefig_btn.width() -
+            thumbnail.layout().spacing() - extra_padding
+            )
+        if is_dark_interface():
+            # This is required to take into account some hard-coded padding
+            # and margin in qdarkstyle.
+            figure_canvas_width = figure_canvas_width - 6
+        return figure_canvas_width
+
+    def _setup_thumbnail_size(self, thumbnail):
+        """
+        Scale the thumbnail's canvas size so that it fits the thumbnail
+        scrollbar's width.
+        """
+        max_canvas_size = self._calculate_figure_canvas_width(thumbnail)
+        thumbnail.scale_canvas_size(max_canvas_size)
+
+    def _update_thumbnail_size(self):
+        """
+        Update the thumbnails size so that their width fit that of
+        the scrollarea.
+        """
+        # NOTE: We hide temporarily the thumbnails to prevent a repaint of
+        # each thumbnail as soon as their size is updated in the loop, which
+        # causes some flickering of the thumbnail scrollbar resizing animation.
+        # Once the size of all the thumbnails has been updated, we show them
+        # back so that they are repainted all at once instead of one after the
+        # other. This is just a trick to make the resizing animation of the
+        # thumbnail scrollbar look smoother.
+        self.view.hide()
+        for thumbnail in self._thumbnails:
+            self._setup_thumbnail_size(thumbnail)
+        self.view.show()
+
     def add_thumbnail(self, fig, fmt):
-        thumbnail = FigureThumbnail(background_color=self.background_color)
+        """
+        Add a new thumbnail to that thumbnail scrollbar.
+        """
+        thumbnail = FigureThumbnail(
+            parent=self, background_color=self.background_color)
         thumbnail.canvas.load_figure(fig, fmt)
-
-        # Scale the thumbnail size, while respecting the figure
-        # dimension ratio.
-        fwidth = thumbnail.canvas.fwidth
-        fheight = thumbnail.canvas.fheight
-
-        max_length = 100
-        if fwidth/fheight > 1:
-            canvas_width = max_length
-            canvas_height = canvas_width / fwidth * fheight
-        else:
-            canvas_height = max_length
-            canvas_width = canvas_height / fheight * fwidth
-        thumbnail.canvas.setFixedSize(int(canvas_width), int(canvas_height))
-
         thumbnail.sig_canvas_clicked.connect(self.set_current_thumbnail)
         thumbnail.sig_remove_figure.connect(self.remove_thumbnail)
         thumbnail.sig_save_figure.connect(self.save_figure_as)
         self._thumbnails.append(thumbnail)
 
-        self.scene.setRowStretch(self.scene.rowCount()-1, 0)
-        self.scene.addWidget(thumbnail, self.scene.rowCount()-1, 1)
+        self.scene.setRowStretch(self.scene.rowCount() - 1, 0)
+        self.scene.addWidget(thumbnail, self.scene.rowCount() - 1, 0)
         self.scene.setRowStretch(self.scene.rowCount(), 100)
         self.set_current_thumbnail(thumbnail)
+
+        thumbnail.show()
+        self._setup_thumbnail_size(thumbnail)
 
     def remove_current_thumbnail(self):
         """Remove the currently selected thumbnail."""
@@ -725,7 +786,7 @@ class ThumbnailScrollBar(QFrame):
             thumbnail.sig_canvas_clicked.disconnect()
             thumbnail.sig_remove_figure.disconnect()
             thumbnail.sig_save_figure.disconnect()
-            thumbnail.deleteLater()
+            thumbnail.setParent(None)
         self._thumbnails = []
         self.current_thumbnail = None
         self.figure_viewer.figcanvas.clear_canvas()
@@ -736,7 +797,7 @@ class ThumbnailScrollBar(QFrame):
             index = self._thumbnails.index(thumbnail)
             self._thumbnails.remove(thumbnail)
         self.layout().removeWidget(thumbnail)
-        thumbnail.deleteLater()
+        thumbnail.setParent(None)
         thumbnail.sig_canvas_clicked.disconnect()
         thumbnail.sig_remove_figure.disconnect()
         thumbnail.sig_save_figure.disconnect()
@@ -833,12 +894,10 @@ class FigureThumbnail(QWidget):
         """Setup the main layout of the widget."""
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.canvas, 0, 1)
-        layout.addLayout(self.setup_toolbar(), 0, 3, 2, 1)
-
-        layout.setColumnStretch(0, 100)
-        layout.setColumnStretch(2, 100)
+        layout.addWidget(self.canvas, 0, 0, Qt.AlignCenter)
+        layout.addLayout(self.setup_toolbar(), 0, 1, 2, 1)
         layout.setRowStretch(1, 100)
+        layout.setSizeConstraint(layout.SetFixedSize)
 
     def setup_toolbar(self):
         """Setup the toolbar."""
@@ -866,10 +925,32 @@ class FigureThumbnail(QWidget):
         """
         colorname = self.canvas.palette().highlight().color().name()
         if highlight:
-            self.canvas.setStyleSheet(
-                    "FigureCanvas{border: 1px solid %s;}" % colorname)
+            # Highlighted figure is not clear in dark mode with blue color.
+            # See spyder-ide/spyder#10255.
+            if is_dark_interface():
+                self.canvas.setStyleSheet(
+                        "FigureCanvas{border: 2px solid %s;}" % "#148CD2")
+            else:
+                self.canvas.setStyleSheet(
+                        "FigureCanvas{border: 2px solid %s;}" % colorname)
         else:
             self.canvas.setStyleSheet("FigureCanvas{}")
+
+    def scale_canvas_size(self, max_canvas_size):
+        """
+        Scale this thumbnail canvas size, while respecting its associated
+        figure dimension ratio.
+        """
+        fwidth = self.canvas.fwidth
+        fheight = self.canvas.fheight
+        if fwidth / fheight > 1:
+            canvas_width = max_canvas_size
+            canvas_height = canvas_width / fwidth * fheight
+        else:
+            canvas_height = max_canvas_size
+            canvas_width = canvas_height / fheight * fwidth
+        self.canvas.setFixedSize(int(canvas_width), int(canvas_height))
+        self.layout().setColumnMinimumWidth(0, max_canvas_size)
 
     def eventFilter(self, widget, event):
         """
@@ -920,10 +1001,11 @@ class FigureCanvas(QFrame):
         if self.fig:
             pos = QPoint(event.x(), event.y())
             context_menu = QMenu(self)
-            context_menu.addAction(ima.icon('editcopy'), "Copy Image",
-                                   self.copy_figure,
-                                   QKeySequence(
-                                       get_shortcut('plots', 'copy')))
+            context_menu.addAction(
+                ima.icon('editcopy'),
+                "Copy Image",
+                self.copy_figure,
+                QKeySequence(CONF.get_shortcut('plots', 'copy')))
             context_menu.popup(self.mapToGlobal(pos))
 
     @Slot()

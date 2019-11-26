@@ -91,7 +91,7 @@ def test_editor_log_lsp_handle_errors(editorbot, capsys):
     "input_text, expected_text, keys, strip_all",
     [
         ("for i in range(2): ",
-         "for i in range(2): \n\n     \n    ",
+         "for i in range(2): \n    \n     \n    ",
          [Qt.Key_Enter, Qt.Key_Enter, ' ', Qt.Key_Enter],
          False),
         ('for i in range(2): ',
@@ -135,7 +135,7 @@ def test_editor_log_lsp_handle_errors(editorbot, capsys):
          [Qt.Key_Enter, Qt.Key_Enter],
          True),
         ('def fun():\n    """fun',
-         'def fun():\n    """fun\n\n    ',
+         'def fun():\n    """fun\n    \n    ',
          [Qt.Key_Enter, Qt.Key_Enter],
          False),
         ("('🚫')",
@@ -143,8 +143,8 @@ def test_editor_log_lsp_handle_errors(editorbot, capsys):
          [Qt.Key_Enter],
          True),
     ])
-def test_editor_rstrip_keypress(
-        editorbot, input_text, expected_text, keys, strip_all):
+def test_editor_rstrip_keypress(editorbot, input_text, expected_text, keys,
+                                strip_all):
     """
     Test that whitespace is removed when leaving a line.
     """
