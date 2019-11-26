@@ -4238,7 +4238,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseReleaseEvent(self, event):
         """Override Qt method."""
-        self._mouse_left_button_pressed = False
+        if event.button() == Qt.LeftButton:
+            self._mouse_left_button_pressed = False
+
         self.request_cursor_event()
         TextEditBaseWidget.mouseReleaseEvent(self, event)
 
