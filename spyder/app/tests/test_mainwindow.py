@@ -2803,9 +2803,11 @@ def test_pbd_key_leak(main_window, qtbot, tmpdir):
         qtbot.keyClick(control, Qt.Key_Enter)
         qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
-        # Make sure both files are open
-        assert str(test_file) in main_window.editor.get_filenames()
-        assert str(test_file2) in main_window.editor.get_filenames()
+        # Wait until both files are open
+        qtbot.waitUntil(
+            lambda: str(test_file) in main_window.editor.get_filenames())
+        qtbot.waitUntil(
+            lambda: str(test_file2) in main_window.editor.get_filenames())
 
         # Make sure the events are not processed.
         assert not processEvents.called
