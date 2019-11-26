@@ -36,7 +36,7 @@ from spyder.widgets.helperwidgets import (CustomSortFilterProxy,
 SINGLE_KEYS = ["F{}".format(_i) for _i in range(1, 36)] + ["Del", "Esc"]
 EDITOR_SINGLE_KEYS = SINGLE_KEYS + ["Home", "End", "Ins", "Enter",
                                     "Return", "Backspace", "Tab",
-                                    "PageUp", "PageDown", "Clear",  "Pause",
+                                    "PageUp", "PageDown", "Clear", "Pause",
                                     "Left", "Up", "Right", "Down"]
 
 # Key sequences blacklist for the shortcut editor dialog
