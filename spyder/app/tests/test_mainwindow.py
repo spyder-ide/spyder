@@ -2758,6 +2758,7 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="It times out on macOS")
 def test_pbd_step(main_window, qtbot, tmpdir):
     """
     Check that pdb notify spyder only moves when a new line is reached.
@@ -2782,24 +2783,26 @@ def test_pbd_step(main_window, qtbot, tmpdir):
 
     # Run tmp2 and get an error
     with qtbot.waitSignal(shell.executed):
-        shell.execute('runfile("' + str(test_file2) +
-                      '", wdir="' + str(folder) + '")')
+        shell.execute('runfile("' + str(test_file2).replace("\\", "/") +
+                      '", wdir="' + str(folder).replace("\\", "/") + '")')
     assert '1/0' in control.toPlainText()
 
     # Debug and enter first file
     shell.execute('%debug')
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     qtbot.waitUntil(
-        lambda: main_window.editor.get_current_editor().filename
-        == str(test_file))
+        lambda: osp.samefile(
+            main_window.editor.get_current_editor().filename,
+            str(test_file)))
 
     # Go up and enter second file
     qtbot.keyClick(control, 'u')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     qtbot.waitUntil(
-        lambda: main_window.editor.get_current_editor().filename
-        == str(test_file2))
+        lambda: osp.samefile(
+            main_window.editor.get_current_editor().filename,
+            str(test_file2)))
 
     # Go back to first file
     editor_stack = main_window.editor.get_current_editorstack()
@@ -2807,7 +2810,9 @@ def test_pbd_step(main_window, qtbot, tmpdir):
     assert index is not None
     editor_stack.set_stack_index(index)
 
-    assert main_window.editor.get_current_editor().filename == str(test_file)
+    assert osp.samefile(
+        main_window.editor.get_current_editor().filename,
+        str(test_file))
 
     # Change frame but stay at the same place
     qtbot.keyClicks(control, 'test = 0')
@@ -2816,7 +2821,9 @@ def test_pbd_step(main_window, qtbot, tmpdir):
     qtbot.wait(1000)
 
     # Make sure we didn't move
-    assert main_window.editor.get_current_editor().filename == str(test_file)
+    assert osp.samefile(
+        main_window.editor.get_current_editor().filename,
+        str(test_file))
 
 
 if __name__ == "__main__":
