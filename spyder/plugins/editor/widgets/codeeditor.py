@@ -4003,6 +4003,7 @@ class CodeEditor(TextEditBaseWidget):
         """Go to url from cursor and defined hover patterns."""
         key = self._last_hover_pattern_key
         full_uri = uri
+
         if key in ['file']:
             fname = self._preprocess_file_uri(uri)
 
@@ -4054,6 +4055,7 @@ class CodeEditor(TextEditBaseWidget):
                     QMessageBox.Ok,
                 )
         self.sig_go_to_uri.emit(uri)
+        self.hide_tooltip()
         return full_uri
 
     def line_range(self, position):
