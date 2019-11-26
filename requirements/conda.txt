@@ -15,7 +15,7 @@ pygments >=2.0
 pylint
 pympler
 pyqt <5.13
-python-language-server >=0.31.0,<0.32.0
+python-language-server >=0.31.1,<0.32.0
 pyxdg
 pyzmq
 qdarkstyle >=2.7
