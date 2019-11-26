@@ -752,7 +752,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.automatic_completion_box.toggled.connect(
             self.check_completion_options)
 
-        # --- Introspection ---
+        # --- Introspection tab ---
         # Introspection group
         introspection_group = QGroupBox(_("Basic features"))
         goto_definition_box = newcb(
@@ -820,10 +820,15 @@ class LanguageServerConfigPage(GeneralConfigPage):
             _("Enable advanced linting with Pylint (slower)"),
             'pylint',
             button_group=linting_bg)
+        underline_errors_box = newcb(
+            _("Underline warnings and errors"),
+            'underline_errors',
+            section='editor')
 
         warnings_errors_layout = QVBoxLayout()
         warnings_errors_layout.addWidget(linting_pyflakes_radio)
         warnings_errors_layout.addWidget(linting_pylint_radio)
+        warnings_errors_layout.addWidget(underline_errors_box)
         warnings_errors_group.setLayout(warnings_errors_layout)
 
         # Complexity group
