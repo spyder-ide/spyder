@@ -180,6 +180,7 @@ def ipyconsole(qtbot, request):
     # Close
     console.closing_plugin()
     console.close()
+    window.close()
 
 
 # =============================================================================
@@ -1541,9 +1542,9 @@ def test_pdb_ignore_lib(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
-def test_calltip_working(ipyconsole, qtbot):
+def test_calltip(ipyconsole, qtbot):
     """
-    Test that calltip is working as expected.
+    Test Calltip.
 
     See spyder-ide/spyder#10842
     """
@@ -1556,8 +1557,9 @@ def test_calltip_working(ipyconsole, qtbot):
     control.setFocus()
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = {"a": 1}')
-    qtbot.keyClicks(control, 'a[sorted(a.keys(')
-    qtbot.wait(500)
+    qtbot.keyClicks(control, 'a.keys(', delay=100)
+    qtbot.wait(1000)
+    assert control.calltip_widget.isVisible()
 
 
 if __name__ == "__main__":
