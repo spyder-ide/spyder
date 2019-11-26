@@ -1978,13 +1978,7 @@ class EditorStack(QWidget):
             self.modification_changed(index=index)
             self.analyze_script(index)
 
-            #XXX CodeEditor-only: re-scan the whole text to rebuild outline
-            # explorer data from scratch (could be optimized because
-            # rehighlighting text means searching for all syntax coloring
-            # patterns instead of only searching for class/def patterns which
-            # would be sufficient for outline explorer data.
-            finfo.editor.rehighlight()
-
+            # Rebuild the outline explorer data
             self._refresh_outlineexplorer(index)
 
             finfo.editor.notify_save()

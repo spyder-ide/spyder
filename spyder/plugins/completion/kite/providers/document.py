@@ -101,6 +101,21 @@ class DocumentProvider:
             self.opened_files[params['file']] = params['text']
         return request
 
+    @send_request(method=LSPRequestTypes.DOCUMENT_CURSOR_EVENT)
+    def document_cursor_event(self, params):
+        request = {
+            'source': 'spyder',
+            'filename': osp.realpath(params['file']),
+            'text': params['text'],
+            'action': 'edit',
+            'selections': [{
+                'start': params['selection_start'],
+                'end': params['selection_end'],
+                'encoding': 'utf-16',
+            }],
+        }
+        return request
+
     @send_request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
     def request_document_completions(self, params):
         text = self.opened_files[params['file']]

@@ -47,12 +47,14 @@ class WebPage(QWebEnginePage):
         if navigation_type == QWebEnginePage.NavigationTypeLinkClicked:
             self.linkClicked.emit(url)
             return False
-        return True
+
+        return super(WebPage, self).acceptNavigationRequest(
+            url, navigation_type, isMainFrame)
 
 
 class WebView(QWebEngineView):
     """Web view"""
-    def __init__(self, parent):
+    def __init__(self, parent, handle_links=True):
         QWebEngineView.__init__(self, parent)
         self.zoom_factor = 1.
         self.zoom_out_action = create_action(self, _("Zoom out"),
@@ -62,7 +64,10 @@ class WebView(QWebEngineView):
                                             icon=ima.icon('zoom_in'),
                                             triggered=self.zoom_in)
         if WEBENGINE:
-            web_page = WebPage(self)
+            if handle_links:
+                web_page = WebPage(self)
+            else:
+                web_page = QWebEnginePage(self)
             self.setPage(web_page)
             self.source_text = ''
 
@@ -209,12 +214,12 @@ class WebBrowser(QWidget):
     """
     Web browser widget
     """
-    def __init__(self, parent=None, options_button=None):
+    def __init__(self, parent=None, options_button=None, handle_links=True):
         QWidget.__init__(self, parent)
 
         self.home_url = None
 
-        self.webview = WebView(self)
+        self.webview = WebView(self, handle_links=handle_links)
         self.webview.loadFinished.connect(self.load_finished)
         self.webview.titleChanged.connect(self.setWindowTitle)
         self.webview.urlChanged.connect(self.url_changed)
