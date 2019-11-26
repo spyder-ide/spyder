@@ -1539,9 +1539,11 @@ def test_pdb_ignore_lib(ipyconsole, qtbot):
     assert 'iostream.py' not in control.toPlainText()
 
 
-def test_ipython_calltip(ipyconsole, qtbot):
+@flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
+def test_calltip_working(ipyconsole, qtbot):
     """
-    Test Calltip.
+    Test that calltip is working as expected.
 
     See spyder-ide/spyder#10842
     """
