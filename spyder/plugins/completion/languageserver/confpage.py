@@ -16,17 +16,18 @@ import sys
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize, QProcess
+from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QProcess, QSize, Qt,
+                         Slot)
 from qtpy.QtWidgets import (QAbstractItemView, QButtonGroup, QCheckBox,
-                            QComboBox, QDialog, QDialogButtonBox, QGroupBox,
-                            QGridLayout, QHBoxLayout, QLabel, QLineEdit,
+                            QComboBox, QDialog, QDialogButtonBox, QGridLayout,
+                            QGroupBox, QHBoxLayout, QLabel, QLineEdit,
                             QMessageBox, QPushButton, QSpinBox, QTableView,
                             QTabWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _, get_home_dir
-from spyder.config.manager import CONF
 from spyder.config.gui import get_font, is_dark_interface
+from spyder.config.manager import CONF
 from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
@@ -39,7 +40,6 @@ LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
 LSP_URL = "https://microsoft.github.io/language-server-protocol"
 
 
-
 def get_pylint_default_path():
     """Get pyling default location on user home directory."""
     return os.path.join(get_home_dir(), '.pylintrc')
@@ -48,7 +48,7 @@ def get_pylint_default_path():
 def get_pylint_config():
     """Get location of current pylint configurtion file."""
     try:
-        from pylint.config  import find_pylintrc
+        from pylint.config import find_pylintrc
         pylint_rc = find_pylintrc()
     except Exception:
         pylint_rc = None
@@ -860,7 +860,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         if pylintrc is None:
             generate_pylint_config()
             pylintrc = get_pylint_default_path()
-        
+
         current_pylint_file = QLabel(
             _('Using') + ': <a href="{0}">{0}</a>'.format(pylintrc))
         underline_errors_box = newcb(
