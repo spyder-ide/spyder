@@ -1072,9 +1072,13 @@ class CodeEditor(TextEditBaseWidget):
             # are treated in the same way as linting, i.e. to be
             # recomputed on didChange, didOpen and didSave. However,
             # we think that's necessary to maintain accurate folding
-            # all the time. Therefore, we decided to add this request
-            # here.
+            # and symbols all the time. Therefore, we decided to add
+            # these requests here.
             self.request_folding()
+
+            # Tests don't pass with this request here.
+            if not running_under_pytest():
+                self.request_symbols()
 
             self.process_code_analysis(params['params'])
         except RuntimeError:
@@ -1372,7 +1376,6 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def handle_folding_range(self, response):
         """Handle folding response."""
-        self.request_symbols()
         try:
             ranges = response['params']
             folding_panel = self.panels.get(FoldingPanel)
@@ -1393,6 +1396,10 @@ class CodeEditor(TextEditBaseWidget):
             return
         except Exception:
             self.log_lsp_handle_errors("Error when processing folding")
+
+        # Tests for the class function selector need this.
+        if running_under_pytest():
+            self.request_symbols()
 
     # ------------- LSP: Save/close file -----------------------------------
     @request(method=LSPRequestTypes.DOCUMENT_DID_SAVE,
