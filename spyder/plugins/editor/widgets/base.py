@@ -866,7 +866,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """
         if not completion:
             return
+
         cursor = self.textCursor()
+
+        has_selected_text = self.has_selected_text()
+        selection_start, selection_end = self.get_selection_start_end()
+
         if isinstance(completion, dict) and 'textEdit' in completion:
             cursor.setPosition(completion['textEdit']['range']['start'])
             cursor.setPosition(completion['textEdit']['range']['end'],
@@ -894,6 +899,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 # Check if we are in the correct position
                 if cursor.position() != completion_position:
                     return
+
+        if has_selected_text:
+            self.sig_will_remove_selection.emit(selection_start, selection_end)
 
         cursor.removeSelectedText()
         self.setTextCursor(cursor)

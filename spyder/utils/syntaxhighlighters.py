@@ -185,7 +185,6 @@ class BaseSH(QSyntaxHighlighter):
         self.setup_formats(font)
 
         self.cell_separators = None
-        self.request_folding = True
         self.editor = None
         self.patterns = DEFAULT_COMPILED_PATTERNS
 
@@ -290,12 +289,6 @@ class BaseSH(QSyntaxHighlighter):
         :param text: text to highlight.
         """
         self.highlight_block(text)
-        if self.request_folding:
-            if self.editor is not None:
-                if self.editor.folding_supported and self.editor.code_folding:
-                    diff, _ = self.editor.text_diff
-                    if len(diff) > 0:
-                        self.editor.request_folding()
 
     def highlight_block(self, text):
         """
@@ -360,9 +353,7 @@ class BaseSH(QSyntaxHighlighter):
 
     def rehighlight(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        self.request_folding = False
         QSyntaxHighlighter.rehighlight(self)
-        self.request_folding = True
         QApplication.restoreOverrideCursor()
 
 
