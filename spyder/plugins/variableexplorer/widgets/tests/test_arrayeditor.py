@@ -99,6 +99,14 @@ def test_arrayeditor_format(qtbot):
     assert contents == "1.000000000000000000e+00\n2.000000000000000000e+00\n"
 
 
+def test_arrayeditor_with_inf_array(qtbot, recwarn):
+    """See: spyder-ide/spyder#8093"""
+    arr = np.array([np.inf])
+    res = launch_arrayeditor(arr, "inf array")
+    assert len(recwarn) == 0
+    assert arr == res
+
+
 def test_arrayeditor_with_string_array(qtbot):
     arr = np.array(["kjrekrjkejr"])
     assert arr == launch_arrayeditor(arr, "string array")
