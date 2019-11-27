@@ -221,6 +221,28 @@ def test_arrayeditor_edit_2d_array(qtbot):
     assert np.sum(diff_arr != dlg.get_value()) == 2
 
 
+def test_arrayeditor_edit_complex_array(qtbot):
+    """See: spyder-ide/spyder#7848"""
+    cnum = -1+0.5j
+    arr = (np.random.random((10, 10)) - 0.50) * cnum
+    dlg = ArrayEditor()
+    assert dlg.setup_and_check(arr, '2D complex array', xlabels=None,
+                               ylabels=None)
+    dlg.show()
+    qtbot.waitForWindowShown(dlg)
+    view = dlg.arraywidget.view
+    qtbot.keyPress(view, Qt.Key_Down)
+
+    # Prevent the test from failing
+    qtbot.wait(300)
+
+    # This is the actual editor widget on the cell
+    cell_editor = view.viewport().focusWidget()
+    qtbot.keyClicks(cell_editor, str(cnum))
+    qtbot.keyPress(cell_editor, Qt.Key_Return)
+    dlg.accept()
+
+
 def test_arraymodel_set_data_overflow(monkeypatch):
     """
     Test that entry of an overflowing integer is caught and handled properly.

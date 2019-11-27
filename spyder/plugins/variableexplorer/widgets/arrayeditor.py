@@ -346,11 +346,16 @@ class ArrayModel(QAbstractTableModel):
         # Add change to self.changes
         self.changes[(i, j)] = val
         self.dataChanged.emit(index, index)
+
         if not is_string(val):
+            val = self.color_func(val)
+
             if val > self.vmax:
                 self.vmax = val
+
             if val < self.vmin:
                 self.vmin = val
+
         return True
 
     def flags(self, index):
