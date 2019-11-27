@@ -180,6 +180,7 @@ def ipyconsole(qtbot, request):
     # Close
     console.closing_plugin()
     console.close()
+    window.close()
 
 
 # =============================================================================
@@ -1537,6 +1538,28 @@ def test_pdb_ignore_lib(ipyconsole, qtbot):
         qtbot.keyClick(control, Qt.Key_Enter)
 
     assert 'iostream.py' not in control.toPlainText()
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
+def test_calltip(ipyconsole, qtbot):
+    """
+    Test Calltip.
+
+    See spyder-ide/spyder#10842
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = {"a": 1}')
+    qtbot.keyClicks(control, 'a.keys(', delay=100)
+    qtbot.wait(1000)
+    assert control.calltip_widget.isVisible()
 
 
 if __name__ == "__main__":

@@ -548,7 +548,7 @@ class BaseEditMixin(object):
         # Find position of calltip
         point = self._calculate_position()
         signature = signature.strip()
-
+        inspect_word = None
         language = getattr(self, 'language', language).lower()
         if language == 'python' and signature:
             inspect_word = signature.split('(')[0]

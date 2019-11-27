@@ -290,8 +290,9 @@ class BasePluginWidgetMixin(object):
 
     @Slot()
     def _plugin_closed(self):
-        """DockWidget was closed"""
-        self._toggle_view_action.setChecked(False)
+        """DockWidget was closed."""
+        if self._toggle_view_action:
+            self._toggle_view_action.setChecked(False)
 
     def _get_font(self, rich_text=False):
         """Return plugin font."""
