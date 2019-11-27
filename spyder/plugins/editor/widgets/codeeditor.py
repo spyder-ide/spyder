@@ -2295,9 +2295,11 @@ class CodeEditor(TextEditBaseWidget):
         when the user leaves the Linenumber area when hovering over lint
         warnings and errors.
         """
+        self._timer_mouse_moving.stop()
         self._last_hover_word = None
-        self.tooltip_widget.hide()
         self.clear_extra_selections('code_analysis_highlight')
+        if self.tooltip_widget.isVisible():
+            self.tooltip_widget.hide()
 
     def _set_completions_hint_idle(self):
         self._completions_hint_idle = True
@@ -4216,6 +4218,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def mousePressEvent(self, event):
         """Override Qt method."""
+        self.hide_tooltip()
         self.kite_call_to_action.handle_mouse_press(event)
 
         ctrl = event.modifiers() & Qt.ControlModifier
@@ -4463,6 +4466,7 @@ class TestWidget(QSplitter):
                                               osp.dirname(filename)))
         oe_proxy = OutlineExplorerProxyEditor(self.editor, filename)
         self.classtree.set_current_editor(oe_proxy, False, False)
+        self.hide_tooltip()
 
 
 def test(fname):
