@@ -4,8 +4,13 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
+# Standard library imports
 import logging
 import re
+
+# Local imports
+from spyder.py3compat import PY2
+
 
 ident_re = r'[a-zA-Z_][a-zA-Z0-9_]*'
 dotted_path_re = r'{ident}(?:\.{ident})*'.format(ident=ident_re)
@@ -41,8 +46,9 @@ def find_returning_function_path(text, cursor, line_start='\n'):
     if not re.match(ident_full_re, name):
         return None
 
-    # find the previous occurrence of name = dotted.path()
-    name_re = re.escape(name)
+    if PY2:
+        line_start = line_start.encode('utf-8')
+
     assign_re = r'{line_start}\s*{name}\s*=\s*({dotted_path})\('.format(
         line_start=re.escape(line_start),
         name=re.escape(name),

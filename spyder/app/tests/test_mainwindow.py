@@ -235,7 +235,8 @@ def cleanup(request):
 # =============================================================================
 @pytest.mark.slow
 @pytest.mark.single_instance
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
+@pytest.mark.skipif((os.environ.get('CI', None) is None or (PY2
+                     and sys.platform == 'darwin')),
                     reason="It's not meant to be run outside of CIs")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and %edit magic."""
@@ -1815,6 +1816,59 @@ def example_def_2():
     switcher.close()
 
 
+@flaky(max_runs=3)
+@pytest.mark.slow
+def test_edidorstack_open_switcher_dlg(main_window, tmpdir):
+    """
+    Test that the file switcher is working as expected when called from the
+    editorstack.
+
+    Regression test for spyder-ide/spyder#10684
+    """
+    # Add a file to the editor.
+    file = tmpdir.join('test_file_open_switcher_dlg.py')
+    file.write("a test file for test_edidorstack_open_switcher_dlg")
+    main_window.editor.load(str(file))
+
+    # Test that the file switcher opens as expected from the editorstack.
+    editorstack = main_window.editor.get_current_editorstack()
+    assert editorstack.switcher_dlg is None
+    editorstack.open_switcher_dlg()
+    assert editorstack.switcher_dlg
+    assert editorstack.switcher_dlg.isVisible()
+    assert (editorstack.switcher_dlg.count() ==
+            len(main_window.editor.get_filenames()))
+
+
+@flaky(max_runs=3)
+@pytest.mark.slow
+def test_edidorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
+    """
+    Test that the symbol finder is working as expected when called from the
+    editorstack.
+
+    Regression test for spyder-ide/spyder#10684
+    """
+    # Add a file to the editor.
+    file = tmpdir.join('test_file.py')
+    file.write('''
+               def example_def():
+                   pass
+
+               def example_def_2():
+                   pass
+               ''')
+    main_window.editor.load(str(file))
+
+    # Test that the symbol finder opens as expected from the editorstack.
+    editorstack = main_window.editor.get_current_editorstack()
+    assert editorstack.switcher_dlg is None
+    editorstack.open_symbolfinder_dlg()
+    assert editorstack.switcher_dlg
+    assert editorstack.switcher_dlg.isVisible()
+    assert editorstack.switcher_dlg.count() == 2
+
+
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_run_static_code_analysis(main_window, qtbot):
@@ -2079,6 +2133,12 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
 
+    # Close split panel
+    for editorstack in reversed(main_window.editor.editorstacks):
+        editorstack.close_split()
+        break
+    qtbot.wait(1000)
+
 
 @pytest.mark.slow
 @flaky(max_runs=3)
@@ -2104,55 +2164,6 @@ def test_report_comms_error(qtbot, main_window):
     assert 'No module named' in error_dlg.error_traceback
     main_window.console.close_error_dlg()
     CONF.set('main', 'show_internal_errors', False)
-
-
-@pytest.mark.slow
-def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
-    """
-    Test for spyder-ide/spyder/#10139 regression.
-
-    Enabling codestyle/docstyle on the completion section of preferences,
-    was not updating correctly.
-    """
-    def trigger():
-        pref = main_window.prefs_dialog_instance
-        index = 5
-        page = pref.get_page(index)
-        pref.set_current_index(index)
-        qtbot.wait(1000)
-
-        for idx, check in enumerate([page.code_style_check,
-                                     page.docstring_style_check]):
-            page.tabs.setCurrentIndex(idx + 2)
-            check.animateClick(200)
-            qtbot.wait(1000)
-
-        qtbot.wait(4000)
-        pref.ok_btn.animateClick(300)
-
-
-    CONF.set('lsp-server', 'pycodestyle', False)
-    CONF.set('lsp-server', 'pydocstyle', False)
-
-    timer = QTimer()
-    timer.setSingleShot(True)
-    timer.timeout.connect(trigger)
-    timer.start(5000)
-
-    main_window.show_preferences()
-    qtbot.wait(5000)
-
-    for menu_item in main_window.source_menu_actions:
-        if menu_item and isinstance(menu_item, QAction):
-            print(menu_item.text(), menu_item.isChecked())
-
-            if 'code style' in menu_item.text():
-                assert menu_item.isChecked()
-            elif 'docstring style' in menu_item.text():
-                assert menu_item.isChecked()
-
-    CONF.set('lsp-server', 'pycodestyle', False)
-    CONF.set('lsp-server', 'pydocstyle', False)
 
 
 @pytest.mark.slow
@@ -2211,6 +2222,70 @@ def test_break_while_running(main_window, qtbot, tmpdir):
     main_window.editor.clear_all_breakpoints()
 
 
+# --- Preferences
+# ----------------------------------------------------------------------------
+def preferences_dialog_helper(qtbot, main_window, section):
+    """
+    Open preferences dialog and select page with `section` (CONF_SECTION).
+    """
+    main_window.show_preferences()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is not None,
+                    timeout=5000)
+    dlg = main_window.prefs_dialog_instance
+    index = dlg.get_index_by_name(section)
+    page = dlg.get_page(index)
+    dlg.set_current_index(index)
+    return dlg, index, page
+
+
+@pytest.mark.slow
+def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
+    """
+    Test for spyder-ide/spyder/#10139 regression.
+
+    Enabling codestyle/docstyle on the completion section of preferences,
+    was not updating correctly.
+    """
+    # Reset config
+    CONF.set('lsp-server', 'pycodestyle', False)
+    CONF.set('lsp-server', 'pydocstyle', False)
+
+    # Open completion prefences and update options
+    dlg, index, page = preferences_dialog_helper(qtbot, main_window,
+                                                 'lsp-server')
+    # Get the correct tab pages inside the Completion preferences page
+    tnames = [page.tabs.tabText(i).lower() for i in range(page.tabs.count())]
+    tab_widgets = {
+        tnames.index('code style'): page.code_style_check,
+        tnames.index('docstring style'): page.docstring_style_check,
+    }
+    for idx, check in tab_widgets.items():
+        page.tabs.setCurrentIndex(idx)
+        check.animateClick()
+        qtbot.wait(500)
+    dlg.ok_btn.animateClick()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+                    timeout=5000)
+
+    # Check the menus are correctly updated
+    count = 0
+    for menu_item in main_window.source_menu_actions:
+        if menu_item and isinstance(menu_item, QAction):
+            print(menu_item.text(), menu_item.isChecked())
+
+            if 'code style' in menu_item.text():
+                assert menu_item.isChecked()
+                count += 1
+            elif 'docstring style' in menu_item.text():
+                assert menu_item.isChecked()
+                count += 1
+    assert count == 2
+
+    # Reset config
+    CONF.set('lsp-server', 'pycodestyle', False)
+    CONF.set('lsp-server', 'pydocstyle', False)
+
+
 @pytest.mark.slow
 def test_preferences_change_font_regression(main_window, qtbot):
     """
@@ -2218,30 +2293,63 @@ def test_preferences_change_font_regression(main_window, qtbot):
 
     Changing font resulted in error.
     """
-    def trigger():
-        pref = main_window.prefs_dialog_instance
-        index = 1
-        page = pref.get_page(index)
-        pref.set_current_index(index)
-        qtbot.wait(1000)
+    dlg, index, page = preferences_dialog_helper(qtbot, main_window,
+                                                 'appearance')
+    for fontbox in [page.plain_text_font.fontbox,
+                    page.rich_text_font.fontbox]:
+        fontbox.setFocus()
+        idx = fontbox.currentIndex()
+        fontbox.setCurrentIndex(idx + 1)
+    dlg.ok_btn.animateClick()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+                    timeout=5000)
 
-        for fontbox in [page.plain_text_font.fontbox,
-                        page.rich_text_font.fontbox]:
-            fontbox.setFocus()
-            idx = fontbox.currentIndex()
-            fontbox.setCurrentIndex(idx + 1)
-            qtbot.wait(1000)
 
-        qtbot.wait(4000)
-        pref.ok_btn.animateClick(300)
+@pytest.mark.slow
+def test_preferences_change_interpreter(qtbot, main_window):
+    """Test that on main interpreter change signal is emitted."""
+    # Check original pyls configuration
+    lsp = main_window.completions.get_client('lsp')
+    config = lsp.generate_python_config()
+    jedi = config['configurations']['pyls']['plugins']['jedi']
+    assert jedi['environment'] is None
+    assert jedi['extra_paths'] == []
 
-    timer = QTimer()
-    timer.setSingleShot(True)
-    timer.timeout.connect(trigger)
-    timer.start(5000)
+    # Change main interpreter on preferences
+    dlg, index, page = preferences_dialog_helper(qtbot, main_window,
+                                                 'main_interpreter')
+    page.cus_exec_radio.setChecked(True)
+    page.cus_exec_combo.combobox.setCurrentText(sys.executable)
+    with qtbot.waitSignal(main_window.sig_main_interpreter_changed,
+                          timeout=5000, raising=True):
+        dlg.ok_btn.animateClick()
+
+    # Check updated pyls configuration
+    config = lsp.generate_python_config()
+    jedi = config['configurations']['pyls']['plugins']['jedi']
+    assert jedi['environment'] == sys.executable
+    assert jedi['extra_paths'] == []
+
+
+@pytest.mark.slow
+def test_preferences_last_page_is_loaded(qtbot, main_window):
+    # Test that the last page is updated on re open
+    dlg, index, page = preferences_dialog_helper(qtbot, main_window,
+                                                 'main_interpreter')
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is not None,
+                    timeout=5000)
+    dlg.ok_btn.animateClick()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+                    timeout=5000)
 
     main_window.show_preferences()
-    qtbot.wait(5000)
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is not None,
+                    timeout=5000)
+    dlg = main_window.prefs_dialog_instance
+    assert dlg.get_current_index() == index
+    dlg.ok_btn.animateClick()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+                    timeout=5000)
 
 
 @pytest.mark.slow
@@ -2287,8 +2395,11 @@ def test_go_to_definition(main_window, qtbot, capsys):
     with qtbot.waitSignal(code_editor.lsp_response_signal):
         code_editor.go_to_definition_from_cursor()
 
-    # Assert there's one more file open than before
-    assert len(main_window.editor.get_filenames()) == n_editors + 1
+    def _get_filenames():
+        return [osp.basename(f) for f in main_window.editor.get_filenames()]
+
+    qtbot.waitUntil(lambda: 'QtCore.py' in _get_filenames())
+    assert 'QtCore.py' in _get_filenames()
 
 
 @pytest.mark.slow
@@ -2377,6 +2488,124 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+def test_varexp_rename(main_window, qtbot, tmpdir):
+    """
+    Test renaming a variable.
+    Regression test for spyder-ide/spyder#10735
+    """
+    # ---- Setup ----
+    p = (tmpdir.mkdir(u"varexp_rename").join(u"script.py"))
+    filepath = to_text_string(p)
+    shutil.copyfile(osp.join(LOCATION, 'script.py'), filepath)
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Load test file
+    main_window.editor.load(filepath)
+
+    # Move to the editor's first line
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.setFocus()
+    qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+
+    # Get a reference to the namespace browser widget
+    nsb = main_window.variableexplorer.get_focus_widget()
+
+    # ---- Run file ----
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_F5)
+
+    # Wait until all objects have appeared in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+                    timeout=EVAL_TIMEOUT)
+
+    # Rename one element
+    nsb.editor.setCurrentIndex(nsb.editor.model.index(1, 0))
+    nsb.editor.rename_item(new_name='arr2')
+
+    # Wait until all objects have updated in the variable explorer
+    def data(cm, i, j):
+        return cm.data(cm.index(i, j))
+    qtbot.waitUntil(lambda: data(nsb.editor.model, 1, 0) == 'arr2',
+                    timeout=EVAL_TIMEOUT)
+
+    assert data(nsb.editor.model, 0, 0) == 'a'
+    assert data(nsb.editor.model, 1, 0) == 'arr2'
+    assert data(nsb.editor.model, 2, 0) == 'li'
+    assert data(nsb.editor.model, 3, 0) == 's'
+
+    # ---- Run file again ----
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_F5)
+
+    # Wait until all objects have appeared in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 5,
+                    timeout=EVAL_TIMEOUT)
+
+    assert data(nsb.editor.model, 0, 0) == 'a'
+    assert data(nsb.editor.model, 1, 0) == 'arr'
+    assert data(nsb.editor.model, 2, 0) == 'arr2'
+    assert data(nsb.editor.model, 3, 0) == 'li'
+    assert data(nsb.editor.model, 4, 0) == 's'
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_varexp_remove(main_window, qtbot, tmpdir):
+    """
+    Test removing a variable.
+    Regression test for spyder-ide/spyder#10709
+    """
+    # ---- Setup ----
+    p = (tmpdir.mkdir(u"varexp_remove").join(u"script.py"))
+    filepath = to_text_string(p)
+    shutil.copyfile(osp.join(LOCATION, 'script.py'), filepath)
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Load test file
+    main_window.editor.load(filepath)
+
+    # Move to the editor's first line
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.setFocus()
+    qtbot.keyClick(code_editor, Qt.Key_Home, modifier=Qt.ControlModifier)
+
+    # Get a reference to the namespace browser widget
+    nsb = main_window.variableexplorer.get_focus_widget()
+
+    # ---- Run file ----
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_F5)
+
+    # Wait until all objects have appeared in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 4,
+                    timeout=EVAL_TIMEOUT)
+
+    # Remove one element
+    nsb.editor.setCurrentIndex(nsb.editor.model.index(1, 0))
+    nsb.editor.remove_item(force=True)
+
+    # Wait until all objects have appeared in the variable explorer
+    qtbot.waitUntil(lambda: nsb.editor.model.rowCount() == 3,
+                    timeout=EVAL_TIMEOUT)
+
+    def data(cm, i, j):
+        assert cm.rowCount() == 3
+        return cm.data(cm.index(i, j))
+    assert data(nsb.editor.model, 0, 0) == 'a'
+    assert data(nsb.editor.model, 1, 0) == 'li'
+    assert data(nsb.editor.model, 2, 0) == 's'
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_varexp_refresh(main_window, qtbot):
     """
     Test refreshing the variable explorer while the kernel is executing.
@@ -2400,7 +2629,7 @@ def test_varexp_refresh(main_window, qtbot):
     # This is empty
     assert len(nsb.editor.source_model._data) == 0
 
-    nsb.refresh_table()
+    nsb.refresh_table(interrupt=True)
     qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
 
     assert 0 < int(nsb.editor.source_model._data['i']['view']) < 9
@@ -2469,7 +2698,8 @@ def test_runcell_pdb(main_window, qtbot):
 
     for key in ['n', 'n', 's', 'n', 'n']:
         qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>',
+            timeout=3000)
         qtbot.keyClick(shell._control, key)
         qtbot.keyClick(shell._control, Qt.Key_Enter)
 

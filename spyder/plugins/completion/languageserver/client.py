@@ -67,6 +67,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     #  facilities.
     sig_server_error = Signal(str)
 
+    #: Signal to warn the user when either the transport layer or the
+    #  server are down
+    sig_lsp_down = Signal(str)
+
     def __init__(self, parent,
                  server_settings={},
                  folder=getcwd_or_home(),
@@ -78,6 +82,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.zmq_in_port = None
         self.zmq_out_port = None
         self.transport_client = None
+        self.lsp_server = None
         self.notifier = None
         self.language = language
 
@@ -135,6 +140,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_args += [server_settings['cmd']]
         if len(server_args) > 0:
             self.server_args += server_args.split(' ')
+        self.server_unresponsive = False
 
         self.transport_args += transport_args.split(' ')
         self.transport_args += ['--folder', folder]
@@ -144,6 +150,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         else:
             self.transport_args += ['--stdio-server']
             self.external_server = True
+        self.transport_unresponsive = False
 
     def start(self):
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
@@ -274,6 +281,25 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.lsp_server.kill()
 
     def send(self, method, params, kind):
+        # Detect when the transport layer is down to show a message
+        # to our users about it.
+        if (self.transport_client is not None and
+                self.transport_client.poll() is not None):
+            logger.debug(
+                "Transport layer for {} is down!!".format(self.language))
+            if not self.transport_unresponsive:
+                self.transport_unresponsive = True
+                self.sig_lsp_down.emit(self.language)
+            return
+
+        if (self.lsp_server is not None and
+                self.lsp_server.poll() is not None):
+            logger.debug("LSP server for {} is down!!".format(self.language))
+            if not self.server_unresponsive:
+                self.server_unresponsive = True
+                self.sig_lsp_down.emit(self.language)
+            return
+
         if ClientConstants.CANCEL in params:
             return
         _id = self.request_seq

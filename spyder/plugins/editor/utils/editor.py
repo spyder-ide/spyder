@@ -202,13 +202,8 @@ class TextHelper(object):
         else:
             if block.isVisible():
                 return
-            from spyder.plugins.editor.utils.folding import FoldScope
-
-            while not block.isVisible():
-                # Find first uncolapsed block
-                block = FoldScope.find_parent_scope(block.previous())
-                if TextBlockHelper.is_collapsed(block):
-                    folding_panel.toggle_fold_trigger(block)
+            block = folding_panel.find_parent_scope(block)
+            folding_panel.toggle_fold_trigger(block)
 
     def selected_text(self):
         """Returns the selected text."""
