@@ -3095,7 +3095,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def show_preferences(self):
-        """Edit Spyder preferences"""
+        """Edit Spyder preferences."""
         from spyder.preferences.configdialog import ConfigDialog
 
         def _dialog_finished(result_code):
@@ -3201,6 +3201,11 @@ class MainWindow(QMainWindow):
                 toberemoved.append(index)
         for index in sorted(toberemoved, reverse=True):
             self.shortcut_data.pop(index)
+
+        # TODO: Update plugin API to include an update shortcuts method
+        # See: spyder-ide/spyder#6992
+        if self.help:
+            self.help.show_intro_message()
 
     @Slot()
     def show_shortcuts_dialog(self):

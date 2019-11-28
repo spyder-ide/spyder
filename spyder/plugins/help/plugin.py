@@ -19,6 +19,7 @@ from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 # Local imports
 from spyder.config.base import _, get_conf_path, get_module_source_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
+from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import icon_manager as ima
@@ -393,24 +394,42 @@ class Help(SpyderPluginWidget):
         self.save_text([self.rich_text.set_html, html_text, base_url])
 
     def show_intro_message(self):
-        intro_message = _("Here you can get help of any object by pressing "
-                          "%s in front of it, either on the Editor or the "
-                          "Console.%s"
-                          "Help can also be shown automatically after writing "
-                          "a left parenthesis next to an object. You can "
-                          "activate this behavior in %s.")
+        intro_message_eq = _(
+            "Here you can get help of any object by pressing "
+            "%s in front of it, either on the Editor or the "
+            "Console.%s")
+        intro_message_dif = _(
+            "Here you can get help of any object by pressing "
+            "%s in front of it on the Editor, or %s in front "
+            "of it on the Console.%s")
+        intro_message_common = _(
+            "Help can also be shown automatically after writing "
+            "a left parenthesis next to an object. You can "
+            "activate this behavior in %s.")
         prefs = _("Preferences > Help")
+        shortcut_editor = self.get_option('editor/inspect current object',
+                                          section='shortcuts')
+        shortcut_console = self.get_option('console/inspect current object',
+                                           section='shortcuts')
+
         if sys.platform == 'darwin':
-            shortcut = "Cmd+I"
-        else:
-            shortcut = "Ctrl+I"
+            shortcut_editor = shortcut_editor.replace('Ctrl', 'Cmd')
+            shortcut_console = shortcut_console.replace('Ctrl', 'Cmd')
 
         if self.is_rich_text_mode():
             title = _("Usage")
             tutorial_message = _("New to Spyder? Read our")
             tutorial = _("tutorial")
-            intro_message = intro_message % ("<b>"+shortcut+"</b>", "<br><br>",
-                                             "<i>"+prefs+"</i>")
+            if shortcut_editor == shortcut_console:
+                intro_message = (intro_message_eq + intro_message_common) % (
+                    "<b>"+shortcut_editor+"</b>", "<br><br>",
+                    "<i>"+prefs+"</i>")
+            else:
+                intro_message = (intro_message_dif + intro_message_common) % (
+                    "<b>"+shortcut_editor+"</b>",
+                    "<b>"+shortcut_console+"</b>",
+                    "<br><br>", "<i>"+prefs+"</i>")
+
             self.set_rich_text_html(usage(title, intro_message,
                                           tutorial_message, tutorial,
                                           css_path=self.css_path),
@@ -419,7 +438,13 @@ class Help(SpyderPluginWidget):
             install_sphinx = "\n\n%s" % _("Please consider installing Sphinx "
                                           "to get documentation rendered in "
                                           "rich text.")
-            intro_message = intro_message % (shortcut, "\n\n", prefs)
+            if shortcut_editor == shortcut_console:
+                intro_message = (intro_message_eq + intro_message_common) % (
+                    shortcut_editor, "\n\n", prefs)
+            else:
+                intro_message = (intro_message_dif + intro_message_common) % (
+                    shortcut_editor, shortcut_console, "\n\n", prefs)
+
             intro_message += install_sphinx
             self.set_plain_text(intro_message, is_code=False)
 
