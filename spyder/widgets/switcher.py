@@ -913,7 +913,7 @@ def create_vcs_example_switcher(sw):
                 icon=ima.icon('MessageBoxInformation'))
     sw.add_item(title='master', description='123123')
     sw.add_item(title='develop', description='1231232a')
-    sw.add_item(title=u'unícode', description='1231232ab')
+    sw.add_item(title=u'test-试', description='1231232ab')
     sw.add_separator()
     sw.add_item(title='other', description='q2211231232a')
 

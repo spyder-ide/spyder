@@ -113,6 +113,6 @@ def test_switcher_filter_unicode(dlg_switcher, qtbot):
     assert dlg_switcher.count() == 6
     dlg_switcher.show()
     # Match one row by name
-    edit.setText('uní')
-    qtbot.wait(10000)
+    edit.setText('试')
+    qtbot.wait(1000)
     assert dlg_switcher.count() == 2
