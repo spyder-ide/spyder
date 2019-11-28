@@ -470,7 +470,7 @@ class FindReplace(QWidget):
 
     @Slot()
     def replace_find(self, focus_replace_text=False, replace_all=False):
-        """Replace and find"""
+        """Replace and find."""
         if self.editor is None:
             return
         replace_text = to_text_string(self.replace_text.currentText())
@@ -478,6 +478,7 @@ class FindReplace(QWidget):
         re_pattern = None
         case = self.case_button.isChecked()
         re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
+
         # Check regexp before proceeding
         if self.re_button.isChecked():
             try:
@@ -527,23 +528,34 @@ class FindReplace(QWidget):
                     # Identify wrapping even when the replace string
                     # includes part of the search string
                     wrapped = True
+
                 if wrapped:
-                    if position1 == position or \
-                       is_position_sup(position1, position):
+                    if (position1 == position
+                            or is_position_sup(position1, position)):
                         # Avoid infinite loop: replace string includes
                         # part of the search string
                         break
+
                 if position1 == position0:
                     # Avoid infinite loop: single found occurrence
                     break
                 position0 = position1
+
             if re_pattern is None:
                 cursor.removeSelectedText()
                 cursor.insertText(replace_text)
             else:
                 seltxt = to_text_string(cursor.selectedText())
+
+                # Note: If the selection obtained from an editor spans a line
+                # break, the text will contain a Unicode U+2029 paragraph
+                # separator character instead of a newline \n character.
+                # See: spyder-ide/spyder#2675
+                seltxt = seltxt.replace(u'\u2029', u'\n')
+
                 cursor.removeSelectedText()
                 cursor.insertText(re_pattern.sub(replace_text, seltxt))
+
             if self.find_next(set_focus=False):
                 found_cursor = self.editor.textCursor()
                 cursor.setPosition(found_cursor.selectionStart(),
@@ -552,10 +564,13 @@ class FindReplace(QWidget):
                                    QTextCursor.KeepAnchor)
             else:
                 break
+
             if not replace_all:
                 break
+
         if cursor is not None:
             cursor.endEditBlock()
+
         if focus_replace_text:
             self.replace_text.setFocus()
         else:
