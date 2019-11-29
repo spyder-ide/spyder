@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-11-27 16:57+-05\n"
-"PO-Revision-Date: 2019-11-29 19:05+0800\n"
+"PO-Revision-Date: 2019-11-29 22:55+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -2349,15 +2349,15 @@ msgstr "另存为(&A)..."
 
 #: spyder/plugins/editor/plugin.py:446
 msgid "Save current file as..."
-msgstr "另存当前文件为..."
+msgstr "将当前文件另存为..."
 
 #: spyder/plugins/editor/plugin.py:451
 msgid "Save copy as..."
-msgstr "另存为..."
+msgstr "保存副本..."
 
 #: spyder/plugins/editor/plugin.py:452
 msgid "Save copy of current file as..."
-msgstr "另存为..."
+msgstr "将当前文件的一个副本保存为..."
 
 #: spyder/plugins/editor/plugin.py:455 spyder/plugins/editor/plugin.py:456
 msgid "Print preview..."
@@ -2765,7 +2765,7 @@ msgstr "创建自动保存文件夹时出错"
 
 #: spyder/plugins/editor/utils/autosave.py:367
 msgid "Error while autosaving {} to {}"
-msgstr "将 {} 自动保存为 {} 时出错"
+msgstr "将 {} 自动保存为 {} 时出错u"
 
 #: spyder/plugins/editor/utils/debugger.py:94
 msgid "Breakpoint"
@@ -5180,17 +5180,17 @@ msgstr "过滤器"
 #: spyder/plugins/variableexplorer/confpage.py:21
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:262
 msgid "Exclude private references"
-msgstr "排除私有引用"
+msgstr "排除私有 (private) 引用"
 
 #: spyder/plugins/variableexplorer/confpage.py:22
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:277
 msgid "Exclude capitalized references"
-msgstr "排除名字以大写字母开头的引用"
+msgstr "排除大写字母引用"
 
 #: spyder/plugins/variableexplorer/confpage.py:23
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:270
 msgid "Exclude all-uppercase references"
-msgstr "排除名字全大写的引用"
+msgstr "排除全大写字母引用"
 
 #: spyder/plugins/variableexplorer/confpage.py:24
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:285
@@ -5205,7 +5205,7 @@ msgstr "排除可调用对象及模块"
 #: spyder/plugins/variableexplorer/confpage.py:32
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:580
 msgid "Show arrays min/max"
-msgstr "显示数组最小/最大值"
+msgstr "显示数组的最小值、最大值"
 
 #: spyder/plugins/variableexplorer/plugin.py:157
 msgid "Variable explorer"
@@ -5220,22 +5220,22 @@ msgstr "无法复制此数组的值"
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:913
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1235
 msgid "Format"
-msgstr "格式化"
+msgstr "格式设置"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:578
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:917
 msgid "Resize"
-msgstr "调整大小"
+msgstr "大小调整"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:581
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:921
 msgid "Background color"
-msgstr "背景色"
+msgstr "背景颜色"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:607
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1236
 msgid "Float formatting"
-msgstr "浮点格式化"
+msgstr "浮点型格式设置"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:615
 msgid "Format (%s) is incorrect"
@@ -5267,7 +5267,7 @@ msgstr "%s目前不支持"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:685
 msgid "NumPy array"
-msgstr "NumPy数组"
+msgstr "NumPy 数组"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:687
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:866
