@@ -514,12 +514,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         return cursor, cell_at_file_start and cell_at_file_end
 
     def select_current_cell_in_visible_portion(self):
-        """Select cell under cursor in the visible portion of the file
+        """
+        Select cell under cursor in the visible portion of the file
         cell = group of lines separated by CELL_SEPARATORS
         returns
          -the textCursor
          -a boolean indicating if the entire file is selected
-         -a boolean indicating if the entire visible portion of the file is selected"""
+         """
 
         cursor = self.textCursor()
         if self.current_cell:
@@ -534,7 +535,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         block = cursor.block()
         try:
-            header = next(document_cells(block, forward=False))
+            if is_cell_header(block):
+                header = block.userData().oedata
+            else:
+                header = next(document_cells(block, forward=False))
             cell_start_pos = header.block.position()
             cell_at_file_start = False
             cursor.setPosition(cell_start_pos)
