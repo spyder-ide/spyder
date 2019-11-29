@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-11-27 16:57+-05\n"
-"PO-Revision-Date: 2019-11-26 17:13+0800\n"
+"PO-Revision-Date: 2019-11-29 16:22+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -843,7 +843,7 @@ msgstr "跳转到step： "
 
 #: spyder/config/manager.py:267
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
-msgstr ""
+msgstr "快捷键的context必须匹配 '_' 或者插件的 `CONF_SECTION`!"
 
 #: spyder/config/utils.py:25 spyder/plugins/pylint/widgets/pylintgui.py:268
 msgid "Python files"
@@ -963,11 +963,11 @@ msgstr "Ipython控制台的主程序包"
 
 #: spyder/dependencies.py:71
 msgid "Manipulate Jupyter notebooks in the Editor"
-msgstr "在编辑器中操作Jupyter notebook"
+msgstr "在编辑器中操作 Jupyter notebook"
 
 #: spyder/dependencies.py:75
 msgid "Show help for objects in the Editor and Consoles in a dedicated pane"
-msgstr "在专用窗格中显示编辑器和控制台的对象的帮助"
+msgstr "在专用窗格中显示编辑器和控制台中对象的帮助"
 
 #: spyder/dependencies.py:79
 msgid "Static code analysis"
@@ -975,7 +975,7 @@ msgstr "静态代码分析"
 
 #: spyder/dependencies.py:83
 msgid "CPU and memory usage info in the status bar"
-msgstr "状态栏中的CPU和内存使用信息"
+msgstr "在状态栏中显示处理器和内存信息"
 
 #: spyder/dependencies.py:87
 msgid "Icon theme based on FontAwesome and Material Design icons"
@@ -983,7 +983,7 @@ msgstr "基于FontAwesome和Material Design的图标主题"
 
 #: spyder/dependencies.py:91
 msgid "Abstraction layer for Python Qt bindings."
-msgstr "用于Python Qt绑定的抽象层。"
+msgstr "用于 Python Qt 绑定的抽象层。"
 
 #: spyder/dependencies.py:95
 msgid "Cache the list of installed Python modules"
@@ -991,7 +991,7 @@ msgstr "缓存已安装的Python模块列表"
 
 #: spyder/dependencies.py:99
 msgid "Client for the language server protocol (LSP)"
-msgstr "语言服务器协议（LSP）的客户端"
+msgstr "语言服务器协议（LSP）客户端"
 
 #: spyder/dependencies.py:103
 msgid "Character encoding auto-detection for the Editor"
@@ -999,7 +999,7 @@ msgstr "在编辑器中自动检测字符编码"
 
 #: spyder/dependencies.py:107
 msgid "Improve code completion for objects that use Numpy docstrings"
-msgstr "对使用了Numpy文档字符串（docstrings）的对象进行代码补全改进"
+msgstr "增强使用Numpy文档字符串（docstrings）的对象的补全功能"
 
 #: spyder/dependencies.py:111
 msgid "Jupyter kernels for the Spyder console"
@@ -1011,15 +1011,15 @@ msgstr "整个界面的黑色样式"
 
 #: spyder/dependencies.py:119
 msgid "Atomic file writes in the Editor"
-msgstr "编辑器中的“原子（Atomic）”文件写入"
+msgstr "在编辑器中进行“原子”级文件写入"
 
 #: spyder/dependencies.py:123
 msgid "Compute text file diff changes during edition"
-msgstr "在编辑时计算文本文件的差异变更"
+msgstr "在编辑时计算文本文件的变更差异"
 
 #: spyder/dependencies.py:127
 msgid "Compute folding range nesting levels"
-msgstr ""
+msgstr "计算折叠区域的嵌套层级"
 
 #: spyder/dependencies.py:131
 msgid "Watch file changes on project directories"
@@ -1841,6 +1841,9 @@ msgid ""
 "verify that your firewall or antivirus allows Python processes to open ports "
 "in your system, or restart Spyder."
 msgstr ""
+"编辑器中 {language} 文件的补全及语法检查功能在当前会话中无法工作，或者会停止"
+"工作。<br><br>要修复该问题，请确保您操作系统中的防火墙或病毒防护软件允许 "
+"Python 进程打开端口，或者尝试重启 Spyder."
 
 #: spyder/plugins/completion/plugin.py:333
 msgid "Kite installation process has not finished. Do you really want to exit?"
@@ -2285,9 +2288,8 @@ msgstr "高级设置"
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:48
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:138
 #: spyder/preferences/shortcuts.py:142
-#, fuzzy
 msgid "<None>"
-msgstr "None"
+msgstr "<None>"
 
 #: spyder/plugins/editor/plugin.py:403
 msgid "&New file..."
@@ -2415,7 +2417,7 @@ msgstr "调试时忽略Python库"
 
 #: spyder/plugins/editor/plugin.py:520
 msgid "Process execute events while debugging"
-msgstr ""
+msgstr "调试时处理执行事件"
 
 #: spyder/plugins/editor/plugin.py:523
 msgid "Debug with winpdb"
@@ -2862,7 +2864,7 @@ msgid ""
 "It was not possible to remove outputs from this notebook. The error is:\n"
 "\n"
 msgstr ""
-"不能移除这个notebook的输出。错误：\n"
+"不能移除这个u出。错误：\n"
 "\n"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3002
@@ -2921,7 +2923,7 @@ msgstr "信息"
 msgid ""
 "This file is not part of a local repository or upstream/origin remotes are "
 "not defined!"
-msgstr "该文件不属于任何的本地仓库，或者未定义远程的上游/origin！"
+msgstr "该文件不属于任何的本地仓库，或者未定义远程的 upstream/origin ！"
 
 #: spyder/plugins/editor/widgets/editor.py:499
 msgid "Find symbols in file..."
@@ -2970,7 +2972,7 @@ msgstr "垂直分割"
 
 #: spyder/plugins/editor/widgets/editor.py:1528
 msgid "Split vertically this editor window"
-msgstr "垂直分割当前编辑窗"
+msgstr "垂直分割当前编辑窗口"
 
 #: spyder/plugins/editor/widgets/editor.py:1536
 msgid "Split horizontally"
@@ -2978,7 +2980,7 @@ msgstr "水平分割"
 
 #: spyder/plugins/editor/widgets/editor.py:1538
 msgid "Split horizontally this editor window"
-msgstr "水平分割当前编辑窗"
+msgstr "水平分割当前编辑窗口"
 
 #: spyder/plugins/editor/widgets/editor.py:1546
 msgid "Close this panel"
@@ -2991,13 +2993,13 @@ msgstr "关闭窗口"
 
 #: spyder/plugins/editor/widgets/editor.py:1869
 msgid "<b>%s</b> has been modified.<br>Do you want to save changes?"
-msgstr "<b>%s</b> 已被修改<br>是否保存?"
+msgstr "<b>%s</b> 已被修改。<br>是否保存?"
 
 #: spyder/plugins/editor/widgets/editor.py:1989
 #: spyder/plugins/editor/widgets/editor.py:2152
 #: spyder/plugins/explorer/widgets/explorer.py:85
 msgid "Save Error"
-msgstr "保存错误"
+msgstr "保存时出错"
 
 #: spyder/plugins/editor/widgets/editor.py:1990
 #: spyder/plugins/editor/widgets/editor.py:2153
@@ -3027,7 +3029,7 @@ msgstr "<b>%s</b>所有更改 都将丢失！<br>是否从磁盘恢复文件?"
 
 #: spyder/plugins/editor/widgets/editor.py:2655
 msgid "Loading %s..."
-msgstr "载入 %s..."
+msgstr "正在加载 %s..."
 
 #: spyder/plugins/editor/widgets/editor.py:2669
 msgid ""
@@ -3037,11 +3039,11 @@ msgstr "<b>%s</b>包含多种换行符。<br>Spyder将会自动修复这个问�
 
 #: spyder/plugins/editor/widgets/editor.py:3222
 msgid "Close this window"
-msgstr "关闭当前窗口"
+msgstr "关闭该窗口"
 
 #: spyder/plugins/editor/widgets/recover.py:49
 msgid "<i>File name not recorded</i>"
-msgstr "<i>文件名未记录</i>"
+msgstr "<i>文件名未被记录</i>"
 
 #: spyder/plugins/editor/widgets/recover.py:54
 msgid "Last modified"
@@ -3049,7 +3051,7 @@ msgstr "最近修改"
 
 #: spyder/plugins/editor/widgets/recover.py:56
 msgid "bytes"
-msgstr "比特"
+msgstr "字节"
 
 #: spyder/plugins/editor/widgets/recover.py:56
 #: spyder/plugins/explorer/widgets/explorer.py:217
@@ -3321,7 +3323,7 @@ msgstr "删除"
 #: spyder/plugins/projects/plugin.py:378
 #: spyder/plugins/projects/widgets/explorer.py:148
 msgid "Project Explorer"
-msgstr "项目资源管理器"
+msgstr "项目管理器"
 
 #: spyder/plugins/explorer/widgets/explorer.py:833
 #: spyder/plugins/projects/widgets/explorer.py:149
@@ -3478,7 +3480,7 @@ msgstr "您没有权限打开此目录"
 #: spyder/plugins/explorer/widgets/explorer.py:1625
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:536
 msgid "Previous"
-msgstr "以前的"
+msgstr "上一个"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1628
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:540
@@ -3488,7 +3490,7 @@ msgstr "下一个"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1631
 msgid "Parent"
-msgstr "上一层"
+msgstr "父级"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1645
 msgid "Display kind"
@@ -5157,7 +5159,7 @@ msgstr "Pylint输出"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:455
 msgid "Source code has not been rated yet."
-msgstr "尚未对源代码进行评分"
+msgstr "尚未对源代码进行评分。"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:461
 msgid "Analysis did not succeed (see output for more details)."
@@ -5198,7 +5200,7 @@ msgstr "排除不支持的数据类型"
 #: spyder/plugins/variableexplorer/confpage.py:26
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:293
 msgid "Exclude callables and modules"
-msgstr ""
+msgstr "排除可调用对象及模块"
 
 #: spyder/plugins/variableexplorer/confpage.py:32
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:580
@@ -5362,11 +5364,11 @@ msgstr "名称"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:170
 msgid "Tuple"
-msgstr "元组"
+msgstr "元组 (Tuple)"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:173
 msgid "List"
-msgstr "列表"
+msgstr "列表 (List)"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:176
 msgid "Set"
@@ -5374,7 +5376,7 @@ msgstr "集合 (set)"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:180
 msgid "Dictionary"
-msgstr "目录"
+msgstr "字典 (Dictionary)"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:182
 msgid "Key"
@@ -5620,15 +5622,15 @@ msgstr "转置"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:442
 msgid "array"
-msgstr "数组"
+msgstr "数组 (array)"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:447
 msgid "list"
-msgstr "列表"
+msgstr "列表 (list)"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:452
 msgid "DataFrame"
-msgstr "数据框"
+msgstr "数据框 (DataFrame)"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:498
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:582
@@ -5698,15 +5700,15 @@ msgid "Exclude references which name starts with an uppercase character"
 msgstr "排除名称以大写字母开头的引用"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:286
-#, fuzzy
 msgid ""
 "Exclude references to data types that don't have an specialized viewer or "
 "can't be edited."
-msgstr "排除指向不支持的数据类型的引用（这些引用无法被正确地处理和保存）"
+msgstr ""
+"排除指向特定数据类型的引用，这些数据类型没有可用的浏览器对其进行查看或编辑。"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:294
 msgid "Exclude references to functions, modules and any other callable."
-msgstr ""
+msgstr "排除向函数、模块及其他可调用对象的引用。"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:410
 msgid ""
@@ -6219,9 +6221,8 @@ msgid "Show CPU usage every"
 msgstr "显示CPU使用情况，每"
 
 #: spyder/preferences/general.py:200
-#, fuzzy
 msgid "Show clock"
-msgstr "显示源码"
+msgstr "显示时钟"
 
 #: spyder/preferences/general.py:228
 msgid "Screen resolution"
@@ -6548,29 +6549,28 @@ msgid "Shortcut: {0}"
 msgstr "快捷方式：{0}"
 
 #: spyder/preferences/shortcuts.py:384
-#, fuzzy
 msgid "This key sequence conflicts with:"
-msgstr "快捷键冲突："
+msgstr "该按键序列与以下项目冲突："
 
 #: spyder/preferences/shortcuts.py:391
 msgid "Press 'Ok' to unbind it and assign it to"
-msgstr ""
+msgstr "点击“确定”以解除旧的绑定，并重新绑定给当前动作"
 
 #: spyder/preferences/shortcuts.py:393
 msgid "Press 'Ok' to unbind them and assign it to"
-msgstr ""
+msgstr "点击“确定”以解除旧的绑定，并重新绑定给当前动作"
 
 #: spyder/preferences/shortcuts.py:399
 msgid "This key sequence is forbidden."
-msgstr ""
+msgstr "禁止使用该按键序列。"
 
 #: spyder/preferences/shortcuts.py:403
 msgid "This key sequence is invalid."
-msgstr ""
+msgstr "该按键序列无效。"
 
 #: spyder/preferences/shortcuts.py:407
 msgid "This key sequence is valid."
-msgstr ""
+msgstr "该按键序列有效。"
 
 #: spyder/preferences/shortcuts.py:570
 msgid "Context"
@@ -7066,45 +7066,42 @@ msgid "Synchronize"
 msgstr "同步"
 
 #: spyder/widgets/pathmanager.py:213
-#, fuzzy
 msgid ""
 "This will synchronize Spyder's path list with <b>PYTHONPATH</b> environment "
 "variable for the current user, allowing you to run your Python modules "
 "outside Spyder without having to configure sys.path. <br>Do you want to "
 "clear contents of PYTHONPATH before adding Spyder's path list?"
 msgstr ""
-"这将会使用当前用户的<b>PYTHONPATH</b>环境变量同步Spyder的path列表，以允许您不"
-"配置 sys.path 而运行您的Python模块。<br>您想要在Spyder将它们添加到path列表之"
-"前清除PYTHONPATH吗？"
+"该操作会将 Spyder 的路径列表与当前用户的 <b>PYTHONPATH</b> 环境变量同步，同步"
+"之后您可以在 Spyder 之外运行 Python 模块而无需配置 sys.path. <br>您想要在添"
+"加 Sypyder的路径列表前清除 PYTHONPATH 的内容吗？"
 
 #: spyder/widgets/pathmanager.py:328
-#, fuzzy
 msgid ""
 "You are using Python 2 and the selected path has Unicode characters.<br> "
 "Therefore, this path will not be added."
-msgstr "您正在使用Python 2，并且所选路径具有Unicode字符。 新路径不会被添加。"
+msgstr ""
+"您正在使用Python 2，然而所选路径包含 Unicode 字符。<br>因此，该路径将不会被添"
+"加。"
 
 #: spyder/widgets/pathmanager.py:344
-#, fuzzy
 msgid ""
 "This directory is already included in the list.<br> Do you want to move it "
 "to the top of it?"
-msgstr "这个目录已经包含在Spyder的path列表中。<br>您确定要移动它到列表头部吗？"
+msgstr "该文件夹已经存在于路径列表中。<br>您想要将其移动到开头位置吗？"
 
 #: spyder/widgets/pathmanager.py:362
-#, fuzzy
 msgid ""
 "This directory cannot be added to the path!<br><br>If you want to set a "
 "different Python interpreter, please go to <tt>Preferences > Main "
 "interpreter</tt>."
 msgstr ""
-"当前目录包含一个项目。<br> <br>如果要删除项目，请转到<b>项目</b>＆raquo; <b>"
-"删除项目</b>"
+"当前目录包含一个项目。<br> <br>如果要删除项目，请到<b>项目</b>＆raquo; <b>删"
+"除项目</b>。"
 
 #: spyder/widgets/pathmanager.py:383
-#, fuzzy
 msgid "Do you really want to remove the selected path?"
-msgstr "是否真的要删除选定的路径？"
+msgstr "您真的要移除选定的路径吗？"
 
 #: spyder/widgets/reporterror.py:131
 msgid "Issue reporter"
@@ -7204,9 +7201,8 @@ msgid "CPU usage"
 msgstr "CPU使用率"
 
 #: spyder/widgets/status.py:302
-#, fuzzy
 msgid "Clock"
-msgstr "解锁"
+msgstr "时钟"
 
 #: spyder/widgets/switcher.py:918
 msgid "change view"
