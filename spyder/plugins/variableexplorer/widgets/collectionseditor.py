@@ -1285,7 +1285,7 @@ class CollectionsEditor(QDialog):
         self.btn_save_and_close = None
         self.btn_close = None
 
-    def setup(self, data, title='', readonly=False, width=650, remote=False,
+    def setup(self, data, title='', readonly=False, width=1200, remote=False,
               icon=None, parent=None):
         """Setup editor."""
         if isinstance(data, (dict, set)):
@@ -1340,7 +1340,7 @@ class CollectionsEditor(QDialog):
 
         layout.addLayout(btn_layout)
 
-        constant = 121
+        constant = 400
         row_height = 30
         error_margin = 10
         height = constant + row_height * min([10, datalen]) + error_margin

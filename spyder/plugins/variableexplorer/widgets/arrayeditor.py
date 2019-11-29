@@ -424,7 +424,7 @@ class ArrayView(QTableView):
         total_width = 0
         for k in range(shape[1]):
             total_width += self.columnWidth(k)
-        self.viewport().resize(min(total_width, 1024), self.height())
+        self.viewport().resize(min(total_width, 1366), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
         CONF.config_shortcut(
@@ -688,7 +688,7 @@ class ArrayEditor(QDialog):
         if readonly:
             title += ' (' + _('read only') + ')'
         self.setWindowTitle(title)
-        self.resize(600, 500)
+        self.resize(1200, 760)
 
         # Stack widget
         self.stack = QStackedWidget(self)
@@ -782,7 +782,7 @@ class ArrayEditor(QDialog):
         btn_layout.addWidget(self.btn_close)
         self.layout.addLayout(btn_layout, 2, 0)
 
-        self.setMinimumSize(400, 300)
+        self.setMinimumSize(800, 600)
 
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)

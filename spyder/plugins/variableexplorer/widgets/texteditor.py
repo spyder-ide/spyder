@@ -27,7 +27,7 @@ from spyder.utils import icon_manager as ima
 class TextEditor(QDialog):
     """Array Editor Dialog"""
     def __init__(self, text, title='', font=None, parent=None,
-                 readonly=False, size=(400, 300)):
+                 readonly=False, size=(900, 760)):
         QDialog.__init__(self, parent)
 
         # Destroying the C++ object right after closing the dialog box,
