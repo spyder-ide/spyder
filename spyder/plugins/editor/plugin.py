@@ -1918,7 +1918,8 @@ class Editor(SpyderPluginWidget):
                 # (the one that can't be destroyed), then cloning this
                 # editor widget in all other editorstacks:
                 finfo = self.editorstacks[0].load(
-                    filename, set_current=False, add_where=add_where)
+                    filename, set_current=False, add_where=add_where,
+                    processevents=processevents)
                 finfo.path = self.main.get_spyder_pythonpath()
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
