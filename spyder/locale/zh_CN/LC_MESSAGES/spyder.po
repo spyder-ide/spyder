@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-11-27 16:57+-05\n"
-"PO-Revision-Date: 2019-11-29 16:22+0800\n"
+"PO-Revision-Date: 2019-11-29 19:05+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -1067,7 +1067,7 @@ msgstr "在变量管理器中导入Matlab工作空间文件"
 
 #: spyder/dependencies.py:181
 msgid "Code completion and linting for the Editor"
-msgstr "编辑器中的代码自动补全及 linting"
+msgstr "编辑器中的代码自动补全及语法检查"
 
 #: spyder/dependencies.py:188
 msgid "Notify macOS that Spyder can open Python files"
@@ -1455,7 +1455,7 @@ msgstr "要执行的命令"
 
 #: spyder/plugins/completion/languageserver/confpage.py:699
 msgid "Completion and linting"
-msgstr "代码补全及linting"
+msgstr "代码补全及语法检查"
 
 #: spyder/plugins/completion/languageserver/confpage.py:708
 msgid "Enable code completion"
@@ -1550,7 +1550,7 @@ msgstr "作为可选项，Spyder 也可在编辑器中高亮显示语法错误�
 
 #: spyder/plugins/completion/languageserver/confpage.py:807
 msgid "Enable basic linting"
-msgstr "启用基本的语法风格检查"
+msgstr "启用基本语法检查"
 
 #: spyder/plugins/completion/languageserver/confpage.py:810
 #: spyder/plugins/editor/plugin.py:800
@@ -1579,7 +1579,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:845
 msgid "Enable code style linting"
-msgstr "启用代码风格linting"
+msgstr "启用代码风格检查"
 
 #: spyder/plugins/completion/languageserver/confpage.py:850
 #: spyder/plugins/completion/languageserver/confpage.py:942
@@ -1765,7 +1765,7 @@ msgstr "补全"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1155
 msgid "Linting"
-msgstr "Linting"
+msgstr "语法及风格检查"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1157
 msgid "Introspection"
@@ -1777,7 +1777,7 @@ msgstr "代码风格"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1160
 msgid "Docstring style"
-msgstr "文档字符串（Docstring）风格"
+msgstr "文档字符串风格"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1165
 msgid "Other languages"
@@ -2035,7 +2035,7 @@ msgstr "显示行号"
 
 #: spyder/plugins/editor/confpage.py:42 spyder/plugins/editor/plugin.py:780
 msgid "Show blank spaces"
-msgstr "显示空白"
+msgstr "显示空格占位符"
 
 #: spyder/plugins/editor/confpage.py:43
 msgid "Highlight current line"
@@ -2196,7 +2196,7 @@ msgstr "秒"
 
 #: spyder/plugins/editor/confpage.py:232
 msgid "Docstring type"
-msgstr "文档字符串（Docstring）类型"
+msgstr "文档字符串类型"
 
 #: spyder/plugins/editor/confpage.py:237
 msgid ""
@@ -3924,21 +3924,21 @@ msgstr "IPython控制台"
 #: spyder/plugins/ipythonconsole/confpage.py:33
 #: spyder/preferences/general.py:99 spyder/preferences/general.py:293
 msgid "Interface"
-msgstr "接口"
+msgstr "界面"
 
 #: spyder/plugins/ipythonconsole/confpage.py:34
 msgid "Display initial banner"
-msgstr "显示初始banner"
+msgstr "在IPython控制台中显示内核初始化信息"
 
 #: spyder/plugins/ipythonconsole/confpage.py:35
 msgid ""
 "This option lets you hide the message shown at\n"
 "the top of the console when it's opened."
-msgstr "此选项让您隐藏控制台开启时顶端的消息。"
+msgstr "禁用该选项可以隐藏在控制台顶部显示的内核初始化信息。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:38
 msgid "Use a pager to display additional text inside the console"
-msgstr "使用呼叫器以使控制台上显示附加文本"
+msgstr "使用分页器在终端内显示额外的文本"
 
 #: spyder/plugins/ipythonconsole/confpage.py:40
 msgid ""
@@ -3946,8 +3946,8 @@ msgid ""
 "texts.\n"
 "Note: Use the Q key to get out of the pager."
 msgstr ""
-"如果您不想终端被长帮助或补全文本填充时很有用。\n"
-"注意：使用Q键退出。"
+"如果您不想终端被很长的帮助文字或补全文本填充，则此选项很有用。\n"
+"注意：使用Q键退出分页。"
 
 #: spyder/plugins/ipythonconsole/confpage.py:46
 msgid "Ask for confirmation before closing"
@@ -3955,7 +3955,7 @@ msgstr "在关闭之前要求确认"
 
 #: spyder/plugins/ipythonconsole/confpage.py:49
 msgid "Ask for confirmation before removing all user-defined variables"
-msgstr "在移除所有用户定义变量前询问"
+msgstr "在移除所有用户定义的变量前询问"
 
 #: spyder/plugins/ipythonconsole/confpage.py:52
 msgid ""
@@ -6148,19 +6148,19 @@ msgstr "退出时提示"
 
 #: spyder/preferences/general.py:71
 msgid "Show internal Spyder errors to report them to Github"
-msgstr "显示内部Spyder错误以将其报告到Github"
+msgstr "显示Spyder内部错误以将其报告到Github"
 
 #: spyder/preferences/general.py:101
 msgid "Vertical title bars in panes"
-msgstr "在窗体上垂直显示标题"
+msgstr "在窗格上垂直显示标题"
 
 #: spyder/preferences/general.py:103
 msgid "Vertical tabs in panes"
-msgstr "在窗体上垂直显示选项卡"
+msgstr "在窗格上垂直显示选项卡"
 
 #: spyder/preferences/general.py:105
 msgid "Animated toolbars and panes"
-msgstr "动态工具栏和窗体"
+msgstr "动态工具栏和窗格"
 
 #: spyder/preferences/general.py:107
 msgid "Tear off menus"
@@ -6226,15 +6226,15 @@ msgstr "显示时钟"
 
 #: spyder/preferences/general.py:228
 msgid "Screen resolution"
-msgstr "分辨率"
+msgstr "显示器分辨率"
 
 #: spyder/preferences/general.py:230
 msgid ""
 "Configuration for high DPI screens<br><br>Please see <a href=\"{0}\">{0}</"
 "a><> for more information about these options (in English)."
 msgstr ""
-"高DPI显示器配置<br><br>请查阅<a href=\"{0}\">{0}</a>来获取关于此选项的更多信"
-"息。"
+"高分辨率显示器配置<br><br>更多信息，请参考 <a href=\"{0}\">{0}</a> 中的说明"
+"（英文）。"
 
 #: spyder/preferences/general.py:241
 msgid "Normal"
@@ -6242,26 +6242,26 @@ msgstr "普通"
 
 #: spyder/preferences/general.py:245
 msgid "Enable auto high DPI scaling"
-msgstr "自动高DPI缩放"
+msgstr "启用自动高分辨率缩放"
 
 #: spyder/preferences/general.py:248
 msgid "Set this for high DPI displays"
-msgstr "为高DPI显示设置此项"
+msgstr "为高分辨率显示器启用此选项"
 
 #: spyder/preferences/general.py:252
 msgid "Set a custom high DPI scaling"
-msgstr "自定义高DPI缩放"
+msgstr "自定义高分辨率缩放"
 
 #: spyder/preferences/general.py:255
 msgid "Set this for high DPI displays when auto scaling does not work"
-msgstr "当自动缩放不起作用时，为高DPI显示设置此项"
+msgstr "当自动缩放不起作用时，为高分辨率显示器设置此项"
 
 #: spyder/preferences/general.py:262
 msgid ""
 "Enter values for different screens separated by semicolons ';'.\n"
 "Float values are supported"
 msgstr ""
-"为不同屏幕输入对应的值，以分号 ';' 分隔。\n"
+"为不同显示器输入对应的值，以分号 ';' 分隔。\n"
 "支持浮点型的值"
 
 #: spyder/preferences/general.py:319
