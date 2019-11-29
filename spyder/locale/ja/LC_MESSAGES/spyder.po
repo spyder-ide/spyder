@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Spyder3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-27 16:57+-05\n"
+"POT-Creation-Date: 2019-11-29 18:13+-05\n"
 "PO-Revision-Date: 2019-11-15 10:21+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese <s.ohnishi77+github@gmail.com>\n"
@@ -2802,7 +2802,7 @@ msgstr "タイトル無し"
 msgid "Maximum number of recent files"
 msgstr "「最近使用したファイル」の最大履歴数"
 
-#: spyder/plugins/editor/plugin.py:1962
+#: spyder/plugins/editor/plugin.py:1963
 msgid "Printing..."
 msgstr "印刷中..."
 
@@ -3039,7 +3039,7 @@ msgid "Close this panel"
 msgstr "このパネルを閉じる"
 
 #: spyder/plugins/editor/widgets/editor.py:1560
-#: spyder/plugins/editor/widgets/editor.py:3220
+#: spyder/plugins/editor/widgets/editor.py:3223
 msgid "Close window"
 msgstr "ウインドウを閉じる"
 
@@ -3082,11 +3082,11 @@ msgstr ""
 "<b>%s</b> へのすべての変更は失われます。<br>ファイルをディスクから復帰させま"
 "すか？"
 
-#: spyder/plugins/editor/widgets/editor.py:2655
+#: spyder/plugins/editor/widgets/editor.py:2657
 msgid "Loading %s..."
 msgstr "%s をロードしています..."
 
-#: spyder/plugins/editor/widgets/editor.py:2669
+#: spyder/plugins/editor/widgets/editor.py:2672
 msgid ""
 "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this "
 "automatically."
@@ -3094,7 +3094,7 @@ msgstr ""
 "<b>%s</b> は複数種の改行コードを含んでいます。<br>Spyderは自動的に修正しま"
 "す。"
 
-#: spyder/plugins/editor/widgets/editor.py:3222
+#: spyder/plugins/editor/widgets/editor.py:3225
 msgid "Close this window"
 msgstr "このウインドウを閉じる"
 
@@ -4756,11 +4756,11 @@ msgstr ""
 msgid "Changing backend to Qt for Mayavi"
 msgstr "MayaviのバックエンドをQtに変更しています"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:623
+#: spyder/plugins/ipythonconsole/widgets/shell.py:621
 msgid "Kernel died, restarting"
 msgstr "カーネル停止しました。再起動中"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:623
+#: spyder/plugins/ipythonconsole/widgets/shell.py:621
 msgid "Kernel restarting"
 msgstr "カーネル再起動中"
 
@@ -6587,7 +6587,8 @@ msgid "Remove all variables before execution"
 msgstr "実行前に全ての変数を削除"
 
 #: spyder/preferences/runconfig.py:46
-msgid "Run in console’s namespace instead of an empty one"
+#, fuzzy
+msgid "Run in console's namespace instead of an empty one"
 msgstr "空の名前空間の代わりに、コンソールの名前空間で実行"
 
 #: spyder/preferences/runconfig.py:47

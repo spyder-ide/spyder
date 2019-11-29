@@ -14,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 3.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-27 16:57+-05\n"
+"POT-Creation-Date: 2019-11-29 18:13+-05\n"
 "PO-Revision-Date: 2018-11-15 12:37+0300\n"
 "Last-Translator: Andrey Zgarbul <zgarbul.andrey@gmail.com>\n"
 "Language-Team: русский <LL@li.org>\n"
@@ -2834,7 +2834,7 @@ msgstr "untitled"
 msgid "Maximum number of recent files"
 msgstr "Максимальное количество недавних файлов"
 
-#: spyder/plugins/editor/plugin.py:1962
+#: spyder/plugins/editor/plugin.py:1963
 msgid "Printing..."
 msgstr "Печать..."
 
@@ -3078,7 +3078,7 @@ msgid "Close this panel"
 msgstr "Закрыть эту панель"
 
 #: spyder/plugins/editor/widgets/editor.py:1560
-#: spyder/plugins/editor/widgets/editor.py:3220
+#: spyder/plugins/editor/widgets/editor.py:3223
 msgid "Close window"
 msgstr "Закрыть окно"
 
@@ -3123,11 +3123,11 @@ msgstr ""
 "Все изменения для <b>%s</b> были потеряны.<br>Хотите перегрузить файл с "
 "диска?"
 
-#: spyder/plugins/editor/widgets/editor.py:2655
+#: spyder/plugins/editor/widgets/editor.py:2657
 msgid "Loading %s..."
 msgstr "Загрузка %s..."
 
-#: spyder/plugins/editor/widgets/editor.py:2669
+#: spyder/plugins/editor/widgets/editor.py:2672
 msgid ""
 "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this "
 "automatically."
@@ -3135,7 +3135,7 @@ msgstr ""
 "<b>%s</b> содержит смешанные символы конца строки.<br>Spyder исправит это "
 "автоматически."
 
-#: spyder/plugins/editor/widgets/editor.py:3222
+#: spyder/plugins/editor/widgets/editor.py:3225
 msgid "Close this window"
 msgstr "Закрыть это окно"
 
@@ -4836,11 +4836,11 @@ msgstr ""
 msgid "Changing backend to Qt for Mayavi"
 msgstr "Смена бэкенда для Mayavi на Qt4"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:623
+#: spyder/plugins/ipythonconsole/widgets/shell.py:621
 msgid "Kernel died, restarting"
 msgstr "Ядро остановилось, перезапуск"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:623
+#: spyder/plugins/ipythonconsole/widgets/shell.py:621
 msgid "Kernel restarting"
 msgstr "Перезапуск ядра"
 
@@ -6693,7 +6693,7 @@ msgid "Remove all variables before execution"
 msgstr "Удалить все переменные перед запуском"
 
 #: spyder/preferences/runconfig.py:46
-msgid "Run in console’s namespace instead of an empty one"
+msgid "Run in console's namespace instead of an empty one"
 msgstr ""
 
 #: spyder/preferences/runconfig.py:47
