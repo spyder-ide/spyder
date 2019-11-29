@@ -2402,6 +2402,8 @@ def test_go_to_definition(main_window, qtbot, capsys):
     assert 'QtCore.py' in _get_filenames()
 
 
+@pytest.mark.skipif(sys.platform == 'darwin' and not PY2,
+                    reason="It times out on macOS/PY3")
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_debug_unsaved_file(main_window, qtbot):
