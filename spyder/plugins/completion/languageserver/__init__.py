@@ -539,6 +539,8 @@ class LSPRequestTypes:
     DOCUMENT_LINKS = 'textDocument/documentLink'
     DOCUMENT_LINK_RESOLVE = 'documentLink/resolve'
     DOCUMENT_RENAME = 'textDocument/rename'
+    # Spyder extensions to LSP
+    DOCUMENT_CURSOR_EVENT = 'textDocument/cursorEvent'
 
 # -------------------- LINTING RESPONSE RELATED VALUES ------------------------
 

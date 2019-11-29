@@ -145,8 +145,10 @@ class CompletionWidget(QListWidget):
         if not self.is_internal_console:
             tooltip_point = self.rect().topRight()
             tooltip_point = self.mapToGlobal(tooltip_point)
-            for completion in self.completion_list:
-                completion['point'] = tooltip_point
+
+            if self.completion_list is not None:
+                for completion in self.completion_list:
+                    completion['point'] = tooltip_point
 
         # Show hint for first completion element
         self.setCurrentRow(0)

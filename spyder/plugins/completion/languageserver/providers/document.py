@@ -168,6 +168,21 @@ class DocumentProvider:
                 LSPRequestTypes.DOCUMENT_HOVER,
                 {'params': contents})
 
+    @send_request(method=LSPRequestTypes.DOCUMENT_SYMBOL)
+    def document_symbol_request(self, params):
+        params = {
+            'textDocument': {
+                'uri': path_as_uri(params['file'])
+            },
+        }
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_SYMBOL)
+    def process_document_symbol_request(self, result, req_id):
+        if req_id in self.req_reply:
+            self.req_reply[req_id](LSPRequestTypes.DOCUMENT_SYMBOL,
+                                   {'params': result})
+
     @send_request(method=LSPRequestTypes.DOCUMENT_DEFINITION)
     def go_to_definition_request(self, params):
         params = {

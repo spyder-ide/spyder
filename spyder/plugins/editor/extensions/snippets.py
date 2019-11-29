@@ -82,6 +82,7 @@ class SnippetsExtension(EditorExtension):
     def __init__(self):
         EditorExtension.__init__(self)
         self.is_snippet_active = False
+        self.inserting_snippet = False
         self.active_snippet = -1
         self.node_number = 0
         self.index = None
@@ -493,7 +494,10 @@ class SnippetsExtension(EditorExtension):
                     first_tokens = list(new_node.tokens)
                     second_tokens = []
             if not single_token:
-                first_tokens.append(new_node)
+                if isinstance(new_node, nodes.TextNode):
+                    first_tokens += list(new_node.tokens)
+                else:
+                    first_tokens.append(new_node)
                 if not new_node.text().startswith(value):
                     first_tokens.append(leaf)
         elif leaf_end == (line, column):
@@ -516,7 +520,8 @@ class SnippetsExtension(EditorExtension):
     def _region_to_polygon(self, start, end):
         start_line, start_column = start
         end_line, end_column = end
-        root_position, _ = self.node_position[0]
+        root_col = min(self.node_position)
+        root_position, _ = self.node_position[root_col]
         line_limits = {}
         for segment in root_position:
             (_, start), (line, end) = segment
@@ -690,7 +695,11 @@ class SnippetsExtension(EditorExtension):
     def cursor_changed(self, line, col):
         if not rtree_available:
             return
-        # with QMutexLocker(self.reset_lock):
+
+        if self.inserting_snippet:
+            self.inserting_snippet = False
+            return
+
         ignore_calls = {'undo', 'redo'}
         node, nearest_snippet, _ = self._find_node_by_position(line, col)
         if node is None:
@@ -814,6 +823,7 @@ class SnippetsExtension(EditorExtension):
         ast.compute_position((line, column))
         ast.accept(visitor)
 
+        self.inserting_snippet = True
         self.editor.insert_text(ast.text(), will_insert_text=False)
         self.editor.document_did_change()
 
@@ -829,7 +839,6 @@ class SnippetsExtension(EditorExtension):
                 # This is a nested snippet / text on snippet
                 leaf, snippet_root, _ = self._find_node_by_position(
                     line, column)
-
                 if snippet_root is not None:
                     new_snippet = False
                     root_number = snippet_root.number
@@ -852,6 +861,7 @@ class SnippetsExtension(EditorExtension):
                     self._update_ast()
                     if len(snippet_map) > 0:
                         self.select_snippet(snippet_number=root_number + 1)
+                    self.draw_snippets()
                 elif leaf is not None:
                     self.reset()
 
