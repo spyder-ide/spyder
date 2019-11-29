@@ -207,21 +207,24 @@ def get_file_language(filename, text=None):
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
 
-    LANGUAGES = {'Python': (sh.PythonSH, '#', PythonCFM),
-                 'Cython': (sh.CythonSH, '#', PythonCFM),
-                 'Fortran77': (sh.Fortran77SH, 'c', None),
-                 'Fortran': (sh.FortranSH, '!', None),
-                 'Idl': (sh.IdlSH, ';', None),
-                 'Diff': (sh.DiffSH, '', None),
-                 'GetText': (sh.GetTextSH, '#', None),
-                 'Nsis': (sh.NsisSH, '#', None),
-                 'Html': (sh.HtmlSH, '', None),
-                 'Yaml': (sh.YamlSH, '#', None),
-                 'Cpp': (sh.CppSH, '//', None),
-                 'OpenCL': (sh.OpenCLSH, '//', None),
-                 'Enaml': (sh.EnamlSH, '#', PythonCFM),
-                 'Markdown': (sh.MarkdownSH, '#', None),
-                }
+    LANGUAGES = {
+        'Python': (sh.PythonSH, '#', PythonCFM),
+        'Cython': (sh.CythonSH, '#', PythonCFM),
+        'Fortran77': (sh.Fortran77SH, 'c', None),
+        'Fortran': (sh.FortranSH, '!', None),
+        'Idl': (sh.IdlSH, ';', None),
+        'Diff': (sh.DiffSH, '', None),
+        'GetText': (sh.GetTextSH, '#', None),
+        'Nsis': (sh.NsisSH, '#', None),
+        'Html': (sh.HtmlSH, '', None),
+        'Yaml': (sh.YamlSH, '#', None),
+        'Cpp': (sh.CppSH, '//', None),
+        'OpenCL': (sh.OpenCLSH, '//', None),
+        'Enaml': (sh.EnamlSH, '#', PythonCFM),
+        'Markdown': (sh.MarkdownSH, '#', None),
+        # Every other language
+        'None': (sh.TextSH, '', None),
+    }
 
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
 
@@ -1552,8 +1555,9 @@ class CodeEditor(TextEditBaseWidget):
     def set_language(self, language, filename=None):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.comment_string = ''
-        sh_class = sh.TextSH
         self.language = 'Text'
+        sh_class = sh.TextSH
+        language = 'None' if language is None else language
         if language is not None:
             for (key, value) in ALL_LANGUAGES.items():
                 if language.lower() in value:
@@ -1569,11 +1573,13 @@ class CodeEditor(TextEditBaseWidget):
                     else:
                         self.classfunc_match = CFMatch()
                     break
+
         if filename is not None and not self.supported_language:
             sh_class = sh.guess_pygments_highlighter(filename)
             self.support_language = sh_class is not sh.TextSH
             if self.support_language:
                 self.language = sh_class._lexer.name
+
         self._set_highlighter(sh_class)
         self.completion_widget.set_language(self.language)
 
