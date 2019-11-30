@@ -351,7 +351,7 @@ def get_std_icon(name, size=None):
         return QIcon(icon.pixmap(size, size))
 
 
-def get_icon(name, default=None, resample=False):
+def get_icon(name, default=None, resample=False, adjust_for_interface=False):
     """Return image inside a QIcon object.
 
     default: default image name or icon
@@ -360,6 +360,10 @@ def get_icon(name, default=None, resample=False):
     created from SVG images on non-Windows platforms due to a Qt bug.
     See spyder-ide/spyder#1314.
     """
+
+    if adjust_for_interface:
+        name = (name + '_dark.svg' if is_dark_interface()
+                else name + '_light.svg')
 
     icon_path = get_image_path(name, default=None)
     if icon_path is not None:
