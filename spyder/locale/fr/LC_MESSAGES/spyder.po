@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2019-11-29 18:13+-05\n"
-"PO-Revision-Date: 2019-11-30 08:29-0500\n"
+"PO-Revision-Date: 2019-11-30 09:30-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -1063,11 +1063,11 @@ msgstr "Fichier atomique écrit dans l'éditeur"
 
 #: spyder/dependencies.py:123
 msgid "Compute text file diff changes during edition"
-msgstr "Calculer les changements de fichier texte lors de l'édition"
+msgstr "Calcul des changements de fichier texte lors de l'édition"
 
 #: spyder/dependencies.py:127
 msgid "Compute folding range nesting levels"
-msgstr ""
+msgstr "Calcul des intervalles de repliage des niveaux d'imbrication du code"
 
 #: spyder/dependencies.py:131
 msgid "Watch file changes on project directories"
@@ -1309,6 +1309,16 @@ msgid ""
 "internet connection required<br><br>&#10003; 100% free to use<br><br><a href="
 "\"{kite_url}\">Learn more on the Kite website</a>"
 msgstr ""
+"<big><b>Améliorer vos complétions avec Kite</b></big><br><br>Kite est une "
+"application native qui s'exécute localement sur votre ordinateur<br>et "
+"utilise l'apprentissage automatique pour fournir des<br>complétions avancées."
+"<br><br>&#10003; Support spécialisé pour les paquets Python d'analyse de "
+"données<br><br>&#10003; 1.5 fois plus de complétions que le moteur "
+"intégré<br><br>&#10003; Complétions classées par contexte de "
+"code<br><br>&#10003; Complétions de lignes complètes de code<br><br>&#10003; "
+"100% local - pas de connexion Internet requise<br><br>&#10003; 100% gratuit "
+"à utiliser<br><br><a href=\"{kite_url}\">En savoir plus sur le site Internet "
+"de Kite</a>"
 
 #: spyder/plugins/completion/kite/widgets/install.py:209
 msgid "Downloading"
@@ -1574,15 +1584,14 @@ msgid "Enable Go to definition"
 msgstr "Activer Aller à la définition"
 
 #: spyder/plugins/completion/languageserver/confpage.py:761
-#, fuzzy
 msgid ""
 "If enabled, left-clicking on an object name while \n"
 "pressing the {} key will go to that object's definition\n"
 "(if resolved)."
 msgstr ""
-"Si cette option est activée, un clic gauche sur le nom d'un objet tout en "
-"appuyant sur la touche {} permet d'accéder à la définition de cet objet (si "
-"elle est résolue)."
+"Si cette option est activée, un clic gauche sur le nom d'un objet\n"
+"tout en appuyant sur la touche {} permet d'accéder à la\n"
+"définition de cet objet (si résolue)."
 
 #: spyder/plugins/completion/languageserver/confpage.py:764
 msgid "Follow imports when going to a definition"
@@ -1797,7 +1806,7 @@ msgstr "Activer les paramètres avancés"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1044
 msgid "Module for the Python language server: "
-msgstr "Module pour le serveur de langage Python:"
+msgstr "Module pour le serveur de langage Python :"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1048
 msgid "IP Address and port to bind the server to: "
@@ -1929,6 +1938,11 @@ msgid ""
 "verify that your firewall or antivirus allows Python processes to open ports "
 "in your system, or restart Spyder."
 msgstr ""
+"La complétion et le linting dans l'éditeur pour les fichiers {language} ne "
+"fonctionneront pas au cours de cette séance , ou ont cessé de fonctionner."
+"<br><br>Pour résoudre ce problème, vérifiez que votre pare-feu ou votre "
+"antivirus autorise les processus Python à ouvrir des ports sur votre "
+"système , ou redémarrez Spyder."
 
 #: spyder/plugins/completion/plugin.py:333
 msgid "Kite installation process has not finished. Do you really want to exit?"
@@ -2293,7 +2307,7 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:220
 msgid "Autosave interval: "
-msgstr "Intervalle d'enregistrement automatique:"
+msgstr "Intervalle d'enregistrement automatique :"
 
 #: spyder/plugins/editor/confpage.py:221
 msgid "seconds"
@@ -4201,16 +4215,16 @@ msgid "Automatically load Pylab and NumPy modules"
 msgstr "Importer automatiquement Pylab et NumPy"
 
 #: spyder/plugins/ipythonconsole/confpage.py:101
-#, fuzzy
 msgid ""
 "This lets you load graphics support without importing\n"
 "the commands to do plots. Useful to work with other\n"
 "plotting libraries different to Matplotlib or to develop\n"
 "GUIs with Spyder."
 msgstr ""
-"Cela vous permet de charger le support graphique sans importer les commandes "
-"pour faire des tracés. Utile pour travailler avec d'autres bibliothèques de "
-"traçage différentes de Matplotlib ou pour développer des GUI avec Spyder."
+"Cela vous permet de charger le support graphique sans importer\n"
+"les commandes pour faire des graphes. Ceci est utile pour travailler\n"
+"avec des bibliothèques graphiques autres que Matplotlib ou pour développer\n"
+"des GUI avec Spyder."
 
 #: spyder/plugins/ipythonconsole/confpage.py:114
 msgid "Inline"
@@ -4308,15 +4322,14 @@ msgstr ""
 "celle créée lors de la sauvegarde de la figure."
 
 #: spyder/plugins/ipythonconsole/confpage.py:209
-#, fuzzy
 msgid ""
 "You can run several lines of code when a console is started. Please "
 "introduce each one separated by semicolons and a space, for example:"
 "<br><i>import os; import sys</i>"
 msgstr ""
 "Vous pouvez exécuter plusieurs lignes de code lors du démarrage d'une "
-"console. Veuillez introduire chaque élément séparé par un point-virgule et "
-"un espace, par exemple: <br> <i> import os; système d'importation </ i>"
+"console. Veuillez ajouter chaque ligne séparée par un point-virgule et un "
+"espace, par exemple :<br><i>import os; import sys</i>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:215
 msgid "Lines:"
@@ -4578,7 +4591,6 @@ msgstr ""
 "b>. <br> <br> Veuillez en ouvrir une nouvelle et réessayer."
 
 #: spyder/plugins/ipythonconsole/plugin.py:654
-#, fuzzy
 msgid ""
 "Your Python environment or installation doesn't have the <tt>spyder-kernels</"
 "tt> module or the right version of it installed (>= 1.8.0 and < 2.0.0). "
@@ -4588,11 +4600,11 @@ msgid ""
 "tt>"
 msgstr ""
 "Votre environnement ou votre installation Python ne dispose pas du module "
-"<tt> spyder-kernels </ tt> ni de la version appropriée de celui-ci. Sans ce "
-"module, il est impossible pour Spyder de créer une console pour vous. <br> "
-"<br> Vous pouvez l'installer en exécutant un terminal système: <br> <br> "
-"<tt> conda install spyder-kernels </ tt> <br> <br> ou <br> <br> <tt> pip "
-"installez spyder-kernels </ tt>"
+"<tt>spyder-kernels</tt> ou la version de celui-ci n'est pas appropriée  (>= "
+"1.8.0 and < 2.0.0). Sans ce module, il est impossible pour Spyder de créer "
+"une console pour vous. <br><br>Vous pouvez l'installer en exécutant dans un "
+"terminal système :<br><br><tt>conda install spyder-kernels</tt><br><br> ou "
+"<br><br><tt>pip install spyder-kernels</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:952
 msgid "Do you want to close this console?"
@@ -7385,7 +7397,6 @@ msgid "Synchronize"
 msgstr "Synchroniser"
 
 #: spyder/widgets/pathmanager.py:213
-#, fuzzy
 msgid ""
 "This will synchronize Spyder's path list with <b>PYTHONPATH</b> environment "
 "variable for the current user, allowing you to run your Python modules "
@@ -7393,28 +7404,26 @@ msgid ""
 "clear contents of PYTHONPATH before adding Spyder's path list?"
 msgstr ""
 "Ceci synchronisera la liste des chemins d'accès de Spyder avec celle de la "
-"variable d'environnement <b>PYTHONPATH</b> pour l'utilisateur courant, vous "
+"variable d'environnement <b>PYTHONPATH</b> pour le présent utilisateur, vous "
 "permettant ainsi d'exécuter vos modules Python en dehors de Spyder sans "
-"avoir besoin de configurer sys.path. <br>Souhaitez-vous effacer le contenu "
-"de PYTHONPATH avant d'y ajouter la liste des chemins d'accès de Spyder ?"
+"avoir besoin de configurer sys.path.<br>Souhaitez-vous effacer le contenu de "
+"PYTHONPATH avant d'y ajouter la liste des chemins d'accès de Spyder ?"
 
 #: spyder/widgets/pathmanager.py:328
-#, fuzzy
 msgid ""
 "You are using Python 2 and the selected path has Unicode characters.<br> "
 "Therefore, this path will not be added."
 msgstr ""
-"Vous utilisez Python 2 et le chemin sélectionné possède des caractères "
-"unicodes. Le nouveau chemin ne sera pas ajouté."
+"Vous utilisez Python 2 et le chemin sélectionné inclus des caractères "
+"Unicodes. Le nouveau chemin ne sera pas ajouté."
 
 #: spyder/widgets/pathmanager.py:344
-#, fuzzy
 msgid ""
 "This directory is already included in the list.<br> Do you want to move it "
 "to the top of it?"
 msgstr ""
 "Ce répertoire est déjà inclus dans la liste des chemins d'accès de Spyder."
-"<br>Souhaitez-vous le placer en début de liste ?"
+"<br>Souhaitez-vous le placer au début de liste ?"
 
 #: spyder/widgets/pathmanager.py:362
 msgid ""
@@ -7422,6 +7431,9 @@ msgid ""
 "different Python interpreter, please go to <tt>Preferences > Main "
 "interpreter</tt>."
 msgstr ""
+"Ce répertoire ne peut pas être ajouté à la la liste des chemins d'accès de "
+"Spyder !<br><br>Si vous souhaitez définir un interpréteur Python différent, "
+"veuillez vous rendre à<tt>Préférences > Interpréteur Python</tt>."
 
 #: spyder/widgets/pathmanager.py:383
 msgid "Do you really want to remove the selected path?"
