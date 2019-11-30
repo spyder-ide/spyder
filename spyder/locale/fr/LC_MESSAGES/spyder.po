@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2019-11-29 18:13+-05\n"
-"PO-Revision-Date: 2019-11-30 09:36-0500\n"
+"PO-Revision-Date: 2019-11-30 09:50-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -1632,7 +1632,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:807
 msgid "Enable basic linting"
-msgstr "Activer les peluches de base"
+msgstr "Activer le linting de base"
 
 #: spyder/plugins/completion/languageserver/confpage.py:810
 #: spyder/plugins/editor/plugin.py:800
@@ -1641,7 +1641,7 @@ msgstr "Souligner les erreurs et les avertissements"
 
 #: spyder/plugins/completion/languageserver/confpage.py:814
 msgid "Enable complexity linting with the Mccabe package"
-msgstr "Activer la complexité des peluches avec le package McCabe"
+msgstr "Activer le linting complexe avec le package McCabe"
 
 #: spyder/plugins/completion/languageserver/confpage.py:832
 msgid ""
