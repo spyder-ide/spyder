@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2019-11-27 16:57+-05\n"
-"PO-Revision-Date: 2019-11-29 14:30-0500\n"
+"PO-Revision-Date: 2019-11-29 22:04-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -2693,9 +2693,8 @@ msgid "Run cell and advance"
 msgstr "Exécuter la cellule et avancer"
 
 #: spyder/plugins/editor/plugin.py:618
-#, fuzzy
 msgid "Run current cell and go to the next one "
-msgstr "Exécuter la cellule en cours et passer à la suivante"
+msgstr "Exécuter la cellule courante et passer à la suivante"
 
 #: spyder/plugins/editor/plugin.py:624
 #: spyder/plugins/editor/widgets/codeeditor.py:3540
@@ -2980,7 +2979,6 @@ msgid "Start typing the name of an open file"
 msgstr "Commencez à taper le nom d'un fichier ouvert"
 
 #: spyder/plugins/editor/utils/switcher.py:180
-#, fuzzy
 msgid "Select line"
 msgstr "Sélectionnez une ligne"
 
@@ -2989,19 +2987,16 @@ msgid "lines"
 msgstr "lignes"
 
 #: spyder/plugins/editor/utils/switcher.py:189
-#, fuzzy
 msgid "Go to line"
 msgstr "Aller à la ligne"
 
 #: spyder/plugins/editor/utils/switcher.py:202
-#, fuzzy
 msgid "Select symbol"
 msgstr "Sélectionnez le symbole"
 
 #: spyder/plugins/editor/widgets/autosaveerror.py:47
-#, fuzzy
 msgid "Autosave error"
-msgstr "Erreur d'enregistrement automatique"
+msgstr "Erreur de sauvegarde automatique"
 
 #: spyder/plugins/editor/widgets/autosaveerror.py:52
 #: spyder/plugins/editor/widgets/recover.py:256
@@ -3009,11 +3004,10 @@ msgid "Error message:"
 msgstr "Message d'erreur:"
 
 #: spyder/plugins/editor/widgets/autosaveerror.py:57
-#, fuzzy
 msgid "Hide all future autosave-related errors during this session"
 msgstr ""
-"Masquer toutes les futures erreurs liées à la sauvegarde automatique au "
-"cours de cette session"
+"Masquer toutes les erreurs futures liées à la sauvegarde automatique au "
+"cours de cette séance"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:128
 msgid "Go to line:"
@@ -3029,7 +3023,6 @@ msgid "Line count:"
 msgstr "Nombre de lignes :"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:630
-#, fuzzy
 msgid "click to open file"
 msgstr "cliquer pour ouvrir le fichier"
 
@@ -3108,9 +3101,8 @@ msgstr "Réinitialisation du zoom"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3560
 #: spyder/plugins/editor/widgets/codeeditor.py:4374
-#, fuzzy
 msgid "Generate docstring"
-msgstr "Générer docstring"
+msgstr "Générer un docstring"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:4041
 #: spyder/preferences/configdialog.py:891
@@ -3342,7 +3334,6 @@ msgid "Restore autosave file to ..."
 msgstr "Restaurer le fichier de sauvegarde automatique sur ..."
 
 #: spyder/plugins/editor/widgets/recover.py:235
-#, fuzzy
 msgid "Unable to restore {} using {}"
 msgstr "Impossible de restaurer {} en utilisant {}"
 
@@ -3355,14 +3346,12 @@ msgid "<b>{}</b><br><br>{}<br>{}"
 msgstr "<b> {} </ b> <br> <br> {} <br> {}"
 
 #: spyder/plugins/editor/widgets/status.py:31
-#, fuzzy
 msgid "File permissions"
 msgstr "Autorisations de fichier"
 
 #: spyder/plugins/editor/widgets/status.py:54
-#, fuzzy
 msgid "Encoding"
-msgstr "Codage"
+msgstr "Encodage"
 
 #: spyder/plugins/editor/widgets/status.py:67
 msgid "Cursor position"
@@ -3384,7 +3373,6 @@ msgid "Show icons and text"
 msgstr "Afficher icônes et textes"
 
 #: spyder/plugins/explorer/confpage.py:30
-#, fuzzy
 msgid "Single click to open files"
 msgstr "Un seul clic pour ouvrir les fichiers"
 
@@ -3448,12 +3436,10 @@ msgid "Package..."
 msgstr "Paquet..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:434
-#, fuzzy
 msgid "Open in Spyder"
 msgstr "Ouvrir dans Spyder"
 
 #: spyder/plugins/explorer/widgets/explorer.py:436
-#, fuzzy
 msgid "Open with"
 msgstr "Ouvrir avec"
 
@@ -3475,7 +3461,6 @@ msgid "Rename..."
 msgstr "Renommer..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:483
-#, fuzzy
 msgid "Copy Absolute Path"
 msgstr "Copier le chemin absolu"
 
@@ -3493,7 +3478,6 @@ msgid "Default external application"
 msgstr "Application externe par défaut"
 
 #: spyder/plugins/explorer/widgets/explorer.py:532
-#, fuzzy
 msgid "Show in Folder"
 msgstr "Afficher dans le dossier"
 
@@ -3620,7 +3604,7 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:993
 msgid "New folder"
-msgstr "Nouveau répertoire"
+msgstr "Nouveau dossier"
 
 #: spyder/plugins/explorer/widgets/explorer.py:994
 msgid "Folder name:"
@@ -3656,7 +3640,6 @@ msgstr "Erreur de collage du fichier"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1161
 #: spyder/plugins/explorer/widgets/explorer.py:1189
-#, fuzzy
 msgid ""
 "Unsupported copy operation. The error was:\n"
 "\n"
@@ -3665,7 +3648,6 @@ msgstr ""
 "\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1180
-#, fuzzy
 msgid "Recursive copy"
 msgstr "Copie récursive"
 
@@ -3678,7 +3660,6 @@ msgid "Error pasting folder"
 msgstr "Erreur de collage du dossier"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1193
-#, fuzzy
 msgid "No file in clipboard"
 msgstr "Aucun fichier dans le presse-papier"
 
@@ -3752,12 +3733,10 @@ msgid "Display date modified"
 msgstr "Date d'affichage modifiée"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:113
-#, fuzzy
 msgid "Browse..."
-msgstr "Feuilleter..."
+msgstr "Parcourir..."
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:120
-#, fuzzy
 msgid "Applications"
 msgstr "Applications"
 
@@ -3772,7 +3751,6 @@ msgstr "Applications (* .app)"
 #: spyder/plugins/explorer/widgets/fileassociations.py:182
 #: spyder/plugins/explorer/widgets/fileassociations.py:197
 #: spyder/plugins/explorer/widgets/fileassociations.py:216
-#, fuzzy
 msgid "Select application"
 msgstr "Sélectionnez une application"
 
@@ -3821,15 +3799,13 @@ msgstr "Modifier"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:302
 msgid "Associated applications:"
-msgstr "Applications associées:"
+msgstr "Applications associées :"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:306
-#, fuzzy
 msgid "Set default"
-msgstr "Définir par defaut"
+msgstr "Définir par défaut"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:405
-#, fuzzy
 msgid "Application not found!"
 msgstr "Application non trouvée!"
 
@@ -3850,12 +3826,10 @@ msgid "Set maximum number of results: "
 msgstr "Définir le nombre maximum de résultats :"
 
 #: spyder/plugins/findinfiles/plugin.py:148
-#, fuzzy
 msgid "Find"
 msgstr "Trouver"
 
 #: spyder/plugins/findinfiles/plugin.py:161
-#, fuzzy
 msgid "Set maximum number of results"
 msgstr "Définir le nombre maximum de résultats"
 
@@ -4249,13 +4223,12 @@ msgstr ""
 "lors du redémarrage du noyau."
 
 #: spyder/plugins/ipythonconsole/confpage.py:71
-#, fuzzy
 msgid "Completion type"
-msgstr "Type d'achèvement"
+msgstr "Type de complétion"
 
 #: spyder/plugins/ipythonconsole/confpage.py:72
 msgid "Decide what type of completion to use"
-msgstr "Sélectionner le type de completion de code a utiliser"
+msgstr "Sélectionner le type de complétion à utiliser"
 
 #: spyder/plugins/ipythonconsole/confpage.py:74
 msgid "Graphical"
@@ -4532,9 +4505,8 @@ msgstr ""
 "automatiquement appelés (même s'il n'y a pas d'arguments)"
 
 #: spyder/plugins/ipythonconsole/confpage.py:314
-#, fuzzy
 msgid "Symbolic mathematics"
-msgstr "Mathématiques symboliques"
+msgstr "Calcul Symbolique"
 
 #: spyder/plugins/ipythonconsole/confpage.py:315
 msgid ""
@@ -4589,9 +4561,8 @@ msgstr ""
 "Par défaut :<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:362
-#, fuzzy
 msgid "Windows adjustments"
-msgstr "Ajustements de Windows"
+msgstr "Ajustements des fenêtres"
 
 #: spyder/plugins/ipythonconsole/confpage.py:364
 msgid "Hide command line output windows generated by the subprocess module."
@@ -4617,7 +4588,6 @@ msgstr ""
 "créer des consoles IPython. Créez le chemin d’accès accessible en écriture."
 
 #: spyder/plugins/ipythonconsole/plugin.py:280
-#, fuzzy
 msgid "New console (default settings)"
 msgstr "Nouvelle console (paramètres par défaut)"
 
@@ -4626,18 +4596,16 @@ msgid "New Pylab console (data plotting)"
 msgstr "Nouvelle console Pylab (traçage des données)"
 
 #: spyder/plugins/ipythonconsole/plugin.py:296
-#, fuzzy
 msgid "New SymPy console (symbolic math)"
-msgstr "Nouvelle console SymPy (mathématiques symboliques)"
+msgstr "Nouvelle console SymPy (calcul symbolique)"
 
 #: spyder/plugins/ipythonconsole/plugin.py:303
 msgid "New Cython console (Python with C extensions)"
 msgstr "Nouvelle console Cython (Python avec extensions C)"
 
 #: spyder/plugins/ipythonconsole/plugin.py:312
-#, fuzzy
 msgid "New special console"
-msgstr "Nouvelle console spéciale"
+msgstr "Nouvelle console spécialisée"
 
 #: spyder/plugins/ipythonconsole/plugin.py:315
 msgid "Restart kernel"
@@ -4741,14 +4709,14 @@ msgid "Connection error"
 msgstr "Erreur de connexion"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1466
-#, fuzzy
 msgid ""
 "An error occurred while trying to load the kernel connection file. The error "
 "was:\n"
 "\n"
 msgstr ""
 "Une erreur s'est produite lors de la tentative de chargement du fichier de "
-"connexion du noyau. L'erreur était:"
+"connexion au noyau. L'erreur était :\n"
+"\n"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1486
 msgid ""
@@ -6274,7 +6242,6 @@ msgstr "Affiche / masque les attributs appelables (fonctions, méthodes, etc.)"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:171
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:193
-#, fuzzy
 msgid "Show __special__ attributes"
 msgstr "Afficher les attributs __special__"
 
@@ -6665,7 +6632,6 @@ msgstr ""
 "l’échelle automatique ne fonctionne pas"
 
 #: spyder/preferences/general.py:262
-#, fuzzy
 msgid ""
 "Enter values for different screens separated by semicolons ';'.\n"
 "Float values are supported"
@@ -7676,14 +7642,12 @@ msgid "Spyder Keyboard ShortCuts"
 msgstr "Raccourcis clavier Spyder"
 
 #: spyder/widgets/status.py:188
-#, fuzzy
 msgid "Memory usage"
 msgstr "Utilisation de la mémoire"
 
 #: spyder/widgets/status.py:214
-#, fuzzy
 msgid "CPU usage"
-msgstr "l'utilisation du processeur"
+msgstr "Utilisation du processeur"
 
 #: spyder/widgets/status.py:302
 #, fuzzy
@@ -7697,11 +7661,12 @@ msgstr "change de vue"
 #: spyder/widgets/switcher.py:919
 #, fuzzy
 msgid "Indent Using Spaces"
-msgstr "Retrait à l'aide d'espaces"
+msgstr "Indenter avec des espaces"
 
 #: spyder/widgets/switcher.py:921
+#, fuzzy
 msgid "Indent Using Tabs"
-msgstr "Indentation à l'aide d'onglets"
+msgstr "Indenter avec des tabulations"
 
 #: spyder/widgets/switcher.py:923
 msgid "Detect Indentation from Content"
