@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2019-11-29 18:13+-05\n"
-"PO-Revision-Date: 2019-11-30 09:30-0500\n"
+"PO-Revision-Date: 2019-11-30 09:36-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -1051,7 +1051,7 @@ msgstr ""
 
 #: spyder/dependencies.py:111
 msgid "Jupyter kernels for the Spyder console"
-msgstr "Jupyter noyaux pour la console Spyder"
+msgstr "Noyaux Jupyter pour la console Spyder"
 
 #: spyder/dependencies.py:115
 msgid "Dark style for the entire interface"
@@ -6306,7 +6306,7 @@ msgstr "Rétablir les valeurs par défaut"
 
 #: spyder/preferences/appearance.py:113
 msgid "Fonts"
-msgstr "Police de caractères"
+msgstr "Polices de caractères"
 
 #: spyder/preferences/appearance.py:118
 msgid "Plain text"
