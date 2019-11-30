@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 3.8POT-Creation-Date: 2017-01-17 12:57-0300\n"
-"POT-Creation-Date: 2019-11-27 16:57+-05\n"
+"POT-Creation-Date: 2019-11-29 18:13+-05\n"
 "PO-Revision-Date: 2019-10-03 00:31-0500\n"
 "Last-Translator: Valter Nazianzeno <manipuladordedados@gmail.com>\n"
 "Language-Team: pt_BR\n"
@@ -2815,7 +2815,7 @@ msgstr "sem título"
 msgid "Maximum number of recent files"
 msgstr "Número máximo de arquivos recentes"
 
-#: spyder/plugins/editor/plugin.py:1962
+#: spyder/plugins/editor/plugin.py:1963
 msgid "Printing..."
 msgstr "Imprimindo..."
 
@@ -3059,7 +3059,7 @@ msgid "Close this panel"
 msgstr "Fechar este painel"
 
 #: spyder/plugins/editor/widgets/editor.py:1560
-#: spyder/plugins/editor/widgets/editor.py:3220
+#: spyder/plugins/editor/widgets/editor.py:3223
 msgid "Close window"
 msgstr "Fechar janela"
 
@@ -3104,11 +3104,11 @@ msgstr ""
 "Todas as modificações do <b>%s</b> foram perdidas.<br>Você deseja reverter o "
 "arquivo do disco?"
 
-#: spyder/plugins/editor/widgets/editor.py:2655
+#: spyder/plugins/editor/widgets/editor.py:2657
 msgid "Loading %s..."
 msgstr "Carregando %s..."
 
-#: spyder/plugins/editor/widgets/editor.py:2669
+#: spyder/plugins/editor/widgets/editor.py:2672
 msgid ""
 "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this "
 "automatically."
@@ -3116,7 +3116,7 @@ msgstr ""
 "<b>%s</b> contém vários tipos de caracteres de fim de linha.<br>O Spyder irá "
 "corrigir automaticamente."
 
-#: spyder/plugins/editor/widgets/editor.py:3222
+#: spyder/plugins/editor/widgets/editor.py:3225
 msgid "Close this window"
 msgstr "Fechar esta janela"
 
@@ -4822,11 +4822,11 @@ msgstr ""
 msgid "Changing backend to Qt for Mayavi"
 msgstr "Mudando o backend do Qt para Mayavi"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:623
+#: spyder/plugins/ipythonconsole/widgets/shell.py:621
 msgid "Kernel died, restarting"
 msgstr "O Kernel morreu, reiniciando"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:623
+#: spyder/plugins/ipythonconsole/widgets/shell.py:621
 msgid "Kernel restarting"
 msgstr "Reiniciando Kernel"
 
@@ -6682,7 +6682,7 @@ msgid "Remove all variables before execution"
 msgstr "Remover todas variáveis antes da execução"
 
 #: spyder/preferences/runconfig.py:46
-msgid "Run in console’s namespace instead of an empty one"
+msgid "Run in console's namespace instead of an empty one"
 msgstr ""
 
 #: spyder/preferences/runconfig.py:47
