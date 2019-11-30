@@ -2728,16 +2728,10 @@ class MainWindow(QMainWindow):
         msgBox.setStandardButtons(QMessageBox.Ok)
 
         from spyder.config.gui import is_dark_interface
-        if PYQT5:
-            if is_dark_interface():
-                icon_filename = "spyder.svg"
-            else:
-                icon_filename = "spyder_dark.svg"
+        if is_dark_interface():
+            icon_filename = "spyder.svg"
         else:
-            if is_dark_interface():
-                icon_filename = "spyder.png"
-            else:
-                icon_filename = "spyder_dark.png"
+            icon_filename = "spyder_dark.svg"
         app_icon = QIcon(get_image_path(icon_filename))
         msgBox.setIconPixmap(app_icon.pixmap(QSize(64, 64)))
 
