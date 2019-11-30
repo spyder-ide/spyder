@@ -11,7 +11,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2019-11-27 16:57+-05\n"
+"POT-Creation-Date: 2019-11-29 18:13+-05\n"
 "PO-Revision-Date: 2019-11-29 22:55+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
@@ -2751,7 +2751,7 @@ msgstr "未命名"
 msgid "Maximum number of recent files"
 msgstr "最多显示的最近文件数量"
 
-#: spyder/plugins/editor/plugin.py:1962
+#: spyder/plugins/editor/plugin.py:1963
 msgid "Printing..."
 msgstr "正在打印..."
 
@@ -2987,7 +2987,7 @@ msgid "Close this panel"
 msgstr "关闭当前窗格"
 
 #: spyder/plugins/editor/widgets/editor.py:1560
-#: spyder/plugins/editor/widgets/editor.py:3220
+#: spyder/plugins/editor/widgets/editor.py:3223
 msgid "Close window"
 msgstr "关闭窗口"
 
@@ -3027,17 +3027,17 @@ msgid ""
 "disk?"
 msgstr "<b>%s</b>所有更改 都将丢失！<br>是否从磁盘恢复文件?"
 
-#: spyder/plugins/editor/widgets/editor.py:2655
+#: spyder/plugins/editor/widgets/editor.py:2657
 msgid "Loading %s..."
 msgstr "正在加载 %s..."
 
-#: spyder/plugins/editor/widgets/editor.py:2669
+#: spyder/plugins/editor/widgets/editor.py:2672
 msgid ""
 "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this "
 "automatically."
 msgstr "<b>%s</b>包含多种换行符。<br>Spyder将会自动修复这个问题。"
 
-#: spyder/plugins/editor/widgets/editor.py:3222
+#: spyder/plugins/editor/widgets/editor.py:3225
 msgid "Close this window"
 msgstr "关闭该窗口"
 
@@ -4648,11 +4648,11 @@ msgstr ""
 msgid "Changing backend to Qt for Mayavi"
 msgstr "将 Mayavi 的后段切换为 Qt"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:623
+#: spyder/plugins/ipythonconsole/widgets/shell.py:621
 msgid "Kernel died, restarting"
 msgstr "IPython 内核已死亡，正在重启"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:623
+#: spyder/plugins/ipythonconsole/widgets/shell.py:621
 msgid "Kernel restarting"
 msgstr "IPython 内核正在重启"
 
@@ -6428,7 +6428,8 @@ msgid "Remove all variables before execution"
 msgstr "执行前清理所有变量"
 
 #: spyder/preferences/runconfig.py:46
-msgid "Run in consoleâs namespace instead of an empty one"
+#, fuzzy
+msgid "Run in console's namespace instead of an empty one"
 msgstr "在控制台的命名空间中运行，而不是新的"
 
 #: spyder/preferences/runconfig.py:47

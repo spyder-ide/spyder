@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2019-11-27 16:57+-05\n"
+"POT-Creation-Date: 2019-11-29 18:13+-05\n"
 "PO-Revision-Date: 2018-11-15 12:54-0500\n"
 "Last-Translator: Barcza Károly <kbarcza@blackpanther.hu>\n"
 "Language-Team: \n"
@@ -2927,7 +2927,7 @@ msgstr "névtelen"
 msgid "Maximum number of recent files"
 msgstr "Nemrégi fájlok"
 
-#: spyder/plugins/editor/plugin.py:1962
+#: spyder/plugins/editor/plugin.py:1963
 msgid "Printing..."
 msgstr "Nyomtatás..."
 
@@ -3194,7 +3194,7 @@ msgid "Close this panel"
 msgstr "Lap bezárása"
 
 #: spyder/plugins/editor/widgets/editor.py:1560
-#: spyder/plugins/editor/widgets/editor.py:3220
+#: spyder/plugins/editor/widgets/editor.py:3223
 #, fuzzy
 msgid "Close window"
 msgstr "Ablak bezárása"
@@ -3236,18 +3236,18 @@ msgid ""
 "disk?"
 msgstr ""
 
-#: spyder/plugins/editor/widgets/editor.py:2655
+#: spyder/plugins/editor/widgets/editor.py:2657
 #, fuzzy
 msgid "Loading %s..."
 msgstr "Töltés %s..."
 
-#: spyder/plugins/editor/widgets/editor.py:2669
+#: spyder/plugins/editor/widgets/editor.py:2672
 msgid ""
 "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this "
 "automatically."
 msgstr "<b>%s</b> kevert vonalvég betüket tartalmaz.<br>Spyder ezt magjavítja."
 
-#: spyder/plugins/editor/widgets/editor.py:3222
+#: spyder/plugins/editor/widgets/editor.py:3225
 #, fuzzy
 msgid "Close this window"
 msgstr "Ez az Ablak bezárása"
@@ -4978,12 +4978,12 @@ msgstr ""
 msgid "Changing backend to Qt for Mayavi"
 msgstr "Mayavi hátsórészét Qt-re"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:623
+#: spyder/plugins/ipythonconsole/widgets/shell.py:621
 #, fuzzy
 msgid "Kernel died, restarting"
 msgstr "Újraindítás"
 
-#: spyder/plugins/ipythonconsole/widgets/shell.py:623
+#: spyder/plugins/ipythonconsole/widgets/shell.py:621
 #, fuzzy
 msgid "Kernel restarting"
 msgstr "Újraindítás"
@@ -6908,7 +6908,7 @@ msgid "Remove all variables before execution"
 msgstr "Minden változót törölni futtatás elött (IPython konzolban)"
 
 #: spyder/preferences/runconfig.py:46
-msgid "Run in console’s namespace instead of an empty one"
+msgid "Run in console's namespace instead of an empty one"
 msgstr ""
 
 #: spyder/preferences/runconfig.py:47
