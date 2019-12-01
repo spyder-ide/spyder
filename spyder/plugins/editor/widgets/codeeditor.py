@@ -499,7 +499,9 @@ class CodeEditor(TextEditBaseWidget):
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
         self.found_results = []
-        self.found_results_color = QColor(Qt.magenta).lighter(180)
+
+        # Defined on _apply_highlighter_color_scheme
+        self.found_results_color = None
 
         # Docstring
         self.writer_docstring = DocstringWriterExtension(self)
@@ -1826,9 +1828,16 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_flags_changed.emit()
 
     #-----highlight found results (find/replace widget)
-    def highlight_found_results(self, pattern, word=False, regexp=False,
+    def highlight_found_results(self, pattern=None, word=False, regexp=False,
                                 case=False):
-        """Highlight all found patterns"""
+        """Highlight all found patterns."""
+        self._find_args = {
+            'pattern': pattern,
+            'word': word,
+            'regexp': regexp,
+            'case': case,
+        }
+
         pattern = to_text_string(pattern)
         if not pattern:
             return
@@ -1861,10 +1870,17 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_flags_changed.emit()
 
     def __text_has_changed(self):
-        """Text has changed, eventually clear found results highlighting"""
+        """Text has changed, eventually clear found results highlighting."""
         self.last_change_position = self.textCursor().position()
-        if self.found_results:
-            self.clear_found_results()
+
+        # If the change was on any of the lines that changed, recalculate
+        for result in self.found_results:
+            self.highlight_found_results(**self._find_args)
+            break
+            # if result == self.textCursor().blockNumber():
+
+        # if self.found_results:
+        #     self.clear_found_results()
 
     def get_linenumberarea_width(self):
         """
@@ -2036,6 +2052,10 @@ class CodeEditor(TextEditBaseWidget):
             self.normal_color = hl.get_foreground_color()
             self.matched_p_color = hl.get_matched_p_color()
             self.unmatched_p_color = hl.get_unmatched_p_color()
+
+            # Set other colors
+            self.found_results_color = QColor(self.unmatched_p_color)
+            self.found_results_color.setAlpha(150)
 
             self.edge_line.update_color()
             self.indent_guides.update_color()
@@ -3594,6 +3614,7 @@ class CodeEditor(TextEditBaseWidget):
             self.request_cursor_event()
         self.timer_syntax_highlight.start()
         self._restore_editor_cursor_and_selections()
+
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
 
