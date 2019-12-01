@@ -3292,10 +3292,11 @@ class MainWindow(QMainWindow):
         env['SPYDER_RESET'] = str(reset)
 
         if DEV:
+            repo_dir = osp.dirname(spyder_start_directory)
             if os.name == 'nt':
-                env['PYTHONPATH'] = ';'.join(sys.path)
+                env['PYTHONPATH'] = ';'.join([repo_dir])
             else:
-                env['PYTHONPATH'] = ':'.join(sys.path)
+                env['PYTHONPATH'] = ':'.join([repo_dir])
 
         # Build the command and popen arguments depending on the OS
         if os.name == 'nt':
