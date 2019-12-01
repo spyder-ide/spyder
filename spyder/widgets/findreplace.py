@@ -147,27 +147,30 @@ class FindReplace(QWidget):
 
         self.replace_text.valid.connect(
                     lambda _: self.replace_find(focus_replace_text=True))
-        self.replace_button = create_toolbutton(self,
-                                     text=_('Next'),
-                                     tip=_('Replace next'),
-                                     icon=ima.icon('DialogApplyButton'),
-                                     triggered=self.replace_find,
-                                     text_beside_icon=True)
-        self.replace_sel_button = create_toolbutton(self,
-                                     text=_('Selection'),
-                                     tip=_('Replace selection'),
-                                     icon=ima.icon('DialogApplyButton'),
-                                     triggered=self.replace_find_selection,
-                                     text_beside_icon=True)
+        self.replace_button = create_toolbutton(
+            self,
+            text=_('Next'),
+            tip=_('Replace next'),
+            icon=ima.icon('DialogApplyButton'),
+            triggered=self.replace_find,
+            text_beside_icon=True)
+        self.replace_sel_button = create_toolbutton(
+            self,
+            text=_('Selection'),
+            tip=_('Replace selection'),
+            icon=ima.icon('DialogApplyButton'),
+            triggered=self.replace_find_selection,
+            text_beside_icon=True)
         self.replace_sel_button.clicked.connect(self.update_replace_combo)
         self.replace_sel_button.clicked.connect(self.update_search_combo)
 
-        self.replace_all_button = create_toolbutton(self,
-                                     text=_('All'),
-                                     tip=_('Replace all'),
-                                     icon=ima.icon('DialogApplyButton'),
-                                     triggered=self.replace_find_all,
-                                     text_beside_icon=True)
+        self.replace_all_button = create_toolbutton(
+            self,
+            text=_('All'),
+            tip=_('Replace all'),
+            icon=ima.icon('DialogApplyButton'),
+            triggered=self.replace_find_all,
+            text_beside_icon=True)
         self.replace_all_button.clicked.connect(self.update_replace_combo)
         self.replace_all_button.clicked.connect(self.update_search_combo)
 
@@ -421,9 +424,8 @@ class FindReplace(QWidget):
             if text:
                 self.editor.highlight_found_results(text, word=word,
                                                     regexp=regexp, case=case)
-                number_matches = self.editor.get_number_matches(text, case=case,
-                                                            regexp=regexp,
-                                                            word=word)
+                number_matches = self.editor.get_number_matches(
+                    text, case=case, regexp=regexp, word=word)
                 self.change_number_matches(total_matches=number_matches)
             else:
                 self.clear_matches()
