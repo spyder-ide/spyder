@@ -415,13 +415,24 @@ class FindReplace(QWidget):
         self.highlight_matches()
 
     def highlight_matches(self):
-        """Highlight found results"""
+        """Highlight found results."""
         if self.is_code_editor and self.highlight_button.isChecked():
             text = self.search_text.currentText()
             case = self.case_button.isChecked()
             word = self.words_button.isChecked()
             regexp = self.re_button.isChecked()
             if text:
+                if regexp:
+                    error_msg = regexp_error_msg(text)
+                    if error_msg:
+                        tooltip = self.TOOLTIP['regexp_error'] + ': ' + error_msg
+                        if self.is_code_editor:
+                            color = self.editor.unmatched_p_color.name()
+                            self.search_text.setStyleSheet('color: ' + color)
+                        self.search_text.setToolTip(tooltip)
+                    else:
+                        self.search_text.setStyleSheet('')
+
                 self.editor.highlight_found_results(text, word=word,
                                                     regexp=regexp, case=case)
                 number_matches = self.editor.get_number_matches(
@@ -430,6 +441,7 @@ class FindReplace(QWidget):
             else:
                 self.clear_matches()
                 self.change_number_matches()
+                self.search_text.setStyleSheet('')
 
     def clear_matches(self):
         """Clear all highlighted matches"""
@@ -463,8 +475,12 @@ class FindReplace(QWidget):
             tooltip = self.TOOLTIP[found]
             if not found and regexp:
                 error_msg = regexp_error_msg(text)
-                if error_msg:  # special styling for regexp errors
-                    tooltip = self.TOOLTIP['regexp_error'] + ': ' + error_msg
+                # if error_msg:  # special styling for regexp errors
+                #     tooltip = self.TOOLTIP['regexp_error'] + ': ' + error_msg
+                #     # self.search_text.setStyleSheet('color: #ff4340;")
+                # # else:
+                #     # self.search_text.setStyleSheet('')
+
             self.search_text.setToolTip(tooltip)
 
             if self.is_code_editor and found:
@@ -656,6 +672,8 @@ class FindReplace(QWidget):
             self.number_matches_text.setText(_(u"no matches"))
             search_text = to_text_string(self.search_text.currentText())
             if search_text:
-                self.number_matches_text.setStyleSheet("color: #ff4340;")
+                if self.is_code_editor:
+                    color = self.editor.unmatched_p_color.name()
+                    self.number_matches_text.setStyleSheet('color: ' + color)
             else:
                 self.number_matches_text.setStyleSheet("")
