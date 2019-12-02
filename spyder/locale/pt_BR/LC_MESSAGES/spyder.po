@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 3.8POT-Creation-Date: 2017-01-17 12:57-0300\n"
 "POT-Creation-Date: 2019-11-11 00:15+-05\n"
-"PO-Revision-Date: 2019-12-01 17:18-0300\n"
+"PO-Revision-Date: 2019-12-01 22:05-0300\n"
 "Last-Translator: Josué M. Sehnem <josue@sehnem.com>\n"
 "Language-Team: pt_BR\n"
 "Language: pt_BR\n"
@@ -3340,31 +3340,26 @@ msgid "Parent"
 msgstr "Superior"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1613
-#, fuzzy
 msgid "Display kind"
 msgstr "Tipo de exibição"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1613
-#, fuzzy
 msgid "Display type"
 msgstr "Tipo de exibição"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1615
-#, fuzzy
 msgid "Display size"
 msgstr "Tamanho da tela"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1616
 msgid "Display date modified"
-msgstr "Data de exibição modificada"
+msgstr "Exibir data de modificação"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:113
-#, fuzzy
 msgid "Browse..."
-msgstr "Squeaky toy..."
+msgstr "Navegar..."
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:120
-#, fuzzy
 msgid "Applications"
 msgstr "Aplicações"
 
@@ -3374,18 +3369,17 @@ msgstr "Digite para filtrar por nome"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:181
 msgid "Applications (*.app)"
-msgstr "Aplicativos (* .app)"
+msgstr "Aplicativos (*.app)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:182
 #: spyder/plugins/explorer/widgets/fileassociations.py:197
 #: spyder/plugins/explorer/widgets/fileassociations.py:216
-#, fuzzy
 msgid "Select application"
 msgstr "Selecionar aplicação"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:196
 msgid "Applications (*.exe *.bat *.com)"
-msgstr "Aplicativos (* .exe * .bat * .com)"
+msgstr "Aplicativos (*.exe *.bat *.com)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:215
 msgid "Applications (*.desktop)"
@@ -3430,14 +3424,12 @@ msgid "Associated applications:"
 msgstr "Aplicativos associados:"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:306
-#, fuzzy
 msgid "Set default"
 msgstr "Conjunto padrão"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:405
-#, fuzzy
 msgid "Application not found!"
-msgstr "Aplicação não encontrada!"
+msgstr "Aplicativo não encontrado!"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:422
 msgid "File association"
@@ -3446,20 +3438,18 @@ msgstr "Associação de arquivo"
 #: spyder/plugins/explorer/widgets/fileassociations.py:424
 msgid "Enter new file extension. You can add several values separated by commas.<br>Examples include:"
 msgstr ""
-"Digite a nova extensão de arquivo. Você pode adicionar vários valores separados por vírgulas. Os exemplos "
-"incluem:"
+"Digite a nova extensão de arquivo. Você pode adicionar vários valores separados por vírgulas.<br>Os "
+"exemplos incluem:"
 
 #: spyder/plugins/findinfiles/plugin.py:121
 msgid "Set maximum number of results: "
 msgstr "Defina o número máximo de resultados: "
 
 #: spyder/plugins/findinfiles/plugin.py:148
-#, fuzzy
 msgid "Find"
-msgstr "Encontrar"
+msgstr "Procurar"
 
 #: spyder/plugins/findinfiles/plugin.py:161
-#, fuzzy
 msgid "Set maximum number of results"
 msgstr "Definir o número máximo de resultados"
 
@@ -3567,7 +3557,6 @@ msgid "Stop search"
 msgstr "Parar busca"
 
 #: spyder/plugins/findinfiles/widgets.py:619
-#, fuzzy
 msgid "Exclude pattern"
 msgstr "Excluir padrão"
 
@@ -3616,8 +3605,8 @@ msgid ""
 "This pane can automatically show an object's help information after a left parenthesis is written next to "
 "it. Below you can decide to which plugin you want to connect it to turn on this feature."
 msgstr ""
-"Este painel pode mostrar automaticamente a ajuda de um objeto depois de escrever um parênteses no mesmo. A "
-"seguir você pode decidir a que painel/componente você deseja conectar para ativar esta característica."
+"Este painel pode mostrar automaticamente a ajuda de um objeto depois de escrever um parênteses nele. A "
+"seguir você pode decidir a que painel/componente você deseja conectar para ativar esta função."
 
 #: spyder/plugins/help/confpage.py:33
 msgid "IPython Console"
@@ -3658,7 +3647,7 @@ msgstr "Objeto"
 
 #: spyder/plugins/help/plugin.py:117
 msgid "Plain Text"
-msgstr "Texto Normal"
+msgstr "Texto Simple"
 
 #: spyder/plugins/help/plugin.py:121
 msgid "Show Source"
@@ -3666,7 +3655,7 @@ msgstr "Mostrar código fonte"
 
 #: spyder/plugins/help/plugin.py:125
 msgid "Rich Text"
-msgstr "Texto Formatado"
+msgstr "Rich Text"
 
 #: spyder/plugins/help/plugin.py:135
 msgid "Automatic import"
@@ -3678,9 +3667,9 @@ msgid ""
 "%sHelp can also be shown automatically after writing a left parenthesis next to an object. You can "
 "activate this behavior in %s."
 msgstr ""
-"Neste painel é possível obter a ajuda de qualquer objeto ao pressionar %s estando na frente do mesmo, "
-"tanto no Editor quanto no Console.%sEssa ajuda também pode ser mostrada automaticamente depois de escrever "
-"um parênteses junto a um objeto. Você pode ativar este comportamento em %s."
+"Neste painel é possível obter a ajuda de qualquer objeto ao pressionar %s estando na frente dele, tanto no "
+"Editor quanto no Console.%sEssa ajuda também pode ser mostrada automaticamente após escrever um parênteses "
+"junto a um objeto. Você pode ativar este comportamento em %s."
 
 #: spyder/plugins/help/plugin.py:402
 msgid "Preferences > Help"
@@ -3700,7 +3689,7 @@ msgstr "tutorial"
 
 #: spyder/plugins/help/plugin.py:419
 msgid "Please consider installing Sphinx to get documentation rendered in rich text."
-msgstr "Por favor considere instalar o Sphinx para obter a documentação em texto formatado."
+msgstr "Por favor considere instalar o Sphinx para obter a documentação em rich text."
 
 #: spyder/plugins/help/plugin.py:598
 msgid "Lock"
@@ -3715,7 +3704,7 @@ msgid ""
 "The following error occured when calling <b>Sphinx %s</b>. <br>Incompatible Sphinx version or doc string "
 "decoding failed.<br><br>Error message:<br>%s"
 msgstr ""
-"Ocorreu o seguinte erro quando o <b>Sphinx %s</b> tentou ser utilizado. <br>Isso se deve a uma versão "
+"Ocorreu o seguinte erro quando o <b>Sphinx %s</b> tentou foi chamado. <br>Isso se deve a uma versão "
 "incompatível do Sphinx ou não foi possível ler a documentação solicitada.<br><br>Mensagem de erro:<br>%s"
 
 #: spyder/plugins/help/plugin.py:689
@@ -3724,8 +3713,7 @@ msgstr "O código fonte não está disponível."
 
 #: spyder/plugins/help/utils/sphinxify.py:224 spyder/plugins/help/utils/sphinxify.py:234
 msgid "It was not possible to generate rich text help for this object.</br>Please see it in plain text."
-msgstr ""
-"Não foi possível gerar ajuda em texto formatado para este objeto.</br>Por favor veja em texto normal."
+msgstr "Não foi possível gerar ajuda rich text para este objeto.</br>Por favor veja em texto simples."
 
 #: spyder/plugins/help/utils/sphinxthread.py:77
 msgid "No further documentation available"
@@ -3783,8 +3771,7 @@ msgid ""
 "the top of the console when it's opened."
 msgstr ""
 "Esta opção permite ocultar a mensagem que \n"
-"aparece no topo do console quando se abre\n"
-"ele pela primeira vez."
+"aparece no topo do console quando aberto"
 
 #: spyder/plugins/ipythonconsole/confpage.py:38
 msgid "Use a pager to display additional text inside the console"
@@ -3811,33 +3798,32 @@ msgid ""
 "This option lets you hide the warning message shown\n"
 "when resetting the namespace from Spyder."
 msgstr ""
-"Esta opção permite ocultar a mensagem de aviso mostrada \n"
-"quando se vai remover todas variáveis definidas pelo usuário."
+"Esta opção permite ocultar a mensagem de aviso mostrada\n"
+"quando limpando as variáveis do Spyder."
 
 #: spyder/plugins/ipythonconsole/confpage.py:54 spyder/plugins/ipythonconsole/widgets/client.py:152
 msgid "Show elapsed time"
 msgstr "Mostrar tempo de execução"
 
 #: spyder/plugins/ipythonconsole/confpage.py:56
-#, fuzzy
 msgid "Ask for confirmation before restarting"
 msgstr "Peça confirmação antes de reiniciar"
 
 #: spyder/plugins/ipythonconsole/confpage.py:58
-#, fuzzy
 msgid ""
 "This option lets you hide the warning message shown\n"
 "when restarting the kernel."
-msgstr "Esta opção permite ocultar a mensagem de aviso mostrada ao reiniciar o kernel."
+msgstr ""
+"Esta opção permite ocultar a mensagem de aviso mostrada\n"
+"ao reiniciar o kernel."
 
 #: spyder/plugins/ipythonconsole/confpage.py:71
-#, fuzzy
 msgid "Completion type"
 msgstr "Tipo de conclusão"
 
 #: spyder/plugins/ipythonconsole/confpage.py:72
 msgid "Decide what type of completion to use"
-msgstr "Decidir qual tipo de completação usar"
+msgstr "Decidir qual tipo de preenchimento de código usar"
 
 #: spyder/plugins/ipythonconsole/confpage.py:74
 msgid "Graphical"
@@ -3853,7 +3839,7 @@ msgstr "Terminal"
 
 #: spyder/plugins/ipythonconsole/confpage.py:75
 msgid "Completion:"
-msgstr "Completação:"
+msgstr "Preenchimento de código:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:85
 msgid " lines"
@@ -3870,8 +3856,8 @@ msgid ""
 "(not recommended!)"
 msgstr ""
 "Define o número máximo de linhas que serão mostradas\n"
-"no console em qualquer momento. Especificando -1 serão\n"
-"mostradas todas as linhas (não é recomendável!)"
+"no console, truncando as restantes. Especificando -1\n"
+"serão mostradas todas as linhas (não é recomendável!)"
 
 #: spyder/plugins/ipythonconsole/confpage.py:96
 msgid "Support for graphics (Matplotlib)"
@@ -3886,15 +3872,16 @@ msgid "Automatically load Pylab and NumPy modules"
 msgstr "Carregar automaticamente os módulos do Pylab e do NumPy"
 
 #: spyder/plugins/ipythonconsole/confpage.py:101
-#, fuzzy
 msgid ""
 "This lets you load graphics support without importing\n"
 "the commands to do plots. Useful to work with other\n"
 "plotting libraries different to Matplotlib or to develop\n"
 "GUIs with Spyder."
 msgstr ""
-"Isso permite carregar o suporte gráfico sem importar os comandos para fazer gráficos. Útil para trabalhar "
-"com outras bibliotecas de plotagem diferentes do Matplotlib ou para desenvolver UIs com o Spyder."
+"Isso permite carregar o suporte gráfico sem importar\n"
+"os comandos para fazer gráficos. Útil para trabalhar com\n"
+"outras bibliotecas de plotagem além do Matplotlib ou para\n"
+"desenvolver UIs com o Spyder."
 
 #: spyder/plugins/ipythonconsole/confpage.py:114
 msgid "Inline"
@@ -3914,7 +3901,7 @@ msgid ""
 "graphics inside the console or <b>%s</b> to interact with them (through zooming and panning) in a separate "
 "window."
 msgstr ""
-"Decidir como serão mostrados os gráficos no console. Se está inseguro, por favor selecione <b>%s</b> para "
+"Decide como os gráficos serão mostrados no console. Se não tem certeza, por favor selecione <b>%s</b> para "
 "colocar os gráficos no console ou <b>%s</b> para interagir com eles (através de zoom) em uma janela "
 "separada."
 
@@ -3972,10 +3959,9 @@ msgstr "O padrão é 4"
 
 #: spyder/plugins/ipythonconsole/confpage.py:174
 msgid "Use a tight layout for inline plots"
-msgstr "Usar um layout apertado para plots em linha"
+msgstr "Usar um layout com margens estreitas para plots em linha"
 
 #: spyder/plugins/ipythonconsole/confpage.py:176
-#, fuzzy
 msgid ""
 "Sets bbox_inches to \"tight\" when\n"
 "plotting inline with matplotlib.\n"
@@ -3983,17 +3969,19 @@ msgid ""
 "between the image displayed inline and\n"
 "that created using savefig."
 msgstr ""
-"Define bbox_inches como \"tight\" ao plotar inline com matplotlib. Quando ativado, pode causar "
-"discrepâncias entre a imagem exibida inline e a criada usando savefig."
+"Define bbox_inches como \"tight\" ao\n"
+"plotar no console com matplotlib.\n"
+"Quando ativado pode causar discrepâncias\n"
+"entre a imagem exibida no console e a\n"
+"criada usando savefig."
 
 #: spyder/plugins/ipythonconsole/confpage.py:209
-#, fuzzy
 msgid ""
 "You can run several lines of code when a console is started. Please introduce each one separated by "
 "semicolons and a space, for example:<br><i>import os; import sys</i>"
 msgstr ""
-"Você pode executar várias linhas de código quando um console é iniciado. Por favor, apresente cada um "
-"deles separado por ponto e vírgula e um espaço, por exemplo: <br> <i> import os; sistema de importação </i>"
+"Você pode executar várias linhas de código quando um console é iniciado. Por favor, insira cada uma delas "
+"separada por ponto e vírgula e um espaço, por exemplo:<br><i>import os; import sys</i>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:215
 msgid "Lines:"
@@ -4008,8 +3996,8 @@ msgid ""
 "You can also run a whole file at startup instead of just some lines (This is similar to have a "
 "PYTHONSTARTUP file)."
 msgstr ""
-"Você também pode executar um arquivo por inteiro ao inicializar, em vez de poucas linhas (Isso é similar a "
-"ter um arquivo PYTHONSTARTUP)."
+"Você também pode executar um arquivo por inteiro ao inicializar, ou invés de poucas linhas (Isso é similar "
+"a ter um arquivo PYTHONSTARTUP)."
 
 #: spyder/plugins/ipythonconsole/confpage.py:229
 msgid "Use the following file:"
@@ -4017,31 +4005,32 @@ msgstr "Use o seguinte arquivo:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:243
 msgid "Jedi completion"
-msgstr "Completador Jedi"
+msgstr "Preenchimento de código usando Jedi"
 
 #: spyder/plugins/ipythonconsole/confpage.py:244
 msgid ""
 "Enable Jedi-based <tt>Tab</tt> completion in the IPython console; similar to the greedy completer, but "
 "without evaluating the code.<br><b>Warning:</b> Slows down your console when working with large dataframes!"
 msgstr ""
-"Habilitar a completação Jedi via <tt>Tab</tt> no console IPython.<br><b>Aviso:</b> Pode deixar seu console "
-"lento quando estiver trabalhando com grandes dataframes!"
+"Habilitar o preenchimento de código baseado em Jedi via <tt>Tab</tt> no console IPython; similar ao "
+"preenchimento ávido, mas sem rodar o código.<br><b>Aviso:</b> Pode deixar seu console lento quando estiver "
+"trabalhando com grandes dataframes!"
 
 #: spyder/plugins/ipythonconsole/confpage.py:251
 msgid "Use Jedi completion in the IPython console"
-msgstr "Usar completação Jedi no console IPython"
+msgstr "Usar o preenchimento de código Jedi no console IPython"
 
 #: spyder/plugins/ipythonconsole/confpage.py:253
 msgid ""
 "<b>Warning</b>: Slows down your console when working with large dataframes!<br>Allows completion of nested "
 "lists etc."
 msgstr ""
-"<b> Aviso </b>: diminui a velocidade do console ao trabalhar com grandes quadros de dados! <br> Permite a "
-"conclusão de listas aninhadas, etc."
+"<b>Aviso</b>: Reduz a velocidade do console ao trabalhar com grandes dataframes!<br>Permite o "
+"preenchimento de código de listas aninhadas, etc."
 
 #: spyder/plugins/ipythonconsole/confpage.py:264
 msgid "Greedy completion"
-msgstr "Completação gulosa"
+msgstr "Preenchimento ávido"
 
 #: spyder/plugins/ipythonconsole/confpage.py:265
 msgid ""
@@ -4051,13 +4040,15 @@ msgid ""
 "some completions; e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> works while <tt>np.sin(np.&lt;Tab&gt; "
 "</tt> doesn't."
 msgstr ""
-"Habilita o completador usando a tecla <tt>Tab</tt> em elementos de listas, resultados de chamadas de "
-"funções, etc, <i>sem</i> atribuí-los a uma variável.<br>Dessa forma pode-se obter sugestões de completação "
-"em coisas como <tt>li[0].&lt;Tab&gt;</tt> ou <tt>ins.meth().&lt;Tab&gt;</tt>."
+"Habilita o preenchimento de código usando a tecla <tt>Tab</tt> em elementos de listas, resultados de "
+"chamadas de funções, etc, <i>sem</i> atribuí-los a uma variável, como <tt>li[0].&lt;Tab&gt;</tt> ou "
+"<tt>ins.meth().&lt;Tab&gt;</tt> <br><b>Aviso:</b> Devido a um bug, o preenchimendo ávido do IPython "
+"precisa ser precedido por um <tt>&lt;Espaço&gt;</tt> para alguns preenchimentos; exemplo,  <tt>np.sin(&lt;"
+"Espaço&gt;np.&lt;Tab&gt;</tt> funcionam, enquanto <tt>np.sin(np.&lt;Tab&gt; </tt> não."
 
 #: spyder/plugins/ipythonconsole/confpage.py:277
 msgid "Use greedy completion in the IPython console"
-msgstr "Usar completação gulosa no console IPython"
+msgstr "Usar preenchimento de código ávido no console IPython"
 
 #: spyder/plugins/ipythonconsole/confpage.py:289
 msgid "Autocall"
@@ -4069,8 +4060,8 @@ msgid ""
 "<br>For example, if you type <i>str 43</i> it becomes <i>str(43)</i> automatically."
 msgstr ""
 "Esta opção faz com que o Python chame automaticamente qualquer objeto mesmo se você não tenha digitado os "
-"parenteses ao seu redor.<br>Por exemplo, ao escrever <i>str 43</i>, irá virar automaticamente <i>str(43)</"
-"i>."
+"parenteses.<br>Por exemplo, ao escrever <i>str 43</i>, ele será convertido automaticamente para "
+"<i>str(43)</i>."
 
 #: spyder/plugins/ipythonconsole/confpage.py:297
 msgid "Smart"
@@ -4093,12 +4084,11 @@ msgid ""
 "On <b>%s</b> mode, Autocall is not applied if there are no arguments after the callable. On <b>%s</b> "
 "mode, all callable objects are automatically called (even if no arguments are present)."
 msgstr ""
-"No modo <b>%s</b>, Auto-chamada não é aplicada se não houver argumentos depois do objeto clamável. No modo "
+"No modo <b>%s</b>, o Autocall não é aplicado se não houver argumentos depois do objeto chamável. No modo "
 "<b>%s</b>, todos os objetos chamáveis são chamados automaticamente (mesmo se não houver argumentos "
 "presentes)."
 
 #: spyder/plugins/ipythonconsole/confpage.py:314
-#, fuzzy
 msgid "Symbolic mathematics"
 msgstr "Matemática simbólica"
 
@@ -4107,7 +4097,7 @@ msgid ""
 "Perfom symbolic operations in the console (e.g. integrals, derivatives, vector calculus, etc) and get the "
 "outputs in a beautifully printed style (it requires the Sympy module)."
 msgstr ""
-"Realiza operações simbólicas no console (integrais, derivadas, cálculo vetoria e etcl) tendo os resultados "
+"Realiza operações simbólicas no console (integrais, derivadas, cálculo vetorial, etc) tendo os resultados "
 "em um belo estilo impresso (requer o módulo Sympy)."
 
 #: spyder/plugins/ipythonconsole/confpage.py:321
@@ -4118,9 +4108,7 @@ msgstr "Usar matemática simbólica"
 msgid ""
 "This option loads the Sympy library to work with.<br>Please refer to its documentation to learn how to use "
 "it."
-msgstr ""
-"Esta opção carrega a biblioteca Sympy para trabalhar<br>com ela. Por favor leia sua documentação para "
-"aprender a usá-la."
+msgstr "Esta opção carrega a biblioteca Sympy.<br> Por favor leia sua documentação para aprender a usá-la."
 
 #: spyder/plugins/ipythonconsole/confpage.py:332
 msgid "Prompts"
@@ -4128,7 +4116,7 @@ msgstr "Prompts"
 
 #: spyder/plugins/ipythonconsole/confpage.py:333
 msgid "Modify how Input and Output prompts are shown in the console."
-msgstr "Modifique como são mostradas as saídas e entradas no console."
+msgstr "Modificar como as saídas e entradas são mostradas no console."
 
 #: spyder/plugins/ipythonconsole/confpage.py:337
 msgid "Input prompt:"
@@ -4147,9 +4135,8 @@ msgid "Default is<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;
 msgstr "O Padrão é<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:362
-#, fuzzy
 msgid "Windows adjustments"
-msgstr "Ajustes do Windows"
+msgstr "Ajustes das janelas"
 
 #: spyder/plugins/ipythonconsole/confpage.py:364
 msgid "Hide command line output windows generated by the subprocess module."
@@ -4168,10 +4155,9 @@ msgid ""
 "The directory {} is not writable and it is required to create IPython consoles. Please make it writable."
 msgstr ""
 "O diretório {} não está em modo de escrita e isto é necessário para criar consoles IPython. Por favor "
-"deixe-o em modo de escrita."
+"habilite a escrita no diretório."
 
 #: spyder/plugins/ipythonconsole/plugin.py:280
-#, fuzzy
 msgid "New console (default settings)"
 msgstr "Novo console (configurações padrão)"
 
@@ -4180,7 +4166,6 @@ msgid "New Pylab console (data plotting)"
 msgstr "Novo console Pylab (plotagem de dados)"
 
 #: spyder/plugins/ipythonconsole/plugin.py:296
-#, fuzzy
 msgid "New SymPy console (symbolic math)"
 msgstr "Novo console SymPy (matemática simbólica)"
 
@@ -4189,7 +4174,6 @@ msgid "New Cython console (Python with C extensions)"
 msgstr "Novo console Cython (Python com extensões C)"
 
 #: spyder/plugins/ipythonconsole/plugin.py:312
-#, fuzzy
 msgid "New special console"
 msgstr "Novo console especial"
 
@@ -4204,7 +4188,6 @@ msgid "Remove all variables"
 msgstr "Remover todas variáveis"
 
 #: spyder/plugins/ipythonconsole/plugin.py:327
-#, fuzzy
 msgid "Interrupt kernel"
 msgstr "Interromper o kernel"
 
@@ -4224,29 +4207,27 @@ msgstr "Renomear aba"
 msgid ""
 "No IPython console is currently available to run <b>%s</b>.<br><br>Please open a new one and try again."
 msgstr ""
-"Não existe um console IPython para ser executado <b>%s</b>.<br><br>Por favor abra um novo e tente "
-"novamente."
+"Não existe um console IPython para ser executado <b>%s</b>.<br><br>Por favor abra um novo console IPython "
+"e tente novamente."
 
 #: spyder/plugins/ipythonconsole/plugin.py:525
-#, fuzzy
 msgid ""
 "No IPython console is currently available to run <b>{}</b>.<br><br>Please open a new one and try again."
 msgstr ""
-"No momento, nenhum console IPython está disponível para executar <b> {} </b>. <br> <br> Abra um novo e "
-"tente novamente."
+"Não existe um console IPython para ser executado <b>{}</b>.<br><br>Por favor abra um novo console IPython "
+"e tente novamente."
 
 #: spyder/plugins/ipythonconsole/plugin.py:643
-#, fuzzy
 msgid ""
 "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right "
 "version of it installed. Without this module is not possible for Spyder to create a console for you."
 "<br><br>You can install it by running in a system terminal:<br><br><tt>conda install spyder-kernels</"
 "tt><br><br>or<br><br><tt>pip install spyder-kernels</tt>"
 msgstr ""
-"Seu ambiente ou instalação Python não possui o módulo <tt> spyder-kernels </tt> ou a versão correta dele. "
-"Sem esse módulo, o Spyder não poderá criar um console para você. <br> <br> Você pode instalá-lo executando "
-"um terminal do sistema: <br> <br> <tt> conda install spyder-kernels </tt> <br> <br> ou <br> <br> <tt> pip "
-"install spyder-kernels </tt>"
+"Seu ambiente ou instalação Python não possui o módulo <tt>spyder-kernels</tt> ou a versão correta dele. "
+"Sem esse módulo, o Spyder não poderá criar um console para você.<br><br>Você pode instalá-lo executando um "
+"terminal do sistema:<br><br><tt>conda install spyder-kernels</tt><br><br>ou<br><br><tt> pip install spyder-"
+"kernels</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:940
 msgid "Do you want to close this console?"
@@ -4254,7 +4235,7 @@ msgstr "Tem certeza que deseja fechar esse console?"
 
 #: spyder/plugins/ipythonconsole/plugin.py:946
 msgid "Do you want to close all other consoles connected to the same kernel as this one?"
-msgstr "Você deseja fechar todos os outros consoles conectados ao mesmo kernel como esse?"
+msgstr "Você deseja fechar todos os outros consoles conectados ao mesmo kernel deste?"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1019
 #, fuzzy
