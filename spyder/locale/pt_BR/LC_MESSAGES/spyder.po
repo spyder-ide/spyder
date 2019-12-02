@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 3.8POT-Creation-Date: 2017-01-17 12:57-0300\n"
 "POT-Creation-Date: 2019-11-11 00:15+-05\n"
-"PO-Revision-Date: 2019-12-02 20:49-0300\n"
+"PO-Revision-Date: 2019-12-02 20:50-0300\n"
 "Last-Translator: Josué M. Sehnem <josue@sehnem.com>\n"
 "Language-Team: pt_BR\n"
 "Language: pt_BR\n"
@@ -2112,7 +2112,6 @@ msgid "seconds"
 msgstr "segundos"
 
 #: spyder/plugins/editor/confpage.py:232
-#, fuzzy
 msgid "Docstring type"
 msgstr "Tipo de Docstring"
 
@@ -5689,7 +5688,6 @@ msgstr "Mostra/oculta atributos que podem ser chamados (funções, métodos, etc
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:171
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:193
-#, fuzzy
 msgid "Show __special__ attributes"
 msgstr "Mostrar atributos __especial__"
 
