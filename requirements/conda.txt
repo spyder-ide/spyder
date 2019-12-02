@@ -4,7 +4,7 @@ chardet >=2.0.0
 cloudpickle
 diff-match-patch
 intervaltree
-jedi =0.14.1
+jedi>=0.14.1
 keyring
 nbconvert
 numpydoc
