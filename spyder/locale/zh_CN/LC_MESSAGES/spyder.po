@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-11-29 18:13+-05\n"
-"PO-Revision-Date: 2019-11-29 22:55+0800\n"
+"PO-Revision-Date: 2019-12-02 10:20+0800\n"
 "Last-Translator: weak_ptr <weak_ptr@163.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -6428,7 +6428,6 @@ msgid "Remove all variables before execution"
 msgstr "执行前清理所有变量"
 
 #: spyder/preferences/runconfig.py:46
-#, fuzzy
 msgid "Run in console's namespace instead of an empty one"
 msgstr "在控制台的命名空间中运行，而不是新的"
 
