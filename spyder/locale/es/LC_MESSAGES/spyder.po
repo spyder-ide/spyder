@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2019-11-29 18:13+-05\n"
-"PO-Revision-Date: 2019-12-01 23:58-0500\n"
+"PO-Revision-Date: 2019-12-02 18:26-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: es\n"
@@ -882,6 +882,8 @@ msgstr "Ir al paso: "
 #: spyder/config/manager.py:267
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
 msgstr ""
+"El contexto del atajo debe coincidir con ’_’ o la sección `CONF_SECTION` del "
+"plugin!"
 
 #: spyder/config/utils.py:25 spyder/plugins/pylint/widgets/pylintgui.py:268
 msgid "Python files"
@@ -1748,7 +1750,7 @@ msgstr "Solo verifique los directorios que coincidan con estos patrones:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:948
 msgid "Skip dot directories: [^\\.].*"
-msgstr ""
+msgstr "Omitir directorios ocultos: [^\\.].*"
 
 #: spyder/plugins/completion/languageserver/confpage.py:997
 msgid "Providers"
@@ -1929,6 +1931,10 @@ msgid ""
 "verify that your firewall or antivirus allows Python processes to open ports "
 "in your system, or restart Spyder."
 msgstr ""
+"El completado y análisis de código en el editor para archivos de {language} "
+"no funcionarán durante la sesión actual o dejaron de funcionar. <br><br>Para "
+"solucionar esto, verifique que su firewall o antivirus permite que los "
+"procesos de Python abran puertos en su sistema, o reinicie Spyder."
 
 #: spyder/plugins/completion/plugin.py:333
 msgid "Kite installation process has not finished. Do you really want to exit?"
@@ -2389,9 +2395,8 @@ msgstr "Opciones avanzadas"
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:48
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:138
 #: spyder/preferences/shortcuts.py:142
-#, fuzzy
 msgid "<None>"
-msgstr "Ninguno"
+msgstr "<Ninguno>"
 
 #: spyder/plugins/editor/plugin.py:403
 msgid "&New file..."
@@ -2519,7 +2524,7 @@ msgstr "Ignorar las librerías de Python mientras se depura"
 
 #: spyder/plugins/editor/plugin.py:520
 msgid "Process execute events while debugging"
-msgstr ""
+msgstr "Procesar ejecución de eventos al depurar"
 
 #: spyder/plugins/editor/plugin.py:523
 msgid "Debug with winpdb"
@@ -4586,11 +4591,11 @@ msgid ""
 "tt>"
 msgstr ""
 "Su entorno o instalación de Python no cuenta con el módulo <tt>spyder-"
-"kernels</tt> o con la versión correcta del mismo, si está instalado. Sin "
-"este módulo no es posible para Spyder crear una terminal.<br><br>Puede "
-"instalarlo al ejecutar en una consola de comandos del sistema:"
-"<br><br><tt>conda install spyder-kernels=0.*</tt><br><br>o<br><br><tt>pip "
-"install spyder-kernels==0.*</tt>"
+"kernels</tt> o con la versión correcta del mismo (>= 1.8.0 and < 2.0.0), si "
+"está instalado. Sin este módulo no es posible para Spyder crear una terminal."
+"<br><br>Puede instalarlo al ejecutar en una consola de comandos del sistema:"
+"<br><br><tt>conda install spyder-kernels</tt><br><br>o<br><br><tt>pip "
+"install spyder-kernels</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:952
 msgid "Do you want to close this console?"
@@ -4792,7 +4797,7 @@ msgstr "Archivos clave de SSH:"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:92
 msgid "Passphase:"
-msgstr ""
+msgstr "Frase de contraseña:"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:94
 msgid "Optional"
@@ -5421,7 +5426,7 @@ msgstr "Excluir tipos de datos no soportados"
 #: spyder/plugins/variableexplorer/confpage.py:26
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:293
 msgid "Exclude callables and modules"
-msgstr ""
+msgstr "Excluir objetos llamables y módulos"
 
 #: spyder/plugins/variableexplorer/confpage.py:32
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:580
@@ -5947,18 +5952,16 @@ msgid "Exclude references which name starts with an uppercase character"
 msgstr "Excluir variables cuyo nombre comienza en mayúsculas"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:286
-#, fuzzy
 msgid ""
 "Exclude references to data types that don't have an specialized viewer or "
 "can't be edited."
 msgstr ""
-"Excluir variables que referencian tipos de datos no soportados\n"
-"(es decir aquellos que no pueden manejarse y guardarse\n"
-"correctamente)"
+"Excluir referencias a tipos de datos no pueden verse y editarse "
+"correctamente."
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:294
 msgid "Exclude references to functions, modules and any other callable."
-msgstr ""
+msgstr "Excluir referencias a funciones, módulos y otros objetos llamables."
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:410
 msgid ""
@@ -6495,9 +6498,8 @@ msgid "Show CPU usage every"
 msgstr "Mostrar el uso de CPU cada"
 
 #: spyder/preferences/general.py:200
-#, fuzzy
 msgid "Show clock"
-msgstr "Mostrar código fuente"
+msgstr "Mostrar reloj"
 
 #: spyder/preferences/general.py:228
 msgid "Screen resolution"
@@ -6851,29 +6853,28 @@ msgid "Shortcut: {0}"
 msgstr "Atajo: {0}"
 
 #: spyder/preferences/shortcuts.py:384
-#, fuzzy
 msgid "This key sequence conflicts with:"
-msgstr "El nuevo atajo tiene entra en conflicto con:"
+msgstr "Esta secuencia de teclas entra en conflicto con:"
 
 #: spyder/preferences/shortcuts.py:391
 msgid "Press 'Ok' to unbind it and assign it to"
-msgstr ""
+msgstr "Oprima ‘Ok’ para desvincular el atajo y asignarlo a"
 
 #: spyder/preferences/shortcuts.py:393
 msgid "Press 'Ok' to unbind them and assign it to"
-msgstr ""
+msgstr "Oprima ‘Ok’ para desvincular los atajos y asignarlos a"
 
 #: spyder/preferences/shortcuts.py:399
 msgid "This key sequence is forbidden."
-msgstr ""
+msgstr "Esta secuencia de teclas no es permitida."
 
 #: spyder/preferences/shortcuts.py:403
 msgid "This key sequence is invalid."
-msgstr ""
+msgstr "Esta secuencia de teclas es invalida."
 
 #: spyder/preferences/shortcuts.py:407
 msgid "This key sequence is valid."
-msgstr ""
+msgstr "Esta secuencia de teclas es valida."
 
 #: spyder/preferences/shortcuts.py:570
 msgid "Context"
@@ -7399,7 +7400,6 @@ msgid "Synchronize"
 msgstr "Sincronizar"
 
 #: spyder/widgets/pathmanager.py:213
-#, fuzzy
 msgid ""
 "This will synchronize Spyder's path list with <b>PYTHONPATH</b> environment "
 "variable for the current user, allowing you to run your Python modules "
@@ -7413,16 +7413,14 @@ msgstr ""
 "rutas de Spyder?"
 
 #: spyder/widgets/pathmanager.py:328
-#, fuzzy
 msgid ""
 "You are using Python 2 and the selected path has Unicode characters.<br> "
 "Therefore, this path will not be added."
 msgstr ""
 "Se encuentra usando Python 2 y la ruta seleccionada contiene caracteres "
-"Unicode. Su nueva ruta no será añadida."
+"Unicode.<br> Su nueva ruta no será añadida."
 
 #: spyder/widgets/pathmanager.py:344
-#, fuzzy
 msgid ""
 "This directory is already included in the list.<br> Do you want to move it "
 "to the top of it?"
@@ -7431,18 +7429,16 @@ msgstr ""
 "moverlo al principio de la lista?"
 
 #: spyder/widgets/pathmanager.py:362
-#, fuzzy
 msgid ""
 "This directory cannot be added to the path!<br><br>If you want to set a "
 "different Python interpreter, please go to <tt>Preferences > Main "
 "interpreter</tt>."
 msgstr ""
-"El directorio actual contiene un proyecto.<br><br>Si desea eliminar este "
-"proyecto, por favor diríjase a <b>Proyectos</b> &raquo; <b>Eliminar "
-"proyecto</b>"
+"Este directorio no puede ser añadido a la ruta!<br><br>Si quiere establecer "
+"un intérprete diferente de Python, vaya a <tt>Preferencias > Intérprete "
+"Principal </tt>."
 
 #: spyder/widgets/pathmanager.py:383
-#, fuzzy
 msgid "Do you really want to remove the selected path?"
 msgstr "¿Realmente desea eliminar la ruta seleccionada?"
 
@@ -7549,9 +7545,8 @@ msgid "CPU usage"
 msgstr "Uso de CPU"
 
 #: spyder/widgets/status.py:302
-#, fuzzy
 msgid "Clock"
-msgstr "Desbloquear"
+msgstr "Reloj"
 
 #: spyder/widgets/switcher.py:918
 msgid "change view"
