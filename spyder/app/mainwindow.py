@@ -170,7 +170,6 @@ except ImportError:
 
 
 from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
-                                    get_kite_icon,
                                     add_shortcut_to_tooltip,
                                     create_module_bookmark_actions,
                                     create_program_action, DialogManager,
@@ -803,7 +802,7 @@ class MainWindow(QMainWindow):
         if not is_kite_installed:
             install_kite_action = create_action(
                 self, _("Install Kite completion engine"),
-                icon=get_kite_icon(),
+                icon=get_icon('kite', adjust_for_interface=True),
                 triggered=self.show_kite_installation)
             self.tools_menu_actions.append(install_kite_action)
         self.tools_menu_actions += [MENU_SEPARATOR, reset_spyder_action]
@@ -2729,16 +2728,10 @@ class MainWindow(QMainWindow):
         msgBox.setStandardButtons(QMessageBox.Ok)
 
         from spyder.config.gui import is_dark_interface
-        if PYQT5:
-            if is_dark_interface():
-                icon_filename = "spyder.svg"
-            else:
-                icon_filename = "spyder_dark.svg"
+        if is_dark_interface():
+            icon_filename = "spyder.svg"
         else:
-            if is_dark_interface():
-                icon_filename = "spyder.png"
-            else:
-                icon_filename = "spyder_dark.png"
+            icon_filename = "spyder_dark.svg"
         app_icon = QIcon(get_image_path(icon_filename))
         msgBox.setIconPixmap(app_icon.pixmap(QSize(64, 64)))
 

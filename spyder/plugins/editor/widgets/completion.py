@@ -224,7 +224,7 @@ class CompletionWidget(QListWidget):
         if item_provider == KITE_COMPLETION:
             kite_height = img_height
             kite_width = (416.14/526.8) * kite_height
-            icon_provider = ima.get_kite_icon()
+            icon_provider = ima.get_icon('kite', adjust_for_interface=True)
             icon_provider = ima.base64_from_icon_obj(
                 icon_provider, kite_width, kite_height)
 
