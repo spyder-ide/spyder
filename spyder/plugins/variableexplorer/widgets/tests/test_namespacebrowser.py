@@ -25,7 +25,8 @@ def test_setup_sets_dataframe_format(qtbot):
     browser = NamespaceBrowser(None)
     browser.set_shellwidget(Mock())
     browser.setup(exclude_private=True, exclude_uppercase=True,
-                  exclude_capitalized=True, exclude_unsupported=True,
+                  exclude_capitalized=True, exclude_unsupported=False,
+                  exclude_callables_and_modules=True,
                   minmax=False, dataframe_format='%10.5f')
     assert browser.editor.source_model.dataframe_format == '%10.5f'
 
@@ -34,7 +35,8 @@ def test_automatic_column_width(qtbot):
     browser = NamespaceBrowser(None)
     browser.set_shellwidget(Mock())
     browser.setup(exclude_private=True, exclude_uppercase=True,
-                  exclude_capitalized=True, exclude_unsupported=True,
+                  exclude_capitalized=True, exclude_unsupported=False,
+                  exclude_callables_and_modules=True,
                   minmax=False)
     col_width = [browser.editor.columnWidth(i) for i in range(4)]
     browser.set_data({'a_variable':
@@ -59,7 +61,8 @@ def test_sort_by_column(qtbot):
     qtbot.addWidget(browser)
     browser.set_shellwidget(Mock())
     browser.setup(exclude_private=True, exclude_uppercase=True,
-                  exclude_capitalized=True, exclude_unsupported=True,
+                  exclude_capitalized=True, exclude_unsupported=False,
+                  exclude_callables_and_modules=True,
                   minmax=False)
     browser.set_data(
         {'a_variable':

@@ -518,6 +518,8 @@ class BaseTableView(QTableView):
         self.last_regex = ''
         self.view_action = None
         self.delegate = None
+        self.proxy_model = None
+        self.source_model = None
         self.setAcceptDrops(True)
         self.automatic_column_width = True
         self.setHorizontalHeader(BaseHeaderView(parent=self))
@@ -857,7 +859,7 @@ class BaseTableView(QTableView):
         self.edit(index.child(index.row(), 3))
 
     @Slot()
-    def remove_item(self):
+    def remove_item(self, force=False):
         """Remove item"""
         indexes = self.selectedIndexes()
         if not indexes:
@@ -865,22 +867,25 @@ class BaseTableView(QTableView):
         for index in indexes:
             if not index.isValid():
                 return
-        one = _("Do you want to remove the selected item?")
-        more = _("Do you want to remove all selected items?")
-        answer = QMessageBox.question(self, _( "Remove"),
-                                      one if len(indexes) == 1 else more,
-                                      QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            idx_rows = unsorted_unique([idx.row() for idx in indexes])
+        if not force:
+            one = _("Do you want to remove the selected item?")
+            more = _("Do you want to remove all selected items?")
+            answer = QMessageBox.question(self, _("Remove"),
+                                          one if len(indexes) == 1 else more,
+                                          QMessageBox.Yes | QMessageBox.No)
+        if force or answer == QMessageBox.Yes:
+            idx_rows = unsorted_unique(
+                [self.proxy_model.mapToSource(idx).row() for idx in indexes])
             keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
             self.remove_values(keys)
 
-    def copy_item(self, erase_original=False):
+    def copy_item(self, erase_original=False, new_name=None):
         """Copy item"""
         indexes = self.selectedIndexes()
         if not indexes:
             return
-        idx_rows = unsorted_unique([idx.row() for idx in indexes])
+        idx_rows = unsorted_unique(
+            [self.proxy_model.mapToSource(idx).row() for idx in indexes])
         if len(idx_rows) > 1 or not indexes[0].isValid():
             return
         orig_key = self.source_model.keys[idx_rows[0]]
@@ -893,6 +898,8 @@ class BaseTableView(QTableView):
         data = self.source_model.get_data()
         if isinstance(data, (list, set)):
             new_key, valid = len(data), True
+        elif new_name is not None:
+            new_key, valid = new_name, True
         else:
             new_key, valid = QInputDialog.getText(self, title, field_text,
                                                   QLineEdit.Normal, orig_key)
@@ -910,9 +917,9 @@ class BaseTableView(QTableView):
         self.copy_item()
 
     @Slot()
-    def rename_item(self):
+    def rename_item(self, new_name=None):
         """Rename item"""
-        self.copy_item(True)
+        self.copy_item(erase_original=True, new_name=new_name)
 
     @Slot()
     def insert_item(self):
@@ -921,7 +928,7 @@ class BaseTableView(QTableView):
         if not index.isValid():
             row = self.source_model.rowCount()
         else:
-            row = index.row()
+            row = self.proxy_model.mapToSource(index).row()
         data = self.source_model.get_data()
         if isinstance(data, list):
             key = row
@@ -969,7 +976,8 @@ class BaseTableView(QTableView):
         """Plot item"""
         index = self.currentIndex()
         if self.__prepare_plot():
-            key = self.source_model.get_key(index)
+            key = self.source_model.get_key(
+                self.proxy_model.mapToSource(index))
             try:
                 self.plot(key, funcname)
             except (ValueError, TypeError) as error:
@@ -983,7 +991,8 @@ class BaseTableView(QTableView):
         """Imshow item"""
         index = self.currentIndex()
         if self.__prepare_plot():
-            key = self.source_model.get_key(index)
+            key = self.source_model.get_key(
+                self.proxy_model.mapToSource(index))
             try:
                 if self.is_image(key):
                     self.show_image(key)

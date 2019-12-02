@@ -64,9 +64,9 @@ class BasePlugin(BasePluginMixin):
         Parameters
         ----------
         message: str
-            Message to display in the status bar
+            Message to display in the status bar.
         timeout: int
-            Amound of time to display the message
+            Amount of time to display the message.
         """
         super(BasePlugin, self)._show_status_message(message, timeout)
 

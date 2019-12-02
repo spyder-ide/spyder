@@ -1739,10 +1739,10 @@ https://github.com/vscode-icons/vscode-icons/blob/master/icons
 
 Files covered:
 
-spyder/images/file_type_light_tex.svg
-spyder/images/file_type_tex.svg
+spyder/images/file_type_tex_light.svg
+spyder/images/file_type_tex_dark.svg
 spyder/images/binary_light.svg
-spyder/images/binary.svg
+spyder/images/binary_dark.svg
 
 
 -------------------------------------------------------------------------------
