@@ -774,6 +774,11 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.show()
         self._setup_thumbnail_size(thumbnail)
 
+        # We need to process events to force an update of the range of the
+        # scrollbar before setting it to its maximum value.
+        QApplication.processEvents()
+        self.scroll_to_item(len(self._thumbnails) - 1)
+
     def remove_current_thumbnail(self):
         """Remove the currently selected thumbnail."""
         if self.current_thumbnail is not None:
