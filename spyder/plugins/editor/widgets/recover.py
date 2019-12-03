@@ -104,6 +104,23 @@ class RecoveryDialog(QDialog):
             Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint |
             Qt.WindowStaysOnTopHint)
 
+        # This is needed beause of this error in MacOS:
+        # https://bugreports.qt.io/browse/QTBUG-49576
+
+        if parent and hasattr(parent, 'splash'):
+            self.splash = parent.splash
+            self.splash.hide()
+        else:
+            self.splash = None
+
+    def accept(self):
+        self.splash.show()
+        super(RecoveryDialog, self).accept()
+
+    def reject(self):
+        self.splash.show()
+        super(RecoveryDialog, self).reject()
+
     def gather_data(self, autosave_mapping):
         """
         Gather data about files which may be recovered.
