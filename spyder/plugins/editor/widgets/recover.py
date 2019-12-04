@@ -104,9 +104,8 @@ class RecoveryDialog(QDialog):
             Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint |
             Qt.WindowStaysOnTopHint)
 
-        # This is needed beause of this error in MacOS:
-        # https://bugreports.qt.io/browse/QTBUG-49576
-
+        # This is needed beause of an error in MacOS.
+        # See https://bugreports.qt.io/browse/QTBUG-49576
         if parent and hasattr(parent, 'splash'):
             self.splash = parent.splash
             self.splash.hide()
@@ -114,11 +113,15 @@ class RecoveryDialog(QDialog):
             self.splash = None
 
     def accept(self):
-        self.splash.show()
+        """Reimplement Qt method."""
+        if self.splash is not None:
+            self.splash.show()
         super(RecoveryDialog, self).accept()
 
     def reject(self):
-        self.splash.show()
+        """Reimplement Qt method."""
+        if self.splash is not None:
+            self.splash.show()
         super(RecoveryDialog, self).reject()
 
     def gather_data(self, autosave_mapping):
