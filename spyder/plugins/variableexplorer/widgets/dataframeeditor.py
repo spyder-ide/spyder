@@ -62,6 +62,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
+from .basedialog import BaseDialog
 
 # Supported Numbers and complex numbers
 REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
@@ -823,7 +824,7 @@ class DataFrameLevelModel(QAbstractTableModel):
         return None
 
 
-class DataFrameEditor(QDialog):
+class DataFrameEditor(BaseDialog):
     """
     Dialog for displaying and editing DataFrame and related objects.
 
@@ -873,7 +874,6 @@ class DataFrameEditor(QDialog):
             data = DataFrame(data)
 
         self.setWindowTitle(title)
-        self.resize(960, 760)
 
         self.hscroll = QScrollBar(Qt.Horizontal)
         self.vscroll = QScrollBar(Qt.Vertical)
@@ -905,7 +905,6 @@ class DataFrameEditor(QDialog):
         self.max_width = avg_width * 64  # Maximum size for columns
 
         self.setLayout(self.layout)
-        self.setMinimumSize(800, 600)
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         btn_layout = QHBoxLayout()

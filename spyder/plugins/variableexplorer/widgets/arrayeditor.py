@@ -40,7 +40,7 @@ from spyder.py3compat import (io, is_binary_string, is_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, keybinding
-
+from .basedialog import BaseDialog
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
@@ -424,7 +424,7 @@ class ArrayView(QTableView):
         total_width = 0
         for k in range(shape[1]):
             total_width += self.columnWidth(k)
-        self.viewport().resize(min(total_width, 1366), self.height())
+        self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
         CONF.config_shortcut(
@@ -617,7 +617,7 @@ class ArrayEditorWidget(QWidget):
             self.model.set_format(format)
 
 
-class ArrayEditor(QDialog):
+class ArrayEditor(BaseDialog):
     """Array Editor Dialog"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -688,7 +688,6 @@ class ArrayEditor(QDialog):
         if readonly:
             title += ' (' + _('read only') + ')'
         self.setWindowTitle(title)
-        self.resize(1200, 760)
 
         # Stack widget
         self.stack = QStackedWidget(self)
@@ -782,7 +781,7 @@ class ArrayEditor(QDialog):
         btn_layout.addWidget(self.btn_close)
         self.layout.addLayout(btn_layout, 2, 0)
 
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(400, 300)
 
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
