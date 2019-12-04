@@ -11,6 +11,7 @@ Base variable explorer dialog
 # Third party imports
 from qtpy.QtWidgets import QDialog
 
+
 class BaseDialog(QDialog):
     def set_dynamic_width_and_height(self, screen_geometry, width_ratio=0.5,
                                      height_ratio=0.5):

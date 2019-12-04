@@ -24,6 +24,7 @@ from spyder.py3compat import (is_binary_string, to_binary_string,
 from spyder.utils import icon_manager as ima
 from .basedialog import BaseDialog
 
+
 class TextEditor(BaseDialog):
     """Array Editor Dialog"""
     def __init__(self, text, title='', font=None, parent=None, readonly=False):
