@@ -859,10 +859,13 @@ class ArrayEditor(QDialog):
 
     @Slot()
     def accept(self):
-        """Reimplement Qt method"""
-        for index in range(self.stack.count()):
-            self.stack.widget(index).accept_changes()
-        QDialog.accept(self)
+        """Reimplement Qt method."""
+        try:
+            for index in range(self.stack.count()):
+                self.stack.widget(index).accept_changes()
+            QDialog.accept(self)
+        except RuntimeError:
+            pass
 
     def get_value(self):
         """Return modified array -- this is *not* a copy"""
