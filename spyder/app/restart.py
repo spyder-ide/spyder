@@ -185,7 +185,7 @@ def main():
     restarter.set_splash_message(_('Closing Spyder'))
 
     # Get variables
-    # Note: Variables defined in app/spyder.py 'restart()' method
+    # Note: Variables defined in app/mainwindow.py 'restart()' method
     spyder_args = os.environ.pop('SPYDER_ARGS', None)
     pid = os.environ.pop('SPYDER_PID', None)
     is_bootstrap = os.environ.pop('SPYDER_IS_BOOTSTRAP', None)

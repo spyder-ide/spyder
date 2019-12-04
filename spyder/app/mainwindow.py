@@ -170,7 +170,6 @@ except ImportError:
 
 
 from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
-                                    get_kite_icon,
                                     add_shortcut_to_tooltip,
                                     create_module_bookmark_actions,
                                     create_program_action, DialogManager,
@@ -803,7 +802,7 @@ class MainWindow(QMainWindow):
         if not is_kite_installed:
             install_kite_action = create_action(
                 self, _("Install Kite completion engine"),
-                icon=get_kite_icon(),
+                icon=get_icon('kite', adjust_for_interface=True),
                 triggered=self.show_kite_installation)
             self.tools_menu_actions.append(install_kite_action)
         self.tools_menu_actions += [MENU_SEPARATOR, reset_spyder_action]
@@ -1833,7 +1832,8 @@ class MainWindow(QMainWindow):
         # Make every widget visible
         for widget in widgets:
             widget.toggle_view(True)
-            widget._toggle_view_action.setChecked(True)
+            if widget._toggle_view_action:
+                widget._toggle_view_action.setChecked(True)
 
         # We use both directions to ensure proper update when moving from
         # 'Horizontal Split' to 'Spyder Default'
@@ -2728,16 +2728,10 @@ class MainWindow(QMainWindow):
         msgBox.setStandardButtons(QMessageBox.Ok)
 
         from spyder.config.gui import is_dark_interface
-        if PYQT5:
-            if is_dark_interface():
-                icon_filename = "spyder.svg"
-            else:
-                icon_filename = "spyder_dark.svg"
+        if is_dark_interface():
+            icon_filename = "spyder.svg"
         else:
-            if is_dark_interface():
-                icon_filename = "spyder.png"
-            else:
-                icon_filename = "spyder_dark.png"
+            icon_filename = "spyder_dark.svg"
         app_icon = QIcon(get_image_path(icon_filename))
         msgBox.setIconPixmap(app_icon.pixmap(QSize(64, 64)))
 
@@ -3291,10 +3285,11 @@ class MainWindow(QMainWindow):
         env['SPYDER_RESET'] = str(reset)
 
         if DEV:
+            repo_dir = osp.dirname(spyder_start_directory)
             if os.name == 'nt':
-                env['PYTHONPATH'] = ';'.join(sys.path)
+                env['PYTHONPATH'] = ';'.join([repo_dir])
             else:
-                env['PYTHONPATH'] = ':'.join(sys.path)
+                env['PYTHONPATH'] = ':'.join([repo_dir])
 
         # Build the command and popen arguments depending on the OS
         if os.name == 'nt':

@@ -29,8 +29,11 @@ class KiteStatusWidget(StatusBarWidget):
     def __init__(self, parent, statusbar, plugin):
         self.plugin = plugin
         self.tooltip = self.BASE_TOOLTIP
-        super(KiteStatusWidget, self).__init__(parent, statusbar,
-                                               icon=ima.get_kite_icon())
+        super(KiteStatusWidget, self).__init__(
+            parent,
+            statusbar,
+            icon=ima.get_icon('kite', adjust_for_interface=True)
+        )
         is_installed, _ = check_if_kite_installed()
         self.setVisible(is_installed)
 

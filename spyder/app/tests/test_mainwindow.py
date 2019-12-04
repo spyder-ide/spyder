@@ -235,7 +235,8 @@ def cleanup(request):
 # =============================================================================
 @pytest.mark.slow
 @pytest.mark.single_instance
-@pytest.mark.skipif(os.environ.get('CI', None) is None,
+@pytest.mark.skipif((os.environ.get('CI', None) is None or (PY2
+                     and sys.platform == 'darwin')),
                     reason="It's not meant to be run outside of CIs")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and %edit magic."""
@@ -2132,6 +2133,12 @@ def test_pylint_follows_file(qtbot, tmpdir, main_window):
         qtbot.wait(200)
         assert fname == pylint_plugin.get_filename()
 
+    # Close split panel
+    for editorstack in reversed(main_window.editor.editorstacks):
+        editorstack.close_split()
+        break
+    qtbot.wait(1000)
+
 
 @pytest.mark.slow
 @flaky(max_runs=3)
@@ -2388,10 +2395,15 @@ def test_go_to_definition(main_window, qtbot, capsys):
     with qtbot.waitSignal(code_editor.lsp_response_signal):
         code_editor.go_to_definition_from_cursor()
 
-    # Assert there's one more file open than before
-    assert len(main_window.editor.get_filenames()) == n_editors + 1
+    def _get_filenames():
+        return [osp.basename(f) for f in main_window.editor.get_filenames()]
+
+    qtbot.waitUntil(lambda: 'QtCore.py' in _get_filenames())
+    assert 'QtCore.py' in _get_filenames()
 
 
+@pytest.mark.skipif(sys.platform == 'darwin' and not PY2,
+                    reason="It times out on macOS/PY3")
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_debug_unsaved_file(main_window, qtbot):
@@ -2744,6 +2756,141 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
             assert test_folder in control.toPlainText()
             count += 1
     assert count >= 1
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt' or sys.platform == 'darwin',
+                    reason="It times out on macOS and Windows")
+def test_pbd_key_leak(main_window, qtbot, tmpdir):
+    """
+    Check that pdb notify spyder doesn't call
+    QApplication.processEvents(). If it does there might be keystoke leakage.
+    see #10834
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = shell._control
+
+    # Write code to a file
+    code1 = ("def a():\n"
+             "    1/0")
+    code2 = ("from tmp import a\n"
+             "a()")
+    folder = tmpdir.join('tmp_folder')
+    test_file = folder.join('tmp.py')
+    test_file.write(code1, ensure=True)
+
+    test_file2 = folder.join('tmp2.py')
+    test_file2.write(code2)
+
+    # Run tmp2 and get an error
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('runfile("' + str(test_file2).replace("\\", "/") +
+                      '", wdir="' + str(folder).replace("\\", "/") + '")')
+    assert '1/0' in control.toPlainText()
+
+    # Replace QApplication.processEvents to make sure it is not called
+    super_processEvents = QApplication.processEvents
+
+    def processEvents():
+        processEvents.called = True
+        return super_processEvents()
+
+    processEvents.called = False
+    try:
+        QApplication.processEvents = processEvents
+        # Debug and open both files
+        shell.execute('%debug')
+        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+        qtbot.keyClick(control, 'u')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+        # Wait until both files are open
+        qtbot.waitUntil(
+            lambda: osp.normpath(str(test_file)) in [
+                osp.normpath(p) for p in main_window.editor.get_filenames()])
+        qtbot.waitUntil(
+            lambda: str(test_file2) in [
+                osp.normpath(p) for p in main_window.editor.get_filenames()])
+
+        # Make sure the events are not processed.
+        assert not processEvents.called
+    finally:
+        QApplication.processEvents = super_processEvents
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="It times out on macOS")
+def test_pbd_step(main_window, qtbot, tmpdir):
+    """
+    Check that pdb notify Spyder only moves when a new line is reached.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = shell._control
+
+    # Write code to a file
+    code1 = ("def a():\n"
+             "    1/0")
+    code2 = ("from tmp import a\n"
+             "a()")
+    folder = tmpdir.join('tmp_folder')
+    test_file = folder.join('tmp.py')
+    test_file.write(code1, ensure=True)
+
+    test_file2 = folder.join('tmp2.py')
+    test_file2.write(code2)
+
+    # Run tmp2 and get an error
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('runfile("' + str(test_file2).replace("\\", "/") +
+                      '", wdir="' + str(folder).replace("\\", "/") + '")')
+    assert '1/0' in control.toPlainText()
+
+    # Debug and enter first file
+    shell.execute('%debug')
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(
+        lambda: osp.samefile(
+            main_window.editor.get_current_editor().filename,
+            str(test_file)))
+
+    # Go up and enter second file
+    qtbot.keyClick(control, 'u')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(
+        lambda: osp.samefile(
+            main_window.editor.get_current_editor().filename,
+            str(test_file2)))
+
+    # Go back to first file
+    editor_stack = main_window.editor.get_current_editorstack()
+    index = editor_stack.has_filename(str(test_file))
+    assert index is not None
+    editor_stack.set_stack_index(index)
+
+    assert osp.samefile(
+        main_window.editor.get_current_editor().filename,
+        str(test_file))
+
+    # Change frame but stay at the same place
+    qtbot.keyClicks(control, 'test = 0')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.wait(1000)
+
+    # Make sure we didn't move
+    assert osp.samefile(
+        main_window.editor.get_current_editor().filename,
+        str(test_file))
 
 
 if __name__ == "__main__":

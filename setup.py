@@ -224,7 +224,7 @@ install_requires = [
     'pympler',
     'pyqt5<5.13;python_version>="3"',
     'pyqtwebengine<5.13;python_version>="3"',
-    'python-language-server[all]>=0.31.0,<0.32.0',
+    'python-language-server[all]>=0.31.1,<0.32.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq',
     'qdarkstyle>=2.7',
@@ -232,7 +232,7 @@ install_requires = [
     'qtconsole>=4.6.0',
     'qtpy>=1.5.0',
     'sphinx',
-    'spyder-kernels>=1.8.0,<1.9.0',
+    'spyder-kernels>=1.8.0,<2.0.0',
     'watchdog',
 ]
 

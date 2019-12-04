@@ -145,8 +145,10 @@ class CompletionWidget(QListWidget):
         if not self.is_internal_console:
             tooltip_point = self.rect().topRight()
             tooltip_point = self.mapToGlobal(tooltip_point)
-            for completion in self.completion_list:
-                completion['point'] = tooltip_point
+
+            if self.completion_list is not None:
+                for completion in self.completion_list:
+                    completion['point'] = tooltip_point
 
         # Show hint for first completion element
         self.setCurrentRow(0)
@@ -222,7 +224,7 @@ class CompletionWidget(QListWidget):
         if item_provider == KITE_COMPLETION:
             kite_height = img_height
             kite_width = (416.14/526.8) * kite_height
-            icon_provider = ima.get_kite_icon()
+            icon_provider = ima.get_icon('kite', adjust_for_interface=True)
             icon_provider = ima.base64_from_icon_obj(
                 icon_provider, kite_width, kite_height)
 
