@@ -581,10 +581,15 @@ class ThumbnailScrollBar(QFrame):
     def __init__(self, figure_viewer, parent=None, background_color=None):
         super(ThumbnailScrollBar, self).__init__(parent)
         self._thumbnails = []
+
         self.background_color = background_color
         self.current_thumbnail = None
         self.set_figureviewer(figure_viewer)
         self.setup_gui()
+
+        self._new_thumbnail_added = False
+        self.scrollarea.verticalScrollBar().rangeChanged.connect(
+            self._scroll_to_newest_plot)
 
     def setup_gui(self):
         """Setup the main layout of the widget."""
@@ -765,6 +770,7 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.sig_remove_figure.connect(self.remove_thumbnail)
         thumbnail.sig_save_figure.connect(self.save_figure_as)
         self._thumbnails.append(thumbnail)
+        self._new_thumbnail_added = True
 
         self.scene.setRowStretch(self.scene.rowCount() - 1, 0)
         self.scene.addWidget(thumbnail, self.scene.rowCount() - 1, 0)
@@ -774,10 +780,10 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.show()
         self._setup_thumbnail_size(thumbnail)
 
-        # We need to process events to force an update of the range of the
-        # scrollbar before setting it to its maximum value.
-        QApplication.processEvents()
-        self.scroll_to_item(len(self._thumbnails) - 1)
+    def _scroll_to_newest_plot(self, vsb_min, vsb_max):
+        if self._new_thumbnail_added:
+            self._new_thumbnail_added = False
+            self.scrollarea.verticalScrollBar().setValue(vsb_max)
 
     def remove_current_thumbnail(self):
         """Remove the currently selected thumbnail."""
