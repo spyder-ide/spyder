@@ -854,9 +854,12 @@ class CodeEditor(TextEditBaseWidget):
         # Scrolling past the end
         self.set_scrollpastend_enabled(scroll_past_end)
 
-        # Line number area
+        # Line number area and indent guides
         if cloned_from:
             self.setFont(font) # this is required for line numbers area
+            # Needed to show indent guides for splited editor panels
+            # See spyder-ide/spyder#10900
+            self.patch = cloned_from.patch
         self.toggle_line_numbers(linenumbers, markers)
 
         # Lexer
