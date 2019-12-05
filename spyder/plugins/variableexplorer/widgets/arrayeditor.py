@@ -40,7 +40,7 @@ from spyder.py3compat import (io, is_binary_string, is_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, keybinding
-from .basedialog import BaseDialog
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {

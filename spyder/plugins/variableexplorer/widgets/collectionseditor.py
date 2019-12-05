@@ -59,7 +59,7 @@ from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     CollectionsDelegate)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
-from .basedialog import BaseDialog
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 # Maximum length of a serialized variable to be set in the kernel
 MAX_SERIALIZED_LENGHT = 1e6

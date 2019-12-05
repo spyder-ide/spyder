@@ -62,7 +62,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
-from .basedialog import BaseDialog
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 # Supported Numbers and complex numbers
 REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
