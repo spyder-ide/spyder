@@ -23,6 +23,11 @@ class BaseDialog(QDialog):
         screen_height = screen_geometry.height()
         self.resize(screen_width * width_ratio, screen_height * height_ratio)
 
+        # Make the dialog window appear in the center of the screen
+        x = screen_geometry.center().x() - self.width() / 2
+        y = screen_geometry.center().y() - self.height() / 2
+        self.move(x, y)
+
     def show(self):
         super(BaseDialog, self).show()
         window = self.window()
