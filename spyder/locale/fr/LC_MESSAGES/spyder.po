@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2019-11-29 18:13+-05\n"
-"PO-Revision-Date: 2019-11-30 20:05-0500\n"
+"PO-Revision-Date: 2019-12-05 10:19-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: fr\n"
@@ -5184,11 +5184,11 @@ msgstr "récursion"
 
 #: spyder/plugins/projects/plugin.py:94
 msgid "New Project..."
-msgstr "Nouveau Projet..."
+msgstr "Nouveau projet..."
 
 #: spyder/plugins/projects/plugin.py:97
 msgid "Open Project..."
-msgstr "Ouvrir un Projet..."
+msgstr "Ouvrir un projet..."
 
 #: spyder/plugins/projects/plugin.py:100
 msgid "Close Project"
@@ -5196,7 +5196,7 @@ msgstr "Fermer le projet"
 
 #: spyder/plugins/projects/plugin.py:103
 msgid "Delete Project"
-msgstr "Supprimer projet"
+msgstr "Supprimer le projet"
 
 #: spyder/plugins/projects/plugin.py:108
 msgid "Recent Projects"
@@ -5216,8 +5216,9 @@ msgid ""
 "action will only delete the project. Its files are going to be preserved on "
 "disk."
 msgstr ""
-"Souhaitez-vous supprimer le projet <b>%s</b> ?<br><br>Notez que les fichiers "
-"et répertoires du projet ne seront pas supprimés du disque."
+"Souhaitez-vous vraiment supprimer le projet <b>{filename}</b> ?"
+"<br><br><b>Note :</b> Cette action ne supprimera que le projet. Les fichiers "
+"seront conservés sur le disque."
 
 #: spyder/plugins/projects/plugin.py:379
 msgid ""
