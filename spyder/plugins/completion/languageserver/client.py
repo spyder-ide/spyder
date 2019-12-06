@@ -24,7 +24,7 @@ from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
 import zmq
 
 # Local imports
-from spyder.config.base import (get_conf_path, get_debug_level,
+from spyder.config.base import (DEV, get_conf_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.completion.languageserver import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
@@ -345,13 +345,16 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     logger.debug('{} Response error: {}'
                                  .format(self.language, repr(resp['error'])))
                     if self.language == 'python':
-                        message = resp['error'].get('message', '')
-                        traceback = (resp['error'].get('data', {}).
-                                     get('traceback'))
-                        if traceback is not None:
-                            traceback = ''.join(traceback)
-                            traceback = traceback + '\n' + message
-                            self.sig_server_error.emit(traceback)
+                        # Show PyLS errors in our error report dialog only in
+                        # debug or development modes
+                        if get_debug_level() > 0 or DEV:
+                            message = resp['error'].get('message', '')
+                            traceback = (resp['error'].get('data', {}).
+                                         get('traceback'))
+                            if traceback is not None:
+                                traceback = ''.join(traceback)
+                                traceback = traceback + '\n' + message
+                                self.sig_server_error.emit(traceback)
                         req_id = resp['id']
                         if req_id in self.req_reply:
                             self.req_reply[req_id](None, {'params': []})
