@@ -587,9 +587,17 @@ class ThumbnailScrollBar(QFrame):
         self.set_figureviewer(figure_viewer)
         self.setup_gui()
 
+        # Because the range of Qt scrollareas is not updated immediately
+        # after a new item is added to it, setting the scrollbar's value
+        # to its maximum after a new item is added will scroll down to
+        # the penultimate item instead of the last.
+        # So in order to scroll programmatically to the latest item after it
+        # is added the scrollarea, we need to do it instead in a slot
+        # connected to the scrollbar rangeChanged signal.
+        # See spyder-ide/#10914 for more details.
         self._new_thumbnail_added = False
         self.scrollarea.verticalScrollBar().rangeChanged.connect(
-            self._scroll_to_newest_plot)
+            self._scroll_to_newest_item)
 
     def setup_gui(self):
         """Setup the main layout of the widget."""
@@ -781,11 +789,6 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.show()
         self._setup_thumbnail_size(thumbnail)
 
-    def _scroll_to_newest_plot(self, vsb_min, vsb_max):
-        if self._new_thumbnail_added:
-            self._new_thumbnail_added = False
-            self.scrollarea.verticalScrollBar().setValue(vsb_max)
-
     def remove_current_thumbnail(self):
         """Remove the currently selected thumbnail."""
         if self.current_thumbnail is not None:
@@ -874,6 +877,17 @@ class ThumbnailScrollBar(QFrame):
 
         vsb = self.scrollarea.verticalScrollBar()
         vsb.setValue(pos_scroll)
+    
+    def _scroll_to_newest_item(self, vsb_min, vsb_max):
+        """
+        Scroll to the newest item added to the thumbnail scrollbar.
+        
+        Note that this method is called each time the rangeChanged signal
+        is emitted by the scrollbar.
+        """
+        if self._new_thumbnail_added:
+            self._new_thumbnail_added = False
+            self.scrollarea.verticalScrollBar().setValue(vsb_max)
 
     # ---- ScrollBar Handlers
     def go_up(self):

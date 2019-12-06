@@ -282,6 +282,8 @@ def test_scroll_down_to_newest_plot(figbrowser, tmpdir, qtbot):
     """
     Test that the ThumbnailScrollBar is scrolled to the newest plot after
     it is added to it.
+    
+    Test that covers spyder-ide/spyder#10914.
     """
     figbrowser.setFixedSize(500, 500)
 
