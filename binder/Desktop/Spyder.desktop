@@ -4,4 +4,5 @@ Type=Application
 Name=Spyder (Development Version)
 Exec=/bin/bash -c "exec ${HOME}/bootstrap.py"
 # FIXME: Don't hardcode Path?
+Icon=/home/jovyan/img_src/spyder.svg
 Path=/home/jovyan/Desktop
