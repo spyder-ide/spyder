@@ -589,11 +589,11 @@ class ThumbnailScrollBar(QFrame):
 
         # Because the range of Qt scrollareas is not updated immediately
         # after a new item is added to it, setting the scrollbar's value
-        # to its maximum after a new item is added will scroll down to
+        # to its maximum value after adding a new item will scroll down to
         # the penultimate item instead of the last.
-        # So in order to scroll programmatically to the latest item after it
-        # is added the scrollarea, we need to do it instead in a slot
-        # connected to the scrollbar rangeChanged signal.
+        # So to scroll programmatically to the latest item after it
+        # is added to the scrollarea, we need to do it instead in a slot
+        # connected to the scrollbar's rangeChanged signal.
         # See spyder-ide/#10914 for more details.
         self._new_thumbnail_added = False
         self.scrollarea.verticalScrollBar().rangeChanged.connect(
@@ -877,11 +877,11 @@ class ThumbnailScrollBar(QFrame):
 
         vsb = self.scrollarea.verticalScrollBar()
         vsb.setValue(pos_scroll)
-    
+
     def _scroll_to_newest_item(self, vsb_min, vsb_max):
         """
         Scroll to the newest item added to the thumbnail scrollbar.
-        
+
         Note that this method is called each time the rangeChanged signal
         is emitted by the scrollbar.
         """
