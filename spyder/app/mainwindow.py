@@ -1469,13 +1469,15 @@ class MainWindow(QMainWindow):
         missing_deps = dependencies.missing_dependencies()
 
         if missing_deps:
-            # Fix html formatting. The last 4 chars correspond to a
-            # '<br>' added by missing_dependencies
-            missing_deps = missing_deps[:-4].replace('<', '&lt;')
+            # We change '<br>' by '\n', in order to replace the '<'
+            # that appear in our deps by '&lt' (to not break html
+            # formatting) and finally we restore '<br>' again.
+            missing_deps = (missing_deps.replace('<br>', '\n').
+                            replace('<', '&lt;').replace('\n', '<br>'))
 
             QMessageBox.critical(self, _('Error'),
                 _("<b>You have missing dependencies!</b>"
-                  "<br><br><tt>%s</tt><br><br>"
+                  "<br><br><tt>%s</tt><br>"
                   "<b>Please install them to avoid this message.</b>"
                   "<br><br>"
                   "<i>Note</i>: Spyder could work without some of these "
