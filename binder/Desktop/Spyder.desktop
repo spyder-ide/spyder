@@ -1,0 +1,7 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Spyder (Development Version)
+Exec=/bin/bash -c "exec ${HOME}/bootstrap.py"
+# FIXME: Don't hardcode Path?
+Path=/home/jovyan/Desktop
