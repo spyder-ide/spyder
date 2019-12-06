@@ -1,3 +1,7 @@
+# We can not refer to an environment.yml file from another
+# So to get performant launches on mybinder.org, we have copied
+# the contents of this file to binder/environment.yml. If you
+# make changes here, please copy them over there too.
 pytest <5.0
 pytest-mock
 pytest-cov

@@ -38,6 +38,27 @@ dependencies:
 
 - spyder-kernels=1.*
 
+# We can not refer to an environment.yml file from another
+# So to get performant launches on mybinder.org, we have copied
+# the contents of this requirements/tests.txt to this file.yml.
+# Please *DO NOT* make changes directly just to here - make changes
+# to requirements/tests.txt, and copy it here.
+- pytest <5.0
+- pytest-mock
+- pytest-cov
+- pytest-qt
+- pytest-ordering
+- pytest-lazy-fixture
+- pytest-faulthandler <2.0
+- mock
+- pandas
+- scipy
+- sympy
+- pillow
+- matplotlib
+- cython
+- flaky
+
 # Required for jupyter-desktop-server
 - websockify
 - pip:
