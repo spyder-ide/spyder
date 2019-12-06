@@ -240,6 +240,10 @@ class Console(SpyderPluginWidget):
         """Show environment variables"""
         self.dialog_manager.show(EnvDialog(parent=self))
     
+    def get_sys_path(self):
+        """Return the `sys.path`."""
+        return sys.path
+
     @Slot()
     def show_syspath(self):
         """Show sys.path"""

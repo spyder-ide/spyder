@@ -27,13 +27,14 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
 
 # ---- Local library imports
 from spyder.config.base import _
+from spyder.config.manager import CONF
 from spyder.py3compat import is_unicode, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout,
                                     MENU_SEPARATOR)
 from spyder.utils.misc import getcwd_or_home
-from spyder.config.gui import config_shortcut, get_shortcut, is_dark_interface
+from spyder.config.gui import is_dark_interface
 
 
 def save_figure_tofile(fig, fmt, fname):
@@ -156,8 +157,8 @@ class FigureBrowser(QWidget):
 
         copyfig_btn = create_toolbutton(
             self, icon=ima.icon('editcopy'),
-            tip=_("Copy plot to clipboard as image (%s)" %
-                  get_shortcut('plots', 'copy')),
+            tip=(_("Copy plot to clipboard as image (%s)") %
+                 CONF.get_shortcut('plots', 'copy')),
             triggered=self.copy_figure)
 
         closefig_btn = create_toolbutton(
@@ -175,14 +176,14 @@ class FigureBrowser(QWidget):
 
         goback_btn = create_toolbutton(
                 self, icon=ima.icon('ArrowBack'),
-                tip=_("Previous Figure ({})".format(
-                      get_shortcut('plots', 'previous figure'))),
+                tip=_("Previous figure ({})").format(
+                      CONF.get_shortcut('plots', 'previous figure')),
                 triggered=self.go_previous_thumbnail)
 
         gonext_btn = create_toolbutton(
                 self, icon=ima.icon('ArrowForward'),
-                tip=_("Next Figure ({})".format(
-                      get_shortcut('plots', 'next figure'))),
+                tip=_("Next figure ({})").format(
+                      CONF.get_shortcut('plots', 'next figure')),
                 triggered=self.go_next_thumbnail)
 
         vsep2 = QFrame()
@@ -272,12 +273,23 @@ class FigureBrowser(QWidget):
     def create_shortcuts(self):
         """Create shortcuts for this widget."""
         # Configurable
-        copyfig = config_shortcut(self.copy_figure, context='plots',
-                                  name='copy', parent=self)
-        prevfig = config_shortcut(self.go_previous_thumbnail, context='plots',
-                                  name='previous figure', parent=self)
-        nextfig = config_shortcut(self.go_next_thumbnail, context='plots',
-                                  name='next figure', parent=self)
+        copyfig = CONF.config_shortcut(
+            self.copy_figure,
+            context='plots',
+            name='copy',
+            parent=self)
+
+        prevfig = CONF.config_shortcut(
+            self.go_previous_thumbnail,
+            context='plots',
+            name='previous figure',
+            parent=self)
+
+        nextfig = CONF.config_shortcut(
+            self.go_next_thumbnail,
+            context='plots',
+            name='next figure',
+            parent=self)
 
         return [copyfig, prevfig, nextfig]
 
@@ -774,7 +786,7 @@ class ThumbnailScrollBar(QFrame):
             thumbnail.sig_canvas_clicked.disconnect()
             thumbnail.sig_remove_figure.disconnect()
             thumbnail.sig_save_figure.disconnect()
-            thumbnail.deleteLater()
+            thumbnail.setParent(None)
         self._thumbnails = []
         self.current_thumbnail = None
         self.figure_viewer.figcanvas.clear_canvas()
@@ -785,7 +797,7 @@ class ThumbnailScrollBar(QFrame):
             index = self._thumbnails.index(thumbnail)
             self._thumbnails.remove(thumbnail)
         self.layout().removeWidget(thumbnail)
-        thumbnail.deleteLater()
+        thumbnail.setParent(None)
         thumbnail.sig_canvas_clicked.disconnect()
         thumbnail.sig_remove_figure.disconnect()
         thumbnail.sig_save_figure.disconnect()
@@ -989,10 +1001,11 @@ class FigureCanvas(QFrame):
         if self.fig:
             pos = QPoint(event.x(), event.y())
             context_menu = QMenu(self)
-            context_menu.addAction(ima.icon('editcopy'), "Copy Image",
-                                   self.copy_figure,
-                                   QKeySequence(
-                                       get_shortcut('plots', 'copy')))
+            context_menu.addAction(
+                ima.icon('editcopy'),
+                "Copy Image",
+                self.copy_figure,
+                QKeySequence(CONF.get_shortcut('plots', 'copy')))
             context_menu.popup(self.mapToGlobal(pos))
 
     @Slot()

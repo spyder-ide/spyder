@@ -15,9 +15,9 @@ import time
 # Third party imports
 from qtpy.compat import getsavefilename
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QHBoxLayout, QLabel,
-                            QMessageBox, QPushButton, QTableWidget,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
+                            QHBoxLayout, QLabel, QMessageBox, QPushButton,
+                            QTableWidget, QVBoxLayout, QWidget)
 # Local imports
 from spyder.config.base import _, running_under_pytest
 
@@ -99,6 +99,30 @@ class RecoveryDialog(QDialog):
         self.add_table()
         self.add_cancel_button()
         self.setWindowTitle(_('Recover from autosave'))
+        self.setFixedSize(670, 400)
+        self.setWindowFlags(
+            Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint |
+            Qt.WindowStaysOnTopHint)
+
+        # This is needed beause of an error in MacOS.
+        # See https://bugreports.qt.io/browse/QTBUG-49576
+        if parent and hasattr(parent, 'splash'):
+            self.splash = parent.splash
+            self.splash.hide()
+        else:
+            self.splash = None
+
+    def accept(self):
+        """Reimplement Qt method."""
+        if self.splash is not None:
+            self.splash.show()
+        super(RecoveryDialog, self).accept()
+
+    def reject(self):
+        """Reimplement Qt method."""
+        if self.splash is not None:
+            self.splash.show()
+        super(RecoveryDialog, self).reject()
 
     def gather_data(self, autosave_mapping):
         """
@@ -147,8 +171,8 @@ class RecoveryDialog(QDialog):
         table.setHorizontalHeaderLabels(labels)
         table.verticalHeader().hide()
 
-        table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        table.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        table.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        table.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         table.setSelectionMode(QTableWidget.NoSelection)
 
         # Show horizontal grid lines
@@ -192,12 +216,6 @@ class RecoveryDialog(QDialog):
         table.resizeRowsToContents()
         table.resizeColumnsToContents()
 
-        # Need to add the "+ 2" because otherwise the table scrolls a tiny
-        # amount; no idea why
-        width = table.horizontalHeader().length() + 2
-        height = (table.verticalHeader().length()
-                  + table.horizontalHeader().height() + 2)
-        table.setFixedSize(width, height)
         self.layout.addWidget(table)
 
     def add_cancel_button(self):
@@ -205,6 +223,13 @@ class RecoveryDialog(QDialog):
         button_box = QDialogButtonBox(QDialogButtonBox.Cancel, self)
         button_box.rejected.connect(self.reject)
         self.layout.addWidget(button_box)
+
+    def center(self):
+        """Center the dialog."""
+        screen = QApplication.desktop().screenGeometry(0)
+        x = screen.center().x() - self.width() / 2
+        y = screen.center().y() - self.height() / 2
+        self.move(x, y)
 
     def restore(self, idx):
         orig, autosave = self.data[idx]
@@ -265,6 +290,7 @@ class RecoveryDialog(QDialog):
     def exec_if_nonempty(self):
         """Execute dialog window if there is data to show."""
         if self.data:
+            self.center()
             return self.exec_()
         else:
             return QDialog.Accepted

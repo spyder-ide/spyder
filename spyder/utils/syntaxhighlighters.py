@@ -185,7 +185,6 @@ class BaseSH(QSyntaxHighlighter):
         self.setup_formats(font)
 
         self.cell_separators = None
-        self.fold_detector = None
         self.editor = None
         self.patterns = DEFAULT_COMPILED_PATTERNS
 
@@ -290,15 +289,6 @@ class BaseSH(QSyntaxHighlighter):
         :param text: text to highlight.
         """
         self.highlight_block(text)
-
-        # Process blocks for fold detection
-        current_block = self.currentBlock()
-        previous_block = self._find_prev_non_blank_block(current_block)
-        if self.editor:
-            if self.fold_detector is not None:
-                self.fold_detector._editor = weakref.ref(self.editor)
-                self.fold_detector.process_block(
-                    current_block, previous_block, text)
 
     def highlight_block(self, text):
         """
@@ -487,7 +477,7 @@ class PythonSH(BaseSH):
     add_kw = ['async', 'await']
     PROG = re.compile(make_python_patterns(additional_keywords=add_kw), re.S)
     IDPROG = re.compile(r"\s+(\w+)", re.S)
-    ASPROG = re.compile(r".*?\b(as)\b")
+    ASPROG = re.compile(r"\b(as)\b")
     # Syntax highlighting states (from one text block to another):
     (NORMAL, INSIDE_SQ3STRING, INSIDE_DQ3STRING,
      INSIDE_SQSTRING, INSIDE_DQSTRING,

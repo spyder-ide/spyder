@@ -228,6 +228,39 @@ def get_conf_path(filename=None):
         return osp.join(conf_dir, filename)
 
 
+def get_conf_paths():
+    """Return the files that can update system configuration defaults."""
+    CONDA_PREFIX = os.environ.get('CONDA_PREFIX', None)
+
+    if os.name == 'nt':
+        SEARCH_PATH = (
+            'C:/ProgramData/spyder',
+        )
+    else:
+        SEARCH_PATH = (
+            '/etc/spyder',
+            '/usr/local/etc/spyder',
+        )
+
+    if CONDA_PREFIX is not None:
+        CONDA_PREFIX = CONDA_PREFIX.replace('\\', '/')
+        SEARCH_PATH += (
+            '{}/etc/spyder'.format(CONDA_PREFIX),
+        )
+
+    if running_under_pytest():
+        search_paths = []
+        tmpfolder = str(tempfile.gettempdir())
+        for i in range(3):
+            path = os.path.join(tmpfolder, 'site-config-'+str(i))
+            if not os.path.isdir(path):
+                os.makedirs(path)
+            search_paths.append(path)
+        SEARCH_PATH = tuple(search_paths)
+
+    return SEARCH_PATH
+
+
 def get_module_path(modname):
     """Return module *modname* base path"""
     return osp.abspath(osp.dirname(sys.modules[modname].__file__))
@@ -314,19 +347,20 @@ DEFAULT_LANGUAGE = 'en'
 
 # This needs to be updated every time a new language is added to spyder, and is
 # used by the Preferences configuration to populate the Language QComboBox
-LANGUAGE_CODES = {'en': u'English',
-                  'fr': u'Français',
-                  'es': u'Español',
-                  'hu': u'Magyar',
-                  'pt_BR': u'Português',
-                  'ru': u'Русский',
-                  'zh_CN': u'简体中文',
-                  'ja': u'日本語',
-                  'de': u'Deutsch'
-                  }
+LANGUAGE_CODES = {
+    'en': u'English',
+    'fr': u'Français',
+    'es': u'Español',
+    'hu': u'Magyar',
+    'pt_BR': u'Português',
+    'ru': u'Русский',
+    'zh_CN': u'简体中文',
+    'ja': u'日本語',
+    'de': u'Deutsch'
+}
 
 # Disabled languages (because their translations are outdated)
-DISABLED_LANGUAGES = []
+DISABLED_LANGUAGES = ['hu', 'ru']
 
 def get_available_translations():
     """
@@ -387,8 +421,8 @@ def get_interface_language():
             if locale_language == lang:
                 language = locale_language
                 break
-            elif locale_language.startswith(lang) or \
-              lang.startswith(locale_language):
+            elif (locale_language.startswith(lang) or
+                    lang.startswith(locale_language)):
                 language = lang
                 break
 
@@ -501,17 +535,17 @@ else:
     MAC_APP_NAME = 'Spyder-Py2.app'
 
 
-def running_in_mac_app(check_file=False):
+def running_in_mac_app():
     """
     Check if Spyder is running inside an app on macOS.
 
-    If check_file is True, check if the app is a stand-alone app.
+    Check if the app is a stand-alone app.
     This means this file is located inside 'Spyder.app' and not in the
     python path.
     This is important for example for the single_instance option.
     """
     if sys.platform == "darwin":
-        if check_file and MAC_APP_NAME not in __file__:
+        if MAC_APP_NAME not in __file__:
             return False
         return True
     else:

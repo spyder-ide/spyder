@@ -383,6 +383,9 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget.currentChanged.connect(self.update_working_directory)
         self._remove_old_stderr_files()
 
+        # Update kernels if python path is changed
+        self.main.sig_pythonpath_changed.connect(self.update_path)
+
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
         """Return clients list"""
@@ -552,39 +555,45 @@ class IPythonConsole(SpyderPluginWidget):
         if shellwidget is not None:
             shellwidget.update_cwd()
 
+    def update_path(self, path_dict, new_path_dict):
+        """Update path on consoles."""
+        for client in self.get_clients():
+            shell = client.shellwidget
+            if shell is not None:
+                self.main.get_spyder_pythonpath()
+                shell.update_syspath(path_dict, new_path_dict)
+
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
         if sw is not None:
-            if sw.is_waiting_pdb_input():
-                pass
-            else:
-                if not current_client:
-                    # Clear console and reset namespace for
-                    # dedicated clients.
-                    # See spyder-ide/spyder#5748.
-                    try:
-                        sw.sig_prompt_ready.disconnect()
-                    except TypeError:
-                        pass
-                    sw.reset_namespace(warning=False)
-                elif current_client and clear_variables:
-                    sw.reset_namespace(warning=False)
-                # Needed to handle an error when kernel_client is none.
-                # See spyder-ide/spyder#6308.
+            if not current_client:
+                # Clear console and reset namespace for
+                # dedicated clients.
+                # See spyder-ide/spyder#5748.
                 try:
-                    sw.execute(to_text_string(lines))
-                except AttributeError:
+                    sw.sig_prompt_ready.disconnect()
+                except TypeError:
                     pass
+                sw.reset_namespace(warning=False)
+            elif current_client and clear_variables:
+                sw.reset_namespace(warning=False)
+            # Needed to handle an error when kernel_client is none.
+            # See spyder-ide/spyder#6308.
+            try:
+                sw.execute(to_text_string(lines))
+            except AttributeError:
+                pass
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
-    def pdb_execute(self, line, hidden=False):
+    def pdb_execute(self, line, hidden=False, echo_code=False):
         sw = self.get_current_shellwidget()
         if sw is not None:
             # Needed to handle an error when kernel_client is None.
             # See spyder-ide/spyder#7578.
             try:
+                sw.set_pdb_echo_code(echo_code)
                 sw.pdb_execute(line, hidden)
             except AttributeError:
                 pass
@@ -637,21 +646,22 @@ class IPythonConsole(SpyderPluginWidget):
         if not CONF.get('main_interpreter', 'default'):
             pyexec = CONF.get('main_interpreter', 'executable')
             has_spyder_kernels = programs.is_module_installed(
-                                                        'spyder_kernels',
-                                                        interpreter=pyexec,
-                                                        version='>=1.0.0')
+                'spyder_kernels',
+                interpreter=pyexec,
+                version='>=1.8.0;<2.0.0')
             if not has_spyder_kernels:
                 client.show_kernel_error(
-                        _("Your Python environment or installation doesn't "
-                          "have the <tt>spyder-kernels</tt> module or the "
-                          "right version of it installed. "
-                          "Without this module is not possible for "
-                          "Spyder to create a console for you.<br><br>"
-                          "You can install it by running in a system terminal:"
-                          "<br><br>"
-                          "<tt>conda install spyder-kernels</tt>"
-                          "<br><br>or<br><br>"
-                          "<tt>pip install spyder-kernels</tt>"))
+                    _("Your Python environment or installation doesn't have "
+                      "the <tt>spyder-kernels</tt> module or the right "
+                      "version of it installed (>= 1.8.0 and < 2.0.0). "
+                      "Without this module is not possible for Spyder to "
+                      "create a console for you.<br><br>"
+                      "You can install it by running in a system terminal:"
+                      "<br><br>"
+                      "<tt>conda install spyder-kernels</tt>"
+                      "<br><br>or<br><br>"
+                      "<tt>pip install spyder-kernels</tt>")
+                )
                 return
 
         self.connect_client_to_kernel(client, is_cython=is_cython,
@@ -1038,6 +1048,16 @@ class IPythonConsole(SpyderPluginWidget):
         """Set Spyder breakpoints into all clients"""
         for cl in self.clients:
             cl.shellwidget.set_spyder_breakpoints()
+
+    def set_pdb_ignore_lib(self):
+        """Set pdb_ignore_lib into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_pdb_ignore_lib()
+
+    def set_pdb_execute_events(self):
+        """Set pdb_execute_events into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_pdb_execute_events()
 
     @Slot(str)
     def create_client_from_path(self, path):

@@ -32,7 +32,8 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
 
 # Local imports
 from spyder.config.base import _, running_under_pytest
-from spyder.config.gui import config_shortcut, is_dark_interface, get_shortcut
+from spyder.config.gui import is_dark_interface
+from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
 from spyder.py3compat import (qbytearray_to_str, to_text_string,
@@ -59,6 +60,7 @@ from spyder.widgets.tabs import BaseTabs
 from spyder.config.manager import CONF
 from spyder.plugins.explorer.widgets.explorer import (
     show_in_external_file_explorer)
+from spyder.plugins.outlineexplorer.api import cell_name
 
 
 logger = logging.getLogger(__name__)
@@ -323,10 +325,10 @@ class TabSwitcherWidget(QListWidget):
         self.set_dialog_position()
         self.setCurrentRow(0)
 
-        config_shortcut(lambda: self.select_row(-1), context='Editor',
-                        name='Go to previous file', parent=self)
-        config_shortcut(lambda: self.select_row(1), context='Editor',
-                        name='Go to next file', parent=self)
+        CONF.config_shortcut(lambda: self.select_row(-1), context='Editor',
+                             name='Go to previous file', parent=self)
+        CONF.config_shortcut(lambda: self.select_row(1), context='Editor',
+                             name='Go to next file', parent=self)
 
     def load_data(self):
         """Fill ListWidget with the tabs texts.
@@ -378,7 +380,7 @@ class TabSwitcherWidget(QListWidget):
         When ctrl is released and tab_switcher is visible, tab will be changed.
         """
         if self.isVisible():
-            qsc = get_shortcut(context='Editor', name='Go to next file')
+            qsc = CONF.get_shortcut(context='Editor', name='Go to next file')
 
             for key in qsc.split('+'):
                 key = key.lower()
@@ -552,14 +554,17 @@ class EditorStack(QWidget):
         self.stripmode_enabled = False
         self.intelligent_backspace_enabled = True
         self.automatic_completions_enabled = True
+        self.automatic_completion_chars = 3
+        self.automatic_completion_ms = 300
         self.completions_hint_enabled = True
+        self.completions_hint_after_ms = 500
         self.hover_hints_enabled = True
         self.code_snippets_enabled = True
         self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
         self.occurrence_highlighting_enabled = True
-        self.occurrence_highlighting_timeout=1500
+        self.occurrence_highlighting_timeout = 1500
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
         self.convert_eol_on_save = False
@@ -617,128 +622,218 @@ class EditorStack(QWidget):
     def create_shortcuts(self):
         """Create local shortcuts"""
         # --- Configurable shortcuts
-        inspect = config_shortcut(self.inspect_current_object, context='Editor',
-                                  name='Inspect current object', parent=self)
+        inspect = CONF.config_shortcut(
+            self.inspect_current_object,
+            context='Editor',
+            name='Inspect current object',
+            parent=self)
         # TODO: Cleaner way to do this?
+        # This should be called from the plugin and not the widgets
         app = QCoreApplication.instance()
-        set_breakpoint = config_shortcut(self.set_or_clear_breakpoint,
-                                         context='Editor', name='Breakpoint',
-                                         parent=self)
-        set_cond_breakpoint = config_shortcut(
-                                    self.set_or_edit_conditional_breakpoint,
-                                    context='Editor',
-                                    name='Conditional breakpoint',
-                                    parent=self)
-        gotoline = config_shortcut(self.go_to_line, context='Editor',
-                                   name='Go to line', parent=self)
-        tab = config_shortcut(lambda: self.tab_navigation_mru(forward=False),
-                              context='Editor',
-                              name='Go to previous file', parent=self)
-        tabshift = config_shortcut(self.tab_navigation_mru, context='Editor',
-                                   name='Go to next file', parent=self)
-        prevtab = config_shortcut(lambda: self.tabs.tab_navigate(-1),
-                                  context='Editor',
-                                  name='Cycle to previous file', parent=self)
-        nexttab = config_shortcut(lambda: self.tabs.tab_navigate(1),
-                                  context='Editor',
-                                  name='Cycle to next file', parent=self)
-        run_selection = config_shortcut(self.run_selection, context='Editor',
-                                        name='Run selection', parent=self)
-        new_file = config_shortcut(lambda : self.sig_new_file[()].emit(),
-                                   context='Editor', name='New file',
-                                   parent=self)
-        open_file = config_shortcut(lambda : self.plugin_load[()].emit(),
-                                    context='Editor', name='Open file',
-                                    parent=self)
-        save_file = config_shortcut(self.save, context='Editor',
-                                    name='Save file', parent=self)
-        save_all = config_shortcut(self.save_all, context='Editor',
-                                   name='Save all', parent=self)
-        save_as = config_shortcut(lambda : self.sig_save_as.emit(),
-                                  context='Editor', name='Save As',
-                                  parent=self)
-        close_all = config_shortcut(self.close_all_files, context='Editor',
-                                    name='Close all', parent=self)
-        prev_edit_pos = config_shortcut(lambda : self.sig_prev_edit_pos.emit(),
-                                        context="Editor",
-                                        name="Last edit location",
-                                        parent=self)
-        prev_cursor = config_shortcut(lambda : self.sig_prev_cursor.emit(),
-                                      context="Editor",
-                                      name="Previous cursor position",
-                                      parent=self)
-        next_cursor = config_shortcut(lambda : self.sig_next_cursor.emit(),
-                                      context="Editor",
-                                      name="Next cursor position",
-                                      parent=self)
-        zoom_in_1 = config_shortcut(lambda : self.zoom_in.emit(),
-                                      context="Editor",
-                                      name="zoom in 1",
-                                      parent=self)
-        zoom_in_2 = config_shortcut(lambda : self.zoom_in.emit(),
-                                      context="Editor",
-                                      name="zoom in 2",
-                                      parent=self)
-        zoom_out = config_shortcut(lambda : self.zoom_out.emit(),
-                                      context="Editor",
-                                      name="zoom out",
-                                      parent=self)
-        zoom_reset = config_shortcut(lambda: self.zoom_reset.emit(),
-                                      context="Editor",
-                                      name="zoom reset",
-                                      parent=self)
-        close_file_1 = config_shortcut(self.close_file,
-                                      context="Editor",
-                                      name="close file 1",
-                                      parent=self)
-        close_file_2 = config_shortcut(self.close_file,
-                                      context="Editor",
-                                      name="close file 2",
-                                      parent=self)
-        run_cell = config_shortcut(self.run_cell,
-                                      context="Editor",
-                                      name="run cell",
-                                      parent=self)
-        debug_cell = config_shortcut(self.debug_cell,
-                                     context="Editor",
-                                     name="debug cell",
-                                     parent=self)
-        run_cell_and_advance = config_shortcut(self.run_cell_and_advance,
-                                      context="Editor",
-                                      name="run cell and advance",
-                                      parent=self)
-        go_to_next_cell = config_shortcut(self.advance_cell,
-                                          context="Editor",
-                                          name="go to next cell",
-                                          parent=self)
-        go_to_previous_cell = config_shortcut(lambda: self.advance_cell(reverse=True),
-                                              context="Editor",
-                                              name="go to previous cell",
-                                              parent=self)
-        re_run_last_cell = config_shortcut(self.re_run_last_cell,
-                                      context="Editor",
-                                      name="re-run last cell",
-                                      parent=self)
-        prev_warning = config_shortcut(lambda: self.sig_prev_warning.emit(),
-                                       context="Editor",
-                                       name="Previous warning",
-                                       parent=self)
-        next_warning = config_shortcut(lambda: self.sig_next_warning.emit(),
-                                       context="Editor",
-                                       name="Next warning",
-                                       parent=self)
-        split_vertically = config_shortcut(lambda: self.sig_split_vertically.emit(),
-                                           context="Editor",
-                                           name="split vertically",
-                                           parent=self)
-        split_horizontally = config_shortcut(lambda: self.sig_split_horizontally.emit(),
-                                             context="Editor",
-                                             name="split horizontally",
-                                             parent=self)
-        close_split = config_shortcut(self.close_split,
-                                      context="Editor",
-                                      name="close split panel",
-                                      parent=self)
+
+        set_breakpoint = CONF.config_shortcut(
+            self.set_or_clear_breakpoint,
+            context='Editor',
+            name='Breakpoint',
+            parent=self)
+
+        set_cond_breakpoint = CONF.config_shortcut(
+            self.set_or_edit_conditional_breakpoint,
+            context='Editor',
+            name='Conditional breakpoint',
+            parent=self)
+
+        gotoline = CONF.config_shortcut(
+            self.go_to_line,
+            context='Editor',
+            name='Go to line',
+            parent=self)
+
+        tab = CONF.config_shortcut(
+            lambda: self.tab_navigation_mru(forward=False),
+            context='Editor',
+            name='Go to previous file',
+            parent=self)
+
+        tabshift = CONF.config_shortcut(
+            self.tab_navigation_mru,
+            context='Editor',
+            name='Go to next file',
+            parent=self)
+
+        prevtab = CONF.config_shortcut(
+            lambda: self.tabs.tab_navigate(-1),
+            context='Editor',
+            name='Cycle to previous file',
+            parent=self)
+
+        nexttab = CONF.config_shortcut(
+            lambda: self.tabs.tab_navigate(1),
+            context='Editor',
+            name='Cycle to next file',
+            parent=self)
+
+        run_selection = CONF.config_shortcut(
+            self.run_selection,
+            context='Editor',
+            name='Run selection',
+            parent=self)
+
+        new_file = CONF.config_shortcut(
+            lambda: self.sig_new_file[()].emit(),
+            context='Editor',
+            name='New file',
+            parent=self)
+
+        open_file = CONF.config_shortcut(
+            lambda: self.plugin_load[()].emit(),
+            context='Editor',
+            name='Open file',
+            parent=self)
+
+        save_file = CONF.config_shortcut(
+            self.save,
+            context='Editor',
+            name='Save file',
+            parent=self)
+
+        save_all = CONF.config_shortcut(
+            self.save_all,
+            context='Editor',
+            name='Save all',
+            parent=self)
+
+        save_as = CONF.config_shortcut(
+            lambda: self.sig_save_as.emit(),
+            context='Editor',
+            name='Save As',
+            parent=self)
+
+        close_all = CONF.config_shortcut(
+            self.close_all_files,
+            context='Editor',
+            name='Close all',
+            parent=self)
+
+        prev_edit_pos = CONF.config_shortcut(
+            lambda: self.sig_prev_edit_pos.emit(),
+            context="Editor",
+            name="Last edit location",
+            parent=self)
+
+        prev_cursor = CONF.config_shortcut(
+            lambda: self.sig_prev_cursor.emit(),
+            context="Editor",
+            name="Previous cursor position",
+            parent=self)
+
+        next_cursor = CONF.config_shortcut(
+            lambda: self.sig_next_cursor.emit(),
+            context="Editor",
+            name="Next cursor position",
+            parent=self)
+
+        zoom_in_1 = CONF.config_shortcut(
+            lambda: self.zoom_in.emit(),
+            context="Editor",
+            name="zoom in 1",
+            parent=self)
+
+        zoom_in_2 = CONF.config_shortcut(
+            lambda: self.zoom_in.emit(),
+            context="Editor",
+            name="zoom in 2",
+            parent=self)
+
+        zoom_out = CONF.config_shortcut(
+            lambda: self.zoom_out.emit(),
+            context="Editor",
+            name="zoom out",
+            parent=self)
+
+        zoom_reset = CONF.config_shortcut(
+            lambda: self.zoom_reset.emit(),
+            context="Editor",
+            name="zoom reset",
+            parent=self)
+
+        close_file_1 = CONF.config_shortcut(
+            self.close_file,
+            context="Editor",
+            name="close file 1",
+            parent=self)
+
+        close_file_2 = CONF.config_shortcut(
+            self.close_file,
+            context="Editor",
+            name="close file 2",
+            parent=self)
+
+        run_cell = CONF.config_shortcut(
+            self.run_cell,
+            context="Editor",
+            name="run cell",
+            parent=self)
+
+        debug_cell = CONF.config_shortcut(
+            self.debug_cell,
+            context="Editor",
+            name="debug cell",
+            parent=self)
+
+        run_cell_and_advance = CONF.config_shortcut(
+            self.run_cell_and_advance,
+            context="Editor",
+            name="run cell and advance",
+            parent=self)
+
+        go_to_next_cell = CONF.config_shortcut(
+            self.advance_cell,
+            context="Editor",
+            name="go to next cell",
+            parent=self)
+
+        go_to_previous_cell = CONF.config_shortcut(
+            lambda: self.advance_cell(reverse=True),
+            context="Editor",
+            name="go to previous cell",
+            parent=self)
+
+        re_run_last_cell = CONF.config_shortcut(
+            self.re_run_last_cell,
+            context="Editor",
+            name="re-run last cell",
+            parent=self)
+
+        prev_warning = CONF.config_shortcut(
+            lambda: self.sig_prev_warning.emit(),
+            context="Editor",
+            name="Previous warning",
+            parent=self)
+
+        next_warning = CONF.config_shortcut(
+            lambda: self.sig_next_warning.emit(),
+            context="Editor",
+            name="Next warning",
+            parent=self)
+
+        split_vertically = CONF.config_shortcut(
+            lambda: self.sig_split_vertically.emit(),
+            context="Editor",
+            name="split vertically",
+            parent=self)
+
+        split_horizontally = CONF.config_shortcut(
+            lambda: self.sig_split_horizontally.emit(),
+            context="Editor",
+            name="split horizontally",
+            parent=self)
+
+        close_split = CONF.config_shortcut(
+            self.close_split,
+            context="Editor",
+            name="close split panel",
+            parent=self)
 
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
@@ -887,6 +982,7 @@ class EditorStack(QWidget):
             from spyder.widgets.switcher import Switcher
             self.switcher_dlg = Switcher(self)
             self.switcher_manager = EditorSwitcherManager(
+                self.get_plugin(),
                 self.switcher_dlg,
                 lambda: self.get_current_editor(),
                 lambda: self,
@@ -904,11 +1000,17 @@ class EditorStack(QWidget):
     def open_symbolfinder_dlg(self):
         self.open_switcher_dlg(initial_text='@')
 
+    def get_plugin(self):
+        """Get the plugin of the parent widget."""
+        # Needed for the editor stack to use its own switcher instance.
+        # See spyder-ide/spyder#10684.
+        return self.parent().plugin
+
     def get_plugin_title(self):
         """Get the plugin title of the parent widget."""
         # Needed for the editor stack to use its own switcher instance.
         # See spyder-ide/spyder#9469.
-        return self.parent().plugin.get_plugin_title()
+        return self.get_plugin().get_plugin_title()
 
     def go_to_line(self, line=None):
         """Go to line dialog"""
@@ -1180,13 +1282,13 @@ class EditorStack(QWidget):
                 finfo.editor.toggle_automatic_completions(state)
 
     def set_automatic_completions_after_chars(self, chars):
-        self.automatic_completions_after_chars = chars
+        self.automatic_completion_chars = chars
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_automatic_completions_after_chars(chars)
 
     def set_automatic_completions_after_ms(self, ms):
-        self.automatic_completions_after_ms = ms
+        self.automatic_completion_ms = ms
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_automatic_completions_after_ms(ms)
@@ -1196,6 +1298,12 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_completions_hint(state)
+
+    def set_completions_hint_after_ms(self, ms):
+        self.completions_hint_after_ms = ms
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_completions_hint_after_ms(ms)
 
     def set_hover_hints_enabled(self, state):
         self.hover_hints_enabled = state
@@ -1413,23 +1521,34 @@ class EditorStack(QWidget):
                 triggered=plugin.create_new_window)
 
         # Splitting
-        self.versplit_action = create_action(self, _("Split vertically"),
-                icon=ima.icon('versplit'),
-                tip=_("Split vertically this editor window"),
-                triggered=lambda: self.sig_split_vertically.emit(),
-                shortcut=get_shortcut(context='Editor', name='split vertically'),
-                context=Qt.WidgetShortcut)
-        self.horsplit_action = create_action(self, _("Split horizontally"),
-                icon=ima.icon('horsplit'),
-                tip=_("Split horizontally this editor window"),
-                triggered=lambda: self.sig_split_horizontally.emit(),
-                shortcut=get_shortcut(context='Editor', name='split horizontally'),
-                context=Qt.WidgetShortcut)
-        self.close_action = create_action(self, _("Close this panel"),
-                icon=ima.icon('close_panel'),
-                triggered=self.close_split,
-                shortcut=get_shortcut(context='Editor', name='close split panel'),
-                context=Qt.WidgetShortcut)
+        self.versplit_action = create_action(
+            self,
+            _("Split vertically"),
+            icon=ima.icon('versplit'),
+            tip=_("Split vertically this editor window"),
+            triggered=lambda: self.sig_split_vertically.emit(),
+            shortcut=CONF.get_shortcut(context='Editor',
+                                       name='split vertically'),
+            context=Qt.WidgetShortcut)
+
+        self.horsplit_action = create_action(
+            self,
+            _("Split horizontally"),
+            icon=ima.icon('horsplit'),
+            tip=_("Split horizontally this editor window"),
+            triggered=lambda: self.sig_split_horizontally.emit(),
+            shortcut=CONF.get_shortcut(context='Editor',
+                                       name='split horizontally'),
+            context=Qt.WidgetShortcut)
+
+        self.close_action = create_action(
+            self,
+            _("Close this panel"),
+            icon=ima.icon('close_panel'),
+            triggered=self.close_split,
+            shortcut=CONF.get_shortcut(context='Editor',
+                                       name='close split panel'),
+            context=Qt.WidgetShortcut)
 
         # Regular actions
         actions = [MENU_SEPARATOR, self.versplit_action,
@@ -1796,7 +1915,7 @@ class EditorStack(QWidget):
         txt = fileinfo.editor.get_text_with_eol()
         fileinfo.encoding = encoding.write(txt, filename, fileinfo.encoding)
 
-    def save(self, index=None, force=False):
+    def save(self, index=None, force=False, save_new_files=True):
         """Write text of editor to a file.
 
         Args:
@@ -1825,7 +1944,10 @@ class EditorStack(QWidget):
             return True
         if not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
-            return self.save_as(index=index)
+            if save_new_files:
+                return self.save_as(index=index)
+            # The file doesn't need to be saved
+            return True
         if self.always_remove_trailing_spaces:
             self.remove_trailing_spaces(index)
         if self.convert_eol_on_save:
@@ -1856,13 +1978,7 @@ class EditorStack(QWidget):
             self.modification_changed(index=index)
             self.analyze_script(index)
 
-            #XXX CodeEditor-only: re-scan the whole text to rebuild outline
-            # explorer data from scratch (could be optimized because
-            # rehighlighting text means searching for all syntax coloring
-            # patterns instead of only searching for class/def patterns which
-            # would be sufficient for outline explorer data.
-            finfo.editor.rehighlight()
-
+            # Rebuild the outline explorer data
             self._refresh_outlineexplorer(index)
 
             finfo.editor.notify_save()
@@ -1989,6 +2105,7 @@ class EditorStack(QWidget):
             self.set_stack_index(new_index)
             return ok
         else:
+            finfo.newly_created = False
             return False
 
     def save_copy_as(self, index=None):
@@ -2042,14 +2159,14 @@ class EditorStack(QWidget):
         else:
             return False
 
-    def save_all(self):
+    def save_all(self, save_new_files=True):
         """Save all opened files.
 
         Iterate through self.data and call save() on any modified files.
         """
         for index in range(self.get_stack_count()):
             if self.data[index].editor.document().isModified():
-                self.save(index)
+                self.save(index, save_new_files=save_new_files)
 
     #------ Update UI
     def start_stop_analysis_timer(self):
@@ -2417,8 +2534,11 @@ class EditorStack(QWidget):
             strip_mode=self.stripmode_enabled,
             intelligent_backspace=self.intelligent_backspace_enabled,
             automatic_completions=self.automatic_completions_enabled,
+            automatic_completions_after_chars=self.automatic_completion_chars,
+            automatic_completions_after_ms=self.automatic_completion_ms,
             code_snippets=self.code_snippets_enabled,
             completions_hint=self.completions_hint_enabled,
+            completions_hint_after_ms=self.completions_hint_after_ms,
             hover_hints=self.hover_hints_enabled,
             highlight_current_line=self.highlight_current_line_enabled,
             highlight_current_cell=self.highlight_current_cell_enabled,
@@ -2521,7 +2641,8 @@ class EditorStack(QWidget):
             finfo.editor.document().setModified(False)
         return finfo
 
-    def load(self, filename, set_current=True, add_where='end'):
+    def load(self, filename, set_current=True, add_where='end',
+             processevents=True):
         """
         Load filename, create an editor instance and return it
 
@@ -2532,14 +2653,16 @@ class EditorStack(QWidget):
         plugin (in case multiple editorstack instances are handled)
         """
         filename = osp.abspath(to_text_string(filename))
-        self.starting_long_process.emit(_("Loading %s...") % filename)
+        if processevents:
+            self.starting_long_process.emit(_("Loading %s...") % filename)
         text, enc = encoding.read(filename)
         self.autosave.file_hashes[filename] = hash(text)
         finfo = self.create_new_editor(filename, enc, text, set_current,
                                        add_where=add_where)
         index = self.data.index(finfo)
         self._refresh_outlineexplorer(index, update=True)
-        self.ending_long_process.emit("")
+        if processevents:
+            self.ending_long_process.emit("")
         if self.isVisible() and self.checkeolchars_enabled \
            and sourcecode.has_mixed_eol_chars(text):
             name = osp.basename(filename)
@@ -2620,10 +2743,10 @@ class EditorStack(QWidget):
         text, block = self.get_current_editor().get_cell_as_executable_code()
         finfo = self.get_current_finfo()
         editor = self.get_current_editor()
-        cell_name = self._get_cell_name(block)
+        name = cell_name(block)
         filename = finfo.filename
 
-        self._run_cell_text(text, editor, (filename, cell_name), debug)
+        self._run_cell_text(text, editor, (filename, name), debug)
 
     def debug_cell(self):
         """Debug current cell."""
@@ -2671,21 +2794,6 @@ class EditorStack(QWidget):
 
         self._run_cell_text(text, editor, (filename, cell_name))
 
-    def _get_cell_name(self, block):
-        """Get the cell name from the block."""
-        oe_data = block.userData()
-        if oe_data and oe_data.oedata:
-            if oe_data.oedata.has_name():
-                cell_name = oe_data.oedata.def_name
-            else:
-                cell_name = oe_data.oedata.cell_index()
-        else:
-            if block.blockNumber() == 0:
-                # There is no name for the first cell, refer by cell number
-                cell_name = 0
-            else:
-                raise RuntimeError('Not a cell?')
-        return cell_name
 
     def _run_cell_text(self, text, editor, cell_id, debug=False):
         """Run cell code in the console.
@@ -2702,7 +2810,7 @@ class EditorStack(QWidget):
             The starting line number of the cell in the file.
         """
         (filename, cell_name) = cell_id
-        if editor.is_python() and text:
+        if editor.is_python():
             args = (text, cell_name, filename, self.run_cell_copy)
             if debug:
                 self.debug_cell_in_ipyclient.emit(*args)

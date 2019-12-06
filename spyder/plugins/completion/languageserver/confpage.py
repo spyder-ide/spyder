@@ -711,6 +711,10 @@ class LanguageServerConfigPage(GeneralConfigPage):
             _("Show completion details"),
             'completions_hint',
             section='editor')
+        self.completions_hint_after_ms = self.create_spinbox(
+            _("Show completion detail after keyboard idle (ms):"), None,
+            'completions_hint_after_ms', min_=0, max_=5000, step=10,
+            tip=_("Default is 500"), section='editor')
         self.automatic_completion_box = newcb(
             _("Show completions on the fly"),
             'automatic_completions',
@@ -728,15 +732,19 @@ class LanguageServerConfigPage(GeneralConfigPage):
         completion_layout = QGridLayout()
         completion_layout.addWidget(self.completion_box, 0, 0)
         completion_layout.addWidget(self.completion_hint_box, 1, 0)
-        completion_layout.addWidget(self.automatic_completion_box, 2, 0)
+        completion_layout.addWidget(self.completions_hint_after_ms.plabel,
+                                    2, 0)
+        completion_layout.addWidget(self.completions_hint_after_ms.spinbox,
+                                    2, 1)
+        completion_layout.addWidget(self.automatic_completion_box, 3, 0)
         completion_layout.addWidget(self.completions_after_characters.plabel,
-                                    3, 0)
+                                    4, 0)
         completion_layout.addWidget(self.completions_after_characters.spinbox,
-                                    3, 1)
-        completion_layout.addWidget(self.completions_after_ms.plabel, 4, 0)
-        completion_layout.addWidget(self.completions_after_ms.spinbox, 4, 1)
-        completion_layout.addWidget(code_snippets_box, 5, 0)
-        completion_layout.setColumnStretch(2, 5)
+                                    4, 1)
+        completion_layout.addWidget(self.completions_after_ms.plabel, 5, 0)
+        completion_layout.addWidget(self.completions_after_ms.spinbox, 5, 1)
+        completion_layout.addWidget(code_snippets_box, 6, 0)
+        completion_layout.setColumnStretch(2, 6)
         completion_widget = QWidget()
         completion_widget.setLayout(completion_layout)
 
@@ -752,7 +760,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
             'jedi_definition',
             tip=_("If enabled, left-clicking on an object name while \n"
                   "pressing the {} key will go to that object's definition\n"
-                  "(if resolved).".format(self.CTRL)))
+                  "(if resolved).").format(self.CTRL))
         follow_imports_box = newcb(_("Follow imports when going to a "
                                      "definition"),
                                    'jedi_definition/follow_imports')
@@ -985,7 +993,42 @@ class LanguageServerConfigPage(GeneralConfigPage):
         docstring_style_widget.setLayout(docstring_style_layout)
 
         # --- Advanced tab ---
+        # Clients group
+        clients_group = QGroupBox(_("Providers"))
+        self.kite_enabled = newcb(_("Enable Kite "
+                                    "(if the Kite engine is running)"),
+                                  'enable',
+                                  section='kite')
+        self.fallback_enabled = newcb(_("Enable fallback completions"),
+                                      'enable',
+                                      section='fallback-completions')
+        self.completions_wait_for_ms = self.create_spinbox(
+            _("Time to wait for all providers to return (ms):"), None,
+            'completions_wait_for_ms', min_=0, max_=5000, step=10,
+            tip=_("Beyond this timeout, "
+                  "the first available provider will be returned"),
+            section='editor')
+
+        clients_layout = QVBoxLayout()
+        clients_layout.addWidget(self.kite_enabled)
+        clients_layout.addWidget(self.fallback_enabled)
+        clients_layout.addWidget(self.completions_wait_for_ms)
+        clients_group.setLayout(clients_layout)
+
+        kite_layout = QVBoxLayout()
+        self.kite_cta = self.create_checkbox(
+            _("Notify me when Kite can provide missing completions"
+              " (but is unavailable)"),
+            'call_to_action',
+            section='kite')
+        kite_layout.addWidget(self.kite_cta)
+        kite_group = QGroupBox(_(
+            'Kite configuration'))
+        kite_group.setLayout(kite_layout)
+
         # Advanced label
+        lsp_advanced_group = QGroupBox(_(
+            'Python Language Server configuration'))
         advanced_label = QLabel(
             _("<b>Warning</b>: Only modify these values if "
               "you know what you're doing!"))
@@ -1052,8 +1095,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         advanced_layout.addWidget(self.advanced_options_check)
         advanced_layout.addWidget(advanced_options_widget)
 
-        advanced_widget = QWidget()
-        advanced_widget.setLayout(advanced_layout)
+        lsp_advanced_group.setLayout(advanced_layout)
 
         # --- Other servers tab ---
         # Section label
@@ -1116,7 +1158,9 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
         self.tabs.addTab(self.create_tab(docstring_style_widget),
                          _('Docstring style'))
-        self.tabs.addTab(self.create_tab(advanced_widget),
+        self.tabs.addTab(self.create_tab(clients_group,
+                                         lsp_advanced_group,
+                                         kite_group),
                          _('Advanced'))
         self.tabs.addTab(self.create_tab(servers_widget), _('Other languages'))
 
@@ -1354,6 +1398,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
             'set_automatic_completions_enabled': ('editor',
                                                   'automatic_completions'),
             'set_completions_hint_enabled': ('editor', 'completions_hint'),
+            'set_completions_hint_after_ms': ('editor',
+                                              'completions_hint_after_ms'),
             'set_underline_errors_enabled': ('editor', 'underline_errors'),
             'set_automatic_completions_after_chars': (
                 'editor', 'automatic_completions_after_chars'),

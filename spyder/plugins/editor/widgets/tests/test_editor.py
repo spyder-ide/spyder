@@ -11,7 +11,7 @@ Tests for editor.py
 # Standard library imports
 import os
 import os.path as osp
-from sys import platform
+import sys
 try:
     from unittest.mock import Mock, MagicMock
 except ImportError:
@@ -327,6 +327,7 @@ def test_replace_current_selected_line(editor_find_replace_bot, qtbot):
     assert editor.toPlainText()[0:-1] == expected_new_text
 
 
+@pytest.mark.skipif(sys.platform.startswith('linux'), reason="Fails in Linux")
 def test_replace_enter_press(editor_find_replace_bot, qtbot):
     """Test advance forward pressing Enter, and backwards with Shift+Enter."""
     editor_stack, editor, finder = editor_find_replace_bot
@@ -504,38 +505,6 @@ def test_advance_cell(editor_cells_bot):
     assert editor.get_cursor_line_column() == (6, 0)
 
 
-def test_unfold_when_searching(editor_folding_bot, qtbot):
-    editor_stack, editor, finder = editor_folding_bot
-    folding_panel = editor.panels.get('FoldingPanel')
-    line_search = editor.document().findBlockByLineNumber(3)
-
-    # fold region
-    block = editor.document().findBlockByLineNumber(1)
-    folding_panel.toggle_fold_trigger(block)
-    assert not line_search.isVisible()
-
-    # unfolded when searching
-    finder.show()
-    qtbot.keyClicks(finder.search_text, 'print')
-    qtbot.keyPress(finder.search_text, Qt.Key_Return)
-    assert line_search.isVisible()
-
-
-def test_unfold_goto(editor_folding_bot):
-    editor_stack, editor, finder = editor_folding_bot
-    folding_panel = editor.panels.get('FoldingPanel')
-    line_goto = editor.document().findBlockByLineNumber(5)
-
-    # fold region
-    block = editor.document().findBlockByLineNumber(1)
-    folding_panel.toggle_fold_trigger(block)
-    assert not line_goto.isVisible()
-
-    # unfolded when goto
-    editor.go_to_line(6)
-    assert line_goto.isVisible()
-
-
 @pytest.mark.skipif(PY2, reason="Python2 does not support unicode very well")
 def test_get_current_word(base_editor_bot, qtbot):
     """Test getting selected valid python word."""
@@ -600,7 +569,7 @@ def test_tab_keypress_properly_caught_find_replace(editor_find_replace_bot,
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(platform.startswith('linux'), reason="Fails on Linux.")
+@pytest.mark.skipif(sys.platform.startswith('linux'), reason="Fails on Linux")
 def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot,
                                                 qtbot):
     """

@@ -15,7 +15,9 @@ import sys
 import pytest
 
 # Local imports
-from spyder.plugins.completion.kite.utils.install import KiteInstallationThread
+from spyder.plugins.completion.kite.utils.install import (
+    KiteInstallationThread, DOWNLOADING_INSTALLER, DOWNLOADING_SCRIPT,
+    INSTALLING, FINISHED)
 from spyder.plugins.completion.kite.utils.status import (
     check_if_kite_installed, check_if_kite_running)
 
@@ -25,8 +27,9 @@ INSTALL_TIMEOUT = 360000
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(os.name == 'nt' or os.environ.get('CI', None) is None,
-                    reason=("Needs to approve installation on Windows and "
+@pytest.mark.skipif((not sys.platform.startswith('linux')
+                     or os.environ.get('CI', None) is None),
+                    reason=("Only works reliably on Linux and "
                             "it's not meant to be run outside of CIs"))
 def test_kite_install(qtbot):
     """Test the correct execution of the installation process of kite."""
@@ -40,24 +43,24 @@ def test_kite_install(qtbot):
         # Should not enter here
         assert False
 
-    def download_progress(progress):
-        assert re.match(r"(\d+)/(\d+)", progress)
+    def download_progress(progress, total):
+        assert total != 0
 
     def finished():
         if sys.platform.startswith("linux"):
             expected_installation_status = [
-                install_manager.DOWNLOADING_SCRIPT,
-                install_manager.DOWNLOADING_INSTALLER,
-                install_manager.INSTALLING,
-                install_manager.FINISHED]
+                DOWNLOADING_SCRIPT,
+                DOWNLOADING_INSTALLER,
+                INSTALLING,
+                FINISHED]
         else:
             expected_installation_status = [
-                install_manager.DOWNLOADING_INSTALLER,
-                install_manager.INSTALLING,
-                install_manager.FINISHED]
+                DOWNLOADING_INSTALLER,
+                INSTALLING,
+                FINISHED]
 
         # This status can be obtained the second time our tests are run
-        if not installation_statuses == ['Install finished']:
+        if not installation_statuses == ['Installation finished']:
             assert installation_statuses == expected_installation_status
 
     install_manager.sig_installation_status.connect(installation_status)
@@ -67,7 +70,7 @@ def test_kite_install(qtbot):
     with qtbot.waitSignal(install_manager.finished, timeout=INSTALL_TIMEOUT):
         install_manager.install()
 
-    assert check_if_kite_installed and check_if_kite_running
+    assert check_if_kite_installed() and check_if_kite_running()
 
 
 if __name__ == "__main__":

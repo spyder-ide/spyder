@@ -24,13 +24,20 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import get_image_path, running_in_mac_app, MAC_APP_NAME
-from spyder.config.gui import get_shortcut, is_dark_interface
+from spyder.config.base import get_image_path, MAC_APP_NAME
+from spyder.config.manager import CONF
+from spyder.config.gui import is_dark_interface
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.icon_manager import get_icon, get_std_icon
 from spyder.widgets.waitingspinner import QWaitingSpinner
+from spyder.config.manager import CONF
+
+# Third party imports
+if sys.platform == "darwin":
+    import applaunchservices as als
+
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----
@@ -41,7 +48,6 @@ from spyder.widgets.waitingspinner import QWaitingSpinner
 # (self.listwidget is widget *a* and self is widget *b*)
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
-
 logger = logging.getLogger(__name__)
 MENU_SEPARATOR = None
 
@@ -53,23 +59,13 @@ def get_image_label(name, default="not_found.png"):
     return label
 
 
-class MacApplication(QApplication):
-    """Subclass to be able to open external files with our Mac app"""
-    sig_open_external_file = Signal(str)
-
-    def __init__(self, *args):
-        QApplication.__init__(self, *args)
-        self._has_started = False
-        self._pending_file_open = []
-
-    def event(self, event):
-        if event.type() == QEvent.FileOpen:
-            fname = str(event.file())
-            if self._has_started:
-                self.sig_open_external_file.emit(fname)
-            elif MAC_APP_NAME not in fname:
-                self._pending_file_open.append(fname)
-        return QApplication.event(self, event)
+def get_origin_filename():
+    """Return the filename at the top of the stack"""
+    # Get top frame
+    f = sys._getframe()
+    while f.f_back is not None:
+        f = f.f_back
+    return f.f_code.co_filename
 
 
 def qapplication(translate=True, test_time=3):
@@ -80,7 +76,7 @@ def qapplication(translate=True, test_time=3):
     test_time: Time to maintain open the application when testing. It's given
     in seconds
     """
-    if running_in_mac_app():
+    if sys.platform == "darwin":
         SpyderApplication = MacApplication
     else:
         SpyderApplication = QApplication
@@ -93,6 +89,11 @@ def qapplication(translate=True, test_time=3):
 
         # Set application name for KDE. See spyder-ide/spyder#2207.
         app.setApplicationName('Spyder')
+
+    if sys.platform == "darwin" and CONF.get('main', 'mac_open_file', False):
+        # Register app if setting is set
+        register_app_launchservices()
+
     if translate:
         install_translator(app)
 
@@ -314,8 +315,14 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 
 def add_shortcut_to_tooltip(action, context, name):
     """Add the shortcut associated with a given action to its tooltip"""
-    action.setToolTip(action.toolTip() + ' (%s)' %
-                      get_shortcut(context=context, name=name))
+    if not hasattr(action, '_tooltip_backup'):
+        # We store the original tooltip of the action without its associated
+        # shortcut so that we can update the tooltip properly if shortcuts
+        # are changed by the user over the course of the current session.
+        # See spyder-ide/spyder#10726.
+        action._tooltip_backup = action.toolTip()
+    action.setToolTip(action._tooltip_backup + ' (%s)' %
+                      CONF.get_shortcut(context=context, name=name))
 
 
 def add_actions(target, actions, insert_before=None):
@@ -595,6 +602,82 @@ class SpyderProxyStyle(QProxyStyle):
             return 0
 
         return QProxyStyle.styleHint(self, hint, option, widget, returnData)
+
+
+# =============================================================================
+# Only for macOS
+# =============================================================================
+class MacApplication(QApplication):
+    """Subclass to be able to open external files with our Mac app"""
+    sig_open_external_file = Signal(str)
+
+    def __init__(self, *args):
+        QApplication.__init__(self, *args)
+        self._never_shown = True
+        self._has_started = False
+        self._pending_file_open = []
+        self._original_handlers = {}
+
+    def event(self, event):
+        if event.type() == QEvent.FileOpen:
+            fname = str(event.file())
+            if sys.argv and sys.argv[0] == fname:
+                # Ignore requests to open own script
+                # Later, mainwindow.initialize() will set sys.argv[0] to ''
+                pass
+            elif self._has_started:
+                self.sig_open_external_file.emit(fname)
+            elif MAC_APP_NAME not in fname:
+                self._pending_file_open.append(fname)
+        return QApplication.event(self, event)
+
+
+def restore_launchservices():
+    """Restore LaunchServices to the previous state"""
+    app = QApplication.instance()
+    for key, handler in app._original_handlers.items():
+        UTI, role = key
+        als.set_UTI_handler(UTI, role, handler)
+
+
+def register_app_launchservices(
+        uniform_type_identifier="public.python-script",
+        role='editor'):
+    """
+    Register app to the Apple launch services so it can open Python files
+    """
+    app = QApplication.instance()
+    # If top frame is MAC_APP_NAME, set ourselves to open files at startup
+    origin_filename = get_origin_filename()
+    if MAC_APP_NAME in origin_filename:
+        bundle_idx = origin_filename.find(MAC_APP_NAME)
+        old_handler = als.get_bundle_identifier_for_path(
+            origin_filename[:bundle_idx] + MAC_APP_NAME)
+    else:
+        # Else, just restore the previous handler
+        old_handler = als.get_UTI_handler(
+            uniform_type_identifier, role)
+
+    app._original_handlers[(uniform_type_identifier, role)] = old_handler
+
+    # Restore previous handle when quitting
+    app.aboutToQuit.connect(restore_launchservices)
+
+    if not app._never_shown:
+        bundle_identifier = als.get_bundle_identifier()
+        als.set_UTI_handler(
+            uniform_type_identifier, role, bundle_identifier)
+        return
+
+    # Wait to be visible to set ourselves as the UTI handler
+    def handle_applicationStateChanged(state):
+        if state == Qt.ApplicationActive and app._never_shown:
+            app._never_shown = False
+            bundle_identifier = als.get_bundle_identifier()
+            als.set_UTI_handler(
+                uniform_type_identifier, role, bundle_identifier)
+
+    app.applicationStateChanged.connect(handle_applicationStateChanged)
 
 
 if __name__ == "__main__":

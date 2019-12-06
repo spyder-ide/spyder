@@ -7,6 +7,7 @@
 """Completion widget class."""
 
 # Standard library imports
+import html
 import sys
 
 # Third psrty imports
@@ -23,48 +24,34 @@ from spyder.py3compat import to_text_string
 from spyder.widgets.helperwidgets import HTMLDelegate
 
 
-COMPLETION_ITEM_TEMPLATE = u"""
-<table width="{width}" height="{height}">
-    <tr>
-        <td valign="middle" style="color:{color}">
-            {completion}
-        </td>
-
-        <td valign="middle" align="right" float="right" style="color:{color}">
-            {type}
-        </td>
-        <td valign="top" align="right" float="right" width="{img_width}">
-            <img src="data:image/png;base64, {icon_provider}"
-                 height="{img_height}" width={img_width}/>
-        </td>
-    </tr>
-</table>
-"""
 DEFAULT_COMPLETION_ITEM_HEIGHT = 15
 DEFAULT_COMPLETION_ITEM_WIDTH = 250
 
 
 class CompletionWidget(QListWidget):
     """Completion list widget."""
-    ICONS_MAP = {CompletionItemKind.TEXT: 'text',
-                 CompletionItemKind.METHOD: 'method',
-                 CompletionItemKind.FUNCTION: 'function',
-                 CompletionItemKind.CONSTRUCTOR: 'constructor',
-                 CompletionItemKind.FIELD: 'field',
-                 CompletionItemKind.VARIABLE: 'variable',
-                 CompletionItemKind.CLASS: 'class',
-                 CompletionItemKind.INTERFACE: 'interface',
-                 CompletionItemKind.MODULE: 'module',
-                 CompletionItemKind.PROPERTY: 'property',
-                 CompletionItemKind.UNIT: 'unit',
-                 CompletionItemKind.VALUE: 'value',
-                 CompletionItemKind.ENUM: 'enum',
-                 CompletionItemKind.KEYWORD: 'keyword',
-                 CompletionItemKind.SNIPPET: 'snippet',
-                 CompletionItemKind.COLOR: 'color',
-                 CompletionItemKind.FILE: 'filenew',
-                 CompletionItemKind.REFERENCE: 'reference',
-                 }
+    ITEM_TYPE_MAP = {
+        CompletionItemKind.TEXT: 'text',
+        CompletionItemKind.METHOD: 'method',
+        CompletionItemKind.FUNCTION: 'function',
+        CompletionItemKind.CONSTRUCTOR: 'constructor',
+        CompletionItemKind.FIELD: 'field',
+        CompletionItemKind.VARIABLE: 'variable',
+        CompletionItemKind.CLASS: 'class',
+        CompletionItemKind.INTERFACE: 'interface',
+        CompletionItemKind.MODULE: 'module',
+        CompletionItemKind.PROPERTY: 'property',
+        CompletionItemKind.UNIT: 'unit',
+        CompletionItemKind.VALUE: 'value',
+        CompletionItemKind.ENUM: 'enum',
+        CompletionItemKind.KEYWORD: 'keyword',
+        CompletionItemKind.SNIPPET: 'snippet',
+        CompletionItemKind.COLOR: 'color',
+        CompletionItemKind.FILE: 'filenew',
+        CompletionItemKind.REFERENCE: 'reference',
+        }
+    ICON_MAP = {}
+
     sig_show_completions = Signal(object)
 
     # Signal with the info about the current completion item documentation
@@ -74,9 +61,10 @@ class CompletionWidget(QListWidget):
     sig_completion_hint = Signal(str, str, QPoint)
 
     def __init__(self, parent, ancestor):
-        QListWidget.__init__(self, ancestor)
-        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
+        super(CompletionWidget, self).__init__(ancestor)
         self.textedit = parent
+        self._language = None
+        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.hide()
         self.itemActivated.connect(self.item_selected)
         self.currentRowChanged.connect(self.row_changed)
@@ -108,7 +96,6 @@ class CompletionWidget(QListWidget):
 
     def show_list(self, completion_list, position, automatic):
         """Show list corresponding to position."""
-
         if not completion_list:
             self.hide()
             return
@@ -133,8 +120,9 @@ class CompletionWidget(QListWidget):
         if not isinstance(completion_list[0], dict):
             self.is_internal_console = True
         self.completion_list = completion_list
+
         # Check everything is in order
-        self.update_current()
+        self.update_current(new=True)
 
         # If update_current called close, stop loading
         if not self.completion_list:
@@ -143,8 +131,7 @@ class CompletionWidget(QListWidget):
         # If only one, must be chosen if not automatic
         single_match = self.count() == 1
         if single_match and not self.automatic:
-            self.item_selected()
-            self.hide()
+            self.item_selected(self.item(0))
             # signal used for testing
             self.sig_show_completions.emit(completion_list)
             return
@@ -153,55 +140,15 @@ class CompletionWidget(QListWidget):
         self.setFocus()
         self.raise_()
 
-        # Retrieving current screen height
-        desktop = QApplication.desktop()
-        srect = desktop.availableGeometry(desktop.screenNumber(self))
-        screen_right = srect.right()
-        screen_bottom = srect.bottom()
-
-        point = self.textedit.cursorRect().bottomRight()
-        point = self.textedit.calculate_real_position(point)
-        point = self.textedit.mapToGlobal(point)
-
-        # Computing completion widget and its parent right positions
-        comp_right = point.x() + self.width()
-        ancestor = self.parent()
-        if ancestor is None:
-            anc_right = screen_right
-        else:
-            anc_right = min([ancestor.x() + ancestor.width(), screen_right])
-
-        # Moving completion widget to the left
-        # if there is not enough space to the right
-        if comp_right > anc_right:
-            point.setX(point.x() - self.width())
-
-        # Computing completion widget and its parent bottom positions
-        comp_bottom = point.y() + self.height()
-        ancestor = self.parent()
-        if ancestor is None:
-            anc_bottom = screen_bottom
-        else:
-            anc_bottom = min([ancestor.y() + ancestor.height(), screen_bottom])
-
-        # Moving completion widget above if there is not enough space below
-        x_position = point.x()
-        if comp_bottom > anc_bottom:
-            point = self.textedit.cursorRect().topRight()
-            point = self.textedit.mapToGlobal(point)
-            point.setX(x_position)
-            point.setY(point.y() - self.height())
-
-        if ancestor is not None:
-            # Useful only if we set parent to 'ancestor' in __init__
-            point = ancestor.mapFromGlobal(point)
-        self.move(point)
+        self.textedit.position_widget_at_cursor(self)
 
         if not self.is_internal_console:
             tooltip_point = self.rect().topRight()
             tooltip_point = self.mapToGlobal(tooltip_point)
-            for completion in self.completion_list:
-                completion['point'] = tooltip_point
+
+            if self.completion_list is not None:
+                for completion in self.completion_list:
+                    completion['point'] = tooltip_point
 
         # Show hint for first completion element
         self.setCurrentRow(0)
@@ -210,9 +157,18 @@ class CompletionWidget(QListWidget):
         # signal used for testing
         self.sig_show_completions.emit(completion_list)
 
-    def update_list(self, filter_text):
+    def set_language(self, language):
+        """Set the completion language."""
+        self._language = language.lower()
+
+    def update_list(self, current_word, new=True):
         """
-        Update the displayed list by filtering self.completion_list.
+        Update the displayed list by filtering self.completion_list based on
+        the current_word under the cursor (see check_can_complete).
+
+        If we're not updating the list with new completions, we filter out
+        textEdit completions, since it's difficult to apply them correctly
+        after the user makes edits.
 
         If no items are left on the list the autocompletion should stop
         """
@@ -224,43 +180,41 @@ class CompletionWidget(QListWidget):
 
         for i, completion in enumerate(self.completion_list):
             if not self.is_internal_console:
-                code_snippets_enabled = getattr(
-                    self.textedit, 'code_snippets', False)
+                if not new and 'textEdit' in completion:
+                    continue
                 completion_label = completion['filterText']
-                completion_text = completion['insertText']
-                if not code_snippets_enabled:
-                    completion_label = completion['insertText']
-                icon = self.ICONS_MAP.get(completion['kind'], 'no_match')
-                item = QListWidgetItem()
-                item.setIcon(ima.icon(icon))
-                self.set_item_text(
-                    item, completion, height=height, width=width)
-                item.setData(Qt.UserRole, completion_text)
             else:
                 completion_label = completion[0]
+
+            if not self.check_can_complete(completion_label, current_word):
+                continue
+            item = QListWidgetItem()
+
+            if not self.is_internal_console:
+                self.set_item_display(
+                    item, completion, height=height, width=width)
+                item.setData(Qt.UserRole, completion)
+            else:
                 completion_text = self.get_html_item_representation(
-                    completion_label, '', icon_provider=None, size=0,
-                    height=height, width=width)
-                item = QListWidgetItem()
+                    completion_label, '', height=height, width=width)
                 item.setData(Qt.UserRole, completion_label)
                 item.setText(completion_text)
 
-            if self.check_can_complete(
-                    completion_label, filter_text):
-                self.addItem(item)
-                self.display_index.append(i)
+            self.addItem(item)
+            self.display_index.append(i)
 
-        if self.count() > 0:
-            self.setCurrentRow(0)
-            self.scrollTo(self.currentIndex(),
-                          QAbstractItemView.PositionAtTop)
-        else:
+        if self.count() == 0:
             self.hide()
 
-    def set_item_text(self, item_widget, item_info, height, width):
-        """Set item text using the info available."""
+    def _get_cached_icon(self, name):
+        if name not in self.ICON_MAP:
+            self.ICON_MAP[name] = ima.icon(name)
+        return self.ICON_MAP[name]
+
+    def set_item_display(self, item_widget, item_info, height, width):
+        """Set item text & icons using the info available."""
         item_provider = item_info['provider']
-        item_type = self.ICONS_MAP.get(item_info['kind'], 'no_match')
+        item_type = self.ITEM_TYPE_MAP.get(item_info['kind'], 'no_match')
         item_label = item_info['label']
         icon_provider = ("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0l"
                          "EQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=")
@@ -270,7 +224,7 @@ class CompletionWidget(QListWidget):
         if item_provider == KITE_COMPLETION:
             kite_height = img_height
             kite_width = (416.14/526.8) * kite_height
-            icon_provider = ima.get_kite_icon()
+            icon_provider = ima.get_icon('kite', adjust_for_interface=True)
             icon_provider = ima.base64_from_icon_obj(
                 icon_provider, kite_width, kite_height)
 
@@ -280,6 +234,7 @@ class CompletionWidget(QListWidget):
             width=width)
 
         item_widget.setText(item_text)
+        item_widget.setIcon(self._get_cached_icon(item_type))
 
     def get_html_item_representation(self, item_completion, item_type,
                                      icon_provider=None,
@@ -288,15 +243,43 @@ class CompletionWidget(QListWidget):
                                      height=DEFAULT_COMPLETION_ITEM_HEIGHT,
                                      width=DEFAULT_COMPLETION_ITEM_WIDTH):
         """Get HTML representation of and item."""
+        height = to_text_string(height)
+        width = to_text_string(width)
 
-        return COMPLETION_ITEM_TEMPLATE.format(completion=item_completion,
-                                               type=item_type,
-                                               color=ima.MAIN_FG_COLOR,
-                                               icon_provider=icon_provider,
-                                               img_height=img_height,
-                                               img_width=img_width,
-                                               height=height,
-                                               width=width)
+        # Unfortunately, both old- and new-style Python string formatting
+        # have poor performance due to being implemented as functions that
+        # parse the format string.
+        # f-strings in new versions of Python are fast due to Python
+        # compiling them into efficient string operations, but to be
+        # compatible with old versions of Python, we manually join strings.
+        parts = [
+            '<table width="', width, '" height="', height, '">', '<tr>',
+
+            '<td valign="middle" style="color:' + ima.MAIN_FG_COLOR + '">',
+            html.escape(item_completion).replace(' ', '&nbsp;'),
+            '</td>',
+
+            '<td valign="middle" align="right" float="right" style="color:',
+            ima.MAIN_FG_COLOR, '">',
+            item_type,
+            '</td>',
+        ]
+        if icon_provider is not None:
+            img_height = to_text_string(img_height)
+            img_width = to_text_string(img_width)
+
+            parts.extend([
+                '<td valign="top" align="right" float="right" width="',
+                img_width, '">',
+                '<img src="data:image/png;base64, ', icon_provider,
+                '" height="', img_height, '" width="', img_width, '"/>',
+                '</td>',
+            ])
+        parts.extend([
+            '</tr>', '</table>',
+        ])
+
+        return ''.join(parts)
 
     def hide(self):
         """Override Qt method."""
@@ -321,8 +304,12 @@ class CompletionWidget(QListWidget):
         if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
             # Check that what was selected can be selected,
             # otherwise timing issues
-            if self.is_up_to_date():
-                self.item_selected()
+            item = self.currentItem()
+            if item is None:
+                item = self.item(0)
+
+            if self.is_up_to_date(item=item):
+                self.item_selected(item=item)
             else:
                 self.hide()
                 self.textedit.keyPressEvent(event)
@@ -332,8 +319,8 @@ class CompletionWidget(QListWidget):
             self.hide()
             self.textedit.keyPressEvent(event)
         elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
-                     Qt.Key_Home, Qt.Key_End,
-                     Qt.Key_CapsLock) and not modifier:
+                     Qt.Key_Home, Qt.Key_End) and not modifier:
+            self.textedit._completions_hint_idle = True
             if key == Qt.Key_Up and self.currentRow() == 0:
                 self.setCurrentRow(self.count() - 1)
             elif key == Qt.Key_Down and self.currentRow() == self.count()-1:
@@ -342,14 +329,14 @@ class CompletionWidget(QListWidget):
                 QListWidget.keyPressEvent(self, event)
         elif len(text) or key == Qt.Key_Backspace:
             self.textedit.keyPressEvent(event)
-            self.update_current()
+            self.update_current(new=False)
         elif modifier:
             self.textedit.keyPressEvent(event)
         else:
             self.hide()
             QListWidget.keyPressEvent(self, event)
 
-    def is_up_to_date(self):
+    def is_up_to_date(self, item=None):
         """
         Check if the selection is up to date.
         """
@@ -357,18 +344,26 @@ class CompletionWidget(QListWidget):
             return False
         if not self.is_position_correct():
             return False
-        completion_text = self.textedit.get_current_word(completion=True)
-        selected_text = self.currentItem().data(Qt.UserRole)
-        return self.check_can_complete(selected_text, completion_text)
+        if item is None:
+            item = self.currentItem()
+        current_word = self.textedit.get_current_word(completion=True)
+        completion = item.data(Qt.UserRole)
+        if isinstance(completion, dict):
+            filter_text = completion['filterText']
+        else:
+            filter_text = completion
+        return self.check_can_complete(filter_text, current_word)
 
-    def check_can_complete(self, text, sub):
-        """Check if sub can be completed to text."""
-        if not sub:
+    def check_can_complete(self, filter_text, current_word):
+        """Check if current_word matches filter_text."""
+        if not filter_text:
             return True
-        if not text[0].isalpha():
-            sub = text[0] + sub
-        return to_text_string(text).lower().startswith(
-                to_text_string(sub).lower())
+
+        if not current_word:
+            return True
+
+        return to_text_string(filter_text).lower().startswith(
+                to_text_string(current_word).lower())
 
     def is_position_correct(self):
         """Check if the position is correct."""
@@ -402,7 +397,7 @@ class CompletionWidget(QListWidget):
 
         return True
 
-    def update_current(self):
+    def update_current(self, new=False):
         """
         Update the displayed list.
         """
@@ -410,8 +405,8 @@ class CompletionWidget(QListWidget):
             self.hide()
             return
 
-        completion_text = self.textedit.get_current_word(completion=True)
-        self.update_list(completion_text)
+        current_word = self.textedit.get_current_word(completion=True)
+        self.update_list(current_word, new=new)
 
     def focusOutEvent(self, event):
         """Override Qt method."""
@@ -436,20 +431,41 @@ class CompletionWidget(QListWidget):
             item = self.currentItem()
 
         if item is not None and self.completion_position is not None:
-            self.textedit.insert_completion(
-                to_text_string(item.data(Qt.UserRole)),
-                self.completion_position)
+            self.textedit.insert_completion(item.data(Qt.UserRole),
+                                            self.completion_position)
         self.hide()
+
+    def trigger_completion_hint(self, row=None):
+        if not self.completion_list:
+            return
+        if row is None:
+            row = self.currentRow()
+        if row < 0 or len(self.completion_list) <= row:
+            return
+
+        item = self.completion_list[row]
+        if 'point' not in item:
+            return
+
+        if 'textEdit' in item:
+            insert_text = item['textEdit']['newText']
+        else:
+            insert_text = item['insertText']
+
+            # Split by starting $ or language specific chars
+            chars = ['$']
+            if self._language == 'python':
+                chars.append('(')
+
+            for ch in chars:
+                insert_text = insert_text.split(ch)[0]
+
+        self.sig_completion_hint.emit(
+            insert_text,
+            item['documentation'],
+            item['point'])
 
     @Slot(int)
     def row_changed(self, row):
         """Set completion hint info and show it."""
-        if self.completion_list:
-            item = self.completion_list[row]
-            if 'point' in item:
-                self.sig_completion_hint.emit(
-                    item['insertText'],
-                    item['documentation'],
-                    item['point'])
-
-            return
+        self.trigger_completion_hint(row)

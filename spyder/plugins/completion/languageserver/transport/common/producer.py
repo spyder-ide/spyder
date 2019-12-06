@@ -25,6 +25,7 @@ import logging
 import zmq
 
 TIMEOUT = 5000
+LOCALHOST = '127.0.0.1'
 
 logger = logging.getLogger(__name__)
 
@@ -54,11 +55,11 @@ class LanguageServerClient(object):
         logger.info('Starting ZMQ connection...')
         self.context = zmq.Context()
         self.zmq_in_socket = self.context.socket(zmq.PAIR)
-        self.zmq_in_socket.connect("tcp://localhost:{0}".format(
-            self.zmq_in_port))
+        self.zmq_in_socket.connect("tcp://{0}:{1}".format(
+            LOCALHOST, self.zmq_in_port))
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
-        self.zmq_out_socket.connect("tcp://localhost:{0}".format(
-            self.zmq_out_port))
+        self.zmq_out_socket.connect("tcp://{0}:{1}".format(
+            LOCALHOST, self.zmq_out_port))
         logger.info('Sending server_ready...')
         self.zmq_out_socket.send_pyobj({'id': -1, 'method': 'server_ready',
                                         'params': {}})
