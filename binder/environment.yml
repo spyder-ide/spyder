@@ -36,8 +36,6 @@ dependencies:
 - spyder-kernels >=1.8.1,<2.0.0
 - watchdog
 
-- spyder-kernels=1.*
-
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied
 # the contents of this requirements/tests.txt to this file.yml.
