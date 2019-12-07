@@ -1,5 +1,4 @@
 dbus-x11
-firefox
 xfce4
 xfce4-panel
 xfce4-session
