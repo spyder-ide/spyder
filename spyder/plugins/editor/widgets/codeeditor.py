@@ -4466,7 +4466,7 @@ class TestWidget(QSplitter):
                                               osp.dirname(filename)))
         oe_proxy = OutlineExplorerProxyEditor(self.editor, filename)
         self.classtree.set_current_editor(oe_proxy, False, False)
-        self.hide_tooltip()
+        self.editor.hide_tooltip()
 
 
 def test(fname):
