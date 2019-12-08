@@ -55,7 +55,8 @@ class ShortcutsSummaryDialog(QDialog):
               border-radius: 2px;
             }"""
         self.setStyleSheet(style)
-        
+
+
         # Make the name of shortcut keys localizable
         shortcut_names_map = {
             'Close pane': _("Close pane"),
@@ -242,7 +243,6 @@ class ShortcutsSummaryDialog(QDialog):
 
                 # Widgets
                 label_text = name.capitalize().replace('_', ' ')
-                print(label_text)
                 try:
                     label_text_localized = shortcut_names_map[label_text]
                 except KeyError:
