@@ -824,7 +824,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
     in a determined interpreter
     """
     if interpreter:
-        if is_python_interpreter(interpreter):
+        if osp.isfile(interpreter) and ('python' in interpreter):
             checkver = inspect.getsource(check_version)
             get_modver = inspect.getsource(get_module_version)
             stable_ver = inspect.getsource(is_stable_version)
@@ -863,8 +863,9 @@ def is_module_installed(module_name, version=None, installed_version=None,
                     f.close()
                 os.remove(script)
         else:
-            # Try to not take a wrong decision if interpreter check
-            # fails
+            # Try to not take a wrong decision if there is no interpreter
+            # available (needed for the change_pystartup method of ExtConsole
+            # config page)
             return True
     else:
         if installed_version is None:
@@ -896,7 +897,6 @@ def is_module_installed(module_name, version=None, installed_version=None,
 
             return check_version(actver, version, symb)
 
-
 def is_python_interpreter_valid_name(filename):
     """Check that the python interpreter file has a valid name."""
     pattern = r'.*python(\d\.?\d*)?(w)?(.exe)?$'
@@ -904,7 +904,6 @@ def is_python_interpreter_valid_name(filename):
         return False
     else:
         return True
-
 
 def is_python_interpreter(filename):
     """Evaluate wether a file is a python interpreter or not."""
@@ -958,7 +957,7 @@ def check_python_help(filename):
             return True
         else:
             return False
-    except Exception:
+    except:
         return False
 
 

@@ -1,5 +1,0 @@
-#!/bin/bash
-
-set -euo pipefail
-
-cp -r binder/Desktop ${HOME}/Desktop

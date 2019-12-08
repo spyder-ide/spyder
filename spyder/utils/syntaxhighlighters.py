@@ -358,12 +358,9 @@ class BaseSH(QSyntaxHighlighter):
 
 
 class TextSH(BaseSH):
-    """Simple Text Syntax Highlighter Class (only highlight spaces)."""
-
+    """Simple Text Syntax Highlighter Class (only highlight spaces)"""
     def highlight_block(self, text):
         """Implement highlight, only highlight spaces."""
-        text = to_text_string(text)
-        self.setFormat(0, qstring_length(text), self.formats["normal"])
         self.highlight_extras(text)
 
 

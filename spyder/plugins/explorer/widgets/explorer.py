@@ -131,12 +131,7 @@ class IconProvider(QFileIconProvider):
         else:
             qfileinfo = icontype_or_qfileinfo
             fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
-            if osp.isfile(fname) or osp.isdir(fname):
-                icon = ima.get_icon_by_extension_or_type(fname,
-                                                         scale_factor=1.0)
-            else:
-                icon = ima.get_icon('binary', adjust_for_interface=True)
-            return icon
+            return ima.get_icon_by_extension_or_type(fname, scale_factor=1.0)
 
 
 class DirView(QTreeView):

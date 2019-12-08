@@ -528,7 +528,9 @@ the sympy module (e.g. plot)
         if index is None:
             return None
 
-        return editorstack.data[index].editor
+        editor = editorstack.data[index].editor
+        editorstack.set_stack_index(index)
+        return editor
 
     def get_editorstack(self):
         """Get the current editorstack."""

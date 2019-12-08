@@ -170,6 +170,7 @@ except ImportError:
 
 
 from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
+                                    get_kite_icon,
                                     add_shortcut_to_tooltip,
                                     create_module_bookmark_actions,
                                     create_program_action, DialogManager,
@@ -802,7 +803,7 @@ class MainWindow(QMainWindow):
         if not is_kite_installed:
             install_kite_action = create_action(
                 self, _("Install Kite completion engine"),
-                icon=get_icon('kite', adjust_for_interface=True),
+                icon=get_kite_icon(),
                 triggered=self.show_kite_installation)
             self.tools_menu_actions.append(install_kite_action)
         self.tools_menu_actions += [MENU_SEPARATOR, reset_spyder_action]
@@ -1469,15 +1470,13 @@ class MainWindow(QMainWindow):
         missing_deps = dependencies.missing_dependencies()
 
         if missing_deps:
-            # We change '<br>' by '\n', in order to replace the '<'
-            # that appear in our deps by '&lt' (to not break html
-            # formatting) and finally we restore '<br>' again.
-            missing_deps = (missing_deps.replace('<br>', '\n').
-                            replace('<', '&lt;').replace('\n', '<br>'))
+            # Fix html formatting. The last 4 chars correspond to a
+            # '<br>' added by missing_dependencies
+            missing_deps = missing_deps[:-4].replace('<', '&lt;')
 
             QMessageBox.critical(self, _('Error'),
                 _("<b>You have missing dependencies!</b>"
-                  "<br><br><tt>%s</tt><br>"
+                  "<br><br><tt>%s</tt><br><br>"
                   "<b>Please install them to avoid this message.</b>"
                   "<br><br>"
                   "<i>Note</i>: Spyder could work without some of these "
@@ -2730,10 +2729,16 @@ class MainWindow(QMainWindow):
         msgBox.setStandardButtons(QMessageBox.Ok)
 
         from spyder.config.gui import is_dark_interface
-        if is_dark_interface():
-            icon_filename = "spyder.svg"
+        if PYQT5:
+            if is_dark_interface():
+                icon_filename = "spyder.svg"
+            else:
+                icon_filename = "spyder_dark.svg"
         else:
-            icon_filename = "spyder_dark.svg"
+            if is_dark_interface():
+                icon_filename = "spyder.png"
+            else:
+                icon_filename = "spyder_dark.png"
         app_icon = QIcon(get_image_path(icon_filename))
         msgBox.setIconPixmap(app_icon.pixmap(QSize(64, 64)))
 
@@ -3287,11 +3292,10 @@ class MainWindow(QMainWindow):
         env['SPYDER_RESET'] = str(reset)
 
         if DEV:
-            repo_dir = osp.dirname(spyder_start_directory)
             if os.name == 'nt':
-                env['PYTHONPATH'] = ';'.join([repo_dir])
+                env['PYTHONPATH'] = ';'.join(sys.path)
             else:
-                env['PYTHONPATH'] = ':'.join([repo_dir])
+                env['PYTHONPATH'] = ':'.join(sys.path)
 
         # Build the command and popen arguments depending on the OS
         if os.name == 'nt':

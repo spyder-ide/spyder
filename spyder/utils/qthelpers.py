@@ -30,7 +30,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
-from spyder.utils.icon_manager import get_icon, get_std_icon
+from spyder.utils.icon_manager import get_icon, get_kite_icon, get_std_icon
 from spyder.widgets.waitingspinner import QWaitingSpinner
 from spyder.config.manager import CONF
 

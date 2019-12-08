@@ -2641,8 +2641,7 @@ class EditorStack(QWidget):
             finfo.editor.document().setModified(False)
         return finfo
 
-    def load(self, filename, set_current=True, add_where='end',
-             processevents=True):
+    def load(self, filename, set_current=True, add_where='end'):
         """
         Load filename, create an editor instance and return it
 
@@ -2653,16 +2652,14 @@ class EditorStack(QWidget):
         plugin (in case multiple editorstack instances are handled)
         """
         filename = osp.abspath(to_text_string(filename))
-        if processevents:
-            self.starting_long_process.emit(_("Loading %s...") % filename)
+        self.starting_long_process.emit(_("Loading %s...") % filename)
         text, enc = encoding.read(filename)
         self.autosave.file_hashes[filename] = hash(text)
         finfo = self.create_new_editor(filename, enc, text, set_current,
                                        add_where=add_where)
         index = self.data.index(finfo)
         self._refresh_outlineexplorer(index, update=True)
-        if processevents:
-            self.ending_long_process.emit("")
+        self.ending_long_process.emit("")
         if self.isVisible() and self.checkeolchars_enabled \
            and sourcecode.has_mixed_eol_chars(text):
             name = osp.basename(filename)

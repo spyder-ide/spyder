@@ -207,24 +207,21 @@ def get_file_language(filename, text=None):
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
 
-    LANGUAGES = {
-        'Python': (sh.PythonSH, '#', PythonCFM),
-        'Cython': (sh.CythonSH, '#', PythonCFM),
-        'Fortran77': (sh.Fortran77SH, 'c', None),
-        'Fortran': (sh.FortranSH, '!', None),
-        'Idl': (sh.IdlSH, ';', None),
-        'Diff': (sh.DiffSH, '', None),
-        'GetText': (sh.GetTextSH, '#', None),
-        'Nsis': (sh.NsisSH, '#', None),
-        'Html': (sh.HtmlSH, '', None),
-        'Yaml': (sh.YamlSH, '#', None),
-        'Cpp': (sh.CppSH, '//', None),
-        'OpenCL': (sh.OpenCLSH, '//', None),
-        'Enaml': (sh.EnamlSH, '#', PythonCFM),
-        'Markdown': (sh.MarkdownSH, '#', None),
-        # Every other language
-        'None': (sh.TextSH, '', None),
-    }
+    LANGUAGES = {'Python': (sh.PythonSH, '#', PythonCFM),
+                 'Cython': (sh.CythonSH, '#', PythonCFM),
+                 'Fortran77': (sh.Fortran77SH, 'c', None),
+                 'Fortran': (sh.FortranSH, '!', None),
+                 'Idl': (sh.IdlSH, ';', None),
+                 'Diff': (sh.DiffSH, '', None),
+                 'GetText': (sh.GetTextSH, '#', None),
+                 'Nsis': (sh.NsisSH, '#', None),
+                 'Html': (sh.HtmlSH, '', None),
+                 'Yaml': (sh.YamlSH, '#', None),
+                 'Cpp': (sh.CppSH, '//', None),
+                 'OpenCL': (sh.OpenCLSH, '//', None),
+                 'Enaml': (sh.EnamlSH, '#', PythonCFM),
+                 'Markdown': (sh.MarkdownSH, '#', None),
+                }
 
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
 
@@ -538,7 +535,6 @@ class CodeEditor(TextEditBaseWidget):
         # Mouse tracking
         self.setMouseTracking(True)
         self.__cursor_changed = False
-        self._mouse_left_button_pressed = False
         self.ctrl_click_color = QColor(Qt.blue)
 
         self.bookmarks = self.get_bookmarks()
@@ -614,9 +610,7 @@ class CodeEditor(TextEditBaseWidget):
     # --- Hover/Hints
     def _should_display_hover(self, point):
         """Check if a hover hint should be displayed:"""
-        if not self._mouse_left_button_pressed:
-            return (self.hover_hints_enabled and point
-                    and self.get_word_at(point))
+        return self.hover_hints_enabled and point and self.get_word_at(point)
 
     def _handle_hover(self):
         """Handle hover hint trigger after delay."""
@@ -860,12 +854,9 @@ class CodeEditor(TextEditBaseWidget):
         # Scrolling past the end
         self.set_scrollpastend_enabled(scroll_past_end)
 
-        # Line number area and indent guides
+        # Line number area
         if cloned_from:
             self.setFont(font) # this is required for line numbers area
-            # Needed to show indent guides for splited editor panels
-            # See spyder-ide/spyder#10900
-            self.patch = cloned_from.patch
         self.toggle_line_numbers(linenumbers, markers)
 
         # Lexer
@@ -1558,9 +1549,8 @@ class CodeEditor(TextEditBaseWidget):
     def set_language(self, language, filename=None):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.comment_string = ''
-        self.language = 'Text'
         sh_class = sh.TextSH
-        language = 'None' if language is None else language
+        self.language = 'Text'
         if language is not None:
             for (key, value) in ALL_LANGUAGES.items():
                 if language.lower() in value:
@@ -1576,13 +1566,11 @@ class CodeEditor(TextEditBaseWidget):
                     else:
                         self.classfunc_match = CFMatch()
                     break
-
         if filename is not None and not self.supported_language:
             sh_class = sh.guess_pygments_highlighter(filename)
             self.support_language = sh_class is not sh.TextSH
             if self.support_language:
                 self.language = sh_class._lexer.name
-
         self._set_highlighter(sh_class)
         self.completion_widget.set_language(self.language)
 
@@ -2301,11 +2289,9 @@ class CodeEditor(TextEditBaseWidget):
         when the user leaves the Linenumber area when hovering over lint
         warnings and errors.
         """
-        self._timer_mouse_moving.stop()
         self._last_hover_word = None
+        self.tooltip_widget.hide()
         self.clear_extra_selections('code_analysis_highlight')
-        if self.tooltip_widget.isVisible():
-            self.tooltip_widget.hide()
 
     def _set_completions_hint_idle(self):
         self._completions_hint_idle = True
@@ -3656,10 +3642,6 @@ class CodeEditor(TextEditBaseWidget):
 
         if text:
             self.__clear_occurrences()
-
-        if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
-            self.hide_tooltip()
-
         if QToolTip.isVisible():
             self.hide_tooltip_if_necessary(key)
 
@@ -4011,7 +3993,6 @@ class CodeEditor(TextEditBaseWidget):
         """Go to url from cursor and defined hover patterns."""
         key = self._last_hover_pattern_key
         full_uri = uri
-
         if key in ['file']:
             fname = self._preprocess_file_uri(uri)
 
@@ -4063,7 +4044,6 @@ class CodeEditor(TextEditBaseWidget):
                     QMessageBox.Ok,
                 )
         self.sig_go_to_uri.emit(uri)
-        self.hide_tooltip()
         return full_uri
 
     def line_range(self, position):
@@ -4224,14 +4204,11 @@ class CodeEditor(TextEditBaseWidget):
 
     def mousePressEvent(self, event):
         """Override Qt method."""
-        self.hide_tooltip()
         self.kite_call_to_action.handle_mouse_press(event)
 
         ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier
         pos = event.pos()
-        self._mouse_left_button_pressed = event.button() == Qt.LeftButton
-
         if event.button() == Qt.LeftButton and ctrl:
             TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(pos)
@@ -4247,9 +4224,6 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseReleaseEvent(self, event):
         """Override Qt method."""
-        if event.button() == Qt.LeftButton:
-            self._mouse_left_button_pressed = False
-
         self.request_cursor_event()
         TextEditBaseWidget.mouseReleaseEvent(self, event)
 
@@ -4472,7 +4446,6 @@ class TestWidget(QSplitter):
                                               osp.dirname(filename)))
         oe_proxy = OutlineExplorerProxyEditor(self.editor, filename)
         self.classtree.set_current_editor(oe_proxy, False, False)
-        self.editor.hide_tooltip()
 
 
 def test(fname):

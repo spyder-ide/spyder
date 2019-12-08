@@ -709,7 +709,7 @@ class BaseTableView(QTableView):
 
     def refresh_plot_entries(self, index):
         if index.isValid():
-            key = self.proxy_model.get_key(index)
+            key = self.source_model.get_key(index)
             is_list = self.is_list(key)
             is_array = self.is_array(key) and self.get_len(key) != 0
             condition_plot = (is_array and len(self.get_array_shape(key)) <= 2)
