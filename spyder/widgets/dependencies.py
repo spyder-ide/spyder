@@ -29,11 +29,11 @@ class DependenciesTreeWidget(QTreeWidget):
         headers = (_("Module"), _("Package name"), _(" Required "),
                    _(" Installed "), _("Provided features"))
         self.setHeaderLabels(headers)
-        mandatory_item = QTreeWidgetItem(["Mandatory"])
+        mandatory_item = QTreeWidgetItem([_("Mandatory Dependencies:")])
         font = mandatory_item.font(0)
         font.setBold(True)
         mandatory_item.setFont(0, font)
-        optional_item = QTreeWidgetItem(["Optional"])
+        optional_item = QTreeWidgetItem([_("Optional Dependencies:")])
         optional_item.setFont(0, font)
         self.addTopLevelItems([mandatory_item, optional_item])
 
