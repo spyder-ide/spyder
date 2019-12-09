@@ -1438,9 +1438,6 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def get_value(self, name):
         """Get the value of a variable"""
         value = self.shellwidget.get_value(name)
-        # Reset temporal variable where value is saved to
-        # save memory
-        self.shellwidget._kernel_value = None
         return value
 
     def new_value(self, name, value):
