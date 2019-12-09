@@ -438,6 +438,8 @@ DEFAULTS = [
               'editor/debug cell': 'Alt+Shift+Return',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
+              'editor/scroll line down': 'Ctrl+Shift+Down',
+              'editor/scroll line up': 'Ctrl+Shift+Up',
               'editor/re-run last cell': 'Alt+Return',
               'editor/split vertically': "Ctrl+{",
               'editor/split horizontally': "Ctrl+_",

@@ -734,7 +734,9 @@ class CodeEditor(TextEditBaseWidget):
             ('editor', 'docstring',
              self.writer_docstring.write_docstring_for_shortcut),
             ('array_builder', 'enter array inline', self.enter_array_inline),
-            ('array_builder', 'enter array table', self.enter_array_table)
+            ('array_builder', 'enter array table', self.enter_array_table),
+            ('editor', 'scroll line down', self.scroll_line_down),
+            ('editor', 'scroll line up', self.scroll_line_up)
             )
 
         shortcuts = []
