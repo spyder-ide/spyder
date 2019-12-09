@@ -1727,7 +1727,18 @@ class CodeEditor(TextEditBaseWidget):
         self.remove_selected_text()
         self.document_did_change()
 
-    #------Find occurrences
+    # ---- Scrolling
+    def scroll_line_down(self):
+        """Scroll the editor down by one step."""
+        vsb = self.verticalScrollBar()
+        vsb.setValue(vsb.value() + vsb.singleStep())
+
+    def scroll_line_up(self):
+        """Scroll the editor up by one step."""
+        vsb = self.verticalScrollBar()
+        vsb.setValue(vsb.value() - vsb.singleStep())
+
+    # ---- Find occurrences
     def __find_first(self, text):
         """Find first occurrence: scan whole document"""
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
