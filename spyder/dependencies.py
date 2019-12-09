@@ -39,7 +39,6 @@ KEYRING_REQVER = None
 PEXPECT_REQVER = '>=4.4.0'
 PARAMIKO_REQVER = '>=2.4.0'
 PYXDG_REQVER = '>=0.26'
-PYMPLER_REQVER = None
 RTREE_REQVER = '>=0.8.3'
 SYMPY_REQVER = '>=0.7.3'
 CYTHON_REQVER = '>=0.21'
@@ -138,10 +137,6 @@ DEPENDENCIES_BASE = [
      'package_name': "pexpect",
      'features': _("Stdio support for our language server client"),
      'required_version': PEXPECT_REQVER},
-    {'modname': "pympler",
-     'package_name': "pympler",
-     'features': _("Tool to measure the memory behavior of Python objects"),
-     'required_version': PYMPLER_REQVER},
     {'modname': "sympy",
      'package_name': "sympy",
      'features': _("Symbolic mathematics in the IPython Console"),

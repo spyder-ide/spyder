@@ -221,7 +221,6 @@ install_requires = [
     'psutil',
     'pygments>=2.0',
     'pylint',
-    'pympler',
     'pyqt5<5.13;python_version>="3"',
     'pyqtwebengine<5.13;python_version>="3"',
     'python-language-server[all]>=0.31.2,<0.32.0',

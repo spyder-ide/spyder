@@ -26,7 +26,6 @@ import sys
 import warnings
 
 # Third party imports
-from pympler.asizeof import asizeof
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt,
                          Signal, Slot)
@@ -1443,15 +1442,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def new_value(self, name, value):
         """Create new value in data"""
         try:
-            # Needed to prevent memory leaks. See spyder-ide/spyder#7158.
-            if asizeof(value) < MAX_SERIALIZED_LENGHT:
-                self.shellwidget.set_value(name, value)
-            else:
-                QMessageBox.warning(self, _("Warning"),
-                                    _("The object you are trying to modify is "
-                                      "too big to be sent back to the kernel. "
-                                      "Therefore, your modifications won't "
-                                      "take place."))
+            self.shellwidget.set_value(name, value)
         except TypeError as e:
             QMessageBox.critical(self, _("Error"),
                                  "TypeError: %s" % to_text_string(e))
