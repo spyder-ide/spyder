@@ -342,6 +342,41 @@ def test_builtin_undo_redo(editorstack, qtbot):
     assert editor.toPlainText() == 'Something\nLine1\nLine2\nLine3\nLine4\n'
 
 
+@pytest.mark.skipif(
+    sys.platform.startswith('linux') and os.environ.get('CI') is not None,
+    reason="It fails on Linux due to the lack of a proper X server.")
+def test_scroll_line_up_and_down(editorstack, qtbot):
+    """
+    Test that the scroll line up and down shortcuts are working as expected.
+    """
+    editorstack.new('foo_long.py', 'utf-8', 'new_line\n' * 1000)
+    editor = editorstack.set_current_filename('foo_long.py', focus=True)
+    editorstack.go_to_line(1)
+
+    vsb = editor.verticalScrollBar()
+
+    # Assert initial state.
+    assert vsb.value() == 0
+    assert vsb.maximum() > 0
+
+    # Scroll line down five times.
+    expected_vsb_value = 0
+    for _ in range(5):
+        expected_vsb_value += vsb.singleStep()
+        qtbot.keyClick(editor,
+                       Qt.Key_Down,
+                       modifier=Qt.ControlModifier | Qt.ShiftModifier)
+        assert vsb.value() == expected_vsb_value
+
+    # Scroll line up three times.
+    for _ in range(3):
+        expected_vsb_value += -vsb.singleStep()
+        qtbot.keyClick(editor,
+                       Qt.Key_Up,
+                       modifier=Qt.ControlModifier | Qt.ShiftModifier)
+        assert vsb.value() == expected_vsb_value
+
+
 if __name__ == "__main__":
     import os
     pytest.main(['-x', os.path.basename(__file__), '-vv', '-rw'])
