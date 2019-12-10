@@ -183,7 +183,7 @@ class EditorSwitcherManager(object):
         title = osp.basename(path)
         lines = data.editor.get_line_count()
         icon = get_file_icon(path)
-        line_template_title = "{title} [{lines} {text}]"
+        line_template_title = u"{title} [{lines} {text}]"
         title = line_template_title.format(title=title, lines=lines,
                                            text=_("lines"))
         description = _('Go to line')
