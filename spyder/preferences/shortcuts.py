@@ -291,7 +291,14 @@ class ShortcutEditor(QDialog):
 
     def event(self, event):
         """Qt method override."""
-        if event.type() in (QEvent.Shortcut, QEvent.ShortcutOverride):
+        # We reroute all ShortcutOverride events to our keyPressEvent and block
+        # any KeyPress and Shortcut event. This allows to register default
+        # Qt shortcuts for which no key press event are emitted.
+        # See spyder-ide/spyder/issues/10786.
+        if event.type() == QEvent.ShortcutOverride:
+            self.keyPressEvent(event)
+            return True
+        elif event.type() in [QEvent.KeyPress, QEvent.Shortcut]:
             return True
         else:
             return super(ShortcutEditor, self).event(event)
