@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2019-11-29 18:13+-05\n"
-"PO-Revision-Date: 2019-12-07 21:54\n"
+"PO-Revision-Date: 2019-12-10 13:50\n"
 "Last-Translator: Gonzalo Peña-Castellanos (goanpeca)\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -46,7 +46,7 @@ msgstr "PyQt5 API参考"
 
 #: spyder/app/mainwindow.py:315
 msgid "WinPython"
-msgstr ""
+msgstr "WinPython"
 
 #: spyder/app/mainwindow.py:579
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
@@ -251,7 +251,7 @@ msgstr "guiqwt示例"
 
 #: spyder/app/mainwindow.py:870
 msgid "Sift"
-msgstr ""
+msgstr "Sift"
 
 #: spyder/app/mainwindow.py:888
 msgid "Fullscreen mode"
@@ -798,7 +798,7 @@ msgstr "Json文件"
 
 #: spyder/config/utils.py:46
 msgid "IPython notebooks"
-msgstr ""
+msgstr "IPython 笔记本"
 
 #: spyder/config/utils.py:47
 msgid "Enaml files"
@@ -1949,7 +1949,7 @@ msgstr "此处，您可以选择要在编辑器中提供输入建议的“文档
 
 #: spyder/plugins/editor/confpage.py:245
 msgid "Numpy"
-msgstr ""
+msgstr "Numpy"
 
 #: spyder/plugins/editor/confpage.py:246
 msgid "Google"
@@ -1985,15 +1985,15 @@ msgstr "保存时：将EOL字符转换为"
 
 #: spyder/plugins/editor/confpage.py:288
 msgid "LF (UNIX)"
-msgstr ""
+msgstr "LF (UNIX)"
 
 #: spyder/plugins/editor/confpage.py:289
 msgid "CRLF (Windows)"
-msgstr ""
+msgstr "CRLF (Windows)"
 
 #: spyder/plugins/editor/confpage.py:290
 msgid "CR (Mac)"
-msgstr ""
+msgstr "CR (Mac)"
 
 #: spyder/plugins/editor/confpage.py:314
 #: spyder/plugins/ipythonconsole/confpage.py:374
@@ -2018,7 +2018,7 @@ msgstr "高级设置"
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:138
 #: spyder/preferences/shortcuts.py:142
 msgid "<None>"
-msgstr ""
+msgstr "<None>"
 
 #: spyder/plugins/editor/plugin.py:403
 msgid "&New file..."
@@ -2577,7 +2577,7 @@ msgstr "代码分析"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:2527
 msgid "To do"
-msgstr ""
+msgstr "To do"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:2989
 msgid "Removal error"
@@ -2829,7 +2829,7 @@ msgstr "无法忽略 {}"
 
 #: spyder/plugins/editor/widgets/recover.py:259
 msgid "<b>{}</b><br><br>{}<br>{}"
-msgstr ""
+msgstr "<b>{}</b><br><br>{}<br>{}"
 
 #: spyder/plugins/editor/widgets/status.py:31
 msgid "File permissions"
@@ -3723,7 +3723,7 @@ msgstr "分辨率："
 
 #: spyder/plugins/ipythonconsole/confpage.py:161
 msgid "dpi"
-msgstr ""
+msgstr "dpi"
 
 #: spyder/plugins/ipythonconsole/confpage.py:163
 msgid "Only used when the format is PNG. Default is 72"
@@ -3980,7 +3980,7 @@ msgstr "错误：<br><br><tt>{}</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1397
 msgid "IPython"
-msgstr ""
+msgstr "IPython"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1398
 msgid "Unable to connect to <b>%s</b>"
@@ -4074,7 +4074,7 @@ msgid "<br><hr>\n"
 "Figures now render in the Plots pane by default. To make them also appear inline in the Console, uncheck \"Mute Inline Plotting\" under the Plots pane options menu. \n"
 "<hr><br>"
 msgstr "<br><hr>\n"
-"图表现在默认显示于绘图窗格上。要想让其也在中断行中显示，请在绘图窗格选项菜单中取消勾选“禁用行内绘图”。 \n"
+"图表现在默认显示于绘图窗格上。要想让其也在终端行中显示，请在绘图窗格选项菜单中取消勾选“禁用行内绘图”。 \n"
 "<hr><br>"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:35
@@ -5079,7 +5079,7 @@ msgstr "列分隔符："
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:145
 msgid "Tab"
-msgstr ""
+msgstr "Tab"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:148
 msgid "Whitespace"
@@ -5096,7 +5096,7 @@ msgstr "行分隔符："
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:166
 msgid "EOL"
-msgstr ""
+msgstr "EOL"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:181
 msgid "Additional options"
@@ -5137,7 +5137,7 @@ msgstr "原始文本"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:506
 msgid "variable_name"
-msgstr ""
+msgstr "variable_name"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:517
 msgid "table"
@@ -5266,7 +5266,7 @@ msgstr "对象的名称。"
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:226
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:235
 msgid "<root>"
-msgstr ""
+msgstr "<root>"
 
 #:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:233
@@ -5407,17 +5407,17 @@ msgstr "显示或隐藏 {} 栏"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:52
 msgid "<TreeItem(0x{:x}): {} = {}>"
-msgstr ""
+msgstr "<TreeItem(0x{:x}): {} = {}>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:57
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:64
 msgid "<TreeItem(0x{:x}): {} ({:d} children)>"
-msgstr ""
+msgstr "<TreeItem(0x{:x}): {} ({:d} children)>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_model.py:321
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_model.py:322
 msgid "<invisible_root>"
-msgstr ""
+msgstr "<invisible_root>"
 
 #: spyder/plugins/variableexplorer/widgets/texteditor.py:92
 msgid "Text editor"
@@ -5830,7 +5830,7 @@ msgstr "您为控制台选择了<b>Python ％d</b>解释器，但Spyder运行于
 #: spyder/preferences/maininterpreter.py:222
 #: spyder/preferences/maininterpreter.py:226
 msgid "UMR"
-msgstr ""
+msgstr "UMR"
 
 #: spyder/preferences/maininterpreter.py:196
 msgid "Set the list of excluded modules as this: <i>numpy, scipy</i>"
@@ -6289,7 +6289,7 @@ msgstr "替换所有"
 
 #: spyder/widgets/findreplace.py:622
 msgid "of"
-msgstr ""
+msgstr "/"
 
 #: spyder/widgets/findreplace.py:626
 msgid "matches"
