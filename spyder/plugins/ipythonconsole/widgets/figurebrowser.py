@@ -53,12 +53,12 @@ class FigureBrowserWidget(RichJupyterWidget):
         elif 'image/jpeg' in data and self._jpg_supported:
             fmt = 'image/jpeg'
             img = decodebytes(data['image/jpeg'].encode('ascii'))
+
         if img is not None:
             self.sig_new_inline_figure.emit(img, fmt)
             if (self.figurebrowser is not None and
                     self.figurebrowser.mute_inline_plotting):
                 if not self.sended_render_message:
-                    msg['content']['data']['text/plain'] = ''
                     self._append_html(
                         _('<br><hr>'
                           '\nFigures now render in the Plots pane by default. '
@@ -67,8 +67,5 @@ class FigureBrowserWidget(RichJupyterWidget):
                           'pane options menu. \n'
                           '<hr><br>'), before_prompt=True)
                     self.sended_render_message = True
-                else:
-                    msg['content']['data']['text/plain'] = ''
-                del msg['content']['data'][fmt]
-
+                return
         return super(FigureBrowserWidget, self)._handle_display_data(msg)
