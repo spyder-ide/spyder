@@ -15,11 +15,14 @@ Adapted from qcrash/backends/base.py and qcrash/backends/github.py of the
 """
 
 import logging
+import os
 import sys
 import webbrowser
 
 try:
-    import keyring
+    # See: spyder-ide/spyder#10221
+    if os.environ.get('SSH_CONNECTION') is None:
+        import keyring
 except Exception:
     pass
 
