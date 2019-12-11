@@ -107,7 +107,7 @@ class ScrollFlagArea(Panel):
         cursor_pos = self.mapFromGlobal(QCursor().pos())
         is_over_self = self.rect().contains(cursor_pos)
         is_over_editor = self.editor.rect().contains(
-                self.editor.mapFromGlobal(QCursor().pos()))
+            self.editor.mapFromGlobal(QCursor().pos()))
         # We use QRect.contains instead of QWidget.underMouse method to
         # determined if the cursor is over the editor or the flag scrollbar
         # because the later gives a wrong result when a mouse button
@@ -181,7 +181,7 @@ class ScrollFlagArea(Panel):
 
         # Get the area in which the slider handle may move.
         groove_rect = style.subControlRect(
-                QStyle.CC_ScrollBar, opt, QStyle.SC_ScrollBarGroove, self)
+            QStyle.CC_ScrollBar, opt, QStyle.SC_ScrollBarGroove, self)
 
         return float(groove_rect.height())
 
@@ -221,7 +221,7 @@ class ScrollFlagArea(Panel):
             # text block with no scaling.
             block = self.editor.document().findBlockByNumber(value)
             top = self.editor.blockBoundingGeometry(block).translated(
-                      self.editor.contentOffset()).top()
+                self.editor.contentOffset()).top()
             bottom = top + self.editor.blockBoundingRect(block).height()
             middle = (top + bottom)/2
 
