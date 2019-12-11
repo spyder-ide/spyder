@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2019-11-29 18:13+-05\n"
-"PO-Revision-Date: 2019-12-07 21:53\n"
+"PO-Revision-Date: 2019-12-11 19:35\n"
 "Last-Translator: Gonzalo Peña-Castellanos (goanpeca)\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -3854,11 +3854,11 @@ msgstr "Calcul Symbolique"
 
 #: spyder/plugins/ipythonconsole/confpage.py:315
 msgid "Perfom symbolic operations in the console (e.g. integrals, derivatives, vector calculus, etc) and get the outputs in a beautifully printed style (it requires the Sympy module)."
-msgstr "Utilise le calcul formel pour réaliser des opérations dans la console (par exemple intégrales, dérivées, calcul vectoriel, etc...) et affiche les résultats de manière élégante."
+msgstr "Utilise le calcul symbolique pour réaliser des opérations dans la console (par exemple intégrales, dérivées, calcul vectoriel, etc.) et affiche les résultats de manière élégante (cette fonctionnalité requiert la librairie Sympy)."
 
 #: spyder/plugins/ipythonconsole/confpage.py:321
 msgid "Use symbolic math"
-msgstr "Utiliser le calcul formel"
+msgstr "Utiliser le calcul symbolique"
 
 #: spyder/plugins/ipythonconsole/confpage.py:322
 msgid "This option loads the Sympy library to work with.<br>Please refer to its documentation to learn how to use it."
