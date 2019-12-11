@@ -47,21 +47,6 @@ class ScrollFlagArea(Panel):
         """This property holds whether the vertical scrollbar is visible."""
         return self.editor.verticalScrollBar().isVisible()
 
-    @property
-    def offset(self):
-        """This property holds the vertical offset of the scroll flag area
-        relative to the top of the text editor."""
-        vsb = self.editor.verticalScrollBar()
-        style = QApplication.instance().style()
-        opt = QStyleOptionSlider()
-        vsb.initStyleOption(opt)
-
-        # Get the area in which the slider handle may move.
-        groove_rect = style.subControlRect(
-                QStyle.CC_ScrollBar, opt, QStyle.SC_ScrollBarGroove, self)
-
-        return groove_rect.y()
-
     def sizeHint(self):
         """Override Qt method"""
         return QSize(self.WIDTH, 0)
@@ -169,6 +154,22 @@ class ScrollFlagArea(Panel):
         if event.key() == Qt.Key_Alt:
             self._alt_key_is_down = True
             self.update()
+
+    def get_vertical_offset(self):
+        """
+        Return the vertical offset of the scroll flag area relative to the
+        top of the text editor.
+        """
+        vsb = self.editor.verticalScrollBar()
+        style = QApplication.instance().style()
+        opt = QStyleOptionSlider()
+        vsb.initStyleOption(opt)
+
+        # Get the area in which the slider handle may move.
+        groove_rect = style.subControlRect(
+            QStyle.CC_ScrollBar, opt, QStyle.SC_ScrollBarGroove, self)
+
+        return groove_rect.y()
 
     def get_scrollbar_position_height(self):
         """Return the pixel span height of the scrollbar area in which
