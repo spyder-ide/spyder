@@ -56,7 +56,25 @@ class ScrollFlagArea(Panel):
         Override Qt method.
         Painting the scroll flag area
         """
-        make_flag = self.make_flag_qrect
+        scale_factor = self.get_scale_factor()
+        offset = self.get_vertical_offset()
+
+        rect_x = ceil(self.FLAGS_DX / 2)
+        rect_w = self.WIDTH - self.FLAGS_DX
+        rect_h = self.FLAGS_DY
+
+        warning_color_f = QColor(self.editor.warning_color)
+        warning_color_e = warning_color_f.darker(120)
+        error_color_f = QColor(self.editor.warning_color)
+        error_color_e = error_color_f.darker(120)
+        todo_color_f = QColor(self.editor.todo_color)
+        todo_color_e = todo_color_f.darker(120)
+        breakpoint_color_f = QColor(self.editor.breakpoint_color)
+        breakpoint_color_e = breakpoint_color_f.darker(120)
+        occurrence_color_f = QColor(self.editor.occurrence_color)
+        occurrence_color_e = occurrence_color_f.darker(120)
+        found_results_color_f = QColor(self.editor.found_results_color)
+        found_results_color_e = found_results_color_f.darker(120)
 
         # Fill the whole painting area
         painter = QPainter(self)
@@ -69,35 +87,52 @@ class ScrollFlagArea(Panel):
             if data:
                 if data.code_analysis:
                     # Paint the warnings
-                    color = self.editor.warning_color
                     for source, code, severity, message in data.code_analysis:
                         error = severity == DiagnosticSeverity.ERROR
                         if error:
-                            color = self.editor.error_color
+                            painter.setBrush(error_color_f)
+                            painter.setPen(error_color_e)
                             break
-                    self.set_painter(painter, color)
-                    painter.drawRect(make_flag(line_number))
+                    else:
+                        painter.setBrush(warning_color_f)
+                        painter.setPen(warning_color_e)
+
+                    rect_y = self.calcul_flag_ypos(
+                        line_number, scale_factor, offset)
+                    painter.drawRect(rect_x, rect_y, rect_w, rect_h)
                 if data.todo:
                     # Paint the todos
-                    self.set_painter(painter, self.editor.todo_color)
-                    painter.drawRect(make_flag(line_number))
+                    rect_y = self.calcul_flag_ypos(
+                        line_number, scale_factor, offset)
+                    painter.setBrush(todo_color_f)
+                    painter.setPen(todo_color_e)
+                    painter.drawRect(rect_x, rect_y, rect_w, rect_h)
                 if data.breakpoint:
+                    painter.setBrush(breakpoint_color_f)
+                    painter.setPen(breakpoint_color_e)
                     # Paint the breakpoints
-                    self.set_painter(painter, self.editor.breakpoint_color)
-                    painter.drawRect(make_flag(line_number))
+                    rect_y = self.calcul_flag_ypos(
+                        line_number, scale_factor, offset)
+                    painter.drawRect(rect_x, rect_y, rect_w, rect_h)
             block = block.next()
 
         # Paint the occurrences
         if self.editor.occurrences:
-            self.set_painter(painter, self.editor.occurrence_color)
+            painter.setBrush(occurrence_color_f)
+            painter.setPen(occurrence_color_e)
             for line_number in self.editor.occurrences:
-                painter.drawRect(make_flag(line_number))
+                rect_y = self.calcul_flag_ypos(
+                    line_number, scale_factor, offset)
+                painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
         # Paint the found results
         if self.editor.found_results:
-            self.set_painter(painter, self.editor.found_results_color)
+            painter.setBrush(found_results_color_f)
+            painter.setPen(found_results_color_e)
             for line_number in self.editor.found_results:
-                painter.drawRect(make_flag(line_number))
+                rect_y = self.calcul_flag_ypos(
+                    line_number, scale_factor, offset)
+                painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
         # Paint the slider range
         if not self._unit_testing:
@@ -119,7 +154,8 @@ class ScrollFlagArea(Panel):
             brush_color = QColor(Qt.gray)
             brush_color.setAlphaF(.5)
             painter.setBrush(QBrush(brush_color))
-            painter.drawRect(self.make_slider_range(cursor_pos))
+            painter.drawRect(self.make_slider_range(
+                cursor_pos, scale_factor, offset))
             self._range_indicator_is_visible = True
         else:
             self._range_indicator_is_visible = False
@@ -196,39 +232,38 @@ class ScrollFlagArea(Panel):
         return (self.get_scrollbar_position_height() /
                 self.get_scrollbar_value_height())
 
-    def value_to_position(self, y):
+    def value_to_position(self, y, scale_factor, offset):
         """Convert value to position in pixels"""
         vsb = self.editor.verticalScrollBar()
-        return (y-vsb.minimum())*self.get_scale_factor()+self.offset
+        return (y - vsb.minimum()) * scale_factor + offset
 
     def position_to_value(self, y):
         """Convert position in pixels to value"""
         vsb = self.editor.verticalScrollBar()
-        return vsb.minimum()+max([0, (y-self.offset)/self.get_scale_factor()])
+        offset = self.get_vertical_offset()
+        return vsb.minimum() + max([0, (y - offset) / self.get_scale_factor()])
 
-    def make_flag_qrect(self, value):
-        """Make flag QRect"""
+    def calcul_flag_ypos(self, line_number, scale_factor, offset):
+        """Calcul the vertical position of a flag for the given line number."""
         if self.slider:
-            position = self.value_to_position(value+0.5)
+            position = self.value_to_position(
+                line_number + 0.5, scale_factor, offset)
             # The 0.5 offset is used to align the flags with the center of
             # their corresponding text edit block before scaling.
-
-            return QRect(ceil(self.FLAGS_DX/2), ceil(position-self.FLAGS_DY/2),
-                         self.WIDTH-self.FLAGS_DX, self.FLAGS_DY)
+            return ceil(position - self.FLAGS_DY / 2)
         else:
             # When the vertical scrollbar is not visible, the flags are
             # vertically aligned with the center of their corresponding
             # text block with no scaling.
-            block = self.editor.document().findBlockByNumber(value)
+            block = self.editor.document().findBlockByNumber(line_number)
             top = self.editor.blockBoundingGeometry(block).translated(
                 self.editor.contentOffset()).top()
             bottom = top + self.editor.blockBoundingRect(block).height()
             middle = (top + bottom)/2
 
-            return QRect(ceil(self.FLAGS_DX/2), ceil(middle-self.FLAGS_DY/2),
-                         self.WIDTH-self.FLAGS_DX, self.FLAGS_DY)
+            return ceil(middle-self.FLAGS_DY/2)
 
-    def make_slider_range(self, cursor_pos):
+    def make_slider_range(self, cursor_pos, scale_factor, offset):
         """Make slider range QRect"""
         # The slider range indicator position follows the mouse vertical
         # position while its height corresponds to the part of the file that
@@ -236,13 +271,14 @@ class ScrollFlagArea(Panel):
 
         vsb = self.editor.verticalScrollBar()
         groove_height = self.get_scrollbar_position_height()
-        slider_height = self.value_to_position(vsb.pageStep())-self.offset
+        slider_height = self.value_to_position(
+            vsb.pageStep(), scale_factor, offset) - offset
 
         # Calcul the minimum and maximum y-value to constraint the slider
         # range indicator position to the height span of the scrollbar area
         # where the slider may move.
-        min_ypos = self.offset
-        max_ypos = groove_height + self.offset - slider_height
+        min_ypos = offset
+        max_ypos = groove_height + offset - slider_height
 
         # Determine the bounded y-position of the slider rect.
         slider_y = max(min_ypos, min(max_ypos,
@@ -253,11 +289,6 @@ class ScrollFlagArea(Panel):
     def wheelEvent(self, event):
         """Override Qt method"""
         self.editor.wheelEvent(event)
-
-    def set_painter(self, painter, light_color):
-        """Set scroll flag area painter pen and brush colors"""
-        painter.setPen(QColor(light_color).darker(120))
-        painter.setBrush(QBrush(QColor(light_color)))
 
     def set_enabled(self, state):
         """Toggle scroll flag area visibility"""
