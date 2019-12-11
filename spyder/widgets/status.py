@@ -10,7 +10,6 @@
 
 # Standard library imports
 import os
-import sys
 import subprocess
 
 # Third party imports
@@ -257,7 +256,7 @@ class CondaStatus(StatusBarWidget):
 
         envs_folder = os.path.sep + 'envs' + os.path.sep
         if envs_folder in self._interpreter:
-            if sys.platform == 'win32':
+            if os.name == 'nt':
                 env = os.path.dirname(self._interpreter)
             else:
                 env = os.path.dirname(os.path.dirname(self._interpreter))
