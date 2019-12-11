@@ -7,12 +7,16 @@
 This module contains the Scroll Flag panel
 """
 
+# Standard library imports
+from __future__ import division
 from math import ceil
 
+# Third party imports
 from qtpy.QtCore import QSize, Qt, QRect
 from qtpy.QtGui import QPainter, QBrush, QColor, QCursor
 from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
+# Local imports
 from spyder.api.panel import Panel
 from spyder.plugins.completion.languageserver import DiagnosticSeverity
 
@@ -68,8 +72,18 @@ class ScrollFlagArea(Panel):
         Override Qt method.
         Painting the scroll flag area
         """
-        scale_factor = self.get_scale_factor()
-        offset = self.get_vertical_offset()
+        # The area in which the slider handle of the scrollbar may move.
+        groove_rect = self.get_scrollbar_groove_rect()
+        # The scrollbar's scale factor ratio between pixel span height and
+        # value span height
+        scale_factor = groove_rect.height() / self.get_scrollbar_value_height()
+        # The vertical offset of the scroll flag area relative to the
+        # top of the text editor.
+        offset = groove_rect.y()
+
+        # Note that we calculate the pixel metrics required to draw the flags
+        # here instead of using the convenience methods of the ScrollFlagArea
+        # for performance reason.
 
         rect_x = ceil(self.FLAGS_DX / 2)
         rect_w = self.WIDTH - self.FLAGS_DX
@@ -195,6 +209,11 @@ class ScrollFlagArea(Panel):
         Return the vertical offset of the scroll flag area relative to the
         top of the text editor.
         """
+        groove_rect = self.get_scrollbar_groove_rect()
+        return groove_rect.y()
+
+    def get_scrollbar_groove_rect(self):
+        """Return the area in which the slider handle may move."""
         vsb = self.editor.verticalScrollBar()
         style = QApplication.instance().style()
         opt = QStyleOptionSlider()
@@ -204,26 +223,18 @@ class ScrollFlagArea(Panel):
         groove_rect = style.subControlRect(
             QStyle.CC_ScrollBar, opt, QStyle.SC_ScrollBarGroove, self)
 
-        return groove_rect.y()
+        return groove_rect
 
     def get_scrollbar_position_height(self):
         """Return the pixel span height of the scrollbar area in which
         the slider handle may move"""
-        vsb = self.editor.verticalScrollBar()
-        style = QApplication.instance().style()
-        opt = QStyleOptionSlider()
-        vsb.initStyleOption(opt)
-
-        # Get the area in which the slider handle may move.
-        groove_rect = style.subControlRect(
-            QStyle.CC_ScrollBar, opt, QStyle.SC_ScrollBarGroove, self)
-
+        groove_rect = self.get_scrollbar_groove_rect()
         return float(groove_rect.height())
 
     def get_scrollbar_value_height(self):
         """Return the value span height of the scrollbar"""
         vsb = self.editor.verticalScrollBar()
-        return vsb.maximum()-vsb.minimum()+vsb.pageStep()
+        return vsb.maximum() - vsb.minimum() + vsb.pageStep()
 
     def get_scale_factor(self):
         """Return scrollbar's scale factor:
