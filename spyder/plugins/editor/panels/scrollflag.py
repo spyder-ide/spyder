@@ -42,7 +42,7 @@ class ScrollFlagArea(Panel):
         # and the slider range.
         self._facecolors = {
             'warning': QColor(editor.warning_color),
-            'error': QColor(editor.warning_color),
+            'error': QColor(editor.error_color),
             'todo': QColor(editor.todo_color),
             'breakpoint': QColor(editor.breakpoint_color),
             'occurrence': editor.occurrence_color,
