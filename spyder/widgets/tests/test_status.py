@@ -75,7 +75,10 @@ def test_status_bar_conda_status(status_bar, qtbot, mocker):
         # We patch the method that calls for info to return values to test
         mocker.patch.object(w, '_get_conda_env_info', return_value=(out, err))
 
-        interpreter = os.sep.join(['miniconda', 'bin', 'python'])
+        if os.name == 'nt':
+            interpreter = os.sep.join(['miniconda', 'python'])
+        else:
+            interpreter = os.sep.join(['miniconda', 'bin', 'python'])
         w.update_interpreter(interpreter)
         assert w.get_tooltip() == interpreter
         text = w._process_conda_env_info()
@@ -83,7 +86,10 @@ def test_status_bar_conda_status(status_bar, qtbot, mocker):
         assert mock_py_ver in text
 
         # We patch the method that calls for info to return values to test
-        interpreter = os.sep.join(['miniconda', 'envs', 'foo', 'bin', 'python'])
+        if os.name == 'nt':
+            interpreter = os.sep.join(['miniconda', 'envs', 'foo', 'python'])
+        else:
+            interpreter = os.sep.join(['miniconda', 'envs', 'foo', 'bin', 'python'])
         w.update_interpreter(interpreter)
         assert w.get_tooltip() == interpreter
         text = w._process_conda_env_info()
