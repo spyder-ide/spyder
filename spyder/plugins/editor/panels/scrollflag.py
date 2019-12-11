@@ -38,7 +38,8 @@ class ScrollFlagArea(Panel):
         self._range_indicator_is_visible = False
         self._alt_key_is_down = False
 
-        # Define permanent Qt colors that are needed for painting the flags.
+        # Define permanent Qt colors that are needed for painting the flags
+        # and the slider range.
         self._facecolors = {
             'warning': QColor(editor.warning_color),
             'error': QColor(editor.warning_color),
@@ -49,6 +50,10 @@ class ScrollFlagArea(Panel):
             }
         self._edgecolors = {key: color.darker(120) for
                             key, color in self._facecolors.items()}
+        self._slider_range_color = QColor(Qt.gray)
+        self._slider_range_color.setAlphaF(.85)
+        self._slider_range_brush = QColor(Qt.gray)
+        self._slider_range_brush.setAlphaF(.5)
 
         editor.sig_focus_changed.connect(self.update)
         editor.sig_key_pressed.connect(self.keyPressEvent)
@@ -152,26 +157,25 @@ class ScrollFlagArea(Panel):
             alt = QApplication.queryKeyboardModifiers() & Qt.AltModifier
         else:
             alt = self._alt_key_is_down
-        cursor_pos = self.mapFromGlobal(QCursor().pos())
-        is_over_self = self.rect().contains(cursor_pos)
-        is_over_editor = self.editor.rect().contains(
-            self.editor.mapFromGlobal(QCursor().pos()))
-        # We use QRect.contains instead of QWidget.underMouse method to
-        # determined if the cursor is over the editor or the flag scrollbar
-        # because the later gives a wrong result when a mouse button
-        # is pressed.
-        if ((is_over_self or (alt and is_over_editor)) and self.slider):
-            pen_color = QColor(Qt.gray)
-            pen_color.setAlphaF(.85)
-            painter.setPen(pen_color)
-            brush_color = QColor(Qt.gray)
-            brush_color.setAlphaF(.5)
-            painter.setBrush(QBrush(brush_color))
-            painter.drawRect(self.make_slider_range(
-                cursor_pos, scale_factor, offset))
-            self._range_indicator_is_visible = True
-        else:
-            self._range_indicator_is_visible = False
+
+        if self.slider:
+            cursor_pos = self.mapFromGlobal(QCursor().pos())
+            is_over_self = self.rect().contains(cursor_pos)
+            is_over_editor = self.editor.rect().contains(
+                self.editor.mapFromGlobal(QCursor().pos()))
+            # We use QRect.contains instead of QWidget.underMouse method to
+            # determined if the cursor is over the editor or the flag scrollbar
+            # because the later gives a wrong result when a mouse button
+            # is pressed.
+            if is_over_self or (alt and is_over_editor):
+                painter.setPen(self._slider_range_color)
+                painter.setBrush(self._slider_range_brush)
+                x, y, width, height = self.make_slider_range(
+                    cursor_pos, scale_factor, offset, groove_rect)
+                painter.drawRect(x, y, width, height)
+                self._range_indicator_is_visible = True
+            else:
+                self._range_indicator_is_visible = False
 
     def enterEvent(self, event):
         """Override Qt method"""
@@ -273,14 +277,15 @@ class ScrollFlagArea(Panel):
 
             return ceil(middle-self.FLAGS_DY/2)
 
-    def make_slider_range(self, cursor_pos, scale_factor, offset):
-        """Make slider range QRect"""
+    def make_slider_range(self, cursor_pos, scale_factor, offset, groove_rect):
+        """
+        Return the slider x and y positions and the slider width and height.
+        """
         # The slider range indicator position follows the mouse vertical
         # position while its height corresponds to the part of the file that
         # is currently visible on screen.
 
         vsb = self.editor.verticalScrollBar()
-        groove_height = self.get_scrollbar_position_height()
         slider_height = self.value_to_position(
             vsb.pageStep(), scale_factor, offset) - offset
 
@@ -288,13 +293,13 @@ class ScrollFlagArea(Panel):
         # range indicator position to the height span of the scrollbar area
         # where the slider may move.
         min_ypos = offset
-        max_ypos = groove_height + offset - slider_height
+        max_ypos = groove_rect.height() + offset - slider_height
 
         # Determine the bounded y-position of the slider rect.
         slider_y = max(min_ypos, min(max_ypos,
                                      ceil(cursor_pos.y()-slider_height/2)))
 
-        return QRect(1, slider_y, self.WIDTH-2, slider_height)
+        return 1, slider_y, self.WIDTH - 2, slider_height
 
     def wheelEvent(self, event):
         """Override Qt method"""
