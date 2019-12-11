@@ -450,15 +450,18 @@ class CodeEditor(TextEditBaseWidget):
         # Linux Ubuntu. See spyder-ide/spyder#5215.
         self.setVerticalScrollBar(QScrollBar())
 
-        # Scrollbar flag area
-        self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
-                                                   Panel.Position.RIGHT)
-        self.scrollflagarea.hide()
+        # Highlights and flag colors
         self.warning_color = "#FFAD07"
         self.error_color = "#EA2B0E"
         self.todo_color = "#B4D4F3"
         self.breakpoint_color = "#30E62E"
+        self.occurrence_color = QColor(Qt.yellow).lighter(160)
+        self.found_results_color = QColor(Qt.magenta).lighter(180)
 
+        # Scrollbar flag area
+        self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
+                                                   Panel.Position.RIGHT)
+        self.scrollflagarea.hide()
         self.panels.refresh()
 
         self.document_id = id(self)
@@ -497,12 +500,10 @@ class CodeEditor(TextEditBaseWidget):
         self.occurrence_timer.setInterval(1500)
         self.occurrence_timer.timeout.connect(self.__mark_occurrences)
         self.occurrences = []
-        self.occurrence_color = QColor(Qt.yellow).lighter(160)
 
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
         self.found_results = []
-        self.found_results_color = QColor(Qt.magenta).lighter(180)
 
         # Docstring
         self.writer_docstring = DocstringWriterExtension(self)

@@ -34,6 +34,18 @@ class ScrollFlagArea(Panel):
         self._range_indicator_is_visible = False
         self._alt_key_is_down = False
 
+        # Define permanent Qt colors that are needed for painting the flags.
+        self._facecolors = {
+            'warning': QColor(editor.warning_color),
+            'error': QColor(editor.warning_color),
+            'todo': QColor(editor.todo_color),
+            'breakpoint': QColor(editor.breakpoint_color),
+            'occurrence': editor.occurrence_color,
+            'found_results': editor.found_results_color
+            }
+        self._edgecolors = {key: color.darker(120) for
+                            key, color in self._facecolors.items()}
+
         editor.sig_focus_changed.connect(self.update)
         editor.sig_key_pressed.connect(self.keyPressEvent)
         editor.sig_key_released.connect(self.keyReleaseEvent)
@@ -63,19 +75,6 @@ class ScrollFlagArea(Panel):
         rect_w = self.WIDTH - self.FLAGS_DX
         rect_h = self.FLAGS_DY
 
-        warning_color_f = QColor(self.editor.warning_color)
-        warning_color_e = warning_color_f.darker(120)
-        error_color_f = QColor(self.editor.warning_color)
-        error_color_e = error_color_f.darker(120)
-        todo_color_f = QColor(self.editor.todo_color)
-        todo_color_e = todo_color_f.darker(120)
-        breakpoint_color_f = QColor(self.editor.breakpoint_color)
-        breakpoint_color_e = breakpoint_color_f.darker(120)
-        occurrence_color_f = QColor(self.editor.occurrence_color)
-        occurrence_color_e = occurrence_color_f.darker(120)
-        found_results_color_f = QColor(self.editor.found_results_color)
-        found_results_color_e = found_results_color_f.darker(120)
-
         # Fill the whole painting area
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
@@ -90,12 +89,12 @@ class ScrollFlagArea(Panel):
                     for source, code, severity, message in data.code_analysis:
                         error = severity == DiagnosticSeverity.ERROR
                         if error:
-                            painter.setBrush(error_color_f)
-                            painter.setPen(error_color_e)
+                            painter.setBrush(self._facecolors['error'])
+                            painter.setPen(self._edgecolors['error'])
                             break
                     else:
-                        painter.setBrush(warning_color_f)
-                        painter.setPen(warning_color_e)
+                        painter.setBrush(self._facecolors['warning'])
+                        painter.setPen(self._edgecolors['warning'])
 
                     rect_y = self.calcul_flag_ypos(
                         line_number, scale_factor, offset)
@@ -104,22 +103,22 @@ class ScrollFlagArea(Panel):
                     # Paint the todos
                     rect_y = self.calcul_flag_ypos(
                         line_number, scale_factor, offset)
-                    painter.setBrush(todo_color_f)
-                    painter.setPen(todo_color_e)
+                    painter.setBrush(self._facecolors['todo'])
+                    painter.setPen(self._edgecolors['todo'])
                     painter.drawRect(rect_x, rect_y, rect_w, rect_h)
                 if data.breakpoint:
-                    painter.setBrush(breakpoint_color_f)
-                    painter.setPen(breakpoint_color_e)
                     # Paint the breakpoints
                     rect_y = self.calcul_flag_ypos(
                         line_number, scale_factor, offset)
+                    painter.setBrush(self._facecolors['breakpoint'])
+                    painter.setPen(self._edgecolors['breakpoint'])
                     painter.drawRect(rect_x, rect_y, rect_w, rect_h)
             block = block.next()
 
         # Paint the occurrences
         if self.editor.occurrences:
-            painter.setBrush(occurrence_color_f)
-            painter.setPen(occurrence_color_e)
+            painter.setBrush(self._facecolors['occurrence'])
+            painter.setPen(self._edgecolors['occurrence'])
             for line_number in self.editor.occurrences:
                 rect_y = self.calcul_flag_ypos(
                     line_number, scale_factor, offset)
@@ -127,8 +126,8 @@ class ScrollFlagArea(Panel):
 
         # Paint the found results
         if self.editor.found_results:
-            painter.setBrush(found_results_color_f)
-            painter.setPen(found_results_color_e)
+            painter.setBrush(self._facecolors['found_results'])
+            painter.setPen(self._edgecolors['found_results'])
             for line_number in self.editor.found_results:
                 rect_y = self.calcul_flag_ypos(
                     line_number, scale_factor, offset)
