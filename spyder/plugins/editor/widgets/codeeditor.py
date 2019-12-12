@@ -4468,6 +4468,7 @@ class TestWidget(QSplitter):
                                  font=QFont("Courier New", 10),
                                  show_blanks=True, color_scheme='Zenburn')
         self.addWidget(self.editor)
+        self._isvisible = True
         from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
         self.classtree = OutlineExplorerWidget(self)
         self.addWidget(self.classtree)
