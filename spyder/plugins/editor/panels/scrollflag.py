@@ -45,8 +45,8 @@ class ScrollFlagArea(Panel):
             'error': QColor(editor.error_color),
             'todo': QColor(editor.todo_color),
             'breakpoint': QColor(editor.breakpoint_color),
-            'occurrence': editor.occurrence_color,
-            'found_results': editor.found_results_color
+            'occurrence': QColor(editor.occurrence_color),
+            'found_results': QColor(editor.found_results_color)
             }
         self._edgecolors = {key: color.darker(120) for
                             key, color in self._facecolors.items()}
@@ -62,6 +62,7 @@ class ScrollFlagArea(Panel):
         editor.sig_alt_mouse_moved.connect(self.mouseMoveEvent)
         editor.sig_leave_out.connect(self.update)
         editor.sig_flags_changed.connect(self.update)
+        editor.sig_flag_colors_changed.connect(self.update_flag_colors)
 
     @property
     def slider(self):
@@ -71,6 +72,15 @@ class ScrollFlagArea(Panel):
     def sizeHint(self):
         """Override Qt method"""
         return QSize(self.WIDTH, 0)
+
+    def update_flag_colors(self, color_dict):
+        """
+        Update the permanent Qt colors that are used for painting the flags
+        and the slider range with the new colors defined in the given dict.
+        """
+        for name, color in color_dict.items():
+            self._facecolors[name] = QColor(color)
+            self._edgecolors[name] = self._facecolors[name].darker(120)
 
     def paintEvent(self, event):
         """
