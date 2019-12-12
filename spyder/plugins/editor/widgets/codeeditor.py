@@ -1793,6 +1793,7 @@ class CodeEditor(TextEditBaseWidget):
                                          to_qvariant(underline_color))
         if outline_color is not None:
             selection.set_outline(outline_color)
+        return selection
 
     def highlight_selection(self, key, cursor, foreground_color=None,
                             background_color=None, underline_color=None,
