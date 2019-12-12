@@ -1773,14 +1773,14 @@ class CodeEditor(TextEditBaseWidget):
         self.clear_extra_selections('occurrences')
         self.sig_flags_changed.emit()
 
-    def highlight_selection(self, key, cursor, foreground_color=None,
-                            background_color=None, underline_color=None,
-                            outline_color=None,
-                            underline_style=QTextCharFormat.SingleUnderline,
-                            update=False):
+    def get_selection(self, cursor, foreground_color=None,
+                      background_color=None, underline_color=None,
+                      outline_color=None,
+                      underline_style=QTextCharFormat.SingleUnderline):
+        """Get selection."""
         if cursor is None:
             return
-        extra_selections = self.get_extra_selections(key)
+
         selection = TextDecoration(cursor)
         if foreground_color is not None:
             selection.format.setForeground(foreground_color)
@@ -1793,8 +1793,20 @@ class CodeEditor(TextEditBaseWidget):
                                          to_qvariant(underline_color))
         if outline_color is not None:
             selection.set_outline(outline_color)
-        # selection.format.setProperty(QTextFormat.FullWidthSelection,
-                                     # to_qvariant(True))
+        return selection
+
+    def highlight_selection(self, key, cursor, foreground_color=None,
+                            background_color=None, underline_color=None,
+                            outline_color=None,
+                            underline_style=QTextCharFormat.SingleUnderline,
+                            update=False):
+
+        selection = self.get_selection(
+            cursor, foreground_color, background_color, underline_color,
+            outline_color, underline_style)
+        if selection is None:
+            return
+        extra_selections = self.get_extra_selections(key)
         extra_selections.append(selection)
         self.set_extra_selections(key, extra_selections)
         if update:
@@ -1824,11 +1836,15 @@ class CodeEditor(TextEditBaseWidget):
         # Highlighting all occurrences of word *text*
         cursor = self.__find_first(text)
         self.occurrences = []
+        extra_selections = self.get_extra_selections('occurrences')
         while cursor:
             self.occurrences.append(cursor.blockNumber())
-            self.highlight_selection('occurrences', cursor,
-                                       background_color=self.occurrence_color)
+            selection = self.get_selection(
+                cursor, background_color=self.occurrence_color)
+            if selection:
+                extra_selections.append(selection)
             cursor = self.__find_next(text, cursor)
+        self.set_extra_selections('occurrences', extra_selections)
         self.update_extra_selections()
         if len(self.occurrences) > 1 and self.occurrences[-1] == 0:
             # XXX: this is never happening with PySide but it's necessary
@@ -2242,7 +2258,6 @@ class CodeEditor(TextEditBaseWidget):
         """Process all linting results."""
         self.cleanup_code_analysis()
         self.setUpdatesEnabled(False)
-        cursor = self.textCursor()
         document = self.document()
 
         for diagnostic in results:
@@ -2258,33 +2273,24 @@ class CodeEditor(TextEditBaseWidget):
             block = document.findBlockByNumber(start['line'])
             error = severity == DiagnosticSeverity.ERROR
             color = self.error_color if error else self.warning_color
-            cursor.setPosition(block.position())
-            cursor.movePosition(QTextCursor.StartOfBlock)
-            cursor.movePosition(
-                QTextCursor.NextCharacter, n=start['character'])
-            block2 = document.findBlockByNumber(end['line'])
-            cursor.setPosition(block2.position(), QTextCursor.KeepAnchor)
-            cursor.movePosition(
-                QTextCursor.StartOfBlock, mode=QTextCursor.KeepAnchor)
-            cursor.movePosition(
-                QTextCursor.NextCharacter, n=end['character'],
-                mode=QTextCursor.KeepAnchor)
+
+            block.selection_start = start
+            block.selection_end = end
             color = QColor(color)
             color.setAlpha(255)
 
             data = block.userData()
             if not data:
-                data = BlockUserData(
-                    self, cursor=QTextCursor(cursor), color=color)
+                data = BlockUserData(self)
+
             data.code_analysis.append((source, code, severity, message))
             block.setUserData(data)
-            block.selection = QTextCursor(cursor)
             block.color = color
 
             # Underline errors and warnings in this editor.
             if self.underline_errors_enabled:
                 self.highlight_selection('code_analysis_underline',
-                                         block.selection,
+                                         block._selection(),
                                          underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
@@ -2420,7 +2426,7 @@ class CodeEditor(TextEditBaseWidget):
         """Highlight errors and warnings in this editor."""
         self.clear_extra_selections('code_analysis_highlight')
         self.highlight_selection('code_analysis_highlight',
-                                 block_data.selection,
+                                 block_data._selection(),
                                  background_color=block_data.color)
         self.update_extra_selections()
         self.linenumberarea.update()
