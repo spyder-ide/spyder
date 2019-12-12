@@ -415,12 +415,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         Update the outline explorer for the current editor tree preserving the
         tree state
         """
-        self.save_expanded_state()
-        editor = self.current_editor
-        editor_id = editor.get_id()
-        self.__do_update(editor, editor_id)
-        self.restore_expanded_state()
-        self.do_follow_cursor()
+        if self.parent().parent()._isvisible:
+            self.save_expanded_state()
+            editor = self.current_editor
+            editor_id = editor.get_id()
+            self.__do_update(editor, editor_id)
+            self.restore_expanded_state()
+            self.do_follow_cursor()
 
     def __do_update(self, editor, editor_id):
         """
