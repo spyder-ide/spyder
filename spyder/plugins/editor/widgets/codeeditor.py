@@ -276,10 +276,8 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emitted when the flags need to be updated in the scrollflagarea
     sig_flags_changed = Signal()
 
-    #: Signal emitted when the colors used to paint the flags in the
-    #  scrollflagarea need to be updated after a change was made to the
-    #  syntax color theme of the editor.
-    sig_flag_colors_changed = Signal(dict)
+    #: Signal emitted when the syntax color theme of the editor.
+    sig_theme_colors_changed = Signal(dict)
 
     #: Signal emitted when a new text is set on the widget
     new_text_set = Signal()
@@ -2058,7 +2056,7 @@ class CodeEditor(TextEditBaseWidget):
             self.edge_line.update_color()
             self.indent_guides.update_color()
 
-            self.sig_flag_colors_changed.emit(
+            self.sig_theme_colors_changed.emit(
                 {'occurrence': self.occurrence_color})
 
     def apply_highlighter_settings(self, color_scheme=None):

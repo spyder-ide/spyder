@@ -62,7 +62,7 @@ class ScrollFlagArea(Panel):
         editor.sig_alt_mouse_moved.connect(self.mouseMoveEvent)
         editor.sig_leave_out.connect(self.update)
         editor.sig_flags_changed.connect(self.update)
-        editor.sig_flag_colors_changed.connect(self.update_flag_colors)
+        editor.sig_theme_colors_changed.connect(self.update_flag_colors)
 
     @property
     def slider(self):
