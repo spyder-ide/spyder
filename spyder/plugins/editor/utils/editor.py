@@ -52,7 +52,7 @@ def drift_color(base_color, factor=110):
 
 
 class BlockUserData(QTextBlockUserData):
-    def __init__(self, editor, cursor=None, color=None):
+    def __init__(self, editor, color=None):
         QTextBlockUserData.__init__(self)
         self.editor = editor
         self.breakpoint = False
@@ -60,7 +60,7 @@ class BlockUserData(QTextBlockUserData):
         self.bookmarks = []
         self.code_analysis = []
         self.todo = ''
-        self.selection = cursor
+        self.selection = lambda: None
         self.color = color
         self.oedata = None
         self.import_statement = None
