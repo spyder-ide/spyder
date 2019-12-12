@@ -12,8 +12,8 @@ from __future__ import division
 from math import ceil
 
 # Third party imports
-from qtpy.QtCore import QSize, Qt, QRect
-from qtpy.QtGui import QPainter, QBrush, QColor, QCursor
+from qtpy.QtCore import QSize, Qt
+from qtpy.QtGui import QPainter, QColor, QCursor
 from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
 # Local imports
