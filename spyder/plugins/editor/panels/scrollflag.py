@@ -226,6 +226,14 @@ class ScrollFlagArea(Panel):
         groove_rect = self.get_scrollbar_groove_rect()
         return groove_rect.y()
 
+    def get_slider_min_height(self):
+        """
+        Return the minimum height of the slider range based on that set for
+        the scroll bar's slider.
+        """
+        return QApplication.instance().style().pixelMetric(
+            QStyle.PM_ScrollBarSliderMin)
+
     def get_scrollbar_groove_rect(self):
         """Return the area in which the slider handle may move."""
         vsb = self.editor.verticalScrollBar()
@@ -298,6 +306,7 @@ class ScrollFlagArea(Panel):
         vsb = self.editor.verticalScrollBar()
         slider_height = self.value_to_position(
             vsb.pageStep(), scale_factor, offset) - offset
+        slider_height = max(slider_height, self.get_slider_min_height())
 
         # Calcul the minimum and maximum y-value to constraint the slider
         # range indicator position to the height span of the scrollbar area
