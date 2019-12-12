@@ -2,15 +2,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2019-11-29 18:13+-05\n"
-"PO-Revision-Date: 2019-12-07 21:54\n"
-"Last-Translator: Gonzalo Peña-Castellanos (goanpeca)\n"
+"PO-Revision-Date: 2019-12-12 19:33\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: ENCODING\n"
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: crowdin.com\n"
 "X-Crowdin-Project: spyder\n"
 "X-Crowdin-Language: fr\n"
 "X-Crowdin-File: /4.x/spyder/locale/spyder.pot\n"
@@ -467,7 +466,7 @@ msgstr "Erreur"
 
 #: spyder/app/mainwindow.py:1478
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
-msgstr "<b>Il manque certaines dépendances</b><br><br><tt>%s</tt><br><b>Veuillez les installer pour éviter ce message </b><br><br></i>Remarque</i> : Spyder pourrait fonctionner sans certaines de ces dépendances, mais pour avoir une bonne expérience lors de l'utilisation de Spyder nous <i>fortement</i> vous recommandons d'installer toutes les dépendances manquantes. <br><br> L'impossibilité d'installer ces dépendances peut entraîner des bogues. Assurez-vous que les bogues trouvés ne résultent pas directement des dépendances manquantes avant de signaler un nouveau problème."
+msgstr "<b>Vous avez des dépendances manquantes !</b><br><br><tt>%s</tt><br><br><b>Veuillez les installer pour éliminer ce message.</b><br><br><i>Remarque</i> : Spyder pourrait fonctionner sans certaines de ces dépendances. Cependant, pour avoir une expérience fluide lors de l'utilisation de Spyder, nous vous recommandons <i>fortement</i> d'installer toutes les dépendances manquantes répertoriées.<br><br>Ne pas installer ces dépendances pourrait entraîner des bogues. Assurez-vous s'il vous plaît que les bogues trouvés ne résultent pas directement de dépendances manquantes avant de signaler un nouveau problème."
 
 #: spyder/app/mainwindow.py:1958
 msgid "Spyder Default Layout"
@@ -3854,11 +3853,11 @@ msgstr "Calcul Symbolique"
 
 #: spyder/plugins/ipythonconsole/confpage.py:315
 msgid "Perfom symbolic operations in the console (e.g. integrals, derivatives, vector calculus, etc) and get the outputs in a beautifully printed style (it requires the Sympy module)."
-msgstr "Utilise le calcul formel pour réaliser des opérations dans la console (par exemple intégrales, dérivées, calcul vectoriel, etc...) et affiche les résultats de manière élégante."
+msgstr "Utilise le calcul symbolique pour réaliser des opérations dans la console (par exemple intégrales, dérivées, calcul vectoriel, etc.) et affiche les résultats de manière élégante (cette fonctionnalité requiert la librairie Sympy)."
 
 #: spyder/plugins/ipythonconsole/confpage.py:321
 msgid "Use symbolic math"
-msgstr "Utiliser le calcul formel"
+msgstr "Utiliser le calcul symbolique"
 
 #: spyder/plugins/ipythonconsole/confpage.py:322
 msgid "This option loads the Sympy library to work with.<br>Please refer to its documentation to learn how to use it."
