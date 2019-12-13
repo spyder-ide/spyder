@@ -2280,9 +2280,6 @@ class CodeEditor(TextEditBaseWidget):
             block = document.findBlockByNumber(start['line'])
             error = severity == DiagnosticSeverity.ERROR
             color = self.error_color if error else self.warning_color
-
-            block.selection_start = start
-            block.selection_end = end
             color = QColor(color)
             color.setAlpha(255)
 
@@ -2290,6 +2287,8 @@ class CodeEditor(TextEditBaseWidget):
             if not data:
                 data = BlockUserData(self)
 
+            data.selection_start = start
+            data.selection_end = end
             data.code_analysis.append((source, code, severity, message))
             block.setUserData(data)
             block.color = color
@@ -2297,7 +2296,7 @@ class CodeEditor(TextEditBaseWidget):
             # Underline errors and warnings in this editor.
             if self.underline_errors_enabled:
                 self.highlight_selection('code_analysis_underline',
-                                         block._selection(),
+                                         data._selection(),
                                          underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
