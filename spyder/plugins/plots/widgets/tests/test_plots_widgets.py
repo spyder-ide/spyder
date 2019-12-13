@@ -98,6 +98,7 @@ def png_to_qimage(png):
 # =============================================================================
 # ---- Tests
 # =============================================================================
+@pytest.mark.first
 @pytest.mark.parametrize("fmt, fext",
                          [('image/png', '.png'), ('image/svg+xml', '.svg')])
 def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):

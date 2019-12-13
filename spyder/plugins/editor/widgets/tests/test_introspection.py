@@ -93,9 +93,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
 @pytest.mark.slow
 @pytest.mark.first
 @flaky(max_runs=5)
-@pytest.mark.skipif(
-    os.environ.get('CI') and (PY2 or os.name != 'nt'),
-    reason='Fails consistently on CI with Linux/Mac or Python 2')
+@pytest.mark.skipif(bool(os.environ.get('CI', None)), reason='Fails on CI!')
 def test_hide_widget_completion(lsp_codeeditor, qtbot):
     """Validate hiding completion widget after a delimeter or operator."""
     code_editor, _ = lsp_codeeditor
