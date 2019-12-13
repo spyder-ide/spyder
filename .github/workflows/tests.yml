@@ -1,0 +1,32 @@
+name: Github actions test
+
+on:
+  # This avoids having duplicate builds for a pull request
+  push:
+    branches:
+    - master
+    - 5.x
+    - 4.x
+  pull_request:
+    branches:
+    - master
+    - 5.x
+    - 4.x
+
+jobs:
+  fast-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v1.2.0
+      - name: Set up Conda
+        shell: bash
+        run: |
+          eval "$(conda shell.bash hook)"
+          conda config --set always_yes yes --set changeps1 no
+          conda update conda -q
+      - name: Conda info
+        shell: bash
+        run: |
+          eval "$(conda shell.bash hook)"
+          conda info
