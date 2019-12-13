@@ -415,7 +415,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         Update the outline explorer for the current editor tree preserving the
         tree state
         """
-        if self.parent().parent()._isvisible:
+        plugin_base = self.parent().parent()
+        if getattr(plugin_base, "_isvisible", True):
             self.save_expanded_state()
             editor = self.current_editor
             editor_id = editor.get_id()

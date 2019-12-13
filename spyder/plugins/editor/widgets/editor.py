@@ -3326,7 +3326,6 @@ class EditorPluginExample(QSplitter):
         self.editorwindows = []
 
         self.last_focus_editorstack = {} # fake
-        self._isvisible = True
 
         self.find_widget = FindReplace(self, enable_replace=True)
         self.outlineexplorer = OutlineExplorerWidget(self, show_fullpath=False,
