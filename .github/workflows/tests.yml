@@ -1,17 +1,6 @@
 name: Github actions test
 
-on:
-  # This avoids having duplicate builds for a pull request
-  push:
-    branches:
-    - master
-    - 5.x
-    - 4.x
-  pull_request:
-    branches:
-    - master
-    - 5.x
-    - 4.x
+on: [push, pull_request]
 
 jobs:
   tests:
