@@ -581,10 +581,23 @@ class ThumbnailScrollBar(QFrame):
     def __init__(self, figure_viewer, parent=None, background_color=None):
         super(ThumbnailScrollBar, self).__init__(parent)
         self._thumbnails = []
+
         self.background_color = background_color
         self.current_thumbnail = None
         self.set_figureviewer(figure_viewer)
         self.setup_gui()
+
+        # Because the range of Qt scrollareas is not updated immediately
+        # after a new item is added to it, setting the scrollbar's value
+        # to its maximum value after adding a new item will scroll down to
+        # the penultimate item instead of the last.
+        # So to scroll programmatically to the latest item after it
+        # is added to the scrollarea, we need to do it instead in a slot
+        # connected to the scrollbar's rangeChanged signal.
+        # See spyder-ide/#10914 for more details.
+        self._new_thumbnail_added = False
+        self.scrollarea.verticalScrollBar().rangeChanged.connect(
+            self._scroll_to_newest_item)
 
     def setup_gui(self):
         """Setup the main layout of the widget."""
@@ -604,6 +617,7 @@ class ThumbnailScrollBar(QFrame):
 
         self.scene = QGridLayout(self.view)
         self.scene.setContentsMargins(0, 0, 0, 0)
+        self.scene.setSpacing(3)
 
         self.scrollarea = QScrollArea()
         self.scrollarea.setWidget(self.view)
@@ -765,6 +779,7 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.sig_remove_figure.connect(self.remove_thumbnail)
         thumbnail.sig_save_figure.connect(self.save_figure_as)
         self._thumbnails.append(thumbnail)
+        self._new_thumbnail_added = True
 
         self.scene.setRowStretch(self.scene.rowCount() - 1, 0)
         self.scene.addWidget(thumbnail, self.scene.rowCount() - 1, 0)
@@ -862,6 +877,17 @@ class ThumbnailScrollBar(QFrame):
 
         vsb = self.scrollarea.verticalScrollBar()
         vsb.setValue(pos_scroll)
+
+    def _scroll_to_newest_item(self, vsb_min, vsb_max):
+        """
+        Scroll to the newest item added to the thumbnail scrollbar.
+
+        Note that this method is called each time the rangeChanged signal
+        is emitted by the scrollbar.
+        """
+        if self._new_thumbnail_added:
+            self._new_thumbnail_added = False
+            self.scrollarea.verticalScrollBar().setValue(vsb_max)
 
     # ---- ScrollBar Handlers
     def go_up(self):

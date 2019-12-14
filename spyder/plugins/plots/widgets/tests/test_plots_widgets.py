@@ -278,6 +278,34 @@ def test_scroll_to_item(figbrowser, tmpdir, qtbot):
     assert vsb.value() == expected
 
 
+def test_scroll_down_to_newest_plot(figbrowser, tmpdir, qtbot):
+    """
+    Test that the ThumbnailScrollBar is scrolled to the newest plot after
+    it is added to it.
+
+    Test that covers spyder-ide/spyder#10914.
+    """
+    figbrowser.setFixedSize(500, 500)
+
+    nfig = 8
+    for i in range(8):
+        newfig = create_figure(
+            osp.join(to_text_string(tmpdir), 'new_mplfig{}.png'.format(i)))
+        figbrowser._handle_new_figure(newfig, 'image/png')
+        qtbot.wait(500)
+
+    # Assert that the scrollbar range was updated correctly and that it's
+    # value was set to its maximum.
+    height_view = figbrowser.thumbnails_sb.scrollarea.viewport().height()
+    scene = figbrowser.thumbnails_sb.scene
+    spacing = scene.verticalSpacing()
+    height = scene.itemAt(0).sizeHint().height()
+
+    expected = (spacing * (nfig - 1)) + (height * nfig) - height_view
+    vsb = figbrowser.thumbnails_sb.scrollarea.verticalScrollBar()
+    assert vsb.value() == expected
+
+
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
 def test_mouse_clicking_thumbnails(figbrowser, tmpdir, qtbot, fmt):
     """
