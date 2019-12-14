@@ -618,6 +618,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor = self.textCursor()
         cursor.beginEditBlock()
         start_pos, end_pos = self.__save_selection()
+        end_pos_orig = end_pos
         if to_text_string(cursor.selectedText()):
             cursor.setPosition(end_pos)
             # Check if end_pos is at the start of a block: if so, starting
@@ -646,12 +647,12 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             cursor.setPosition(start_pos)
             cursor.movePosition(QTextCursor.StartOfBlock)
             start_pos += len(text)
-            end_pos += len(text)
+            end_pos_orig += len(text)
 
         cursor.insertText(text)
         cursor.endEditBlock()
         self.setTextCursor(cursor)
-        self.__restore_selection(start_pos, end_pos)
+        self.__restore_selection(start_pos, end_pos_orig)
 
     def duplicate_line(self):
         """
