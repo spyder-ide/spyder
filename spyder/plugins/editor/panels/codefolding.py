@@ -254,7 +254,12 @@ class FoldingPanel(Panel):
                 self._mouse_over_line)
             try:
                 self._draw_fold_region_background(block, painter)
-            except ValueError:
+            except (ValueError, KeyError):
+                # Catching the KeyError above is necessary to avoid
+                # issue spyder-ide/spyder#10918.
+                # It happens when users have the mouse on top of the
+                # folding panel and make some text modifications
+                # that trigger a folding recomputation.
                 pass
         # Draw fold triggers
         for top_position, line_number, block in self.editor.visible_blocks:
