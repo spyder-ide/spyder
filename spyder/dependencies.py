@@ -26,8 +26,8 @@ ATOMICWRITES_REQVER = '>=1.2.0'
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
-IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
 INTERVALTREE_REQVER = None
+IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
 KEYRING_REQVER = None
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
@@ -91,14 +91,14 @@ DESCRIPTIONS += [
      'package_name': "diff_match_patch",
      'features': _("Compute text file diff changes during edition"),
      'required_version': DIFF_MATCH_PATCH_REQVER},
-    {'modname': "IPython",
-     'package_name': "IPython",
-     'features': _("IPython interactive python environment"),
-     'required_version': IPYTHON_REQVER},
     {'modname': "intervaltree",
      'package_name': "intervaltree",
      'features': _("Compute folding range nesting levels"),
      'required_version': INTERVALTREE_REQVER},
+    {'modname': "IPython",
+     'package_name': "IPython",
+     'features': _("IPython interactive python environment"),
+     'required_version': IPYTHON_REQVER},
     {'modname': "keyring",
      'package_name': "keyring",
      'features': _("Save Github credentials to report internal errors securely"),
