@@ -617,6 +617,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Duplicate current line or selected text"""
         cursor = self.textCursor()
         cursor.beginEditBlock()
+        cur_pos = cursor.position()
         start_pos, end_pos = self.__save_selection()
         end_pos_orig = end_pos
         if to_text_string(cursor.selectedText()):
@@ -648,11 +649,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             cursor.movePosition(QTextCursor.StartOfBlock)
             start_pos += len(text)
             end_pos_orig += len(text)
+            cur_pos += len(text)
 
         cursor.insertText(text)
         cursor.endEditBlock()
         self.setTextCursor(cursor)
-        self.__restore_selection(start_pos, end_pos_orig)
+        if cur_pos == start_pos:
+            self.__restore_selection(end_pos_orig, start_pos)
+        else:
+            self.__restore_selection(start_pos, end_pos_orig)
 
     def duplicate_line(self):
         """
