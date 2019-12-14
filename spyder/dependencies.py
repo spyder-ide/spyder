@@ -63,19 +63,18 @@ SYMPY_REQVER = '>=0.7.3'
 # Descriptions
 # NOTE: We declare our dependencies in **alphabetical** order
 # =============================================================================
-# List of dependencies
-DEPENDENCIES_BASE = []
-
+# List of descriptions
+DESCRIPTIONS = []
 
 if sys.platform == "darwin":
-    DEPENDENCIES_BASE.append(
+    DESCRIPTIONS.append(
         {'modname': "applaunchservices",
          'package_name': "applaunchservices",
          'features': _("Notify macOS that Spyder can open Python files"),
          'required_version': APPLAUNCHSERVICES_REQVER})
 
 
-DEPENDENCIES_BASE += [
+DESCRIPTIONS += [
     {'modname': "atomicwrites",
      'package_name': "atomicwrites",
      'features': _("Atomic file writes in the Editor"),
@@ -116,7 +115,7 @@ DEPENDENCIES_BASE += [
 
 
 if sys.platform == 'nt':
-    DEPENDENCIES_BASE.append(
+    DESCRIPTIONS.append(
         {'modname': "paramiko",
          'package_name': "paramiko",
          'features': _("Connect to remote kernels through SSH"),
@@ -124,7 +123,7 @@ if sys.platform == 'nt':
     )
 
 
-DEPENDENCIES_BASE += [
+DESCRIPTIONS += [
     {'modname': "pexpect",
      'package_name': "pexpect",
      'features': _("Stdio support for our language server client"),
@@ -153,7 +152,7 @@ DEPENDENCIES_BASE += [
 
 
 if sys.platform.startswith('linux'):
-    DEPENDENCIES_BASE.append(
+    DESCRIPTIONS.append(
         {'modname': "xdg",
          'package_name': "pyxdg",
          'features': _("Parse desktop files on Linux"),
@@ -161,7 +160,7 @@ if sys.platform.startswith('linux'):
     )
 
 
-DEPENDENCIES_BASE += [
+DESCRIPTIONS += [
     {'modname': "zmq",
      'package_name': "pyzmq",
      'features': _("Client for the language server protocol (LSP)"),
@@ -186,7 +185,7 @@ DEPENDENCIES_BASE += [
 
 
 if is_anaconda():
-    DEPENDENCIES_BASE.append(
+    DESCRIPTIONS.append(
         {'modname': "rtree",
          'package_name': "rtree",
          'features': _("Fast access to code snippets regions"),
@@ -194,7 +193,7 @@ if is_anaconda():
     )
 
 
-DEPENDENCIES_BASE += [
+DESCRIPTIONS += [
     {'modname': "sphinx",
      'package_name': "sphinx",
      'features': _("Show help for objects in the Editor and Consoles in a dedicated pane"),
@@ -211,7 +210,7 @@ DEPENDENCIES_BASE += [
 
 
 # Optional dependencies
-DEPENDENCIES_BASE += [
+DESCRIPTIONS += [
     {'modname': "cython",
      'package_name': "cython",
      'features': _("Run Cython files in the IPython Console"),
@@ -359,7 +358,7 @@ def missing_dependencies():
 
 
 def declare_dependencies():
-    for dep in DEPENDENCIES_BASE:
+    for dep in DESCRIPTIONS:
         # Detect if dependency is optional
         if dep.get('optional', False):
             optional = True
