@@ -52,6 +52,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.extra_selections_dict = {}
+        self._restore_selection_pos = None
 
         # Code snippets
         self.code_snippets = True
@@ -601,6 +602,18 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Return document total line number"""
         return self.blockCount()
 
+    def paintEvent(self, e):
+        """
+        Override Qt method to restore text selection after text gets inserted
+        at the current position of the cursor.
+
+        See spyder-ide/spyder#11089 for more info.
+        """
+        if self._restore_selection_pos is not None:
+            self.__restore_selection(*self._restore_selection_pos)
+            self._restore_selection_pos = None
+        super(TextEditBaseWidget, self).paintEvent(e)
+
     def __save_selection(self):
         """Save current cursor selection and return position bounds"""
         cursor = self.textCursor()
@@ -651,13 +664,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             end_pos_orig += len(text)
             cur_pos += len(text)
 
+        # We save the end and start position of the selection, so that it
+        # can be restored within the paint event that is triggered by the
+        # text insertion. This is done to prevent a graphical glitch that
+        # occurs when text gets inserted at the current position of the cursor.
+        # See spyder-ide/spyder#11089 for more info.
+        if cur_pos == start_pos:
+            self._restore_selection_pos = (end_pos_orig, start_pos)
+        else:
+            self._restore_selection_pos = (start_pos, end_pos_orig)
         cursor.insertText(text)
         cursor.endEditBlock()
-        self.setTextCursor(cursor)
-        if cur_pos == start_pos:
-            self.__restore_selection(end_pos_orig, start_pos)
-        else:
-            self.__restore_selection(start_pos, end_pos_orig)
 
     def duplicate_line(self):
         """
