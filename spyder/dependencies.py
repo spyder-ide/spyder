@@ -17,106 +17,77 @@ from spyder.config.utils import is_anaconda
 from spyder.py3compat import PY2
 
 
-CLOUDPICKLE_REQVER = '>=0.5.0'
-PYGMENTS_REQVER = '>=2.0'
-QTCONSOLE_REQVER = '>=4.6.0'
-NBCONVERT_REQVER = '>=4.0'
-SPHINX_REQVER = '>=0.6.6'
-PYLINT_REQVER = '>=0.25'
-PSUTIL_REQVER = '>=0.3'
-QTAWESOME_REQVER = '>=0.5.7'
-QTPY_REQVER = '>=1.5.0'
-PICKLESHARE_REQVER = '>=0.4'
-PYZMQ_REQVER = '>=17'
-CHARDET_REQVER = '>=2.0.0'
-NUMPYDOC_REQVER = '>=0.6.0'
-SPYDER_KERNELS_REQVER = '>=1.8.1;<2.0.0'
-QDARKSTYLE_REQVER = '>=2.7'
-ATOMICWRITES_REQVER = '>=1.2.0'
-DIFF_MATCH_PATCH_REQVER = '>=20181111'
-WATCHDOG_REQVER = None
-KEYRING_REQVER = None
-PEXPECT_REQVER = '>=4.4.0'
-PARAMIKO_REQVER = '>=2.4.0'
-PYXDG_REQVER = '>=0.26'
-RTREE_REQVER = '>=0.8.3'
-SYMPY_REQVER = '>=0.7.3'
-CYTHON_REQVER = '>=0.21'
-IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
-MATPLOTLIB_REQVER = '>=2.0.0'
-PANDAS_REQVER = '>=0.13.1'
-NUMPY_REQVER = '>=1.7'
-SCIPY_REQVER = '>=0.17.0'
-PYLS_REQVER = '>=0.31.2;<0.32.0'
+# =============================================================================
+# Versions
+# =============================================================================
+# Hard dependencies
 APPLAUNCHSERVICES_REQVER = '>=0.1.7'
+ATOMICWRITES_REQVER = '>=1.2.0'
+CHARDET_REQVER = '>=2.0.0'
+CLOUDPICKLE_REQVER = '>=0.5.0'
+DIFF_MATCH_PATCH_REQVER = '>=20181111'
 INTERVALTREE_REQVER = None
+IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
+JEDI_REQVER = '=0.14.1'
+KEYRING_REQVER = None
+NBCONVERT_REQVER = '>=4.0'
+NUMPYDOC_REQVER = '>=0.6.0'
+PARAMIKO_REQVER = '>=2.4.0'
+PEXPECT_REQVER = '>=4.4.0'
+PICKLESHARE_REQVER = '>=0.4'
+PSUTIL_REQVER = '>=0.3'
+PYGMENTS_REQVER = '>=2.0'
+PYLINT_REQVER = '>=0.25'
+PYLS_REQVER = '>=0.31.2;<0.32.0'
+PYXDG_REQVER = '>=0.26'
+PYZMQ_REQVER = '>=17'
+QDARKSTYLE_REQVER = '>=2.7'
+QTAWESOME_REQVER = '>=0.5.7'
+QTCONSOLE_REQVER = '>=4.6.0'
+QTPY_REQVER = '>=1.5.0'
+RTREE_REQVER = '>=0.8.3'
+SPHINX_REQVER = '>=0.6.6'
+SPYDER_KERNELS_REQVER = '>=1.8.1;<2.0.0'
+WATCHDOG_REQVER = None
 
 
-DEPENDENCIES_BASE = [
-    {'modname': "cloudpickle",
-     'package_name': "cloudpickle",
-     'features': _("Handle communications between kernel and frontend"),
-     'required_version': CLOUDPICKLE_REQVER},
-    {'modname': "pygments",
-     'package_name': "pygments",
-     'features': _("Syntax highlighting for a lot of file types in the Editor"),
-     'required_version': PYGMENTS_REQVER},
-    {'modname': "qtconsole",
-     'package_name': "qtconsole",
-     'features': _("Main package for the IPython console"),
-     'required_version': QTCONSOLE_REQVER},
-    {'modname': "nbconvert",
-     'package_name': "nbconvert",
-     'features': _("Manipulate Jupyter notebooks in the Editor"),
-     'required_version': NBCONVERT_REQVER},
-    {'modname': "sphinx",
-     'package_name': "sphinx",
-     'features': _("Show help for objects in the Editor and Consoles in a dedicated pane"),
-     'required_version': SPHINX_REQVER},
-    {'modname': "pylint",
-     'package_name': "pylint",
-     'features': _("Static code analysis"),
-     'required_version': PYLINT_REQVER},
-    {'modname': "psutil",
-     'package_name': "psutil",
-     'features': _("CPU and memory usage info in the status bar"),
-     'required_version': PSUTIL_REQVER},
-    {'modname': "qtawesome",
-     'package_name': "qtawesome",
-     'features': _("Icon theme based on FontAwesome and Material Design icons"),
-     'required_version': QTAWESOME_REQVER},
-    {'modname': "qtpy",
-     'package_name': "qtpy",
-     'features': _("Abstraction layer for Python Qt bindings."),
-     'required_version': QTPY_REQVER},
-    {'modname': "pickleshare",
-     'package_name': "pickleshare",
-     'features': _("Cache the list of installed Python modules"),
-     'required_version': PICKLESHARE_REQVER},
-    {'modname': "zmq",
-     'package_name': "pyzmq",
-     'features': _("Client for the language server protocol (LSP)"),
-     'required_version': PYZMQ_REQVER},
-    {'modname': "chardet",
-     'package_name': "chardet",
-     'features': _("Character encoding auto-detection for the Editor"),
-     'required_version': CHARDET_REQVER},
-    {'modname': "numpydoc",
-     'package_name': "numpydoc",
-     'features': _("Improve code completion for objects that use Numpy docstrings"),
-     'required_version': NUMPYDOC_REQVER},
-    {'modname': "spyder_kernels",
-     'package_name': "spyder-kernels",
-     'features': _("Jupyter kernels for the Spyder console"),
-     'required_version': SPYDER_KERNELS_REQVER},
-    {'modname': "qdarkstyle",
-     'package_name': "qdarkstyle",
-     'features': _("Dark style for the entire interface"),
-     'required_version': QDARKSTYLE_REQVER},
+# Optional dependencies
+CYTHON_REQVER = '>=0.21'
+MATPLOTLIB_REQVER = '>=2.0.0'
+NUMPY_REQVER = '>=1.7'
+PANDAS_REQVER = '>=0.13.1'
+SCIPY_REQVER = '>=0.17.0'
+SYMPY_REQVER = '>=0.7.3'
+
+
+# =============================================================================
+# Descriptions
+# NOTE: We declare our dependencies in **alphabetical** order
+# =============================================================================
+# List of descriptions
+DESCRIPTIONS = []
+
+if sys.platform == "darwin":
+    DESCRIPTIONS.append(
+        {'modname': "applaunchservices",
+         'package_name': "applaunchservices",
+         'features': _("Notify macOS that Spyder can open Python files"),
+         'required_version': APPLAUNCHSERVICES_REQVER})
+
+
+DESCRIPTIONS += [
     {'modname': "atomicwrites",
      'package_name': "atomicwrites",
      'features': _("Atomic file writes in the Editor"),
      'required_version': ATOMICWRITES_REQVER},
+    {'modname': "chardet",
+     'package_name': "chardet",
+     'features': _("Character encoding auto-detection for the Editor"),
+     'required_version': CHARDET_REQVER},
+    {'modname': "cloudpickle",
+     'package_name': "cloudpickle",
+     'features': _("Handle communications between kernel and frontend"),
+     'required_version': CLOUDPICKLE_REQVER},
     {'modname': "diff_match_patch",
      'package_name': "diff_match_patch",
      'features': _("Compute text file diff changes during edition"),
@@ -125,80 +96,101 @@ DEPENDENCIES_BASE = [
      'package_name': "intervaltree",
      'features': _("Compute folding range nesting levels"),
      'required_version': INTERVALTREE_REQVER},
-    {'modname': "watchdog",
-     'package_name': "watchdog",
-     'features': _("Watch file changes on project directories"),
-     'required_version': WATCHDOG_REQVER},
-    {'modname': "keyring",
-     'package_name': "keyring",
-     'features': _("Save Github credentials to report internal errors securely"),
-     'required_version': KEYRING_REQVER},
-    {'modname': "pexpect",
-     'package_name': "pexpect",
-     'features': _("Stdio support for our language server client"),
-     'required_version': PEXPECT_REQVER},
-    {'modname': "sympy",
-     'package_name': "sympy",
-     'features': _("Symbolic mathematics in the IPython Console"),
-     'required_version': SYMPY_REQVER,
-     'optional': True},
-    {'modname': "cython",
-     'package_name': "cython",
-     'features': _("Run Cython files in the IPython Console"),
-     'required_version': CYTHON_REQVER,
-     'optional': True},
     {'modname': "IPython",
      'package_name': "IPython",
      'features': _("IPython interactive python environment"),
      'required_version': IPYTHON_REQVER},
-    {'modname': "matplotlib",
-     'package_name': "matplotlib",
-     'features': _("2D/3D plotting in the IPython console"),
-     'required_version': MATPLOTLIB_REQVER,
-     'optional': True},
-    {'modname': 'pandas',
-     'package_name':  'pandas',
-     'features': _("View and edit DataFrames and Series in the Variable Explorer"),
-     'required_version': PANDAS_REQVER,
-     'optional': True},
-    {'modname': "numpy",
-     'package_name': "numpy",
-     'features': _("View and edit two and three dimensional arrays in the Variable Explorer"),
-     'required_version': NUMPY_REQVER,
-     'optional': True},
-    {'modname': "scipy",
-     'package_name': "scipy",
-     'features': _("Import Matlab workspace files in the Variable Explorer"),
-     'required_version': SCIPY_REQVER,
-     'optional': True},
-    {'modname': 'pyls',
-     'package_name': 'python-language-server',
-     'features': _("Code completion and linting for the Editor"),
-     'required_version': PYLS_REQVER}]
+    {'modname': "jedi",
+     'package_name': "jedi",
+     'features': _("Main backend for the Python Language Server"),
+     'required_version': JEDI_REQVER},
+    {'modname': "keyring",
+     'package_name': "keyring",
+     'features': _("Save Github credentials to report internal errors securely"),
+     'required_version': KEYRING_REQVER},
+    {'modname': "nbconvert",
+     'package_name': "nbconvert",
+     'features': _("Manipulate Jupyter notebooks in the Editor"),
+     'required_version': NBCONVERT_REQVER},
+    {'modname': "numpydoc",
+     'package_name': "numpydoc",
+     'features': _("Improve code completion for objects that use Numpy docstrings"),
+     'required_version': NUMPYDOC_REQVER}
+]
 
-if sys.platform == "darwin":
-    DEPENDENCIES_BASE.append(
-        {'modname': "applaunchservices",
-         'package_name': "applaunchservices",
-         'features': _("Notify macOS that Spyder can open Python files"),
-         'required_version': APPLAUNCHSERVICES_REQVER})
-
-if sys.platform.startswith('linux'):
-    DEPENDENCIES_BASE.append(
-        {'modname': "xdg",
-         'package_name': "pyxdg",
-         'features': _("Parse desktop files on Linux"),
-         'required_version': PYXDG_REQVER})
 
 if sys.platform == 'nt':
-    DEPENDENCIES_BASE.append(
+    DESCRIPTIONS.append(
         {'modname': "paramiko",
          'package_name': "paramiko",
          'features': _("Connect to remote kernels through SSH"),
-         'required_version': PARAMIKO_REQVER})
+         'required_version': PARAMIKO_REQVER}
+    )
+
+
+DESCRIPTIONS += [
+    {'modname': "pexpect",
+     'package_name': "pexpect",
+     'features': _("Stdio support for our language server client"),
+     'required_version': PEXPECT_REQVER},
+    {'modname': "pickleshare",
+     'package_name': "pickleshare",
+     'features': _("Cache the list of installed Python modules"),
+     'required_version': PICKLESHARE_REQVER},
+    {'modname': "psutil",
+     'package_name': "psutil",
+     'features': _("CPU and memory usage info in the status bar"),
+     'required_version': PSUTIL_REQVER},
+    {'modname': "pygments",
+     'package_name': "pygments",
+     'features': _("Syntax highlighting for a lot of file types in the Editor"),
+     'required_version': PYGMENTS_REQVER},
+    {'modname': "pylint",
+     'package_name': "pylint",
+     'features': _("Static code analysis"),
+     'required_version': PYLINT_REQVER},
+    {'modname': 'pyls',
+     'package_name': 'python-language-server',
+     'features': _("Code completion and linting for the Editor"),
+     'required_version': PYLS_REQVER}
+]
+
+
+if sys.platform.startswith('linux'):
+    DESCRIPTIONS.append(
+        {'modname': "xdg",
+         'package_name': "pyxdg",
+         'features': _("Parse desktop files on Linux"),
+         'required_version': PYXDG_REQVER}
+    )
+
+
+DESCRIPTIONS += [
+    {'modname': "zmq",
+     'package_name': "pyzmq",
+     'features': _("Client for the language server protocol (LSP)"),
+     'required_version': PYZMQ_REQVER},
+    {'modname': "qdarkstyle",
+     'package_name': "qdarkstyle",
+     'features': _("Dark style for the entire interface"),
+     'required_version': QDARKSTYLE_REQVER},
+    {'modname': "qtawesome",
+     'package_name': "qtawesome",
+     'features': _("Icon theme based on FontAwesome and Material Design icons"),
+     'required_version': QTAWESOME_REQVER},
+    {'modname': "qtconsole",
+     'package_name': "qtconsole",
+     'features': _("Main package for the IPython console"),
+     'required_version': QTCONSOLE_REQVER},
+    {'modname': "qtpy",
+     'package_name': "qtpy",
+     'features': _("Abstraction layer for Python Qt bindings."),
+     'required_version': QTPY_REQVER}
+]
+
 
 if is_anaconda():
-    DEPENDENCIES_BASE.append(
+    DESCRIPTIONS.append(
         {'modname': "rtree",
          'package_name': "rtree",
          'features': _("Fast access to code snippets regions"),
@@ -206,6 +198,60 @@ if is_anaconda():
     )
 
 
+DESCRIPTIONS += [
+    {'modname': "sphinx",
+     'package_name': "sphinx",
+     'features': _("Show help for objects in the Editor and Consoles in a dedicated pane"),
+     'required_version': SPHINX_REQVER},
+    {'modname': "spyder_kernels",
+     'package_name': "spyder-kernels",
+     'features': _("Jupyter kernels for the Spyder console"),
+     'required_version': SPYDER_KERNELS_REQVER},
+    {'modname': "watchdog",
+     'package_name': "watchdog",
+     'features': _("Watch file changes on project directories"),
+     'required_version': WATCHDOG_REQVER}
+]
+
+
+# Optional dependencies
+DESCRIPTIONS += [
+    {'modname': "cython",
+     'package_name': "cython",
+     'features': _("Run Cython files in the IPython Console"),
+     'required_version': CYTHON_REQVER,
+     'optional': True},
+    {'modname': "matplotlib",
+     'package_name': "matplotlib",
+     'features': _("2D/3D plotting in the IPython console"),
+     'required_version': MATPLOTLIB_REQVER,
+     'optional': True},
+    {'modname': "numpy",
+     'package_name': "numpy",
+     'features': _("View and edit two and three dimensional arrays in the Variable Explorer"),
+     'required_version': NUMPY_REQVER,
+     'optional': True},
+    {'modname': 'pandas',
+     'package_name':  'pandas',
+     'features': _("View and edit DataFrames and Series in the Variable Explorer"),
+     'required_version': PANDAS_REQVER,
+     'optional': True},
+    {'modname': "scipy",
+     'package_name': "scipy",
+     'features': _("Import Matlab workspace files in the Variable Explorer"),
+     'required_version': SCIPY_REQVER,
+     'optional': True},
+    {'modname': "sympy",
+     'package_name': "sympy",
+     'features': _("Symbolic mathematics in the IPython Console"),
+     'required_version': SYMPY_REQVER,
+     'optional': True}
+]
+
+
+# =============================================================================
+# Code
+# =============================================================================
 class Dependency(object):
     """Spyder's dependency
 
@@ -317,7 +363,7 @@ def missing_dependencies():
 
 
 def declare_dependencies():
-    for dep in DEPENDENCIES_BASE:
+    for dep in DESCRIPTIONS:
         # Detect if dependency is optional
         if dep.get('optional', False):
             optional = True
