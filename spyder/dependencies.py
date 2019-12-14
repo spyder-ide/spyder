@@ -28,6 +28,7 @@ CLOUDPICKLE_REQVER = '>=0.5.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
 INTERVALTREE_REQVER = None
 IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
+JEDI_REQVER = '=0.14.1'
 KEYRING_REQVER = None
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
@@ -99,6 +100,10 @@ DESCRIPTIONS += [
      'package_name': "IPython",
      'features': _("IPython interactive python environment"),
      'required_version': IPYTHON_REQVER},
+    {'modname': "jedi",
+     'package_name': "jedi",
+     'features': _("Main backend for the Python Language Server"),
+     'required_version': JEDI_REQVER},
     {'modname': "keyring",
      'package_name': "keyring",
      'features': _("Save Github credentials to report internal errors securely"),
