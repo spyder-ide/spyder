@@ -601,7 +601,15 @@ class DataFrameView(QTableView):
         obj = df.iloc[slice(row_min, row_max + 1),
                       slice(col_min, col_max + 1)]
         output = io.StringIO()
-        obj.to_csv(output, sep='\t', index=index, header=header)
+        try:
+            obj.to_csv(output, sep='\t', index=index, header=header)
+        except UnicodeEncodeError:
+            # Needed to handle enconding errors in Python 2
+            # See spyder-ide/spyder#4833
+            QMessageBox.critical(
+                self,
+                _("Error"),
+                _("Text can't be copied."))
         if not PY2:
             contents = output.getvalue()
         else:
