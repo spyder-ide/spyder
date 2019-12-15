@@ -2075,6 +2075,7 @@ class EditorStack(QWidget):
             # Save the currently edited file
             index = self.get_stack_index()
         finfo = self.data[index]
+        original_newly_created = finfo.newly_created
         # The next line is necessary to avoid checking if the file exists
         # While running __check_file_status
         # See spyder-ide/spyder#3678 and spyder-ide/spyder#3026.
@@ -2105,7 +2106,7 @@ class EditorStack(QWidget):
             self.set_stack_index(new_index)
             return ok
         else:
-            finfo.newly_created = False
+            finfo.newly_created = original_newly_created
             return False
 
     def save_copy_as(self, index=None):
