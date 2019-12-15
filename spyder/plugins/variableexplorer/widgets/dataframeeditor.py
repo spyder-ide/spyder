@@ -897,7 +897,9 @@ class DataFrameEditor(QDialog):
 
         # autosize columns on-demand
         self._autosized_cols = set()
-        self._max_autosize_ms = None
+        # Set limit time to calculate column sizeHint to 300ms,
+        # See spyder-ide/spyder#11060
+        self._max_autosize_ms = 300
         self.dataTable.installEventFilter(self)
 
         avg_width = self.fontMetrics().averageCharWidth()
@@ -1096,8 +1098,8 @@ class DataFrameEditor(QDialog):
         if old_sel_model:
             del old_sel_model
 
-    def setAutosizeLimit(self, limit_ms):
-        """Set maximum size for columns."""
+    def setAutosizeLimitTime(self, limit_ms):
+        """Set maximum time to calculate size hint for columns."""
         self._max_autosize_ms = limit_ms
 
     def setModel(self, model, relayout=True):
