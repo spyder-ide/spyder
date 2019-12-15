@@ -612,7 +612,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if syspath is not None:
             editor = CollectionsEditor(self)
             editor.setup(syspath, title="sys.path contents", readonly=True,
-                         width=600, icon=ima.icon('syspath'))
+                         icon=ima.icon('syspath'))
             self.dialog_manager.show(editor)
         else:
             return
