@@ -594,7 +594,9 @@ class DataFrameView(QTableView):
             return
         (row_min, row_max,
          col_min, col_max) = get_idx_rect(self.selectedIndexes())
-        index = header = False
+        # Copy index and header too (equal True).
+        # See spyder-ide/spyder#11096
+        index = header = True
         df = self.model().df
         obj = df.iloc[slice(row_min, row_max + 1),
                       slice(col_min, col_max + 1)]
