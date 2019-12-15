@@ -2893,5 +2893,47 @@ def test_pbd_step(main_window, qtbot, tmpdir):
         str(test_file))
 
 
+@pytest.mark.slow
+@flaky(max_runs=1)
+@pytest.mark.parametrize(
+    "ipython", [True, False])
+@pytest.mark.parametrize(
+    "test_cell_magic", [True, False])
+def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
+    """Test the runcell command with cell magic."""
+    # Write code with a cell to a file
+    if test_cell_magic:
+        code = "\n\n%%python2\nprint 'code executed ' + str(1 + 1)\n"
+    else:
+        code = "\n\n%debug print()"
+    if ipython:
+        fn = "cell-test.ipy"
+    else:
+        fn = "cell-test.py"
+    p = tmpdir.join(fn)
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Execute runcell
+    shell.execute("runcell(0, r'{}')".format(to_text_string(p)))
+    control = main_window.ipyconsole.get_focus_widget()
+
+    error_text = 'save this file with .ipy extension'
+    if ipython:
+        if test_cell_magic:
+            qtbot.waitUntil(lambda: 'code executed' in control.toPlainText())
+
+            # Verify that the code was executed
+            assert 'code executed 2' in control.toPlainText()
+        else:
+            qtbot.waitUntil(lambda: 'ipdb>' in control.toPlainText())
+        assert error_text not in control.toPlainText()
+    else:
+        qtbot.waitUntil(lambda: error_text in control.toPlainText())
+
+
 if __name__ == "__main__":
     pytest.main()
