@@ -2903,7 +2903,7 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
     """Test the runcell command with cell magic."""
     # Write code with a cell to a file
     if test_cell_magic:
-        code = "\n\n%%python2\nprint 'code executed ' + str(1 + 1)\n"
+        code = "\n\n%%writefile test.tmp\ntest\n"
     else:
         code = "\n\n%debug print()"
     if ipython:
@@ -2922,17 +2922,22 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
     control = main_window.ipyconsole.get_focus_widget()
 
     error_text = 'save this file with .ipy extension'
-    if ipython:
-        if test_cell_magic:
-            qtbot.waitUntil(lambda: 'code executed' in control.toPlainText())
+    try:
+        if ipython:
+            if test_cell_magic:
+                qtbot.waitUntil(
+                    lambda: 'Writing test.tmp' in control.toPlainText())
 
-            # Verify that the code was executed
-            assert 'code executed 2' in control.toPlainText()
+                # Verify that the code was executed
+                assert osp.exists("test.tmp")
+            else:
+                qtbot.waitUntil(lambda: 'ipdb>' in control.toPlainText())
+            assert error_text not in control.toPlainText()
         else:
-            qtbot.waitUntil(lambda: 'ipdb>' in control.toPlainText())
-        assert error_text not in control.toPlainText()
-    else:
-        qtbot.waitUntil(lambda: error_text in control.toPlainText())
+            qtbot.waitUntil(lambda: error_text in control.toPlainText())
+    finally:
+        if osp.exists("test.tmp"):
+            os.remove("test.tmp")
 
 
 if __name__ == "__main__":
