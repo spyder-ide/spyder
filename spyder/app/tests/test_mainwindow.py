@@ -2918,7 +2918,8 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
                     timeout=SHELL_TIMEOUT)
 
     # Execute runcell
-    shell.execute("runcell(0, r'{}')".format(to_text_string(p)))
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("runcell(0, r'{}')".format(to_text_string(p)))
     control = main_window.ipyconsole.get_focus_widget()
 
     error_text = 'save this file with .ipy extension'
