@@ -366,9 +366,9 @@ DEFAULTS = [
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
-              'editor/copy line up': (
+              'editor/duplicate line up': (
                   "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),
-              'editor/copy line down': (
+              'editor/duplicate line down': (
                   "Ctrl+Alt+Down" if WIN else "Shift+Alt+Down"),
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',

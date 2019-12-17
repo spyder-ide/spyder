@@ -676,14 +676,14 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.insertText(text)
         cursor.endEditBlock()
 
-    def copy_line_down(self):
+    def duplicate_line_down(self):
         """
         Copy current line or selected text and paste the duplicated text
         *after* the current line or selected text.
         """
         self.__duplicate_line_or_selection(after_current_line=True)
 
-    def copy_line_up(self):
+    def duplicate_line_up(self):
         """
         Copy current line or selected text and paste the duplicated text
         *before* the current line or selected text.
