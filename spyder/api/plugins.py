@@ -523,3 +523,9 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
             self.dockwidget.raise_()
         else:
             self.dockwidget.hide()
+
+    def set_ancestor(self, ancestor):
+        """
+        Needed to update the ancestor/parent of child widgets when undocking.
+        """
+        pass

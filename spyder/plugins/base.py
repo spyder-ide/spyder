@@ -131,6 +131,7 @@ class PluginWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Reimplement Qt method."""
+        self.plugin.set_ancestor(self.plugin.main)
         self.plugin.dockwidget.setWidget(self.plugin)
         self.plugin.dockwidget.setVisible(True)
         self.plugin.switch_to_plugin()
@@ -356,7 +357,7 @@ class BasePluginWidgetMixin(object):
         window.setCentralWidget(self)
         window.resize(self.size())
         self.refresh_plugin()
-
+        self.set_ancestor(window)
         self.dockwidget.setFloating(False)
         self.dockwidget.setVisible(False)
 
