@@ -29,8 +29,9 @@ from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 from spyder.py3compat import PY2
 
-# Qt Test Fixtures
-#--------------------------------
+# =============================================================================
+# ---- Qt Test Fixtures
+# =============================================================================
 @pytest.fixture
 def base_editor_bot(qtbot):
     editor_stack = EditorStack(None, [])
@@ -117,8 +118,9 @@ def editor_folding_bot(base_editor_bot, qtbot):
     return editor_stack, finfo.editor, find_replace
 
 
-# Tests
-#-------------------------------
+# =============================================================================
+# ---- Tests
+# =============================================================================
 def test_find_number_matches(setup_editor):
     """Test for number matches in find/replace."""
     editor_stack, editor = setup_editor
@@ -221,6 +223,48 @@ def test_move_multiple_lines_up(editor_bot):
     # Move first and second lines up (to test already at top condition).
     editor.move_line_up()
     assert editor.toPlainText() == expected_new_text
+
+
+def test_copy_lines_down_up(editor_bot, mocker, qtbot):
+    """
+    Test that copy lines down and copy lines up are working as expected.
+    """
+    editorstack, editor = editor_bot
+
+    # We need to show the editor because the copy lines down and copy lines up
+    # functionalities both rely on a paint event override to work as expected.
+    editorstack.show()
+
+    # We need to patch osp.isfile to avoid the 'this file does not exist'
+    # message box.
+    mocker.patch('spyder.plugins.editor.widgets.editor.osp.isfile',
+                 returned_value=True)
+
+    # Assert initial state.
+    editorstack.go_to_line(1)
+    assert editor.get_cursor_line_column() == (0, 0)
+
+    # Select some text.
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Down, QTextCursor.KeepAnchor)
+    cursor.movePosition(QTextCursor.Down, QTextCursor.KeepAnchor)
+    editor.setTextCursor(cursor)
+    assert editor.get_cursor_line_column() == (2, 0)
+    assert editor.textCursor().selection().toPlainText() == 'a = 1\nprint(a)\n'
+
+    # Copy lines down.
+    editor.duplicate_line()
+    qtbot.wait(100)
+    assert editor.get_cursor_line_column() == (2, 0)
+    assert editor.textCursor().selection().toPlainText() == 'a = 1\nprint(a)\n'
+    assert editor.toPlainText() == 'a = 1\nprint(a)\n' * 2 + '\nx = 2\n'
+
+    # Copy lines up.
+    editor.copy_line()
+    qtbot.wait(100)
+    assert editor.get_cursor_line_column() == (4, 0)
+    assert editor.textCursor().selection().toPlainText() == 'a = 1\nprint(a)\n'
+    assert editor.toPlainText() == 'a = 1\nprint(a)\n' * 3 + '\nx = 2\n'
 
 
 def test_move_multiple_lines_down(editor_bot):
