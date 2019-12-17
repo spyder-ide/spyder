@@ -693,8 +693,8 @@ class CodeEditor(TextEditBaseWidget):
         """Create the local shortcuts for the CodeEditor."""
         shortcut_context_name_callbacks = (
             ('editor', 'code completion', self.do_completion),
-            ('editor', 'duplicate line', self.duplicate_line),
-            ('editor', 'copy line', self.copy_line),
+            ('editor', 'copy line down', self.copy_line_down),
+            ('editor', 'copy line up', self.copy_line_up),
             ('editor', 'delete line', self.delete_line),
             ('editor', 'move line up', self.move_line_up),
             ('editor', 'move line down', self.move_line_down),
