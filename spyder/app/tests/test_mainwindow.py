@@ -2899,6 +2899,8 @@ def test_pbd_step(main_window, qtbot, tmpdir):
     "ipython", [True, False])
 @pytest.mark.parametrize(
     "test_cell_magic", [True, False])
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
+                    reason="The file is not written on windows.")
 def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
     """Test the runcell command with cell magic."""
     # Write code with a cell to a file
