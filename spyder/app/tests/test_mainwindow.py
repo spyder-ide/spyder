@@ -2899,13 +2899,13 @@ def test_pbd_step(main_window, qtbot, tmpdir):
     "ipython", [True, False])
 @pytest.mark.parametrize(
     "test_cell_magic", [True, False])
-@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
-                    reason="The file is not written on windows.")
 def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
     """Test the runcell command with cell magic."""
     # Write code with a cell to a file
+    write_file = tmpdir.mkdir("foo").join("bar.txt")
+    assert not osp.exists(to_text_string(write_file))
     if test_cell_magic:
-        code = "\n\n%%writefile test.tmp\ntest\n"
+        code = "\n\n%%writefile " + to_text_string(write_file) + "\ntest\n"
     else:
         code = "\n\n%debug print()"
     if ipython:
@@ -2929,18 +2929,18 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
         if ipython:
             if test_cell_magic:
                 qtbot.waitUntil(
-                    lambda: 'Writing test.tmp' in control.toPlainText())
+                    lambda: 'Writing' in control.toPlainText())
 
                 # Verify that the code was executed
-                assert osp.exists("test.tmp")
+                assert osp.exists(to_text_string(write_file))
             else:
                 qtbot.waitUntil(lambda: 'ipdb>' in control.toPlainText())
             assert error_text not in control.toPlainText()
         else:
             qtbot.waitUntil(lambda: error_text in control.toPlainText())
     finally:
-        if osp.exists("test.tmp"):
-            os.remove("test.tmp")
+        if osp.exists(to_text_string(write_file)):
+            os.remove(to_text_string(write_file))
 
 
 if __name__ == "__main__":
