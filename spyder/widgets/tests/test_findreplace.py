@@ -33,8 +33,11 @@ def findreplace_editor(qtbot, request):
     return widget, editor
 
 
-def test_pathmanager(findreplace_editor, qtbot):
-    """Run PathManager test"""
+def test_findreplace_multiline_replacement(findreplace_editor, qtbot):
+    """
+    Test find replace widget for multiline regex replacements
+    See: spyder-ide/spyder#2675
+    """
     expected = '\n\nhello world!\n\n'
     findreplace, editor = findreplace_editor
     editor.set_text('\n\nhello\n\n\nworld!\n\n')
