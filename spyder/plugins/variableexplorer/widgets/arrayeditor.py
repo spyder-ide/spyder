@@ -865,6 +865,8 @@ class ArrayEditor(QDialog):
                 self.stack.widget(index).accept_changes()
             QDialog.accept(self)
         except RuntimeError:
+            # Sometimes under CI testing the object the following error appears
+            # RuntimeError: wrapped C/C++ object has been deleted
             pass
 
     def get_value(self):
