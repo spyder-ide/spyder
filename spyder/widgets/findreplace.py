@@ -552,7 +552,7 @@ class FindReplace(QWidget):
                 # break, the text will contain a Unicode U+2029 paragraph
                 # separator character instead of a newline \n character.
                 # See: spyder-ide/spyder#2675
-                eol_char = get_eol_chars(seltxt)
+                eol_char = get_eol_chars(self.editor.toPlainText())
                 seltxt = seltxt.replace(u'\u2029', eol_char)
 
                 cursor.removeSelectedText()
