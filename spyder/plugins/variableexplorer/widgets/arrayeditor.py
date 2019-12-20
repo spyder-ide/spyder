@@ -346,11 +346,16 @@ class ArrayModel(QAbstractTableModel):
         # Add change to self.changes
         self.changes[(i, j)] = val
         self.dataChanged.emit(index, index)
+
         if not is_string(val):
+            val = self.color_func(val)
+
             if val > self.vmax:
                 self.vmax = val
+
             if val < self.vmin:
                 self.vmin = val
+
         return True
 
     def flags(self, index):
@@ -854,10 +859,15 @@ class ArrayEditor(QDialog):
 
     @Slot()
     def accept(self):
-        """Reimplement Qt method"""
-        for index in range(self.stack.count()):
-            self.stack.widget(index).accept_changes()
-        QDialog.accept(self)
+        """Reimplement Qt method."""
+        try:
+            for index in range(self.stack.count()):
+                self.stack.widget(index).accept_changes()
+            QDialog.accept(self)
+        except RuntimeError:
+            # Sometimes under CI testing the object the following error appears
+            # RuntimeError: wrapped C/C++ object has been deleted
+            pass
 
     def get_value(self):
         """Return modified array -- this is *not* a copy"""
