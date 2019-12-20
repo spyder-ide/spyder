@@ -28,6 +28,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import regexp_error_msg
 from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.utils.qthelpers import create_toolbutton, get_icon
+from spyder.utils.sourcecode import get_eol_chars
 from spyder.widgets.comboboxes import PatternComboBox
 
 
@@ -551,7 +552,8 @@ class FindReplace(QWidget):
                 # break, the text will contain a Unicode U+2029 paragraph
                 # separator character instead of a newline \n character.
                 # See: spyder-ide/spyder#2675
-                seltxt = seltxt.replace(u'\u2029', u'\n')
+                eol_char = get_eol_chars(seltxt)
+                seltxt = seltxt.replace(u'\u2029', eol_char)
 
                 cursor.removeSelectedText()
                 cursor.insertText(re_pattern.sub(replace_text, seltxt))
