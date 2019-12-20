@@ -46,7 +46,6 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     _kernel_methods = {}
 
     # To save values and messages returned by the kernel
-    _kernel_value = None
     _kernel_is_starting = True
 
     # --- Public API --------------------------------------------------

@@ -594,12 +594,22 @@ class DataFrameView(QTableView):
             return
         (row_min, row_max,
          col_min, col_max) = get_idx_rect(self.selectedIndexes())
-        index = header = False
+        # Copy index and header too (equal True).
+        # See spyder-ide/spyder#11096
+        index = header = True
         df = self.model().df
         obj = df.iloc[slice(row_min, row_max + 1),
                       slice(col_min, col_max + 1)]
         output = io.StringIO()
-        obj.to_csv(output, sep='\t', index=index, header=header)
+        try:
+            obj.to_csv(output, sep='\t', index=index, header=header)
+        except UnicodeEncodeError:
+            # Needed to handle enconding errors in Python 2
+            # See spyder-ide/spyder#4833
+            QMessageBox.critical(
+                self,
+                _("Error"),
+                _("Text can't be copied."))
         if not PY2:
             contents = output.getvalue()
         else:
@@ -897,7 +907,9 @@ class DataFrameEditor(QDialog):
 
         # autosize columns on-demand
         self._autosized_cols = set()
-        self._max_autosize_ms = None
+        # Set limit time to calculate column sizeHint to 300ms,
+        # See spyder-ide/spyder#11060
+        self._max_autosize_ms = 300
         self.dataTable.installEventFilter(self)
 
         avg_width = self.fontMetrics().averageCharWidth()
@@ -1096,8 +1108,8 @@ class DataFrameEditor(QDialog):
         if old_sel_model:
             del old_sel_model
 
-    def setAutosizeLimit(self, limit_ms):
-        """Set maximum size for columns."""
+    def setAutosizeLimitTime(self, limit_ms):
+        """Set maximum time to calculate size hint for columns."""
         self._max_autosize_ms = limit_ms
 
     def setModel(self, model, relayout=True):

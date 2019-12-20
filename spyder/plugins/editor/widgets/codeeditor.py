@@ -276,6 +276,9 @@ class CodeEditor(TextEditBaseWidget):
     #: Signal emitted when the flags need to be updated in the scrollflagarea
     sig_flags_changed = Signal()
 
+    #: Signal emitted when the syntax color theme of the editor.
+    sig_theme_colors_changed = Signal(dict)
+
     #: Signal emitted when a new text is set on the widget
     new_text_set = Signal()
 
@@ -450,15 +453,18 @@ class CodeEditor(TextEditBaseWidget):
         # Linux Ubuntu. See spyder-ide/spyder#5215.
         self.setVerticalScrollBar(QScrollBar())
 
-        # Scrollbar flag area
-        self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
-                                                   Panel.Position.RIGHT)
-        self.scrollflagarea.hide()
+        # Highlights and flag colors
         self.warning_color = "#FFAD07"
         self.error_color = "#EA2B0E"
         self.todo_color = "#B4D4F3"
         self.breakpoint_color = "#30E62E"
+        self.occurrence_color = QColor(Qt.yellow).lighter(160)
+        self.found_results_color = QColor(Qt.magenta).lighter(180)
 
+        # Scrollbar flag area
+        self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
+                                                   Panel.Position.RIGHT)
+        self.scrollflagarea.hide()
         self.panels.refresh()
 
         self.document_id = id(self)
@@ -497,12 +503,10 @@ class CodeEditor(TextEditBaseWidget):
         self.occurrence_timer.setInterval(1500)
         self.occurrence_timer.timeout.connect(self.__mark_occurrences)
         self.occurrences = []
-        self.occurrence_color = QColor(Qt.yellow).lighter(160)
 
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
         self.found_results = []
-        self.found_results_color = QColor(Qt.magenta).lighter(180)
 
         # Docstring
         self.writer_docstring = DocstringWriterExtension(self)
@@ -1786,14 +1790,14 @@ class CodeEditor(TextEditBaseWidget):
         self.clear_extra_selections('occurrences')
         self.sig_flags_changed.emit()
 
-    def highlight_selection(self, key, cursor, foreground_color=None,
-                            background_color=None, underline_color=None,
-                            outline_color=None,
-                            underline_style=QTextCharFormat.SingleUnderline,
-                            update=False):
+    def get_selection(self, cursor, foreground_color=None,
+                      background_color=None, underline_color=None,
+                      outline_color=None,
+                      underline_style=QTextCharFormat.SingleUnderline):
+        """Get selection."""
         if cursor is None:
             return
-        extra_selections = self.get_extra_selections(key)
+
         selection = TextDecoration(cursor)
         if foreground_color is not None:
             selection.format.setForeground(foreground_color)
@@ -1806,8 +1810,20 @@ class CodeEditor(TextEditBaseWidget):
                                          to_qvariant(underline_color))
         if outline_color is not None:
             selection.set_outline(outline_color)
-        # selection.format.setProperty(QTextFormat.FullWidthSelection,
-                                     # to_qvariant(True))
+        return selection
+
+    def highlight_selection(self, key, cursor, foreground_color=None,
+                            background_color=None, underline_color=None,
+                            outline_color=None,
+                            underline_style=QTextCharFormat.SingleUnderline,
+                            update=False):
+
+        selection = self.get_selection(
+            cursor, foreground_color, background_color, underline_color,
+            outline_color, underline_style)
+        if selection is None:
+            return
+        extra_selections = self.get_extra_selections(key)
         extra_selections.append(selection)
         self.set_extra_selections(key, extra_selections)
         if update:
@@ -1837,11 +1853,15 @@ class CodeEditor(TextEditBaseWidget):
         # Highlighting all occurrences of word *text*
         cursor = self.__find_first(text)
         self.occurrences = []
+        extra_selections = self.get_extra_selections('occurrences')
         while cursor:
             self.occurrences.append(cursor.blockNumber())
-            self.highlight_selection('occurrences', cursor,
-                                       background_color=self.occurrence_color)
+            selection = self.get_selection(
+                cursor, background_color=self.occurrence_color)
+            if selection:
+                extra_selections.append(selection)
             cursor = self.__find_next(text, cursor)
+        self.set_extra_selections('occurrences', extra_selections)
         self.update_extra_selections()
         if len(self.occurrences) > 1 and self.occurrences[-1] == 0:
             # XXX: this is never happening with PySide but it's necessary
@@ -2065,6 +2085,9 @@ class CodeEditor(TextEditBaseWidget):
             self.edge_line.update_color()
             self.indent_guides.update_color()
 
+            self.sig_theme_colors_changed.emit(
+                {'occurrence': self.occurrence_color})
+
     def apply_highlighter_settings(self, color_scheme=None):
         """Apply syntax highlighter settings"""
         if self.highlighter is not None:
@@ -2255,7 +2278,6 @@ class CodeEditor(TextEditBaseWidget):
         """Process all linting results."""
         self.cleanup_code_analysis()
         self.setUpdatesEnabled(False)
-        cursor = self.textCursor()
         document = self.document()
 
         for diagnostic in results:
@@ -2271,33 +2293,23 @@ class CodeEditor(TextEditBaseWidget):
             block = document.findBlockByNumber(start['line'])
             error = severity == DiagnosticSeverity.ERROR
             color = self.error_color if error else self.warning_color
-            cursor.setPosition(block.position())
-            cursor.movePosition(QTextCursor.StartOfBlock)
-            cursor.movePosition(
-                QTextCursor.NextCharacter, n=start['character'])
-            block2 = document.findBlockByNumber(end['line'])
-            cursor.setPosition(block2.position(), QTextCursor.KeepAnchor)
-            cursor.movePosition(
-                QTextCursor.StartOfBlock, mode=QTextCursor.KeepAnchor)
-            cursor.movePosition(
-                QTextCursor.NextCharacter, n=end['character'],
-                mode=QTextCursor.KeepAnchor)
             color = QColor(color)
             color.setAlpha(255)
 
             data = block.userData()
             if not data:
-                data = BlockUserData(
-                    self, cursor=QTextCursor(cursor), color=color)
+                data = BlockUserData(self)
+
+            data.selection_start = start
+            data.selection_end = end
             data.code_analysis.append((source, code, severity, message))
             block.setUserData(data)
-            block.selection = QTextCursor(cursor)
             block.color = color
 
             # Underline errors and warnings in this editor.
             if self.underline_errors_enabled:
                 self.highlight_selection('code_analysis_underline',
-                                         block.selection,
+                                         data._selection(),
                                          underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
@@ -2433,7 +2445,7 @@ class CodeEditor(TextEditBaseWidget):
         """Highlight errors and warnings in this editor."""
         self.clear_extra_selections('code_analysis_highlight')
         self.highlight_selection('code_analysis_highlight',
-                                 block_data.selection,
+                                 block_data._selection(),
                                  background_color=block_data.color)
         self.update_extra_selections()
         self.linenumberarea.update()
@@ -4374,7 +4386,7 @@ class CodeEditor(TextEditBaseWidget):
             painter.setPen(pen)
 
             for top, line_number, block in self.visible_blocks:
-                if self.is_cell_separator(block):
+                if self.is_cell_separator(block=block):
                     painter.drawLine(4, top, self.width(), top)
 
     @property

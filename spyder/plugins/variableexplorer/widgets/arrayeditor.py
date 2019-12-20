@@ -167,8 +167,12 @@ class ArrayModel(QAbstractTableModel):
             self.dhue = None
             self.bgcolor_enabled = False
 
-        # Deactivate coloring for object arrays
-        if self._data.dtype.name == 'object':
+        # Array with infinite values cannot display background colors and
+        # crashes. See: spyder-ide/spyder#8093
+        self.has_inf = np.inf in data
+
+        # Deactivate coloring for object arrays or arrays with inf values
+        if self._data.dtype.name == 'object' or self.has_inf:
             self.bgcolor_enabled = False
 
         # Use paging when the total size, number of rows or number of
@@ -289,7 +293,7 @@ class ArrayModel(QAbstractTableModel):
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
         elif (role == Qt.BackgroundColorRole and self.bgcolor_enabled
-                and value is not np.ma.masked):
+                and value is not np.ma.masked and not self.has_inf):
             try:
                 hue = (self.hue0 +
                        self.dhue * (float(self.vmax) - self.color_func(value))

@@ -338,12 +338,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         sig_update = editor.sig_outline_explorer_data_changed
         sig_move = editor.sig_cursor_position_changed
         if state:
-            sig_update.connect(self.update_all)
+            sig_update.connect(self.update_current)
             sig_move.connect(self.do_follow_cursor)
             self.do_follow_cursor()
         else:
             try:
-                sig_update.disconnect(self.update_all)
+                sig_update.disconnect(self.update_current)
                 sig_move.disconnect(self.do_follow_cursor)
             except TypeError:
                 # This catches an error while performing
@@ -399,13 +399,39 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     @Slot()
     def update_all(self):
+        """
+        Update the outline explorer for all editors tree preserving the tree
+        state
+        """
         self.save_expanded_state()
         for editor, editor_id in list(self.editor_ids.items()):
-            item = self.editor_items[editor_id]
-            tree_cache = self.editor_tree_cache[editor_id]
-            self.populate_branch(editor, item, tree_cache)
+            self.__do_update(editor, editor_id)
         self.restore_expanded_state()
         self.do_follow_cursor()
+
+    @Slot()
+    def update_current(self):
+        """
+        Update the outline explorer for the current editor tree preserving the
+        tree state
+        """
+        plugin_base = self.parent().parent()
+        if getattr(plugin_base, "_isvisible", True):
+            self.save_expanded_state()
+            editor = self.current_editor
+            editor_id = editor.get_id()
+            self.__do_update(editor, editor_id)
+            self.restore_expanded_state()
+            self.do_follow_cursor()
+
+    def __do_update(self, editor, editor_id):
+        """
+        Recalculate the and update the tree items in the Outliner for a
+        given editor
+        """
+        item = self.editor_items[editor_id]
+        tree_cache = self.editor_tree_cache[editor_id]
+        self.populate_branch(editor, item, tree_cache)
 
     def remove_editor(self, editor):
         if editor in self.editor_ids:
