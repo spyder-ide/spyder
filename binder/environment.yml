@@ -55,6 +55,7 @@ dependencies:
 - matplotlib
 - cython
 - flaky
+- coverage <5.0
 
 # Required for jupyter-desktop-server
 - websockify
