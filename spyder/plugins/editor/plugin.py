@@ -1115,7 +1115,9 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             for finfo in editorstack.data:
                 comp_widget = finfo.editor.completion_widget
+                kite_call_to_action = finfo.editor.kite_call_to_action
                 comp_widget.setParent(ancestor)
+                kite_call_to_action.setParent(ancestor)
 
     def _create_checkable_action(self, text, conf_name, method=''):
         """Helper function to create a checkable action.
