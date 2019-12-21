@@ -1103,6 +1103,22 @@ class Editor(SpyderPluginWidget):
                 comp_widget.setup_appearance(completion_size, font)
                 kite_call_to_action.setFont(font)
 
+    def set_ancestor(self, ancestor):
+        """
+        Set ancestor of child widgets like the CompletionWidget.
+
+        Needed to properly set position of the widget based on the correct
+        parent/ancestor.
+
+        See spyder-ide/spyder#11076
+        """
+        for editorstack in self.editorstacks:
+            for finfo in editorstack.data:
+                comp_widget = finfo.editor.completion_widget
+                kite_call_to_action = finfo.editor.kite_call_to_action
+                comp_widget.setParent(ancestor)
+                kite_call_to_action.setParent(ancestor)
+
     def _create_checkable_action(self, text, conf_name, method=''):
         """Helper function to create a checkable action.
 
