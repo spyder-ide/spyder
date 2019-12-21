@@ -34,7 +34,7 @@ def get_eol_chars(text):
     else:
         if os.name == 'nt':
             eol_chars = "\r\n"
-        elif sys.platform.startswith(('linux')):
+        elif sys.platform.startswith('linux'):
             eol_chars = "\n"
         elif sys.platform == 'darwin':
             eol_chars = "\r"
