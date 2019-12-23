@@ -725,7 +725,7 @@ class ThumbnailScrollBar(QFrame):
     # ---- Thumbails Handlers
     def _calculate_figure_canvas_width(self, thumbnail):
         """
-        Calculate the witdh the thumbnail's figure canvas need to have for the
+        Calculate the width the thumbnail's figure canvas need to have for the
         thumbnail to fit the scrollarea.
         """
         extra_padding = 10 if sys.platform == 'darwin' else 0
