@@ -64,6 +64,7 @@ def test_run_code(console_plugin, capsys):
     assert sys_stream.out == u'4\n'
 
 
+@flaky(max_runs=3)
 def test_completions(console_plugin, qtbot):
     """Test that completions work as expected."""
     shell = console_plugin.shell
