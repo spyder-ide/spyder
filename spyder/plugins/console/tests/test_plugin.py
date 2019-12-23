@@ -17,6 +17,7 @@ except ImportError:
     from mock import Mock  # Python 2
 
 # Third party imports
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMainWindow
 import pytest
 from flaky import flaky
@@ -58,8 +59,22 @@ def test_run_code(console_plugin, capsys):
     shell.insert_text('2+2', at_end=True)
     shell._key_enter()
 
+    # Capture stdout and assert that it's the expected one
     sys_stream = capsys.readouterr()
     assert sys_stream.out == u'4\n'
+
+
+def test_completions(console_plugin, qtbot):
+    """Test that completions work as expected."""
+    shell = console_plugin.shell
+
+    # Get completions
+    qtbot.keyClicks(shell, 'impor')
+    qtbot.keyClick(shell, Qt.Key_Tab)
+    qtbot.keyClick(shell.completion_widget, Qt.Key_Enter)
+
+    # Assert completion was introduced in the console
+    assert u'import' in shell.toPlainText()
 
 
 if __name__ == "__main__":
