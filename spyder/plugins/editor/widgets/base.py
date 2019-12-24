@@ -912,11 +912,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.setTextCursor(cursor)
 
         # Add text
-        if self.code_snippets:
-            self.sig_insert_completion.emit(text)
-        else:
+        if self.objectName() == 'console':
+            # Handle completions for the internal console
             self.insert_text(text)
-        self.document_did_change()
+        else:
+            if self.code_snippets:
+                self.sig_insert_completion.emit(text)
+            else:
+                self.insert_text(text)
+            self.document_did_change()
 
     def is_completion_widget_visible(self):
         """Return True is completion list widget is visible"""
