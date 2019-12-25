@@ -709,8 +709,8 @@ class ShortcutsTable(QTableView):
                 if sh2 is sh1:
                     continue
                 if str(sh2.key) == str(sh1.key) \
-                   and (sh1.context == sh2.context or sh1.context == '_' or
-                        sh2.context == '_'):
+                   and (sh1.context in (sh2.context, '_', 'find_replace') or
+                        sh2.context == ('_', 'find_replace')):
                     conflicts.append((sh1, sh2))
         if conflicts:
             self.parent().show_this_page.emit()
