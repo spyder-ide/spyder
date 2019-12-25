@@ -335,7 +335,8 @@ class ShortcutEditor(QDialog):
                 continue
             if (shortcut.context, shortcut.name) == (self.context, self.name):
                 continue
-            if shortcut.context in [self.context, '_'] or self.context == '_':
+            if (shortcut.context in [self.context, '_', 'find_replace'] or
+                    self.context in ('_', 'find_replace')):
                 if (shortcut_qsequence.matches(new_qsequence) or
                         new_qsequence.matches(shortcut_qsequence)):
                     conflicts.append(shortcut)
