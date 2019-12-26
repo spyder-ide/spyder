@@ -853,11 +853,8 @@ class ShortcutsConfigPage(GeneralConfigPage):
                                         _("Do you want to reset "
                                         "to default values?"),
                                         QMessageBox.Yes | QMessageBox.No)
-        else:
-            reset = QMessageBox.Yes
-
-        if reset == QMessageBox.No:
-            return
+            if reset == QMessageBox.No:
+                return
 
         CONF.reset_shortcuts()
         self.main.apply_shortcuts()
