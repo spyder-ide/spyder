@@ -2306,6 +2306,21 @@ def test_preferences_change_font_regression(main_window, qtbot):
 
 
 @pytest.mark.slow
+def test_preferences_shortcut_reset_regression(main_window, qtbot):
+    """
+    Test for spyder-ide/spyder/#11132 regression.
+
+    Resetting shortcut resulted in error.
+    """
+    dlg, index, page = preferences_dialog_helper(qtbot, main_window,
+                                                 'shortcuts')
+    page.reset_to_default(force=True)
+    dlg.ok_btn.animateClick()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+                    timeout=5000)
+
+
+@pytest.mark.slow
 def test_preferences_change_interpreter(qtbot, main_window):
     """Test that on main interpreter change signal is emitted."""
     # Check original pyls configuration
