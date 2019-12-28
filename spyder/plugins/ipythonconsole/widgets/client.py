@@ -555,7 +555,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     # dark background. This corrects it based on the scheme.
                     self.set_color_scheme(sw.syntax_style)
                     sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
-                                    before_prompt=False)
+                                    before_prompt=True)
             else:
                 sw._append_plain_text(
                     _('Cannot restart a kernel not started by Spyder\n'),

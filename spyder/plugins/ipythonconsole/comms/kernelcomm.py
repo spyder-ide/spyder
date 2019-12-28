@@ -65,9 +65,9 @@ class KernelComm(CommBase, QObject):
     @contextmanager
     def comm_channel_manager(self, comm_id):
         """Use comm_channel instead of shell_channel."""
-        if not self.kernel_client.comm_channel:
-            yield
-            return
+        def has_channel():
+            return self.kernel_client.comm_channel is not None
+        self._wait(has_channel, 3)
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
             self._comms[comm_id]['comm']._send_channel = (
@@ -118,7 +118,15 @@ class KernelComm(CommBase, QObject):
 
     def _wait_reply(self, call_id, call_name, timeout):
         """Wait for the other side reply."""
-        if call_id in self._reply_inbox:
+
+        def got_reply():
+            return call_id in self._reply_inbox
+
+        self._wait(got_reply, timeout)
+
+    def _wait(self, condition, timeout):
+        """Wait for a condition"""
+        if condition():
             return
 
         # Create event loop to wait with
@@ -130,10 +138,10 @@ class KernelComm(CommBase, QObject):
 
         # Wait until the kernel returns the value
         wait_timeout.start(timeout * 1000)
-        while len(self._reply_waitlist) > 0:
+        while not condition():
             if not wait_timeout.isActive():
                 self._sig_got_reply.disconnect(wait_loop.quit)
-                if call_id in self._reply_waitlist:
+                if not condition():
                     raise TimeoutError(
                         "Timeout while waiting for {}".format(
                             self._reply_waitlist))
