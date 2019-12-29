@@ -11,6 +11,7 @@ Tests for the main window.
 """
 
 # Standard library imports
+from distutils.version import LooseVersion
 import os
 import os.path as osp
 import re
@@ -25,6 +26,7 @@ import sys
 import uuid
 
 # Third party imports
+from IPython.core import release as ipy_release
 from flaky import flaky
 from jupyter_client.manager import KernelManager
 import numpy as np
@@ -835,9 +837,10 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif((os.name == 'nt' or not is_module_installed('Cython') or
-                     sys.platform == 'darwin'),
-                    reason="Hard to test on Windows and macOS and Cython is needed")
+@pytest.mark.skipif(
+    (os.name == 'nt' or sys.platform == 'darwin' or
+     LooseVersion(ipy_release.version) == LooseVersion('7.11.0')),
+    reason="Hard to test on Windows and macOS and fails for IPython 7.11.0")
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
     # ---- Setup ----
