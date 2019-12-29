@@ -849,10 +849,11 @@ class ShortcutsConfigPage(GeneralConfigPage):
     def reset_to_default(self, force=False):
         """Reset to default values of the shortcuts making a confirmation."""
         if not force:
-            reset = QMessageBox.warning(self, _("Shortcuts reset"),
-                                        _("Do you want to reset "
-                                        "to default values?"),
-                                        QMessageBox.Yes | QMessageBox.No)
+            reset = QMessageBox.warning(
+                self,
+                _("Shortcuts reset"),
+                _("Do you want to reset to default values?"),
+                QMessageBox.Yes | QMessageBox.No)
             if reset == QMessageBox.No:
                 return
 
