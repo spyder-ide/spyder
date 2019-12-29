@@ -16,6 +16,7 @@ import os.path as osp
 from spyder.config.base import _, get_conf_paths, get_conf_path, get_home_dir
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.user import UserConfig, MultiUserConfig, NoDefault
+from spyder.utils.programs import check_version
 
 
 EXTRA_VALID_SHORTCUT_CONTEXTS = [
@@ -104,7 +105,29 @@ class ConfigurationManager(object):
                 backup=True,
                 raw_mode=True,
                 remove_obsolete=False,
+                external_plugin=True
             )
+
+            # Recreate external plugin configs to deal with part two
+            # (the shortcut confliftcs) of spyder-ide/spyder#11132
+            spyder_config = self._user_config._configs_map['spyder']
+            if check_version(spyder_config._old_version, '54.0.0', '<'):
+                # Remove all previous .ini files
+                plugin_config.cleanup()
+
+                # Recreate config
+                plugin_config = MultiUserConfig(
+                    name_map,
+                    path=path,
+                    defaults=defaults,
+                    load=True,
+                    version=version,
+                    backup=True,
+                    raw_mode=True,
+                    remove_obsolete=False,
+                    external_plugin=True
+                )
+
             self._plugin_configs[conf_section] = (plugin_class, plugin_config)
 
     def remove_deprecated_config_locations(self):
