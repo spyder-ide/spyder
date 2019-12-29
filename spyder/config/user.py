@@ -813,7 +813,11 @@ class MultiUserConfig(object):
                     if sec_opt not in sections_options:
                         sections_options.append(sec_opt)
                     else:
-                        raise ValueError('Different files are holding the same section/option: "{}/{}"!'.format(section, option))
+                        error_msg = (
+                            'Different files are holding the same '
+                            'section/option: "{}/{}"!'.format(section, option)
+                        )
+                        raise ValueError(error_msg)
         return name_map
 
     @staticmethod
