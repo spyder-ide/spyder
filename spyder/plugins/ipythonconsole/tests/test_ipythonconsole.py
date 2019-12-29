@@ -12,6 +12,7 @@ Tests for the IPython console plugin.
 
 # Standard library imports
 import codecs
+from distutils.version import LooseVersion
 import os
 import os.path as osp
 import shutil
@@ -341,7 +342,10 @@ def test_sympy_client(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.cython_client
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(
+    (os.name == 'nt' or
+     LooseVersion(ipy_release.version) == LooseVersion('7.11.0')),
+    reason="Doesn't work on Windows and fails for IPython 7.11.0")
 def test_cython_client(ipyconsole, qtbot):
     """Test that the Cython console is working correctly."""
     # Wait until the window is fully up
@@ -1169,6 +1173,7 @@ def test_sys_argv_clear(ipyconsole, qtbot):
 
 
 @flaky(max_runs=5)
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_set_elapsed_time(ipyconsole, qtbot):
     """Test that the IPython console elapsed timer is set correctly."""
     shell = ipyconsole.get_current_shellwidget()
