@@ -70,6 +70,8 @@ class KernelComm(CommBase, QObject):
     def comm_channel_manager(self, comm_id):
         """Use comm_channel instead of shell_channel."""
         if not self.comm_channel_connected():
+            # Request the config again
+            self.remote_call()._send_comm_config()
             timeout = 3
             self._wait(self.comm_channel_connected, timeout)
         id_list = self.get_comm_id_list(comm_id)
