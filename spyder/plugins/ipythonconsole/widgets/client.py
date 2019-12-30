@@ -22,11 +22,10 @@ import codecs
 import os
 import os.path as osp
 from string import Template
-from threading import Thread
 import time
 
 # Third party imports (qtpy)
-from qtpy.QtCore import QUrl, QTimer, Signal, Slot
+from qtpy.QtCore import QUrl, QTimer, Signal, Slot, QThread
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
                             QToolButton, QVBoxLayout, QWidget)
@@ -124,6 +123,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.allow_rename = True
         self.stderr_dir = None
         self.is_error_shown = False
+        self.restart_thread = None
 
         if css_path is None:
             self.css_path = CSS_PATH
@@ -144,7 +144,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To keep a reference to the page to be displayed
         # in infowidget
         self.info_page = None
-        self._show_loading_page()
+        self.pre_configure_shellwidget()
 
         # Elapsed time
         self.time_label = None
@@ -227,8 +227,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except Exception:
             pass
 
-    def configure_shellwidget(self, give_focus=True):
-        """Configure shellwidget after kernel is started"""
+    def post_configure_shellwidget(self, give_focus=True):
+        """Configure shellwidget after kernel is connected."""
         if give_focus:
             self.get_control().setFocus()
 
@@ -273,12 +273,20 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
-        # To hide the loading page
-        self.shellwidget.sig_prompt_ready.connect(self._hide_loading_page)
-
-        # Show possible errors when setting Matplotlib backend
+    def pre_configure_shellwidget(self):
+        """Configure shellwidget before kernel is connected."""
+        self._show_loading_page()
         self.shellwidget.sig_prompt_ready.connect(
-            self._show_mpl_backend_errors)
+            self.post_prompt_configure_shellwidget)
+
+    def post_prompt_configure_shellwidget(self):
+        """Configuration after the prompt is shown."""
+        # To hide the loading page
+        self._hide_loading_page()
+        # Show possible errors when setting Matplotlib backend
+        self._show_mpl_backend_errors()
+        self.shellwidget.sig_prompt_ready.disconnect(
+            self.post_prompt_configure_shellwidget)
 
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
@@ -535,32 +543,51 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             if sw.kernel_manager:
                 if self.infowidget.isVisible():
                     self.infowidget.hide()
-                    sw.show()
-                try:
-                    # Close comm
-                    sw.spyder_kernel_comm.close()
-                    sw.kernel_manager.restart_kernel(
-                        stderr=self.stderr_handle)
-                    # Reopen comm
-                    sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+                self._show_loading_page()
 
-                except RuntimeError as e:
-                    sw._append_plain_text(
-                        _('Error restarting kernel: %s\n') % e,
-                        before_prompt=True
-                    )
-                else:
-                    # For spyder-ide/spyder#6235, IPython was changing the
-                    # setting of %colors on windows by assuming it was using a
-                    # dark background. This corrects it based on the scheme.
-                    self.set_color_scheme(sw.syntax_style)
-                    sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
-                                    before_prompt=True)
+                # Close comm
+                sw.spyder_kernel_comm.close()
+                self.restart_thread = QThread()
+                self.restart_thread.run = self._restart_thread_main
+                self.restart_thread.error = None
+                self.restart_thread.finished.connect(self._restart_thread_end)
+                self.restart_thread.start()
+
             else:
                 sw._append_plain_text(
                     _('Cannot restart a kernel not started by Spyder\n'),
                     before_prompt=True
                 )
+                self._hide_loading_page()
+
+    def _restart_thread_main(self):
+        """Restart the kernel in a thread."""
+        try:
+            self.shellwidget.kernel_manager.restart_kernel(
+                stderr=self.stderr_handle)
+        except RuntimeError as e:
+            self.restart_thread.error = e
+
+    def _restart_thread_end(self):
+        """Finishes the restarting of the kernel."""
+        sw = self.shellwidget
+        e = self.restart_thread.error
+        if e is not None:
+            sw._append_plain_text(
+                _('Error restarting kernel: %s\n') % e,
+                before_prompt=True
+            )
+        else:
+            # Reopen comm
+            sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+            # For spyder-ide/spyder#6235, IPython was changing the
+            # setting of %colors on windows by assuming it was using a
+            # dark background. This corrects it based on the scheme.
+            self.set_color_scheme(sw.syntax_style)
+            sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
+                            before_prompt=True)
+        self._hide_loading_page()
+        self.restart_thread = None
 
     @Slot(str)
     def kernel_restarted_message(self, msg):
@@ -702,7 +729,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.show()
         self.info_page = self.blank_page
         self.set_info_page()
-        self.shellwidget.sig_prompt_ready.disconnect(self._hide_loading_page)
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""
@@ -734,5 +760,3 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """
         if not self.external_kernel:
             self.shellwidget.call_kernel().show_mpl_backend_errors()
-        self.shellwidget.sig_prompt_ready.disconnect(
-            self._show_mpl_backend_errors)
