@@ -44,16 +44,17 @@ class KernelComm(CommBase, QObject):
         self.register_call_handler('_async_error', self._async_error)
         self.register_call_handler('_set_comm_port', self._set_comm_port)
 
-
     def _set_comm_port(self, port):
         """Set comm port."""
         client = self.kernel_client
-        client.comm_port = port
-        identity = client.session.bsession
-        socket = client._create_connected_socket(
-            'comm', identity=identity)
-        client.comm_channel = client.shell_channel_class(
-            socket, client.session, client.ioloop)
+        if not (hasattr(client, 'comm_port') and client.comm_port == port):
+            client.comm_port = port
+            identity = client.session.bsession
+            socket = client._create_connected_socket(
+                'comm', identity=identity)
+            client.comm_channel = client.shell_channel_class(
+                socket, client.session, client.ioloop)
+        # We emit in case we are waiting on this
         self._sig_channel_open.emit()
 
     def shutdown_comm_channel(self):
@@ -77,6 +78,8 @@ class KernelComm(CommBase, QObject):
             return
 
         if not self.comm_channel_connected():
+            # Ask again for comm config
+            self.remote_call()._send_comm_config()
             timeout = 10
             self._wait(self.comm_channel_connected,
                        self._sig_channel_open,
