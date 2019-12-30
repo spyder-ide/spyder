@@ -102,10 +102,11 @@ def comms(kernel):
     frontend_comm = FrontendComm(kernel)
     kernel_comm = KernelComm()
 
-    def dummy(port):
+    def dummy_set_comm_port(port):
+        """There is no port to set."""
         pass
 
-    kernel_comm.register_call_handler('_set_comm_port', dummy)
+    kernel_comm.register_call_handler('_set_comm_port', dummy_set_comm_port)
 
     class DummyKernelClient():
         comm_channel = 0
