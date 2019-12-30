@@ -144,7 +144,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To keep a reference to the page to be displayed
         # in infowidget
         self.info_page = None
-        self.pre_configure_shellwidget()
+        self.before_prompt_is_ready()
 
         # Elapsed time
         self.time_label = None
@@ -227,7 +227,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except Exception:
             pass
 
-    def post_configure_shellwidget(self, give_focus=True):
+    def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is connected."""
         if give_focus:
             self.get_control().setFocus()
@@ -273,18 +273,20 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
-    def pre_configure_shellwidget(self):
+    def before_prompt_is_ready(self):
         """Configure shellwidget before kernel is connected."""
         self._show_loading_page()
         self.shellwidget.sig_prompt_ready.connect(
-            self.post_prompt_configure_shellwidget)
+            self.when_prompt_is_ready)
 
-    def post_prompt_configure_shellwidget(self):
+    def when_prompt_is_ready(self):
         """Configuration after the prompt is shown."""
         # To hide the loading page
         self._hide_loading_page()
+
         # Show possible errors when setting Matplotlib backend
         self._show_mpl_backend_errors()
+
         self.shellwidget.sig_prompt_ready.disconnect(
             self.post_prompt_configure_shellwidget)
 
@@ -571,15 +573,16 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def _restart_thread_end(self):
         """Finishes the restarting of the kernel."""
         sw = self.shellwidget
-        e = self.restart_thread.error
-        if e is not None:
+        error = self.restart_thread.error
+        if error is not None:
             sw._append_plain_text(
-                _('Error restarting kernel: %s\n') % e,
+                _('Error restarting kernel: %s\n') % error,
                 before_prompt=True
             )
         else:
             # Reopen comm
             sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+
             # For spyder-ide/spyder#6235, IPython was changing the
             # setting of %colors on windows by assuming it was using a
             # dark background. This corrects it based on the scheme.

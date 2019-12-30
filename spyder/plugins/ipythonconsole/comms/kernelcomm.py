@@ -135,11 +135,17 @@ class KernelComm(CommBase, QObject):
             return call_id in self._reply_inbox
 
         timeout_msg = "Timeout while waiting for {}".format(
-                            self._reply_waitlist)
+            self._reply_waitlist)
         self._wait(got_reply, self._sig_got_reply, timeout_msg, timeout)
 
     def _wait(self, condition, signal, timeout_msg, timeout):
-        """Wait for a condition"""
+        """
+        Wait until condition() is True by running an event loop.
+
+        signal: qt signal that should interrupt the event loop.
+        timeout_msg: Meaage to display in case of a timeout.
+        timeout: time in seconds before a timeout
+        """
         if condition():
             return
 
