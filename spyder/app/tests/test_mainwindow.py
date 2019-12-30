@@ -2893,5 +2893,33 @@ def test_pbd_step(main_window, qtbot, tmpdir):
         str(test_file))
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_runcell_after_restart(main_window, qtbot):
+    """Test runcell after a kernel restart."""
+    # Write code to a file
+    code = "print('test_runcell_after_restart')"
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(code)
+
+    # Restart Kernel
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
+        shell.ipyclient.restart_kernel()
+
+    # call runcell
+    code_editor.setFocus()
+    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.waitUntil(
+        lambda: "test_runcell_after_restart" in shell._control.toPlainText())
+
+    # Make sure no errors are shown
+    assert "error" not in shell._control.toPlainText().lower()
+
 if __name__ == "__main__":
     pytest.main()
