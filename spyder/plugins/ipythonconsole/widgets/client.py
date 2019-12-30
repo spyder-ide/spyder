@@ -288,7 +288,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self._show_mpl_backend_errors()
 
         self.shellwidget.sig_prompt_ready.disconnect(
-            self.post_prompt_configure_shellwidget)
+            self.when_prompt_is_ready)
 
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
