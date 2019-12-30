@@ -77,7 +77,8 @@ class Console(SpyderPluginWidget):
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.shell)
         self.find_widget.hide()
-        self.register_widget_shortcuts(self.find_widget)
+        if parent is not None:
+            self.register_widget_shortcuts(self.find_widget)
 
         # Main layout
         btn_layout = QHBoxLayout()
