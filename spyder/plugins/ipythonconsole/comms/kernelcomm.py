@@ -67,13 +67,17 @@ class KernelComm(CommBase, QObject):
         return self.kernel_client.comm_channel is not None
 
     @contextmanager
-    def comm_channel_manager(self, comm_id):
+    def comm_channel_manager(self, comm_id, queue_message=False):
         """Use comm_channel instead of shell_channel."""
+        if queue_message:
+            # Send without comm_channel
+            yield
+            return
+
         if not self.comm_channel_connected():
-            # Request the config again
-            self.remote_call()._send_comm_config()
-            timeout = 3
+            timeout = 1
             self._wait(self.comm_channel_connected, timeout)
+
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
             self._comms[comm_id]['comm']._send_channel = (
@@ -114,11 +118,8 @@ class KernelComm(CommBase, QObject):
         """
         settings = call_dict['settings']
         interrupt = 'interrupt' in settings and settings['interrupt']
-        if interrupt:
-            with self.comm_channel_manager(comm_id):
-                return super(KernelComm, self)._get_call_return_value(
-                    call_dict, call_data, comm_id)
-        else:
+
+        with self.comm_channel_manager(comm_id, queue_message=not interrupt):
             return super(KernelComm, self)._get_call_return_value(
                 call_dict, call_data, comm_id)
 
