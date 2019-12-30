@@ -235,6 +235,7 @@ def cleanup(request):
 # =============================================================================
 # ---- Tests
 # =============================================================================
+@flaky(max_runs=3)
 @pytest.mark.slow
 @pytest.mark.single_instance
 @pytest.mark.skipif((os.environ.get('CI', None) is None or (PY2
@@ -256,7 +257,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
                  "lock_created = lock.lock()".format(spy_dir_str=spy_dir))
 
     # Test single instance
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=2000):
         shell.execute(lock_code)
     assert not shell.get_value('lock_created')
 
