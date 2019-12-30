@@ -62,12 +62,16 @@ class KernelComm(CommBase, QObject):
             channel.send(msg)
             self.kernel_client.comm_channel = None
 
+    def comm_channel_connected(self):
+        """Check if the comm channel is connected."""
+        return self.kernel_client.comm_channel is not None
+
     @contextmanager
     def comm_channel_manager(self, comm_id):
         """Use comm_channel instead of shell_channel."""
-        def has_channel():
-            return self.kernel_client.comm_channel is not None
-        self._wait(has_channel, 3)
+        if not self.comm_channel_connected():
+            timeout = 3
+            self._wait(self.comm_channel_connected, timeout)
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
             self._comms[comm_id]['comm']._send_channel = (
