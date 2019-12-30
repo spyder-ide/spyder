@@ -121,6 +121,8 @@ startup/run_lines =
     assert 'max_line_count = 600' not in user_contents
     assert 'max_line_count = 600' in plugin_contents
 
+    shutil.rmtree(plugin_path)
+    Console.CONF_FILE = False
     clear_site_config()
 
 
