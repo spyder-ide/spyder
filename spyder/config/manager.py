@@ -113,7 +113,10 @@ class ConfigurationManager(object):
             spyder_config = self._user_config._configs_map['spyder']
             if check_version(spyder_config._old_version, '54.0.0', '<'):
                 # Remove all previous .ini files
-                plugin_config.cleanup()
+                try:
+                    plugin_config.cleanup()
+                except EnvironmentError:
+                    pass
 
                 # Recreate config
                 plugin_config = MultiUserConfig(
