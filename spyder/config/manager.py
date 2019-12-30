@@ -109,7 +109,7 @@ class ConfigurationManager(object):
             )
 
             # Recreate external plugin configs to deal with part two
-            # (the shortcut confliftcs) of spyder-ide/spyder#11132
+            # (the shortcut conflicts) of spyder-ide/spyder#11132
             spyder_config = self._user_config._configs_map['spyder']
             if check_version(spyder_config._old_version, '54.0.0', '<'):
                 # Remove all previous .ini files
