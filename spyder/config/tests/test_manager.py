@@ -57,7 +57,8 @@ def test_external_plugin_config(qtbot):
     """
     Test that config for external plugins is saved as expected.
 
-    This includes a regression for issue spyder-ide/spyder#11132
+    This includes a regression for part two (the shortcuts conflict) of
+    issue spyder-ide/spyder#11132
     """
     clear_site_config()
 
