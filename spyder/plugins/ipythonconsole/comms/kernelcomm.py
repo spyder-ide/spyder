@@ -32,6 +32,7 @@ class KernelComm(CommBase, QObject):
     """
 
     _sig_got_reply = Signal()
+    _sig_channel_open = Signal()
     sig_exception_occurred = Signal(str, bool)
 
     def __init__(self):
@@ -53,6 +54,7 @@ class KernelComm(CommBase, QObject):
             'comm', identity=identity)
         client.comm_channel = client.shell_channel_class(
             socket, client.session, client.ioloop)
+        self._sig_channel_open.emit()
 
     def shutdown_comm_channel(self):
         """Shutdown the comm channel."""
@@ -75,8 +77,11 @@ class KernelComm(CommBase, QObject):
             return
 
         if not self.comm_channel_connected():
-            timeout = 1
-            self._wait(self.comm_channel_connected, timeout)
+            timeout = 10
+            self._wait(self.comm_channel_connected,
+                       self._sig_channel_open,
+                       "Timeout while waiting for comm port.",
+                       timeout)
 
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
@@ -129,16 +134,18 @@ class KernelComm(CommBase, QObject):
         def got_reply():
             return call_id in self._reply_inbox
 
-        self._wait(got_reply, timeout)
+        timeout_msg = "Timeout while waiting for {}".format(
+                            self._reply_waitlist)
+        self._wait(got_reply, self._sig_got_reply, timeout_msg, timeout)
 
-    def _wait(self, condition, timeout):
+    def _wait(self, condition, signal, timeout_msg, timeout):
         """Wait for a condition"""
         if condition():
             return
 
         # Create event loop to wait with
         wait_loop = QEventLoop()
-        self._sig_got_reply.connect(wait_loop.quit)
+        signal.connect(wait_loop.quit)
         wait_timeout = QTimer()
         wait_timeout.setSingleShot(True)
         wait_timeout.timeout.connect(wait_loop.quit)
@@ -147,16 +154,14 @@ class KernelComm(CommBase, QObject):
         wait_timeout.start(timeout * 1000)
         while not condition():
             if not wait_timeout.isActive():
-                self._sig_got_reply.disconnect(wait_loop.quit)
+                signal.disconnect(wait_loop.quit)
                 if not condition():
-                    raise TimeoutError(
-                        "Timeout while waiting for {}".format(
-                            self._reply_waitlist))
+                    raise TimeoutError(timeout_msg)
                 return
             wait_loop.exec_()
 
         wait_timeout.stop()
-        self._sig_got_reply.disconnect(wait_loop.quit)
+        signal.disconnect(wait_loop.quit)
 
     def _handle_remote_call_reply(self, msg_dict, buffer, load_exception):
         """
