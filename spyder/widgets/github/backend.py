@@ -136,8 +136,7 @@ class GithubBackend(BaseBackend):
             url = self.upload_log_file(application_log)
             body += '\nApplication log: %s' % url
         try:
-            if token:
-                gh = github.GitHub(access_token=token)
+            gh = github.GitHub(access_token=token)
             repo = gh.repos(self.gh_owner)(self.gh_repo)
             ret = repo.issues.post(title=title, body=body)
         except github.ApiError as e:
@@ -214,8 +213,10 @@ class GithubBackend(BaseBackend):
                                           'again.'))
 
         if not running_under_pytest():
-            credentials = DlgGitHubLogin.login(self.parent_widget,
-                token, remember_token)
+            credentials = DlgGitHubLogin.login(
+                self.parent_widget,
+                token,
+                remember_token)
 
             if credentials['token'] and valid_py_os:
                 self._store_token(credentials['token'],
@@ -223,7 +224,7 @@ class GithubBackend(BaseBackend):
                 CONF.set('main', 'report_error/remember_token',
                          credentials['remember_token'])
         else:
-            return dict(token='',
+            return dict(token=token,
                         remember_token=remember_token)
 
         return credentials
