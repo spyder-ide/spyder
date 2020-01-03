@@ -123,8 +123,6 @@ class DataFrameModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
-        self.df_index = dataFrame.index.tolist()
-        self.df_header = dataFrame.columns.tolist()
         self._format = format
         self.complex_intran = None
         self.display_error_idxs = []
@@ -199,7 +197,7 @@ class DataFrameModel(QAbstractTableModel):
         given level.
         """
         ax = self._axis(axis)
-        return ax.values[x] if not hasattr(ax, 'levels') \
+        return ax.tolist()[x] if not hasattr(ax, 'levels') \
             else ax.values[x][level]
 
     def name(self, axis, level):
@@ -306,10 +304,6 @@ class DataFrameModel(QAbstractTableModel):
             value = self.df.iloc[row, column]
         return value
 
-    def update_df_index(self):
-        """"Update the DataFrame index"""
-        self.df_index = self.df.index.tolist()
-
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
         if not index.isValid():
@@ -377,11 +371,9 @@ class DataFrameModel(QAbstractTableModel):
                     # See spyder-ide/spyder#5361.
                     QMessageBox.critical(self.dialog, "Error",
                                          "SystemError: %s" % to_text_string(e))
-                self.update_df_index()
             else:
                 # To sort by index
                 self.df.sort_index(inplace=True, ascending=ascending)
-                self.update_df_index()
         except TypeError as e:
             QMessageBox.critical(self.dialog, "Error",
                                  "TypeError error: %s" % str(e))
