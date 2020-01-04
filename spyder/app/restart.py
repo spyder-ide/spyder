@@ -28,7 +28,7 @@ from qtpy.QtWidgets import QApplication, QMessageBox, QSplashScreen, QWidget
 
 # Local imports
 from spyder.config.base import _, get_image_path
-from spyder.py3compat import to_text_string
+from spyder.utils.encoding import to_unicode
 from spyder.utils.qthelpers import qapplication
 from spyder.config.manager import CONF
 
@@ -52,7 +52,7 @@ def _is_pid_running_on_windows(pid):
                                stderr=subprocess.STDOUT,
                                startupinfo=startupinfo)
     stdoutdata, stderrdata = process.communicate()
-    stdoutdata = to_text_string(stdoutdata)
+    stdoutdata = to_unicode(stdoutdata)
     process.kill()
     check = pid in stdoutdata
 
