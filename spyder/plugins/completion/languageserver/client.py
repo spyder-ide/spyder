@@ -323,16 +323,22 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             }
 
         logger.debug('{} request: {}'.format(self.language, method))
-        try:
-            self.zmq_out_socket.send_pyobj(msg, flags=zmq.NOBLOCK)
-        except zmq.error.Again:
-            # The send queue is full! wait 1 second and give a second chance.
-            logger.warning(
-                "The send queue is full! Retrying to send in 1 second.")
-            time.sleep(1)
-            self.zmq_out_socket.send_pyobj(msg, flags=zmq.NOBLOCK)
-        self.request_seq += 1
-        return int(_id)
+        # Try sending a message. If the send queue is full, keep trying for a
+        # a second before giving up.
+        timeout = 1
+        start_time = time.time()
+        timeout_time = start_time + timeout
+        while True:
+            try:
+                self.zmq_out_socket.send_pyobj(msg, flags=zmq.NOBLOCK)
+                self.request_seq += 1
+                return int(_id)
+            except zmq.error.Again:
+                if time.time() > timeout_time:
+                    raise
+                # The send queue is full! wait 0.1 seconds before retrying.
+                logger.warning("The send queue is full! Retrying...")
+                time.sleep(.1)
 
     @Slot()
     def on_msg_received(self):
