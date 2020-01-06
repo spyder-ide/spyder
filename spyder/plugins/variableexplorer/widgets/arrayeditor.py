@@ -160,7 +160,7 @@ class ArrayModel(QAbstractTableModel):
             self.hue0 = huerange[0]
             self.dhue = huerange[1]-huerange[0]
             self.bgcolor_enabled = True
-        except (TypeError, ValueError):
+        except (AttributeError, TypeError, ValueError):
             self.vmin = None
             self.vmax = None
             self.hue0 = None
