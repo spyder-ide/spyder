@@ -13,9 +13,18 @@ import os
 import os.path as osp
 
 # Local imports
-from spyder.config.base import get_conf_paths, get_conf_path, get_home_dir
+from spyder.config.base import _, get_conf_paths, get_conf_path, get_home_dir
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.user import UserConfig, MultiUserConfig, NoDefault
+from spyder.utils.programs import check_version
+
+
+EXTRA_VALID_SHORTCUT_CONTEXTS = [
+    '_',
+    'array_builder',
+    'console',
+    'find_replace',
+]
 
 
 class ConfigurationManager(object):
@@ -96,8 +105,33 @@ class ConfigurationManager(object):
                 backup=True,
                 raw_mode=True,
                 remove_obsolete=False,
+                external_plugin=True
             )
-            self._plugin_configs[conf_section] = plugin_config
+
+            # Recreate external plugin configs to deal with part two
+            # (the shortcut conflicts) of spyder-ide/spyder#11132
+            spyder_config = self._user_config._configs_map['spyder']
+            if check_version(spyder_config._old_version, '54.0.0', '<'):
+                # Remove all previous .ini files
+                try:
+                    plugin_config.cleanup()
+                except EnvironmentError:
+                    pass
+
+                # Recreate config
+                plugin_config = MultiUserConfig(
+                    name_map,
+                    path=path,
+                    defaults=defaults,
+                    load=True,
+                    version=version,
+                    backup=True,
+                    raw_mode=True,
+                    remove_obsolete=False,
+                    external_plugin=True
+                )
+
+            self._plugin_configs[conf_section] = (plugin_class, plugin_config)
 
     def remove_deprecated_config_locations(self):
         """Removing old .spyder.ini location."""
@@ -107,12 +141,13 @@ class ConfigurationManager(object):
 
     def get_active_conf(self, section=None):
         """
-        Return the active user or project configurarion for plugin.
+        Return the active user or project configuration for plugin.
         """
+        # Add a check for shortcuts!
         if section is None:
             config = self._user_config
         elif section in self._plugin_configs:
-            config = self._plugin_configs[section]
+            _, config = self._plugin_configs[section]
         else:
             # TODO: implement project configuration on the following PR
             config = self._user_config
@@ -225,6 +260,92 @@ class ConfigurationManager(object):
         """Reset config to Default values."""
         config = self.get_active_conf(section)
         config.reset_to_defaults(section=section)
+
+    # Shortcut configuration management
+    # ------------------------------------------------------------------------
+    def _get_shortcut_config(self, context, plugin_name=None):
+        """
+        Return the shortcut configuration for global or plugin configs.
+
+        Context must be either '_' for global or the name of a plugin.
+        """
+        context = context.lower()
+        config = self._user_config
+
+        if plugin_name in self._plugin_configs:
+            plugin_class, config = self._plugin_configs[plugin_name]
+
+            # Check if plugin has a separate file
+            if not plugin_class.CONF_FILE:
+                config = self._user_config
+
+        elif context in self._plugin_configs:
+            plugin_class, config = self._plugin_configs[context]
+
+            # Check if plugin has a separate file
+            if not plugin_class.CONF_FILE:
+                config = self._user_config
+
+        elif context in (self._user_config.sections()
+                         + EXTRA_VALID_SHORTCUT_CONTEXTS):
+            config = self._user_config
+        else:
+            raise ValueError(_("Shortcut context must match '_' or the "
+                               "plugin `CONF_SECTION`!"))
+
+        return config
+
+    def get_shortcut(self, context, name, plugin_name=None):
+        """
+        Get keyboard shortcut (key sequence string).
+
+        Context must be either '_' for global or the name of a plugin.
+        """
+        config = self._get_shortcut_config(context, plugin_name)
+        return config.get('shortcuts', context + '/' + name.lower())
+
+    def set_shortcut(self, context, name, keystr, plugin_name=None):
+        """
+        Set keyboard shortcut (key sequence string).
+
+        Context must be either '_' for global or the name of a plugin.
+        """
+        config = self._get_shortcut_config(context, plugin_name)
+        config.set('shortcuts', context + '/' + name, keystr)
+
+    def config_shortcut(self, action, context, name, parent):
+        """
+        Create a Shortcut namedtuple for a widget.
+
+        The data contained in this tuple will be registered in our shortcuts
+        preferences page.
+        """
+        # We only import on demand to avoid loading Qt modules
+        from spyder.config.gui import _config_shortcut
+
+        keystr = self.get_shortcut(context, name)
+        sc = _config_shortcut(action, context, name, keystr, parent)
+        return sc
+
+    def iter_shortcuts(self):
+        """Iterate over keyboard shortcuts."""
+        for context_name, keystr in self._user_config.items('shortcuts'):
+            context, name = context_name.split('/', 1)
+            yield context, name, keystr
+
+        for _, (_, plugin_config) in self._plugin_configs.items():
+            items = plugin_config.items('shortcuts')
+            if items:
+                for context_name, keystr in items:
+                    context, name = context_name.split('/', 1)
+                    yield context, name, keystr
+
+    def reset_shortcuts(self):
+        """Reset keyboard shortcuts to default values."""
+        self._user_config.reset_to_defaults(section='shortcuts')
+        for _, (_, plugin_config) in self._plugin_configs.items():
+            # TODO: check if the section exists?
+            plugin_config.reset_to_defaults(section='shortcuts')
 
 
 CONF = ConfigurationManager()

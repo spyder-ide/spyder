@@ -185,7 +185,6 @@ class BaseSH(QSyntaxHighlighter):
         self.setup_formats(font)
 
         self.cell_separators = None
-        self.fold_detector = None
         self.editor = None
         self.patterns = DEFAULT_COMPILED_PATTERNS
 
@@ -291,15 +290,6 @@ class BaseSH(QSyntaxHighlighter):
         """
         self.highlight_block(text)
 
-        # Process blocks for fold detection
-        current_block = self.currentBlock()
-        previous_block = self._find_prev_non_blank_block(current_block)
-        if self.editor:
-            if self.fold_detector is not None:
-                self.fold_detector._editor = weakref.ref(self.editor)
-                self.fold_detector.process_block(
-                    current_block, previous_block, text)
-
     def highlight_block(self, text):
         """
         Abstract method. Override this to apply syntax highlighting.
@@ -368,9 +358,12 @@ class BaseSH(QSyntaxHighlighter):
 
 
 class TextSH(BaseSH):
-    """Simple Text Syntax Highlighter Class (only highlight spaces)"""
+    """Simple Text Syntax Highlighter Class (only highlight spaces)."""
+
     def highlight_block(self, text):
         """Implement highlight, only highlight spaces."""
+        text = to_text_string(text)
+        self.setFormat(0, qstring_length(text), self.formats["normal"])
         self.highlight_extras(text)
 
 

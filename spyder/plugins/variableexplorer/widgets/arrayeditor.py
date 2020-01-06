@@ -33,7 +33,8 @@ from spyder_kernels.utils.nsview import value_to_display
 # Local imports
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font, config_shortcut
+from spyder.config.gui import get_font
+from spyder.config.manager import CONF
 from spyder.py3compat import (io, is_binary_string, is_string,
                               is_text_string, PY3, to_binary_string,
                               to_text_string)
@@ -166,8 +167,12 @@ class ArrayModel(QAbstractTableModel):
             self.dhue = None
             self.bgcolor_enabled = False
 
-        # Deactivate coloring for object arrays
-        if self._data.dtype.name == 'object':
+        # Array with infinite values cannot display background colors and
+        # crashes. See: spyder-ide/spyder#8093
+        self.has_inf = np.inf in data
+
+        # Deactivate coloring for object arrays or arrays with inf values
+        if self._data.dtype.name == 'object' or self.has_inf:
             self.bgcolor_enabled = False
 
         # Use paging when the total size, number of rows or number of
@@ -288,7 +293,7 @@ class ArrayModel(QAbstractTableModel):
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
         elif (role == Qt.BackgroundColorRole and self.bgcolor_enabled
-                and value is not np.ma.masked):
+                and value is not np.ma.masked and not self.has_inf):
             try:
                 hue = (self.hue0 +
                        self.dhue * (float(self.vmax) - self.color_func(value))
@@ -341,11 +346,16 @@ class ArrayModel(QAbstractTableModel):
         # Add change to self.changes
         self.changes[(i, j)] = val
         self.dataChanged.emit(index, index)
+
         if not is_string(val):
+            val = self.color_func(val)
+
             if val > self.vmax:
                 self.vmax = val
+
             if val < self.vmin:
                 self.vmin = val
+
         return True
 
     def flags(self, index):
@@ -426,8 +436,11 @@ class ArrayView(QTableView):
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
-        config_shortcut(self.copy, context='variable_explorer', name='copy',
-                        parent=self)
+        CONF.config_shortcut(
+            self.copy,
+            context='variable_explorer',
+            name='copy',
+            parent=self)
         self.horizontalScrollBar().valueChanged.connect(
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
@@ -846,10 +859,15 @@ class ArrayEditor(QDialog):
 
     @Slot()
     def accept(self):
-        """Reimplement Qt method"""
-        for index in range(self.stack.count()):
-            self.stack.widget(index).accept_changes()
-        QDialog.accept(self)
+        """Reimplement Qt method."""
+        try:
+            for index in range(self.stack.count()):
+                self.stack.widget(index).accept_changes()
+            QDialog.accept(self)
+        except RuntimeError:
+            # Sometimes under CI testing the object the following error appears
+            # RuntimeError: wrapped C/C++ object has been deleted
+            pass
 
     def get_value(self):
         """Return modified array -- this is *not* a copy"""

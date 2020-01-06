@@ -30,13 +30,13 @@ To release a new version of Spyder you need to follow these steps:
 
 * git checkout master
 
-* git merge 3.x
+* git merge 4.x
 
 * git commit with `[ci skip]`
 
 * git push upstream master
 
-* git push upstream 3.x
+* git push upstream 4.x
 
 * git push upstream --tags
 

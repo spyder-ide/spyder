@@ -99,6 +99,14 @@ def test_arrayeditor_format(qtbot):
     assert contents == "1.000000000000000000e+00\n2.000000000000000000e+00\n"
 
 
+def test_arrayeditor_with_inf_array(qtbot, recwarn):
+    """See: spyder-ide/spyder#8093"""
+    arr = np.array([np.inf])
+    res = launch_arrayeditor(arr, "inf array")
+    assert len(recwarn) == 0
+    assert arr == res
+
+
 def test_arrayeditor_with_string_array(qtbot):
     arr = np.array(["kjrekrjkejr"])
     assert arr == launch_arrayeditor(arr, "string array")
@@ -211,6 +219,28 @@ def test_arrayeditor_edit_2d_array(qtbot):
     qtbot.keyPress(view, Qt.Key_Return)
 
     assert np.sum(diff_arr != dlg.get_value()) == 2
+
+
+def test_arrayeditor_edit_complex_array(qtbot):
+    """See: spyder-ide/spyder#7848"""
+    cnum = -1+0.5j
+    arr = (np.random.random((10, 10)) - 0.50) * cnum
+    dlg = ArrayEditor()
+    assert dlg.setup_and_check(arr, '2D complex array', xlabels=None,
+                               ylabels=None)
+    dlg.show()
+    qtbot.waitForWindowShown(dlg)
+    view = dlg.arraywidget.view
+    qtbot.keyPress(view, Qt.Key_Down)
+
+    # Prevent the test from failing
+    qtbot.wait(300)
+
+    # This is the actual editor widget on the cell
+    cell_editor = view.viewport().focusWidget()
+    qtbot.keyClicks(cell_editor, str(cnum))
+    qtbot.keyPress(cell_editor, Qt.Key_Return)
+    dlg.accept()
 
 
 def test_arraymodel_set_data_overflow(monkeypatch):

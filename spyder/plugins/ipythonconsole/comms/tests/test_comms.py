@@ -23,13 +23,6 @@ from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 
 
 # =============================================================================
-# Constants
-# =============================================================================
-FILES_PATH = os.path.dirname(os.path.realpath(__file__))
-TIMEOUT = 15
-
-
-# =============================================================================
 # Fixtures
 # =============================================================================
 @pytest.fixture
@@ -37,29 +30,37 @@ def kernel(request):
     """Console kernel fixture"""
     # Get kernel instance
     kernel = get_kernel()
-    kernel.namespace_view_settings = {'check_all': False,
-                                      'exclude_private': True,
-                                      'exclude_uppercase': True,
-                                      'exclude_capitalized': False,
-                                      'exclude_unsupported': True,
-                                      'excluded_names': ['nan', 'inf',
-                                                         'infty',
-                                                         'little_endian',
-                                                         'colorbar_doc',
-                                                         'typecodes',
-                                                         '__builtins__',
-                                                         '__main__',
-                                                         '__doc__',
-                                                         'NaN', 'Inf',
-                                                         'Infinity',
-                                                         'sctypes',
-                                                         'rcParams',
-                                                         'rcParamsDefault',
-                                                         'sctypeNA', 'typeNA',
-                                                         'False_', 'True_'],
-                                      'minmax': False}
-    # Teardown
+    kernel.namespace_view_settings = {
+        'check_all': False,
+        'exclude_private': True,
+        'exclude_uppercase': True,
+        'exclude_capitalized': False,
+        'exclude_unsupported': False,
+        'exclude_callables_and_modules': True,
+        'excluded_names': [
+            'nan',
+            'inf',
+            'infty',
+            'little_endian',
+            'colorbar_doc',
+            'typecodes',
+            '__builtins__',
+            '__main__',
+            '__doc__',
+            'NaN',
+            'Inf',
+            'Infinity',
+            'sctypes',
+            'rcParams',
+            'rcParamsDefault',
+            'sctypeNA',
+            'typeNA',
+            'False_',
+            'True_'
+        ],
+        'minmax': False}
 
+    # Teardown
     def reset_kernel():
         kernel.do_execute('reset -f', True)
     request.addfinalizer(reset_kernel)
@@ -118,6 +119,7 @@ def comms(kernel):
 # =============================================================================
 # Tests
 # =============================================================================
+@pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
 def test_comm_base(comms):
     """Test basic message exchange."""
     commsend, commrecv = comms
@@ -158,6 +160,7 @@ def test_comm_base(comms):
     assert not commrecv.is_open()
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="Hangs on Windows")
 def test_request(comms):
     """Test if the requests are being replied to."""
     kernel_comm, frontend_comm = comms

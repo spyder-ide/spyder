@@ -20,16 +20,18 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QMessageBox, QTabWidget,
                             QVBoxLayout)
-if sys.platform == "darwin":
-    import applaunchservices as als
 
-from spyder.config.base import (_, LANGUAGE_CODES, running_in_mac_app,
-                                save_lang_conf)
+from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
+                                running_in_mac_app, save_lang_conf)
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import to_text_string
 import spyder.utils.icon_manager as ima
 from spyder.utils.qthelpers import (register_app_launchservices,
                                     restore_launchservices)
+
+# To open files from Finder directly in Spyder.
+if sys.platform == "darwin":
+    import applaunchservices as als
 
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
@@ -46,7 +48,12 @@ class MainConfigPage(GeneralConfigPage):
         # --- Interface
         general_group = QGroupBox(_("General"))
 
-        languages = LANGUAGE_CODES.items()
+        # Remove disabled languages
+        language_codes = LANGUAGE_CODES.copy()
+        for lang in DISABLED_LANGUAGES:
+            language_codes.pop(lang)
+
+        languages = language_codes.items()
         language_choices = sorted([(val, key) for key, val in languages])
         language_combo = self.create_combobox(_('Language:'),
                                               language_choices,
@@ -197,15 +204,19 @@ class MainConfigPage(GeneralConfigPage):
         cpu_box.setEnabled(self.main.cpu_status.is_supported())
         cpu_spin.setEnabled(self.main.cpu_status.is_supported())
 
+        clock_box = newcb(_("Show clock"), 'clock/enable')
+
         status_bar_o = self.get_option('show_status_bar')
         show_status_bar.toggled.connect(memory_box.setEnabled)
         show_status_bar.toggled.connect(memory_spin.setEnabled)
         show_status_bar.toggled.connect(cpu_box.setEnabled)
         show_status_bar.toggled.connect(cpu_spin.setEnabled)
+        show_status_bar.toggled.connect(clock_box.setEnabled)
         memory_box.setEnabled(status_bar_o)
         memory_spin.setEnabled(status_bar_o)
         cpu_box.setEnabled(status_bar_o)
         cpu_spin.setEnabled(status_bar_o)
+        clock_box.setEnabled(status_bar_o)
 
         # Layout status bar
         cpu_memory_layout = QGridLayout()
@@ -213,6 +224,7 @@ class MainConfigPage(GeneralConfigPage):
         cpu_memory_layout.addWidget(memory_spin, 0, 1)
         cpu_memory_layout.addWidget(cpu_box, 1, 0)
         cpu_memory_layout.addWidget(cpu_spin, 1, 1)
+        cpu_memory_layout.addWidget(clock_box, 2, 0)
 
         sbar_layout = QVBoxLayout()
         sbar_layout.addWidget(show_status_bar)

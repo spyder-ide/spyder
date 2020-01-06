@@ -23,10 +23,25 @@ EOL_CHARS = (("\r\n", 'nt'), ("\n", 'posix'), ("\r", 'mac'))
 
 
 def get_eol_chars(text):
-    """Get text EOL characters"""
+    """
+    Get text EOL characters.
+
+    If None is found, return the eol based on the operatin system.
+    """
     for eol_chars, _os_name in EOL_CHARS:
         if text.find(eol_chars) > -1:
-            return eol_chars
+            break
+    else:
+        if os.name == 'nt':
+            eol_chars = "\r\n"
+        elif sys.platform.startswith('linux'):
+            eol_chars = "\n"
+        elif sys.platform == 'darwin':
+            eol_chars = "\r"
+        else:
+            eol_chars = "\n"
+
+    return eol_chars
 
 
 def get_os_name_from_eol_chars(eol_chars):

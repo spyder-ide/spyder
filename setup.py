@@ -43,8 +43,8 @@ PY3 = sys.version_info[0] == 3
 # Taken from the notebook setup.py -- Modified BSD License
 #==============================================================================
 v = sys.version_info
-if v[:2] < (2, 7) or (v[0] >= 3 and v[:2] < (3, 5)):
-    error = "ERROR: Spyder requires Python version 2.7 or 3.5 and above."
+if v[0] >= 3 and v[:2] < (3, 6):
+    error = "ERROR: Spyder 5 requires Python version 3.6 or above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -205,6 +205,7 @@ install_requires = [
     'chardet>=2.0.0',
     'cloudpickle',
     'diff-match-patch',
+    'intervaltree',
     # This is here until Jedi 0.15+ fixes completions for
     # Numpy and Pandas
     'jedi==0.14.1',
@@ -220,18 +221,17 @@ install_requires = [
     'psutil',
     'pygments>=2.0',
     'pylint',
-    'pympler',
     'pyqt5<5.13;python_version>="3"',
     'pyqtwebengine<5.13;python_version>="3"',
-    'python-language-server[all]>=0.29.3,<0.30.0',
+    'python-language-server[all]>=0.31.2,<0.32.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq',
     'qdarkstyle>=2.7',
     'qtawesome>=0.5.7',
-    'qtconsole>=4.5.5',
+    'qtconsole>=4.6.0',
     'qtpy>=1.5.0',
     'sphinx',
-    'spyder-kernels>=1.7.0,<1.8.0',
+    'spyder-kernels>=1.8.1,<2.0.0',
     'watchdog',
 ]
 
