@@ -30,6 +30,12 @@ from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor, Arr
 
 
 # =============================================================================
+# Constants
+# =============================================================================
+FILES_PATH = os.path.dirname(os.path.realpath(__file__))
+
+
+# =============================================================================
 # Utility functions
 # =============================================================================
 def launch_arrayeditor(data, title="", xlabels=None, ylabels=None):
@@ -77,7 +83,7 @@ def test_attribute_errors(qtbot):
     Fixes spyder-ide/spyder#11216 .
     """
     from scipy.io import loadmat
-    data = loadmat('issue_11216.mat')
+    data = loadmat(os.path.join(FILES_PATH, 'issue_11216.mat'))
     dlg = setup_arrayeditor(qtbot, data['S'])
 
 def test_type_errors(qtbot):
