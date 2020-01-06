@@ -70,6 +70,16 @@ def test_object_arrays_display(qtbot):
     assert u'[Numpy array]' == dlg.arraywidget.model.data(idx)
 
 
+def test_attribute_errors(qtbot):
+    """
+    Verify that we don't get a AttributeError for certain structured arrays.
+
+    Fixes spyder-ide/spyder#11216 .
+    """
+    from scipy.io import loadmat
+    data = loadmat('issue_11216.mat')
+    dlg = setup_arrayeditor(qtbot, data['S'])
+
 def test_type_errors(qtbot):
     """
     Verify that we don't get a TypeError for certain structured arrays.
