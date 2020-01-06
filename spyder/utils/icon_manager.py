@@ -411,12 +411,22 @@ def get_icon_by_extension_or_type(fname, scale_factor):
     application_icons = {}
     application_icons.update(BIN_FILES)
     application_icons.update(DOCUMENT_FILES)
+
+    basename = osp.basename(fname)
+    __, extension = osp.splitext(basename.lower())
+    mime_type, __ = mime.guess_type(basename)
+
     if osp.isdir(fname):
-        return icon('DirOpenIcon', scale_factor)
+        extension = "Folder"
+
+    icon_dict = get_icon_by_extension_or_type._icon_dict
+
+    if (extension, scale_factor) in icon_dict:
+        return icon_dict[(extension, scale_factor)]
+
+    if osp.isdir(fname):
+        icon_by_extension = icon('DirOpenIcon', scale_factor)
     else:
-        basename = osp.basename(fname)
-        __, extension = osp.splitext(basename.lower())
-        mime_type, __ = mime.guess_type(basename)
         icon_by_extension = get_icon('binary', adjust_for_interface=True)
 
         if extension in OFFICE_FILES:
@@ -458,7 +468,11 @@ def get_icon_by_extension_or_type(fname, scale_factor):
                     if bin_name in application_icons:
                         icon_by_extension = icon(
                             application_icons[bin_name], scale_factor)
+    icon_dict[(extension, scale_factor)] = icon_by_extension
     return icon_by_extension
+
+
+get_icon_by_extension_or_type._icon_dict = {}
 
 
 def base64_from_icon(icon_name, width, height):
