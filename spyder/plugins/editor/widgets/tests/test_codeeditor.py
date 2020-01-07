@@ -216,5 +216,21 @@ def test_in_string(editorbot, input_text, expected_state):
         assert widget.in_string(cursor) == expected_state[1]
 
 
+def test_comment(editorbot):
+    """
+    Test that in_string works correctly.
+    """
+    qtbot, widget = editorbot
+    widget.set_text("import numpy")
+    cursor = widget.textCursor()
+    cursor.setPosition(8)
+    cursor.setPosition(11, QTextCursor.KeepAnchor)
+    widget.setTextCursor(cursor)
+    qtbot.keyPress(widget, "1", modifier=Qt.ControlModifier)
+    assert widget.toPlainText() == "# import numpy"
+    qtbot.keyPress(widget, "1", modifier=Qt.ControlModifier)
+    assert widget.toPlainText() == "import numpy"
+
+
 if __name__ == '__main__':
     pytest.main(['test_codeeditor.py'])
