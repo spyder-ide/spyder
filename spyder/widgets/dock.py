@@ -56,8 +56,9 @@ class TabFilter(QObject):
                 else:
                     self.show_tab_menu(event)
         except AttributeError:
-            # Needed to avoid an AttributeError will right-clicking for
-            # the context menu. See spyder-ide/spyder#11226
+            # Needed to avoid an error when generating the
+            # context menu on top of the tab.
+            # See spyder-ide/spyder#11226
             pass
 
     def show_tab_menu(self, event):
