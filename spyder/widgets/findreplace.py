@@ -257,17 +257,6 @@ class FindReplace(QWidget):
     def update_replace_combo(self):
         self.replace_text.lineEdit().returnPressed.emit()
 
-    def toggle_replace_widgets(self):
-        if self.enable_replace:
-            # Toggle replace widgets
-            if self.replace_widgets[0].isVisible():
-                self.hide_replace()
-                self.hide()
-            else:
-                self.show_replace()
-                if len(to_text_string(self.search_text.currentText())) > 0:
-                    self.replace_text.setFocus()
-
     @Slot(bool)
     def toggle_highlighting(self, state):
         """Toggle the 'highlight all results' feature"""
