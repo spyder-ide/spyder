@@ -323,6 +323,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             }
 
         logger.debug('{} request: {}'.format(self.language, method))
+
         # Try sending a message. If the send queue is full, keep trying for a
         # a second before giving up.
         timeout = 1
