@@ -314,9 +314,10 @@ class FindReplace(QWidget):
 
     def show_replace(self):
         """Show replace widgets"""
-        self.show(hide_replace=False)
-        for widget in self.replace_widgets:
-            widget.show()
+        if self.enable_replace:
+            self.show(hide_replace=False)
+            for widget in self.replace_widgets:
+                widget.show()
 
     def hide_replace(self):
         """Hide replace widgets"""
