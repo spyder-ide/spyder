@@ -30,6 +30,12 @@ from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor, Arr
 
 
 # =============================================================================
+# Constants
+# =============================================================================
+HERE = os.path.dirname(os.path.realpath(__file__))
+
+
+# =============================================================================
 # Utility functions
 # =============================================================================
 def launch_arrayeditor(data, title="", xlabels=None, ylabels=None):
@@ -69,6 +75,18 @@ def test_object_arrays_display(qtbot):
     idx = dlg.arraywidget.model.index(0, 0)
     assert u'[Numpy array]' == dlg.arraywidget.model.data(idx)
 
+
+def test_attribute_errors(qtbot):
+    """
+    Verify that we don't get a AttributeError for certain structured arrays.
+
+    Fixes spyder-ide/spyder#11216 .
+    """
+    from scipy.io import loadmat
+    data = loadmat(os.path.join(HERE, 'issue_11216.mat'))
+    dlg = setup_arrayeditor(qtbot, data['S'])
+    contents = dlg.arraywidget.model.get_value(dlg.arraywidget.model.index(0, 0))
+    assert_array_equal(contents, data['S'][0][0][0])
 
 def test_type_errors(qtbot):
     """
