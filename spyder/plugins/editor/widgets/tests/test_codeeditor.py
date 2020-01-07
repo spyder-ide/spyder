@@ -216,6 +216,7 @@ def test_in_string(editorbot, input_text, expected_state):
         assert widget.in_string(cursor) == expected_state[1]
 
 
+@pytest.mark.skipif(PY2, reason="Doesn't work with python 2 on travis.")
 def test_comment(editorbot):
     """
     Test that in_string works correctly.
