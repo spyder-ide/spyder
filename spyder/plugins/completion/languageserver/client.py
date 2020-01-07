@@ -335,7 +335,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 return int(_id)
             except zmq.error.Again:
                 if time.time() > timeout_time:
-                    raise
+                    self.sig_lsp_down.emit(self.language)
+                    return
                 # The send queue is full! wait 0.1 seconds before retrying.
                 logger.warning("The send queue is full! Retrying...")
                 time.sleep(.1)
