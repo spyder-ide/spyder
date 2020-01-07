@@ -16,6 +16,7 @@ import os.path as osp
 from spyder.config.base import _, get_conf_paths, get_conf_path, get_home_dir
 from spyder.config.main import CONF_VERSION, DEFAULTS, NAME_MAP
 from spyder.config.user import UserConfig, MultiUserConfig, NoDefault
+from spyder.utils.programs import check_version
 
 
 EXTRA_VALID_SHORTCUT_CONTEXTS = [
@@ -104,7 +105,32 @@ class ConfigurationManager(object):
                 backup=True,
                 raw_mode=True,
                 remove_obsolete=False,
+                external_plugin=True
             )
+
+            # Recreate external plugin configs to deal with part two
+            # (the shortcut conflicts) of spyder-ide/spyder#11132
+            spyder_config = self._user_config._configs_map['spyder']
+            if check_version(spyder_config._old_version, '54.0.0', '<'):
+                # Remove all previous .ini files
+                try:
+                    plugin_config.cleanup()
+                except EnvironmentError:
+                    pass
+
+                # Recreate config
+                plugin_config = MultiUserConfig(
+                    name_map,
+                    path=path,
+                    defaults=defaults,
+                    load=True,
+                    version=version,
+                    backup=True,
+                    raw_mode=True,
+                    remove_obsolete=False,
+                    external_plugin=True
+                )
+
             self._plugin_configs[conf_section] = (plugin_class, plugin_config)
 
     def remove_deprecated_config_locations(self):
@@ -307,8 +333,8 @@ class ConfigurationManager(object):
             context, name = context_name.split('/', 1)
             yield context, name, keystr
 
-        for p_section, (p_class, p_config) in self._plugin_configs.items():
-            items = p_config.items('shortcuts')
+        for _, (_, plugin_config) in self._plugin_configs.items():
+            items = plugin_config.items('shortcuts')
             if items:
                 for context_name, keystr in items:
                     context, name = context_name.split('/', 1)
@@ -317,7 +343,7 @@ class ConfigurationManager(object):
     def reset_shortcuts(self):
         """Reset keyboard shortcuts to default values."""
         self._user_config.reset_to_defaults(section='shortcuts')
-        for plugin_config in self._plugin_configs:
+        for _, (_, plugin_config) in self._plugin_configs.items():
             # TODO: check if the section exists?
             plugin_config.reset_to_defaults(section='shortcuts')
 
