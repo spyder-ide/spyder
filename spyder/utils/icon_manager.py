@@ -45,6 +45,8 @@ DOCUMENT_FILES = {'vnd.ms-powerpoint': 'PowerpointFileIcon',
 OFFICE_FILES = {'.xlsx': 'ExcelFileIcon', '.docx': 'WordFileIcon',
                 '.pptx': 'PowerpointFileIcon'}
 
+ICONS_BY_EXTENSION = {}
+
 # Magnification factors for attribute icons
 # per platform
 if sys.platform.startswith('linux'):
@@ -419,10 +421,8 @@ def get_icon_by_extension_or_type(fname, scale_factor):
     if osp.isdir(fname):
         extension = "Folder"
 
-    icon_dict = get_icon_by_extension_or_type._icon_dict
-
-    if (extension, scale_factor) in icon_dict:
-        return icon_dict[(extension, scale_factor)]
+    if (extension, scale_factor) in ICONS_BY_EXTENSION:
+        return ICONS_BY_EXTENSION[(extension, scale_factor)]
 
     if osp.isdir(fname):
         icon_by_extension = icon('DirOpenIcon', scale_factor)
@@ -468,11 +468,9 @@ def get_icon_by_extension_or_type(fname, scale_factor):
                     if bin_name in application_icons:
                         icon_by_extension = icon(
                             application_icons[bin_name], scale_factor)
-    icon_dict[(extension, scale_factor)] = icon_by_extension
+
+    ICONS_BY_EXTENSION[(extension, scale_factor)] = icon_by_extension
     return icon_by_extension
-
-
-get_icon_by_extension_or_type._icon_dict = {}
 
 
 def base64_from_icon(icon_name, width, height):
