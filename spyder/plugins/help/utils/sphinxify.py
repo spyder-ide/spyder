@@ -140,6 +140,7 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
       'jquery_path': JQUERY_PATH,
       'mathjax_path': MATHJAX_PATH,
       'right_sphinx_version': '' if sphinx.__version__ < "1.1" else 'true',
+      'sphinx_version_2': '' if sphinx.__version__ < "2.0" else 'true',
       'platform': sys.platform
     }
 
