@@ -309,10 +309,10 @@ tt {
 div.admonition.note {
     font-size: 0.95em;
     margin: 1.3em;
-    border: 1px solid #BCE8F1;
-    background-color: #D9EDF7;
+    border: 1px solid #DDDDDD;
+    background-color: #3a424a;
     padding: 0px 5px 0 5px;
-    color: #3A87AD;
+    color: #FFFFFF;
 }
 
 div.admonition p.admonition-title {
