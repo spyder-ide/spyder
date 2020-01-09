@@ -93,11 +93,13 @@ def usage(title, message, tutorial_message, tutorial, css_path=CSS_PATH):
 
 
 def loading(message, loading_img, css_path=CSS_PATH):
-    """Print loading message on the rich text view"""
+    """Print loading message on the rich text view."""
     env = Environment()
     env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
     loading = env.get_template("loading.html")
-    return loading.render(css_path=css_path, loading_img=loading_img, message=message)
+    return loading.render(
+        css_path=css_path, loading_img=loading_img,message=message)
+
 
 def generate_context(name='', argspec='', note='', math=False, collapse=False,
                      img_path='', css_path=CSS_PATH):
