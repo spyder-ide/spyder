@@ -930,7 +930,7 @@ class BaseEditMixin(object):
             self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
 
-    def get_current_word_and_position(self, completion=False):
+    def get_current_word_and_position(self, completion=False, help_req=False):
         """Return current word, i.e. word at cursor position,
             and the start position."""
         cursor = self.textCursor()
@@ -954,18 +954,21 @@ class BaseEditMixin(object):
                 curs = self.textCursor()
                 curs.movePosition(move, QTextCursor.KeepAnchor)
                 return not to_text_string(curs.selectedText()).strip()
-            if not completion:
-                if is_space(QTextCursor.NextCharacter):
-                    if is_space(QTextCursor.PreviousCharacter):
-                        return
-                    cursor.movePosition(QTextCursor.WordLeft)
-            else:
-                def is_special_character(move):
+            def is_special_character(move):
                     curs = self.textCursor()
                     curs.movePosition(move, QTextCursor.KeepAnchor)
                     text_cursor = to_text_string(curs.selectedText()).strip()
                     return len(re.findall(r'([^\d\W]\w*)',
                                           text_cursor, re.UNICODE)) == 0
+            if help_req:
+                if is_special_character(QTextCursor.NoMove):
+                    cursor.movePosition(QTextCursor.WordLeft)
+            elif not completion:
+                if is_space(QTextCursor.NextCharacter):
+                    if is_space(QTextCursor.PreviousCharacter):
+                        return
+                    cursor.movePosition(QTextCursor.WordLeft)
+            else:
                 if is_space(QTextCursor.PreviousCharacter):
                     return
                 if (is_special_character(QTextCursor.NextCharacter)):
@@ -981,9 +984,10 @@ class BaseEditMixin(object):
                 text = text[:cursor_pos - startpos]
             return text, startpos
 
-    def get_current_word(self, completion=False):
+    def get_current_word(self, completion=False, help_req=False):
         """Return current word, i.e. word at cursor position."""
-        ret = self.get_current_word_and_position(completion)
+        ret = self.get_current_word_and_position(
+            completion=completion, help_req=help_req)
         if ret is not None:
             return ret[0]
 

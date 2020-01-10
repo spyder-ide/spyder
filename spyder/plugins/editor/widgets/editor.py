@@ -1063,8 +1063,7 @@ class EditorStack(QWidget):
         if clicked:
             name = editor.get_last_hover_word()
         else:
-            name = editor.get_current_word()
-
+            name = editor.get_current_word(help_req=True)
         try:
             editor.sig_display_object_info.disconnect(self.display_help)
         except TypeError:
