@@ -954,6 +954,7 @@ class BaseEditMixin(object):
                 curs = self.textCursor()
                 curs.movePosition(move, QTextCursor.KeepAnchor)
                 return not to_text_string(curs.selectedText()).strip()
+
             def is_special_character(move):
                     curs = self.textCursor()
                     curs.movePosition(move, QTextCursor.KeepAnchor)
