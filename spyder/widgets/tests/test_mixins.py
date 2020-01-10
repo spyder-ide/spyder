@@ -28,6 +28,7 @@ def mixinsbot(qtbot):
     widget.show()
     return qtbot, widget
 
+
 # --- Tests
 # -----------------------------------------------------------------------------
 def test_get_current_word(mixinsbot):
@@ -45,7 +46,7 @@ def test_get_current_word(mixinsbot):
     cursor.setPosition(widget.get_position('sof'))
     widget.move_cursor(7)
     current_word = get_current_word()
-    assert current_word == None
+    assert current_word is None
     current_word = get_current_word(help_req=True)
     assert current_word == 'foo'
 
