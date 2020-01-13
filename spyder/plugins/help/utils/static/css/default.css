@@ -219,15 +219,17 @@ table.docutils {
     border-collapse: collapse;
     border-spacing: 0;
     border: #DDDDDD;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 17px;
-    margin-bottom: 17px;
+    margin-top: 15px;
+    margin-bottom: 15px;
     width: 90%;
 }
 
 table.docutils td {
-    padding: 5px;
+    padding: 0px 0px 0px 5px;
 }
 
 table.docutils tr.row-odd {
@@ -245,8 +247,8 @@ table.docutils th {
     border-top-style: solid;
     border-top-width: 1px;
     font-weight: bold;
-    text-align: center;
-    padding: 6px 0px 6px 8px;
+    text-align: left;
+    padding: 0px 0px 0px 5px;
     color: rgb(65, 65, 65);
 }
 
