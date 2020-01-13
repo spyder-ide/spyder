@@ -64,7 +64,10 @@ class CloseBracketsExtension(EditorExtension):
             if char in closing_brackets:
                 match = self.editor.find_brace_match(line_pos+pos, char,
                                                      forward=False)
-                if (match is None) or (match < line_pos):
+                # Only validate match existence.
+                # Having the missing bracket in a previous line is possible
+                # See spyder-ide/spyder#11217
+                if (match is None):
                     return True
         return False
 
