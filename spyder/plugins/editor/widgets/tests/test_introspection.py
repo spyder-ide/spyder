@@ -770,7 +770,7 @@ def test_kite_code_snippets(kite_codeeditor, qtbot):
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
 
-    assert 'sin(…)' in {
+    assert 'sin('+u'\u2026'+')' in {
         x['label'] for x in sig.args[0]}
 
     expected_insert = 'sin($1)$0'

@@ -18,3 +18,4 @@ matplotlib
 cython
 flaky
 coverage <5.0
+rtree
