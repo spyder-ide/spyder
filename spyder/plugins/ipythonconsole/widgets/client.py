@@ -495,9 +495,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.shellwidget.spyder_kernel_comm.close()
             self.shellwidget.spyder_kernel_comm.shutdown_comm_channel()
             self.shellwidget._pdb_history_file.save_thread.stop()
-        shutdown_thread = Thread(target=self.finalize_shutdown)
-        shutdown_thread.start()
-        self.shellwidget.shutdown_threads[id(self)] = shutdown_thread
+        self.shutdown_thread = Thread(target=self.finalize_shutdown)
+        self.shutdown_thread.start()
 
     def finalize_shutdown(self):
         """Finalise the shutdown."""
