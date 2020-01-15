@@ -106,6 +106,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
 
+        self.shutdown_threads = {}
+
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
                     timeout=None):
         """

@@ -24,6 +24,7 @@ import os.path as osp
 from string import Template
 from threading import Thread
 import time
+from threading import Thread
 
 # Third party imports (qtpy)
 from qtpy.QtCore import QUrl, QTimer, Signal, Slot
@@ -491,14 +492,17 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def shutdown(self):
         """Shutdown kernel"""
         if self.get_kernel() is not None and not self.slave:
-            now = True
-            # This avoids some flakyness with our Cython tests
-            if running_under_pytest():
-                now = False
             self.shellwidget.spyder_kernel_comm.close()
             self.shellwidget.spyder_kernel_comm.shutdown_comm_channel()
-            self.shellwidget.kernel_manager.shutdown_kernel(now=now)
             self.shellwidget._pdb_history_file.save_thread.stop()
+        shutdown_thread = Thread(target=self.finalize_shutdown)
+        shutdown_thread.start()
+        self.shellwidget.shutdown_threads[id(self)] = shutdown_thread
+
+    def finalize_shutdown(self):
+        """Finalise the shutdown."""
+        if self.get_kernel() is not None and not self.slave:
+            self.shellwidget.kernel_manager.shutdown_kernel()
         if self.shellwidget.kernel_client is not None:
             self.shellwidget.kernel_client.stop_channels()
 
