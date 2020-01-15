@@ -1446,12 +1446,13 @@ class MainWindow(QMainWindow):
         screen = self.window().windowHandle().screen()
         screen.logicalDotsPerInchChanged.disconnect(
             self.show_DPI_change_message)
-        QMessageBox.warning(self, _("Warning"),
-             _("A monitor scale change was detected. <br><br>"
-               "For a proper display of Spyder, please be sure that the "
-               "<i>Enable auto high DPI scaling</i> option "
-               "is activated. Spyder will be restarted."),
-             QMessageBox.Ok)
+        QMessageBox.warning(
+            self, _("Warning"),
+            _("A monitor scale change was detected. <br><br>"
+              "For a proper display of Spyder, please be sure that the "
+              "<i>Enable auto high DPI scaling</i> option "
+              "is activated. Spyder will be restarted."),
+            QMessageBox.Ok)
         self.restart()
 
     def set_window_title(self):
