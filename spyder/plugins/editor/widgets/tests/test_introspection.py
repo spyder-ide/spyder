@@ -780,7 +780,6 @@ def test_kite_code_snippets(kite_codeeditor, qtbot):
     # Insert completion
     qtbot.keyPress(completion, Qt.Key_Tab)
     assert snippets.is_snippet_active
-    # assert code_editor.has_selected_text()
 
     # Get code selected text
     cursor = code_editor.textCursor()
@@ -795,8 +794,7 @@ def test_kite_code_snippets(kite_codeeditor, qtbot):
                           timeout=10000) as sig2:
         qtbot.keyPress(code_editor, Qt.Key_Space, modifier=Qt.ControlModifier,
                        delay=300)
-    assert '<x>)' in {
-        x['label'] for x in sig2.args[0]}
+    assert '<x>)' in {x['label'] for x in sig2.args[0]}
 
     expected_insert = '${1:[x]})$0'
     insert = sig2.args[0][0]
