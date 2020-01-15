@@ -300,7 +300,7 @@ class CompletionWidget(QListWidget):
         alt = event.modifiers() & Qt.AltModifier
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
-        altgr = (key==0)
+        altgr = (key == 0)
         modifier = shift or ctrl or alt or altgr
         if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
             # Check that what was selected can be selected,
