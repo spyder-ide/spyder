@@ -1449,7 +1449,7 @@ class MainWindow(QMainWindow):
         QMessageBox.warning(
             self, _("Warning"),
             _("A monitor scale change was detected. <br><br>"
-              "For a proper display Spyder will be restarted."),
+              "Spyder will be restarted to be properly displayed."),
             QMessageBox.Ok)
         # Activate HDPI auto-scaling option since is needed for a proper
         # display when using OS scaling
