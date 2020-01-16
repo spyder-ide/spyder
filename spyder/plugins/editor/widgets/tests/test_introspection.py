@@ -490,7 +490,7 @@ def test_completions(lsp_codeeditor, qtbot):
                                         'math.f\nmath.asin\n'\
                                         'math.asinangle\n'
 
-    # Check math.a <tab> <backspace> doesn't emit sig_show_completions
+    # Check math.a <tab> <backspace> <escape> do not emit sig_show_completions
     qtbot.keyClicks(code_editor, 'math.a')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
@@ -500,6 +500,7 @@ def test_completions(lsp_codeeditor, qtbot):
                               timeout=5000) as sig:
             qtbot.keyPress(code_editor, Qt.Key_Tab)
             qtbot.keyPress(code_editor, Qt.Key_Backspace)
+            qtbot.keyPress(code_editor, Qt.Key_Escape)
         raise RuntimeError("The signal should not have been received!")
     except pytestqt.exceptions.TimeoutError:
         pass
