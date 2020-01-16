@@ -22,7 +22,7 @@ from spyder.config.base import SAFE_MODE, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, iteritems, to_binary_string, to_text_string
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
-                                get_conda_env_path, is_conda)
+                                get_conda_env_path, is_conda_env)
 from spyder.utils.encoding import to_unicode_from_fs
 from spyder.utils.environ import clean_env
 from spyder.utils.misc import add_pathlist_to_PYTHONPATH, get_python_executable
@@ -94,7 +94,7 @@ class SpyderKernelSpec(KernelSpec):
                 pyexec = pyexec_w
 
         # Command used to start kernels
-        if is_different_interpreter and is_conda():
+        if is_different_interpreter and is_conda_env(pyexec=pyexec):
             # If this is a conda environment we need to call an intermediate
             # activation script to correctly activate the spyder-kernel
 
