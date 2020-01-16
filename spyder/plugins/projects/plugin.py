@@ -102,14 +102,16 @@ class Projects(SpyderPluginWidget):
         self.delete_project_action = create_action(self,
                                     _("Delete Project"),
                                     triggered=self.delete_project)
-        self.clear_recent_projects_action =\
-            create_action(self, _("Clear this list"),
-                          triggered=self.clear_recent_projects)
+        self.clear_recent_projects_action = create_action(
+            self,
+            _("Clear this list"),
+            triggered=self.clear_recent_projects)
         self.recent_project_menu = QMenu(_("Recent Projects"), self)
 
-        self.max_recent_action =\
-            create_action(self, _("Maximum number of recent projects..."),
-                          triggered=self.change_max_recent_projects)
+        self.max_recent_action = create_action(
+            self,
+            _("Maximum number of recent projects..."),
+            triggered=self.change_max_recent_projects)
 
         if self.main is not None:
             self.main.projects_menu_actions += [self.new_project_action,
