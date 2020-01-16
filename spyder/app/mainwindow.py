@@ -1449,10 +1449,13 @@ class MainWindow(QMainWindow):
         QMessageBox.warning(
             self, _("Warning"),
             _("A monitor scale change was detected. <br><br>"
-              "For a proper display of Spyder, please be sure that the "
-              "<i>Enable auto high DPI scaling</i> option "
-              "is activated. Spyder will be restarted."),
+              "For a proper display Spyder will be restarted."),
             QMessageBox.Ok)
+        # Activate HDPI auto-scaling option since is needed for a proper
+        # display when using OS scaling
+        CONF.set('main', 'normal_screen_resolution', False)
+        CONF.set('main', 'high_dpi_scaling', True)
+        CONF.set('main', 'high_dpi_custom_scale_factor', False)
         self.restart()
 
     def set_window_title(self):
