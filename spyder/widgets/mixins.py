@@ -439,6 +439,7 @@ class BaseEditMixin(object):
         return '<br>'.join(new_signatures)
 
     def _check_signature_and_format(self, signature_or_text, parameter=None,
+                                    inspect_word=None,
                                     max_width=_DEFAULT_MAX_WIDTH,
                                     language=_DEFAULT_LANGUAGE):
         """
@@ -458,23 +459,41 @@ class BaseEditMixin(object):
         signature_or_text = signature_or_text.replace('}', '&#125;')
 
         lines = signature_or_text.split('\n')
-        inspect_word = None
-
         if language == 'python':
             open_func_char = '('
-            end_func_char_line = [')', ',']
-            idx = signature_or_text.find(open_func_char)
-            inspect_word = signature_or_text[:idx]
-            name_plus_char = inspect_word + open_func_char
+            has_multisignature = False
 
-            # Signature type
-            count = signature_or_text.count(name_plus_char)
-            has_signature = (open_func_char in lines[0]
-                             and lines[0][-1] in end_func_char_line)
-            if len(lines) > 1:
-                has_multisignature = count > 1 and name_plus_char in lines[1]
+            if inspect_word:
+                has_signature = signature_or_text.startswith(inspect_word)
             else:
-                has_multisignature = False
+                idx = signature_or_text.find(open_func_char)
+                inspect_word = signature_or_text[:idx]
+                has_signature = True
+
+            if has_signature:
+                name_plus_char = inspect_word + open_func_char
+
+                all_lines = []
+                for line in lines:
+                    if (line.startswith(name_plus_char)
+                            and line.count(name_plus_char) > 1):
+                        sublines = line.split(name_plus_char)
+                        sublines = [name_plus_char + l for l in sublines]
+                        sublines = [l.strip() for l in sublines]
+                    else:
+                        sublines = [line]
+
+                    all_lines = all_lines + sublines
+
+                lines = all_lines
+                count = 0
+                for line in lines:
+                    if line.startswith(name_plus_char):
+                        count += 1
+
+                # Signature type
+                has_signature = count == 1
+                has_multisignature = count > 1 and len(lines) > 1
 
         if has_signature and not has_multisignature:
             for i, line in enumerate(lines):
@@ -504,7 +523,6 @@ class BaseEditMixin(object):
             signature = signature.replace('<br>', '\n')
             signatures = signature.split('\n')
             signatures = [sig for sig in signatures if sig]  # Remove empty
-
             new_signature = self._format_signature(
                 signatures=signatures,
                 parameter=parameter,
@@ -529,9 +547,11 @@ class BaseEditMixin(object):
         """
         # Find position of calltip
         point = self._calculate_position()
-
+        signature = signature.strip()
+        inspect_word = None
         language = getattr(self, 'language', language).lower()
-        if language == 'python' and signature.strip():
+        if language == 'python' and signature:
+            inspect_word = signature.split('(')[0]
             # Check if documentation is better than signature, sometimes
             # signature has \n stripped for functions like print, type etc
             check_doc = ' '
@@ -550,6 +570,7 @@ class BaseEditMixin(object):
 
         # Format
         res = self._check_signature_and_format(signature, parameter,
+                                               inspect_word=inspect_word,
                                                language=language,
                                                max_width=max_width)
         new_signature, text, inspect_word = res
@@ -609,8 +630,8 @@ class BaseEditMixin(object):
                   max_width=_DEFAULT_MAX_HINT_WIDTH,
                   text_new_line=True, completion_doc=None):
         """Show code hint and crop text as needed."""
-        # Check if signature and format
-        res = self._check_signature_and_format(text, max_width=max_width)
+        res = self._check_signature_and_format(text, max_width=max_width,
+                                               inspect_word=inspect_word)
         html_signature, extra_text, _ = res
         point = self.get_word_start_pos(at_point)
 
@@ -834,13 +855,24 @@ class BaseEditMixin(object):
 
     def get_text_line(self, line_nb):
         """Return text line at line number *line_nb*"""
-        # Taking into account the case when a file ends in an empty line,
-        # since splitlines doesn't return that line as the last element
-        # TODO: Make this function more efficient
-        try:
-            return to_text_string(self.toPlainText()).splitlines()[line_nb]
-        except IndexError:
-            return self.get_line_separator()
+        block = self.document().findBlockByNumber(line_nb)
+        cursor = QTextCursor(block)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.movePosition(QTextCursor.EndOfBlock, mode=QTextCursor.KeepAnchor)
+        return to_text_string(cursor.selectedText())
+
+    def get_text_region(self, start_line, end_line):
+        """Return text lines spanned from *start_line* to *end_line*."""
+        start_block = self.document().findBlockByNumber(start_line)
+        end_block = self.document().findBlockByNumber(end_line)
+
+        start_cursor = QTextCursor(start_block)
+        start_cursor.movePosition(QTextCursor.StartOfBlock)
+        end_cursor = QTextCursor(end_block)
+        end_cursor.movePosition(QTextCursor.EndOfBlock)
+        end_position = end_cursor.position()
+        start_cursor.setPosition(end_position, mode=QTextCursor.KeepAnchor)
+        return self.get_selected_text(start_cursor)
 
     def get_text(self, position_from, position_to):
         """
@@ -898,7 +930,7 @@ class BaseEditMixin(object):
             self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
 
-    def get_current_word_and_position(self, completion=False):
+    def get_current_word_and_position(self, completion=False, help_req=False):
         """Return current word, i.e. word at cursor position,
             and the start position."""
         cursor = self.textCursor()
@@ -922,18 +954,22 @@ class BaseEditMixin(object):
                 curs = self.textCursor()
                 curs.movePosition(move, QTextCursor.KeepAnchor)
                 return not to_text_string(curs.selectedText()).strip()
-            if not completion:
-                if is_space(QTextCursor.NextCharacter):
-                    if is_space(QTextCursor.PreviousCharacter):
-                        return
-                    cursor.movePosition(QTextCursor.WordLeft)
-            else:
-                def is_special_character(move):
+
+            def is_special_character(move):
                     curs = self.textCursor()
                     curs.movePosition(move, QTextCursor.KeepAnchor)
                     text_cursor = to_text_string(curs.selectedText()).strip()
                     return len(re.findall(r'([^\d\W]\w*)',
                                           text_cursor, re.UNICODE)) == 0
+            if help_req:
+                if is_special_character(QTextCursor.NoMove):
+                    cursor.movePosition(QTextCursor.WordLeft)
+            elif not completion:
+                if is_space(QTextCursor.NextCharacter):
+                    if is_space(QTextCursor.PreviousCharacter):
+                        return
+                    cursor.movePosition(QTextCursor.WordLeft)
+            else:
                 if is_space(QTextCursor.PreviousCharacter):
                     return
                 if (is_special_character(QTextCursor.NextCharacter)):
@@ -949,9 +985,10 @@ class BaseEditMixin(object):
                 text = text[:cursor_pos - startpos]
             return text, startpos
 
-    def get_current_word(self, completion=False):
+    def get_current_word(self, completion=False, help_req=False):
         """Return current word, i.e. word at cursor position."""
-        ret = self.get_current_word_and_position(completion)
+        ret = self.get_current_word_and_position(
+            completion=completion, help_req=help_req)
         if ret is not None:
             return ret[0]
 
@@ -1018,16 +1055,6 @@ class BaseEditMixin(object):
         end_cursor.setPosition(end)
         end_position = self.get_cursor_line_column(end_cursor)
         return start_position, end_position
-
-    def get_selection_first_block(self, cursor=None):
-        """Return the first block of the selection."""
-        if cursor is None:
-            cursor = self.textCursor()
-        start = cursor.selectionStart()
-        if start > 0:
-            start = start - 1
-        return self.document().findBlock(start)
-
 
     #------Text selection
     def has_selected_text(self):

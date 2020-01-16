@@ -310,6 +310,9 @@ class CallTipWidget(QLabel):
             elif etype == QEvent.Leave:
                 self._leave_event_hide()
 
+            elif etype == QEvent.WindowBlocked:
+                self.hide()
+
         return super(CallTipWidget, self).eventFilter(obj, event)
 
     def timerEvent(self, event):

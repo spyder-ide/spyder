@@ -1,8 +1,13 @@
+# We can not refer to an environment.yml file from another
+# So to get performant launches on mybinder.org, we have copied
+# the contents of this file to binder/environment.yml. If you
+# make changes here, please copy them over there too.
 applaunchservices
 atomicwrites
 chardet >=2.0.0
 cloudpickle
 diff-match-patch
+intervaltree
 jedi =0.14.1
 keyring
 nbconvert
@@ -12,16 +17,15 @@ pickleshare
 psutil
 pygments >=2.0
 pylint
-pympler
 pyqt <5.13
-python-language-server >=0.29.3,<0.30.0
+python-language-server >=0.31.2,<0.32.0
 pyxdg
 pyzmq
 qdarkstyle >=2.7
 qtawesome >=0.5.7
-qtconsole >=4.5.5
+qtconsole >=4.6.0
 qtpy >=1.5.0
 rtree
 sphinx
-spyder-kernels >=1.7.0
+spyder-kernels >=1.8.1,<2.0.0
 watchdog

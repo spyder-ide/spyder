@@ -27,13 +27,14 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
 
 # ---- Local library imports
 from spyder.config.base import _
+from spyder.config.manager import CONF
 from spyder.py3compat import is_unicode, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout,
                                     MENU_SEPARATOR)
 from spyder.utils.misc import getcwd_or_home
-from spyder.config.gui import config_shortcut, get_shortcut, is_dark_interface
+from spyder.config.gui import is_dark_interface
 
 
 def save_figure_tofile(fig, fmt, fname):
@@ -156,8 +157,8 @@ class FigureBrowser(QWidget):
 
         copyfig_btn = create_toolbutton(
             self, icon=ima.icon('editcopy'),
-            tip=_("Copy plot to clipboard as image (%s)" %
-                  get_shortcut('plots', 'copy')),
+            tip=(_("Copy plot to clipboard as image (%s)") %
+                 CONF.get_shortcut('plots', 'copy')),
             triggered=self.copy_figure)
 
         closefig_btn = create_toolbutton(
@@ -175,14 +176,14 @@ class FigureBrowser(QWidget):
 
         goback_btn = create_toolbutton(
                 self, icon=ima.icon('ArrowBack'),
-                tip=_("Previous Figure ({})".format(
-                      get_shortcut('plots', 'previous figure'))),
+                tip=_("Previous figure ({})").format(
+                      CONF.get_shortcut('plots', 'previous figure')),
                 triggered=self.go_previous_thumbnail)
 
         gonext_btn = create_toolbutton(
                 self, icon=ima.icon('ArrowForward'),
-                tip=_("Next Figure ({})".format(
-                      get_shortcut('plots', 'next figure'))),
+                tip=_("Next figure ({})").format(
+                      CONF.get_shortcut('plots', 'next figure')),
                 triggered=self.go_next_thumbnail)
 
         vsep2 = QFrame()
@@ -272,12 +273,23 @@ class FigureBrowser(QWidget):
     def create_shortcuts(self):
         """Create shortcuts for this widget."""
         # Configurable
-        copyfig = config_shortcut(self.copy_figure, context='plots',
-                                  name='copy', parent=self)
-        prevfig = config_shortcut(self.go_previous_thumbnail, context='plots',
-                                  name='previous figure', parent=self)
-        nextfig = config_shortcut(self.go_next_thumbnail, context='plots',
-                                  name='next figure', parent=self)
+        copyfig = CONF.config_shortcut(
+            self.copy_figure,
+            context='plots',
+            name='copy',
+            parent=self)
+
+        prevfig = CONF.config_shortcut(
+            self.go_previous_thumbnail,
+            context='plots',
+            name='previous figure',
+            parent=self)
+
+        nextfig = CONF.config_shortcut(
+            self.go_next_thumbnail,
+            context='plots',
+            name='next figure',
+            parent=self)
 
         return [copyfig, prevfig, nextfig]
 
@@ -569,10 +581,23 @@ class ThumbnailScrollBar(QFrame):
     def __init__(self, figure_viewer, parent=None, background_color=None):
         super(ThumbnailScrollBar, self).__init__(parent)
         self._thumbnails = []
+
         self.background_color = background_color
         self.current_thumbnail = None
         self.set_figureviewer(figure_viewer)
         self.setup_gui()
+
+        # Because the range of Qt scrollareas is not updated immediately
+        # after a new item is added to it, setting the scrollbar's value
+        # to its maximum value after adding a new item will scroll down to
+        # the penultimate item instead of the last.
+        # So to scroll programmatically to the latest item after it
+        # is added to the scrollarea, we need to do it instead in a slot
+        # connected to the scrollbar's rangeChanged signal.
+        # See spyder-ide/#10914 for more details.
+        self._new_thumbnail_added = False
+        self.scrollarea.verticalScrollBar().rangeChanged.connect(
+            self._scroll_to_newest_item)
 
     def setup_gui(self):
         """Setup the main layout of the widget."""
@@ -592,6 +617,7 @@ class ThumbnailScrollBar(QFrame):
 
         self.scene = QGridLayout(self.view)
         self.scene.setContentsMargins(0, 0, 0, 0)
+        self.scene.setSpacing(3)
 
         self.scrollarea = QScrollArea()
         self.scrollarea.setWidget(self.view)
@@ -699,7 +725,7 @@ class ThumbnailScrollBar(QFrame):
     # ---- Thumbails Handlers
     def _calculate_figure_canvas_width(self, thumbnail):
         """
-        Calculate the witdh the thumbnail's figure canvas need to have for the
+        Calculate the width the thumbnail's figure canvas need to have for the
         thumbnail to fit the scrollarea.
         """
         extra_padding = 10 if sys.platform == 'darwin' else 0
@@ -753,6 +779,7 @@ class ThumbnailScrollBar(QFrame):
         thumbnail.sig_remove_figure.connect(self.remove_thumbnail)
         thumbnail.sig_save_figure.connect(self.save_figure_as)
         self._thumbnails.append(thumbnail)
+        self._new_thumbnail_added = True
 
         self.scene.setRowStretch(self.scene.rowCount() - 1, 0)
         self.scene.addWidget(thumbnail, self.scene.rowCount() - 1, 0)
@@ -850,6 +877,17 @@ class ThumbnailScrollBar(QFrame):
 
         vsb = self.scrollarea.verticalScrollBar()
         vsb.setValue(pos_scroll)
+
+    def _scroll_to_newest_item(self, vsb_min, vsb_max):
+        """
+        Scroll to the newest item added to the thumbnail scrollbar.
+
+        Note that this method is called each time the rangeChanged signal
+        is emitted by the scrollbar.
+        """
+        if self._new_thumbnail_added:
+            self._new_thumbnail_added = False
+            self.scrollarea.verticalScrollBar().setValue(vsb_max)
 
     # ---- ScrollBar Handlers
     def go_up(self):
@@ -989,10 +1027,11 @@ class FigureCanvas(QFrame):
         if self.fig:
             pos = QPoint(event.x(), event.y())
             context_menu = QMenu(self)
-            context_menu.addAction(ima.icon('editcopy'), "Copy Image",
-                                   self.copy_figure,
-                                   QKeySequence(
-                                       get_shortcut('plots', 'copy')))
+            context_menu.addAction(
+                ima.icon('editcopy'),
+                "Copy Image",
+                self.copy_figure,
+                QKeySequence(CONF.get_shortcut('plots', 'copy')))
             context_menu.popup(self.mapToGlobal(pos))
 
     @Slot()

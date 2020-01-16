@@ -29,7 +29,6 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 
 # Local imports
 from spyder.config.base import _, get_conf_path, running_under_pytest
-from spyder.config.gui import get_shortcut
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
@@ -517,6 +516,9 @@ class Editor(SpyderPluginWidget):
         pdb_ignore_lib = create_action(
             self, _("Ignore Python libraries while debugging"),
             toggled=self.toggle_pdb_ignore_lib)
+        pdb_execute_events = create_action(
+            self, _("Process execute events while debugging"),
+            toggled=self.toggle_pdb_execute_events)
 
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
@@ -577,11 +579,14 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(run_action, context="_", name="Run",
                                add_shortcut_to_tip=True)
 
-        configure_action = create_action(self, _("&Configuration per file..."),
-                                         icon=ima.icon('run_settings'),
-                               tip=_("Run settings"),
-                               menurole=QAction.NoRole,
-                               triggered=self.edit_run_configurations)
+        configure_action = create_action(
+            self,
+            _("&Configuration per file..."),
+            icon=ima.icon('run_settings'),
+            tip=_("Run settings"),
+            menurole=QAction.NoRole,
+            triggered=self.edit_run_configurations)
+
         self.register_shortcut(configure_action, context="_",
                                name="Configure", add_shortcut_to_tip=True)
 
@@ -606,25 +611,26 @@ class Editor(SpyderPluginWidget):
         run_cell_action = create_action(self,
                             _("Run cell"),
                             icon=ima.icon('run_cell'),
-                            shortcut=get_shortcut('editor', 'run cell'),
+                            shortcut=CONF.get_shortcut('editor', 'run cell'),
                             tip=_("Run current cell \n"
                                   "[Use #%% to create cells]"),
                             triggered=self.run_cell,
                             context=Qt.WidgetShortcut)
 
-        run_cell_advance_action = create_action(self,
-                   _("Run cell and advance"),
-                   icon=ima.icon('run_cell_advance'),
-                   shortcut=get_shortcut('editor', 'run cell and advance'),
-                   tip=_("Run current cell and go to the next one "),
-                   triggered=self.run_cell_and_advance,
-                   context=Qt.WidgetShortcut)
+        run_cell_advance_action = create_action(
+            self,
+            _("Run cell and advance"),
+            icon=ima.icon('run_cell_advance'),
+            shortcut=CONF.get_shortcut('editor', 'run cell and advance'),
+            tip=_("Run current cell and go to the next one "),
+            triggered=self.run_cell_and_advance,
+            context=Qt.WidgetShortcut)
 
         self.debug_cell_action = create_action(
             self,
             _("Debug cell"),
             icon=ima.icon('debug_cell'),
-            shortcut=get_shortcut('editor', 'debug cell'),
+            shortcut=CONF.get_shortcut('editor', 'debug cell'),
             tip=_("Debug current cell "
                   "(Alt+Shift+Enter)"),
             triggered=self.debug_cell,
@@ -842,13 +848,13 @@ class Editor(SpyderPluginWidget):
             self.go_to_next_file_action = create_action(
                 self,
                 _("Go to next file"),
-                shortcut=get_shortcut('editor', 'go to previous file'),
+                shortcut=CONF.get_shortcut('editor', 'go to previous file'),
                 triggered=self.go_to_next_file,
             )
             self.go_to_previous_file_action = create_action(
                 self,
                 _("Go to previous file"),
-                shortcut=get_shortcut('editor', 'go to next file'),
+                shortcut=CONF.get_shortcut('editor', 'go to next file'),
                 triggered=self.go_to_previous_file,
             )
             self.register_shortcut(
@@ -950,6 +956,7 @@ class Editor(SpyderPluginWidget):
             self.debug_exit_action,
             MENU_SEPARATOR,
             pdb_ignore_lib,
+            pdb_execute_events,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             clear_all_breakpoints_action,
@@ -1061,6 +1068,11 @@ class Editor(SpyderPluginWidget):
         CONF.set('run', 'pdb_ignore_lib', checked)
         self.main.ipyconsole.set_pdb_ignore_lib()
 
+    def toggle_pdb_execute_events(self, checked):
+        """"Set pdb_execute_events"""
+        CONF.set('run', 'pdb_execute_events', checked)
+        self.main.ipyconsole.set_pdb_execute_events()
+
     def update_pdb_state(self, state, last_step):
         """Enable/disable debugging actions and handle pdb state change."""
         self.debug_action.setEnabled(not state)
@@ -1111,6 +1123,22 @@ class Editor(SpyderPluginWidget):
                 kite_call_to_action = finfo.editor.kite_call_to_action
                 comp_widget.setup_appearance(completion_size, font)
                 kite_call_to_action.setFont(font)
+
+    def set_ancestor(self, ancestor):
+        """
+        Set ancestor of child widgets like the CompletionWidget.
+
+        Needed to properly set position of the widget based on the correct
+        parent/ancestor.
+
+        See spyder-ide/spyder#11076
+        """
+        for editorstack in self.editorstacks:
+            for finfo in editorstack.data:
+                comp_widget = finfo.editor.completion_widget
+                kite_call_to_action = finfo.editor.kite_call_to_action
+                comp_widget.setParent(ancestor)
+                kite_call_to_action.setParent(ancestor)
 
     def _create_checkable_action(self, text, conf_name, method=''):
         """Helper function to create a checkable action.
@@ -1927,7 +1955,8 @@ class Editor(SpyderPluginWidget):
                 # (the one that can't be destroyed), then cloning this
                 # editor widget in all other editorstacks:
                 finfo = self.editorstacks[0].load(
-                    filename, set_current=False, add_where=add_where)
+                    filename, set_current=False, add_where=add_where,
+                    processevents=processevents)
                 finfo.path = self.main.get_spyder_pythonpath()
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,

@@ -1,0 +1,63 @@
+channels:
+- spyder-ide
+- manics # Used by jupyter-desktop-server
+dependencies:
+# We can not refer to an environment.yml file from another
+# So to get performant launches on mybinder.org, we have copied
+# the contents of this requirements/conda.txt to this file.yml.
+# Please *DO NOT* make changes directly just to here - make changes
+# to requirements/conda.txt, and copy it here.
+- applaunchservices
+- atomicwrites
+- chardet >=2.0.0
+- cloudpickle
+- diff-match-patch
+- intervaltree
+- jedi =0.14.1
+- keyring
+- nbconvert
+- numpydoc
+- pexpect
+- pickleshare
+- psutil
+- pygments >=2.0
+- pylint
+- pyqt <5.13
+- python-language-server >=0.31.2,<0.32.0
+- pyxdg
+- pyzmq
+- qdarkstyle >=2.7
+- qtawesome >=0.5.7
+- qtconsole >=4.6.0
+- qtpy >=1.5.0
+- rtree
+- sphinx
+- spyder-kernels >=1.8.1,<2.0.0
+- watchdog
+
+# We can not refer to an environment.yml file from another
+# So to get performant launches on mybinder.org, we have copied
+# the contents of this requirements/tests.txt to this file.yml.
+# Please *DO NOT* make changes directly just to here - make changes
+# to requirements/tests.txt, and copy it here.
+- pytest <5.0
+- pytest-mock
+- pytest-cov
+- pytest-qt
+- pytest-ordering
+- pytest-lazy-fixture
+- pytest-faulthandler <2.0
+- mock
+- pandas
+- scipy
+- sympy
+- pillow
+- matplotlib
+- cython
+- flaky
+- coverage <5.0
+
+# Required for jupyter-desktop-server
+- websockify
+- pip:
+    - jupyter-desktop-server

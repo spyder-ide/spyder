@@ -77,7 +77,8 @@ class Console(SpyderPluginWidget):
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.shell)
         self.find_widget.hide()
-        self.register_widget_shortcuts(self.find_widget)
+        if parent is not None:
+            self.register_widget_shortcuts(self.find_widget)
 
         # Main layout
         btn_layout = QHBoxLayout()
@@ -240,6 +241,10 @@ class Console(SpyderPluginWidget):
         """Show environment variables"""
         self.dialog_manager.show(EnvDialog(parent=self))
     
+    def get_sys_path(self):
+        """Return the `sys.path`."""
+        return sys.path
+
     @Slot()
     def show_syspath(self):
         """Show sys.path"""

@@ -110,6 +110,7 @@ class HTMLDelegate(QStyledItemDelegate):
 
     Taken from https://stackoverflow.com/a/5443112/2399799
     """
+
     def __init__(self, parent, margin=0):
         super(HTMLDelegate, self).__init__(parent)
         self._margin = margin
@@ -129,9 +130,14 @@ class HTMLDelegate(QStyledItemDelegate):
 
         style = (QApplication.style() if options.widget is None
                  else options.widget.style())
-
         options.text = ""
-        style.drawControl(QStyle.CE_ItemViewItem, options, painter)
+
+        # Note: We need to pass the options widget as an argument of
+        # drawCrontol to make sure the delegate is painted with a style
+        # consistent with the widget in which it is used.
+        # See spyder-ide/spyder#10677.
+        style.drawControl(QStyle.CE_ItemViewItem, options, painter,
+                          options.widget)
 
         ctx = QAbstractTextDocumentLayout.PaintContext()
 
