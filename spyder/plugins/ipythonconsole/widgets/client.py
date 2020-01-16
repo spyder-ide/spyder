@@ -22,12 +22,10 @@ import codecs
 import os
 import os.path as osp
 from string import Template
-from threading import Thread
 import time
-from threading import Thread
 
 # Third party imports (qtpy)
-from qtpy.QtCore import QUrl, QTimer, Signal, Slot
+from qtpy.QtCore import QUrl, QTimer, Signal, Slot, QThread
 from qtpy.QtGui import QKeySequence
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
                             QToolButton, QVBoxLayout, QWidget)
@@ -495,13 +493,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.shellwidget.spyder_kernel_comm.close()
             self.shellwidget.spyder_kernel_comm.shutdown_comm_channel()
             self.shellwidget._pdb_history_file.save_thread.stop()
-        self.shutdown_thread = Thread(target=self.finalize_shutdown)
+            self.shellwidget.kernel_manager.stop_restarter()
+        self.shutdown_thread = QThread()
+        self.shutdown_thread.run = self.finalize_shutdown
+        self.shutdown_thread.finished.connect(self.stop_kernel_channels)
         self.shutdown_thread.start()
 
     def finalize_shutdown(self):
         """Finalise the shutdown."""
         if self.get_kernel() is not None and not self.slave:
             self.shellwidget.kernel_manager.shutdown_kernel()
+
+    def stop_kernel_channels(self):
+        """Stop kernel channels."""
         if self.shellwidget.kernel_client is not None:
             self.shellwidget.kernel_client.stop_channels()
 
