@@ -16,6 +16,7 @@ import sys
 
 # Third party imports
 from jupyter_client.kernelspec import KernelSpec
+
 # Local imports
 from spyder.config.base import SAFE_MODE, running_under_pytest
 from spyder.config.manager import CONF
