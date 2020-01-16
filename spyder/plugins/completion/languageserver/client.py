@@ -339,7 +339,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     self.sig_lsp_down.emit(self.language)
                     return
                 # The send queue is full! wait 0.1 seconds before retrying.
-                logger.warning("The send queue is full! Retrying...")
+                if self.initialized:
+                    logger.warning("The send queue is full! Retrying...")
                 time.sleep(.1)
 
     @Slot()
