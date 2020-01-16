@@ -12,6 +12,7 @@ import sys
 
 # Test library imports
 import pytest
+from flaky import flaky
 
 # Local imports
 from spyder.plugins.onlinehelp.widgets import PydocBrowser
@@ -32,6 +33,7 @@ def test_pydocbrowser(pydocbrowser):
     assert browser
 
 
+@flaky(max_runs=5)
 @pytest.mark.parametrize(
     "lib", [('str', 'class str', 1),
             ('numpy.compat', 'numpy.compat', 2)
