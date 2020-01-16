@@ -14,13 +14,14 @@ import os.path as osp
 import sys
 
 # Test library imports
-from spyder.utils import programs
 import pytest
 
 # Local imports
+from spyder.utils.programs import run_program
 from spyder.utils.vcs import (ActionToolNotFound, get_git_refs,
                               get_git_remotes, get_git_revision, get_vcs_root,
-                              remote_to_url, run_vcs_tool)
+                              get_vcs_status, remote_to_url, run_vcs_tool)
+from spyder.utils import programs
 
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -39,8 +40,8 @@ def test_vcs_tool():
 
 def test_vcs_root(tmpdir):
     directory = tmpdir.mkdir('foo')
-    assert get_vcs_root(str(directory)) == None
-    assert get_vcs_root(osp.dirname(__file__)) != None
+    assert get_vcs_root(str(directory)) is None
+    assert get_vcs_root(osp.dirname(__file__)) is not None
 
 
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('AZURE') is not None,
@@ -72,6 +73,21 @@ def test_get_git_refs():
     # appear among the list of git branches.
     if not os.environ.get('TRAVIS_TAG'):
         assert any(['master' in b for b in branch_tags])
+
+
+def test_vcs_state(tmpdir):
+    """Test the vcs state of a directory and subdirectories."""
+    test_dir = os.getcwd()
+    tmpdir.chdir()
+    subdir = str(tmpdir.mkdir('subdir'))
+    print(repr(subdir))
+    proc = run_program('git', ['init'], cwd=subdir)
+    proc.communicate()
+    file = osp.join(subdir, 'test.py')
+    open(file, 'w').close()
+    assert get_vcs_status(subdir) != ({}, {})
+    assert get_vcs_status(str(tmpdir)) != ({}, {})
+    os.chdir(test_dir)
 
 
 def test_get_git_remotes():

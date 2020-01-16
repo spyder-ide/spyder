@@ -76,8 +76,10 @@ class BaseProject(object):
     def get_recent_files(self):
         """Return a list of files opened by the project."""
         recent_files = self.config.get('main', 'recent_files', default=[])
-        recent_files = [recent_file if os.path.isabs(recent_file)
-                        else os.path.join(self.root_path, recent_file)
+        recent_files = [to_text_string(recent_file)
+                        if os.path.isabs(to_text_string(recent_file))
+                        else os.path.join(self.root_path,
+                                          to_text_string(recent_file))
                         for recent_file in recent_files]
         for recent_file in recent_files[:]:
             if not os.path.isfile(recent_file):

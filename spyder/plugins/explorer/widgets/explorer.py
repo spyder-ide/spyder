@@ -23,9 +23,9 @@ import sys
 
 # Third party imports
 from qtpy.compat import getexistingdirectory, getsavefilename
-from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QSize,
+from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QModelIndex, QSize,
                          QSortFilterProxyModel, Qt, QTimer, QUrl, Signal, Slot)
-from qtpy.QtGui import QDrag, QKeySequence
+from qtpy.QtGui import QColor, QDrag, QKeySequence
 from qtpy.QtWidgets import (QApplication, QFileIconProvider, QFileSystemModel,
                             QHBoxLayout, QInputDialog, QLabel, QLineEdit,
                             QMenu, QMessageBox, QToolButton, QTreeView,
@@ -139,6 +139,101 @@ class IconProvider(QFileIconProvider):
             return icon
 
 
+class ColorModel(QFileSystemModel):
+    """FileSystemModel providing a color-code for different commit-status."""
+    def __init__(self, *args, **kwargs):
+        self.vcs_state = {}
+        self.vcs_dirs = {}
+        self.color_array = [
+            QColor('#ff0000'),  # untracked
+            QColor('#808080'),  # ignored
+            QColor('#0099ff'),  # modified
+            QColor('#00ff00'),  # added
+            QColor('#ff7700'),  # conflict
+            QColor(ima.MAIN_FG_COLOR)]  # Base
+        self.root_path = ''
+        self.use_vcs = CONF.get('project_explorer', 'use_version_control')
+        self.func = lambda p, f, l: self.new_row(p, f, l)
+        super(ColorModel, self).__init__(*args, **kwargs)
+        self.vcs_state_timer = QTimer(self)
+        self.vcs_state_timer.timeout.connect(self.set_vcs_state)
+        if self.use_vcs:
+            self.vcs_state_timer.start(8000)
+
+    def set_highlighting(self, state):
+        """Enable/Disable the highlighting"""
+        self.use_vcs = state
+        if self.use_vcs:
+            self.vcs_state_timer.start(8000)
+        else:
+            self.vcs_state_timer.stop()
+        if state and not self.vcs_state:
+            self.set_vcs_state()
+        self.dataChanged.emit(QModelIndex(), QModelIndex())
+
+    def new_row(self, parent, first, last):
+        """Checks the contents of a new row when enabled."""
+        if not self.use_vcs or first != last:
+            return
+        data = parent.child(last, 0).data()
+        if data:
+            self.set_vcs_state()
+
+    def on_project_loaded(self):
+        """Get a new file list and enable checks on a loaded project."""
+        self.set_vcs_state()
+        self.rowsInserted.connect(self.func)
+        self.dataChanged.emit(QModelIndex(), QModelIndex())
+
+    def on_project_closed(self):
+        """Clear file list and disable checks."""
+        self.vcs_state = {}
+        self.vcs_dirs = {}
+        self.rowsInserted.disconnect(self.func)
+
+    @Slot()
+    @Slot(str)
+    def set_vcs_state(self, root_path=None):
+        """Set the vcs state dictionary."""
+        if not self.use_vcs:
+            return
+        if root_path is None:
+            if self.root_path is None:
+                return
+            self.vcs_state, self.vcs_dirs = vcs.get_vcs_status(self.root_path)
+        elif osp.isfile(root_path):
+            # root_path is a file -> add the new state to vcs_state
+            status = vcs.get_vcs_file_status(root_path)
+            filename = osp.abspath(root_path)
+            if status != 0:
+                self.vcs_state[filename] = status
+        else:
+            # root_path is a directory -> get a new vcs_state
+            self.root_path = osp.abspath(root_path)
+            self.vcs_state, vcs_dirs = vcs.get_vcs_status(self.root_path)
+        self.dataChanged.emit(QModelIndex(), QModelIndex())
+
+    def data(self, index, role=Qt.DisplayRole):
+        """Set the colors of the elements in the Treeview."""
+        if role == Qt.TextColorRole and self.use_vcs and self.vcs_state:
+            filename = osp.abspath(self.filePath(index))
+            if filename in self.vcs_state:
+                color_index = self.vcs_state[filename]
+            elif filename in self.vcs_dirs:
+                color_index = self.vcs_dirs[filename]
+            else:
+                found = False
+                for folder in self.vcs_dirs:
+                    if folder in filename:
+                        color_index = self.vcs_dirs[folder]
+                        found = True
+                        break
+                if not found:
+                    color_index = -1
+            return self.color_array[color_index]
+        return super(ColorModel, self).data(index, role)
+
+
 class DirView(QTreeView):
     """Base file/directory tree view"""
     sig_edit = Signal(str)
@@ -185,7 +280,7 @@ class DirView(QTreeView):
     def setup_fs_model(self):
         """Setup filesystem model"""
         filters = QDir.AllDirs | QDir.Files | QDir.Drives | QDir.NoDotAndDotDot
-        self.fsmodel = QFileSystemModel(self)
+        self.fsmodel = ColorModel(self)
         self.fsmodel.setFilter(filters)
         self.fsmodel.setNameFilterDisables(False)
 

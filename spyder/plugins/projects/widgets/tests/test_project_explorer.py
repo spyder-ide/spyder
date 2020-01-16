@@ -14,9 +14,13 @@ import os.path as osp
 # Test library imports
 import pytest
 
+# Third Party imports
+from qtpy.QtCore import Qt
+
 # Local imports
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerTest
 from spyder.py3compat import to_text_string
+from spyder.utils import programs
 
 
 @pytest.fixture
@@ -62,6 +66,67 @@ def test_project_explorer(project_explorer, qtbot):
     project.resize(250, 480)
     project.show()
     assert project
+
+
+@pytest.mark.change_directory
+@pytest.mark.skipif(os.name == 'nt' and os.environ.get('AZURE') is not None,
+                    reason="Fails on Windows/Azure")
+def test_project_vcs_color(project_explorer, qtbot):
+    """Test that files are colored according to their commit state."""
+    # Create project
+    project_explorer.show()
+    project_dir = project_explorer.directory
+    test_dir = os.getcwd()
+    os.chdir(str(project_dir))
+
+    # Create files for the repository
+    files = []
+    for n in range(5):
+        files.append(osp.join(project_dir, 'file%i.py' % n))
+        if n > 0:
+            open(files[n], 'w').close()
+
+    # Init the repo and set some files to different states
+    gitcmds = [['init', '.'],
+               ['config', '--local', 'user.email', '"john@doe.com"'],
+               ['add', 'file2.py', 'file4.py'],
+               ['commit', '-m', 'test']]
+    for g_cmd in gitcmds:
+        p = programs.run_program('git', g_cmd, cwd=project_dir)
+        p.communicate()
+    # change file 3 and add the changes
+    f = open(files[2], 'a')
+    f.writelines('text')
+    f.close()
+    p = programs.run_program('git', ['add', 'file3.py'], cwd=project_dir)
+    p.communicate()
+    # Write file1 into .gitignore
+    gitign = open(osp.join(project_dir, '.gitignore'), 'a')
+    gitign.writelines('file1.py')
+    gitign.close()
+
+    # Check that the files have their according colors
+    tree = project_explorer.explorer.treewidget
+    pcolors = tree.fsmodel.color_array
+    # Conflict is not tested
+    pcolors.remove(pcolors[4])
+
+    # Check if the correct colors are set
+    tree.expandAll()
+    tree.setup_view()
+    tree.fsmodel.set_vcs_state(project_dir)
+    qtbot.waitForWindowShown(project_explorer.explorer)
+    with qtbot.waitSignal(tree.fsmodel.layoutChanged, raising=False):
+        tree.fsmodel.on_project_loaded()
+    with qtbot.waitSignal(tree.fsmodel.layoutChanged, raising=False):
+        open(files[0], 'w').close()
+    ind0 = tree.fsmodel.index(tree.fsmodel.rootPath()).child(0, 0)
+    qtbot.waitUntil(lambda: tree.fsmodel.index(0, 0, ind0) is not None)
+    qtbot.waitSignal(tree.fsmodel.vcs_state_timer.timeout)
+    for n in range(5):
+        file_index = tree.fsmodel.index("file{0}.py".format(n), 0)
+        assert file_index.data(Qt.TextColorRole).name() == pcolors[n].name()
+    os.chdir(test_dir)
 
 
 if __name__ == "__main__":

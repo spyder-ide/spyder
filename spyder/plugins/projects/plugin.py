@@ -102,6 +102,8 @@ class Projects(SpyderPluginWidget):
         self.delete_project_action = create_action(self,
                                     _("Delete Project"),
                                     triggered=self.delete_project)
+        self.toggle_vcs_action = create_action(self, _("Show git/hg status"),
+                                               toggled=self.set_vcs_state)
         self.clear_recent_projects_action =\
             create_action(self, _("Clear this list"),
                           triggered=self.clear_recent_projects)
@@ -115,6 +117,7 @@ class Projects(SpyderPluginWidget):
                                                 self.delete_project_action,
                                                 MENU_SEPARATOR,
                                                 self.recent_project_menu,
+                                                self.toggle_vcs_action,
                                                 self._toggle_view_action]
 
         self.setup_menu_actions()
@@ -159,6 +162,8 @@ class Projects(SpyderPluginWidget):
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
+        self.sig_project_loaded.connect(
+                self.explorer.treewidget.fsmodel.on_project_loaded)
         self.sig_project_closed[object].connect(
             lambda v: self.main.workingdirectory.chdir(
                 self.get_last_working_dir()))
@@ -169,6 +174,8 @@ class Projects(SpyderPluginWidget):
                               update_kind='deletion'))
         self.sig_project_closed.connect(
             lambda v: self.main.editor.setup_open_files())
+        self.sig_project_closed.connect(
+                self.explorer.treewidget.fsmodel.on_project_closed)
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
 
         self.main.pythonpath_changed()
@@ -255,6 +262,9 @@ class Projects(SpyderPluginWidget):
         active = bool(self.get_active_project_path())
         self.close_project_action.setEnabled(active)
         self.delete_project_action.setEnabled(active)
+
+        use_vcs = self.get_option('use_version_control')
+        self.toggle_vcs_action.setChecked(use_vcs)
 
     @Slot()
     def create_new_project(self):
@@ -443,6 +453,16 @@ class Projects(SpyderPluginWidget):
         """Get the path of the last working directory"""
         return self.main.editor.get_option('last_working_dir',
                                            default=getcwd_or_home())
+
+    def update_vcs_status(self, filename):
+        """Update state for the given filename."""
+        self.explorer.treewidget.fsmodel.set_vcs_state(filename)
+        self.explorer.treewidget.update()
+
+    def set_vcs_state(self, value):
+        self.set_option('use_version_control', value)
+        self.explorer.treewidget.fsmodel.set_highlighting(value)
+        self.explorer.treewidget.update()
 
     def save_config(self):
         """
