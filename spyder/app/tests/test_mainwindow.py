@@ -431,6 +431,51 @@ def test_get_help_combo(main_window, qtbot):
 
 
 @pytest.mark.slow
+def test_get_help_ipython_console_special_characters(
+        main_window, qtbot, tmpdir):
+    """
+    Test that Help works when called from the IPython console
+    for unusual characters.
+
+    See spyder-ide/spyder#7699
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Open test file
+    test_file = osp.join(LOCATION, 'script_unicode.py')
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Run test file
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(
+        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
+    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
+
+    help_plugin = main_window.help
+    webview = help_plugin.rich_text.webview._webview
+    webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
+
+    # Write function name and assert in Console
+    def check_control(control, value):
+       return value in control.toPlainText()
+
+    qtbot.keyClicks(control, u'aa\t')
+    qtbot.waitUntil(lambda: check_control(control, u'aaʹbb'), timeout=2000)
+
+    # Get help
+    control.inspect_current_object()
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "This function docstring."),
+                    timeout=6000)
+
+
+@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
                     reason="Times out on AppVeyor")
