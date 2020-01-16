@@ -3850,7 +3850,7 @@ class CodeEditor(TextEditBaseWidget):
 
         key = self._last_pressed_key
         if key is not None:
-            if key == Qt.Key_Backspace or key == Qt.Key_Return:
+            if key in [Qt.Key_Backspace, Qt.Key_Return, Qt.Key_Escape]:
                 self._last_pressed_key = None
                 return
 
