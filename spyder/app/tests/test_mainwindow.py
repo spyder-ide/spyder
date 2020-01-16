@@ -431,6 +431,7 @@ def test_get_help_combo(main_window, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(PY2, reason="Invalid definition of function in Python 2.")
 def test_get_help_ipython_console_special_characters(
         main_window, qtbot, tmpdir):
     """
