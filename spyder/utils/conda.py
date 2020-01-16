@@ -20,13 +20,13 @@ def add_quotes(path):
 def is_conda_env(prefix=None, pyexec=None):
     """Check if it is a conda environment, if it is run activation script."""
     if (prefix is None and pyexec is None) or (prefix and pyexec):
-         raise ValueError('Only prefix or pyexec should be provided!')
+        raise ValueError('Only prefix or pyexec should be provided!')
 
     if pyexec and prefix is None:
         prefix = get_conda_env_path(pyexec)
 
     return os.path.exists(os.path.join(prefix, 'conda-meta'))
-    
+
 
 def get_conda_root_prefix(quote=False):
     """

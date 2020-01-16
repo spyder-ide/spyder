@@ -104,21 +104,19 @@ class SpyderKernelSpec(KernelSpec):
                 import ctypes
                 codepage = str(ctypes.cdll.kernel32.GetACP())
                 kernel_cmd = [
-                    get_activation_script(quote=True),
-                    'chcp {codepage}'.format(codepage=codepage),
-                    get_conda_activation_script(quote=True),
-                    get_conda_env_path(pyexec, quote=True),
+                    get_activation_script(),
+                    codepage,
+                    get_conda_activation_script(),
+                    get_conda_env_path(pyexec),
                     pyexec,
-                    '-f',
                     '{connection_file}'
                 ]
             else:
                 kernel_cmd = [
-                    get_activation_script(quote=True),
-                    get_conda_activation_script(quote=True),
-                    get_conda_env_path(pyexec, quote=True),
+                    get_activation_script(),
+                    get_conda_activation_script(),
+                    get_conda_env_path(pyexec),
                     pyexec,
-                    '-f',
                     '{connection_file}'
                 ]
         else:
