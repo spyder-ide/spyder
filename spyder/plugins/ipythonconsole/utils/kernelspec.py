@@ -41,9 +41,9 @@ def get_activation_script(quote=False):
     """
     scripts_folder_path = os.path.join(os.path.dirname(HERE), 'scripts')
     if os.name == 'nt':
-        script = 'spyder-kernels.bat'
+        script = 'conda-activate.bat'
     else:
-        script = 'spyder-kernels.sh'
+        script = 'conda-activate.sh'
 
     script_path = os.path.join(scripts_folder_path, script)
 
@@ -99,7 +99,7 @@ class SpyderKernelSpec(KernelSpec):
             # activation script to correctly activate the spyder-kernel
 
             # If changes are needed on this section make sure you also update
-            # the activation scripts at spyder.plugins.ipythonconsole.scripts
+            # the activation scripts at spyder/plugins/ipythonconsole/scripts/
             if os.name == 'nt':
                 import ctypes
                 codepage = str(ctypes.cdll.kernel32.GetACP())

@@ -1,7 +1,7 @@
 :: This scripts helps activate a conda environment before running a spyder-kernel
 @echo off
 
-set CODEPAGE=$1
+set CODEPAGE=%1
 set CONDA_ACTIVATE_SCRIPT=%2
 set CONDA_ENV_PATH=%3
 set CONDA_ENV_PYTHON=%4
