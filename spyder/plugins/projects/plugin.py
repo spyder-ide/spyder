@@ -19,7 +19,7 @@ import functools
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QMenu, QMessageBox, QVBoxLayout
+from qtpy.QtWidgets import QInputDialog, QMenu, QMessageBox, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _, get_home_dir
@@ -102,10 +102,16 @@ class Projects(SpyderPluginWidget):
         self.delete_project_action = create_action(self,
                                     _("Delete Project"),
                                     triggered=self.delete_project)
-        self.clear_recent_projects_action =\
-            create_action(self, _("Clear this list"),
-                          triggered=self.clear_recent_projects)
+        self.clear_recent_projects_action = create_action(
+            self,
+            _("Clear this list"),
+            triggered=self.clear_recent_projects)
         self.recent_project_menu = QMenu(_("Recent Projects"), self)
+
+        self.max_recent_action = create_action(
+            self,
+            _("Maximum number of recent projects..."),
+            triggered=self.change_max_recent_projects)
 
         if self.main is not None:
             self.main.projects_menu_actions += [self.new_project_action,
@@ -239,9 +245,11 @@ class Projects(SpyderPluginWidget):
             self.recent_projects_actions += [
                 None,
                 self.clear_recent_projects_action,
+                self.max_recent_action
             ]
         else:
-            self.recent_projects_actions = [self.clear_recent_projects_action]
+            self.recent_projects_actions = [self.clear_recent_projects_action,
+                                            self.max_recent_action]
         add_actions(self.recent_project_menu, self.recent_projects_actions)
         self.update_project_actions()
 
@@ -385,6 +393,20 @@ class Projects(SpyderPluginWidget):
         self.recent_projects = []
         self.setup_menu_actions()
 
+    def change_max_recent_projects(self):
+        """Change max recent projects entries."""
+
+        mrf, valid = QInputDialog.getInt(
+            self,
+            _('Projects'),
+            _('Maximum number of recent projects'),
+            self.get_option('max_recent_projects'),
+            1,
+            35)
+
+        if valid:
+            self.set_option('max_recent_projects', mrf)
+
     def get_active_project(self):
         """Get the active project"""
         return self.current_active_project
@@ -506,7 +528,8 @@ class Projects(SpyderPluginWidget):
         """
         if project not in self.recent_projects:
             self.recent_projects.insert(0, project)
-            self.recent_projects = self.recent_projects[:10]
+        if len(self.recent_projects) > self.get_option('max_recent_projects'):
+            self.recent_projects.pop(-1)
 
     def register_lsp_server_settings(self, settings):
         """Enable LSP workspace functions."""

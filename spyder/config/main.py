@@ -269,6 +269,7 @@ DEFAULTS = [
               'name_filters': NAME_FILTERS,
               'show_all': True,
               'show_hscrollbar': True,
+              'max_recent_projects': 10,
               'visible_if_project_open': True
               }),
             ('explorer',
@@ -583,6 +584,7 @@ NAME_MAP = {
             'current_project_path',
             'expanded_state',
             'recent_projects',
+            'max_recent_projects',
             'scrollbar_position',
           ]
          ),
