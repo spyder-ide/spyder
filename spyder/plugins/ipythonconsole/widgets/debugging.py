@@ -171,6 +171,7 @@ class DebuggingWidget(RichJupyterWidget):
             fname = pdb_state['step']['fname']
             lineno = pdb_state['step']['lineno']
 
+            # Save last step
             self._pdb_last_step = {'fname': fname,
                                    'lineno': lineno}
 
