@@ -2865,7 +2865,8 @@ class CodeEditor(TextEditBaseWidget):
         cursor.insertText(indentation)
         return False  # simple indentation don't fix indentation
 
-    def fix_indent_smart(self, forward=True, comment_or_string=False):
+    def fix_indent_smart(self, forward=True, comment_or_string=False,
+                         cur_indent=None):
         """
         Fix indentation (Python only, no text selection)
 
@@ -2880,6 +2881,9 @@ class CodeEditor(TextEditBaseWidget):
         max_blank_lines: maximum number of blank lines to search before giving
             up
 
+        cur_indent: current indent. This is the indent before we started
+            processing. E.g. when returning, indent before rstrip.
+
         Returns True if indent needed to be fixed
 
         Assumes self.is_python_like() to return True
@@ -2892,6 +2896,7 @@ class CodeEditor(TextEditBaseWidget):
         add_indent = 0  # How many levels of indent to add
         prevline = None
         prevtext = ""
+        empty_lines = True
 
         closing_brackets = []
         for prevline in range(block_nb-1, -1, -1):
@@ -2913,10 +2918,14 @@ class CodeEditor(TextEditBaseWidget):
             if bracket_stack or not closing_brackets:
                 break
 
-        if prevline and prevline < block_nb - 3:
+            if prevtext.strip() != '':
+                empty_lines = False
+
+        if empty_lines and prevline is not None and prevline < block_nb - 2:
             # The previous line is too far, ignore
             prevtext = ''
-            prevline = block_nb - 3
+            prevline = block_nb - 2
+            line_in_block = False
 
         # splits of prevtext happen a few times. Let's just do it once
         words = re.split(r'[\s\(\[\{\}\]\)]', prevtext.lstrip())
@@ -2971,7 +2980,8 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 # Find indentation context
                 ref_line = prevline
-            cur_indent = self.get_block_indentation(ref_line)
+            if cur_indent is None:
+                cur_indent = self.get_block_indentation(ref_line)
             is_blank = not self.get_text_line(ref_line).strip()
             trailing_text = self.get_text_line(block_nb).strip()
             # If brackets are matched and no block gets opened
@@ -3729,6 +3739,8 @@ class CodeEditor(TextEditBaseWidget):
                 elif self.is_completion_widget_visible():
                     self.select_completion_list()
                 else:
+                    cur_indent = self.get_block_indentation(
+                        self.textCursor().blockNumber())
                     insert_text(event)
                     # Check if we're in a comment or a string at the
                     # current position
@@ -3748,9 +3760,11 @@ class CodeEditor(TextEditBaseWidget):
 
                     if self.strip_trailing_spaces_on_modify:
                         self.fix_and_strip_indent(
-                            comment_or_string=cmt_or_str)
+                            comment_or_string=cmt_or_str,
+                            cur_indent=cur_indent)
                     else:
-                        self.fix_indent(comment_or_string=cmt_or_str)
+                        self.fix_indent(comment_or_string=cmt_or_str,
+                                        cur_indent=cur_indent)
                     self.textCursor().endEditBlock()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
@@ -3895,14 +3909,14 @@ class CodeEditor(TextEditBaseWidget):
                     self._last_key_pressed_text = ''
                     self._last_pressed_key = None
 
-    def fix_and_strip_indent(self, comment_or_string=False):
+    def fix_and_strip_indent(self, *args, **kwargs):
         """Automatically fix indent and strip previous automatic indent."""
         # Fix indent
         cursor_before = self.textCursor().position()
         # A change just occured on the last line (return was pressed)
         if cursor_before > 0:
             self.last_change_position = cursor_before - 1
-        self.fix_indent(comment_or_string=comment_or_string)
+        self.fix_indent(*args, **kwargs)
         cursor_after = self.textCursor().position()
         # Remove previous spaces and update last_auto_indent
         nspaces_removed = self.strip_trailing_spaces()
