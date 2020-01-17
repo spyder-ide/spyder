@@ -451,9 +451,6 @@ def test_get_help_ipython_console_special_characters(
     code_editor = main_window.editor.get_focus_widget()
 
     # Run test file
-    shell = main_window.ipyconsole.get_current_shellwidget()
-    qtbot.waitUntil(
-        lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
     qtbot.keyClick(code_editor, Qt.Key_F5)
     qtbot.wait(500)
 
