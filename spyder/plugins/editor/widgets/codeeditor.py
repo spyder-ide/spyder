@@ -2962,8 +2962,14 @@ class CodeEditor(TextEditBaseWidget):
 
         # TODO untangle this block
         if prevline and not bracket_stack and not prevtext.endswith(':'):
-            cur_indent = self.get_block_indentation(prevline)
-            is_blank = not self.get_text_line(prevline).strip()
+            if forward:
+                # Keep indentation of previous line
+                ref_line = block_nb-1
+            else:
+                # Find indentation context
+                ref_line = prevline
+            cur_indent = self.get_block_indentation(ref_line)
+            is_blank = not self.get_text_line(ref_line).strip()
             trailing_text = self.get_text_line(block_nb).strip()
             # If brackets are matched and no block gets opened
             # Match the above line's indent and nudge to the next multiple of 4
