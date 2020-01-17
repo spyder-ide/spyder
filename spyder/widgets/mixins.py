@@ -1330,15 +1330,7 @@ class GetHelpMixin(object):
         self.help_enabled = state
 
     def inspect_current_object(self):
-        text = ''
-        text1 = self.get_text('sol', 'cursor')
-        tl1 = re.findall(r'([a-zA-Z_]+[0-9a-zA-Z_\.]*)', text1)
-        if tl1 and text1.endswith(tl1[-1]):
-            text += tl1[-1]
-        text2 = self.get_text('cursor', 'eol')
-        tl2 = re.findall(r'([0-9a-zA-Z_\.]+[0-9a-zA-Z_\.]*)', text2)
-        if tl2 and text2.startswith(tl2[0]):
-            text += tl2[0]
+        text = self.get_current_word(help_req=True)
         if text:
             self.show_object_info(text, force=True)
 
