@@ -154,6 +154,10 @@ def test_editor_log_lsp_handle_errors(editorbot, capsys):
          "def fun():\n    i = 0\n# no indent\n",
          [Qt.Key_Enter],
          True),
+        ("if a:\n    def b():\n        i = 1",
+         "if a:\n    def b():\n        i = 1\n\n    ",
+         [Qt.Key_Enter, Qt.Key_Enter, Qt.Key_Backspace],
+         True),
     ])
 def test_editor_rstrip_keypress(editorbot, input_text, expected_text, keys,
                                 strip_all):
