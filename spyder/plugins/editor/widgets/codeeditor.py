@@ -2865,7 +2865,8 @@ class CodeEditor(TextEditBaseWidget):
         cursor.insertText(indentation)
         return False  # simple indentation don't fix indentation
 
-    def fix_indent_smart(self, forward=True, comment_or_string=False):
+    def fix_indent_smart(self, forward=True, comment_or_string=False,
+                         max_blank_lines=2):
         """
         Fix indentation (Python only, no text selection)
 
@@ -2876,6 +2877,9 @@ class CodeEditor(TextEditBaseWidget):
 
         comment_or_string: Do not adjust indent level for
             unmatched opening brackets and keywords
+
+        max_blank_lines: maximum number of blank lines to search before giving
+            up
 
         Returns True if indent needed to be fixed
 
@@ -2891,14 +2895,13 @@ class CodeEditor(TextEditBaseWidget):
         prevtext = ""
 
         closing_brackets = []
-        for prevline in range(block_nb-1, -1, -1):
+        for prevline in range(block_nb-1,
+                              max(-1, block_nb-1-max_blank_lines), -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
             bracket_stack, closing_brackets, comment_pos = self.__get_brackets(
                 prevtext, closing_brackets)
-            if comment_pos > -1:
-                prevtext = prevtext[:comment_pos].rstrip()
 
             if not prevtext:
                 continue
