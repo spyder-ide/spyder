@@ -2865,8 +2865,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor.insertText(indentation)
         return False  # simple indentation don't fix indentation
 
-    def fix_indent_smart(self, forward=True, comment_or_string=False,
-                         max_blank_lines=2):
+    def fix_indent_smart(self, forward=True, comment_or_string=False):
         """
         Fix indentation (Python only, no text selection)
 
@@ -2895,8 +2894,7 @@ class CodeEditor(TextEditBaseWidget):
         prevtext = ""
 
         closing_brackets = []
-        for prevline in range(block_nb-1,
-                              max(-1, block_nb-1-max_blank_lines), -1):
+        for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
@@ -2914,6 +2912,11 @@ class CodeEditor(TextEditBaseWidget):
 
             if bracket_stack or not closing_brackets:
                 break
+
+        if prevline and prevline < block_nb - 3:
+            # The previous line is too far, ignore
+            prevtext = ''
+            prevline = block_nb - 3
 
         # splits of prevtext happen a few times. Let's just do it once
         words = re.split(r'[\s\(\[\{\}\]\)]', prevtext.lstrip())
@@ -3726,6 +3729,7 @@ class CodeEditor(TextEditBaseWidget):
                 elif self.is_completion_widget_visible():
                     self.select_completion_list()
                 else:
+                    insert_text(event)
                     # Check if we're in a comment or a string at the
                     # current position
                     cmt_or_str_cursor = self.in_comment_or_string()
@@ -3741,7 +3745,7 @@ class CodeEditor(TextEditBaseWidget):
                     cmt_or_str = cmt_or_str_cursor and cmt_or_str_line_begin
 
                     self.textCursor().beginEditBlock()
-                    insert_text(event)
+
                     if self.strip_trailing_spaces_on_modify:
                         self.fix_and_strip_indent(
                             comment_or_string=cmt_or_str)
