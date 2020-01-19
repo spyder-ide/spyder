@@ -122,8 +122,8 @@ class Projects(SpyderPluginWidget):
         if self.main is not None:
             self.main.projects_menu_actions.extend(self.shared_actions)
             self.main.projects_menu_actions.extend([MENU_SEPARATOR,
-                                                self.recent_project_menu,
-                                                self._toggle_view_action])
+                                                    self.recent_project_menu,
+                                                    self._toggle_view_action])
 
         self.setup_menu_actions()
         return self.shared_actions
