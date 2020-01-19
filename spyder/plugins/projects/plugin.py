@@ -71,7 +71,7 @@ class Projects(SpyderPluginWidget):
         self.recent_projects = self.get_option('recent_projects', default=[])
         self.current_active_project = None
         self.latest_project = None
-        self.shared_actions = []  # common actions with menu
+        self.shared_actions = []
         self.watcher = WorkspaceWatcher(self)
         self.completions_available = False
         self.explorer.setup_project(self.get_active_project_path())
