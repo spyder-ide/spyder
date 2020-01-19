@@ -121,10 +121,10 @@ class Projects(SpyderPluginWidget):
                                self.delete_project_action]
 
         if self.main is not None:
-            self.main.projects_menu_actions += self.shared_actions
-            self.main.projects_menu_actions += [MENU_SEPARATOR,
+            self.main.projects_menu_actions.extend(self.shared_actions)
+            self.main.projects_menu_actions.extend([MENU_SEPARATOR,
                                                 self.recent_project_menu,
-                                                self._toggle_view_action]
+                                                self._toggle_view_action])
 
         self.setup_menu_actions()
         return self.shared_actions
