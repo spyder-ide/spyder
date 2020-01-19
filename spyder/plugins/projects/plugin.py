@@ -114,8 +114,7 @@ class Projects(SpyderPluginWidget):
             _("Maximum number of recent projects..."),
             triggered=self.change_max_recent_projects)
 
-        self.shared_actions = [self.new_project_action,
-                               MENU_SEPARATOR,
+        self.shared_actions = [self.new_project_action, MENU_SEPARATOR,
                                self.open_project_action,
                                self.close_project_action,
                                self.delete_project_action]
