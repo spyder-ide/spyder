@@ -253,14 +253,14 @@ def test_copy_lines_down_up(editor_bot, mocker, qtbot):
     assert editor.textCursor().selection().toPlainText() == 'a = 1\nprint(a)\n'
 
     # Copy lines down.
-    editor.duplicate_line()
+    editor.duplicate_line_down()
     qtbot.wait(100)
     assert editor.get_cursor_line_column() == (2, 0)
     assert editor.textCursor().selection().toPlainText() == 'a = 1\nprint(a)\n'
     assert editor.toPlainText() == 'a = 1\nprint(a)\n' * 2 + '\nx = 2\n'
 
     # Copy lines up.
-    editor.copy_line()
+    editor.duplicate_line_up()
     qtbot.wait(100)
     assert editor.get_cursor_line_column() == (4, 0)
     assert editor.textCursor().selection().toPlainText() == 'a = 1\nprint(a)\n'
