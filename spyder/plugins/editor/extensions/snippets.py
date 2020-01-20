@@ -486,7 +486,7 @@ class SnippetsExtension(EditorExtension):
                 if isinstance(possible_snippet, nodes.SnippetASTNode):
                     # Placeholder replacement
                     first_tokens = (
-                        list(possible_snippet.placeholder) +
+                        list(possible_snippet.placeholder.tokens) +
                         list(new_node.tokens[1:])
                     )
                     second_tokens = []

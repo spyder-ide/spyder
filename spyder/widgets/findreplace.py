@@ -28,6 +28,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import regexp_error_msg
 from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.utils.qthelpers import create_toolbutton, get_icon
+from spyder.utils.sourcecode import get_eol_chars
 from spyder.widgets.comboboxes import PatternComboBox
 
 
@@ -256,17 +257,6 @@ class FindReplace(QWidget):
     def update_replace_combo(self):
         self.replace_text.lineEdit().returnPressed.emit()
 
-    def toggle_replace_widgets(self):
-        if self.enable_replace:
-            # Toggle replace widgets
-            if self.replace_widgets[0].isVisible():
-                self.hide_replace()
-                self.hide()
-            else:
-                self.show_replace()
-                if len(to_text_string(self.search_text.currentText())) > 0:
-                    self.replace_text.setFocus()
-
     @Slot(bool)
     def toggle_highlighting(self, state):
         """Toggle the 'highlight all results' feature"""
@@ -324,9 +314,10 @@ class FindReplace(QWidget):
 
     def show_replace(self):
         """Show replace widgets"""
-        self.show(hide_replace=False)
-        for widget in self.replace_widgets:
-            widget.show()
+        if self.enable_replace:
+            self.show(hide_replace=False)
+            for widget in self.replace_widgets:
+                widget.show()
 
     def hide_replace(self):
         """Hide replace widgets"""
@@ -470,7 +461,7 @@ class FindReplace(QWidget):
 
     @Slot()
     def replace_find(self, focus_replace_text=False, replace_all=False):
-        """Replace and find"""
+        """Replace and find."""
         if self.editor is None:
             return
         replace_text = to_text_string(self.replace_text.currentText())
@@ -478,6 +469,7 @@ class FindReplace(QWidget):
         re_pattern = None
         case = self.case_button.isChecked()
         re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
+
         # Check regexp before proceeding
         if self.re_button.isChecked():
             try:
@@ -527,23 +519,35 @@ class FindReplace(QWidget):
                     # Identify wrapping even when the replace string
                     # includes part of the search string
                     wrapped = True
+
                 if wrapped:
-                    if position1 == position or \
-                       is_position_sup(position1, position):
+                    if (position1 == position
+                            or is_position_sup(position1, position)):
                         # Avoid infinite loop: replace string includes
                         # part of the search string
                         break
+
                 if position1 == position0:
                     # Avoid infinite loop: single found occurrence
                     break
                 position0 = position1
+
             if re_pattern is None:
                 cursor.removeSelectedText()
                 cursor.insertText(replace_text)
             else:
                 seltxt = to_text_string(cursor.selectedText())
+
+                # Note: If the selection obtained from an editor spans a line
+                # break, the text will contain a Unicode U+2029 paragraph
+                # separator character instead of a newline \n character.
+                # See: spyder-ide/spyder#2675
+                eol_char = get_eol_chars(self.editor.toPlainText())
+                seltxt = seltxt.replace(u'\u2029', eol_char)
+
                 cursor.removeSelectedText()
                 cursor.insertText(re_pattern.sub(replace_text, seltxt))
+
             if self.find_next(set_focus=False):
                 found_cursor = self.editor.textCursor()
                 cursor.setPosition(found_cursor.selectionStart(),
@@ -552,10 +556,13 @@ class FindReplace(QWidget):
                                    QTextCursor.KeepAnchor)
             else:
                 break
+
             if not replace_all:
                 break
+
         if cursor is not None:
             cursor.endEditBlock()
+
         if focus_replace_text:
             self.replace_text.setFocus()
         else:

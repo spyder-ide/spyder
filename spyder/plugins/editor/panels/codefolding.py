@@ -479,8 +479,8 @@ class FoldingPanel(Panel):
                     # mouse enter fold scope
                     QApplication.setOverrideCursor(
                         QCursor(Qt.PointingHandCursor))
-                if self._mouse_over_line != block.blockNumber() and \
-                        self._mouse_over_line is not None:
+                if (self._mouse_over_line != block.blockNumber() and
+                        self._mouse_over_line is not None):
                     # fold scope changed, a previous block was highlighter so
                     # we quickly update our highlighting
                     self._mouse_over_line = block.blockNumber()
@@ -488,8 +488,13 @@ class FoldingPanel(Panel):
                 else:
                     # same fold scope, request highlight
                     self._mouse_over_line = block.blockNumber()
-                    self._highlight_runner.request_job(
-                        self._highlight_block, block)
+                    try:
+                        self._highlight_runner.request_job(
+                            self._highlight_block, block)
+                    except KeyError:
+                        # Catching the KeyError above is necessary to avoid
+                        # issue spyder-ide/spyder#11291.
+                        pass
                 self._highight_block = block
             else:
                 # no fold scope to highlight, cancel any pending requests

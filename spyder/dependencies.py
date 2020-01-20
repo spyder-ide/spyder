@@ -103,11 +103,20 @@ DESCRIPTIONS += [
     {'modname': "jedi",
      'package_name': "jedi",
      'features': _("Main backend for the Python Language Server"),
-     'required_version': JEDI_REQVER},
-    {'modname': "keyring",
-     'package_name': "keyring",
-     'features': _("Save Github credentials to report internal errors securely"),
-     'required_version': KEYRING_REQVER},
+     'required_version': JEDI_REQVER}
+]
+
+
+if sys.platform.startswith('linux') and not PY2:
+    DESCRIPTIONS.append(
+        {'modname': "keyring",
+         'package_name': "keyring",
+         'features': _("Save Github credentials to report internal errors securely"),
+         'required_version': KEYRING_REQVER}
+    )
+
+
+DESCRIPTIONS += [
     {'modname': "nbconvert",
      'package_name': "nbconvert",
      'features': _("Manipulate Jupyter notebooks in the Editor"),

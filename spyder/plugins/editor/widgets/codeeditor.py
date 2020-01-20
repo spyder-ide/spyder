@@ -2609,7 +2609,7 @@ class CodeEditor(TextEditBaseWidget):
                     cursor.insertText(prefix)
                 elif '#' not in prefix:
                     cursor.insertText(prefix)
-                if start_pos == 0 and cursor.blockNumber() == 0:
+                if cursor.blockNumber() == 0:
                     # Avoid infinite loop when indenting the very first line
                     break
                 cursor.movePosition(QTextCursor.PreviousBlock)
@@ -2658,7 +2658,7 @@ class CodeEditor(TextEditBaseWidget):
                         or number_spaces > left_number_spaces)
                         and not line_text.isspace() and line_text != ''):
                     number_spaces = left_number_spaces
-                if start_pos == 0 and cursor.blockNumber() == 0:
+                if cursor.blockNumber() == 0:
                     # Avoid infinite loop when indenting the very first line
                     break
                 cursor.movePosition(QTextCursor.PreviousBlock)
@@ -3256,7 +3256,7 @@ class CodeEditor(TextEditBaseWidget):
             return
         while not __is_comment_bar(cursor1):
             cursor1.movePosition(QTextCursor.PreviousBlock)
-            if cursor1.atStart():
+            if cursor1.blockNumber() == 0:
                 break
         if not __is_comment_bar(cursor1):
             return False
@@ -3850,7 +3850,7 @@ class CodeEditor(TextEditBaseWidget):
 
         key = self._last_pressed_key
         if key is not None:
-            if key == Qt.Key_Backspace or key == Qt.Key_Return:
+            if key in [Qt.Key_Backspace, Qt.Key_Return, Qt.Key_Escape]:
                 self._last_pressed_key = None
                 return
 

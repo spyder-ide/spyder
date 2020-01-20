@@ -11,6 +11,7 @@ Tests for the main window.
 """
 
 # Standard library imports
+from distutils.version import LooseVersion
 import os
 import os.path as osp
 import re
@@ -25,6 +26,7 @@ import sys
 import uuid
 
 # Third party imports
+from IPython.core import release as ipy_release
 from flaky import flaky
 from jupyter_client.manager import KernelManager
 import numpy as np
@@ -426,6 +428,49 @@ def test_get_help_combo(main_window, qtbot):
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(PY2, reason="Invalid definition of function in Python 2.")
+def test_get_help_ipython_console_special_characters(
+        main_window, qtbot, tmpdir):
+    """
+    Test that Help works when called from the IPython console
+    for unusual characters.
+
+    See spyder-ide/spyder#7699
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Open test file
+    test_file = osp.join(LOCATION, 'script_unicode.py')
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Run test file
+    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
+
+    help_plugin = main_window.help
+    webview = help_plugin.rich_text.webview._webview
+    webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
+
+    # Write function name and assert in Console
+    def check_control(control, value):
+       return value in control.toPlainText()
+
+    qtbot.keyClicks(control, u'aa\t')
+    qtbot.waitUntil(lambda: check_control(control, u'aaʹbb'), timeout=2000)
+
+    # Get help
+    control.inspect_current_object()
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "This function docstring."),
+                    timeout=6000)
 
 
 @pytest.mark.slow
@@ -835,9 +880,10 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif((os.name == 'nt' or not is_module_installed('Cython') or
-                     sys.platform == 'darwin'),
-                    reason="Hard to test on Windows and macOS and Cython is needed")
+@pytest.mark.skipif(
+    (os.name == 'nt' or sys.platform == 'darwin' or
+     LooseVersion(ipy_release.version) == LooseVersion('7.11.0')),
+    reason="Hard to test on Windows and macOS and fails for IPython 7.11.0")
 def test_run_cython_code(main_window, qtbot):
     """Test all the different ways we have to run Cython code"""
     # ---- Setup ----
@@ -2300,6 +2346,21 @@ def test_preferences_change_font_regression(main_window, qtbot):
         fontbox.setFocus()
         idx = fontbox.currentIndex()
         fontbox.setCurrentIndex(idx + 1)
+    dlg.ok_btn.animateClick()
+    qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
+                    timeout=5000)
+
+
+@pytest.mark.slow
+def test_preferences_shortcut_reset_regression(main_window, qtbot):
+    """
+    Test for spyder-ide/spyder/#11132 regression.
+
+    Resetting shortcut resulted in error.
+    """
+    dlg, index, page = preferences_dialog_helper(qtbot, main_window,
+                                                 'shortcuts')
+    page.reset_to_default(force=True)
     dlg.ok_btn.animateClick()
     qtbot.waitUntil(lambda: main_window.prefs_dialog_instance is None,
                     timeout=5000)
