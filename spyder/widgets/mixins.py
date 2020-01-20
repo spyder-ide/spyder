@@ -661,6 +661,10 @@ class BaseEditMixin(object):
         self._last_point = None
         self.tooltip_widget.hide()
 
+    def reset_tooltip_tip(self):
+        """Reset tooltip tip."""
+        self.tooltip_widget.reset_tip()
+
     #------EOL characters
     def set_eol_chars(self, text):
         """Set widget end-of-line (EOL) characters from text (analyzes text)"""
