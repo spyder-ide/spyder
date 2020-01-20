@@ -13,7 +13,8 @@ import os.path as osp
 
 from jupyter_client.kernelspec import KernelSpec
 
-from spyder.config.base import SAFE_MODE, running_under_pytest
+from spyder.config.base import (DEV, get_module_path, running_under_pytest,
+                                SAFE_MODE)
 from spyder.config.manager import CONF
 from spyder.utils.encoding import to_unicode_from_fs
 from spyder.utils.programs import is_python_interpreter
@@ -75,10 +76,17 @@ class SpyderKernelSpec(KernelSpec):
     @property
     def env(self):
         """Env vars for kernels"""
-        # Add our PYTHONPATH to the kernel
+        default_interpreter = CONF.get('main_interpreter', 'default')
         pathlist = CONF.get('main', 'spyder_pythonpath', default=[])
 
-        default_interpreter = CONF.get('main_interpreter', 'default')
+        # Add spyder-kernels subrepo path to pathlist
+        if DEV and default_interpreter:
+            repo_path = osp.dirname(get_module_path('spyder'))
+            subrepo_path = osp.join(repo_path, 'external-deps',
+                                    'spyder-kernels')
+            pathlist += [subrepo_path] + pathlist
+
+        # Create PYTHONPATH env entry to add it to the kernel
         pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
                                             drop_env=False)
 
