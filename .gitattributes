@@ -1,0 +1,2 @@
+# Github helper pieces to make some files not show up in diffs automatically
+external-deps/* linguist-generated=true
