@@ -366,10 +366,10 @@ DEFAULTS = [
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
-              'editor/duplicate line': "Ctrl+Alt+Up" if WIN else \
-                                       "Shift+Alt+Up",
-              'editor/copy line': "Ctrl+Alt+Down" if WIN else \
-                                  "Shift+Alt+Down",
+              'editor/duplicate line up': (
+                  "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),
+              'editor/duplicate line down': (
+                  "Ctrl+Alt+Down" if WIN else "Shift+Alt+Down"),
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
@@ -615,4 +615,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '55.0.0'
+CONF_VERSION = '56.0.0'
