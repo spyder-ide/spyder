@@ -200,7 +200,7 @@ class ToolTipWidget(QLabel):
             self.show()
         return True
 
-    def reset_tip(self):
+    def reset_tooltip(self):
         """Reset tip to None."""
         self.tip = None
 
