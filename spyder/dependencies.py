@@ -22,7 +22,7 @@ from spyder.py3compat import PY2
 # =============================================================================
 MANDATORY = 'mandatory'
 OPTIONAL = 'optional'
-PLUGIN = 'plugin'
+PLUGIN = 'spyder plugins'
 
 
 # =============================================================================
@@ -347,23 +347,33 @@ def check(modname):
 
 
 def status(deps=DEPENDENCIES, linesep=os.linesep):
-    """Return a status of dependencies"""
+    """Return a status of dependencies."""
     maxwidth = 0
-    col1 = []
-    col2 = []
+    data = []
 
-    for dependency in deps:
-        title1 = dependency.modname
-        if dependency.required_version is not None:
-            title1 += ' ' + dependency.required_version
+    # Find maximum width
+    for dep in deps:
+        title = dep.modname
+        if dep.required_version is not None:
+            title += ' ' + dep.required_version
 
-        col1.append(title1)
-        maxwidth = max([maxwidth, len(title1)])
-        col2.append(dependency.get_installed_version())
+        maxwidth = max([maxwidth, len(title)])
+        dep_order = {MANDATORY: '0', OPTIONAL: '1', PLUGIN: '2'}
+        order_dep = {'0': MANDATORY, '1': OPTIONAL, '2': PLUGIN}
+        data.append([dep_order[dep.kind], title, dep.get_installed_version()])
 
+    # Construct text and sort by kind and name
+    maxwidth += 1
     text = ""
-    for index in range(len(deps)):
-        text += col1[index].ljust(maxwidth) + ':  ' + col2[index] + linesep
+    prev_order = '-1'
+    for order, title, version in sorted(data, key=lambda x: x[0] + x[1].lower()):
+        if order != prev_order:
+            text += '{sep}# {name}:{sep}'.format(
+                sep=linesep, name=order_dep[order].capitalize())
+            prev_order = order
+
+        text += '{title}:  {version}{linesep}'.format(
+            title=title.ljust(maxwidth), version=version, linesep=linesep)
 
     # Remove spurious linesep when reporting deps to Github
     if not linesep == '<br>':

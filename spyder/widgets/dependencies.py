@@ -42,18 +42,19 @@ class DependenciesTreeWidget(QTreeWidget):
         optional_item.setFont(0, font)
 
         # Spyder plugins
-        spyder_plugins = QTreeWidgetItem([_("Spyder Plugins")])
+        spyder_plugins = QTreeWidgetItem([_("Spyder plugins")])
         spyder_plugins.setFont(0, font)
 
         self.addTopLevelItems([mandatory_item, optional_item, spyder_plugins])
 
-        for dependency in dependencies:
+        for dependency in sorted(dependencies,
+                                 key=lambda x: x.modname.lower()):
             item = QTreeWidgetItem([dependency.modname,
                                     dependency.package_name,
                                     dependency.required_version,
                                     dependency.installed_version,
                                     dependency.features])
-
+            # Format content
             if dependency.check():
                 item.setIcon(0, ima.icon('dependency_ok'))
             elif dependency.kind == OPTIONAL:
@@ -63,6 +64,7 @@ class DependenciesTreeWidget(QTreeWidget):
                 item.setIcon(0, ima.icon('dependency_error'))
                 item.setForeground(2, QColor(Qt.darkRed))
 
+            # Add to tree
             if dependency.kind == OPTIONAL:
                 optional_item.addChild(item)
             elif dependency.kind == PLUGIN:

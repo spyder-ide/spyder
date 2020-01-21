@@ -1068,7 +1068,12 @@ class MainWindow(QMainWindow):
                     # Add to dependencies dialog
                     module = mod.__name__
                     name = module.replace('_', '-')
-                    dependencies.add(module, name, plugin.get_plugin_title(),
+                    if plugin.DESCRIPTION:
+                        description = plugin.DESCRIPTION 
+                    else:
+                        description = plugin.get_plugin_title()
+
+                    dependencies.add(module, name, description,
                                      '', None, kind=dependencies.PLUGIN)
 
             except Exception as error:
