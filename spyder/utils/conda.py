@@ -18,9 +18,9 @@ def add_quotes(path):
 
 
 def is_conda_env(prefix=None, pyexec=None):
-    """Check if it is a conda environment, if it is run activation script."""
+    """Check if prefix or python executable are in a conda environment."""
     if (prefix is None and pyexec is None) or (prefix and pyexec):
-        raise ValueError('Only prefix or pyexec should be provided!')
+        raise ValueError('Only `prefix` or `pyexec` should be provided!')
 
     if pyexec and prefix is None:
         prefix = get_conda_env_path(pyexec)
@@ -28,17 +28,23 @@ def is_conda_env(prefix=None, pyexec=None):
     return os.path.exists(os.path.join(prefix, 'conda-meta'))
 
 
-def get_conda_root_prefix(quote=False):
+def get_conda_root_prefix(pyexec=None, quote=False):
     """
-    Return conda prefix from sys.prefix.
+    Return conda prefix from pyexec path
 
     If `quote` is True, then quotes are added if spaces are found in the path.
     """
-    env_key = '{0}envs{0}'.format(os.sep)
-    if sys.prefix.rfind(env_key) != -1:
-        root_prefix = sys.prefix.split(env_key)[0]
+    if pyexec is None:
+        conda_env_prefix = sys.prefix
     else:
-        root_prefix = sys.prefix
+        conda_env_prefix = get_conda_env_path(pyexec)
+
+    env_key = '{0}envs{0}'.format(os.sep)
+
+    if conda_env_prefix.rfind(env_key) != -1:
+        root_prefix = conda_env_prefix.split(env_key)[0]
+    else:
+        root_prefix = conda_env_prefix
 
     if quote:
         root_prefix = add_quotes(root_prefix)
@@ -46,7 +52,7 @@ def get_conda_root_prefix(quote=False):
     return root_prefix
 
 
-def get_conda_activation_script(quote=False):
+def get_conda_activation_script(pyexec=None, quote=False):
     """
     Return full path to conda activation script.
 
@@ -57,7 +63,7 @@ def get_conda_activation_script(quote=False):
     else:
         activate = 'bin/activate'
 
-    script_path = os.path.join(get_conda_root_prefix(quote=False), activate)
+    script_path = os.path.join(get_conda_root_prefix(pyexec, quote=False), activate)
 
     if quote:
         script_path = add_quotes(script_path)

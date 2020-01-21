@@ -104,18 +104,18 @@ class SpyderKernelSpec(KernelSpec):
                 import ctypes
                 codepage = str(ctypes.cdll.kernel32.GetACP())
                 kernel_cmd = [
-                    get_activation_script(),
+                    get_activation_script(),  # This is bundled with Spyder
                     codepage,
-                    get_conda_activation_script(),
-                    get_conda_env_path(pyexec),
+                    get_conda_activation_script(pyexec),  # Might be remote
+                    get_conda_env_path(pyexec),  # Might be remote
                     pyexec,
                     '{connection_file}'
                 ]
             else:
                 kernel_cmd = [
-                    get_activation_script(),
-                    get_conda_activation_script(),
-                    get_conda_env_path(pyexec),
+                    get_activation_script(),  # This is bundled with Spyder
+                    get_conda_activation_script(pyexec),  # Might be remote
+                    get_conda_env_path(pyexec),  # Might be remote
                     pyexec,
                     '{connection_file}'
                 ]
