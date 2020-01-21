@@ -639,7 +639,8 @@ class BaseEditMixin(object):
         if extra_text is not None:
             # This is needed to get hover hints
             cursor = self.cursorForPosition(at_point)
-            cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
+            cursor.movePosition(QTextCursor.StartOfWord,
+                                QTextCursor.MoveAnchor)
             self._last_hover_cursor = cursor
 
             self.show_tooltip(signature=html_signature, text=extra_text,
