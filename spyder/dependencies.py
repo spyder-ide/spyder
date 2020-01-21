@@ -18,6 +18,14 @@ from spyder.py3compat import PY2
 
 
 # =============================================================================
+# Kind of dependency
+# =============================================================================
+MANDATORY = 'mandatory'
+OPTIONAL = 'optional'
+PLUGIN = 'plugin'
+
+
+# =============================================================================
 # Versions
 # =============================================================================
 # Hard dependencies
@@ -229,32 +237,32 @@ DESCRIPTIONS += [
      'package_name': "cython",
      'features': _("Run Cython files in the IPython Console"),
      'required_version': CYTHON_REQVER,
-     'optional': True},
+     'kind': OPTIONAL},
     {'modname': "matplotlib",
      'package_name': "matplotlib",
      'features': _("2D/3D plotting in the IPython console"),
      'required_version': MATPLOTLIB_REQVER,
-     'optional': True},
+     'kind': OPTIONAL},
     {'modname': "numpy",
      'package_name': "numpy",
      'features': _("View and edit two and three dimensional arrays in the Variable Explorer"),
      'required_version': NUMPY_REQVER,
-     'optional': True},
+     'kind': OPTIONAL},
     {'modname': 'pandas',
      'package_name':  'pandas',
      'features': _("View and edit DataFrames and Series in the Variable Explorer"),
      'required_version': PANDAS_REQVER,
-     'optional': True},
+     'kind': OPTIONAL},
     {'modname': "scipy",
      'package_name': "scipy",
      'features': _("Import Matlab workspace files in the Variable Explorer"),
      'required_version': SCIPY_REQVER,
-     'optional': True},
+     'kind': OPTIONAL},
     {'modname': "sympy",
      'package_name': "sympy",
      'features': _("Symbolic mathematics in the IPython Console"),
      'required_version': SYMPY_REQVER,
-     'optional': True}
+     'kind': OPTIONAL}
 ]
 
 
@@ -271,16 +279,17 @@ class Dependency(object):
     NOK = 'NOK'
 
     def __init__(self, modname, package_name, features, required_version,
-                 installed_version=None, optional=False):
+                 installed_version=None, kind=MANDATORY):
         self.modname = modname
         self.package_name = package_name
         self.features = features
         self.required_version = required_version
-        self.optional = optional
+        self.kind = kind
+
         if installed_version is None:
             try:
                 self.installed_version = programs.get_module_version(modname)
-            except:
+            except Exception:
                 # NOTE: Don't add any exception type here!
                 # Modules can fail to import in several ways besides
                 # ImportError
@@ -290,9 +299,12 @@ class Dependency(object):
 
     def check(self):
         """Check if dependency is installed"""
-        return programs.is_module_installed(self.modname,
-                                            self.required_version,
-                                            self.installed_version)
+        if self.required_version and self.installed_version:
+            return programs.is_module_installed(self.modname,
+                                                self.required_version,
+                                                self.installed_version)
+        else:
+            return True
 
     def get_installed_version(self):
         """Return dependency status (string)"""
@@ -313,7 +325,7 @@ DEPENDENCIES = []
 
 
 def add(modname, package_name, features, required_version,
-        installed_version=None, optional=False):
+        installed_version=None, kind=MANDATORY):
     """Add Spyder dependency"""
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
@@ -322,7 +334,7 @@ def add(modname, package_name, features, required_version,
                              % modname)
     DEPENDENCIES += [Dependency(modname, package_name, features,
                                 required_version,
-                                installed_version, optional)]
+                                installed_version, kind)]
 
 
 def check(modname):
@@ -344,6 +356,7 @@ def status(deps=DEPENDENCIES, linesep=os.linesep):
         title1 = dependency.modname
         if dependency.required_version is not None:
             title1 += ' ' + dependency.required_version
+
         col1.append(title1)
         maxwidth = max([maxwidth, len(title1)])
         col2.append(dependency.get_installed_version())
@@ -363,8 +376,9 @@ def missing_dependencies():
     """Return the status of missing dependencies (if any)"""
     missing_deps = []
     for dependency in DEPENDENCIES:
-        if not dependency.check() and not dependency.optional:
+        if not dependency.check() and dependency.kind != OPTIONAL:
             missing_deps.append(dependency)
+
     if missing_deps:
         return status(deps=missing_deps, linesep='<br>')
     else:
@@ -373,12 +387,6 @@ def missing_dependencies():
 
 def declare_dependencies():
     for dep in DESCRIPTIONS:
-        # Detect if dependency is optional
-        if dep.get('optional', False):
-            optional = True
-        else:
-            optional = False
-
         add(dep['modname'], dep['package_name'],
             dep['features'], dep['required_version'],
-            optional=optional)
+            kind=dep.get('kind', MANDATORY))

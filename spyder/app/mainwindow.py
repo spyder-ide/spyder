@@ -1052,6 +1052,8 @@ class MainWindow(QMainWindow):
                     plugin.register_plugin()
 
         # Third-party plugins
+        from spyder import dependencies
+
         self.set_splash(_("Loading third-party plugins..."))
         for mod in get_spyderplugins_mods():
             try:
@@ -1062,6 +1064,13 @@ class MainWindow(QMainWindow):
                     else:
                         self.thirdparty_plugins.append(plugin)
                         plugin.register_plugin()
+
+                    # Add to dependencies dialog
+                    module = mod.__name__
+                    name = module.replace('_', '-')
+                    dependencies.add(module, name, plugin.get_plugin_title(),
+                                     '', None, kind=dependencies.PLUGIN)
+
             except Exception as error:
                 print("%s: %s" % (mod, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
