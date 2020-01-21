@@ -52,7 +52,7 @@ def test_get_conda_root_prefix():
     else:
         assert get_conda_root_prefix(TEST_PYEXEC) == '/miniconda'
 
-    assert 'envs' not in get_conda_root_prefix(sys.prefix)    
+    assert 'envs' not in get_conda_root_prefix(sys.executable)
 
 
 if __name__ == "__main__":
