@@ -63,7 +63,8 @@ def get_conda_activation_script(pyexec=None, quote=False):
     else:
         activate = 'bin/activate'
 
-    script_path = os.path.join(get_conda_root_prefix(pyexec, quote=False), activate)
+    script_path = os.path.join(get_conda_root_prefix(pyexec, quote=False),
+                               activate)
 
     if quote:
         script_path = add_quotes(script_path)

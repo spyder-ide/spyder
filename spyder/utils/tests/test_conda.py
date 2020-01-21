@@ -33,24 +33,27 @@ def test_add_quotes():
 
 
 def test_get_conda_activation_script():
+    output = get_conda_activation_script(TEST_PYEXEC)
     if os.name == 'nt':
-        assert get_conda_activation_script(TEST_PYEXEC) == 'c:\\miniconda\\Scripts\\activate'
+        assert output == 'c:\\miniconda\\Scripts\\activate'
     else:
-        assert get_conda_activation_script(TEST_PYEXEC) == '/miniconda/bin/activate'
+        assert output == '/miniconda/bin/activate'
 
 
 def test_get_conda_env_path():
+    output = get_conda_env_path(TEST_PYEXEC)
     if os.name == 'nt':
-        assert get_conda_env_path(TEST_PYEXEC) == 'c:\\miniconda\\envs\\foobar'
+        assert output == 'c:\\miniconda\\envs\\foobar'
     else:
-        assert get_conda_env_path(TEST_PYEXEC) == '/miniconda/envs/foobar'
+        assert output == '/miniconda/envs/foobar'
 
 
 def test_get_conda_root_prefix():
+    output = get_conda_root_prefix(TEST_PYEXEC)
     if os.name == 'nt':
-        assert get_conda_root_prefix(TEST_PYEXEC) == 'c:\\miniconda'
+        assert output == 'c:\\miniconda'
     else:
-        assert get_conda_root_prefix(TEST_PYEXEC) == '/miniconda'
+        assert output == '/miniconda'
 
     assert 'envs' not in get_conda_root_prefix(sys.executable)
 

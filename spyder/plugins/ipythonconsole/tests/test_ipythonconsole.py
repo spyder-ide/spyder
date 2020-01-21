@@ -165,7 +165,9 @@ def ipyconsole(qtbot, request):
         CONF.set('main_interpreter', 'executable', '')
 
     # Use the test environment interpreter if requested
-    test_environment_interpreter = request.node.get_closest_marker('test_environment_interpreter')
+    test_environment_interpreter = request.node.get_closest_marker(
+        'test_environment_interpreter')
+
     if test_environment_interpreter:
         CONF.set('main_interpreter', 'default', False)
         CONF.set('main_interpreter', 'executable', get_conda_test_env())
@@ -1597,7 +1599,7 @@ def test_calltip(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.test_environment_interpreter
 def test_conda_env_activation(ipyconsole, qtbot):
-    """Test that the conda environment of the console is activated correctly."""
+    """Test that the conda environment of the console is activated."""
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -1605,7 +1607,8 @@ def test_conda_env_activation(ipyconsole, qtbot):
 
     # Get conda activation environment variable
     with qtbot.waitSignal(shell.executed):
-        shell.execute("import os; conda_prefix = os.environ.get('CONDA_PREFIX')")
+        shell.execute(
+            "import os; conda_prefix = os.environ.get('CONDA_PREFIX')")
 
     test_env_py_exec = get_conda_test_env()
     if is_conda_env(test_env_py_exec):
