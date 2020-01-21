@@ -635,17 +635,19 @@ class BaseEditMixin(object):
         html_signature, extra_text, _ = res
         point = self.get_word_start_pos(at_point)
 
-        # This is needed to get hover hints
-        cursor = self.cursorForPosition(at_point)
-        cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
-        self._last_hover_cursor = cursor
+        # Only display hover hint if there is documentation
+        if extra_text is not None:
+            # This is needed to get hover hints
+            cursor = self.cursorForPosition(at_point)
+            cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
+            self._last_hover_cursor = cursor
 
-        self.show_tooltip(signature=html_signature, text=extra_text,
-                          at_point=point, inspect_word=inspect_word,
-                          display_link=True, max_lines=max_lines,
-                          max_width=max_width, cursor=cursor,
-                          text_new_line=text_new_line,
-                          completion_doc=completion_doc)
+            self.show_tooltip(signature=html_signature, text=extra_text,
+                              at_point=point, inspect_word=inspect_word,
+                              display_link=True, max_lines=max_lines,
+                              max_width=max_width, cursor=cursor,
+                              text_new_line=text_new_line,
+                              completion_doc=completion_doc)
 
     def hide_tooltip(self):
         """
