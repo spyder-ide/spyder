@@ -1069,7 +1069,7 @@ class MainWindow(QMainWindow):
                     module = mod.__name__
                     name = module.replace('_', '-')
                     if plugin.DESCRIPTION:
-                        description = plugin.DESCRIPTION 
+                        description = plugin.DESCRIPTION
                     else:
                         description = plugin.get_plugin_title()
 

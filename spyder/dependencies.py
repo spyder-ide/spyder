@@ -366,7 +366,8 @@ def status(deps=DEPENDENCIES, linesep=os.linesep):
     maxwidth += 1
     text = ""
     prev_order = '-1'
-    for order, title, version in sorted(data, key=lambda x: x[0] + x[1].lower()):
+    for order, title, version in sorted(data,
+                                        key=lambda x: x[0] + x[1].lower()):
         if order != prev_order:
             text += '{sep}# {name}:{sep}'.format(
                 sep=linesep, name=order_dep[order].capitalize())
