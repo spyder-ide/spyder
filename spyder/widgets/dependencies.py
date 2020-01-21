@@ -43,6 +43,7 @@ class DependenciesTreeWidget(QTreeWidget):
 
         # Spyder plugins
         spyder_plugins = QTreeWidgetItem([_("Spyder Plugins")])
+        spyder_plugins.setFont(0, font)
 
         self.addTopLevelItems([mandatory_item, optional_item, spyder_plugins])
 
@@ -135,10 +136,10 @@ def test():
     dependencies.add("matplotlib", "matplotlib", "Interactive data plotting",
                      ">=1.0")
     dependencies.add("sympy", "sympy", "Symbolic Mathematics", ">=10.0",
-                     optional=True)
+                     kind=OPTIONAL)
     dependencies.add("foo", "foo", "Non-existent module", ">=1.0")
     dependencies.add("numpy", "numpy",  "Edit arrays in Variable Explorer",
-                     ">=0.10", optional=True)
+                     ">=0.10", kind=OPTIONAL)
 
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
