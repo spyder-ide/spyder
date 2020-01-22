@@ -19,6 +19,14 @@ import psutil
 
 
 class SpyderKernelManager(QtKernelManager):
+    """
+    Spyder kernels that live in a conda environment are now properly activated
+    with custom activation scripts located at plugins/ipythonconsole/scripts.
+    
+    However, on windows the batch script is terminated but not the kernel it
+    started so this subclass overrides the `_kill_kernel` method to properly
+    kill the started kernels by using psutil.
+    """
 
     @staticmethod
     def kill_proc_tree(pid, sig=signal.SIGTERM, include_parent=True,
@@ -29,6 +37,8 @@ class SpyderKernelManager(QtKernelManager):
 
         "on_terminate", if specified, is a callabck function which is called
         as soon as a child terminates.
+
+        This is an new method not present in QtKernelManager.
         """
         assert pid != os.getpid()  # Won't kill myself!
         parent = psutil.Process(pid)
@@ -63,7 +73,8 @@ class SpyderKernelManager(QtKernelManager):
                 if hasattr(signal, 'SIGKILL'):
                     self.signal_kernel(signal.SIGKILL)
                 else:
-                    # Kill child processes from launched batch script
+                    # This is the additional line that was added to properly
+                    # kill the spyder started kernels.
                     self.kill_proc_tree(self.kernel.pid)
 
                     self.kernel.kill()

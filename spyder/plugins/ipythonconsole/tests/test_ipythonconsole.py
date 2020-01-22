@@ -73,6 +73,7 @@ def get_console_background_color(style_sheet):
 
 
 def get_conda_test_env(test_env_name='jedi-test-env'):
+    """Return the full prefix path of the given `test_env_name`."""
     if 'envs' in sys.prefix:
         root_prefix = os.path.dirname(os.path.dirname(sys.prefix))
     else:
@@ -1599,7 +1600,10 @@ def test_calltip(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.test_environment_interpreter
 def test_conda_env_activation(ipyconsole, qtbot):
-    """Test that the conda environment of the console is activated."""
+    """
+    Test that the conda environment associated with an external interpreter
+    is activated before a kernel is created for it.
+    """
     # Wait until the window is fully up
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,

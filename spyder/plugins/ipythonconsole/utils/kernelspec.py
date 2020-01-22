@@ -106,16 +106,16 @@ class SpyderKernelSpec(KernelSpec):
                 kernel_cmd = [
                     get_activation_script(),  # This is bundled with Spyder
                     codepage,
-                    get_conda_activation_script(pyexec),  # Might be remote
-                    get_conda_env_path(pyexec),  # Might be remote
+                    get_conda_activation_script(pyexec),  # Might be external
+                    get_conda_env_path(pyexec),  # Might be external
                     pyexec,
                     '{connection_file}'
                 ]
             else:
                 kernel_cmd = [
                     get_activation_script(),  # This is bundled with Spyder
-                    get_conda_activation_script(pyexec),  # Might be remote
-                    get_conda_env_path(pyexec),  # Might be remote
+                    get_conda_activation_script(pyexec),  # Might be external
+                    get_conda_env_path(pyexec),  # Might be external
                     pyexec,
                     '{connection_file}'
                 ]

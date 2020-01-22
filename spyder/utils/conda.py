@@ -59,9 +59,9 @@ def get_conda_activation_script(pyexec=None, quote=False):
     If `quote` is True, then quotes are added if spaces are found in the path.
     """
     if os.name == 'nt':
-        activate = 'Scripts\\activate'
+        activate = 'Scripts' + os.sep + 'activate'
     else:
-        activate = 'bin/activate'
+        activate = 'bin' + os.sep + 'activate'
 
     script_path = os.path.join(get_conda_root_prefix(pyexec, quote=False),
                                activate)
