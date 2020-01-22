@@ -19,6 +19,7 @@ def add_quotes(path):
 
 def is_conda_env(prefix=None, pyexec=None):
     """Check if prefix or python executable are in a conda environment."""
+    pyexec = pyexec.replace('\\', '/')
     if (prefix is None and pyexec is None) or (prefix and pyexec):
         raise ValueError('Only `prefix` or `pyexec` should be provided!')
 
@@ -39,7 +40,8 @@ def get_conda_root_prefix(pyexec=None, quote=False):
     else:
         conda_env_prefix = get_conda_env_path(pyexec)
 
-    env_key = '{0}envs{0}'.format(os.sep)
+    conda_env_prefix = conda_env_prefix.replace('\\', '/')
+    env_key = '/envs/'
 
     if conda_env_prefix.rfind(env_key) != -1:
         root_prefix = conda_env_prefix.split(env_key)[0]
@@ -59,9 +61,9 @@ def get_conda_activation_script(pyexec=None, quote=False):
     If `quote` is True, then quotes are added if spaces are found in the path.
     """
     if os.name == 'nt':
-        activate = 'Scripts' + os.sep + 'activate'
+        activate = 'Scripts/activate'
     else:
-        activate = 'bin' + os.sep + 'activate'
+        activate = 'bin/activate'
 
     script_path = os.path.join(get_conda_root_prefix(pyexec, quote=False),
                                activate)
@@ -78,6 +80,7 @@ def get_conda_env_path(pyexec, quote=False):
 
     If `quote` is True, then quotes are added if spaces are found in the path.
     """
+    pyexec = pyexec.replace('\\', '/')
     if os.name == 'nt':
         conda_env = os.path.dirname(pyexec)
     else:

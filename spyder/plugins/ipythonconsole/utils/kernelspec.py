@@ -127,7 +127,6 @@ class SpyderKernelSpec(KernelSpec):
                 '-f',
                 '{connection_file}'
             ]
-
         logger.info('Kernel command: {}'.format(kernel_cmd))
 
         return kernel_cmd
