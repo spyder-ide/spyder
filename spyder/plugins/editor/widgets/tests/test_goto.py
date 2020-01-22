@@ -140,3 +140,17 @@ def test_goto_uri_message_box(qtbot, editorbot, mocker):
     code_editor.filename = None
     code_editor._last_hover_pattern_key = None
     code_editor._last_hover_pattern_text = None
+
+
+def test_pattern_highlight_regression(qtbot, editorbot):
+    """Fix regression on spyder-ide/spyder#11376. """
+    _, code_editor = editorbot
+    code_editor.show()
+
+    # This was generating an infinite loop
+    code_editor.set_text("'''\ngl-")
+    qtbot.wait(500)
+    code_editor.moveCursor(QTextCursor.End)
+    qtbot.wait(500)
+    qtbot.keyClick(code_editor, Qt.Key_1)
+    qtbot.wait(1000)
