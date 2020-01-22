@@ -44,7 +44,7 @@ def get_conda_root_prefix(pyexec=None, quote=False):
 
     conda_env_prefix = conda_env_prefix.replace('\\', '/')
     env_key = '/envs/'
-    
+
     if conda_env_prefix.rfind(env_key) != -1:
         root_prefix = conda_env_prefix.split(env_key)[0]
     else:
@@ -68,7 +68,7 @@ def get_conda_activation_script(pyexec=None, quote=False):
         activate = 'bin/activate'
 
     script_path = os.path.join(get_conda_root_prefix(pyexec, quote=False),
-                               activate)
+                               activate).replace('\\', '/')
 
     if quote:
         script_path = add_quotes(script_path)

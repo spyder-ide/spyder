@@ -1614,9 +1614,10 @@ def test_conda_env_activation(ipyconsole, qtbot):
         shell.execute(
             "import os; conda_prefix = os.environ.get('CONDA_PREFIX')")
 
-    test_env_py_exec = get_conda_test_env().replace('\\', '/')
-    if is_conda_env(test_env_py_exec):
-        assert shell.get_value('conda_prefix').replace('\\', '/') == test_env_py_exec
+    expected_output = get_conda_test_env().replace('\\', '/')
+    if is_conda_env(expected_output):
+        output = shell.get_value('conda_prefix').replace('\\', '/')
+        assert expected_output == output
 
 
 if __name__ == "__main__":

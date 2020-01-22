@@ -22,7 +22,7 @@ class SpyderKernelManager(QtKernelManager):
     """
     Spyder kernels that live in a conda environment are now properly activated
     with custom activation scripts located at plugins/ipythonconsole/scripts.
-    
+
     However, on windows the batch script is terminated but not the kernel it
     started so this subclass overrides the `_kill_kernel` method to properly
     kill the started kernels by using psutil.

@@ -143,7 +143,7 @@ def test_goto_uri_message_box(qtbot, editorbot, mocker):
 
 
 def test_pattern_highlight_regression(qtbot, editorbot):
-    """Fix regression on spyder-ide/spyder#11376. """
+    """Fix regression on spyder-ide/spyder#11376."""
     _, code_editor = editorbot
     code_editor.show()
 
