@@ -100,25 +100,13 @@ class SpyderKernelSpec(KernelSpec):
 
             # If changes are needed on this section make sure you also update
             # the activation scripts at spyder/plugins/ipythonconsole/scripts/
-            if os.name == 'nt':
-                import ctypes
-                codepage = str(ctypes.cdll.kernel32.GetACP())
-                kernel_cmd = [
-                    get_activation_script(),  # This is bundled with Spyder
-                    codepage,
-                    get_conda_activation_script(pyexec),  # Might be external
-                    get_conda_env_path(pyexec),  # Might be external
-                    pyexec,
-                    '{connection_file}'
-                ]
-            else:
-                kernel_cmd = [
-                    get_activation_script(),  # This is bundled with Spyder
-                    get_conda_activation_script(pyexec),  # Might be external
-                    get_conda_env_path(pyexec),  # Might be external
-                    pyexec,
-                    '{connection_file}'
-                ]
+            kernel_cmd = [
+                get_activation_script(),  # This is bundled with Spyder
+                get_conda_activation_script(),
+                get_conda_env_path(pyexec),  # Might be external
+                pyexec,
+                '{connection_file}',
+            ]
         else:
             kernel_cmd = [
                 pyexec,

@@ -2,14 +2,13 @@
 @echo off
 
 :: Create variables for arguments
-set CODEPAGE=%1
-set CONDA_ACTIVATE_SCRIPT=%2
-set CONDA_ENV_PATH=%3
-set CONDA_ENV_PYTHON=%4
-set SPYDER_KERNEL_SPEC=%5
+set CONDA_ACTIVATE_SCRIPT=%1
+set CONDA_ENV_PATH=%2
+set CONDA_ENV_PYTHON=%3
+set SPYDER_KERNEL_SPEC=%4
 
-:: Set correct encoding
-chcp %CODEPAGE%>nul
+:: Enforce encoding
+chcp 65001>nul
 
 :: Activate kernel environment
 call %CONDA_ACTIVATE_SCRIPT% %CONDA_ENV_PATH%

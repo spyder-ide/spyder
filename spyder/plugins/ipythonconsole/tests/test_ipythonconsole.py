@@ -72,7 +72,7 @@ def get_console_background_color(style_sheet):
     return background_color
 
 
-def get_conda_test_env(test_env_name='jedi-test-env'):
+def get_conda_test_env(test_env_name=u'spytest-ž'):
     """Return the full prefix path of the given `test_env_name`."""
     if 'envs' in sys.prefix:
         root_prefix = os.path.dirname(os.path.dirname(sys.prefix))
@@ -1614,9 +1614,9 @@ def test_conda_env_activation(ipyconsole, qtbot):
         shell.execute(
             "import os; conda_prefix = os.environ.get('CONDA_PREFIX')")
 
-    test_env_py_exec = get_conda_test_env()
+    test_env_py_exec = get_conda_test_env().replace('\\', '/')
     if is_conda_env(test_env_py_exec):
-        assert shell.get_value('conda_prefix') == test_env_py_exec
+        assert shell.get_value('conda_prefix').replace('\\', '/') == test_env_py_exec
 
 
 if __name__ == "__main__":

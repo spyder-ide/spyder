@@ -19,12 +19,14 @@ def add_quotes(path):
 
 def is_conda_env(prefix=None, pyexec=None):
     """Check if prefix or python executable are in a conda environment."""
-    pyexec = pyexec.replace('\\', '/')
+    if pyexec is not None:
+        pyexec = pyexec.replace('\\', '/')
+
     if (prefix is None and pyexec is None) or (prefix and pyexec):
         raise ValueError('Only `prefix` or `pyexec` should be provided!')
 
     if pyexec and prefix is None:
-        prefix = get_conda_env_path(pyexec)
+        prefix = get_conda_env_path(pyexec).replace('\\', '/')
 
     return os.path.exists(os.path.join(prefix, 'conda-meta'))
 
@@ -42,7 +44,7 @@ def get_conda_root_prefix(pyexec=None, quote=False):
 
     conda_env_prefix = conda_env_prefix.replace('\\', '/')
     env_key = '/envs/'
-
+    
     if conda_env_prefix.rfind(env_key) != -1:
         root_prefix = conda_env_prefix.split(env_key)[0]
     else:
