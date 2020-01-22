@@ -1460,17 +1460,30 @@ class MainWindow(QMainWindow):
         screen = self.window().windowHandle().screen()
         screen.logicalDotsPerInchChanged.disconnect(
             self.show_DPI_change_message)
-        QMessageBox.warning(
+        answer = QMessageBox.warning(
             self, _("Warning"),
             _("A monitor scale change was detected. <br><br>"
-              "Spyder will be restarted to be properly displayed."),
-            QMessageBox.Ok)
-        # Activate HDPI auto-scaling option since is needed for a proper
-        # display when using OS scaling
-        CONF.set('main', 'normal_screen_resolution', False)
-        CONF.set('main', 'high_dpi_scaling', True)
-        CONF.set('main', 'high_dpi_custom_scale_factor', False)
-        self.restart()
+              "We recommend restarting Spyder to ensure that it's properly "
+              "displayed. If you don't want to do that, please be sure to "
+              "activate the option<br><br><tt>Enable auto high DPI scaling"
+              "</tt><br><br>in <tt>Preferences > General > Interface</tt>, "
+              "in case Spyder is not displayed correctly.<br><br>"
+              "Do you want to restart Spyder?"),
+            QMessageBox.Yes | QMessageBox.No)
+
+        if answer == QMessageBox.Yes:
+            # Activate HDPI auto-scaling option since is needed for a proper
+            # display when using OS scaling
+            CONF.set('main', 'normal_screen_resolution', False)
+            CONF.set('main', 'high_dpi_scaling', True)
+            CONF.set('main', 'high_dpi_custom_scale_factor', False)
+            self.restart()
+        else:
+            # Reconnect DPI scale changes to show a restart message
+            screen = self.window().windowHandle().screen()
+            screen.logicalDotsPerInchChanged.connect(
+                self.show_DPI_change_message)
+
 
     def set_window_title(self):
         """Set window title."""
