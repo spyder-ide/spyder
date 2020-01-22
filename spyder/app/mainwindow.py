@@ -1450,7 +1450,7 @@ class MainWindow(QMainWindow):
             self, _("Warning"),
             _("A monitor scale change was detected. <br><br>"
               "We recommend restarting Spyder to ensure that it's properly "
-              "displayed.<br>If you don't want to do that, please be sure to "
+              "displayed. If you don't want to do that, please be sure to "
               "activate the option<br><br><tt>Enable auto high DPI scaling"
               "</tt><br><br>in <tt>Preferences > General > Interface</tt>, "
               "in case Spyder is not displayed correctly.<br><br>"
