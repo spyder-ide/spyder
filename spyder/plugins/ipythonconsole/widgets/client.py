@@ -272,6 +272,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
+        # To show if special console is valid
+        self.shellwidget.sig_prompt_ready.connect(
+            self._check_special_console_error)
+
         # To hide the loading page
         self.shellwidget.sig_prompt_ready.connect(self._hide_loading_page)
 
@@ -705,11 +709,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def _hide_loading_page(self):
         """Hide animation shown while the kernel is loading."""
-        self.infowidget.hide()
-        self.shellwidget.show()
-        self.info_page = self.blank_page
-        self.set_info_page()
-        self.shellwidget.sig_prompt_ready.disconnect(self._hide_loading_page)
+        if not self.is_error_shown:
+            self.infowidget.hide()
+            self.shellwidget.show()
+            self.info_page = self.blank_page
+            self.set_info_page()
+            self.shellwidget.sig_prompt_ready.disconnect(
+                self._hide_loading_page)
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""
@@ -743,3 +749,16 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.shellwidget.call_kernel().show_mpl_backend_errors()
         self.shellwidget.sig_prompt_ready.disconnect(
             self._show_mpl_backend_errors)
+
+    def _check_special_console_error(self):
+        """Check if the dependecies for special consoles are available."""
+        self.shellwidget.call_kernel(
+            callback=self._show_special_console_error
+            ).is_special_kernel_valid()
+
+    def _show_special_console_error(self, missing_dependency):
+        if missing_dependency is not None:
+            error_message = _("Unable to start special console since "
+                              "a dependency is missing: {}".format(
+                                  missing_dependency))
+            self.show_kernel_error(error_message)
