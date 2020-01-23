@@ -167,7 +167,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def set_cwd(self, dirname):
         """Set shell current working directory."""
-        # Replace single for double backslashes on Windows
         if os.name == 'nt':
             # Use normpath instead of replacing '\' with '\\'
             # See spyder-ide/spyder#10785
