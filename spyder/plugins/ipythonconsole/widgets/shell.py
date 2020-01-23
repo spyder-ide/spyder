@@ -10,6 +10,7 @@ Shell Widget for the IPython Console
 
 # Standard library imports
 import os
+import os.path as osp
 import uuid
 from textwrap import dedent
 
@@ -168,7 +169,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Set shell current working directory."""
         # Replace single for double backslashes on Windows
         if os.name == 'nt':
-            dirname = dirname.replace(u"\\", u"\\\\")
+            # Use normpath instead of replacing '\' with '\\'
+            # See spyder-ide/spyder#10785
+            dirname = osp.normpath(dirname)
 
         if self.ipyclient.hostname is None:
             self.call_kernel(interrupt=True).set_cwd(dirname)
