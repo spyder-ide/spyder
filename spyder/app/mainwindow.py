@@ -1448,17 +1448,27 @@ class MainWindow(QMainWindow):
         self.menuBar().raise_()
         self.is_setting_up = False
 
-        # Handle DPI scale changes and show restart message
-        screen = self.window().windowHandle().screen()
-        screen.logicalDotsPerInchChanged.connect(self.show_DPI_change_message)
+        # Handle DPI scale and window changes to show a restart message
+        window = self.window().windowHandle()
+        window.screenChanged.connect(self.handle_new_screen)
+        self.screen = self.window().windowHandle().screen()
+        self.screen.logicalDotsPerInchChanged.connect(
+            self.show_DPI_change_message)
 
         # Notify that the setup of the mainwindow was finished
         self.sig_setup_finished.emit()
 
+    def handle_new_screen(self, screen):
+        """Connect DPI signals for new screen."""
+        self.screen.logicalDotsPerInchChanged.disconnect(
+            self.show_DPI_change_message)
+        self.screen = screen
+        self.screen.logicalDotsPerInchChanged.connect(
+            self.show_DPI_change_message)
+
     def show_DPI_change_message(self):
         """Show message to restart Spyder since the DPI scale changed."""
-        screen = self.window().windowHandle().screen()
-        screen.logicalDotsPerInchChanged.disconnect(
+        self.screen.logicalDotsPerInchChanged.disconnect(
             self.show_DPI_change_message)
         answer = QMessageBox.warning(
             self, _("Warning"),
@@ -1480,10 +1490,8 @@ class MainWindow(QMainWindow):
             self.restart()
         else:
             # Reconnect DPI scale changes to show a restart message
-            screen = self.window().windowHandle().screen()
-            screen.logicalDotsPerInchChanged.connect(
+            self.screen.logicalDotsPerInchChanged.connect(
                 self.show_DPI_change_message)
-
 
     def set_window_title(self):
         """Set window title."""
