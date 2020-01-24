@@ -249,5 +249,20 @@ def test_comment(editorbot):
     assert widget.toPlainText() == "import numpy"
 
 
+def test_undo_return(editorbot):
+    """Test that we can undo a return."""
+    qtbot, editor = editorbot
+    text = "if True:\n    0"
+    returned_text = "if True:\n    0\n    "
+    editor.set_text(text)
+    cursor = editor.textCursor()
+    cursor.setPosition(14)
+    editor.setTextCursor(cursor)
+    qtbot.keyPress(editor, Qt.Key_Return)
+    assert editor.toPlainText() == returned_text
+    qtbot.keyPress(editor, "z", modifier=Qt.ControlModifier)
+    assert editor.toPlainText() == text
+
+
 if __name__ == '__main__':
     pytest.main(['test_codeeditor.py'])
