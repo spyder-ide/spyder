@@ -34,7 +34,8 @@ from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
-from spyder.config.base import _, get_conf_path, get_home_dir
+from spyder.config.base import (_, get_conf_path, get_home_dir,
+                                running_under_pytest)
 from spyder.config.gui import get_font, is_dark_interface
 from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginWidget
@@ -649,7 +650,7 @@ class IPythonConsole(SpyderPluginWidget):
                 'spyder_kernels',
                 interpreter=pyexec,
                 version='>=1.8.0;<2.0.0')
-            if not has_spyder_kernels:
+            if not has_spyder_kernels and not running_under_pytest():
                 client.show_kernel_error(
                     _("Your Python environment or installation doesn't have "
                       "the <tt>spyder-kernels</tt> module or the right "
