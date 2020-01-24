@@ -3739,6 +3739,7 @@ class CodeEditor(TextEditBaseWidget):
                 elif self.is_completion_widget_visible():
                     self.select_completion_list()
                 else:
+                    self.textCursor().beginEditBlock()
                     cur_indent = self.get_block_indentation(
                         self.textCursor().blockNumber())
                     insert_text(event)
@@ -3755,8 +3756,6 @@ class CodeEditor(TextEditBaseWidget):
 
                     # Check if we are in a comment or a string
                     cmt_or_str = cmt_or_str_cursor and cmt_or_str_line_begin
-
-                    self.textCursor().beginEditBlock()
 
                     if self.strip_trailing_spaces_on_modify:
                         self.fix_and_strip_indent(
