@@ -75,8 +75,7 @@ Spyder's necessary dependencies. The easiest way to do so (with Anaconda) is
   $ conda install -c spyder-ide --file requirements/conda.txt
 ```
 
-This installs all of Spyder's dependencies into the environment along with
-the stable/packaged version of Spyder itself, and then removes the latter.
+This installs all Spyder's dependencies into the environment.
 
 If using `pip` and `virtualenv` (not recommended), you need to `cd` to
 the directory where your git clone is stored and run:
@@ -84,37 +83,6 @@ the directory where your git clone is stored and run:
 ```bash
   $ pip install -e .
 ```
-
-### Using the correct version of spyder-kernels
-
-Following the separation in v3.3 of Spyder's console code into its own package,
-`spyder-kernels`, you'll need to have the corresponding version of it
-available—`0.x` for Spyder 3 (`3.x` branch), and `1.x` for Spyder 4
-(`master` branch). The above procedure will install the `0.x` version;
-to test the `master` branch (Spyder 4), you'll need to install the
-corresponding `1.x` version of `spyder-kernels`.
-
-This can be done via two methods: installing the correct version via `conda`:
-
-```bash
-conda install -c spyder-ide spyder-kernels=1.*
-```
-
-or `pip`:
-
-```bash
-pip install spyder-kernels==1.*
-```
-
-(and using `conda install spyder-kernels=0.*` to switch back to the
-Spyder 3 version), or by `clone`-ing the
-[spyder-kernels git repository](https://github.com/spyder-ide/spyder-kernels)
-to somewhere on your path checking out the appropriate branch
-(`0.x` or `master`) corresponding to the version of Spyder (3 or 4)
-you would like to run, and running the commend `pip install -e` at the root.
-For any non-trivial development work, keeping two separate virtual environments
-(with `conda-env` or `venv`) for Spyder 3 and 4 makes this process
-much quicker and less tedious.
 
 ### Running Spyder
 
@@ -168,12 +136,11 @@ PR on Github against it.
 To guide you, issues on Github are marked with a milestone that indicates
 the correct branch to use. If not, follow these guidelines:
 
-* Use the `3.x` branch for bugfixes only (*e.g.* milestones `v3.2.1`, `v3.2.2`,
-  or `v3.2.3`)
+* Use the `4.x` branch for bugfixes only (*e.g.* milestones `v4.0.1` or `v4.1.2`)
 * Use `master` to introduce new features or break compatibility with previous
-  Spyder versions (*e.g.* milestones `v4.0beta1` or `v4.0beta2`).
+  Spyder versions (*e.g.* milestones `v5.0beta1` or `v5.0beta2`).
 
-You should also submit bugfixes to `3.x` or `master` for errors that are
+You should also submit bugfixes to `4.x` or `master` for errors that are
 only present in those respective branches.
 
 To start working on a new PR, you need to execute these commands, filling in
@@ -194,11 +161,48 @@ you can change the base branch using `git rebase --onto`, like this:
   $ git rebase --onto <NEW-BASE-BRANCH> <OLD-BASE-BRANCH> <YOUR-BRANCH>
 ```
 
-For example, backporting `my_branch` from `master` to `3.x`:
+For example, backporting `my_branch` from `master` to `4.x`:
 
 ```bash
-  $ git rebase --onto 3.x master my_branch
+  $ git rebase --onto 4.x master my_branch
 ```
+
+### Making contributions that depend on pull requests in spyder-kernels
+
+If you need to open a pull request here that has a companion pull request in the
+[spyder-kernels](https://github.com/spyder-ide/spyder-kernels) repo,
+first you need to clone the
+[git-subrepo](https://github.com/ingydotnet/git-subrepo) project
+and follow the instructions to install it (on Windows you need to use Git Bash
+in order to run the git-subrepo commands described below).
+
+Then, you need to reclone the spyder-kernels subrepo we keep here to
+point it to the clone and branch where your spyder-kernels pull request
+lives. For instance, assuming your Github user is `my-user` and your branch is
+called `my-branch`, you need to run the following command to do that:
+
+```bash
+git subrepo clone https://github.com/my-user/spyder-kernels.git external-deps/spyder-kernels -b my-branch -f
+```
+
+To maintain in sync the subrepo when you push more changes to `my-branch`,
+you need to run this command:
+
+```
+git subrepo pull external-deps/spyder-kernels
+```
+
+Finally, after your pull request is merged in spyder-kernels, you need to
+reclone again its subrepo to make it point to our main repo and not to
+your clone. For that you need to use the following command:
+
+```bash
+git subrepo clone https://github.com/spyder-ide/spyder-kernels.git external-deps/spyder-kernels -b <branch> -f
+```
+
+where `<branch>` needs to be `1.x` if your Spyder pull request was done
+against our `4.x` branch, and `master` if you did it against our `master`
+branch here.
 
 
 ## Adding Third-Party Content
