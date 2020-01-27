@@ -2564,7 +2564,7 @@ class CodeEditor(TextEditBaseWidget):
             data.todo = ''
 
         for message, line_number in todo_results:
-            block = self.document().findBlockByNumber(line_number-1)
+            block = self.document().findBlockByNumber(line_number - 1)
             data = block.userData()
             if not data:
                 data = BlockUserData(self)
@@ -2854,7 +2854,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
-        prev_block = self.document().findBlockByNumber(block_nb-1)
+        prev_block = self.document().findBlockByNumber(block_nb - 1)
         prevline = to_text_string(prev_block.text())
 
         indentation = re.match(r"\s*", prevline).group()
@@ -2899,7 +2899,7 @@ class CodeEditor(TextEditBaseWidget):
         empty_lines = True
 
         closing_brackets = []
-        for prevline in range(block_nb-1, -1, -1):
+        for prevline in range(block_nb - 1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
@@ -2976,7 +2976,7 @@ class CodeEditor(TextEditBaseWidget):
         if prevline and not bracket_stack and not prevtext.endswith(':'):
             if forward:
                 # Keep indentation of previous line
-                ref_line = block_nb-1
+                ref_line = block_nb - 1
             else:
                 # Find indentation context
                 ref_line = prevline
@@ -3909,7 +3909,11 @@ class CodeEditor(TextEditBaseWidget):
                     self._last_pressed_key = None
 
     def fix_and_strip_indent(self, *args, **kwargs):
-        """Automatically fix indent and strip previous automatic indent."""
+        """
+        Automatically fix indent and strip previous automatic indent.
+
+        args and kwargs are forwarded to self.fix_indent
+        """
         # Fix indent
         cursor_before = self.textCursor().position()
         # A change just occured on the last line (return was pressed)
