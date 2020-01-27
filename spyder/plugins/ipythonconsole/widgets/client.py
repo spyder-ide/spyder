@@ -256,8 +256,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.shellwidget.executed.connect(self.disable_stop_button)
 
         # To show kernel restarted/died messages
-        self.shellwidget.sig_kernel_restarted.connect(
+        self.shellwidget.sig_kernel_restarted_message.connect(
             self.kernel_restarted_message)
+        self.shellwidget.sig_kernel_restarted.connect(
+            self._finalise_restart)
 
         # To correctly change Matplotlib backend interactively
         self.shellwidget.executing.connect(
@@ -552,7 +554,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 self.restart_thread = QThread()
                 self.restart_thread.run = self._restart_thread_main
                 self.restart_thread.error = None
-                self.restart_thread.finished.connect(self._restart_thread_end)
+                self.restart_thread.finished.connect(self._finalise_restart)
                 self.restart_thread.start()
 
             else:
@@ -570,13 +572,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except RuntimeError as e:
             self.restart_thread.error = e
 
-    def _restart_thread_end(self):
+    def _finalise_restart(self):
         """Finishes the restarting of the kernel."""
         sw = self.shellwidget
-        error = self.restart_thread.error
-        if error is not None:
+        if self.restart_thread and self.restart_thread.error is not None:
             sw._append_plain_text(
-                _('Error restarting kernel: %s\n') % error,
+                _('Error restarting kernel: %s\n') % self.restart_thread.error,
                 before_prompt=True
             )
         else:

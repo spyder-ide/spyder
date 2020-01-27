@@ -55,7 +55,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     focus_changed = Signal()
     new_client = Signal()
     sig_is_spykernel = Signal(object)
-    sig_kernel_restarted = Signal(str)
+    sig_kernel_restarted_message = Signal(str)
+    sig_kernel_restarted = Signal()
     sig_prompt_ready = Signal()
 
     # For global working directory
@@ -615,7 +616,11 @@ the sympy module (e.g. plot)
 
     def _kernel_restarted_message(self, died=True):
         msg = _("Kernel died, restarting") if died else _("Kernel restarting")
-        self.sig_kernel_restarted.emit(msg)
+        self.sig_kernel_restarted_message.emit(msg)
+
+    def _handle_kernel_restarted(self):
+        super(ShellWidget, self)._handle_kernel_restarted()
+        self.sig_kernel_restarted.emit()
 
     def _syntax_style_changed(self):
         """Refresh the highlighting with the current syntax style by class."""
