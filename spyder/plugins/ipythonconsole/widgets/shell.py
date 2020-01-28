@@ -102,10 +102,26 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'get_file_code': self.handle_get_file_code,
             'set_debug_state': self.handle_debug_state,
             'update_syspath': self.update_syspath,
+            'spyder_magic': self.spyder_magic,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
+
+    def spyder_magic(self, subcommand, args):
+        """Handle spyder magic to control frontend from kernel."""
+        if subcommand == 'open':
+            if args:
+                self.get_editorstack().load(args)
+        elif subcommand == 'close':
+            if not args:
+                return
+            index = self.get_editorstack().has_filename(args)
+            if not index:
+                return
+            self.get_editorstack().close_file(index)
+        else:
+            raise RuntimeError("Unknown subcommand: " + str(subcommand))
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
                     timeout=None):
