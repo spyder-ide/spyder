@@ -2954,5 +2954,42 @@ def test_pbd_step(main_window, qtbot, tmpdir):
         str(test_file))
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_spyder_magic(main_window, qtbot, tmpdir):
+    """
+    Test that the spyder magic commands work.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = shell._control
+
+    # Write code to a file
+    code1 = ("print('success')")
+    folder = tmpdir.join('tmp_folder')
+    test_file = folder.join('tmp.py')
+    test_file.write(code1, ensure=True)
+
+    es = main_window.editor.get_current_editorstack()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('filename = "' + str(test_file) + '"')
+
+    assert not es.has_filename(str(test_file))
+    # Run magic
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%spyder open filename')
+
+    assert es.has_filename(str(test_file))
+
+    # Run magic
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%spyder close "' + str(test_file) + '"')
+
+    assert not es.has_filename(str(test_file))
+
+
 if __name__ == "__main__":
     pytest.main()
