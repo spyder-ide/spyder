@@ -554,7 +554,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 self.restart_thread = QThread()
                 self.restart_thread.run = self._restart_thread_main
                 self.restart_thread.error = None
-                self.restart_thread.finished.connect(self._finalise_restart)
+                self.restart_thread.finished.connect(
+                    lambda: self._finalise_restart(True))
                 self.restart_thread.start()
 
             else:
@@ -572,7 +573,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except RuntimeError as e:
             self.restart_thread.error = e
 
-    def _finalise_restart(self):
+    def _finalise_restart(self, reset=False):
         """Finishes the restarting of the kernel."""
         sw = self.shellwidget
         if self.restart_thread and self.restart_thread.error is not None:
@@ -582,12 +583,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             )
         else:
             # Reopen comm
+            sw.spyder_kernel_comm.close()
             sw.spyder_kernel_comm.open_comm(sw.kernel_client)
 
             # For spyder-ide/spyder#6235, IPython was changing the
             # setting of %colors on windows by assuming it was using a
             # dark background. This corrects it based on the scheme.
-            self.set_color_scheme(sw.syntax_style)
+            self.set_color_scheme(sw.syntax_style, reset=reset)
             sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
                             before_prompt=True)
         self._hide_loading_page()
