@@ -1567,5 +1567,36 @@ def test_calltip(ipyconsole, qtbot):
     assert control.calltip_widget.isVisible()
 
 
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="no SIGTERM on Windows")
+def test_kernel_kill(ipyconsole, qtbot):
+    """
+    Test that the kernel correctly restarts after a kill.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    # Wait for the restarter to start
+    qtbot.wait(3000)
+    crash_string = 'import os, signal; os.kill(os.getpid(), signal.SIGTERM)'
+    # Check only one comm is open
+    old_open_comms = list(shell.spyder_kernel_comm._comms.keys())
+    assert len(old_open_comms) == 1
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=30000):
+        shell.execute(crash_string)
+    assert crash_string in shell._control.toPlainText()
+    assert "Restarting kernel..." in shell._control.toPlainText()
+    # Check a new comm replaced the old one
+    new_open_comms = list(shell.spyder_kernel_comm._comms.keys())
+    assert len(new_open_comms) == 1
+    assert old_open_comms[0] != new_open_comms[0]
+    # Wait until the comm replies
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_comm._comms[new_open_comms[0]][
+            'status'] == 'ready')
+    assert shell.spyder_kernel_comm._comms[new_open_comms[0]][
+        'status'] == 'ready'
+
+
 if __name__ == "__main__":
     pytest.main()
