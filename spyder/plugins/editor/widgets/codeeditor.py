@@ -1121,6 +1121,18 @@ class CodeEditor(TextEditBaseWidget):
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def process_completion(self, params):
         """Handle completion response."""
+
+        def filter_completion(completion, include_fallback):
+            # Remove empty completion entries
+            info_condition = (completion.get('insertText')
+                              or completion.get('textEdit', {}).get('newText'))
+            # Discard fallback entries if they were not requested explicitly
+            fallback_condition = (not automatic
+                                  or completion['provider'] != 'Fallback')
+            # Include fallback entries if they are the only source available
+            fallback_condition = fallback_condition or include_fallback
+            return info_condition and fallback_condition
+
         args = self.completion_args
         if args is None:
             # This should not happen
@@ -1129,13 +1141,12 @@ class CodeEditor(TextEditBaseWidget):
         position, automatic = args
         try:
             completions = params['params']
+            stats = params['stats']
+            stats = {src: stats[src] for src in stats if stats[src] > 0}
+            include_fallback = len(stats) == 1 and 'Fallback' in stats
             completions = ([] if completions is None else
                            [completion for completion in completions
-                            if (completion.get('insertText')
-                                or completion.get('textEdit', {}).get('newText'))
-                            and (not automatic
-                                 or completion['provider'] != 'Fallback')])
-
+                            if filter_completion(completion, include_fallback)])
             replace_end = self.textCursor().position()
             under_cursor = self.get_current_word_and_position(completion=True)
             if under_cursor:
@@ -1149,7 +1160,7 @@ class CodeEditor(TextEditBaseWidget):
 
             def sort_key(completion):
                 if 'textEdit' in completion:
-                    text_insertion =  completion['textEdit']['newText']
+                    text_insertion = completion['textEdit']['newText']
                 else:
                     text_insertion = completion['insertText']
                 first_insert_letter = text_insertion[0]

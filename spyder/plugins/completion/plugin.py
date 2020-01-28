@@ -185,7 +185,7 @@ class CompletionManager(SpyderCompletionPlugin):
                 merge_stats[source] += 1
 
         logger.debug('Responses statistics: {0}'.format(merge_stats))
-        responses = {'params': responses}
+        responses = {'params': responses, 'stats': merge_stats}
         return responses
 
     def gather_default(self, req_type, responses):
