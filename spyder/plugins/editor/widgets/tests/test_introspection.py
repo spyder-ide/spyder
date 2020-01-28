@@ -955,7 +955,10 @@ def test_kite_textEdit_completions(mock_completions_codeeditor, qtbot):
         'sortText': '',
         'documentation': '',
         'provider': KITE_COMPLETION,
-    }]} if method == LSPRequestTypes.DOCUMENT_COMPLETION else None
+    }],
+    'stats': {
+        'kite': 1
+    }} if method == LSPRequestTypes.DOCUMENT_COMPLETION else None
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
