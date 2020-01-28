@@ -3811,7 +3811,7 @@ class CodeEditor(TextEditBaseWidget):
                         self._start_completion_timer()
             else:
                 self.do_completion(automatic=True)
-        elif (text != '(' and text in self.signature_completion_characters and
+        elif (text in self.signature_completion_characters and
                 not self.has_selected_text()):
             self.insert_text(text)
             self.request_signature()
