@@ -348,7 +348,7 @@ class MainWindow(QMainWindow):
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
-        self.open_project = options.project
+        self.open_project = osp.normpath(osp.join(CWD, options.project)) if options.project is not None else None
         self.window_title = options.window_title
 
         logger.info("Start of MainWindow constructor")
