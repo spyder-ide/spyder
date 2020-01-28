@@ -2956,6 +2956,7 @@ def test_pbd_step(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Windows path have '\\'")
 def test_spyder_magic(main_window, qtbot, tmpdir):
     """
     Test that the spyder magic commands work.
