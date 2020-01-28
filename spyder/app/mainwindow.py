@@ -3785,7 +3785,7 @@ def main():
         traceback.print_exc(file=STDERR)
         traceback.print_exc(file=open('spyder_crash.log', 'w'))
     if mainwindow is None:
-        # An exception occured
+        # An exception occurred
         if SPLASH is not None:
             SPLASH.hide()
         return
