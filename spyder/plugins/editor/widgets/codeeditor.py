@@ -1143,7 +1143,7 @@ class CodeEditor(TextEditBaseWidget):
             completions = params['params']
             stats = params['stats']
             stats = {src: stats[src] for src in stats if stats[src] > 0}
-            include_fallback = len(stats) == 1 and 'Fallback' in stats
+            include_fallback = len(stats) == 1 and 'fallback' in stats
             completions = ([] if completions is None else
                            [completion for completion in completions
                             if filter_completion(completion, include_fallback)])
