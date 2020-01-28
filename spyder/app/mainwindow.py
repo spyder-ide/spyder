@@ -2972,10 +2972,22 @@ class MainWindow(QMainWindow):
         variable explorer inside Spyder.
         """
         fname = encoding.to_unicode_from_fs(fname)
-        if osp.isfile(fname):
-            self.open_file(fname, external=True)
-        elif osp.isfile(osp.join(CWD, fname)):
-            self.open_file(osp.join(CWD, fname), external=True)
+        if osp.exists(osp.join(CWD, fname)):
+            fpath = osp.join(CWD, fname)
+        elif osp.exists(fname):
+            fpath = fname
+        else:
+            return
+
+        if osp.isfile(fpath):
+            self.open_file(fpath, external=True)
+        elif osp.isdir(fpath):
+            QMessageBox.warning(None, "Spyder",
+                _('Not opening folder <code>{fpath}</code> . To open that '
+                  'folder as a project from the CLI, use '
+                  '<code>spyder -p "{fname}"</code> .')
+                .format(fpath=osp.normpath(fpath), fname=fname)
+            )
 
     # --- Path Manager
     # ------------------------------------------------------------------------
