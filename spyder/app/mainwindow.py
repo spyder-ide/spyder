@@ -2982,7 +2982,8 @@ class MainWindow(QMainWindow):
         if osp.isfile(fpath):
             self.open_file(fpath, external=True)
         elif osp.isdir(fpath):
-            QMessageBox.warning(None, "Spyder",
+            QMessageBox.warning(
+                None, "Spyder",
                 _('Not opening folder <code>{fpath}</code> . To open that '
                   'folder as a project from the CLI, use '
                   '<code>spyder -p "{fname}"</code> .')
