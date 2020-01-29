@@ -144,7 +144,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To keep a reference to the page to be displayed
         # in infowidget
         self.info_page = None
-        self.before_prompt_is_ready()
+        self._before_prompt_is_ready()
 
         # Elapsed time
         self.time_label = None
@@ -275,13 +275,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
-    def before_prompt_is_ready(self):
+    def _before_prompt_is_ready(self):
         """Configure shellwidget before kernel is connected."""
         self._show_loading_page()
         self.shellwidget.sig_prompt_ready.connect(
-            self.when_prompt_is_ready)
+            self._when_prompt_is_ready)
 
-    def when_prompt_is_ready(self):
+    def _when_prompt_is_ready(self):
         """Configuration after the prompt is shown."""
         # To hide the loading page
         self._hide_loading_page()
@@ -290,7 +290,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self._show_mpl_backend_errors()
 
         self.shellwidget.sig_prompt_ready.disconnect(
-            self.when_prompt_is_ready)
+            self._when_prompt_is_ready)
 
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
