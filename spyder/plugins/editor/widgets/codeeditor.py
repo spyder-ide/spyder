@@ -693,7 +693,8 @@ class CodeEditor(TextEditBaseWidget):
     def create_shortcuts(self):
         """Create the local shortcuts for the CodeEditor."""
         shortcut_context_name_callbacks = (
-            ('editor', 'fallback code completion', self.do_fallback_completion),
+            ('editor', 'fallback code completion',
+             self.do_fallback_completion),
             ('editor', 'code completion', self.do_completion),
             ('editor', 'duplicate line down', self.duplicate_line_down),
             ('editor', 'duplicate line up', self.duplicate_line_up),
@@ -1141,7 +1142,6 @@ class CodeEditor(TextEditBaseWidget):
                            [completion for completion in completions
                             if completion.get('insertText')
                             or completion.get('textEdit', {}).get('newText')])
-
             replace_end = self.textCursor().position()
             under_cursor = self.get_current_word_and_position(completion=True)
             if under_cursor:
