@@ -1146,7 +1146,8 @@ class CodeEditor(TextEditBaseWidget):
             include_fallback = len(stats) == 1 and 'fallback' in stats
             completions = ([] if completions is None else
                            [completion for completion in completions
-                            if filter_completion(completion, include_fallback)])
+                            if filter_completion(completion,
+                                                 include_fallback)])
             replace_end = self.textCursor().position()
             under_cursor = self.get_current_word_and_position(completion=True)
             if under_cursor:

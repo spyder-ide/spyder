@@ -151,13 +151,15 @@ class CompletionManager(SpyderCompletionPlugin):
                            for source in wait_for)
         if not timed_out:
             # Before the timeout
-            any_nonempty = any(len(request_responses['sources'].get(source, {})) > 0
+            any_nonempty = any(len(request_responses['sources'].get(
+                                source, {})) > 0
                                for source in wait_for)
             if all_returned and any_nonempty:
                 send()
         else:
             # After the timeout
-            any_nonempty = any(len(request_responses['sources'].get(source, {})) > 0
+            any_nonempty = any(len(request_responses['sources'].get(
+                                source, {})) > 0
                                for source in wait_for)
             if all_returned or any_nonempty:
                 send()

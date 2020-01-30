@@ -941,24 +941,25 @@ def test_kite_textEdit_completions(mock_completions_codeeditor, qtbot):
     qtbot.keyClicks(code_editor, 'my_dict.')
 
     # Complete my_dict. -> my_dict["dict-key"]
-    mock_response.side_effect = lambda lang, method, params: {'params': [{
-        'kind': CompletionItemKind.TEXT,
-        'label': '["dict-key"]',
-        'textEdit': {
-            'newText': '["dict-key"]',
-            'range': {
-                'start': 7,
-                'end': 8,
+    mock_response.side_effect = lambda lang, method, params: {
+        'params': [{
+            'kind': CompletionItemKind.TEXT,
+            'label': '["dict-key"]',
+            'textEdit': {
+                'newText': '["dict-key"]',
+                'range': {
+                    'start': 7,
+                    'end': 8,
+                },
             },
-        },
-        'filterText': '',
-        'sortText': '',
-        'documentation': '',
-        'provider': KITE_COMPLETION,
-    }],
-    'stats': {
-        'kite': 1
-    }} if method == LSPRequestTypes.DOCUMENT_COMPLETION else None
+            'filterText': '',
+            'sortText': '',
+            'documentation': '',
+            'provider': KITE_COMPLETION,
+        }],
+        'stats': {
+            'kite': 1
+        }} if method == LSPRequestTypes.DOCUMENT_COMPLETION else None
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
