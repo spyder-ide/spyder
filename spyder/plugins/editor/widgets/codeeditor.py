@@ -60,6 +60,7 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               SnippetsExtension)
 from spyder.plugins.completion.kite.widgets.calltoaction import (
     KiteCallToAction)
+from spyder.plugins.completion.fallback.plugin import FallbackPlugin
 from spyder.plugins.completion.languageserver import (LSPRequestTypes,
                                                       TextDocumentSyncKind,
                                                       DiagnosticSeverity)
@@ -692,6 +693,7 @@ class CodeEditor(TextEditBaseWidget):
     def create_shortcuts(self):
         """Create the local shortcuts for the CodeEditor."""
         shortcut_context_name_callbacks = (
+            ('editor', 'fallback code completion', self.do_fallback_completion),
             ('editor', 'code completion', self.do_completion),
             ('editor', 'duplicate line down', self.duplicate_line_down),
             ('editor', 'duplicate line up', self.duplicate_line_up),
@@ -1102,8 +1104,13 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing linting")
 
     # ------------- LSP: Completion ---------------------------------------
+    def do_fallback_completion(self):
+        """Trigger only fallback completion."""
+        return self.do_completion(
+            provider=FallbackPlugin.COMPLETION_CLIENT_NAME)
+
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
-    def do_completion(self, automatic=False):
+    def do_completion(self, automatic=False, provider=None):
         """Trigger completion."""
         self.document_did_change('')
         cursor = self.textCursor()
@@ -1114,6 +1121,7 @@ class CodeEditor(TextEditBaseWidget):
             'offset': cursor.position(),
             'selection_start': cursor.selectionStart(),
             'selection_end': cursor.selectionEnd(),
+            'provider': provider
         }
         self.completion_args = (self.textCursor().position(), automatic)
         return params

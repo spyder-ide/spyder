@@ -365,6 +365,7 @@ DEFAULTS = [
               'find_replace/hide find and replace': "Escape",
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
+              'editor/fallback code completion': CTRL+'+/',
               'editor/code completion': CTRL+'+Space',
               'editor/duplicate line up': (
                   "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),

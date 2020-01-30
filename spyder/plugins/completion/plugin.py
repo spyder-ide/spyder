@@ -241,11 +241,12 @@ class CompletionManager(SpyderCompletionPlugin):
                               lambda: self.receive_timeout(req_id))
         else:
             self.requests[req_id]['timed_out'] = True
-
+        provider = req['provider'] if 'provider' in req else None
         for client_name in self.clients:
-            client_info = self.clients[client_name]
-            client_info['plugin'].send_request(
-                language, req_type, req, req_id)
+            if provider is None or provider == client_name:
+                client_info = self.clients[client_name]
+                client_info['plugin'].send_request(
+                    language, req_type, req, req_id)
 
     def send_notification(self, language, notification_type, notification):
         for client_name in self.clients:
