@@ -141,8 +141,8 @@ class CompletionManager(SpyderCompletionPlugin):
         def send():
             max_req_id = max(
                 [key for key, item in self.requests.items()
-                 if item['req_type'] == self.requests[req_id]['req_type']],
-                default=-1)
+                 if item['req_type'] == self.requests[req_id]['req_type']]
+                or [-1])
 
             del self.requests[req_id]
 
