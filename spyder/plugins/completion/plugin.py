@@ -146,12 +146,13 @@ class CompletionManager(SpyderCompletionPlugin):
                        in self.WAIT_FOR_SOURCE[request_responses['req_type']]
                        if self._is_client_running(source))
         timed_out = request_responses['timed_out']
+        provider = request_responses['provider']
 
         all_returned = all(source in request_responses['sources']
                            for source in wait_for)
         if not timed_out:
             # Before the timeout
-            if all_returned:
+            if all_returned or provider:
                 send()
         else:
             # After the timeout
@@ -226,6 +227,7 @@ class CompletionManager(SpyderCompletionPlugin):
     def send_request(self, language, req_type, req):
         req_id = self.req_id
         self.req_id += 1
+        provider = req['provider'] if 'provider' in req else None
 
         self.requests[req_id] = {
             'language': language,
@@ -233,6 +235,7 @@ class CompletionManager(SpyderCompletionPlugin):
             'response_instance': req['response_instance'],
             'sources': {},
             'timed_out': False,
+            'provider': provider
         }
 
         # Start the timer on this request
@@ -241,7 +244,6 @@ class CompletionManager(SpyderCompletionPlugin):
                               lambda: self.receive_timeout(req_id))
         else:
             self.requests[req_id]['timed_out'] = True
-        provider = req['provider'] if 'provider' in req else None
         for client_name in self.clients:
             if provider is None or provider == client_name:
                 client_info = self.clients[client_name]
