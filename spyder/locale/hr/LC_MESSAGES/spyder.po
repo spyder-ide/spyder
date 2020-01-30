@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2019-11-29 18:13+-05\n"
-"PO-Revision-Date: 2020-01-29 18:38\n"
+"PO-Revision-Date: 2020-01-30 18:39\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Croatian\n"
 "MIME-Version: 1.0\n"
@@ -17,35 +17,35 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:131
 msgid "Initializing..."
-msgstr ""
+msgstr "Pokretanje..."
 
 #: spyder/app/mainwindow.py:301
 msgid "Python2 documentation"
-msgstr ""
+msgstr "Python2 dokumentacija"
 
 #: spyder/app/mainwindow.py:303
 msgid "Python3 documentation"
-msgstr ""
+msgstr "Python3 dokumentacija"
 
 #: spyder/app/mainwindow.py:305
 msgid "Numpy and Scipy documentation"
-msgstr ""
+msgstr "Numpy i Scipy dokumentacija"
 
 #: spyder/app/mainwindow.py:307
 msgid "Matplotlib documentation"
-msgstr ""
+msgstr "Matplotlib dokumentacija"
 
 #: spyder/app/mainwindow.py:310
 msgid "PyQt5 Reference Guide"
-msgstr ""
+msgstr "PyQt5 referentni vodič"
 
 #: spyder/app/mainwindow.py:313
 msgid "PyQt5 API Reference"
-msgstr ""
+msgstr "PyQt5 API referenca"
 
 #: spyder/app/mainwindow.py:315
 msgid "WinPython"
-msgstr ""
+msgstr "WinPython"
 
 #: spyder/app/mainwindow.py:579
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
@@ -53,11 +53,11 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:647
 msgid "Close current pane"
-msgstr ""
+msgstr "Zatvori trenutačno okno"
 
 #: spyder/app/mainwindow.py:655
 msgid "Lock panes and toolbars"
-msgstr ""
+msgstr "Zaključaj trenutačna okna i alatne trake"
 
 #: spyder/app/mainwindow.py:662
 msgid "Use next layout"
