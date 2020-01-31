@@ -3916,7 +3916,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         # Fix indent
         cursor_before = self.textCursor().position()
-        # A change just occured on the last line (return was pressed)
+        # A change just occurred on the last line (return was pressed)
         if cursor_before > 0:
             self.last_change_position = cursor_before - 1
         self.fix_indent(*args, **kwargs)

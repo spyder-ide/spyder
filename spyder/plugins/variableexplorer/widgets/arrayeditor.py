@@ -875,7 +875,7 @@ class ArrayEditor(BaseDialog):
         return self.data
 
     def error(self, message):
-        """An error occured, closing the dialog box"""
+        """An error occurred, closing the dialog box"""
         QMessageBox.critical(self, _("Array editor"), message)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.reject()

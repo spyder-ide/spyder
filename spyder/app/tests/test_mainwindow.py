@@ -2065,7 +2065,7 @@ def test_report_issue_url(monkeypatch):
 def test_render_issue():
     """Test that render issue works without errors and returns text."""
     test_description = "This is a test description"
-    test_traceback = "An error occured. Oh no!"
+    test_traceback = "An error occurred. Oh no!"
 
     MockMainWindow = MagicMock(spec=MainWindow)
     mockMainWindow_instance = MockMainWindow()

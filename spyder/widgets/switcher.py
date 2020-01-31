@@ -156,7 +156,7 @@ class SwitcherBaseItem(QStandardItem):
         self._set_rendered_text()
 
     def is_action_item(self):
-        """Return wether the item is of action type."""
+        """Return whether the item is of action type."""
         return bool(self._action_item)
 
     # --- Qt overrides

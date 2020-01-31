@@ -220,7 +220,7 @@ def start_file(filename):
 
     This function is simply wrapping QDesktopServices.openUrl
 
-    Returns True if successfull, otherwise returns False.
+    Returns True if successful, otherwise returns False.
     """
     from qtpy.QtCore import QUrl
     from qtpy.QtGui import QDesktopServices
@@ -907,7 +907,7 @@ def is_python_interpreter_valid_name(filename):
 
 
 def is_python_interpreter(filename):
-    """Evaluate wether a file is a python interpreter or not."""
+    """Evaluate whether a file is a python interpreter or not."""
     real_filename = os.path.realpath(filename)  # To follow symlink if existent
     if (not osp.isfile(real_filename) or
         not is_python_interpreter_valid_name(filename)):
