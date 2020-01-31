@@ -90,12 +90,13 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
 
     def _get_status(self, filename):
         """Perform a request to get kite status for a file."""
+        verb, url = KITE_ENDPOINTS.STATUS_ENDPOINT
         if filename:
-            verb, url = KITE_ENDPOINTS.FILENAME_STATUS_ENDPOINT
-            url = url.format(filename=filename)
+            url_params = {'filename': filename}
         else:
-            verb, url = KITE_ENDPOINTS.BUFFER_STATUS_ENDPOINT
-        success, response = self.perform_http_request(verb, url)
+            url_params = {'filetype': 'python'}
+        success, response = self.perform_http_request(
+            verb, url, url_params=url_params)
         return response
 
     def get_status(self, filename):
@@ -107,11 +108,11 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         else:
             self.sig_status_response_ready[dict].emit(kite_status)
 
-    def perform_http_request(self, verb, url, params=None):
+    def perform_http_request(self, verb, url, url_params=None, params=None):
         response = None
         http_method = getattr(self.endpoint, verb)
         try:
-            http_response = http_method(url, json=params)
+            http_response = http_method(url, params=url_params, json=params)
         except Exception as error:
             return False, None
         success = http_response.status_code == 200
