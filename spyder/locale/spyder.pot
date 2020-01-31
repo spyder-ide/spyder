@@ -3524,7 +3524,7 @@ msgid "Unlock"
 msgstr ""
 
 #: spyder/plugins/help/plugin.py:645
-msgid "The following error occurred when calling <b>Sphinx %s</b>. <br>Incompatible Sphinx version or doc string decoding failed.<br><br>Error message:<br>%s"
+msgid "The following error occured when calling <b>Sphinx %s</b>. <br>Incompatible Sphinx version or doc string decoding failed.<br><br>Error message:<br>%s"
 msgstr ""
 
 #: spyder/plugins/help/plugin.py:689
