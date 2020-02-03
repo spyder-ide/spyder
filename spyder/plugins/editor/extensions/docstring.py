@@ -475,7 +475,7 @@ class DocstringWriterExtension(object):
 
         if func_info.raise_list:
             for raise_type in func_info.raise_list:
-                sphinx_doc += '{}:raise {}: DESCRIPTION\n'.format(indent1,
+                sphinx_doc += '{}:raises {}: DESCRIPTION\n'.format(indent1,
                                                                    raise_type)
 
         if func_info.has_yield:
