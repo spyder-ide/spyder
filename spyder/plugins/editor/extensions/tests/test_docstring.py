@@ -244,8 +244,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
     yield value
     ''',
          '''async def foo():
-    """\n    
-    :raises ValueError: DESCRIPTION
+    """\n    \n    :raises ValueError: DESCRIPTION
     :raises TypeError: DESCRIPTION
     :yield: DESCRIPTION
     :rtype: TYPE
@@ -261,8 +260,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
          '''  def foo():
       ''',
          '''  def foo():
-      """\n      
-      :return: DESCRIPTION
+      """\n      \n      :return: DESCRIPTION
       :rtype: TYPE
 
       """
@@ -276,8 +274,7 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
          '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
     arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
   (List[Tuple[str, float]], str, float):
-    """\n    
-    :param arg: DESCRIPTION
+    """\n    \n    :param arg: DESCRIPTION
     :type arg: TYPE
     :param arg0: DESCRIPTION
     :type arg0: TYPE
