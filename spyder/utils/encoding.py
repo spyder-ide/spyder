@@ -260,10 +260,15 @@ def write(text, filename, encoding='utf-8', mode='wb'):
             if error.errno != errno.EINVAL:
                 with open(filename, mode) as textfile:
                     textfile.write(text)
-        os.chmod(filename, original_mode)
-        file_stat = os.stat(filename)
-        # Preserve creation timestamps
-        os.utime(filename, (creation, file_stat.st_mtime))
+        try:
+            os.chmod(filename, original_mode)
+            file_stat = os.stat(filename)
+            # Preserve creation timestamps
+            os.utime(filename, (creation, file_stat.st_mtime))
+        except OSError:
+            # Prevent error when chmod/utime is not allowed
+            # See spyder-ide/spyder#11308
+            pass
     return encoding
 
 
