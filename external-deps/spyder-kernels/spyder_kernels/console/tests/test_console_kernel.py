@@ -358,8 +358,6 @@ libc.printf(('Hello from C\\n').encode('utf8'))
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(IPython.__version__ >= '7.2.0',
-                    reason="This problem was fixed in IPython 7.2+")
 def test_cwd_in_sys_path():
     """
     Test that cwd stays as the first element in sys.path after the
@@ -379,7 +377,7 @@ def test_cwd_in_sys_path():
         value = ast.literal_eval(str_value)
 
         # Assert the first value of sys_path is an empty string
-        assert value[0] == ''
+        assert '' in value
 
 
 @flaky(max_runs=3)
@@ -509,7 +507,7 @@ x = np.random.rand(75000,5);
 a = np.array([123412341234.123412341234])
 """)
         client.get_shell_msg(block=True, timeout=TIMEOUT)
-        
+
         # Assert that NumPy threshold, suppress and formatter
         # are the same as the ones set by the user
         client.execute("""
@@ -518,7 +516,7 @@ s = np.get_printoptions()['suppress'];
 f = np.get_printoptions()['formatter']
 """)
         client.get_shell_msg(block=True, timeout=TIMEOUT)
-        
+
         # Check correct decimal format
         client.inspect('a')
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
