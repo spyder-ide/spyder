@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class BaseThreadWrapper(watchdog.utils.BaseThread):
     """
     Wrapper around watchdog BaseThread class.
-
+    This is necessary for issue spyder-ide/spyder#11370
     """
     queue = None
 
@@ -45,6 +45,8 @@ class BaseThreadWrapper(watchdog.utils.BaseThread):
             self.queue.put(e)
 
 
+# Monkeypatching BaseThread to prevent the error reported in
+# spyder-ide/spyder#11370
 watchdog.utils.BaseThread = BaseThreadWrapper
 
 
