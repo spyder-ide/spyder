@@ -243,7 +243,8 @@ class EditorConfigPage(PluginConfigPage):
         docstring_label.setWordWrap(True)
 
         docstring_combo_choices = ((_("Numpy"), 'Numpydoc'),
-                                   (_("Google"), 'Googledoc'),)
+                                   (_("Google"), 'Googledoc'),
+                                   (_("Sphinx"), 'Sphinxdoc'),)
         docstring_combo = self.create_combobox(
             "Type:",
             docstring_combo_choices,
