@@ -169,12 +169,16 @@ For example, backporting `my_branch` from `master` to `4.x`:
 
 ### Making contributions that depend on pull requests in spyder-kernels
 
-If you need to open a pull request here that has a companion pull request in the
-[spyder-kernels](https://github.com/spyder-ide/spyder-kernels) repo,
-first you need to clone the
-[git-subrepo](https://github.com/ingydotnet/git-subrepo) project
-and follow these instructions to install it (on Windows you need to use Git Bash
-in order to run them):
+Spyder and spyder-kernels are developed jointly because a lot of communication happens between them in order to run code written in the editor in the IPython console. The way the branches on their respective repos are linked appears in the table below:
+
+| Spyder branch  | Associated spyder-kernels branch  |
+| ---------------| --------------------------------- |
+| 4.x            | 1.x                               |
+| master (future 5.x) | master (future 2.x)          |
+
+For this reason, a clone of spyder-kernels is placed in the `external-deps` subfolder of the Spyder repository. The instructions on this section will help you in case you need to make changes that touch both repositories at the same time.
+
+The first thing you need to do is cloning the [git-subrepo](https://github.com/ingydotnet/git-subrepo) project and follow these instructions to install it (on Windows you need to use Git Bash in order to run them):
 
 ```
 git clone https://github.com/ingydotnet/git-subrepo /path/to/git-subrepo
@@ -184,7 +188,7 @@ source ~/.bashrc
 
 As an example, let's assume that (i) your Github user name is `myuser`; (ii) you have two git repositories placed at `~/spyder` and `~/spyder-kernels` that link to `https://github.com/myuser/spyder` and `https://github.com/myuser/spyder-kernels` respectively; and (iii) you have two branches named `fix_in_spyder` and `fix_in_kernel` in each of these git repos respectively. If you want to open a joint PR in `spyder` and `spyder-kernels` that link these branches, here is how to do it:
 
-* Go to the `~/spyder` folder, checkout your `fix_in_spyder` branch and replace the spyder-kernels subrepo in the `external-deps` subfolder by a clone of your `fix_in_kernel` branch:
+* Go to the `~/spyder` folder, checkout your `fix_in_spyder` branch and replace the spyder-kernels clone in the `external-deps` subfolder by a clone of your `fix_in_kernel` branch:
 
     ```
     cd ~/spyder
@@ -194,7 +198,7 @@ As an example, let's assume that (i) your Github user name is `myuser`; (ii) you
 
 * You can now open a PR on `https://github.com/spyder-ide/spyder` and on `https://github.com/spyder-ide/spyder-kernels` for each of your branches.
 
-* If you make additional changes to the `fix_in_kernel` branch in `spyder-kernels` (e.g. adding a new file, as in the example below), you need to sync them in your Spyder's `fix_in_spyder` like this:
+* If you make additional changes to the `fix_in_kernel` branch in `spyder-kernels` (e.g. adding a new file, as in the example below), you need to sync them in your Spyder's `fix_in_spyder` branch like this:
 
     ```
     cd ~/spyder-kernels
@@ -210,15 +214,13 @@ As an example, let's assume that (i) your Github user name is `myuser`; (ii) you
     git push origin fix_in_spyder
     ```
 
-* When your `fix_in_kernel` PR is merged, you need to update Spyder's `fix_in_spyder` branch with:
+* When your `fix_in_kernel` PR is merged, you need to update Spyder's `fix_in_spyder` branch because the clone in Spyder's repo must point out again to the spyder-kernel's repo and not to your own clone. For that, please run:
 
     ```
     git subrepo clone https://github.com/spyder-ide/spyder-kernels.git external-deps/spyder-kernels -b <branch> -f
     ```
 
-where `<branch>` needs to be `1.x` if your `fix_in_spyder` was done
-against Spyder's `4.x` branch; and `master`, if you did it against our `master`
-branch here.
+where `<branch>` needs to be `1.x` if your `fix_in_spyder` branch was done against Spyder's `4.x` branch; and `master`, if you did it against our `master` branch here.
 
 
 ## Adding Third-Party Content
