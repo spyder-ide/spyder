@@ -8,6 +8,10 @@
 
 # Standard library imports
 import logging
+try:
+    from urllib import quote  # Python 2
+except ImportError:
+    from urllib.parse import quote  # Python 3
 
 # Third party imports
 from qtpy.QtCore import QObject, QThread, Signal, QMutex
@@ -128,6 +132,8 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         response = None
         if self.endpoint is not None and method in KITE_REQUEST_MAPPING:
             http_verb, path = KITE_REQUEST_MAPPING[method]
+            encoded_url_params = {
+                key:quote(value) for (key,value) in url_params.items()}
             path = path.format(**url_params)
             try:
                 success, response = self.perform_http_request(
