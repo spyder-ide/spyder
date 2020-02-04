@@ -173,35 +173,51 @@ If you need to open a pull request here that has a companion pull request in the
 [spyder-kernels](https://github.com/spyder-ide/spyder-kernels) repo,
 first you need to clone the
 [git-subrepo](https://github.com/ingydotnet/git-subrepo) project
-and follow the instructions to install it (on Windows you need to use Git Bash
-in order to run the git-subrepo commands described below).
-
-Then, you need to reclone the spyder-kernels subrepo we keep here to
-point it to the clone and branch where your spyder-kernels pull request
-lives. For instance, assuming your Github user is `my-user` and your branch is
-called `my-branch`, you need to run the following command to do that:
-
-```bash
-git subrepo clone https://github.com/my-user/spyder-kernels.git external-deps/spyder-kernels -b my-branch -f
-```
-
-To maintain in sync the subrepo when you push more changes to `my-branch`,
-you need to run this command:
+and follow these instructions to install it (on Windows you need to use Git Bash
+in order to run them):
 
 ```
-git subrepo pull external-deps/spyder-kernels
+git clone https://github.com/ingydotnet/git-subrepo /path/to/git-subrepo
+echo 'source /path/to/git-subrepo/.rc' >> ~/.bashrc
+source ~/.bashrc
 ```
 
-Finally, after your pull request is merged in spyder-kernels, you need to
-reclone again its subrepo to make it point to our main repo and not to
-your clone. For that you need to use the following command:
+As an example, let's assume that (i) your Github user name is `myuser`; (ii) you have two git repositories placed at `~/spyder` and `~/spyder-kernels` that link to `https://github.com/myuser/spyder` and `https://github.com/myuser/spyder-kernels` respectively; and (iii) you have two branches named `fix_in_spyder` and `fix_in_kernel` in each of these git repos respectively. If you want to open a joint PR in `spyder` and `spyder-kernels` that link these branches, here is how to do it:
 
-```bash
-git subrepo clone https://github.com/spyder-ide/spyder-kernels.git external-deps/spyder-kernels -b <branch> -f
-```
+* Go to the `~/spyder` folder, checkout your `fix_in_spyder` branch and replace the spyder-kernels subrepo in the `external-deps` subfolder by a clone of your `fix_in_kernel` branch:
 
-where `<branch>` needs to be `1.x` if your Spyder pull request was done
-against our `4.x` branch, and `master` if you did it against our `master`
+    ```
+    cd ~/spyder
+    git checkout fix_in_spyder
+    git subrepo clone https://github.com/myuser/spyder-kernels.git external-deps/spyder-kernels -b fix_in_kernel -f
+    ```
+
+* You can now open a PR on `https://github.com/spyder-ide/spyder` and on `https://github.com/spyder-ide/spyder-kernels` for each of your branches.
+
+* If you make additional changes to the `fix_in_kernel` branch in `spyder-kernels` (e.g. adding a new file, as in the example below), you need to sync them in your Spyder's `fix_in_spyder` like this:
+
+    ```
+    cd ~/spyder-kernels
+    git checkout fix_in_kernel
+    touch foo.py
+    git add -A
+    git commit -m "Adding foo.py to the repo"
+    git push origin fix_in_kernel
+
+    cd ~/spyder
+    git checkout fix_in_spyder
+    git subrepo pull external-deps/spyder-kernels
+    git push origin fix_in_spyder
+    ```
+
+* When your `fix_in_kernel` PR is merged, you need to update Spyder's `fix_in_spyder` branch with:
+
+    ```
+    git subrepo clone https://github.com/spyder-ide/spyder-kernels.git external-deps/spyder-kernels -b <branch> -f
+    ```
+
+where `<branch>` needs to be `1.x` if your `fix_in_spyder` was done
+against Spyder's `4.x` branch; and `master`, if you did it against our `master`
 branch here.
 
 
