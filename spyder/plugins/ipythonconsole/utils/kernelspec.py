@@ -8,19 +8,49 @@
 Kernel spec for Spyder kernels
 """
 
+# Standard library imports
+import logging
 import os
 import os.path as osp
+import sys
 
+# Third party imports
 from jupyter_client.kernelspec import KernelSpec
 
+# Local imports
 from spyder.config.base import DEV, running_under_pytest, SAFE_MODE
 from spyder.config.manager import CONF
+from spyder.py3compat import PY2, iteritems, to_binary_string, to_text_string
+from spyder.utils.conda import (add_quotes, get_conda_activation_script,
+                                get_conda_env_path, is_conda_env)
 from spyder.utils.encoding import to_unicode_from_fs
-from spyder.utils.programs import is_python_interpreter
-from spyder.py3compat import PY2, iteritems, to_text_string, to_binary_string
 from spyder.utils.environ import clean_env
-from spyder.utils.misc import (add_pathlist_to_PYTHONPATH,
-                               get_python_executable)
+from spyder.utils.misc import add_pathlist_to_PYTHONPATH, get_python_executable
+from spyder.utils.programs import is_python_interpreter
+
+# Constants
+HERE = os.path.abspath(os.path.dirname(__file__))
+logger = logging.getLogger(__name__)
+
+
+def get_activation_script(quote=False):
+    """
+    Return path for bash/batch conda activation script to run spyder-kernels.
+
+    If `quote` is True, then quotes are added if spaces are found in the path.
+    """
+    scripts_folder_path = os.path.join(os.path.dirname(HERE), 'scripts')
+    if os.name == 'nt':
+        script = 'conda-activate.bat'
+    else:
+        script = 'conda-activate.sh'
+
+    script_path = os.path.join(scripts_folder_path, script)
+
+    if quote:
+        script_path = add_quotes(script_path)
+
+    return script_path
 
 
 HERE = osp.dirname(os.path.realpath(__file__))
@@ -57,6 +87,8 @@ class SpyderKernelSpec(KernelSpec):
                 CONF.set('main_interpreter', 'default', True)
                 CONF.set('main_interpreter', 'custom', False)
 
+        is_different_interpreter = pyexec != sys.executable
+
         # Fixes spyder-ide/spyder#3427.
         if os.name == 'nt':
             dir_pyexec = osp.dirname(pyexec)
@@ -65,13 +97,28 @@ class SpyderKernelSpec(KernelSpec):
                 pyexec = pyexec_w
 
         # Command used to start kernels
-        kernel_cmd = [
-            pyexec,
-            '-m',
-            'spyder_kernels.console',
-            '-f',
-            '{connection_file}'
-        ]
+        if is_different_interpreter and is_conda_env(pyexec=pyexec):
+            # If this is a conda environment we need to call an intermediate
+            # activation script to correctly activate the spyder-kernel
+
+            # If changes are needed on this section make sure you also update
+            # the activation scripts at spyder/plugins/ipythonconsole/scripts/
+            kernel_cmd = [
+                get_activation_script(),  # This is bundled with Spyder
+                get_conda_activation_script(),
+                get_conda_env_path(pyexec),  # Might be external
+                pyexec,
+                '{connection_file}',
+            ]
+        else:
+            kernel_cmd = [
+                pyexec,
+                '-m',
+                'spyder_kernels.console',
+                '-f',
+                '{connection_file}'
+            ]
+        logger.info('Kernel command: {}'.format(kernel_cmd))
 
         return kernel_cmd
 

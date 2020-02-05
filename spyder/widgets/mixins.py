@@ -7,7 +7,7 @@
 """Mix-in classes
 
 These classes were created to be able to provide Spyder's regular text and
-console widget features to an independant widget based on QTextEdit for the
+console widget features to an independent widget based on QTextEdit for the
 IPython console plugin.
 """
 
@@ -660,6 +660,10 @@ class BaseEditMixin(object):
         self._last_hover_word = None
         self._last_point = None
         self.tooltip_widget.hide()
+
+    def reset_tooltip(self):
+        """Reset tooltip tip."""
+        self.tooltip_widget.reset_tooltip()
 
     #------EOL characters
     def set_eol_chars(self, text):

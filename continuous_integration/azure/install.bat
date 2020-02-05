@@ -45,6 +45,10 @@ if %USE_CONDA% == yes (
 conda create -n jedi-test-env -q -y python=3.6 loghub spyder-kernels -c spyder-ide
 if errorlevel 1 exit 1
 
+:: Create environment to test conda activation before launching a spyder kernel
+conda create -n spytest-ž -q -y python=3.6 spyder-kernels -c spyder-ide
+if errorlevel 1 exit 1
+
 :: Install python-language-server from master
 pip install -q --no-deps git+https://github.com/palantir/python-language-server
 if errorlevel 1 exit 1

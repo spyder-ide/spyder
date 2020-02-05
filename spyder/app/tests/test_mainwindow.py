@@ -75,7 +75,7 @@ LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 # Time to wait until the IPython console is ready to receive input
 # (in milliseconds)
-SHELL_TIMEOUT = 20000
+SHELL_TIMEOUT = 40000 if os.name == 'nt' else 20000
 
 # Need longer EVAL_TIMEOUT, because need to cythonize and C compile ".pyx" file
 # before import and eval it
@@ -2065,7 +2065,7 @@ def test_report_issue_url(monkeypatch):
 def test_render_issue():
     """Test that render issue works without errors and returns text."""
     test_description = "This is a test description"
-    test_traceback = "An error occured. Oh no!"
+    test_traceback = "An error occurred. Oh no!"
 
     MockMainWindow = MagicMock(spec=MainWindow)
     mockMainWindow_instance = MockMainWindow()

@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-IPython Console plugin based on QtConsole
+IPython Console plugin based on QtConsole.
 """
 
 # pylint: disable=C0103
@@ -16,15 +16,14 @@ IPython Console plugin based on QtConsole
 # Standard library imports
 import os
 import os.path as osp
-import uuid
 import sys
 import traceback
+import uuid
 
 # Third party imports
 from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
-from qtconsole.manager import QtKernelManager
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -34,25 +33,27 @@ from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
+from spyder.api.plugins import SpyderPluginWidget
 from spyder.config.base import (_, get_conf_path, get_home_dir,
                                 running_under_pytest)
 from spyder.config.gui import get_font, is_dark_interface
 from spyder.config.manager import CONF
-from spyder.api.plugins import SpyderPluginWidget
-from spyder.py3compat import is_string, to_text_string
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
-from spyder.plugins.ipythonconsole.utils.style import create_qss_style
-from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
+from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
+from spyder.plugins.ipythonconsole.utils.style import create_qss_style
+from spyder.plugins.ipythonconsole.widgets import (ClientWidget,
+                                                   KernelConnectionDialog)
+from spyder.py3compat import is_string, to_text_string
+from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
-from spyder.utils import encoding, programs, sourcecode
-from spyder.utils.programs import get_temp_dir
+from spyder.utils import programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
-from spyder.widgets.findreplace import FindReplace
-from spyder.plugins.ipythonconsole.widgets import ClientWidget
-from spyder.plugins.ipythonconsole.widgets import KernelConnectionDialog
+from spyder.utils.programs import get_temp_dir
+from spyder.utils.qthelpers import MENU_SEPARATOR, add_actions, create_action
 from spyder.widgets.browser import WebView
+from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 
 
@@ -1154,8 +1155,11 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Kernel manager
         try:
-            kernel_manager = QtKernelManager(connection_file=connection_file,
-                                             config=None, autorestart=True)
+            kernel_manager = SpyderKernelManager(
+                connection_file=connection_file,
+                config=None,
+                autorestart=True,
+            )
         except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())

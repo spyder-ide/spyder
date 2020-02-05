@@ -106,6 +106,7 @@ class VariableExplorer(SpyderPluginWidget):
         self.stack.removeWidget(nsb)
 
     def add_widget(self, nsb):
+        self.register_widget_shortcuts(nsb)
         self.stack.addWidget(nsb)
 
     # ----- Public API --------------------------------------------------------
