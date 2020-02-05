@@ -503,14 +503,22 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def shutdown(self):
         """Shutdown kernel"""
         if self.get_kernel() is not None and not self.slave:
-            now = True
-            # This avoids some flakyness with our Cython tests
-            if running_under_pytest():
-                now = False
             self.shellwidget.spyder_kernel_comm.close()
             self.shellwidget.spyder_kernel_comm.shutdown_comm_channel()
-            self.shellwidget.kernel_manager.shutdown_kernel(now=now)
             self.shellwidget._pdb_history_file.save_thread.stop()
+            self.shellwidget.kernel_manager.stop_restarter()
+        self.shutdown_thread = QThread()
+        self.shutdown_thread.run = self.finalize_shutdown
+        self.shutdown_thread.finished.connect(self.stop_kernel_channels)
+        self.shutdown_thread.start()
+
+    def finalize_shutdown(self):
+        """Finalise the shutdown."""
+        if self.get_kernel() is not None and not self.slave:
+            self.shellwidget.kernel_manager.shutdown_kernel()
+
+    def stop_kernel_channels(self):
+        """Stop kernel channels."""
         if self.shellwidget.kernel_client is not None:
             self.shellwidget.kernel_client.stop_channels()
 
@@ -646,7 +654,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if syspath is not None:
             editor = CollectionsEditor(self)
             editor.setup(syspath, title="sys.path contents", readonly=True,
-                         width=600, icon=ima.icon('syspath'))
+                         icon=ima.icon('syspath'))
             self.dialog_manager.show(editor)
         else:
             return

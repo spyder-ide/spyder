@@ -75,7 +75,7 @@ LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 # Time to wait until the IPython console is ready to receive input
 # (in milliseconds)
-SHELL_TIMEOUT = 20000
+SHELL_TIMEOUT = 40000 if os.name == 'nt' else 20000
 
 # Need longer EVAL_TIMEOUT, because need to cythonize and C compile ".pyx" file
 # before import and eval it
@@ -429,6 +429,49 @@ def test_get_help_combo(main_window, qtbot):
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(PY2, reason="Invalid definition of function in Python 2.")
+def test_get_help_ipython_console_special_characters(
+        main_window, qtbot, tmpdir):
+    """
+    Test that Help works when called from the IPython console
+    for unusual characters.
+
+    See spyder-ide/spyder#7699
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Open test file
+    test_file = osp.join(LOCATION, 'script_unicode.py')
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Run test file
+    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
+
+    help_plugin = main_window.help
+    webview = help_plugin.rich_text.webview._webview
+    webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
+
+    # Write function name and assert in Console
+    def check_control(control, value):
+       return value in control.toPlainText()
+
+    qtbot.keyClicks(control, u'aa\t')
+    qtbot.waitUntil(lambda: check_control(control, u'aaʹbb'), timeout=2000)
+
+    # Get help
+    control.inspect_current_object()
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(lambda: check_text(webpage, "This function docstring."),
+                    timeout=6000)
 
 
 @pytest.mark.slow
@@ -2023,7 +2066,7 @@ def test_report_issue_url(monkeypatch):
 def test_render_issue():
     """Test that render issue works without errors and returns text."""
     test_description = "This is a test description"
-    test_traceback = "An error occured. Oh no!"
+    test_traceback = "An error occurred. Oh no!"
 
     MockMainWindow = MagicMock(spec=MainWindow)
     mockMainWindow_instance = MockMainWindow()

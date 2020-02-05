@@ -1172,7 +1172,7 @@ class AnimatedTour(QWidget):
 #        self.parent_h = height
 
         # FIXME: reset step to last used value
-        # Reset step to begining
+        # Reset step to beginning
         self.step_current = self.last_frame_active
 
         # Adjust the canvas size to match the main window size
