@@ -591,6 +591,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             )
         else:
             # Reopen comm
+            sw._pdb_in_loop = False
             sw.spyder_kernel_comm.close()
             sw.spyder_kernel_comm.open_comm(sw.kernel_client)
 
