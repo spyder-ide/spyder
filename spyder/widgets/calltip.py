@@ -45,7 +45,7 @@ class ToolTipWidget(QLabel):
         """
         Shows tooltips that can be styled with the different themes.
         """
-        super(ToolTipWidget, self).__init__(parent, Qt.ToolTip)
+        super(ToolTipWidget, self).__init__(None, Qt.ToolTip)
 
         # Variables
         self.completion_doc = None
@@ -200,6 +200,10 @@ class ToolTipWidget(QLabel):
             self.show()
         return True
 
+    def reset_tooltip(self):
+        """Reset tip to None."""
+        self.tip = None
+
     def mousePressEvent(self, event):
         """
         Reimplemented to hide it when focus goes out of the main window.
@@ -309,6 +313,9 @@ class CallTipWidget(QLabel):
 
             elif etype == QEvent.Leave:
                 self._leave_event_hide()
+
+            elif etype == QEvent.WindowBlocked:
+                self.hide()
 
         return super(CallTipWidget, self).eventFilter(obj, event)
 

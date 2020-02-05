@@ -139,8 +139,18 @@ class CompletionManager(SpyderCompletionPlugin):
         request_responses = self.requests[req_id]
 
         def send():
+            # Needed to prevent the send of completions for old requests
+            # See spyder-ide/spyder#10798
+            max_req_id = max(
+                [key for key, item in self.requests.items()
+                 if item['req_type'] == self.requests[req_id]['req_type']]
+                or [-1])
+
             del self.requests[req_id]
-            self.gather_and_send(request_responses)
+
+            # Response only to recent requests.
+            if req_id == max_req_id:
+                self.gather_and_send(request_responses)
 
         wait_for = set(source for source
                        in self.WAIT_FOR_SOURCE[request_responses['req_type']]

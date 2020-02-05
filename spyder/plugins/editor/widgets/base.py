@@ -676,17 +676,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.insertText(text)
         cursor.endEditBlock()
 
-    def duplicate_line(self):
+    def duplicate_line_down(self):
         """
-        Duplicate current line or selected text
-        Paste the duplicated text *after* the current line/selected text
+        Copy current line or selected text and paste the duplicated text
+        *after* the current line or selected text.
         """
         self.__duplicate_line_or_selection(after_current_line=True)
 
-    def copy_line(self):
+    def duplicate_line_up(self):
         """
-        Copy current line or selected text
-        Paste the duplicated text *before* the current line/selected text
+        Copy current line or selected text and paste the duplicated text
+        *before* the current line or selected text.
         """
         self.__duplicate_line_or_selection(after_current_line=False)
 
@@ -912,11 +912,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.setTextCursor(cursor)
 
         # Add text
-        if self.code_snippets:
-            self.sig_insert_completion.emit(text)
-        else:
+        if self.objectName() == 'console':
+            # Handle completions for the internal console
             self.insert_text(text)
-        self.document_did_change()
+        else:
+            if self.code_snippets:
+                self.sig_insert_completion.emit(text)
+            else:
+                self.insert_text(text)
+            self.document_did_change()
 
     def is_completion_widget_visible(self):
         """Return True is completion list widget is visible"""
