@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = 1.x
-	commit = 51379a83ccdb2717d190efc9f8ad9b44f3d8858f
-	parent = 80fc59cb7d5e620dbe4d9f8aa259258064d6ba1f
+	branch = fix_ipython_magic
+	commit = c39a0ef57e6a6b53905cac7c989d3cbf31b9a2de
+	parent = deee70c33e289e11a384f12fd105e90e067b0d88
 	method = merge
 	cmdver = 0.4.1

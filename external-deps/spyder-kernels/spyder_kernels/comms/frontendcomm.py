@@ -60,8 +60,6 @@ class FrontendComm(CommBase):
             self._comm_name, self._comm_open)
 
         self.comm_port = None
-        self.register_call_handler('_send_comm_config',
-                                   self._send_comm_config)
 
         # self.kernel.parent is IPKernelApp unless we are in tests
         if self.kernel.parent:
@@ -150,7 +148,7 @@ class FrontendComm(CommBase):
             timeout=timeout)
 
     # --- Private --------
-    def _wait_reply(self, call_id, call_name, timeout, retry=True):
+    def _wait_reply(self, call_id, call_name, timeout):
         """Wait until the frontend replies to a request."""
         if call_id in self._reply_inbox:
             return
@@ -158,13 +156,8 @@ class FrontendComm(CommBase):
         t_start = time.time()
         while call_id not in self._reply_inbox:
             if time.time() > t_start + timeout:
-                if retry:
-                    # Send config again just in case
-                    self._send_comm_config()
-                    self._wait_reply(call_id, call_name, timeout, False)
-                    return
                 raise TimeoutError(
-                    "Timeout while waiting for '{}' reply.".format(
+                    "Timeout while waiting for '{}' reply".format(
                         call_name))
             if threading.current_thread() is self.comm_socket_thread:
                 # Wait for a reply on the comm channel.
@@ -180,12 +173,8 @@ class FrontendComm(CommBase):
         self.calling_comm_id = comm.comm_id
         self._register_comm(comm)
         self._set_pickle_protocol(msg['content']['data']['pickle_protocol'])
-        self._send_comm_config()
-
-    def _send_comm_config(self):
-        """Send the comm config to the frontend."""
-        self.remote_call()._set_comm_port(self.comm_port)
         self.remote_call()._set_pickle_protocol(pickle.HIGHEST_PROTOCOL)
+        self.remote_call()._set_comm_port(self.comm_port)
 
     def _comm_close(self, msg):
         """Close comm."""
