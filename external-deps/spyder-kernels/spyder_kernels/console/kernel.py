@@ -60,6 +60,7 @@ class SpyderKernel(IPythonKernel):
             'set_sympy_forecolor': self.set_sympy_forecolor,
             'set_pdb_echo_code': self.set_pdb_echo_code,
             'update_syspath': self.update_syspath,
+            'is_special_kernel_valid': self.is_special_kernel_valid
             }
         for call_id in handlers:
             self.frontend_comm.register_call_handler(
@@ -371,6 +372,26 @@ class SpyderKernel(IPythonKernel):
             del plt
         except:
             pass
+
+    def is_special_kernel_valid(self):
+        """
+        Check if optional dependencies are available for special consoles.
+        """
+        try:
+            if os.environ.get('SPY_AUTOLOAD_PYLAB_O') == 'True':
+                import matplotlib
+            elif os.environ.get('SPY_SYMPY_O') == 'True':
+                import sympy
+            elif os.environ.get('SPY_RUN_CYTHON') == 'True':
+                import cython
+        except ImportError:
+            if os.environ.get('SPY_AUTOLOAD_PYLAB_O') == 'True':
+                return u'matplotlib'
+            elif os.environ.get('SPY_SYMPY_O') == 'True':
+                return u'sympy'
+            elif os.environ.get('SPY_RUN_CYTHON') == 'True':
+                return u'cython'
+        return None
 
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer
