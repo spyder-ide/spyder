@@ -12,6 +12,7 @@ jedi =0.14.1
 keyring
 nbconvert
 numpydoc
+parso =0.5.2
 pexpect
 pickleshare
 psutil
