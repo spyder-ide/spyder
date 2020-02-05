@@ -18,7 +18,7 @@ import sys
 from jupyter_client.kernelspec import KernelSpec
 
 # Local imports
-from spyder.config.base import SAFE_MODE, running_under_pytest
+from spyder.config.base import DEV, running_under_pytest, SAFE_MODE
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, iteritems, to_binary_string, to_text_string
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
@@ -51,6 +51,9 @@ def get_activation_script(quote=False):
         script_path = add_quotes(script_path)
 
     return script_path
+
+
+HERE = osp.dirname(os.path.realpath(__file__))
 
 
 class SpyderKernelSpec(KernelSpec):
@@ -122,10 +125,23 @@ class SpyderKernelSpec(KernelSpec):
     @property
     def env(self):
         """Env vars for kernels"""
-        # Add our PYTHONPATH to the kernel
+        default_interpreter = CONF.get('main_interpreter', 'default')
         pathlist = CONF.get('main', 'spyder_pythonpath', default=[])
 
-        default_interpreter = CONF.get('main_interpreter', 'default')
+        # Add spyder-kernels subrepo path to pathlist
+        if DEV or running_under_pytest():
+            repo_path = osp.normpath(osp.join(HERE, '..', '..', '..', '..'))
+            subrepo_path = osp.join(repo_path, 'external-deps',
+                                    'spyder-kernels')
+
+            if running_under_pytest():
+                # Oddly pathlist is not set as an empty list when running
+                # under pytest
+                pathlist = [subrepo_path]
+            else:
+                pathlist += [subrepo_path] + pathlist
+
+        # Create PYTHONPATH env entry to add it to the kernel
         pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
                                             drop_env=False)
 
