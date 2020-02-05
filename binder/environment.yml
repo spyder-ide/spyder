@@ -17,6 +17,7 @@ dependencies:
 - keyring
 - nbconvert
 - numpydoc
+- parso =0.5.2
 - pexpect
 - pickleshare
 - psutil
