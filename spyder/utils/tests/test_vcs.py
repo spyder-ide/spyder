@@ -29,7 +29,7 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 @pytest.mark.skipif(os.environ.get('CI', None) is None,
                     reason="Not to be run outside of CIs")
 def test_vcs_tool():
-    if sys.platform.startswith('linux'):
+    if not os.name == 'nt':
         with pytest.raises(ActionToolNotFound):
             run_vcs_tool(osp.dirname(__file__), 'browse')
     else:
