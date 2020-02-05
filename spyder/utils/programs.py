@@ -948,13 +948,18 @@ def is_pythonw(filename):
 
 
 def check_python_help(filename):
-    """Check that the python interpreter can execute help."""
+    """Check that the python interpreter can compile and provide the zen."""
     try:
-        proc = run_program(filename, ["-h"])
-        output = to_text_string(proc.communicate()[0])
-        valid = ("Options and arguments (and corresponding environment "
-                 "variables)")
-        if 'usage:' in output and valid in output:
+        proc = run_program(filename, ['-c', 'import this'])
+        stdout, _ = proc.communicate()
+        stdout = to_text_string(stdout)
+        valid_lines = [
+            'Beautiful is better than ugly.',
+            'Explicit is better than implicit.',
+            'Simple is better than complex.',
+            'Complex is better than complicated.',
+        ]
+        if all(line in stdout for line in valid_lines):
             return True
         else:
             return False
