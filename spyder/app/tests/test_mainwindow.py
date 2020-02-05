@@ -235,6 +235,7 @@ def cleanup(request):
 # =============================================================================
 # ---- Tests
 # =============================================================================
+@flaky(max_runs=3)
 @pytest.mark.slow
 @pytest.mark.single_instance
 @pytest.mark.skipif((os.environ.get('CI', None) is None or (PY2
@@ -256,7 +257,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
                  "lock_created = lock.lock()".format(spy_dir_str=spy_dir))
 
     # Test single instance
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=2000):
         shell.execute(lock_code)
     assert not shell.get_value('lock_created')
 
@@ -2953,6 +2954,34 @@ def test_pbd_step(main_window, qtbot, tmpdir):
         main_window.editor.get_current_editor().filename,
         str(test_file))
 
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_runcell_after_restart(main_window, qtbot):
+    """Test runcell after a kernel restart."""
+    # Write code to a file
+    code = "print('test_runcell_after_restart')"
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(code)
+
+    # Restart Kernel
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
+        shell.ipyclient.restart_kernel()
+
+    # call runcell
+    code_editor.setFocus()
+    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.waitUntil(
+        lambda: "test_runcell_after_restart" in shell._control.toPlainText())
+
+    # Make sure no errors are shown
+    assert "error" not in shell._control.toPlainText().lower()
 
 if __name__ == "__main__":
     pytest.main()
