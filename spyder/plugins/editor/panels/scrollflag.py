@@ -108,9 +108,48 @@ class ScrollFlagArea(Panel):
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
 
+        if self.slider:
+            # Print all flags
+            def blocks():
+                block = self.editor.document().firstBlock()
+                while block.isValid():
+                    yield block
+                    block = block.next()
+
+            last_line = self.editor.document().lastBlock().firstLineNumber()
+            # The 0.5 offset is used to align the flags with the center of
+            # their corresponding text edit block before scaling.
+            first_y_pos = self.value_to_position(
+                0.5, scale_factor, offset) - self.FLAGS_DY / 2
+            last_y_pos = self.value_to_position(
+                last_line + 0.5, scale_factor, offset) - self.FLAGS_DY / 2
+
+            def calcul_flag_ypos(block):
+                line_number = block.firstLineNumber()
+                frac = line_number / last_line
+                pos = first_y_pos + frac * (last_y_pos - first_y_pos)
+                return ceil(pos)
+
+        else:
+            # Only print visible flags
+            def blocks():
+                self.editor.update_visible_blocks(None)
+                for (ypos, line_number, block) in self.editor.visible_blocks:
+                    yield block
+
+            def calcul_flag_ypos(block):
+                # When the vertical scrollbar is not visible, the flags are
+                # vertically aligned with the center of their corresponding
+                # text block with no scaling.
+                top = self.editor.blockBoundingGeometry(block).translated(
+                    self.editor.contentOffset()).top()
+                bottom = top + self.editor.blockBoundingRect(block).height()
+                middle = (top + bottom)/2
+
+                return ceil(middle-self.FLAGS_DY/2)
+
         # Paint warnings and todos
-        block = self.editor.document().firstBlock()
-        for line_number in range(self.editor.document().blockCount()+1):
+        for block in blocks():
             data = block.userData()
             if data:
                 if data.code_analysis:
@@ -125,32 +164,28 @@ class ScrollFlagArea(Panel):
                         painter.setBrush(self._facecolors['warning'])
                         painter.setPen(self._edgecolors['warning'])
 
-                    rect_y = self.calcul_flag_ypos(
-                        line_number, scale_factor, offset)
+                    rect_y = calcul_flag_ypos(block)
                     painter.drawRect(rect_x, rect_y, rect_w, rect_h)
                 if data.todo:
                     # Paint the todos
-                    rect_y = self.calcul_flag_ypos(
-                        line_number, scale_factor, offset)
+                    rect_y = calcul_flag_ypos(block)
                     painter.setBrush(self._facecolors['todo'])
                     painter.setPen(self._edgecolors['todo'])
                     painter.drawRect(rect_x, rect_y, rect_w, rect_h)
                 if data.breakpoint:
                     # Paint the breakpoints
-                    rect_y = self.calcul_flag_ypos(
-                        line_number, scale_factor, offset)
+                    rect_y = calcul_flag_ypos(block)
                     painter.setBrush(self._facecolors['breakpoint'])
                     painter.setPen(self._edgecolors['breakpoint'])
                     painter.drawRect(rect_x, rect_y, rect_w, rect_h)
-            block = block.next()
 
         # Paint the occurrences
         if self.editor.occurrences:
             painter.setBrush(self._facecolors['occurrence'])
             painter.setPen(self._edgecolors['occurrence'])
             for line_number in self.editor.occurrences:
-                rect_y = self.calcul_flag_ypos(
-                    line_number, scale_factor, offset)
+                block = self.editor.document().findBlockByNumber(line_number)
+                rect_y = calcul_flag_ypos(block)
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
         # Paint the found results
@@ -158,8 +193,8 @@ class ScrollFlagArea(Panel):
             painter.setBrush(self._facecolors['found_results'])
             painter.setPen(self._edgecolors['found_results'])
             for line_number in self.editor.found_results:
-                rect_y = self.calcul_flag_ypos(
-                    line_number, scale_factor, offset)
+                block = self.editor.document().findBlockByNumber(line_number)
+                rect_y = calcul_flag_ypos(block)
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
         # Paint the slider range
@@ -274,26 +309,6 @@ class ScrollFlagArea(Panel):
         vsb = self.editor.verticalScrollBar()
         offset = self.get_vertical_offset()
         return vsb.minimum() + max([0, (y - offset) / self.get_scale_factor()])
-
-    def calcul_flag_ypos(self, line_number, scale_factor, offset):
-        """Calcul the vertical position of a flag for the given line number."""
-        if self.slider:
-            position = self.value_to_position(
-                line_number + 0.5, scale_factor, offset)
-            # The 0.5 offset is used to align the flags with the center of
-            # their corresponding text edit block before scaling.
-            return ceil(position - self.FLAGS_DY / 2)
-        else:
-            # When the vertical scrollbar is not visible, the flags are
-            # vertically aligned with the center of their corresponding
-            # text block with no scaling.
-            block = self.editor.document().findBlockByNumber(line_number)
-            top = self.editor.blockBoundingGeometry(block).translated(
-                self.editor.contentOffset()).top()
-            bottom = top + self.editor.blockBoundingRect(block).height()
-            middle = (top + bottom)/2
-
-            return ceil(middle-self.FLAGS_DY/2)
 
     def make_slider_range(self, cursor_pos, scale_factor, offset, groove_rect):
         """
