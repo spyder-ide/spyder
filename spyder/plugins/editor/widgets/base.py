@@ -499,7 +499,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             else:
                 header = next(document_cells(
                     block, forward=False,
-                    cell_list = self.get_cell_list()))
+                    cell_list=self.get_cell_list()))
             cell_start_pos = header.block.position()
             cell_at_file_start = False
             cursor.setPosition(cell_start_pos)
@@ -511,7 +511,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         try:
             footer = next(document_cells(
                 block, forward=True,
-                cell_list = self.get_cell_list()))
+                cell_list=self.get_cell_list()))
             cell_end_position = footer.block.position()
             cell_at_file_end = False
             cursor.setPosition(cell_end_position, QTextCursor.KeepAnchor)
@@ -532,7 +532,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         try:
             footer = next(document_cells(
                 block, forward=True,
-                cell_list = self.get_cell_list()))
+                cell_list=self.get_cell_list()))
             cursor.setPosition(footer.block.position())
         except StopIteration:
             return
@@ -547,7 +547,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         try:
             header = next(document_cells(
                 block, forward=False,
-                cell_list = self.get_cell_list()))
+                cell_list=self.get_cell_list()))
             cursor.setPosition(header.block.position())
         except StopIteration:
             return
