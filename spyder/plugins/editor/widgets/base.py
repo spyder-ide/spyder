@@ -480,54 +480,50 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
          -the textCursor
          -a boolean indicating if the entire file is selected
         """
+        if cursor is None:
+            cursor = self.textCursor()
+        if self.current_cell:
+            current_cell, cell_full_file = self.current_cell
+            cell_start_pos = current_cell.selectionStart()
+            cell_end_position = current_cell.selectionEnd()
+            # Check if the saved current cell is still valid
+            if cell_start_pos <= cursor.position() < cell_end_position:
+                return current_cell, cell_full_file
+            else:
+                self.current_cell = None
+
+        block = cursor.block()
         try:
-            if cursor is None:
-                cursor = self.textCursor()
-            if self.current_cell:
-                current_cell, cell_full_file = self.current_cell
-                cell_start_pos = current_cell.selectionStart()
-                cell_end_position = current_cell.selectionEnd()
-                # Check if the saved current cell is still valid
-                if cell_start_pos <= cursor.position() < cell_end_position:
-                    return current_cell, cell_full_file
-                else:
-                    self.current_cell = None
-
-            block = cursor.block()
-            try:
-                if is_cell_header(block):
-                    header = block.userData().oedata
-                else:
-                    header = next(document_cells(
-                        block, forward=False,
-                        cell_list = self.get_cell_list()))
-                cell_start_pos = header.block.position()
-                cell_at_file_start = False
-                cursor.setPosition(cell_start_pos)
-            except StopIteration:
-                # This cell has no header, so it is the first cell.
-                cell_at_file_start = True
-                cursor.movePosition(QTextCursor.Start)
-
-            try:
-                footer = next(document_cells(
-                    block, forward=True,
+            if is_cell_header(block):
+                header = block.userData().oedata
+            else:
+                header = next(document_cells(
+                    block, forward=False,
                     cell_list = self.get_cell_list()))
-                cell_end_position = footer.block.position()
-                cell_at_file_end = False
-                cursor.setPosition(cell_end_position, QTextCursor.KeepAnchor)
-            except StopIteration:
-                # This cell has no next header, so it is the last cell.
-                cell_at_file_end = True
-                cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
+            cell_start_pos = header.block.position()
+            cell_at_file_start = False
+            cursor.setPosition(cell_start_pos)
+        except StopIteration:
+            # This cell has no header, so it is the first cell.
+            cell_at_file_start = True
+            cursor.movePosition(QTextCursor.Start)
 
-            cell_full_file = cell_at_file_start and cell_at_file_end
-            self.current_cell = (cursor, cell_full_file)
+        try:
+            footer = next(document_cells(
+                block, forward=True,
+                cell_list = self.get_cell_list()))
+            cell_end_position = footer.block.position()
+            cell_at_file_end = False
+            cursor.setPosition(cell_end_position, QTextCursor.KeepAnchor)
+        except StopIteration:
+            # This cell has no next header, so it is the last cell.
+            cell_at_file_end = True
+            cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
 
-            return cursor, cell_full_file
-        except:
-            import traceback
-            traceback.print_exc()
+        cell_full_file = cell_at_file_start and cell_at_file_end
+        self.current_cell = (cursor, cell_full_file)
+
+        return cursor, cell_full_file
 
     def go_to_next_cell(self):
         """Go to the next cell of lines"""
