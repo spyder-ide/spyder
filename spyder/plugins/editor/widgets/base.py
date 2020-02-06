@@ -193,13 +193,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             key (str) name of the extra selections group.
         """
         for decoration in self.extra_selections_dict.get(key, []):
-            self.decorations.remove(decoration)
+            self.decorations.remove(decoration, update=False)
         self.extra_selections_dict[key] = []
+        self.update()
 
     def changed(self):
         """Emit changed signal"""
         self.modificationChanged.emit(self.document().isModified())
-
 
     #------Highlight current line
     def highlight_current_line(self):

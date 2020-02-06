@@ -58,7 +58,7 @@ class TextDecorationsManager(Manager):
             self.update()
         return added
 
-    def remove(self, decoration):
+    def remove(self, decoration, update=True):
         """
         Removes a text decoration from the editor.
 
@@ -67,7 +67,8 @@ class TextDecorationsManager(Manager):
         """
         try:
             self._decorations.remove(decoration)
-            self.update()
+            if update:
+                self.update()
             return True
         except ValueError:
             return False
