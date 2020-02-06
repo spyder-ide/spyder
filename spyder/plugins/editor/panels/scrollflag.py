@@ -108,15 +108,17 @@ class ScrollFlagArea(Panel):
         painter = QPainter(self)
         painter.fillRect(event.rect(), self.editor.sideareas_color)
 
+        editor = self.editor
+
         if self.slider:
             # Print all flags
             def blocks():
-                block = self.editor.document().firstBlock()
+                block = editor.document().firstBlock()
                 while block.isValid():
                     yield block
                     block = block.next()
 
-            last_line = self.editor.document().lastBlock().firstLineNumber()
+            last_line = editor.document().lastBlock().firstLineNumber()
             # The 0.5 offset is used to align the flags with the center of
             # their corresponding text edit block before scaling.
             first_y_pos = self.value_to_position(
@@ -133,17 +135,17 @@ class ScrollFlagArea(Panel):
         else:
             # Only print visible flags
             def blocks():
-                self.editor.update_visible_blocks(None)
-                for (ypos, line_number, block) in self.editor.visible_blocks:
+                editor.update_visible_blocks(None)
+                for (ypos, line_number, block) in editor.visible_blocks:
                     yield block
 
             def calcul_flag_ypos(block):
                 # When the vertical scrollbar is not visible, the flags are
                 # vertically aligned with the center of their corresponding
                 # text block with no scaling.
-                top = self.editor.blockBoundingGeometry(block).translated(
-                    self.editor.contentOffset()).top()
-                bottom = top + self.editor.blockBoundingRect(block).height()
+                top = editor.blockBoundingGeometry(block).translated(
+                    editor.contentOffset()).top()
+                bottom = top + editor.blockBoundingRect(block).height()
                 middle = (top + bottom)/2
 
                 return ceil(middle-self.FLAGS_DY/2)
@@ -180,20 +182,20 @@ class ScrollFlagArea(Panel):
                     painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
         # Paint the occurrences
-        if self.editor.occurrences:
+        if editor.occurrences:
             painter.setBrush(self._facecolors['occurrence'])
             painter.setPen(self._edgecolors['occurrence'])
-            for line_number in self.editor.occurrences:
-                block = self.editor.document().findBlockByNumber(line_number)
+            for line_number in editor.occurrences:
+                block = editor.document().findBlockByNumber(line_number)
                 rect_y = calcul_flag_ypos(block)
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
         # Paint the found results
-        if self.editor.found_results:
+        if editor.found_results:
             painter.setBrush(self._facecolors['found_results'])
             painter.setPen(self._edgecolors['found_results'])
-            for line_number in self.editor.found_results:
-                block = self.editor.document().findBlockByNumber(line_number)
+            for line_number in editor.found_results:
+                block = editor.document().findBlockByNumber(line_number)
                 rect_y = calcul_flag_ypos(block)
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
@@ -206,8 +208,8 @@ class ScrollFlagArea(Panel):
         if self.slider:
             cursor_pos = self.mapFromGlobal(QCursor().pos())
             is_over_self = self.rect().contains(cursor_pos)
-            is_over_editor = self.editor.rect().contains(
-                self.editor.mapFromGlobal(QCursor().pos()))
+            is_over_editor = editor.rect().contains(
+                editor.mapFromGlobal(QCursor().pos()))
             # We use QRect.contains instead of QWidget.underMouse method to
             # determined if the cursor is over the editor or the flag scrollbar
             # because the later gives a wrong result when a mouse button
