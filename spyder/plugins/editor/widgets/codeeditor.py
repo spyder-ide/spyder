@@ -2292,6 +2292,7 @@ class CodeEditor(TextEditBaseWidget):
                                          underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
+        self.sig_flags_changed.emit()
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()

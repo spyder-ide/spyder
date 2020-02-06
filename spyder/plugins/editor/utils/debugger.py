@@ -124,6 +124,8 @@ class DebuggerManager(Manager):
         for data in self.editor.blockuserdata_list():
             data.breakpoint = False
             # data.breakpoint_condition = None  # not necessary, but logical
+        self.editor.sig_breakpoints_changed.emit()
+        self.editor.sig_flags_changed.emit()
 
     def set_breakpoints(self, breakpoints):
         """Set breakpoints"""

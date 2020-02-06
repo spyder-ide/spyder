@@ -12,13 +12,16 @@ from __future__ import division
 from math import ceil
 
 # Third party imports
-from qtpy.QtCore import QSize, Qt
+from qtpy.QtCore import QSize, Qt, QTimer
 from qtpy.QtGui import QPainter, QColor, QCursor
 from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
 # Local imports
 from spyder.api.panel import Panel
 from spyder.plugins.completion.languageserver import DiagnosticSeverity
+
+
+REFRESH_RATE = 1000
 
 
 class ScrollFlagArea(Panel):
@@ -61,8 +64,13 @@ class ScrollFlagArea(Panel):
         editor.sig_alt_left_mouse_pressed.connect(self.mousePressEvent)
         editor.sig_alt_mouse_moved.connect(self.mouseMoveEvent)
         editor.sig_leave_out.connect(self.update)
-        editor.sig_flags_changed.connect(self.update)
+        editor.sig_flags_changed.connect(self.delayed_update_flags)
         editor.sig_theme_colors_changed.connect(self.update_flag_colors)
+
+        self._update_list_timer = None
+        self._todo_list = []
+        self._code_analysis_list = []
+        self._breakpoint_list = []
 
     @property
     def slider(self):
@@ -81,6 +89,37 @@ class ScrollFlagArea(Panel):
         for name, color in color_dict.items():
             self._facecolors[name] = QColor(color)
             self._edgecolors[name] = self._facecolors[name].darker(120)
+
+    def delayed_update_flags(self):
+        """Call update flags later."""
+        if self._update_list_timer:
+            return
+
+        self._update_list_timer = QTimer(self)
+        self._update_list_timer.setSingleShot(True)
+        self._update_list_timer.timeout.connect(self.update_flags)
+        self._update_list_timer.start(REFRESH_RATE)
+
+    def update_flags(self):
+        """Update flags list."""
+        self._update_list_timer = None
+        self._todo_list = []
+        self._code_analysis_list = []
+        self._breakpoint_list = []
+        editor = self.editor
+        block = editor.document().firstBlock()
+        while block.isValid():
+            data = block.userData()
+            if data:
+                if data.code_analysis:
+                    self._code_analysis_list.append((block, data))
+                if data.todo:
+                    self._todo_list.append((block, data))
+                if data.breakpoint:
+                    self._breakpoint_list.append((block, data))
+            block = block.next()
+
+        self.update()
 
     def paintEvent(self, event):
         """
@@ -109,15 +148,9 @@ class ScrollFlagArea(Panel):
         painter.fillRect(event.rect(), self.editor.sideareas_color)
 
         editor = self.editor
+        print_local = not bool(self.slider)
 
-        if self.slider:
-            # Print all flags
-            def blocks():
-                block = editor.document().firstBlock()
-                while block.isValid():
-                    yield block
-                    block = block.next()
-
+        if not print_local:
             last_line = editor.document().lastBlock().firstLineNumber()
             # The 0.5 offset is used to align the flags with the center of
             # their corresponding text edit block before scaling.
@@ -134,10 +167,12 @@ class ScrollFlagArea(Panel):
 
         else:
             # Only print visible flags
-            def blocks():
-                editor.update_visible_blocks(None)
-                for (ypos, line_number, block) in editor.visible_blocks:
-                    yield block
+            visible_lines = [val[1] for val in editor.visible_blocks]
+            if not visible_lines:
+                # Nothing to do
+                return
+            min_line = min(visible_lines)
+            max_line = max(visible_lines)
 
             def calcul_flag_ypos(block):
                 # When the vertical scrollbar is not visible, the flags are
@@ -150,42 +185,52 @@ class ScrollFlagArea(Panel):
 
                 return ceil(middle-self.FLAGS_DY/2)
 
-        # Paint warnings and todos
-        for block in blocks():
-            data = block.userData()
-            if data:
-                if data.code_analysis:
-                    # Paint the warnings
-                    for source, code, severity, message in data.code_analysis:
-                        error = severity == DiagnosticSeverity.ERROR
-                        if error:
-                            painter.setBrush(self._facecolors['error'])
-                            painter.setPen(self._edgecolors['error'])
-                            break
-                    else:
-                        painter.setBrush(self._facecolors['warning'])
-                        painter.setPen(self._edgecolors['warning'])
+        for block, data in self._code_analysis_list:
+            if print_local and not (
+                    min_line <= block.blockNumber() <= max_line):
+                continue
+            # Paint the warnings
+            for source, code, severity, message in data.code_analysis:
+                error = severity == DiagnosticSeverity.ERROR
+                if error:
+                    painter.setBrush(self._facecolors['error'])
+                    painter.setPen(self._edgecolors['error'])
+                    break
+            else:
+                painter.setBrush(self._facecolors['warning'])
+                painter.setPen(self._edgecolors['warning'])
 
-                    rect_y = calcul_flag_ypos(block)
-                    painter.drawRect(rect_x, rect_y, rect_w, rect_h)
-                if data.todo:
-                    # Paint the todos
-                    rect_y = calcul_flag_ypos(block)
-                    painter.setBrush(self._facecolors['todo'])
-                    painter.setPen(self._edgecolors['todo'])
-                    painter.drawRect(rect_x, rect_y, rect_w, rect_h)
-                if data.breakpoint:
-                    # Paint the breakpoints
-                    rect_y = calcul_flag_ypos(block)
-                    painter.setBrush(self._facecolors['breakpoint'])
-                    painter.setPen(self._edgecolors['breakpoint'])
-                    painter.drawRect(rect_x, rect_y, rect_w, rect_h)
+            rect_y = calcul_flag_ypos(block)
+            painter.drawRect(rect_x, rect_y, rect_w, rect_h)
+
+        for block, data in self._todo_list:
+            if print_local and not (
+                    min_line <= block.blockNumber() <= max_line):
+                continue
+            # Paint the todos
+            rect_y = calcul_flag_ypos(block)
+            painter.setBrush(self._facecolors['todo'])
+            painter.setPen(self._edgecolors['todo'])
+            painter.drawRect(rect_x, rect_y, rect_w, rect_h)
+
+        for block, data in self._breakpoint_list:
+            if print_local and not (
+                    min_line <= block.blockNumber() <= max_line):
+                continue
+            # Paint the breakpoints
+            rect_y = calcul_flag_ypos(block)
+            painter.setBrush(self._facecolors['breakpoint'])
+            painter.setPen(self._edgecolors['breakpoint'])
+            painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
         # Paint the occurrences
         if editor.occurrences:
             painter.setBrush(self._facecolors['occurrence'])
             painter.setPen(self._edgecolors['occurrence'])
             for line_number in editor.occurrences:
+                if print_local and not (
+                        min_line <= line_number <= max_line):
+                    continue
                 block = editor.document().findBlockByNumber(line_number)
                 rect_y = calcul_flag_ypos(block)
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
@@ -195,6 +240,9 @@ class ScrollFlagArea(Panel):
             painter.setBrush(self._facecolors['found_results'])
             painter.setPen(self._edgecolors['found_results'])
             for line_number in editor.found_results:
+                if print_local and not (
+                        min_line <= line_number <= max_line):
+                    continue
                 block = editor.document().findBlockByNumber(line_number)
                 rect_y = calcul_flag_ypos(block)
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
