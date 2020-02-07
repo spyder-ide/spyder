@@ -47,7 +47,6 @@ from spyder_kernels.utils.dochelpers import getobj
 
 # %% This line is for cell execution testing
 
-
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _, get_debug_level, running_under_pytest
