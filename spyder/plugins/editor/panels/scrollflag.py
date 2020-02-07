@@ -187,7 +187,7 @@ class ScrollFlagArea(Panel):
 
         for block, data in self._code_analysis_list:
             if print_local and not (
-                    min_line <= block.blockNumber() <= max_line):
+                    min_line <= block.blockNumber() + 1 <= max_line):
                 continue
             # Paint the warnings
             for source, code, severity, message in data.code_analysis:
@@ -205,7 +205,7 @@ class ScrollFlagArea(Panel):
 
         for block, data in self._todo_list:
             if print_local and not (
-                    min_line <= block.blockNumber() <= max_line):
+                    min_line <= block.blockNumber() + 1 <= max_line):
                 continue
             # Paint the todos
             rect_y = calcul_flag_ypos(block)
@@ -215,7 +215,7 @@ class ScrollFlagArea(Panel):
 
         for block, data in self._breakpoint_list:
             if print_local and not (
-                    min_line <= block.blockNumber() <= max_line):
+                    min_line <= block.blockNumber() + 1 <= max_line):
                 continue
             # Paint the breakpoints
             rect_y = calcul_flag_ypos(block)
@@ -229,7 +229,7 @@ class ScrollFlagArea(Panel):
             painter.setPen(self._edgecolors['occurrence'])
             for line_number in editor.occurrences:
                 if print_local and not (
-                        min_line <= line_number <= max_line):
+                        min_line <= line_number + 1 <= max_line):
                     continue
                 block = editor.document().findBlockByNumber(line_number)
                 rect_y = calcul_flag_ypos(block)
@@ -241,7 +241,7 @@ class ScrollFlagArea(Panel):
             painter.setPen(self._edgecolors['found_results'])
             for line_number in editor.found_results:
                 if print_local and not (
-                        min_line <= line_number <= max_line):
+                        min_line <= line_number + 1 <= max_line):
                     continue
                 block = editor.document().findBlockByNumber(line_number)
                 rect_y = calcul_flag_ypos(block)
