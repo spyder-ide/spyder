@@ -44,11 +44,11 @@ def test_timestamp(tmpdir):
     # Write a file
     write("Test text", tmp_file)
     st = os.stat(tmp_file)
-    actual_creation_time = st.st_ctime
+    actual_creation_time = st.st_atime
 
     # Write the file and check that creation time is preserved.
     write('New text', tmp_file)
-    creation_time = os.stat(tmp_file).st_ctime
+    creation_time = os.stat(tmp_file).st_atime
     assert actual_creation_time == creation_time
 
 
