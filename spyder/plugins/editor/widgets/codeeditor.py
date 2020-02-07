@@ -613,6 +613,9 @@ class CodeEditor(TextEditBaseWidget):
         completion_parent = self.completion_widget.parent()
         self.kite_call_to_action = KiteCallToAction(self, completion_parent)
 
+        # Some events should not be triggered on undo/redo
+        self.is_undoing = False
+        self.is_redoing = False
     # --- Helper private methods
     # ------------------------------------------------------------------------
 
@@ -2198,10 +2201,12 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isUndoAvailable():
             self.text_version -= 1
             self.skip_rstrip = True
+            self.is_undoing = True
             TextEditBaseWidget.undo(self)
             self.document_did_change('')
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
+            self.is_undoing = False
             self.skip_rstrip = False
 
     @Slot()
@@ -2210,10 +2215,12 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isRedoAvailable():
             self.text_version += 1
             self.skip_rstrip = True
+            self.is_redoing = True
             TextEditBaseWidget.redo(self)
             self.document_did_change('text')
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
+            self.is_redoing = False
             self.skip_rstrip = False
 
 # =============================================================================
