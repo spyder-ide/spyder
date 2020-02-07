@@ -49,6 +49,9 @@ def document_cells(block, forward=True, cell_list=None):
     else:
         block = block.previous()
 
+    if not block.isValid():
+        return
+
     if cell_list is not None:
         cell_list = sorted(cell_list)
         block_line = block.blockNumber()
