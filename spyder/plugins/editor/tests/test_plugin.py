@@ -174,7 +174,9 @@ def test_closing_editor_plugin_stops_autosave_timer(editor_plugin):
 
 def test_renamed_propagates_to_autosave(editor_plugin_open_files, mocker):
     """Test that editor.renamed() propagates info to autosave component if,
-    and only if, renamed file is open in editor."""
+    and only if, renamed file is open in editor.
+
+    Regression test for spyder-ide/spyder#11348"""
     editor_factory = editor_plugin_open_files
     editor, expected_filenames, expected_current_filename = (
         editor_factory(None, None))
