@@ -2096,7 +2096,8 @@ class Editor(SpyderPluginWidget):
         Propagate file rename to editor stacks and autosave component.
 
         This function is called when a file is renamed in the file explorer
-        widget or the project explorer.
+        widget or the project explorer. The file may not be opened in the
+        editor.
         """
         filename = osp.abspath(to_text_string(source))
         index = self.editorstacks[0].has_filename(filename)
@@ -2104,8 +2105,8 @@ class Editor(SpyderPluginWidget):
             for editorstack in self.editorstacks:
                 editorstack.rename_in_data(filename,
                                            new_filename=to_text_string(dest))
-        self.editorstacks[0].autosave.file_renamed(
-            filename, to_text_string(dest))
+            self.editorstacks[0].autosave.file_renamed(
+                filename, to_text_string(dest))
 
     def renamed_tree(self, source, dest):
         """Directory was renamed in file explorer or in project explorer."""
