@@ -15,7 +15,7 @@ numpydoc
 parso =0.5.2
 pexpect
 pickleshare
-psutil
+psutil >=5.3
 pygments >=2.0
 pylint
 pyqt <5.13
