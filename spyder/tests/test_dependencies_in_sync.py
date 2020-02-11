@@ -122,8 +122,8 @@ def parse_setup(fpath):
     for dep in dep_list:
         dep = dep.split(';')[0]
         name, ver = None, None
-        # Use regex?
-        for sep in ['>=', '==', '<=', '<']:
+
+        for sep in ['>=', '==', '<=', '<', '>']:
             if sep in dep:
                 idx = dep.index(sep)
                 name = dep[:idx]
@@ -133,7 +133,7 @@ def parse_setup(fpath):
         if name is not None:
             name = name.split('[')[0]
         else:
-            name = dep
+            name = dep.split('[')[0]
 
         # Transform pypi to conda name
         if name == 'pyqt5':

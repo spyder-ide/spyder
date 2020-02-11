@@ -126,7 +126,7 @@ DESCRIPTIONS = [
      'package_name': "paramiko",
      'features': _("Connect to remote kernels through SSH"),
      'required_version': PARAMIKO_REQVER,
-     'display': sys.platform == 'nt'},
+     'display': os.name == 'nt'},
     {'modname': "parso",
      'package_name': "parso",
      'features': _("Python parser that supports error recovery and "
