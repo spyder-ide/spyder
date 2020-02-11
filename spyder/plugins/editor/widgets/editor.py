@@ -2833,7 +2833,7 @@ class EditorStack(QWidget):
     def dragEnterEvent(self, event):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
-        logger.debug("DragEnterEvent:")
+        logger.debug("dragEnterEvent was received")
         source = event.mimeData()
         # The second check is necessary on Windows, where source.hasUrls()
         # can return True but source.urls() is []
@@ -2844,10 +2844,10 @@ class EditorStack(QWidget):
         has_text = source.hasText()
         urls = source.urls()
         all_urls = mimedata2url(source)
-        logger.debug("Source has_urls: {}".format(has_urls))
-        logger.debug("Source urls: {}".format(urls))
-        logger.debug("Source all_urls: {}".format(all_urls))
-        logger.debug("Source has_text: {}".format(has_text))
+        logger.debug("Drag event source has_urls: {}".format(has_urls))
+        logger.debug("Drag event source urls: {}".format(urls))
+        logger.debug("Drag event source all_urls: {}".format(all_urls))
+        logger.debug("Drag event source has_text: {}".format(has_text))
         if has_urls and urls and all_urls:
             text = [encoding.is_text_file(url) for url in all_urls]
             logger.debug("Accept proposed action?: {}".format(any(text)))
