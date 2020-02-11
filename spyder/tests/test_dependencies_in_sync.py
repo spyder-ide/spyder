@@ -95,7 +95,6 @@ def parse_spyder_dependencies():
 
         deps[dep['package_name'].lower()] = ver
 
-
     return deps
 
 
@@ -143,7 +142,6 @@ def parse_setup(fpath):
         deps[name] = ver
 
     return deps
-
 
 
 def test_dependencies_for_binder_in_sync():

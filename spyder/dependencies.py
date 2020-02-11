@@ -110,7 +110,8 @@ DESCRIPTIONS = [
      'required_version': JEDI_REQVER},
     {'modname': "keyring",
      'package_name': "keyring",
-     'features': _("Save Github credentials to report internal errors securely"),
+     'features': _("Save Github credentials to report internal "
+                   "errors securely"),
      'required_version': KEYRING_REQVER,
      'display': sys.platform.startswith('linux') and not PY2},
     {'modname': "nbconvert",
@@ -128,7 +129,8 @@ DESCRIPTIONS = [
      'display': sys.platform == 'nt'},
     {'modname': "parso",
      'package_name': "parso",
-     'features': _("Python parser that supports error recovery and round-trip parsing"),
+     'features': _("Python parser that supports error recovery and "
+                   "round-trip parsing"),
      'required_version': PARSO_REQVER},
     {'modname': "pexpect",
      'package_name': "pexpect",
