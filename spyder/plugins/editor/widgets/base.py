@@ -1046,8 +1046,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                         self.zoom_in.emit()
                 return
         QPlainTextEdit.wheelEvent(self, event)
+        # Needed to prevent stealing focus to the find widget when scrolling
+        # See spyder-ide/spyder#11502
+        current_widget = QApplication.focusWidget()
         self.hide_completion_widget()
         self.highlight_current_cell()
+        if current_widget is not None:
+            current_widget.setFocus()
 
     def position_widget_at_cursor(self, widget):
         # Retrieve current screen height
