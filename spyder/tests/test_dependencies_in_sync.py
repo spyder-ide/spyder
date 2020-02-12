@@ -14,6 +14,7 @@ import yaml
 
 # Local imports
 from spyder.dependencies import DESCRIPTIONS, OPTIONAL
+from spyder.py3compat import PY2
 
 # Constants
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -229,6 +230,13 @@ def test_dependencies_for_spyder_dialog_in_sync():
 
     if 'pyqt' in spyder_reqs:
         spyder_reqs.pop('pyqt')
+
+    if PY2:
+        if 'ipython' in spyder_reqs:
+            spyder_reqs.pop('ipython')
+
+        if 'ipython' in spyder_deps:
+            spyder_deps.pop('ipython')
 
     assert spyder_deps == spyder_reqs
 
