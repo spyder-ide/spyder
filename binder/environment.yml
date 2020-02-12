@@ -44,6 +44,13 @@ dependencies:
 # the contents of this requirements/tests.txt to this file.yml.
 # Please *DO NOT* make changes directly just to here - make changes
 # to requirements/tests.txt, and copy it here.
+- coverage <5.0
+- cython
+- flaky
+- matplotlib
+- mock
+- pandas
+- pillow
 - pytest <5.0
 - pytest-mock
 - pytest-cov
@@ -51,15 +58,9 @@ dependencies:
 - pytest-ordering
 - pytest-lazy-fixture
 - pytest-faulthandler <2.0
-- mock
-- pandas
+- pytest-xvfb
 - scipy
 - sympy
-- pillow
-- matplotlib
-- cython
-- flaky
-- coverage <5.0
 
 # Required for jupyter-desktop-server
 - websockify

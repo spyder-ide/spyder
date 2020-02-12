@@ -72,6 +72,8 @@ SYMPY_REQVER = '>=0.7.3'
 # =============================================================================
 # Descriptions
 # NOTE: We declare our dependencies in **alphabetical** order
+# If some dependencies are limited to some systems only, add a 'display' key.
+# See 'applaunchservices' for an example.
 # =============================================================================
 # List of descriptions
 DESCRIPTIONS = [

@@ -239,8 +239,10 @@ install_requires = [
 
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
+    'test:platform_system == "Linux"': ['pytest-xvfb'],
     'test:platform_system == "Windows"': ['pywin32'],
     'test': [
+        'coverage<5.0',
         'cython',
         'flaky',
         'matplotlib',
@@ -249,12 +251,11 @@ extras_require = {
         'pillow',
         'pytest<5.0',
         'pytest-cov',
-        'pytest-faulthandler',
+        'pytest-faulthandler<2.0',
         'pytest-lazy-fixture',
         'pytest-mock',
         'pytest-ordering',
         'pytest-qt',
-        'pytest-xvfb;platform_system=="Linux"',
         'pyyaml',
         'scipy',
         'sympy',

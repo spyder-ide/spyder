@@ -98,7 +98,7 @@ def parse_spyder_dependencies():
     return deps
 
 
-def parse_setup(fpath):
+def parse_setup_install_requires(fpath):
     """
     Parse Spyder setup.py and return a dict of deps and versions.
     """
@@ -144,6 +144,53 @@ def parse_setup(fpath):
     return deps
 
 
+def parse_setup_extra_requires(fpath):
+    """
+    Parse Spyder setup.py and return a dict of deps and versions.
+    """
+    deps = {}
+    with open(fpath, 'r') as fh:
+        data = fh.read()
+
+    lines = data.split('\n')
+    start = None
+    end = None
+    for idx, line in enumerate(lines):
+        if line.startswith('extras_require = '):
+            start = idx + 1
+
+        if start is not None and line.startswith('}'):
+            end = idx
+            break
+
+    dep_dict = literal_eval('{' + '\n'.join(lines[start:end + 1]))
+    dep_list = dep_dict.get('test')
+    dep_list = [item for item in dep_list if item[0] != '#']
+    for dep in dep_list:
+        dep = dep.split(';')[0]
+        name, ver = None, None
+
+        for sep in ['>=', '==', '<=', '<', '>']:
+            if sep in dep:
+                idx = dep.index(sep)
+                name = dep[:idx]
+                ver = dep[idx:]
+                break
+
+        if name is not None:
+            name = name.split('[')[0]
+        else:
+            name = dep.split('[')[0]
+
+        # Transform pypi to conda name
+        if name == 'pyqt5':
+            name = 'pyqt'
+
+        deps[name] = ver
+    print(deps)
+    return deps
+
+
 def test_dependencies_for_binder_in_sync():
     """
     Binder environment yaml should be the sum of conda.txt and tests.txt
@@ -156,6 +203,10 @@ def test_dependencies_for_binder_in_sync():
     # RTree is only available the right way with conda not pypi
     if 'rtree' in spyder_env:
         spyder_env.pop('rtree')
+
+    # xvfb is only available on linux (which binder runs on)
+    if 'pytest-xvfb' in spyder_env:
+        spyder_env.pop('pytest-xvfb')
 
     # Check that the requirement files match the environment yaml file
     full_reqs = {}
@@ -182,14 +233,24 @@ def test_dependencies_for_spyder_dialog_in_sync():
     assert spyder_deps == spyder_reqs
 
 
-def test_dependencies_for_spyder_setup_in_sync():
+def test_dependencies_for_spyder_setup_install_requires_in_sync():
     """
     Spyder setup.py should share deps with conda.txt.
     """
-    spyder_setup = parse_setup(SETUP_FPATH)
+    spyder_setup = parse_setup_install_requires(SETUP_FPATH)
     spyder_reqs = parse_requirements(REQ_FPATH)
 
     if 'pyqtwebengine' in spyder_setup:
         spyder_setup.pop('pyqtwebengine')
 
     assert spyder_setup == spyder_reqs
+
+
+def test_dependencies_for_spyder_setup_extras_requires_in_sync():
+    """
+    Spyder setup.py extra_requires should share deps with tests.txt.
+    """
+    spyder_extras_setup = parse_setup_extra_requires(SETUP_FPATH)
+    spyder_test_reqs = parse_requirements(REQ_TEST_FPATH)
+
+    assert spyder_extras_setup == spyder_test_reqs
