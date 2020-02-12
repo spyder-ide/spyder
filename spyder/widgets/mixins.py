@@ -7,7 +7,7 @@
 """Mix-in classes
 
 These classes were created to be able to provide Spyder's regular text and
-console widget features to an independant widget based on QTextEdit for the
+console widget features to an independent widget based on QTextEdit for the
 IPython console plugin.
 """
 

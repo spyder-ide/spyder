@@ -348,7 +348,10 @@ class MainWindow(QMainWindow):
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
-        self.open_project = options.project
+        if options.project is not None:
+            self.open_project = osp.normpath(osp.join(CWD, options.project))
+        else:
+            self.open_project = None
         self.window_title = options.window_title
 
         logger.info("Start of MainWindow constructor")
@@ -1448,18 +1451,28 @@ class MainWindow(QMainWindow):
         self.menuBar().raise_()
         self.is_setting_up = False
 
-        # Handle DPI scale changes and show restart message
-        screen = self.window().windowHandle().screen()
-        screen.logicalDotsPerInchChanged.connect(self.show_DPI_change_message)
+        # Handle DPI scale and window changes to show a restart message
+        window = self.window().windowHandle()
+        window.screenChanged.connect(self.handle_new_screen)
+        self.screen = self.window().windowHandle().screen()
+        self.screen.logicalDotsPerInchChanged.connect(
+            self.show_dpi_change_message)
 
         # Notify that the setup of the mainwindow was finished
         self.sig_setup_finished.emit()
 
-    def show_DPI_change_message(self):
+    def handle_new_screen(self, screen):
+        """Connect DPI signals for new screen."""
+        self.screen.logicalDotsPerInchChanged.disconnect(
+            self.show_dpi_change_message)
+        self.screen = screen
+        self.screen.logicalDotsPerInchChanged.connect(
+            self.show_dpi_change_message)
+
+    def show_dpi_change_message(self):
         """Show message to restart Spyder since the DPI scale changed."""
-        screen = self.window().windowHandle().screen()
-        screen.logicalDotsPerInchChanged.disconnect(
-            self.show_DPI_change_message)
+        self.screen.logicalDotsPerInchChanged.disconnect(
+            self.show_dpi_change_message)
         answer = QMessageBox.warning(
             self, _("Warning"),
             _("A monitor scale change was detected. <br><br>"
@@ -1480,10 +1493,8 @@ class MainWindow(QMainWindow):
             self.restart()
         else:
             # Reconnect DPI scale changes to show a restart message
-            screen = self.window().windowHandle().screen()
-            screen.logicalDotsPerInchChanged.connect(
-                self.show_DPI_change_message)
-
+            self.screen.logicalDotsPerInchChanged.connect(
+                self.show_dpi_change_message)
 
     def set_window_title(self):
         """Set window title."""
@@ -2961,10 +2972,22 @@ class MainWindow(QMainWindow):
         variable explorer inside Spyder.
         """
         fname = encoding.to_unicode_from_fs(fname)
-        if osp.isfile(fname):
-            self.open_file(fname, external=True)
-        elif osp.isfile(osp.join(CWD, fname)):
-            self.open_file(osp.join(CWD, fname), external=True)
+        if osp.exists(osp.join(CWD, fname)):
+            fpath = osp.join(CWD, fname)
+        elif osp.exists(fname):
+            fpath = fname
+        else:
+            return
+
+        if osp.isfile(fpath):
+            self.open_file(fpath, external=True)
+        elif osp.isdir(fpath):
+            QMessageBox.warning(
+                self, _("Error"),
+                _('To open <code>{fpath}</code> as a project with Spyder, '
+                  'please use <code>spyder -p "{fname}"</code>.')
+                .format(fpath=osp.normpath(fpath), fname=fname)
+            )
 
     # --- Path Manager
     # ------------------------------------------------------------------------
@@ -3777,7 +3800,7 @@ def main():
         traceback.print_exc(file=STDERR)
         traceback.print_exc(file=open('spyder_crash.log', 'w'))
     if mainwindow is None:
-        # An exception occured
+        # An exception occurred
         if SPLASH is not None:
             SPLASH.hide()
         return

@@ -15,6 +15,10 @@ from qtpy.QtCore import Qt, QPoint
 from qtpy.QtGui import QTextCursor
 import pytest
 
+# Local imports
+from spyder.plugins.editor.extensions.closebrackets import (
+        CloseBracketsExtension)
+
 # Constants
 PY2 = sys.version[0] == '2'
 TEST_SIG = 'some_function(foo={}, hello=None)'
@@ -80,6 +84,12 @@ def test_get_calltips(qtbot, lsp_codeeditor, params):
     code_editor.moveCursor(QTextCursor.End)
 
     code_editor.calltip_widget.hide()
+
+    # Test with brackets autocompletion enable/disable
+    bracket_extension = code_editor.editor_extensions.get(
+        CloseBracketsExtension)
+
+    # Bracket autocompletion enabled
     with qtbot.waitSignal(code_editor.sig_signature_invoked,
                           timeout=30000) as blocker:
         qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=1000)
@@ -93,6 +103,25 @@ def test_get_calltips(qtbot, lsp_codeeditor, params):
         output_text = args[0]['signatures']['label']
         assert expected_output_text in output_text
         code_editor.calltip_widget.hide()
+
+    # Bracket autocompletion disabled
+    bracket_extension.enable = False
+    with qtbot.waitSignal(code_editor.sig_signature_invoked,
+                          timeout=30000) as blocker:
+        qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=1000)
+
+        # This is needed to leave time for the calltip to appear
+        # and make the tests succeed
+        qtbot.wait(2000)
+
+        args = blocker.args
+        print('args:', [args])
+        output_text = args[0]['signatures']['label']
+        assert expected_output_text in output_text
+        code_editor.calltip_widget.hide()
+
+    # Set bracket autocomplete to default value
+    bracket_extension.enable = True
 
 
 @pytest.mark.slow

@@ -216,6 +216,7 @@ install_requires = [
     'numpydoc',
     # Required to get SSH connections to remote kernels
     'paramiko;platform_system=="Windows"',
+    'parso==0.5.2',
     'pexpect',
     'pickleshare',
     'psutil',
