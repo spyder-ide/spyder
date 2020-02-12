@@ -2505,7 +2505,7 @@ def test_debug_unsaved_file(main_window, qtbot):
 
 
 @pytest.mark.slow
-@flaky(max_runs=1)
+@flaky(max_runs=3)
 @pytest.mark.parametrize(
     "debug", [True, False])
 def test_runcell(main_window, qtbot, tmpdir, debug):
