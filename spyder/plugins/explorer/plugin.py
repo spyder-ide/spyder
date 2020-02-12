@@ -97,7 +97,7 @@ class Explorer(SpyderPluginWidget):
         treewidget.sig_run.connect(
             lambda fname:
             ipyconsole.run_script(fname, osp.dirname(fname), '', False, False,
-                                  False, True))
+                                  False, True, False))
         treewidget.sig_open_dir.connect(
             lambda dirname:
             self.main.workingdirectory.chdir(dirname,
