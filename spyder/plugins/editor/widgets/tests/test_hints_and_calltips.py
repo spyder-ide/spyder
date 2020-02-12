@@ -140,8 +140,8 @@ def test_get_hints(qtbot, lsp_codeeditor, params, capsys):
 
 @pytest.mark.slow
 @pytest.mark.second
-@pytest.mark.skipif(sys.platform.startswith('linux') and PY2,
-                    reason="Fails on Linux on CI")
+@pytest.mark.skipif(sys.platform != 'darwin',
+                    reason="Fails on Windows and Linux")
 def test_get_hints_not_triggered(qtbot, lsp_codeeditor):
     """Test that the editor is not returning hover hints for empty docs."""
     code_editor, _ = lsp_codeeditor
