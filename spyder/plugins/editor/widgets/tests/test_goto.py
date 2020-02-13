@@ -17,6 +17,7 @@ import pytest
 
 # Local imports
 from spyder.plugins.editor.widgets.tests.test_codeeditor import editorbot
+from spyder.utils.vcs import get_git_remotes
 
 # Constants
 HERE = os.path.abspath(__file__)
@@ -71,8 +72,10 @@ TEST_FILE_REL = 'conftest.py'
              'https://github.com/spyder-ide/spyder/issues/123'),
             ('# gh:spyder-ide/spyder#123\n', 'gh:spyder-ide/spyder#123', None,
              'https://github.com/spyder-ide/spyder/issues/123'),
-            ('# gh-123\n', 'gh-123', HERE,
-             'https://github.com/spyder-ide/spyder/issues/123'),
+            pytest.param(('# gh-123\n', 'gh-123', HERE,
+                          'https://github.com/spyder-ide/spyder/issues/123'),
+                         marks=pytest.mark.skipif(not(get_git_remotes(HERE)),
+                                                  reason='not in a git repository')),
         ]
     )
 def test_goto_uri(qtbot, editorbot, mocker, params):
