@@ -25,8 +25,9 @@ from spyder.utils.vcs import (ActionToolNotFound, get_git_refs,
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
-skipnogit=pytest.mark.skipif(not(get_vcs_root(HERE)),
-                             reason="Not installing from git repo")
+skipnogit = pytest.mark.skipif(not(get_vcs_root(HERE)),
+                               reason="Not installing from git repo")
+
 
 @skipnogit
 @pytest.mark.skipif(os.environ.get('CI', None) is None,
@@ -39,11 +40,13 @@ def test_vcs_tool():
         assert run_vcs_tool(osp.dirname(__file__), 'browse')
         assert run_vcs_tool(osp.dirname(__file__), 'commit')
 
+
 @skipnogit
 def test_vcs_root(tmpdir):
     directory = tmpdir.mkdir('foo')
     assert get_vcs_root(str(directory)) == None
     assert get_vcs_root(osp.dirname(__file__)) != None
+
 
 @skipnogit
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('AZURE') is not None,
@@ -65,6 +68,7 @@ def test_no_git(monkeypatch):
     assert branch == ''
     assert len(files_modified) == 0
 
+
 @skipnogit
 def test_get_git_refs():
     branch_tags, branch, files_modified = get_git_refs(__file__)
@@ -75,6 +79,7 @@ def test_get_git_refs():
     # appear among the list of git branches.
     if not os.environ.get('TRAVIS_TAG'):
         assert any(['master' in b for b in branch_tags])
+
 
 @skipnogit
 def test_get_git_remotes():
