@@ -2395,11 +2395,6 @@ class EditorStack(QWidget):
             state = finfo.editor.document().isModified()
             self.set_stack_title(index, state)
 
-    def __reset_tooltip(self):
-        """Reset tooltip tip info for all the editors."""
-        for index, finfo in enumerate(self.data):
-            finfo.editor.reset_tooltip()
-
     def refresh(self, index=None):
         """Refresh tabwidget"""
         if index is None:
@@ -2416,7 +2411,6 @@ class EditorStack(QWidget):
             self.__refresh_readonly(index)
             self.__check_file_status(index)
             self.__modify_stack_title()
-            self.__reset_tooltip()
             self.update_plugin_title.emit()
         else:
             editor = None

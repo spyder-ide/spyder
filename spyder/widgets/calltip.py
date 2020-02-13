@@ -193,10 +193,6 @@ class ToolTipWidget(QLabel):
             self.show()
         return True
 
-    def reset_tooltip(self):
-        """Reset tip to None."""
-        self.tip = None
-
     def mousePressEvent(self, event):
         """
         Reimplemented to hide it when focus goes out of the main window.
