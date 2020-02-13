@@ -5,9 +5,11 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder third-party plugins configuration management
+Spyder third-party plugins configuration management.
 """
 
+# Standard library imports
+import logging
 import os
 import os.path as osp
 import sys
@@ -15,14 +17,15 @@ import traceback
 
 # Local imports
 from spyder.config.base import get_conf_path
-from spyder.py3compat import PY2
+from spyder.py3compat import PY2, to_text_string
 
 if PY2:
     import imp
 else:
     import importlib
 
-
+# Constants
+logger = logging.getLogger(__name__)
 USER_PLUGIN_DIR = "plugins"
 PLUGIN_PREFIX = "spyder_"
 IO_PREFIX = PLUGIN_PREFIX + "io_"
@@ -56,7 +59,7 @@ def _get_spyderplugins(plugin_path, is_io, modnames, modlist):
             continue
 
         # Ensure right type of plugin
-        if is_io != name.startswith(IO_PREFIX):
+        if is_io and not name.startswith(IO_PREFIX):
             continue
 
         # Skip names that end in certain suffixes
@@ -92,7 +95,7 @@ def _import_plugin(module_name, plugin_path, modnames, modlist):
             sys.modules[module_name] = module
             modlist.append(module)
             modnames.append(module_name)
-    except Exception:
+    except Exception as e:
         sys.stderr.write("ERROR: 3rd party plugin import failed for "
                          "`{0}`\n".format(module_name))
         traceback.print_exc(file=sys.stderr)
@@ -109,14 +112,19 @@ def _import_module_from_path(module_name, plugin_path):
             info = imp.find_module(module_name, [plugin_path])
             if info:
                 module = imp.load_module(module_name, *info)
-        else:  # Python 3.4+
+        else:
+            # Python 3.4+
             spec = importlib.machinery.PathFinder.find_spec(
                 module_name,
                 [plugin_path])
+
             if spec:
                 module = spec.loader.load_module(module_name)
-    except Exception:
-        pass
+    except Exception as err:
+        debug_message = ("plugin: '{module_name}' load failed with `{err}`"
+                         "").format(module_name=module_name,
+                                    err=to_text_string(err))
+        logger.debug(debug_message)
 
     return module
 
