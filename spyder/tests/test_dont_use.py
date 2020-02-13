@@ -71,8 +71,8 @@ def test_check_charaters_translation(pattern):
                 with codecs.open(file, encoding="utf-8") as f:
                     for i, line in enumerate(f):
                         for match in re.finditer(pattern, line):
-                            print("{}\nline:{}, {}".format(file, i + 1, line))
+                            print(u"{}\nline:{}, {}".format(file, i + 1, line))
                             found += 1
 
-    assert found == 0, "{}\n{} characters found".format(
-        "Strange characters found in translations", found)
+    assert found == 0, u"{}\n{} characters found".format(
+        u"Strange characters found in translations", found)
