@@ -708,8 +708,7 @@ class ThumbnailScrollBar(QFrame):
             2 * self.lineWidth() -
             self.scrollarea.viewportMargins().left() -
             self.scrollarea.viewportMargins().right() -
-            thumbnail.savefig_btn.width() -
-            thumbnail.layout().spacing() - extra_padding
+            extra_padding
             )
         if is_dark_interface():
             # This is required to take into account some hard-coded padding
@@ -895,29 +894,7 @@ class FigureThumbnail(QWidget):
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.canvas, 0, 0, Qt.AlignCenter)
-        layout.addLayout(self.setup_toolbar(), 0, 1, 2, 1)
-        layout.setRowStretch(1, 100)
         layout.setSizeConstraint(layout.SetFixedSize)
-
-    def setup_toolbar(self):
-        """Setup the toolbar."""
-        self.savefig_btn = create_toolbutton(
-            self, icon=ima.icon('filesave'),
-            tip=_("Save Image As..."),
-            triggered=self.emit_save_figure)
-        self.delfig_btn = create_toolbutton(
-            self, icon=ima.icon('editclear'),
-            tip=_("Delete image"),
-            triggered=self.emit_remove_figure)
-
-        toolbar = QVBoxLayout()
-        toolbar.setContentsMargins(0, 0, 0, 0)
-        toolbar.setSpacing(1)
-        toolbar.addWidget(self.savefig_btn)
-        toolbar.addWidget(self.delfig_btn)
-        toolbar.addStretch(2)
-
-        return toolbar
 
     def highlight_canvas(self, highlight):
         """
