@@ -601,15 +601,10 @@ class ThumbnailScrollBar(QFrame):
 
     def setup_gui(self):
         """Setup the main layout of the widget."""
-        scrollarea = self.setup_scrollarea()
-        up_btn, down_btn = self.setup_arrow_buttons()
-
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-        layout.addWidget(up_btn)
-        layout.addWidget(scrollarea)
-        layout.addWidget(down_btn)
+        layout.addWidget(self.setup_scrollarea())
 
     def setup_scrollarea(self):
         """Setup the scrollarea that will contain the FigureThumbnails."""
@@ -637,27 +632,6 @@ class ThumbnailScrollBar(QFrame):
         self.scrollarea.installEventFilter(self)
 
         return self.scrollarea
-
-    def setup_arrow_buttons(self):
-        """
-        Setup the up and down arrow buttons that are placed at the top and
-        bottom of the scrollarea.
-        """
-        # Get the size hint height of the horizontal scrollbar.
-        height = self.scrollarea.horizontalScrollBar().sizeHint().height()
-
-        # Setup the up and down arrow button.
-        up_btn = up_btn = QPushButton(icon=ima.icon('last_edit_location'))
-        up_btn.setFlat(True)
-        up_btn.setFixedHeight(height)
-        up_btn.clicked.connect(self.go_up)
-
-        down_btn = QPushButton(icon=ima.icon('folding.arrow_down_on'))
-        down_btn.setFlat(True)
-        down_btn.setFixedHeight(height)
-        down_btn.clicked.connect(self.go_down)
-
-        return up_btn, down_btn
 
     def set_figureviewer(self, figure_viewer):
         """Set the bamespace for the FigureViewer."""
