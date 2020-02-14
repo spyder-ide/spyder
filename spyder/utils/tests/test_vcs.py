@@ -26,7 +26,7 @@ from spyder.utils.vcs import (ActionToolNotFound, get_git_refs,
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 skipnogit = pytest.mark.skipif(not(get_vcs_root(HERE)),
-                               reason="Not installing from git repo")
+                               reason="Not running from a git repo")
 
 
 @skipnogit
