@@ -348,7 +348,10 @@ class MainWindow(QMainWindow):
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.new_instance = options.new_instance
-        self.open_project = options.project
+        if options.project is not None:
+            self.open_project = osp.normpath(osp.join(CWD, options.project))
+        else:
+            self.open_project = None
         self.window_title = options.window_title
 
         logger.info("Start of MainWindow constructor")
@@ -2969,10 +2972,22 @@ class MainWindow(QMainWindow):
         variable explorer inside Spyder.
         """
         fname = encoding.to_unicode_from_fs(fname)
-        if osp.isfile(fname):
-            self.open_file(fname, external=True)
-        elif osp.isfile(osp.join(CWD, fname)):
-            self.open_file(osp.join(CWD, fname), external=True)
+        if osp.exists(osp.join(CWD, fname)):
+            fpath = osp.join(CWD, fname)
+        elif osp.exists(fname):
+            fpath = fname
+        else:
+            return
+
+        if osp.isfile(fpath):
+            self.open_file(fpath, external=True)
+        elif osp.isdir(fpath):
+            QMessageBox.warning(
+                self, _("Error"),
+                _('To open <code>{fpath}</code> as a project with Spyder, '
+                  'please use <code>spyder -p "{fname}"</code>.')
+                .format(fpath=osp.normpath(fpath), fname=fname)
+            )
 
     # --- Path Manager
     # ------------------------------------------------------------------------

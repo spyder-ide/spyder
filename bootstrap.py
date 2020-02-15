@@ -122,9 +122,19 @@ if args.debug:
 from spyder.utils.vcs import get_git_revision
 print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
 
+# Add this path to the front of sys.path
 sys.path.insert(0, DEVPATH)
 print("01. Patched sys.path with %s" % DEVPATH)
 
+# Add external dependencies subrepo paths to be the next entries
+# (1, 2, etc) of sys.path
+DEPS_PATH = osp.join(DEVPATH, 'external-deps')
+i = 1
+for path in os.listdir(DEPS_PATH):
+    external_dep_path = osp.join(DEPS_PATH, path)
+    sys.path.insert(i, external_dep_path)
+    print("01-%d. Patched sys.path with %s" % (i, external_dep_path))
+    i += 1
 
 # Selecting the GUI toolkit: PyQt5 if installed
 if args.gui is None:

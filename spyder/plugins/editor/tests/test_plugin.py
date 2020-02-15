@@ -172,11 +172,27 @@ def test_closing_editor_plugin_stops_autosave_timer(editor_plugin):
     assert not editor.autosave.timer.isActive()
 
 
-def test_renamed_propagates_to_autosave(editor_plugin, mocker):
-    editorstack = editor_plugin.get_current_editorstack()
+def test_renamed_propagates_to_autosave(editor_plugin_open_files, mocker):
+    """Test that editor.renamed() propagates info to autosave component if,
+    and only if, renamed file is open in editor.
+
+    Regression test for spyder-ide/spyder#11348"""
+    editor_factory = editor_plugin_open_files
+    editor, expected_filenames, expected_current_filename = (
+        editor_factory(None, None))
+
+    editorstack = editor.get_current_editorstack()
+    mocker.patch.object(editorstack, 'rename_in_data')
     mocker.patch.object(editorstack.autosave, 'file_renamed')
-    editor_plugin.renamed('src', 'dest')
-    editorstack.autosave.file_renamed.assert_called()
+
+    # Test renaming a file that is not opened in the editor
+    editor.renamed('nonexisting', 'newname')
+    assert not editorstack.autosave.file_renamed.called
+
+    # Test renaming a file that is opened in the editor
+    filename = editorstack.get_filenames()[0]
+    editor.renamed(filename, 'newname')
+    assert editorstack.autosave.file_renamed.called
 
 
 def test_go_to_prev_next_cursor_position(editor_plugin, python_files):

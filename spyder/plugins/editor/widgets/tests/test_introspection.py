@@ -525,7 +525,7 @@ def test_completions(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
-@pytest.mark.skipif(not rtree_available or PY2,
+@pytest.mark.skipif(not rtree_available or PY2 or os.name == 'nt',
                     reason='Only works if rtree is installed')
 def test_code_snippets(lsp_codeeditor, qtbot):
     assert rtree_available

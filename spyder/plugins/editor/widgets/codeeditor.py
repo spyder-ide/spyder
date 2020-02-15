@@ -3811,7 +3811,7 @@ class CodeEditor(TextEditBaseWidget):
                         self._start_completion_timer()
             else:
                 self.do_completion(automatic=True)
-        elif (text != '(' and text in self.signature_completion_characters and
+        elif (text in self.signature_completion_characters and
                 not self.has_selected_text()):
             self.insert_text(text)
             self.request_signature()
@@ -4348,10 +4348,14 @@ class CodeEditor(TextEditBaseWidget):
     def dragEnterEvent(self, event):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
-        if mimedata2url(event.mimeData()):
+        logger.debug("dragEnterEvent was received")
+        all_urls = mimedata2url(event.mimeData())
+        if all_urls:
             # Let the parent widget handle this
+            logger.debug("Let the parent widget handle this dragEnterEvent")
             event.ignore()
         else:
+            logger.debug("Call TextEditBaseWidget dragEnterEvent method")
             TextEditBaseWidget.dragEnterEvent(self, event)
 
     def dropEvent(self, event):

@@ -2395,11 +2395,6 @@ class EditorStack(QWidget):
             state = finfo.editor.document().isModified()
             self.set_stack_title(index, state)
 
-    def __reset_tooltip(self):
-        """Reset tooltip tip info for all the editors."""
-        for index, finfo in enumerate(self.data):
-            finfo.editor.reset_tooltip()
-
     def refresh(self, index=None):
         """Refresh tabwidget"""
         if index is None:
@@ -2416,7 +2411,6 @@ class EditorStack(QWidget):
             self.__refresh_readonly(index)
             self.__check_file_status(index)
             self.__modify_stack_title()
-            self.__reset_tooltip()
             self.update_plugin_title.emit()
         else:
             editor = None
@@ -2833,15 +2827,24 @@ class EditorStack(QWidget):
     def dragEnterEvent(self, event):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
+        logger.debug("dragEnterEvent was received")
         source = event.mimeData()
         # The second check is necessary on Windows, where source.hasUrls()
         # can return True but source.urls() is []
         # The third check is needed since a file could be dropped from
         # compressed files. In Windows mimedata2url(source) returns None
         # Fixes spyder-ide/spyder#5218.
-        if source.hasUrls() and source.urls() and mimedata2url(source):
-            all_urls = mimedata2url(source)
+        has_urls = source.hasUrls()
+        has_text = source.hasText()
+        urls = source.urls()
+        all_urls = mimedata2url(source)
+        logger.debug("Drag event source has_urls: {}".format(has_urls))
+        logger.debug("Drag event source urls: {}".format(urls))
+        logger.debug("Drag event source all_urls: {}".format(all_urls))
+        logger.debug("Drag event source has_text: {}".format(has_text))
+        if has_urls and urls and all_urls:
             text = [encoding.is_text_file(url) for url in all_urls]
+            logger.debug("Accept proposed action?: {}".format(any(text)))
             if any(text):
                 event.acceptProposedAction()
             else:
@@ -2853,8 +2856,10 @@ class EditorStack(QWidget):
             # which can be opened by the Editor if they are plain
             # text, but doesn't come with url info.
             # Fixes spyder-ide/spyder#2032.
+            logger.debug("Accept proposed action on Windows")
             event.acceptProposedAction()
         else:
+            logger.debug("Ignore drag event")
             event.ignore()
 
     def dropEvent(self, event):

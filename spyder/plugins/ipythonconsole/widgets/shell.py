@@ -56,7 +56,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     focus_changed = Signal()
     new_client = Signal()
     sig_is_spykernel = Signal(object)
-    sig_kernel_restarted = Signal(str)
+    sig_kernel_restarted_message = Signal(str)
+    sig_kernel_restarted = Signal()
     sig_prompt_ready = Signal()
 
     # For global working directory
@@ -209,14 +210,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if not dark_color:
             # Needed to change the colors of tracebacks
             self.silent_execute("%colors linux")
-            self.call_kernel(
-                interrupt=True,
-                blocking=False).set_sympy_forecolor(background_color='dark')
+            self.call_kernel().set_sympy_forecolor(background_color='dark')
         else:
             self.silent_execute("%colors lightbg")
-            self.call_kernel(
-                interrupt=True,
-                blocking=False).set_sympy_forecolor(background_color='light')
+            self.call_kernel().set_sympy_forecolor(background_color='light')
 
     def update_syspath(self, path_dict, new_path_dict):
         """Update sys.path contents on kernel."""
@@ -621,7 +618,11 @@ the sympy module (e.g. plot)
 
     def _kernel_restarted_message(self, died=True):
         msg = _("Kernel died, restarting") if died else _("Kernel restarting")
-        self.sig_kernel_restarted.emit(msg)
+        self.sig_kernel_restarted_message.emit(msg)
+
+    def _handle_kernel_restarted(self):
+        super(ShellWidget, self)._handle_kernel_restarted()
+        self.sig_kernel_restarted.emit()
 
     def _syntax_style_changed(self):
         """Refresh the highlighting with the current syntax style by class."""

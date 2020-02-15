@@ -6,7 +6,7 @@ source $HOME/miniconda/etc/profile.d/conda.sh
 conda activate test
 
 export TEST_CI_WIDGETS=True
-export PYTHONPATH=.
+export PYTHONPATH=.:./external-deps/spyder-kernels
 
 # Depth 1
 for f in spyder/*.py; do
