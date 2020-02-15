@@ -23,7 +23,8 @@ from spyder.plugins.completion.kite.decorators import class_register
 from spyder.plugins.completion.kite.providers import KiteMethodProviderMixIn
 from spyder.plugins.completion.kite.utils.status import (
     status, check_if_kite_running)
-from spyder.py3compat import ConnectionError, ConnectionRefusedError, TEXT_TYPES
+from spyder.py3compat import (
+    ConnectionError, ConnectionRefusedError, TEXT_TYPES)
 
 
 logger = logging.getLogger(__name__)
@@ -134,7 +135,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
             http_verb, path = KITE_REQUEST_MAPPING[method]
             encoded_url_params = {
                 key: quote(value) if isinstance(value, TEXT_TYPES) else value
-                for (key,value) in url_params.items()}
+                for (key, value) in url_params.items()}
             path = path.format(**encoded_url_params)
             try:
                 success, response = self.perform_http_request(
