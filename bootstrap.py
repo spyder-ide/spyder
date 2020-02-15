@@ -150,9 +150,9 @@ else:
 # QT_API environment variable if this has not yet been done just above)
 from spyder import get_versions
 versions = get_versions(reporev=True)
-print("03. Imported Spyder %s - Revision %s, Branch: %s" % \
+print("03. Imported Spyder %s - Revision %s, Branch: %s" %
       (versions['spyder'], versions['revision'], versions['branch']))
-print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
+print("    [Python %s %dbits, Qt %s, %s %s on %s]" %
       (versions['python'], versions['bitness'], versions['qt'],
        versions['qt_api'], versions['qt_api_ver'], versions['system']))
 

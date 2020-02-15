@@ -135,10 +135,10 @@ $ git rebase --onto 4.x master my_branch
 
 Spyder and spyder-kernels are developed jointly because a lot of communication happens between them in order to run code written in the editor in the IPython console. The way the branches on their respective repos are linked appears in the table below:
 
-| Spyder branch  | Associated spyder-kernels branch  |
-| ---------------| --------------------------------- |
-| 4.x            | 1.x                               |
-| master (future 5.x) | master (future 2.x)          |
+| Spyder branch       | Associated spyder-kernels branch  |
+| ------------------- | --------------------------------- |
+| 4.x                 | 1.x                               |
+| master (future 5.x) | master (future 2.x)               |
 
 For this reason, a clone of spyder-kernels is placed in the `external-deps` subfolder of the Spyder repository. The instructions on this section will help you in case you need to make changes that touch both repositories at the same time.
 
