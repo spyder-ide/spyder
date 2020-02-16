@@ -619,7 +619,6 @@ class ThumbnailScrollBar(QFrame):
         self.scrollarea.setWidgetResizable(True)
         self.scrollarea.setFrameStyle(0)
         self.scrollarea.setViewportMargins(2, 2, 2, 2)
-        self.scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollarea.setMinimumWidth(self._min_scrollbar_width)
 
@@ -697,10 +696,9 @@ class ThumbnailScrollBar(QFrame):
             save_figure_tofile(fig, fmt, fname)
 
     # ---- Thumbails Handlers
-    def _calculate_figure_canvas_width(self, thumbnail):
+    def _calculate_figure_canvas_width(self):
         """
-        Calculate the width the thumbnail's figure canvas need to have for the
-        thumbnail to fit the scrollarea.
+        Calculate the width the thumbnails need to have to fit the scrollarea.
         """
         extra_padding = 10 if sys.platform == 'darwin' else 0
         figure_canvas_width = (
@@ -708,7 +706,8 @@ class ThumbnailScrollBar(QFrame):
             2 * self.lineWidth() -
             self.scrollarea.viewportMargins().left() -
             self.scrollarea.viewportMargins().right() -
-            extra_padding
+            extra_padding -
+            self.scrollarea.verticalScrollBar().sizeHint().width()
             )
         if is_dark_interface():
             # This is required to take into account some hard-coded padding
@@ -721,7 +720,7 @@ class ThumbnailScrollBar(QFrame):
         Scale the thumbnail's canvas size so that it fits the thumbnail
         scrollbar's width.
         """
-        max_canvas_size = self._calculate_figure_canvas_width(thumbnail)
+        max_canvas_size = self._calculate_figure_canvas_width()
         thumbnail.scale_canvas_size(max_canvas_size)
 
     def _update_thumbnail_size(self):
