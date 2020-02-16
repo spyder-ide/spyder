@@ -101,6 +101,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             raise ValueError(msg % reason_big)
         except (PicklingError, UnpicklingError):
             raise ValueError(msg % reason_not_picklable)
+        except PicklingError:
+            raise ValueError(msg % reason_not_picklable)
 
     def set_value(self, name, value):
         """Set value for a variable"""
