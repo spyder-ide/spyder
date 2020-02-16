@@ -639,8 +639,17 @@ class ThumbnailScrollBar(QFrame):
     def eventFilter(self, widget, event):
         """
         An event filter to trigger an update of the thumbnails size so that
-        their width fit that of the scrollarea.
+        their width fit that of the scrollarea and to remap some key press
+        events to mimick navigational behaviour of a Qt widget list.
         """
+        if event.type() == QEvent.KeyPress:
+            key = event.key()
+            if key == Qt.Key_Up:
+                self.go_previous_thumbnail()
+                return True
+            elif key == Qt.Key_Down:
+                self.go_next_thumbnail()
+                return True
         if event.type() == QEvent.Resize:
             self._update_thumbnail_size()
         return super(ThumbnailScrollBar, self).eventFilter(widget, event)
