@@ -16,7 +16,7 @@ try:
 except AttributeError:
     time.monotonic = time.time
 
-from pickle import UnpicklingError
+from pickle import PicklingError, UnpicklingError
 
 from qtpy.QtWidgets import QMessageBox
 
@@ -100,6 +100,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         except TimeoutError:
             raise ValueError(msg % reason_big)
         except UnpicklingError:
+            raise ValueError(msg % reason_not_picklable)
+        except PicklingError:
             raise ValueError(msg % reason_not_picklable)
 
     def set_value(self, name, value):
