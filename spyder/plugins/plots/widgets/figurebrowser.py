@@ -612,7 +612,7 @@ class ThumbnailScrollBar(QFrame):
 
         self.scene = QGridLayout(self.view)
         self.scene.setContentsMargins(0, 0, 0, 0)
-        self.scene.setSpacing(3)
+        self.scene.setSpacing(5)
 
         self.scrollarea = QScrollArea()
         self.scrollarea.setWidget(self.view)
