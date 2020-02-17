@@ -22,8 +22,8 @@ from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, QSize, QTimer, Slot
 from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
-                            QScrollArea, QPushButton, QScrollBar, QSpinBox,
-                            QSplitter, QStyle)
+                            QScrollArea, QScrollBar, QSpinBox, QSplitter,
+                            QStyle)
 
 # ---- Local library imports
 from spyder.config.base import _
@@ -358,7 +358,7 @@ class FigureBrowser(QWidget):
         """Draw a frame around the figure viewer if state is True."""
         if state is True:
             self.figviewer.figcanvas.setStyleSheet(
-                    "FigureCanvas{border: 1px solid lightgrey;}")
+                "FigureCanvas{border: 1px solid lightgrey;}")
         else:
             self.figviewer.figcanvas.setStyleSheet("FigureCanvas{}")
         self.option_changed('show_plot_outline', state)
@@ -865,7 +865,7 @@ class ThumbnailScrollBar(QFrame):
         """Set the currently selected thumbnail."""
         self.current_thumbnail = thumbnail
         self.figure_viewer.load_figure(
-                thumbnail.canvas.fig, thumbnail.canvas.fmt)
+            thumbnail.canvas.fig, thumbnail.canvas.fmt)
         for thumbnail in self._thumbnails:
             thumbnail.highlight_canvas(thumbnail == self.current_thumbnail)
 
@@ -958,10 +958,10 @@ class FigureThumbnail(QWidget):
             # See spyder-ide/spyder#10255.
             if is_dark_interface():
                 self.canvas.setStyleSheet(
-                        "FigureCanvas{border: 2px solid %s;}" % "#148CD2")
+                    "FigureCanvas{border: 2px solid %s;}" % "#148CD2")
             else:
                 self.canvas.setStyleSheet(
-                        "FigureCanvas{border: 2px solid %s;}" % colorname)
+                    "FigureCanvas{border: 2px solid %s;}" % colorname)
         else:
             self.canvas.setStyleSheet("FigureCanvas{}")
 
