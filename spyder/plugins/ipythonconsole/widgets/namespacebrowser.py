@@ -99,9 +99,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 timeout=CALL_KERNEL_TIMEOUT).get_value(name)
         except TimeoutError:
             raise ValueError(msg % reason_big)
-        except UnpicklingError:
-            raise ValueError(msg % reason_not_picklable)
-        except PicklingError:
+        except (PicklingError, UnpicklingError):
             raise ValueError(msg % reason_not_picklable)
 
     def set_value(self, name, value):
