@@ -30,9 +30,9 @@ from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import is_unicode, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, create_plugin_layout,
-                                    MENU_SEPARATOR)
+from spyder.utils.qthelpers import (
+    add_actions, add_shortcut_to_tooltip, create_action, create_toolbutton,
+    create_plugin_layout, MENU_SEPARATOR)
 from spyder.utils.misc import getcwd_or_home
 from spyder.config.gui import is_dark_interface
 
@@ -98,6 +98,15 @@ class FigureBrowser(QWidget):
         self.plugin_actions = plugin_actions
         self.shortcuts = self.create_shortcuts()
 
+    def eventFilter(self, obj, event):
+        """
+        An event filter to add the shortcut associated with a given
+        toolbutton to its tooltip.
+        """
+        if event.type() == QEvent.ToolTip:
+            add_shortcut_to_tooltip(obj, *obj.shortcut_data)
+        return False
+
     def setup(self, mute_inline_plotting=None, show_plot_outline=None,
               auto_fit_plotting=None):
         """Setup the figure browser with provided settings."""
@@ -146,58 +155,69 @@ class FigureBrowser(QWidget):
     def setup_toolbar(self):
         """Setup the toolbar"""
         savefig_btn = create_toolbutton(
-                self, icon=ima.icon('filesave'),
-                tip=_("Save Image As..."),
-                triggered=self.save_figure)
+            self, icon=ima.icon('filesave'),
+            tip=_("Save plot as..."),
+            triggered=lambda: print('coucou'))
+        savefig_btn.shortcut_data = ('plots', 'save')
+        savefig_btn.installEventFilter(self)
 
         saveall_btn = create_toolbutton(
-                self, icon=ima.icon('save_all'),
-                tip=_("Save All Images..."),
-                triggered=self.save_all_figures)
+            self, icon=ima.icon('save_all'),
+            tip=_("Save all plots..."),
+            triggered=self.save_all_figures)
+        saveall_btn.shortcut_data = ('plots', 'save all')
+        saveall_btn.installEventFilter(self)
 
         copyfig_btn = create_toolbutton(
             self, icon=ima.icon('editcopy'),
-            tip=(_("Copy plot to clipboard as image (%s)") %
-                 CONF.get_shortcut('plots', 'copy')),
+            tip=_("Copy plot to clipboard as image"),
             triggered=self.copy_figure)
+        copyfig_btn.shortcut_data = ('plots', 'copy')
+        copyfig_btn.installEventFilter(self)
 
         closefig_btn = create_toolbutton(
-                self, icon=ima.icon('editclear'),
-                tip=_("Remove image"),
-                triggered=self.close_figure)
+            self, icon=ima.icon('editclear'),
+            tip=_("Remove plot"),
+            triggered=self.close_figure)
+        closefig_btn.shortcut_data = ('plots', 'close')
+        closefig_btn.installEventFilter(self)
 
         closeall_btn = create_toolbutton(
-                self, icon=ima.icon('filecloseall'),
-                tip=_("Remove all images from the explorer"),
-                triggered=self.close_all_figures)
+            self, icon=ima.icon('filecloseall'),
+            tip=_("Remove all plots"),
+            triggered=self.close_all_figures)
+        closeall_btn.shortcut_data = ('plots', 'close all')
+        closeall_btn.installEventFilter(self)
 
         vsep1 = QFrame()
         vsep1.setFrameStyle(53)
 
         goback_btn = create_toolbutton(
-                self, icon=ima.icon('ArrowBack'),
-                tip=_("Previous figure ({})").format(
-                      CONF.get_shortcut('plots', 'previous figure')),
-                triggered=self.go_previous_thumbnail)
+            self, icon=ima.icon('ArrowBack'),
+            tip=_("Previous plot"),
+            triggered=self.go_previous_thumbnail)
+        goback_btn.shortcut_data = ('plots', 'previous figure')
+        goback_btn.installEventFilter(self)
 
         gonext_btn = create_toolbutton(
-                self, icon=ima.icon('ArrowForward'),
-                tip=_("Next figure ({})").format(
-                      CONF.get_shortcut('plots', 'next figure')),
-                triggered=self.go_next_thumbnail)
+            self, icon=ima.icon('ArrowForward'),
+            tip=_("Next plot"),
+            triggered=self.go_next_thumbnail)
+        gonext_btn.shortcut_data = ('plots', 'next figure')
+        gonext_btn.installEventFilter(self)
 
         vsep2 = QFrame()
         vsep2.setFrameStyle(53)
 
         self.zoom_out_btn = create_toolbutton(
-                self, icon=ima.icon('zoom_out'),
-                tip=_("Zoom out (Ctrl + mouse-wheel-down)"),
-                triggered=self.zoom_out)
+            self, icon=ima.icon('zoom_out'),
+            tip=_("Zoom out (Ctrl + mouse-wheel-down)"),
+            triggered=self.zoom_out)
 
         self.zoom_in_btn = create_toolbutton(
-                self, icon=ima.icon('zoom_in'),
-                tip=_("Zoom in (Ctrl + mouse-wheel-up)"),
-                triggered=self.zoom_in)
+            self, icon=ima.icon('zoom_in'),
+            tip=_("Zoom in (Ctrl + mouse-wheel-up)"),
+            triggered=self.zoom_in)
 
         self.zoom_disp = QSpinBox()
         self.zoom_disp.setAlignment(Qt.AlignCenter)
@@ -272,8 +292,7 @@ class FigureBrowser(QWidget):
 
     def create_shortcuts(self):
         """Create shortcuts for this widget."""
-        # Configurable
-        copyfig = CONF.config_shortcut(
+        copyfig_sc = CONF.config_shortcut(
             self.copy_figure,
             context='plots',
             name='copy',
@@ -291,7 +310,32 @@ class FigureBrowser(QWidget):
             name='next figure',
             parent=self)
 
-        return [copyfig, prevfig, nextfig]
+        savefig_sc = CONF.config_shortcut(
+            self.save_figure,
+            context='plots',
+            name='save',
+            parent=self)
+
+        saveallfig = CONF.config_shortcut(
+            self.save_all_figures,
+            context='plots',
+            name='save all',
+            parent=self)
+
+        closefig = CONF.config_shortcut(
+            self.close_figure,
+            context='plots',
+            name='close',
+            parent=self)
+
+        closeallfig = CONF.config_shortcut(
+            self.close_all_figures,
+            context='plots',
+            name='close all',
+            parent=self)
+
+        return [copyfig_sc, prevfig, nextfig, savefig_sc, saveallfig,
+                closefig, closeallfig]
 
     def get_shortcut_data(self):
         """
