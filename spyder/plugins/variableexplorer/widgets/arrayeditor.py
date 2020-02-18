@@ -691,7 +691,7 @@ class ArrayEditor(BaseDialog):
         self.setLayout(self.layout)
         self.setWindowIcon(ima.icon('arredit'))
         if title:
-            title = to_text_string(title) + " - " + _("NumPy array")
+            title = to_text_string(title) + " - " + _("NumPy object array")
         else:
             title = _("Array editor")
         if readonly:
