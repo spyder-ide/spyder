@@ -124,12 +124,6 @@ class FigureBrowser(QWidget):
 
         # Setup the figure viewer.
         self.figviewer = FigureViewer(background_color=self.background_color)
-        self.figviewer.setStyleSheet("FigureViewer{"
-                                     "border: 1px solid lightgrey;"
-                                     "border-top-width: 0px;"
-                                     "border-bottom-width: 0px;"
-                                     "border-left-width: 0px;"
-                                     "}")
         self.figviewer.figcanvas.sig_save_fig_request.connect(
             self.save_figure)
         self.figviewer.figcanvas.sig_clear_fig_request.connect(
