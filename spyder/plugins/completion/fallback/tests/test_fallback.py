@@ -102,7 +102,7 @@ def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
     open_request = {
         'file': filename,
         'text': contents,
-        'offset': -1,
+        'offset': len(contents),
     }
     fallback.send_request(
         language, LSPRequestTypes.DOCUMENT_DID_OPEN, open_request)
