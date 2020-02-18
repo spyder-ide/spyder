@@ -328,12 +328,12 @@ def test_save_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
     figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
     fext = '.svg' if fmt == 'image/svg+xml' else '.png'
 
-    # Save the second thumbnail of the scrollbar.
+    # Select and save the second thumbnail of the scrollbar.
     figname = osp.join(to_text_string(tmpdir), 'figname' + fext)
     mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
                  return_value=(figname, fext))
-    qtbot.mouseClick(
-        figbrowser.thumbnails_sb._thumbnails[1].savefig_btn, Qt.LeftButton)
+    figbrowser.thumbnails_sb.set_current_index(1)
+    qtbot.mouseClick(figbrowser.savefig_btn, Qt.LeftButton)
 
     expected_qpix = QPixmap()
     expected_qpix.loadFromData(figs[1], fmt.upper())
@@ -351,9 +351,9 @@ def test_close_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
     """
     figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
 
-    # Close the second thumbnail of the scrollbar.
-    qtbot.mouseClick(
-        figbrowser.thumbnails_sb._thumbnails[1].delfig_btn, Qt.LeftButton)
+    # Select and close the second thumbnail of the scrollbar.
+    figbrowser.thumbnails_sb.set_current_index(1)
+    qtbot.mouseClick(figbrowser.closefig_btn, Qt.LeftButton)
     del figs[1]
 
     assert len(figbrowser.thumbnails_sb._thumbnails) == len(figs)

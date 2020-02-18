@@ -155,12 +155,12 @@ class FigureBrowser(QWidget):
 
     def setup_toolbar(self):
         """Setup the toolbar"""
-        savefig_btn = create_toolbutton(
+        self.savefig_btn = create_toolbutton(
             self, icon=ima.icon('filesave'),
             tip=_("Save plot as..."),
             triggered=self.save_figure)
-        savefig_btn.shortcut_data = ('plots', 'save')
-        savefig_btn.installEventFilter(self)
+        self.savefig_btn.shortcut_data = ('plots', 'save')
+        self.savefig_btn.installEventFilter(self)
 
         saveall_btn = create_toolbutton(
             self, icon=ima.icon('save_all'),
@@ -176,12 +176,12 @@ class FigureBrowser(QWidget):
         copyfig_btn.shortcut_data = ('plots', 'copy')
         copyfig_btn.installEventFilter(self)
 
-        closefig_btn = create_toolbutton(
+        self.closefig_btn = create_toolbutton(
             self, icon=ima.icon('editclear'),
             tip=_("Remove plot"),
             triggered=self.close_figure)
-        closefig_btn.shortcut_data = ('plots', 'close')
-        closefig_btn.installEventFilter(self)
+        self.closefig_btn.shortcut_data = ('plots', 'close')
+        self.closefig_btn.installEventFilter(self)
 
         closeall_btn = create_toolbutton(
             self, icon=ima.icon('filecloseall'),
@@ -237,7 +237,7 @@ class FigureBrowser(QWidget):
         layout.addWidget(self.zoom_in_btn)
         layout.addWidget(self.zoom_disp)
 
-        return [savefig_btn, saveall_btn, copyfig_btn, closefig_btn,
+        return [self.savefig_btn, saveall_btn, copyfig_btn, self.closefig_btn,
                 closeall_btn, vsep1, goback_btn, gonext_btn, vsep2, zoom_pan]
 
     def setup_option_actions(self, mute_inline_plotting, show_plot_outline,
