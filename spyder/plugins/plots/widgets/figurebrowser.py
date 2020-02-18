@@ -157,7 +157,7 @@ class FigureBrowser(QWidget):
         savefig_btn = create_toolbutton(
             self, icon=ima.icon('filesave'),
             tip=_("Save plot as..."),
-            triggered=lambda: print('coucou'))
+            triggered=self.save_figure)
         savefig_btn.shortcut_data = ('plots', 'save')
         savefig_btn.installEventFilter(self)
 
