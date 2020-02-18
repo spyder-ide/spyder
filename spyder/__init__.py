@@ -91,5 +91,6 @@ def get_versions(reporev=True):
         'qt_api_ver': qtpy.PYQT_VERSION,
         'system': system,   # Linux, Windows, ...
         'release': platform.release(),  # XP, 10.6, 2.2.0, etc.
-        'revision': revision,  # '9fdf926eccce'
+        'revision': revision,  # '9fdf926eccce',
+        'branch': branch,  # '4.x' or master
     }

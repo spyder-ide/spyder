@@ -136,8 +136,7 @@ def test_comm_base(comms):
 
     received_messages = []
 
-    def handler(msg_dict, buffer, load_exception):
-        assert load_exception is None
+    def handler(msg_dict, buffer):
         received_messages.append((msg_dict, buffer))
 
     # Register callback
