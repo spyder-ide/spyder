@@ -516,7 +516,18 @@ class ProfilerDataTree(QTreeWidget):
 
     def save_data(self, filename):
         """Save profiler data."""
-        self.stats1[0].dump_stats(filename)
+        with open(filename, 'w') as f:
+            self.stats1[0].print_stats()
+            self.format_data(self.stats1[0])
+        # self.stats1[0].dump_stats(filename)
+
+    def format_data(self, stats):
+        """Format the profiler data into a readable format."""
+        stats_list = stats.print_stats()
+        for stat in stats_list:
+            logger.debug('&&&&&')
+            logger.debug(stats_list)
+
 
     def find_root(self):
         """Find a function without a caller"""
