@@ -2824,8 +2824,8 @@ class EditorStack(QWidget):
         if self.focus_to_editor:
             editor.setFocus()
         else:
-            term = QApplication.focusWidget()
-            term.setFocus()
+            console = QApplication.focusWidget()
+            console.setFocus()
 
     #------ Drag and drop
     def dragEnterEvent(self, event):
