@@ -119,9 +119,6 @@ if args.debug:
     # if operation is successful
 
 
-from spyder.utils.vcs import get_git_revision
-print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
-
 # Add this path to the front of sys.path
 sys.path.insert(0, DEVPATH)
 print("01. Patched sys.path with %s" % DEVPATH)
@@ -152,9 +149,10 @@ else:
 # Checking versions (among other things, this has the effect of setting the
 # QT_API environment variable if this has not yet been done just above)
 from spyder import get_versions
-versions = get_versions(reporev=False)
-print("03. Imported Spyder %s" % versions['spyder'])
-print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
+versions = get_versions(reporev=True)
+print("03. Imported Spyder %s - Revision %s, Branch: %s" %
+      (versions['spyder'], versions['revision'], versions['branch']))
+print("    [Python %s %dbits, Qt %s, %s %s on %s]" %
       (versions['python'], versions['bitness'], versions['qt'],
        versions['qt_api'], versions['qt_api_ver'], versions['system']))
 
