@@ -23,9 +23,10 @@ os.environ['SPYDER_PYTEST'] = 'True'
 # Add external dependencies subrepo paths to sys.path
 # NOTE: Please don't move this from here!
 HERE = osp.dirname(os.path.realpath(__file__))
+DEPS_PATH = osp.join(HERE, 'external-deps')
 i = 0
-for path in os.listdir('external-deps'):
-    external_dep_path = osp.join(HERE, 'external-deps', path)
+for path in os.listdir(DEPS_PATH):
+    external_dep_path = osp.join(DEPS_PATH, path)
     sys.path.insert(i, external_dep_path)
     i += 1
 
