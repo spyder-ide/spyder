@@ -60,6 +60,7 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               SnippetsExtension)
 from spyder.plugins.completion.kite.widgets.calltoaction import (
     KiteCallToAction)
+from spyder.plugins.completion.fallback.actor import FALLBACK_COMPLETION
 from spyder.plugins.completion.languageserver import (LSPRequestTypes,
                                                       TextDocumentSyncKind,
                                                       DiagnosticSeverity)
@@ -1128,7 +1129,8 @@ class CodeEditor(TextEditBaseWidget):
                               or completion.get('textEdit', {}).get('newText'))
             # Discard fallback entries if they were not requested explicitly
             fallback_condition = (not automatic
-                                  or completion['provider'] != 'Fallback')
+                                  or (completion['provider'] !=
+                                      FALLBACK_COMPLETION))
             # Include fallback entries if they are the only source available
             fallback_condition = fallback_condition or include_fallback
             return info_condition and fallback_condition
@@ -1143,7 +1145,8 @@ class CodeEditor(TextEditBaseWidget):
             completions = params['params']
             stats = params['stats']
             stats = {src: stats[src] for src in stats if stats[src] > 0}
-            include_fallback = len(stats) == 1 and 'fallback' in stats
+            include_fallback = (len(stats) == 1 and
+                                FALLBACK_COMPLETION.lower() in stats)
             completions = ([] if completions is None else
                            [completion for completion in completions
                             if filter_completion(completion,
