@@ -97,6 +97,25 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
                                   CONF.get('main', 'high_dpi_scaling'))
 
 #==============================================================================
+# Get CLI options and set OpenGL backend. This attibute must
+# be set before creating the application. See spyder-ide/spyder#11227
+#==============================================================================
+from spyder.app.utils import set_opengl_implementation
+from spyder.app.cli_options import get_options
+
+# Get CLI options/args and make them available for future use
+CLI_OPTIONS, CLI_ARGS = get_options()
+
+# **** Set OpenGL implementation to use ****
+if CLI_OPTIONS.opengl_implementation:
+    option = CLI_OPTIONS.opengl_implementation
+    set_opengl_implementation(option)
+else:
+    if CONF.get('main', 'opengl') != 'automatic':
+        option = CONF.get('main', 'opengl')
+        set_opengl_implementation(option)
+
+#==============================================================================
 # Create our QApplication instance here because it's needed to render the
 # splash screen created below
 #==============================================================================
@@ -135,15 +154,13 @@ else:
 from spyder import (__version__, __project_url__, __forum_url__,
                     __trouble_url__, __website_url__, get_versions)
 from spyder.app.utils import (get_python_doc_path, delete_lsp_log_files,
-                              qt_message_handler, set_opengl_implementation,
-                              setup_logging)
+                              qt_message_handler, setup_logging)
 from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
                                 get_debug_level, MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_anaconda, is_gtk_desktop
-from spyder.app.cli_options import get_options
 from spyder import dependencies
 from spyder.py3compat import (is_text_string, to_text_string,
                               PY3, qbytearray_to_str, configparser as cp)
@@ -3615,16 +3632,7 @@ def main():
     # Note regarding Options:
     # It's important to collect options before monkey patching sys.exit,
     # otherwise, argparse won't be able to exit if --help option is passed
-    options, args = get_options()
-
-    # **** Set OpenGL implementation to use ****
-    if options.opengl_implementation:
-        option = options.opengl_implementation
-        set_opengl_implementation(option)
-    else:
-        if CONF.get('main', 'opengl') != 'automatic':
-            option = CONF.get('main', 'opengl')
-            set_opengl_implementation(option)
+    options, args = (CLI_OPTIONS, CLI_ARGS)
 
     # **** Handle hide_console option ****
     if options.show_console:
