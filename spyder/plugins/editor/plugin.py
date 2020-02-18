@@ -525,10 +525,11 @@ class Editor(SpyderPluginWidget):
         self.winpdb_action.setEnabled(WINPDB_PATH is not None and PY2)
 
         # --- Debug toolbar ---
-        self.debug_action = create_action(self, _("&Debug"),
-                                          icon=ima.icon('debug'),
-                                          tip=_("Debug file"),
-                                          triggered=self.debug_file)
+        self.debug_action = create_action(
+            self, _("&Debug"),
+            icon=ima.icon('debug'),
+            tip=_("Debug file"),
+            triggered=self.debug_file)
         self.register_shortcut(self.debug_action, context="_", name="Debug",
                                add_shortcut_to_tip=True)
 
@@ -1075,16 +1076,17 @@ class Editor(SpyderPluginWidget):
 
     def update_pdb_state(self, state, last_step):
         """Enable/disable debugging actions and handle pdb state change."""
-        self.debug_action.setEnabled(not state)
-        self.debug_cell_action.setEnabled(not state)
-        self.debug_next_action.setEnabled(state)
-        self.debug_step_action.setEnabled(state)
-        self.debug_return_action.setEnabled(state)
-        self.debug_continue_action.setEnabled(state)
-        self.debug_exit_action.setEnabled(state)
+        # Enable/disable actions taking into account debugging state:
+        # self.debug_action.setEnabled(not state)
+        # self.debug_cell_action.setEnabled(not state)
+        # self.debug_next_action.setEnabled(state)
+        # self.debug_step_action.setEnabled(state)
+        # self.debug_return_action.setEnabled(state)
+        # self.debug_continue_action.setEnabled(state)
+        # self.debug_exit_action.setEnabled(state)
         current_editor = self.get_current_editor()
         if current_editor:
-            current_editor.update_debug_state(state, last_step)
+            current_editor.update_debugger_panel_state(state, last_step)
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
@@ -2021,7 +2023,9 @@ class Editor(SpyderPluginWidget):
         self.redirect_stdio.emit(True)
 
     def can_close_file(self, filename=None):
-        """Check if a file can be close taking into account debugging state."""
+        """
+        Check if a file can be closed taking into account debugging state.
+        """
         debugging = self.main.ipyconsole.get_pdb_state()
         last_pdb_step = self.main.ipyconsole.get_pdb_last_step()
         can_close = True

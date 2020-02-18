@@ -1446,8 +1446,8 @@ class CodeEditor(TextEditBaseWidget):
         else:
             debugger_panel.setVisible(False)
 
-    def update_debug_state(self, state, last_step, force=False):
-        """Update debug state."""
+    def update_debugger_panel_state(self, state, last_step, force=False):
+        """Update debugger panel state."""
         debugger_panel = self.panels.get(DebuggerPanel)
         if force:
             debugger_panel.start_clean()

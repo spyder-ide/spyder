@@ -383,7 +383,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.workingdirectory.set_current_console_wd.connect(
             self.set_current_client_working_directory)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
-        self.tabwidget.currentChanged.connect(self.pdb_state_check)
+        self.tabwidget.currentChanged.connect(self.check_pdb_state)
         self._remove_old_stderr_files()
 
         # Update kernels if python path is changed
@@ -615,7 +615,7 @@ class IPythonConsole(SpyderPluginWidget):
             return sw.get_pdb_last_step()
         return {}
 
-    def pdb_state_check(self):
+    def check_pdb_state(self):
         """
         Check if actions need to be taken checking the last pdb state.
         """
