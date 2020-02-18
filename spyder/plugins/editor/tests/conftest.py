@@ -48,6 +48,10 @@ def editor_plugin(qtbot, monkeypatch):
                 projects = Mock()
                 projects.get_active_project.return_value = None
                 return projects
+            elif attr == 'ipyconsole':
+                ipyconsole = Mock()
+                ipyconsole.get_pdb_state.return_value = False
+                return ipyconsole
             else:
                 return Mock()
 
