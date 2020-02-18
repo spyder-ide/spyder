@@ -53,3 +53,26 @@ def test_dont_use(pattern, exclude_patterns, message):
                             found += 1
 
     assert found == 0, "{}\n{} errors found".format(message, found)
+
+
+@pytest.mark.parametrize("pattern", [u"％"])
+def test_check_charaters_translation(pattern):
+    u"""
+    This test is used to prevent the addition of unwanted unicode characters
+    in the translations like ％ instead of %.
+
+    """
+    found = 0
+    for dir_name, _, file_list in os.walk(os.path.join(root_path, 'locale')):
+        for fname in file_list:
+            if fname.endswith('.po'):
+                file = os.path.join(dir_name, fname)
+
+                with codecs.open(file, encoding="utf-8") as f:
+                    for i, line in enumerate(f):
+                        for match in re.finditer(pattern, line):
+                            print(u"{}\nline:{}, {}".format(file, i + 1, line))
+                            found += 1
+
+    assert found == 0, u"{}\n{} characters found".format(
+        u"Strange characters found in translations", found)

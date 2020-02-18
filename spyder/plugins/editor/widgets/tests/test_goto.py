@@ -17,6 +17,7 @@ import pytest
 
 # Local imports
 from spyder.plugins.editor.widgets.tests.test_codeeditor import editorbot
+from spyder.utils.vcs import get_git_remotes
 
 # Constants
 HERE = os.path.abspath(__file__)
@@ -71,8 +72,11 @@ TEST_FILE_REL = 'conftest.py'
              'https://github.com/spyder-ide/spyder/issues/123'),
             ('# gh:spyder-ide/spyder#123\n', 'gh:spyder-ide/spyder#123', None,
              'https://github.com/spyder-ide/spyder/issues/123'),
-            ('# gh-123\n', 'gh-123', HERE,
-             'https://github.com/spyder-ide/spyder/issues/123'),
+            pytest.param(('# gh-123\n', 'gh-123', HERE,
+                          'https://github.com/spyder-ide/spyder/issues/123'),
+                         marks=pytest.mark.skipif(
+                             not(get_git_remotes(HERE)),
+                             reason='not in a git repository')),
         ]
     )
 def test_goto_uri(qtbot, editorbot, mocker, params):
@@ -140,3 +144,17 @@ def test_goto_uri_message_box(qtbot, editorbot, mocker):
     code_editor.filename = None
     code_editor._last_hover_pattern_key = None
     code_editor._last_hover_pattern_text = None
+
+
+def test_pattern_highlight_regression(qtbot, editorbot):
+    """Fix regression on spyder-ide/spyder#11376."""
+    _, code_editor = editorbot
+    code_editor.show()
+
+    # This was generating an infinite loop
+    code_editor.set_text("'''\ngl-")
+    qtbot.wait(500)
+    code_editor.moveCursor(QTextCursor.End)
+    qtbot.wait(500)
+    qtbot.keyClick(code_editor, Qt.Key_1)
+    qtbot.wait(1000)

@@ -2,19 +2,20 @@
 # So to get performant launches on mybinder.org, we have copied
 # the contents of this file to binder/environment.yml. If you
 # make changes here, please copy them over there too.
-pytest <5.0
-pytest-mock
-pytest-cov
-pytest-qt
-pytest-ordering
-pytest-lazy-fixture
-pytest-faulthandler <2.0
-mock
-pandas
-scipy
-sympy
-pillow
-matplotlib
+coverage <5.0
 cython
 flaky
-coverage <5.0
+matplotlib
+mock
+pandas
+pillow
+pytest <5.0
+pytest-cov
+pytest-faulthandler <2.0
+pytest-lazy-fixture
+pytest-mock
+pytest-ordering
+pytest-qt
+pyyaml
+scipy
+sympy

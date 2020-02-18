@@ -1,0 +1,17 @@
+# https://travis-ci.org/spyder-ide/spyder-kernels
+
+language: generic
+os: osx
+
+matrix:
+  fast_finish: true
+  include:
+    - env: PYTHON_VERSION=2.7
+    - env: PYTHON_VERSION=3.6
+    - env: PYTHON_VERSION=3.7
+
+install:
+  - ./ci/install.sh
+
+script:
+  - ./ci/runtests.sh

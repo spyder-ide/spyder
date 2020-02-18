@@ -136,6 +136,10 @@ class PluginWindow(QMainWindow):
         self.plugin.dockwidget.setVisible(True)
         self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
+        # Qt might want to do something with this soon,
+        # So it should not be deleted by python yet.
+        # Fixes spyder-ide/spyder#10704
+        self.plugin.__unsafe__window = self
         self.plugin._undocked_window = None
 
 

@@ -311,7 +311,8 @@ class BaseSH(QSyntaxHighlighter):
                     font = self.format(start)
                     font.setUnderlineStyle(True)
                     self.setFormat(start, end - start, font)
-            match = self.patterns.search(text, end)
+
+            match = self.patterns.search(text, match.end())
 
     def highlight_spaces(self, text, offset=0):
         """

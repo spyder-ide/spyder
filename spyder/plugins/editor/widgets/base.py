@@ -676,17 +676,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.insertText(text)
         cursor.endEditBlock()
 
-    def duplicate_line(self):
+    def duplicate_line_down(self):
         """
-        Duplicate current line or selected text
-        Paste the duplicated text *after* the current line/selected text
+        Copy current line or selected text and paste the duplicated text
+        *after* the current line or selected text.
         """
         self.__duplicate_line_or_selection(after_current_line=True)
 
-    def copy_line(self):
+    def duplicate_line_up(self):
         """
-        Copy current line or selected text
-        Paste the duplicated text *before* the current line/selected text
+        Copy current line or selected text and paste the duplicated text
+        *before* the current line or selected text.
         """
         self.__duplicate_line_or_selection(after_current_line=False)
 
@@ -1046,8 +1046,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                         self.zoom_in.emit()
                 return
         QPlainTextEdit.wheelEvent(self, event)
+        # Needed to prevent stealing focus to the find widget when scrolling
+        # See spyder-ide/spyder#11502
+        current_widget = QApplication.focusWidget()
         self.hide_completion_widget()
         self.highlight_current_cell()
+        if current_widget is not None:
+            current_widget.setFocus()
 
     def position_widget_at_cursor(self, widget):
         # Retrieve current screen height
