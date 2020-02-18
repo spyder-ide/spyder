@@ -3747,7 +3747,7 @@ def main():
         return
     elif options.reset_to_defaults:
         # Reset Spyder settings to defaults
-        CONF.reset_to_defaults(save=True)
+        CONF.reset_to_defaults()
         return
     elif options.optimize:
         # Optimize the whole Spyder's source code directory
