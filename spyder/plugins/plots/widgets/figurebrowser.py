@@ -122,6 +122,7 @@ class FigureBrowser(QWidget):
             self.auto_fit_action.setChecked(auto_fit_plotting)
             return
 
+        # Setup the figure viewer.
         self.figviewer = FigureViewer(background_color=self.background_color)
         self.figviewer.setStyleSheet("FigureViewer{"
                                      "border: 1px solid lightgrey;"
@@ -129,6 +130,12 @@ class FigureBrowser(QWidget):
                                      "border-bottom-width: 0px;"
                                      "border-left-width: 0px;"
                                      "}")
+        self.figviewer.figcanvas.sig_save_fig_request.connect(
+            self.save_figure)
+        self.figviewer.figcanvas.sig_clear_fig_request.connect(
+            self.close_figure)
+
+        # Setup the thumbnail scrollbar.
         self.thumbnails_sb = ThumbnailScrollBar(
             self.figviewer, background_color=self.background_color)
 
@@ -939,6 +946,8 @@ class FigureThumbnail(QWidget):
         super(FigureThumbnail, self).__init__(parent)
         self.canvas = FigureCanvas(self, background_color=background_color)
         self.canvas.installEventFilter(self)
+        self.canvas.sig_clear_fig_request.connect(self.emit_remove_figure)
+        self.canvas.sig_save_fig_request.connect(self.emit_save_figure)
         self.setup_gui()
 
     def setup_gui(self):
@@ -1008,6 +1017,8 @@ class FigureCanvas(QFrame):
     """
     A basic widget on which can be painted a custom png, jpg, or svg image.
     """
+    sig_clear_fig_request = Signal()
+    sig_save_fig_request = Signal()
 
     def __init__(self, parent=None, background_color=None):
         super(FigureCanvas, self).__init__(parent)
@@ -1031,10 +1042,20 @@ class FigureCanvas(QFrame):
             pos = QPoint(event.x(), event.y())
             context_menu = QMenu(self)
             context_menu.addAction(
+                ima.icon('filesave'),
+                "Save plot as...",
+                lambda: self.sig_save_fig_request.emit(),
+                QKeySequence(CONF.get_shortcut('plots', 'save')))
+            context_menu.addAction(
                 ima.icon('editcopy'),
                 "Copy Image",
                 self.copy_figure,
                 QKeySequence(CONF.get_shortcut('plots', 'copy')))
+            context_menu.addAction(
+                ima.icon('editclear'),
+                "Remove plot",
+                lambda: self.sig_clear_fig_request.emit(),
+                QKeySequence(CONF.get_shortcut('plots', 'close')))
             context_menu.popup(self.mapToGlobal(pos))
 
     @Slot()
