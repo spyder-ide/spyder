@@ -519,6 +519,7 @@ DEFAULTS = [
               # Enable the installation dialog
               'show_installation_dialog': True,
               'show_onboarding': True,
+              'show_installation_error_message': True,
              }),
             ]
 
