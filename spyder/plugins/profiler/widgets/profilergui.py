@@ -17,6 +17,7 @@ https://docs.python.org/3/library/profile.html
 from __future__ import with_statement
 import os
 import os.path as osp
+import io
 from itertools import islice
 import sys
 import time
@@ -516,18 +517,22 @@ class ProfilerDataTree(QTreeWidget):
 
     def save_data(self, filename):
         """Save profiler data."""
-        with open(filename, 'w') as f:
-            self.stats1[0].print_stats()
-            self.format_data(self.stats1[0])
-        # self.stats1[0].dump_stats(filename)
+        # Save the profiler data using a stream in a csv file
+        stream = io.StringIO()
+        self.stats1[0].stream = stream
+        self.stats1[0].print_stats()
+        data = stream.getvalue()
+        data = 'ncalls' + data.split('ncalls')[-1]
+        data = '\n'.join([','.join(
+            line.rstrip().split(None, 6)) for line in data.split('\n')])
 
-    def format_data(self, stats):
-        """Format the profiler data into a readable format."""
-        stats_list = stats.print_stats()
-        for stat in stats_list:
-            logger.debug('&&&&&')
-            logger.debug(stats_list)
+        # # save it to disk
+        f = open(filename.rsplit('.')[0] + '.csv', 'w')
+        f.write(data)
+        f.close()
 
+        # Save the profiler as object for loading purposes
+        self.stats1[0].dump_stats(filename)
 
     def find_root(self):
         """Find a function without a caller"""
