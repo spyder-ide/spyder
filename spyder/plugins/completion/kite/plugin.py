@@ -9,6 +9,7 @@
 # Standard library imports
 import logging
 import functools
+import os.path as osp
 
 # Qt imports
 from qtpy.QtCore import Slot
@@ -156,11 +157,12 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
                 box.set_checked(False)
                 box.set_check_visible(True)
                 box.setText(
-                    _("Seems like your Kite installation is faulty. "
-                      "If you want to use Kite, please remove all files "
-                      "related to Kite at the following path, "
+                    _("It seems like your Kite installation is faulty. "
+                      "If you want to use Kite, please remove the "
+                      "directory that appears bellow, "
                       "and try a reinstallation:<br><br>"
-                      "<code>{path}</code>".format(path=path)))
+                      "<code>{kite_dir}</code>".format(
+                          kite_dir=osp.dirname(path))))
 
                 box.exec_()
 
