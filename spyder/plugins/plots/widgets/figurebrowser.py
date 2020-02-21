@@ -1039,17 +1039,17 @@ class FigureCanvas(QFrame):
             context_menu = QMenu(self)
             context_menu.addAction(
                 ima.icon('filesave'),
-                "Save plot as...",
+                _("Save plot as..."),
                 lambda: self.sig_save_fig_requested.emit(),
                 QKeySequence(CONF.get_shortcut('plots', 'save')))
             context_menu.addAction(
                 ima.icon('editcopy'),
-                "Copy Image",
+                _("Copy Image"),
                 self.copy_figure,
                 QKeySequence(CONF.get_shortcut('plots', 'copy')))
             context_menu.addAction(
                 ima.icon('editclear'),
-                "Remove plot",
+                _("Remove plot"),
                 lambda: self.sig_clear_fig_requested.emit(),
                 QKeySequence(CONF.get_shortcut('plots', 'close')))
             context_menu.popup(self.mapToGlobal(pos))
