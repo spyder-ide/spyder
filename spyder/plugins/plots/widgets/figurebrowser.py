@@ -155,7 +155,7 @@ class FigureBrowser(QWidget):
         self.setLayout(layout)
 
     def setup_toolbar(self):
-        """Setup the toolbar"""
+        """Setup the toolbar."""
         self.savefig_btn = create_toolbutton(
             self, icon=ima.icon('filesave'),
             tip=_("Save plot as..."),
@@ -191,8 +191,8 @@ class FigureBrowser(QWidget):
         closeall_btn.shortcut_data = ('plots', 'close all')
         closeall_btn.installEventFilter(self)
 
-        vsep1 = QFrame()
-        vsep1.setFrameStyle(53)
+        vertical_separator1 = QFrame()
+        vertical_separator1.setFrameStyle(53)
 
         goback_btn = create_toolbutton(
             self, icon=ima.icon('ArrowBack'),
@@ -208,8 +208,8 @@ class FigureBrowser(QWidget):
         gonext_btn.shortcut_data = ('plots', 'next figure')
         gonext_btn.installEventFilter(self)
 
-        vsep2 = QFrame()
-        vsep2.setFrameStyle(53)
+        vertical_separator2 = QFrame()
+        vertical_separator2.setFrameStyle(53)
 
         self.zoom_out_btn = create_toolbutton(
             self, icon=ima.icon('zoom_out'),
@@ -239,7 +239,8 @@ class FigureBrowser(QWidget):
         layout.addWidget(self.zoom_disp)
 
         return [self.savefig_btn, saveall_btn, copyfig_btn, self.closefig_btn,
-                closeall_btn, vsep1, goback_btn, gonext_btn, vsep2, zoom_pan]
+                closeall_btn, vertical_separator1, goback_btn, gonext_btn,
+                vertical_separator2, zoom_pan]
 
     def setup_option_actions(self, mute_inline_plotting, show_plot_outline,
                              auto_fit_plotting):
