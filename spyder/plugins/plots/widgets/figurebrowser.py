@@ -360,10 +360,17 @@ class FigureBrowser(QWidget):
     def show_fig_outline_in_viewer(self, state):
         """Draw a frame around the figure viewer if state is True."""
         if state is True:
-            self.figviewer.figcanvas.setStyleSheet(
-                "FigureCanvas{border: 1px solid lightgrey;}")
+            if is_dark_interface():
+                self.figviewer.figcanvas.setStyleSheet(
+                    "FigureCanvas{border:1px solid %s;}" %
+                    qdarkstyle.palette.DarkPalette.COLOR_BACKGROUND_NORMAL)
+            else:
+                self.figviewer.figcanvas.setStyleSheet(
+                    "FigureCanvas{border: 1px solid %s;}" %
+                    self.figviewer.figcanvas.palette().shadow().color().name())
         else:
-            self.figviewer.figcanvas.setStyleSheet("FigureCanvas{}")
+            self.figviewer.figcanvas.setStyleSheet(
+                "FigureCanvas{border: 0px;}")
         self.option_changed('show_plot_outline', state)
 
     def change_auto_fit_plotting(self, state):
