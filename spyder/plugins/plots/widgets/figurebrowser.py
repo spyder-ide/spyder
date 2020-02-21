@@ -125,9 +125,9 @@ class FigureBrowser(QWidget):
 
         # Setup the figure viewer.
         self.figviewer = FigureViewer(background_color=self.background_color)
-        self.figviewer.figcanvas.sig_save_fig_request.connect(
+        self.figviewer.figcanvas.sig_save_fig_requested.connect(
             self.save_figure)
-        self.figviewer.figcanvas.sig_clear_fig_request.connect(
+        self.figviewer.figcanvas.sig_clear_fig_requested.connect(
             self.close_figure)
 
         # Setup the thumbnail scrollbar.
@@ -940,8 +940,8 @@ class FigureThumbnail(QWidget):
         super(FigureThumbnail, self).__init__(parent)
         self.canvas = FigureCanvas(self, background_color=background_color)
         self.canvas.installEventFilter(self)
-        self.canvas.sig_clear_fig_request.connect(self.emit_remove_figure)
-        self.canvas.sig_save_fig_request.connect(self.emit_save_figure)
+        self.canvas.sig_clear_fig_requested.connect(self.emit_remove_figure)
+        self.canvas.sig_save_fig_requested.connect(self.emit_save_figure)
         self.setup_gui()
 
     def setup_gui(self):
@@ -1013,8 +1013,8 @@ class FigureCanvas(QFrame):
     """
     A basic widget on which can be painted a custom png, jpg, or svg image.
     """
-    sig_clear_fig_request = Signal()
-    sig_save_fig_request = Signal()
+    sig_clear_fig_requested = Signal()
+    sig_save_fig_requested = Signal()
 
     def __init__(self, parent=None, background_color=None):
         super(FigureCanvas, self).__init__(parent)
@@ -1040,7 +1040,7 @@ class FigureCanvas(QFrame):
             context_menu.addAction(
                 ima.icon('filesave'),
                 "Save plot as...",
-                lambda: self.sig_save_fig_request.emit(),
+                lambda: self.sig_save_fig_requested.emit(),
                 QKeySequence(CONF.get_shortcut('plots', 'save')))
             context_menu.addAction(
                 ima.icon('editcopy'),
@@ -1050,7 +1050,7 @@ class FigureCanvas(QFrame):
             context_menu.addAction(
                 ima.icon('editclear'),
                 "Remove plot",
-                lambda: self.sig_clear_fig_request.emit(),
+                lambda: self.sig_clear_fig_requested.emit(),
                 QKeySequence(CONF.get_shortcut('plots', 'close')))
             context_menu.popup(self.mapToGlobal(pos))
 
