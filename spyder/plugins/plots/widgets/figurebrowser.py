@@ -16,6 +16,7 @@ import os.path as osp
 import sys
 
 # ---- Third library imports
+import qdarkstyle
 from qtconsole.svg import svg_to_image, svg_to_clipboard
 from qtpy.compat import getsavefilename, getexistingdirectory
 from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, QSize, QTimer, Slot
@@ -954,16 +955,18 @@ class FigureThumbnail(QWidget):
         """
         Set a colored frame around the FigureCanvas if highlight is True.
         """
-        colorname = self.canvas.palette().highlight().color().name()
         if highlight:
             # Highlighted figure is not clear in dark mode with blue color.
             # See spyder-ide/spyder#10255.
             if is_dark_interface():
                 self.canvas.setStyleSheet(
-                    "FigureCanvas{border: 2px solid %s;}" % "#148CD2")
+                    "FigureCanvas{border: 2px solid %s;}" %
+                    qdarkstyle.palette.DarkPalette.COLOR_SELECTION_LIGHT
+                    )
             else:
                 self.canvas.setStyleSheet(
-                    "FigureCanvas{border: 2px solid %s;}" % colorname)
+                    "FigureCanvas{border: 2px solid %s;}" %
+                    self.canvas.palette().highlight().color().name())
         else:
             self.canvas.setStyleSheet("FigureCanvas{}")
 
