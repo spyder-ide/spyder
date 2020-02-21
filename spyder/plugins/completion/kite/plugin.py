@@ -157,7 +157,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
                 box.set_checked(False)
                 box.set_check_visible(True)
                 box.setText(
-                    _("It seems like your Kite installation is faulty. "
+                    _("It seems that your Kite installation is faulty. "
                       "If you want to use Kite, please remove the "
                       "directory that appears bellow, "
                       "and try a reinstallation:<br><br>"
