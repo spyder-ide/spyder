@@ -119,10 +119,15 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def load_data(self, filename, ext):
         try:
+            # TODO: Add dialog informing of possible override of variables
+            #       Check if user wants an override or wants to keep possible
+            #       all values
+            override = False
             return self.call_kernel(
                 interrupt=True,
                 blocking=True,
-                timeout=CALL_KERNEL_TIMEOUT).load_data(filename, ext)
+                timeout=CALL_KERNEL_TIMEOUT).load_data(
+                    filename, ext, override=override)
         except TimeoutError:
             msg = _("Data is too big to be loaded")
             return msg
