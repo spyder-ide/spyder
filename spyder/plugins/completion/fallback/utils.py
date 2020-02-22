@@ -26,6 +26,8 @@ from pygments.lexer import words
 from pygments.lexers import (get_lexer_for_filename, get_lexer_by_name,
                              TextLexer)
 
+letter_regex = re.compile(r'\w')
+empty_regex = re.compile(r'\s')
 
 # CamelCase and snake_case regex:
 # Get all valid tokens that start by a letter (Unicode) and are
@@ -111,6 +113,25 @@ def get_words(text, exclude_offset=None, language=None):
                         m.end() < exclude_offset)
               if x != '']
     return tokens
+
+
+def is_prefix_valid(text, offset, language):
+    """Check if current offset prefix ."""
+    regex = LANGUAGE_REGEX.get(language.lower(), all_regex)
+    prefix = ''
+    current_pos_text = text[offset - 1]
+    empty_start = empty_regex.match(current_pos_text) is not None
+    max_end = -1
+    for match in regex.finditer(text):
+        start, end = match.span()
+        max_end = max(end, max_end)
+        if offset >= start and offset <= end:
+            prefix = match.group()
+    if offset > max_end:
+        if letter_regex.match(current_pos_text):
+            prefix = current_pos_text
+    valid = prefix != '' or (prefix == '' and empty_start)
+    return valid
 
 
 @memoize
