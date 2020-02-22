@@ -1700,7 +1700,10 @@ class EditorStack(QWidget):
             else:
                 new_index = current_index
 
-        is_ok = force or self.save_if_changed(cancelable=True, index=index)
+        can_close_file = self.parent().plugin.can_close_file(
+            self.data[index].filename) if self.parent() else True
+        is_ok = (force or self.save_if_changed(cancelable=True, index=index)
+                 and can_close_file)
         if is_ok:
             finfo = self.data[index]
             self.threadmanager.close_threads(finfo)
@@ -2395,11 +2398,6 @@ class EditorStack(QWidget):
             state = finfo.editor.document().isModified()
             self.set_stack_title(index, state)
 
-    def __reset_tooltip(self):
-        """Reset tooltip tip info for all the editors."""
-        for index, finfo in enumerate(self.data):
-            finfo.editor.reset_tooltip()
-
     def refresh(self, index=None):
         """Refresh tabwidget"""
         if index is None:
@@ -2416,7 +2414,6 @@ class EditorStack(QWidget):
             self.__refresh_readonly(index)
             self.__check_file_status(index)
             self.__modify_stack_title()
-            self.__reset_tooltip()
             self.update_plugin_title.emit()
         else:
             editor = None
@@ -2827,7 +2824,11 @@ class EditorStack(QWidget):
                 self.debug_cell_in_ipyclient.emit(*args)
             else:
                 self.run_cell_in_ipyclient.emit(*args)
-        editor.setFocus()
+        if self.focus_to_editor:
+            editor.setFocus()
+        else:
+            console = QApplication.focusWidget()
+            console.setFocus()
 
     #------ Drag and drop
     def dragEnterEvent(self, event):

@@ -17,7 +17,7 @@ import sys
 import pytest
 from qtpy.QtCore import QEvent, QPoint, Qt, QTimer
 from qtpy.QtGui import QMouseEvent
-from qtpy.QtWidgets import QApplication, QMenu, QMessageBox
+from qtpy.QtWidgets import QApplication, QInputDialog, QMenu, QMessageBox
 
 # Local imports
 from spyder.plugins.explorer.widgets.explorer import (FileExplorerTest,
@@ -161,6 +161,26 @@ def test_delete_file(explorer_with_files, mocker):
     mocker.patch.object(QMessageBox, 'warning', return_value=QMessageBox.Yes)
     project.explorer.treewidget.delete(fnames=[top_folder])
     assert not osp.exists(top_folder)
+
+
+def test_rename_file_with_files(explorer_with_files, mocker, qtbot):
+    """Test that rename_file renames the file and sends out right signal."""
+    project, __, file_paths, __, __ = explorer_with_files
+    for old_path in file_paths:
+        if osp.isfile(old_path):
+            old_basename = osp.basename(old_path)
+            new_basename = 'new' + old_basename
+            new_path = osp.join(osp.dirname(old_path), new_basename)
+            mocker.patch.object(QInputDialog, 'getText',
+                                return_value=(new_basename, True))
+            treewidget = project.explorer.treewidget
+            with qtbot.waitSignal(treewidget.sig_renamed) as blocker:
+                treewidget.rename_file(old_path)
+            assert blocker.args == [old_path, new_path]
+            assert not osp.exists(old_path)
+            with open(new_path, 'r') as fh:
+                text = fh.read()
+            assert text == "File Path:\n" + str(old_path).replace(os.sep, '/')
 
 
 def test_single_click_to_open(qtbot, file_explorer):
