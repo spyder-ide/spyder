@@ -339,7 +339,15 @@ class AutosaveForStack(object):
         if finfo.newly_created:
             return
         orig_filename = finfo.filename
-        orig_hash = self.file_hashes[orig_filename]
+        try:
+            orig_hash = self.file_hashes[orig_filename]
+        except KeyError:
+            # This should not happen, but it does: spyder-ide/spyder#11468
+            # In this case, use an impossible value for the hash, so that
+            # contents of buffer are considered different from contents of
+            # original file.
+            logger.error('KeyError when retrieving hash of %s', orig_filename)
+            orig_hash = None
         new_hash = self.stack.compute_hash(finfo)
         if orig_filename in self.name_mapping:
             autosave_filename = self.name_mapping[orig_filename]

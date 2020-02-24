@@ -146,7 +146,8 @@ def test_try_recover(mocker, tmpdir, error_on_remove):
         assert not pidfile.check()
 
 
-def test_autosave(mocker):
+@pytest.mark.parametrize('have_hash', [True, False])
+def test_autosave(mocker, have_hash):
     """Test that AutosaveForStack.maybe_autosave writes the contents to the
     autosave file and updates the file_hashes."""
     mock_editor = mocker.Mock()
@@ -157,14 +158,19 @@ def test_autosave(mocker):
     mock_stack = mocker.Mock(data=[mock_fileinfo])
     addon = AutosaveForStack(mock_stack)
     addon.name_mapping = {'orig': 'autosave'}
-    addon.file_hashes = {'orig': 1, 'autosave': 2}
+    addon.file_hashes = {'autosave': 2}
+    if have_hash:
+        addon.file_hashes['orig'] = 1
     mock_stack.compute_hash.return_value = 3
 
     addon.maybe_autosave(0)
 
     mock_stack._write_to_file.assert_called_with(mock_fileinfo, 'autosave')
     mock_stack.compute_hash.assert_called_with(mock_fileinfo)
-    assert addon.file_hashes == {'orig': 1, 'autosave': 3}
+    if have_hash:
+        assert addon.file_hashes == {'orig': 1, 'autosave': 3}
+    else:
+        assert addon.file_hashes == {'autosave': 3}
 
 
 def test_save_autosave_mapping_with_nonempty_mapping(mocker, tmpdir):
