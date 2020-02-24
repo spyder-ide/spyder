@@ -648,7 +648,7 @@ class ThumbnailScrollBar(QFrame):
         # So to scroll programmatically to the latest item after it
         # is added to the scrollarea, we need to do it instead in a slot
         # connected to the scrollbar's rangeChanged signal.
-        # See spyder-ide/#10914 for more details.
+        # See spyder-ide/spyder#10914 for more details.
         self._new_thumbnail_added = False
         self.scrollarea.verticalScrollBar().rangeChanged.connect(
             self._scroll_to_newest_item)
