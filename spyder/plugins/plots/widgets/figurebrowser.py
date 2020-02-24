@@ -666,6 +666,9 @@ class ThumbnailScrollBar(QFrame):
 
         self.scene = QGridLayout(self.view)
         self.scene.setContentsMargins(0, 0, 0, 0)
+        # The vertical spacing between the thumbnails.
+        # Note that we need to set this value explicitly or else the tests
+        # are failing on macOS. See spyder-ide/spyder#11576.
         self.scene.setSpacing(5)
 
         self.scrollarea = QScrollArea()
