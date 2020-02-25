@@ -213,13 +213,17 @@ class FigureBrowser(QWidget):
 
         self.zoom_out_btn = create_toolbutton(
             self, icon=ima.icon('zoom_out'),
-            tip=_("Zoom out (Ctrl + mouse-wheel-down)"),
+            tip=_("Zoom out"),
             triggered=self.zoom_out)
+        self.zoom_out_btn.shortcut_data = ('plots', 'zoom out')
+        self.zoom_out_btn.installEventFilter(self)
 
         self.zoom_in_btn = create_toolbutton(
             self, icon=ima.icon('zoom_in'),
-            tip=_("Zoom in (Ctrl + mouse-wheel-up)"),
+            tip=_("Zoom in"),
             triggered=self.zoom_in)
+        self.zoom_in_btn.shortcut_data = ('plots', 'zoom in')
+        self.zoom_in_btn.installEventFilter(self)
 
         self.zoom_disp = QSpinBox()
         self.zoom_disp.setAlignment(Qt.AlignCenter)
@@ -337,8 +341,20 @@ class FigureBrowser(QWidget):
             name='close all',
             parent=self)
 
+        zoom_out = CONF.config_shortcut(
+            self.zoom_out,
+            context='plots',
+            name='zoom out',
+            parent=self)
+
+        zoom_in = CONF.config_shortcut(
+            self.zoom_in,
+            context='plots',
+            name='zoom in',
+            parent=self)
+
         return [copyfig_sc, prevfig, nextfig, savefig_sc, saveallfig,
-                closefig, closeallfig]
+                closefig, closeallfig, zoom_out, zoom_in]
 
     def get_shortcut_data(self):
         """

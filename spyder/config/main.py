@@ -473,6 +473,8 @@ DEFAULTS = [
               'plots/save all': 'Ctrl+Alt+S',
               'plots/close': 'Ctrl+W',
               'plots/close all': 'Ctrl+Shift+W',
+              'plots/zoom in': "Ctrl++",
+              'plots/zoom out': "Ctrl+-",
               # ---- In widgets/explorer ----
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
