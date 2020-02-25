@@ -834,9 +834,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         selection_start, selection_end = self.get_selection_start_end()
 
         if isinstance(completion, dict) and 'textEdit' in completion:
-            cursor.setPosition(completion['textEdit']['range']['start'])
-            cursor.setPosition(completion['textEdit']['range']['end'],
-                               QTextCursor.KeepAnchor)
+            completion_range = completion['textEdit']['range']
+            start = completion_range['start']
+            end = completion_range['end']
+            if isinstance(completion_range['start'], dict):
+                start_line, start_col = start['line'], start['character']
+                start = self.get_position_line_number(start_line, start_col)
+            if isinstance(completion_range['start'], dict):
+                end_line, end_col = end['line'], end['character']
+                end = self.get_position_line_number(end_line, end_col)
+            cursor.setPosition(start)
+            cursor.setPosition(end, QTextCursor.KeepAnchor)
             text = to_text_string(completion['textEdit']['newText'])
         else:
             text = completion
@@ -1002,8 +1010,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                         self.zoom_in.emit()
                 return
         QPlainTextEdit.wheelEvent(self, event)
+        # Needed to prevent stealing focus to the find widget when scrolling
+        # See spyder-ide/spyder#11502
+        current_widget = QApplication.focusWidget()
         self.hide_completion_widget()
         self.highlight_current_cell()
+        if current_widget is not None:
+            current_widget.setFocus()
 
     def position_widget_at_cursor(self, widget):
         # Retrieve current screen height

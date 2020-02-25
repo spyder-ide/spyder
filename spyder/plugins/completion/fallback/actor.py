@@ -26,7 +26,8 @@ from diff_match_patch import diff_match_patch
 # Local imports
 from spyder.plugins.completion.languageserver import CompletionItemKind
 from spyder.plugins.completion.languageserver import LSPRequestTypes
-from spyder.plugins.completion.fallback.utils import get_keywords, get_words
+from spyder.plugins.completion.fallback.utils import (
+    get_keywords, get_words, is_prefix_valid)
 
 
 FALLBACK_COMPLETION = "Fallback"
@@ -58,6 +59,9 @@ class FallbackActor(QObject):
         Return all tokens in `text` and all keywords associated by
         Pygments to `language`.
         """
+        valid = is_prefix_valid(text, offset, language)
+        if not valid:
+            return []
         try:
             lexer = get_lexer_by_name(language)
             keywords = get_keywords(lexer)

@@ -172,12 +172,12 @@ class KernelComm(CommBase, QObject):
         wait_timeout.stop()
         signal.disconnect(wait_loop.quit)
 
-    def _handle_remote_call_reply(self, msg_dict, buffer, load_exception):
+    def _handle_remote_call_reply(self, msg_dict, buffer):
         """
         A blocking call received a reply.
         """
         super(KernelComm, self)._handle_remote_call_reply(
-            msg_dict, buffer, load_exception)
+            msg_dict, buffer)
         self._sig_got_reply.emit()
 
     def _async_error(self, error_wrapper):

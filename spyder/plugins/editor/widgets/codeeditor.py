@@ -1452,6 +1452,19 @@ class CodeEditor(TextEditBaseWidget):
         else:
             debugger_panel.setVisible(False)
 
+    def update_debugger_panel_state(self, state, last_step, force=False):
+        """Update debugger panel state."""
+        debugger_panel = self.panels.get(DebuggerPanel)
+        if force:
+            debugger_panel.start_clean()
+            return
+        elif state and 'fname' in last_step:
+            fname = last_step['fname']
+            if osp.normcase(fname) == osp.normcase(self.filename):
+                debugger_panel.start_clean()
+                return
+        debugger_panel.stop_clean()
+
     def set_folding_panel(self, folding):
         """Enable/disable folding panel."""
         folding_panel = self.panels.get(FoldingPanel)
@@ -4349,10 +4362,14 @@ class CodeEditor(TextEditBaseWidget):
     def dragEnterEvent(self, event):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
-        if mimedata2url(event.mimeData()):
+        logger.debug("dragEnterEvent was received")
+        all_urls = mimedata2url(event.mimeData())
+        if all_urls:
             # Let the parent widget handle this
+            logger.debug("Let the parent widget handle this dragEnterEvent")
             event.ignore()
         else:
+            logger.debug("Call TextEditBaseWidget dragEnterEvent method")
             TextEditBaseWidget.dragEnterEvent(self, event)
 
     def dropEvent(self, event):

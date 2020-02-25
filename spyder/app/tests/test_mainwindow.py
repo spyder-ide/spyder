@@ -501,11 +501,11 @@ def test_get_help_ipython_console(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
-                    reason="Times out on AppVeyor")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Only works on Linux")
 @pytest.mark.use_introspection
 def test_get_help_editor(main_window, qtbot):
-    """ Test that Help works when called from the Editor."""
+    """Test that Help works when called from the Editor."""
     help_plugin = main_window.help
     webview = help_plugin.rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
@@ -1918,6 +1918,8 @@ def test_edidorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Times out sometimes on macOS")
 def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
     # Select the third-party plugin
@@ -2144,6 +2146,7 @@ def test_save_on_runfile(main_window, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
 def test_pylint_follows_file(qtbot, tmpdir, main_window):
     """Test that file editor focus change updates pylint combobox filename."""
     for plugin in main_window.thirdparty_plugins:
@@ -2464,10 +2467,10 @@ def test_go_to_definition(main_window, qtbot, capsys):
     assert 'QtCore.py' in _get_filenames()
 
 
-@pytest.mark.skipif(sys.platform == 'darwin' and not PY2,
-                    reason="It times out on macOS/PY3")
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin' and not PY2,
+                    reason="It times out on macOS/PY3")
 def test_debug_unsaved_file(main_window, qtbot):
     """Test that we can debug an unsaved file."""
     # Wait until the window is fully up
@@ -2505,7 +2508,7 @@ def test_debug_unsaved_file(main_window, qtbot):
 
 
 @pytest.mark.slow
-@flaky(max_runs=1)
+@flaky(max_runs=3)
 @pytest.mark.parametrize(
     "debug", [True, False])
 def test_runcell(main_window, qtbot, tmpdir, debug):
