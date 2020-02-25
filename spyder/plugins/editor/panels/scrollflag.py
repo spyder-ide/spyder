@@ -91,7 +91,11 @@ class ScrollFlagArea(Panel):
             self._edgecolors[name] = self._facecolors[name].darker(120)
 
     def delayed_update_flags(self):
-        """Call update flags later."""
+        """
+        This function is called every time a flag is changed.
+        There is no need of updating the flags thousands of time by second,
+        as it is quite resources-heavy. This limits the calls to REFRESH_RATE.
+        """
         if self._update_list_timer:
             return
 
@@ -101,7 +105,13 @@ class ScrollFlagArea(Panel):
         self._update_list_timer.start(REFRESH_RATE)
 
     def update_flags(self):
-        """Update flags list."""
+        """
+        Update flags list.
+
+        This parses the entire file, which can take a lot of time for
+        large files. Save all the flags in lists for painting during
+        paint events.
+        """
         self._update_list_timer = None
         self._todo_list = []
         self._code_analysis_list = []
@@ -109,14 +119,18 @@ class ScrollFlagArea(Panel):
         editor = self.editor
         block = editor.document().firstBlock()
         while block.isValid():
+            # Parse all lines in the file looking for something to flag.
             data = block.userData()
             if data:
                 if data.code_analysis:
                     self._code_analysis_list.append((block, data))
+
                 if data.todo:
                     self._todo_list.append((block, data))
+
                 if data.breakpoint:
                     self._breakpoint_list.append((block, data))
+
             block = block.next()
 
         self.update()
@@ -125,6 +139,11 @@ class ScrollFlagArea(Panel):
         """
         Override Qt method.
         Painting the scroll flag area
+
+        There is two cases:
+            - The scroll bar is moving, in which case paint all flags.
+            - The scroll bar is not moving, only paint flags corresponding
+              to visible lines.
         """
         # The area in which the slider handle of the scrollbar may move.
         groove_rect = self.get_scrollbar_groove_rect()
@@ -148,9 +167,12 @@ class ScrollFlagArea(Panel):
         painter.fillRect(event.rect(), self.editor.sideareas_color)
 
         editor = self.editor
+        # Check if the slider is visible
         print_local = not bool(self.slider)
 
+        # Define calcul_flag_ypos to position the flags:
         if not print_local:
+            # Paint flags for the entire document
             last_line = editor.document().lastBlock().firstLineNumber()
             # The 0.5 offset is used to align the flags with the center of
             # their corresponding text edit block before scaling.
@@ -166,7 +188,7 @@ class ScrollFlagArea(Panel):
                 return ceil(pos)
 
         else:
-            # Only print visible flags
+            # Only paint flags for visible lines
             visible_lines = [val[1] for val in editor.visible_blocks]
             if not visible_lines:
                 # Nothing to do
@@ -185,9 +207,11 @@ class ScrollFlagArea(Panel):
 
                 return ceil(middle-self.FLAGS_DY/2)
 
+        # Paint all the code analysis flags
         for block, data in self._code_analysis_list:
             if print_local and not (
                     min_line <= block.blockNumber() + 1 <= max_line):
+                # No need to paint flags outside of the window
                 continue
             # Paint the warnings
             for source, code, severity, message in data.code_analysis:
@@ -203,6 +227,7 @@ class ScrollFlagArea(Panel):
             rect_y = calcul_flag_ypos(block)
             painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
+        # Paint all the todo flags
         for block, data in self._todo_list:
             if print_local and not (
                     min_line <= block.blockNumber() + 1 <= max_line):
@@ -213,6 +238,7 @@ class ScrollFlagArea(Panel):
             painter.setPen(self._edgecolors['todo'])
             painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
+        # Paint all the breakpoints flags
         for block, data in self._breakpoint_list:
             if print_local and not (
                     min_line <= block.blockNumber() + 1 <= max_line):
@@ -223,7 +249,7 @@ class ScrollFlagArea(Panel):
             painter.setPen(self._edgecolors['breakpoint'])
             painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
-        # Paint the occurrences
+        # Paint the occurrences of selected word flags
         if editor.occurrences:
             painter.setBrush(self._facecolors['occurrence'])
             painter.setPen(self._edgecolors['occurrence'])
@@ -235,7 +261,7 @@ class ScrollFlagArea(Panel):
                 rect_y = calcul_flag_ypos(block)
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
-        # Paint the found results
+        # Paint the found results flags
         if editor.found_results:
             painter.setBrush(self._facecolors['found_results'])
             painter.setPen(self._edgecolors['found_results'])

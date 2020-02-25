@@ -64,6 +64,9 @@ class TextDecorationsManager(Manager):
 
         :param decoration: Text decoration to remove
         :type decoration: spyder.api.TextDecoration
+        update: Bool: should the decorations be updated immediately?
+            Set to False to avoid updating several times while removing
+            several decorations
         """
         try:
             self._decorations.remove(decoration)

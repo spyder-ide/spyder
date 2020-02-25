@@ -39,6 +39,8 @@ def document_cells(block, forward=True, cell_list=None):
     forward : bool, optional
         Whether to iterate forward or backward from the current block.
     cell_list: list of tuple containing (block_number, oedata)
+        This is the list of all cells in a file to avoid having to parse
+        the file every time.
     """
     if not block.isValid():
         # Not a valid block

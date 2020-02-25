@@ -482,6 +482,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """
         if cursor is None:
             cursor = self.textCursor()
+
         if self.current_cell:
             current_cell, cell_full_file = self.current_cell
             cell_start_pos = current_cell.selectionStart()

@@ -541,6 +541,7 @@ class PythonSH(BaseSH):
                     oedata.def_type = OutlineExplorerData.CELL
                     def_name = get_code_cell_name(text)
                     oedata.def_name = def_name
+                    # Let the editor know a new cell was added in the document
                     self.sig_new_cell.emit(oedata)
                 elif self.OECOMMENT.match(text.lstrip()):
                     oedata = OutlineExplorerData(self.currentBlock())

@@ -614,7 +614,8 @@ class CodeEditor(TextEditBaseWidget):
         completion_parent = self.completion_widget.parent()
         self.kite_call_to_action = KiteCallToAction(self, completion_parent)
 
-        # Some events should not be triggered on undo/redo
+        # Some events should not be triggered during undo/redo
+        # such as line stripping
         self.is_undoing = False
         self.is_redoing = False
     # --- Helper private methods
