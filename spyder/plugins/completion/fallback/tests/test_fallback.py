@@ -102,7 +102,7 @@ def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
     open_request = {
         'file': filename,
         'text': contents,
-        'offset': -1,
+        'offset': len(contents),
     }
     fallback.send_request(
         language, LSPRequestTypes.DOCUMENT_DID_OPEN, open_request)
@@ -128,7 +128,7 @@ def test_token_update(qtbot_module, fallback_fixture):
     open_request = {
         'file': 'test.py',
         'text': TEST_FILE,
-        'offset': -1,
+        'offset': len(TEST_FILE),
     }
     fallback.send_request(
         'python', LSPRequestTypes.DOCUMENT_DID_OPEN, open_request)
@@ -149,7 +149,7 @@ def test_token_update(qtbot_module, fallback_fixture):
     update_request = {
         'file': 'test.py',
         'diff': diff,
-        'offset': -1,
+        'offset': len(diff),
     }
     fallback.send_request(
         'python', LSPRequestTypes.DOCUMENT_DID_CHANGE, update_request)
