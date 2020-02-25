@@ -67,7 +67,9 @@ class ScrollFlagArea(Panel):
         editor.sig_flags_changed.connect(self.delayed_update_flags)
         editor.sig_theme_colors_changed.connect(self.update_flag_colors)
 
-        self._update_list_timer = None
+        self._update_list_timer = QTimer(self)
+        self._update_list_timer.setSingleShot(True)
+        self._update_list_timer.timeout.connect(self.update_flags)
         self._todo_list = []
         self._code_analysis_list = []
         self._breakpoint_list = []
@@ -96,12 +98,9 @@ class ScrollFlagArea(Panel):
         There is no need of updating the flags thousands of time by second,
         as it is quite resources-heavy. This limits the calls to REFRESH_RATE.
         """
-        if self._update_list_timer:
+        if self._update_list_timer.isActive():
             return
 
-        self._update_list_timer = QTimer(self)
-        self._update_list_timer.setSingleShot(True)
-        self._update_list_timer.timeout.connect(self.update_flags)
         self._update_list_timer.start(REFRESH_RATE)
 
     def update_flags(self):
@@ -112,7 +111,6 @@ class ScrollFlagArea(Panel):
         large files. Save all the flags in lists for painting during
         paint events.
         """
-        self._update_list_timer = None
         self._todo_list = []
         self._code_analysis_list = []
         self._breakpoint_list = []
@@ -168,10 +166,10 @@ class ScrollFlagArea(Panel):
 
         editor = self.editor
         # Check if the slider is visible
-        print_local = not bool(self.slider)
+        paint_local = not bool(self.slider)
 
         # Define calcul_flag_ypos to position the flags:
-        if not print_local:
+        if not paint_local:
             # Paint flags for the entire document
             last_line = editor.document().lastBlock().firstLineNumber()
             # The 0.5 offset is used to align the flags with the center of
@@ -209,7 +207,7 @@ class ScrollFlagArea(Panel):
 
         # Paint all the code analysis flags
         for block, data in self._code_analysis_list:
-            if print_local and not (
+            if paint_local and not (
                     min_line <= block.blockNumber() + 1 <= max_line):
                 # No need to paint flags outside of the window
                 continue
@@ -229,7 +227,7 @@ class ScrollFlagArea(Panel):
 
         # Paint all the todo flags
         for block, data in self._todo_list:
-            if print_local and not (
+            if paint_local and not (
                     min_line <= block.blockNumber() + 1 <= max_line):
                 continue
             # Paint the todos
@@ -240,7 +238,7 @@ class ScrollFlagArea(Panel):
 
         # Paint all the breakpoints flags
         for block, data in self._breakpoint_list:
-            if print_local and not (
+            if paint_local and not (
                     min_line <= block.blockNumber() + 1 <= max_line):
                 continue
             # Paint the breakpoints
@@ -254,7 +252,7 @@ class ScrollFlagArea(Panel):
             painter.setBrush(self._facecolors['occurrence'])
             painter.setPen(self._edgecolors['occurrence'])
             for line_number in editor.occurrences:
-                if print_local and not (
+                if paint_local and not (
                         min_line <= line_number + 1 <= max_line):
                     continue
                 block = editor.document().findBlockByNumber(line_number)
@@ -266,7 +264,7 @@ class ScrollFlagArea(Panel):
             painter.setBrush(self._facecolors['found_results'])
             painter.setPen(self._edgecolors['found_results'])
             for line_number in editor.found_results:
-                if print_local and not (
+                if paint_local and not (
                         min_line <= line_number + 1 <= max_line):
                     continue
                 block = editor.document().findBlockByNumber(line_number)
