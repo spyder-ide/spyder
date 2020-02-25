@@ -4,7 +4,26 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Autosave components for the Editor plugin and the EditorStack widget"""
+"""
+Autosave components for the Editor plugin and the EditorStack widget
+
+The autosave system regularly checks the contents of all opened files and saves
+a copy in the autosave directory if the contents are different from the
+autosave file (if it exists) or original file (if there is no autosave file).
+
+The mapping between original files and autosave files is stored in the
+variable `name_mapping` and saved in the file `pidNNN.txt` in the autosave
+directory, where `NNN` stands for the pid. This filename is chosen so that
+multiple instances of Spyder can run simultaneously.
+
+File contents are compared using their hash. The variable `file_hashes`
+contains the hash of all files currently open in the editor and all autosave
+files.
+
+On startup, the contents of the autosave directory is checked and if autosave
+files are found, the user is asked whether to recover them;
+see `spyder/plugins/editor/widgets/recover.py`.
+"""
 
 # Standard library imports
 import ast
