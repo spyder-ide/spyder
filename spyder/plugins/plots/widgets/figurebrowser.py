@@ -191,8 +191,8 @@ class FigureBrowser(QWidget):
         closeall_btn.shortcut_data = ('plots', 'close all')
         closeall_btn.installEventFilter(self)
 
-        vertical_separator1 = QFrame()
-        vertical_separator1.setFrameStyle(53)
+        separator1 = QFrame()
+        separator1.setFrameStyle(QFrame.VLine | QFrame.Sunken)
 
         goback_btn = create_toolbutton(
             self, icon=ima.icon('ArrowBack'),
@@ -208,8 +208,8 @@ class FigureBrowser(QWidget):
         gonext_btn.shortcut_data = ('plots', 'next figure')
         gonext_btn.installEventFilter(self)
 
-        vertical_separator2 = QFrame()
-        vertical_separator2.setFrameStyle(53)
+        separator2 = QFrame()
+        separator2.setFrameStyle(QFrame.VLine | QFrame.Sunken)
 
         self.zoom_out_btn = create_toolbutton(
             self, icon=ima.icon('zoom_out'),
@@ -239,8 +239,8 @@ class FigureBrowser(QWidget):
         layout.addWidget(self.zoom_disp)
 
         return [self.savefig_btn, saveall_btn, copyfig_btn, self.closefig_btn,
-                closeall_btn, vertical_separator1, goback_btn, gonext_btn,
-                vertical_separator2, zoom_pan]
+                closeall_btn, separator1, goback_btn, gonext_btn,
+                separator2, zoom_pan]
 
     def setup_option_actions(self, mute_inline_plotting, show_plot_outline,
                              auto_fit_plotting):
