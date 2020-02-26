@@ -21,7 +21,7 @@ def fix_reference_name(name, blacklist=None):
     if not name:
         name = "data"
     if blacklist is not None and name in blacklist:
-        get_new_name = lambda index: name+('%03d' % index)
+        get_new_name = lambda index: name+('_%03d' % index)
         index = 0
         while get_new_name(index) in blacklist:
             index += 1

@@ -27,6 +27,7 @@ from flaky import flaky
 from jupyter_core import paths
 from jupyter_client import BlockingKernelClient
 from ipython_genutils import py3compat
+import numpy as np
 
 
 # Local imports
@@ -287,6 +288,20 @@ def test_copy_value(kernel):
     assert "'array_ndim': None" in var_properties
 
 
+@pytest.mark.parametrize(
+    "load", [(True, "val1 = 0", {"val1": np.array(1)}),
+             (False, "val1 = 0", {"val1": 0, "val1_000": np.array(1)})])
+def test_load_npz_data(kernel, load):
+    """Test loading data from npz filename."""
+    namespace_file = osp.join(FILES_PATH, 'load_data.npz')
+    extention = '.npz'
+    overwrite, execute, variables = load
+    kernel.do_execute(execute, True)
+    kernel.load_data(namespace_file, extention, overwrite=overwrite)
+    for var, value in variables.items():
+        assert value == kernel.get_value(var)
+
+
 def test_load_data(kernel):
     """Test loading data from filename."""
     namespace_file = osp.join(FILES_PATH, 'load_data.spydata')
@@ -481,6 +496,12 @@ def test_runfile(tmpdir):
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         assert content['found']
+
+        # Verify that the variable `__file__` is undefined
+        client.inspect('__file__')
+        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        content = msg['content']
+        assert not content['found']
 
 
 @flaky(max_runs=3)

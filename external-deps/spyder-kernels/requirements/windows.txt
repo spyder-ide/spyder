@@ -1,2 +1,3 @@
 ipykernel
 cloudpickle
+pip>=19.3.1
