@@ -167,14 +167,18 @@ def test_autosave(mocker):
     assert addon.file_hashes == {'orig': 1, 'autosave': 3}
 
 
-def test_save_autosave_mapping_with_nonempty_mapping(mocker, tmpdir):
+@pytest.mark.parametrize('latin', [True, False])
+def test_save_autosave_mapping_with_nonempty_mapping(mocker, tmpdir, latin):
     """Test that save_autosave_mapping() writes the current autosave mapping
     to the correct file if the mapping is not empty."""
     mocker.patch('os.getpid', return_value=42)
     mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
                  return_value=str(tmpdir))
     addon = AutosaveForStack(None)
-    addon.name_mapping = {'orig': 'autosave'}
+    if latin:
+        addon.name_mapping = {'orig': 'autosave'}
+    else:
+        addon.name_mapping = {'原件': 'autosave'}
 
     addon.save_autosave_mapping()
 

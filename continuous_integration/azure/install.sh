@@ -51,7 +51,9 @@ else
 fi
 
 # Create environment for Jedi environments testsTest for Jedi environments
-conda create -n jedi-test-env -q -y python=3.6 loghub spyder-kernels -c spyder-ide
+conda create -n jedi-test-env -q -y python=3.6 flask spyder-kernels
+conda list -n jedi-test-env
 
 # Create environment to test conda activation before launching a spyder kernel
-conda create -n spytest-ž -q -y python=3.6 spyder-kernels -c spyder-ide
+conda create -n spytest-ž -q -y python=3.6 spyder-kernels
+conda list -n spytest-ž

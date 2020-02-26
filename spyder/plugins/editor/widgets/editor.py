@@ -2286,7 +2286,7 @@ class EditorStack(QWidget):
             return
         if index is None:
             index = self.get_stack_index()
-        if self.data:
+        if self.data and len(self.data) > index:
             finfo = self.data[index]
             oe.setEnabled(True)
             if finfo.editor.oe_proxy is None:
@@ -2315,20 +2315,22 @@ class EditorStack(QWidget):
 
     def __refresh_statusbar(self, index):
         """Refreshing statusbar widgets"""
-        finfo = self.data[index]
-        self.encoding_changed.emit(finfo.encoding)
-        # Refresh cursor position status:
-        line, index = finfo.editor.get_cursor_line_column()
-        self.sig_editor_cursor_position_changed.emit(line, index)
+        if self.data and len(self.data) > index:
+            finfo = self.data[index]
+            self.encoding_changed.emit(finfo.encoding)
+            # Refresh cursor position status:
+            line, index = finfo.editor.get_cursor_line_column()
+            self.sig_editor_cursor_position_changed.emit(line, index)
 
     def __refresh_readonly(self, index):
-        finfo = self.data[index]
-        read_only = not QFileInfo(finfo.filename).isWritable()
-        if not osp.isfile(finfo.filename):
-            # This is an 'untitledX.py' file (newly created)
-            read_only = False
-        finfo.editor.setReadOnly(read_only)
-        self.readonly_changed.emit(read_only)
+        if self.data and len(self.data) > index:
+            finfo = self.data[index]
+            read_only = not QFileInfo(finfo.filename).isWritable()
+            if not osp.isfile(finfo.filename):
+                # This is an 'untitledX.py' file (newly created)
+                read_only = False
+            finfo.editor.setReadOnly(read_only)
+            self.readonly_changed.emit(read_only)
 
     def __check_file_status(self, index):
         """Check if file has been changed in any way outside Spyder:
@@ -2340,6 +2342,9 @@ class EditorStack(QWidget):
             # triggering a refresh cycle which calls this method
             return
         self.__file_status_flag = True
+
+        if len(self.data) <= index:
+            index = self.get_stack_index()
 
         finfo = self.data[index]
         name = osp.basename(finfo.filename)

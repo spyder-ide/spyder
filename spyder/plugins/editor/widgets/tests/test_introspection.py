@@ -1053,23 +1053,23 @@ def test_completions_environment(lsp_codeeditor, qtbot, tmpdir):
     set_executable_config_helper()
     lsp_plugin.update_configuration()
 
-    qtbot.keyClicks(code_editor, 'import logh')
+    qtbot.keyClicks(code_editor, 'import flas')
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.wait(2000)
-    assert code_editor.toPlainText() == 'import logh'
+    assert code_editor.toPlainText() == 'import flas'
 
     # Reset extra paths
     set_executable_config_helper(py_exe)
     lsp_plugin.update_configuration()
 
     code_editor.set_text('')
-    qtbot.keyClicks(code_editor, 'import logh')
+    qtbot.keyClicks(code_editor, 'import flas')
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    assert "loghub" in [x['label'] for x in sig.args[0]]
-    assert code_editor.toPlainText() == 'import loghub'
+    assert "flask" in [x['label'] for x in sig.args[0]]
+    assert code_editor.toPlainText() == 'import flask'
 
     set_executable_config_helper()
     lsp_plugin.update_configuration()
