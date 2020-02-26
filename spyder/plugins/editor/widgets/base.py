@@ -878,9 +878,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         selection_start, selection_end = self.get_selection_start_end()
 
         if isinstance(completion, dict) and 'textEdit' in completion:
-            cursor.setPosition(completion['textEdit']['range']['start'])
-            cursor.setPosition(completion['textEdit']['range']['end'],
-                               QTextCursor.KeepAnchor)
+            completion_range = completion['textEdit']['range']
+            start = completion_range['start']
+            end = completion_range['end']
+            if isinstance(completion_range['start'], dict):
+                start_line, start_col = start['line'], start['character']
+                start = self.get_position_line_number(start_line, start_col)
+            if isinstance(completion_range['start'], dict):
+                end_line, end_col = end['line'], end['character']
+                end = self.get_position_line_number(end_line, end_col)
+            cursor.setPosition(start)
+            cursor.setPosition(end, QTextCursor.KeepAnchor)
             text = to_text_string(completion['textEdit']['newText'])
         else:
             text = completion

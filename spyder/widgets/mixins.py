@@ -767,6 +767,15 @@ class BaseEditMixin(object):
         """Return cursor line number"""
         return self.textCursor().blockNumber()+1
 
+    def get_position_line_number(self, line, col):
+        """Get position offset from (line, col) coordinates."""
+        block = self.document().findBlockByNumber(line)
+        cursor = QTextCursor(block)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor,
+                            n=col + 1)
+        return cursor.position()
+
     def set_cursor_position(self, position):
         """Set cursor position"""
         position = self.get_position(position)

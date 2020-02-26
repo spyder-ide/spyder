@@ -56,10 +56,14 @@ def test_get_files_to_recover_with_empty_autosave_dir(mocker, tmpdir):
     assert result == ([], [])
 
 
-@pytest.mark.parametrize('running', [True, False])
-def test_get_files_to_recover_with_one_pid_file(mocker, tmpdir, running):
+@pytest.mark.parametrize('running,empty',
+                         [(True, False), (False, False), (False, True)])
+def test_get_files_to_recover_with_one_pid_file(mocker, tmpdir,
+                                                running, empty):
     """Test get_files_to_recover() if autosave dir contains one pid file with
-    one autosave file. Depending on the value of running, """
+    one autosave file. If running is True, then pretend that the pid file
+    belongs to a running Spyder instance. If empty is True, then the pid file
+    is empty (regression test for spyder-ide/spyder#11375)."""
     mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
                  return_value=str(tmpdir))
     mock_is_spyder_process = mocker.patch(
@@ -67,13 +71,21 @@ def test_get_files_to_recover_with_one_pid_file(mocker, tmpdir, running):
             return_value=running)
     pidfile = tmpdir.join('pid42.txt')
     autosavefile = tmpdir.join('foo.py')
-    pidfile.write('{"original": ' + repr(str(autosavefile)) + '}')
+    if empty:
+        pidfile.write('')
+    else:
+        pidfile.write('{"original": ' + repr(str(autosavefile)) + '}')
     autosavefile.write('bar = 1')
     addon = AutosaveForPlugin(None)
 
     result = addon.get_files_to_recover()
 
-    expected_files = [('original', str(autosavefile))] if not running else []
+    if empty:  # pid file corrupted so original file name not recorded
+        expected_files = [(None, str(autosavefile))]
+    elif running:  # autosave file belongs to running instance
+        expected_files = []
+    else:
+        expected_files = [('original', str(autosavefile))]
     expected = (expected_files, [str(pidfile)])
     assert result == expected
     mock_is_spyder_process.assert_called_with(42)

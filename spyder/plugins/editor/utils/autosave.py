@@ -146,7 +146,14 @@ class AutosaveForPlugin(object):
                 logger.debug('Reading pid file: {}'.format(full_name))
                 with open(full_name) as pidfile:
                     txt = pidfile.read()
-                    txt_as_dict = ast.literal_eval(txt)
+                    try:
+                        txt_as_dict = ast.literal_eval(txt)
+                    except (SyntaxError, ValueError):
+                        # Pid file got corrupted, see spyder-ide/spyder#11375
+                        logger.error('Error parsing pid file {}'
+                                     .format(full_name))
+                        logger.error('Contents: {}'.format(repr(txt)))
+                        txt_as_dict = {}
                     files_mentioned += [autosave for (orig, autosave)
                                         in txt_as_dict.items()]
                 pid = int(match.group(1))

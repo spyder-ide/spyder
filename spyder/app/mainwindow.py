@@ -73,20 +73,14 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
                          qInstallMessageHandler)
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
-                            QMainWindow, QMenu, QMenuBar, QMessageBox,
-                            QShortcut, QSplashScreen, QStyleFactory, QWidget)
+                            QMainWindow, QMenu, QMessageBox, QShortcut,
+                            QSplashScreen, QStyleFactory, QWidget)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
 
 # Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
 from qtpy import QtWebEngineWidgets  # analysis:ignore
-
-# For spyder-ide/spyder#7447.
-try:
-    from qtpy.QtQuick import QQuickWindow, QSGRendererInterface
-except Exception:
-    QQuickWindow = QSGRendererInterface = None
 
 # To catch font errors in QtAwesome
 from qtawesome.iconic_font import FontError
@@ -101,6 +95,25 @@ from spyder.config.manager import CONF
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
                                   CONF.get('main', 'high_dpi_scaling'))
+
+#==============================================================================
+# Get CLI options and set OpenGL backend. This attibute must
+# be set before creating the application. See spyder-ide/spyder#11227
+#==============================================================================
+from spyder.app.utils import set_opengl_implementation
+from spyder.app.cli_options import get_options
+
+# Get CLI options/args and make them available for future use
+CLI_OPTIONS, CLI_ARGS = get_options()
+
+# **** Set OpenGL implementation to use ****
+if CLI_OPTIONS.opengl_implementation:
+    option = CLI_OPTIONS.opengl_implementation
+    set_opengl_implementation(option)
+else:
+    if CONF.get('main', 'opengl') != 'automatic':
+        option = CONF.get('main', 'opengl')
+        set_opengl_implementation(option)
 
 #==============================================================================
 # Create our QApplication instance here because it's needed to render the
@@ -140,13 +153,14 @@ else:
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
                     __trouble_url__, __website_url__, get_versions)
+from spyder.app.utils import (get_python_doc_path, delete_lsp_log_files,
+                              qt_message_handler, setup_logging)
 from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
                                 get_debug_level, MAC_APP_NAME, get_home_dir,
                                 running_in_mac_app, get_module_path,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_anaconda, is_gtk_desktop
-from spyder.app.cli_options import get_options
 from spyder import dependencies
 from spyder.py3compat import (is_text_string, to_text_string,
                               PY3, qbytearray_to_str, configparser as cp)
@@ -181,7 +195,6 @@ from spyder.app import tour
 #==============================================================================
 # Third-party library imports
 #==============================================================================
-import psutil
 import qdarkstyle
 
 #==============================================================================
@@ -191,104 +204,13 @@ import qdarkstyle
 CWD = getcwd_or_home()
 
 #==============================================================================
-# Utility functions
+# Install Qt messaage handler
 #==============================================================================
-def get_python_doc_path():
-    """
-    Return Python documentation path
-    (Windows: return the PythonXX.chm path if available)
-    """
-    if os.name == 'nt':
-        doc_path = osp.join(sys.prefix, "Doc")
-        if not osp.isdir(doc_path):
-            return
-        python_chm = [path for path in os.listdir(doc_path)
-                      if re.match(r"(?i)Python[0-9]{3,6}.chm", path)]
-        if python_chm:
-            return file_uri(osp.join(doc_path, python_chm[0]))
-    else:
-        vinf = sys.version_info
-        doc_path = '/usr/share/doc/python%d.%d/html' % (vinf[0], vinf[1])
-    python_doc = osp.join(doc_path, "index.html")
-    if osp.isfile(python_doc):
-        return file_uri(python_doc)
-
-
-def set_opengl_implementation(option):
-    """
-    Set the OpenGL implementation used by Spyder.
-
-    See spyder-ide/spyder#7447 for the details.
-    """
-    if option == 'software':
-        QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
-        if QQuickWindow is not None:
-            QQuickWindow.setSceneGraphBackend(QSGRendererInterface.Software)
-    elif option == 'desktop':
-        QCoreApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
-        if QQuickWindow is not None:
-            QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
-    elif option == 'gles':
-        QCoreApplication.setAttribute(Qt.AA_UseOpenGLES)
-        if QQuickWindow is not None:
-            QQuickWindow.setSceneGraphBackend(QSGRendererInterface.OpenGL)
-
-
-def setup_logging(cli_options):
-    """Setup logging with cli options defined by the user."""
-    if cli_options.debug_info or get_debug_level() > 0:
-        levels = {2: logging.INFO, 3: logging.DEBUG}
-        log_level = levels[get_debug_level()]
-        log_format = '%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s'
-
-        if cli_options.debug_output == 'file':
-            log_file = 'spyder-debug.log'
-        else:
-            log_file = None
-
-        logging.basicConfig(level=log_level,
-                            format=log_format,
-                            filename=log_file,
-                            filemode='w+')
-
-
-def delete_lsp_log_files():
-    """Delete previous dead Spyder instances LSP log files."""
-    regex = re.compile(r'.*_.*_(\d+)[.]log')
-    files = glob.glob(osp.join(get_conf_path('lsp_logs'), '*.log'))
-    for f in files:
-        match = regex.match(f)
-        if match is not None:
-            pid = int(match.group(1))
-            if not psutil.pid_exists(pid):
-                os.remove(f)
-
-
-def qt_message_handler(msg_type, msg_log_context, msg_string):
-    """
-    Qt warning messages are intercepted by this handler.
-
-    On some operating systems, warning messages might be displayed
-    even if the actual message does not apply. This filter adds a
-    blacklist for messages that are being printed for no apparent
-    reason. Anything else will get printed in the internal console.
-
-    In DEV mode, all messages are printed.
-    """
-    BLACKLIST = [
-        'QMainWidget::resizeDocks: all sizes need to be larger than 0',
-    ]
-    if DEV or msg_string not in BLACKLIST:
-        print(msg_string)  # spyder: test-skip
-
-
 qInstallMessageHandler(qt_message_handler)
-
 
 #==============================================================================
 # Main Window
 #==============================================================================
-
 class MainWindow(QMainWindow):
     """Spyder main window"""
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
@@ -1433,6 +1355,9 @@ class MainWindow(QMainWindow):
 
         # Connect Editor to Kite completions plugin status
         self.editor.kite_completions_file_status()
+
+        # Connect Editor debug action with Console
+        self.ipyconsole.sig_pdb_state.connect(self.editor.update_pdb_state)
 
         # Setup menus
         self.setup_menus()
@@ -3710,16 +3635,7 @@ def main():
     # Note regarding Options:
     # It's important to collect options before monkey patching sys.exit,
     # otherwise, argparse won't be able to exit if --help option is passed
-    options, args = get_options()
-
-    # **** Set OpenGL implementation to use ****
-    if options.opengl_implementation:
-        option = options.opengl_implementation
-        set_opengl_implementation(option)
-    else:
-        if CONF.get('main', 'opengl') != 'automatic':
-            option = CONF.get('main', 'opengl')
-            set_opengl_implementation(option)
+    options, args = (CLI_OPTIONS, CLI_ARGS)
 
     # **** Handle hide_console option ****
     if options.show_console:
@@ -3747,7 +3663,7 @@ def main():
         return
     elif options.reset_to_defaults:
         # Reset Spyder settings to defaults
-        CONF.reset_to_defaults(save=True)
+        CONF.reset_to_defaults()
         return
     elif options.optimize:
         # Optimize the whole Spyder's source code directory
