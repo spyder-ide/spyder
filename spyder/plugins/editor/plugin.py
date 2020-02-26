@@ -604,30 +604,39 @@ class Editor(SpyderPluginWidget):
         run_cell_action = create_action(self,
                             _("Run cell"),
                             icon=ima.icon('run_cell'),
-                            shortcut=CONF.get_shortcut('editor', 'run cell'),
                             tip=_("Run current cell \n"
                                   "[Use #%% to create cells]"),
                             triggered=self.run_cell,
                             context=Qt.WidgetShortcut)
 
+        self.register_shortcut(run_cell_action, context='Editor',
+                               name="Run cell",
+                               add_shortcut_to_tip=True)
+
         run_cell_advance_action = create_action(
             self,
             _("Run cell and advance"),
             icon=ima.icon('run_cell_advance'),
-            shortcut=CONF.get_shortcut('editor', 'run cell and advance'),
             tip=_("Run current cell and go to the next one "),
             triggered=self.run_cell_and_advance,
             context=Qt.WidgetShortcut)
+
+        self._register_shortcut(run_cell_advance_action, context='Editor',
+                                name='Run cell and advance',
+                                add_shortcut_to_tip=True)
 
         debug_cell_action = create_action(
             self,
             _("Debug cell"),
             icon=ima.icon('debug_cell'),
-            shortcut=CONF.get_shortcut('editor', 'debug cell'),
             tip=_("Debug current cell "
                   "(Alt+Shift+Enter)"),
             triggered=self.debug_cell,
             context=Qt.WidgetShortcut)
+
+        self._register_shortcut(debug_cell_action, context='Editor',
+                                name='Debug cell',
+                                add_shortcut_to_tip=True)
 
         re_run_last_cell_action = create_action(self,
                    _("Re-run last cell"),
