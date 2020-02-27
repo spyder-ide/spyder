@@ -168,7 +168,7 @@ class ScrollFlagArea(Panel):
         # Check if the slider is visible
         paint_local = not bool(self.slider)
 
-        # Define calcul_flag_ypos to position the flags:
+        # Define compute_flag_ypos to position the flags:
         if not paint_local:
             # Paint flags for the entire document
             last_line = editor.document().lastBlock().firstLineNumber()
@@ -179,7 +179,7 @@ class ScrollFlagArea(Panel):
             last_y_pos = self.value_to_position(
                 last_line + 0.5, scale_factor, offset) - self.FLAGS_DY / 2
 
-            def calcul_flag_ypos(block):
+            def compute_flag_ypos(block):
                 line_number = block.firstLineNumber()
                 frac = line_number / last_line
                 pos = first_y_pos + frac * (last_y_pos - first_y_pos)
@@ -194,7 +194,7 @@ class ScrollFlagArea(Panel):
             min_line = min(visible_lines)
             max_line = max(visible_lines)
 
-            def calcul_flag_ypos(block):
+            def compute_flag_ypos(block):
                 # When the vertical scrollbar is not visible, the flags are
                 # vertically aligned with the center of their corresponding
                 # text block with no scaling.
@@ -222,7 +222,7 @@ class ScrollFlagArea(Panel):
                 painter.setBrush(self._facecolors['warning'])
                 painter.setPen(self._edgecolors['warning'])
 
-            rect_y = calcul_flag_ypos(block)
+            rect_y = compute_flag_ypos(block)
             painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
         # Paint all the todo flags
@@ -231,7 +231,7 @@ class ScrollFlagArea(Panel):
                     min_line <= block.blockNumber() + 1 <= max_line):
                 continue
             # Paint the todos
-            rect_y = calcul_flag_ypos(block)
+            rect_y = compute_flag_ypos(block)
             painter.setBrush(self._facecolors['todo'])
             painter.setPen(self._edgecolors['todo'])
             painter.drawRect(rect_x, rect_y, rect_w, rect_h)
@@ -242,7 +242,7 @@ class ScrollFlagArea(Panel):
                     min_line <= block.blockNumber() + 1 <= max_line):
                 continue
             # Paint the breakpoints
-            rect_y = calcul_flag_ypos(block)
+            rect_y = compute_flag_ypos(block)
             painter.setBrush(self._facecolors['breakpoint'])
             painter.setPen(self._edgecolors['breakpoint'])
             painter.drawRect(rect_x, rect_y, rect_w, rect_h)
@@ -256,7 +256,7 @@ class ScrollFlagArea(Panel):
                         min_line <= line_number + 1 <= max_line):
                     continue
                 block = editor.document().findBlockByNumber(line_number)
-                rect_y = calcul_flag_ypos(block)
+                rect_y = compute_flag_ypos(block)
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
         # Paint the found results flags
@@ -268,7 +268,7 @@ class ScrollFlagArea(Panel):
                         min_line <= line_number + 1 <= max_line):
                     continue
                 block = editor.document().findBlockByNumber(line_number)
-                rect_y = calcul_flag_ypos(block)
+                rect_y = compute_flag_ypos(block)
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
         # Paint the slider range
