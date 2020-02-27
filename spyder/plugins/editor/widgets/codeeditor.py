@@ -47,6 +47,7 @@ from spyder_kernels.utils.dochelpers import getobj
 
 # %% This line is for cell execution testing
 
+
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _, get_debug_level, running_under_pytest
@@ -77,7 +78,8 @@ from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
-from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
+from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
+                                                is_cell_header)
 from spyder.py3compat import PY2, to_text_string, is_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
@@ -612,6 +614,10 @@ class CodeEditor(TextEditBaseWidget):
         completion_parent = self.completion_widget.parent()
         self.kite_call_to_action = KiteCallToAction(self, completion_parent)
 
+        # Some events should not be triggered during undo/redo
+        # such as line stripping
+        self.is_undoing = False
+        self.is_redoing = False
     # --- Helper private methods
     # ------------------------------------------------------------------------
 
@@ -1587,7 +1593,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.comment_string = comment_string
                     if key in CELL_LANGUAGES:
                         self.supported_cell_language = True
-                        self.cell_separators = CELL_LANGUAGES[key]
+                        self.has_cell_separators = True
                     if CFMatch is None:
                         self.classfunc_match = None
                     else:
@@ -1613,6 +1619,7 @@ class CodeEditor(TextEditBaseWidget):
         self.highlighter = self.highlighter_class(self.document(),
                                                   self.font(),
                                                   self.color_scheme)
+        self.highlighter.sig_new_cell.connect(self.add_to_cell_list)
         self._apply_highlighter_color_scheme()
 
         self.highlighter.editor = self
@@ -2209,10 +2216,12 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isUndoAvailable():
             self.text_version -= 1
             self.skip_rstrip = True
+            self.is_undoing = True
             TextEditBaseWidget.undo(self)
             self.document_did_change('')
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
+            self.is_undoing = False
             self.skip_rstrip = False
 
     @Slot()
@@ -2221,22 +2230,13 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isRedoAvailable():
             self.text_version += 1
             self.skip_rstrip = True
+            self.is_redoing = True
             TextEditBaseWidget.redo(self)
             self.document_did_change('text')
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
+            self.is_redoing = False
             self.skip_rstrip = False
-
-    def get_block_data(self, block):
-        """Return block data (from syntax highlighter)"""
-        return self.highlighter.block_data.get(block)
-
-    def get_fold_level(self, block_nb):
-        """Is it a fold header line?
-        If so, return fold level
-        If not, return None"""
-        block = self.document().findBlockByNumber(block_nb)
-        return self.get_block_data(block).fold_level
 
 # =============================================================================
 #    High-level editor features
@@ -2313,6 +2313,7 @@ class CodeEditor(TextEditBaseWidget):
                                          underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
+        self.sig_flags_changed.emit()
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
@@ -4420,7 +4421,7 @@ class CodeEditor(TextEditBaseWidget):
             painter.setPen(pen)
 
             for top, line_number, block in self.visible_blocks:
-                if self.is_cell_separator(block=block):
+                if is_cell_header(block):
                     painter.drawLine(4, top, self.width(), top)
 
     @property
