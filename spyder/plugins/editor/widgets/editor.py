@@ -2631,6 +2631,8 @@ class EditorStack(QWidget):
             args = ''
             if '(' in definition:
                 args = definition[definition.find('('):]
+            else:
+                documentation = signature
 
             doc = {'obj_text': '', 'name': name,
                    'argspec': args, 'note': '',
