@@ -731,10 +731,11 @@ class ThumbnailScrollBar(QFrame):
     def save_all_figures_as(self):
         """Save all the figures to a file."""
         self.redirect_stdio.emit(False)
-        dirname = getexistingdirectory(self, caption='Save all figures',
-                                       basedir=getcwd_or_home())
+        save_dir = CONF.get('plots', 'save_dir', getcwd_or_home())
+        dirname = getexistingdirectory(self, 'Save all figures', save_dir)
         self.redirect_stdio.emit(True)
         if dirname:
+            CONF.set('plots', 'save_dir', dirname)
             return self.save_all_figures_todir(dirname)
 
     def save_all_figures_todir(self, dirname):
@@ -765,7 +766,8 @@ class ThumbnailScrollBar(QFrame):
             'image/jpeg': ('.jpg', 'JPEG (*.jpg;*.jpeg;*.jpe;*.jfif)'),
             'image/svg+xml': ('.svg', 'SVG (*.svg);;PNG (*.png)')}[fmt]
 
-        figname = get_unique_figname(getcwd_or_home(), 'Figure', fext)
+        save_dir = CONF.get('plots', 'save_dir', getcwd_or_home())
+        figname = get_unique_figname(save_dir, 'Figure', fext)
 
         self.redirect_stdio.emit(False)
         fname, fext = getsavefilename(
@@ -775,6 +777,7 @@ class ThumbnailScrollBar(QFrame):
         self.redirect_stdio.emit(True)
 
         if fname:
+            CONF.set('plots', 'save_dir', osp.dirname(fname))
             save_figure_tofile(fig, fmt, fname)
 
     # ---- Thumbails Handlers
