@@ -504,7 +504,12 @@ def test_get_help_ipython_console(main_window, qtbot):
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="Only works on Linux")
 @pytest.mark.use_introspection
-def test_get_help_editor(main_window, qtbot):
+@pytest.mark.parametrize(
+    "object_info",
+    [("range", "range"),
+     ("import matplotlib.pyplot as plt",
+      "The object-oriented API is recommended for more complex plots.")])
+def test_get_help_editor(main_window, qtbot, object_info):
     """Test that Help works when called from the Editor."""
     help_plugin = main_window.help
     webview = help_plugin.rich_text.webview._webview
@@ -517,8 +522,9 @@ def test_get_help_editor(main_window, qtbot):
         code_editor.document_did_open()
 
     # Write some object in the editor
-    code_editor.set_text('range')
-    code_editor.move_cursor(len('range'))
+    object_name, expected_text = object_info
+    code_editor.set_text(object_name)
+    code_editor.move_cursor(len(object_name))
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
@@ -527,7 +533,7 @@ def test_get_help_editor(main_window, qtbot):
         editorstack.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "range"), timeout=30000)
+    qtbot.waitUntil(lambda: check_text(webpage, expected_text), timeout=30000)
 
 
 @pytest.mark.slow

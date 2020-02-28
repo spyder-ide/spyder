@@ -27,6 +27,7 @@ INSTALL_TIMEOUT = 360000
 
 
 @pytest.mark.slow
+@pytest.mark.first
 @pytest.mark.skipif((not sys.platform.startswith('linux')
                      or os.environ.get('CI', None) is None),
                     reason=("Only works reliably on Linux and "
