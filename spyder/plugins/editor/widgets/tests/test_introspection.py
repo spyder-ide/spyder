@@ -232,6 +232,41 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.first
+@flaky(max_runs=5)
+def test_automatic_completions_tab_bug(lsp_codeeditor, qtbot):
+    """
+    Test on-the-fly completions.
+
+    Autocompletions sohuld not be invoked when Tab/Backtab is pressed.
+
+    See: spyder-ide/spyder#11625
+    """
+    code_editor, _ = lsp_codeeditor
+    completion = code_editor.completion_widget
+    code_editor.toggle_code_snippets(False)
+
+    code_editor.set_text('x = 1')
+    code_editor.set_cursor_position('sol')
+
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=5000):
+            qtbot.keyPress(code_editor, Qt.Key_Tab)
+        assert False
+    except pytestqt.exceptions.TimeoutError:
+        pass
+
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=5000):
+            qtbot.keyPress(code_editor, Qt.Key_Backtab)
+        assert False
+    except pytestqt.exceptions.TimeoutError:
+        pass
+
+
+@pytest.mark.slow
 @flaky(max_runs=3)
 def test_automatic_completions_parens_bug(lsp_codeeditor, qtbot):
     """
