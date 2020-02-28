@@ -75,8 +75,7 @@ class CompletionManager(SpyderCompletionPlugin):
         })
 
     SKIP_INTERMEDIATE_REQUESTS = {
-        LSPRequestTypes.DOCUMENT_COMPLETION,
-        LSPRequestTypes.DOCUMENT_SYMBOL
+        LSPRequestTypes.DOCUMENT_COMPLETION
     }
 
     def __init__(self, parent, plugins=['lsp', 'kite', 'fallback']):
