@@ -144,6 +144,44 @@ else:
 
 
 # =============================================================================
+# Patch PyQt4 and PyQt5
+# =============================================================================
+# This saves the QApplication instances so that Python doesn't destroy them.
+# Python sees all the QApplication as differnet Python objects, while
+# Qt sees them as a singleton (There is only one Application!). Deleting one
+# QApplication causes all the other Python instances to become broken.
+# See spyder-ide/spyder/issues/2970
+try:
+    from PyQt5 import QtWidgets
+
+    class SpyderQApplication(QtWidgets.QApplication):
+        def __init__(self, *args, **kwargs):
+            super(SpyderQApplication, self).__init__(*args, **kwargs)
+            # Add reference to avoid destruction
+            # This creates a Memory leak but avoids a Segmentation fault
+            SpyderQApplication._instance_list.append(self)
+
+    SpyderQApplication._instance_list = []
+    QtWidgets.QApplication = SpyderQApplication
+except Exception:
+    pass
+
+try:
+    from PyQt4 import QtGui
+
+    class SpyderQApplication(QtGui.QApplication):
+        def __init__(self, *args, **kwargs):
+            super(SpyderQApplication, self).__init__(*args, **kwargs)
+            # Add reference to avoid destruction
+            # This creates a Memory leak but avoids a Segmentation fault
+            SpyderQApplication._instance_list.append(self)
+
+    SpyderQApplication._instance_list = []
+    QtGui.QApplication = SpyderQApplication
+except Exception:
+    pass
+
+# =============================================================================
 # IPython adjustments
 # =============================================================================
 # Patch unittest.main so that errors are printed directly in the console.
@@ -403,16 +441,16 @@ def exec_code(code, filename, ns_globals, ns_locals=None):
                     if PY2:
                         raise e
                     else:
-                        # Need to call exec to avoid Syntax Error in python 2.
-                        # TODO: remove exec when dropping python 2 support.
+                        # Need to call exec to avoid Syntax Error in Python 2.
+                        # TODO: remove exec when dropping Python 2 support.
                         exec("raise e from None")
                 else:
                     _print(
-                        "WARNING: This is not valid python code. "
-                        "If you want to use ipython magic, "
+                        "WARNING: This is not valid Python code. "
+                        "If you want to use IPython magics, "
                         "flexible indentation, and prompt removal, "
-                        "please save this file with .ipy extension. "
-                        "This will be an error in a future version of spyder.")
+                        "please save this file with the .ipy extension. "
+                        "This will be an error in a future version of Spyder.")
         else:
             compiled = compile(transform_cell(code), filename, 'exec')
 

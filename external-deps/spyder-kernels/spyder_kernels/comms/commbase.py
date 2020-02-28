@@ -270,7 +270,6 @@ class CommBase(object):
             A function to handle the message. This is called with 3 arguments:
                 - msg_dict: A dictionary with message information.
                 - buffer: The data transmitted in the buffer
-                - load_exception: Exception from buffer unpickling
             Pass None to unregister the message_id
         """
         if handler is None:
@@ -301,6 +300,10 @@ class CommBase(object):
         Handle internal spyder messages.
         """
         self.calling_comm_id = msg['content']['comm_id']
+
+        # Get message dict
+        msg_dict = msg['content']['data']
+
         # Load the buffer. Only one is supported.
         try:
             if PY3:
@@ -312,29 +315,26 @@ class CommBase(object):
                                            encoding='latin-1')
             else:
                 buffer = cloudpickle.loads(msg['buffers'][0])
-            load_exception = None
         except Exception as e:
-            load_exception = e
-            buffer = None
+            logger.debug(
+                "Exception in cloudpickle.loads : %s" % str(e))
+            buffer = CommsErrorWrapper(
+                msg_dict['content']['call_name'],
+                msg_dict['content']['call_id'])
 
-        # Get message dict
-        msg_dict = msg['content']['data']
+            msg_dict['content']['is_error'] = True
 
         spyder_msg_type = msg_dict['spyder_msg_type']
 
         if spyder_msg_type in self._message_handlers:
             self._message_handlers[spyder_msg_type](
-                msg_dict, buffer, load_exception)
+                msg_dict, buffer)
         else:
             logger.debug("No such spyder message type: %s" % spyder_msg_type)
 
-    def _handle_remote_call(self, msg, buffer, load_exception):
+    def _handle_remote_call(self, msg, buffer):
         """Handle a remote call."""
         msg_dict = msg['content']
-        if load_exception:
-            logger.debug(
-                "Exception in cloudpickle.loads : %s" % str(load_exception))
-            return
         try:
             return_value = self._remote_callback(
                     msg_dict['call_name'],
@@ -427,18 +427,14 @@ class CommBase(object):
         """
         raise NotImplementedError
 
-    def _handle_remote_call_reply(self, msg_dict, buffer, load_exception):
+    def _handle_remote_call_reply(self, msg_dict, buffer):
         """
         A blocking call received a reply.
         """
         content = msg_dict['content']
         call_id = content['call_id']
         call_name = content['call_name']
-        if load_exception:
-            buffer = load_exception, []
-            is_error = True
-        else:
-            is_error = content['is_error']
+        is_error = content['is_error']
 
         # Unexpected reply
         if call_id not in self._reply_waitlist:

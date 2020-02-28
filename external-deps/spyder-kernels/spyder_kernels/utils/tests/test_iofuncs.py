@@ -197,6 +197,17 @@ def expected_namespace(request):
 # =============================================================================
 # ---- Tests
 # =============================================================================
+def test_npz_import():
+    """
+    Test the load of .npz files as dictionaries.
+    """
+    filename = os.path.join(LOCATION, 'import_data.npz')
+    data = iofuncs.load_array(filename)
+    assert isinstance(data, tuple)
+    variables, error = data
+    assert variables['val1'] == np.array(1) and not error
+
+
 @pytest.mark.skipif(iofuncs.load_matlab is None, reason="SciPy required")
 def test_matlab_import(real_values):
     """
