@@ -265,6 +265,7 @@ def test_automatic_completions_tab_bug(lsp_codeeditor, qtbot):
     except pytestqt.exceptions.TimeoutError:
         pass
 
+
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_automatic_completions_parens_bug(lsp_codeeditor, qtbot):
