@@ -2623,20 +2623,23 @@ class EditorStack(QWidget):
             return
         if self.help is not None \
           and (force or self.help.dockwidget.isVisible()):
+            editor = self.get_current_editor()
+            language = editor.language.lower()
             signature = to_text_string(signature)
             signature = unicodedata.normalize("NFKD", signature)
             parts = signature.split('\n\n')
             definition = parts[0]
             documentation = '\n\n'.join(parts[1:])
             args = ''
-            if '(' in definition:
+            if '(' in definition and language == 'python':
                 args = definition[definition.find('('):]
+            else:
+                documentation = signature
 
             doc = {'obj_text': '', 'name': name,
                    'argspec': args, 'note': '',
                    'docstring': documentation}
             self.help.set_editor_doc(doc, force_refresh=force)
-            editor = self.get_current_editor()
             editor.setFocus()
 
     def new(self, filename, encoding, text, default_content=False,

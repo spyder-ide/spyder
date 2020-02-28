@@ -198,7 +198,7 @@ class DocumentProvider:
         logger.debug(path)
         if os.name == 'nt':
             path = path.replace('::', ':')
-            path = 'windows:' + path
+            path = ':windows:' + path
         request = {
             'filename': path,
             'hash': md5,
