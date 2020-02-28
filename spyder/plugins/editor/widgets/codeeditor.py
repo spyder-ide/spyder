@@ -3680,6 +3680,7 @@ class CodeEditor(TextEditBaseWidget):
         """Reimplement Qt method."""
         self._start_completion_timer()
 
+        tab_pressed = False
         if self.completions_hint_after_ms > 0:
             self._completions_hint_idle = False
             self._timer_completions_hint.start(self.completions_hint_after_ms)
@@ -3854,6 +3855,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Tab and not ctrl:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
+            tab_pressed = True
             if not has_selection and not self.tab_mode:
                 self.intelligent_tab()
             else:
@@ -3862,6 +3864,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Backtab and not ctrl:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
             # there is no point since <TAB> can't (see above)
+            tab_pressed = True
             if not has_selection and not self.tab_mode:
                 self.intelligent_backtab()
             else:
@@ -3873,7 +3876,7 @@ class CodeEditor(TextEditBaseWidget):
 
         self._last_key_pressed_text = text
         self._last_pressed_key = key
-        if self.automatic_completions_after_ms == 0:
+        if self.automatic_completions_after_ms == 0 and not tab_pressed:
             self._handle_completions()
 
         if not event.modifiers():
@@ -3891,7 +3894,8 @@ class CodeEditor(TextEditBaseWidget):
 
         key = self._last_pressed_key
         if key is not None:
-            if key in [Qt.Key_Backspace, Qt.Key_Return, Qt.Key_Escape]:
+            if key in [Qt.Key_Backspace, Qt.Key_Return, Qt.Key_Escape,
+                       Qt.Key_Tab, Qt.Key_Backtab]:
                 self._last_pressed_key = None
                 return
 
