@@ -1700,7 +1700,10 @@ class EditorStack(QWidget):
             else:
                 new_index = current_index
 
-        is_ok = force or self.save_if_changed(cancelable=True, index=index)
+        can_close_file = self.parent().plugin.can_close_file(
+            self.data[index].filename) if self.parent() else True
+        is_ok = (force or self.save_if_changed(cancelable=True, index=index)
+                 and can_close_file)
         if is_ok:
             finfo = self.data[index]
             self.threadmanager.close_threads(finfo)
@@ -2283,7 +2286,7 @@ class EditorStack(QWidget):
             return
         if index is None:
             index = self.get_stack_index()
-        if self.data:
+        if self.data and len(self.data) > index:
             finfo = self.data[index]
             oe.setEnabled(True)
             if finfo.editor.oe_proxy is None:
@@ -2312,20 +2315,22 @@ class EditorStack(QWidget):
 
     def __refresh_statusbar(self, index):
         """Refreshing statusbar widgets"""
-        finfo = self.data[index]
-        self.encoding_changed.emit(finfo.encoding)
-        # Refresh cursor position status:
-        line, index = finfo.editor.get_cursor_line_column()
-        self.sig_editor_cursor_position_changed.emit(line, index)
+        if self.data and len(self.data) > index:
+            finfo = self.data[index]
+            self.encoding_changed.emit(finfo.encoding)
+            # Refresh cursor position status:
+            line, index = finfo.editor.get_cursor_line_column()
+            self.sig_editor_cursor_position_changed.emit(line, index)
 
     def __refresh_readonly(self, index):
-        finfo = self.data[index]
-        read_only = not QFileInfo(finfo.filename).isWritable()
-        if not osp.isfile(finfo.filename):
-            # This is an 'untitledX.py' file (newly created)
-            read_only = False
-        finfo.editor.setReadOnly(read_only)
-        self.readonly_changed.emit(read_only)
+        if self.data and len(self.data) > index:
+            finfo = self.data[index]
+            read_only = not QFileInfo(finfo.filename).isWritable()
+            if not osp.isfile(finfo.filename):
+                # This is an 'untitledX.py' file (newly created)
+                read_only = False
+            finfo.editor.setReadOnly(read_only)
+            self.readonly_changed.emit(read_only)
 
     def __check_file_status(self, index):
         """Check if file has been changed in any way outside Spyder:
@@ -2337,6 +2342,9 @@ class EditorStack(QWidget):
             # triggering a refresh cycle which calls this method
             return
         self.__file_status_flag = True
+
+        if len(self.data) <= index:
+            index = self.get_stack_index()
 
         finfo = self.data[index]
         name = osp.basename(finfo.filename)
@@ -2395,11 +2403,6 @@ class EditorStack(QWidget):
             state = finfo.editor.document().isModified()
             self.set_stack_title(index, state)
 
-    def __reset_tooltip(self):
-        """Reset tooltip tip info for all the editors."""
-        for index, finfo in enumerate(self.data):
-            finfo.editor.reset_tooltip()
-
     def refresh(self, index=None):
         """Refresh tabwidget"""
         if index is None:
@@ -2416,7 +2419,6 @@ class EditorStack(QWidget):
             self.__refresh_readonly(index)
             self.__check_file_status(index)
             self.__modify_stack_title()
-            self.__reset_tooltip()
             self.update_plugin_title.emit()
         else:
             editor = None
@@ -2621,20 +2623,23 @@ class EditorStack(QWidget):
             return
         if self.help is not None \
           and (force or self.help.dockwidget.isVisible()):
+            editor = self.get_current_editor()
+            language = editor.language.lower()
             signature = to_text_string(signature)
             signature = unicodedata.normalize("NFKD", signature)
             parts = signature.split('\n\n')
             definition = parts[0]
             documentation = '\n\n'.join(parts[1:])
             args = ''
-            if '(' in definition:
+            if '(' in definition and language == 'python':
                 args = definition[definition.find('('):]
+            else:
+                documentation = signature
 
             doc = {'obj_text': '', 'name': name,
                    'argspec': args, 'note': '',
                    'docstring': documentation}
             self.help.set_editor_doc(doc, force_refresh=force)
-            editor = self.get_current_editor()
             editor.setFocus()
 
     def new(self, filename, encoding, text, default_content=False,
@@ -2827,21 +2832,34 @@ class EditorStack(QWidget):
                 self.debug_cell_in_ipyclient.emit(*args)
             else:
                 self.run_cell_in_ipyclient.emit(*args)
-        editor.setFocus()
+        if self.focus_to_editor:
+            editor.setFocus()
+        else:
+            console = QApplication.focusWidget()
+            console.setFocus()
 
     #------ Drag and drop
     def dragEnterEvent(self, event):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
+        logger.debug("dragEnterEvent was received")
         source = event.mimeData()
         # The second check is necessary on Windows, where source.hasUrls()
         # can return True but source.urls() is []
         # The third check is needed since a file could be dropped from
         # compressed files. In Windows mimedata2url(source) returns None
         # Fixes spyder-ide/spyder#5218.
-        if source.hasUrls() and source.urls() and mimedata2url(source):
-            all_urls = mimedata2url(source)
+        has_urls = source.hasUrls()
+        has_text = source.hasText()
+        urls = source.urls()
+        all_urls = mimedata2url(source)
+        logger.debug("Drag event source has_urls: {}".format(has_urls))
+        logger.debug("Drag event source urls: {}".format(urls))
+        logger.debug("Drag event source all_urls: {}".format(all_urls))
+        logger.debug("Drag event source has_text: {}".format(has_text))
+        if has_urls and urls and all_urls:
             text = [encoding.is_text_file(url) for url in all_urls]
+            logger.debug("Accept proposed action?: {}".format(any(text)))
             if any(text):
                 event.acceptProposedAction()
             else:
@@ -2853,8 +2871,10 @@ class EditorStack(QWidget):
             # which can be opened by the Editor if they are plain
             # text, but doesn't come with url info.
             # Fixes spyder-ide/spyder#2032.
+            logger.debug("Accept proposed action on Windows")
             event.acceptProposedAction()
         else:
+            logger.debug("Ignore drag event")
             event.ignore()
 
     def dropEvent(self, event):

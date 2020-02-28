@@ -14,12 +14,7 @@ import sys
 
 from spyder.config.base import _
 
-# This allows to import this module before adding the
-# spyder-kernels subrepo path to sys.path in bootstrap.py
-try:
-    from spyder_kernels.utils import iofuncs
-except ImportError:
-    iofuncs = None
+from spyder_kernels.utils import iofuncs
 
 
 #==============================================================================
@@ -59,10 +54,7 @@ EDIT_FILETYPES = [
 ALL_FILTER = "%s (*)" % _("All files")
 
 # Extensions supported by Spyder's Variable explorer
-if iofuncs is not None:
-    IMPORT_EXT = list(iofuncs.iofunctions.load_extensions.values())
-else:
-    IMPORT_EXT = []
+IMPORT_EXT = list(iofuncs.iofunctions.load_extensions.values())
 
 
 #==============================================================================

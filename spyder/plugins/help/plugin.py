@@ -45,6 +45,7 @@ class Help(SpyderPluginWidget):
     CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
     FONT_SIZE_DELTA = DEFAULT_SMALL_DELTA
+    DISABLE_ACTIONS_WHEN_HIDDEN = False  # SpyderPluginWidget class attribute
 
     # Signals
     focus_changed = Signal()

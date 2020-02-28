@@ -16,23 +16,24 @@ import os.path as osp
 import sys
 
 # ---- Third library imports
+import qdarkstyle
 from qtconsole.svg import svg_to_image, svg_to_clipboard
 from qtpy.compat import getsavefilename, getexistingdirectory
 from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, QSize, QTimer, Slot
 from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
-                            QScrollArea, QPushButton, QScrollBar, QSpinBox,
-                            QSplitter, QStyle)
+                            QScrollArea, QScrollBar, QSpinBox, QSplitter,
+                            QStyle)
 
 # ---- Local library imports
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import is_unicode, to_text_string
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, create_plugin_layout,
-                                    MENU_SEPARATOR)
+from spyder.utils.qthelpers import (
+    add_actions, add_shortcut_to_tooltip, create_action, create_toolbutton,
+    create_plugin_layout, MENU_SEPARATOR)
 from spyder.utils.misc import getcwd_or_home
 from spyder.config.gui import is_dark_interface
 
@@ -98,6 +99,15 @@ class FigureBrowser(QWidget):
         self.plugin_actions = plugin_actions
         self.shortcuts = self.create_shortcuts()
 
+    def eventFilter(self, obj, event):
+        """
+        An event filter to add the shortcut associated with a given
+        toolbutton to its tooltip.
+        """
+        if event.type() == QEvent.ToolTip:
+            add_shortcut_to_tooltip(obj, *obj.shortcut_data)
+        return False
+
     def setup(self, mute_inline_plotting=None, show_plot_outline=None,
               auto_fit_plotting=None):
         """Setup the figure browser with provided settings."""
@@ -113,13 +123,14 @@ class FigureBrowser(QWidget):
             self.auto_fit_action.setChecked(auto_fit_plotting)
             return
 
+        # Setup the figure viewer.
         self.figviewer = FigureViewer(background_color=self.background_color)
-        self.figviewer.setStyleSheet("FigureViewer{"
-                                     "border: 1px solid lightgrey;"
-                                     "border-top-width: 0px;"
-                                     "border-bottom-width: 0px;"
-                                     "border-left-width: 0px;"
-                                     "}")
+        self.figviewer.figcanvas.sig_save_fig_requested.connect(
+            self.save_figure)
+        self.figviewer.figcanvas.sig_clear_fig_requested.connect(
+            self.close_figure)
+
+        # Setup the thumbnail scrollbar.
         self.thumbnails_sb = ThumbnailScrollBar(
             self.figviewer, background_color=self.background_color)
 
@@ -144,60 +155,75 @@ class FigureBrowser(QWidget):
         self.setLayout(layout)
 
     def setup_toolbar(self):
-        """Setup the toolbar"""
-        savefig_btn = create_toolbutton(
-                self, icon=ima.icon('filesave'),
-                tip=_("Save Image As..."),
-                triggered=self.save_figure)
+        """Setup the toolbar."""
+        self.savefig_btn = create_toolbutton(
+            self, icon=ima.icon('filesave'),
+            tip=_("Save plot as..."),
+            triggered=self.save_figure)
+        self.savefig_btn.shortcut_data = ('plots', 'save')
+        self.savefig_btn.installEventFilter(self)
 
         saveall_btn = create_toolbutton(
-                self, icon=ima.icon('save_all'),
-                tip=_("Save All Images..."),
-                triggered=self.save_all_figures)
+            self, icon=ima.icon('save_all'),
+            tip=_("Save all plots..."),
+            triggered=self.save_all_figures)
+        saveall_btn.shortcut_data = ('plots', 'save all')
+        saveall_btn.installEventFilter(self)
 
         copyfig_btn = create_toolbutton(
             self, icon=ima.icon('editcopy'),
-            tip=(_("Copy plot to clipboard as image (%s)") %
-                 CONF.get_shortcut('plots', 'copy')),
+            tip=_("Copy plot to clipboard as image"),
             triggered=self.copy_figure)
+        copyfig_btn.shortcut_data = ('plots', 'copy')
+        copyfig_btn.installEventFilter(self)
 
-        closefig_btn = create_toolbutton(
-                self, icon=ima.icon('editclear'),
-                tip=_("Remove image"),
-                triggered=self.close_figure)
+        self.closefig_btn = create_toolbutton(
+            self, icon=ima.icon('editclear'),
+            tip=_("Remove plot"),
+            triggered=self.close_figure)
+        self.closefig_btn.shortcut_data = ('plots', 'close')
+        self.closefig_btn.installEventFilter(self)
 
         closeall_btn = create_toolbutton(
-                self, icon=ima.icon('filecloseall'),
-                tip=_("Remove all images from the explorer"),
-                triggered=self.close_all_figures)
+            self, icon=ima.icon('filecloseall'),
+            tip=_("Remove all plots"),
+            triggered=self.close_all_figures)
+        closeall_btn.shortcut_data = ('plots', 'close all')
+        closeall_btn.installEventFilter(self)
 
-        vsep1 = QFrame()
-        vsep1.setFrameStyle(53)
+        separator1 = QFrame()
+        separator1.setFrameStyle(QFrame.VLine | QFrame.Sunken)
 
         goback_btn = create_toolbutton(
-                self, icon=ima.icon('ArrowBack'),
-                tip=_("Previous figure ({})").format(
-                      CONF.get_shortcut('plots', 'previous figure')),
-                triggered=self.go_previous_thumbnail)
+            self, icon=ima.icon('ArrowBack'),
+            tip=_("Previous plot"),
+            triggered=self.go_previous_thumbnail)
+        goback_btn.shortcut_data = ('plots', 'previous figure')
+        goback_btn.installEventFilter(self)
 
         gonext_btn = create_toolbutton(
-                self, icon=ima.icon('ArrowForward'),
-                tip=_("Next figure ({})").format(
-                      CONF.get_shortcut('plots', 'next figure')),
-                triggered=self.go_next_thumbnail)
+            self, icon=ima.icon('ArrowForward'),
+            tip=_("Next plot"),
+            triggered=self.go_next_thumbnail)
+        gonext_btn.shortcut_data = ('plots', 'next figure')
+        gonext_btn.installEventFilter(self)
 
-        vsep2 = QFrame()
-        vsep2.setFrameStyle(53)
+        separator2 = QFrame()
+        separator2.setFrameStyle(QFrame.VLine | QFrame.Sunken)
 
         self.zoom_out_btn = create_toolbutton(
-                self, icon=ima.icon('zoom_out'),
-                tip=_("Zoom out (Ctrl + mouse-wheel-down)"),
-                triggered=self.zoom_out)
+            self, icon=ima.icon('zoom_out'),
+            tip=_("Zoom out"),
+            triggered=self.zoom_out)
+        self.zoom_out_btn.shortcut_data = ('plots', 'zoom out')
+        self.zoom_out_btn.installEventFilter(self)
 
         self.zoom_in_btn = create_toolbutton(
-                self, icon=ima.icon('zoom_in'),
-                tip=_("Zoom in (Ctrl + mouse-wheel-up)"),
-                triggered=self.zoom_in)
+            self, icon=ima.icon('zoom_in'),
+            tip=_("Zoom in"),
+            triggered=self.zoom_in)
+        self.zoom_in_btn.shortcut_data = ('plots', 'zoom in')
+        self.zoom_in_btn.installEventFilter(self)
 
         self.zoom_disp = QSpinBox()
         self.zoom_disp.setAlignment(Qt.AlignCenter)
@@ -216,8 +242,9 @@ class FigureBrowser(QWidget):
         layout.addWidget(self.zoom_in_btn)
         layout.addWidget(self.zoom_disp)
 
-        return [savefig_btn, saveall_btn, copyfig_btn, closefig_btn,
-                closeall_btn, vsep1, goback_btn, gonext_btn, vsep2, zoom_pan]
+        return [self.savefig_btn, saveall_btn, copyfig_btn, self.closefig_btn,
+                closeall_btn, separator1, goback_btn, gonext_btn,
+                separator2, zoom_pan]
 
     def setup_option_actions(self, mute_inline_plotting, show_plot_outline,
                              auto_fit_plotting):
@@ -272,8 +299,7 @@ class FigureBrowser(QWidget):
 
     def create_shortcuts(self):
         """Create shortcuts for this widget."""
-        # Configurable
-        copyfig = CONF.config_shortcut(
+        copyfig_sc = CONF.config_shortcut(
             self.copy_figure,
             context='plots',
             name='copy',
@@ -291,7 +317,44 @@ class FigureBrowser(QWidget):
             name='next figure',
             parent=self)
 
-        return [copyfig, prevfig, nextfig]
+        savefig_sc = CONF.config_shortcut(
+            self.save_figure,
+            context='plots',
+            name='save',
+            parent=self)
+
+        saveallfig = CONF.config_shortcut(
+            self.save_all_figures,
+            context='plots',
+            name='save all',
+            parent=self)
+
+        closefig = CONF.config_shortcut(
+            self.close_figure,
+            context='plots',
+            name='close',
+            parent=self)
+
+        closeallfig = CONF.config_shortcut(
+            self.close_all_figures,
+            context='plots',
+            name='close all',
+            parent=self)
+
+        zoom_out = CONF.config_shortcut(
+            self.zoom_out,
+            context='plots',
+            name='zoom out',
+            parent=self)
+
+        zoom_in = CONF.config_shortcut(
+            self.zoom_in,
+            context='plots',
+            name='zoom in',
+            parent=self)
+
+        return [copyfig_sc, prevfig, nextfig, savefig_sc, saveallfig,
+                closefig, closeallfig, zoom_out, zoom_in]
 
     def get_shortcut_data(self):
         """
@@ -313,10 +376,17 @@ class FigureBrowser(QWidget):
     def show_fig_outline_in_viewer(self, state):
         """Draw a frame around the figure viewer if state is True."""
         if state is True:
-            self.figviewer.figcanvas.setStyleSheet(
-                    "FigureCanvas{border: 1px solid lightgrey;}")
+            if is_dark_interface():
+                self.figviewer.figcanvas.setStyleSheet(
+                    "FigureCanvas{border:1px solid %s;}" %
+                    qdarkstyle.palette.DarkPalette.COLOR_BACKGROUND_NORMAL)
+            else:
+                self.figviewer.figcanvas.setStyleSheet(
+                    "FigureCanvas{border: 1px solid %s;}" %
+                    self.figviewer.figcanvas.palette().shadow().color().name())
         else:
-            self.figviewer.figcanvas.setStyleSheet("FigureCanvas{}")
+            self.figviewer.figcanvas.setStyleSheet(
+                "FigureCanvas{border: 0px;}")
         self.option_changed('show_plot_outline', state)
 
     def change_auto_fit_plotting(self, state):
@@ -594,22 +664,17 @@ class ThumbnailScrollBar(QFrame):
         # So to scroll programmatically to the latest item after it
         # is added to the scrollarea, we need to do it instead in a slot
         # connected to the scrollbar's rangeChanged signal.
-        # See spyder-ide/#10914 for more details.
+        # See spyder-ide/spyder#10914 for more details.
         self._new_thumbnail_added = False
         self.scrollarea.verticalScrollBar().rangeChanged.connect(
             self._scroll_to_newest_item)
 
     def setup_gui(self):
         """Setup the main layout of the widget."""
-        scrollarea = self.setup_scrollarea()
-        up_btn, down_btn = self.setup_arrow_buttons()
-
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-        layout.addWidget(up_btn)
-        layout.addWidget(scrollarea)
-        layout.addWidget(down_btn)
+        layout.addWidget(self.setup_scrollarea())
 
     def setup_scrollarea(self):
         """Setup the scrollarea that will contain the FigureThumbnails."""
@@ -617,14 +682,16 @@ class ThumbnailScrollBar(QFrame):
 
         self.scene = QGridLayout(self.view)
         self.scene.setContentsMargins(0, 0, 0, 0)
-        self.scene.setSpacing(3)
+        # The vertical spacing between the thumbnails.
+        # Note that we need to set this value explicitly or else the tests
+        # are failing on macOS. See spyder-ide/spyder#11576.
+        self.scene.setSpacing(5)
 
         self.scrollarea = QScrollArea()
         self.scrollarea.setWidget(self.view)
         self.scrollarea.setWidgetResizable(True)
         self.scrollarea.setFrameStyle(0)
         self.scrollarea.setViewportMargins(2, 2, 2, 2)
-        self.scrollarea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollarea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollarea.setMinimumWidth(self._min_scrollbar_width)
 
@@ -638,27 +705,6 @@ class ThumbnailScrollBar(QFrame):
 
         return self.scrollarea
 
-    def setup_arrow_buttons(self):
-        """
-        Setup the up and down arrow buttons that are placed at the top and
-        bottom of the scrollarea.
-        """
-        # Get the size hint height of the horizontal scrollbar.
-        height = self.scrollarea.horizontalScrollBar().sizeHint().height()
-
-        # Setup the up and down arrow button.
-        up_btn = up_btn = QPushButton(icon=ima.icon('last_edit_location'))
-        up_btn.setFlat(True)
-        up_btn.setFixedHeight(height)
-        up_btn.clicked.connect(self.go_up)
-
-        down_btn = QPushButton(icon=ima.icon('folding.arrow_down_on'))
-        down_btn.setFlat(True)
-        down_btn.setFixedHeight(height)
-        down_btn.clicked.connect(self.go_down)
-
-        return up_btn, down_btn
-
     def set_figureviewer(self, figure_viewer):
         """Set the bamespace for the FigureViewer."""
         self.figure_viewer = figure_viewer
@@ -666,8 +712,17 @@ class ThumbnailScrollBar(QFrame):
     def eventFilter(self, widget, event):
         """
         An event filter to trigger an update of the thumbnails size so that
-        their width fit that of the scrollarea.
+        their width fit that of the scrollarea and to remap some key press
+        events to mimick navigational behaviour of a Qt widget list.
         """
+        if event.type() == QEvent.KeyPress:
+            key = event.key()
+            if key == Qt.Key_Up:
+                self.go_previous_thumbnail()
+                return True
+            elif key == Qt.Key_Down:
+                self.go_next_thumbnail()
+                return True
         if event.type() == QEvent.Resize:
             self._update_thumbnail_size()
         return super(ThumbnailScrollBar, self).eventFilter(widget, event)
@@ -676,10 +731,11 @@ class ThumbnailScrollBar(QFrame):
     def save_all_figures_as(self):
         """Save all the figures to a file."""
         self.redirect_stdio.emit(False)
-        dirname = getexistingdirectory(self, caption='Save all figures',
-                                       basedir=getcwd_or_home())
+        save_dir = CONF.get('plots', 'save_dir', getcwd_or_home())
+        dirname = getexistingdirectory(self, 'Save all figures', save_dir)
         self.redirect_stdio.emit(True)
         if dirname:
+            CONF.set('plots', 'save_dir', dirname)
             return self.save_all_figures_todir(dirname)
 
     def save_all_figures_todir(self, dirname):
@@ -710,7 +766,8 @@ class ThumbnailScrollBar(QFrame):
             'image/jpeg': ('.jpg', 'JPEG (*.jpg;*.jpeg;*.jpe;*.jfif)'),
             'image/svg+xml': ('.svg', 'SVG (*.svg);;PNG (*.png)')}[fmt]
 
-        figname = get_unique_figname(getcwd_or_home(), 'Figure', fext)
+        save_dir = CONF.get('plots', 'save_dir', getcwd_or_home())
+        figname = get_unique_figname(save_dir, 'Figure', fext)
 
         self.redirect_stdio.emit(False)
         fname, fext = getsavefilename(
@@ -720,13 +777,13 @@ class ThumbnailScrollBar(QFrame):
         self.redirect_stdio.emit(True)
 
         if fname:
+            CONF.set('plots', 'save_dir', osp.dirname(fname))
             save_figure_tofile(fig, fmt, fname)
 
     # ---- Thumbails Handlers
-    def _calculate_figure_canvas_width(self, thumbnail):
+    def _calculate_figure_canvas_width(self):
         """
-        Calculate the width the thumbnail's figure canvas need to have for the
-        thumbnail to fit the scrollarea.
+        Calculate the width the thumbnails need to have to fit the scrollarea.
         """
         extra_padding = 10 if sys.platform == 'darwin' else 0
         figure_canvas_width = (
@@ -734,8 +791,8 @@ class ThumbnailScrollBar(QFrame):
             2 * self.lineWidth() -
             self.scrollarea.viewportMargins().left() -
             self.scrollarea.viewportMargins().right() -
-            thumbnail.savefig_btn.width() -
-            thumbnail.layout().spacing() - extra_padding
+            extra_padding -
+            self.scrollarea.verticalScrollBar().sizeHint().width()
             )
         if is_dark_interface():
             # This is required to take into account some hard-coded padding
@@ -748,7 +805,7 @@ class ThumbnailScrollBar(QFrame):
         Scale the thumbnail's canvas size so that it fits the thumbnail
         scrollbar's width.
         """
-        max_canvas_size = self._calculate_figure_canvas_width(thumbnail)
+        max_canvas_size = self._calculate_figure_canvas_width()
         thumbnail.scale_canvas_size(max_canvas_size)
 
     def _update_thumbnail_size(self):
@@ -840,7 +897,7 @@ class ThumbnailScrollBar(QFrame):
         """Set the currently selected thumbnail."""
         self.current_thumbnail = thumbnail
         self.figure_viewer.load_figure(
-                thumbnail.canvas.fig, thumbnail.canvas.fmt)
+            thumbnail.canvas.fig, thumbnail.canvas.fmt)
         for thumbnail in self._thumbnails:
             thumbnail.highlight_canvas(thumbnail == self.current_thumbnail)
 
@@ -914,6 +971,8 @@ class FigureThumbnail(QWidget):
         super(FigureThumbnail, self).__init__(parent)
         self.canvas = FigureCanvas(self, background_color=background_color)
         self.canvas.installEventFilter(self)
+        self.canvas.sig_clear_fig_requested.connect(self.emit_remove_figure)
+        self.canvas.sig_save_fig_requested.connect(self.emit_save_figure)
         self.setup_gui()
 
     def setup_gui(self):
@@ -921,44 +980,24 @@ class FigureThumbnail(QWidget):
         layout = QGridLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.canvas, 0, 0, Qt.AlignCenter)
-        layout.addLayout(self.setup_toolbar(), 0, 1, 2, 1)
-        layout.setRowStretch(1, 100)
         layout.setSizeConstraint(layout.SetFixedSize)
-
-    def setup_toolbar(self):
-        """Setup the toolbar."""
-        self.savefig_btn = create_toolbutton(
-            self, icon=ima.icon('filesave'),
-            tip=_("Save Image As..."),
-            triggered=self.emit_save_figure)
-        self.delfig_btn = create_toolbutton(
-            self, icon=ima.icon('editclear'),
-            tip=_("Delete image"),
-            triggered=self.emit_remove_figure)
-
-        toolbar = QVBoxLayout()
-        toolbar.setContentsMargins(0, 0, 0, 0)
-        toolbar.setSpacing(1)
-        toolbar.addWidget(self.savefig_btn)
-        toolbar.addWidget(self.delfig_btn)
-        toolbar.addStretch(2)
-
-        return toolbar
 
     def highlight_canvas(self, highlight):
         """
         Set a colored frame around the FigureCanvas if highlight is True.
         """
-        colorname = self.canvas.palette().highlight().color().name()
         if highlight:
             # Highlighted figure is not clear in dark mode with blue color.
             # See spyder-ide/spyder#10255.
             if is_dark_interface():
                 self.canvas.setStyleSheet(
-                        "FigureCanvas{border: 2px solid %s;}" % "#148CD2")
+                    "FigureCanvas{border: 2px solid %s;}" %
+                    qdarkstyle.palette.DarkPalette.COLOR_SELECTION_LIGHT
+                    )
             else:
                 self.canvas.setStyleSheet(
-                        "FigureCanvas{border: 2px solid %s;}" % colorname)
+                    "FigureCanvas{border: 2px solid %s;}" %
+                    self.canvas.palette().highlight().color().name())
         else:
             self.canvas.setStyleSheet("FigureCanvas{}")
 
@@ -1005,6 +1044,8 @@ class FigureCanvas(QFrame):
     """
     A basic widget on which can be painted a custom png, jpg, or svg image.
     """
+    sig_clear_fig_requested = Signal()
+    sig_save_fig_requested = Signal()
 
     def __init__(self, parent=None, background_color=None):
         super(FigureCanvas, self).__init__(parent)
@@ -1028,10 +1069,20 @@ class FigureCanvas(QFrame):
             pos = QPoint(event.x(), event.y())
             context_menu = QMenu(self)
             context_menu.addAction(
+                ima.icon('filesave'),
+                _("Save plot as..."),
+                lambda: self.sig_save_fig_requested.emit(),
+                QKeySequence(CONF.get_shortcut('plots', 'save')))
+            context_menu.addAction(
                 ima.icon('editcopy'),
-                "Copy Image",
+                _("Copy Image"),
                 self.copy_figure,
                 QKeySequence(CONF.get_shortcut('plots', 'copy')))
+            context_menu.addAction(
+                ima.icon('editclear'),
+                _("Remove plot"),
+                lambda: self.sig_clear_fig_requested.emit(),
+                QKeySequence(CONF.get_shortcut('plots', 'close')))
             context_menu.popup(self.mapToGlobal(pos))
 
     @Slot()

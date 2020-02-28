@@ -30,7 +30,7 @@ from spyder.config.base import _
 from spyder.config.base import running_under_pytest
 
 
-def document_cells(block, forward=True):
+def document_cells(block, forward=True, cell_list=None):
     """
     Get cells oedata before or after block in the document.
 
@@ -38,6 +38,9 @@ def document_cells(block, forward=True):
     ----------
     forward : bool, optional
         Whether to iterate forward or backward from the current block.
+    cell_list: list of tuple containing (block_number, oedata)
+        This is the list of all cells in a file to avoid having to parse
+        the file every time.
     """
     if not block.isValid():
         # Not a valid block
@@ -48,6 +51,23 @@ def document_cells(block, forward=True):
     else:
         block = block.previous()
 
+    if not block.isValid():
+        return
+
+    if cell_list is not None:
+        cell_list = sorted(cell_list)
+        block_line = block.blockNumber()
+        if forward:
+            for cell_line, oedata in cell_list:
+                if cell_line >= block_line:
+                    yield oedata
+        else:
+            for cell_line, oedata in cell_list[::-1]:
+                if cell_line <= block_line:
+                    yield oedata
+        return
+
+    # If the cell_list was not provided, search the cells
     while block.isValid():
         data = block.userData()
         if (data
