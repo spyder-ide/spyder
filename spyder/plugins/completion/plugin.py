@@ -147,11 +147,14 @@ class CompletionManager(SpyderCompletionPlugin):
             # Needed to prevent the send of completions for old requests
             # See spyder-ide/spyder#10798
             req_type = self.requests[req_id]['req_type']
+            response_instance = id(self.requests[req_id]['response_instance'])
             send = True
             if req_type in self.SKIP_INTERMEDIATE_REQUESTS:
                 max_req_id = max(
                     [key for key, item in self.requests.items()
-                     if item['req_type'] == req_type] or [-1])
+                     if item['req_type'] == req_type
+                     and id(item['response_instance']) == response_instance]
+                    or [-1])
                 send = req_id == max_req_id
 
             del self.requests[req_id]
