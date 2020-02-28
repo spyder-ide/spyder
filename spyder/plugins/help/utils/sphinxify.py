@@ -50,10 +50,11 @@ from spyder.utils import encoding
 CONFDIR_PATH = get_module_source_path('spyder.plugins.help.utils')
 CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'css')
 DARK_CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'dark_css')
+BASE_CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'base_css')
 JS_PATH = osp.join(CONFDIR_PATH, 'js')
 
 # To let Debian packagers redefine the MathJax and JQuery locations so they can
-# use their own packages for them. See Issue 1230, comment #7.
+# use their own packages for them. See spyder-ide/spyder#1230, comment #7.
 MATHJAX_PATH = get_module_data_path('spyder',
                                     relpath=osp.join('utils', 'help',
                                                      JS_PATH, 'mathjax'),
@@ -89,6 +90,15 @@ def usage(title, message, tutorial_message, tutorial, css_path=CSS_PATH):
     usage = env.get_template("usage.html")
     return usage.render(css_path=css_path, title=title, intro_message=message,
                         tutorial_message=tutorial_message, tutorial=tutorial)
+
+
+def loading(message, loading_img, css_path=CSS_PATH):
+    """Print loading message on the rich text view."""
+    env = Environment()
+    env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
+    loading = env.get_template("loading.html")
+    return loading.render(
+        css_path=css_path, loading_img=loading_img, message=message)
 
 
 def generate_context(name='', argspec='', note='', math=False, collapse=False,
@@ -135,11 +145,13 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
       'collapse': collapse,
       'img_path': img_path,
       # Static variables
+      'base_css_path': BASE_CSS_PATH,
       'css_path': css_path,
       'js_path': JS_PATH,
       'jquery_path': JQUERY_PATH,
       'mathjax_path': MATHJAX_PATH,
       'right_sphinx_version': '' if sphinx.__version__ < "1.1" else 'true',
+      'sphinx_version_2': '' if sphinx.__version__ < "2.0" else 'true',
       'platform': sys.platform
     }
 
@@ -183,6 +195,10 @@ def sphinxify(docstring, context, buildername='html'):
     # docstrings
     if context['right_sphinx_version'] and context['math_on']:
         docstring = docstring.replace('\\\\', '\\\\\\\\')
+        # Needed to prevent MathJax render the '\*' red.
+        # Also the '\*' seems to actually by a simple '*'
+        # See spyder-ide/spyder#9785
+        docstring = docstring.replace("\\*", "*")
 
     # Add a class to several characters on the argspec. This way we can
     # highlight them using css, in a similar way to what IPython does.

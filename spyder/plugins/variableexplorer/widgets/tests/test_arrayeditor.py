@@ -30,6 +30,12 @@ from spyder.plugins.variableexplorer.widgets.arrayeditor import ArrayEditor, Arr
 
 
 # =============================================================================
+# Constants
+# =============================================================================
+HERE = os.path.dirname(os.path.realpath(__file__))
+
+
+# =============================================================================
 # Utility functions
 # =============================================================================
 def launch_arrayeditor(data, title="", xlabels=None, ylabels=None):
@@ -53,11 +59,40 @@ def setup_arrayeditor(qbot, data, title="", xlabels=None, ylabels=None):
 # =============================================================================
 # Tests
 # =============================================================================
+def test_object_arrays(qtbot):
+    """Test that object arrays are working properly."""
+    arr = np.array([u'a', 1, [2]], dtype=object)
+    assert_array_equal(arr, launch_arrayeditor(arr, "object array"))
+
+
+def test_object_arrays_display(qtbot):
+    """
+    Test that value_to_display is being used to display the values of
+    object arrays.
+    """
+    arr = np.array([[np.array([1, 2])], 2], dtype=object)
+    dlg = setup_arrayeditor(qtbot, arr)
+    idx = dlg.arraywidget.model.index(0, 0)
+    assert u'[Numpy array]' == dlg.arraywidget.model.data(idx)
+
+
+def test_attribute_errors(qtbot):
+    """
+    Verify that we don't get a AttributeError for certain structured arrays.
+
+    Fixes spyder-ide/spyder#11216 .
+    """
+    from scipy.io import loadmat
+    data = loadmat(os.path.join(HERE, 'issue_11216.mat'))
+    dlg = setup_arrayeditor(qtbot, data['S'])
+    contents = dlg.arraywidget.model.get_value(dlg.arraywidget.model.index(0, 0))
+    assert_array_equal(contents, data['S'][0][0][0])
+
 def test_type_errors(qtbot):
     """
     Verify that we don't get a TypeError for certain structured arrays.
 
-    Fixes issue #5254.
+    Fixes spyder-ide/spyder#5254.
     """
     arr = np.ones(2, dtype=[('X', 'f8', (2,10)), ('S', 'S10')])
     dlg = setup_arrayeditor(qtbot, arr)
@@ -80,6 +115,14 @@ def test_arrayeditor_format(qtbot):
     qtbot.keyClick(dlg.arraywidget.view, Qt.Key_Down, modifier=Qt.ShiftModifier)
     contents = dlg.arraywidget.view._sel_to_text(dlg.arraywidget.view.selectedIndexes())
     assert contents == "1.000000000000000000e+00\n2.000000000000000000e+00\n"
+
+
+def test_arrayeditor_with_inf_array(qtbot, recwarn):
+    """See: spyder-ide/spyder#8093"""
+    arr = np.array([np.inf])
+    res = launch_arrayeditor(arr, "inf array")
+    assert len(recwarn) == 0
+    assert arr == res
 
 
 def test_arrayeditor_with_string_array(qtbot):
@@ -196,11 +239,33 @@ def test_arrayeditor_edit_2d_array(qtbot):
     assert np.sum(diff_arr != dlg.get_value()) == 2
 
 
+def test_arrayeditor_edit_complex_array(qtbot):
+    """See: spyder-ide/spyder#7848"""
+    cnum = -1+0.5j
+    arr = (np.random.random((10, 10)) - 0.50) * cnum
+    dlg = ArrayEditor()
+    assert dlg.setup_and_check(arr, '2D complex array', xlabels=None,
+                               ylabels=None)
+    dlg.show()
+    qtbot.waitForWindowShown(dlg)
+    view = dlg.arraywidget.view
+    qtbot.keyPress(view, Qt.Key_Down)
+
+    # Prevent the test from failing
+    qtbot.wait(300)
+
+    # This is the actual editor widget on the cell
+    cell_editor = view.viewport().focusWidget()
+    qtbot.keyClicks(cell_editor, str(cnum))
+    qtbot.keyPress(cell_editor, Qt.Key_Return)
+    dlg.accept()
+
+
 def test_arraymodel_set_data_overflow(monkeypatch):
     """
     Test that entry of an overflowing integer is caught and handled properly.
 
-    Unit regression test for #6114 .
+    Unit regression test for spyder-ide/spyder#6114.
     """
     MockQMessageBox = Mock()
     attr_to_patch = 'spyder.plugins.variableexplorer.widgets.arrayeditor.QMessageBox'
@@ -229,7 +294,7 @@ def test_arrayeditor_edit_overflow(qtbot, monkeypatch):
     """
     Test that entry of an overflowing integer is caught and handled properly.
 
-    Integration regression test for #6114 .
+    Integration regression test for spyder-ide/spyder#6114.
     """
     MockQMessageBox = Mock()
     attr_to_patch = 'spyder.plugins.variableexplorer.widgets.arrayeditor.QMessageBox'

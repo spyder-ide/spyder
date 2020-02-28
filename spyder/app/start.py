@@ -17,11 +17,11 @@ import sys
 import time
 
 # To prevent a race condition with ZMQ
-# See issue 5324
+# See spyder-ide/spyder#5324.
 import zmq
 
 # Load GL library to prevent segmentation faults on some Linux systems
-# See issues 3226 and 3332
+# See spyder-ide/spyder#3226 and spyder-ide/spyder#3332.
 try:
     ctypes.CDLL("libGL.so.1", mode=ctypes.RTLD_GLOBAL)
 except:
@@ -31,7 +31,7 @@ except:
 from spyder.app.cli_options import get_options
 from spyder.config.base import (get_conf_path, running_in_mac_app,
                                 running_under_pytest)
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
 
@@ -83,6 +83,7 @@ def main():
         options.new_instance = False
         options.reset_config_files = False
         options.debug_info = None
+        options.paths = False
         args = None
     else:
         options, args = get_options()
@@ -120,18 +121,18 @@ def main():
         os.environ['LC_ALL'] = LC_ALL
 
         # Don't show useless warning in the terminal where Spyder
-        # was started
-        # See issue 3730
+        # was started.
+        # See spyder-ide/spyder#3730.
         os.environ['EVENT_NOKQUEUE'] = '1'
     else:
         # Prevent our kernels to crash when Python fails to identify
         # the system locale.
-        # Fixes issue 7051.
+        # Fixes spyder-ide/spyder#7051.
         try:
             from locale import getlocale
             getlocale()
         except ValueError:
-            # This can fail on Windows. See issue 6886
+            # This can fail on Windows. See spyder-ide/spyder#6886.
             try:
                 os.environ['LANG'] = 'C'
                 os.environ['LC_ALL'] = 'C'
@@ -142,8 +143,17 @@ def main():
         levels = {'minimal': '2', 'verbose': '3'}
         os.environ['SPYDER_DEBUG'] = levels[options.debug_info]
 
-    if CONF.get('main', 'single_instance') and not options.new_instance \
-      and not options.reset_config_files and not running_in_mac_app():
+    if options.paths:
+        from spyder.config.base import get_conf_paths
+        sys.stdout.write('\nconfig:' + '\n')
+        for path in reversed(get_conf_paths()):
+            sys.stdout.write('\t' + path + '\n')
+        sys.stdout.write('\n' )
+        return
+
+    if (CONF.get('main', 'single_instance') and not options.new_instance
+            and not options.reset_config_files
+            and not running_in_mac_app()):
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file
@@ -162,8 +172,8 @@ def main():
         except:
             # If locking fails because of errors in the lockfile
             # module, try to remove a possibly stale spyder.lock.
-            # This is reported to solve all problems with
-            # lockfile (See issue 2363)
+            # This is reported to solve all problems with lockfile.
+            # See spyder-ide/spyder#2363.
             try:
                 if os.name == 'nt':
                     if osp.isdir(lock_file):

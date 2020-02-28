@@ -34,7 +34,7 @@ def test_recoverydialog_has_cancel_button(qtbot, tmpdir):
     Test that a RecoveryDialog has a button in a dialog button box and that
     this button cancels the dialog window.
     """
-    dialog = RecoveryDialog(str(tmpdir), {})
+    dialog = RecoveryDialog([])
     qtbot.addWidget(dialog)
     button = dialog.findChild(QDialogButtonBox).findChild(QPushButton)
     with qtbot.waitSignal(dialog.rejected):
@@ -44,7 +44,7 @@ def test_recoverydialog_has_cancel_button(qtbot, tmpdir):
 def test_recoverydialog_table_labels(qtbot, recovery_env):
     """Test that table in RecoveryDialog has the correct labels."""
     orig_dir, autosave_dir, autosave_mapping = recovery_env
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
 
     def text(i, j):
@@ -72,11 +72,11 @@ def test_recoverydialog_table_labels(qtbot, recovery_env):
 
 def test_recoverydialog_exec_if_nonempty_when_empty(qtbot, tmpdir, mocker):
     """
-    Test that exec_if_nonempty does nothing if autosave dir is empty.
+    Test that exec_if_nonempty does nothing if autosave files do not exist.
 
     Specifically, test that it does not `exec_()` the dialog.
     """
-    dialog = RecoveryDialog(str(tmpdir), {'ham': 'spam'})
+    dialog = RecoveryDialog([('ham', 'spam')])
     mocker.patch.object(dialog, 'exec_')
     assert dialog.exec_if_nonempty() == dialog.Accepted
     dialog.exec_.assert_not_called()
@@ -86,7 +86,7 @@ def test_recoverydialog_exec_if_nonempty_when_nonempty(
         qtbot, recovery_env, mocker):
     """Test that exec_if_nonempty executes dialog if autosave dir not empty."""
     orig_dir, autosave_dir, autosave_mapping = recovery_env
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    dialog = RecoveryDialog(autosave_mapping)
     mocker.patch.object(dialog, 'exec_', return_value='eggs')
     assert dialog.exec_if_nonempty() == 'eggs'
     assert dialog.exec_.called
@@ -101,7 +101,7 @@ def test_recoverydialog_exec_if_nonempty_when_no_autosave_dir(
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     shutil.rmtree(autosave_dir)
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    dialog = RecoveryDialog(autosave_mapping)
     mocker.patch.object(dialog, 'exec_')
     assert dialog.exec_if_nonempty() == dialog.Accepted
     dialog.exec_.assert_not_called()
@@ -116,7 +116,7 @@ def test_recoverydialog_restore_button(qtbot, recovery_env):
     grid is deactivated.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(0, 2).findChildren(QPushButton)[0]
     button.click()
@@ -137,7 +137,7 @@ def test_recoverydialog_restore_when_original_does_not_exist(
     deactivated.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(1, 2).findChildren(QPushButton)[0]
     button.click()
@@ -160,7 +160,7 @@ def test_recoverydialog_restore_when_original_not_recorded(
     new_name = osp.join(orig_dir, 'monty.py')
     mocker.patch('spyder.plugins.editor.widgets.recover.getsavefilename',
                  return_value=(new_name, 'ignored'))
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(2, 2).findChildren(QPushButton)[0]
     button.click()
@@ -177,13 +177,13 @@ def test_recoverydialog_restore_fallback(qtbot, recovery_env, mocker):
 
     Test that after pressing the 'Restore' button, if os.replace() fails,
     the fallback to copy and delete kicks in and the restore succeeds.
-    Regression test for issue #8631.
+    Regression test for spyder-ide/spyder#8631.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
     if not PY2:
         mocker.patch('spyder.plugins.editor.widgets.recover.os.replace',
                      side_effect=OSError)
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(0, 2).findChildren(QPushButton)[0]
     button.click()
@@ -210,7 +210,7 @@ def test_recoverydialog_restore_when_error(qtbot, recovery_env, mocker):
                  side_effect=IOError)
     mock_QMessageBox = mocker.patch(
                 'spyder.plugins.editor.widgets.recover.QMessageBox')
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(0, 2).findChildren(QPushButton)[0]
     button.click()
@@ -235,7 +235,7 @@ def test_recoverydialog_accepted_after_all_restored(
     new_name = osp.join(orig_dir, 'monty.py')
     mocker.patch('spyder.plugins.editor.widgets.recover.getsavefilename',
                  return_value=(new_name, 'ignored'))
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     with qtbot.assertNotEmitted(dialog.accepted):
         for row in range(table.rowCount() - 1):
@@ -254,7 +254,7 @@ def test_recoverydialog_discard_button(qtbot, recovery_env):
     deactivated.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(0, 2).findChildren(QPushButton)[1]
     button.click()
@@ -278,7 +278,7 @@ def test_recoverydialog_discard_when_error(qtbot, recovery_env, mocker):
                  side_effect=OSError)
     mock_QMessageBox = mocker.patch(
                 'spyder.plugins.editor.widgets.recover.QMessageBox')
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(0, 2).findChildren(QPushButton)[1]
     button.click()
@@ -300,7 +300,7 @@ def test_recoverydialog_open_button(qtbot, recovery_env):
     deactivated.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(0, 2).findChildren(QPushButton)[2]
     button.click()
@@ -319,7 +319,7 @@ def test_recoverydialog_open_when_no_original(qtbot, recovery_env):
     file.
     """
     orig_dir, autosave_dir, autosave_mapping = recovery_env
-    dialog = RecoveryDialog(autosave_dir, autosave_mapping)
+    dialog = RecoveryDialog(autosave_mapping)
     table = dialog.findChild(QTableWidget)
     button = table.cellWidget(2, 2).findChildren(QPushButton)[2]
     button.click()

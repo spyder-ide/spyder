@@ -42,7 +42,7 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
                                 _("At startup,"),  # TODO
                                 button_group=startup_bg)
         thisdir_radio = self.create_radiobutton(
-                                _("the following directory:"),
+                                _("The following directory:"),
                                 'startup/use_fixed_directory', False,
                                 _("At startup, the current working "
                                   "directory will be the specified path"),
@@ -81,7 +81,7 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
                                 button_group=console_bg)
 
         console_dir_radio = self.create_radiobutton(
-                                _("the following directory:"),
+                                _("The following directory:"),
                                 'console/use_fixed_directory', False,
                                 _("The directory when a new console "
                                   "is open will be the specified path"),

@@ -37,13 +37,11 @@ from spyder.config.main import EXCLUDE_PATTERNS
 from spyder.py3compat import to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
-from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import PatternComboBox
 from spyder.widgets.onecolumntree import OneColumnTree
 from spyder.utils.misc import regexp_error_msg
-from spyder.utils.qthelpers import create_toolbutton
+from spyder.utils.qthelpers import create_toolbutton, create_waitspinner
 from spyder.config.gui import get_font
-from spyder.widgets.waitingspinner import QWaitingSpinner
 
 
 ON = 'on'
@@ -69,18 +67,24 @@ def truncate_path(text):
 
 
 class SearchThread(QThread):
-    """Find in files search thread"""
+    """Find in files search thread."""
     sig_finished = Signal(bool)
     sig_current_file = Signal(str)
     sig_current_folder = Signal(str)
-    sig_file_match = Signal(tuple, int)
+    sig_file_match = Signal(object)
+    sig_line_match = Signal(object, object)
     sig_out_print = Signal(object)
 
-    def __init__(self, parent):
+    # Batch power sizes (2**power)
+    power = 0       # 0**1 = 1
+    max_power = 9   # 2**9 = 512
+
+    def __init__(self, parent, search_text, text_color=None):
         QThread.__init__(self, parent)
         self.mutex = QMutex()
         self.stopped = None
-        self.results = None
+        self.search_text = search_text
+        self.text_color = text_color
         self.pathlist = None
         self.total_matches = None
         self.error_flag = None
@@ -90,9 +94,13 @@ class SearchThread(QThread):
         self.text_re = None
         self.completed = None
         self.case_sensitive = True
-        self.results = {}
         self.total_matches = 0
         self.is_file = False
+        self.results = {}
+
+        self.num_files = 0
+        self.files = []
+        self.partial_results = []
 
     def initialize(self, path, is_file, exclude,
                    texts, text_re, case_sensitive):
@@ -157,6 +165,11 @@ class SearchThread(QThread):
             except re.error:
                 self.error_flag = _("invalid regular expression")
                 return False
+
+        # Process any pending results
+        if self.partial_results:
+            self.process_results()
+
         return True
 
     def find_string_in_file(self, fname):
@@ -183,19 +196,25 @@ class SearchThread(QThread):
                     line_dec = line.decode(enc)
                 except UnicodeDecodeError:
                     line_dec = line
+
                 if not self.case_sensitive:
                     line = line.lower()
+
                 if self.text_re:
                     for match in re.finditer(text, line):
                         with QMutexLocker(self.mutex):
                             if self.stopped:
                                 return False
                         self.total_matches += 1
-                        self.sig_file_match.emit((osp.abspath(fname),
-                                                  lineno + 1,
-                                                  match.start(),
-                                                  match.end(), line_dec),
-                                                 self.total_matches)
+                        self.partial_results.append((osp.abspath(fname),
+                                                     lineno + 1,
+                                                     match.start(),
+                                                     match.end(),
+                                                     line_dec))
+                        if len(self.partial_results) > (2**self.power):
+                            self.process_results()
+                            if self.power < self.max_power:
+                                self.power += 1
                 else:
                     found = line.find(text)
                     while found > -1:
@@ -203,19 +222,144 @@ class SearchThread(QThread):
                             if self.stopped:
                                 return False
                         self.total_matches += 1
-                        self.sig_file_match.emit((osp.abspath(fname),
-                                                  lineno + 1,
-                                                  found,
-                                                  found + len(text), line_dec),
-                                                 self.total_matches)
+                        self.partial_results.append((osp.abspath(fname),
+                                                     lineno + 1,
+                                                     found,
+                                                     found + len(text),
+                                                     line_dec))
+                        if len(self.partial_results) > (2**self.power):
+                            self.process_results()
+                            if self.power < self.max_power:
+                                self.power += 1
+
                         for text, enc in self.texts:
                             found = line.find(text, found + 1)
                             if found > -1:
                                 break
+
         except IOError as xxx_todo_changeme:
             (_errno, _strerror) = xxx_todo_changeme.args
             self.error_flag = _("permission denied errors were encountered")
+
         self.completed = True
+
+    def process_results(self):
+        """
+        Process all matches found inside a file.
+
+        Creates the necessary files and emits signal for the creation of file
+        item.
+
+        Creates the necessary data for lines found and emits signal for the
+        creation of line items in batch.
+
+        Creates the title based on the last entry of the lines batch.
+        """
+        items = []
+        num_matches = self.total_matches
+        for result in self.partial_results:
+            filename, lineno, colno, match_end, line = result
+
+            if filename not in self.files:
+                self.files.append(filename)
+                self.sig_file_match.emit(filename)
+                self.num_files += 1
+
+            line = self.truncate_result(line, colno, match_end)
+            item = (filename, lineno, colno, line)
+            items.append(item)
+
+        # Process title
+        title = "'%s' - " % self.search_text
+        nb_files = self.num_files
+        if nb_files == 0:
+            text = _('String not found')
+        else:
+            text_matches = _('matches in')
+            text_files = _('file')
+            if nb_files > 1:
+                text_files += 's'
+            text = "%d %s %d %s" % (num_matches, text_matches,
+                                    nb_files, text_files)
+        title = title + text
+
+        self.partial_results = []
+        self.sig_line_match.emit(items, title)
+
+    def truncate_result(self, line, start, end):
+        """
+        Shorten text on line to display the match within `max_line_length`.
+        """
+        ellipsis = u'...'
+        max_line_length = 80
+        max_num_char_fragment = 40
+
+        html_escape_table = {
+            u"&": u"&amp;",
+            u'"': u"&quot;",
+            u"'": u"&apos;",
+            u">": u"&gt;",
+            u"<": u"&lt;",
+        }
+
+        def html_escape(text):
+            """Produce entities within text."""
+            return u"".join(html_escape_table.get(c, c) for c in text)
+
+        if PY2:
+            line = to_text_string(line, encoding='utf8')
+        else:
+            line = to_text_string(line)
+        left, match, right = line[:start], line[start:end], line[end:]
+
+        if len(line) > max_line_length:
+            offset = (len(line) - len(match)) // 2
+
+            left = left.split(u' ')
+            num_left_words = len(left)
+
+            if num_left_words == 1:
+                left = left[0]
+                if len(left) > max_num_char_fragment:
+                    left = ellipsis + left[-offset:]
+                left = [left]
+
+            right = right.split(u' ')
+            num_right_words = len(right)
+
+            if num_right_words == 1:
+                right = right[0]
+                if len(right) > max_num_char_fragment:
+                    right = right[:offset] + ellipsis
+                right = [right]
+
+            left = left[-4:]
+            right = right[:4]
+
+            if len(left) < num_left_words:
+                left = [ellipsis] + left
+
+            if len(right) < num_right_words:
+                right = right + [ellipsis]
+
+            left = u' '.join(left)
+            right = u' '.join(right)
+
+            if len(left) > max_num_char_fragment:
+                left = ellipsis + left[-30:]
+
+            if len(right) > max_num_char_fragment:
+                right = right[:30] + ellipsis
+
+        line_match_format = (u'<span style="color:{0}">{{0}}'
+                             '<b>{{1}}</b>{{2}}</span>')
+        line_match_format = line_match_format.format(self.text_color)
+
+        left = html_escape(left)
+        right = html_escape(right)
+        match = html_escape(match)
+        trunc_line = line_match_format.format(left, match, right)
+        return trunc_line
 
     def get_results(self):
         return self.results, self.pathlist, self.total_matches, self.error_flag
@@ -309,6 +453,12 @@ class SearchInComboBox(QComboBox):
             return self.file_path
         else:
             return self.external_path
+
+    def set_current_searchpath_index(self, index):
+        """Set the current index of this combo box."""
+        index = min(index, self.count() - 1)
+        index = CWD if index in [CLEAR_LIST, SELECT_OTHER] else index
+        self.setCurrentIndex(index)
 
     def is_file_search(self):
         """Returns whether the current search path is a file."""
@@ -410,9 +560,10 @@ class FindOptions(QWidget):
     def __init__(self, parent, search_text, search_text_regexp,
                  exclude, exclude_idx, exclude_regexp,
                  supported_encodings, more_options,
-                 case_sensitive, external_path_history, options_button=None):
+                 case_sensitive, external_path_history, search_in_index,
+                 options_button=None):
         QWidget.__init__(self, parent)
-
+        self._running = False
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
         if not isinstance(exclude, (list, tuple)):
@@ -438,8 +589,9 @@ class FindOptions(QWidget):
         self.edit_regexp.setCheckable(True)
         self.edit_regexp.setChecked(search_text_regexp)
         self.more_widgets = ()
-        self.more_options = create_toolbutton(self,
-                                              toggled=self.toggle_more_options)
+        self.more_options = create_toolbutton(
+            self,
+            toggled=self.toggle_more_options)
         self.more_options.setCheckable(True)
         self.more_options.setChecked(more_options)
 
@@ -455,7 +607,6 @@ class FindOptions(QWidget):
                                              self.stop.emit(),
                                              tip=_("Stop search"),
                                              text_beside_icon=True)
-        self.stop_button.setEnabled(False)
         for widget in [self.search_text, self.edit_regexp, self.case_button,
                        self.ok_button, self.stop_button, self.more_options]:
             hlayout1.addWidget(widget)
@@ -486,12 +637,14 @@ class FindOptions(QWidget):
         search_on_label = QLabel(_("Search in:"))
         self.path_selection_combo = SearchInComboBox(
                 external_path_history, parent)
+        self.path_selection_combo.set_current_searchpath_index(
+            search_in_index)
 
         hlayout3.addWidget(search_on_label)
         hlayout3.addWidget(self.path_selection_combo)
 
-        self.search_text.valid.connect(lambda valid: self.find.emit())
-        self.exclude_pattern.valid.connect(lambda valid: self.find.emit())
+        self.search_text.valid.connect(lambda valid: self._check_find())
+        self.exclude_pattern.valid.connect(lambda valid: self._check_find())
 
         vlayout = QVBoxLayout()
         vlayout.setContentsMargins(0, 0, 0, 0)
@@ -503,6 +656,32 @@ class FindOptions(QWidget):
         self.setLayout(vlayout)
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        fm = self.ok_button.fontMetrics()
+        width = fm.width('Search') * 1.8
+        self.ok_button.setMinimumWidth(width)
+        self.stop_button.setMinimumWidth(width)
+        self.refresh_buttons(start=False)
+
+    def _check_find(self):
+        """
+        Check if find signal should be emitted.
+
+        This allows the Enter to function as starting and stopping action
+        depending on the state.
+        """
+        if self._running:
+            self.stop.emit()
+        else:
+            self.find.emit()
+
+    def refresh_buttons(self, start=False):
+        """Refresh start/stop of buttons."""
+        self._running = start
+        self.setUpdatesEnabled(False)
+        self.ok_button.setVisible(not start)
+        self.stop_button.setVisible(start)
+        self.setUpdatesEnabled(True)
 
     @Slot(bool)
     def toggle_more_options(self, state):
@@ -545,10 +724,12 @@ class FindOptions(QWidget):
             exclude_idx = self.exclude_pattern.currentIndex()
             path_history = self.path_selection_combo.get_external_paths()
             more_options = self.more_options.isChecked()
+            search_in_index = self.path_selection_combo.currentIndex()
             return (search_text, text_re,
                     exclude, exclude_idx,
                     exclude_re, more_options,
-                    case_sensitive, path_history)
+                    case_sensitive, path_history,
+                    search_in_index)
 
         # Clear fields
         self.search_text.lineEdit().setStyleSheet("")
@@ -647,21 +828,24 @@ class FindOptions(QWidget):
 
 
 class LineMatchItem(QTreeWidgetItem):
-    def __init__(self, parent, lineno, colno, match, text_color=None):
+
+    def __init__(self, parent, lineno, colno, match, font,
+                 text_color=None):
         self.lineno = lineno
         self.colno = colno
         self.match = match
         self.text_color = text_color
+        self.font = font
         QTreeWidgetItem.__init__(self, parent, [self.__repr__()],
                                  QTreeWidgetItem.Type)
 
     def __repr__(self):
         match = to_text_string(self.match).rstrip()
-        font = get_font()
-        _str = to_text_string("<p style=color:'{4}'><b>{1}</b> ({2}): "
+        _str = to_text_string("<!-- LineMatchItem -->"
+                              "<p style=\"color:'{4}';\"><b>{1}</b> ({2}): "
                               "<span style='font-family:{0};"
                               "font-size:75%;'>{3}</span></p>")
-        return _str.format(font.family(), self.lineno, self.colno, match,
+        return _str.format(self.font.family(), self.lineno, self.colno, match,
                            self.text_color)
 
     def __unicode__(self):
@@ -678,12 +862,15 @@ class LineMatchItem(QTreeWidgetItem):
 
 
 class FileMatchItem(QTreeWidgetItem):
+
     def __init__(self, parent, filename, sorting, text_color=None):
 
         self.sorting = sorting
         self.filename = osp.basename(filename)
 
-        title_format = to_text_string('<b style="color:{2}">{0}</b><br>'
+        title_format = to_text_string('<!-- FileMatchItem -->'
+                                      '<b style="color:{2}">{0}</b>'
+                                      '&nbsp;&nbsp;&nbsp;'
                                       '<small style="color:{2}"><em>{1}</em>'
                                       '</small>')
         title = (title_format.format(osp.basename(filename),
@@ -707,8 +894,10 @@ class FileMatchItem(QTreeWidgetItem):
 
 
 class ItemDelegate(QStyledItemDelegate):
+
     def __init__(self, parent):
         QStyledItemDelegate.__init__(self, parent)
+        self._margin = None
 
     def paint(self, painter, option, index):
         options = QStyleOptionViewItem(option)
@@ -718,15 +907,19 @@ class ItemDelegate(QStyledItemDelegate):
                  else options.widget.style())
 
         doc = QTextDocument()
+        text = options.text
+        doc.setHtml(text)
         doc.setDocumentMargin(0)
-        doc.setHtml(options.text)
 
+        # This needs to be an empty string to avoid the overlapping the
+        # normal text of the QTreeWidgetItem
         options.text = ""
         style.drawControl(QStyle.CE_ItemViewItem, options, painter)
 
         ctx = QAbstractTextDocumentLayout.PaintContext()
 
-        textRect = style.subElementRect(QStyle.SE_ItemViewItemText, options)
+        textRect = style.subElementRect(QStyle.SE_ItemViewItemText,
+                                        options, None)
         painter.save()
 
         painter.translate(textRect.topLeft())
@@ -737,39 +930,45 @@ class ItemDelegate(QStyledItemDelegate):
     def sizeHint(self, option, index):
         options = QStyleOptionViewItem(option)
         self.initStyleOption(options, index)
-
         doc = QTextDocument()
         doc.setHtml(options.text)
         doc.setTextWidth(options.rect.width())
-
-        return QSize(doc.idealWidth(), doc.size().height())
+        size = QSize(int(doc.idealWidth()), int(doc.size().height()))
+        return size
 
 
 class ResultsBrowser(OneColumnTree):
     sig_edit_goto = Signal(str, int, str)
+    sig_max_results_reached = Signal()
 
-    def __init__(self, parent, text_color=None):
+    def __init__(self, parent, text_color=None, max_results=1000):
         OneColumnTree.__init__(self, parent)
         self.search_text = None
         self.results = None
+        self.max_results = max_results
         self.total_matches = None
         self.error_flag = None
         self.completed = None
         self.sorting = {}
+        self.font = get_font()
         self.data = None
         self.files = None
+        self.root_items = None
+        self.text_color = text_color
+
+        # Setup
         self.set_title('')
         self.set_sorting(OFF)
         self.setSortingEnabled(False)
-        self.root_items = None
-        self.text_color = text_color
-        self.sortByColumn(0, Qt.AscendingOrder)
         self.setItemDelegate(ItemDelegate(self))
-        self.setUniformRowHeights(False)
+        self.setUniformRowHeights(True)  # Needed for performance
+        self.sortByColumn(0, Qt.AscendingOrder)
+
+        # Signals
         self.header().sectionClicked.connect(self.sort_section)
 
     def activated(self, item):
-        """Double-click event"""
+        """Double-click event."""
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
             filename, lineno, colno = itemdata
@@ -785,10 +984,11 @@ class ResultsBrowser(OneColumnTree):
         self.setSortingEnabled(True)
 
     def clicked(self, item):
-        """Click event"""
+        """Click event."""
         self.activated(item)
 
     def clear_title(self, search_text):
+        self.font = get_font()
         self.clear()
         self.setSortingEnabled(False)
         self.num_files = 0
@@ -800,120 +1000,52 @@ class ResultsBrowser(OneColumnTree):
         text = _('String not found')
         self.set_title(title + text)
 
-    def truncate_result(self, line, start, end):
-        ellipsis = u'...'
-        max_line_length = 80
-        max_num_char_fragment = 40
-
-        html_escape_table = {
-            u"&": u"&amp;",
-            u'"': u"&quot;",
-            u"'": u"&apos;",
-            u">": u"&gt;",
-            u"<": u"&lt;",
-        }
-
-        def html_escape(text):
-            """Produce entities within text."""
-            return u"".join(html_escape_table.get(c, c) for c in text)
-
-        if PY2:
-            line = to_text_string(line, encoding='utf8')
-        else:
-            line = to_text_string(line)
-        left, match, right = line[:start], line[start:end], line[end:]
-
-        if len(line) > max_line_length:
-            offset = (len(line) - len(match)) // 2
-
-            left = left.split(u' ')
-            num_left_words = len(left)
-
-            if num_left_words == 1:
-                left = left[0]
-                if len(left) > max_num_char_fragment:
-                    left = ellipsis + left[-offset:]
-                left = [left]
-
-            right = right.split(u' ')
-            num_right_words = len(right)
-
-            if num_right_words == 1:
-                right = right[0]
-                if len(right) > max_num_char_fragment:
-                    right = right[:offset] + ellipsis
-                right = [right]
-
-            left = left[-4:]
-            right = right[:4]
-
-            if len(left) < num_left_words:
-                left = [ellipsis] + left
-
-            if len(right) < num_right_words:
-                right = right + [ellipsis]
-
-            left = u' '.join(left)
-            right = u' '.join(right)
-
-            if len(left) > max_num_char_fragment:
-                left = ellipsis + left[-30:]
-
-            if len(right) > max_num_char_fragment:
-                right = right[:30] + ellipsis
-
-        line_match_format = (u'<span style="color:{0}">{{0}}'
-                             '<b>{{1}}</b>{{2}}</span>')
-        line_match_format = line_match_format.format(self.text_color)
-
-        left = html_escape(left)
-        right = html_escape(right)
-        match = html_escape(match)
-        trunc_line = line_match_format.format(left, match, right)
-        return trunc_line
-
-    @Slot(tuple, int)
-    def append_result(self, results, num_matches):
-        """Real-time update of search results"""
-        filename, lineno, colno, match_end, line = results
-
-        if filename not in self.files:
-            file_item = FileMatchItem(self, filename, self.sorting,
-                                      self.text_color)
-            file_item.setExpanded(True)
-            self.files[filename] = file_item
+    @Slot(object)
+    def append_file_result(self, filename):
+        """Real-time update of file items."""
+        if len(self.data) < self.max_results:
+            self.files[filename] = FileMatchItem(
+                self, filename, self.sorting, self.text_color)
+            self.files[filename].setExpanded(True)
             self.num_files += 1
 
-        search_text = self.search_text
-        title = "'%s' - " % search_text
-        nb_files = self.num_files
-        if nb_files == 0:
-            text = _('String not found')
-        else:
-            text_matches = _('matches in')
-            text_files = _('file')
-            if nb_files > 1:
-                text_files += 's'
-            text = "%d %s %d %s" % (num_matches, text_matches,
-                                    nb_files, text_files)
-        self.set_title(title + text)
+    @Slot(object, object)
+    def append_result(self, items, title):
+        """Real-time update of line items."""
+        if len(self.data) >= self.max_results:
+            self.set_title(_('Maximum number of results reached! Try '
+                             'narrowing the search.'))
+            self.sig_max_results_reached.emit()
+            return
 
-        file_item = self.files[filename]
-        line = self.truncate_result(line, colno, match_end)
-        item = LineMatchItem(file_item, lineno, colno, line, self.text_color)
-        self.data[id(item)] = (filename, lineno, colno)
+        available = self.max_results - len(self.data)
+        if available < len(items):
+            items = items[:available]
+
+        self.setUpdatesEnabled(False)
+        self.set_title(title)
+        for item in items:
+            filename, lineno, colno, line = item
+            file_item = self.files.get(filename, None)
+            if file_item:
+                item = LineMatchItem(file_item, lineno, colno, line,
+                                     self.font, self.text_color)
+                self.data[id(item)] = (filename, lineno, colno)
+        self.setUpdatesEnabled(True)
+
+    def set_max_results(self, value):
+        """Set maximum amount of results to add."""
+        self.max_results = value
 
 
 class FileProgressBar(QWidget):
-    """Simple progress spinner with a label"""
+    """Simple progress spinner with a label."""
 
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
         self.status_text = QLabel(self)
-        self.spinner = QWaitingSpinner(self, centerOnParent=False)
-        self.spinner.setNumberOfLines(12)
-        self.spinner.setInnerRadius(2)
+        self.spinner = create_waitspinner(parent=self)
         layout = QHBoxLayout()
         layout.addWidget(self.spinner)
         layout.addWidget(self.status_text)
@@ -925,7 +1057,8 @@ class FileProgressBar(QWidget):
         if not folder:
             status_str = _(u' Scanning: {0}').format(text)
         else:
-            status_str = _(u' Searching for files in folder: {0}').format(text)
+            status_str = _(u' Searching for files in folder:'
+                           ' {0}').format(text)
         self.status_text.setText(status_str)
 
     def reset(self):
@@ -947,41 +1080,51 @@ class FindInFilesWidget(QWidget):
     Find in files widget
     """
     sig_finished = Signal()
+    sig_max_results_reached = Signal()
 
-    def __init__(self, parent,
+    def __init__(self,
+                 parent,
                  search_text="",
                  search_text_regexp=False,
                  exclude=EXCLUDE_PATTERNS[0],
                  exclude_idx=None,
                  exclude_regexp=False,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
-                 more_options=True,
+                 more_options=False,
                  case_sensitive=False,
                  external_path_history=[],
+                 search_in_index=0,
                  options_button=None,
-                 text_color=None):
+                 text_color=None,
+                 max_results=1000):
         QWidget.__init__(self, parent)
 
-        self.setWindowTitle(_('Find in files'))
-
         self.search_thread = None
+        self.text_color = text_color
+
+        # Widgets
         self.status_bar = FileProgressBar(self)
+        self.find_options = FindOptions(
+            self,
+            search_text,
+            search_text_regexp,
+            exclude,
+            exclude_idx,
+            exclude_regexp,
+            supported_encodings,
+            more_options,
+            case_sensitive,
+            external_path_history,
+            search_in_index,
+            options_button=options_button)
+
+        self.result_browser = ResultsBrowser(self, text_color=text_color,
+                                             max_results=max_results)
+        # Widget setup
+        self.setWindowTitle(_('Find in files'))
         self.status_bar.hide()
 
-        self.find_options = FindOptions(self, search_text,
-                                        search_text_regexp,
-                                        exclude, exclude_idx,
-                                        exclude_regexp,
-                                        supported_encodings,
-                                        more_options,
-                                        case_sensitive,
-                                        external_path_history,
-                                        options_button=options_button)
-        self.find_options.find.connect(self.find)
-        self.find_options.stop.connect(self.stop_and_reset_thread)
-
-        self.result_browser = ResultsBrowser(self, text_color=text_color)
-
+        # Layout
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.result_browser)
 
@@ -993,17 +1136,26 @@ class FindInFilesWidget(QWidget):
         layout.addWidget(self.status_bar)
         self.setLayout(layout)
 
+        # Signals
+        self.find_options.find.connect(self.find)
+        self.find_options.stop.connect(self.stop_and_reset_thread)
+        self.result_browser.sig_max_results_reached.connect(
+            self.stop_and_reset_thread)
+        self.result_browser.sig_max_results_reached.connect(
+            self.sig_max_results_reached)
+
     def set_search_text(self, text):
         """Set search pattern"""
         self.find_options.set_search_text(text)
 
     def find(self):
         """Call the find function"""
+        search_text = self.find_options.search_text.currentText()
         options = self.find_options.get_options()
         if options is None:
             return
         self.stop_and_reset_thread(ignore_results=True)
-        self.search_thread = SearchThread(self)
+        self.search_thread = SearchThread(self, search_text, self.text_color)
         self.search_thread.sig_finished.connect(self.search_complete)
         self.search_thread.sig_current_file.connect(
             lambda x: self.status_bar.set_label_path(x, folder=False)
@@ -1012,22 +1164,26 @@ class FindInFilesWidget(QWidget):
             lambda x: self.status_bar.set_label_path(x, folder=True)
         )
         self.search_thread.sig_file_match.connect(
+            self.result_browser.append_file_result
+        )
+        self.search_thread.sig_line_match.connect(
             self.result_browser.append_result
         )
         self.search_thread.sig_out_print.connect(
             lambda x: sys.stdout.write(str(x) + "\n")
         )
         self.status_bar.reset()
-        self.result_browser.clear_title(
-            self.find_options.search_text.currentText())
+        self.result_browser.clear_title(search_text)
         self.search_thread.initialize(*options)
+
+        self.find_options.refresh_buttons(start=True)
         self.search_thread.start()
-        self.find_options.ok_button.setEnabled(False)
-        self.find_options.stop_button.setEnabled(True)
+
         self.status_bar.show()
 
     def stop_and_reset_thread(self, ignore_results=False):
         """Stop current search thread and clean-up"""
+        self.find_options.refresh_buttons(start=False)
         if self.search_thread is not None:
             if self.search_thread.isRunning():
                 if ignore_results:
@@ -1046,7 +1202,6 @@ class FindInFilesWidget(QWidget):
         """Current search thread has finished"""
         self.result_browser.set_sorting(ON)
         self.find_options.ok_button.setEnabled(True)
-        self.find_options.stop_button.setEnabled(False)
         self.status_bar.hide()
         self.result_browser.expandAll()
         if self.search_thread is None:
@@ -1057,6 +1212,10 @@ class FindInFilesWidget(QWidget):
         if found is not None:
             results, pathlist, nb, error_flag = found
             self.result_browser.show()
+
+    def set_max_results(self, value):
+        """Set maximum amount of results to add to result browser."""
+        self.result_browser.set_max_results(value)
 
 
 def test():

@@ -20,14 +20,14 @@ from qtpy.QtWidgets import (QDialog, QHBoxLayout, QPushButton, QTextEdit,
 from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.py3compat import (is_binary_string, to_binary_string,
-                              to_text_string, PY3, PY2)
+                              to_text_string)
 from spyder.utils import icon_manager as ima
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 
-class TextEditor(QDialog):
+class TextEditor(BaseDialog):
     """Array Editor Dialog"""
-    def __init__(self, text, title='', font=None, parent=None,
-                 readonly=False, size=(400, 300)):
+    def __init__(self, text, title='', font=None, parent=None, readonly=False):
         QDialog.__init__(self, parent)
 
         # Destroying the C++ object right after closing the dialog box,
@@ -92,7 +92,6 @@ class TextEditor(QDialog):
         self.setWindowTitle(_("Text editor") + \
                             u"%s" % (u" - " + unicode_title
                                      if unicode_title else u""))
-        self.resize(size[0], size[1])
 
     @Slot()
     def text_changed(self):
@@ -120,7 +119,6 @@ class TextEditor(QDialog):
             return True
         except:
             return False
-
 
 #==============================================================================
 # Tests

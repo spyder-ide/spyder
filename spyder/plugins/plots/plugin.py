@@ -28,6 +28,7 @@ class Plots(SpyderPluginWidget):
     """Plots plugin."""
 
     CONF_SECTION = 'plots'
+    CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     def __init__(self, parent):
@@ -35,14 +36,12 @@ class Plots(SpyderPluginWidget):
 
         # Widgets
         self.stack = QStackedWidget(self)
+        self.stack.setStyleSheet("QStackedWidget{padding: 0px; border: 0px}")
         self.shellwidgets = {}
 
         # Layout
         layout = QGridLayout(self)
         layout.addWidget(self.stack)
-
-        # Initialize plugin
-        self.initialize_plugin()
 
     def get_settings(self):
         """Retrieve all Plots configuration settings."""
@@ -60,7 +59,7 @@ class Plots(SpyderPluginWidget):
         self.stack.setCurrentWidget(fig_browser)
         # We update the actions of the options button (cog menu) and
         # we move it to the layout of the current widget.
-        self.refresh_actions()
+        self._refresh_actions()
         fig_browser.setup_options_button()
 
     def current_widget(self):
@@ -130,21 +129,9 @@ class Plots(SpyderPluginWidget):
         """
         return self.current_widget()
 
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-
-    def refresh_plugin(self):
-        """Refresh widget"""
-        pass
-
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return self.current_widget().actions if self.current_widget() else []
-
-    def register_plugin(self):
-        """Register plugin in Spyder's main window"""
-        self.main.add_dockwidget(self)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
@@ -153,4 +140,4 @@ class Plots(SpyderPluginWidget):
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.variableexplorer, self)
+        self.tabify(self.main.variableexplorer)

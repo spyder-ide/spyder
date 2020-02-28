@@ -6,12 +6,15 @@
 
 """IPython Console config page."""
 
+# Standard library imports
 import sys
 
+# Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QGridLayout, QGroupBox, QHBoxLayout, QLabel,
                             QTabWidget, QVBoxLayout)
 
+# Local imports
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
 from spyder.py3compat import PY2
@@ -65,7 +68,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         interface_layout.addWidget(ask_restart_box)
         interface_group.setLayout(interface_layout)
 
-        comp_group = QGroupBox(_("Completion Type"))
+        comp_group = QGroupBox(_("Completion type"))
         comp_label = QLabel(_("Decide what type of completion to use"))
         comp_label.setWordWrap(True)
         completers = [(_("Graphical"), 0), (_("Terminal"), 1), (_("Plain"), 2)]
@@ -308,7 +311,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         autocall_group.setLayout(autocall_layout)
 
         # Sympy group
-        sympy_group = QGroupBox(_("Symbolic Mathematics"))
+        sympy_group = QGroupBox(_("Symbolic mathematics"))
         sympy_label = QLabel(_("Perfom symbolic operations in the console "
                                "(e.g. integrals, derivatives, vector "
                                "calculus, etc) and get the outputs in a "
@@ -376,7 +379,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         tabs.addTab(self.create_tab(jedi_group, greedy_group, autocall_group,
                                     sympy_group, prompts_group,
                                     windows_group),
-                    _("Advanced Settings"))
+                    _("Advanced settings"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)

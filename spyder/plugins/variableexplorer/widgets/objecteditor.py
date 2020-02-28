@@ -151,9 +151,10 @@ def oedit(obj, modal=True, namespace=None):
 #==============================================================================
 def test():
     """Run object editor test"""
-    import datetime, numpy as np
+    import datetime
+    import numpy as np
     from spyder.pil_patch import Image
-    data = np.random.random_integers(255, size=(100, 100)).astype('uint8')
+    data = np.random.randint(1, 256, size=(100, 100)).astype('uint8')
     image = Image.fromarray(data)
     example = {'str': 'kjkj kj k j j kj k jkj',
                'list': [1, 3, 4, 'kjkj', None],

@@ -19,6 +19,7 @@ def test_get_options():
     assert not options.reset_to_defaults
     assert not options.reset_config_files
     assert not options.optimize
+    assert not options.paths
     assert options.working_directory is None
     assert not options.hide_console
     assert not options.show_console

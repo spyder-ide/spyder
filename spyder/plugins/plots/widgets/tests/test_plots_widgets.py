@@ -28,7 +28,8 @@ from qtpy.QtGui import QPixmap
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.plugins.plots.widgets.figurebrowser import FigureBrowser
+from spyder.plugins.plots.widgets.figurebrowser import (FigureBrowser,
+                                                        FigureThumbnail)
 from spyder.py3compat import to_text_string
 
 
@@ -210,6 +211,23 @@ def test_close_all_figures(figbrowser, tmpdir, fmt):
     assert figbrowser.thumbnails_sb.get_current_index() == -1
     assert figbrowser.thumbnails_sb.current_thumbnail is None
     assert figbrowser.figviewer.figcanvas.fig is None
+    assert len(figbrowser.thumbnails_sb.findChildren(FigureThumbnail)) == 0
+
+
+@pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
+def test_close_one_thumbnail(figbrowser, tmpdir, fmt):
+    """
+    Test the thumbnail is removed from the GUI.
+    """
+    # Add two figures to the browser
+    add_figures_to_browser(figbrowser, 2, tmpdir, fmt)
+    assert len(figbrowser.thumbnails_sb.findChildren(FigureThumbnail)) == 2
+
+    # Remove the first figure
+    figures = figbrowser.thumbnails_sb.findChildren(FigureThumbnail)
+    figbrowser.thumbnails_sb.remove_thumbnail(figures[0])
+
+    assert len(figbrowser.thumbnails_sb.findChildren(FigureThumbnail)) == 1
 
 
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
@@ -260,6 +278,34 @@ def test_scroll_to_item(figbrowser, tmpdir, qtbot):
     assert vsb.value() == expected
 
 
+def test_scroll_down_to_newest_plot(figbrowser, tmpdir, qtbot):
+    """
+    Test that the ThumbnailScrollBar is scrolled to the newest plot after
+    it is added to it.
+
+    Test that covers spyder-ide/spyder#10914.
+    """
+    figbrowser.setFixedSize(500, 500)
+
+    nfig = 8
+    for i in range(8):
+        newfig = create_figure(
+            osp.join(to_text_string(tmpdir), 'new_mplfig{}.png'.format(i)))
+        figbrowser._handle_new_figure(newfig, 'image/png')
+        qtbot.wait(500)
+
+    # Assert that the scrollbar range was updated correctly and that it's
+    # value was set to its maximum.
+    height_view = figbrowser.thumbnails_sb.scrollarea.viewport().height()
+    scene = figbrowser.thumbnails_sb.scene
+    spacing = scene.verticalSpacing()
+    height = scene.itemAt(0).sizeHint().height()
+
+    expected = (spacing * (nfig - 1)) + (height * nfig) - height_view
+    vsb = figbrowser.thumbnails_sb.scrollarea.verticalScrollBar()
+    assert vsb.value() == expected
+
+
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
 def test_mouse_clicking_thumbnails(figbrowser, tmpdir, qtbot, fmt):
     """
@@ -282,12 +328,12 @@ def test_save_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
     figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
     fext = '.svg' if fmt == 'image/svg+xml' else '.png'
 
-    # Save the second thumbnail of the scrollbar.
+    # Select and save the second thumbnail of the scrollbar.
     figname = osp.join(to_text_string(tmpdir), 'figname' + fext)
     mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
                  return_value=(figname, fext))
-    qtbot.mouseClick(
-        figbrowser.thumbnails_sb._thumbnails[1].savefig_btn, Qt.LeftButton)
+    figbrowser.thumbnails_sb.set_current_index(1)
+    qtbot.mouseClick(figbrowser.savefig_btn, Qt.LeftButton)
 
     expected_qpix = QPixmap()
     expected_qpix.loadFromData(figs[1], fmt.upper())
@@ -305,9 +351,9 @@ def test_close_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
     """
     figs = add_figures_to_browser(figbrowser, 3, tmpdir, fmt)
 
-    # Close the second thumbnail of the scrollbar.
-    qtbot.mouseClick(
-        figbrowser.thumbnails_sb._thumbnails[1].delfig_btn, Qt.LeftButton)
+    # Select and close the second thumbnail of the scrollbar.
+    figbrowser.thumbnails_sb.set_current_index(1)
+    qtbot.mouseClick(figbrowser.closefig_btn, Qt.LeftButton)
     del figs[1]
 
     assert len(figbrowser.thumbnails_sb._thumbnails) == len(figs)
@@ -381,7 +427,7 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
         scale = scaling_step**scaling_factor
 
         assert (figbrowser.zoom_disp.value() ==
-                np.floor(int(fwidth * scale) / fwidth * 100))
+                np.round(int(fwidth * scale) / fwidth * 100))
         assert figcanvas.width() == int(fwidth * scale)
         assert figcanvas.height() == int(fheight * scale)
 
@@ -419,10 +465,10 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
         new_height = int(height)
         new_width = int(height / fheight * fwidth)
 
-    assert (figbrowser.zoom_disp.value() ==
-            np.floor(figcanvas.width() / fwidth * 100))
     assert figcanvas.width() == new_width
     assert figcanvas.height() == new_height
+    assert (figbrowser.zoom_disp.value() ==
+            round(figcanvas.width() / fwidth * 100))
 
 
 if __name__ == "__main__":

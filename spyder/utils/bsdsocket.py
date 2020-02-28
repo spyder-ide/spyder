@@ -69,7 +69,7 @@ def read_packet(sock, timeout=None):
         else:
             #  Linux/MacOSX implementation
             #  Thanks to eborisch:
-            #  See issue 1106
+            #  See spyder-ide/spyder#1106.
             datalen = temp_fail_retry(socket.error, sock.recv,
                                       SZ, socket.MSG_WAITALL)
             if len(datalen) == SZ:
@@ -92,11 +92,12 @@ def read_packet(sock, timeout=None):
             return
 
 
-# Using a lock object to avoid communication issues described in Issue 857
+# Using a lock object to avoid communication issues described in
+# spyder-ide/spyder#857.
 COMMUNICATE_LOCK = threading.Lock()
 
 # * Old com implementation *
-# See solution (1) in Issue 434, comment 13:
+# See solution (1) in spyder-ide/spyder#434, comment 13:
 def communicate(sock, command, settings=[]):
     """Communicate with monitor"""
     try:
@@ -108,8 +109,8 @@ def communicate(sock, command, settings=[]):
     finally:
         COMMUNICATE_LOCK.release()
 
-## new com implementation:
-## See solution (2) in Issue 434, comment 13:
+# new com implementation:
+# See solution (2) in spyder-ide/spyder#434, comment 13:
 #def communicate(sock, command, settings=[], timeout=None):
 #    """Communicate with monitor"""
 #    write_packet(sock, command)

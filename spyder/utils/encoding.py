@@ -17,6 +17,8 @@ import locale
 import re
 import os
 import sys
+import time
+import errno
 
 # Third-party imports
 from chardet.universaldetector import UniversalDetector
@@ -235,10 +237,38 @@ def write(text, filename, encoding='utf-8', mode='wb'):
         with open(filename, mode) as textfile:
             textfile.write(text)
     else:
-        with atomic_write(filename,
-                          overwrite=True,
-                          mode=mode) as textfile:
-            textfile.write(text)
+        # Based in the solution at untitaker/python-atomicwrites#42.
+        # Needed to fix file permissions overwritting.
+        # See spyder-ide/spyder#9381.
+        try:
+            file_stat = os.stat(filename)
+            original_mode = file_stat.st_mode
+            creation = file_stat.st_atime
+        except OSError:  # Change to FileNotFoundError for PY3
+            # Creating a new file, emulate what os.open() does
+            umask = os.umask(0)
+            os.umask(umask)
+            original_mode = 0o777 & ~umask
+            creation = time.time()
+        try:
+            with atomic_write(filename, overwrite=True,
+                              mode=mode) as textfile:
+                textfile.write(text)
+        except OSError as error:
+            # Some filesystems don't support the option to sync directories
+            # See untitaker/python-atomicwrites#17
+            if error.errno != errno.EINVAL:
+                with open(filename, mode) as textfile:
+                    textfile.write(text)
+        try:
+            os.chmod(filename, original_mode)
+            file_stat = os.stat(filename)
+            # Preserve creation timestamps
+            os.utime(filename, (creation, file_stat.st_mtime))
+        except OSError:
+            # Prevent error when chmod/utime is not allowed
+            # See spyder-ide/spyder#11308
+            pass
     return encoding
 
 

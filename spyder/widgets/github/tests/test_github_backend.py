@@ -19,13 +19,12 @@ import sys
 
 import pytest
 
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import PY2
 from spyder.widgets.github import backend
 
 
-USERNAME = 'tester'
-PASSWORD = 'test1234'
+TOKEN = 'token1234'
 GH_OWNER = 'ccordoba12'
 GH_REPO = 'spyder'
 
@@ -47,10 +46,7 @@ def get_wrong_user_credentials():
     Monkeypatch GithubBackend.get_user_credentials to force the case where
     invalid credentias were provided
     """
-    return dict(username='invalid',
-                password='invalid',
-                token='invalid',
-                remember=False,
+    return dict(token='invalid',
                 remember_token=False)
 
 
@@ -59,10 +55,7 @@ def get_empty_user_credentials():
     Monkeypatch GithubBackend.get_user_credentials to force the case where
     invalid credentias were provided
     """
-    return dict(username='',
-                password='',
-                token='',
-                remember=False,
+    return dict(token='',
                 remember_token=False)
 
 
@@ -71,10 +64,7 @@ def get_fake_user_credentials():
     Monkeypatch GithubBackend.get_user_credentials to force the case where
     invalid credentias were provided
     """
-    return dict(username=USERNAME,
-                password=PASSWORD,
-                token='',
-                remember=False,
+    return dict(token=TOKEN,
                 remember_token=False)
 
 
@@ -101,18 +91,12 @@ def test_fake_credentials_bad_repo():
 
 def test_get_credentials_from_settings():
     b = get_backend()
-    username, remember_me, remember_token = b._get_credentials_from_settings()
-    assert username == ''
-    assert remember_me is False
+    remember_token = b._get_credentials_from_settings()
     assert remember_token is False
 
-    CONF.set('main', 'report_error/username', 'user')
-    CONF.set('main', 'report_error/remember_me', True)
     CONF.set('main', 'report_error/remember_token', True)
 
-    username, remember_me, remember_token = b._get_credentials_from_settings()
-    assert username == 'user'
-    assert remember_me is True
+    remember_token = b._get_credentials_from_settings()
     assert remember_token is True
 
 
@@ -123,9 +107,8 @@ def test_get_credentials_from_settings():
                             "CIs and skip it locally on Linux and Python 2"))
 def test_store_user_credentials():
     b = get_backend()
-    b._store_credentials('user', 'toto', True)
+    b._store_token('token', True)
     credentials = b.get_user_credentials()
 
-    assert credentials['username'] == 'user'
-    assert credentials['password'] == 'toto'
-    assert credentials['remember'] is True
+    assert credentials['token'] == 'token'
+    assert credentials['remember_token'] is True

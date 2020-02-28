@@ -1,35 +1,33 @@
 # -*- coding: utf-8 -*-
-#
+# ----------------------------------------------------------------------------
 # Copyright © Spyder Project Contributors
+#
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
+# ----------------------------------------------------------------------------
 
 """Status bar widgets."""
 
 # Standard library imports
 import os
+import subprocess
 
 # Third party imports
-from qtpy.QtCore import Qt, QSize, QTimer
-from qtpy.QtGui import QFont
+from qtpy.QtCore import Qt, QSize, QTimer, Signal
+from qtpy.QtGui import QFont, QIcon
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 
 # Local imports
-from spyder import dependencies
 from spyder.config.base import _
 from spyder.config.gui import get_font
-from spyder.py3compat import to_text_string
-
-
-if not os.name == 'nt':
-    PSUTIL_REQVER = '>=0.3'
-    dependencies.add("psutil", _("CPU and memory usage info in the status bar"),
-                     required_version=PSUTIL_REQVER)
+from spyder.config import utils
+from spyder.py3compat import PY3
 
 
 class StatusBarWidget(QWidget):
     """Status bar widget base."""
-    TIP = None
+    # Signals
+    sig_clicked = Signal()
 
     def __init__(self, parent, statusbar, icon=None):
         """Status bar widget base."""
@@ -39,52 +37,81 @@ class StatusBarWidget(QWidget):
         self.value = None
 
         # Widget
-        self._icon = icon
-        self._pixmap = icon.pixmap(QSize(16, 16)) if icon is not None else None
-        self.label_icon = QLabel() if icon is not None else None
+        self._status_bar = statusbar
+        self._icon = None
+        self._pixmap = None
+        self._icon_size = QSize(16, 16)  # Should this be adjustable?
+        self.label_icon = QLabel()
         self.label_value = QLabel()
 
+        # Layout setup
+        layout = QHBoxLayout(self)
+        layout.setSpacing(0)  # Reduce space between icon and label
+        layout.addWidget(self.label_icon)
+        layout.addWidget(self.label_value)
+        layout.addSpacing(20)
+        layout.setContentsMargins(0, 0, 0, 0)
+
         # Widget setup
-        if icon is not None:
-            self.label_icon.setPixmap(self._pixmap)
-        self.text_font = QFont(get_font(option='font'))  # See Issue #9044
-        self.text_font.setPointSize(self.font().pointSize())
-        self.text_font.setBold(True)
+        self.set_icon(icon)
+
+        # See spyder-ide/spyder#9044.
+        self.text_font = QFont(QFont().defaultFamily(), weight=QFont.Normal)
         self.label_value.setAlignment(Qt.AlignRight)
         self.label_value.setFont(self.text_font)
 
-        if self.TIP:
-            self.setToolTip(self.TIP)
-            self.label_value.setToolTip(self.TIP)
-
-        # Layout
-        layout = QHBoxLayout()
-        if icon is not None:
-            layout.addWidget(self.label_icon)
-        layout.addWidget(self.label_value)
-        layout.addSpacing(20)
-
-        # Layout setup
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
-
         # Setup
         statusbar.addPermanentWidget(self)
+        self.set_value('')
+        self.update_tooltip()
+
+    # --- Status bar widget API
+    # ------------------------------------------------------------------------
+    def set_icon(self, icon):
+        """Set the icon for the status bar widget."""
+        self.label_icon.setVisible(icon is not None)
+        if icon is not None and isinstance(icon, QIcon):
+            self._icon = icon
+            self._pixmap = icon.pixmap(self._icon_size)
+            self.label_icon.setPixmap(self._pixmap)
 
     def set_value(self, value):
         """Set formatted text value."""
         self.value = value
-        if self.isVisible():
-            self.label_value.setText(value)
+        self.label_value.setText(value)
+
+    def update_tooltip(self):
+        """Update tooltip for widget."""
+        tooltip = self.get_tooltip()
+        if tooltip:
+            self.label_value.setToolTip(tooltip)
+            if self.label_icon:
+                self.label_icon.setToolTip(tooltip)
+            self.setToolTip(tooltip)
+
+    def mouseReleaseEvent(self, event):
+        """Override Qt method to allow for click signal."""
+        super(StatusBarWidget, self).mousePressEvent(event)
+        self.sig_clicked.emit()
+
+    # --- API to be defined by user
+    # ------------------------------------------------------------------------
+    def get_tooltip(self):
+        """Return the widget tooltip text."""
+        return ''
+
+    def get_icon(self):
+        """Return the widget tooltip text."""
+        return None
 
 
 class BaseTimerStatus(StatusBarWidget):
     """Status bar widget base for widgets that update based on timers."""
 
-    def __init__(self, parent, statusbar):
+    def __init__(self, parent, statusbar, icon=None):
         """Status bar widget base for widgets that update based on timers."""
         self.timer = None  # Needs to come before parent call
-        super(BaseTimerStatus, self).__init__(parent, statusbar)
+        super(BaseTimerStatus, self).__init__(parent, statusbar, icon=icon)
         self._interval = 2000
 
         # Widget setup
@@ -99,6 +126,8 @@ class BaseTimerStatus(StatusBarWidget):
         else:
             self.hide()
 
+    # --- Status bar widget API
+    # ------------------------------------------------------------------------
     def setVisible(self, value):
         """Override Qt method to stops timers if widget is not visible."""
         if self.timer is not None:
@@ -108,16 +137,6 @@ class BaseTimerStatus(StatusBarWidget):
                 self.timer.stop()
         super(BaseTimerStatus, self).setVisible(value)
 
-    def set_interval(self, interval):
-        """Set timer interval (ms)."""
-        self._interval = interval
-        if self.timer is not None:
-            self.timer.setInterval(interval)
-
-    def import_test(self):
-        """Raise ImportError if feature is not supported."""
-        raise NotImplementedError
-
     def is_supported(self):
         """Return True if feature is supported."""
         try:
@@ -126,14 +145,26 @@ class BaseTimerStatus(StatusBarWidget):
         except ImportError:
             return False
 
-    def get_value(self):
-        """Return formatted text value."""
-        raise NotImplementedError
-
     def update_status(self):
         """Update status label widget, if widget is visible."""
         if self.isVisible():
             self.label_value.setText(self.get_value())
+
+    def set_interval(self, interval):
+        """Set timer interval (ms)."""
+        self._interval = interval
+        if self.timer is not None:
+            self.timer.setInterval(interval)
+
+    # --- API to be defined by user
+    # ------------------------------------------------------------------------
+    def import_test(self):
+        """Raise ImportError if feature is not supported."""
+        raise NotImplementedError
+
+    def get_value(self):
+        """Return formatted text value."""
+        raise NotImplementedError
 
 
 # =============================================================================
@@ -141,7 +172,6 @@ class BaseTimerStatus(StatusBarWidget):
 # =============================================================================
 class MemoryStatus(BaseTimerStatus):
     """Status bar widget for system memory usage."""
-    TIP = _("Memory usage")
 
     def import_test(self):
         """Raise ImportError if feature is not supported."""
@@ -153,10 +183,17 @@ class MemoryStatus(BaseTimerStatus):
         text = '%d%%' % memory_usage()
         return 'Mem ' + text.rjust(3)
 
+    def get_tooltip(self):
+        """Return the widget tooltip text."""
+        return _('Memory usage')
+
+    def get_icon(self):
+        """Return the widget tooltip text."""
+        return QIcon()
+
 
 class CPUStatus(BaseTimerStatus):
     """Status bar widget for system cpu usage."""
-    TIP = _("CPU usage")
 
     def import_test(self):
         """Raise ImportError if feature is not supported."""
@@ -172,6 +209,105 @@ class CPUStatus(BaseTimerStatus):
         text = '%d%%' % psutil.cpu_percent(interval=0)
         return 'CPU ' + text.rjust(3)
 
+    def get_tooltip(self):
+        """Return the widget tooltip text."""
+        return _('CPU usage')
+
+    def get_icon(self):
+        """Return the widget tooltip text."""
+        return QIcon()
+
+
+class CondaStatus(StatusBarWidget):
+    """Status bar widget for displaying the current conda environment."""
+
+    def __init__(self, parent, statusbar, icon=None):
+        """Status bar widget for displaying the current conda environment."""
+        self._interpreter = None
+        super(CondaStatus, self).__init__(parent, statusbar, icon=icon)
+
+    def _get_conda_env_info(self):
+        """Get conda environment information."""
+        try:
+            out, err = subprocess.Popen(
+                [self._interpreter, '-V'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            ).communicate()
+
+            if PY3:
+                out = out.decode()
+                err = err.decode()
+        except Exception:
+            out = ''
+            err = ''
+
+        return out, err
+
+    def _process_conda_env_info(self):
+        """Process conda environment information."""
+        out, err = self._get_conda_env_info()
+        out = out or err  # Anaconda base python prints to stderr
+        out = out.split('\n')[0]
+        parts = out.split()
+
+        if len(parts) >= 2:
+            out = ' '.join(parts[:2])
+
+        envs_folder = os.path.sep + 'envs' + os.path.sep
+        if envs_folder in self._interpreter:
+            if os.name == 'nt':
+                env = os.path.dirname(self._interpreter)
+            else:
+                env = os.path.dirname(os.path.dirname(self._interpreter))
+            env = os.path.basename(env)
+        else:
+            env = 'base'
+
+        if utils.is_anaconda():
+            text = 'conda: {env} ({version})'.format(env=env, version=out)
+        else:
+            text = ''
+
+        return text
+
+    def get_tooltip(self):
+        """Override api method."""
+        return self._interpreter if self._interpreter else ''
+
+    def update_interpreter(self, interpreter):
+        """Set main interpreter and update information."""
+        self._interpreter = interpreter
+        if utils.is_anaconda():
+            text = self._process_conda_env_info()
+        else:
+            text = ''
+
+        self.set_value(text)
+        self.update_tooltip()
+
+
+class ClockStatus(BaseTimerStatus):
+    """"Add clock to statusbar in a fullscreen mode."""
+
+    def import_test(self):
+        pass
+
+    def get_value(self):
+        """Return the time."""
+        from time import localtime, strftime
+        text = strftime("%H:%M", localtime())
+
+        return text.rjust(3)
+
+    def get_tooltip(self):
+        """Return the widget tooltip text."""
+        return _('Clock')
+
+    def get_icon(self):
+        """Return the widget tooltip text."""
+        return QIcon()
+
 
 def test():
     from qtpy.QtWidgets import QMainWindow
@@ -183,7 +319,7 @@ def test():
     win.resize(900, 300)
     statusbar = win.statusBar()
     status_widgets = []
-    for status_class in (MemoryStatus, CPUStatus):
+    for status_class in (MemoryStatus, CPUStatus, ClockStatus):
         status_widget = status_class(win, statusbar)
         status_widgets.append(status_widget)
     win.show()

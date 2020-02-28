@@ -8,22 +8,25 @@
 Shell Widget for the IPython Console
 """
 
-import ast
+# Standard library imports
 import os
+import os.path as osp
 import uuid
 from textwrap import dedent
 
+# Third party imports
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
-from spyder.config.main import CONF
+
+# Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
-from spyder.py3compat import PY2, to_text_string
-from spyder.utils import encoding
-from spyder.utils import programs
+from spyder.config.manager import CONF
+from spyder.py3compat import to_text_string
+from spyder.utils import programs, encoding
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style, create_style_class
 from spyder.widgets.helperwidgets import MessageCheckBox
+from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
         ControlWidget, DebuggingWidget, FigureBrowserWidget,
         HelpWidget, NamepaceBrowserWidget, PageControlWidget)
@@ -40,8 +43,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     #       That's why we define all needed signals here.
 
     # For NamepaceBrowserWidget
-    sig_namespace_view = Signal(object)
-    sig_var_properties = Signal(object)
     sig_show_syspath = Signal(object)
     sig_show_env = Signal(object)
 
@@ -50,17 +51,21 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
+    sig_pdb_state = Signal(bool, dict)
 
     # For ShellWidget
     focus_changed = Signal()
     new_client = Signal()
-    sig_got_reply = Signal()
     sig_is_spykernel = Signal(object)
-    sig_kernel_restarted = Signal(str)
+    sig_kernel_restarted_message = Signal(str)
+    sig_kernel_restarted = Signal()
     sig_prompt_ready = Signal()
 
     # For global working directory
     sig_change_cwd = Signal(str)
+
+    # For printing internal errors
+    sig_exception_occurred = Signal(str, bool)
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
@@ -68,6 +73,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
         self.custom_edit = True
+        self.spyder_kernel_comm = KernelComm()
+        self.spyder_kernel_comm.sig_exception_occurred.connect(
+            self.sig_exception_occurred)
         super(ShellWidget, self).__init__(*args, **kw)
 
         self.ipyclient = ipyclient
@@ -79,14 +87,66 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
 
-        # To save kernel replies in silent execution
-        self._kernel_reply = None
-
         # Set the color of the matched parentheses here since the qtconsole
         # uses a hard-coded value that is not modified when the color scheme is
-        # set in the qtconsole constructor. See issue #4806.   
+        # set in the qtconsole constructor. See spyder-ide/spyder#4806.
         self.set_bracket_matcher_color_scheme(self.syntax_style)
-                
+
+        self.kernel_manager = None
+        self.kernel_client = None
+        handlers = {
+            'pdb_state': self.set_pdb_state,
+            'pdb_continue': self.pdb_continue,
+            'get_pdb_settings': self.handle_get_pdb_settings,
+            'run_cell': self.handle_run_cell,
+            'cell_count': self.handle_cell_count,
+            'current_filename': self.handle_current_filename,
+            'get_file_code': self.handle_get_file_code,
+            'set_debug_state': self.handle_debug_state,
+            'update_syspath': self.update_syspath,
+        }
+        for request_id in handlers:
+            self.spyder_kernel_comm.register_call_handler(
+                request_id, handlers[request_id])
+
+    def call_kernel(self, interrupt=False, blocking=False, callback=None,
+                    timeout=None):
+        """
+        Send message to Spyder kernel connected to this console.
+
+        Parameters
+        ----------
+        interrupt: bool
+            Interrupt the kernel while running or in Pdb to perform
+            the call.
+        blocking: bool
+            Make a blocking call, i.e. wait on this side until the
+            kernel sends its response.
+        callback: callable
+            Callable to process the response sent from the kernel
+            on the Spyder side.
+        timeout: int or None
+            Maximum time (in seconds) before giving up when making a
+            blocking call to the kernel. If None, a default timeout
+            (defined in commbase.py, present in spyder-kernels) is
+            used.
+        """
+        return self.spyder_kernel_comm.remote_call(
+            interrupt=interrupt,
+            blocking=blocking,
+            callback=callback,
+            timeout=timeout
+        )
+
+    def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
+        """Set the kernel client and manager"""
+        self.kernel_manager = kernel_manager
+        self.kernel_client = kernel_client
+        self.spyder_kernel_comm.open_comm(kernel_client)
+
+        # Redefine the complete method to work while debugging.
+        self.redefine_complete_for_dbg(self.kernel_client)
+
     #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
         """Set exit callback for this shell."""
@@ -109,30 +169,30 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def set_cwd(self, dirname):
         """Set shell current working directory."""
-        # Replace single for double backslashes on Windows
         if os.name == 'nt':
-            dirname = dirname.replace(u"\\", u"\\\\")
+            # Use normpath instead of replacing '\' with '\\'
+            # See spyder-ide/spyder#10785
+            dirname = osp.normpath(dirname)
 
-        if not self.external_kernel:
-            code = u"get_ipython().kernel.set_cwd(u'''{}''')".format(dirname)
-            if self._reading:
-                self.kernel_client.input(u'!' + code)
-            else:
-                self.silent_execute(code)
+        if self.ipyclient.hostname is None:
+            self.call_kernel(interrupt=True).set_cwd(dirname)
             self._cwd = dirname
 
-    def get_cwd(self):
+    def update_cwd(self):
         """Update current working directory.
 
         Retrieve the cwd and emit a signal connected to the working directory
         widget. (see: handle_exec_method())
         """
-        code = u"get_ipython().kernel.get_cwd()"
-        if self._reading:
+        if self.kernel_client is None:
             return
-        else:
-            self.silent_exec_method(code)
-            
+        self.call_kernel(callback=self.remote_set_cwd).get_cwd()
+
+    def remote_set_cwd(self, cwd):
+        """Get current working directory from kernel."""
+        self._cwd = cwd
+        self.sig_change_cwd.emit(self._cwd)
+
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""
         bsh = sh.BaseSH(parent=self, color_scheme=color_scheme)
@@ -149,40 +209,40 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if reset:
             self.reset(clear=True)
         if not dark_color:
+            # Needed to change the colors of tracebacks
             self.silent_execute("%colors linux")
+            self.call_kernel().set_sympy_forecolor(background_color='dark')
         else:
             self.silent_execute("%colors lightbg")
+            self.call_kernel().set_sympy_forecolor(background_color='light')
 
-    def get_syspath(self):
+    def update_syspath(self, path_dict, new_path_dict):
+        """Update sys.path contents on kernel."""
+        self.call_kernel(
+            interrupt=True,
+            blocking=False).update_syspath(path_dict, new_path_dict)
+
+    def request_syspath(self):
         """Ask the kernel for sys.path contents."""
-        code = u"get_ipython().kernel.get_syspath()"
-        if self._reading:
-            return
-        else:
-            self.silent_exec_method(code)
+        self.call_kernel(
+            interrupt=True, callback=self.sig_show_syspath.emit).get_syspath()
 
-    def get_env(self):
+    def request_env(self):
         """Ask the kernel for environment variables."""
-        code = u"get_ipython().kernel.get_env()"
-        if self._reading:
-            return
-        else:
-            self.silent_exec_method(code)
+        self.call_kernel(
+            interrupt=True, callback=self.sig_show_env.emit).get_env()
 
     # --- To handle the banner
     def long_banner(self):
-        """Banner for IPython widgets with pylab message"""
+        """Banner for clients with additional content."""
         # Default banner
-        try:
-            from IPython.core.usage import quick_guide
-        except Exception:
-            quick_guide = ''
+        py_ver = self.interpreter_versions['python_version'].split('\n')[0]
+        ipy_ver = self.interpreter_versions['ipython_version']
+
         banner_parts = [
-            'Python %s\n' % self.interpreter_versions['python_version'],
+            'Python %s\n' % py_ver,
             'Type "copyright", "credits" or "license" for more information.\n\n',
-            'IPython %s -- An enhanced Interactive Python.\n' % \
-            self.interpreter_versions['ipython_version'],
-            quick_guide
+            'IPython %s -- An enhanced Interactive Python.\n' % ipy_ver
         ]
         banner = ''.join(banner_parts)
 
@@ -209,26 +269,29 @@ These commands were executed:
             banner = banner + lines
         if (pylab_o and sympy_o):
             lines = """
-Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both 
-enabled at the same time. Some pylab functions are going to be overrided by 
+Warning: pylab (numpy and matplotlib) and symbolic math (sympy) are both
+enabled at the same time. Some pylab functions are going to be overrided by
 the sympy module (e.g. plot)
 """
             banner = banner + lines
+
         return banner
 
     def short_banner(self):
-        """Short banner with Python and QtConsole versions"""
-        banner = 'Python %s -- IPython %s' % (
-                                  self.interpreter_versions['python_version'],
-                                  self.interpreter_versions['ipython_version'])
+        """Short banner with Python and IPython versions only."""
+        py_ver = self.interpreter_versions['python_version'].split(' ')[0]
+        ipy_ver = self.interpreter_versions['ipython_version']
+        banner = 'Python %s -- IPython %s' % (py_ver, ipy_ver)
         return banner
 
     # --- To define additional shortcuts
     def clear_console(self):
-        if self._reading:
+        if self.is_waiting_pdb_input():
             self.dbg_exec_magic('clear')
         else:
             self.execute("%clear")
+        # Stop reading as any input has been removed.
+        self._reading = False
 
     def _reset_namespace(self):
         warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
@@ -239,7 +302,13 @@ the sympy module (e.g. plot)
         reset_str = _("Remove all variables")
         warn_str = _("All user-defined variables will be removed. "
                      "Are you sure you want to proceed?")
-        kernel_env = self.kernel_manager._kernel_spec.env
+        # This is necessary to make resetting variables work in external
+        # kernels.
+        # See spyder-ide/spyder#9505.
+        try:
+            kernel_env = self.kernel_manager._kernel_spec.env
+        except AttributeError:
+            kernel_env = {}
 
         if warning:
             box = MessageCheckBox(icon=QMessageBox.Warning, parent=self)
@@ -263,7 +332,7 @@ the sympy module (e.g. plot)
                 return
 
         try:
-            if self._reading:
+            if self.is_waiting_pdb_input():
                 self.dbg_exec_magic('reset', '-f')
             else:
                 if message:
@@ -288,36 +357,59 @@ the sympy module (e.g. plot)
                 self.refresh_namespacebrowser()
 
                 if not self.external_kernel:
-                    self.silent_execute(
-                        'get_ipython().kernel.close_all_mpl_figures()')
+                    self.call_kernel().close_all_mpl_figures()
         except AttributeError:
             pass
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
-        inspect = config_shortcut(self._control.inspect_current_object,
-                                  context='Console',
-                                  name='Inspect current object', parent=self)
-        clear_console = config_shortcut(self.clear_console, context='Console',
-                                        name='Clear shell', parent=self)
-        restart_kernel = config_shortcut(self.ipyclient.restart_kernel,
-                                         context='ipython_console',
-                                         name='Restart kernel', parent=self)
-        new_tab = config_shortcut(lambda: self.new_client.emit(),
-                                  context='ipython_console', name='new tab',
-                                  parent=self)
-        reset_namespace = config_shortcut(lambda: self._reset_namespace(),
-                                          context='ipython_console',
-                                          name='reset namespace', parent=self)
-        array_inline = config_shortcut(self._control.enter_array_inline,
-                                       context='array_builder',
-                                       name='enter array inline', parent=self)
-        array_table = config_shortcut(self._control.enter_array_table,
-                                      context='array_builder',
-                                      name='enter array table', parent=self)
-        clear_line = config_shortcut(self.ipyclient.clear_line,
-                                     context='console', name='clear line',
-                                     parent=self)
+        inspect = CONF.config_shortcut(
+            self._control.inspect_current_object,
+            context='Console',
+            name='Inspect current object',
+            parent=self)
+
+        clear_console = CONF.config_shortcut(
+            self.clear_console,
+            context='Console',
+            name='Clear shell',
+            parent=self)
+
+        restart_kernel = CONF.config_shortcut(
+            self.ipyclient.restart_kernel,
+            context='ipython_console',
+            name='Restart kernel',
+            parent=self)
+
+        new_tab = CONF.config_shortcut(
+            lambda: self.new_client.emit(),
+            context='ipython_console',
+            name='new tab',
+            parent=self)
+
+        reset_namespace = CONF.config_shortcut(
+            lambda: self._reset_namespace(),
+            context='ipython_console',
+            name='reset namespace',
+            parent=self)
+
+        array_inline = CONF.config_shortcut(
+            self._control.enter_array_inline,
+            context='array_builder',
+            name='enter array inline',
+            parent=self)
+
+        array_table = CONF.config_shortcut(
+            self._control.enter_array_table,
+            context='array_builder',
+            name='enter array table',
+            parent=self)
+
+        clear_line = CONF.config_shortcut(
+            self.ipyclient.clear_line,
+            context='console',
+            name='clear line',
+            parent=self)
 
         return [inspect, clear_console, restart_kernel, new_tab,
                 reset_namespace, array_inline, array_table, clear_line]
@@ -383,51 +475,11 @@ the sympy module (e.g. plot)
                 method = self._kernel_methods[expression]
                 reply = user_exp[expression]
                 data = reply.get('data')
-                if 'get_namespace_view' in method:
-                    if data is not None and 'text/plain' in data:
-                        literal = ast.literal_eval(data['text/plain'])
-                        view = ast.literal_eval(literal)
-                    else:
-                        view = None
-                    self.sig_namespace_view.emit(view)
-                elif 'get_var_properties' in method:
-                    if data is not None and 'text/plain' in data:
-                        literal = ast.literal_eval(data['text/plain'])
-                        properties = ast.literal_eval(literal)
-                    else:
-                        properties = None
-                    self.sig_var_properties.emit(properties)
-                elif 'get_cwd' in method:
-                    if data is not None and 'text/plain' in data:
-                        self._cwd = ast.literal_eval(data['text/plain'])
-                        if PY2:
-                            self._cwd = encoding.to_unicode_from_fs(self._cwd)
-                    else:
-                        self._cwd = ''
-                    self.sig_change_cwd.emit(self._cwd)
-                elif 'get_syspath' in method:
-                    if data is not None and 'text/plain' in data:
-                        syspath = ast.literal_eval(data['text/plain'])
-                    else:
-                        syspath = None
-                    self.sig_show_syspath.emit(syspath)
-                elif 'get_env' in method:
-                    if data is not None and 'text/plain' in data:
-                        env = ast.literal_eval(data['text/plain'])
-                    else:
-                        env = None
-                    self.sig_show_env.emit(env)
-                elif 'getattr' in method:
+                if 'getattr' in method:
                     if data is not None and 'text/plain' in data:
                         is_spyder_kernel = data['text/plain']
                         if 'SpyderKernel' in is_spyder_kernel:
                             self.sig_is_spykernel.emit(self)
-                else:
-                    if data is not None and 'text/plain' in data:
-                        self._kernel_reply = ast.literal_eval(data['text/plain'])
-                    else:
-                        self._kernel_reply = None
-                    self.sig_got_reply.emit()
 
                 # Remove method after being processed
                 self._kernel_methods.pop(expression)
@@ -455,20 +507,96 @@ the sympy module (e.g. plot)
         %matplotlib, send the same command again to the kernel to
         correctly change it.
 
-        Fixes issue 4002
+        Fixes spyder-ide/spyder#4002.
         """
         if command.startswith('%matplotlib') and \
           len(command.splitlines()) == 1:
             if not 'inline' in command:
                 self.silent_execute(command)
 
-    #---- Private methods (overrode by us) ---------------------------------
+    # ---- Spyder-kernels methods -------------------------------------------
+    def get_editor(self, filename):
+        """Get editor for filename and set it as the current editor."""
+        editorstack = self.get_editorstack()
+        if editorstack is None:
+            return None
+
+        if not filename:
+            return None
+
+        index = editorstack.has_filename(filename)
+        if index is None:
+            return None
+
+        return editorstack.data[index].editor
+
+    def get_editorstack(self):
+        """Get the current editorstack."""
+        plugin = self.ipyclient.plugin
+        if plugin.main.editor is not None:
+            editor = plugin.main.editor
+            return editor.get_current_editorstack()
+        raise RuntimeError('No editorstack found.')
+
+    def handle_get_file_code(self, filename):
+        """
+        Return the bytes that compose the file.
+
+        Bytes are returned instead of str to support non utf-8 files.
+        """
+        editorstack = self.get_editorstack()
+        if CONF.get('editor', 'save_all_before_run', True):
+            editorstack.save_all(save_new_files=False)
+        editor = self.get_editor(filename)
+
+        if editor is None:
+            # Load it from file instead
+            text, _enc = encoding.read(filename)
+            return text
+
+        return editor.toPlainText()
+
+    def handle_run_cell(self, cell_name, filename):
+        """
+        Get cell code from cell name and file name.
+        """
+        editorstack = self.get_editorstack()
+        if CONF.get('editor', 'save_all_before_run', True):
+            editorstack.save_all(save_new_files=False)
+        editor = self.get_editor(filename)
+
+        if editor is None:
+            raise RuntimeError(
+                "File {} not open in the editor".format(filename))
+
+        editorstack.last_cell_call = (filename, cell_name)
+
+        # The file is open, load code from editor
+        return editor.get_cell_code(cell_name)
+
+    def handle_cell_count(self, filename):
+        """Get number of cells in file to loop."""
+        editorstack = self.get_editorstack()
+        editor = self.get_editor(filename)
+
+        if editor is None:
+            raise RuntimeError(
+                "File {} not open in the editor".format(filename))
+
+        # The file is open, get cell count from editor
+        return editor.get_cell_count()
+
+    def handle_current_filename(self):
+        """Get the current filename."""
+        return self.get_editorstack().get_current_finfo().filename
+
+    # ---- Private methods (overrode by us) ---------------------------------
+
     def _handle_error(self, msg):
         """
         Reimplemented to reset the prompt if the error comes after the reply
         """
         self._process_execute_error(msg)
-        self._show_interpreter_prompt()
 
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
@@ -491,7 +619,11 @@ the sympy module (e.g. plot)
 
     def _kernel_restarted_message(self, died=True):
         msg = _("Kernel died, restarting") if died else _("Kernel restarting")
-        self.sig_kernel_restarted.emit(msg)
+        self.sig_kernel_restarted_message.emit(msg)
+
+    def _handle_kernel_restarted(self):
+        super(ShellWidget, self)._handle_kernel_restarted()
+        self.sig_kernel_restarted.emit()
 
     def _syntax_style_changed(self):
         """Refresh the highlighting with the current syntax style by class."""

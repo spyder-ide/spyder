@@ -8,20 +8,18 @@
 """Projects"""
 
 # Local imports
-from spyder.plugins.projects.api import EmptyProject
+from spyder.plugins.projects.projecttypes import EmptyProject
 from spyder.plugins.projects.projecttypes.python import PythonProject
 
 
 def get_available_project_types():
-    """ """
-#    return [EmptyProject, PythonProject, PythonPackageProject, DjangoProject,
-#            SpyderPluginProject] + get_available_project_types_plugins()
+    """Get available project types."""
     return ([EmptyProject] +
             get_available_project_types_plugins())
 
 
 def get_available_project_types_plugins():
-    """ """
+    """Return available project types."""
     return []
 
 

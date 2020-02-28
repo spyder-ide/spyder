@@ -26,6 +26,7 @@ class OutlineExplorer(SpyderPluginWidget):
     """Outline Explorer plugin."""
 
     CONF_SECTION = 'outline_explorer'
+    CONF_FILE = False
 
     def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
@@ -53,9 +54,6 @@ class OutlineExplorer(SpyderPluginWidget):
         self.explorer.treewidget.header().hide()
         self.load_config()
 
-        # Initialize plugin
-        self.initialize_plugin()
-
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
@@ -80,21 +78,17 @@ class OutlineExplorer(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
-        self.main.add_dockwidget(self)
-        
-    def refresh_plugin(self):
-        """Refresh project explorer widget"""
-        pass
-        
+        self.add_dockwidget()
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()
         return True
 
-    #------ SpyderPluginMixin API ---------------------------------------------
-    def visibility_changed(self, enable):
+    #------ BasePluginWidgetMixin API ---------------------------------------------
+    def _visibility_changed(self, enable):
         """DockWidget visibility has changed"""
-        super(SpyderPluginWidget, self).visibility_changed(enable)
+        super(SpyderPluginWidget, self)._visibility_changed(enable)
         if enable:
             self.explorer.is_visible.emit()
             

@@ -23,8 +23,7 @@ from qtpy.QtGui import QFont, QFontDatabase, QKeySequence
 from qtpy.QtWidgets import QShortcut
 
 # Local imports
-from spyder.config.main import CONF
-from spyder.config.user import NoDefault
+from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import syntaxhighlighters as sh
 
@@ -95,51 +94,17 @@ def set_font(font, section='appearance', option='font'):
     FONT_CACHE[(section, option)] = font
 
 
-def get_shortcut(context, name):
-    """Get keyboard shortcut (key sequence string)"""
-    return CONF.get('shortcuts', '%s/%s' % (context, name))
-
-
-def set_shortcut(context, name, keystr):
-    """Set keyboard shortcut (key sequence string)"""
-    CONF.set('shortcuts', '%s/%s' % (context, name), keystr)
-
-
-def fixed_shortcut(keystr, parent, action):
+def _config_shortcut(action, context, name, keystr, parent):
     """
-    DEPRECATED: This function will be removed in Spyder 4.0
+    Create a Shortcut namedtuple for a widget.
 
-    Define a fixed shortcut according to a keysequence string
+    The data contained in this tuple will be registered in our shortcuts
+    preferences page.
     """
-    sc = QShortcut(QKeySequence(keystr), parent, action)
-    sc.setContext(Qt.WidgetWithChildrenShortcut)
-    return sc
-
-
-def config_shortcut(action, context, name, parent):
-    """
-    Create a Shortcut namedtuple for a widget
-
-    The data contained in this tuple will be registered in
-    our shortcuts preferences page
-    """
-    keystr = get_shortcut(context, name)
     qsc = QShortcut(QKeySequence(keystr), parent, action)
     qsc.setContext(Qt.WidgetWithChildrenShortcut)
     sc = Shortcut(data=(qsc, context, name))
     return sc
-
-
-def iter_shortcuts():
-    """Iterate over keyboard shortcuts."""
-    for context_name, keystr in CONF.items('shortcuts'):
-        context, name = context_name.split("/", 1)
-        yield context, name, keystr
-
-
-def reset_shortcuts():
-    """Reset keyboard shortcuts to default values"""
-    CONF.reset_to_defaults(section='shortcuts')
 
 
 def get_color_scheme(name):

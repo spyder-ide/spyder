@@ -6,6 +6,7 @@
 
 import argparse
 
+
 def get_options(argv=None):
     """
     Convert options into commands
@@ -48,6 +49,8 @@ def get_options(argv=None):
                       choices=['software', 'desktop', 'gles'],
                       help=("OpenGL implementation to pass to Qt")
                       )
+    parser.add_argument('--paths', action='store_true', default=False,
+                        help="Show all Spyder configuration paths")
     parser.add_argument('--debug-info', default=None,
                         dest="debug_info",
                         choices=['minimal', 'verbose'],

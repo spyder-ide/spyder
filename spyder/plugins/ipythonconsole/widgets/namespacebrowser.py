@@ -16,17 +16,20 @@ try:
 except AttributeError:
     time.monotonic = time.time
 
-from qtpy.QtCore import QEventLoop
+from pickle import PicklingError, UnpicklingError
+
 from qtpy.QtWidgets import QMessageBox
 
-import cloudpickle
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import _
-from spyder.py3compat import PY2, to_text_string
+from spyder.py3compat import PY2, to_text_string, TimeoutError
 
 
 logger = logging.getLogger(__name__)
+
+# Max time before giving up when making a blocking call to the kernel
+CALL_KERNEL_TIMEOUT = 30
 
 
 class NamepaceBrowserWidget(RichJupyterWidget):
@@ -43,167 +46,111 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     _kernel_methods = {}
 
     # To save values and messages returned by the kernel
-    _kernel_value = None
     _kernel_is_starting = True
 
     # --- Public API --------------------------------------------------
     def set_namespacebrowser(self, namespacebrowser):
         """Set namespace browser widget"""
         self.namespacebrowser = namespacebrowser
-        self.configure_namespacebrowser()
 
-    def configure_namespacebrowser(self):
-        """Configure associated namespace browser widget"""
-        # Update namespace view
-        self.sig_namespace_view.connect(lambda data:
-            self.namespacebrowser.process_remote_view(data))
-
-        # Update properties of variables
-        self.sig_var_properties.connect(lambda data:
-            self.namespacebrowser.set_var_properties(data))
-
-    def refresh_namespacebrowser(self):
+    def refresh_namespacebrowser(self, interrupt=False):
         """Refresh namespace browser"""
+        if self.kernel_client is None:
+            return
         if self.namespacebrowser:
-            self.silent_exec_method(
-                'get_ipython().kernel.get_namespace_view()')
-            self.silent_exec_method(
-                'get_ipython().kernel.get_var_properties()')
+            self.call_kernel(
+                interrupt=interrupt,
+                callback=self.set_namespace_view
+            ).get_namespace_view()
+            self.call_kernel(
+                interrupt=interrupt,
+                callback=self.set_var_properties
+            ).get_var_properties()
+
+    def set_namespace_view(self, view):
+        """Set the current namespace view."""
+        if self.namespacebrowser is not None:
+            self.namespacebrowser.process_remote_view(view)
+
+    def set_var_properties(self, properties):
+        """Set var properties."""
+        if self.namespacebrowser is not None:
+            self.namespacebrowser.set_var_properties(properties)
 
     def set_namespace_view_settings(self):
         """Set the namespace view settings"""
+        if self.kernel_client is None:
+            return
         if self.namespacebrowser:
-            settings = to_text_string(
-                self.namespacebrowser.get_view_settings())
-            code =(u"get_ipython().kernel.namespace_view_settings = %s" %
-                   settings)
-            self.silent_execute(code)
+            settings = self.namespacebrowser.get_view_settings()
+            self.call_kernel().set_namespace_view_settings(settings)
 
     def get_value(self, name):
         """Ask kernel for a value"""
-        code = u"get_ipython().kernel.get_value('%s')" % name
-        if self._reading:
-            method = self.kernel_client.input
-            code = u'!' + code
-        else:
-            method = self.silent_execute
-
-        # Wait until the kernel returns the value
-        wait_loop = QEventLoop()
-        self.sig_got_reply.connect(wait_loop.quit)
-        method(code)
-        wait_loop.exec_()
-
-        # Remove loop connection and loop
-        self.sig_got_reply.disconnect(wait_loop.quit)
-        wait_loop = None
-
-        # Handle exceptions
-        if self._kernel_value is None:
-            if self._kernel_reply:
-                msg = self._kernel_reply[:]
-                self._kernel_reply = None
-                raise ValueError(msg)
-
-        return self._kernel_value
+        reason_big = _("The variable is too big to be retrieved")
+        reason_not_picklable = _("The variable is not picklable")
+        msg = _("%s.<br><br>"
+                "Note: Please don't report this problem on Github, "
+                "there's nothing to do about it.")
+        try:
+            return self.call_kernel(
+                interrupt=True,
+                blocking=True,
+                timeout=CALL_KERNEL_TIMEOUT).get_value(name)
+        except TimeoutError:
+            raise ValueError(msg % reason_big)
+        except (PicklingError, UnpicklingError):
+            raise ValueError(msg % reason_not_picklable)
 
     def set_value(self, name, value):
         """Set value for a variable"""
-        value = to_text_string(value)
-        code = u"get_ipython().kernel.set_value('%s', %s, %s)" % (name, value,
-                                                                  PY2)
-
-        if self._reading:
-            self.kernel_client.input(u'!' + code)
-        else:
-            self.silent_execute(code)
+        self.call_kernel(interrupt=True, blocking=False
+                         ).set_value(name, value)
 
     def remove_value(self, name):
         """Remove a variable"""
-        code = u"get_ipython().kernel.remove_value('%s')" % name
-        if self._reading:
-            self.kernel_client.input(u'!' + code)
-        else:
-            self.silent_execute(code)
+        self.call_kernel(interrupt=True, blocking=False
+                         ).remove_value(name)
 
     def copy_value(self, orig_name, new_name):
         """Copy a variable"""
-        code = u"get_ipython().kernel.copy_value('%s', '%s')" % (orig_name,
-                                                                 new_name)
-        if self._reading:
-            self.kernel_client.input(u'!' + code)
-        else:
-            self.silent_execute(code)
+        self.call_kernel(interrupt=True, blocking=False
+                         ).copy_value(orig_name, new_name)
 
     def load_data(self, filename, ext):
-        if self._reading:
-            message = _("Loading this kind of data while debugging is not "
-                        "supported.")
-            QMessageBox.warning(self, _("Warning"), message)
-            return
-        # Wait until the kernel tries to load the file
-        wait_loop = QEventLoop()
-        self.sig_got_reply.connect(wait_loop.quit)
-        self.silent_exec_method(
-                r"get_ipython().kernel.load_data('%s', '%s')" % (filename, ext))
-        wait_loop.exec_()
-
-        # Remove loop connection and loop
-        self.sig_got_reply.disconnect(wait_loop.quit)
-        wait_loop = None
-
-        return self._kernel_reply
+        """Load data from a file."""
+        overwrite = False
+        if self.namespacebrowser.editor.var_properties:
+            message = _('Do you want to overwrite old '
+                        'variables (if any) in the namespace '
+                        'when loading the data?')
+            buttons = QMessageBox.Yes | QMessageBox.No
+            result = QMessageBox.question(
+                self, _('Data loading'), message, buttons)
+            overwrite = result == QMessageBox.Yes
+        try:
+            return self.call_kernel(
+                interrupt=True,
+                blocking=True,
+                timeout=CALL_KERNEL_TIMEOUT).load_data(
+                    filename, ext, overwrite=overwrite)
+        except TimeoutError:
+            msg = _("Data is too big to be loaded")
+            return msg
+        except UnpicklingError:
+            return None
 
     def save_namespace(self, filename):
-        if self._reading:
-            message = _("Saving data while debugging is not supported.")
-            QMessageBox.warning(self, _("Warning"), message)
-            return
-        # Wait until the kernel tries to save the file
-        wait_loop = QEventLoop()
-        self.sig_got_reply.connect(wait_loop.quit)
-        self.silent_exec_method(r"get_ipython().kernel.save_namespace('%s')" %
-                                filename)
-        wait_loop.exec_()
-
-        # Remove loop connection and loop
-        self.sig_got_reply.disconnect(wait_loop.quit)
-        wait_loop = None
-
-        return self._kernel_reply
-
-    # ---- Private API (defined by us) ------------------------------
-    def _handle_spyder_msg(self, msg):
-        """
-        Handle internal spyder messages
-        """
-        spyder_msg_type = msg['content'].get('spyder_msg_type')
-        if spyder_msg_type == 'data':
-            # Deserialize data
-            try:
-                if PY2:
-                    value = cloudpickle.loads(msg['buffers'][0])
-                else:
-                    value = cloudpickle.loads(bytes(msg['buffers'][0]))
-            except Exception as msg:
-                self._kernel_value = None
-                self._kernel_reply = repr(msg)
-            else:
-                self._kernel_value = value
-            self.sig_got_reply.emit()
-            return
-        elif spyder_msg_type == 'pdb_state':
-            pdb_state = msg['content']['pdb_state']
-            if pdb_state is not None and isinstance(pdb_state, dict):
-                self.refresh_from_pdb(pdb_state)
-        elif spyder_msg_type == 'pdb_continue':
-            # Run Pdb continue to get to the first breakpoint
-            # Fixes 2034
-            self.write_to_stdin('continue')
-        elif spyder_msg_type == 'set_breakpoints':
-            self.set_spyder_breakpoints(force=True)
-        else:
-            logger.debug("No such spyder message type: %s" % spyder_msg_type)
+        try:
+            return self.call_kernel(
+                interrupt=True,
+                blocking=True,
+                timeout=CALL_KERNEL_TIMEOUT).save_namespace(filename)
+        except TimeoutError:
+            msg = _("Data is too big to be saved")
+            return msg
+        except UnpicklingError:
+            return None
 
     # ---- Private API (overrode by us) ----------------------------
     def _handle_execute_reply(self, msg):

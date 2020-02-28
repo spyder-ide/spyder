@@ -126,7 +126,7 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
 
     # Test adding condition on line containing code.
     reset_emits(editor)
-    block = editor.document().findBlockByLineNumber(3)  # Block is one less.
+    block = editor.document().findBlockByNumber(3)  # Block is one less.
     arb(line_number=4, condition='a > 50')
     editor_assert_helper(editor, block, bp=True, bpc='a > 50', emits=True)
 
@@ -146,14 +146,14 @@ def test_add_remove_breakpoint(code_editor_bot, mocker):
 
 def test_add_remove_breakpoint_with_edit_condition(code_editor_bot, mocker):
     """Test add/remove breakpoint with edit_condition."""
-    # For issue 2179.
+    # For spyder-ide/spyder#2179.
 
     editor, qtbot = code_editor_bot
     arb = editor.debugger.toogle_breakpoint
     mocker.patch.object(debugger.QInputDialog, 'getText')
 
     linenumber = 5
-    block = editor.document().findBlockByLineNumber(linenumber - 1)
+    block = editor.document().findBlockByNumber(linenumber - 1)
 
     # Call with edit_breakpoint on line that has never had a breakpoint set.
     # Once a line has a breakpoint set, it remains in userData(), which results

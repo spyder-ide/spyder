@@ -11,6 +11,7 @@ Tests for the spyder.config.base module.
 """
 
 # Standard library imports
+import os
 import os.path as osp
 try:
     from importlib import reload

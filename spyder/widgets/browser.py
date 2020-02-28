@@ -14,7 +14,7 @@ import sys
 # Third party imports
 from qtpy.QtCore import QUrl, Signal, Slot
 from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QProgressBar, QMenu,
-                            QVBoxLayout, QWidget)
+                            QWidget)
 from qtpy.QtWebEngineWidgets import (QWebEnginePage, QWebEngineSettings,
                                      QWebEngineView, WEBENGINE)
 from qtpy.QtGui import QFontInfo
@@ -47,12 +47,14 @@ class WebPage(QWebEnginePage):
         if navigation_type == QWebEnginePage.NavigationTypeLinkClicked:
             self.linkClicked.emit(url)
             return False
-        return True
+
+        return super(WebPage, self).acceptNavigationRequest(
+            url, navigation_type, isMainFrame)
 
 
 class WebView(QWebEngineView):
     """Web view"""
-    def __init__(self, parent):
+    def __init__(self, parent, handle_links=True):
         QWebEngineView.__init__(self, parent)
         self.zoom_factor = 1.
         self.zoom_out_action = create_action(self, _("Zoom out"),
@@ -62,13 +64,15 @@ class WebView(QWebEngineView):
                                             icon=ima.icon('zoom_in'),
                                             triggered=self.zoom_in)
         if WEBENGINE:
-            web_page = WebPage(self)
+            if handle_links:
+                web_page = WebPage(self)
+            else:
+                web_page = QWebEnginePage(self)
             self.setPage(web_page)
             self.source_text = ''
 
-    def find_text(self, text, changed=True,
-                  forward=True, case=False, words=False,
-                  regexp=False):
+    def find_text(self, text, changed=True, forward=True, case=False,
+                  word=False, regexp=False):
         """Find text"""
         if not WEBENGINE:
             findflag = QWebEnginePage.FindWrapsAroundDocument
@@ -91,7 +95,7 @@ class WebView(QWebEngineView):
         self.source_text = source_text
 
     def get_number_matches(self, pattern, source_text='', case=False,
-                           regexp=False):
+                           regexp=False, word=False):
         """Get the number of matches for the searched text."""
         pattern = to_text_string(pattern)
         if not pattern:
@@ -105,11 +109,15 @@ class WebView(QWebEngineView):
             else:
                 source_text = to_text_string(
                         self.page().mainFrame().toPlainText())
+
+        if word:  # match whole words only
+            pattern = r'\b{pattern}\b'.format(pattern=pattern)
+
         try:
             if case:
-                regobj = re.compile(pattern)
+                regobj = re.compile(pattern, re.MULTILINE)
             else:
-                regobj = re.compile(pattern, re.IGNORECASE)
+                regobj = re.compile(pattern, re.MULTILINE | re.IGNORECASE)
         except sre_constants.error:
             return
 
@@ -165,7 +173,11 @@ class WebView(QWebEngineView):
     #------ QWebEngineView API -------------------------------------------------------
     def createWindow(self, webwindowtype):
         import webbrowser
-        webbrowser.open(to_text_string(self.url().toString()))
+        # See: spyder-ide/spyder#9849
+        try:
+            webbrowser.open(to_text_string(self.url().toString()))
+        except ValueError:
+            pass
 
     def contextMenuEvent(self, event):
         menu = QMenu(self)
@@ -202,12 +214,12 @@ class WebBrowser(QWidget):
     """
     Web browser widget
     """
-    def __init__(self, parent=None, options_button=None):
+    def __init__(self, parent=None, options_button=None, handle_links=True):
         QWidget.__init__(self, parent)
 
         self.home_url = None
 
-        self.webview = WebView(self)
+        self.webview = WebView(self, handle_links=handle_links)
         self.webview.loadFinished.connect(self.load_finished)
         self.webview.titleChanged.connect(self.setWindowTitle)
         self.webview.urlChanged.connect(self.url_changed)

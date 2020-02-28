@@ -28,9 +28,9 @@ from qtpy.QtWidgets import QApplication, QMessageBox, QSplashScreen, QWidget
 
 # Local imports
 from spyder.config.base import _, get_image_path
-from spyder.py3compat import to_text_string
+from spyder.utils.encoding import to_unicode
 from spyder.utils.qthelpers import qapplication
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 PY2 = sys.version[0] == '2'
@@ -52,7 +52,7 @@ def _is_pid_running_on_windows(pid):
                                stderr=subprocess.STDOUT,
                                startupinfo=startupinfo)
     stdoutdata, stderrdata = process.communicate()
-    stdoutdata = to_text_string(stdoutdata)
+    stdoutdata = to_unicode(stdoutdata)
     process.kill()
     check = pid in stdoutdata
 
@@ -105,8 +105,10 @@ class Restarter(QWidget):
 
     def _show_message(self, text):
         """Show message on splash screen."""
-        self.splash.showMessage(text, Qt.AlignBottom | Qt.AlignCenter |
-                                Qt.AlignAbsolute, QColor(Qt.white))
+        self.splash.showMessage(text,
+                                int(Qt.AlignBottom | Qt.AlignCenter |
+                                    Qt.AlignAbsolute),
+                                QColor(Qt.white))
 
     def animate_ellipsis(self):
         """Animate dots at the end of the splash screen message."""
@@ -183,7 +185,7 @@ def main():
     restarter.set_splash_message(_('Closing Spyder'))
 
     # Get variables
-    # Note: Variables defined in app/spyder.py 'restart()' method
+    # Note: Variables defined in app/mainwindow.py 'restart()' method
     spyder_args = os.environ.pop('SPYDER_ARGS', None)
     pid = os.environ.pop('SPYDER_PID', None)
     is_bootstrap = os.environ.pop('SPYDER_IS_BOOTSTRAP', None)

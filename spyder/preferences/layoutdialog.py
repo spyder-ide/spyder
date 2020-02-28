@@ -51,8 +51,9 @@ class LayoutModel(QAbstractTableModel):
             return Qt.ItemIsEnabled
         column = index.column()
         if column in [0]:
-            return Qt.ItemFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable |
-                                Qt.ItemIsUserCheckable | Qt.ItemIsEditable)
+            return Qt.ItemFlags(int(Qt.ItemIsEnabled | Qt.ItemIsSelectable |
+                                    Qt.ItemIsUserCheckable |
+                                    Qt.ItemIsEditable))
         else:
             return Qt.ItemFlags(Qt.ItemIsEnabled)
 

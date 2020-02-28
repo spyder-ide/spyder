@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-IPython Console plugin based on QtConsole
+IPython Console plugin based on QtConsole.
 """
 
 # pylint: disable=C0103
@@ -16,67 +16,46 @@ IPython Console plugin based on QtConsole
 # Standard library imports
 import os
 import os.path as osp
-import uuid
 import sys
 import traceback
+import uuid
 
 # Third party imports
 from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
-from qtconsole.manager import QtKernelManager
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from qtpy.QtWidgets import (QActionGroup, QApplication, QGridLayout,
-                            QGroupBox, QHBoxLayout, QLabel, QMenu, QMessageBox,
-                            QTabWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QActionGroup, QApplication, QHBoxLayout, QMenu,
+                            QMessageBox, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
-from spyder import dependencies
-from spyder.config.base import _, get_conf_path, get_home_dir
-from spyder.config.gui import get_font, is_dark_interface
-from spyder.config.main import CONF
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.py3compat import is_string, PY2, to_text_string
+from spyder.config.base import (_, get_conf_path, get_home_dir,
+                                running_under_pytest)
+from spyder.config.gui import get_font, is_dark_interface
+from spyder.config.manager import CONF
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
-from spyder.plugins.ipythonconsole.utils.style import create_qss_style
-from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
+from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
+from spyder.plugins.ipythonconsole.utils.style import create_qss_style
+from spyder.plugins.ipythonconsole.widgets import (ClientWidget,
+                                                   KernelConnectionDialog)
+from spyder.py3compat import is_string, to_text_string
+from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
-from spyder.utils import encoding, programs, sourcecode
-from spyder.utils.programs import get_temp_dir
+from spyder.utils import programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
-from spyder.widgets.findreplace import FindReplace
-from spyder.plugins.ipythonconsole.widgets import ClientWidget
-from spyder.plugins.ipythonconsole.widgets import KernelConnectionDialog
+from spyder.utils.programs import get_temp_dir
+from spyder.utils.qthelpers import MENU_SEPARATOR, add_actions, create_action
 from spyder.widgets.browser import WebView
+from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 
-
-# Dependencies
-SYMPY_REQVER = '>=0.7.3'
-dependencies.add("sympy", _("Symbolic mathematics in the IPython Console"),
-                 required_version=SYMPY_REQVER, optional=True)
-
-CYTHON_REQVER = '>=0.21'
-dependencies.add("cython", _("Run Cython files in the IPython Console"),
-                 required_version=CYTHON_REQVER, optional=True)
-
-QTCONSOLE_REQVER = ">=4.2.0"
-dependencies.add("qtconsole", _("Integrate the IPython console"),
-                 required_version=QTCONSOLE_REQVER)
-
-IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
-dependencies.add("IPython", _("IPython interactive python environment"),
-                 required_version=IPYTHON_REQVER)
-
-MATPLOTLIB_REQVER = '>=2.0.0'
-dependencies.add("matplotlib", _("Display 2D graphics in the IPython Console"),
-                 required_version=MATPLOTLIB_REQVER, optional=True)
 
 if is_dark_interface():
     MAIN_BG_COLOR = '#19232D'
@@ -92,11 +71,13 @@ class IPythonConsole(SpyderPluginWidget):
     """
     CONF_SECTION = 'ipython_console'
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
+    CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     # Signals
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
+    sig_pdb_state = Signal(bool, dict)
 
     # Error messages
     permission_error_msg = _("The directory {} is not writable and it is "
@@ -130,14 +111,15 @@ class IPythonConsole(SpyderPluginWidget):
                 os.makedirs(osp.join(test_dir))
 
         layout = QVBoxLayout()
-        self.tabwidget = Tabs(self, menu=self.options_menu, actions=self.menu_actions,
+        self.tabwidget = Tabs(self, menu=self._options_menu,
+                              actions=self.menu_actions,
                               rename_tabs=True,
                               split_char='/', split_index=0)
         if hasattr(self.tabwidget, 'setDocumentMode')\
            and not sys.platform == 'darwin':
             # Don't set document mode to true on OSX because it generates
             # a crash when the console is detached from the main window
-            # Fixes Issue 561
+            # Fixes spyder-ide/spyder#561.
             self.tabwidget.setDocumentMode(True)
         self.tabwidget.currentChanged.connect(self.refresh_plugin)
         self.tabwidget.tabBar().tabMoved.connect(self.move_tab)
@@ -177,21 +159,17 @@ class IPythonConsole(SpyderPluginWidget):
         # Accepting drops
         self.setAcceptDrops(True)
 
-        # Initialize plugin
-        self.initialize_plugin()
-
-
     #------ SpyderPluginMixin API ---------------------------------------------
     def update_font(self):
         """Update font from Preferences"""
-        font = self.get_plugin_font()
+        font = self.get_font()
         for client in self.clients:
             client.set_font(font)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         font_n = 'plugin_font'
-        font_o = self.get_plugin_font()
+        font_o = self.get_font()
         help_n = 'connect_to_oi'
         help_o = CONF.get('help', 'connect/ipython_console')
         color_scheme_n = 'color_scheme_name'
@@ -295,6 +273,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.variableexplorer.set_shellwidget_from_id(id(sw))
             self.main.plots.set_shellwidget_from_id(id(sw))
             self.main.help.set_shell(sw)
+            self.sig_pdb_state.emit(sw.in_debug_loop(), sw.get_pdb_last_step())
         self.update_tabs_text()
         self.sig_update_plugin_title.emit()
 
@@ -391,7 +370,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.main.add_dockwidget(self)
+        self.add_dockwidget()
 
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.edit_goto.connect(self.main.editor.load)
@@ -402,10 +381,15 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.editor.breakpoints_saved.connect(self.set_spyder_breakpoints)
         self.main.editor.run_in_current_ipyclient.connect(self.run_script)
         self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
+        self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
         self.main.workingdirectory.set_current_console_wd.connect(
-                                     self.set_current_client_working_directory)
+            self.set_current_client_working_directory)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
+        self.tabwidget.currentChanged.connect(self.check_pdb_state)
         self._remove_old_stderr_files()
+
+        # Update kernels if python path is changed
+        self.main.sig_pythonpath_changed.connect(self.update_path)
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -432,7 +416,7 @@ class IPythonConsole(SpyderPluginWidget):
             return client.shellwidget
 
     def run_script(self, filename, wdir, args, debug, post_mortem,
-                   current_client, clear_variables):
+                   current_client, clear_variables, console_namespace):
         """Run script in current or dedicated client"""
         norm = lambda text: remove_backslashes(to_text_string(text))
 
@@ -463,6 +447,8 @@ class IPythonConsole(SpyderPluginWidget):
                     line += ", wdir='%s'" % norm(wdir)
                 if post_mortem:
                     line += ", post_mortem=True"
+                if console_namespace:
+                    line += ", current_namespace=True"
                 line += ")"
             else: # External kernels, use %run
                 line = "%run "
@@ -476,14 +462,10 @@ class IPythonConsole(SpyderPluginWidget):
                 if client.shellwidget._executing:
                     # Don't allow multiple executions when there's
                     # still an execution taking place
-                    # Fixes issue 7293
+                    # Fixes spyder-ide/spyder#7293.
                     pass
-                elif client.shellwidget._reading:
-                    client.shellwidget._append_html(
-                        _("<br><b>Please exit from debugging before trying to "
-                          "run a file in this console.</b>\n<hr><br>"),
-                        before_prompt=True)
-                    return
+                elif (client.shellwidget.in_debug_loop()):
+                    client.shellwidget.pdb_execute('!' + line)
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables)
                 else:
@@ -504,7 +486,8 @@ class IPythonConsole(SpyderPluginWidget):
                   "<br><br>Please open a new one and try again."
                   ) % osp.basename(filename), QMessageBox.Ok)
 
-    def run_cell(self, code, cell_name, filename, run_cell_copy):
+    def run_cell(self, code, cell_name, filename, run_cell_copy,
+                 function='runcell'):
         """Run cell in current or dedicated client."""
 
         def norm(text):
@@ -517,16 +500,14 @@ class IPythonConsole(SpyderPluginWidget):
         if client is None:
             client = self.get_current_client()
 
-        is_internal_kernel = False
         if client is not None:
             # Internal kernels, use runcell
             if client.get_kernel() is not None and not run_cell_copy:
-                line = (to_text_string("{}('{}','{}')")
-                            .format(to_text_string('runcell'),
-                                (to_text_string(cell_name).replace("\\","\\\\")
-                                    .replace("'", r"\'")),
+                line = (to_text_string(
+                        "{}({}, '{}')").format(
+                                to_text_string(function),
+                                repr(cell_name),
                                 norm(filename).replace("'", r"\'")))
-                is_internal_kernel = True
 
             # External kernels and run_cell_copy, just execute the code
             else:
@@ -536,26 +517,15 @@ class IPythonConsole(SpyderPluginWidget):
                 if client.shellwidget._executing:
                     # Don't allow multiple executions when there's
                     # still an execution taking place
-                    # Fixes issue 7293
+                    # Fixes spyder-ide/spyder#7293.
                     pass
-                elif client.shellwidget._reading:
-                    client.shellwidget._append_html(
-                        _("<br><b>Exit the debugger before trying to "
-                          "run a cell in this console.</b>\n<hr><br>"),
-                        before_prompt=True)
-                    return
+                elif (client.shellwidget.in_debug_loop()):
+                    client.shellwidget.pdb_execute('!' + line)
                 else:
-                    if is_internal_kernel:
-                        client.shellwidget.silent_execute(
-                            to_text_string('get_ipython().cell_code = '
-                                           '"""{}"""')
-                                .format(to_text_string(code)
-                                .replace('\\', r'\\')
-                                .replace('"""', r'\"\"\"')))
                     self.execute_code(line)
             except AttributeError:
                 pass
-            self.visibility_changed(True)
+            self._visibility_changed(True)
             self.raise_()
         else:
             # XXX: not sure it can really happen
@@ -565,6 +535,10 @@ class IPythonConsole(SpyderPluginWidget):
                                   "one and try again."
                                   ).format(osp.basename(filename)),
                                 QMessageBox.Ok)
+
+    def debug_cell(self, code, cell_name, filename, run_cell_copy):
+        """Debug current cell."""
+        self.run_cell(code, cell_name, filename, run_cell_copy, 'debugcell')
 
     def set_current_client_working_directory(self, directory):
         """Set current client working directory."""
@@ -584,44 +558,77 @@ class IPythonConsole(SpyderPluginWidget):
         """Update working directory to console cwd."""
         shellwidget = self.get_current_shellwidget()
         if shellwidget is not None:
-            shellwidget.get_cwd()
+            shellwidget.update_cwd()
+
+    def update_path(self, path_dict, new_path_dict):
+        """Update path on consoles."""
+        for client in self.get_clients():
+            shell = client.shellwidget
+            if shell is not None:
+                self.main.get_spyder_pythonpath()
+                shell.update_syspath(path_dict, new_path_dict)
 
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
         if sw is not None:
-            if sw._reading:
-                pass
-            else:
-                if not current_client:
-                    # Clear console and reset namespace for
-                    # dedicated clients
-                    # See issue 5748
-                    try:
-                        sw.sig_prompt_ready.disconnect()
-                    except TypeError:
-                        pass
-                    sw.reset_namespace(warning=False)
-                elif current_client and clear_variables:
-                    sw.reset_namespace(warning=False)
-                # Needed to handle an error when kernel_client is none
-                # See issue 6308
+            if not current_client:
+                # Clear console and reset namespace for
+                # dedicated clients.
+                # See spyder-ide/spyder#5748.
                 try:
-                    sw.execute(to_text_string(lines))
-                except AttributeError:
+                    sw.sig_prompt_ready.disconnect()
+                except TypeError:
                     pass
+                sw.reset_namespace(warning=False)
+            elif current_client and clear_variables:
+                sw.reset_namespace(warning=False)
+            # Needed to handle an error when kernel_client is none.
+            # See spyder-ide/spyder#6308.
+            try:
+                sw.execute(to_text_string(lines))
+            except AttributeError:
+                pass
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
-    def write_to_stdin(self, line):
+    def pdb_execute(self, line, hidden=False, echo_code=False):
         sw = self.get_current_shellwidget()
         if sw is not None:
-            # Needed to handle an error when kernel_client is None
-            # See issue 7578
+            # Needed to handle an error when kernel_client is None.
+            # See spyder-ide/spyder#7578.
             try:
-                sw.write_to_stdin(line)
+                sw.set_pdb_echo_code(echo_code)
+                sw.pdb_execute(line, hidden)
             except AttributeError:
                 pass
+
+    def get_pdb_state(self):
+        """Get debugging state of the current console."""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            return sw.in_debug_loop()
+        return False
+
+    def get_pdb_last_step(self):
+        """Get last pdb step of the current console."""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            return sw.get_pdb_last_step()
+        return {}
+
+    def check_pdb_state(self):
+        """
+        Check if actions need to be taken checking the last pdb state.
+        """
+        pdb_state = self.get_pdb_state()
+        if pdb_state:
+            pdb_last_step = self.get_pdb_last_step()
+            sw = self.get_current_shellwidget()
+            if 'fname' in pdb_last_step and sw is not None:
+                fname = pdb_last_step['fname']
+                line = pdb_last_step['lineno']
+                self.pdb_has_stopped(fname, line, sw)
 
     @Slot()
     @Slot(bool)
@@ -671,21 +678,22 @@ class IPythonConsole(SpyderPluginWidget):
         if not CONF.get('main_interpreter', 'default'):
             pyexec = CONF.get('main_interpreter', 'executable')
             has_spyder_kernels = programs.is_module_installed(
-                                                        'spyder_kernels',
-                                                        interpreter=pyexec,
-                                                        version='>=1.0.0')
-            if not has_spyder_kernels:
+                'spyder_kernels',
+                interpreter=pyexec,
+                version='>=1.8.0;<2.0.0')
+            if not has_spyder_kernels and not running_under_pytest():
                 client.show_kernel_error(
-                        _("Your Python environment or installation doesn't "
-                          "have the <tt>spyder-kernels</tt> module or the "
-                          "right version of it installed. "
-                          "Without this module is not possible for "
-                          "Spyder to create a console for you.<br><br>"
-                          "You can install it by running in a system terminal:"
-                          "<br><br>"
-                          "<tt>conda install spyder-kernels</tt>"
-                          "<br><br>or<br><br>"
-                          "<tt>pip install spyder-kernels</tt>"))
+                    _("Your Python environment or installation doesn't have "
+                      "the <tt>spyder-kernels</tt> module or the right "
+                      "version of it installed (>= 1.8.0 and < 2.0.0). "
+                      "Without this module is not possible for Spyder to "
+                      "create a console for you.<br><br>"
+                      "You can install it by running in a system terminal:"
+                      "<br><br>"
+                      "<tt>conda install spyder-kernels</tt>"
+                      "<br><br>or<br><br>"
+                      "<tt>pip install spyder-kernels</tt>")
+                )
                 return
 
         self.connect_client_to_kernel(client, is_cython=is_cython,
@@ -745,8 +753,9 @@ class IPythonConsole(SpyderPluginWidget):
         kc.start_channels(shell=True, iopub=True)
 
         shellwidget = client.shellwidget
-        shellwidget.kernel_manager = km
-        shellwidget.kernel_client = kc
+        shellwidget.set_kernel_client_and_manager(kc, km)
+        shellwidget.sig_exception_occurred.connect(
+            self.main.console.exception_occurred)
 
     @Slot(object, object)
     def edit_file(self, filename, line):
@@ -824,17 +833,16 @@ class IPythonConsole(SpyderPluginWidget):
         if CONF.get('main_interpreter', 'default'):
             from IPython.core import release
             versions = dict(
-                python_version = sys.version.split("\n")[0].strip(),
+                python_version = sys.version,
                 ipython_version = release.version
             )
         else:
             import subprocess
             versions = {}
             pyexec = CONF.get('main_interpreter', 'executable')
-            py_cmd = "%s -c 'import sys; print(sys.version.split(\"\\n\")[0])'" % \
-                     pyexec
-            ipy_cmd = "%s -c 'import IPython.core.release as r; print(r.version)'" \
-                      % pyexec
+            py_cmd = '%s -c "import sys; print(sys.version)"' % pyexec
+            ipy_cmd = ('%s -c "import IPython.core.release as r; print(r.version)"'
+                       % pyexec)
             for cmd in [py_cmd, ipy_cmd]:
                 try:
                     proc = programs.run_shell_command(cmd)
@@ -888,6 +896,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.sig_pdb_step.connect(
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
+        shellwidget.sig_pdb_state.connect(self.sig_pdb_state)
 
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)
@@ -899,6 +908,9 @@ class IPythonConsole(SpyderPluginWidget):
             if (self.main.projects is not None and
                     self.main.projects.get_active_project() is not None):
                 cwd_path = self.main.projects.get_active_project_path()
+        elif CONF.get('workingdir', 'startup/use_fixed_directory'):
+            cwd_path = CONF.get('workingdir', 'startup/fixed_directory',
+                                default=get_home_dir())
         elif CONF.get('workingdir', 'console/use_fixed_directory'):
             cwd_path = CONF.get('workingdir', 'console/fixed_directory')
 
@@ -906,7 +918,7 @@ class IPythonConsole(SpyderPluginWidget):
             shellwidget.set_cwd(cwd_path)
             if give_focus:
                 # Syncronice cwd with explorer and cwd widget
-                shellwidget.get_cwd()
+                shellwidget.update_cwd()
 
         # Connect text widget to Help
         if self.main.help is not None:
@@ -920,7 +932,7 @@ class IPythonConsole(SpyderPluginWidget):
                 self.main.historylog.append_to_history)
 
         # Set font for client
-        client.set_font( self.get_plugin_font() )
+        client.set_font(self.get_font())
 
         # Connect focus signal to client's control widget
         control.focus_changed.connect(lambda: self.focus_changed.emit())
@@ -951,7 +963,7 @@ class IPythonConsole(SpyderPluginWidget):
         if index is not None:
             client = self.tabwidget.widget(index)
 
-        # Needed to handle a RuntimeError. See issue 5568.
+        # Needed to handle a RuntimeError. See spyder-ide/spyder#5568.
         try:
             # Close client
             client.stop_button_click_handler()
@@ -997,7 +1009,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.clients.remove(client)
 
         # This is needed to prevent that hanged consoles make reference
-        # to an index that doesn't exist. See issue 4881
+        # to an index that doesn't exist. See spyder-ide/spyder#4881
         try:
             self.filenames.pop(index)
         except IndexError:
@@ -1069,6 +1081,16 @@ class IPythonConsole(SpyderPluginWidget):
         """Set Spyder breakpoints into all clients"""
         for cl in self.clients:
             cl.shellwidget.set_spyder_breakpoints()
+
+    def set_pdb_ignore_lib(self):
+        """Set pdb_ignore_lib into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_pdb_ignore_lib()
+
+    def set_pdb_execute_events(self):
+        """Set pdb_execute_events into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_pdb_execute_events()
 
     @Slot(str)
     def create_client_from_path(self, path):
@@ -1164,8 +1186,11 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Kernel manager
         try:
-            kernel_manager = QtKernelManager(connection_file=connection_file,
-                                             config=None, autorestart=True)
+            kernel_manager = SpyderKernelManager(
+                connection_file=connection_file,
+                config=None,
+                autorestart=True,
+            )
         except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())
@@ -1178,8 +1203,8 @@ class IPythonConsole(SpyderPluginWidget):
             # which prevents interrupts
             # jupyter_client > 5.2.3 will do this by default
             kwargs['close_fds'] = False
-        # Catch any error generated when trying to start the kernel
-        # See issue 7302
+        # Catch any error generated when trying to start the kernel.
+        # See spyder-ide/spyder#7302.
         try:
             kernel_manager.start_kernel(stderr=stderr_handle, **kwargs)
         except Exception:
@@ -1190,8 +1215,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Kernel client
         kernel_client = kernel_manager.client()
 
-        # Increase time to detect if a kernel is alive
-        # See Issue 3444
+        # Increase time to detect if a kernel is alive.
+        # See spyder-ide/spyder#3444.
         kernel_client.hb_channel.time_to_dead = 18.0
 
         return kernel_manager, kernel_client
@@ -1226,8 +1251,8 @@ class IPythonConsole(SpyderPluginWidget):
 
     def connect_external_kernel(self, shellwidget):
         """
-        Connect an external kernel to the Variable Explorer and Help, if
-        it is a Spyder kernel.
+        Connect an external kernel to the Variable Explorer, Help and
+        Plots, but only if it is a Spyder kernel.
         """
         sw = shellwidget
         kc = shellwidget.kernel_client
@@ -1239,6 +1264,10 @@ class IPythonConsole(SpyderPluginWidget):
             sw.refresh_namespacebrowser()
             kc.stopped_channels.connect(lambda :
                 self.main.variableexplorer.remove_shellwidget(id(sw)))
+        if self.main.plots is not None:
+            self.main.plots.add_shellwidget(sw)
+            kc.stopped_channels.connect(lambda :
+                self.main.plots.remove_shellwidget(id(sw)))
 
     #------ Public API (for tabs) ---------------------------------------------
     def add_tab(self, widget, name, filename=''):
@@ -1273,7 +1302,7 @@ class IPythonConsole(SpyderPluginWidget):
     def update_tabs_text(self):
         """Update the text from the tabs."""
         # This is needed to prevent that hanged consoles make reference
-        # to an index that doesn't exist. See issue 4881
+        # to an index that doesn't exist. See spyder-ide/spyder#4881.
         try:
             for index, fname in enumerate(self.filenames):
                 client = self.clients[index]
@@ -1330,7 +1359,11 @@ class IPythonConsole(SpyderPluginWidget):
             if ("<ipython-input-" in fname and
                     self.run_cell_filename is not None):
                 fname = self.run_cell_filename
-            self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
+            # This is needed to fix issue spyder-ide/spyder#9217.
+            try:
+                self.edit_goto.emit(osp.abspath(fname), int(lnb), '')
+            except ValueError:
+                pass
 
     @Slot()
     def show_intro(self):
@@ -1460,7 +1493,17 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Create kernel client
         kernel_client = QtKernelClient(connection_file=connection_file)
-        kernel_client.load_connection_file()
+
+        # This is needed for issue spyder-ide/spyder#9304.
+        try:
+            kernel_client.load_connection_file()
+        except Exception as e:
+            QMessageBox.critical(self, _('Connection error'),
+                                 _("An error occurred while trying to load "
+                                   "the kernel connection file. The error "
+                                   "was:\n\n") + to_text_string(e))
+            return
+
         if hostname is not None:
             try:
                 connection_info = dict(ip = kernel_client.ip,
@@ -1482,12 +1525,15 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Assign kernel manager and client to shellwidget
         kernel_client.start_channels()
-        client.shellwidget.kernel_client = kernel_client
-        client.shellwidget.kernel_manager = kernel_manager
+        shellwidget = client.shellwidget
+        shellwidget.set_kernel_client_and_manager(
+            kernel_client, kernel_manager)
+        shellwidget.sig_exception_occurred.connect(
+            self.main.console.exception_occurred)
         if external_kernel:
-            client.shellwidget.sig_is_spykernel.connect(
-                    self.connect_external_kernel)
-            client.shellwidget.is_spyder_kernel()
+            shellwidget.sig_is_spykernel.connect(
+                self.connect_external_kernel)
+            shellwidget.is_spyder_kernel()
 
         # Set elapsed time, if possible
         if not external_kernel:

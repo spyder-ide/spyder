@@ -11,7 +11,7 @@ Contains the bookmarsks utilities.
 import os.path as osp
 
 # Local imports
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 def _load_all_bookmarks():

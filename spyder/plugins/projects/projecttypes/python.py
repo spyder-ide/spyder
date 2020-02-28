@@ -11,7 +11,7 @@ import os
 import os.path as osp
 
 from spyder.config.base import _
-from spyder.plugins.projects.api import EmptyProject
+from spyder.plugins.projects.projecttypes import EmptyProject
 
 
 class PythonProject(EmptyProject):
@@ -73,16 +73,5 @@ class PythonProject(EmptyProject):
 
 class PythonPackageProject(PythonProject):
     """ """
+    PROJECT_TYPE = 'python-package'
     PROJECT_TYPE_NAME = _('Python package')
-    IGNORE_FILE = """
-    """
-    STRUCTURE_TEMPATE = {
-        'relative_path/test.py':
-        """
-test
-        """,
-        'other/test.py':
-        """
-test
-        """,
-        }

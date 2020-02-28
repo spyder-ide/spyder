@@ -8,10 +8,9 @@
 import os
 
 # Third party imports
+import pytest
 from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QFont
-
-import pytest
 
 # Local imports
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
@@ -147,7 +146,8 @@ def test_flag_painting(editor_bot, qtbot):
         editor.setTextCursor(cursor)
 
 
-@pytest.mark.skipif(not os.name == 'nt', reason="It fails on Travis")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
+                    reason="It fails on CIs")
 def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     """Test that the slider range indicator is visible only when hovering
     over the scrollflag area when the editor vertical scrollbar is visible.
@@ -195,7 +195,8 @@ def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     qtbot.waitUntil(lambda: not sfa._range_indicator_is_visible)
 
 
-@pytest.mark.skipif(not os.name == 'nt', reason="It fails on Travis")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
+                    reason="It fails on CIs")
 def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     """Test that the slider range indicator is visible while the alt key is
     held down while the cursor is over the editor, but outside of the
@@ -217,7 +218,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # Set the cursor position to the center of the editor.
     w = editor.width()
     h = editor.height()
-    qtbot.mousePress(editor, Qt.LeftButton, pos=QPoint(w/2, h/2))
+    qtbot.mousePress(editor, Qt.LeftButton, pos=QPoint(w//2, h//2))
 
     # Hold the alt key and assert that the slider range indicator is visible.
     # Because it is not possible to simulate the action of holding the alt
@@ -232,7 +233,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # to its middle range position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w/2, h/2), modifier=Qt.AltModifier)
+                         pos=QPoint(w//2, h//2), modifier=Qt.AltModifier)
     assert vsb.value() == (vsb.minimum()+vsb.maximum())//2
 
     # While the alt key is pressed, click with the mouse at the top of the
@@ -240,7 +241,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # to its minimum position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w/2, 1), modifier=Qt.AltModifier)
+                         pos=QPoint(w//2, 1), modifier=Qt.AltModifier)
     assert vsb.value() == vsb.minimum()
 
     # While the alt key is pressed, click with the mouse at the bottom of the
@@ -248,7 +249,7 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # to its maximum position.
     with qtbot.waitSignal(editor.sig_alt_left_mouse_pressed, raising=True):
         qtbot.mousePress(editor.viewport(), Qt.LeftButton,
-                         pos=QPoint(w/2, h-1), modifier=Qt.AltModifier)
+                         pos=QPoint(w//2, h-1), modifier=Qt.AltModifier)
     assert vsb.value() == vsb.maximum()
 
     # Release the alt key and assert that the slider range indicator is

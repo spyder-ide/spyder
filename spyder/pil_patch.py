@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""
+r"""
 Patching PIL (Python Imaging Library) to avoid triggering the error:
 AccessInit: hash collision: 3 for both 1 and 1
 

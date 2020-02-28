@@ -87,7 +87,7 @@ def openssh_tunnel(self, lport, rport, server, remoteip='127.0.0.1',
         else:
             if failed or password is None:
                 raise RuntimeError(_("Could not connect to remote host"))
-                # TODO: Use this block when pyzmq bug #620 is fixed
+                # TODO: Use this block when zeromq/pyzmq#620 is fixed
                 # # Prompt a passphrase dialog to the user for a second attempt
                 # password, ok = QInputDialog.getText(self, _('Password'),
                 #             _('Enter password for: ') + server,

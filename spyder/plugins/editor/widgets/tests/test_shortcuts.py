@@ -22,9 +22,9 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.plugins.editor.widgets.editor import EditorStack
-from spyder.config.gui import get_shortcut
 from spyder.plugins.editor.widgets.codeeditor import GoToLineDialog
+from spyder.plugins.editor.widgets.editor import EditorStack
+from spyder.config.manager import CONF
 
 
 # ---- Qt Test Fixtures
@@ -57,21 +57,22 @@ def test_default_keybinding_values():
     of key strings to qtbot.keyClicks.
     """
     # Assert default keybindings.
-    assert get_shortcut('editor', 'start of document') == 'Ctrl+Home'
-    assert get_shortcut('editor', 'end of document') == 'Ctrl+End'
-    assert get_shortcut('editor', 'delete') == 'Del'
-    assert get_shortcut('editor', 'undo') == 'Ctrl+Z'
-    assert get_shortcut('editor', 'redo') == 'Ctrl+Shift+Z'
-    assert get_shortcut('editor', 'copy') == 'Ctrl+C'
-    assert get_shortcut('editor', 'paste') == 'Ctrl+V'
-    assert get_shortcut('editor', 'cut') == 'Ctrl+X'
-    assert get_shortcut('editor', 'select all') == 'Ctrl+A'
-    assert get_shortcut('editor', 'delete line') == 'Ctrl+D'
-    assert get_shortcut('editor', 'transform to lowercase') == 'Ctrl+U'
-    assert get_shortcut('editor', 'transform to uppercase') == 'Ctrl+Shift+U'
-    assert get_shortcut('editor', 'go to line') == 'Ctrl+L'
-    assert get_shortcut('editor', 'next word') == 'Ctrl+Right'
-    assert get_shortcut('editor', 'previous word') == 'Ctrl+Left'
+    assert CONF.get_shortcut('editor', 'start of document') == 'Ctrl+Home'
+    assert CONF.get_shortcut('editor', 'end of document') == 'Ctrl+End'
+    assert CONF.get_shortcut('editor', 'delete') == 'Del'
+    assert CONF.get_shortcut('editor', 'undo') == 'Ctrl+Z'
+    assert CONF.get_shortcut('editor', 'redo') == 'Ctrl+Shift+Z'
+    assert CONF.get_shortcut('editor', 'copy') == 'Ctrl+C'
+    assert CONF.get_shortcut('editor', 'paste') == 'Ctrl+V'
+    assert CONF.get_shortcut('editor', 'cut') == 'Ctrl+X'
+    assert CONF.get_shortcut('editor', 'select all') == 'Ctrl+A'
+    assert CONF.get_shortcut('editor', 'delete line') == 'Ctrl+D'
+    assert CONF.get_shortcut('editor', 'transform to lowercase') == 'Ctrl+U'
+    assert CONF.get_shortcut('editor',
+                             'transform to uppercase') == 'Ctrl+Shift+U'
+    assert CONF.get_shortcut('editor', 'go to line') == 'Ctrl+L'
+    assert CONF.get_shortcut('editor', 'next word') == 'Ctrl+Right'
+    assert CONF.get_shortcut('editor', 'previous word') == 'Ctrl+Left'
 
 
 @pytest.mark.skipif(
@@ -105,7 +106,7 @@ def test_del_undo_redo_shortcuts(editor_bot):
     Test that the undo and redo keyboard shortcuts are working as expected
     with the default Spyder keybindings.
 
-    Regression test for issue #7743.
+    Regression test for spyder-ide/spyder#7743.
     """
     editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()
@@ -289,7 +290,8 @@ def test_builtin_shift_del_and_ins(editor_bot):
     Test that the builtin key sequences Ctrl+Ins, Shit+Del and Shift+Ins result
     in copy, cut and paste actions in Windows and Linux.
 
-    Regression test for issue #5035, #4947, and #5973.
+    Regression test for spyder-ide/spyder#5035, spyder-ide/spyder#4947, and
+    spyder-ide/spyder#5973.
     """
     editorstack, qtbot = editor_bot
     editor = editorstack.get_current_editor()

@@ -12,8 +12,8 @@ import os.path as osp
 
 # Third party imports
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import QSize, QObject, Qt, Signal, Slot
-from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QVBoxLayout, QWidget,
+from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
                             QTreeWidgetItemIterator)
 
 # Local imports
@@ -81,7 +81,10 @@ class TreeItem(QTreeWidgetItem):
     @property
     def line(self):
         """Get line number."""
-        return self.oedata.block.firstLineNumber() + 1
+        block_number = self.oedata.get_block_number()
+        if block_number is not None:
+            return block_number + 1
+        return None
 
     def update(self):
         """Update the tree element."""
@@ -108,7 +111,7 @@ class FunctionItem(TreeItem):
 
     def is_method(self):
         return isinstance(self.parent(), ClassItem)
-    
+
     def setup(self):
         if self.is_method():
             self.setToolTip(0, _("Method defined at line %s") % str(self.line))
@@ -151,6 +154,8 @@ def get_item_children(item):
         others = get_item_children(child)
         if others is not None:
             children += others
+    # Remove any child without line number
+    children = [child for child in children if child.line is not None]
     return sorted(children, key=lambda child: child.line)
 
 
@@ -258,7 +263,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.setTextElideMode(Qt.ElideMiddle if state else Qt.ElideRight)
         for index in range(self.topLevelItemCount()):
             self.topLevelItem(index).set_text(fullpath=self.show_fullpath)
-            
+
     def __hide_or_show_root_items(self, item):
         """
         show_all_files option is disabled: hide all root items except *item*
@@ -333,12 +338,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         sig_update = editor.sig_outline_explorer_data_changed
         sig_move = editor.sig_cursor_position_changed
         if state:
-            sig_update.connect(self.update_all)
+            sig_update.connect(self.update_current)
             sig_move.connect(self.do_follow_cursor)
             self.do_follow_cursor()
         else:
             try:
-                sig_update.disconnect(self.update_all)
+                sig_update.disconnect(self.update_current)
                 sig_move.disconnect(self.do_follow_cursor)
             except TypeError:
                 # This catches an error while performing
@@ -384,7 +389,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if editor is None:
             # This is needed when we can't find an editor to attach
             # the outline explorer to.
-            # Fix issue 8813
+            # Fix spyder-ide/spyder#8813.
             return
         editor_id = editor.get_id()
         if editor_id in list(self.editor_ids.values()):
@@ -394,13 +399,39 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     @Slot()
     def update_all(self):
+        """
+        Update the outline explorer for all editors tree preserving the tree
+        state
+        """
         self.save_expanded_state()
         for editor, editor_id in list(self.editor_ids.items()):
-            item = self.editor_items[editor_id]
-            tree_cache = self.editor_tree_cache[editor_id]
-            self.populate_branch(editor, item, tree_cache)
+            self.__do_update(editor, editor_id)
         self.restore_expanded_state()
         self.do_follow_cursor()
+
+    @Slot()
+    def update_current(self):
+        """
+        Update the outline explorer for the current editor tree preserving the
+        tree state
+        """
+        plugin_base = self.parent().parent()
+        if getattr(plugin_base, "_isvisible", True):
+            self.save_expanded_state()
+            editor = self.current_editor
+            editor_id = editor.get_id()
+            self.__do_update(editor, editor_id)
+            self.restore_expanded_state()
+            self.do_follow_cursor()
+
+    def __do_update(self, editor, editor_id):
+        """
+        Recalculate the and update the tree items in the Outliner for a
+        given editor
+        """
+        item = self.editor_items[editor_id]
+        tree_cache = self.editor_tree_cache[editor_id]
+        self.populate_branch(editor, item, tree_cache)
 
     def remove_editor(self, editor):
         if editor in self.editor_ids:
@@ -486,7 +517,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 if block_line in tree_cache:
                     remove_from_tree_cache(tree_cache, line=block_line)
                 if _l in tree_cache:
-                    tree_cache[block_line] = tree_cache[_l]
+                    if block_line is not None:
+                        tree_cache[block_line] = tree_cache[_l]
                     tree_cache.pop(_l)
 
         ancestors = [(root_item, 0)]
@@ -498,7 +530,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         for data in editor.outlineexplorer_data_list():
             try:
-                line_nb = data.block.firstLineNumber() + 1
+                line_nb = data.get_block_number()
+                if line_nb is None:
+                    continue
+                line_nb += 1
             except AttributeError:
                 continue
             level = None if data is None else data.fold_level
@@ -735,7 +770,7 @@ class OutlineExplorerWidget(QWidget):
                                            icon='outline_explorer_vis.png',
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
-        
+
         btn_layout = QHBoxLayout()
         for btn in self.setup_buttons():
             btn.setAutoRaise(True)
@@ -778,7 +813,7 @@ class OutlineExplorerWidget(QWidget):
             self.remove_editor(editor)
         if editor is not None:
             self.treewidget.set_current_editor(editor, update)
-        
+
     def remove_editor(self, editor):
         self.treewidget.remove_editor(editor)
 

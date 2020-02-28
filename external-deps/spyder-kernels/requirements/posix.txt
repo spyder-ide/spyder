@@ -1,0 +1,3 @@
+ipykernel
+cloudpickle
+wurlitzer>=1.0.3

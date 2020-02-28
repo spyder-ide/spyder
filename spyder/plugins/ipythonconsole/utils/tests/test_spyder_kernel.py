@@ -11,7 +11,7 @@ Tests for the Spyder kernel
 import os
 import pytest
 
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import PY2, is_binary_string, to_text_string
 from spyder.utils.encoding import to_fs_from_unicode
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
@@ -23,7 +23,7 @@ def test_preserve_pypath(tmpdir, default_interpreter):
     Test that we preserve PYTHONPATH in the env vars passed to the kernel
     when an external interpreter is used or not.
 
-    Regression test for issue 8681.
+    Regression test for spyder-ide/spyder#8681.
     """
     # Set default interpreter value
     CONF.set('main_interpreter', 'default', default_interpreter)

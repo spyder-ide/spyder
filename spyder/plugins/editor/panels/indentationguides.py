@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 #
 # Copyright © Spyder Project Contributors
@@ -8,10 +7,12 @@
 """
 This module contains the indentation guide panel.
 """
-
-from qtpy.QtCore import Qt, QRect, QPoint
+# Third party imports
+from qtpy.QtCore import Qt
 from qtpy.QtGui import QPainter, QColor
+from intervaltree import IntervalTree
 
+# Local imports
 from spyder.plugins.editor.utils.editor import TextBlockHelper
 from spyder.api.panel import Panel
 
@@ -28,6 +29,13 @@ class IndentationGuide(Panel):
         Panel.__init__(self, editor)
         self.color = Qt.darkGray
         self.i_width = 4
+        self.bar_offset = 0
+        horizontal_scrollbar = editor.horizontalScrollBar()
+        horizontal_scrollbar.valueChanged.connect(self.update_bar_position)
+        horizontal_scrollbar.sliderReleased.connect(self.update)
+
+    def update_bar_position(self, value):
+        self.bar_offset = value
 
     def paintEvent(self, event):
         """Override Qt method."""
@@ -38,46 +46,26 @@ class IndentationGuide(Panel):
         painter.setPen(color)
         offset = self.editor.document().documentMargin() + \
             self.editor.contentOffset().x()
-
-        for _, line_number, block in self.editor.visible_blocks:
-
-            indentation = TextBlockHelper.get_fold_lvl(block)
-            ref_lvl = indentation
-            block = block.next()
-            last_line = block.blockNumber()
-            lvl = TextBlockHelper.get_fold_lvl(block)
-            if ref_lvl == lvl:  # for zone set programmatically such as imports
-                # in pyqode.python
-                ref_lvl -= 1
-
-            while (block.isValid() and
-                   TextBlockHelper.get_fold_lvl(block) > ref_lvl):
-                last_line = block.blockNumber()
-                block = block.next()
-
-            end_of_sub_fold = block
-            if last_line:
-                block = block.document().findBlockByNumber(last_line)
-                while ((block.blockNumber()) and (block.text().strip() == ''
-                       or block.text().strip().startswith('#'))):
-                    block = block.previous()
-                    last_line = block.blockNumber()
-
-            block = self.editor.document().findBlockByNumber(line_number)
-            top = int(self.editor.blockBoundingGeometry(block).translated(
-                self.editor.contentOffset()).top())
-            bottom = top + int(self.editor.blockBoundingRect(block).height())
-
-            indentation = TextBlockHelper.get_fold_lvl(block)
-
-            for i in range(1, indentation):
-                if (line_number > last_line and
-                        TextBlockHelper.get_fold_lvl(end_of_sub_fold) <= i):
-                    continue
-                else:
-                    x = self.editor.fontMetrics().width(i * self.i_width *
-                                                        '9') + offset
-                    painter.drawLine(x, top, x, bottom)
+        folding_panel = self.editor.panels.get('FoldingPanel')
+        folding_regions = folding_panel.folding_regions
+        folding_status = folding_panel.folding_status
+        leading_whitespaces = self.editor.leading_whitespaces
+        for line_number in folding_regions:
+            post_update = False
+            end_line = folding_regions[line_number]
+            start_block = self.editor.document().findBlockByNumber(
+                line_number)
+            end_block = self.editor.document().findBlockByNumber(end_line - 1)
+            top = int(self.editor.blockBoundingGeometry(
+                start_block).translated(self.editor.contentOffset()).top())
+            bottom = int(self.editor.blockBoundingGeometry(
+                end_block).translated(self.editor.contentOffset()).bottom())
+            total_whitespace = leading_whitespaces.get(max(line_number - 1, 0))
+            end_whitespace = leading_whitespaces.get(end_line - 1)
+            if end_whitespace and end_whitespace != total_whitespace:
+                x = (self.editor.fontMetrics().width(total_whitespace * '9') +
+                     self.bar_offset + offset)
+                painter.drawLine(x, top, x, bottom)
 
     # --- Other methods
     # -----------------------------------------------------------------
@@ -86,6 +74,10 @@ class IndentationGuide(Panel):
         """Toggle edge line visibility."""
         self._enabled = state
         self.setVisible(state)
+
+        # We need to request folding when toggling state so the lines
+        # are computed when handling the folding response.
+        self.editor.request_folding()
 
     def update_color(self):
         """Set color using syntax highlighter color for comments."""

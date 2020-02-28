@@ -4,20 +4,18 @@ language: generic
 dist: xenial
 services:
     - xvfb
-env:
-  global:
-    - CI_PYTEST: "true"
 
 matrix:
   fast_finish: true
   include:
-    - env: PYTHON_VERSION=2.7 USE_CONDA=yes
-    - env: PYTHON_VERSION=3.6 USE_CONDA=yes
-    - env: PYTHON_VERSION=3.7 USE_CONDA=yes
-    - env: PYTHON_VERSION=3.6 USE_CONDA=no
-    - env: PYTHON_VERSION=3.7 USE_CONDA=no
+    - env: PYTHON_VERSION=2.7 USE_CONDA=yes RUN_SLOW=true
+    - env: PYTHON_VERSION=2.7 USE_CONDA=yes RUN_SLOW=false
+    - env: PYTHON_VERSION=3.7 USE_CONDA=no RUN_SLOW=true
+    - env: PYTHON_VERSION=3.7 USE_CONDA=no RUN_SLOW=false
 
 before_install:
+  # Avoid inotify errors when running projects test with Kite installed
+  - sudo sysctl -n -w fs.inotify.max_user_watches=16384
   # Avoid annoying focus problems when running tests
   # See discussion in e.g. https://github.com/spyder-ide/spyder/pull/6132
   - sudo apt-get -qq update

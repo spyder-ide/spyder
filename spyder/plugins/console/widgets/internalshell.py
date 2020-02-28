@@ -39,7 +39,7 @@ from spyder.plugins.variableexplorer.widgets.objecteditor import oedit
 # In fact, this 'CONF' object has nothing to do in package spyder/widgets
 # which should not contain anything directly related to Spyder's main app
 from spyder.config.base import _, get_conf_path, get_debug_level
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 builtins.oedit = oedit
@@ -77,11 +77,11 @@ class SysOutput(QObject):
         self.lock.release()
         return s
 
-    # We need to add this method to fix Issue 1789
+    # We need to add this method to fix spyder-ide/spyder#1789.
     def flush(self):
         pass
 
-    # This is needed to fix Issue 2984
+    # This is needed to fix spyder-ide/spyder#2984.
     @property
     def closed(self):
         return False

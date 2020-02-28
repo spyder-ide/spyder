@@ -37,6 +37,7 @@ class WorkingDirectory(SpyderPluginWidget):
 
     CONF_SECTION = 'workingdir'
     CONFIGWIDGET_CLASS = WorkingDirectoryConfigPage
+    CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
 
     set_previous_enabled = Signal(bool)
@@ -51,9 +52,6 @@ class WorkingDirectory(SpyderPluginWidget):
         self.hide()
 
         self.toolbar = QToolBar(self)
-
-        # Initialize plugin
-        self.initialize_plugin()
         self.options_button.hide()
         
         self.toolbar.setWindowTitle(self.get_plugin_title())
@@ -91,12 +89,7 @@ class WorkingDirectory(SpyderPluginWidget):
         self.pathedit.setMaxCount(self.get_option('working_dir_history'))
         wdhistory = self.load_wdhistory(workdir)
         if workdir is None:
-            if self.get_option('console/use_project_or_home_directory'):
-                workdir = get_home_dir()
-            else:
-                workdir = self.get_option('console/fixed_directory', default='')
-                if not osp.isdir(workdir):
-                    workdir = get_home_dir()
+            workdir = self.get_workdir()
         self.chdir(workdir)
         self.pathedit.addItems(wdhistory)
         self.pathedit.selected_text = self.pathedit.currentText()
@@ -116,7 +109,21 @@ class WorkingDirectory(SpyderPluginWidget):
                                       _('Change to parent directory'),
                                       triggered=self.parent_directory)
         self.toolbar.addAction(parent_action)
-                
+
+    def get_workdir(self):
+        """Get current workdir from the CONF file."""
+        if self.get_option('startup/use_fixed_directory'):
+            workdir = self.get_option('startup/fixed_directory',
+                                      default='')
+        elif self.get_option('console/use_project_or_home_directory'):
+            workdir = get_home_dir()
+        else:
+            workdir = self.get_option('console/fixed_directory',
+                                      default='')
+        if not osp.isdir(workdir):
+            workdir = get_home_dir()
+        return workdir
+
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
@@ -125,11 +132,7 @@ class WorkingDirectory(SpyderPluginWidget):
     def get_plugin_icon(self):
         """Return widget icon"""
         return ima.icon('DirOpenIcon')
-        
-    def get_plugin_actions(self):
-        """Setup actions"""
-        return [None, None]
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
@@ -148,14 +151,6 @@ class WorkingDirectory(SpyderPluginWidget):
         self.set_next_enabled.emit(self.histindex is not None and \
                                    self.histindex < len(self.history)-1)
 
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
-        pass
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-        
     #------ Public API ---------------------------------------------------------
     def load_wdhistory(self, workdir=None):
         """Load history from a text file in user home directory"""
@@ -164,7 +159,7 @@ class WorkingDirectory(SpyderPluginWidget):
             wdhistory = [name for name in wdhistory if os.path.isdir(name)]
         else:
             if workdir is None:
-                workdir = get_home_dir()
+                workdir = self.get_workdir()
             wdhistory = [ workdir ]
         return wdhistory
 

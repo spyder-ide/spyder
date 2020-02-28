@@ -17,16 +17,15 @@ import sys
 
 # Third party imports
 from qtpy import PYQT5
-from qtpy.QtCore import (QByteArray, QEvent, QMimeData, QPoint, Qt, Signal,
-                         Slot)
-from qtpy.QtGui import QDrag
-from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu, QTabBar,
+from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
+from qtpy.QtWidgets import (QHBoxLayout, QMenu, QTabBar,
                             QTabWidget, QWidget, QLineEdit)
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut, STYLE_BUTTON_CSS
-from spyder.py3compat import PY2, to_binary_string, to_text_string
+from spyder.config.gui import STYLE_BUTTON_CSS
+from spyder.config.manager import CONF
+from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_common_path
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -217,8 +216,8 @@ class TabBar(QTabBar):
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
-            # by long all the time is not working on some 32bit platforms
-            # (see Issue 1094, Issue 1098)
+            # by long all the time is not working on some 32bit platforms.
+            # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
             self.sig_move_tab[(str, int, int)].emit(tabwidget_from, index_from,
                                                     index_to)
             event.acceptProposedAction()
@@ -256,6 +255,9 @@ class BaseTabs(QTabWidget):
 
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips
+
+        self.setStyleSheet("QTabWidget::tab-bar {"
+                           "alignment: left;}")
 
         if menu is None:
             self.menu = QMenu(self)
@@ -417,7 +419,7 @@ class BaseTabs(QTabWidget):
 
 
 class Tabs(BaseTabs):
-    """BaseTabs widget with movable tabs and tab navigation shortcuts"""
+    """BaseTabs widget with movable tabs and tab navigation shortcuts."""
     # Signals
     move_data = Signal(int, int)
     move_tab_finished = Signal()
@@ -438,14 +440,29 @@ class Tabs(BaseTabs):
                                           self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
 
-        config_shortcut(lambda: self.tab_navigate(1), context='editor',
-                        name='go to next file', parent=parent)
-        config_shortcut(lambda: self.tab_navigate(-1), context='editor',
-                        name='go to previous file', parent=parent)
-        config_shortcut(lambda: self.sig_close_tab.emit(self.currentIndex()),
-                        context='editor', name='close file 1', parent=parent)
-        config_shortcut(lambda: self.sig_close_tab.emit(self.currentIndex()),
-                        context='editor', name='close file 2', parent=parent)
+        CONF.config_shortcut(
+            lambda: self.tab_navigate(1),
+            context='editor',
+            name='go to next file',
+            parent=parent)
+
+        CONF.config_shortcut(
+            lambda: self.tab_navigate(-1),
+            context='editor',
+            name='go to previous file',
+            parent=parent)
+
+        CONF.config_shortcut(
+            lambda: self.sig_close_tab.emit(self.currentIndex()),
+            context='editor',
+            name='close file 1',
+            parent=parent)
+
+        CONF.config_shortcut(
+            lambda: self.sig_close_tab.emit(self.currentIndex()),
+            context='editor',
+            name='close file 2',
+            parent=parent)
 
     @Slot(int, int)
     def move_tab(self, index_from, index_to):
@@ -470,7 +487,7 @@ class Tabs(BaseTabs):
 
         # We pass self object IDs as QString objs, because otherwise it would
         # depend on the platform: long for 64bit, int for 32bit. Replacing
-        # by long all the time is not working on some 32bit platforms
-        # (see Issue 1094, Issue 1098)
+        # by long all the time is not working on some 32bit platforms.
+        # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
         self.sig_move_tab.emit(tabwidget_from, to_text_string(id(self)),
                                index_from, index_to)

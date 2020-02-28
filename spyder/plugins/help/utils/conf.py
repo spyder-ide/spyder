@@ -19,7 +19,7 @@ part of the `SageMath <https://www.sagemath.org/>`_ system.
 from sphinx import __version__ as sphinx_version
 
 # Local imports
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 
 
 #==============================================================================
@@ -43,7 +43,7 @@ else:
     extensions = ['sphinx.ext.mathjax']
 
 # For scipy and matplotlib docstrings, which need this extension to
-# be rendered correctly (see Issue 1138)
+# be rendered correctly. See spyder-ide/spyder#1138.
 extensions.append('sphinx.ext.autosummary')
 
 # Add any paths that contain templates here, relative to this directory.
@@ -109,7 +109,8 @@ html_context = {}
 
 # If true, Smart Quotes will be used to convert quotes and dashes to
 # typographically correct entities.
-# Spyder: Disabled to fix conflict with qtwebview and mathjax. See issue #5514
+# Spyder: Disabled to fix conflict with qtwebview and mathjax.
+# See spyder-ide/spyder#5514.
 if sphinx_version < "1.7":
     html_use_smartypants = False
 else:

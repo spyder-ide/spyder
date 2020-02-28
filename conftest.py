@@ -14,10 +14,21 @@ NOTE: DO NOT add fixtures here. It could generate problems with
 import os
 import os.path as osp
 import shutil
+import sys
 
 # To activate/deactivate certain things for pytest's only
 # NOTE: Please leave this before any other import here!!
 os.environ['SPYDER_PYTEST'] = 'True'
+
+# Add external dependencies subrepo paths to sys.path
+# NOTE: Please don't move this from here!
+HERE = osp.dirname(os.path.realpath(__file__))
+DEPS_PATH = osp.join(HERE, 'external-deps')
+i = 0
+for path in os.listdir(DEPS_PATH):
+    external_dep_path = osp.join(DEPS_PATH, path)
+    sys.path.insert(i, external_dep_path)
+    i += 1
 
 import pytest
 
@@ -35,12 +46,18 @@ def pytest_addoption(parser):
 
 
 def pytest_collection_modifyitems(config, items):
-    """Skip tests with the slow marker"""
-    if config.getoption("--run-slow"):
-        # --run-slow given in cli: do not skip slow tests
-        return
+    """
+    Decide what tests to run (slow or fast) according to the --run-slow
+    option.
+    """
+    slow_option = config.getoption("--run-slow")
+    skip_slow = pytest.mark.skip(reason="Need --run-slow option to run")
+    skip_fast = pytest.mark.skip(reason="Don't need --run-slow option to run")
 
-    skip_slow = pytest.mark.skip(reason="need --run-slow option to run")
     for item in items:
-        if "slow" in item.keywords:
-            item.add_marker(skip_slow)
+        if slow_option:
+            if "slow" not in item.keywords:
+                item.add_marker(skip_fast)
+        else:
+            if "slow" in item.keywords:
+                item.add_marker(skip_slow)

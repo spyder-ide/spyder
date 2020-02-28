@@ -13,359 +13,37 @@
 
 # Standard library imports
 import os
-import os.path as osp
 import sys
 
 # Third party imports
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QEvent, QEventLoop, QPoint, Qt, Signal, Slot
-from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QPalette, QTextFormat,
+from qtpy.QtCore import QEvent, QPoint, Qt, Signal, Slot
+from qtpy.QtGui import (QClipboard, QColor, QMouseEvent, QTextFormat,
                         QTextOption, QTextCursor)
-from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
-                            QListWidgetItem, QMainWindow, QPlainTextEdit,
-                            QToolTip)
+from qtpy.QtWidgets import QApplication, QMainWindow, QPlainTextEdit, QToolTip
 
 # Local imports
 from spyder.config.gui import get_font
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.py3compat import PY3, to_text_string
-from spyder.utils import icon_manager as ima
 from spyder.widgets.calltip import CallTipWidget, ToolTipWidget
 from spyder.widgets.mixins import BaseEditMixin
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
 from spyder.plugins.editor.utils.decoration import TextDecorationsManager
-from spyder.plugins.editor.lsp import CompletionItemKind
-
-
-class CompletionWidget(QListWidget):
-    """Completion list widget"""
-
-    sig_show_completions = Signal(object)
-
-    def __init__(self, parent, ancestor):
-        QListWidget.__init__(self, ancestor)
-        self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
-        self.textedit = parent
-        self.hide()
-        self.itemActivated.connect(self.item_selected)
-        self.currentRowChanged.connect(self.row_changed)
-        self.is_internal_console = False
-        self.completion_list = None
-        self.completion_position = None
-        self.automatic = False
-        # Text to be displayed if no match is found.
-        self.empty_text = 'No match'
-
-    def setup_appearance(self, size, font):
-        self.resize(*size)
-        self.setFont(font)
-
-    def is_empty(self):
-        """Check if widget is empty."""
-        if self.count() == 0:
-            return True
-        if self.count() == 1 and self.item(0).text() == self.empty_text:
-            return True
-        return False
-
-    def show_list(self, completion_list, position, automatic):
-        """Show list corresponding to position."""
-
-        if not completion_list:
-            self.hide()
-            return
-
-        self.automatic = automatic
-
-        if position is None:
-            # Somehow the position was not saved.
-            # Hope that the current position is still valid
-            self.completion_position = self.textedit.textCursor().position()
-
-        elif self.textedit.textCursor().position() < position:
-            # hide the text as we moved away from the position
-            self.hide()
-            return
-
-        else:
-            self.completion_position = position
-
-        # Completions are handled differently for the Internal
-        # console.
-        if not isinstance(completion_list[0], dict):
-            self.is_internal_console = True
-        self.completion_list = completion_list
-        # Check everything is in order
-        self.update_current()
-
-        # If update_current called close, stop loading
-        if not self.completion_list:
-            return
-
-        # If only one, must be chosen if not automatic
-        single_match = (self.count() == 1 and
-                        self.item(0).text() != self.empty_text)
-        if single_match and not self.automatic:
-            self.item_selected()
-            self.hide()
-            # signal used for testing
-            self.sig_show_completions.emit(completion_list)
-            return
-
-        self.show()
-        self.setFocus()
-        self.raise_()
-
-        # Retrieving current screen height
-        desktop = QApplication.desktop()
-        srect = desktop.availableGeometry(desktop.screenNumber(self))
-        screen_right = srect.right()
-        screen_bottom = srect.bottom()
-
-        point = self.textedit.cursorRect().bottomRight()
-        point = self.textedit.calculate_real_position(point)
-        point = self.textedit.mapToGlobal(point)
-
-        # Computing completion widget and its parent right positions
-        comp_right = point.x() + self.width()
-        ancestor = self.parent()
-        if ancestor is None:
-            anc_right = screen_right
-        else:
-            anc_right = min([ancestor.x() + ancestor.width(), screen_right])
-
-        # Moving completion widget to the left
-        # if there is not enough space to the right
-        if comp_right > anc_right:
-            point.setX(point.x() - self.width())
-
-        # Computing completion widget and its parent bottom positions
-        comp_bottom = point.y() + self.height()
-        ancestor = self.parent()
-        if ancestor is None:
-            anc_bottom = screen_bottom
-        else:
-            anc_bottom = min([ancestor.y() + ancestor.height(), screen_bottom])
-
-        # Moving completion widget above if there is not enough space below
-        x_position = point.x()
-        if comp_bottom > anc_bottom:
-            point = self.textedit.cursorRect().topRight()
-            point = self.textedit.mapToGlobal(point)
-            point.setX(x_position)
-            point.setY(point.y() - self.height())
-
-        if ancestor is not None:
-            # Useful only if we set parent to 'ancestor' in __init__
-            point = ancestor.mapFromGlobal(point)
-        self.move(point)
-
-        if not self.is_internal_console:
-            tooltip_point = QPoint(point)
-            tooltip_point.setX(point.x() + self.width())
-            tooltip_point.setY(point.y() - (3 * self.height()) // 4)
-            for completion in completion_list:
-                completion['point'] = tooltip_point
-
-        # signal used for testing
-        self.sig_show_completions.emit(completion_list)
-
-    def update_list(self, filter_text):
-        """
-        Update the displayed list by filtering self.completion_list.
-
-        If returns False, the autocompletion should stop.
-        """
-        self.clear()
-        icons_map = {CompletionItemKind.PROPERTY: 'attribute',
-                     CompletionItemKind.VARIABLE: 'attribute',
-                     CompletionItemKind.METHOD: 'method',
-                     CompletionItemKind.FUNCTION: 'function',
-                     CompletionItemKind.CLASS: 'class',
-                     CompletionItemKind.MODULE: 'module',
-                     CompletionItemKind.CONSTRUCTOR: 'method',
-                     CompletionItemKind.REFERENCE: 'attribute',
-                     CompletionItemKind.KEYWORD: 'keyword',
-                     CompletionItemKind.TEXT: 'text'}
-
-        for completion in self.completion_list:
-            if not self.is_internal_console:
-                completion_label = completion['filterText']
-                icon = icons_map.get(completion['kind'], 'no_match')
-                item = QListWidgetItem(ima.icon(icon),
-                                       completion['insertText'])
-            else:
-                completion_label = completion[0]
-                item = QListWidgetItem(completion_label)
-
-            if self.check_can_complete(
-                    completion_label, filter_text):
-                self.addItem(item)
-
-        if self.count() > 0:
-            self.setCurrentRow(0)
-            self.scrollTo(self.currentIndex(),
-                          QAbstractItemView.PositionAtTop)
-        else:
-            self.addItem(QListWidgetItem(self.empty_text))
-
-    def hide(self):
-        """Hide the widget."""
-        self.completion_position = None
-        self.completion_list = None
-        self.clear()
-        QToolTip.hideText()
-        QListWidget.hide(self)
-        self.textedit.setFocus()
-
-    def keyPressEvent(self, event):
-        """Process keypress."""
-        text, key = event.text(), event.key()
-        alt = event.modifiers() & Qt.AltModifier
-        shift = event.modifiers() & Qt.ShiftModifier
-        ctrl = event.modifiers() & Qt.ControlModifier
-        modifier = shift or ctrl or alt
-        if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
-            # Check that what was selected can be selected,
-            # otherwise timing issues
-            if self.up_to_date():
-                self.item_selected()
-            else:
-                self.hide()
-                self.textedit.keyPressEvent(event)
-        elif key == Qt.Key_Escape:
-            self.hide()
-        elif key in (Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
-            self.hide()
-            self.textedit.keyPressEvent(event)
-        elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
-                     Qt.Key_Home, Qt.Key_End,
-                     Qt.Key_CapsLock) and not modifier:
-            if key == Qt.Key_Up and self.currentRow() == 0:
-                self.setCurrentRow(self.count() - 1)
-            elif key == Qt.Key_Down and self.currentRow() == self.count()-1:
-                self.setCurrentRow(0)
-            else:
-                QListWidget.keyPressEvent(self, event)
-        elif len(text) or key == Qt.Key_Backspace:
-            self.textedit.keyPressEvent(event)
-            self.update_current()
-        elif modifier:
-            self.textedit.keyPressEvent(event)
-        else:
-            self.hide()
-            QListWidget.keyPressEvent(self, event)
-
-    def up_to_date(self):
-        """
-        Check if the selection is up to date.
-        """
-        if self.is_empty():
-            return False
-        if not self.is_position_correct():
-            return False
-        completion_text = self.textedit.get_current_word(completion=True)
-        selected_text = self.currentItem().text()
-        return self.check_can_complete(selected_text, completion_text)
-
-    def check_can_complete(self, text, sub):
-        """Check if sub can be completed to text."""
-        if not sub:
-            return True
-        return to_text_string(text).lower().startswith(
-                to_text_string(sub).lower())
-
-    def is_position_correct(self):
-        """Check if the position is correct."""
-
-        if self.completion_position is None:
-            return False
-
-        cursor_position = self.textedit.textCursor().position()
-
-        # Can only go forward from the data we have
-        if cursor_position < self.completion_position:
-            return False
-
-        completion_text = self.textedit.get_current_word_and_position(
-            completion=True)
-
-        # If no text found, we must be at self.completion_position
-        if completion_text is None:
-            if self.completion_position == cursor_position:
-                return True
-            else:
-                return False
-
-        completion_text, text_position = completion_text
-        completion_text = to_text_string(completion_text)
-
-        # The position of text must compatible with completion_position
-        if not text_position <= self.completion_position <= (
-                text_position + len(completion_text)):
-            return False
-
-        return True
-
-    def update_current(self):
-        """
-        Update the displayed list.
-        """
-        if not self.is_position_correct():
-            self.hide()
-            return
-
-        completion_text = self.textedit.get_current_word(completion=True)
-        self.update_list(completion_text)
-
-    def focusOutEvent(self, event):
-        event.ignore()
-        # Don't hide it on Mac when main window loses focus because
-        # keyboard input is lost
-        # Fixes Issue 1318
-        if sys.platform == "darwin":
-            if event.reason() != Qt.ActiveWindowFocusReason:
-                self.hide()
-        else:
-            # Avoid an error when running tests that show
-            # the completion widget
-            try:
-                self.hide()
-            except RuntimeError:
-                pass
-
-    def item_selected(self, item=None):
-        """Perform the item selected action."""
-        if item is None:
-            item = self.currentItem()
-
-        if item is not None and self.completion_position is not None:
-            self.textedit.insert_completion(to_text_string(item.text()),
-                                            self.completion_position)
-        self.hide()
-
-    @Slot(int)
-    def row_changed(self, row):
-        if self.completion_list:
-            item = self.completion_list[row]
-            if len(item['documentation']) > 0:
-                # TODO: LSP - Define an UI element to display the documentation
-                # self.textedit.show_calltip(
-                #     item['detail'], item['documentation'], color='#daa520',
-                #     at_point=item['point'])
-                return
-        QToolTip.hideText()
+from spyder.plugins.editor.widgets.completion import CompletionWidget
+from spyder.plugins.outlineexplorer.api import is_cell_header, document_cells
 
 
 class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """Text edit base widget"""
     BRACE_MATCHING_SCOPE = ('sof', 'eof')
-    cell_separators = None
+    has_cell_separators = False
     focus_in = Signal()
     zoom_in = Signal()
     zoom_out = Signal()
     zoom_reset = Signal()
     focus_changed = Signal()
+    sig_insert_completion = Signal(str)
     sig_eol_chars_changed = Signal(str)
 
     def __init__(self, parent=None):
@@ -374,6 +52,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.extra_selections_dict = {}
+        self._restore_selection_pos = None
+
+        # Code snippets
+        self.code_snippets = True
 
         self.textChanged.connect(self.changed)
         self.cursorPositionChanged.connect(self.cursor_position_changed)
@@ -411,9 +93,18 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.matched_p_color = QColor(Qt.green)
         self.unmatched_p_color = QColor(Qt.red)
 
-        self.last_cursor_cell = None
-
         self.decorations = TextDecorationsManager(self)
+
+        # Save current cell. This is invalidated as soon as the text changes.
+        # Useful to avoid recomputing while scrolling.
+        self.current_cell = None
+
+        self._cell_list = []
+
+        def reset_current_cell():
+            self.current_cell = None
+
+        self.textChanged.connect(reset_current_cell)
 
     def setup_completion(self):
         size = CONF.get('main', 'completion/size')
@@ -440,7 +131,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # use the palette for all drawing (e.g. macOS styles), the background
         # and foreground color of each TextEditBaseWidget instance must be set
         # with a stylesheet extended with an ID Selector.
-        # Fixes Issue 2028, 8069 and 9248.
+        # Fixes spyder-ide/spyder#2028, spyder-ide/spyder#8069 and
+        # spyder-ide/spyder#9248.
         if not self.objectName():
             self.setObjectName(self.__class__.__name__ + str(id(self)))
         style = "QPlainTextEdit#%s {background: %s; color: %s;}" % \
@@ -501,13 +193,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             key (str) name of the extra selections group.
         """
         for decoration in self.extra_selections_dict.get(key, []):
-            self.decorations.remove(decoration)
+            self.decorations.remove(decoration, update=False)
         self.extra_selections_dict[key] = []
+        self.update()
 
     def changed(self):
         """Emit changed signal"""
         self.modificationChanged.emit(self.document().isModified())
-
 
     #------Highlight current line
     def highlight_current_line(self):
@@ -527,11 +219,11 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     #------Highlight current cell
     def highlight_current_cell(self):
         """Highlight current cell"""
-        if self.cell_separators is None or \
+        if not self.has_cell_separators or \
           not self.highlight_current_cell_enabled:
             return
-        cursor, whole_file_selected, whole_screen_selected =\
-            self.select_current_cell_in_visible_portion()
+        cursor, whole_file_selected =\
+            self.select_current_cell()
         selection = TextDecoration(cursor)
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
@@ -539,17 +231,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         if whole_file_selected:
             self.clear_extra_selections('current_cell')
-        elif whole_screen_selected:
-            has_cell_separators = False
-            for oedata in self.outlineexplorer_data_list():
-                if oedata.def_type == oedata.CELL:
-                    has_cell_separators = True
-                    break
-            if has_cell_separators:
-                self.set_extra_selections('current_cell', [selection])
-                self.update_extra_selections()
-            else:
-                self.clear_extra_selections('current_cell')
         else:
             self.set_extra_selections('current_cell', [selection])
             self.update_extra_selections()
@@ -642,7 +323,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             self.bracepos = (pos1,)
             self.__highlight(self.bracepos, color=self.unmatched_p_color)
 
-
     #-----Widget setup and options
     def set_codecompletion_auto(self, state):
         """Set code completion state"""
@@ -660,7 +340,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         else:
             wrap_mode = QTextOption.NoWrap
         self.setWordWrapMode(wrap_mode)
-
 
     #------Reimplementing Qt methods
     @Slot()
@@ -681,7 +360,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # contents under Windows and PY3. This bug leads to
         # corruptions when saving files with certain combinations
         # of unicode chars on them (like the one attached on
-        # Issue 1546)
+        # spyder-ide/spyder#1546).
         if os.name == 'nt' and PY3:
             text = self.get_text('sof', 'eof')
             return text.replace('\u2028', '\n').replace('\u2029', '\n')\
@@ -694,22 +373,40 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         ctrl = event.modifiers() & Qt.ControlModifier
         meta = event.modifiers() & Qt.MetaModifier
         # Use our own copy method for {Ctrl,Cmd}+C to avoid Qt
-        # copying text in HTML (See Issue 2285)
+        # copying text in HTML. See spyder-ide/spyder#2285.
         if (ctrl or meta) and key == Qt.Key_C:
             self.copy()
         else:
             super(TextEditBaseWidget, self).keyPressEvent(event)
 
     #------Text: get, set, ...
-    def get_selection_as_executable_code(self):
+    def add_to_cell_list(self, oedata):
+        """Add new cell to cell list."""
+        self._cell_list.append(oedata)
+
+    def get_cell_list(self):
+        """Get all cells."""
+        # Filter out old cells
+
+        def good(oedata):
+            return oedata.is_valid() and oedata.def_type == oedata.CELL
+
+        self._cell_list = [
+            oedata for oedata in self._cell_list if good(oedata)]
+
+        return sorted(
+            {oedata.get_block_number(): oedata
+             for oedata in self._cell_list}.items())
+
+    def get_selection_as_executable_code(self, cursor=None):
         """Return selected text as a processed text,
         to be executable in a Python/IPython interpreter"""
         ls = self.get_line_separator()
 
         _indent = lambda line: len(line)-len(line.lstrip())
 
-        line_from, line_to = self.get_selection_bounds()
-        text = self.get_selected_text()
+        line_from, line_to = self.get_selection_bounds(cursor)
+        text = self.get_selected_text(cursor)
         if not text:
             return
 
@@ -757,191 +454,121 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         return leading_lines_str + ls.join(lines)
 
-    def __exec_cell(self):
+    def get_cell_as_executable_code(self, cursor=None):
+        """Return cell contents as executable code."""
+        if cursor is None:
+            cursor = self.textCursor()
         ls = self.get_line_separator()
-        init_cursor = QTextCursor(self.textCursor())
-        start_pos, end_pos = self.__save_selection()
-        cursor, whole_file_selected = self.select_current_cell()
-        self.setTextCursor(cursor)
-        line_from, line_to = self.get_selection_bounds()
-        block = self.get_selection_first_block()
-        text = self.get_selection_as_executable_code()
-        self.last_cursor_cell = init_cursor
-        self.__restore_selection(start_pos, end_pos)
+        cursor, whole_file_selected = self.select_current_cell(cursor)
+        line_from, line_to = self.get_selection_bounds(cursor)
+        # Get the block for the first cell line
+        start = cursor.selectionStart()
+        block = self.document().findBlock(start)
+        if not is_cell_header(block) and start > 0:
+            block = self.document().findBlock(start - 1)
+        # Get text
+        text = self.get_selection_as_executable_code(cursor)
         if text is not None:
             text = ls * line_from + text
         return text, block
 
-    def get_cell_as_executable_code(self):
-        """Return cell contents as executable code"""
-        return self.__exec_cell()
-
-    def get_last_cell_as_executable_code(self):
-        if self.last_cursor_cell:
-            self.setTextCursor(self.last_cursor_cell)
-            self.highlight_current_cell()
-            return self.__exec_cell()
-        return None
-
-    def is_cell_separator(self, cursor=None, block=None):
-        """Return True if cursor (or text block) is on a block separator"""
-        assert cursor is not None or block is not None
-        if cursor is not None:
-            cursor0 = QTextCursor(cursor)
-            cursor0.select(QTextCursor.BlockUnderCursor)
-            text = to_text_string(cursor0.selectedText())
-        else:
-            text = to_text_string(block.text())
-        if self.cell_separators is None:
-            return False
-        else:
-            return text.lstrip().startswith(self.cell_separators)
-
-    def select_current_cell(self):
-        """Select cell under cursor
-        cell = group of lines separated by CELL_SEPARATORS
-        returns the textCursor and a boolean indicating if the
-        entire file is selected"""
-        cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.StartOfBlock)
-        cur_pos = prev_pos = cursor.position()
-
-        # Moving to the next line that is not a separator, if we are
-        # exactly at one of them
-        while self.is_cell_separator(cursor):
-            cursor.movePosition(QTextCursor.NextBlock)
-            prev_pos = cur_pos
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                return cursor, False
-        prev_pos = cur_pos
-        # If not, move backwards to find the previous separator
-        while not self.is_cell_separator(cursor):
-            cursor.movePosition(QTextCursor.PreviousBlock)
-            prev_pos = cur_pos
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                if self.is_cell_separator(cursor):
-                    return cursor, False
-                else:
-                    break
-        cursor.setPosition(prev_pos)
-        cell_at_file_start = cursor.atStart()
-        # Once we find it (or reach the beginning of the file)
-        # move to the next separator (or the end of the file)
-        # so we can grab the cell contents
-        while not self.is_cell_separator(cursor):
-            cursor.movePosition(QTextCursor.NextBlock,
-                                QTextCursor.KeepAnchor)
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                cursor.movePosition(QTextCursor.EndOfBlock,
-                                    QTextCursor.KeepAnchor)
-                break
-            prev_pos = cur_pos
-        cell_at_file_end = cursor.atEnd()
-        return cursor, cell_at_file_start and cell_at_file_end
-
-    def select_current_cell_in_visible_portion(self):
-        """Select cell under cursor in the visible portion of the file
+    def select_current_cell(self, cursor=None):
+        """
+        Select cell under cursor in the visible portion of the file
         cell = group of lines separated by CELL_SEPARATORS
         returns
          -the textCursor
          -a boolean indicating if the entire file is selected
-         -a boolean indicating if the entire visible portion of the file is selected"""
-        cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.StartOfBlock)
-        cur_pos = prev_pos = cursor.position()
+        """
+        if cursor is None:
+            cursor = self.textCursor()
 
-        beg_pos = self.cursorForPosition(QPoint(0, 0)).position()
-        bottom_right = QPoint(self.viewport().width() - 1,
-                              self.viewport().height() - 1)
-        end_pos = self.cursorForPosition(bottom_right).position()
+        if self.current_cell:
+            current_cell, cell_full_file = self.current_cell
+            cell_start_pos = current_cell.selectionStart()
+            cell_end_position = current_cell.selectionEnd()
+            # Check if the saved current cell is still valid
+            if cell_start_pos <= cursor.position() < cell_end_position:
+                return current_cell, cell_full_file
+            else:
+                self.current_cell = None
 
-        # Moving to the next line that is not a separator, if we are
-        # exactly at one of them
-        while self.is_cell_separator(cursor):
-            cursor.movePosition(QTextCursor.NextBlock)
-            prev_pos = cur_pos
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                return cursor, False, False
-        prev_pos = cur_pos
-        # If not, move backwards to find the previous separator
-        while not self.is_cell_separator(cursor)\
-          and cursor.position() >= beg_pos:
-            cursor.movePosition(QTextCursor.PreviousBlock)
-            prev_pos = cur_pos
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                if self.is_cell_separator(cursor):
-                    return cursor, False, False
-                else:
-                    break
-        cell_at_screen_start = cursor.position() <= beg_pos
-        cursor.setPosition(prev_pos)
-        cell_at_file_start = cursor.atStart()
-        # Selecting cell header
-        if not cell_at_file_start:
-            cursor.movePosition(QTextCursor.PreviousBlock)
-            cursor.movePosition(QTextCursor.NextBlock,
-                                QTextCursor.KeepAnchor)
-        # Once we find it (or reach the beginning of the file)
-        # move to the next separator (or the end of the file)
-        # so we can grab the cell contents
-        while not self.is_cell_separator(cursor)\
-          and cursor.position() <= end_pos:
-            cursor.movePosition(QTextCursor.NextBlock,
-                                QTextCursor.KeepAnchor)
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                cursor.movePosition(QTextCursor.EndOfBlock,
-                                    QTextCursor.KeepAnchor)
-                break
-            prev_pos = cur_pos
-        cell_at_file_end = cursor.atEnd()
-        cell_at_screen_end = cursor.position() >= end_pos
-        return cursor,\
-               cell_at_file_start and cell_at_file_end,\
-               cell_at_screen_start and cell_at_screen_end
+        block = cursor.block()
+        try:
+            if is_cell_header(block):
+                header = block.userData().oedata
+            else:
+                header = next(document_cells(
+                    block, forward=False,
+                    cell_list=self.get_cell_list()))
+            cell_start_pos = header.block.position()
+            cell_at_file_start = False
+            cursor.setPosition(cell_start_pos)
+        except StopIteration:
+            # This cell has no header, so it is the first cell.
+            cell_at_file_start = True
+            cursor.movePosition(QTextCursor.Start)
+
+        try:
+            footer = next(document_cells(
+                block, forward=True,
+                cell_list=self.get_cell_list()))
+            cell_end_position = footer.block.position()
+            cell_at_file_end = False
+            cursor.setPosition(cell_end_position, QTextCursor.KeepAnchor)
+        except StopIteration:
+            # This cell has no next header, so it is the last cell.
+            cell_at_file_end = True
+            cursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
+
+        cell_full_file = cell_at_file_start and cell_at_file_end
+        self.current_cell = (cursor, cell_full_file)
+
+        return cursor, cell_full_file
 
     def go_to_next_cell(self):
         """Go to the next cell of lines"""
         cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.NextBlock)
-        cur_pos = prev_pos = cursor.position()
-        while not self.is_cell_separator(cursor):
-            # Moving to the next code cell
-            cursor.movePosition(QTextCursor.NextBlock)
-            prev_pos = cur_pos
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                return
+        block = cursor.block()
+        try:
+            footer = next(document_cells(
+                block, forward=True,
+                cell_list=self.get_cell_list()))
+            cursor.setPosition(footer.block.position())
+        except StopIteration:
+            return
         self.setTextCursor(cursor)
 
     def go_to_previous_cell(self):
         """Go to the previous cell of lines"""
         cursor = self.textCursor()
-        cur_pos = prev_pos = cursor.position()
-
-        if self.is_cell_separator(cursor):
-            # Move to the previous cell
-            cursor.movePosition(QTextCursor.PreviousBlock)
-            cur_pos = prev_pos = cursor.position()
-
-        while not self.is_cell_separator(cursor):
-            # Move to the previous cell or the beginning of the current cell
-            cursor.movePosition(QTextCursor.PreviousBlock)
-            prev_pos = cur_pos
-            cur_pos = cursor.position()
-            if cur_pos == prev_pos:
-                return
-
+        block = cursor.block()
+        if is_cell_header(block):
+            block = block.previous()
+        try:
+            header = next(document_cells(
+                block, forward=False,
+                cell_list=self.get_cell_list()))
+            cursor.setPosition(header.block.position())
+        except StopIteration:
+            return
         self.setTextCursor(cursor)
 
     def get_line_count(self):
         """Return document total line number"""
         return self.blockCount()
+
+    def paintEvent(self, e):
+        """
+        Override Qt method to restore text selection after text gets inserted
+        at the current position of the cursor.
+
+        See spyder-ide/spyder#11089 for more info.
+        """
+        if self._restore_selection_pos is not None:
+            self.__restore_selection(*self._restore_selection_pos)
+            self._restore_selection_pos = None
+        super(TextEditBaseWidget, self).paintEvent(e)
 
     def __save_selection(self):
         """Save current cursor selection and return position bounds"""
@@ -959,7 +586,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Duplicate current line or selected text"""
         cursor = self.textCursor()
         cursor.beginEditBlock()
+        cur_pos = cursor.position()
         start_pos, end_pos = self.__save_selection()
+        end_pos_orig = end_pos
         if to_text_string(cursor.selectedText()):
             cursor.setPosition(end_pos)
             # Check if end_pos is at the start of a block: if so, starting
@@ -988,24 +617,32 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             cursor.setPosition(start_pos)
             cursor.movePosition(QTextCursor.StartOfBlock)
             start_pos += len(text)
-            end_pos += len(text)
+            end_pos_orig += len(text)
+            cur_pos += len(text)
 
+        # We save the end and start position of the selection, so that it
+        # can be restored within the paint event that is triggered by the
+        # text insertion. This is done to prevent a graphical glitch that
+        # occurs when text gets inserted at the current position of the cursor.
+        # See spyder-ide/spyder#11089 for more info.
+        if cur_pos == start_pos:
+            self._restore_selection_pos = (end_pos_orig, start_pos)
+        else:
+            self._restore_selection_pos = (start_pos, end_pos_orig)
         cursor.insertText(text)
         cursor.endEditBlock()
-        self.setTextCursor(cursor)
-        self.__restore_selection(start_pos, end_pos)
 
-    def duplicate_line(self):
+    def duplicate_line_down(self):
         """
-        Duplicate current line or selected text
-        Paste the duplicated text *after* the current line/selected text
+        Copy current line or selected text and paste the duplicated text
+        *after* the current line or selected text.
         """
         self.__duplicate_line_or_selection(after_current_line=True)
 
-    def copy_line(self):
+    def duplicate_line_up(self):
         """
-        Copy current line or selected text
-        Paste the duplicated text *before* the current line/selected text
+        Copy current line or selected text and paste the duplicated text
+        *before* the current line or selected text.
         """
         self.__duplicate_line_or_selection(after_current_line=False)
 
@@ -1179,11 +816,44 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Completion list is active, Enter was just pressed"""
         self.completion_widget.item_selected()
 
-    def insert_completion(self, text, completion_position):
-        if text:
+    def insert_completion(self, completion, completion_position):
+        """Insert a completion into the editor.
+
+        completion_position is where the completion was generated.
+
+        The replacement range is computed using the (LSP) completion's
+        textEdit field if it exists. Otherwise, we replace from the
+        start of the word under the cursor.
+        """
+        if not completion:
+            return
+
+        cursor = self.textCursor()
+
+        has_selected_text = self.has_selected_text()
+        selection_start, selection_end = self.get_selection_start_end()
+
+        if isinstance(completion, dict) and 'textEdit' in completion:
+            completion_range = completion['textEdit']['range']
+            start = completion_range['start']
+            end = completion_range['end']
+            if isinstance(completion_range['start'], dict):
+                start_line, start_col = start['line'], start['character']
+                start = self.get_position_line_number(start_line, start_col)
+            if isinstance(completion_range['start'], dict):
+                end_line, end_col = end['line'], end['character']
+                end = self.get_position_line_number(end_line, end_col)
+            cursor.setPosition(start)
+            cursor.setPosition(end, QTextCursor.KeepAnchor)
+            text = to_text_string(completion['textEdit']['newText'])
+        else:
+            text = completion
+            if isinstance(completion, dict):
+                text = completion['insertText']
+            text = to_text_string(text)
+
             # Get word on the left of the cursor.
             result = self.get_current_word_and_position(completion=True)
-            cursor = self.textCursor()
             if result is not None:
                 current_text, start_position = result
                 end_position = start_position + len(current_text)
@@ -1194,19 +864,36 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 # Remove the word under the cursor
                 cursor.setPosition(end_position,
                                    QTextCursor.KeepAnchor)
-                cursor.removeSelectedText()
-                self.setTextCursor(cursor)
             else:
                 # Check if we are in the correct position
                 if cursor.position() != completion_position:
                     return
-            # Add text
+
+        if has_selected_text:
+            self.sig_will_remove_selection.emit(selection_start, selection_end)
+
+        cursor.removeSelectedText()
+        self.setTextCursor(cursor)
+
+        # Add text
+        if self.objectName() == 'console':
+            # Handle completions for the internal console
             self.insert_text(text)
+        else:
+            if self.code_snippets:
+                self.sig_insert_completion.emit(text)
+            else:
+                self.insert_text(text)
             self.document_did_change()
 
     def is_completion_widget_visible(self):
         """Return True is completion list widget is visible"""
         return self.completion_widget.isVisible()
+
+    def hide_completion_widget(self):
+        """Hide completion widget and tooltip."""
+        self.completion_widget.hide()
+        QToolTip.hideText()
 
     #------Standard keys
     def stdkey_clear(self):
@@ -1280,7 +967,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             QPlainTextEdit.mousePressEvent(self, event)
             QPlainTextEdit.mouseReleaseEvent(self, event)
             # Send selection text to clipboard to be able to use
-            # the paste method and avoid the strange Issue 1445
+            # the paste method and avoid the strange spyder-ide/spyder#1445.
             # NOTE: This issue seems a focusing problem but it
             # seems really hard to track
             mode_clip = QClipboard.Clipboard
@@ -1308,7 +995,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def wheelEvent(self, event):
         """Reimplemented to emit zoom in/out signals when Ctrl is pressed"""
-        # This feature is disabled on MacOS, see Issue 1510
+        # This feature is disabled on MacOS, see spyder-ide/spyder#1510.
         if sys.platform != 'darwin':
             if event.modifiers() & Qt.ControlModifier:
                 if hasattr(event, 'angleDelta'):
@@ -1323,4 +1010,53 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                         self.zoom_in.emit()
                 return
         QPlainTextEdit.wheelEvent(self, event)
+        # Needed to prevent stealing focus to the find widget when scrolling
+        # See spyder-ide/spyder#11502
+        current_widget = QApplication.focusWidget()
+        self.hide_completion_widget()
         self.highlight_current_cell()
+        if current_widget is not None:
+            current_widget.setFocus()
+
+    def position_widget_at_cursor(self, widget):
+        # Retrieve current screen height
+        desktop = QApplication.desktop()
+        srect = desktop.availableGeometry(desktop.screenNumber(widget))
+
+        left, top, right, bottom = (srect.left(), srect.top(),
+                                    srect.right(), srect.bottom())
+        ancestor = widget.parent()
+        if ancestor:
+            left = max(left, ancestor.x())
+            top = max(top, ancestor.y())
+            right = min(right, ancestor.x() + ancestor.width())
+            bottom = min(bottom, ancestor.y() + ancestor.height())
+
+        point = self.cursorRect().bottomRight()
+        point = self.calculate_real_position(point)
+        point = self.mapToGlobal(point)
+        # Move to left of cursor if not enough space on right
+        widget_right = point.x() + widget.width()
+        if widget_right > right:
+            point.setX(point.x() - widget.width())
+        # Push to right if not enough space on left
+        if point.x() < left:
+            point.setX(left)
+
+        # Moving widget above if there is not enough space below
+        widget_bottom = point.y() + widget.height()
+        x_position = point.x()
+        if widget_bottom > bottom:
+            point = self.cursorRect().topRight()
+            point = self.mapToGlobal(point)
+            point.setX(x_position)
+            point.setY(point.y() - widget.height())
+
+        if ancestor is not None:
+            # Useful only if we set parent to 'ancestor' in __init__
+            point = ancestor.mapFromGlobal(point)
+
+        widget.move(point)
+
+    def calculate_real_position(self, point):
+        return point

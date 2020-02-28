@@ -5,22 +5,20 @@
 # (see spyder/__init__.py for details)
 
 """
-Spyder configuration options
+Spyder configuration options.
 
 Note: Leave this file free of Qt related imports, so that it can be used to
-quickly load a user config file
+quickly load a user config file.
 """
 
 import os
-import os.path as osp
 import sys
 
 # Local import
-from spyder.config.base import (CHECK_ALL, EXCLUDED_NAMES, get_home_dir,
-                                SUBFOLDER)
-from spyder.config.fonts import MEDIUM, MONOSPACE, SANS_SERIF, SMALL
-from spyder.config.user import UserConfig
+from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
+from spyder.config.fonts import MEDIUM, SANS_SERIF
 from spyder.config.utils import IMPORT_EXT
+from spyder.config.appearance import APPEARANCE
 from spyder.plugins.editor.utils.findtasks import TASKS_PATTERN
 from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 
@@ -51,7 +49,6 @@ MAC = sys.platform == 'darwin'
 LINUX = sys.platform.startswith('linux')
 CTRL = "Meta" if MAC else "Ctrl"
 
-
 # Modules to be preloaded for Rope and Jedi
 PRELOAD_MDOULES = ', '.join(PREFERRED_MODULES)
 
@@ -66,6 +63,7 @@ DEFAULTS = [
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
               'tear_off_menus': False,
+              'mac_open_file': False,
               'normal_screen_resolution': True,
               'high_dpi_scaling': False,
               'high_dpi_custom_scale_factor': False,
@@ -85,6 +83,8 @@ DEFAULTS = [
               'memory_usage/timeout': 2000,
               'cpu_usage/enable': False,
               'cpu_usage/timeout': 2000,
+              'clock/enable': False,
+              'clock/timeout': 1000,
               'use_custom_margin': True,
               'custom_margin': 0,
               'use_custom_cursor_blinking': False,
@@ -93,7 +93,6 @@ DEFAULTS = [
               'toolbars_visible': True,
               'cursor/width': 2,
               'completion/size': (300, 180),
-              'report_error/remember_me': False,
               'report_error/remember_token': False,
               }),
             ('quick_layouts',
@@ -165,9 +164,12 @@ DEFAULTS = [
               'exclude_private': True,
               'exclude_uppercase': True,
               'exclude_capitalized': False,
-              'exclude_unsupported': True,
+              'exclude_unsupported': False,
+              'exclude_callables_and_modules': True,
               'truncate': True,
-              'minmax': False
+              'minmax': False,
+              'show_callable_attributes': True,
+              'show_special_attributes': False
              }),
             ('plots',
              {
@@ -205,6 +207,13 @@ DEFAULTS = [
               'convert_eol_on_save_to': 'LF',
               'tab_always_indent': False,
               'intelligent_backspace': True,
+              'automatic_completions': True,
+              'automatic_completions_after_chars': 3,
+              'automatic_completions_after_ms': 300,
+              'completions_wait_for_ms': 200,
+              'completions_hint': True,
+              'completions_hint_after_ms': 500,
+              'underline_errors': False,
               'highlight_current_line': True,
               'highlight_current_cell': True,
               'occurrence_highlighting': True,
@@ -220,7 +229,7 @@ DEFAULTS = [
               'autosave_enabled': True,
               'autosave_interval': 60,
               'docstring_type': 'Numpydoc',
-              'strip_trailing_spaces_on_modify': True,
+              'strip_trailing_spaces_on_modify': False,
               }),
             ('historylog',
              {
@@ -260,6 +269,7 @@ DEFAULTS = [
               'name_filters': NAME_FILTERS,
               'show_all': True,
               'show_hscrollbar': True,
+              'max_recent_projects': 10,
               'visible_if_project_open': True
               }),
             ('explorer',
@@ -281,8 +291,9 @@ DEFAULTS = [
               'search_text_regexp': False,
               'search_text': [''],
               'search_text_samples': [TASKS_PATTERN],
-              'more_options': True,
-              'case_sensitive': False
+              'more_options': False,
+              'case_sensitive': False,
+              'max_results': 1000,
               }),
             ('breakpoints',
              {
@@ -303,6 +314,7 @@ DEFAULTS = [
               'console/use_project_or_home_directory': False,
               'console/use_cwd': True,
               'console/use_fixed_directory': False,
+              'startup/use_fixed_directory': False,
               }),
             ('shortcuts',
              {
@@ -346,18 +358,18 @@ DEFAULTS = [
               '_/switch to explorer': "Ctrl+Shift+X",
               '_/switch to plots': "Ctrl+Shift+G",
               # -- In widgets/findreplace.py
-              '_/find text': "Ctrl+F",
-              '_/find next': "F3",
-              '_/find previous': "Shift+F3",
-              '_/replace text': "Ctrl+R",
-              '_/hide find and replace': "Escape",
+              'find_replace/find text': "Ctrl+F",
+              'find_replace/find next': "F3",
+              'find_replace/find previous': "Shift+F3",
+              'find_replace/replace text': "Ctrl+R",
+              'find_replace/hide find and replace': "Escape",
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
-              'editor/duplicate line': "Ctrl+Alt+Up" if WIN else \
-                                       "Shift+Alt+Up",
-              'editor/copy line': "Ctrl+Alt+Down" if WIN else \
-                                  "Shift+Alt+Down",
+              'editor/duplicate line up': (
+                  "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),
+              'editor/duplicate line down': (
+                  "Ctrl+Alt+Down" if WIN else "Shift+Alt+Down"),
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
@@ -423,6 +435,7 @@ DEFAULTS = [
               'editor/close file 2': "Ctrl+F4",
               'editor/run cell': CTRL + '+Return',
               'editor/run cell and advance': 'Shift+Return',
+              'editor/debug cell': 'Alt+Shift+Return',
               'editor/go to next cell': 'Ctrl+Down',
               'editor/go to previous cell': 'Ctrl+Up',
               'editor/re-run last cell': 'Alt+Return',
@@ -447,232 +460,35 @@ DEFAULTS = [
               # ---- In widgets/arraybuider.py ----
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
-              # ---- In widgets/variableexplorer/aarayeditor.py ----
+              # ---- In widgets/variableexplorer/arrayeditor.py ----
               'variable_explorer/copy': 'Ctrl+C',
+              # ---- In widgets/variableexplorer/namespacebrowser.py ----
+              'variable_explorer/search': 'Ctrl+F',
+              'variable_explorer/refresh': 'Ctrl+R',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
               'plots/next figure': 'Ctrl+PgDown',
+              'plots/save': 'Ctrl+S',
+              'plots/save all': 'Ctrl+Alt+S',
+              'plots/close': 'Ctrl+W',
+              'plots/close all': 'Ctrl+Shift+W',
+              'plots/zoom in': "Ctrl++",
+              'plots/zoom out': "Ctrl+-",
               # ---- In widgets/explorer ----
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
               'explorer/copy absolute path': 'Ctrl+Alt+C',
               'explorer/copy relative path': 'Ctrl+Alt+Shift+C',
               }),
-            ('appearance',
-             {
-              'icon_theme': 'spyder 3',
-              # Global Spyder fonts
-              'font/family': MONOSPACE,
-              'font/size': MEDIUM,
-              'font/italic': False,
-              'font/bold': False,
-              'rich_font/family': SANS_SERIF,
-              'rich_font/size': SMALL if (LINUX or WIN) else MEDIUM,
-              'rich_font/italic': False,
-              'rich_font/bold': False,
-              'ui_theme': 'automatic',
-              'names': ['emacs', 'idle', 'monokai', 'pydev', 'scintilla',
-                        'spyder', 'spyder/dark', 'zenburn', 'solarized/light',
-                        'solarized/dark'],
-              'selected': 'spyder/dark',
-              # ---- Emacs ----
-              'emacs/name':        "Emacs",
-              #      Name            Color     Bold  Italic
-              'emacs/background':  "#000000",
-              'emacs/currentline': "#2b2b43",
-              'emacs/currentcell': "#1c1c2d",
-              'emacs/occurrence':   "#abab67",
-              'emacs/ctrlclick':   "#0000ff",
-              'emacs/sideareas':   "#555555",
-              'emacs/matched_p':   "#009800",
-              'emacs/unmatched_p': "#c80000",
-              'emacs/normal':     ('#ffffff', False, False),
-              'emacs/keyword':    ('#3c51e8', False, False),
-              'emacs/builtin':    ('#900090', False, False),
-              'emacs/definition': ('#ff8040', True, False),
-              'emacs/comment':    ('#005100', False, False),
-              'emacs/string':     ('#00aa00', False, True),
-              'emacs/number':     ('#800000', False, False),
-              'emacs/instance':   ('#ffffff', False, True),
-              # ---- IDLE ----
-              'idle/name':         "IDLE",
-              #      Name            Color     Bold  Italic
-              'idle/background':   "#ffffff",
-              'idle/currentline':  "#f2e6f3",
-              'idle/currentcell':  "#feefff",
-              'idle/occurrence':    "#e8f2fe",
-              'idle/ctrlclick':    "#0000ff",
-              'idle/sideareas':    "#efefef",
-              'idle/matched_p':    "#99ff99",
-              'idle/unmatched_p':  "#ff9999",
-              'idle/normal':      ('#000000', False, False),
-              'idle/keyword':     ('#ff7700', True, False),
-              'idle/builtin':     ('#900090', False, False),
-              'idle/definition':  ('#0000ff', False, False),
-              'idle/comment':     ('#dd0000', False, True),
-              'idle/string':      ('#00aa00', False, False),
-              'idle/number':      ('#924900', False, False),
-              'idle/instance':    ('#777777', True, True),
-              # ---- Monokai ----
-              'monokai/name':         "Monokai",
-              #      Name              Color     Bold  Italic
-              'monokai/background':   "#2a2b24",
-              'monokai/currentline':  "#484848",
-              'monokai/currentcell':  "#3d3d3d",
-              'monokai/occurrence':    "#666666",
-              'monokai/ctrlclick':    "#0000ff",
-              'monokai/sideareas':    "#2a2b24",
-              'monokai/matched_p':    "#688060",
-              'monokai/unmatched_p':  "#bd6e76",
-              'monokai/normal':      ("#ddddda", False, False),
-              'monokai/keyword':     ("#f92672", False, False),
-              'monokai/builtin':     ("#ae81ff", False, False),
-              'monokai/definition':  ("#a6e22e", False, False),
-              'monokai/comment':     ("#75715e", False, True),
-              'monokai/string':      ("#e6db74", False, False),
-              'monokai/number':      ("#ae81ff", False, False),
-              'monokai/instance':    ("#ddddda", False, True),
-              # ---- Pydev ----
-              'pydev/name':        "Pydev",
-              #      Name            Color     Bold  Italic
-              'pydev/background':  "#ffffff",
-              'pydev/currentline': "#e8f2fe",
-              'pydev/currentcell': "#eff8fe",
-              'pydev/occurrence':   "#ffff99",
-              'pydev/ctrlclick':   "#0000ff",
-              'pydev/sideareas':   "#efefef",
-              'pydev/matched_p':   "#99ff99",
-              'pydev/unmatched_p': "#ff99992",
-              'pydev/normal':     ('#000000', False, False),
-              'pydev/keyword':    ('#0000ff', False, False),
-              'pydev/builtin':    ('#900090', False, False),
-              'pydev/definition': ('#000000', True, False),
-              'pydev/comment':    ('#c0c0c0', False, False),
-              'pydev/string':     ('#00aa00', False, True),
-              'pydev/number':     ('#800000', False, False),
-              'pydev/instance':   ('#000000', False, True),
-              # ---- Scintilla ----
-              'scintilla/name':        "Scintilla",
-              #         Name             Color     Bold  Italic
-              'scintilla/background':  "#ffffff",
-              'scintilla/currentline': "#e1f0d1",
-              'scintilla/currentcell': "#edfcdc",
-              'scintilla/occurrence':   "#ffff99",
-              'scintilla/ctrlclick':   "#0000ff",
-              'scintilla/sideareas':   "#efefef",
-              'scintilla/matched_p':   "#99ff99",
-              'scintilla/unmatched_p': "#ff9999",
-              'scintilla/normal':     ('#000000', False, False),
-              'scintilla/keyword':    ('#00007f', True, False),
-              'scintilla/builtin':    ('#000000', False, False),
-              'scintilla/definition': ('#007f7f', True, False),
-              'scintilla/comment':    ('#007f00', False, False),
-              'scintilla/string':     ('#7f007f', False, False),
-              'scintilla/number':     ('#007f7f', False, False),
-              'scintilla/instance':   ('#000000', False, True),
-              # ---- Spyder ----
-              'spyder/name':        "Spyder",
-              #       Name            Color     Bold  Italic
-              'spyder/background':  "#ffffff",
-              'spyder/currentline': "#f7ecf8",
-              'spyder/currentcell': "#fdfdde",
-              'spyder/occurrence':   "#ffff99",
-              'spyder/ctrlclick':   "#0000ff",
-              'spyder/sideareas':   "#efefef",
-              'spyder/matched_p':   "#99ff99",
-              'spyder/unmatched_p': "#ff9999",
-              'spyder/normal':     ('#000000', False, False),
-              'spyder/keyword':    ('#0000ff', False, False),
-              'spyder/builtin':    ('#900090', False, False),
-              'spyder/definition': ('#000000', True, False),
-              'spyder/comment':    ('#adadad', False, True),
-              'spyder/string':     ('#00aa00', False, False),
-              'spyder/number':     ('#800000', False, False),
-              'spyder/instance':   ('#924900', False, True),
-              # ---- Spyder/Dark ----
-              'spyder/dark/name':        "Spyder Dark",
-              #           Name             Color     Bold  Italic
-              'spyder/dark/background':  "#19232D",
-              'spyder/dark/currentline': "#3a424a",
-              'spyder/dark/currentcell': "#17172d",
-              'spyder/dark/occurrence':  "#509ea5",
-              'spyder/dark/ctrlclick':   "#179ae0",
-              'spyder/dark/sideareas':   "#222b35",
-              'spyder/dark/matched_p':   "#0bbe0b",
-              'spyder/dark/unmatched_p': "#ff4340",
-              'spyder/dark/normal':     ('#ffffff', False, False),
-              'spyder/dark/keyword':    ('#c670e0', False, False),
-              'spyder/dark/builtin':    ('#fab16c', False, False),
-              'spyder/dark/definition': ('#57d6e4', True, False),
-              'spyder/dark/comment':    ('#999999', False, False),
-              'spyder/dark/string':     ('#b0e686', False, True),
-              'spyder/dark/number':     ('#faed5c', False, False),
-              'spyder/dark/instance':   ('#ee6772', False, True),
-              # ---- Zenburn ----
-              'zenburn/name':        "Zenburn",
-              #        Name            Color     Bold  Italic
-              'zenburn/background':  "#3f3f3f",
-              'zenburn/currentline': "#333333",
-              'zenburn/currentcell': "#2c2c2c",
-              'zenburn/occurrence':   "#7a738f",
-              'zenburn/ctrlclick':   "#0000ff",
-              'zenburn/sideareas':   "#3f3f3f",
-              'zenburn/matched_p':   "#688060",
-              'zenburn/unmatched_p': "#bd6e76",
-              'zenburn/normal':     ('#dcdccc', False, False),
-              'zenburn/keyword':    ('#dfaf8f', True, False),
-              'zenburn/builtin':    ('#efef8f', False, False),
-              'zenburn/definition': ('#efef8f', False, False),
-              'zenburn/comment':    ('#7f9f7f', False, True),
-              'zenburn/string':     ('#cc9393', False, False),
-              'zenburn/number':     ('#8cd0d3', False, False),
-              'zenburn/instance':   ('#dcdccc', False, True),
-              # ---- Solarized Light ----
-              'solarized/light/name':        "Solarized Light",
-              #        Name            Color     Bold  Italic
-              'solarized/light/background':  '#fdf6e3',
-              'solarized/light/currentline': '#f5efdB',
-              'solarized/light/currentcell': '#eee8d5',
-              'solarized/light/occurrence':   '#839496',
-              'solarized/light/ctrlclick':   '#d33682',
-              'solarized/light/sideareas':   '#eee8d5',
-              'solarized/light/matched_p':   '#586e75',
-              'solarized/light/unmatched_p': '#dc322f',
-              'solarized/light/normal':     ('#657b83', False, False),
-              'solarized/light/keyword':    ('#859900', False, False),
-              'solarized/light/builtin':    ('#6c71c4', False, False),
-              'solarized/light/definition': ('#268bd2', True, False),
-              'solarized/light/comment':    ('#93a1a1', False, True),
-              'solarized/light/string':     ('#2aa198', False, False),
-              'solarized/light/number':     ('#cb4b16', False, False),
-              'solarized/light/instance':   ('#b58900', False, True),
-              # ---- Solarized Dark ----
-              'solarized/dark/name':        "Solarized Dark",
-              #        Name            Color     Bold  Italic
-              'solarized/dark/background':  '#002b36',
-              'solarized/dark/currentline': '#083f4d',
-              'solarized/dark/currentcell': '#073642',
-              'solarized/dark/occurrence':   '#657b83',
-              'solarized/dark/ctrlclick':   '#d33682',
-              'solarized/dark/sideareas':   '#073642',
-              'solarized/dark/matched_p':   '#93a1a1',
-              'solarized/dark/unmatched_p': '#dc322f',
-              'solarized/dark/normal':     ('#839496', False, False),
-              'solarized/dark/keyword':    ('#859900', False, False),
-              'solarized/dark/builtin':    ('#6c71c4', False, False),
-              'solarized/dark/definition': ('#268bd2', True, False),
-              'solarized/dark/comment':    ('#586e75', False, True),
-              'solarized/dark/string':     ('#2aa198', False, False),
-              'solarized/dark/number':     ('#cb4b16', False, False),
-              'solarized/dark/instance':   ('#b58900', False, True)
-             }),
+            ('appearance', APPEARANCE),
             ('lsp-server',
              {
               # This option is not used with the LSP server config
               # It is used to disable hover hints in the editor
               'enable_hover_hints': True,
               'code_completion': True,
+              'code_snippets': True,
               'jedi_definition': True,
               'jedi_definition/follow_imports': True,
               'jedi_signature_help': True,
@@ -691,13 +507,109 @@ DEFAULTS = [
               'pydocstyle/ignore': '',
               'pydocstyle/match': '(?!test_).*\\.py',
               'pydocstyle/match_dir': '[^\\.].*',
-              'advanced/command_launch': 'pyls',
+              'advanced/enabled': False,
+              'advanced/module': 'pyls',
               'advanced/host': '127.0.0.1',
               'advanced/port': 2087,
               'advanced/external': False,
               'advanced/stdio': False
-             })
+             }),
+            ('fallback-completions',
+             {
+              'enable': True,
+             }),
+            ('kite',
+             {
+              'enable': True,
+              'call_to_action': True,
+              # Enable the installation dialog
+              'show_installation_dialog': True,
+              'show_onboarding': True,
+              'show_installation_error_message': True,
+             }),
             ]
+
+
+NAME_MAP = {
+    # Empty container object means use the rest of defaults
+    'spyder': [],
+    # Splitting these files makes sense for projects, we might as well
+    # apply the same split for the app global config
+    # These options change on spyder startup or are tied to a specific OS,
+    # not good for version control
+    'transient': [
+        ('main', [
+            'completion/size',
+            'crash',
+            'current_version',
+            'historylog_filename',
+            'last_visible_toolbars',
+            'spyder_pythonpath',
+            'window/position',
+            'window/prefs_dialog_size',
+            'window/size',
+            'window/state',
+            ]
+         ),
+        ('appearance', [
+            'windows_style',
+            ]
+         ),
+        ('editor', [
+            'autosave_mapping',
+            'bookmarks',
+            'filenames',
+            'layout_settings',
+            'recent_files',
+            'splitter_state',
+            ]
+         ),
+        ('explorer', [
+            'file_associations',
+        ]),
+        ('find_in_files', [
+            'path_history'
+            'search_text',
+            ]
+         ),
+        ('main_interpreter', [
+            'custom_interpreters_list',
+            'custom_interpreter',
+            'executable',
+             ]
+         ),
+        ('onlinehelp', [
+            'zoom_factor',
+             ]
+         ),
+        ('outline_explorer', [
+            'expanded_state',
+            'scrollbar_position',
+            ],
+         ),
+        ('project_explorer', [
+            'current_project_path',
+            'expanded_state',
+            'recent_projects',
+            'max_recent_projects',
+            'scrollbar_position',
+          ]
+         ),
+        ('quick_layouts', []), # Empty list means use all options
+        ('run', [
+            'breakpoints',
+            'configurations',
+            'defaultconfiguration',
+            'default/wdir/fixed_directory',
+          ]
+         ),
+        ('workingdir', [
+            'console/fixed_directory',
+            'startup/fixed_directory',
+          ]
+         ),
+    ]
+}
 
 
 # =============================================================================
@@ -710,20 +622,4 @@ DEFAULTS = [
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '50.1.0'
-
-
-# Main configuration instance
-try:
-    CONF = UserConfig('spyder', defaults=DEFAULTS, load=True,
-                      version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
-                      raw_mode=True)
-except Exception:
-    CONF = UserConfig('spyder', defaults=DEFAULTS, load=False,
-                      version=CONF_VERSION, subfolder=SUBFOLDER, backup=True,
-                      raw_mode=True)
-
-# Removing old .spyder.ini location:
-old_location = osp.join(get_home_dir(), '.spyder.ini')
-if osp.isfile(old_location):
-    os.remove(old_location)
+CONF_VERSION = '56.0.0'

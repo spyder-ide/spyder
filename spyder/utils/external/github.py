@@ -51,6 +51,7 @@ try:
     from urllib2 import build_opener, HTTPSHandler, Request, HTTPError
     from urllib import quote as urlquote
     from StringIO import StringIO
+    from collections import Iterable
     def bytes(string, encoding=None):
         return str(string)
 except:
@@ -58,9 +59,9 @@ except:
     from urllib.request import build_opener, HTTPSHandler, HTTPError, Request
     from urllib.parse import quote as urlquote
     from io import StringIO
+    from collections.abc import Iterable
 
 import re, os, time, hmac, base64, hashlib, urllib, mimetypes, json
-from collections import Iterable
 from datetime import datetime, timedelta, tzinfo
 
 TIMEOUT=60

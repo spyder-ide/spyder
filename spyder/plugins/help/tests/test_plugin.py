@@ -25,7 +25,7 @@ from flaky import flaky
 
 # Local imports
 from spyder.plugins.help.plugin import Help
-from spyder.plugins.editor.fallback.utils import default_info_response
+from spyder.plugins.completion.fallback.utils import default_info_response
 
 
 # =============================================================================
@@ -110,7 +110,11 @@ def test_no_further_docs_message(help_plugin, qtbot):
 
 @pytest.mark.skipif(PYQT_VERSION > '5.10', reason='Segfaults in PyQt 5.10+')
 def test_help_opens_when_show_tutorial_unit(help_plugin, qtbot):
-    """Test fix for #6317 : 'Show tutorial' opens the help plugin if closed."""
+    """
+    'Show tutorial' opens the help plugin if closed.
+
+    Test fix for spyder-ide/spyder#6317.
+    """
     MockDockwidget = MagicMock()
     MockDockwidget.return_value.isVisible.return_value = False
     mockDockwidget_instance = MockDockwidget()

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   height="16"
+   width="16"
+   id="svg10"
+   version="1.1"
+   viewBox="0 0 15.999999 16">
+  <metadata
+     id="metadata16">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>kite_vector_icon</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs14" />
+  <title
+     id="title2">kite_vector_icon</title>
+  <g
+     transform="matrix(0.02643405,0,0,0.02657555,1.9999995,1.0000003)"
+     data-name="Layer 2"
+     id="Layer_2">
+    <g
+       data-name="Layer 1"
+       id="Layer_1-2">
+      <polygon
+         id="polygon4"
+         points="313.03,526.8 371.43,301.09 218.04,222.89 136.59,376.14 " />
+      <polygon
+         id="polygon6"
+         points="102.28,346.83 201.74,171.2 382.72,257.44 416.13,128.29 146.94,0 0,259.49 " />
+    </g>
+  </g>
+</svg>

@@ -10,7 +10,7 @@ jobs:
   pool:
     vmImage: 'macOS-10.13'
 
-  timeoutInMinutes: 100
+  timeoutInMinutes: 30
 
   variables:
     USE_CONDA: "yes"
@@ -20,12 +20,18 @@ jobs:
   # Run the pipeline with multiple Python versions
   strategy:
     matrix:
-      Python27:
+      Python27-slow:
         python.version: '2.7'
-      Python36:
-        python.version: '3.6'
-      Python37:
+        run.slow: 'true'
+      Python27-fast:
+        python.version: '2.7'
+        run.slow: 'false'
+      Python37-slow:
         python.version: '3.7'
+        run.slow: 'true'
+      Python37-fast:
+        python.version: '3.7'
+        run.slow: 'false'
     maxParallel: 4
 
   steps:
@@ -35,8 +41,11 @@ jobs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
 
+  - script: sudo chown -R 501:20 /Users/runner/.conda
+    displayName: Fix .conda permissions
+
   - script: sudo install -d -m 0777 /usr/local/miniconda/envs/
-    displayName: Fix Conda permissions
+    displayName: Fix Conda env permissions
 
     # Conda setup environment.
     # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/conda-environment?view=vsts
@@ -92,12 +101,17 @@ jobs:
     matrix:
       #Python27:
       #  python.version: '2.7'
-      Python36:
+      Python36-slow:
         python.version: '3.6'
-        use.conda: "yes"
-      Python37_pip:
-        python.version: '3.7'
-        use.conda: "no"
+        use.conda: 'yes'
+        run.slow: 'true'
+      Python36-fast:
+        python.version: '3.6'
+        use.conda: 'yes'
+        run.slow: 'false'
+      #Python37_pip:
+      #  python.version: '3.7'
+      #  use.conda: "no"
     maxParallel: 4
 
   steps:

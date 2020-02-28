@@ -11,6 +11,7 @@ This is the main widget used in the Variable Explorer plugin
 """
 
 # Standard library imports
+import os
 import os.path as osp
 
 # Third library imports (qtpy)
@@ -18,7 +19,7 @@ from qtpy.compat import getsavefilename, getopenfilenames
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QInputDialog, QMenu,
-                            QMessageBox, QToolButton, QVBoxLayout, QWidget)
+                            QMessageBox, QLabel, QWidget)
 
 from spyder_kernels.utils.iofuncs import iofunctions
 from spyder_kernels.utils.misc import fix_reference_name
@@ -26,11 +27,11 @@ from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.main import CONF
-from spyder.py3compat import is_text_string, to_text_string
+from spyder.config.manager import CONF
+from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
-from spyder.utils.misc import getcwd_or_home
+from spyder.utils.misc import getcwd_or_home, remove_backslashes
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout,
@@ -38,9 +39,15 @@ from spyder.utils.qthelpers import (add_actions, create_action,
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
+from spyder.widgets.helperwidgets import FinderLineEdit
 
 
 SUPPORTED_TYPES = get_supported_types()
+
+if PY2:
+    VALID_VARIABLE_CHARS = r"[a-zA-z0-9_]"
+else:
+    VALID_VARIABLE_CHARS = r"[^\w+*=¡!¿?'\"#$%&()/<>\-\[\]{}^`´;,|¬]*\w"
 
 
 class NamespaceBrowser(QWidget):
@@ -62,17 +69,22 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase = None
         self.exclude_capitalized = None
         self.exclude_unsupported = None
+        self.exclude_callables_and_modules = None
         self.excluded_names = None
         self.minmax = None
-        
+
         # Other setting
         self.dataframe_format = None
+        self.show_callable_attributes = None
+        self.show_special_attributes = None
 
         self.editor = None
         self.exclude_private_action = None
         self.exclude_uppercase_action = None
         self.exclude_capitalized_action = None
         self.exclude_unsupported_action = None
+        self.exclude_callables_and_modules_action = None
+        self.finder = None
         self.options_button = options_button
         self.actions = None
         self.plugin_actions = plugin_actions
@@ -82,7 +94,10 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
-              minmax=None, dataframe_format=None):
+              exclude_callables_and_modules=None,
+              minmax=None, dataframe_format=None,
+              show_callable_attributes=None,
+              show_special_attributes=None,):
         """
         Setup the namespace browser with provided settings.
 
@@ -97,10 +112,13 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase = exclude_uppercase
         self.exclude_capitalized = exclude_capitalized
         self.exclude_unsupported = exclude_unsupported
+        self.exclude_callables_and_modules = exclude_callables_and_modules
         self.excluded_names = excluded_names
         self.minmax = minmax
         self.dataframe_format = dataframe_format
-        
+        self.show_callable_attributes = show_callable_attributes
+        self.show_special_attributes = show_special_attributes
+
         if self.editor is not None:
             self.editor.setup_menu(minmax)
             self.editor.set_dataframe_format(dataframe_format)
@@ -108,22 +126,32 @@ class NamespaceBrowser(QWidget):
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
+            self.exclude_callables_and_modules_action.setChecked(
+                exclude_callables_and_modules)
             self.refresh_table()
             return
 
         self.editor = RemoteCollectionsEditorTableView(
-                        self,
-                        data=None,
-                        minmax=minmax,
-                        shellwidget=self.shellwidget,
-                        dataframe_format=dataframe_format)
+            self,
+            data=None,
+            minmax=minmax,
+            shellwidget=self.shellwidget,
+            dataframe_format=dataframe_format,
+            show_callable_attributes=show_callable_attributes,
+            show_special_attributes=show_special_attributes
+        )
 
         self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         self.editor.sig_files_dropped.connect(self.import_data)
         self.editor.sig_free_memory.connect(self.sig_free_memory.emit)
 
-        self.setup_option_actions(exclude_private, exclude_uppercase,
-                                  exclude_capitalized, exclude_unsupported)
+        self.setup_option_actions(
+            exclude_private,
+            exclude_uppercase,
+            exclude_capitalized,
+            exclude_unsupported,
+            exclude_callables_and_modules
+        )
 
         # Setup toolbar layout.
 
@@ -137,9 +165,56 @@ class NamespaceBrowser(QWidget):
         # Setup layout.
 
         layout = create_plugin_layout(self.tools_layout, self.editor)
+
+        # Fuzzy search layout
+        finder_layout = QHBoxLayout()
+        close_button = create_toolbutton(self, triggered=self.show_finder,
+                                         icon=ima.icon('DialogCloseButton'))
+        text_finder = NamespacesBrowserFinder(self.editor,
+                                              callback=self.editor.set_regex,
+                                              main=self,
+                                              regex_base=VALID_VARIABLE_CHARS)
+        self.editor.finder = text_finder
+        finder_layout.addWidget(close_button)
+        finder_layout.addWidget(text_finder)
+        finder_layout.setContentsMargins(0, 0, 0, 0)
+        self.finder = QWidget(self)
+        self.finder.text_finder = text_finder
+        self.finder.setLayout(finder_layout)
+        self.finder.setVisible(False)
+
+        layout.addWidget(self.finder)
+
         self.setLayout(layout)
 
+        # Local shortcuts
+        self.shortcuts = self.create_shortcuts()
+
         self.sig_option_changed.connect(self.option_changed)
+
+    def create_shortcuts(self):
+        """Create local shortcut for the nsbrowser."""
+        search = CONF.config_shortcut(
+            lambda: self.show_finder(set_visible=True),
+            context='variable_explorer',
+            name='search',
+            parent=self)
+        refresh = CONF.config_shortcut(
+            self.refresh_table,
+            context='variable_explorer',
+            name='refresh',
+            parent=self)
+
+        return [search, refresh]
+
+    def get_shortcut_data(self):
+        """
+        Returns shortcut data, a list of tuples (shortcut, text, default)
+        shortcut (QShortcut or QAction instance)
+        text (string): action/shortcut description
+        default (string): default key sequence
+        """
+        return [sc.data for sc in self.shortcuts]
 
     def set_shellwidget(self, shellwidget):
         """Bind shellwidget instance to namespace browser"""
@@ -152,26 +227,49 @@ class NamespaceBrowser(QWidget):
 
     def setup_toolbar(self):
         """Setup toolbar"""
-        load_button = create_toolbutton(self, text=_('Import data'),
-                                        icon=ima.icon('fileimport'),
-                                        triggered=lambda: self.import_data())
-        self.save_button = create_toolbutton(self, text=_("Save data"),
-                            icon=ima.icon('filesave'),
-                            triggered=lambda: self.save_data(self.filename))
+        load_button = create_toolbutton(
+            self,
+            text=_('Import data'),
+            icon=ima.icon('fileimport'),
+            triggered=lambda: self.import_data())
+
+        self.save_button = create_toolbutton(
+            self, text=_("Save data"),
+            icon=ima.icon('filesave'),
+            triggered=lambda: self.save_data(self.filename))
+
         self.save_button.setEnabled(False)
-        save_as_button = create_toolbutton(self,
-                                           text=_("Save data as..."),
-                                           icon=ima.icon('filesaveas'),
-                                           triggered=self.save_data)
+
+        save_as_button = create_toolbutton(
+            self,
+            text=_("Save data as..."),
+            icon=ima.icon('filesaveas'),
+            triggered=self.save_data)
+
         reset_namespace_button = create_toolbutton(
-                self, text=_("Remove all variables"),
-                icon=ima.icon('editdelete'), triggered=self.reset_namespace)
+            self, text=_("Remove all variables"),
+            icon=ima.icon('editdelete'),
+            triggered=self.reset_namespace)
+
+        self.search_button = create_toolbutton(
+            self,
+            text=_("Search variable names and types"),
+            icon=ima.icon('find'),
+            toggled=self.show_finder)
+
+        self.refresh_button = create_toolbutton(
+            self,
+            text=_("Refresh variables"),
+            icon=ima.icon('refresh'),
+            triggered=lambda: self.refresh_table(interrupt=True))
 
         return [load_button, self.save_button, save_as_button,
-                reset_namespace_button]
+                reset_namespace_button, self.search_button,
+                self.refresh_button]
 
     def setup_option_actions(self, exclude_private, exclude_uppercase,
-                             exclude_capitalized, exclude_unsupported):
+                             exclude_capitalized, exclude_unsupported,
+                             exclude_callables_and_modules):
         """Setup the actions to show in the cog menu."""
         self.setup_in_progress = True
 
@@ -200,15 +298,29 @@ class NamespaceBrowser(QWidget):
         
         self.exclude_unsupported_action = create_action(self,
                 _("Exclude unsupported data types"),
-                tip=_("Exclude references to unsupported data types"
-                            " (i.e. which won't be handled/saved correctly)"),
+                tip=_("Exclude references to data types that don't have "
+                      "an specialized viewer or can't be edited."),
                 toggled=lambda state:
                 self.sig_option_changed.emit('exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
 
+        self.exclude_callables_and_modules_action = create_action(self,
+                _("Exclude callables and modules"),
+                tip=_("Exclude references to functions, modules and "
+                      "any other callable."),
+                toggled=lambda state:
+                self.sig_option_changed.emit('exclude_callables_and_modules',
+                                             state))
+        self.exclude_callables_and_modules_action.setChecked(
+            exclude_callables_and_modules)
+
         self.actions = [
-            self.exclude_private_action, self.exclude_uppercase_action,
-            self.exclude_capitalized_action, self.exclude_unsupported_action]
+            self.exclude_private_action,
+            self.exclude_uppercase_action,
+            self.exclude_capitalized_action,
+            self.exclude_unsupported_action,
+            self.exclude_callables_and_modules_action
+        ]
         if is_module_installed('numpy'):
             self.actions.extend([MENU_SEPARATOR, self.editor.minmax_action])
 
@@ -244,10 +356,21 @@ class NamespaceBrowser(QWidget):
             settings[name] = getattr(self, name)
         return settings
 
-    def refresh_table(self):
+    def show_finder(self, set_visible=False):
+        """Handle showing/hiding the finder widget."""
+        self.finder.text_finder.setText('')
+        self.finder.setVisible(set_visible)
+        self.search_button.setChecked(set_visible)
+
+        if self.finder.isVisible():
+            self.finder.text_finder.setFocus()
+        else:
+            self.editor.setFocus()
+
+    def refresh_table(self, interrupt=False):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
-            self.shellwidget.refresh_namespacebrowser()
+            self.shellwidget.refresh_namespacebrowser(interrupt=interrupt)
             try:
                 self.editor.resizeRowToContents()
             except TypeError:
@@ -265,7 +388,7 @@ class NamespaceBrowser(QWidget):
 
     def set_data(self, data):
         """Set data."""
-        if data != self.editor.model.get_data():
+        if data != self.editor.source_model.get_data():
             self.editor.set_data(data)
             self.editor.adjust_columns()
         
@@ -292,6 +415,8 @@ class NamespaceBrowser(QWidget):
 
         for filename in filenames:
             self.filename = to_text_string(filename)
+            if os.name == "nt":
+                self.filename = remove_backslashes(self.filename)
             ext = osp.splitext(self.filename)[1].lower()
 
             if ext not in iofunctions.load_funcs:
@@ -332,14 +457,14 @@ class NamespaceBrowser(QWidget):
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 QApplication.processEvents()
                 error_message = self.shellwidget.load_data(self.filename, ext)
-                self.shellwidget._kernel_reply = None
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
     
             if error_message is not None:
                 QMessageBox.critical(self, title,
                                      _("<b>Unable to load '%s'</b>"
-                                       "<br><br>Error message:<br>%s"
+                                       "<br><br>"
+                                       "The error message was:<br>%s"
                                        ) % (self.filename, error_message))
             self.refresh_table()
 
@@ -367,19 +492,38 @@ class NamespaceBrowser(QWidget):
         QApplication.processEvents()
 
         error_message = self.shellwidget.save_namespace(self.filename)
-        self.shellwidget._kernel_reply = None
 
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()
         if error_message is not None:
             if 'Some objects could not be saved:' in error_message:
                 save_data_message = (
-                    _('<b>Some objects could not be saved:</b>')
-                    + '<br><br><code>{obj_list}</code>'.format(
+                    _("<b>Some objects could not be saved:</b>")
+                    + "<br><br><code>{obj_list}</code>".format(
                         obj_list=error_message.split(': ')[1]))
             else:
                 save_data_message = _(
-                    '<b>Unable to save current workspace</b>'
-                    '<br><br>Error message:<br>') + error_message
+                    "<b>Unable to save current workspace</b>"
+                    "<br><br>"
+                    "The error message was:<br>") + error_message
             QMessageBox.critical(self, _("Save data"), save_data_message)
         self.save_button.setEnabled(self.filename is not None)
+
+
+class NamespacesBrowserFinder(FinderLineEdit):
+    """Textbox for filtering listed variables in the table."""
+
+    def keyPressEvent(self, event):
+        """Qt and FilterLineEdit Override."""
+        key = event.key()
+        if key in [Qt.Key_Up]:
+            self._parent.previous_row()
+        elif key in [Qt.Key_Down]:
+            self._parent.next_row()
+        elif key in [Qt.Key_Escape]:
+            self._parent.parent().show_finder(set_visible=False)
+        elif key in [Qt.Key_Enter, Qt.Key_Return]:
+            # TODO: Check if an editor needs to be shown
+            pass
+        else:
+            super(NamespacesBrowserFinder, self).keyPressEvent(event)

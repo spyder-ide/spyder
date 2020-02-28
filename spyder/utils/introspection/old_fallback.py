@@ -22,7 +22,7 @@ from spyder.utils import encoding
 from spyder.utils.introspection.manager import (DEBUG_EDITOR, LOG_FILENAME,
                                                 IntrospectionPlugin)
 from spyder.utils.introspection.utils import (default_info_response,
-                                              get_parent_until, memoize,
+                                              memoize,
                                               find_lexer_for_filename,
                                               get_keywords)
 from spyder.plugins.editor.utils import languages

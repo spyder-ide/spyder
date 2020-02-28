@@ -58,6 +58,46 @@ def copy_files_clipboard(create_folders_files):
 
 # --- Tests
 # -----------------------------------------------------------------------------
+def test_format_signature(code_editor_bot):
+    """Test signature format method."""
+    signature = """
+    concatenate((a1, a2, a...), [b1, b2, b...], axis={}, index=[],
+                *args, **kargs)"""
+    editor, qtbot = code_editor_bot
+
+    format_signature = editor._format_signature(signature, parameter="(a1")
+
+    assert "color:#DAA520'><b>a1</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="a2")
+    assert "color:#DAA520'><b>a2</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="a...")
+    print(format_signature)
+    assert "color:#DAA520'><b>a...</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="[b1")
+    assert "color:#DAA520'><b>b1</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="b2")
+    assert "color:#DAA520'><b>b2</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="b...")
+    assert "color:#DAA520'><b>b...</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="axis")
+    assert "color:#DAA520'><b>axis</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="index")
+    assert "color:#DAA520'><b>index</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="*args")
+    assert "color:#DAA520'><b>*args</b></span>" in format_signature
+
+    format_signature = editor._format_signature(signature, parameter="**kargs")
+    assert "color:#DAA520'><b>**kargs</b></span>" in format_signature
+
+
 def test_delete(code_editor_bot, mocker):
     """Test CodeEditor.delete()."""
     editor, qtbot = code_editor_bot

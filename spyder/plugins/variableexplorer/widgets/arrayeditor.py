@@ -17,28 +17,30 @@ NumPy Array Editor Dialog based on Qt
 from __future__ import print_function
 
 # Third party imports
+import numpy as np
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QItemSelection, QLocale,
                          QItemSelectionRange, QModelIndex, Qt, Slot)
 from qtpy.QtGui import QColor, QCursor, QDoubleValidator, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemDelegate, QApplication, QCheckBox,
-                            QComboBox, QDialog, QDialogButtonBox, QGridLayout,
-                            QHBoxLayout, QInputDialog, QItemDelegate, QLabel,
-                            QLineEdit,  QMenu, QMessageBox, QPushButton,
-                            QSpinBox, QStackedWidget, QTableView, QVBoxLayout,
+                            QComboBox, QDialog, QGridLayout, QHBoxLayout,
+                            QInputDialog, QItemDelegate, QLabel, QLineEdit,
+                            QMenu, QMessageBox, QPushButton, QSpinBox,
+                            QStackedWidget, QTableView, QVBoxLayout,
                             QWidget)
-import numpy as np
+from spyder_kernels.utils.nsview import value_to_display
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font, config_shortcut
+from spyder.config.gui import get_font
+from spyder.config.manager import CONF
 from spyder.py3compat import (io, is_binary_string, is_string,
                               is_text_string, PY3, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, keybinding
-
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
@@ -158,11 +160,19 @@ class ArrayModel(QAbstractTableModel):
             self.hue0 = huerange[0]
             self.dhue = huerange[1]-huerange[0]
             self.bgcolor_enabled = True
-        except (TypeError, ValueError):
+        except (AttributeError, TypeError, ValueError):
             self.vmin = None
             self.vmax = None
             self.hue0 = None
             self.dhue = None
+            self.bgcolor_enabled = False
+
+        # Array with infinite values cannot display background colors and
+        # crashes. See: spyder-ide/spyder#8093
+        self.has_inf = np.inf in data
+
+        # Deactivate coloring for object arrays or arrays with inf values
+        if self._data.dtype.name == 'object' or self.has_inf:
             self.bgcolor_enabled = False
 
         # Use paging when the total size, number of rows or number of
@@ -251,28 +261,39 @@ class ArrayModel(QAbstractTableModel):
         return self.changes.get((i, j), value)
 
     def data(self, index, role=Qt.DisplayRole):
-        """Cell content"""
+        """Cell content."""
         if not index.isValid():
             return to_qvariant()
         value = self.get_value(index)
+        dtn = self._data.dtype.name
+
+        # Tranform binary string to unicode so they are displayed
+        # correctly
         if is_binary_string(value):
             try:
                 value = to_text_string(value, 'utf8')
-            except:
+            except Exception:
                 pass
+
+        # Handle roles
         if role == Qt.DisplayRole:
             if value is np.ma.masked:
                 return ''
             else:
-                try:
-                    return to_qvariant(self._format % value)
-                except TypeError:
-                    self.readonly = True
-                    return repr(value)
+                if dtn == 'object':
+                    # We don't know what's inside an object array, so
+                    # we can't trust value repr's here.
+                    return value_to_display(value)
+                else:
+                    try:
+                        return to_qvariant(self._format % value)
+                    except TypeError:
+                        self.readonly = True
+                        return repr(value)
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
-        elif role == Qt.BackgroundColorRole and self.bgcolor_enabled \
-          and value is not np.ma.masked:
+        elif (role == Qt.BackgroundColorRole and self.bgcolor_enabled
+                and value is not np.ma.masked and not self.has_inf):
             try:
                 hue = (self.hue0 +
                        self.dhue * (float(self.vmax) - self.color_func(value))
@@ -280,7 +301,7 @@ class ArrayModel(QAbstractTableModel):
                 hue = float(np.abs(hue))
                 color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
                 return to_qvariant(color)
-            except TypeError:
+            except (TypeError, ValueError):
                 return to_qvariant()
         elif role == Qt.FontRole:
             return to_qvariant(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
@@ -325,19 +346,24 @@ class ArrayModel(QAbstractTableModel):
         # Add change to self.changes
         self.changes[(i, j)] = val
         self.dataChanged.emit(index, index)
+
         if not is_string(val):
+            val = self.color_func(val)
+
             if val > self.vmax:
                 self.vmax = val
+
             if val < self.vmin:
                 self.vmin = val
+
         return True
 
     def flags(self, index):
         """Set editable flag"""
         if not index.isValid():
             return Qt.ItemIsEnabled
-        return Qt.ItemFlags(QAbstractTableModel.flags(self, index)|
-                            Qt.ItemIsEditable)
+        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index) |
+                                Qt.ItemIsEditable))
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Set header data"""
@@ -410,8 +436,11 @@ class ArrayView(QTableView):
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
-        config_shortcut(self.copy, context='variable_explorer', name='copy',
-                        parent=self)
+        CONF.config_shortcut(
+            self.copy,
+            context='variable_explorer',
+            name='copy',
+            parent=self)
         self.horizontalScrollBar().valueChanged.connect(
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
@@ -455,7 +484,6 @@ class ArrayView(QTableView):
                     new_selection.append(part)
                 self.selectionModel().select
                 (new_selection, self.selectionModel().ClearAndSelect)
-
         except NameError:
             # Needed to handle a NameError while fetching data when closing
             # See isue 7880
@@ -598,7 +626,7 @@ class ArrayEditorWidget(QWidget):
             self.model.set_format(format)
 
 
-class ArrayEditor(QDialog):
+class ArrayEditor(BaseDialog):
     """Array Editor Dialog"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -644,8 +672,17 @@ class ArrayEditor(QDialog):
             return False
         if not is_record_array:
             dtn = data.dtype.name
-            if dtn not in SUPPORTED_FORMATS and not dtn.startswith('str') \
-               and not dtn.startswith('unicode'):
+            if dtn == 'object':
+                # If the array doesn't have shape, we can't display it
+                if data.shape == ():
+                    self.error(_("Object arrays without shape are not "
+                                 "supported"))
+                    return False
+                # We don't know what's inside these arrays, so we can't handle
+                # edits
+                self.readonly = readonly = True
+            elif (dtn not in SUPPORTED_FORMATS and not dtn.startswith('str')
+                    and not dtn.startswith('unicode')):
                 arr = _("%s arrays") % data.dtype.name
                 self.error(_("%s are currently not supported") % arr)
                 return False
@@ -654,20 +691,20 @@ class ArrayEditor(QDialog):
         self.setLayout(self.layout)
         self.setWindowIcon(ima.icon('arredit'))
         if title:
-            title = to_text_string(title) + " - " + _("NumPy array")
+            title = to_text_string(title) + " - " + _("NumPy object array")
         else:
             title = _("Array editor")
         if readonly:
             title += ' (' + _('read only') + ')'
         self.setWindowTitle(title)
-        self.resize(600, 500)
 
         # Stack widget
         self.stack = QStackedWidget(self)
         if is_record_array:
             for name in data.dtype.names:
                 self.stack.addWidget(ArrayEditorWidget(self, data[name],
-                                                   readonly, xlabels, ylabels))
+                                                       readonly, xlabels,
+                                                       ylabels))
         elif is_masked_array:
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
@@ -683,7 +720,7 @@ class ArrayEditor(QDialog):
         self.arraywidget = self.stack.currentWidget()
         if self.arraywidget:
             self.arraywidget.model.dataChanged.connect(
-                                                    self.save_and_close_enable)
+                self.save_and_close_enable)
         self.stack.currentChanged.connect(self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
@@ -821,19 +858,24 @@ class ArrayEditor(QDialog):
 
     @Slot()
     def accept(self):
-        """Reimplement Qt method"""
-        for index in range(self.stack.count()):
-            self.stack.widget(index).accept_changes()
-        QDialog.accept(self)
+        """Reimplement Qt method."""
+        try:
+            for index in range(self.stack.count()):
+                self.stack.widget(index).accept_changes()
+            QDialog.accept(self)
+        except RuntimeError:
+            # Sometimes under CI testing the object the following error appears
+            # RuntimeError: wrapped C/C++ object has been deleted
+            pass
 
     def get_value(self):
         """Return modified array -- this is *not* a copy"""
-        # It is import to avoid accessing Qt C++ object as it has probably
+        # It is important to avoid accessing Qt C++ object as it has probably
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         return self.data
 
     def error(self, message):
-        """An error occured, closing the dialog box"""
+        """An error occurred, closing the dialog box"""
         QMessageBox.critical(self, _("Array editor"), message)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.reject()

@@ -22,12 +22,13 @@ from qtpy.QtWidgets import (QGridLayout, QHBoxLayout, QLabel,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
+from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import regexp_error_msg
 from spyder.plugins.editor.utils.editor import TextHelper
 from spyder.utils.qthelpers import create_toolbutton, get_icon
+from spyder.utils.sourcecode import get_eol_chars
 from spyder.widgets.comboboxes import PatternComboBox
 
 
@@ -89,11 +90,13 @@ class FindReplace(QWidget):
 
         self.number_matches_text = QLabel(self)
         self.previous_button = create_toolbutton(self,
-                                             triggered=self.find_previous,
-                                             icon=ima.icon('ArrowUp'))
+                                                 triggered=self.find_previous,
+                                                 icon=ima.icon('ArrowUp'),
+                                                 tip=_("Find previous"))
         self.next_button = create_toolbutton(self,
                                              triggered=self.find_next,
-                                             icon=ima.icon('ArrowDown'))
+                                             icon=ima.icon('ArrowDown'),
+                                             tip=_("Find next"))
         self.next_button.clicked.connect(self.update_search_combo)
         self.previous_button.clicked.connect(self.update_search_combo)
 
@@ -207,17 +210,35 @@ class FindReplace(QWidget):
     def create_shortcuts(self, parent):
         """Create shortcuts for this widget"""
         # Configurable
-        findnext = config_shortcut(self.find_next, context='_',
-                                   name='Find next', parent=parent)
-        findprev = config_shortcut(self.find_previous, context='_',
-                                   name='Find previous', parent=parent)
-        togglefind = config_shortcut(self.show, context='_',
-                                     name='Find text', parent=parent)
-        togglereplace = config_shortcut(self.show_replace,
-                                        context='_', name='Replace text',
-                                        parent=parent)
-        hide = config_shortcut(self.hide, context='_', name='hide find and replace',
-                               parent=self)
+        findnext = CONF.config_shortcut(
+            self.find_next,
+            context='find_replace',
+            name='Find next',
+            parent=parent)
+
+        findprev = CONF.config_shortcut(
+            self.find_previous,
+            context='find_replace',
+            name='Find previous',
+            parent=parent)
+
+        togglefind = CONF.config_shortcut(
+            self.show,
+            context='find_replace',
+            name='Find text',
+            parent=parent)
+
+        togglereplace = CONF.config_shortcut(
+            self.show_replace,
+            context='find_replace',
+            name='Replace text',
+            parent=parent)
+
+        hide = CONF.config_shortcut(
+            self.hide,
+            context='find_replace',
+            name='hide find and replace',
+            parent=self)
 
         return [findnext, findprev, togglefind, togglereplace, hide]
 
@@ -235,17 +256,6 @@ class FindReplace(QWidget):
 
     def update_replace_combo(self):
         self.replace_text.lineEdit().returnPressed.emit()
-
-    def toggle_replace_widgets(self):
-        if self.enable_replace:
-            # Toggle replace widgets
-            if self.replace_widgets[0].isVisible():
-                self.hide_replace()
-                self.hide()
-            else:
-                self.show_replace()
-                if len(to_text_string(self.search_text.currentText()))>0:
-                    self.replace_text.setFocus()
 
     @Slot(bool)
     def toggle_highlighting(self, state):
@@ -268,7 +278,7 @@ class FindReplace(QWidget):
             text = self.editor.get_selected_text()
             # When selecting several lines, and replace box is activated the
             # text won't be replaced for the selection
-            if hide_replace or len(text.splitlines())<=1:
+            if hide_replace or len(text.splitlines()) <= 1:
                 highlighted = True
                 # If no text is highlighted for search, use whatever word is
                 # under the cursor
@@ -304,9 +314,10 @@ class FindReplace(QWidget):
 
     def show_replace(self):
         """Show replace widgets"""
-        self.show(hide_replace=False)
-        for widget in self.replace_widgets:
-            widget.show()
+        if self.enable_replace:
+            self.show(hide_replace=False)
+            for widget in self.replace_widgets:
+                widget.show()
 
     def hide_replace(self):
         """Hide replace widgets"""
@@ -349,20 +360,22 @@ class FindReplace(QWidget):
             self.clear_matches()
 
     @Slot()
-    def find_next(self):
+    def find_next(self, set_focus=True):
         """Find next occurrence"""
         state = self.find(changed=False, forward=True, rehighlight=False,
                           multiline_replace_check=False)
-        self.editor.setFocus()
+        if set_focus:
+            self.editor.setFocus()
         self.search_text.add_current_text()
         return state
 
     @Slot()
-    def find_previous(self):
+    def find_previous(self, set_focus=True):
         """Find previous occurrence"""
         state = self.find(changed=False, forward=False, rehighlight=False,
                           multiline_replace_check=False)
-        self.editor.setFocus()
+        if set_focus:
+            self.editor.setFocus()
         return state
 
     def text_has_been_edited(self, text):
@@ -374,25 +387,27 @@ class FindReplace(QWidget):
         """Highlight found results"""
         if self.is_code_editor and self.highlight_button.isChecked():
             text = self.search_text.currentText()
-            words = self.words_button.isChecked()
+            case = self.case_button.isChecked()
+            word = self.words_button.isChecked()
             regexp = self.re_button.isChecked()
-            self.editor.highlight_found_results(text, words=words,
-                                                regexp=regexp)
+            self.editor.highlight_found_results(text, word=word,
+                                                regexp=regexp, case=case)
 
     def clear_matches(self):
         """Clear all highlighted matches"""
         if self.is_code_editor:
             self.editor.clear_found_results()
 
-    def find(self, changed=True, forward=True,
-             rehighlight=True, start_highlight_timer=False, multiline_replace_check=True):
+    def find(self, changed=True, forward=True, rehighlight=True,
+             start_highlight_timer=False, multiline_replace_check=True):
         """Call the find function"""
-        # When several lines are selected in the editor and replace box is activated,
-        # dynamic search is deactivated to prevent changing the selection. Otherwise
-        # we show matching items.
-        if multiline_replace_check and self.replace_widgets[0].isVisible() and \
-           len(to_text_string(self.editor.get_selected_text()).splitlines())>1:
-            return None
+        # When several lines are selected in the editor and replace box is
+        # activated, dynamic search is deactivated to prevent changing the
+        # selection. Otherwise we show matching items.
+        if multiline_replace_check and self.replace_widgets[0].isVisible():
+            sel_text = self.editor.get_selected_text()
+            if len(to_text_string(sel_text).splitlines()) > 1:
+                return None
         text = self.search_text.currentText()
         if len(text) == 0:
             self.search_text.lineEdit().setStyleSheet("")
@@ -403,10 +418,10 @@ class FindReplace(QWidget):
             return None
         else:
             case = self.case_button.isChecked()
-            words = self.words_button.isChecked()
+            word = self.words_button.isChecked()
             regexp = self.re_button.isChecked()
             found = self.editor.find_text(text, changed, forward, case=case,
-                                          words=words, regexp=regexp)
+                                          word=word, regexp=regexp)
 
             stylesheet = self.STYLE[found]
             tooltip = self.TOOLTIP[found]
@@ -432,10 +447,12 @@ class FindReplace(QWidget):
                 self.clear_matches()
 
             number_matches = self.editor.get_number_matches(text, case=case,
-                                                            regexp=regexp)
+                                                            regexp=regexp,
+                                                            word=word)
             if hasattr(self.editor, 'get_match_number'):
                 match_number = self.editor.get_match_number(text, case=case,
-                                                            regexp=regexp)
+                                                            regexp=regexp,
+                                                            word=word)
             else:
                 match_number = 0
             self.change_number_matches(current_match=match_number,
@@ -444,99 +461,117 @@ class FindReplace(QWidget):
 
     @Slot()
     def replace_find(self, focus_replace_text=False, replace_all=False):
-        """Replace and find"""
-        if (self.editor is not None):
-            replace_text = to_text_string(self.replace_text.currentText())
-            search_text = to_text_string(self.search_text.currentText())
-            re_pattern = None
+        """Replace and find."""
+        if self.editor is None:
+            return
+        replace_text = to_text_string(self.replace_text.currentText())
+        search_text = to_text_string(self.search_text.currentText())
+        re_pattern = None
+        case = self.case_button.isChecked()
+        re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
 
-            # Check regexp before proceeding
-            if self.re_button.isChecked():
-                try:
-                    re_pattern = re.compile(search_text)
-                    # Check if replace_text can be substituted in re_pattern
-                    # Fixes issue #7177
-                    re_pattern.sub(replace_text, '')
-                except re.error:
-                    # Do nothing with an invalid regexp
-                    return
+        # Check regexp before proceeding
+        if self.re_button.isChecked():
+            try:
+                re_pattern = re.compile(search_text, flags=re_flags)
+                # Check if replace_text can be substituted in re_pattern
+                # Fixes spyder-ide/spyder#7177.
+                re_pattern.sub(replace_text, '')
+            except re.error:
+                # Do nothing with an invalid regexp
+                return
 
-            case = self.case_button.isChecked()
-            first = True
-            cursor = None
-            while True:
-                if first:
-                    # First found
-                    seltxt = to_text_string(self.editor.get_selected_text())
-                    cmptxt1 = search_text if case else search_text.lower()
-                    cmptxt2 = seltxt if case else seltxt.lower()
-                    if re_pattern is None:
-                        has_selected = self.editor.has_selected_text()
-                        if has_selected and cmptxt1 == cmptxt2:
-                            # Text was already found, do nothing
-                            pass
-                        else:
-                            if not self.find(changed=False, forward=True,
-                                             rehighlight=False):
-                                break
-                    else:
-                        if len(re_pattern.findall(cmptxt2)) > 0:
-                            pass
-                        else:
-                            if not self.find(changed=False, forward=True,
-                                             rehighlight=False):
-                                break
-                    first = False
-                    wrapped = False
-                    position = self.editor.get_position('cursor')
-                    position0 = position
-                    cursor = self.editor.textCursor()
-                    cursor.beginEditBlock()
-                else:
-                    position1 = self.editor.get_position('cursor')
-                    if is_position_inf(position1,
-                                       position0 + len(replace_text) -
-                                       len(search_text) + 1):
-                        # Identify wrapping even when the replace string
-                        # includes part of the search string
-                        wrapped = True
-                    if wrapped:
-                        if position1 == position or \
-                           is_position_sup(position1, position):
-                            # Avoid infinite loop: replace string includes
-                            # part of the search string
-                            break
-                    if position1 == position0:
-                        # Avoid infinite loop: single found occurrence
-                        break
-                    position0 = position1
+        first = True
+        cursor = None
+        while True:
+            if first:
+                # First found
+                seltxt = to_text_string(self.editor.get_selected_text())
+                cmptxt1 = search_text if case else search_text.lower()
+                cmptxt2 = seltxt if case else seltxt.lower()
                 if re_pattern is None:
-                    cursor.removeSelectedText()
-                    cursor.insertText(replace_text)
+                    has_selected = self.editor.has_selected_text()
+                    if has_selected and cmptxt1 == cmptxt2:
+                        # Text was already found, do nothing
+                        pass
+                    else:
+                        if not self.find(changed=False, forward=True,
+                                         rehighlight=False):
+                            break
                 else:
-                    seltxt = to_text_string(cursor.selectedText())
-                    cursor.removeSelectedText()
-                    cursor.insertText(re_pattern.sub(replace_text, seltxt))
-                if self.find_next():
-                    found_cursor = self.editor.textCursor()
-                    cursor.setPosition(found_cursor.selectionStart(),
-                                       QTextCursor.MoveAnchor)
-                    cursor.setPosition(found_cursor.selectionEnd(),
-                                       QTextCursor.KeepAnchor)
-                else:
+                    if len(re_pattern.findall(cmptxt2)) > 0:
+                        pass
+                    else:
+                        if not self.find(changed=False, forward=True,
+                                         rehighlight=False):
+                            break
+                first = False
+                wrapped = False
+                position = self.editor.get_position('cursor')
+                position0 = position
+                cursor = self.editor.textCursor()
+                cursor.beginEditBlock()
+            else:
+                position1 = self.editor.get_position('cursor')
+                if is_position_inf(position1,
+                                   position0 + len(replace_text) -
+                                   len(search_text) + 1):
+                    # Identify wrapping even when the replace string
+                    # includes part of the search string
+                    wrapped = True
+
+                if wrapped:
+                    if (position1 == position
+                            or is_position_sup(position1, position)):
+                        # Avoid infinite loop: replace string includes
+                        # part of the search string
+                        break
+
+                if position1 == position0:
+                    # Avoid infinite loop: single found occurrence
                     break
-                if not replace_all:
-                    break
-            if cursor is not None:
-                cursor.endEditBlock()
-            if focus_replace_text:
-                self.replace_text.setFocus()
+                position0 = position1
+
+            if re_pattern is None:
+                cursor.removeSelectedText()
+                cursor.insertText(replace_text)
+            else:
+                seltxt = to_text_string(cursor.selectedText())
+
+                # Note: If the selection obtained from an editor spans a line
+                # break, the text will contain a Unicode U+2029 paragraph
+                # separator character instead of a newline \n character.
+                # See: spyder-ide/spyder#2675
+                eol_char = get_eol_chars(self.editor.toPlainText())
+                seltxt = seltxt.replace(u'\u2029', eol_char)
+
+                cursor.removeSelectedText()
+                cursor.insertText(re_pattern.sub(replace_text, seltxt))
+
+            if self.find_next(set_focus=False):
+                found_cursor = self.editor.textCursor()
+                cursor.setPosition(found_cursor.selectionStart(),
+                                   QTextCursor.MoveAnchor)
+                cursor.setPosition(found_cursor.selectionEnd(),
+                                   QTextCursor.KeepAnchor)
+            else:
+                break
+
+            if not replace_all:
+                break
+
+        if cursor is not None:
+            cursor.endEditBlock()
+
+        if focus_replace_text:
+            self.replace_text.setFocus()
+        else:
+            self.editor.setFocus()
 
     @Slot()
     def replace_find_all(self, focus_replace_text=False):
         """Replace and find all matching occurrences"""
         self.replace_find(focus_replace_text, replace_all=True)
-
 
     @Slot()
     def replace_find_selection(self, focus_replace_text=False):
@@ -545,23 +580,23 @@ class FindReplace(QWidget):
             replace_text = to_text_string(self.replace_text.currentText())
             search_text = to_text_string(self.search_text.currentText())
             case = self.case_button.isChecked()
-            words = self.words_button.isChecked()
-            re_flags = re.MULTILINE if case else re.IGNORECASE|re.MULTILINE
+            word = self.words_button.isChecked()
+            re_flags = re.MULTILINE if case else re.IGNORECASE | re.MULTILINE
 
             re_pattern = None
             if self.re_button.isChecked():
                 pattern = search_text
             else:
                 pattern = re.escape(search_text)
-                replace_text = re.escape(replace_text)
-            if words:  # match whole words only
+                replace_text = replace_text.replace('\\', r'\\')
+            if word:  # match whole words only
                 pattern = r'\b{pattern}\b'.format(pattern=pattern)
 
             # Check regexp before proceeding
             try:
                 re_pattern = re.compile(pattern, flags=re_flags)
                 # Check if replace_text can be substituted in re_pattern
-                # Fixes issue #7177
+                # Fixes spyder-ide/spyder#7177.
                 re_pattern.sub(replace_text, '')
             except re.error as e:
                 # Do nothing with an invalid regexp
@@ -571,12 +606,18 @@ class FindReplace(QWidget):
             replacement = re_pattern.sub(replace_text, selected_text)
             if replacement != selected_text:
                 cursor = self.editor.textCursor()
+                start_pos = cursor.selectionStart()
                 cursor.beginEditBlock()
                 cursor.removeSelectedText()
-                if not self.re_button.isChecked():
-                    replacement = re.sub(r'\\(?![nrtf])(.)', r'\1', replacement)
                 cursor.insertText(replacement)
+                # Restore selection
+                self.editor.set_cursor_position(start_pos)
+                newl_cnt = replacement.count(self.editor.get_line_separator())
+                sel_len = len(replacement) - newl_cnt
+                for c in range(sel_len):
+                    self.editor.extend_selection_to_next('character', 'right')
                 cursor.endEditBlock()
+
             if focus_replace_text:
                 self.replace_text.setFocus()
             else:

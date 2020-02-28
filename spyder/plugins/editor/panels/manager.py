@@ -101,7 +101,6 @@ class PanelsManager(Manager):
                 key = sorted(list(self._panels[i].keys()))[0]
                 panel = self.remove(key)
                 panel.setParent(None)
-                panel.deleteLater()
 
     def get(self, name_or_klass):
         """

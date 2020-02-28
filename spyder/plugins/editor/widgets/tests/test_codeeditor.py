@@ -12,7 +12,7 @@ import pytest
 
 # Local imports
 from spyder.plugins.editor.widgets.editor import codeeditor
-from spyder.py3compat import PY3
+from spyder.py3compat import PY2, PY3
 
 
 # --- Fixtures
@@ -86,11 +86,12 @@ def test_editor_log_lsp_handle_errors(editorbot, capsys):
     assert test_1 or test_2
 
 
+@pytest.mark.skipif(PY2, reason="Python 2 strings don't have attached encoding.")
 @pytest.mark.parametrize(
     "input_text, expected_text, keys, strip_all",
     [
         ("for i in range(2): ",
-         "for i in range(2): \n\n     \n    ",
+         "for i in range(2): \n    \n     \n    ",
          [Qt.Key_Enter, Qt.Key_Enter, ' ', Qt.Key_Enter],
          False),
         ('for i in range(2): ',
@@ -129,9 +130,37 @@ def test_editor_log_lsp_handle_errors(editorbot, capsys):
          'a=1\na=2 \na=3',
          [(Qt.LeftButton, 6), Qt.Key_Up],
          True),
+        ('def fun():\n    """fun',
+         'def fun():\n    """fun\n\n    ',
+         [Qt.Key_Enter, Qt.Key_Enter],
+         True),
+        ('def fun():\n    """fun',
+         'def fun():\n    """fun\n    \n    ',
+         [Qt.Key_Enter, Qt.Key_Enter],
+         False),
+        ("('🚫')",
+         "('🚫')\n",
+         [Qt.Key_Enter],
+         True),
+        ("def fun():",
+         "def fun():\n\n    ",
+         [Qt.Key_Enter, Qt.Key_Enter],
+         True),
+        ("def fun():",
+         "def fun():\n\n\n",
+         [Qt.Key_Enter, Qt.Key_Enter, Qt.Key_Enter],
+         True),
+        ("def fun():\n    i = 0\n# no indent",
+         "def fun():\n    i = 0\n# no indent\n",
+         [Qt.Key_Enter],
+         True),
+        ("if a:\n    def b():\n        i = 1",
+         "if a:\n    def b():\n        i = 1\n\n    ",
+         [Qt.Key_Enter, Qt.Key_Enter, Qt.Key_Backspace],
+         True),
     ])
-def test_editor_rstrip_keypress(
-        editorbot, input_text, expected_text, keys, strip_all):
+def test_editor_rstrip_keypress(editorbot, input_text, expected_text, keys,
+                                strip_all):
     """
     Test that whitespace is removed when leaving a line.
     """
@@ -201,6 +230,38 @@ def test_in_string(editorbot, input_text, expected_state):
 
         cursor.setPosition(len(input_text) + 3)
         assert widget.in_string(cursor) == expected_state[1]
+
+
+@pytest.mark.skipif(PY2, reason="Doesn't work with python 2 on travis.")
+def test_comment(editorbot):
+    """
+    Test that in_string works correctly.
+    """
+    qtbot, widget = editorbot
+    widget.set_text("import numpy")
+    cursor = widget.textCursor()
+    cursor.setPosition(8)
+    cursor.setPosition(11, QTextCursor.KeepAnchor)
+    widget.setTextCursor(cursor)
+    qtbot.keyPress(widget, "1", modifier=Qt.ControlModifier)
+    assert widget.toPlainText() == "# import numpy"
+    qtbot.keyPress(widget, "1", modifier=Qt.ControlModifier)
+    assert widget.toPlainText() == "import numpy"
+
+
+def test_undo_return(editorbot):
+    """Test that we can undo a return."""
+    qtbot, editor = editorbot
+    text = "if True:\n    0"
+    returned_text = "if True:\n    0\n    "
+    editor.set_text(text)
+    cursor = editor.textCursor()
+    cursor.setPosition(14)
+    editor.setTextCursor(cursor)
+    qtbot.keyPress(editor, Qt.Key_Return)
+    assert editor.toPlainText() == returned_text
+    qtbot.keyPress(editor, "z", modifier=Qt.ControlModifier)
+    assert editor.toPlainText() == text
 
 
 if __name__ == '__main__':

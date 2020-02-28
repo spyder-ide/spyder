@@ -55,7 +55,7 @@ def editor_bot(base_editor_bot, request):
     """
     editor_stack, qtbot = base_editor_bot
 
-    show_save_dialog = request.node.get_marker('show_save_dialog')
+    show_save_dialog = request.node.get_closest_marker('show_save_dialog')
     if show_save_dialog:
         editor_stack.save_dialog_on_tests = True
 
@@ -226,7 +226,7 @@ def test_file_saved_in_other_editorstack(editor_splitter_layout_bot):
                                            panel1.data[1].filename)
     # Originally this test showed that using index as an arg instead
     # of the original_filename would incorrectly update the names on panel2.
-    # See issue 5703.
+    # See spyder-ide/spyder#5703.
     assert panel1.data[0].filename == panel2.data[1].filename
     assert panel1.data[1].filename == panel2.data[0].filename
     assert panel1.data[2].filename == panel2.data[2].filename
@@ -303,7 +303,7 @@ def test_save_as_with_outline(editor_bot, mocker, tmpdir):
     """
     Test EditorStack.save_as() when the outline explorer is not None.
 
-    Regression test for issue #7754.
+    Regression test for spyder-ide/spyder#7754.
     """
     editorstack, qtbot = editor_bot
 
@@ -374,11 +374,11 @@ def test_save_all(editor_bot, mocker):
 
     save_all()
     assert editor_stack.save.call_count == 3
-    editor_stack.save.assert_any_call(0)
-    editor_stack.save.assert_any_call(1)
-    editor_stack.save.assert_any_call(2)
+    editor_stack.save.assert_any_call(0, save_new_files=True)
+    editor_stack.save.assert_any_call(1, save_new_files=True)
+    editor_stack.save.assert_any_call(2, save_new_files=True)
     with pytest.raises(AssertionError):
-        editor_stack.save.assert_any_call(3)
+        editor_stack.save.assert_any_call(3, save_new_files=True)
 
 
 if __name__ == "__main__":

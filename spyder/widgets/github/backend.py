@@ -15,11 +15,14 @@ Adapted from qcrash/backends/base.py and qcrash/backends/github.py of the
 """
 
 import logging
+import os
 import sys
 import webbrowser
 
 try:
-    import keyring
+    # See: spyder-ide/spyder#10221
+    if os.environ.get('SSH_CONNECTION') is None:
+        import keyring
 except Exception:
     pass
 
@@ -27,7 +30,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import qApp, QMessageBox
 
 
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.config.base import _, running_under_pytest
 from spyder.py3compat import PY2
 from spyder.utils.external import github
@@ -121,13 +124,10 @@ class GithubBackend(BaseBackend):
 
         # Credentials
         credentials = self.get_user_credentials()
-        username = credentials['username']
-        password = credentials['password']
-        remember = credentials['remember']
         token = credentials['token']
         remember_token = credentials['remember_token']
 
-        if username is None and password is None and token is None:
+        if token is None:
             return False
         _logger().debug('got user credentials')
 
@@ -136,10 +136,7 @@ class GithubBackend(BaseBackend):
             url = self.upload_log_file(application_log)
             body += '\nApplication log: %s' % url
         try:
-            if token:
-                gh = github.GitHub(access_token=token)
-            else:
-                gh = github.GitHub(username=username, password=password)
+            gh = github.GitHub(access_token=token)
             repo = gh.repos(self.gh_owner)(self.gh_repo)
             ret = repo.issues.post(title=title, body=body)
         except github.ApiError as e:
@@ -176,31 +173,8 @@ class GithubBackend(BaseBackend):
 
     def _get_credentials_from_settings(self):
         """Get the stored credentials if any."""
-        remember_me = CONF.get('main', 'report_error/remember_me')
         remember_token = CONF.get('main', 'report_error/remember_token')
-        username = CONF.get('main', 'report_error/username', '')
-        if not remember_me:
-            username = ''
-
-        return username, remember_me, remember_token
-
-    def _store_credentials(self, username, password, remember=False):
-        """Store credentials for future use."""
-        if username and password and remember:
-            CONF.set('main', 'report_error/username', username)
-            try:
-                keyring.set_password('github', username, password)
-            except Exception:
-                if self._show_msgbox:
-                    QMessageBox.warning(self.parent_widget,
-                                        _('Failed to store password'),
-                                        _('It was not possible to securely '
-                                          'save your password. You will be '
-                                          'prompted for your Github '
-                                          'credentials next time you want '
-                                          'to report an issue.'))
-                remember = False
-        CONF.set('main', 'report_error/remember_me', remember)
+        return remember_token
 
     def _store_token(self, token, remember=False):
         """Store token for future use."""
@@ -222,23 +196,9 @@ class GithubBackend(BaseBackend):
 
     def get_user_credentials(self):
         """Get user credentials with the login dialog."""
-        password = None
         token = None
-        (username, remember_me,
-         remember_token) = self._get_credentials_from_settings()
+        remember_token = self._get_credentials_from_settings()
         valid_py_os = not (PY2 and sys.platform.startswith('linux'))
-        if username and remember_me and valid_py_os:
-            # Get password from keyring
-            try:
-                password = keyring.get_password('github', username)
-            except Exception:
-                # No safe keyring backend
-                if self._show_msgbox:
-                    QMessageBox.warning(self.parent_widget,
-                                        _('Failed to retrieve password'),
-                                        _('It was not possible to retrieve '
-                                          'your password. Please introduce '
-                                          'it again.'))
         if remember_token and valid_py_os:
             # Get token from keyring
             try:
@@ -253,17 +213,10 @@ class GithubBackend(BaseBackend):
                                           'again.'))
 
         if not running_under_pytest():
-            credentials = DlgGitHubLogin.login(self.parent_widget, username,
-                                            password, token, remember_me,
-                                            remember_token)
-
-            if (credentials['username'] and credentials['password'] and
-                    valid_py_os):
-                self._store_credentials(credentials['username'],
-                                        credentials['password'],
-                                        credentials['remember'])
-                CONF.set('main', 'report_error/remember_me',
-                         credentials['remember'])
+            credentials = DlgGitHubLogin.login(
+                self.parent_widget,
+                token,
+                remember_token)
 
             if credentials['token'] and valid_py_os:
                 self._store_token(credentials['token'],
@@ -271,10 +224,7 @@ class GithubBackend(BaseBackend):
                 CONF.set('main', 'report_error/remember_token',
                          credentials['remember_token'])
         else:
-            return dict(username=username,
-                        password=password,
-                        token='',
-                        remember=remember_me,
+            return dict(token=token,
                         remember_token=remember_token)
 
         return credentials

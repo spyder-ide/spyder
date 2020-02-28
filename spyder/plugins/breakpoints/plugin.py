@@ -33,6 +33,7 @@ from .widgets.breakpointsgui import BreakpointWidget
 class Breakpoints(SpyderPluginWidget):
     """Breakpoint list"""
     CONF_SECTION = 'breakpoints'
+    CONF_FILE = False
 
     def __init__(self, parent=None):
         """Initialization."""
@@ -45,34 +46,30 @@ class Breakpoints(SpyderPluginWidget):
         layout.addWidget(self.breakpoints)
         self.setLayout(layout)
 
-        # Initialize plugin
-        self.initialize_plugin()
         self.breakpoints.set_data()
-    
+
+        path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
+        self.icon = ima.icon('breakpoints', icon_path=path)
+
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Breakpoints")
-    
+
     def get_plugin_icon(self):
         """Return widget icon"""
-        path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
-        return ima.icon('profiler', icon_path=path)
-    
+        return self.icon
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         return self.breakpoints.dictwidget
-    
-    def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        return []
 
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
-        self.main.tabify_plugins(self.main.help, self)
+        self.tabify(self.main.help)
 
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
@@ -85,28 +82,16 @@ class Breakpoints(SpyderPluginWidget):
         self.main.editor.breakpoints_saved.connect(self.breakpoints.set_data)
         self.breakpoints.set_or_edit_conditional_breakpoint.connect(
                            self.main.editor.set_or_edit_conditional_breakpoint)
-        
-        self.main.add_dockwidget(self)
-        
+
+        self.add_dockwidget()
+
         list_action = create_action(self, _("List breakpoints"),
-                                   triggered=self.show)
+                                    triggered=self.show, icon=self.icon)
         list_action.setEnabled(True)
         pos = self.main.debug_menu_actions.index('list_breakpoints')
         self.main.debug_menu_actions.insert(pos, list_action)
         self.main.editor.pythonfile_dependent_actions += [list_action]
 
-    def refresh_plugin(self):
-        """Refresh widget"""
-        pass
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-            
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
-        pass
-        
     def show(self):
         """Show the breakpoints dockwidget"""
         self.switch_to_plugin()

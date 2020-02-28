@@ -39,6 +39,7 @@ def historylog(qtbot, monkeypatch):
                         'register_widget_shortcuts',
                         lambda *args: None)
     historylog = history.HistoryLog(None)
+    historylog._setup()
     qtbot.addWidget(historylog)
     historylog.show()
     yield historylog
@@ -105,8 +106,7 @@ def test_init(historylog):
     hl = historylog
     assert hl.editors == []
     assert hl.filenames == []
-    assert len(hl.plugin_actions) == 5
-    assert len(hl.tabwidget.menu.actions()) == 5
+    assert len(hl._plugin_actions) == 5
     assert len(hl.tabwidget.cornerWidget().menu().actions()) == 5
 
 

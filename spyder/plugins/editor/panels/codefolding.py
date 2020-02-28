@@ -18,6 +18,8 @@ Original file:
 
 # Standard library imports
 import sys
+from math import ceil
+from intervaltree import IntervalTree
 
 # Third party imports
 from qtpy.QtCore import Signal, QSize, QPointF, QRectF, QRect, Qt
@@ -28,10 +30,9 @@ from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
 
 # Local imports
 from spyder.plugins.editor.api.decoration import TextDecoration, DRAW_ORDERS
-from spyder.plugins.editor.utils.folding import FoldScope
 from spyder.api.panel import Panel
-from spyder.plugins.editor.utils.editor import (TextBlockHelper, TextHelper,
-                                                DelayJobRunner, drift_color)
+from spyder.plugins.editor.utils.editor import (TextHelper, DelayJobRunner,
+                                                drift_color)
 import spyder.utils.icon_manager as ima
 
 
@@ -40,13 +41,9 @@ class FoldingPanel(Panel):
     """
     Displays the document outline and lets the user collapse/expand blocks.
 
-    The data represented by the panel come from the text block user state and
-    is set by the SyntaxHighlighter mode.
-
-    The panel does not expose any function that you can use directly. To
-    interact with the fold tree, you need to modify text block fold level or
-    trigger state using :class:`spyder.api.utils.TextBlockHelper` or
-    :mod:`spyder.api.folding`
+    The data represented by the panel come from the Language Server Protocol
+    invoked via the CodeEditor. This panel stores information about both
+    folding regions and their folding state.
     """
     #: signal emitted when a fold trigger state has changed, parameters are
     #: the concerned text block and the new state (collapsed or not).
@@ -172,11 +169,76 @@ class FoldingPanel(Panel):
         self.action_expand_all = None
         self._original_background = None
         self._highlight_runner = DelayJobRunner(delay=250)
+        self.folding_regions = {}
+        self.folding_status = {}
+        self.folding_levels = {}
+        self.folding_nesting = {}
+
+    def __compute_line_offsets(self, text, reverse=False):
+        lines = text.splitlines(True)
+        line_start_offset = {}
+        offset = 0
+        for i, line in enumerate(lines):
+            if not reverse:
+                line_start_offset[i + 1] = offset
+            else:
+                line_start_offset[offset] = i + 1
+            offset += len(line)
+        return line_start_offset
+
+    def update_folding(self, ranges):
+        """Update folding panel folding ranges."""
+        if ranges is None:
+            return
+        new_folding_ranges = {}
+        for starting_line, ending_line in ranges:
+            if ending_line > starting_line:
+                new_folding_ranges[starting_line + 1] = ending_line + 1
+
+        past_folding_regions = dict(self.folding_regions.copy())
+        self.folding_regions = new_folding_ranges
+        folding_status = {line: False for line in self.folding_regions}
+
+        if len(folding_status) == len(self.folding_status):
+            # No folding lines were introduced before/after
+            self.folding_status = dict(
+                zip(folding_status.keys(), self.folding_status.values()))
+        else:
+            # Line difference computation is done in order
+            # to detect if folding regions were not modified.
+            differ = self.editor.differ
+            diff, previous_text = self.editor.text_diff
+            current_text = self.editor.toPlainText()
+            prev_offsets = self.__compute_line_offsets(previous_text)
+            current_lines = self.__compute_line_offsets(current_text, True)
+
+            for line in past_folding_regions:
+                offset = prev_offsets.get(line)
+                if offset:
+                    new_offset = differ.diff_xIndex(diff, offset)
+                    new_line = current_lines.get(new_offset)
+                    if new_line and new_line in self.folding_regions:
+                        try:
+                            folding_status[new_line] = self.folding_status[line]
+                        except KeyError:
+                            pass
+            self.folding_status = folding_status
+        # Compute region nesting level
+        self.folding_levels = {start_line: 0 for start_line in self.folding_regions}
+        self.folding_nesting = {start_line: -1 for start_line in self.folding_regions}
+        tree = IntervalTree.from_tuples(self.folding_regions.items())
+        for (start, end) in self.folding_regions.items():
+            nested_regions = tree.envelop(start, end)
+            for region in nested_regions:
+                if region.begin != start:
+                    self.folding_levels[region.begin] += 1
+                    self.folding_nesting[region.begin] = start
+        self.update()
 
     def sizeHint(self):
         """Returns the widget size hint (based on the editor font size) """
         fm = QFontMetricsF(self.editor.font())
-        size_hint = QSize(fm.height(), fm.height())
+        size_hint = QSize(ceil(fm.height()), ceil(fm.height()))
         if size_hint.width() > 16:
             size_hint.setWidth(16)
         return size_hint
@@ -192,12 +254,18 @@ class FoldingPanel(Panel):
                 self._mouse_over_line)
             try:
                 self._draw_fold_region_background(block, painter)
-            except ValueError:
+            except (ValueError, KeyError):
+                # Catching the KeyError above is necessary to avoid
+                # issue spyder-ide/spyder#10918.
+                # It happens when users have the mouse on top of the
+                # folding panel and make some text modifications
+                # that trigger a folding recomputation.
                 pass
         # Draw fold triggers
         for top_position, line_number, block in self.editor.visible_blocks:
-            if TextBlockHelper.is_fold_trigger(block):
-                collapsed = TextBlockHelper.is_collapsed(block)
+            if line_number in self.folding_regions:
+                collapsed = self.folding_status[line_number]
+                line_end = self.folding_regions[line_number]
                 mouse_over = self._mouse_over_line == line_number
                 self._draw_fold_indicator(
                     top_position, mouse_over, collapsed, painter)
@@ -210,7 +278,7 @@ class FoldingPanel(Panel):
                             # no need to add a deco, just go to the next block
                             break
                     else:
-                        self._add_fold_decoration(block, FoldScope(block))
+                        self._add_fold_decoration(block, line_end)
                 else:
                     for deco in self._block_decos:
                         # check if the block decoration has been removed, it
@@ -232,14 +300,14 @@ class FoldingPanel(Panel):
         :param block: Current block.
         :param painter: QPainter
         """
-        r = FoldScope(block)
         th = TextHelper(self.editor)
-        start, end = r.get_range(ignore_blank_lines=True)
+        start = block.blockNumber()
+        end = self.folding_regions[start]
         if start > 0:
             top = th.line_pos_from_number(start)
         else:
             top = 0
-        bottom = th.line_pos_from_number(end + 1)
+        bottom = th.line_pos_from_number(end)
         h = bottom - top
         if h == 0:
             h = self.sizeHint().height()
@@ -321,20 +389,18 @@ class FoldingPanel(Panel):
                 index += 1
             ima.icon(self._indicators_icons[index]).paint(painter, rect)
 
-    @staticmethod
-    def find_parent_scope(block):
+    def find_parent_scope(self, block):
         """Find parent scope, if the block is not a fold trigger."""
         original = block
-        if not TextBlockHelper.is_fold_trigger(block):
-            # search level of next non blank line
-            while block.text().strip() == '' and block.isValid():
-                block = block.next()
-            ref_lvl = TextBlockHelper.get_fold_lvl(block) - 1
-            block = original
-            while (block.blockNumber() and
-                   (not TextBlockHelper.is_fold_trigger(block) or
-                    TextBlockHelper.get_fold_lvl(block) > ref_lvl)):
-                block = block.previous()
+        block_line = block.blockNumber()
+        if block_line not in self.folding_regions:
+            for start_line in self.folding_regions:
+                end_line = self.folding_regions[start_line]
+                if end_line > block_line:
+                    if start_line < block_line:
+                        block = self.editor.document().findBlockByNumber(
+                            start_line)
+                        break
         return block
 
     def _clear_scope_decos(self):
@@ -368,8 +434,8 @@ class FoldingPanel(Panel):
         """
         color = self._get_scope_highlight_color()
         draw_order = DRAW_ORDERS.get('codefolding')
-        d = TextDecoration(self.editor.document(), start_line=start,
-                           end_line=end+1, draw_order=draw_order)
+        d = TextDecoration(self.editor.document(), start_line=max(0, start - 1),
+                           end_line=end, draw_order=draw_order)
         d.set_background(color)
         d.set_full_width(True, clear=False)
         self.editor.decorations.add(d)
@@ -381,14 +447,16 @@ class FoldingPanel(Panel):
 
         :param block: Block that starts the current fold scope.
         """
-        scope = FoldScope(block)
-        if (self._current_scope is None or
-                self._current_scope.get_range() != scope.get_range()):
+        block_line = block.blockNumber()
+        end_line = self.folding_regions[block_line]
+
+        scope = (block_line, end_line)
+        if (self._current_scope is None or self._current_scope != scope):
             self._current_scope = scope
             self._clear_scope_decos()
             # highlight current scope with darker or lighter color
-            start, end = scope.get_range()
-            if not TextBlockHelper.is_collapsed(block):
+            start, end = scope
+            if not self.folding_status[start]:
                 self._decorate_block(start, end)
 
     def mouseMoveEvent(self, event):
@@ -403,15 +471,16 @@ class FoldingPanel(Panel):
         th = TextHelper(self.editor)
         line = th.line_nbr_from_position(event.pos().y())
         if line >= 0:
-            block = FoldScope.find_parent_scope(
-                self.editor.document().findBlockByNumber(line-1))
-            if TextBlockHelper.is_fold_trigger(block):
+            block = self.editor.document().findBlockByNumber(line)
+            block = self.find_parent_scope(block)
+            line_number = block.blockNumber()
+            if line_number in self.folding_regions:
                 if self._mouse_over_line is None:
                     # mouse enter fold scope
                     QApplication.setOverrideCursor(
                         QCursor(Qt.PointingHandCursor))
-                if self._mouse_over_line != block.blockNumber() and \
-                        self._mouse_over_line is not None:
+                if (self._mouse_over_line != block.blockNumber() and
+                        self._mouse_over_line is not None):
                     # fold scope changed, a previous block was highlighter so
                     # we quickly update our highlighting
                     self._mouse_over_line = block.blockNumber()
@@ -419,8 +488,13 @@ class FoldingPanel(Panel):
                 else:
                     # same fold scope, request highlight
                     self._mouse_over_line = block.blockNumber()
-                    self._highlight_runner.request_job(
-                        self._highlight_block, block)
+                    try:
+                        self._highlight_runner.request_job(
+                            self._highlight_block, block)
+                    except KeyError:
+                        # Catching the KeyError above is necessary to avoid
+                        # issue spyder-ide/spyder#11291.
+                        pass
                 self._highight_block = block
             else:
                 # no fold scope to highlight, cancel any pending requests
@@ -447,15 +521,17 @@ class FoldingPanel(Panel):
             self._highlight_caret_scope()
         self.editor.repaint()
 
-    def _add_fold_decoration(self, block, region):
+    def _add_fold_decoration(self, block, end_line):
         """
         Add fold decorations (boxes arround a folded block in the editor
         widget).
         """
+        start_line = block.blockNumber()
+        text = self.editor.get_text_region(start_line + 1, end_line)
         draw_order = DRAW_ORDERS.get('codefolding')
         deco = TextDecoration(block, draw_order=draw_order)
         deco.signals.clicked.connect(self._on_fold_deco_clicked)
-        deco.tooltip = region.text(max_lines=25)
+        deco.tooltip = text
         deco.block = block
         deco.select_line()
         deco.set_outline(drift_color(
@@ -465,24 +541,56 @@ class FoldingPanel(Panel):
         self._block_decos.append(deco)
         self.editor.decorations.add(deco)
 
+    def _get_block_until_line(self, block, end_line):
+        while block.blockNumber() <= end_line and block.isValid():
+            block.setVisible(False)
+            block = block.next()
+        return block
+
+    def fold_region(self, block, start_line, end_line):
+        """Fold region spanned by *start_line* and *end_line*."""
+        while block.blockNumber() < end_line and block.isValid():
+            block.setVisible(False)
+            block = block.next()
+        return block
+
+    def unfold_region(self, block, start_line, end_line):
+        """Unfold region spanned by *start_line* and *end_line*."""
+        while block.blockNumber() < end_line and block.isValid():
+            current_line = block.blockNumber()
+            block.setVisible(True)
+            get_next = True
+            if (current_line in self.folding_regions
+                    and current_line != start_line):
+                block_end = self.folding_regions[current_line]
+                if self.folding_status[current_line]:
+                    # Skip setting visible blocks until the block is done
+                    get_next = False
+                    block = self._get_block_until_line(block, block_end - 1)
+                    # pass
+            if get_next:
+                block = block.next()
+
     def toggle_fold_trigger(self, block):
         """
         Toggle a fold trigger block (expand or collapse it).
 
         :param block: The QTextBlock to expand/collapse
         """
-        if not TextBlockHelper.is_fold_trigger(block):
+        start_line = block.blockNumber()
+        if start_line not in self.folding_regions:
             return
-        region = FoldScope(block)
-        if region.collapsed:
-            region.unfold()
+        end_line = self.folding_regions[start_line]
+        if self.folding_status[start_line]:
+            self.unfold_region(block, start_line, end_line)
+            self.folding_status[start_line] = False
             if self._mouse_over_line is not None:
-                self._decorate_block(*region.get_range())
+                self._decorate_block(start_line, end_line)
         else:
-            region.fold()
+            self.fold_region(block, start_line, end_line)
+            self.folding_status[start_line] = True
             self._clear_scope_decos()
         self._refresh_editor_and_scrollbars()
-        self.trigger_state_changed.emit(region._trigger, region.collapsed)
 
     def mousePressEvent(self, event):
         """Folds/unfolds the pressed indicator if any."""
@@ -530,12 +638,13 @@ class FoldingPanel(Panel):
                 positions_to_check = (cursor.position(), )
             for pos in positions_to_check:
                 block = self.editor.document().findBlock(pos)
-                th = TextBlockHelper()
-                if th.is_fold_trigger(block) and th.is_collapsed(block):
-                    self.toggle_fold_trigger(block)
+                start_line = block.blockNumber() + 1
+                if (start_line in self.folding_regions and
+                        self.folding_status[start_line]):
+                    end_line = self.folding_regions[start_line]
+                    self.toggle_fold_trigger(block.next())
                     if delete_request and cursor.hasSelection():
-                        scope = FoldScope(self.find_parent_scope(block))
-                        tc = TextHelper(self.editor).select_lines(*scope.get_range())
+                        tc = TextHelper(self.editor).select_lines(start_line, end_line)
                         if tc.selectionStart() > cursor.selectionStart():
                             start = cursor.selectionStart()
                         else:
@@ -547,6 +656,8 @@ class FoldingPanel(Panel):
                         tc.setPosition(start)
                         tc.setPosition(end, tc.KeepAnchor)
                         self.editor.setTextCursor(tc)
+                        self.folding_regions.pop(start_line)
+                        self.folding_status.pop(start_line)
 
     @staticmethod
     def _show_previous_blank_lines(block):
@@ -602,18 +713,11 @@ class FoldingPanel(Panel):
         """
         self._clear_block_deco()
         block = self.editor.document().firstBlock()
-        last = self.editor.document().lastBlock()
         while block.isValid():
-            lvl = TextBlockHelper.get_fold_lvl(block)
-            trigger = TextBlockHelper.is_fold_trigger(block)
-            if trigger:
-                if lvl == 0:
-                    self._show_previous_blank_lines(block)
-                TextBlockHelper.set_collapsed(block, True)
-            block.setVisible(lvl == 0)
-            if block == last and block.text().strip() == '':
-                block.setVisible(True)
-                self._show_previous_blank_lines(block)
+            line_number = block.blockNumber()
+            if line_number in self.folding_regions:
+                end_line = self.folding_regions[line_number]
+                self.fold_region(block, line_number, end_line)
             block = block.next()
         self._refresh_editor_and_scrollbars()
         tc = self.editor.textCursor()
@@ -631,8 +735,10 @@ class FoldingPanel(Panel):
         """Expands all fold triggers."""
         block = self.editor.document().firstBlock()
         while block.isValid():
-            TextBlockHelper.set_collapsed(block, False)
-            block.setVisible(True)
+            line_number = block.BlockNumber()
+            if line_number in self.folding_regions:
+                end_line = self.folding_regions[line_number]
+                self.unfold_region(block, line_number, end_line)
             block = block.next()
         self._clear_block_deco()
         self._refresh_editor_and_scrollbars()
@@ -640,7 +746,8 @@ class FoldingPanel(Panel):
 
     def _on_action_toggle(self):
         """Toggle the current fold trigger."""
-        block = FoldScope.find_parent_scope(self.editor.textCursor().block())
+        block = self.editor.textCursor().block()
+        block = self.find_parent_scope(block)
         self.toggle_fold_trigger(block)
 
     def _on_action_collapse_all_triggered(self):
@@ -664,16 +771,13 @@ class FoldingPanel(Panel):
         cursor = self.editor.textCursor()
         block_nbr = cursor.blockNumber()
         if self._block_nbr != block_nbr:
-            block = FoldScope.find_parent_scope(
-                self.editor.textCursor().block())
-            try:
-                s = FoldScope(block)
-            except ValueError:
-                self._clear_scope_decos()
-            else:
+            block = self.find_parent_scope(cursor.block())
+            line_number = block.blockNumber()
+            if line_number in self.folding_regions:
                 self._mouse_over_line = block.blockNumber()
-                if TextBlockHelper.is_fold_trigger(block):
-                    self._highlight_block(block)
+                self._highlight_block(block)
+            else:
+                self._clear_scope_decos()
         self._block_nbr = block_nbr
 
     def clone_settings(self, original):
@@ -682,3 +786,15 @@ class FoldingPanel(Panel):
         self.highlight_caret_scope = original.highlight_caret_scope
         self.custom_fold_region_background = \
             original.custom_fold_region_background
+
+    def is_collapsed(self, block):
+        line_number = block.blockNumber()
+        return (line_number in self.folding_regions and
+                line_number in self.folding_status)
+
+    def get_range(self, block):
+        line_number = block.blockNumber()
+        end_number = line_number
+        if line_number in self.folding_regions:
+            end_number = self.folding_regions[line_number]
+        return line_number, end_number

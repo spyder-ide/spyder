@@ -12,7 +12,7 @@
 Bootstrap Spyder.
 
 Detect environment and execute Spyder from source checkout.
-See Issue #741.
+See spyder-ide/spyder#741.
 """
 
 # pylint: disable=C0103
@@ -80,12 +80,12 @@ os.environ['SPYDER_DEV'] = 'True'
 # --- Test environment for surprises
 
 # Warn if Spyder is located on non-ASCII path
-# See Issue 812
+# See spyder-ide/spyder#812.
 try:
     osp.join(DEVPATH, 'test')
 except UnicodeDecodeError:
     print("STOP: Spyder is located in the path with non-ASCII characters,")
-    print("      which is known to cause problems (see issue #812).")
+    print("      which is known to cause problems, see spyder-ide/spyder#812.")
     try:
         input = raw_input
     except NameError:
@@ -119,12 +119,19 @@ if args.debug:
     # if operation is successful
 
 
-from spyder.utils.vcs import get_git_revision
-print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
-
+# Add this path to the front of sys.path
 sys.path.insert(0, DEVPATH)
 print("01. Patched sys.path with %s" % DEVPATH)
 
+# Add external dependencies subrepo paths to be the next entries
+# (1, 2, etc) of sys.path
+DEPS_PATH = osp.join(DEVPATH, 'external-deps')
+i = 1
+for path in os.listdir(DEPS_PATH):
+    external_dep_path = osp.join(DEPS_PATH, path)
+    sys.path.insert(i, external_dep_path)
+    print("01-%d. Patched sys.path with %s" % (i, external_dep_path))
+    i += 1
 
 # Selecting the GUI toolkit: PyQt5 if installed
 if args.gui is None:
@@ -142,9 +149,10 @@ else:
 # Checking versions (among other things, this has the effect of setting the
 # QT_API environment variable if this has not yet been done just above)
 from spyder import get_versions
-versions = get_versions(reporev=False)
-print("03. Imported Spyder %s" % versions['spyder'])
-print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
+versions = get_versions(reporev=True)
+print("03. Imported Spyder %s - Revision %s, Branch: %s" %
+      (versions['spyder'], versions['revision'], versions['branch']))
+print("    [Python %s %dbits, Qt %s, %s %s on %s]" %
       (versions['python'], versions['bitness'], versions['qt'],
        versions['qt_api'], versions['qt_api_ver'], versions['system']))
 

@@ -12,9 +12,9 @@ main: &main
             sudo apt-get -qq update
             sudo apt-get install libegl1-mesa
       - run:
-          command: ./continuous_integration/travis/install.sh
+          command: bash ./continuous_integration/travis/install.sh
       - run:
-          command: ./continuous_integration/circle/modules_test.sh || ./continuous_integration/circle/modules_test.sh
+          command: bash ./continuous_integration/circle/modules_test.sh || bash ./continuous_integration/circle/modules_test.sh
 
 jobs:
   python2.7:

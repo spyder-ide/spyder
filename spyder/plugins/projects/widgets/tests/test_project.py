@@ -7,15 +7,17 @@
 Tests for __init__.py.
 """
 
-# Test library imports
-import pytest
+# Standard library imports
+import os
 import os.path as osp
 
-# Local imports
-from spyder.plugins.projects.api import EmptyProject
+# Third party imports
+import pytest
 
-from spyder.plugins.projects.utils.config import (CODESTYLE, WORKSPACE,
-                                                  ENCODING, VCS)
+# Local imports
+from spyder.plugins.projects.projecttypes import EmptyProject
+from spyder.plugins.projects.utils.config import (CODESTYLE, ENCODING,
+                                                  VCS, WORKSPACE)
 
 
 @pytest.fixture(scope='session')
@@ -32,19 +34,18 @@ def project_test(tmpdir_factory):
     return project_dir, project
 
 
-def test_empty_project(project_test):
-    """Test creation of anEmpy project, and its configuration files."""
+def test_empty_project(project_test, qtbot):
+    """Test creation of an Empy project, and its configuration files."""
     project_dir, project = project_test
     assert project.root_path == str(project_dir)
 
-    # Assert Project onfigs
-    conf_files = project.get_conf_files()
-    for dir_ in [CODESTYLE, WORKSPACE, ENCODING, VCS]:
-        assert dir_ in conf_files
-        project_config = conf_files[dir_]
-
-        # assert configurations files
-        assert osp.exists(project_config.filename())
+    # Assert Project configs
+    qtbot.wait(3000)
+    for filename in [WORKSPACE, CODESTYLE, ENCODING, VCS]:
+        config_path = os.path.join(project.root_path, '.spyproject',
+                                   'config')
+        files = os.listdir(config_path)
+        assert filename + '.ini' in files
 
 
 def test_set_load_recent_files(project_test):

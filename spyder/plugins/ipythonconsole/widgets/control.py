@@ -5,18 +5,16 @@
 # (see spyder/__init__.py for details)
 
 """Control widgets used by ShellWidget"""
-
 from qtpy.QtCore import Qt, Signal
 from qtpy.QtWidgets import QTextEdit
 
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.calltip import CallTipWidget
 from spyder.widgets.mixins import (BaseEditMixin, GetHelpMixin,
-                                   TracebackLinksMixin,
-                                   BrowseHistoryMixin)
+                                   TracebackLinksMixin)
 
 
-class ControlWidget(TracebackLinksMixin, GetHelpMixin, BrowseHistoryMixin,
+class ControlWidget(TracebackLinksMixin, GetHelpMixin,
                     QTextEdit, BaseEditMixin):
     """
     Subclass of QTextEdit with features from Spyder's mixins to use as the
@@ -32,7 +30,6 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin, BrowseHistoryMixin,
         BaseEditMixin.__init__(self)
         TracebackLinksMixin.__init__(self)
         GetHelpMixin.__init__(self)
-        BrowseHistoryMixin.__init__(self)
 
         self.calltip_widget = CallTipWidget(self, hide_timer_on=False)
         self.found_results = []

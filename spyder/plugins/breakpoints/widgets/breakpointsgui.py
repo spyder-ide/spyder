@@ -19,33 +19,36 @@ import sys
 # Third party imports
 from qtpy import API
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QModelIndex, QTextCodec, Qt,
-                         Signal)
+from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Signal
 from qtpy.QtWidgets import (QItemDelegate, QMenu, QTableView, QHBoxLayout,
                             QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import get_translation
-from spyder.config.main import CONF
+from spyder.config.manager import CONF
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_plugin_layout)
+from spyder.utils.sourcecode import disambiguate_fname
 
 # This is needed for testing this module as a stand alone script
 try:
     _ = get_translation("breakpoints", "spyder_breakpoints")
-except KeyError as error:
+except KeyError:
     import gettext
     _ = gettext.gettext
 
-
-locale_codec = QTextCodec.codecForLocale()
+COLUMN_COUNT = 4
+EXTRA_COLUMNS = 1
+COL_FILE, COL_LINE, COL_CONDITION, COL_BLANK, COL_FULL = range(COLUMN_COUNT +
+                                                               EXTRA_COLUMNS)
+COLUMN_HEADERS = (_("File"), _("Line"), _("Condition"), (""))
 
 
 class BreakpointTableModel(QAbstractTableModel):
     """
     Table model for breakpoints dictionary
-
     """
+
     def __init__(self, parent, data):
         QAbstractTableModel.__init__(self, parent)
         if data is None:
@@ -57,13 +60,18 @@ class BreakpointTableModel(QAbstractTableModel):
     def set_data(self, data):
         """Set model data"""
         self._data = data
-        keys = list(data.keys())
         self.breakpoints = []
-        for key in keys:
-            bp_list = data[key]
-            if bp_list:
-                for item in data[key]:
-                    self.breakpoints.append((key, item[0], item[1], ""))
+        files = []
+        # Generate list of filenames with active breakpoints
+        for key in data.keys():
+            if data[key] and key not in files:
+                files.append(key)
+        # Insert items
+        for key in files:
+            for item in data[key]:
+                # Store full file name in last position, which is not shown
+                self.breakpoints.append((disambiguate_fname(files, key),
+                                         item[0], item[1], "", key))
         self.reset()
 
     def rowCount(self, qindex=QModelIndex()):
@@ -72,20 +80,18 @@ class BreakpointTableModel(QAbstractTableModel):
 
     def columnCount(self, qindex=QModelIndex()):
         """Array column count"""
-        return 4
+        return COLUMN_COUNT
 
     def sort(self, column, order=Qt.DescendingOrder):
         """Overriding sort method"""
-        if column == 0:
-            self.breakpoints.sort(
-                key=lambda breakpoint: breakpoint[1])
-            self.breakpoints.sort(
-                key=lambda breakpoint: osp.basename(breakpoint[0]))
-        elif column == 1:
+        if column == COL_FILE:
+            self.breakpoints.sort(key=lambda breakp: int(breakp[COL_LINE]))
+            self.breakpoints.sort(key=lambda breakp: breakp[COL_FILE])
+        elif column == COL_LINE:
             pass
-        elif column == 2:
+        elif column == COL_CONDITION:
             pass
-        elif column == 3:
+        elif column == COL_BLANK:
             pass
         self.reset()
 
@@ -95,8 +101,7 @@ class BreakpointTableModel(QAbstractTableModel):
             return to_qvariant()
         i_column = int(section)
         if orientation == Qt.Horizontal:
-            headers = (_("File"), _("Line"), _("Condition"), "")
-            return to_qvariant( headers[i_column] )
+            return to_qvariant(COLUMN_HEADERS[i_column])
         else:
             return to_qvariant()
 
@@ -109,17 +114,18 @@ class BreakpointTableModel(QAbstractTableModel):
         if not index.isValid():
             return to_qvariant()
         if role == Qt.DisplayRole:
-            if index.column() == 0:
-                value = osp.basename(self.get_value(index))
-                return to_qvariant(value)
-            else:
-                value = self.get_value(index)
-                return to_qvariant(value)
+            value = self.get_value(index)
+            return to_qvariant(value)
         elif role == Qt.TextAlignmentRole:
-            return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
+            if index.column() == COL_LINE:
+                # Align line number right
+                return to_qvariant(int(Qt.AlignRight | Qt.AlignVCenter))
+            else:
+                return to_qvariant(int(Qt.AlignLeft | Qt.AlignVCenter))
         elif role == Qt.ToolTipRole:
-            if index.column() == 0:
-                value = self.get_value(index)
+            if index.column() == COL_FILE:
+                # Return full file name (in last position)
+                value = self.breakpoints[index.row()][COL_FULL]
                 return to_qvariant(value)
             else:
                 return to_qvariant()
@@ -156,21 +162,22 @@ class BreakpointTableView(QTableView):
         self.columnAt(0)
         # Sorting columns
         self.setSortingEnabled(False)
-        self.sortByColumn(0, Qt.DescendingOrder)
+        self.sortByColumn(COL_FILE, Qt.DescendingOrder)
 
     def adjust_columns(self):
         """Resize three first columns to contents"""
-        for col in range(3):
+        for col in range(COLUMN_COUNT-1):
             self.resizeColumnToContents(col)
 
     def mouseDoubleClickEvent(self, event):
         """Reimplement Qt method"""
         index_clicked = self.indexAt(event.pos())
         if self.model.breakpoints:
-            filename = self.model.breakpoints[index_clicked.row()][0]
-            line_number_str = self.model.breakpoints[index_clicked.row()][1]
+            c_row = index_clicked.row()
+            filename = self.model.breakpoints[c_row][COL_FULL]
+            line_number_str = self.model.breakpoints[c_row][COL_LINE]
             self.edit_goto.emit(filename, int(line_number_str), '')
-        if index_clicked.column()==2:
+        if index_clicked.column() == COL_CONDITION:
             self.set_or_edit_conditional_breakpoint.emit()
 
     def contextMenuEvent(self, event):
@@ -182,8 +189,9 @@ class BreakpointTableView(QTableView):
             triggered=lambda: self.clear_all_breakpoints.emit())
         actions.append(clear_all_breakpoints_action)
         if self.model.breakpoints:
-            filename = self.model.breakpoints[index_clicked.row()][0]
-            lineno = int(self.model.breakpoints[index_clicked.row()][1])
+            c_row = index_clicked.row()
+            filename = self.model.breakpoints[c_row][COL_FULL]
+            lineno = int(self.model.breakpoints[c_row][COL_LINE])
             # QAction.triggered works differently for PySide and PyQt
             if not API == 'pyside':
                 clear_slot = lambda _checked, filename=filename, lineno=lineno: \
@@ -261,7 +269,7 @@ class BreakpointWidget(QWidget):
         bp_dict = self._load_all_breakpoints()
         self.dictwidget.model.set_data(bp_dict)
         self.dictwidget.adjust_columns()
-        self.dictwidget.sortByColumn(0, Qt.DescendingOrder)
+        self.dictwidget.sortByColumn(COL_FILE, Qt.DescendingOrder)
 
 
 #==============================================================================

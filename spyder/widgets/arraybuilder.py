@@ -4,14 +4,14 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""
-Numpy Matrix/Array Builder Widget.
-"""
+"""Array Builder Widget."""
 
 # TODO:
-# -Set font based on caller? editor console? and adjust size of widget
-# -Fix positioning
-# -Use the same font as editor/console?
+# - Set font based on caller? editor console? and adjust size of widget
+# - Fix positioning
+# - Use the same font as editor/console?
+# - Generalize separators
+# - Generalize API for registering new array builders
 
 # Standard library imports
 from __future__ import division
@@ -20,8 +20,7 @@ import re
 # Third party imports
 from qtpy.QtCore import QEvent, QPoint, Qt
 from qtpy.QtWidgets import (QDialog, QHBoxLayout, QLineEdit, QTableWidget,
-                            QTableWidgetItem, QToolButton, QToolTip,
-                            QWidget)
+                            QTableWidgetItem, QToolButton, QToolTip)
 
 # Local imports
 from spyder.config.base import _
@@ -29,36 +28,60 @@ from spyder.config.gui import is_dark_interface
 from spyder.utils import icon_manager as ima
 from spyder.widgets.helperwidgets import HelperToolButton
 
-
 # Constants
 SHORTCUT_TABLE = "Ctrl+M"
 SHORTCUT_INLINE = "Ctrl+Alt+M"
-ELEMENT_SEPARATOR = ', '
-ROW_SEPARATOR = ';'
-BRACES = '], ['
-NAN_VALUES = ['nan', 'NAN', 'NaN', 'Na', 'NA', 'na']
 
 
-class NumpyArrayInline(QLineEdit):
-    def __init__(self, parent):
-        QLineEdit.__init__(self, parent)
+class ArrayBuilderType:
+    LANGUAGE = None
+    ELEMENT_SEPARATOR = None
+    ROW_SEPARATOR = None
+    BRACES = None
+    EXTRA_VALUES = None
+    ARRAY_PREFIX = None
+    MATRIX_PREFIX = None
+
+    def check_values(self):
+        pass
+
+
+class ArrayBuilderPython(ArrayBuilderType):
+    ELEMENT_SEPARATOR = ', '
+    ROW_SEPARATOR = ';'
+    BRACES = '], ['
+    EXTRA_VALUES = {
+        'np.nan': ['nan', 'NAN', 'NaN', 'Na', 'NA', 'na'],
+        'np.inf': ['inf', 'INF'],
+    }
+    ARRAY_PREFIX = 'np.array([['
+    MATRIX_PREFIX = 'np.matrix([['
+
+
+_REGISTERED_ARRAY_BUILDERS = {
+    'python': ArrayBuilderPython,
+}
+
+
+class ArrayInline(QLineEdit):
+    def __init__(self, parent, options=None):
+        super(ArrayInline, self).__init__(parent)
         self._parent = parent
+        self._options = options
 
     def keyPressEvent(self, event):
-        """
-        Qt override.
-        """
+        """Override Qt method."""
         if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
             self._parent.process_text()
             if self._parent.is_valid():
                 self._parent.keyPressEvent(event)
         else:
-            QLineEdit.keyPressEvent(self, event)
+            super(ArrayInline, self).keyPressEvent(event)
 
-    # to catch the Tab key event
+    # To catch the Tab key event
     def event(self, event):
         """
-        Qt override.
+        Override Qt method.
 
         This is needed to be able to intercept the Tab key press event.
         """
@@ -66,23 +89,27 @@ class NumpyArrayInline(QLineEdit):
             if (event.key() == Qt.Key_Tab or event.key() == Qt.Key_Space):
                 text = self.text()
                 cursor = self.cursorPosition()
-                # fix to include in "undo/redo" history
+
+                # Fix to include in "undo/redo" history
                 if cursor != 0 and text[cursor-1] == ' ':
-                    text = text[:cursor-1] + ROW_SEPARATOR + ' ' +\
-                        text[cursor:]
+                    text = (text[:cursor-1] + self._options.ROW_SEPARATOR
+                            + ' ' + text[cursor:])
                 else:
                     text = text[:cursor] + ' ' + text[cursor:]
                 self.setCursorPosition(cursor)
                 self.setText(text)
                 self.setCursorPosition(cursor + 1)
+
                 return False
-        return QWidget.event(self, event)
+
+        return super(ArrayInline, self).event(event)
 
 
-class NumpyArrayTable(QTableWidget):
-    def __init__(self, parent):
-        QTableWidget.__init__(self, parent)
+class ArrayTable(QTableWidget):
+    def __init__(self, parent, options=None):
+        super(ArrayTable, self).__init__(parent)
         self._parent = parent
+        self._options = options
         self.setRowCount(2)
         self.setColumnCount(2)
         self.reset_headers()
@@ -91,21 +118,15 @@ class NumpyArrayTable(QTableWidget):
         self.cellChanged.connect(self.cell_changed)
 
     def keyPressEvent(self, event):
-        """
-        Qt override.
-        """
+        """Override Qt method."""
+        super(ArrayTable, self).keyPressEvent(event)
         if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
-            QTableWidget.keyPressEvent(self, event)
             # To avoid having to enter one final tab
             self.setDisabled(True)
             self.setDisabled(False)
             self._parent.keyPressEvent(event)
-        else:
-            QTableWidget.keyPressEvent(self, event)
 
     def cell_changed(self, row, col):
-        """
-        """
         item = self.item(row, col)
         value = None
 
@@ -122,9 +143,7 @@ class NumpyArrayTable(QTableWidget):
         self.reset_headers()
 
     def reset_headers(self):
-        """
-        Update the column and row numbering in the headers.
-        """
+        """Update the column and row numbering in the headers."""
         rows = self.rowCount()
         cols = self.columnCount()
 
@@ -135,9 +154,7 @@ class NumpyArrayTable(QTableWidget):
             self.setColumnWidth(c, 40)
 
     def text(self):
-        """
-        Return the entered array in a parseable form.
-        """
+        """Return the entered array in a parseable form."""
         text = []
         rows = self.rowCount()
         cols = self.columnCount()
@@ -161,14 +178,17 @@ class NumpyArrayTable(QTableWidget):
 
                 text.append(' ')
                 text.append(value)
-            text.append(ROW_SEPARATOR)
+            text.append(self._options.ROW_SEPARATOR)
 
-        return ''.join(text[:-1])  # to remove the final uneeded ;
+        return ''.join(text[:-1])  # Remove the final uneeded `;`
 
 
-class NumpyArrayDialog(QDialog):
-    def __init__(self, parent=None, inline=True, offset=0, force_float=False):
-        QDialog.__init__(self, parent=parent)
+class ArrayBuilderDialog(QDialog):
+    def __init__(self, parent=None, inline=True, offset=0, force_float=False,
+                 language='python'):
+        super(ArrayBuilderDialog, self).__init__(parent=parent)
+        self._language = language
+        self._options = _REGISTERED_ARRAY_BUILDERS.get('python', None)
         self._parent = parent
         self._text = None
         self._valid = None
@@ -228,11 +248,11 @@ class NumpyArrayDialog(QDialog):
 
         if inline:
             self._button_help.setToolTip(self._help_inline)
-            self._text = NumpyArrayInline(self)
+            self._text = ArrayInline(self, options=self._options)
             self._widget = self._text
         else:
             self._button_help.setToolTip(self._help_table)
-            self._table = NumpyArrayTable(self)
+            self._table = ArrayTable(self, options=self._options)
             self._widget = self._table
 
         style = """
@@ -269,9 +289,7 @@ class NumpyArrayDialog(QDialog):
         self._widget.setFocus()
 
     def keyPressEvent(self, event):
-        """
-        Qt override.
-        """
+        """Override Qt method."""
         QToolTip.hideText()
         ctrl = event.modifiers() & Qt.ControlModifier
 
@@ -282,57 +300,59 @@ class NumpyArrayDialog(QDialog):
                 self.process_text(array=True)
             self.accept()
         else:
-            QDialog.keyPressEvent(self, event)
+            super(ArrayBuilderDialog, self).keyPressEvent(event)
 
     def event(self, event):
         """
-        Qt Override.
+        Override Qt method.
 
         Usefull when in line edit mode.
         """
         if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
             return False
-        return QWidget.event(self, event)
+
+        return super(ArrayBuilderDialog, self).event(event)
 
     def process_text(self, array=True):
         """
         Construct the text based on the entered content in the widget.
         """
         if array:
-            prefix = 'np.array([['
+            prefix = self._options.ARRAY_PREFIX
         else:
-            prefix = 'np.matrix([['
+            prefix = self._options.MATRIX_PREFIX
 
         suffix = ']])'
         values = self._widget.text().strip()
 
         if values != '':
             # cleans repeated spaces
-            exp = r'(\s*)' + ROW_SEPARATOR + r'(\s*)'
-            values = re.sub(exp, ROW_SEPARATOR, values)
+            exp = r'(\s*)' + self._options.ROW_SEPARATOR + r'(\s*)'
+            values = re.sub(exp, self._options.ROW_SEPARATOR, values)
             values = re.sub(r"\s+", " ", values)
             values = re.sub(r"]$", "", values)
             values = re.sub(r"^\[", "", values)
-            values = re.sub(ROW_SEPARATOR + r'*$', '', values)
+            values = re.sub(self._options.ROW_SEPARATOR + r'*$', '', values)
 
             # replaces spaces by commas
-            values = values.replace(' ',  ELEMENT_SEPARATOR)
+            values = values.replace(' ',  self._options.ELEMENT_SEPARATOR)
 
             # iterate to find number of rows and columns
             new_values = []
-            rows = values.split(ROW_SEPARATOR)
+            rows = values.split(self._options.ROW_SEPARATOR)
             nrows = len(rows)
             ncols = []
             for row in rows:
                 new_row = []
-                elements = row.split(ELEMENT_SEPARATOR)
+                elements = row.split(self._options.ELEMENT_SEPARATOR)
                 ncols.append(len(elements))
                 for e in elements:
                     num = e
 
                     # replaces not defined values
-                    if num in NAN_VALUES:
-                        num = 'np.nan'
+                    for key, values in self._options.EXTRA_VALUES.items():
+                        if num in values:
+                            num = key
 
                     # Convert numbers to floating point
                     if self._force_float:
@@ -341,8 +361,9 @@ class NumpyArrayDialog(QDialog):
                         except:
                             pass
                     new_row.append(num)
-                new_values.append(ELEMENT_SEPARATOR.join(new_row))
-            new_values = ROW_SEPARATOR.join(new_values)
+                new_values.append(
+                    self._options.ELEMENT_SEPARATOR.join(new_row))
+            new_values = self._options.ROW_SEPARATOR.join(new_values)
             values = new_values
 
             # Check validity
@@ -358,14 +379,16 @@ class NumpyArrayDialog(QDialog):
 
             # Fix offset
             offset = self._offset
-            braces = BRACES.replace(' ', '\n' + ' '*(offset + len(prefix) - 1))
-
-            values = values.replace(ROW_SEPARATOR,  braces)
+            braces = self._options.BRACES.replace(
+                ' ',
+                '\n' + ' '*(offset + len(prefix) - 1))
+            values = values.replace(self._options.ROW_SEPARATOR,  braces)
             text = "{0}{1}{2}".format(prefix, values, suffix)
 
             self._text = text
         else:
             self._text = ''
+
         self.update_warning()
 
     def update_warning(self):
@@ -382,30 +405,24 @@ class NumpyArrayDialog(QDialog):
             self._button_warning.setToolTip('')
 
     def is_valid(self):
-        """
-        Return if the current array state is valid.
-        """
+        """Return if the current array state is valid."""
         return self._valid
 
     def text(self):
-        """
-        Return the parsed array/matrix text.
-        """
+        """Return the parsed array/matrix text."""
         return self._text
 
     @property
     def array_widget(self):
-        """
-        Return the array builder widget.
-        """
+        """Return the array builder widget."""
         return self._widget
 
 
 def test():  # pragma: no cover
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
-    dlg_table = NumpyArrayDialog(None, inline=False)
-    dlg_inline = NumpyArrayDialog(None, inline=True)
+    dlg_table = ArrayBuilderDialog(None, inline=False)
+    dlg_inline = ArrayBuilderDialog(None, inline=True)
     dlg_table.show()
     dlg_inline.show()
     app.exec_()

@@ -47,29 +47,32 @@ def editor_splitter_bot(qtbot):
 
 
 @pytest.fixture
-def editor_splitter_lsp(qtbot_module, lsp_manager, request):
+def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
     text = """
     import sys
     """
+    completions = lsp_plugin
 
     def report_file_open(options):
         filename = options['filename']
         language = options['language']
         callback = options['codeeditor']
-        lsp_manager.register_file(
+        completions.register_file(
             language.lower(), filename, callback)
-        settings = lsp_manager.main.editor.lsp_editor_settings['python']
-        callback.start_lsp_services(settings)
+        settings = completions.main.editor.lsp_editor_settings['python']
+        callback.start_completion_services()
+        callback.update_completion_configuration(settings)
 
         with qtbot_module.waitSignal(
                 callback.lsp_response_signal, timeout=30000):
             callback.document_did_open()
 
     def register_editorstack(editorstack):
-        editorstack.perform_lsp_request.connect(lsp_manager.send_request)
+        editorstack.sig_perform_completion_request.connect(
+            completions.send_request)
         editorstack.sig_open_file.connect(report_file_open)
-        settings = lsp_manager.main.editor.lsp_editor_settings['python']
-        editorstack.notify_server_ready('python', settings)
+        settings = completions.main.editor.lsp_editor_settings['python']
+        editorstack.update_server_configuration('python', settings)
 
     def clone(editorstack, template=None):
         # editorstack.clone_from(template)
@@ -97,7 +100,8 @@ def editor_splitter_lsp(qtbot_module, lsp_manager, request):
         editorsplitter.close()
 
     request.addfinalizer(teardown)
-    return editorsplitter, lsp_manager
+    lsp = completions.get_client('lsp')
+    return editorsplitter, lsp
 
 
 @pytest.fixture
@@ -396,7 +400,7 @@ def test_set_layout_settings_goto(editor_splitter_layout_bot):
 @pytest.mark.skipif(os.name == 'nt',
                     reason="Makes other tests fail on Windows")
 def test_lsp_splitter_close(editor_splitter_lsp):
-    """Test for issue #9341"""
+    """Test for spyder-ide/spyder#9341."""
     editorsplitter, lsp_manager = editor_splitter_lsp
 
     editorsplitter.split()
