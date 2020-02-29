@@ -33,7 +33,6 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
 # Local imports
 from spyder.config.base import (_, get_image_path, get_module_source_path,
                                 running_under_pytest)
-from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
@@ -413,8 +412,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.disable_stop_button()
             # set click event handler
             self.stop_button.clicked.connect(self.stop_button_click_handler)
-            if is_dark_interface():
-                self.stop_button.setStyleSheet("QToolButton{padding: 3px;}")
         if self.stop_button is not None:
             buttons.append(self.stop_button)
 
@@ -426,8 +423,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                     icon=ima.icon('editdelete'),
                                     tip=_("Remove all variables"),
                                     triggered=self.reset_namespace)
-            if is_dark_interface():
-                self.reset_button.setStyleSheet("QToolButton{padding: 3px;}")
         if self.reset_button is not None:
             buttons.append(self.reset_button)
 

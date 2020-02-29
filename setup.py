@@ -228,7 +228,7 @@ install_requires = [
     'python-language-server[all]>=0.31.2,<0.32.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
-    'qdarkstyle>=2.7',
+    'qdarkstyle>=2.8',
     'qtawesome>=0.5.7',
     'qtconsole>=4.6.0',
     'qtpy>=1.5.0',
