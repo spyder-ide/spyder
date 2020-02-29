@@ -52,6 +52,7 @@ if not hasattr(sys, 'argv'):
 # =============================================================================
 IS_EXT_INTERPRETER = os.environ.get('SPY_EXTERNAL_INTERPRETER') == "True"
 HIDE_CMD_WINDOWS = os.environ.get('SPY_HIDE_CMD') == "True"
+SHOW_INVALID_SYNTAX_MSG = True
 
 
 # =============================================================================
@@ -142,6 +143,44 @@ else:
     except KeyError:
         pass
 
+
+# =============================================================================
+# Patch PyQt4 and PyQt5
+# =============================================================================
+# This saves the QApplication instances so that Python doesn't destroy them.
+# Python sees all the QApplication as differnet Python objects, while
+# Qt sees them as a singleton (There is only one Application!). Deleting one
+# QApplication causes all the other Python instances to become broken.
+# See spyder-ide/spyder/issues/2970
+try:
+    from PyQt5 import QtWidgets
+
+    class SpyderQApplication(QtWidgets.QApplication):
+        def __init__(self, *args, **kwargs):
+            super(SpyderQApplication, self).__init__(*args, **kwargs)
+            # Add reference to avoid destruction
+            # This creates a Memory leak but avoids a Segmentation fault
+            SpyderQApplication._instance_list.append(self)
+
+    SpyderQApplication._instance_list = []
+    QtWidgets.QApplication = SpyderQApplication
+except Exception:
+    pass
+
+try:
+    from PyQt4 import QtGui
+
+    class SpyderQApplication(QtGui.QApplication):
+        def __init__(self, *args, **kwargs):
+            super(SpyderQApplication, self).__init__(*args, **kwargs)
+            # Add reference to avoid destruction
+            # This creates a Memory leak but avoids a Segmentation fault
+            SpyderQApplication._instance_list.append(self)
+
+    SpyderQApplication._instance_list = []
+    QtGui.QApplication = SpyderQApplication
+except Exception:
+    pass
 
 # =============================================================================
 # IPython adjustments
@@ -358,8 +397,34 @@ def get_debugger(filename):
     return debugger, filename
 
 
+def count_leading_empty_lines(cell):
+    """Count the number of leading empty cells."""
+    if PY2:
+        lines = cell.splitlines(True)
+    else:
+        lines = cell.splitlines(keepends=True)
+    if not lines:
+        return 0
+    for i, line in enumerate(lines):
+        if line and not line.isspace():
+            return i
+    return len(lines)
+
+
+def transform_cell(code):
+    """Transform ipython code to python code."""
+    tm = TransformerManager()
+    number_empty_lines = count_leading_empty_lines(code)
+    code = tm.transform_cell(code)
+    if PY2:
+        return code
+    return '\n' * number_empty_lines + code
+
+
 def exec_code(code, filename, ns_globals, ns_locals=None):
     """Execute code and display any exception."""
+    global SHOW_INVALID_SYNTAX_MSG
+
     if PY2:
         filename = encode(filename)
         code = encode(code)
@@ -367,14 +432,35 @@ def exec_code(code, filename, ns_globals, ns_locals=None):
     ipython_shell = get_ipython()
     is_ipython = os.path.splitext(filename)[1] == '.ipy'
     try:
-        if is_ipython:
-            # transform code
-            tm = TransformerManager()
-            if not PY2:
-                # Avoid removing lines
-                tm.cleanup_transforms = []
-            code = tm.transform_cell(code)
-        exec(compile(code, filename, 'exec'), ns_globals, ns_locals)
+        if not is_ipython:
+            # TODO: remove the try-except and let the SyntaxError raise
+            # Because there should not be ipython code in a python file
+            try:
+                compiled = compile(code, filename, 'exec')
+            except SyntaxError as e:
+                try:
+                    compiled = compile(transform_cell(code), filename, 'exec')
+                except SyntaxError:
+                    if PY2:
+                        raise e
+                    else:
+                        # Need to call exec to avoid Syntax Error in Python 2.
+                        # TODO: remove exec when dropping Python 2 support.
+                        exec("raise e from None")
+                else:
+                    if SHOW_INVALID_SYNTAX_MSG:
+                        _print(
+                            "\nWARNING: This is not valid Python code. "
+                            "If you want to use IPython magics, "
+                            "flexible indentation, and prompt removal, "
+                            "please save this file with the .ipy extension. "
+                            "This will be an error in a future version of "
+                            "Spyder.\n")
+                        SHOW_INVALID_SYNTAX_MSG = False
+        else:
+            compiled = compile(transform_cell(code), filename, 'exec')
+
+        exec(compiled, ns_globals, ns_locals)
     except SystemExit as status:
         # ignore exit(0)
         if status.code:
