@@ -32,7 +32,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
 
 # Local imports
 from spyder.config.base import _, running_under_pytest
-from spyder.config.gui import is_dark_interface
+from spyder.config.gui import is_dark_interface, STYLE_BUTTON_CSS
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -867,14 +867,7 @@ class EditorStack(QWidget):
 
         menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
-        # Don't show menu arrow and remove padding
-        if is_dark_interface():
-            menu_btn.setStyleSheet(
-                ("QToolButton::menu-indicator{image: none;}\n"
-                 "QToolButton{margin: 1px; padding: 3px;}"))
-        else:
-            menu_btn.setStyleSheet(
-                "QToolButton::menu-indicator{image: none;}")
+        menu_btn.setStyleSheet(STYLE_BUTTON_CSS)
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
