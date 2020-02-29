@@ -264,7 +264,8 @@ def varexp(line):
     except:
         import matplotlib.pyplot as pyplot
     __fig__ = pyplot.figure();
-    __items__ = getattr(pyplot, funcname[2:])(ip.user_ns[name])
+    __items__ = getattr(pyplot, funcname[2:])(
+        ip.kernel._get_current_namespace()[name])
     pyplot.show()
     del __fig__, __items__
 

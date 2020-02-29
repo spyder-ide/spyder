@@ -1634,15 +1634,19 @@ def test_varexp_magic_dbg(main_window, qtbot):
     control = main_window.ipyconsole.get_focus_widget()
     control.setFocus()
 
-    # Create an object that can be plotted
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('li = [1, 2, 3]')
-
     # Click the debug button
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
     qtbot.mouseClick(debug_button, Qt.LeftButton)
-    qtbot.wait(1000)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Get to an object that can be plotted
+    for _ in range(2):
+        qtbot.keyClicks(control, 'n')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
     # Generate the plot from the Variable Explorer
     nsb.editor.plot('li', 'plot')
@@ -2991,6 +2995,56 @@ def test_runcell_after_restart(main_window, qtbot):
 
     # Make sure no errors are shown
     assert "error" not in shell._control.toPlainText().lower()
+
+@pytest.mark.slow
+@flaky(max_runs=1)
+@pytest.mark.parametrize(
+    "ipython", [True, False])
+@pytest.mark.parametrize(
+    "test_cell_magic", [True, False])
+def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
+    """Test the runcell command with cell magic."""
+    # Write code with a cell to a file
+    write_file = tmpdir.mkdir("foo").join("bar.txt")
+    assert not osp.exists(to_text_string(write_file))
+    if test_cell_magic:
+        code = "\n\n%%writefile " + to_text_string(write_file) + "\ntest\n"
+    else:
+        code = "\n\n%debug print()"
+    if ipython:
+        fn = "cell-test.ipy"
+    else:
+        fn = "cell-test.py"
+    p = tmpdir.join(fn)
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Execute runcell
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("runcell(0, r'{}')".format(to_text_string(p)))
+    control = main_window.ipyconsole.get_focus_widget()
+
+    error_text = 'save this file with the .ipy extension'
+    try:
+        if ipython:
+            if test_cell_magic:
+                qtbot.waitUntil(
+                    lambda: 'Writing' in control.toPlainText())
+
+                # Verify that the code was executed
+                assert osp.exists(to_text_string(write_file))
+            else:
+                qtbot.waitUntil(lambda: 'ipdb>' in control.toPlainText())
+            assert error_text not in control.toPlainText()
+        else:
+            qtbot.waitUntil(lambda: error_text in control.toPlainText())
+    finally:
+        if osp.exists(to_text_string(write_file)):
+            os.remove(to_text_string(write_file))
+
 
 if __name__ == "__main__":
     pytest.main()
