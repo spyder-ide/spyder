@@ -1634,15 +1634,19 @@ def test_varexp_magic_dbg(main_window, qtbot):
     control = main_window.ipyconsole.get_focus_widget()
     control.setFocus()
 
-    # Create an object that can be plotted
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('li = [1, 2, 3]')
-
     # Click the debug button
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
     qtbot.mouseClick(debug_button, Qt.LeftButton)
-    qtbot.wait(1000)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Get to an object that can be plotted
+    for _ in range(2):
+        qtbot.keyClicks(control, 'n')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
     # Generate the plot from the Variable Explorer
     nsb.editor.plot('li', 'plot')
