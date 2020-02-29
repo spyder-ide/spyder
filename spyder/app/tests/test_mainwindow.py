@@ -3027,7 +3027,7 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
         shell.execute("runcell(0, r'{}')".format(to_text_string(p)))
     control = main_window.ipyconsole.get_focus_widget()
 
-    error_text = 'save this file with .ipy extension'
+    error_text = 'save this file with the .ipy extension'
     try:
         if ipython:
             if test_cell_magic:
