@@ -705,6 +705,9 @@ class ContextDelegate(QStyledItemDelegate):
 
 
 class SequenceDelegate(QStyledItemDelegate):
+    """
+    This delegate is used to display shortcut keybinds as a button.
+    """
 
     def __init__(self, parent, margins=0):
         super(SequenceDelegate, self).__init__(parent)
@@ -714,6 +717,9 @@ class SequenceDelegate(QStyledItemDelegate):
         self._widget.hide()
 
     def paint(self, painter, option, index):
+        """
+        Override Qt method to paint the associated keybind in a pushbutton.
+        """
         button = QStyleOptionButton()
 
         self._widget.setDefault(bool(option.state & QStyle.State_HasFocus))
