@@ -825,7 +825,8 @@ class ShortcutsTable(QTableView):
                             sh2.context == '_'):
                         conflicts.append((sh1, sh2))
         if conflicts:
-            self.parent().show_this_page.emit()
+            if self.parent() is not None:
+                self.parent().show_this_page.emit()
             cstr = "\n".join(['%s <---> %s' % (sh1, sh2)
                               for sh1, sh2 in conflicts])
             QMessageBox.warning(self, _("Conflicts"),
