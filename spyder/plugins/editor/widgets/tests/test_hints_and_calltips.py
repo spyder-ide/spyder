@@ -15,6 +15,10 @@ from qtpy.QtCore import Qt, QPoint
 from qtpy.QtGui import QTextCursor
 import pytest
 
+# Local imports
+from spyder.plugins.editor.extensions.closebrackets import (
+        CloseBracketsExtension)
+
 # Constants
 PY2 = sys.version[0] == '2'
 TEST_SIG = 'some_function(foo={}, hello=None)'
@@ -80,6 +84,12 @@ def test_get_calltips(qtbot, lsp_codeeditor, params):
     code_editor.moveCursor(QTextCursor.End)
 
     code_editor.calltip_widget.hide()
+
+    # Test with brackets autocompletion enable/disable
+    bracket_extension = code_editor.editor_extensions.get(
+        CloseBracketsExtension)
+
+    # Bracket autocompletion enabled
     with qtbot.waitSignal(code_editor.sig_signature_invoked,
                           timeout=30000) as blocker:
         qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=1000)
@@ -94,6 +104,25 @@ def test_get_calltips(qtbot, lsp_codeeditor, params):
         assert expected_output_text in output_text
         code_editor.calltip_widget.hide()
 
+    # Bracket autocompletion disabled
+    bracket_extension.enable = False
+    with qtbot.waitSignal(code_editor.sig_signature_invoked,
+                          timeout=30000) as blocker:
+        qtbot.keyPress(code_editor, Qt.Key_ParenLeft, delay=1000)
+
+        # This is needed to leave time for the calltip to appear
+        # and make the tests succeed
+        qtbot.wait(2000)
+
+        args = blocker.args
+        print('args:', [args])
+        output_text = args[0]['signatures']['label']
+        assert expected_output_text in output_text
+        code_editor.calltip_widget.hide()
+
+    # Set bracket autocomplete to default value
+    bracket_extension.enable = True
+
 
 @pytest.mark.slow
 @pytest.mark.second
@@ -101,9 +130,6 @@ def test_get_calltips(qtbot, lsp_codeeditor, params):
                     reason="Fails on Windows and Linux on CI")
 @pytest.mark.parametrize('params', [
             # Parameter, Expected Output
-            ('dict', '' if PY2 else 'dict'),
-            ('type', 'type'),
-            ('range', 'range'),
             ('"".format', '-> str'),
             ('import math', 'module'),
             (TEST_TEXT, TEST_DOCSTRING)
@@ -139,3 +165,27 @@ def test_get_hints(qtbot, lsp_codeeditor, params, capsys):
         # This checks that code_editor.log_lsp_handle_errors was not called
         captured = capsys.readouterr()
         assert captured.err == ''
+
+
+@pytest.mark.slow
+@pytest.mark.second
+@pytest.mark.skipif(sys.platform != 'darwin',
+                    reason="Fails on Windows and Linux")
+def test_get_hints_not_triggered(qtbot, lsp_codeeditor):
+    """Test that the editor is not returning hover hints for empty docs."""
+    code_editor, _ = lsp_codeeditor
+
+    # Set text in editor
+    code_editor.set_text('def test():\n    pass\n\ntest')
+
+    # Get cursor coordinates
+    code_editor.moveCursor(QTextCursor.End)
+    qtbot.keyPress(code_editor, Qt.Key_Left)
+    x, y = code_editor.get_coordinates('cursor')
+    point = code_editor.calculate_real_position(QPoint(x, y))
+
+    with qtbot.waitSignal(code_editor.sig_display_object_info, timeout=30000):
+        qtbot.mouseMove(code_editor, point)
+        qtbot.mouseClick(code_editor, Qt.LeftButton, pos=point)
+        qtbot.wait(1000)
+        assert not code_editor.tooltip_widget.isVisible()

@@ -131,10 +131,15 @@ class PluginWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Reimplement Qt method."""
+        self.plugin.set_ancestor(self.plugin.main)
         self.plugin.dockwidget.setWidget(self.plugin)
         self.plugin.dockwidget.setVisible(True)
         self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
+        # Qt might want to do something with this soon,
+        # So it should not be deleted by python yet.
+        # Fixes spyder-ide/spyder#10704
+        self.plugin.__unsafe__window = self
         self.plugin._undocked_window = None
 
 
@@ -356,7 +361,7 @@ class BasePluginWidgetMixin(object):
         window.setCentralWidget(self)
         window.resize(self.size())
         self.refresh_plugin()
-
+        self.set_ancestor(window)
         self.dockwidget.setFloating(False)
         self.dockwidget.setVisible(False)
 

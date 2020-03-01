@@ -18,13 +18,14 @@ import os.path as osp
 import signal
 import subprocess
 import sys
+import time
 
 # Third-party imports
 from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
 import zmq
 
 # Local imports
-from spyder.config.base import (get_conf_path, get_debug_level,
+from spyder.config.base import (DEV, get_conf_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.completion.languageserver import (
     CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
@@ -322,9 +323,25 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             }
 
         logger.debug('{} request: {}'.format(self.language, method))
-        self.zmq_out_socket.send_pyobj(msg)
-        self.request_seq += 1
-        return int(_id)
+
+        # Try sending a message. If the send queue is full, keep trying for a
+        # a second before giving up.
+        timeout = 1
+        start_time = time.time()
+        timeout_time = start_time + timeout
+        while True:
+            try:
+                self.zmq_out_socket.send_pyobj(msg, flags=zmq.NOBLOCK)
+                self.request_seq += 1
+                return int(_id)
+            except zmq.error.Again:
+                if time.time() > timeout_time:
+                    self.sig_lsp_down.emit(self.language)
+                    return
+                # The send queue is full! wait 0.1 seconds before retrying.
+                if self.initialized:
+                    logger.warning("The send queue is full! Retrying...")
+                time.sleep(.1)
 
     @Slot()
     def on_msg_received(self):
@@ -345,13 +362,16 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     logger.debug('{} Response error: {}'
                                  .format(self.language, repr(resp['error'])))
                     if self.language == 'python':
-                        message = resp['error'].get('message', '')
-                        traceback = (resp['error'].get('data', {}).
-                                     get('traceback'))
-                        if traceback is not None:
-                            traceback = ''.join(traceback)
-                            traceback = traceback + '\n' + message
-                            self.sig_server_error.emit(traceback)
+                        # Show PyLS errors in our error report dialog only in
+                        # debug or development modes
+                        if get_debug_level() > 0 or DEV:
+                            message = resp['error'].get('message', '')
+                            traceback = (resp['error'].get('data', {}).
+                                         get('traceback'))
+                            if traceback is not None:
+                                traceback = ''.join(traceback)
+                                traceback = traceback + '\n' + message
+                                self.sig_server_error.emit(traceback)
                         req_id = resp['id']
                         if req_id in self.req_reply:
                             self.req_reply[req_id](None, {'params': []})

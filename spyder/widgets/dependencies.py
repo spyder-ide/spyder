@@ -19,6 +19,7 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
 # Local imports
 from spyder import __version__
 from spyder.config.base import _
+from spyder.dependencies import MANDATORY, OPTIONAL, PLUGIN
 from spyder.utils import icon_manager as ima
 
 
@@ -29,32 +30,48 @@ class DependenciesTreeWidget(QTreeWidget):
         headers = (_("Module"), _("Package name"), _(" Required "),
                    _(" Installed "), _("Provided features"))
         self.setHeaderLabels(headers)
-        mandatory_item = QTreeWidgetItem(["Mandatory"])
+
+        # Mandatory items
+        mandatory_item = QTreeWidgetItem([_("Mandatory")])
         font = mandatory_item.font(0)
         font.setBold(True)
         mandatory_item.setFont(0, font)
-        optional_item = QTreeWidgetItem(["Optional"])
-        optional_item.setFont(0, font)
-        self.addTopLevelItems([mandatory_item, optional_item])
 
-        for dependency in dependencies:
+        # Optional items
+        optional_item = QTreeWidgetItem([_("Optional")])
+        optional_item.setFont(0, font)
+
+        # Spyder plugins
+        spyder_plugins = QTreeWidgetItem([_("Spyder plugins")])
+        spyder_plugins.setFont(0, font)
+
+        self.addTopLevelItems([mandatory_item, optional_item, spyder_plugins])
+
+        for dependency in sorted(dependencies,
+                                 key=lambda x: x.modname.lower()):
             item = QTreeWidgetItem([dependency.modname,
                                     dependency.package_name,
                                     dependency.required_version,
                                     dependency.installed_version,
                                     dependency.features])
+            # Format content
             if dependency.check():
                 item.setIcon(0, ima.icon('dependency_ok'))
-            elif dependency.optional:
+            elif dependency.kind == OPTIONAL:
                 item.setIcon(0, ima.icon('dependency_warning'))
                 item.setForeground(2, QColor('#ff6a00'))
             else:
                 item.setIcon(0, ima.icon('dependency_error'))
                 item.setForeground(2, QColor(Qt.darkRed))
-            if dependency.optional:
+
+            # Add to tree
+            if dependency.kind == OPTIONAL:
                 optional_item.addChild(item)
+            elif dependency.kind == PLUGIN:
+                spyder_plugins.addChild(item)
             else:
                 mandatory_item.addChild(item)
+
         self.expandAll()
 
     def resize_columns_to_contents(self):
@@ -63,25 +80,27 @@ class DependenciesTreeWidget(QTreeWidget):
 
 
 class DependenciesDialog(QDialog):
+
     def __init__(self, parent):
         QDialog.__init__(self, parent)
-        self.setWindowTitle("Spyder %s: %s" % (__version__,
-                                               _("Dependencies")))
-        self.setWindowIcon(ima.icon('tooloptions'))
-        self.setModal(True)
 
-        self.treewidget = DependenciesTreeWidget(self)
-
+        # Widgets
         self.label = QLabel(_("Optional modules are not required to run "
                               "Spyder but enhance its functions."))
         self.label2 = QLabel(_("<b>Note:</b> New dependencies or changed ones "
                                "will be correctly detected only after Spyder "
                                "is restarted."))
-
+        self.treewidget = DependenciesTreeWidget(self)
         btn = QPushButton(_("Copy to clipboard"), )
-        btn.clicked.connect(self.copy_to_clipboard)
         bbox = QDialogButtonBox(QDialogButtonBox.Ok)
-        bbox.accepted.connect(self.accept)
+
+        # Widget setup
+        self.setWindowTitle("Spyder %s: %s" % (__version__,
+                                               _("Dependencies")))
+        self.setWindowIcon(ima.icon('tooloptions'))
+        self.setModal(True)
+
+        # Layout
         hlayout = QHBoxLayout()
         hlayout.addWidget(btn)
         hlayout.addStretch()
@@ -95,6 +114,10 @@ class DependenciesDialog(QDialog):
 
         self.setLayout(vlayout)
         self.resize(860, 560)
+
+        # Signals
+        btn.clicked.connect(self.copy_to_clipboard)
+        bbox.accepted.connect(self.accept)
 
     def set_data(self, dependencies):
         self.treewidget.update_dependencies(dependencies)
@@ -115,10 +138,10 @@ def test():
     dependencies.add("matplotlib", "matplotlib", "Interactive data plotting",
                      ">=1.0")
     dependencies.add("sympy", "sympy", "Symbolic Mathematics", ">=10.0",
-                     optional=True)
+                     kind=OPTIONAL)
     dependencies.add("foo", "foo", "Non-existent module", ">=1.0")
     dependencies.add("numpy", "numpy",  "Edit arrays in Variable Explorer",
-                     ">=0.10", optional=True)
+                     ">=0.10", kind=OPTIONAL)
 
     from spyder.utils.qthelpers import qapplication
     app = qapplication()

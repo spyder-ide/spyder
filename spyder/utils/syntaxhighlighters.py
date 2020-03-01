@@ -162,6 +162,8 @@ class BaseSH(QSyntaxHighlighter):
     BLANK_ALPHA_FACTOR = 0.31
 
     sig_outline_explorer_data_changed = Signal()
+    # Signal to advertise a new cell
+    sig_new_cell = Signal(OutlineExplorerData)
 
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
@@ -311,7 +313,8 @@ class BaseSH(QSyntaxHighlighter):
                     font = self.format(start)
                     font.setUnderlineStyle(True)
                     self.setFormat(start, end - start, font)
-            match = self.patterns.search(text, end)
+
+            match = self.patterns.search(text, match.end())
 
     def highlight_spaces(self, text, offset=0):
         """
@@ -358,9 +361,12 @@ class BaseSH(QSyntaxHighlighter):
 
 
 class TextSH(BaseSH):
-    """Simple Text Syntax Highlighter Class (only highlight spaces)"""
+    """Simple Text Syntax Highlighter Class (only highlight spaces)."""
+
     def highlight_block(self, text):
         """Implement highlight, only highlight spaces."""
+        text = to_text_string(text)
+        self.setFormat(0, qstring_length(text), self.formats["normal"])
         self.highlight_extras(text)
 
 
@@ -535,6 +541,8 @@ class PythonSH(BaseSH):
                     oedata.def_type = OutlineExplorerData.CELL
                     def_name = get_code_cell_name(text)
                     oedata.def_name = def_name
+                    # Let the editor know a new cell was added in the document
+                    self.sig_new_cell.emit(oedata)
                 elif self.OECOMMENT.match(text.lstrip()):
                     oedata = OutlineExplorerData(self.currentBlock())
                     oedata.text = to_text_string(text).strip()

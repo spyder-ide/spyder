@@ -7,7 +7,7 @@
 """Mix-in classes
 
 These classes were created to be able to provide Spyder's regular text and
-console widget features to an independant widget based on QTextEdit for the
+console widget features to an independent widget based on QTextEdit for the
 IPython console plugin.
 """
 
@@ -548,7 +548,7 @@ class BaseEditMixin(object):
         # Find position of calltip
         point = self._calculate_position()
         signature = signature.strip()
-
+        inspect_word = None
         language = getattr(self, 'language', language).lower()
         if language == 'python' and signature:
             inspect_word = signature.split('(')[0]
@@ -635,17 +635,20 @@ class BaseEditMixin(object):
         html_signature, extra_text, _ = res
         point = self.get_word_start_pos(at_point)
 
-        # This is needed to get hover hints
-        cursor = self.cursorForPosition(at_point)
-        cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
-        self._last_hover_cursor = cursor
+        # Only display hover hint if there is documentation
+        if extra_text is not None:
+            # This is needed to get hover hints
+            cursor = self.cursorForPosition(at_point)
+            cursor.movePosition(QTextCursor.StartOfWord,
+                                QTextCursor.MoveAnchor)
+            self._last_hover_cursor = cursor
 
-        self.show_tooltip(signature=html_signature, text=extra_text,
-                          at_point=point, inspect_word=inspect_word,
-                          display_link=True, max_lines=max_lines,
-                          max_width=max_width, cursor=cursor,
-                          text_new_line=text_new_line,
-                          completion_doc=completion_doc)
+            self.show_tooltip(signature=html_signature, text=extra_text,
+                              at_point=point, inspect_word=inspect_word,
+                              display_link=True, max_lines=max_lines,
+                              max_width=max_width, cursor=cursor,
+                              text_new_line=text_new_line,
+                              completion_doc=completion_doc)
 
     def hide_tooltip(self):
         """
@@ -763,6 +766,15 @@ class BaseEditMixin(object):
     def get_cursor_line_number(self):
         """Return cursor line number"""
         return self.textCursor().blockNumber()+1
+
+    def get_position_line_number(self, line, col):
+        """Get position offset from (line, col) coordinates."""
+        block = self.document().findBlockByNumber(line)
+        cursor = QTextCursor(block)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor,
+                            n=col + 1)
+        return cursor.position()
 
     def set_cursor_position(self, position):
         """Set cursor position"""
@@ -930,7 +942,7 @@ class BaseEditMixin(object):
             self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
 
-    def get_current_word_and_position(self, completion=False):
+    def get_current_word_and_position(self, completion=False, help_req=False):
         """Return current word, i.e. word at cursor position,
             and the start position."""
         cursor = self.textCursor()
@@ -954,18 +966,22 @@ class BaseEditMixin(object):
                 curs = self.textCursor()
                 curs.movePosition(move, QTextCursor.KeepAnchor)
                 return not to_text_string(curs.selectedText()).strip()
-            if not completion:
-                if is_space(QTextCursor.NextCharacter):
-                    if is_space(QTextCursor.PreviousCharacter):
-                        return
-                    cursor.movePosition(QTextCursor.WordLeft)
-            else:
-                def is_special_character(move):
+
+            def is_special_character(move):
                     curs = self.textCursor()
                     curs.movePosition(move, QTextCursor.KeepAnchor)
                     text_cursor = to_text_string(curs.selectedText()).strip()
                     return len(re.findall(r'([^\d\W]\w*)',
                                           text_cursor, re.UNICODE)) == 0
+            if help_req:
+                if is_special_character(QTextCursor.NoMove):
+                    cursor.movePosition(QTextCursor.WordLeft)
+            elif not completion:
+                if is_space(QTextCursor.NextCharacter):
+                    if is_space(QTextCursor.PreviousCharacter):
+                        return
+                    cursor.movePosition(QTextCursor.WordLeft)
+            else:
                 if is_space(QTextCursor.PreviousCharacter):
                     return
                 if (is_special_character(QTextCursor.NextCharacter)):
@@ -981,9 +997,10 @@ class BaseEditMixin(object):
                 text = text[:cursor_pos - startpos]
             return text, startpos
 
-    def get_current_word(self, completion=False):
+    def get_current_word(self, completion=False, help_req=False):
         """Return current word, i.e. word at cursor position."""
-        ret = self.get_current_word_and_position(completion)
+        ret = self.get_current_word_and_position(
+            completion=completion, help_req=help_req)
         if ret is not None:
             return ret[0]
 
@@ -1325,15 +1342,7 @@ class GetHelpMixin(object):
         self.help_enabled = state
 
     def inspect_current_object(self):
-        text = ''
-        text1 = self.get_text('sol', 'cursor')
-        tl1 = re.findall(r'([a-zA-Z_]+[0-9a-zA-Z_\.]*)', text1)
-        if tl1 and text1.endswith(tl1[-1]):
-            text += tl1[-1]
-        text2 = self.get_text('cursor', 'eol')
-        tl2 = re.findall(r'([0-9a-zA-Z_\.]+[0-9a-zA-Z_\.]*)', text2)
-        if tl2 and text2.startswith(tl2[0]):
-            text += tl2[0]
+        text = self.get_current_word(help_req=True)
         if text:
             self.show_object_info(text, force=True)
 

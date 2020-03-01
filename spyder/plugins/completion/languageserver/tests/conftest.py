@@ -16,6 +16,7 @@ from spyder.utils.qthelpers import qapplication
 app = qapplication()
 
 from qtpy.QtCore import QObject, Signal, Slot
+from qtpy.QtWidgets import QWidget
 import pytest
 from pytestqt.plugin import QtBot
 
@@ -63,9 +64,26 @@ class ProjectsMock(QObject):
 
 
 class MainWindowMock(QObject):
-    """Mock for the Main Window."""
+    """Mock for the Main Window as a widget."""
     def __init__(self):
         QObject.__init__(self)
+        self.editor = EditorMock()
+        self.projects = ProjectsMock()
+
+    def __getattr__(self, attr):
+        if attr == 'editor':
+            return self.editor
+        elif attr == 'projects':
+            # TODO: Add tests for project switching
+            return self.projects
+        else:
+            return Mock()
+
+
+class MainWindowWidgetMock(QWidget):
+    """Mock for the Main Window."""
+    def __init__(self):
+        QWidget.__init__(self)
         self.editor = EditorMock()
         self.projects = ProjectsMock()
 

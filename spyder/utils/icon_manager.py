@@ -45,6 +45,8 @@ DOCUMENT_FILES = {'vnd.ms-powerpoint': 'PowerpointFileIcon',
 OFFICE_FILES = {'.xlsx': 'ExcelFileIcon', '.docx': 'WordFileIcon',
                 '.pptx': 'PowerpointFileIcon'}
 
+ICONS_BY_EXTENSION = {}
+
 # Magnification factors for attribute icons
 # per platform
 if sys.platform.startswith('linux'):
@@ -351,7 +353,7 @@ def get_std_icon(name, size=None):
         return QIcon(icon.pixmap(size, size))
 
 
-def get_icon(name, default=None, resample=False):
+def get_icon(name, default=None, resample=False, adjust_for_interface=False):
     """Return image inside a QIcon object.
 
     default: default image name or icon
@@ -360,6 +362,10 @@ def get_icon(name, default=None, resample=False):
     created from SVG images on non-Windows platforms due to a Qt bug.
     See spyder-ide/spyder#1314.
     """
+
+    if adjust_for_interface:
+        name = (name + '_dark.svg' if is_dark_interface()
+                else name + '_light.svg')
 
     icon_path = get_image_path(name, default=None)
     if icon_path is not None:
@@ -402,29 +408,26 @@ def icon(name, scale_factor=None, resample=False, icon_path=None):
         return icon if icon is not None else QIcon()
 
 
-def get_kite_icon():
-    """Return the Kite logo taking into account the theme of the interface."""
-    icon_path = 'kite_dark.svg' if is_dark_interface() else 'kite_light.svg'
-    return QIcon(get_image_path(icon_path))
-
-
 def get_icon_by_extension_or_type(fname, scale_factor):
     """Return the icon depending on the file extension"""
     application_icons = {}
     application_icons.update(BIN_FILES)
     application_icons.update(DOCUMENT_FILES)
+
+    basename = osp.basename(fname)
+    __, extension = osp.splitext(basename.lower())
+    mime_type, __ = mime.guess_type(basename)
+
     if osp.isdir(fname):
-        return icon('DirOpenIcon', scale_factor)
+        extension = "Folder"
+
+    if (extension, scale_factor) in ICONS_BY_EXTENSION:
+        return ICONS_BY_EXTENSION[(extension, scale_factor)]
+
+    if osp.isdir(fname):
+        icon_by_extension = icon('DirOpenIcon', scale_factor)
     else:
-        basename = osp.basename(fname)
-        __, extension = osp.splitext(basename.lower())
-        mime_type, __ = mime.guess_type(basename)
-        if is_dark_interface():
-            icon_by_extension = QIcon(
-                get_image_path('binary.svg'))
-        else:
-            icon_by_extension = QIcon(
-                get_image_path('binary_light.svg'))
+        icon_by_extension = get_icon('binary', adjust_for_interface=True)
 
         if extension in OFFICE_FILES:
             icon_by_extension = icon(OFFICE_FILES[extension], scale_factor)
@@ -433,19 +436,11 @@ def get_icon_by_extension_or_type(fname, scale_factor):
             icon_by_extension = icon(LANGUAGE_ICONS[extension], scale_factor)
         else:
             if extension == '.ipynb':
-                if is_dark_interface():
-                    icon_by_extension = QIcon(
-                        get_image_path('notebook_dark.svg'))
-                else:
-                    icon_by_extension = QIcon(
-                        get_image_path('notebook_light.svg'))
+                icon_by_extension = get_icon('notebook',
+                                             adjust_for_interface=True)
             elif extension == '.tex':
-                if is_dark_interface():
-                    icon_by_extension = QIcon(
-                        get_image_path('file_type_tex.svg'))
-                else:
-                    icon_by_extension = QIcon(
-                        get_image_path('file_type_light_tex.svg'))
+                icon_by_extension = get_icon('file_type_tex',
+                                             adjust_for_interface=True)
             elif is_text_file(fname):
                 icon_by_extension = icon('TextFileIcon', scale_factor)
             elif mime_type is not None:
@@ -461,12 +456,8 @@ def get_icon_by_extension_or_type(fname, scale_factor):
                 except ValueError:
                     file_type = None
                 if file_type is None:
-                    if is_dark_interface():
-                        icon_by_extension = QIcon(
-                            get_image_path('binary.svg'))
-                    else:
-                        icon_by_extension = QIcon(
-                            get_image_path('binary_light.svg'))
+                    icon_by_extension = get_icon('binary',
+                                                 adjust_for_interface=True)
                 elif file_type == 'audio':
                     icon_by_extension = icon('AudioFileIcon', scale_factor)
                 elif file_type == 'video':
@@ -477,6 +468,8 @@ def get_icon_by_extension_or_type(fname, scale_factor):
                     if bin_name in application_icons:
                         icon_by_extension = icon(
                             application_icons[bin_name], scale_factor)
+
+    ICONS_BY_EXTENSION[(extension, scale_factor)] = icon_by_extension
     return icon_by_extension
 
 

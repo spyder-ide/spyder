@@ -278,7 +278,14 @@ class ShortcutEditor(QDialog):
 
     def event(self, event):
         """Qt method override."""
-        if event.type() in (QEvent.Shortcut, QEvent.ShortcutOverride):
+        # We reroute all ShortcutOverride events to our keyPressEvent and block
+        # any KeyPress and Shortcut event. This allows to register default
+        # Qt shortcuts for which no key press event are emitted.
+        # See spyder-ide/spyder/issues/10786.
+        if event.type() == QEvent.ShortcutOverride:
+            self.keyPressEvent(event)
+            return True
+        elif event.type() in [QEvent.KeyPress, QEvent.Shortcut]:
             return True
         else:
             return super(ShortcutEditor, self).event(event)
@@ -968,14 +975,17 @@ class ShortcutsConfigPage(GeneralConfigPage):
     def check_settings(self):
         self.table.check_shortcuts()
 
-    def reset_to_default(self):
+    def reset_to_default(self, force=False):
         """Reset to default values of the shortcuts making a confirmation."""
-        reset = QMessageBox.warning(self, _("Shortcuts reset"),
-                                    _("Do you want to reset "
-                                      "to default values?"),
-                                    QMessageBox.Yes | QMessageBox.No)
-        if reset == QMessageBox.No:
-            return
+        if not force:
+            reset = QMessageBox.warning(
+                self,
+                _("Shortcuts reset"),
+                _("Do you want to reset to default values?"),
+                QMessageBox.Yes | QMessageBox.No)
+            if reset == QMessageBox.No:
+                return
+
         CONF.reset_shortcuts()
         self.main.apply_shortcuts()
         self.table.load_shortcuts()

@@ -4,14 +4,32 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Autosave components for the Editor plugin and the EditorStack widget"""
+"""
+Autosave components for the Editor plugin and the EditorStack widget
+
+The autosave system regularly checks the contents of all opened files and saves
+a copy in the autosave directory if the contents are different from the
+autosave file (if it exists) or original file (if there is no autosave file).
+
+The mapping between original files and autosave files is stored in the
+variable `name_mapping` and saved in the file `pidNNN.txt` in the autosave
+directory, where `NNN` stands for the pid. This filename is chosen so that
+multiple instances of Spyder can run simultaneously.
+
+File contents are compared using their hash. The variable `file_hashes`
+contains the hash of all files currently open in the editor and all autosave
+files.
+
+On startup, the contents of the autosave directory is checked and if autosave
+files are found, the user is asked whether to recover them;
+see `spyder/plugins/editor/widgets/recover.py`.
+"""
 
 # Standard library imports
 import ast
 import logging
 import os
 import os.path as osp
-import pprint
 import re
 
 # Third party imports
@@ -21,6 +39,7 @@ from qtpy.QtCore import QTimer
 from spyder.config.base import _, get_conf_path, running_under_pytest
 from spyder.plugins.editor.widgets.autosaveerror import AutosaveErrorDialog
 from spyder.plugins.editor.widgets.recover import RecoveryDialog
+from spyder.py3compat import PY2
 from spyder.utils.programs import is_spyder_process
 
 
@@ -146,7 +165,14 @@ class AutosaveForPlugin(object):
                 logger.debug('Reading pid file: {}'.format(full_name))
                 with open(full_name) as pidfile:
                     txt = pidfile.read()
-                    txt_as_dict = ast.literal_eval(txt)
+                    try:
+                        txt_as_dict = ast.literal_eval(txt)
+                    except (SyntaxError, ValueError):
+                        # Pid file got corrupted, see spyder-ide/spyder#11375
+                        logger.error('Error parsing pid file {}'
+                                     .format(full_name))
+                        logger.error('Contents: {}'.format(repr(txt)))
+                        txt_as_dict = {}
                     files_mentioned += [autosave for (orig, autosave)
                                         in txt_as_dict.items()]
                 pid = int(match.group(1))
@@ -255,7 +281,10 @@ class AutosaveForStack(object):
         pidfile_name = osp.join(autosave_dir, 'pid{}.txt'.format(my_pid))
         if self.name_mapping:
             with open(pidfile_name, 'w') as pidfile:
-                pidfile.write(pprint.pformat(self.name_mapping))
+                if PY2:
+                    pidfile.write(repr(self.name_mapping))
+                else:
+                    pidfile.write(ascii(self.name_mapping))
         else:
             try:
                 os.remove(pidfile_name)
@@ -332,7 +361,15 @@ class AutosaveForStack(object):
         if finfo.newly_created:
             return
         orig_filename = finfo.filename
-        orig_hash = self.file_hashes[orig_filename]
+        try:
+            orig_hash = self.file_hashes[orig_filename]
+        except KeyError:
+            # This should not happen, but it does: spyder-ide/spyder#11468
+            # In this case, use an impossible value for the hash, so that
+            # contents of buffer are considered different from contents of
+            # original file.
+            logger.error('KeyError when retrieving hash of %s', orig_filename)
+            orig_hash = None
         new_hash = self.stack.compute_hash(finfo)
         if orig_filename in self.name_mapping:
             autosave_filename = self.name_mapping[orig_filename]

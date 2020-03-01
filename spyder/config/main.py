@@ -93,7 +93,6 @@ DEFAULTS = [
               'toolbars_visible': True,
               'cursor/width': 2,
               'completion/size': (300, 180),
-              'report_error/remember_me': False,
               'report_error/remember_token': False,
               }),
             ('quick_layouts',
@@ -270,6 +269,7 @@ DEFAULTS = [
               'name_filters': NAME_FILTERS,
               'show_all': True,
               'show_hscrollbar': True,
+              'max_recent_projects': 10,
               'visible_if_project_open': True
               }),
             ('explorer',
@@ -366,10 +366,10 @@ DEFAULTS = [
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
-              'editor/duplicate line': "Ctrl+Alt+Up" if WIN else \
-                                       "Shift+Alt+Up",
-              'editor/copy line': "Ctrl+Alt+Down" if WIN else \
-                                  "Shift+Alt+Down",
+              'editor/duplicate line up': (
+                  "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),
+              'editor/duplicate line down': (
+                  "Ctrl+Alt+Down" if WIN else "Shift+Alt+Down"),
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
@@ -469,6 +469,12 @@ DEFAULTS = [
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
               'plots/next figure': 'Ctrl+PgDown',
+              'plots/save': 'Ctrl+S',
+              'plots/save all': 'Ctrl+Alt+S',
+              'plots/close': 'Ctrl+W',
+              'plots/close all': 'Ctrl+Shift+W',
+              'plots/zoom in': "Ctrl++",
+              'plots/zoom out': "Ctrl+-",
               # ---- In widgets/explorer ----
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
@@ -519,6 +525,7 @@ DEFAULTS = [
               # Enable the installation dialog
               'show_installation_dialog': True,
               'show_onboarding': True,
+              'show_installation_error_message': True,
              }),
             ]
 
@@ -584,6 +591,7 @@ NAME_MAP = {
             'current_project_path',
             'expanded_state',
             'recent_projects',
+            'max_recent_projects',
             'scrollbar_position',
           ]
          ),
@@ -614,4 +622,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '53.3.0'
+CONF_VERSION = '56.0.0'

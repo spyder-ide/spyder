@@ -28,8 +28,29 @@ def mixinsbot(qtbot):
     widget.show()
     return qtbot, widget
 
+
 # --- Tests
 # -----------------------------------------------------------------------------
+def test_get_current_word(mixinsbot):
+    """
+    Test that we can get the current word to get help for the editor.
+
+    For spyder-ide/spyder#11267
+    """
+    qtbot, widget = mixinsbot
+    get_current_word = widget.get_current_word
+
+    code = (u'def foo(a, b, c)\n')
+    widget.setPlainText(code)
+    cursor = widget.textCursor()
+    cursor.setPosition(widget.get_position('sof'))
+    widget.move_cursor(7)
+    current_word = get_current_word()
+    assert current_word is None
+    current_word = get_current_word(help_req=True)
+    assert current_word == 'foo'
+
+
 def test_get_unicode_regexp(mixinsbot):
     """
     Test that we can search with regexp's containing unicode

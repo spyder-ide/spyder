@@ -254,7 +254,12 @@ class FoldingPanel(Panel):
                 self._mouse_over_line)
             try:
                 self._draw_fold_region_background(block, painter)
-            except ValueError:
+            except (ValueError, KeyError):
+                # Catching the KeyError above is necessary to avoid
+                # issue spyder-ide/spyder#10918.
+                # It happens when users have the mouse on top of the
+                # folding panel and make some text modifications
+                # that trigger a folding recomputation.
                 pass
         # Draw fold triggers
         for top_position, line_number, block in self.editor.visible_blocks:
@@ -474,8 +479,8 @@ class FoldingPanel(Panel):
                     # mouse enter fold scope
                     QApplication.setOverrideCursor(
                         QCursor(Qt.PointingHandCursor))
-                if self._mouse_over_line != block.blockNumber() and \
-                        self._mouse_over_line is not None:
+                if (self._mouse_over_line != block.blockNumber() and
+                        self._mouse_over_line is not None):
                     # fold scope changed, a previous block was highlighter so
                     # we quickly update our highlighting
                     self._mouse_over_line = block.blockNumber()
@@ -483,8 +488,13 @@ class FoldingPanel(Panel):
                 else:
                     # same fold scope, request highlight
                     self._mouse_over_line = block.blockNumber()
-                    self._highlight_runner.request_job(
-                        self._highlight_block, block)
+                    try:
+                        self._highlight_runner.request_job(
+                            self._highlight_block, block)
+                    except KeyError:
+                        # Catching the KeyError above is necessary to avoid
+                        # issue spyder-ide/spyder#11291.
+                        pass
                 self._highight_block = block
             else:
                 # no fold scope to highlight, cancel any pending requests

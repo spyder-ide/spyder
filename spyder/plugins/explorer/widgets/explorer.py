@@ -131,7 +131,12 @@ class IconProvider(QFileIconProvider):
         else:
             qfileinfo = icontype_or_qfileinfo
             fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
-            return ima.get_icon_by_extension_or_type(fname, scale_factor=1.0)
+            if osp.isfile(fname) or osp.isdir(fname):
+                icon = ima.get_icon_by_extension_or_type(fname,
+                                                         scale_factor=1.0)
+            else:
+                icon = ima.get_icon('binary', adjust_for_interface=True)
+            return icon
 
 
 class DirView(QTreeView):
@@ -179,7 +184,8 @@ class DirView(QTreeView):
     #---- Model
     def setup_fs_model(self):
         """Setup filesystem model"""
-        filters = QDir.AllDirs | QDir.Files | QDir.Drives | QDir.NoDotAndDotDot
+        filters = (QDir.AllDirs | QDir.Files | QDir.Drives
+                   | QDir.NoDotAndDotDot | QDir.Hidden)
         self.fsmodel = QFileSystemModel(self)
         self.fsmodel.setFilter(filters)
         self.fsmodel.setNameFilterDisables(False)
@@ -897,7 +903,7 @@ class DirView(QTreeView):
                     return
             try:
                 misc.rename_file(fname, path)
-                if osp.isfile(fname):
+                if osp.isfile(path):
                     self.sig_renamed.emit(fname, path)
                 else:
                     self.sig_renamed_tree.emit(fname, path)

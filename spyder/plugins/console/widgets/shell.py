@@ -560,8 +560,15 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 
         self.__buffer = []
         self.insert_text(text, at_end=True, error=error, prompt=prompt)
-        QCoreApplication.processEvents()
-        self.repaint()
+
+        # The lines below are causing a hard crash when Qt generates
+        # internal warnings. We replaced them instead for self.update(),
+        # which prevents the crash.
+        # See spyder-ide/spyder#10893
+        # QCoreApplication.processEvents()
+        # self.repaint()
+        self.update()
+
         # Clear input buffer:
         self.new_input_line = True
 

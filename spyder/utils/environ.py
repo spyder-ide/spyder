@@ -82,7 +82,6 @@ class RemoteEnvDialog(CollectionsEditor):
             self.setup(
                 envdict2listdict(environ),
                 title=_("Environment variables"),
-                width=700,
                 readonly=True,
                 icon=ima.icon('environ')
             )
@@ -150,7 +149,7 @@ try:
         def __init__(self, parent=None):
             super(WinUserEnvDialog, self).__init__(parent)
             self.setup(get_user_env(),
-                       title=r"HKEY_CURRENT_USER\Environment", width=600)
+                       title=r"HKEY_CURRENT_USER\Environment")
             if parent is None:
                 parent = self
             QMessageBox.warning(parent, _("Warning"),

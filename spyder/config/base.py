@@ -347,19 +347,21 @@ DEFAULT_LANGUAGE = 'en'
 
 # This needs to be updated every time a new language is added to spyder, and is
 # used by the Preferences configuration to populate the Language QComboBox
-LANGUAGE_CODES = {'en': u'English',
-                  'fr': u'Français',
-                  'es': u'Español',
-                  'hu': u'Magyar',
-                  'pt_BR': u'Português',
-                  'ru': u'Русский',
-                  'zh_CN': u'简体中文',
-                  'ja': u'日本語',
-                  'de': u'Deutsch'
-                  }
+LANGUAGE_CODES = {
+    'en': u'English',
+    'fr': u'Français',
+    'es': u'Español',
+    'hu': u'Magyar',
+    'pt_BR': u'Português',
+    'ru': u'Русский',
+    'zh_CN': u'简体中文',
+    'ja': u'日本語',
+    'de': u'Deutsch',
+    'pl': u'Polski'
+}
 
 # Disabled languages (because their translations are outdated)
-DISABLED_LANGUAGES = []
+DISABLED_LANGUAGES = ['hu', 'ru']
 
 def get_available_translations():
     """
@@ -420,8 +422,8 @@ def get_interface_language():
             if locale_language == lang:
                 language = locale_language
                 break
-            elif locale_language.startswith(lang) or \
-              lang.startswith(locale_language):
+            elif (locale_language.startswith(lang) or
+                    lang.startswith(locale_language)):
                 language = lang
                 break
 

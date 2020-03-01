@@ -209,6 +209,8 @@ class AppearanceConfigPage(GeneralConfigPage):
                         ['color_scheme_name'])
                 if self.main.help is not None:
                     self.main.help.apply_plugin_settings(['color_scheme_name'])
+                for plugin in self.main.thirdparty_plugins:
+                    plugin.apply_plugin_settings(['color_scheme_name'])
                 self.update_combobox()
                 self.update_preview()
         else:
@@ -227,6 +229,8 @@ class AppearanceConfigPage(GeneralConfigPage):
                         ['color_scheme_name'])
                 if self.main.help is not None:
                     self.main.help.apply_plugin_settings(['color_scheme_name'])
+                for plugin in self.main.thirdparty_plugins:
+                    plugin.apply_plugin_settings(['color_scheme_name'])
                 self.update_combobox()
                 self.update_preview()
         self.main.apply_settings()

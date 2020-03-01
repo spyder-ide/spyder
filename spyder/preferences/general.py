@@ -20,16 +20,18 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QMessageBox, QTabWidget,
                             QVBoxLayout)
-if sys.platform == "darwin":
-    import applaunchservices as als
 
-from spyder.config.base import (_, LANGUAGE_CODES, running_in_mac_app,
-                                save_lang_conf)
+from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
+                                running_in_mac_app, save_lang_conf)
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import to_text_string
 import spyder.utils.icon_manager as ima
 from spyder.utils.qthelpers import (register_app_launchservices,
                                     restore_launchservices)
+
+# To open files from Finder directly in Spyder.
+if sys.platform == "darwin":
+    import applaunchservices as als
 
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
@@ -46,7 +48,12 @@ class MainConfigPage(GeneralConfigPage):
         # --- Interface
         general_group = QGroupBox(_("General"))
 
-        languages = LANGUAGE_CODES.items()
+        # Remove disabled languages
+        language_codes = LANGUAGE_CODES.copy()
+        for lang in DISABLED_LANGUAGES:
+            language_codes.pop(lang)
+
+        languages = language_codes.items()
         language_choices = sorted([(val, key) for key, val in languages])
         language_combo = self.create_combobox(_('Language:'),
                                               language_choices,
@@ -256,7 +263,7 @@ class MainConfigPage(GeneralConfigPage):
                                       "auto scaling does not work"),
                                 restart=True)
 
-        custom_scaling_edit = self.create_lineedit(
+        self.custom_scaling_edit = self.create_lineedit(
             "",
             'high_dpi_custom_scale_factors',
             tip=_("Enter values for different screens "
@@ -266,9 +273,10 @@ class MainConfigPage(GeneralConfigPage):
             regex=r"[0-9]+(?:\.[0-9]*)(;[0-9]+(?:\.[0-9]*))*",
             restart=True)
 
-        normal_radio.toggled.connect(custom_scaling_edit.setDisabled)
-        auto_scale_radio.toggled.connect(custom_scaling_edit.setDisabled)
-        custom_scaling_radio.toggled.connect(custom_scaling_edit.setEnabled)
+        normal_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
+        auto_scale_radio.toggled.connect(self.custom_scaling_edit.setDisabled)
+        custom_scaling_radio.toggled.connect(
+            self.custom_scaling_edit.setEnabled)
 
         # Layout Screen resolution
         screen_resolution_layout = QVBoxLayout()
@@ -278,7 +286,7 @@ class MainConfigPage(GeneralConfigPage):
         screen_resolution_inner_layout.addWidget(normal_radio, 0, 0)
         screen_resolution_inner_layout.addWidget(auto_scale_radio, 1, 0)
         screen_resolution_inner_layout.addWidget(custom_scaling_radio, 2, 0)
-        screen_resolution_inner_layout.addWidget(custom_scaling_edit, 2, 1)
+        screen_resolution_inner_layout.addWidget(self.custom_scaling_edit, 2, 1)
 
         screen_resolution_layout.addLayout(screen_resolution_inner_layout)
         screen_resolution_group.setLayout(screen_resolution_layout)
@@ -299,6 +307,27 @@ class MainConfigPage(GeneralConfigPage):
         self.setLayout(vlayout)
 
     def apply_settings(self, options):
+        if 'high_dpi_custom_scale_factors' in options:
+            scale_factors = self.get_option(
+                'high_dpi_custom_scale_factors').split(';')
+            change_min_scale_factor = False
+            for idx, scale_factor in enumerate(scale_factors[:]):
+                scale_factor = float(scale_factor)
+                if scale_factor < 1.0:
+                    change_min_scale_factor = True
+                    scale_factors[idx] = "1.0"
+            if change_min_scale_factor:
+                scale_factors_text = ";".join(scale_factors)
+                QMessageBox.critical(
+                    self, _("Error"),
+                    _("We're sorry but setting a scale factor bellow 1.0 "
+                      "isn't possible. Any scale factor bellow 1.0 will "
+                      "be set to 1.0"),
+                    QMessageBox.Ok)
+                self.custom_scaling_edit.textbox.setText(scale_factors_text)
+                self.set_option(
+                    'high_dpi_custom_scale_factors', scale_factors_text)
+                self.changed_options.add('high_dpi_custom_scale_factors')
         self.main.apply_settings()
 
     def _save_lang(self):

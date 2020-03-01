@@ -179,7 +179,7 @@ def test_indentation_with_spaces():
 
 def test_def_with_unindented_comment():
     text = get_indent_fix("def function():\n# Comment\n")
-    assert text == "def function():\n# Comment\n    ", repr(text)
+    assert text == "def function():\n# Comment\n", repr(text)
 
 
 def test_issue_5606():
@@ -406,7 +406,7 @@ def test_indentation_with_tabs():
         ("def some_func():\n\treturns = 10\n",
          "def some_func():\n\treturns = 10\n\t",
          "test_return_not_keyword"),
-        ("def function():\n# Comment\n", "def function():\n# Comment\n\t",
+        ("def function():\n# Comment\n", "def function():\n# Comment\n",
          "test_def_with_unindented_comment")
         ]
 

@@ -187,7 +187,34 @@ class NamespaceBrowser(QWidget):
 
         self.setLayout(layout)
 
+        # Local shortcuts
+        self.shortcuts = self.create_shortcuts()
+
         self.sig_option_changed.connect(self.option_changed)
+
+    def create_shortcuts(self):
+        """Create local shortcut for the nsbrowser."""
+        search = CONF.config_shortcut(
+            lambda: self.show_finder(set_visible=True),
+            context='variable_explorer',
+            name='search',
+            parent=self)
+        refresh = CONF.config_shortcut(
+            self.refresh_table,
+            context='variable_explorer',
+            name='refresh',
+            parent=self)
+
+        return [search, refresh]
+
+    def get_shortcut_data(self):
+        """
+        Returns shortcut data, a list of tuples (shortcut, text, default)
+        shortcut (QShortcut or QAction instance)
+        text (string): action/shortcut description
+        default (string): default key sequence
+        """
+        return [sc.data for sc in self.shortcuts]
 
     def set_shellwidget(self, shellwidget):
         """Bind shellwidget instance to namespace browser"""
@@ -230,23 +257,11 @@ class NamespaceBrowser(QWidget):
             icon=ima.icon('find'),
             toggled=self.show_finder)
 
-        CONF.config_shortcut(
-            lambda: self.show_finder(set_visible=True),
-            context='variable_explorer',
-            name='search',
-            parent=self)
-
         self.refresh_button = create_toolbutton(
             self,
             text=_("Refresh variables"),
             icon=ima.icon('refresh'),
             triggered=lambda: self.refresh_table(interrupt=True))
-
-        CONF.config_shortcut(
-            self.refresh_table,
-            context='variable_explorer',
-            name='refresh',
-            parent=self)
 
         return [load_button, self.save_button, save_as_button,
                 reset_namespace_button, self.search_button,

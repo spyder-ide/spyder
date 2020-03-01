@@ -29,8 +29,9 @@ from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.widgets.findreplace import FindReplace
 from spyder.py3compat import PY2
 
-# Qt Test Fixtures
-#--------------------------------
+# =============================================================================
+# ---- Qt Test Fixtures
+# =============================================================================
 @pytest.fixture
 def base_editor_bot(qtbot):
     editor_stack = EditorStack(None, [])
@@ -117,8 +118,9 @@ def editor_folding_bot(base_editor_bot, qtbot):
     return editor_stack, finfo.editor, find_replace
 
 
-# Tests
-#-------------------------------
+# =============================================================================
+# ---- Tests
+# =============================================================================
 def test_find_number_matches(setup_editor):
     """Test for number matches in find/replace."""
     editor_stack, editor = setup_editor
@@ -221,6 +223,49 @@ def test_move_multiple_lines_up(editor_bot):
     # Move first and second lines up (to test already at top condition).
     editor.move_line_up()
     assert editor.toPlainText() == expected_new_text
+
+
+@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
+def test_copy_lines_down_up(editor_bot, mocker, qtbot):
+    """
+    Test that copy lines down and copy lines up are working as expected.
+    """
+    editorstack, editor = editor_bot
+
+    # We need to show the editor because the copy lines down and copy lines up
+    # functionalities both rely on a paint event override to work as expected.
+    editorstack.show()
+
+    # We need to patch osp.isfile to avoid the 'this file does not exist'
+    # message box.
+    mocker.patch('spyder.plugins.editor.widgets.editor.osp.isfile',
+                 returned_value=True)
+
+    # Assert initial state.
+    editorstack.go_to_line(1)
+    assert editor.get_cursor_line_column() == (0, 0)
+
+    # Select some text.
+    cursor = editor.textCursor()
+    cursor.movePosition(QTextCursor.Down, QTextCursor.KeepAnchor)
+    cursor.movePosition(QTextCursor.Down, QTextCursor.KeepAnchor)
+    editor.setTextCursor(cursor)
+    assert editor.get_cursor_line_column() == (2, 0)
+    assert editor.textCursor().selection().toPlainText() == 'a = 1\nprint(a)\n'
+
+    # Copy lines down.
+    editor.duplicate_line_down()
+    qtbot.wait(100)
+    assert editor.get_cursor_line_column() == (2, 0)
+    assert editor.textCursor().selection().toPlainText() == 'a = 1\nprint(a)\n'
+    assert editor.toPlainText() == 'a = 1\nprint(a)\n' * 2 + '\nx = 2\n'
+
+    # Copy lines up.
+    editor.duplicate_line_up()
+    qtbot.wait(100)
+    assert editor.get_cursor_line_column() == (4, 0)
+    assert editor.textCursor().selection().toPlainText() == 'a = 1\nprint(a)\n'
+    assert editor.toPlainText() == 'a = 1\nprint(a)\n' * 3 + '\nx = 2\n'
 
 
 def test_move_multiple_lines_down(editor_bot):
@@ -486,7 +531,7 @@ def test_advance_cell(editor_cells_bot):
     # cursor at the end of the file
     assert editor.get_cursor_line_column() == (10, 0)
 
-    # advance backwards to the begining of the 3rd cell
+    # advance backwards to the beginning of the 3rd cell
     editor_stack.advance_cell(reverse=True)
     assert editor.get_cursor_line_column() == (6, 0)
 
@@ -596,7 +641,8 @@ def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot,
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not os.name == 'nt', reason="Fails on Linux and macOS.")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
+                    reason="It fails on CIs")
 def test_tab_copies_find_to_replace(editor_find_replace_bot, qtbot):
     """Check that text in the find box is copied to the replace box on tab
     keypress. Regression test spyder-ide/spyder#4482."""
