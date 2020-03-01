@@ -719,11 +719,13 @@ class SequenceDelegate(QStyledItemDelegate):
         button.state = option.state
         if bool(option.state & QStyle.State_HasFocus):
             button.state |= QStyle.State_KeyboardFocusChange
-        if (bool(option.state & QStyle.State_MouseOver) and
-                self.parent()._mouse_pressed_pos is not None and
+        if (self.parent()._mouse_pressed_pos is not None and
                 option.rect.contains(self.parent()._mouse_pressed_pos)):
-            button.state |= QStyle.State_Sunken
-
+            if bool(option.state & QStyle.State_MouseOver):
+                button.state |= QStyle.State_Sunken
+            else:
+                button.state |= QStyle.State_MouseOver
+        style = self._widget.style()
         style = self._widget.style()
         style.drawControl(QStyle.CE_PushButton, button, painter, self._widget)
 
