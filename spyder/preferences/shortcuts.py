@@ -508,8 +508,11 @@ class Shortcut(object):
         Return a platform specific string representation of the key sequence
         stored at the given index.
         """
-        return QKeySequence(
-            self.keystrs[index]).toString(QKeySequence.NativeText)
+        try:
+            return QKeySequence(
+                self.keystrs[index]).toString(QKeySequence.NativeText)
+        except IndexError:
+            return ''
 
     def __str__(self):
         return "{0}/{1}: {2}".format(
