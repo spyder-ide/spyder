@@ -731,16 +731,20 @@ class SequenceDelegate(QStyledItemDelegate):
 
 
 class ShortcutsTable(QTableView):
-    def __init__(self,
-                 parent=None, text_color=None, text_color_highlight=None):
+    def __init__(self, parent=None, text_color=None):
         QTableView.__init__(self, parent)
         self._parent = parent
         self.finder = None
+        self.setMouseTracking(True)
+        self.setShowGrid(False)
+        self.setSortingEnabled(True)
 
-        self.source_model = ShortcutsModel(
-                                    self,
-                                    text_color=text_color,
-                                    text_color_highlight=text_color_highlight)
+        self.clicked.connect(self._handle_mouse_clicked)
+        self.pressed.connect(self._handle_mouse_pressed)
+        self._mouse_pressed_pos = None
+
+        # Setup model.
+        self.source_model = ShortcutsModel(self, text_color=text_color)
         self.proxy_model = CustomSortFilterProxy(self)
         self.last_regex = ''
 
@@ -750,31 +754,27 @@ class ShortcutsTable(QTableView):
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setModel(self.proxy_model)
 
+        self.selectionModel().currentChanged.connect(
+            self._handle_current_changed)
+
+        # Setup columns.
         self.hideColumn(SEARCH_SCORE)
-        self.setItemDelegateForColumn(NAME, HTMLDelegate(self, margin=9))
-        self.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.setSortingEnabled(True)
-        self.setEditTriggers(QAbstractItemView.AllEditTriggers)
-        self.selectionModel().selectionChanged.connect(self.selection)
+        self.setItemDelegateForColumn(NAME, NameDelegate(self, margin=9))
+        self.setItemDelegateForColumn(CONTEXT, ContextDelegate(self))
+        self.setItemDelegateForColumn(
+            SEQUENCE, SequenceDelegate(self, margins=2))
+        self.setItemDelegateForColumn(
+            SEQUENCE2, SequenceDelegate(self, margins=2))
 
+        # Setup headers
+        header = self.horizontalHeader()
+        header.setSectionResizeMode(CONTEXT, header.Fixed)
+        header.setSectionResizeMode(NAME, header.Fixed)
+        header.setSectionResizeMode(SEQUENCE, header.Stretch)
+        header.setSectionResizeMode(SEQUENCE2, header.Stretch)
         self.verticalHeader().hide()
+
         self.load_shortcuts()
-
-    def focusOutEvent(self, e):
-        """Qt Override."""
-        self.source_model.update_active_row()
-        super(ShortcutsTable, self).focusOutEvent(e)
-
-    def focusInEvent(self, e):
-        """Qt Override."""
-        super(ShortcutsTable, self).focusInEvent(e)
-        self.selectRow(self.currentIndex().row())
-
-    def selection(self, index):
-        """Update selected row."""
-        self.update()
-        self.isActiveWindow()
 
     def adjust_cells(self):
         """Adjust column size based on contents."""
@@ -782,7 +782,6 @@ class ShortcutsTable(QTableView):
         fm = self.horizontalHeader().fontMetrics()
         names = [fm.width(s.name + ' '*9) for s in self.source_model.shortcuts]
         self.setColumnWidth(NAME, max(names))
-        self.horizontalHeader().setStretchLastSection(True)
 
     def load_shortcuts(self):
         """Load shortcuts and assign to table model."""
@@ -807,15 +806,17 @@ class ShortcutsTable(QTableView):
         for index, sh1 in enumerate(self.source_model.shortcuts):
             if index == len(self.source_model.shortcuts)-1:
                 break
-            if str(sh1.key) == '':
-                continue
-            for sh2 in self.source_model.shortcuts[index+1:]:
-                if sh2 is sh1:
+            for sh1_keystr in sh1.keystrs:
+                if sh1_keystr == '':
                     continue
-                if str(sh2.key) == str(sh1.key) \
-                   and (sh1.context == sh2.context or sh1.context == '_' or
-                        sh2.context == '_'):
-                    conflicts.append((sh1, sh2))
+                for sh2 in self.source_model.shortcuts[index+1:]:
+                    if sh2 is sh1:
+                        continue
+                    if sh1_keystr in sh2.keystrs \
+                       and (sh1.context == sh2.context or
+                            sh1.context == '_' or
+                            sh2.context == '_'):
+                        conflicts.append((sh1, sh2))
         if conflicts:
             self.parent().show_this_page.emit()
             cstr = "\n".join(['%s <---> %s' % (sh1, sh2)
@@ -834,14 +835,19 @@ class ShortcutsTable(QTableView):
         """Create, setup and display the shortcut editor dialog."""
         index = self.proxy_model.mapToSource(self.currentIndex())
         row, column = index.row(), index.column()
+        if column not in [SEQUENCE, SEQUENCE2]:
+            return
+
         shortcuts = self.source_model.shortcuts
         context = shortcuts[row].context
         name = shortcuts[row].name
+        shortcut_index = 0 if column == SEQUENCE else 1
 
-        sequence_index = self.source_model.index(row, SEQUENCE)
+        sequence_index = self.source_model.index(row, column)
         sequence = sequence_index.data()
 
-        dialog = ShortcutEditor(self, context, name, sequence, shortcuts)
+        dialog = ShortcutEditor(self, context, name, sequence, shortcuts,
+                                shortcut_index)
 
         if dialog.exec_():
             new_sequence = dialog.new_sequence
@@ -882,10 +888,37 @@ class ShortcutsTable(QTableView):
         elif key in [Qt.Key_Escape]:
             self.finder.keyPressEvent(event)
 
-    def mouseDoubleClickEvent(self, event):
+    def _handle_mouse_clicked(self, index):
         """Qt Override."""
-        self.show_editor()
-        self.update()
+        if index.column() in [SEQUENCE, SEQUENCE2]:
+            self.show_editor()
+            self.update()
+
+    def _handle_mouse_pressed(self, index):
+        """Qt Override."""
+        if index.column() in [SEQUENCE, SEQUENCE2]:
+            self.setCurrentIndex(index)
+
+    def mousePressEvent(self, event):
+        self._mouse_pressed_pos = event.pos()
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self._mouse_pressed_pos = None
+        super().mouseReleaseEvent(event)
+        # We need to emit a data changed signal to force a repaint of the
+        # previously pressed button.
+        self.model().dataChanged.emit(self.currentIndex(), self.currentIndex())
+
+    def _handle_current_changed(self, current, previous):
+        if current.column() in [NAME, CONTEXT]:
+            if not previous.isValid():
+                self.setCurrentIndex(self.model().index(0, SEQUENCE))
+            elif previous.column() in [SEQUENCE, SEQUENCE2]:
+                self.setCurrentIndex(previous)
+            else:
+                self.setCurrentIndex(self.model().index(
+                    current.row(), SEQUENCE))
 
 
 class ShortcutsConfigPage(GeneralConfigPage):
