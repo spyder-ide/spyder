@@ -991,6 +991,8 @@ def test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
     table = ShortcutsTable()
+    table.setMinimumWidth(650)
+    table.setMinimumHeight(400)
     table.show()
     app.exec_()
 
