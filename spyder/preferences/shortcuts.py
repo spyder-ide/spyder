@@ -524,11 +524,11 @@ class Shortcut(object):
         CONF.set_shortcut(self.context, self.name, self.keystrs[0])
 
 
-CONTEXT, NAME, SEQUENCE, SEARCH_SCORE = [0, 1, 2, 3]
+CONTEXT, NAME, SEQUENCE, SEQUENCE2, SEARCH_SCORE = [0, 1, 2, 3, 4]
 
 
 class ShortcutsModel(QAbstractTableModel):
-    def __init__(self, parent, text_color=None, text_color_highlight=None):
+    def __init__(self, parent, text_color=None):
         QAbstractTableModel.__init__(self)
         self._parent = parent
 
@@ -547,12 +547,6 @@ class ShortcutsModel(QAbstractTableModel):
         else:
             self.text_color = text_color
 
-        if text_color_highlight is None:
-            self.text_color_highlight = \
-                palette.highlightedText().color().name()
-        else:
-            self.text_color_highlight = text_color_highlight
-
     def current_index(self):
         """Get the currently selected index in the parent table view."""
         i = self._parent.proxy_model.mapToSource(self._parent.currentIndex())
@@ -568,7 +562,9 @@ class ShortcutsModel(QAbstractTableModel):
         """Qt Override."""
         if not index.isValid():
             return Qt.ItemIsEnabled
-        return Qt.ItemFlags(int(QAbstractTableModel.flags(self, index)))
+        flags = QAbstractTableModel.flags(self, index)
+        flags &= ~Qt.ItemIsSelectable
+        return Qt.ItemFlags(int(flags))
 
     def data(self, index, role=Qt.DisplayRole):
         """Qt Override."""
@@ -577,25 +573,19 @@ class ShortcutsModel(QAbstractTableModel):
             return to_qvariant()
 
         shortcut = self.shortcuts[row]
-        key = shortcut.key
         column = index.column()
-
         if role == Qt.DisplayRole:
             if column == CONTEXT:
                 return to_qvariant(shortcut.context)
             elif column == NAME:
                 color = self.text_color
-                if self._parent == QApplication.focusWidget():
-                    if self.current_index().row() == row:
-                        color = self.text_color_highlight
-                    else:
-                        color = self.text_color
                 text = self.rich_text[row]
                 text = '<p style="color:{0}">{1}</p>'.format(color, text)
                 return to_qvariant(text)
             elif column == SEQUENCE:
-                text = QKeySequence(key).toString(QKeySequence.NativeText)
-                return to_qvariant(text)
+                return to_qvariant(shortcut.get_native_keystr_at(0))
+            elif column == SEQUENCE2:
+                return to_qvariant(shortcut.get_native_keystr_at(1))
             elif column == SEARCH_SCORE:
                 # Treating search scores as a table column simplifies the
                 # sorting once a score for a specific string in the finder
@@ -620,7 +610,9 @@ class ShortcutsModel(QAbstractTableModel):
             elif section == NAME:
                 return to_qvariant(_("Name"))
             elif section == SEQUENCE:
-                return to_qvariant(_("Shortcut"))
+                return to_qvariant(_("Shortcut 1"))
+            elif section == SEQUENCE2:
+                return to_qvariant(_("Shortcut 2"))
             elif section == SEARCH_SCORE:
                 return to_qvariant(_("Score"))
         return to_qvariant()
@@ -640,7 +632,9 @@ class ShortcutsModel(QAbstractTableModel):
             column = index.column()
             text = from_qvariant(value, str)
             if column == SEQUENCE:
-                shortcut.key = text
+                shortcut.set_keystr_at(0, text)
+            elif column == SEQUENCE2:
+                shortcut.set_keystr_at(1, text)
             self.dataChanged.emit(index, index)
             return True
         return False
