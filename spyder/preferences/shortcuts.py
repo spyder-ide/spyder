@@ -664,6 +664,38 @@ class ShortcutsModel(QAbstractTableModel):
         self.endResetModel()
 
 
+# ---- Delegates
+class NameDelegate(HTMLDelegate):
+    """
+    This delegate is used to prevent mouse over highlight and the painting
+    of a focus frame in the NAME column of the Shortcuts table.
+    """
+
+    def paint(self, painter, option, index):
+        """
+        Override Qt method to prevent mouse over highlight and the painting
+        of a focus frame.
+        """
+        option.state &= ~QStyle.State_MouseOver
+        option.state &= ~QStyle.State_KeyboardFocusChange
+        super(NameDelegate, self).paint(painter, option, index)
+
+
+class ContextDelegate(QStyledItemDelegate):
+    """
+    This delegate is used to prevent mouse over highlight and the painting
+    of a focus frame in the CONTEXT column of the Shortcuts table.
+    """
+
+    def paint(self, painter, option, index):
+        """
+        Override Qt method to prevent mouse over highlight and the painting
+        of a focus frame.
+        """
+        option.state &= ~QStyle.State_MouseOver
+        option.state &= ~QStyle.State_KeyboardFocusChange
+        super(ContextDelegate, self).paint(painter, option, index)
+
 class ShortcutsTable(QTableView):
     def __init__(self,
                  parent=None, text_color=None, text_color_highlight=None):
