@@ -439,24 +439,86 @@ class ShortcutEditor(QDialog):
 
 
 class Shortcut(object):
-    """Shortcut convenience class for holding shortcut context, name,
+    """
+    Shortcut convenience class for holding shortcut context, name,
     original ordering index, key sequence for the shortcut and localized text.
     """
 
-    def __init__(self, context, name, key=None):
+    def __init__(self, context, name, keystrs=None):
         self.index = 0  # Sorted index. Populated when loading shortcuts
         self.context = context
         self.name = name
-        self.key = key
+        self.keystrs = keystrs if keystrs is not None else [""]
+
+    @property
+    def keystrs(self):
+        """
+        Return a list of string representations of the key sequences binded
+        to this shortcut.
+        """
+        return self._keystrs.copy()
+
+    @keystrs.setter
+    def keystrs(self, keystrs):
+        """
+        Set the namespace for the list of string representations of the
+        key sequences that need to be binded to this shortcut.
+        """
+        if isinstance(keystrs, str):
+            self._keystrs = [keystrs]
+        else:
+            self._keystrs = [str(v) for v in keystrs]
+        return self._keystrs.copy()
+
+    @property
+    def qsequences(self):
+        """
+        Return the list of Qt key sequences that are binded to this shortcut.
+        """
+        return (QKeySequence.fromString(keystr) for keystr in self.keystrs)
+
+    def clear_keystr(self, keystr_to_clear):
+        """
+        Remove the given key str from the list of shortcuts.
+        """
+        for i, keystr in enumerate(self._keystrs):
+            if keystr_to_clear == keystr:
+                self._keystrs[i] = ''
+
+    def set_keystr_at(self, index, value):
+        """
+        Set the string representation of the key sequence at the given index.
+        """
+        while len(self._keystrs) <= index:
+            self._keystrs.append('')
+        self._keystrs[index] = str(value)
+
+        # We clear all duplicates of new_keystr everywhere but at the
+        # given index, because we don't want the same shortcut to be stored
+        # twice here.
+        for i, keystr in enumerate(self._keystrs):
+            if i != index and keystr == value:
+                self._keystrs[i] = ''
+
+    def get_native_keystr_at(self, index):
+        """
+        Return a platform specific string representation of the key sequence
+        stored at the given index.
+        """
+        return QKeySequence(
+            self.keystrs[index]).toString(QKeySequence.NativeText)
 
     def __str__(self):
-        return "{0}/{1}: {2}".format(self.context, self.name, self.key)
+        return "{0}/{1}: {2}".format(
+            self.context, self.name, '; '.join(self.keystrs))
 
     def load(self):
-        self.key = CONF.get_shortcut(self.context, self.name)
+        self.keystrs = CONF.get_shortcut(self.context, self.name)
 
     def save(self):
-        CONF.set_shortcut(self.context, self.name, self.key)
+        # TODO!: Return the full list of keystrs when Spyder can handle this
+        # correctly.
+        CONF.set_shortcut(self.context, self.name, self.keystrs[0])
 
 
 CONTEXT, NAME, SEQUENCE, SEARCH_SCORE = [0, 1, 2, 3]
