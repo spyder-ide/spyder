@@ -114,9 +114,11 @@ class ShortcutLineEdit(QLineEdit):
 class ShortcutEditor(QDialog):
     """A dialog for entering key sequences."""
 
-    def __init__(self, parent, context, name, sequence, shortcuts):
+    def __init__(self, parent, context, name, sequence, shortcuts,
+                 shortcut_index=False):
         super(ShortcutEditor, self).__init__(parent)
         self._parent = parent
+        self._shortcut_index = shortcut_index
         self.setWindowFlags(self.windowFlags() &
                             ~Qt.WindowContextHelpButtonHint)
 
@@ -205,7 +207,8 @@ class ShortcutEditor(QDialog):
         newseq_btnbar.addWidget(self.btn_clear_sequence)
 
         # Setup widgets
-        self.setWindowTitle(_('Shortcut: {0}').format(self.name))
+        self.setWindowTitle(
+            _('Shortcut {}: {}').format(self._shortcut_index + 1, self.name))
         self.helper_button.setToolTip('')
         style = """
             QToolButton {
@@ -307,15 +310,15 @@ class ShortcutEditor(QDialog):
 
         new_qsequence = self.new_qsequence
         for shortcut in self.shortcuts:
-            shortcut_qsequence = QKeySequence.fromString(str(shortcut.key))
-            if shortcut_qsequence.isEmpty():
-                continue
             if (shortcut.context, shortcut.name) == (self.context, self.name):
                 continue
             if shortcut.context in [self.context, '_'] or self.context == '_':
-                if (shortcut_qsequence.matches(new_qsequence) or
-                        new_qsequence.matches(shortcut_qsequence)):
-                    conflicts.append(shortcut)
+                for shortcut_qsequence in shortcut.qsequences:
+                    if shortcut_qsequence.isEmpty():
+                        continue
+                    if (shortcut_qsequence.matches(new_qsequence) or
+                            new_qsequence.matches(shortcut_qsequence)):
+                        conflicts.append(shortcut)
         return conflicts
 
     def check_ascii(self):
@@ -434,7 +437,7 @@ class ShortcutEditor(QDialog):
         conflicts = self.check_conflicts()
         if conflicts:
             for shortcut in conflicts:
-                shortcut.key = ''
+                shortcut.clear_keystr(self.new_sequence)
         self.accept()
 
 
