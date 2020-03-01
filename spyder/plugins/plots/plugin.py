@@ -47,7 +47,7 @@ class Plots(SpyderPluginWidget):
         """Retrieve all Plots configuration settings."""
         return {name: self.get_option(name) for name in
                 ['mute_inline_plotting', 'show_plot_outline',
-                 'auto_fit_plotting', 'focus_after_switching']}
+                 'auto_fit_plotting']}
 
     # ---- Stack accesors
     def set_current_widget(self, fig_browser):
@@ -121,7 +121,7 @@ class Plots(SpyderPluginWidget):
         """
         widget = self.current_widget()
         if (widget and widget.setup_in_progress is False
-                and widget.focus_after_switching is True):
+                and self._isvisible is True):
             if widget.thumbnails_sb.current_thumbnail is not None:
                 widget.thumbnails_sb.scrollarea.setFocus()
 

@@ -89,13 +89,11 @@ class FigureBrowser(QWidget):
         self.mute_inline_plotting = None
         self.show_plot_outline = None
         self.auto_fit_plotting = None
-        self.focus_after_switching = None
 
         # Option actions :
         self.mute_inline_action = None
         self.show_plot_outline_action = None
         self.auto_fit_action = None
-        self.focus_after_switching_action = None
 
         self.options_button = options_button
         self.plugin_actions = plugin_actions
@@ -111,20 +109,18 @@ class FigureBrowser(QWidget):
         return False
 
     def setup(self, mute_inline_plotting=None, show_plot_outline=None,
-              auto_fit_plotting=None, focus_after_switching=None):
+              auto_fit_plotting=None):
         """Setup the figure browser with provided settings."""
         assert self.shellwidget is not None
 
         self.mute_inline_plotting = mute_inline_plotting
         self.show_plot_outline = show_plot_outline
         self.auto_fit_plotting = auto_fit_plotting
-        self.focus_after_switching = focus_after_switching
 
         if self.figviewer is not None:
             self.mute_inline_action.setChecked(mute_inline_plotting)
             self.show_plot_outline_action.setChecked(show_plot_outline)
             self.auto_fit_action.setChecked(auto_fit_plotting)
-            self.focus_after_switching_action.setChecked(focus_after_switching)
             return
 
         # Setup the figure viewer.
@@ -141,8 +137,7 @@ class FigureBrowser(QWidget):
         toolbar = self.setup_toolbar()
         self.setup_option_actions(mute_inline_plotting,
                                   show_plot_outline,
-                                  auto_fit_plotting,
-                                  focus_after_switching)
+                                  auto_fit_plotting)
 
         # Create the layout.
         main_widget = QSplitter()
@@ -252,7 +247,7 @@ class FigureBrowser(QWidget):
                 separator2, zoom_pan]
 
     def setup_option_actions(self, mute_inline_plotting, show_plot_outline,
-                             auto_fit_plotting, focus_after_switching):
+                             auto_fit_plotting):
         """Setup the actions to show in the cog menu."""
         self.setup_in_progress = True
         self.mute_inline_action = create_action(
@@ -277,17 +272,8 @@ class FigureBrowser(QWidget):
             )
         self.auto_fit_action.setChecked(auto_fit_plotting)
 
-        self.focus_after_switching_action = create_action(
-            self, _("Focus after switching"),
-            tip=_("Focus on plots after switching by shortcut."),
-            toggled=lambda state:
-            self.option_changed('focus_after_switching', state)
-        )
-        self.focus_after_switching_action.setChecked(focus_after_switching)
-
         self.actions = [self.mute_inline_action, self.show_plot_outline_action,
-                        self.auto_fit_action,
-                        self.focus_after_switching_action]
+                        self.auto_fit_action]
 
         self.setup_in_progress = False
 
