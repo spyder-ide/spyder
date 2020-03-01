@@ -9,6 +9,7 @@
 # Standard library imports
 from __future__ import print_function
 import re
+import copy
 
 # Third party imports
 from qtpy import PYQT5
@@ -466,7 +467,7 @@ class Shortcut(object):
         Return a list of string representations of the key sequences binded
         to this shortcut.
         """
-        return self._keystrs.copy()
+        return copy.deepcopy(self._keystrs)
 
     @keystrs.setter
     def keystrs(self, keystrs):
@@ -478,7 +479,6 @@ class Shortcut(object):
             self._keystrs = [keystrs]
         else:
             self._keystrs = [str(v) for v in keystrs]
-        return self._keystrs.copy()
 
     @property
     def qsequences(self):
