@@ -15,10 +15,10 @@ from qtpy import PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Slot, QEvent
 from qtpy.QtGui import QKeySequence, QIcon
-from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
-                            QGridLayout, QHBoxLayout, QLabel,
-                            QLineEdit, QMessageBox, QPushButton, QSpacerItem,
-                            QTableView, QVBoxLayout, QKeySequenceEdit)
+from qtpy.QtWidgets import (
+    QDialog, QGridLayout, QHBoxLayout, QLabel, QLineEdit,
+    QMessageBox, QPushButton, QSpacerItem, QTableView, QVBoxLayout,
+    QKeySequenceEdit, QStyledItemDelegate, QStyle, QStyleOptionButton)
 
 # Local imports
 from spyder.config.base import _
