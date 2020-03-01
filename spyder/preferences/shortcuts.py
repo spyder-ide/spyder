@@ -696,6 +696,38 @@ class ContextDelegate(QStyledItemDelegate):
         option.state &= ~QStyle.State_KeyboardFocusChange
         super(ContextDelegate, self).paint(painter, option, index)
 
+
+class SequenceDelegate(QStyledItemDelegate):
+
+    def __init__(self, parent, margins=0):
+        super(SequenceDelegate, self).__init__(parent)
+        self._margins = margins
+        self._widget = QPushButton(self.parent())
+        self._widget.setAutoDefault(True)
+        self._widget.hide()
+
+    def paint(self, painter, option, index):
+        button = QStyleOptionButton()
+
+        self._widget.setDefault(bool(option.state & QStyle.State_HasFocus))
+        self._widget.initStyleOption(button)
+
+        button.rect = option.rect.adjusted(
+            self._margins, self._margins,
+            -2 * self._margins, -2 * self._margins)
+        button.text = index.data()
+        button.state = option.state
+        if bool(option.state & QStyle.State_HasFocus):
+            button.state |= QStyle.State_KeyboardFocusChange
+        if (bool(option.state & QStyle.State_MouseOver) and
+                self.parent()._mouse_pressed_pos is not None and
+                option.rect.contains(self.parent()._mouse_pressed_pos)):
+            button.state |= QStyle.State_Sunken
+
+        style = self._widget.style()
+        style.drawControl(QStyle.CE_PushButton, button, painter, self._widget)
+
+
 class ShortcutsTable(QTableView):
     def __init__(self,
                  parent=None, text_color=None, text_color_highlight=None):
