@@ -1,0 +1,20 @@
+name: Close duplicate issues
+
+on: [issues]
+
+jobs:
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: spyder-ide/action-close-duplicate-issues@master
+        with:
+          repo-token: ${{ secrets.SECRET_TOKEN }}
+          items: >-
+            [
+             {
+               "pattern": "ValueError: cannot set WRITEABLE flag to True of this array",
+               "reply": "This is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             }
+             ]
