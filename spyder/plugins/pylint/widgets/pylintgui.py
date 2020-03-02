@@ -13,6 +13,7 @@
 
 # Standard library imports
 from __future__ import print_function, with_statement
+import os
 import os.path as osp
 import re
 import sys
@@ -43,6 +44,26 @@ try:
 except KeyError as error:
     import gettext
     _ = gettext.gettext
+
+
+def _find_pylintrc_path(path):
+    os.chdir(path)
+    return pylint.config.find_pylintrc()
+
+
+def get_pylintrc_path(search_paths):
+    current_cwd = os.getcwd()
+    try:
+        pylintrc_paths = [_find_pylintrc_path(path) for path in search_paths]
+        pylintrc_path = None
+        for pylintrc_path in pylintrc_paths:
+            if pylintrc_path is not None \
+               and pylintrc_path != pylintrc_paths[-1]:
+                break
+        return pylintrc_path
+    finally:
+        os.chdir(current_cwd)
+
 
 PYLINT_VER = pylint.__version__
 #TODO: display results on 3 columns instead of 1: msg_id, lineno, message
@@ -338,9 +359,18 @@ class PylintWidget(QWidget):
                 # 1.0
                 p_args += ["--msg-template='{msg_id}:{line:3d},"\
                            "{column}: {obj}: {msg}"]
-            p_args += [filename]
-        else:
-            p_args = [filename]
+
+        proj_dir = self.parentWidget().main.projects.get_active_project_path()
+        search_paths = [
+            osp.dirname(filename),  # File's directory
+            getcwd_or_home(),  # Working directory
+            proj_dir,  # Project directory
+            osp.expanduser("~"),  # Home directory
+        ]
+        pylintrc_path = get_pylintrc_path(search_paths)
+        if pylintrc_path is not None:
+            p_args += ['--rcfile={}'.format(pylintrc_path)]
+        p_args += [filename]
         processEnvironment = QProcessEnvironment()
         processEnvironment.insert("PYTHONIOENCODING", "utf8")
         self.process.setProcessEnvironment(processEnvironment)
