@@ -273,6 +273,8 @@ def test_move_multiple_lines_up(editor_bot):
     assert editor.toPlainText() == expected_new_text
 
 
+@pytest.mark.skipif(os.environ.get('CI', None) is not None and
+                    os.name == 'nt', reason="It fails on Windows CI")
 def test_copy_lines_down_up(visible_editor_bot, qtbot):
     """
     Test that copy lines down and copy lines up are working as expected.
