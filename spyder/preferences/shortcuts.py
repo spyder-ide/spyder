@@ -846,14 +846,17 @@ class ShortcutsConfigPage(GeneralConfigPage):
     def check_settings(self):
         self.table.check_shortcuts()
 
-    def reset_to_default(self):
+    def reset_to_default(self, force=False):
         """Reset to default values of the shortcuts making a confirmation."""
-        reset = QMessageBox.warning(self, _("Shortcuts reset"),
-                                    _("Do you want to reset "
-                                      "to default values?"),
-                                    QMessageBox.Yes | QMessageBox.No)
-        if reset == QMessageBox.No:
-            return
+        if not force:
+            reset = QMessageBox.warning(
+                self,
+                _("Shortcuts reset"),
+                _("Do you want to reset to default values?"),
+                QMessageBox.Yes | QMessageBox.No)
+            if reset == QMessageBox.No:
+                return
+
         CONF.reset_shortcuts()
         self.main.apply_shortcuts()
         self.table.load_shortcuts()

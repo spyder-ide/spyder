@@ -27,6 +27,7 @@ INSTALL_TIMEOUT = 360000
 
 
 @pytest.mark.slow
+@pytest.mark.first
 @pytest.mark.skipif((not sys.platform.startswith('linux')
                      or os.environ.get('CI', None) is None),
                     reason=("Only works reliably on Linux and "
@@ -70,7 +71,10 @@ def test_kite_install(qtbot):
     with qtbot.waitSignal(install_manager.finished, timeout=INSTALL_TIMEOUT):
         install_manager.install()
 
-    assert check_if_kite_installed() and check_if_kite_running()
+    # Check that kite was installed and is running
+    qtbot.waitUntil(
+        lambda: check_if_kite_installed() and check_if_kite_running(),
+        timeout=5000)
 
 
 if __name__ == "__main__":

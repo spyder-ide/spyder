@@ -1,20 +1,21 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 3.3.6 is released!
+**Subject**: [ANN] Spyder 4.0.1 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **3.3.6** has been released and is available for
+I'm pleased to announce that Spyder **4.0.1** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes two weeks after version 3.3.5 and it doesn't add new
-features.
+This release comes almost one month after version 4.0.0 and it doesn't add new
+features. However, it has important performance improvements and also fixes
+several regressions over Spyder 3 detected after releasing version 4.
 
-In this release we fixed 2 issues and merged 3 pull requests that amount
-to 11 commits. For a full list of fixes, please see our
-[Changelog](https://github.com/spyder-ide/spyder/blob/3.x/CHANGELOG.md).
+In this release we fixed 32 issues and merged 43 pull requests that amount
+to more than 170 commits. For a full list of fixes, please see our
+[Changelog](https://github.com/spyder-ide/spyder/blob/4.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
 [website](https://www.spyder-ide.org).

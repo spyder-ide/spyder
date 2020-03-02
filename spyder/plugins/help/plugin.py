@@ -7,6 +7,7 @@
 """Help Plugin"""
 
 # Standard library imports
+import os
 import os.path as osp
 import sys
 
@@ -17,7 +18,8 @@ from qtpy.QtWidgets import (QActionGroup, QComboBox, QHBoxLayout,
 from qtpy.QtWebEngineWidgets import QWebEnginePage, WEBENGINE
 
 # Local imports
-from spyder.config.base import _, get_conf_path, get_module_source_path
+from spyder.config.base import (_, get_conf_path, get_image_path,
+                                get_module_source_path)
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import get_meth_class_inst, to_text_string
@@ -25,7 +27,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH,
                                                  generate_context,
-                                                 usage, warning)
+                                                 loading, usage, warning)
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, create_plugin_layout,
                                     MENU_SEPARATOR)
@@ -43,6 +45,7 @@ class Help(SpyderPluginWidget):
     CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
     FONT_SIZE_DELTA = DEFAULT_SMALL_DELTA
+    DISABLE_ACTIONS_WHEN_HIDDEN = False  # SpyderPluginWidget class attribute
 
     # Signals
     focus_changed = Signal()
@@ -392,6 +395,17 @@ class Help(SpyderPluginWidget):
         self.rich_text.set_html(html_text, base_url)
         self.save_text([self.rich_text.set_html, html_text, base_url])
 
+    def show_loading_message(self):
+        """Create html page to show while the documentation is generated."""
+        loading_message = _("Retrieving documentation")
+        loading_img = get_image_path('loading_sprites.png')
+        if os.name == 'nt':
+            loading_img = loading_img.replace('\\', '/')
+
+        self.set_rich_text_html(
+            loading(loading_message, loading_img, css_path=self.css_path),
+            QUrl.fromLocalFile(self.css_path))
+
     def show_intro_message(self):
         intro_message_eq = _(
             "Here you can get help of any object by pressing "
@@ -653,6 +667,7 @@ class Help(SpyderPluginWidget):
             dname = ''
         self._sphinx_thread.render(doc, context, self.get_option('math'),
                                    dname, css_path=self.css_path)
+        self.show_loading_message()
 
     def _on_sphinx_thread_html_ready(self, html_text):
         """Set our sphinx documentation based on thread result"""
@@ -666,7 +681,7 @@ class Help(SpyderPluginWidget):
         sphinx_ver = programs.get_module_version('sphinx')
         QMessageBox.critical(self,
                     _('Help'),
-                    _("The following error occured when calling "
+                    _("The following error occurred when calling "
                       "<b>Sphinx %s</b>. <br>Incompatible Sphinx "
                       "version or doc string decoding failed."
                       "<br><br>Error message:<br>%s"

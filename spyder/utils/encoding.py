@@ -17,6 +17,7 @@ import locale
 import re
 import os
 import sys
+import time
 import errno
 
 # Third-party imports
@@ -240,12 +241,15 @@ def write(text, filename, encoding='utf-8', mode='wb'):
         # Needed to fix file permissions overwritting.
         # See spyder-ide/spyder#9381.
         try:
-            original_mode = os.stat(filename).st_mode
+            file_stat = os.stat(filename)
+            original_mode = file_stat.st_mode
+            creation = file_stat.st_atime
         except OSError:  # Change to FileNotFoundError for PY3
             # Creating a new file, emulate what os.open() does
             umask = os.umask(0)
             os.umask(umask)
             original_mode = 0o777 & ~umask
+            creation = time.time()
         try:
             with atomic_write(filename, overwrite=True,
                               mode=mode) as textfile:
@@ -256,7 +260,15 @@ def write(text, filename, encoding='utf-8', mode='wb'):
             if error.errno != errno.EINVAL:
                 with open(filename, mode) as textfile:
                     textfile.write(text)
-        os.chmod(filename, original_mode)
+        try:
+            os.chmod(filename, original_mode)
+            file_stat = os.stat(filename)
+            # Preserve creation timestamps
+            os.utime(filename, (creation, file_stat.st_mtime))
+        except OSError:
+            # Prevent error when chmod/utime is not allowed
+            # See spyder-ide/spyder#11308
+            pass
     return encoding
 
 

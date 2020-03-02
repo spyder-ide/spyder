@@ -58,16 +58,20 @@ class TextDecorationsManager(Manager):
             self.update()
         return added
 
-    def remove(self, decoration):
+    def remove(self, decoration, update=True):
         """
         Removes a text decoration from the editor.
 
         :param decoration: Text decoration to remove
         :type decoration: spyder.api.TextDecoration
+        update: Bool: should the decorations be updated immediately?
+            Set to False to avoid updating several times while removing
+            several decorations
         """
         try:
             self._decorations.remove(decoration)
-            self.update()
+            if update:
+                self.update()
             return True
         except ValueError:
             return False

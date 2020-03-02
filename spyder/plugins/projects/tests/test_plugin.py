@@ -282,7 +282,7 @@ def test_recent_projects_menu_action(projects, tmpdir):
     projects.open_project(path=path1)
     projects.open_project(path=path2)
     assert (len(projects.recent_projects_actions) ==
-            recent_projects_len + 3 + 2)
+            recent_projects_len + 3 + 3)
     assert projects.get_active_project().root_path == path2
 
     # Trigger project1 in the list of Recent Projects actions.

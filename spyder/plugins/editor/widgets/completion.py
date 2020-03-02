@@ -300,7 +300,11 @@ class CompletionWidget(QListWidget):
         alt = event.modifiers() & Qt.AltModifier
         shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
-        modifier = shift or ctrl or alt
+        altgr = event.modifiers() and (key == Qt.Key_AltGr)
+        # Needed to properly handle Neo2 and other keyboard layouts
+        # See spyder-ide/spyder#11293
+        neo2_level4 = (key == 0)  # AltGr (ISO_Level5_Shift) in Neo2 on Linux
+        modifier = shift or ctrl or alt or altgr or neo2_level4
         if key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Tab):
             # Check that what was selected can be selected,
             # otherwise timing issues

@@ -15,6 +15,10 @@ if %USE_CONDA% == yes (
     :: Github backend tests are failing with 1.1.1d
     conda install -q -y openssl=1.1.1c
     if errorlevel 1 exit 1
+
+    :: Remove spyder-kernels to be sure that we use its subrepo
+    conda remove -q -y --force spyder-kernels
+    if errorlevel 1 exit 1
 ) else (
     :: Github backend tests are failing with 1.1.1d
     conda install -q -y openssl=1.1.1c
@@ -31,14 +35,24 @@ if %USE_CONDA% == yes (
     :: Install qtconsole from Github
     pip install git+https://github.com/jupyter/qtconsole.git
     if errorlevel 1 exit 1
+
+    :: Remove spyder-kernels to be sure that we use its subrepo
+    pip uninstall -q -y spyder-kernels
+    if errorlevel 1 exit 1
 )
 
 :: Create environment for Jedi environments tests
-conda create -n jedi-test-env -q -y python=3.6 loghub spyder-kernels -c spyder-ide
+conda create -n jedi-test-env -q -y python=3.6 flask spyder-kernels
 if errorlevel 1 exit 1
 
-:: Install spyder-kernels from master
-pip install -q --no-deps git+https://github.com/spyder-ide/spyder-kernels
+conda list -n jedi-test-env
+if errorlevel 1 exit 1
+
+:: Create environment to test conda activation before launching a spyder kernel
+conda create -n spytest-ž -q -y python=3.6 spyder-kernels
+if errorlevel 1 exit 1
+
+conda list -n spytest-ž
 if errorlevel 1 exit 1
 
 :: Install python-language-server from master

@@ -12,9 +12,9 @@ import os
 import os.path as osp
 import sys
 
-from spyder_kernels.utils import iofuncs
-
 from spyder.config.base import _
+
+from spyder_kernels.utils import iofuncs
 
 
 #==============================================================================

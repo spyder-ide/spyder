@@ -18,6 +18,14 @@ from spyder.py3compat import PY2
 
 
 # =============================================================================
+# Kind of dependency
+# =============================================================================
+MANDATORY = 'mandatory'
+OPTIONAL = 'optional'
+PLUGIN = 'spyder plugins'
+
+
+# =============================================================================
 # Versions
 # =============================================================================
 # Hard dependencies
@@ -33,15 +41,16 @@ KEYRING_REQVER = None
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
 PARAMIKO_REQVER = '>=2.4.0'
+PARSO_REQVER = '=0.5.2'
 PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
-PSUTIL_REQVER = '>=0.3'
+PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=0.25'
 PYLS_REQVER = '>=0.31.2;<0.32.0'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
-QDARKSTYLE_REQVER = '>=2.7'
+QDARKSTYLE_REQVER = '>=2.8'
 QTAWESOME_REQVER = '>=0.5.7'
 QTCONSOLE_REQVER = '>=4.6.0'
 QTPY_REQVER = '>=1.5.0'
@@ -63,19 +72,16 @@ SYMPY_REQVER = '>=0.7.3'
 # =============================================================================
 # Descriptions
 # NOTE: We declare our dependencies in **alphabetical** order
+# If some dependencies are limited to some systems only, add a 'display' key.
+# See 'applaunchservices' for an example.
 # =============================================================================
 # List of descriptions
-DESCRIPTIONS = []
-
-if sys.platform == "darwin":
-    DESCRIPTIONS.append(
-        {'modname': "applaunchservices",
-         'package_name': "applaunchservices",
-         'features': _("Notify macOS that Spyder can open Python files"),
-         'required_version': APPLAUNCHSERVICES_REQVER})
-
-
-DESCRIPTIONS += [
+DESCRIPTIONS = [
+    {'modname': "applaunchservices",
+     'package_name': "applaunchservices",
+     'features': _("Notify macOS that Spyder can open Python files"),
+     'required_version': APPLAUNCHSERVICES_REQVER,
+     'display': sys.platform == "darwin"},
     {'modname': "atomicwrites",
      'package_name': "atomicwrites",
      'features': _("Atomic file writes in the Editor"),
@@ -89,7 +95,7 @@ DESCRIPTIONS += [
      'features': _("Handle communications between kernel and frontend"),
      'required_version': CLOUDPICKLE_REQVER},
     {'modname': "diff_match_patch",
-     'package_name': "diff_match_patch",
+     'package_name': "diff-match-patch",
      'features': _("Compute text file diff changes during edition"),
      'required_version': DIFF_MATCH_PATCH_REQVER},
     {'modname': "intervaltree",
@@ -106,8 +112,10 @@ DESCRIPTIONS += [
      'required_version': JEDI_REQVER},
     {'modname': "keyring",
      'package_name': "keyring",
-     'features': _("Save Github credentials to report internal errors securely"),
-     'required_version': KEYRING_REQVER},
+     'features': _("Save Github credentials to report internal "
+                   "errors securely"),
+     'required_version': KEYRING_REQVER,
+     'display': sys.platform.startswith('linux') and not PY2},
     {'modname': "nbconvert",
      'package_name': "nbconvert",
      'features': _("Manipulate Jupyter notebooks in the Editor"),
@@ -115,20 +123,17 @@ DESCRIPTIONS += [
     {'modname': "numpydoc",
      'package_name': "numpydoc",
      'features': _("Improve code completion for objects that use Numpy docstrings"),
-     'required_version': NUMPYDOC_REQVER}
-]
-
-
-if sys.platform == 'nt':
-    DESCRIPTIONS.append(
-        {'modname': "paramiko",
-         'package_name': "paramiko",
-         'features': _("Connect to remote kernels through SSH"),
-         'required_version': PARAMIKO_REQVER}
-    )
-
-
-DESCRIPTIONS += [
+     'required_version': NUMPYDOC_REQVER},
+    {'modname': "paramiko",
+     'package_name': "paramiko",
+     'features': _("Connect to remote kernels through SSH"),
+     'required_version': PARAMIKO_REQVER,
+     'display': os.name == 'nt'},
+    {'modname': "parso",
+     'package_name': "parso",
+     'features': _("Python parser that supports error recovery and "
+                   "round-trip parsing"),
+     'required_version': PARSO_REQVER},
     {'modname': "pexpect",
      'package_name': "pexpect",
      'features': _("Stdio support for our language server client"),
@@ -152,20 +157,12 @@ DESCRIPTIONS += [
     {'modname': 'pyls',
      'package_name': 'python-language-server',
      'features': _("Code completion and linting for the Editor"),
-     'required_version': PYLS_REQVER}
-]
-
-
-if sys.platform.startswith('linux'):
-    DESCRIPTIONS.append(
-        {'modname': "xdg",
-         'package_name': "pyxdg",
-         'features': _("Parse desktop files on Linux"),
-         'required_version': PYXDG_REQVER}
-    )
-
-
-DESCRIPTIONS += [
+     'required_version': PYLS_REQVER},
+    {'modname': "xdg",
+     'package_name': "pyxdg",
+     'features': _("Parse desktop files on Linux"),
+     'required_version': PYXDG_REQVER,
+     'display': sys.platform.startswith('linux')},
     {'modname': "zmq",
      'package_name': "pyzmq",
      'features': _("Client for the language server protocol (LSP)"),
@@ -185,20 +182,12 @@ DESCRIPTIONS += [
     {'modname': "qtpy",
      'package_name': "qtpy",
      'features': _("Abstraction layer for Python Qt bindings."),
-     'required_version': QTPY_REQVER}
-]
-
-
-if is_anaconda():
-    DESCRIPTIONS.append(
-        {'modname': "rtree",
-         'package_name': "rtree",
-         'features': _("Fast access to code snippets regions"),
-         'required_version': RTREE_REQVER}
-    )
-
-
-DESCRIPTIONS += [
+     'required_version': QTPY_REQVER},
+    {'modname': "rtree",
+     'package_name': "rtree",
+     'features': _("Fast access to code snippets regions"),
+     'required_version': RTREE_REQVER,
+     'display': is_anaconda()},
     {'modname': "sphinx",
      'package_name': "sphinx",
      'features': _("Show help for objects in the Editor and Consoles in a dedicated pane"),
@@ -220,32 +209,32 @@ DESCRIPTIONS += [
      'package_name': "cython",
      'features': _("Run Cython files in the IPython Console"),
      'required_version': CYTHON_REQVER,
-     'optional': True},
+     'kind': OPTIONAL},
     {'modname': "matplotlib",
      'package_name': "matplotlib",
      'features': _("2D/3D plotting in the IPython console"),
      'required_version': MATPLOTLIB_REQVER,
-     'optional': True},
+     'kind': OPTIONAL},
     {'modname': "numpy",
      'package_name': "numpy",
      'features': _("View and edit two and three dimensional arrays in the Variable Explorer"),
      'required_version': NUMPY_REQVER,
-     'optional': True},
+     'kind': OPTIONAL},
     {'modname': 'pandas',
      'package_name':  'pandas',
      'features': _("View and edit DataFrames and Series in the Variable Explorer"),
      'required_version': PANDAS_REQVER,
-     'optional': True},
+     'kind': OPTIONAL},
     {'modname': "scipy",
      'package_name': "scipy",
      'features': _("Import Matlab workspace files in the Variable Explorer"),
      'required_version': SCIPY_REQVER,
-     'optional': True},
+     'kind': OPTIONAL},
     {'modname': "sympy",
      'package_name': "sympy",
      'features': _("Symbolic mathematics in the IPython Console"),
      'required_version': SYMPY_REQVER,
-     'optional': True}
+     'kind': OPTIONAL}
 ]
 
 
@@ -262,16 +251,17 @@ class Dependency(object):
     NOK = 'NOK'
 
     def __init__(self, modname, package_name, features, required_version,
-                 installed_version=None, optional=False):
+                 installed_version=None, kind=MANDATORY):
         self.modname = modname
         self.package_name = package_name
         self.features = features
         self.required_version = required_version
-        self.optional = optional
+        self.kind = kind
+
         if installed_version is None:
             try:
                 self.installed_version = programs.get_module_version(modname)
-            except:
+            except Exception:
                 # NOTE: Don't add any exception type here!
                 # Modules can fail to import in several ways besides
                 # ImportError
@@ -281,9 +271,12 @@ class Dependency(object):
 
     def check(self):
         """Check if dependency is installed"""
-        return programs.is_module_installed(self.modname,
-                                            self.required_version,
-                                            self.installed_version)
+        if self.required_version and self.installed_version:
+            return programs.is_module_installed(self.modname,
+                                                self.required_version,
+                                                self.installed_version)
+        else:
+            return True
 
     def get_installed_version(self):
         """Return dependency status (string)"""
@@ -304,7 +297,7 @@ DEPENDENCIES = []
 
 
 def add(modname, package_name, features, required_version,
-        installed_version=None, optional=False):
+        installed_version=None, kind=MANDATORY):
     """Add Spyder dependency"""
     global DEPENDENCIES
     for dependency in DEPENDENCIES:
@@ -313,7 +306,7 @@ def add(modname, package_name, features, required_version,
                              % modname)
     DEPENDENCIES += [Dependency(modname, package_name, features,
                                 required_version,
-                                installed_version, optional)]
+                                installed_version, kind)]
 
 
 def check(modname):
@@ -326,22 +319,34 @@ def check(modname):
 
 
 def status(deps=DEPENDENCIES, linesep=os.linesep):
-    """Return a status of dependencies"""
+    """Return a status of dependencies."""
     maxwidth = 0
-    col1 = []
-    col2 = []
+    data = []
 
-    for dependency in deps:
-        title1 = dependency.modname
-        if dependency.required_version is not None:
-            title1 += ' ' + dependency.required_version
-        col1.append(title1)
-        maxwidth = max([maxwidth, len(title1)])
-        col2.append(dependency.get_installed_version())
+    # Find maximum width
+    for dep in deps:
+        title = dep.modname
+        if dep.required_version is not None:
+            title += ' ' + dep.required_version
 
+        maxwidth = max([maxwidth, len(title)])
+        dep_order = {MANDATORY: '0', OPTIONAL: '1', PLUGIN: '2'}
+        order_dep = {'0': MANDATORY, '1': OPTIONAL, '2': PLUGIN}
+        data.append([dep_order[dep.kind], title, dep.get_installed_version()])
+
+    # Construct text and sort by kind and name
+    maxwidth += 1
     text = ""
-    for index in range(len(deps)):
-        text += col1[index].ljust(maxwidth) + ':  ' + col2[index] + linesep
+    prev_order = '-1'
+    for order, title, version in sorted(data,
+                                        key=lambda x: x[0] + x[1].lower()):
+        if order != prev_order:
+            text += '{sep}# {name}:{sep}'.format(
+                sep=linesep, name=order_dep[order].capitalize())
+            prev_order = order
+
+        text += '{title}:  {version}{linesep}'.format(
+            title=title.ljust(maxwidth), version=version, linesep=linesep)
 
     # Remove spurious linesep when reporting deps to Github
     if not linesep == '<br>':
@@ -354,8 +359,9 @@ def missing_dependencies():
     """Return the status of missing dependencies (if any)"""
     missing_deps = []
     for dependency in DEPENDENCIES:
-        if not dependency.check() and not dependency.optional:
+        if not dependency.check() and dependency.kind != OPTIONAL:
             missing_deps.append(dependency)
+
     if missing_deps:
         return status(deps=missing_deps, linesep='<br>')
     else:
@@ -364,12 +370,7 @@ def missing_dependencies():
 
 def declare_dependencies():
     for dep in DESCRIPTIONS:
-        # Detect if dependency is optional
-        if dep.get('optional', False):
-            optional = True
-        else:
-            optional = False
-
-        add(dep['modname'], dep['package_name'],
-            dep['features'], dep['required_version'],
-            optional=optional)
+        if dep.get('display', True):
+            add(dep['modname'], dep['package_name'],
+                dep['features'], dep['required_version'],
+                kind=dep.get('kind', MANDATORY))

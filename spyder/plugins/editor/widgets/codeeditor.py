@@ -47,6 +47,7 @@ from spyder_kernels.utils.dochelpers import getobj
 
 # %% This line is for cell execution testing
 
+
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _, get_debug_level, running_under_pytest
@@ -77,7 +78,8 @@ from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
-from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
+from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
+                                                is_cell_header)
 from spyder.py3compat import PY2, to_text_string, is_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
@@ -612,6 +614,10 @@ class CodeEditor(TextEditBaseWidget):
         completion_parent = self.completion_widget.parent()
         self.kite_call_to_action = KiteCallToAction(self, completion_parent)
 
+        # Some events should not be triggered during undo/redo
+        # such as line stripping
+        self.is_undoing = False
+        self.is_redoing = False
     # --- Helper private methods
     # ------------------------------------------------------------------------
 
@@ -693,8 +699,8 @@ class CodeEditor(TextEditBaseWidget):
         """Create the local shortcuts for the CodeEditor."""
         shortcut_context_name_callbacks = (
             ('editor', 'code completion', self.do_completion),
-            ('editor', 'duplicate line', self.duplicate_line),
-            ('editor', 'copy line', self.copy_line),
+            ('editor', 'duplicate line down', self.duplicate_line_down),
+            ('editor', 'duplicate line up', self.duplicate_line_up),
             ('editor', 'delete line', self.delete_line),
             ('editor', 'move line up', self.move_line_up),
             ('editor', 'move line down', self.move_line_down),
@@ -1448,6 +1454,19 @@ class CodeEditor(TextEditBaseWidget):
         else:
             debugger_panel.setVisible(False)
 
+    def update_debugger_panel_state(self, state, last_step, force=False):
+        """Update debugger panel state."""
+        debugger_panel = self.panels.get(DebuggerPanel)
+        if force:
+            debugger_panel.start_clean()
+            return
+        elif state and 'fname' in last_step:
+            fname = last_step['fname']
+            if osp.normcase(fname) == osp.normcase(self.filename):
+                debugger_panel.start_clean()
+                return
+        debugger_panel.stop_clean()
+
     def set_folding_panel(self, folding):
         """Enable/disable folding panel."""
         folding_panel = self.panels.get(FoldingPanel)
@@ -1576,7 +1595,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.comment_string = comment_string
                     if key in CELL_LANGUAGES:
                         self.supported_cell_language = True
-                        self.cell_separators = CELL_LANGUAGES[key]
+                        self.has_cell_separators = True
                     if CFMatch is None:
                         self.classfunc_match = None
                     else:
@@ -1602,6 +1621,7 @@ class CodeEditor(TextEditBaseWidget):
         self.highlighter = self.highlighter_class(self.document(),
                                                   self.font(),
                                                   self.color_scheme)
+        self.highlighter.sig_new_cell.connect(self.add_to_cell_list)
         self._apply_highlighter_color_scheme()
 
         self.highlighter.editor = self
@@ -2209,10 +2229,12 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isUndoAvailable():
             self.text_version -= 1
             self.skip_rstrip = True
+            self.is_undoing = True
             TextEditBaseWidget.undo(self)
             self.document_did_change('')
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
+            self.is_undoing = False
             self.skip_rstrip = False
 
     @Slot()
@@ -2221,22 +2243,13 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isRedoAvailable():
             self.text_version += 1
             self.skip_rstrip = True
+            self.is_redoing = True
             TextEditBaseWidget.redo(self)
             self.document_did_change('text')
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
+            self.is_redoing = False
             self.skip_rstrip = False
-
-    def get_block_data(self, block):
-        """Return block data (from syntax highlighter)"""
-        return self.highlighter.block_data.get(block)
-
-    def get_fold_level(self, block_nb):
-        """Is it a fold header line?
-        If so, return fold level
-        If not, return None"""
-        block = self.document().findBlockByNumber(block_nb)
-        return self.get_block_data(block).fold_level
 
 # =============================================================================
 #    High-level editor features
@@ -2313,6 +2326,7 @@ class CodeEditor(TextEditBaseWidget):
                                          underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
+        self.sig_flags_changed.emit()
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
@@ -2577,7 +2591,7 @@ class CodeEditor(TextEditBaseWidget):
             data.todo = ''
 
         for message, line_number in todo_results:
-            block = self.document().findBlockByNumber(line_number-1)
+            block = self.document().findBlockByNumber(line_number - 1)
             data = block.userData()
             if not data:
                 data = BlockUserData(self)
@@ -2622,7 +2636,7 @@ class CodeEditor(TextEditBaseWidget):
                     cursor.insertText(prefix)
                 elif '#' not in prefix:
                     cursor.insertText(prefix)
-                if start_pos == 0 and cursor.blockNumber() == 0:
+                if cursor.blockNumber() == 0:
                     # Avoid infinite loop when indenting the very first line
                     break
                 cursor.movePosition(QTextCursor.PreviousBlock)
@@ -2671,7 +2685,7 @@ class CodeEditor(TextEditBaseWidget):
                         or number_spaces > left_number_spaces)
                         and not line_text.isspace() and line_text != ''):
                     number_spaces = left_number_spaces
-                if start_pos == 0 and cursor.blockNumber() == 0:
+                if cursor.blockNumber() == 0:
                     # Avoid infinite loop when indenting the very first line
                     break
                 cursor.movePosition(QTextCursor.PreviousBlock)
@@ -2867,7 +2881,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
-        prev_block = self.document().findBlockByNumber(block_nb-1)
+        prev_block = self.document().findBlockByNumber(block_nb - 1)
         prevline = to_text_string(prev_block.text())
 
         indentation = re.match(r"\s*", prevline).group()
@@ -2878,7 +2892,8 @@ class CodeEditor(TextEditBaseWidget):
         cursor.insertText(indentation)
         return False  # simple indentation don't fix indentation
 
-    def fix_indent_smart(self, forward=True, comment_or_string=False):
+    def fix_indent_smart(self, forward=True, comment_or_string=False,
+                         cur_indent=None):
         """
         Fix indentation (Python only, no text selection)
 
@@ -2889,6 +2904,12 @@ class CodeEditor(TextEditBaseWidget):
 
         comment_or_string: Do not adjust indent level for
             unmatched opening brackets and keywords
+
+        max_blank_lines: maximum number of blank lines to search before giving
+            up
+
+        cur_indent: current indent. This is the indent before we started
+            processing. E.g. when returning, indent before rstrip.
 
         Returns True if indent needed to be fixed
 
@@ -2902,16 +2923,15 @@ class CodeEditor(TextEditBaseWidget):
         add_indent = 0  # How many levels of indent to add
         prevline = None
         prevtext = ""
+        empty_lines = True
 
         closing_brackets = []
-        for prevline in range(block_nb-1, -1, -1):
+        for prevline in range(block_nb - 1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
             prevtext = to_text_string(cursor.block().text()).rstrip()
 
             bracket_stack, closing_brackets, comment_pos = self.__get_brackets(
                 prevtext, closing_brackets)
-            if comment_pos > -1:
-                prevtext = prevtext[:comment_pos].rstrip()
 
             if not prevtext:
                 continue
@@ -2924,6 +2944,15 @@ class CodeEditor(TextEditBaseWidget):
 
             if bracket_stack or not closing_brackets:
                 break
+
+            if prevtext.strip() != '':
+                empty_lines = False
+
+        if empty_lines and prevline is not None and prevline < block_nb - 2:
+            # The previous line is too far, ignore
+            prevtext = ''
+            prevline = block_nb - 2
+            line_in_block = False
 
         # splits of prevtext happen a few times. Let's just do it once
         words = re.split(r'[\s\(\[\{\}\]\)]', prevtext.lstrip())
@@ -2972,8 +3001,15 @@ class CodeEditor(TextEditBaseWidget):
 
         # TODO untangle this block
         if prevline and not bracket_stack and not prevtext.endswith(':'):
-            cur_indent = self.get_block_indentation(block_nb - 1)
-            is_blank = not self.get_text_line(block_nb - 1).strip()
+            if forward:
+                # Keep indentation of previous line
+                ref_line = block_nb - 1
+            else:
+                # Find indentation context
+                ref_line = prevline
+            if cur_indent is None:
+                cur_indent = self.get_block_indentation(ref_line)
+            is_blank = not self.get_text_line(ref_line).strip()
             trailing_text = self.get_text_line(block_nb).strip()
             # If brackets are matched and no block gets opened
             # Match the above line's indent and nudge to the next multiple of 4
@@ -3269,7 +3305,7 @@ class CodeEditor(TextEditBaseWidget):
             return
         while not __is_comment_bar(cursor1):
             cursor1.movePosition(QTextCursor.PreviousBlock)
-            if cursor1.atStart():
+            if cursor1.blockNumber() == 0:
                 break
         if not __is_comment_bar(cursor1):
             return False
@@ -3631,7 +3667,8 @@ class CodeEditor(TextEditBaseWidget):
         direction_keys = {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}
         if key in direction_keys:
             self.request_cursor_event()
-        self.timer_syntax_highlight.start()
+
+        # self.timer_syntax_highlight.start()
         self._restore_editor_cursor_and_selections()
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
@@ -3656,6 +3693,7 @@ class CodeEditor(TextEditBaseWidget):
         """Reimplement Qt method."""
         self._start_completion_timer()
 
+        tab_pressed = False
         if self.completions_hint_after_ms > 0:
             self._completions_hint_idle = False
             self._timer_completions_hint.start(self.completions_hint_after_ms)
@@ -3730,6 +3768,10 @@ class CodeEditor(TextEditBaseWidget):
                 elif self.is_completion_widget_visible():
                     self.select_completion_list()
                 else:
+                    self.textCursor().beginEditBlock()
+                    cur_indent = self.get_block_indentation(
+                        self.textCursor().blockNumber())
+                    insert_text(event)
                     # Check if we're in a comment or a string at the
                     # current position
                     cmt_or_str_cursor = self.in_comment_or_string()
@@ -3744,13 +3786,13 @@ class CodeEditor(TextEditBaseWidget):
                     # Check if we are in a comment or a string
                     cmt_or_str = cmt_or_str_cursor and cmt_or_str_line_begin
 
-                    self.textCursor().beginEditBlock()
-                    insert_text(event)
                     if self.strip_trailing_spaces_on_modify:
                         self.fix_and_strip_indent(
-                            comment_or_string=cmt_or_str)
+                            comment_or_string=cmt_or_str,
+                            cur_indent=cur_indent)
                     else:
-                        self.fix_indent(comment_or_string=cmt_or_str)
+                        self.fix_indent(comment_or_string=cmt_or_str,
+                                        cur_indent=cur_indent)
                     self.textCursor().endEditBlock()
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
@@ -3798,7 +3840,7 @@ class CodeEditor(TextEditBaseWidget):
                         self._start_completion_timer()
             else:
                 self.do_completion(automatic=True)
-        elif (text != '(' and text in self.signature_completion_characters and
+        elif (text in self.signature_completion_characters and
                 not self.has_selected_text()):
             self.insert_text(text)
             self.request_signature()
@@ -3826,6 +3868,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Tab and not ctrl:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
+            tab_pressed = True
             if not has_selection and not self.tab_mode:
                 self.intelligent_tab()
             else:
@@ -3834,6 +3877,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Backtab and not ctrl:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
             # there is no point since <TAB> can't (see above)
+            tab_pressed = True
             if not has_selection and not self.tab_mode:
                 self.intelligent_backtab()
             else:
@@ -3845,7 +3889,7 @@ class CodeEditor(TextEditBaseWidget):
 
         self._last_key_pressed_text = text
         self._last_pressed_key = key
-        if self.automatic_completions_after_ms == 0:
+        if self.automatic_completions_after_ms == 0 and not tab_pressed:
             self._handle_completions()
 
         if not event.modifiers():
@@ -3863,7 +3907,8 @@ class CodeEditor(TextEditBaseWidget):
 
         key = self._last_pressed_key
         if key is not None:
-            if key == Qt.Key_Backspace or key == Qt.Key_Return:
+            if key in [Qt.Key_Backspace, Qt.Key_Return, Qt.Key_Escape,
+                       Qt.Key_Tab, Qt.Key_Backtab]:
                 self._last_pressed_key = None
                 return
 
@@ -3895,14 +3940,18 @@ class CodeEditor(TextEditBaseWidget):
                     self._last_key_pressed_text = ''
                     self._last_pressed_key = None
 
-    def fix_and_strip_indent(self, comment_or_string=False):
-        """Automatically fix indent and strip previous automatic indent."""
+    def fix_and_strip_indent(self, *args, **kwargs):
+        """
+        Automatically fix indent and strip previous automatic indent.
+
+        args and kwargs are forwarded to self.fix_indent
+        """
         # Fix indent
         cursor_before = self.textCursor().position()
-        # A change just occured on the last line (return was pressed)
+        # A change just occurred on the last line (return was pressed)
         if cursor_before > 0:
             self.last_change_position = cursor_before - 1
-        self.fix_indent(comment_or_string=comment_or_string)
+        self.fix_indent(*args, **kwargs)
         cursor_after = self.textCursor().position()
         # Remove previous spaces and update last_auto_indent
         nspaces_removed = self.strip_trailing_spaces()
@@ -4331,10 +4380,14 @@ class CodeEditor(TextEditBaseWidget):
     def dragEnterEvent(self, event):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
-        if mimedata2url(event.mimeData()):
+        logger.debug("dragEnterEvent was received")
+        all_urls = mimedata2url(event.mimeData())
+        if all_urls:
             # Let the parent widget handle this
+            logger.debug("Let the parent widget handle this dragEnterEvent")
             event.ignore()
         else:
+            logger.debug("Call TextEditBaseWidget dragEnterEvent method")
             TextEditBaseWidget.dragEnterEvent(self, event)
 
     def dropEvent(self, event):
@@ -4386,7 +4439,7 @@ class CodeEditor(TextEditBaseWidget):
             painter.setPen(pen)
 
             for top, line_number, block in self.visible_blocks:
-                if self.is_cell_separator(block=block):
+                if is_cell_header(block):
                     painter.drawLine(4, top, self.width(), top)
 
     @property

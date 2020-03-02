@@ -40,7 +40,7 @@ from spyder.py3compat import (io, is_binary_string, is_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, keybinding
-
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
@@ -160,7 +160,7 @@ class ArrayModel(QAbstractTableModel):
             self.hue0 = huerange[0]
             self.dhue = huerange[1]-huerange[0]
             self.bgcolor_enabled = True
-        except (TypeError, ValueError):
+        except (AttributeError, TypeError, ValueError):
             self.vmin = None
             self.vmax = None
             self.hue0 = None
@@ -346,11 +346,16 @@ class ArrayModel(QAbstractTableModel):
         # Add change to self.changes
         self.changes[(i, j)] = val
         self.dataChanged.emit(index, index)
+
         if not is_string(val):
+            val = self.color_func(val)
+
             if val > self.vmax:
                 self.vmax = val
+
             if val < self.vmin:
                 self.vmin = val
+
         return True
 
     def flags(self, index):
@@ -621,7 +626,7 @@ class ArrayEditorWidget(QWidget):
             self.model.set_format(format)
 
 
-class ArrayEditor(QDialog):
+class ArrayEditor(BaseDialog):
     """Array Editor Dialog"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -686,13 +691,12 @@ class ArrayEditor(QDialog):
         self.setLayout(self.layout)
         self.setWindowIcon(ima.icon('arredit'))
         if title:
-            title = to_text_string(title) + " - " + _("NumPy array")
+            title = to_text_string(title) + " - " + _("NumPy object array")
         else:
             title = _("Array editor")
         if readonly:
             title += ' (' + _('read only') + ')'
         self.setWindowTitle(title)
-        self.resize(600, 500)
 
         # Stack widget
         self.stack = QStackedWidget(self)
@@ -854,10 +858,15 @@ class ArrayEditor(QDialog):
 
     @Slot()
     def accept(self):
-        """Reimplement Qt method"""
-        for index in range(self.stack.count()):
-            self.stack.widget(index).accept_changes()
-        QDialog.accept(self)
+        """Reimplement Qt method."""
+        try:
+            for index in range(self.stack.count()):
+                self.stack.widget(index).accept_changes()
+            QDialog.accept(self)
+        except RuntimeError:
+            # Sometimes under CI testing the object the following error appears
+            # RuntimeError: wrapped C/C++ object has been deleted
+            pass
 
     def get_value(self):
         """Return modified array -- this is *not* a copy"""
@@ -866,7 +875,7 @@ class ArrayEditor(QDialog):
         return self.data
 
     def error(self, message):
-        """An error occured, closing the dialog box"""
+        """An error occurred, closing the dialog box"""
         QMessageBox.critical(self, _("Array editor"), message)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.reject()

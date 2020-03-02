@@ -23,7 +23,7 @@ except ImportError:
 
 # Third party imports
 from pandas import (DataFrame, date_range, read_csv, concat, Index, RangeIndex,
-                    MultiIndex, CategoricalIndex)
+                    MultiIndex, CategoricalIndex, Series)
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
 import numpy
@@ -80,10 +80,20 @@ def generate_pandas_indexes():
         }
 
 
-
 # =============================================================================
 # Tests
 # =============================================================================
+def test_dataframe_datetimeindex(qtbot):
+    """Regression test for spyder-ide/spyder#11129 ."""
+    ds = Series(
+        numpy.arange(10),
+        index=date_range('2019-01-01', periods=10))
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(ds)
+    index = editor.table_index.model()
+    assert data_index(index, 0, 0) == '2019-01-01 00:00:00'
+    assert data_index(index, 9, 0) == '2019-01-10 00:00:00'
+
 
 def test_dataframe_simpleindex(qtbot):
     """Test to validate proper creation and handling of a simpleindex."""

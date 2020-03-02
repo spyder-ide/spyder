@@ -31,6 +31,8 @@ except Exception:
 from spyder.plugins.completion.languageserver import (
     LSPRequestTypes, CompletionItemKind)
 from spyder.plugins.completion.kite.providers.document import KITE_COMPLETION
+from spyder.plugins.completion.kite.utils.status import (
+    check_if_kite_installed, check_if_kite_running)
 from spyder.py3compat import PY2
 from spyder.config.manager import CONF
 
@@ -227,6 +229,41 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
 
     assert "random" in [x['label'] for x in sig.args[0]]
     code_editor.toggle_code_snippets(True)
+
+
+@pytest.mark.slow
+@pytest.mark.first
+@flaky(max_runs=5)
+def test_automatic_completions_tab_bug(lsp_codeeditor, qtbot):
+    """
+    Test on-the-fly completions.
+
+    Autocompletions sohuld not be invoked when Tab/Backtab is pressed.
+
+    See: spyder-ide/spyder#11625
+    """
+    code_editor, _ = lsp_codeeditor
+    completion = code_editor.completion_widget
+    code_editor.toggle_code_snippets(False)
+
+    code_editor.set_text('x = 1')
+    code_editor.set_cursor_position('sol')
+
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=5000):
+            qtbot.keyPress(code_editor, Qt.Key_Tab)
+        assert False
+    except pytestqt.exceptions.TimeoutError:
+        pass
+
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=5000):
+            qtbot.keyPress(code_editor, Qt.Key_Backtab)
+        assert False
+    except pytestqt.exceptions.TimeoutError:
+        pass
 
 
 @pytest.mark.slow
@@ -488,7 +525,7 @@ def test_completions(lsp_codeeditor, qtbot):
                                         'math.f\nmath.asin\n'\
                                         'math.asinangle\n'
 
-    # Check math.a <tab> <backspace> doesn't emit sig_show_completions
+    # Check math.a <tab> <backspace> <escape> do not emit sig_show_completions
     qtbot.keyClicks(code_editor, 'math.a')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
@@ -498,6 +535,7 @@ def test_completions(lsp_codeeditor, qtbot):
                               timeout=5000) as sig:
             qtbot.keyPress(code_editor, Qt.Key_Tab)
             qtbot.keyPress(code_editor, Qt.Key_Backspace)
+            qtbot.keyPress(code_editor, Qt.Key_Escape)
         raise RuntimeError("The signal should not have been received!")
     except pytestqt.exceptions.TimeoutError:
         pass
@@ -522,7 +560,7 @@ def test_completions(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
-@pytest.mark.skipif(not rtree_available or PY2,
+@pytest.mark.skipif(not rtree_available or PY2 or os.name == 'nt',
                     reason='Only works if rtree is installed')
 def test_code_snippets(lsp_codeeditor, qtbot):
     assert rtree_available
@@ -725,6 +763,95 @@ def test_code_snippets(lsp_codeeditor, qtbot):
 
     CONF.set('lsp-server', 'code_snippets', False)
     lsp.update_configuration()
+
+    code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif((not rtree_available
+                     or not check_if_kite_installed()
+                     or not check_if_kite_running()),
+                    reason="Only works if rtree is installed."
+                           "It's not meant to be run without kite installed "
+                           "and runnning")
+def test_kite_code_snippets(kite_codeeditor, qtbot):
+    """
+    Test kite code snippets completions without initial placeholder.
+
+    See spyder-ide/spyder#10971
+    """
+    assert rtree_available
+    code_editor, kite = kite_codeeditor
+    completion = code_editor.completion_widget
+    snippets = code_editor.editor_extensions.get('SnippetsExtension')
+
+    CONF.set('lsp-server', 'code_snippets', True)
+    CONF.set('kite', 'enable', True)
+    kite.update_configuration()
+
+    code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(True)
+    # Set cursor to start
+    code_editor.go_to_line(1)
+
+    text = """
+    import numpy as np
+    """
+    text = textwrap.dedent(text)
+    code_editor.insert_text(text)
+
+    qtbot.keyClicks(code_editor, 'np.sin')
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
+
+    assert 'sin('+u'\u2026'+')' in {
+        x['label'] for x in sig.args[0]}
+
+    expected_insert = 'sin($1)$0'
+    insert = sig.args[0][0]
+    assert expected_insert == insert['insertText']
+
+    # Insert completion
+    qtbot.keyPress(completion, Qt.Key_Tab)
+    assert snippets.is_snippet_active
+
+    # Get code selected text
+    cursor = code_editor.textCursor()
+    arg1 = cursor.selectedText()
+    assert '' == arg1
+    assert snippets.active_snippet == 1
+
+    code_editor.set_cursor_position('eol')
+    code_editor.move_cursor(-1)
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig2:
+        qtbot.keyPress(code_editor, Qt.Key_Space, modifier=Qt.ControlModifier,
+                       delay=300)
+    assert '<x>)' in {x['label'] for x in sig2.args[0]}
+
+    expected_insert = '${1:[x]})$0'
+    insert = sig2.args[0][0]
+    assert expected_insert == insert['textEdit']['newText']
+    qtbot.keyPress(completion, Qt.Key_Tab)
+
+    # Snippets are disabled when there are no more left
+    code_editor.set_cursor_position('eol')
+    qtbot.keyPress(code_editor, Qt.Key_Enter)
+    assert not snippets.is_snippet_active
+
+    cursor = code_editor.textCursor()
+    cursor.movePosition(QTextCursor.PreviousBlock)
+    cursor.movePosition(QTextCursor.StartOfBlock)
+    cursor.movePosition(QTextCursor.EndOfBlock, mode=QTextCursor.KeepAnchor)
+    text1 = cursor.selectedText()
+    assert text1 == 'np.sin([x])'
+
+    CONF.set('lsp-server', 'code_snippets', False)
+    CONF.set('kite', 'enable', False)
+    kite.update_configuration()
 
     code_editor.toggle_automatic_completions(True)
     code_editor.toggle_code_snippets(True)
@@ -961,23 +1088,23 @@ def test_completions_environment(lsp_codeeditor, qtbot, tmpdir):
     set_executable_config_helper()
     lsp_plugin.update_configuration()
 
-    qtbot.keyClicks(code_editor, 'import logh')
+    qtbot.keyClicks(code_editor, 'import flas')
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.wait(2000)
-    assert code_editor.toPlainText() == 'import logh'
+    assert code_editor.toPlainText() == 'import flas'
 
     # Reset extra paths
     set_executable_config_helper(py_exe)
     lsp_plugin.update_configuration()
 
     code_editor.set_text('')
-    qtbot.keyClicks(code_editor, 'import logh')
+    qtbot.keyClicks(code_editor, 'import flas')
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    assert "loghub" in [x['label'] for x in sig.args[0]]
-    assert code_editor.toPlainText() == 'import loghub'
+    assert "flask" in [x['label'] for x in sig.args[0]]
+    assert code_editor.toPlainText() == 'import flask'
 
     set_executable_config_helper()
     lsp_plugin.update_configuration()

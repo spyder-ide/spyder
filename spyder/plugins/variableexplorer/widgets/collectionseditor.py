@@ -58,7 +58,7 @@ from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     CollectionsDelegate)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
-
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 # Maximum length of a serialized variable to be set in the kernel
 MAX_SERIALIZED_LENGHT = 1e6
@@ -742,6 +742,7 @@ class BaseTableView(QTableView):
         """Set table data"""
         if data is not None:
             self.source_model.set_data(data, self.dictfilter)
+            self.source_model.reset()
             self.sortByColumn(0, Qt.AscendingOrder)
 
     def mousePressEvent(self, event):
@@ -1268,7 +1269,7 @@ class CollectionsEditorWidget(QWidget):
         return self.editor.source_model.title
 
 
-class CollectionsEditor(QDialog):
+class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -1284,7 +1285,7 @@ class CollectionsEditor(QDialog):
         self.btn_save_and_close = None
         self.btn_close = None
 
-    def setup(self, data, title='', readonly=False, width=650, remote=False,
+    def setup(self, data, title='', readonly=False, remote=False,
               icon=None, parent=None):
         """Setup editor."""
         if isinstance(data, (dict, set)):
@@ -1338,12 +1339,6 @@ class CollectionsEditor(QDialog):
         btn_layout.addWidget(self.btn_close)
 
         layout.addLayout(btn_layout)
-
-        constant = 121
-        row_height = 30
-        error_margin = 10
-        height = constant + row_height * min([10, datalen]) + error_margin
-        self.resize(width, height)
 
         self.setWindowTitle(self.widget.get_title())
         if icon is None:

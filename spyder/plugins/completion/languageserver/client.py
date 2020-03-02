@@ -18,6 +18,7 @@ import os.path as osp
 import signal
 import subprocess
 import sys
+import time
 
 # Third-party imports
 from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
@@ -322,9 +323,25 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             }
 
         logger.debug('{} request: {}'.format(self.language, method))
-        self.zmq_out_socket.send_pyobj(msg)
-        self.request_seq += 1
-        return int(_id)
+
+        # Try sending a message. If the send queue is full, keep trying for a
+        # a second before giving up.
+        timeout = 1
+        start_time = time.time()
+        timeout_time = start_time + timeout
+        while True:
+            try:
+                self.zmq_out_socket.send_pyobj(msg, flags=zmq.NOBLOCK)
+                self.request_seq += 1
+                return int(_id)
+            except zmq.error.Again:
+                if time.time() > timeout_time:
+                    self.sig_lsp_down.emit(self.language)
+                    return
+                # The send queue is full! wait 0.1 seconds before retrying.
+                if self.initialized:
+                    logger.warning("The send queue is full! Retrying...")
+                time.sleep(.1)
 
     @Slot()
     def on_msg_received(self):

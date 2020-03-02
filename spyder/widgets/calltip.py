@@ -45,7 +45,7 @@ class ToolTipWidget(QLabel):
         """
         Shows tooltips that can be styled with the different themes.
         """
-        super(ToolTipWidget, self).__init__(parent, Qt.ToolTip)
+        super(ToolTipWidget, self).__init__(None, Qt.ToolTip)
 
         # Variables
         self.completion_doc = None
@@ -127,13 +127,6 @@ class ToolTipWidget(QLabel):
         """
         Attempts to show the specified tip at the current cursor location.
         """
-        # Don't attempt to show it if it's already visible and the text
-        # to be displayed is the same as the one displayed before.
-        if self.tip == tip:
-            if not self.isVisible():
-                self.show()
-            return
-
         # Set the text and resize the widget accordingly.
         self.tip = tip
         self.setText(tip)
@@ -309,6 +302,9 @@ class CallTipWidget(QLabel):
 
             elif etype == QEvent.Leave:
                 self._leave_event_hide()
+
+            elif etype == QEvent.WindowBlocked:
+                self.hide()
 
         return super(CallTipWidget, self).eventFilter(obj, event)
 

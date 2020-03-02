@@ -74,6 +74,10 @@ class CompletionManager(SpyderCompletionPlugin):
             ),
         })
 
+    SKIP_INTERMEDIATE_REQUESTS = {
+        LSPRequestTypes.DOCUMENT_COMPLETION
+    }
+
     def __init__(self, parent, plugins=['lsp', 'kite', 'fallback']):
         SpyderCompletionPlugin.__init__(self, parent)
         self.clients = {}
@@ -139,8 +143,24 @@ class CompletionManager(SpyderCompletionPlugin):
         request_responses = self.requests[req_id]
 
         def send():
+            # Needed to prevent the send of completions for old requests
+            # See spyder-ide/spyder#10798
+            req_type = self.requests[req_id]['req_type']
+            response_instance = id(self.requests[req_id]['response_instance'])
+            send = True
+            if req_type in self.SKIP_INTERMEDIATE_REQUESTS:
+                max_req_id = max(
+                    [key for key, item in self.requests.items()
+                     if item['req_type'] == req_type
+                     and id(item['response_instance']) == response_instance]
+                    or [-1])
+                send = req_id == max_req_id
+
             del self.requests[req_id]
-            self.gather_and_send(request_responses)
+
+            # Response only to recent requests.
+            if send:
+                self.gather_and_send(request_responses)
 
         wait_for = set(source for source
                        in self.WAIT_FOR_SOURCE[request_responses['req_type']]

@@ -36,6 +36,22 @@ def test_permissions(tmpdir):
     assert old_mode == new_mode
 
 
+def test_timestamp(tmpdir):
+    """Check that the modification timestamp is preserved."""
+    tmp_file = tmpdir.mkdir("timestamp").join('test_file.txt')
+    tmp_file = to_text_string(tmp_file)
+
+    # Write a file
+    write("Test text", tmp_file)
+    st = os.stat(tmp_file)
+    actual_creation_time = st.st_atime
+
+    # Write the file and check that creation time is preserved.
+    write('New text', tmp_file)
+    creation_time = os.stat(tmp_file).st_atime
+    assert actual_creation_time == creation_time
+
+
 def test_is_text_file(tmpdir):
     p = tmpdir.mkdir("sub").join("random_text.txt")
     p.write("Some random text")

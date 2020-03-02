@@ -13,6 +13,7 @@ import logging
 from qtpy.QtCore import QObject, Signal
 from qtpy.QtWidgets import QMessageBox
 
+import watchdog
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
@@ -21,6 +22,32 @@ from spyder.config.base import _
 from spyder.py3compat import to_text_string
 
 logger = logging.getLogger(__name__)
+
+
+class BaseThreadWrapper(watchdog.utils.BaseThread):
+    """
+    Wrapper around watchdog BaseThread class.
+    This is necessary for issue spyder-ide/spyder#11370
+    """
+    queue = None
+
+    def __init__(self):
+        super(BaseThreadWrapper, self).__init__()
+        self._original_run = self.run
+        self.run = self.run_wrapper
+
+    def run_wrapper(self):
+        try:
+            self._original_run()
+        except OSError as e:
+            logger.exception('Watchdog thread exited with error %s',
+                             e.strerror)
+            self.queue.put(e)
+
+
+# Monkeypatching BaseThread to prevent the error reported in
+# spyder-ide/spyder#11370
+watchdog.utils.BaseThread = BaseThreadWrapper
 
 
 class WorkspaceEventHandler(QObject, FileSystemEventHandler):

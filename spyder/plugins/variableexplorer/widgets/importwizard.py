@@ -36,6 +36,7 @@ from spyder.py3compat import (INT_TYPES, io, TEXT_TYPES, to_text_string,
 from spyder.utils import programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 
 def try_to_parse(value):
@@ -482,7 +483,7 @@ class PreviewWidget(QWidget):
         return self._table_view.get_data()
 
 
-class ImportWizard(QDialog):
+class ImportWizard(BaseDialog):
     """Text data import wizard"""
     def __init__(self, parent, text,
                  title=None, icon=None, contents_title=None, varname=None):
