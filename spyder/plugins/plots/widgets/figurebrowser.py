@@ -12,6 +12,7 @@ This is the main widget used in the Plots plugin
 
 # ---- Standard library imports
 from __future__ import division
+import datetime
 import os.path as osp
 import sys
 
@@ -58,11 +59,11 @@ def get_unique_figname(dirname, root, ext):
     in "dirname".
     """
     i = 1
-    figname = root + '_%d' % i + ext
+    figname = '{}{}'.format(root, ext)
     while True:
         if osp.exists(osp.join(dirname, figname)):
+            figname = '{} ({}){}'.format(root, i, ext)
             i += 1
-            figname = root + '_%d' % i + ext
         else:
             return osp.join(dirname, figname)
 
@@ -741,6 +742,8 @@ class ThumbnailScrollBar(QFrame):
     def save_all_figures_todir(self, dirname):
         """Save all figure in dirname."""
         fignames = []
+        figname_root = ('Figure ' +
+                        datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
         for thumbnail in self._thumbnails:
             fig = thumbnail.canvas.fig
             fmt = thumbnail.canvas.fmt
@@ -748,7 +751,7 @@ class ThumbnailScrollBar(QFrame):
                     'image/jpeg': '.jpg',
                     'image/svg+xml': '.svg'}[fmt]
 
-            figname = get_unique_figname(dirname, 'Figure', fext)
+            figname = get_unique_figname(dirname, figname_root, fext)
             save_figure_tofile(fig, fmt, figname)
             fignames.append(figname)
         return fignames
@@ -767,7 +770,10 @@ class ThumbnailScrollBar(QFrame):
             'image/svg+xml': ('.svg', 'SVG (*.svg);;PNG (*.png)')}[fmt]
 
         save_dir = CONF.get('plots', 'save_dir', getcwd_or_home())
-        figname = get_unique_figname(save_dir, 'Figure', fext)
+        figname = get_unique_figname(
+            save_dir,
+            'Figure ' + datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'),
+            fext)
 
         self.redirect_stdio.emit(False)
         fname, fext = getsavefilename(
