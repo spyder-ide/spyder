@@ -16,5 +16,17 @@ jobs:
                "reply": "This is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
                "labels": ["resolution:Duplicate"],
                "close": true
-             }
+             },
+             {
+               "pattern": "TypeError: _start_server() missing 1 required positional argument",
+               "reply": "This is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "PermissionError: [Errno 13] Permission denied",
+               "reply": "To fix this, please open the Anaconda Prompt and run there the following commands:<br><br>`conda update anaconda`<br>`conda install jupyter_client=5.3.4`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
              ]
