@@ -51,7 +51,8 @@ def _find_pylintrc_path(path):
     return pylint.config.find_pylintrc()
 
 
-def get_pylintrc_path(search_paths, home_path=None):
+def get_pylintrc_path(search_paths=None, home_path=None):
+    """Get the path to the highest pylintrc file on a set of search paths."""
     current_cwd = os.getcwd()
     pylintrc_path = None
     if home_path is None:
@@ -334,6 +335,17 @@ class PylintWidget(QWidget):
         """Try to start code analysis when Analyze button pressed."""
         self.start_analysis.emit()
 
+    def get_pylintrc_path(self, filename):
+        """Get the path to the most proximate pylintrc config to the file."""
+        proj_dir = self.parentWidget().main.projects.get_active_project_path()
+        search_paths = [
+            osp.dirname(filename),  # File's directory
+            getcwd_or_home(),  # Working directory
+            proj_dir,  # Project directory
+            osp.expanduser("~"),  # Home directory
+        ]
+        return get_pylintrc_path(search_paths=search_paths)
+
     @Slot()
     def start(self):
         """Start the code analysis."""
@@ -360,17 +372,10 @@ class PylintWidget(QWidget):
             else:
                 # Option '-i' (alias for '--include-ids') was removed in pylint
                 # 1.0
-                p_args += ["--msg-template='{msg_id}:{line:3d},"\
+                p_args += ["--msg-template='{msg_id}:{line:3d},"
                            "{column}: {obj}: {msg}"]
 
-        proj_dir = self.parentWidget().main.projects.get_active_project_path()
-        search_paths = [
-            osp.dirname(filename),  # File's directory
-            getcwd_or_home(),  # Working directory
-            proj_dir,  # Project directory
-            osp.expanduser("~"),  # Home directory
-        ]
-        pylintrc_path = get_pylintrc_path(search_paths)
+        pylintrc_path = self.get_pylintrc_path(filename=filename)
         if pylintrc_path is not None:
             p_args += ['--rcfile={}'.format(pylintrc_path)]
         p_args += [filename]
