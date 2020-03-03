@@ -21,6 +21,7 @@ import time
 
 # Third party imports
 import pylint
+import pylint.config
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import QByteArray, QProcess, Signal, Slot, QProcessEnvironment
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
