@@ -105,7 +105,12 @@ from spyder.app.utils import set_opengl_implementation
 from spyder.app.cli_options import get_options
 
 # Get CLI options/args and make them available for future use
-CLI_OPTIONS, CLI_ARGS = get_options()
+# Ignore args if running tests or Spyder will try and fail to parse pytests's
+if bool(os.environ.get('SPYDER_PYTEST')):
+    sys_argv = [sys.argv[0]]
+else:
+    sys_argv = sys.argv
+CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
 
 # **** Set OpenGL implementation to use ****
 if CLI_OPTIONS.opengl_implementation:
