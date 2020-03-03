@@ -56,8 +56,8 @@ msgstr "WinPython"
 msgid ""
 "An error occurred while creating a socket needed by Spyder. Please, try to "
 "run as an Administrator from cmd.exe the following command and then restart "
-"your computer: <br><br><span style='color: #555555'><b>netsh winsock reset</"
-"b></span><br>"
+"your computer: <br><br><span style='color: #555555'><b>netsh winsock "
+"reset</b></span><br>"
 msgstr ""
 
 #: spyder/app/mainwindow.py:647
@@ -291,8 +291,7 @@ msgid ""
 "\n"
 msgstr ""
 "Spyder belső konzol\n"
-"Ez a konzol belső applikaciói hibákjegyzésére és Syder belső "
-"vizsgálásárahasznál. Parancsok:  spy.app, spy.window, dir(spy)\n"
+"Ez a konzol belső applikaciói hibákjegyzésére és Syder belső vizsgálásárahasznál. Parancsok:  spy.app, spy.window, dir(spy)\n"
 "\n"
 "Kérjük ne futtassa saját kódját\n"
 "\n"
@@ -518,11 +517,11 @@ msgstr "Hiba"
 msgid ""
 "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><br><b>Please "
 "install them to avoid this message.</b><br><br><i>Note</i>: Spyder could "
-"work without some of these dependencies, however to have a smooth experience "
-"when using Spyder we <i>strongly</i> recommend you to install all the listed "
-"missing dependencies.<br><br>Failing to install these dependencies might "
-"result in bugs. Please be sure that any found bugs are not the direct result "
-"of missing dependencies, prior to reporting a new issue."
+"work without some of these dependencies, however to have a smooth experience"
+" when using Spyder we <i>strongly</i> recommend you to install all the "
+"listed missing dependencies.<br><br>Failing to install these dependencies "
+"might result in bugs. Please be sure that any found bugs are not the direct "
+"result of missing dependencies, prior to reporting a new issue."
 msgstr ""
 
 #: spyder/app/mainwindow.py:1958
@@ -570,12 +569,11 @@ msgstr "Figyelmeztetés"
 
 #: spyder/app/mainwindow.py:2005
 msgid ""
-"Window layout will be reset to default settings: this affects window "
-"position, size and dockwidgets.\n"
+"Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
 msgstr ""
-"Ablak kirendezetet vissza az alapra: ablak helyzet, nagyság változandó."
-"Folytatni?"
+"Ablak kirendezetet vissza az alapra: ablak helyzet, nagyság "
+"változandó.Folytatni?"
 
 #: spyder/app/mainwindow.py:2027
 msgid ""
@@ -586,9 +584,9 @@ msgstr "Kirendezés <b>%s</b> át lesz írva.Folytatni?"
 
 #: spyder/app/mainwindow.py:2093
 msgid ""
-"Error opening the custom layout.  Please close Spyder and try again.  If the "
-"issue persists, then you must use 'Reset to Spyder default' from the layout "
-"menu."
+"Error opening the custom layout.  Please close Spyder and try again.  If the"
+" issue persists, then you must use 'Reset to Spyder default' from the layout"
+" menu."
 msgstr ""
 
 #: spyder/app/mainwindow.py:2101
@@ -655,20 +653,20 @@ msgid ""
 "<hr><b>IMPORTANT NOTE:</b> It seems that you are using Spyder with "
 "<b>Anaconda/Miniconda</b>. Please <b>don't</b> use <code>pip</code> to "
 "update it as that will probably break your installation.<br><br>Instead, "
-"please wait until new conda packages are available and use <code>conda</"
-"code> to perform the update.<hr>"
+"please wait until new conda packages are available and use "
+"<code>conda</code> to perform the update.<hr>"
 msgstr ""
 
 #: spyder/app/mainwindow.py:3414
 msgid ""
 "<b>Spyder %s is available!</b> <br><br>Please use your package manager to "
-"update Spyder or go to our <a href=\"%s\">Releases</a> page to download this "
-"new version. <br><br>If you are not sure how to proceed to update Spyder "
+"update Spyder or go to our <a href=\"%s\">Releases</a> page to download this"
+" new version. <br><br>If you are not sure how to proceed to update Spyder "
 "please refer to our  <a href=\"%s\">Installation</a> instructions."
 msgstr ""
 "<b>Spyder %s kapható!</b> <br><br>Kérjük használja csomag menedzserjét vagy "
-"fáradjon a <a href=\"%s\">Kiadás</a> oldalra. <br><br>További "
-"tájékozatatásÉ  <a href=\"%s\">Installation</a>."
+"fáradjon a <a href=\"%s\">Kiadás</a> oldalra. <br><br>További tájékozatatásÉ"
+"  <a href=\"%s\">Installation</a>."
 
 #: spyder/app/mainwindow.py:3427
 #, fuzzy
@@ -728,8 +726,8 @@ msgstr "Üdvözöljük!"
 
 #: spyder/app/tour.py:134
 msgid ""
-"<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for "
-"the Python programming language.<br><br>Here we are going to guide you "
+"<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for"
+" the Python programming language.<br><br>Here we are going to guide you "
 "through its most important features.<br><br>Please use the arrow keys or "
 "click on the buttons below to move along the tour."
 msgstr ""
@@ -744,9 +742,9 @@ msgid ""
 "get automatic suggestions and completions while writing, by pressing the "
 "<b>Tab</b> key next to a given text.<br><br>The Editor comes with a line "
 "number area (highlighted here in red), where Spyder shows warnings and "
-"syntax errors. They can help you to detect potential problems before running "
-"the code.<br><br>You can also set debug breakpoints in the line number area, "
-"by doing a double click next to a non-empty line."
+"syntax errors. They can help you to detect potential problems before running"
+" the code.<br><br>You can also set debug breakpoints in the line number "
+"area, by doing a double click next to a non-empty line."
 msgstr ""
 
 #: spyder/app/tour.py:159
@@ -761,8 +759,8 @@ msgid ""
 "comes with several useful features that greatly improve your programming "
 "workflow (like syntax highlighting and inline plots). If you want to know "
 "more about them, please follow this <a href=\"{0}\">link</a>.<br><br>Please "
-"click on the button below to run some simple code in this console. This will "
-"be useful to show you other important features."
+"click on the button below to run some simple code in this console. This will"
+" be useful to show you other important features."
 msgstr ""
 
 #: spyder/app/tour.py:176
@@ -773,11 +771,11 @@ msgstr "Változóböngésző"
 #: spyder/app/tour.py:177
 msgid ""
 "In this pane you can view and edit the variables generated during the "
-"execution of a program, or those entered directly in one of Spyder consoles."
-"<br><br>As you can see, the Variable Explorer is showing the variables "
-"generated during the last step of this tour. By doing a double-click on any "
-"of them, a new window will be opened, where you can inspect and modify their "
-"contents."
+"execution of a program, or those entered directly in one of Spyder "
+"consoles.<br><br>As you can see, the Variable Explorer is showing the "
+"variables generated during the last step of this tour. By doing a double-"
+"click on any of them, a new window will be opened, where you can inspect and"
+" modify their contents."
 msgstr ""
 
 #: spyder/app/tour.py:189 spyder/plugins/console/widgets/internalshell.py:269
@@ -789,8 +787,8 @@ msgstr "Segítség"
 #: spyder/app/tour.py:190
 msgid ""
 "This pane displays documentation of the functions, classes, methods or "
-"modules you are currently using in the Editor or the Consoles.<br><br>To use "
-"it, you need to press <b>Ctrl+I</b> in front of an object. If that object "
+"modules you are currently using in the Editor or the Consoles.<br><br>To use"
+" it, you need to press <b>Ctrl+I</b> in front of an object. If that object "
 "has some documentation associated with it, it will be displayed here."
 msgstr ""
 
@@ -815,7 +813,8 @@ msgstr "Előzmények"
 
 #: spyder/app/tour.py:212
 msgid ""
-"This pane records all commands introduced in the Python and IPython consoles."
+"This pane records all commands introduced in the Python and IPython "
+"consoles."
 msgstr "Ez a tábla minden konzol parancsot megjegyez"
 
 #: spyder/app/tour.py:260
@@ -1099,7 +1098,8 @@ msgid "View and edit DataFrames and Series in the Variable Explorer"
 msgstr "Mutatni-szerkeszteni adat-keretet/sort a változó böngészőben"
 
 #: spyder/dependencies.py:171
-msgid "View and edit two and three dimensional arrays in the Variable Explorer"
+msgid ""
+"View and edit two and three dimensional arrays in the Variable Explorer"
 msgstr "Mutatni-szerkeszteni 2D/3D tömbökett a változó böngészőben"
 
 #: spyder/dependencies.py:176
@@ -1275,8 +1275,9 @@ msgid ""
 "Now Spyder can use <a href=\"{kite_url}\">Kite</a> to provide better and "
 "more accurate code completions in its editor <br>for the most important "
 "packages in the Python scientific ecosystem, such as Numpy, <br>Matplotlib "
-"and Pandas.<br><br>Would you like to install it or learn more about it?"
-"<br><br><i>Note:</i> Kite is free to use but is not an open source program."
+"and Pandas.<br><br>Would you like to install it or learn more about "
+"it?<br><br><i>Note:</i> Kite is free to use but is not an open source "
+"program."
 msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/install.py:80
@@ -1292,12 +1293,12 @@ msgstr ""
 msgid ""
 "<big><b>Level up your completions with Kite</b></big><br><br>Kite is a "
 "native app that runs locally on your computer <br>and uses machine learning "
-"to provide advanced <br>completions.<br><br>&#10003; Specialized support for "
-"Python data analysis packages<br><br>&#10003; 1.5x more completions than the "
-"builtin engine<br><br>&#10003; Completions ranked by code context "
+"to provide advanced <br>completions.<br><br>&#10003; Specialized support for"
+" Python data analysis packages<br><br>&#10003; 1.5x more completions than "
+"the builtin engine<br><br>&#10003; Completions ranked by code context "
 "<br><br>&#10003; Full line code completions<br><br>&#10003; 100% local - no "
-"internet connection required<br><br>&#10003; 100% free to use<br><br><a href="
-"\"{kite_url}\">Learn more on the Kite website</a>"
+"internet connection required<br><br>&#10003; 100% free to use<br><br><a "
+"href=\"{kite_url}\">Learn more on the Kite website</a>"
 msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/install.py:209
@@ -1309,8 +1310,8 @@ msgstr "Karakterkódolás:"
 msgid ""
 "Kite comes with a native app called the Copilot <br>which provides you with "
 "real time <br>documentation as you code.<br><br>When Kite is done "
-"installing, the Copilot will <br>launch automatically and guide you throught "
-"the <br>rest of the setup process."
+"installing, the Copilot will <br>launch automatically and guide you throught"
+" the <br>rest of the setup process."
 msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/install.py:219
@@ -1323,9 +1324,9 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/install.py:330
 msgid ""
-"<b>An error ocurred while installing Kite!</b><br><br>Please try to <a href="
-"\"{kite_url}\">install it manually</a> or <a href=\"{kite_contact}\">contact "
-"Kite</a> for help"
+"<b>An error ocurred while installing Kite!</b><br><br>Please try to <a "
+"href=\"{kite_url}\">install it manually</a> or <a "
+"href=\"{kite_contact}\">contact Kite</a> for help"
 msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/install.py:358
@@ -1369,8 +1370,8 @@ msgid ""
 "arguments that should be passed to it on startup. Additionally, you can set "
 "the server's hostname and port if connecting to an external server, or to a "
 "local one using TCP instead of stdio pipes.<br><br><i>Note</i>: You can use "
-"the placeholders <tt>{host}</tt> and <tt>{port}</tt> in the server arguments "
-"field to automatically fill in the respective values.<br>"
+"the placeholders <tt>{host}</tt> and <tt>{port}</tt> in the server arguments"
+" field to automatically fill in the respective values.<br>"
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:140
@@ -1624,7 +1625,8 @@ msgstr ""
 #: spyder/plugins/completion/languageserver/confpage.py:836
 msgid ""
 "Spyder can use pycodestyle to analyze your code for conformance to the {} "
-"convention. You can also manually show or hide specific warnings by their {}."
+"convention. You can also manually show or hide specific warnings by their "
+"{}."
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:845
@@ -1678,13 +1680,14 @@ msgid "Default is 79"
 msgstr "Alap: 6"
 
 #: spyder/plugins/completion/languageserver/confpage.py:909
-msgid "<a href='http://www.pydocstyle.org/en/stable/error_codes.html'>page</a>"
+msgid ""
+"<a href='http://www.pydocstyle.org/en/stable/error_codes.html'>page</a>"
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:913
 msgid ""
-"Here you can decide if you want to perform style analysis on your docstrings "
-"according to the {} or {} conventions. You can also decide if you want to "
+"Here you can decide if you want to perform style analysis on your docstrings"
+" according to the {} or {} conventions. You can also decide if you want to "
 "show or ignore specific errors, according to the codes found on this {}."
 msgstr ""
 
@@ -1766,7 +1769,8 @@ msgid "Python Language Server configuration"
 msgstr "Futtatás beállítás választás"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1033
-msgid "<b>Warning</b>: Only modify these values if you know what you're doing!"
+msgid ""
+"<b>Warning</b>: Only modify these values if you know what you're doing!"
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:1040
@@ -1795,8 +1799,8 @@ msgstr ""
 msgid ""
 "Spyder uses the <a href=\"{lsp_url}\">Language Server Protocol</a> to "
 "provide code completion and linting for its Editor. Here, you can setup and "
-"configure LSP servers for languages other than Python, so Spyder can provide "
-"such features for those languages as well."
+"configure LSP servers for languages other than Python, so Spyder can provide"
+" such features for those languages as well."
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:1114
@@ -1858,15 +1862,15 @@ msgstr ""
 msgid ""
 "<b>Modifying these options can break code completion!!</b><br><br>If that's "
 "the case, please reset your Spyder preferences by going to the "
-"menu<br><br><tt>Tools > Reset Spyder to factory defaults</tt><br><br>instead "
-"of reporting a bug."
+"menu<br><br><tt>Tools > Reset Spyder to factory defaults</tt><br><br>instead"
+" of reporting a bug."
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:1278
 msgid ""
-"It appears there is no {language} language server listening at address:"
-"<br><br><tt>{host}:{port}</tt><br><br>Please verify that the provided "
-"information is correct and try again."
+"It appears there is no {language} language server listening at "
+"address:<br><br><tt>{host}:{port}</tt><br><br>Please verify that the "
+"provided information is correct and try again."
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:1296
@@ -1878,24 +1882,25 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:141
 msgid ""
-"It appears there is no {language} language server listening at address:"
-"<br><br><tt>{host}:{port}</tt><br><br>Therefore, completion and linting for "
-"{language} will not work during this session.<br><br>To fix this, please "
-"verify that your firewall or antivirus allows Python processes to open ports "
-"in your system, or the settings you introduced in our Preferences to connect "
-"to external LSP servers."
+"It appears there is no {language} language server listening at "
+"address:<br><br><tt>{host}:{port}</tt><br><br>Therefore, completion and "
+"linting for {language} will not work during this session.<br><br>To fix "
+"this, please verify that your firewall or antivirus allows Python processes "
+"to open ports in your system, or the settings you introduced in our "
+"Preferences to connect to external LSP servers."
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:165
 msgid ""
 "Completion and linting in the editor for {language} files will not work "
 "during the current session, or stopped working.<br><br>To fix this, please "
-"verify that your firewall or antivirus allows Python processes to open ports "
-"in your system, or restart Spyder."
+"verify that your firewall or antivirus allows Python processes to open ports"
+" in your system, or restart Spyder."
 msgstr ""
 
 #: spyder/plugins/completion/plugin.py:333
-msgid "Kite installation process has not finished. Do you really want to exit?"
+msgid ""
+"Kite installation process has not finished. Do you really want to exit?"
 msgstr ""
 
 #: spyder/plugins/console/plugin.py:117
@@ -2045,8 +2050,8 @@ msgstr "Irrlicht grafikus eszköz"
 
 #: spyder/plugins/console/widgets/internalshell.py:416
 msgid ""
-"In order to use commands like \"raw_input\" or \"input\" run Spyder with the "
-"multithread option (--multithread) from a system terminal"
+"In order to use commands like \"raw_input\" or \"input\" run Spyder with the"
+" multithread option (--multithread) from a system terminal"
 msgstr ""
 
 #: spyder/plugins/console/widgets/shell.py:135
@@ -2300,9 +2305,9 @@ msgstr "Projekt:"
 
 #: spyder/plugins/editor/confpage.py:237
 msgid ""
-"Here you can select the type of docstrings ({} or {}) you want the editor to "
-"automatically introduce when pressing <tt>{}</tt> after a function/method/"
-"class declaration."
+"Here you can select the type of docstrings ({} or {}) you want the editor to"
+" automatically introduce when pressing <tt>{}</tt> after a "
+"function/method/class declaration."
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:245
@@ -3245,7 +3250,8 @@ msgstr "Töltés %s..."
 msgid ""
 "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this "
 "automatically."
-msgstr "<b>%s</b> kevert vonalvég betüket tartalmaz.<br>Spyder ezt magjavítja."
+msgstr ""
+"<b>%s</b> kevert vonalvég betüket tartalmaz.<br>Spyder ezt magjavítja."
 
 #: spyder/plugins/editor/widgets/editor.py:3225
 #, fuzzy
@@ -3283,8 +3289,7 @@ msgstr ""
 msgid ""
 "Autosave files found. What would you like to do?\n"
 "\n"
-"This dialog will be shown again on next startup if any autosave files are "
-"not restored, moved or deleted."
+"This dialog will be shown again on next startup if any autosave files are not restored, moved or deleted."
 msgstr ""
 
 #: spyder/plugins/editor/widgets/recover.py:150
@@ -3591,8 +3596,8 @@ msgstr "Név:"
 
 #: spyder/plugins/explorer/widgets/explorer.py:893
 msgid ""
-"Do you really want to rename <b>%s</b> and overwrite the existing file <b>"
-"%s</b>?"
+"Do you really want to rename <b>%s</b> and overwrite the existing file "
+"<b>%s</b>?"
 msgstr "Fájlt újranevezni <b>%s</b> és létező fájt átírni <b>%s</b>?"
 
 #: spyder/plugins/explorer/widgets/explorer.py:907
@@ -3616,7 +3621,8 @@ msgstr "<b>Nem sikerült mozdítani <i>%s</i></b><br><br>Hiba jelentés:<br>%s"
 #: spyder/plugins/explorer/widgets/explorer.py:972
 msgid "<b>Unable to create folder <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr ""
-"<b>Nem sikerült directory teremptés <i>%s</i></b><br><br>Hiba jelentés:<br>%s"
+"<b>Nem sikerült directory teremptés <i>%s</i></b><br><br>Hiba "
+"jelentés:<br>%s"
 
 #: spyder/plugins/explorer/widgets/explorer.py:985
 #: spyder/plugins/explorer/widgets/explorer.py:1019
@@ -3699,7 +3705,8 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1249
 msgid ""
-"For %s support, please install one of the<br/> following tools:<br/><br/>  %s"
+"For %s support, please install one of the<br/> following tools:<br/><br/>  "
+"%s"
 msgstr "%s használatához kérjük telepítsen <br/> egyiket:<br/><br/>  %s"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1253
@@ -3788,8 +3795,8 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:291
 msgid ""
-"Here you can associate different external applications to open specific file "
-"extensions (e.g. .txt files with Notepad++ or .csv files with Excel)."
+"Here you can associate different external applications to open specific file"
+" extensions (e.g. .txt files with Notepad++ or .csv files with Excel)."
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:296
@@ -3834,8 +3841,8 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:424
 msgid ""
-"Enter new file extension. You can add several values separated by commas."
-"<br>Examples include:"
+"Enter new file extension. You can add several values separated by "
+"commas.<br>Examples include:"
 msgstr ""
 
 #: spyder/plugins/findinfiles/plugin.py:121
@@ -4038,8 +4045,8 @@ msgid ""
 "parenthesis is written next to it. Below you can decide to which plugin you "
 "want to connect it to turn on this feature."
 msgstr ""
-"Ez a lap automatkusan mutathat tárgyok segítségét zárójel nyításánál. Melyik "
-"eszközhöz kapcsoljon."
+"Ez a lap automatkusan mutathat tárgyok segítségét zárójel nyításánál. Melyik"
+" eszközhöz kapcsoljon."
 
 #: spyder/plugins/help/confpage.py:33
 #, fuzzy
@@ -4106,13 +4113,14 @@ msgstr "Automatikus import"
 
 #: spyder/plugins/help/plugin.py:396
 msgid ""
-"Here you can get help of any object by pressing %s in front of it, either on "
-"the Editor or the Console.%sHelp can also be shown automatically after "
-"writing a left parenthesis next to an object. You can activate this behavior "
-"in %s."
+"Here you can get help of any object by pressing %s in front of it, either on"
+" the Editor or the Console.%sHelp can also be shown automatically after "
+"writing a left parenthesis next to an object. You can activate this behavior"
+" in %s."
 msgstr ""
-"Itt segítség kapható bármilyen tárgyra, %s -al A szerkesztő vagy a konzolban."
-"%sAutomatikus segítség kapható zárójel nyítással ha itt aktivált: %s."
+"Itt segítség kapható bármilyen tárgyra, %s -al A szerkesztő vagy a "
+"konzolban.%sAutomatikus segítség kapható zárójel nyítással ha itt aktivált: "
+"%s."
 
 #: spyder/plugins/help/plugin.py:402
 #, fuzzy
@@ -4135,7 +4143,8 @@ msgstr "Oktató"
 
 #: spyder/plugins/help/plugin.py:419
 msgid ""
-"Please consider installing Sphinx to get documentation rendered in rich text."
+"Please consider installing Sphinx to get documentation rendered in rich "
+"text."
 msgstr "Telepítse Sphinx-et gazdag szövegü dokumetációért."
 
 #: spyder/plugins/help/plugin.py:598
@@ -4164,7 +4173,8 @@ msgstr "forráskód nincs"
 msgid ""
 "It was not possible to generate rich text help for this object.</br>Please "
 "see it in plain text."
-msgstr "Gazdag szöveg nem sikerült ezzel a tárgyjal.</br>Lássa sima szövegben."
+msgstr ""
+"Gazdag szöveg nem sikerült ezzel a tárgyjal.</br>Lássa sima szövegben."
 
 #: spyder/plugins/help/utils/sphinxthread.py:77
 #, fuzzy
@@ -4237,8 +4247,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:40
 msgid ""
-"Useful if you don't want to fill the console with long help or completion "
-"texts.\n"
+"Useful if you don't want to fill the console with long help or completion texts.\n"
 "Note: Use the Q key to get out of the pager."
 msgstr ""
 
@@ -4364,8 +4373,8 @@ msgid ""
 "please select <b>%s</b> to put graphics inside the console or <b>%s</b> to "
 "interact with them (through zooming and panning) in a separate window."
 msgstr ""
-"Grafika mutatása a konzolban. Használjon <b>%s</b> hogy a konzolban jelenjen "
-"vagy <b>%s</b> külön ablakban."
+"Grafika mutatása a konzolban. Használjon <b>%s</b> hogy a konzolban jelenjen"
+" vagy <b>%s</b> külön ablakban."
 
 #: spyder/plugins/ipythonconsole/confpage.py:138
 #, fuzzy
@@ -4441,8 +4450,8 @@ msgstr ""
 #, fuzzy
 msgid ""
 "You can run several lines of code when a console is started. Please "
-"introduce each one separated by semicolons and a space, for example:"
-"<br><i>import os; import sys</i>"
+"introduce each one separated by semicolons and a space, for "
+"example:<br><i>import os; import sys</i>"
 msgstr ""
 "Konzol kezdéskor ezt a kódot futtatni. Vesszőket használni parancsok közt: "
 "<br><i>import os, import sys</i>"
@@ -4458,8 +4467,8 @@ msgstr "Fájl futtatása"
 
 #: spyder/plugins/ipythonconsole/confpage.py:225
 msgid ""
-"You can also run a whole file at startup instead of just some lines (This is "
-"similar to have a PYTHONSTARTUP file)."
+"You can also run a whole file at startup instead of just some lines (This is"
+" similar to have a PYTHONSTARTUP file)."
 msgstr "Teljes fájlt futtatni konzol kezdéskor (mint PYTHONSTARTUP)."
 
 #: spyder/plugins/ipythonconsole/confpage.py:229
@@ -4474,8 +4483,8 @@ msgstr "Mohó Kiegészítés:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:244
 msgid ""
-"Enable Jedi-based <tt>Tab</tt> completion in the IPython console; similar to "
-"the greedy completer, but without evaluating the code.<br><b>Warning:</b> "
+"Enable Jedi-based <tt>Tab</tt> completion in the IPython console; similar to"
+" the greedy completer, but without evaluating the code.<br><b>Warning:</b> "
 "Slows down your console when working with large dataframes!"
 msgstr ""
 
@@ -4486,8 +4495,8 @@ msgstr "Szimbolikus matematika az IPython konzolban"
 
 #: spyder/plugins/ipythonconsole/confpage.py:253
 msgid ""
-"<b>Warning</b>: Slows down your console when working with large dataframes!"
-"<br>Allows completion of nested lists etc."
+"<b>Warning</b>: Slows down your console when working with large "
+"dataframes!<br>Allows completion of nested lists etc."
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:264
@@ -4498,11 +4507,12 @@ msgstr "Mohó Kiegészítés:"
 #: spyder/plugins/ipythonconsole/confpage.py:265
 msgid ""
 "Enable <tt>Tab</tt> completion on elements of lists, results of function "
-"calls, etc, <i>without</i> assigning them to a variable, like <tt>li[0].&lt;"
-"Tab&gt;</tt> or <tt>ins.meth().&lt;Tab&gt;</tt> <br><b>Warning:</b> Due to a "
-"bug, IPython's greedy completer requires a leading <tt>&lt;Space&gt;</tt> "
-"for some completions; e.g.  <tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> "
-"works while <tt>np.sin(np.&lt;Tab&gt; </tt> doesn't."
+"calls, etc, <i>without</i> assigning them to a variable, like "
+"<tt>li[0].&lt;Tab&gt;</tt> or <tt>ins.meth().&lt;Tab&gt;</tt> "
+"<br><b>Warning:</b> Due to a bug, IPython's greedy completer requires a "
+"leading <tt>&lt;Space&gt;</tt> for some completions; e.g.  "
+"<tt>np.sin(&lt;Space&gt;np.&lt;Tab&gt;</tt> works while "
+"<tt>np.sin(np.&lt;Tab&gt; </tt> doesn't."
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:277
@@ -4545,8 +4555,8 @@ msgid ""
 "the callable. On <b>%s</b> mode, all callable objects are automatically "
 "called (even if no arguments are present)."
 msgstr ""
-"<b>%s</b> módban, Auto-hívas nem vonatkozik ha a hívható után nincs több. <b>"
-"%s</b> módban, minden hívható automatikusan meg van hívva."
+"<b>%s</b> módban, Auto-hívas nem vonatkozik ha a hívható után nincs több. "
+"<b>%s</b> módban, minden hívható automatikusan meg van hívva."
 
 #: spyder/plugins/ipythonconsole/confpage.py:314
 #, fuzzy
@@ -4556,8 +4566,8 @@ msgstr "Szimbolikus Matematika"
 #: spyder/plugins/ipythonconsole/confpage.py:315
 msgid ""
 "Perfom symbolic operations in the console (e.g. integrals, derivatives, "
-"vector calculus, etc) and get the outputs in a beautifully printed style (it "
-"requires the Sympy module)."
+"vector calculus, etc) and get the outputs in a beautifully printed style (it"
+" requires the Sympy module)."
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:321
@@ -4586,8 +4596,7 @@ msgid "Input prompt:"
 msgstr "Bemenet Prompt"
 
 #: spyder/plugins/ipythonconsole/confpage.py:339
-msgid ""
-"Default is<br>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:"
+msgid "Default is<br>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:"
 msgstr "Alap: <br>In [&lt;span class=\"in-prompt-number\"&gt;%i&lt;/span&gt;]:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:344
@@ -4598,8 +4607,7 @@ msgstr "Kimenet Prompt"
 #: spyder/plugins/ipythonconsole/confpage.py:346
 msgid ""
 "Default is<br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
-msgstr ""
-"Alap: <br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
+msgstr "Alap: <br>Out[&lt;span class=\"out-prompt-number\"&gt;%i&lt;/span&gt;]:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:362
 #, fuzzy
@@ -4700,12 +4708,12 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/plugin.py:654
 msgid ""
-"Your Python environment or installation doesn't have the <tt>spyder-kernels</"
-"tt> module or the right version of it installed (>= 1.8.0 and < 2.0.0). "
-"Without this module is not possible for Spyder to create a console for you."
-"<br><br>You can install it by running in a system terminal:<br><br><tt>conda "
-"install spyder-kernels</tt><br><br>or<br><br><tt>pip install spyder-kernels</"
-"tt>"
+"Your Python environment or installation doesn't have the <tt>spyder-"
+"kernels</tt> module or the right version of it installed (>= 1.8.0 and < "
+"2.0.0). Without this module is not possible for Spyder to create a console "
+"for you.<br><br>You can install it by running in a system "
+"terminal:<br><br><tt>conda install spyder-"
+"kernels</tt><br><br>or<br><br><tt>pip install spyder-kernels</tt>"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/plugin.py:952
@@ -4715,8 +4723,8 @@ msgstr "Ezt a konzolt bezárni?"
 
 #: spyder/plugins/ipythonconsole/plugin.py:958
 msgid ""
-"Do you want to close all other consoles connected to the same kernel as this "
-"one?"
+"Do you want to close all other consoles connected to the same kernel as this"
+" one?"
 msgstr "Minden konzolt ehhez a maghoz kapcsolva bezárni?"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1031
@@ -4724,7 +4732,8 @@ msgstr "Minden konzolt ehhez a maghoz kapcsolva bezárni?"
 msgid ""
 "It was not possible to restart the IPython console when switching to this "
 "project. The error was<br><br><tt>{0}</tt>"
-msgstr "IPython konzol újraindítás ebben a projektben nem sikerült. Error: {0}"
+msgstr ""
+"IPython konzol újraindítás ebben a projektben nem sikerült. Error: {0}"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1159
 #: spyder/plugins/ipythonconsole/plugin.py:1175
@@ -4748,8 +4757,7 @@ msgstr "Csatlakozási hiba"
 #: spyder/plugins/ipythonconsole/plugin.py:1466
 #, fuzzy
 msgid ""
-"An error occurred while trying to load the kernel connection file. The error "
-"was:\n"
+"An error occurred while trying to load the kernel connection file. The error was:\n"
 "\n"
 msgstr "Egy hiba történt miközben az appimaged-t próbáltam indítani!"
 
@@ -4851,19 +4859,18 @@ msgstr "Rendszermag"
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:63
 msgid ""
 "<br><hr>\n"
-"Figures now render in the Plots pane by default. To make them also appear "
-"inline in the Console, uncheck \"Mute Inline Plotting\" under the Plots pane "
-"options menu. \n"
+"Figures now render in the Plots pane by default. To make them also appear inline in the Console, uncheck \"Mute Inline Plotting\" under the Plots pane options menu. \n"
 "<hr><br>"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:35
 msgid ""
-"<p>Please select the JSON connection file (<i>e.g.</i> <tt>kernel-1234.json</"
-"tt>) of the existing kernel, and enter the SSH information if connecting to "
-"a remote machine. To learn more about starting external kernels and "
-"connecting to them, see <a href=\"https://docs.spyder-ide.org/ipythonconsole."
-"html#connect-to-an-external-kernel\">our documentation</a>.</p>"
+"<p>Please select the JSON connection file (<i>e.g.</i> "
+"<tt>kernel-1234.json</tt>) of the existing kernel, and enter the SSH "
+"information if connecting to a remote machine. To learn more about starting "
+"external kernels and connecting to them, see <a href=\"https://docs.spyder-"
+"ide.org/ipythonconsole.html#connect-to-an-external-kernel\">our "
+"documentation</a>.</p>"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:48
@@ -4946,8 +4953,8 @@ msgstr "Változóböngésző"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:93
 msgid ""
-"%s.<br><br>Note: Please don't report this problem on Github, there's nothing "
-"to do about it."
+"%s.<br><br>Note: Please don't report this problem on Github, there's nothing"
+" to do about it."
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:128
@@ -4961,7 +4968,8 @@ msgstr ""
 #: spyder/plugins/ipythonconsole/widgets/shell.py:303
 #, fuzzy
 msgid ""
-"All user-defined variables will be removed. Are you sure you want to proceed?"
+"All user-defined variables will be removed. Are you sure you want to "
+"proceed?"
 msgstr "Minden használói vátlozók törölné. <br> Tovább?"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:316
@@ -5281,7 +5289,8 @@ msgstr "Fájl:vonal"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:500
 msgid ""
-"Error when trying to load profiler results. The error was<br><br><tt>{0}</tt>"
+"Error when trying to load profiler results. The error "
+"was<br><br><tt>{0}</tt>"
 msgstr ""
 
 #: spyder/plugins/profiler/widgets/profilergui.py:657
@@ -5351,8 +5360,8 @@ msgstr ""
 
 #: spyder/plugins/projects/plugin.py:379
 msgid ""
-"<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:"
-"<br>{error}"
+"<b>Unable to delete <i>{varpath}</i></b><br><br>The error message "
+"was:<br>{error}"
 msgstr "<b>Törlés nem sikerült<i>{varpath}</i></b><br><br>Hiba:<br>{error}"
 
 #: spyder/plugins/projects/projecttypes/__init__.py:91
@@ -5374,12 +5383,12 @@ msgstr "A python-pygame csomag nem található, a modem hang nem elérhető."
 msgid ""
 "File system changes for this project can't be tracked because it contains "
 "too many files. To fix this you need to increase the inotify limit in your "
-"system, with the following command:<br><br><code>sudo sysctl -n -w fs."
-"inotify.max_user_watches=524288</code><br><br>For a permanent solution you "
-"need to add to<code>/etc/sysctl.conf</code>the following line:"
-"<br><br><code>fs.inotify.max_user_watches=524288</code><br><br>After doing "
-"that, you need to close and start Spyder again so those changes can take "
-"effect."
+"system, with the following command:<br><br><code>sudo sysctl -n -w "
+"fs.inotify.max_user_watches=524288</code><br><br>For a permanent solution "
+"you need to add to<code>/etc/sysctl.conf</code>the following "
+"line:<br><br><code>fs.inotify.max_user_watches=524288</code><br><br>After "
+"doing that, you need to close and start Spyder again so those changes can "
+"take effect."
 msgstr ""
 
 #: spyder/plugins/projects/widgets/explorer.py:51
@@ -5720,8 +5729,8 @@ msgstr ""
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:115
 #, fuzzy
 msgid ""
-"Spyder was unable to retrieve the value of this variable from the console."
-"<br><br>The error message was:<br>%s"
+"Spyder was unable to retrieve the value of this variable from the "
+"console.<br><br>The error message was:<br>%s"
 msgstr ""
 "Ennek a változónak az értékt nem sikerült felfedezni a konzólból. "
 "<br><br>Hiba:<br><i>%s</i>"
@@ -5737,8 +5746,8 @@ msgstr "<b>Nem sikerült adatot meghatározni</b><br><br>Hiba:<br>%s"
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:423
 #, fuzzy
 msgid ""
-"Spyder was unable to retrieve the value of this variable from the console."
-"<br><br>The error message was:<br><i>%s</i>"
+"Spyder was unable to retrieve the value of this variable from the "
+"console.<br><br>The error message was:<br><i>%s</i>"
 msgstr ""
 "Ennek a változónak az értékt nem sikerült felfedezni a konzólból. "
 "<br><br>Hiba:<br><i>%s</i>"
@@ -6101,10 +6110,11 @@ msgstr "Kész"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:583
 msgid ""
-"<b>Unable to proceed to next step</b><br><br>Please check your entries."
-"<br><br>Error message:<br>%s"
+"<b>Unable to proceed to next step</b><br><br>Please check your "
+"entries.<br><br>Error message:<br>%s"
 msgstr ""
-"<b>Lépés nem sikerült</b><br><br>Ellenőrízze bejegyzéseket<br><br>Hiba:<br>%s"
+"<b>Lépés nem sikerült</b><br><br>Ellenőrízze "
+"bejegyzéseket<br><br>Hiba:<br>%s"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:205
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:388
@@ -6232,8 +6242,8 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:264
 msgid ""
-"The string representation of the object using the str() function.In Python 3 "
-"there is no difference with the 'unicode' column."
+"The string representation of the object using the str() function.In Python 3"
+" there is no difference with the 'unicode' column."
 msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:274
@@ -6254,8 +6264,8 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:319
 msgid ""
-"The object is an attribute of the parent (opposed to e.g. a list element)."
-"Attributes are displayed in italics in the table."
+"The object is an attribute of the parent (opposed to e.g. a list "
+"element).Attributes are displayed in italics in the table."
 msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:329
@@ -6266,8 +6276,8 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:339
 msgid ""
-"True if the object is a user-defined or built-in function or method."
-"Determined with the inspect.isroutine() method."
+"True if the object is a user-defined or built-in function or "
+"method.Determined with the inspect.isroutine() method."
 msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:349
@@ -6288,7 +6298,8 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:382
 msgid ""
-"Comments above the object's definition. Retrieved using inspect.getcomments()"
+"Comments above the object's definition. Retrieved using "
+"inspect.getcomments()"
 msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:391
@@ -6708,8 +6719,9 @@ msgstr "Felbontás:"
 
 #: spyder/preferences/general.py:230
 msgid ""
-"Configuration for high DPI screens<br><br>Please see <a href=\"{0}\">{0}</"
-"a><> for more information about these options (in English)."
+"Configuration for high DPI screens<br><br>Please see <a "
+"href=\"{0}\">{0}</a><> for more information about these options (in "
+"English)."
 msgstr ""
 
 #: spyder/preferences/general.py:241
@@ -6815,13 +6827,13 @@ msgstr "Használni"
 msgid ""
 "This option will enable the User Module Reloader (UMR) in Python/IPython "
 "consoles. UMR forces Python to reload deeply modules during import when "
-"running a Python script using the Spyder's builtin function <b>runfile</b>."
-"<br><br><b>1.</b> UMR may require to restart the console in which it will be "
-"called (otherwise only newly imported modules will be reloaded when "
-"executing files).<br><br><b>2.</b> If errors occur when re-running a PyQt-"
-"based program, please check that the Qt objects are properly destroyed (e.g. "
-"you may have to use the attribute <b>Qt.WA_DeleteOnClose</b> on your main "
-"window, using the <b>setAttribute</b> method)"
+"running a Python script using the Spyder's builtin function "
+"<b>runfile</b>.<br><br><b>1.</b> UMR may require to restart the console in "
+"which it will be called (otherwise only newly imported modules will be "
+"reloaded when executing files).<br><br><b>2.</b> If errors occur when re-"
+"running a PyQt-based program, please check that the Qt objects are properly "
+"destroyed (e.g. you may have to use the attribute <b>Qt.WA_DeleteOnClose</b>"
+" on your main window, using the <b>setAttribute</b> method)"
 msgstr ""
 
 #: spyder/preferences/maininterpreter.py:130
@@ -6846,8 +6858,8 @@ msgstr ""
 #: spyder/preferences/maininterpreter.py:184
 msgid ""
 "You selected a <b>Python %d</b> interpreter for the console but Spyder is "
-"running on <b>Python %d</b>!.<br><br>Although this is possible, we recommend "
-"you to install and run Spyder directly with your selected interpreter, to "
+"running on <b>Python %d</b>!.<br><br>Although this is possible, we recommend"
+" you to install and run Spyder directly with your selected interpreter, to "
 "avoid seeing false warnings and errors due to the incompatible syntax "
 "between these two Python versions."
 msgstr ""
@@ -6979,8 +6991,8 @@ msgstr "Beállítómodul indítása"
 
 #: spyder/preferences/runconfig.py:490
 msgid ""
-"The following are the default options for running files.These options may be "
-"overriden using the <b>Configuration per file</b> entry of the <b>Run</b> "
+"The following are the default options for running files.These options may be"
+" overriden using the <b>Configuration per file</b> entry of the <b>Run</b> "
 "menu."
 msgstr ""
 
@@ -7120,8 +7132,8 @@ msgstr "Környezeti változók"
 
 #: spyder/utils/environ.py:93
 msgid ""
-"An error occurred while trying to show your environment variables. The error "
-"was<br><br><tt>{0}</tt>"
+"An error occurred while trying to show your environment variables. The error"
+" was<br><br><tt>{0}</tt>"
 msgstr ""
 
 #: spyder/utils/environ.py:144
@@ -7137,8 +7149,8 @@ msgid ""
 "your own risks.<br><br>Note that for changes to take effect, you will need "
 "to restart the parent process of this application (simply restart Spyder if "
 "you have executed it from a Windows shortcut, otherwise restart any "
-"application from which you may have executed it, like <i>Python(x,y) Home</"
-"i> for example)"
+"application from which you may have executed it, like <i>Python(x,y) "
+"Home</i> for example)"
 msgstr ""
 
 #: spyder/utils/programs.py:713
@@ -7431,8 +7443,8 @@ msgstr ""
 
 #: spyder/widgets/github/backend.py:197
 msgid ""
-"It was not possible to securely save your password. You will be prompted for "
-"your Github credentials next time you want to report an issue."
+"It was not possible to securely save your password. You will be prompted for"
+" your Github credentials next time you want to report an issue."
 msgstr ""
 
 #: spyder/widgets/github/backend.py:213
@@ -7454,7 +7466,8 @@ msgstr "Nem sikerült beolvasni a számítógépen tárolt cookie-k jellemzőit.
 #, fuzzy
 msgid ""
 "It was not possible to retrieve your password. Please introduce it again."
-msgstr "Gazdag szöveg nem sikerült ezzel a tárgyjal.</br>Lássa sima szövegben."
+msgstr ""
+"Gazdag szöveg nem sikerült ezzel a tárgyjal.</br>Lássa sima szövegben."
 
 #: spyder/widgets/github/backend.py:250
 #, fuzzy
@@ -7464,7 +7477,8 @@ msgstr "Nem sikerült beolvasni a számítógépen tárolt cookie-k jellemzőit.
 #: spyder/widgets/github/backend.py:251
 #, fuzzy
 msgid "It was not possible to retrieve your token. Please introduce it again."
-msgstr "Gazdag szöveg nem sikerült ezzel a tárgyjal.</br>Lássa sima szövegben."
+msgstr ""
+"Gazdag szöveg nem sikerült ezzel a tárgyjal.</br>Lássa sima szövegben."
 
 #: spyder/widgets/github/gh_login.py:38
 msgid "Sign in to Github"
@@ -7496,10 +7510,10 @@ msgstr "Jelszó"
 
 #: spyder/widgets/github/gh_login.py:105
 msgid ""
-"For users <b>with</b> two-factor authentication enabled, or who prefer a per-"
-"app token authentication.<br><br>You can go <b><a href=\"{}\">here</a></b> "
-"and click \"Generate token\" at the bottom to create a new token to use for "
-"this, with the appropriate permissions."
+"For users <b>with</b> two-factor authentication enabled, or who prefer a "
+"per-app token authentication.<br><br>You can go <b><a "
+"href=\"{}\">here</a></b> and click \"Generate token\" at the bottom to "
+"create a new token to use for this, with the appropriate permissions."
 msgstr ""
 
 #: spyder/widgets/github/gh_login.py:127
@@ -7635,9 +7649,9 @@ msgstr ""
 msgid ""
 "<h3>{title}</h3>Before reporting this problem, <i>please</i> consult our "
 "comprehensive <b><a href=\"{trouble_url}\">Troubleshooting Guide</a></b> "
-"which should help solve most issues, and search for <b><a href="
-"\"{project_url}\">known bugs</a></b> matching your error message or problem "
-"description for a quicker solution."
+"which should help solve most issues, and search for <b><a "
+"href=\"{project_url}\">known bugs</a></b> matching your error message or "
+"problem description for a quicker solution."
 msgstr ""
 
 #: spyder/widgets/reporterror.py:160 spyder/widgets/reporterror.py:193
@@ -7654,8 +7668,8 @@ msgstr ""
 
 #: spyder/widgets/reporterror.py:172
 msgid ""
-"Please enter a detailed step-by-step description (in English) of what led up "
-"to the problem below. Issue reports without a clear way to reproduce them "
+"Please enter a detailed step-by-step description (in English) of what led up"
+" to the problem below. Issue reports without a clear way to reproduce them "
 "will be closed."
 msgstr ""
 
@@ -7835,8 +7849,8 @@ msgstr "Frissítések ellenőrzése"
 #~ msgstr "Python-konzol"
 
 #~ msgid ""
-#~ "Update LANGUAGE_CODES (inside config/base.py) if a new translation has "
-#~ "been added to Spyder"
+#~ "Update LANGUAGE_CODES (inside config/base.py) if a new translation has been "
+#~ "added to Spyder"
 #~ msgstr ""
 #~ "Ha új nyelvet adot spyderben, frissítse LANGUAGE_CODES-ot (config/base.py)"
 
@@ -7863,9 +7877,9 @@ msgstr "Frissítések ellenőrzése"
 #~ msgstr "Sintaxis színezés"
 
 #~ msgid ""
-#~ "Here you can select the color scheme used in the Editor and all other "
-#~ "Spyder plugins.<br><br>You can also edit the color schemes provided by "
-#~ "Spyder or create your own ones by using the options provided below.<br>"
+#~ "Here you can select the color scheme used in the Editor and all other Spyder"
+#~ " plugins.<br><br>You can also edit the color schemes provided by Spyder or "
+#~ "create your own ones by using the options provided below.<br>"
 #~ msgstr "Színezések"
 
 #~ msgid "Reset"
@@ -7900,8 +7914,8 @@ msgstr "Frissítések ellenőrzése"
 
 #~ msgid ""
 #~ "<b>Warning:</b><br>The Python module <i>rope</i> is not installed on this "
-#~ "computer: calltips, code completion and go-to-definition features won't "
-#~ "be available."
+#~ "computer: calltips, code completion and go-to-definition features won't be "
+#~ "available."
 #~ msgstr "Figyelem - calltips modul nem talált"
 
 #~ msgid "Analysis"
@@ -7921,17 +7935,16 @@ msgstr "Frissítések ellenőrzése"
 #~ "<b>analysis:ignore</b> in a comment to ignore code analysis warnings.</p>"
 #~ msgstr ""
 #~ "<p>Python forráskód elemzés pyflakes használatával. Figyelmeztetéses és "
-#~ "hibás vonalok kiemelve.</p><p><u>Jegyzet</u>: addjon<b>analysis:ignore</"
-#~ "b> mint megjegyzés, a jelölést kihagyni bizonyos vonalban.</p>\""
+#~ "hibás vonalok kiemelve.</p><p><u>Jegyzet</u>: addjon<b>analysis:ignore</b> "
+#~ "mint megjegyzés, a jelölést kihagyni bizonyos vonalban.</p>\""
 
 #~ msgid "Code analysis requires pyflakes %s+"
 #~ msgstr "Kód elemzéshez kell pyflakes %s+"
 
 #~ msgid ""
-#~ "<p>If enabled, Python source code will be analyzedusing pep8, lines that "
-#~ "are not following PEP8 style guide will be highlighted.</p><p><u>Note</"
-#~ "u>: add <b>analysis:ignore</b> in a comment to ignore style analysis "
-#~ "warnings.</p>"
+#~ "<p>If enabled, Python source code will be analyzedusing pep8, lines that are"
+#~ " not following PEP8 style guide will be highlighted.</p><p><u>Note</u>: add "
+#~ "<b>analysis:ignore</b> in a comment to ignore style analysis warnings.</p>"
 #~ msgstr ""
 #~ "<p>Python forráskód elemzés pep8 használatával. Kiemel vonalakat amik nem "
 #~ "tartanak a PEP8 stílus előírásokkal</p><p><u>Jegyzet</u>: addjon "
@@ -7995,8 +8008,8 @@ msgstr "Frissítések ellenőrzése"
 #~ "csak így lehet szinezve."
 
 #~ msgid ""
-#~ "This option will be applied the next time a Python console or a terminal "
-#~ "is opened."
+#~ "This option will be applied the next time a Python console or a terminal is "
+#~ "opened."
 #~ msgstr "Ez az opció csak új konzol vagy terminállal használ"
 
 #, fuzzy
@@ -8046,23 +8059,22 @@ msgstr "Frissítések ellenőrzése"
 
 #~ msgid ""
 #~ "Decide which backend to use to display graphics. If unsure, please select "
-#~ "the <b>Automatic</b> backend.<br><br><b>Note:</b> We support a very "
-#~ "limited number of backends in our Python consoles. If you prefer to work "
-#~ "with a different one, please use an IPython console."
+#~ "the <b>Automatic</b> backend.<br><br><b>Note:</b> We support a very limited "
+#~ "number of backends in our Python consoles. If you prefer to work with a "
+#~ "different one, please use an IPython console."
 #~ msgstr ""
 #~ "Melyik grafikuz csomagot használni. Ha nem tudja, válasszon "
-#~ "<b>Automatikus</b>-at.<br><br><b>Note:</b> Ha másik csomag kellene, "
-#~ "próbálja a IPython konzolt."
+#~ "<b>Automatikus</b>-at.<br><br><b>Note:</b> Ha másik csomag kellene, próbálja"
+#~ " a IPython konzolt."
 
 #, fuzzy
 #~ msgid "Enthought Tool Suite"
 #~ msgstr "Enthought Szerszám"
 
 #~ msgid ""
-#~ "Enthought Tool Suite (ETS) supports PyQt4 (qt4) and wxPython (wx) "
-#~ "graphical user interfaces."
-#~ msgstr ""
-#~ "Az ETS  PyQt4 (qt4) vagy wxPython (wx) graphikai interfacet használ."
+#~ "Enthought Tool Suite (ETS) supports PyQt4 (qt4) and wxPython (wx) graphical "
+#~ "user interfaces."
+#~ msgstr "Az ETS  PyQt4 (qt4) vagy wxPython (wx) graphikai interfacet használ."
 
 #, fuzzy
 #~ msgid "ETS_TOOLKIT:"
@@ -8076,8 +8088,8 @@ msgstr "Frissítések ellenőrzése"
 #~ "No Python console is currently selected to run <b>%s</b>.<br><br>Please "
 #~ "select or open a new Python console and try again."
 #~ msgstr ""
-#~ "Nincs Python konzol kiválasztva <b>%s</b> futtatására.<br><br>Válasszon "
-#~ "vagy nyisson Python konzolt és próbálja megint."
+#~ "Nincs Python konzol kiválasztva <b>%s</b> futtatására.<br><br>Válasszon vagy"
+#~ " nyisson Python konzolt és próbálja megint."
 
 #~ msgid ""
 #~ "%s is already running in a separate process.\n"
@@ -8121,14 +8133,14 @@ msgstr "Frissítések ellenőrzése"
 #~ msgstr "Előzmény jegyző"
 
 #~ msgid ""
-#~ "Please enter the connection info of the kernel you want to connect to. "
-#~ "For that you can either select its JSON connection file using the "
+#~ "Please enter the connection info of the kernel you want to connect to. For "
+#~ "that you can either select its JSON connection file using the "
 #~ "<tt>Browse</tt> button, or write directly its id, in case it's a local "
 #~ "kernel (for example <tt>kernel-3764.json</tt> or just <tt>3764</tt>)."
 #~ msgstr ""
 #~ "Beírni a mag kapcsolat adatokat.JSON kapcsolat fájlt keresni: "
-#~ "<tt>Bongésző</tt>, vagy nevét beírni (például <tt>kernel-3764.json</tt> "
-#~ "vagy <tt>3764</tt>)."
+#~ "<tt>Bongésző</tt>, vagy nevét beírni (például <tt>kernel-3764.json</tt> vagy"
+#~ " <tt>3764</tt>)."
 
 #~ msgid "Path to connection file or kernel id"
 #~ msgstr "Kapcsolat fájl vagy mag név helyszíne"
@@ -8206,8 +8218,7 @@ msgstr "Frissítések ellenőrzése"
 #~ msgid "the same as in last session"
 #~ msgstr "Mint utolsó munkamenet"
 
-#~ msgid ""
-#~ "At startup, Spyder will restore the global directory from last session"
+#~ msgid "At startup, Spyder will restore the global directory from last session"
 #~ msgstr "Kezdéskor, Spder visszállít munkahelyet mint multkor"
 
 #, fuzzy
@@ -8462,8 +8473,8 @@ msgstr "Frissítések ellenőrzése"
 #~ msgstr "Grafikus felület a 'Bazaar' verzió-felügyelő rendszerhez"
 
 #~ msgid ""
-#~ "Memory usage status: requires the `psutil` (>=v0.3) library on non-"
-#~ "Windows platforms"
+#~ "Memory usage status: requires the `psutil` (>=v0.3) library on non-Windows "
+#~ "platforms"
 #~ msgstr "Memóri használat - `psutil` (>=v0.3) kell, ha nem Windows"
 
 #, fuzzy
