@@ -338,11 +338,15 @@ class PylintWidget(QWidget):
 
     def get_pylintrc_path(self, filename):
         """Get the path to the most proximate pylintrc config to the file."""
-        proj_dir = self.parentWidget().main.projects.get_active_project_path()
+        parent = self.parentWidget()
+        if parent is not None:
+            project_dir = parent.main.projects.get_active_project_path()
+        else:
+            project_dir = None
         search_paths = [
             osp.dirname(filename),  # File's directory
             getcwd_or_home(),  # Working directory
-            proj_dir,  # Project directory
+            project_dir,  # Project directory
             osp.expanduser("~"),  # Home directory
         ]
         return get_pylintrc_path(search_paths=search_paths)
