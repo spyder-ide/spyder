@@ -54,6 +54,7 @@ from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
+from spyder.plugins.pylint.tests.test_pylint import pylint_test_setup
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.programs import is_module_installed
 from spyder.widgets.dock import DockTitleBar
@@ -1930,14 +1931,20 @@ def test_edidorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin',
                     reason="Times out sometimes on macOS")
-def test_run_static_code_analysis(main_window, qtbot):
+def test_run_static_code_analysis(main_window, qtbot, pylint_test_setup):
     """This tests that the Pylint plugin is working as expected."""
     # Select the third-party plugin
     pylint = get_thirdparty_plugin(main_window, "Code Analysis")
+    projects = main_window.projects
+
+    # Create project
+    test_file, _, proj_path, cwd_path, msg_drop, msg_check = pylint_test_setup
+    with qtbot.waitSignal(projects.sig_project_loaded):
+        projects._create_project(proj_path)
+    main_window.editor.load(test_file)
+    os.chdir(cwd_path)
 
     # Do an analysis
-    test_file = osp.join(LOCATION, 'script_pylint.py')
-    main_window.editor.load(test_file)
     code_editor = main_window.editor.get_focus_widget()
     qtbot.keyClick(code_editor, Qt.Key_F8)
     qtbot.wait(3000)
@@ -1948,8 +1955,10 @@ def test_run_static_code_analysis(main_window, qtbot):
     qtbot.waitUntil(lambda: treewidget.results is not None,
                     timeout=SHELL_TIMEOUT)
     result_content = treewidget.results
+    assert all([msg_drop not in s[2] for s in result_content['C:']])
+    assert any([msg_check in s[2] for s in result_content['C:']])
     assert result_content['C:']
-    assert len(result_content['C:']) == 5
+    assert len(result_content['C:']) == 4
 
     # Close the file
     main_window.editor.close_file()

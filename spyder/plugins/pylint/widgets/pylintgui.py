@@ -47,6 +47,8 @@ except KeyError as error:
 
 
 def _find_pylintrc_path(path):
+    if path is None:
+        return None
     os.chdir(path)
     return pylint.config.find_pylintrc()
 
