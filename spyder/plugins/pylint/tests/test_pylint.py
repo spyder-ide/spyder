@@ -6,65 +6,110 @@
 # ----------------------------------------------------------------------------
 """Tests for the execution of pylint."""
 
+# Standard library imports
+from io import open
+import os.path as osp
+
 # Third party imports
 import pytest
-import os.path as osp
 
 # Local imports
 from spyder.plugins.pylint.widgets.pylintgui import get_pylintrc_path
 
-PYLINT_TEST_SCRIPT = """#%%
+# pylint: disable=redefined-outer-name
 
-# pylint: enable=C0111
-# pylint: enable=C0103
-# pylint: enable=C0413
+PYLINTRC_FILENAME = ".pylintrc"
 
-a = 10
+# Constants for dir name keys
+# TODO in Python 3 : Replace with enum
+NO_DIR = "e"
+SCRIPT_DIR = "script_dir"
+WORKING_DIR = "working_dir"
+PROJECT_DIR = "project_dir"
+HOME_DIR = "home_dir"
+ALL_DIR = "all_dir"
 
+DIR_LIST = [SCRIPT_DIR, WORKING_DIR, PROJECT_DIR, HOME_DIR]
+DIR_LIST_ALL = [NO_DIR] + DIR_LIST + [ALL_DIR]
 
-#%%
-li = [1, 2, 3]
+PYLINT_TEST_SCRIPT = "\n".join(
+    [dir_name + "=" + str(idx) for idx, dir_name in enumerate(DIR_LIST_ALL)])
 
-#%%
-import numpy as np
-arr = np.array(li)
+PYLINTRC_TEST_CONTENTS = """
+[MESSAGES CONTROL]
+disable=all
+enable=bad-names
+
+[BASIC]
+bad-names={bad_names}
 """
-PYLINT_TEST_RC = "[BASIC]\ngood-names=%s"
-PYLINT_TEST_MSG = "Constant name \"%s\" doesn't conform to UPPER_CASE naming style"
 
 
-@pytest.fixture(params=["proj", "cwd", "both"])
-def pylint_test_setup(tmp_path_factory, request):
-    pylintrc_location = request.param
-    cwd_path = tmp_path_factory.mktemp("work_dir")
-    proj_path = tmp_path_factory.mktemp("proj_dir")
-    script_file = tmp_path_factory.mktemp("script_dir") / "script.py"
-    script_file.write_text(PYLINT_TEST_SCRIPT)
+@pytest.fixture
+def pylint_test_script(tmp_path_factory):
+    """Write a script for testing Pylint to a temporary directory."""
+    script_path = osp.join(
+        str(tmp_path_factory.mktemp("script_dir")), "test_script.py")
+    with open(script_path, mode="w",
+              encoding="utf-8", newline="\n") as script_file:
+        script_file.write(PYLINT_TEST_SCRIPT + "\n")
+    return script_path
 
-    if pylintrc_location == "both":
-        # the .pylintrc in the project directory is superseded
-        # by the .pylintrc in the current working directory
-        pylintrc_file = proj_path / ".pylintrc"
-        pylintrc_file.write_text(PYLINT_TEST_RC % "li")
-        pylintrc_location = "cwd"
 
-    if pylintrc_location == "cwd":
-        pylintrc_file = cwd_path / ".pylintrc"
+@pytest.fixture
+def pylintrc_search_paths(tmp_path_factory):
+    """Construct temporary .pylintrc search paths."""
+    search_paths = {dir_name: str(tmp_path_factory.mktemp(dir_name))
+                    for dir_name in DIR_LIST}
+    return search_paths
+
+
+@pytest.fixture(
+    params=[
+        [], [SCRIPT_DIR], [WORKING_DIR], [PROJECT_DIR], [HOME_DIR],
+        [SCRIPT_DIR, HOME_DIR], [WORKING_DIR, PROJECT_DIR],
+        [SCRIPT_DIR, PROJECT_DIR], [PROJECT_DIR, HOME_DIR],
+        [SCRIPT_DIR, WORKING_DIR, PROJECT_DIR, HOME_DIR]],
+    ids=["None", "Script", "Working", "Project", "Home", "Script & Home",
+         "Working & Project", "Script & Working", "Project & Home", "All"])
+def pylintrc_files(pylintrc_search_paths, request):
+    """Store test .pylintrc files at the paths and determine the result."""
+    search_paths = pylintrc_search_paths
+
+    # Determine the bad names that should be reported
+    pylintrc_locations = request.param
+    bad_names = [ALL_DIR]
+    for search_path_name, search_path in search_paths.items():
+        if search_path_name in pylintrc_locations:
+            expected_path = osp.join(search_path, PYLINTRC_FILENAME)
+            bad_names += [search_path_name]
+            break
     else:
-        pylintrc_file = proj_path / ".pylintrc"
-    pylintrc_file.write_text(PYLINT_TEST_RC % "a")
+        expected_path = None
+        bad_names = [NO_DIR]
 
-    paths = [str(p) for p in [script_file, pylintrc_file, proj_path, cwd_path]]
-    messages = [PYLINT_TEST_MSG % const_name for const_name in ["a", "li"]]
-    return paths + messages
+    # Store the selected pylintrc files at the designated paths
+    for location in pylintrc_locations:
+        pylintrc_test_contents = PYLINTRC_TEST_CONTENTS.format(
+            bad_names=bad_names)
+        pylintrc_path = osp.join(search_paths[location], PYLINTRC_FILENAME)
+        with open(pylintrc_path, mode="w",
+                  encoding="utf-8", newline="\n") as rc_file:
+            rc_file.write(pylintrc_test_contents)
+    return search_paths, expected_path, bad_names
 
 
-def test_pylintrc_path(pylint_test_setup):
-    script_file, pylintrc_file, proj_path, cwd_path, _, _ = pylint_test_setup
-    search_paths = [
-        osp.dirname(script_file),  # File's directory
-        cwd_path,  # Working directory
-        proj_path,  # Project directory
-    ]
-    auto_path = get_pylintrc_path(search_paths)
-    assert auto_path == pylintrc_file
+def test_get_pylintrc_path(pylintrc_files, mocker):
+    """Test that get_pylintrc_path finds the expected one in the hiearchy."""
+    search_paths, expected_path, __ = pylintrc_files
+    mocker.patch("pylint.config.os.path.expanduser",
+                 return_value=search_paths[HOME_DIR])
+    actual_path = get_pylintrc_path(
+        search_paths=list(search_paths.values()),
+        home_path=search_paths[HOME_DIR],
+        )
+    assert actual_path == expected_path
+
+
+if __name__ == "__main__":
+    pytest.main([osp.basename(__file__), '-vv', '-rw'])
