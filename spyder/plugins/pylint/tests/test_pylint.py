@@ -14,7 +14,10 @@ import os.path as osp
 import pytest
 
 # Local imports
-from spyder.plugins.pylint.widgets.pylintgui import get_pylintrc_path
+from spyder.plugins.pylint.widgets.pylintgui import (
+    get_pylintrc_path,
+    PylintWidget,
+    )
 
 # pylint: disable=redefined-outer-name
 
@@ -23,37 +26,27 @@ PYLINTRC_FILENAME = ".pylintrc"
 # Constants for dir name keys
 # TODO in Python 3 : Replace with enum
 NO_DIR = "e"
-SCRIPT_DIR = "script_dir"
-WORKING_DIR = "working_dir"
-PROJECT_DIR = "project_dir"
-HOME_DIR = "home_dir"
-ALL_DIR = "all_dir"
+SCRIPT_DIR = "SCRIPT_DIR"
+WORKING_DIR = "WORKING_DIR"
+PROJECT_DIR = "PROJECT_DIR"
+HOME_DIR = "HOME_DIR"
+ALL_DIR = "ALL_DIR"
 
 DIR_LIST = [SCRIPT_DIR, WORKING_DIR, PROJECT_DIR, HOME_DIR]
 DIR_LIST_ALL = [NO_DIR] + DIR_LIST + [ALL_DIR]
 
 PYLINT_TEST_SCRIPT = "\n".join(
-    [dir_name + "=" + str(idx) for idx, dir_name in enumerate(DIR_LIST_ALL)])
+    [dir_name + " = " + str(idx) for idx, dir_name in enumerate(DIR_LIST_ALL)])
+PYLINT_TEST_SCRIPT = "\"\"\"Docstring.\"\"\"\n" + PYLINT_TEST_SCRIPT + "\n"
 
 PYLINTRC_TEST_CONTENTS = """
 [MESSAGES CONTROL]
-disable=all
-enable=bad-names
+enable=blacklisted-name
 
 [BASIC]
 bad-names={bad_names}
+good-names=e
 """
-
-
-@pytest.fixture
-def pylint_test_script(tmp_path_factory):
-    """Write a script for testing Pylint to a temporary directory."""
-    script_path = osp.join(
-        str(tmp_path_factory.mktemp("script_dir")), "test_script.py")
-    with open(script_path, mode="w",
-              encoding="utf-8", newline="\n") as script_file:
-        script_file.write(PYLINT_TEST_SCRIPT + "\n")
-    return script_path
 
 
 @pytest.fixture
@@ -62,6 +55,17 @@ def pylintrc_search_paths(tmp_path_factory):
     search_paths = {dir_name: str(tmp_path_factory.mktemp(dir_name))
                     for dir_name in DIR_LIST}
     return search_paths
+
+
+@pytest.fixture
+def pylint_test_script(pylintrc_search_paths):
+    """Write a script for testing Pylint to a temporary directory."""
+    script_path = osp.join(
+        pylintrc_search_paths[SCRIPT_DIR], "test_script.py")
+    with open(script_path, mode="w",
+              encoding="utf-8", newline="\n") as script_file:
+        script_file.write(PYLINT_TEST_SCRIPT)
+    return script_path
 
 
 @pytest.fixture(
@@ -91,7 +95,7 @@ def pylintrc_files(pylintrc_search_paths, request):
     # Store the selected pylintrc files at the designated paths
     for location in pylintrc_locations:
         pylintrc_test_contents = PYLINTRC_TEST_CONTENTS.format(
-            bad_names=bad_names)
+            bad_names=", ".join([location, ALL_DIR]))
         pylintrc_path = osp.join(search_paths[location], PYLINTRC_FILENAME)
         with open(pylintrc_path, mode="w",
                   encoding="utf-8", newline="\n") as rc_file:
@@ -109,6 +113,38 @@ def test_get_pylintrc_path(pylintrc_files, mocker):
         home_path=search_paths[HOME_DIR],
         )
     assert actual_path == expected_path
+
+
+def test_pylint_widget_pylintrc(
+        pylint_test_script, pylintrc_files, mocker, qtbot):
+    """Test that entire pylint widget gets results depending on pylintrc."""
+    search_paths, __, bad_names = pylintrc_files
+    mocker.patch("pylint.config.os.path.expanduser",
+                 return_value=search_paths[HOME_DIR])
+    mocker.patch("spyder.plugins.pylint.widgets.pylintgui.getcwd_or_home",
+                 return_value=search_paths[WORKING_DIR])
+    mock_parent = mocker.Mock()
+    mock_parent.main.projects.get_active_project_path = mocker.MagicMock(
+        return_value=search_paths[PROJECT_DIR])
+    mocker.patch(
+        "spyder.plugins.pylint.widgets.pylintgui.PylintWidget.parentWidget",
+        return_value=mock_parent)
+    mocker.patch("spyder.plugins.pylint.widgets.pylintgui.osp.expanduser",
+                 return_value=search_paths[HOME_DIR])
+
+    pylint_widget = PylintWidget(parent=None)
+    pylint_widget.analyze(filename=pylint_test_script)
+    qtbot.waitUntil(
+        lambda: pylint_widget.get_data(pylint_test_script)[1] is not None,
+        timeout=5000)
+    pylint_data = pylint_widget.get_data(filename=pylint_test_script)
+    print(pylint_data)
+    assert pylint_data
+    conventions = pylint_data[1][3]["C:"]
+    assert conventions
+    assert len(conventions) == len(bad_names)
+    assert all([sum([bad_name in message[2] for message in conventions]) == 1
+                for bad_name in bad_names])
 
 
 if __name__ == "__main__":
