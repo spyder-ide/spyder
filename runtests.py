@@ -9,18 +9,18 @@ Script for running Spyder tests programmatically.
 """
 
 # Standard library imports
-import os
-import sys
 import argparse
+import os
 
-# To activate/deactivate certain things for pytest's only
+# To activate/deactivate certain things for pytests only
 # NOTE: Please leave this before any other import here!!
 os.environ['SPYDER_PYTEST'] = 'True'
 
 # Third party imports
 # NOTE: This needs to be imported before any QApplication.
 # Don't remove it or change it to a different location!
-from qtpy import QtWebEngineWidgets
+# pylint: disable=wrong-import-position
+from qtpy import QtWebEngineWidgets  # pylint: disable=unused-import
 import pytest
 
 
@@ -29,30 +29,24 @@ CI = os.environ.get('CI', None) is not None
 RUN_SLOW = os.environ.get('RUN_SLOW', None) == 'true'
 
 
-def main(run_slow=False, extra_args=None):
-    """
-    Run pytest tests for Spyder.
-    """
-    pytest_args = ['spyder',
-                   '-vv',
-                   '-rw',
-                   '--durations=10']
+def run_pytest(run_slow=False, extra_args=None):
+    """Run pytest tests for Spyder."""
+    pytest_args = ['-vv', '-rw', '--durations=10']
 
     if CI:
         # Exit on first failure and show coverage
         pytest_args += ['-x', '--cov=spyder', '--no-cov-on-fail']
 
-        # Run slow tests only
-        if RUN_SLOW:
-            pytest_args += ['--run-slow']
-
         # To display nice tests resume in Azure's web page
         if os.environ.get('AZURE', None) is not None:
             pytest_args += ['--cache-clear', '--junitxml=result.xml']
-    elif run_slow:
+    if run_slow or RUN_SLOW:
         pytest_args += ['--run-slow']
-    elif extra_args:
+    # Allow user to pass a custom test path to pytest to e.g. run just one test
+    if extra_args:
         pytest_args += extra_args
+    else:
+        pytest_args += ['spyder']
 
     print("Pytest Arguments: " + str(pytest_args))
     errno = pytest.main(pytest_args)
@@ -64,13 +58,17 @@ def main(run_slow=False, extra_args=None):
         raise SystemExit(errno)
 
 
-if __name__ == '__main__':
+def main():
+    """Parse args then run the pytest suite for Spyder."""
     test_parser = argparse.ArgumentParser(
-        usage='python runtests.py [--run-slow] [-- pytest_args]')
-    test_parser.add_argument('--run-slow', action='store_true',
-                             default=False,
+        description="Helper script to run Spyder's test suite")
+    test_parser.add_argument('--run-slow', action='store_true', default=False,
                              help='Run the slow tests')
-    test_parser.add_argument('pytest_args', nargs='*',
-                             help="Args to pass to pytest")
+    test_parser.add_argument('pytest_args', nargs=argparse.REMAINDER,
+                             metavar="...", help="Args to pass to pytest")
     test_args = test_parser.parse_args()
-    main(run_slow=test_args.run_slow, extra_args=test_args.pytest_args)
+    run_pytest(run_slow=test_args.run_slow, extra_args=test_args.pytest_args)
+
+
+if __name__ == '__main__':
+    main()
