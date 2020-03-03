@@ -58,7 +58,8 @@ def get_pylintrc_path(search_paths=None, home_path=None):
     if home_path is None:
         home_path = osp.expanduser("~")
     try:
-        pylintrc_paths = [_find_pylintrc_path(path) for path in search_paths]
+        pylintrc_paths = [
+            _find_pylintrc_path(path) for path in search_paths if path]
         pylintrc_path_home = _find_pylintrc_path(home_path)
         for pylintrc_path in pylintrc_paths:
             if (pylintrc_path is not None
