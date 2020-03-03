@@ -13,7 +13,6 @@
 
 # Standard library imports
 from __future__ import print_function, with_statement
-import os
 import os.path as osp
 import re
 import sys
@@ -21,7 +20,6 @@ import time
 
 # Third party imports
 import pylint
-import pylint.config
 from qtpy.compat import getopenfilename
 from qtpy.QtCore import QByteArray, QProcess, Signal, Slot, QProcessEnvironment
 from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
@@ -36,6 +34,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import (is_module_or_package,
                                        PythonModulesComboBox)
 from spyder.widgets.onecolumntree import OneColumnTree
+from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 
 
@@ -45,30 +44,6 @@ try:
 except KeyError as error:
     import gettext
     _ = gettext.gettext
-
-
-def _find_pylintrc_path(path):
-    os.chdir(path)
-    return pylint.config.find_pylintrc()
-
-
-def get_pylintrc_path(search_paths=None, home_path=None):
-    """Get the path to the highest pylintrc file on a set of search paths."""
-    current_cwd = os.getcwd()
-    pylintrc_path = None
-    if home_path is None:
-        home_path = osp.expanduser("~")
-    try:
-        pylintrc_paths = [
-            _find_pylintrc_path(path) for path in search_paths if path]
-        pylintrc_path_home = _find_pylintrc_path(home_path)
-        for pylintrc_path in pylintrc_paths:
-            if (pylintrc_path is not None
-                    and pylintrc_path != pylintrc_path_home):
-                break
-    finally:
-        os.chdir(current_cwd)
-    return pylintrc_path
 
 
 PYLINT_VER = pylint.__version__
@@ -384,6 +359,7 @@ class PylintWidget(QWidget):
         pylintrc_path = self.get_pylintrc_path(filename=filename)
         if pylintrc_path is not None:
             p_args += ['--rcfile={}'.format(pylintrc_path)]
+
         p_args += [filename]
         processEnvironment = QProcessEnvironment()
         processEnvironment.insert("PYTHONIOENCODING", "utf8")

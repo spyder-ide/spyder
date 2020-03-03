@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------------
-# Copyright © Spyder Project Contributors
+# Copyright © 2020- Spyder Project Contributors
 #
-# Licensed under the terms of the MIT License
+# Released under the terms of the MIT License
 # ----------------------------------------------------------------------------
+
 """Tests for the execution of pylint."""
 
+
+# Future imports
 from __future__ import unicode_literals
 
 # Standard library imports
@@ -16,18 +19,17 @@ import os.path as osp
 import pytest
 
 # Local imports
-from spyder.plugins.pylint.widgets.pylintgui import (
-    get_pylintrc_path,
-    PylintWidget,
-    )
+from spyder.plugins.pylint.widgets.pylintgui import PylintWidget
+from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.py3compat import PY2
+
 
 # pylint: disable=redefined-outer-name
 
 PYLINTRC_FILENAME = ".pylintrc"
 
 # Constants for dir name keys
-# TODO in Python 3 : Replace with enum
+# In Python 3 and Spyder 5, replace with enum
 NO_DIR = "e"
 SCRIPT_DIR = "SCRIPT_DIR"
 WORKING_DIR = "WORKING_DIR"
