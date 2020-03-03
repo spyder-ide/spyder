@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2019-11-29 18:13+-05\n"
-"PO-Revision-Date: 2020-02-29 03:47\n"
+"PO-Revision-Date: 2020-03-03 21:26\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -5233,190 +5233,153 @@ msgstr "<b>いくつかのオブジェクトは保存されませんでした:</
 msgid "<b>Unable to save current workspace</b><br><br>The error message was:<br>"
 msgstr "<b>現在のワークスペースを保存できません</b><br><br>エラーメッセージ:<br>"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:115
 msgid "empty {}"
 msgstr "空 {}"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:117
 msgid "{} of {} item"
 msgstr "{}の{}アイテム"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:119
 msgid "{} of {} items"
 msgstr "{}の{}アイテム"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:121
 msgid "array of {}, shape: {}"
 msgstr "{}のアレイ、形状: {}"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:151
 msgid "<no doc string found>"
 msgstr "<doc stringが見つかりませんでした>"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:162
 msgid "<no help available>"
 msgstr "<ヘルプは利用できません>"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:201
 msgid "<AttributeModel for {!r}>"
 msgstr "<{!r}のアトリビュートモデル>"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:217
 msgid "The value of the object."
 msgstr "オブジェクトの値。"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:224
 msgid "The name of the object."
 msgstr "オブジェクトの名前。"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:226
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:235
 msgid "<root>"
 msgstr "<ルート>"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:233
 msgid "A path to the data: e.g. var[1]['a'].item"
 msgstr "データへのパス: 例 var[1]['a'].item"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:242
 msgid "A summary of the object for regular objects (is empty for non-regular objectssuch as callables or modules)."
 msgstr "通常オブジェクトの概要 (呼び出し可能オブジェクトやモジュールなどの非通常のオブジェクトの場合は空)"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:253
 msgid "The unicode representation of the object. In Python 2 it uses unicode()In Python 3 the str() function is used."
 msgstr "オブジェクトのunicode表現。Python2ではunicode() が、Python3ではstr() が使われます。"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:264
 msgid "The string representation of the object using the str() function.In Python 3 there is no difference with the 'unicode' column."
 msgstr "str() 関数を使用したオブジェクトの文字列表現。Python3では'unicode'列との違いはありません。"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:274
 msgid "The string representation of the object using the repr() function."
 msgstr "repr() 関数を使用したオブジェクトの文字列表現。"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:284
 msgid "Type of the object determined using the builtin type() function"
 msgstr "ビルトインtype() 関数により決定されるオブジェクトの型"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:300
 msgid "The length or shape of the object"
 msgstr "オブジェクトの長さあるいは形状"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:309
 msgid "The identifier of the object with calculated using the id() function"
 msgstr "id() 関数を使用して計算されたオブジェクトの識別子"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:319
 msgid "The object is an attribute of the parent (opposed to e.g. a list element).Attributes are displayed in italics in the table."
 msgstr "オブジェクトが親の属性になっています（例えばリスト要素等では逆です）。属性はテーブル内では斜体で表示されます。"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:329
 msgid "True if the object is callable.Determined with the `callable` built-in function.Callable objects are displayed in blue in the table."
 msgstr "オブジェクトが呼び出し可能であれば真。'呼び出し可能'かどうかは組み込み関数で決定されます。呼び出し可能オブジェクトはテーブルでは青で表示されます。"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:339
 msgid "True if the object is a user-defined or built-in function or method.Determined with the inspect.isroutine() method."
 msgstr "ユーザー定義、あるいは組み込み関数/メソッドならば真。これはinspect.isroutine() メソッドで判定されます。"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:349
 msgid "Predicates from the inspect module"
 msgstr "検査モジュールからのpredicate"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:357
 msgid "Pretty printed representation of the object using the pprint module."
 msgstr "pprintモジュールを使用した、オブジェクトのきれいな表現。"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:366
 msgid "The object's doc string"
 msgstr "オブジェクトのdoc string"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:374
 msgid "The object's doc string, leaned up by inspect.getdoc()"
 msgstr "inspect.getdoc() によって学習された、オブジェクトのdoc string"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:382
 msgid "Comments above the object's definition. Retrieved using inspect.getcomments()"
 msgstr "inspect.getcomments() によって取得されたオブジェクト定義でのコメント"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:391
 msgid "The object's module. Retrieved using inspect.module"
 msgstr "inspect.moduleによって得られた、オブジェクトのモジュール"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:399
 msgid "The object's file. Retrieved using inspect.getfile"
 msgstr "inspect.getfileによって得られた、オブジェクトのファイル"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:407
 msgid "The object's file. Retrieved using inspect.getsourcefile"
 msgstr "inspect.getsourcefileによって得られた、オブジェクトのファイル"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:415
 msgid "Uses inspect.getsourcelines() to get a list of source lines for the object"
 msgstr "オブジェクトのソース記述を得るためにinspect.getsourcelines() を使う"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:424
 msgid "The source code of an object retrieved using inspect.getsource"
 msgstr "inspect.getsourceによって得られた、オブジェクトのソースコード"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:160
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:185
 msgid "Show callable attributes"
 msgstr "呼び出し可能な属性を表示"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:162
 msgid "Shows/hides attributes that are callable (functions, methods, etc)"
 msgstr "(関数、メソッド等の) 呼び出し可能属性を表示/隠す"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:171
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:193
 msgid "Show __special__ attributes"
 msgstr "__special__ 属性を表示"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:173
 msgid "Shows or hides __special__ attributes"
 msgstr "__special__属性を表示/隠す"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:270
 msgid "Details"
 msgstr "詳細"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/toggle_column_mixin.py:65
 msgid "Shows or hides the {} column"
 msgstr "{}行を表示/隠す"
