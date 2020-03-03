@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2019-11-29 18:13+-05\n"
-"PO-Revision-Date: 2020-02-29 03:47\n"
+"PO-Revision-Date: 2020-03-03 21:25\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -5256,190 +5256,153 @@ msgstr "<b>Algunos objetos no pudieron ser guardados:</b>"
 msgid "<b>Unable to save current workspace</b><br><br>The error message was:<br>"
 msgstr "<b>No fue posible guardar el espacio de trabajo actual</b><br><br>Mensaje de error:<br>%s"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:115
 msgid "empty {}"
 msgstr "vacío {}"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:117
 msgid "{} of {} item"
 msgstr "Ítem {} de {}"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:119
 msgid "{} of {} items"
 msgstr "Ítems {} de {}"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:121
 msgid "array of {}, shape: {}"
 msgstr "arreglo de {}, shape: {}"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:151
 msgid "<no doc string found>"
 msgstr "<no se encontró docstring>"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:162
 msgid "<no help available>"
 msgstr "<no hay ayuda disponible>"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:201
 msgid "<AttributeModel for {!r}>"
 msgstr "<AttributeModel para {!r}>"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:217
 msgid "The value of the object."
 msgstr "El valor del objeto."
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:224
 msgid "The name of the object."
 msgstr "El nombre del objeto."
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:226
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:235
 msgid "<root>"
 msgstr ""
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:233
 msgid "A path to the data: e.g. var[1]['a'].item"
 msgstr "Una ruta a los datos: e.g. var[1][‘a’].ítem"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:242
 msgid "A summary of the object for regular objects (is empty for non-regular objectssuch as callables or modules)."
 msgstr "Un resumen del objeto para objetos regulares (está vacío para objetos no regulares, como objetos llamables o módulos)."
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:253
 msgid "The unicode representation of the object. In Python 2 it uses unicode()In Python 3 the str() function is used."
 msgstr "Representación unicode del objeto. En Python 2 usa unicode(). En Python 3 se usa la función str()."
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:264
 msgid "The string representation of the object using the str() function.In Python 3 there is no difference with the 'unicode' column."
 msgstr "Representación en cadenas del objeto usando la función str(). En Python 3 no hay diferencia con la columna ‘unicode’."
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:274
 msgid "The string representation of the object using the repr() function."
 msgstr "Representación en cadenas del objeto utilizando la función repr()."
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:284
 msgid "Type of the object determined using the builtin type() function"
 msgstr "Tipo del objeto determinado utilizando la función incorporada type()"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:300
 msgid "The length or shape of the object"
 msgstr "La longitud o forma del objeto"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:309
 msgid "The identifier of the object with calculated using the id() function"
 msgstr "El identificador del objeto calculado usando la función id()"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:319
 msgid "The object is an attribute of the parent (opposed to e.g. a list element).Attributes are displayed in italics in the table."
 msgstr "El objeto es un atributo del padre (contrario, por ejemplo, a un elemento de la lista). Los atributos se muestran en cursiva en la tabla."
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:329
 msgid "True if the object is callable.Determined with the `callable` built-in function.Callable objects are displayed in blue in the table."
 msgstr "Verdadero si el objeto es llamable. Determinado con la función `callable`. Los objetos llamables se muestran en azul en la tabla."
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:339
 msgid "True if the object is a user-defined or built-in function or method.Determined with the inspect.isroutine() method."
 msgstr "Verdadero si el objeto es una función o método definido por el usuario o built-in. Determinado con el método inspect.isroutine()."
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:349
 msgid "Predicates from the inspect module"
 msgstr "Predicados del módulo inspect"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:357
 msgid "Pretty printed representation of the object using the pprint module."
 msgstr "Representación pretty printed del objeto usando el módulo pprint."
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:366
 msgid "The object's doc string"
 msgstr "Docstring del objeto"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:374
 msgid "The object's doc string, leaned up by inspect.getdoc()"
 msgstr ""
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:382
 msgid "Comments above the object's definition. Retrieved using inspect.getcomments()"
 msgstr "Comentarios sobre la definición del objeto. Recuperados usando inspect.getcomments()"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:391
 msgid "The object's module. Retrieved using inspect.module"
 msgstr "Módulo del objeto. Recuperado usando inspect.module"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:399
 msgid "The object's file. Retrieved using inspect.getfile"
 msgstr "Archivo del objeto. Recuperado usando inspect.getfile"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:407
 msgid "The object's file. Retrieved using inspect.getsourcefile"
 msgstr "Archivo del objeto. Recuperado usando inspect.getsourcefile"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:415
 msgid "Uses inspect.getsourcelines() to get a list of source lines for the object"
 msgstr "Utiliza inspect.getsourcelines() para obtener una lista de líneas de origen para el objeto"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:424
 msgid "The source code of an object retrieved using inspect.getsource"
 msgstr "Código fuente de un objeto recuperado usando inspect.getsource"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:160
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:185
 msgid "Show callable attributes"
 msgstr "Mostrar todos los atributos llamables"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:162
 msgid "Shows/hides attributes that are callable (functions, methods, etc)"
 msgstr "Muestra u oculta los atributos que son \"llamables\" (funciones, métodos, etc)"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:171
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:193
 msgid "Show __special__ attributes"
 msgstr "Mostrar __atributos__especiales"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:173
 msgid "Shows or hides __special__ attributes"
 msgstr "Muestra u oculta __atributos__especiales"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:270
 msgid "Details"
 msgstr "Detalles"
 
-#:
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/toggle_column_mixin.py:65
 msgid "Shows or hides the {} column"
 msgstr "Muestra u oculta la columna {}"
