@@ -858,7 +858,6 @@ class CodeEditor(TextEditBaseWidget):
         self.edge_line.set_columns(edge_line_columns)
 
         # Indent guides
-        # self.indent_guides.set_enabled(indent_guides)
         self.toggle_identation_guides(indent_guides)
         if self.indent_chars == '\t':
             self.indent_guides.set_indentation_width(self.tab_stop_width_spaces)
@@ -1394,8 +1393,7 @@ class CodeEditor(TextEditBaseWidget):
             warn_seen = CONF.get('editor', 'code_folding_warn')
             warn_str = _('This file contains more than 2000 lines! All '
                          'code folding functionality will be disabled in '
-                         'order to prevent further performance degradation. '
-                         'This message will be ignored in the future.')
+                         'order to prevent further performance degradation.')
             if not warn_seen:
                 QMessageBox.information(self, _('File too long'), warn_str,
                                         QMessageBox.Ok)
