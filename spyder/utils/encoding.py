@@ -233,15 +233,16 @@ def write(text, filename, encoding='utf-8', mode='wb'):
     Return (eventually new) encoding
     """
     text, encoding = encode(text, encoding)
+    absolute_filename = os.path.realpath(filename)
     if 'a' in mode:
-        with open(filename, mode) as textfile:
+        with open(absolute_filename, mode) as textfile:
             textfile.write(text)
     else:
         # Based in the solution at untitaker/python-atomicwrites#42.
         # Needed to fix file permissions overwritting.
         # See spyder-ide/spyder#9381.
         try:
-            file_stat = os.stat(filename)
+            file_stat = os.stat(absolute_filename)
             original_mode = file_stat.st_mode
             creation = file_stat.st_atime
         except OSError:  # Change to FileNotFoundError for PY3
@@ -251,20 +252,20 @@ def write(text, filename, encoding='utf-8', mode='wb'):
             original_mode = 0o777 & ~umask
             creation = time.time()
         try:
-            with atomic_write(filename, overwrite=True,
+            with atomic_write(absolute_filename, overwrite=True,
                               mode=mode) as textfile:
                 textfile.write(text)
         except OSError as error:
             # Some filesystems don't support the option to sync directories
             # See untitaker/python-atomicwrites#17
             if error.errno != errno.EINVAL:
-                with open(filename, mode) as textfile:
+                with open(absolute_filename, mode) as textfile:
                     textfile.write(text)
         try:
-            os.chmod(filename, original_mode)
-            file_stat = os.stat(filename)
+            os.chmod(absolute_filename, original_mode)
+            file_stat = os.stat(absolute_filename)
             # Preserve creation timestamps
-            os.utime(filename, (creation, file_stat.st_mtime))
+            os.utime(absolute_filename, (creation, file_stat.st_mtime))
         except OSError:
             # Prevent error when chmod/utime is not allowed
             # See spyder-ide/spyder#11308
