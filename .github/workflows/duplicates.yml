@@ -28,5 +28,5 @@ jobs:
                "reply": "To fix this, please open the Anaconda Prompt and run there the following commands:<br><br>`conda update anaconda`<br>`conda install jupyter_client=5.3.4`",
                "labels": ["resolution:Duplicate"],
                "close": true
-             },
+             }
              ]
