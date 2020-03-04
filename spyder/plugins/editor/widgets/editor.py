@@ -560,6 +560,7 @@ class EditorStack(QWidget):
         self.completions_hint_after_ms = 500
         self.hover_hints_enabled = True
         self.code_snippets_enabled = True
+        self.code_folding_enabled = True
         self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
@@ -1175,7 +1176,7 @@ class EditorStack(QWidget):
         self.indent_guides = state
         if self.data:
             for finfo in self.data:
-                finfo.editor.indent_guides.set_enabled(state)
+                finfo.editor.toggle_identation_guides(state)
 
     def set_close_parentheses_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'close_parentheses')
@@ -1271,6 +1272,12 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_code_snippets(state)
+
+    def set_code_folding_enabled(self, state):
+        self.code_folding_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_code_folding(state)
 
     def set_automatic_completions_enabled(self, state):
         self.automatic_completions_enabled = state
@@ -2560,6 +2567,7 @@ class EditorStack(QWidget):
             filename=fname,
             show_class_func_dropdown=self.show_class_func_dropdown,
             indent_guides=self.indent_guides,
+            folding=self.code_folding_enabled,
         )
         if cloned_from is None:
             editor.set_text(txt)

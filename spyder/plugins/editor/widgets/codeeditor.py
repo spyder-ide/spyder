@@ -858,7 +858,8 @@ class CodeEditor(TextEditBaseWidget):
         self.edge_line.set_columns(edge_line_columns)
 
         # Indent guides
-        self.indent_guides.set_enabled(indent_guides)
+        # self.indent_guides.set_enabled(indent_guides)
+        self.toggle_identation_guides(indent_guides)
         if self.indent_chars == '\t':
             self.indent_guides.set_indentation_width(self.tab_stop_width_spaces)
         else:
@@ -1388,6 +1389,20 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def request_folding(self):
         """Request folding."""
+        total_lines = self.get_line_count()
+        if total_lines > 2000 and self.code_folding:
+            warn_seen = CONF.get('editor', 'code_folding_warn')
+            warn_str = _('This file contains more than 2000 lines! All '
+                         'code folding functionality will be disabled in '
+                         'order to prevent further performance degradation. '
+                         'This message will be ignored in the future.')
+            if not warn_seen:
+                QMessageBox.information(self, _('File too long'), warn_str,
+                                        QMessageBox.Ok)
+                CONF.set('editor', 'code_folding_warn', True)
+            self.toggle_code_folding(False)
+            self.toggle_identation_guides(False)
+
         if not self.folding_supported or not self.code_folding:
             return
         params = {'file': self.filename}
@@ -1498,6 +1513,16 @@ class CodeEditor(TextEditBaseWidget):
     def toggle_code_folding(self, state):
         self.code_folding = state
         self.set_folding_panel(state)
+        if not state and self.indent_guides._enabled:
+            self.code_folding = True
+
+    def toggle_identation_guides(self, state):
+        folding_panel = self.panels.get(FoldingPanel)
+        if state and not self.code_folding:
+            self.code_folding = True
+        elif not state and not folding_panel.isVisible():
+            self.code_folding = False
+        self.indent_guides.set_enabled(state)
 
     def toggle_completions_hint(self, state):
         """Enable/disable completion hint."""
