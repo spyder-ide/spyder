@@ -3824,7 +3824,9 @@ class CodeEditor(TextEditBaseWidget):
                     last_obj = getobj(text)
                     prev_char = text[-2] if len(text) > 1 else ''
                     if prev_char in {')', ']', '}'} or (last_obj and not last_obj.isdigit()):
-                        self._start_completion_timer()
+                        # Completions should be triggered immediately when an
+                        # autocompletion character is introduced.
+                        self.do_completion(automatic=True)
             else:
                 self.do_completion(automatic=True)
         elif (text in self.signature_completion_characters and
@@ -3895,7 +3897,7 @@ class CodeEditor(TextEditBaseWidget):
         key = self._last_pressed_key
         if key is not None:
             if key in [Qt.Key_Backspace, Qt.Key_Return, Qt.Key_Escape,
-                       Qt.Key_Tab, Qt.Key_Backtab]:
+                       Qt.Key_Tab, Qt.Key_Backtab, Qt.Key_Space]:
                 self._last_pressed_key = None
                 return
 
