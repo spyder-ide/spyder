@@ -10,10 +10,44 @@ import os
 import stat
 
 from spyder.utils.encoding import is_text_file, get_coding, write
-from spyder.py3compat import to_text_string
+from spyder.py3compat import to_text_string, PY2
+
+if PY2:
+    import pathlib2 as pathlib
+else:
+    import pathlib
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(),
                                              os.path.dirname(__file__)))
+
+
+def test_symlinks(tmpdir):
+    """
+    Check that modifing symlinks files changes source file and keeps symlinks.
+    """
+    base_dir = tmpdir.mkdir("symlinks")
+    base_file = base_dir.join("symlinks_text.txt")
+    base_file_path = to_text_string(base_file)
+
+    # Write base file
+    write("Some text for symlink", base_file)
+
+    # Create symlink
+    symlink_file = pathlib.Path(base_dir.join(
+        'link-to-symlinks_text.txt'))
+    symlink_file.symlink_to(base_file_path)
+    symlink_file_path = to_text_string(symlink_file)
+
+    # Assert the symlink was created
+    assert os.path.islink(symlink_file_path)
+
+    # Write using the symlink
+    enconding = write("New text for symlink", symlink_file_path)
+
+    # Assert symlink is valid and contents of the file
+    assert os.path.islink(symlink_file_path)
+    assert base_file.read_text(enconding) == symlink_file.read_text(enconding)
+    assert symlink_file.read_text(enconding) == 'New text for symlink'
 
 
 def test_permissions(tmpdir):

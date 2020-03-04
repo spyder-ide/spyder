@@ -26,8 +26,13 @@ from atomicwrites import atomic_write
 
 # Local imports
 from spyder.py3compat import (is_string, to_text_string, is_binary_string,
-                              is_unicode)
+                              is_unicode, PY2)
 from spyder.utils.external.binaryornot.check import is_binary
+
+if PY2:
+    import pathlib2 as pathlib
+else:
+    import pathlib
 
 
 PREFERRED_ENCODING = locale.getpreferredencoding()
@@ -233,7 +238,7 @@ def write(text, filename, encoding='utf-8', mode='wb'):
     Return (eventually new) encoding
     """
     text, encoding = encode(text, encoding)
-    absolute_filename = os.path.realpath(filename)
+    absolute_filename = to_text_string(pathlib.Path(filename).resolve())
     if 'a' in mode:
         with open(absolute_filename, mode) as textfile:
             textfile.write(text)
