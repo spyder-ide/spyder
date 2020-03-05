@@ -16,6 +16,7 @@ from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
 import locale
 import re
 import os
+import os.path as osp
 import sys
 import time
 import errno
@@ -238,7 +239,12 @@ def write(text, filename, encoding='utf-8', mode='wb'):
     Return (eventually new) encoding
     """
     text, encoding = encode(text, encoding)
-    absolute_filename = to_text_string(pathlib.Path(filename).resolve())
+
+    if os.name == "nt":
+        absolute_filename = to_text_string(pathlib.Path(filename).resolve())
+    else:
+        absolute_filename = osp.realpath(filename)
+
     if 'a' in mode:
         with open(absolute_filename, mode) as textfile:
             textfile.write(text)
