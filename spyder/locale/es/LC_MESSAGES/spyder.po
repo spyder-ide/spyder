@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-03 18:30-0500\n"
-"PO-Revision-Date: 2020-03-04 00:13\n"
+"PO-Revision-Date: 2020-03-05 02:16\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -45,7 +45,7 @@ msgstr "Referencia del API de PyQt5"
 
 #: spyder/app/mainwindow.py:236
 msgid "WinPython"
-msgstr ""
+msgstr "WinPython"
 
 #: spyder/app/mainwindow.py:503
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
@@ -493,7 +493,7 @@ msgstr ""
 #: spyder/preferences/general.py:322 spyder/preferences/general.py:347
 #: spyder/widgets/reporterror.py:288
 msgid "Error"
-msgstr ""
+msgstr "Error"
 
 #: spyder/app/mainwindow.py:1463
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
@@ -1020,7 +1020,7 @@ msgstr "Cerrar este panel"
 #: spyder/plugins/editor/widgets/editor.py:535
 #: spyder/plugins/help/confpage.py:31 spyder/plugins/help/plugin.py:98
 msgid "Editor"
-msgstr ""
+msgstr "Editor"
 
 #: spyder/plugins/breakpoints/plugin.py:57
 msgid "Breakpoints"
@@ -1841,7 +1841,7 @@ msgstr "Resaltar ocurrencias después de"
 #: spyder/plugins/editor/confpage.py:67 spyder/preferences/general.py:190
 #: spyder/preferences/general.py:199
 msgid " ms"
-msgstr ""
+msgstr " ms"
 
 #: spyder/plugins/editor/confpage.py:106
 msgid "Automatic insertion of parentheses, braces and brackets"
@@ -1983,15 +1983,15 @@ msgstr "Aquí puede seleccionar el tipo de dosctrings ({} o {}) que desea que el
 
 #: spyder/plugins/editor/confpage.py:245
 msgid "Numpy"
-msgstr ""
+msgstr "Numpy"
 
 #: spyder/plugins/editor/confpage.py:246
 msgid "Google"
-msgstr ""
+msgstr "Google"
 
 #: spyder/plugins/editor/confpage.py:247
 msgid "Sphinx"
-msgstr ""
+msgstr "Sphinx"
 
 #: spyder/plugins/editor/confpage.py:259
 msgid "Annotations"
@@ -4329,11 +4329,11 @@ msgstr "Gráficos"
 #: spyder/plugins/plots/widgets/figurebrowser.py:162
 #: spyder/plugins/plots/widgets/figurebrowser.py:1079
 msgid "Save plot as..."
-msgstr ""
+msgstr "Guardar gráfico como..."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:169
 msgid "Save all plots..."
-msgstr ""
+msgstr "Guardar todos los gráficos..."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:176
 msgid "Copy plot to clipboard as image"
@@ -4342,19 +4342,19 @@ msgstr ""
 #: spyder/plugins/plots/widgets/figurebrowser.py:183
 #: spyder/plugins/plots/widgets/figurebrowser.py:1089
 msgid "Remove plot"
-msgstr ""
+msgstr "Borrar gráfico"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:190
 msgid "Remove all plots"
-msgstr ""
+msgstr "Borrar todos los gráficos"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:200
 msgid "Previous plot"
-msgstr ""
+msgstr "Anterior gráfico"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:207
 msgid "Next plot"
-msgstr ""
+msgstr "Siguiente gráfico"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:255
 msgid "Mute inline plotting"
@@ -4382,7 +4382,7 @@ msgstr "Ajustar automáticamente los gráficos al tamaño del panel de Gráficos
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:1084
 msgid "Copy Image"
-msgstr ""
+msgstr "Copiar imagen"
 
 #: spyder/plugins/profiler/confpage.py:19 spyder/plugins/pylint/confpage.py:34
 msgid "Results"
@@ -5121,7 +5121,7 @@ msgstr "A cadena"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:605
 msgid "Text can't be copied."
-msgstr ""
+msgstr "El texto no puede ser copiado."
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:871
 msgid "%s editor"
@@ -5718,7 +5718,7 @@ msgstr "Márgenes personalizadas para los paneles:"
 
 #: spyder/preferences/general.py:119
 msgid "pixels"
-msgstr ""
+msgstr "pixeles"
 
 #: spyder/preferences/general.py:126
 msgid "Cursor blinking:"
@@ -5726,7 +5726,7 @@ msgstr "Parpadeo del cursor:"
 
 #: spyder/preferences/general.py:129
 msgid "ms"
-msgstr ""
+msgstr "ms"
 
 #: spyder/preferences/general.py:166
 msgid "macOS integration"
@@ -5774,7 +5774,7 @@ msgstr "Configuración para pantallas de alta densidad de pixeles <br><br> Visit
 
 #: spyder/preferences/general.py:248
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 #: spyder/preferences/general.py:252
 msgid "Enable auto high DPI scaling"
@@ -6286,11 +6286,11 @@ msgstr "Características proporcionadas"
 
 #: spyder/widgets/dependencies.py:35
 msgid "Mandatory"
-msgstr ""
+msgstr "Obligatorias"
 
 #: spyder/widgets/dependencies.py:45
 msgid "Spyder plugins"
-msgstr ""
+msgstr "Complementos de Spyder"
 
 #: spyder/widgets/dependencies.py:88
 msgid "Optional modules are not required to run Spyder but enhance its functions."
