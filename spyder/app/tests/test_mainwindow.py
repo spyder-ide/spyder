@@ -2996,8 +2996,9 @@ def test_runcell_after_restart(main_window, qtbot):
     # Make sure no errors are shown
     assert "error" not in shell._control.toPlainText().lower()
 
+
 @pytest.mark.slow
-@flaky(max_runs=1)
+@flaky(max_runs=3)
 @pytest.mark.parametrize(
     "ipython", [True, False])
 @pytest.mark.parametrize(
