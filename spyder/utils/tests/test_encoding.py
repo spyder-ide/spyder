@@ -30,7 +30,7 @@ def test_symlinks(tmpdir):
     base_file_path = to_text_string(base_file)
 
     # Write base file
-    write("Some text for symlink", base_file)
+    write("Some text for symlink", base_file_path)
 
     # Create symlink
     symlink_file = pathlib.Path(base_dir.join(
