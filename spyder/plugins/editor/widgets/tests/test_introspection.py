@@ -238,7 +238,7 @@ def test_automatic_completions_tab_bug(lsp_codeeditor, qtbot):
     """
     Test on-the-fly completions.
 
-    Autocompletions sohuld not be invoked when Tab/Backtab is pressed.
+    Autocompletions should not be invoked when Tab/Backtab is pressed.
 
     See: spyder-ide/spyder#11625
     """
@@ -270,13 +270,7 @@ def test_automatic_completions_tab_bug(lsp_codeeditor, qtbot):
 @pytest.mark.first
 @flaky(max_runs=5)
 def test_automatic_completions_space_bug(lsp_codeeditor, qtbot):
-    """
-    Test on-the-fly completions.
-
-    Autocompletions sohuld not be invoked when Tab/Backtab is pressed.
-
-    See: spyder-ide/spyder#11625
-    """
+    """Test that completions are not invoked when pressing the space key."""
     code_editor, _ = lsp_codeeditor
     completion = code_editor.completion_widget
     code_editor.toggle_code_snippets(False)
