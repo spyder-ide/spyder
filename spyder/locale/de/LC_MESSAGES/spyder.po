@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-03 18:30-0500\n"
-"PO-Revision-Date: 2020-03-04 00:13\n"
+"PO-Revision-Date: 2020-03-06 02:26\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -45,7 +45,7 @@ msgstr "PyQt5-API-Referenz"
 
 #: spyder/app/mainwindow.py:236
 msgid "WinPython"
-msgstr ""
+msgstr "WinPython"
 
 #: spyder/app/mainwindow.py:503
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
@@ -234,11 +234,11 @@ msgstr "WinPython-Steuerfeld"
 
 #: spyder/app/mainwindow.py:753
 msgid "Qt Designer"
-msgstr ""
+msgstr "Qt Designer"
 
 #: spyder/app/mainwindow.py:757
 msgid "Qt Linguist"
-msgstr ""
+msgstr "Qt Linguist"
 
 #: spyder/app/mainwindow.py:778
 msgid "guidata examples"
@@ -1020,7 +1020,7 @@ msgstr "Den Bereich schließen"
 #: spyder/plugins/editor/widgets/editor.py:535
 #: spyder/plugins/help/confpage.py:31 spyder/plugins/help/plugin.py:98
 msgid "Editor"
-msgstr ""
+msgstr "Editor"
 
 #: spyder/plugins/breakpoints/plugin.py:57
 msgid "Breakpoints"
@@ -1186,12 +1186,12 @@ msgstr "Externer Server"
 
 #: spyder/plugins/completion/languageserver/confpage.py:141
 msgid "Host:"
-msgstr ""
+msgstr "Host:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:143
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:66
 msgid "Port:"
-msgstr ""
+msgstr "Port:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:145
 msgid "Command:"
@@ -1838,7 +1838,7 @@ msgstr "Vorkommen hervorheben nach"
 #: spyder/plugins/editor/confpage.py:67 spyder/preferences/general.py:190
 #: spyder/preferences/general.py:199
 msgid " ms"
-msgstr ""
+msgstr " ms"
 
 #: spyder/plugins/editor/confpage.py:106
 msgid "Automatic insertion of parentheses, braces and brackets"
@@ -1957,7 +1957,7 @@ msgstr "Bearbeiten Sie die Vorlage für neue Dateien"
 
 #: spyder/plugins/editor/confpage.py:215
 msgid "Autosave"
-msgstr ""
+msgstr "Automatisches Speichern"
 
 #: spyder/plugins/editor/confpage.py:217
 msgid "Automatically save a copy of files with unsaved changes"
@@ -1981,15 +1981,15 @@ msgstr "Hier können Sie die Art der Docstrings ({} oder {}) auswählen, die der
 
 #: spyder/plugins/editor/confpage.py:245
 msgid "Numpy"
-msgstr ""
+msgstr "Numpy"
 
 #: spyder/plugins/editor/confpage.py:246
 msgid "Google"
-msgstr ""
+msgstr "Google"
 
 #: spyder/plugins/editor/confpage.py:247
 msgid "Sphinx"
-msgstr ""
+msgstr "Sphinx"
 
 #: spyder/plugins/editor/confpage.py:259
 msgid "Annotations"
@@ -2021,15 +2021,15 @@ msgstr "Beim Speichern: EOL-Zeichen konvertieren zu"
 
 #: spyder/plugins/editor/confpage.py:289
 msgid "LF (UNIX)"
-msgstr ""
+msgstr "LF (UNIX)"
 
 #: spyder/plugins/editor/confpage.py:290
 msgid "CRLF (Windows)"
-msgstr ""
+msgstr "CRLF (Windows)"
 
 #: spyder/plugins/editor/confpage.py:291
 msgid "CR (Mac)"
-msgstr ""
+msgstr "CR (Mac)"
 
 #: spyder/plugins/editor/confpage.py:315
 #: spyder/plugins/ipythonconsole/confpage.py:374
@@ -2670,7 +2670,7 @@ msgstr "Docstring generieren"
 #: spyder/plugins/editor/widgets/codeeditor.py:4121
 #: spyder/preferences/configdialog.py:891
 msgid "Information"
-msgstr ""
+msgstr "Information"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:4122
 msgid "This file is not part of a local repository or upstream/origin remotes are not defined!"
@@ -3523,7 +3523,7 @@ msgstr "Automatischer Import"
 
 #: spyder/plugins/help/plugin.py:400
 msgid "Retrieving documentation"
-msgstr ""
+msgstr "Dokumentation wird abgerufen"
 
 #: spyder/plugins/help/plugin.py:410
 msgid "Here you can get help of any object by pressing %s in front of it, either on the Editor or the Console.%s"
@@ -3692,7 +3692,7 @@ msgstr "Klar"
 
 #: spyder/plugins/ipythonconsole/confpage.py:74
 msgid "Terminal"
-msgstr ""
+msgstr "Terminal"
 
 #: spyder/plugins/ipythonconsole/confpage.py:75
 msgid "Completion:"
@@ -3770,7 +3770,7 @@ msgstr "Entscheiden Sie, wie die von diesem Backend erstellten Abbildungen geren
 
 #: spyder/plugins/ipythonconsole/confpage.py:157
 msgid "Format:"
-msgstr ""
+msgstr "Format:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:161
 msgid "Resolution:"
@@ -4038,7 +4038,7 @@ msgstr "Der Fehler ist:<br><br><tt>{}</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1433
 msgid "IPython"
-msgstr ""
+msgstr "IPython"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1434
 msgid "Unable to connect to <b>%s</b>"
@@ -4158,7 +4158,7 @@ msgstr "Dies ist ein rechnerferner Kernel (über SSH)"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:64
 msgid "Hostname:"
-msgstr ""
+msgstr "Hostname:"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:70
 msgid "Username:"
@@ -4183,7 +4183,7 @@ msgstr "Passphrase:"
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:94
 #: spyder/widgets/dependencies.py:41
 msgid "Optional"
-msgstr ""
+msgstr "Optional"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:147
 msgid "Save connection settings"
@@ -5581,7 +5581,7 @@ msgstr "Sind Sie sicher, dass Sie dieses Schema löschen möchten?"
 
 #: spyder/preferences/appearance.py:522
 msgid "Text"
-msgstr ""
+msgstr "Text"
 
 #: spyder/preferences/appearance.py:524
 msgid "Highlight"
@@ -5708,7 +5708,7 @@ msgstr "Blinkender Cursor:"
 
 #: spyder/preferences/general.py:129
 msgid "ms"
-msgstr ""
+msgstr "ms"
 
 #: spyder/preferences/general.py:166
 msgid "macOS integration"
@@ -5756,7 +5756,7 @@ msgstr "Konfiguration für Bildschirme mit hohen DPI<br><br>Schauen Sie auf <a h
 
 #: spyder/preferences/general.py:248
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 #: spyder/preferences/general.py:252
 msgid "Enable auto high DPI scaling"
@@ -5869,7 +5869,7 @@ msgstr "Sie haben einen <b>Python %d</b>-Interpreter für die Konsole ausgewähl
 #: spyder/preferences/maininterpreter.py:222
 #: spyder/preferences/maininterpreter.py:226
 msgid "UMR"
-msgstr ""
+msgstr "UMR"
 
 #: spyder/preferences/maininterpreter.py:196
 msgid "Set the list of excluded modules as this: <i>numpy, scipy</i>"
@@ -6269,7 +6269,7 @@ msgstr "Gebotene Funktionen"
 
 #: spyder/widgets/dependencies.py:35
 msgid "Mandatory"
-msgstr ""
+msgstr "Obligatorisch"
 
 #: spyder/widgets/dependencies.py:45
 msgid "Spyder plugins"
