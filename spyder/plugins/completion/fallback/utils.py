@@ -116,7 +116,7 @@ def get_words(text, exclude_offset=None, language=None):
 
 
 def is_prefix_valid(text, offset, language):
-    """Check if current offset prefix ."""
+    """Check if current offset prefix is valid."""
     regex = LANGUAGE_REGEX.get(language.lower(), all_regex)
     prefix = ''
     current_pos_text = text[offset - 1]

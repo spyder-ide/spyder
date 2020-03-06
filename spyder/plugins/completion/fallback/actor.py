@@ -62,6 +62,8 @@ class FallbackActor(QObject):
         valid = is_prefix_valid(text, offset, language)
         if not valid:
             return []
+
+        # Get language keywords provided by Pygments
         try:
             lexer = get_lexer_by_name(language)
             keywords = get_keywords(lexer)
@@ -76,11 +78,11 @@ class FallbackActor(QObject):
                      'documentation': '',
                      'provider': FALLBACK_COMPLETION}
                     for keyword in keywords]
-        # logger.debug(keywords)
-        # tokens = list(lexer.get_tokens(text))
-        # logger.debug(tokens)
+
+        # Get file tokens
         tokens = get_words(text, offset, language)
-        tokens = [{'kind': CompletionItemKind.TEXT, 'insertText': token,
+        tokens = [{'kind': CompletionItemKind.TEXT,
+                   'insertText': token,
                    'label': token,
                    'sortText': token,
                    'filterText': token,
@@ -90,7 +92,13 @@ class FallbackActor(QObject):
         for token in tokens:
             if token['insertText'] not in keyword_set:
                 keywords.append(token)
-        return keywords
+
+        # Filter matching results
+        current_word = text[:offset].split()[-1]
+        matching_keywords = [k for k in keywords
+                             if current_word in k['insertText']]
+
+        return matching_keywords
 
     def stop(self):
         """Stop actor."""
