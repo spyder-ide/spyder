@@ -42,12 +42,12 @@ def test_symlinks(tmpdir):
     assert os.path.islink(symlink_file_path)
 
     # Write using the symlink
-    enconding = write("New text for symlink", symlink_file_path)
+    encoding = write("New text for symlink", symlink_file_path)
 
     # Assert symlink is valid and contents of the file
     assert os.path.islink(symlink_file_path)
-    assert base_file.read_text(enconding) == symlink_file.read_text(enconding)
-    assert symlink_file.read_text(enconding) == 'New text for symlink'
+    assert base_file.read_text(encoding) == symlink_file.read_text(encoding)
+    assert symlink_file.read_text(encoding) == 'New text for symlink'
 
 
 def test_permissions(tmpdir):
