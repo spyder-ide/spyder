@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-03 18:30-0500\n"
-"PO-Revision-Date: 2020-03-04 00:12\n"
+"PO-Revision-Date: 2020-03-06 02:26\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -463,7 +463,7 @@ msgstr "警告"
 
 #: spyder/app/mainwindow.py:1403
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
-msgstr ""
+msgstr "检测到监视器缩放变化。 <br><br>我们建议重新启动Spyder 以确保它正确显示。 如果您不想这样做， 请务必激活选项<br><br><tt>启用自动高的DPI 缩放</tt><br><br>在 <tt>首选项> 通用> 接口</tt>, 如果拼写器显示不正确。<br><br>你想要重启斯皮德吗？"
 
 #: spyder/app/mainwindow.py:1462 spyder/app/mainwindow.py:2182
 #: spyder/app/mainwindow.py:2911
@@ -493,7 +493,7 @@ msgstr "错误"
 
 #: spyder/app/mainwindow.py:1463
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
-msgstr ""
+msgstr "<b>还有未满足的依赖项！</b><br><br><tt>%s</tt><br><b>请安装它们以避免出现此消息。</b><br><br><i>注意</i>: Spyder 可以在没有这些依赖的情况下工作，但是为了在使用 Spyder 时拥有更流畅的体验我们 <i>强烈</i> 建议你安装所有缺失的依赖项。<br><br>不安装这些依赖项可能导致问题。 请在报告新问题之前确保所发现的任何问题不是缺失依赖项的直接结果。"
 
 #: spyder/app/mainwindow.py:1943
 msgid "Spyder Default Layout"
@@ -566,7 +566,7 @@ msgstr "不支持在当前平台 %s 上运行外部系统终端。"
 
 #: spyder/app/mainwindow.py:2912
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
-msgstr ""
+msgstr "要将 <code>{fpath}</code> 作为一个 Spyder 项目打开，请使用 <code>spyder -p \"{fname}\"</code>。"
 
 #: spyder/app/mainwindow.py:3250
 msgid "Spyder will restart and reset to default settings: <br><br>Do you want to continue?"
@@ -859,7 +859,7 @@ msgstr "IPython 交互式 Python 环境"
 
 #: spyder/dependencies.py:111
 msgid "Main backend for the Python Language Server"
-msgstr ""
+msgstr "Python 语言服务器的主后端"
 
 #: spyder/dependencies.py:115
 msgid "Save Github credentials to report internal errors securely"
@@ -879,7 +879,7 @@ msgstr "通过SSH连接到远程内核"
 
 #: spyder/dependencies.py:134
 msgid "Python parser that supports error recovery and round-trip parsing"
-msgstr ""
+msgstr "支持错误恢复和往返解析的 Python 解析器"
 
 #: spyder/dependencies.py:139
 msgid "Stdio support for our language server client"
@@ -1976,7 +1976,7 @@ msgstr "谷歌"
 
 #: spyder/plugins/editor/confpage.py:247
 msgid "Sphinx"
-msgstr ""
+msgstr "Sphinx"
 
 #: spyder/plugins/editor/confpage.py:259
 msgid "Annotations"
@@ -3510,19 +3510,19 @@ msgstr "自动导入"
 
 #: spyder/plugins/help/plugin.py:400
 msgid "Retrieving documentation"
-msgstr ""
+msgstr "正在获取文档"
 
 #: spyder/plugins/help/plugin.py:410
 msgid "Here you can get help of any object by pressing %s in front of it, either on the Editor or the Console.%s"
-msgstr ""
+msgstr "在这里你可以通过在编辑器或者终端中按 %s 来获得任何对象的帮助信息。%s"
 
 #: spyder/plugins/help/plugin.py:414
 msgid "Here you can get help of any object by pressing %s in front of it on the Editor, or %s in front of it on the Console.%s"
-msgstr ""
+msgstr "在这里你可以通过在编辑器中按 %s，或者在终端中按 %s 来获得任何对象的帮助信息。 %s"
 
 #: spyder/plugins/help/plugin.py:418
 msgid "Help can also be shown automatically after writing a left parenthesis next to an object. You can activate this behavior in %s."
-msgstr ""
+msgstr "帮助信息可以在一个对象之后加上一个左圆括号的时候自动显示。 你可以在 %s 中激活此行为。"
 
 #: spyder/plugins/help/plugin.py:422
 msgid "Preferences > Help"
@@ -3554,7 +3554,7 @@ msgstr "解除锁定"
 
 #: spyder/plugins/help/plugin.py:684
 msgid "The following error occurred when calling <b>Sphinx %s</b>. <br>Incompatible Sphinx version or doc string decoding failed.<br><br>Error message:<br>%s"
-msgstr ""
+msgstr "当调用 <b>Sphinx %s</b> 时发生了下述错误。 <br>不兼容的 Sphinx 版本或文档字符串解码失败。<br><br>错误消息:<br>%s"
 
 #: spyder/plugins/help/plugin.py:728
 msgid "No source code available."
@@ -4190,11 +4190,11 @@ msgstr "%s.<br><br>注意：请不要在 Github 上报告该问题，这跟它�
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:124
 msgid "Do you want to overwrite old variables (if any) in the namespace when loading the data?"
-msgstr ""
+msgstr "你想要在加载数据时覆盖命名空间中的旧有变量吗 (如果存在的话)？"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:129
 msgid "Data loading"
-msgstr ""
+msgstr "正在加载数据"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:138
 msgid "Data is too big to be loaded"
@@ -4296,32 +4296,32 @@ msgstr "绘图"
 #: spyder/plugins/plots/widgets/figurebrowser.py:162
 #: spyder/plugins/plots/widgets/figurebrowser.py:1079
 msgid "Save plot as..."
-msgstr ""
+msgstr "将图形另存为..."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:169
 msgid "Save all plots..."
-msgstr ""
+msgstr "保存所有图形..."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:176
 msgid "Copy plot to clipboard as image"
-msgstr ""
+msgstr "将图形作为图像复制到剪贴板"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:183
 #: spyder/plugins/plots/widgets/figurebrowser.py:1089
 msgid "Remove plot"
-msgstr ""
+msgstr "移除图形"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:190
 msgid "Remove all plots"
-msgstr ""
+msgstr "移除所有图形"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:200
 msgid "Previous plot"
-msgstr ""
+msgstr "上一幅图"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:207
 msgid "Next plot"
-msgstr ""
+msgstr "下一幅图"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:255
 msgid "Mute inline plotting"
@@ -4349,7 +4349,7 @@ msgstr "绘图大小自动适应窗格尺寸。"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:1084
 msgid "Copy Image"
-msgstr ""
+msgstr "复制图像"
 
 #: spyder/plugins/profiler/confpage.py:19 spyder/plugins/pylint/confpage.py:34
 msgid "Results"
@@ -4540,7 +4540,7 @@ msgstr "最近的项目"
 
 #: spyder/plugins/projects/plugin.py:113
 msgid "Maximum number of recent projects..."
-msgstr ""
+msgstr "最近项目的最大数量..."
 
 #: spyder/plugins/projects/plugin.py:294
 msgid "Open project"
@@ -4560,11 +4560,11 @@ msgstr "<b>无法删除 <i>{varpath}</i></b><br><br>错误信息为:<br>{error}"
 
 #: spyder/plugins/projects/plugin.py:401
 msgid "Projects"
-msgstr ""
+msgstr "项目"
 
 #: spyder/plugins/projects/plugin.py:402
 msgid "Maximum number of recent projects"
-msgstr ""
+msgstr "最近项目的最大数量"
 
 #: spyder/plugins/projects/projecttypes/__init__.py:91
 msgid "Empty project"
@@ -4820,7 +4820,7 @@ msgstr "%s目前不支持"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:694
 msgid "NumPy object array"
-msgstr ""
+msgstr "NumPy 对象数组"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:696
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:879
@@ -5083,7 +5083,7 @@ msgstr "转为字符串"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:605
 msgid "Text can't be copied."
-msgstr ""
+msgstr "无法复制文本。"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:871
 msgid "%s editor"
@@ -5756,7 +5756,7 @@ msgstr "为不同显示器输入对应的值，以分号 ';' 分隔。\n"
 
 #: spyder/preferences/general.py:323
 msgid "We're sorry but setting a scale factor bellow 1.0 isn't possible. Any scale factor bellow 1.0 will be set to 1.0"
-msgstr ""
+msgstr "很抱歉，但设置小于 1.0 的缩放因子是不可能的。 任何小于 1.0 的缩放因子将被改为 1.0"
 
 #: spyder/preferences/general.py:348
 msgid "We're sorry but the following error occurred while trying to set your selected language:<br><br><tt>{}</tt>"
@@ -6241,11 +6241,11 @@ msgstr "提供的功能"
 
 #: spyder/widgets/dependencies.py:35
 msgid "Mandatory"
-msgstr ""
+msgstr "必选项"
 
 #: spyder/widgets/dependencies.py:45
 msgid "Spyder plugins"
-msgstr ""
+msgstr "Spyder 插件"
 
 #: spyder/widgets/dependencies.py:88
 msgid "Optional modules are not required to run Spyder but enhance its functions."
