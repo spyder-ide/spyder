@@ -195,7 +195,7 @@ DEFAULTS = [
               'edge_line_columns': '79',
               'indent_guides': False,
               'code_folding': True,
-              'code_folding_warn': False,
+              'code_folding_warn': True,
               'scroll_past_end': False,
               'toolbox_panel': True,
               'close_parentheses': True,

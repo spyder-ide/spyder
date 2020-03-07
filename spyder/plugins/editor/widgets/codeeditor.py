@@ -1390,14 +1390,15 @@ class CodeEditor(TextEditBaseWidget):
         """Request folding."""
         total_lines = self.get_line_count()
         if total_lines > 2000 and self.code_folding:
-            warn_seen = CONF.get('editor', 'code_folding_warn')
-            warn_str = _('This file contains more than 2000 lines! All '
-                         'code folding functionality will be disabled in '
-                         'order to prevent further performance degradation.')
-            if not warn_seen:
+            warn = CONF.get('editor', 'code_folding_warn')
+            warn_str = _("This file contains more than 2000 lines!  "
+                         "Code folding and indent guidelines will be  "
+                         "disabled in order to prevent performance "
+                         "degradation.")
+            if warn:
                 QMessageBox.information(self, _('File too long'), warn_str,
                                         QMessageBox.Ok)
-                CONF.set('editor', 'code_folding_warn', True)
+                CONF.set('editor', 'code_folding_warn', False)
             self.toggle_code_folding(False)
             self.toggle_identation_guides(False)
 
