@@ -50,6 +50,7 @@ class CompletionManager(SpyderCompletionPlugin):
             LSPRequestTypes.DOCUMENT_COMPLETION: {
                 KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
                 LanguageServerPlugin.COMPLETION_CLIENT_NAME,
+                FallbackPlugin.COMPLETION_CLIENT_NAME
             },
             LSPRequestTypes.DOCUMENT_SIGNATURE: {
                 KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
@@ -143,7 +144,7 @@ class CompletionManager(SpyderCompletionPlugin):
         request_responses = self.requests[req_id]
 
         def send():
-            # Needed to prevent the send of completions for old requests
+            # Needed to prevent send of completions for old requests
             # See spyder-ide/spyder#10798
             req_type = self.requests[req_id]['req_type']
             response_instance = id(self.requests[req_id]['response_instance'])
