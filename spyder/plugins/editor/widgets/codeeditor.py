@@ -3678,7 +3678,13 @@ class CodeEditor(TextEditBaseWidget):
         if key in direction_keys:
             self.request_cursor_event()
 
-        # self.timer_syntax_highlight.start()
+        # This necessary to run our Pygments highlighter again after the
+        # user generated text changes
+        if event.text():
+            if self.timer_syntax_highlight.isActive():
+                self.timer_syntax_highlight.stop()
+            self.timer_syntax_highlight.start()
+
         self._restore_editor_cursor_and_selections()
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
