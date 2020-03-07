@@ -95,8 +95,9 @@ class FallbackActor(QObject):
 
         # Filter matching results
         if current_word is not None:
+            current_word = current_word.lower()
             keywords = [k for k in keywords
-                        if current_word in k['insertText']]
+                        if current_word in k['insertText'].lower()]
 
         return keywords
 
