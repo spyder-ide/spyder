@@ -54,34 +54,40 @@ DEFAULT_PATTERNS = {
     'url':
         r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+",
 }
+
 COLOR_SCHEME_KEYS = {
-                      "background":     _("Background:"),
-                      "currentline":    _("Current line:"),
-                      "currentcell":    _("Current cell:"),
-                      "occurrence":     _("Occurrence:"),
-                      "ctrlclick":      _("Link:"),
-                      "sideareas":      _("Side areas:"),
-                      "matched_p":      _("Matched <br>parens:"),
-                      "unmatched_p":    _("Unmatched <br>parens:"),
-                      "normal":         _("Normal text:"),
-                      "keyword":        _("Keyword:"),
-                      "builtin":        _("Builtin:"),
-                      "definition":     _("Definition:"),
-                      "comment":        _("Comment:"),
-                      "string":         _("String:"),
-                      "number":         _("Number:"),
-                      "instance":       _("Instance:"),
-                      }
+    "background":     _("Background:"),
+    "currentline":    _("Current line:"),
+    "currentcell":    _("Current cell:"),
+    "occurrence":     _("Occurrence:"),
+    "ctrlclick":      _("Link:"),
+    "sideareas":      _("Side areas:"),
+    "matched_p":      _("Matched <br>parens:"),
+    "unmatched_p":    _("Unmatched <br>parens:"),
+    "normal":         _("Normal text:"),
+    "keyword":        _("Keyword:"),
+    "builtin":        _("Builtin:"),
+    "definition":     _("Definition:"),
+    "comment":        _("Comment:"),
+    "string":         _("String:"),
+    "number":         _("Number:"),
+    "instance":       _("Instance:"),
+}
+
 COLOR_SCHEME_NAMES = CONF.get('appearance', 'names')
+
 # Mapping for file extensions that use Pygments highlighting but should use
 # different lexers than Pygments' autodetection suggests.  Keys are file
 # extensions or tuples of extensions, values are Pygments lexer names.
-CUSTOM_EXTENSION_LEXER = {'.ipynb': 'json',
-                          '.txt': 'text',
-                          '.nt': 'bat',
-                          '.m': 'matlab',
-                          ('.properties', '.session', '.inf', '.reg', '.url',
-                           '.cfg', '.cnf', '.aut', '.iss'): 'ini'}
+CUSTOM_EXTENSION_LEXER = {
+    '.ipynb': 'json',
+    '.txt': 'text',
+    '.nt': 'bat',
+    '.m': 'matlab',
+    ('.properties', '.session', '.inf', '.reg', '.url',
+    '.cfg', '.cnf', '.aut', '.iss'): 'ini'
+}
+
 # Convert custom extensions into a one-to-one mapping for easier lookup.
 custom_extension_lexer_mapping = {}
 for key, value in CUSTOM_EXTENSION_LEXER.items():
@@ -1224,7 +1230,7 @@ class MarkdownSH(BaseSH):
 # current native PythonSH syntax highlighter.
 
 class PygmentsSH(BaseSH):
-    """ Generic Pygments syntax highlighter """
+    """Generic Pygments syntax highlighter."""
     # Store the language name and a ref to the lexer
     _lang_name = None
     _lexer = None
