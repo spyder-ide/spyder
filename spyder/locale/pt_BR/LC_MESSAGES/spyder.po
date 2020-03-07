@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-03 18:30-0500\n"
-"PO-Revision-Date: 2020-03-04 00:13\n"
+"PO-Revision-Date: 2020-03-07 02:36\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -465,7 +465,7 @@ msgstr "Aviso"
 
 #: spyder/app/mainwindow.py:1403
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
-msgstr ""
+msgstr "Foi detectada uma alteração na escala do monitor. <br><br>Recomendamos reiniciar o Spyder para garantir que ele seja exibido corretamente. Se você não quer fazer isso, por favor, certifique-se de ativar a opção<br><br><tt>Ativar auto dimensionamento de DPI</tt><br><br>em <tt>Preferências > Geral > Interface</tt>, caso o Spyder não seja exibido corretamente.<br><br>Você deseja reiniciar o Spyder?"
 
 #: spyder/app/mainwindow.py:1462 spyder/app/mainwindow.py:2182
 #: spyder/app/mainwindow.py:2911
@@ -495,7 +495,7 @@ msgstr "Erro"
 
 #: spyder/app/mainwindow.py:1463
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
-msgstr ""
+msgstr "<b>Você tem dependências faltando!</b><br><br><tt>%s</tt><br><br><b>Por favor instale elas para evitar esta mensagem.</b><br><br><i>Nota</i>: O Spyder pode funcionar sem algumas dependências, porém para ter uma experiência melhor ao utilizar o software recomendamos <i>fortemente</i> a instalação das dependências faltantes listadas.<br><br>A não instalação destas dependências pode gerar bugs. Antes de relatar um novo problema certifique-se de que quaisquer bugs encontrados não são o resultado das dependências que estão faltando."
 
 #: spyder/app/mainwindow.py:1943
 msgid "Spyder Default Layout"
@@ -568,7 +568,7 @@ msgstr "Executar um terminal externo não é suportado na plataforma %s."
 
 #: spyder/app/mainwindow.py:2912
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
-msgstr ""
+msgstr "Para abrir <code>{fpath}</code> como um projeto com o Spyder, por favor use <code>spyder -p \"{fname}\"</code>."
 
 #: spyder/app/mainwindow.py:3250
 msgid "Spyder will restart and reset to default settings: <br><br>Do you want to continue?"
@@ -861,7 +861,7 @@ msgstr "IPython ambiente interativo python"
 
 #: spyder/dependencies.py:111
 msgid "Main backend for the Python Language Server"
-msgstr ""
+msgstr "Módulo principal para o servidor de linguagem Python"
 
 #: spyder/dependencies.py:115
 msgid "Save Github credentials to report internal errors securely"
@@ -881,7 +881,7 @@ msgstr "Conecte-se a kernels remotos através do SSH"
 
 #: spyder/dependencies.py:134
 msgid "Python parser that supports error recovery and round-trip parsing"
-msgstr ""
+msgstr "Analisador Python que suporta recuperação de erros e análise completa"
 
 #: spyder/dependencies.py:139
 msgid "Stdio support for our language server client"
@@ -1984,7 +1984,7 @@ msgstr "Google"
 
 #: spyder/plugins/editor/confpage.py:247
 msgid "Sphinx"
-msgstr ""
+msgstr "Sphinx"
 
 #: spyder/plugins/editor/confpage.py:259
 msgid "Annotations"
@@ -3519,19 +3519,19 @@ msgstr "Importar automaticamente"
 
 #: spyder/plugins/help/plugin.py:400
 msgid "Retrieving documentation"
-msgstr ""
+msgstr "Recuperando documentação"
 
 #: spyder/plugins/help/plugin.py:410
 msgid "Here you can get help of any object by pressing %s in front of it, either on the Editor or the Console.%s"
-msgstr ""
+msgstr "Aqui você pode obter ajuda de qualquer objeto pressionando %s na frente dele no Editor, ou %s na frente dele no Console.%s"
 
 #: spyder/plugins/help/plugin.py:414
 msgid "Here you can get help of any object by pressing %s in front of it on the Editor, or %s in front of it on the Console.%s"
-msgstr ""
+msgstr "Aqui você pode obter ajuda de qualquer objeto pressionando %s na frente dele no Editor, ou %s na frente dele no Console.%s"
 
 #: spyder/plugins/help/plugin.py:418
 msgid "Help can also be shown automatically after writing a left parenthesis next to an object. You can activate this behavior in %s."
-msgstr ""
+msgstr "Ajuda também pode ser exibida automaticamente após escrever um parêntese esquerdo ao lado de um objeto. Você pode ativar esse comportamento em %s."
 
 #: spyder/plugins/help/plugin.py:422
 msgid "Preferences > Help"
@@ -3563,7 +3563,7 @@ msgstr "Destrancar"
 
 #: spyder/plugins/help/plugin.py:684
 msgid "The following error occurred when calling <b>Sphinx %s</b>. <br>Incompatible Sphinx version or doc string decoding failed.<br><br>Error message:<br>%s"
-msgstr ""
+msgstr "Ocorreu o seguinte erro quando o <b>Sphinx %s</b> foi chamado. <br>Erro na decodificação da docstring ou versão incompatível do Sphinx.<br><br>Mensagem de erro:<br>%s"
 
 #: spyder/plugins/help/plugin.py:728
 msgid "No source code available."
@@ -4207,11 +4207,11 @@ msgstr "%s.<br><br>Nota: Por favor não relate este problema no Github, não há
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:124
 msgid "Do you want to overwrite old variables (if any) in the namespace when loading the data?"
-msgstr ""
+msgstr "Você quer substituir variáveis antigas (se houver) no namespace ao carregar os dados?"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:129
 msgid "Data loading"
-msgstr ""
+msgstr "Carregando dados"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:138
 msgid "Data is too big to be loaded"
@@ -4313,32 +4313,32 @@ msgstr "Figuras"
 #: spyder/plugins/plots/widgets/figurebrowser.py:162
 #: spyder/plugins/plots/widgets/figurebrowser.py:1079
 msgid "Save plot as..."
-msgstr ""
+msgstr "Salvar figura como..."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:169
 msgid "Save all plots..."
-msgstr ""
+msgstr "Salvar todos as imagens..."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:176
 msgid "Copy plot to clipboard as image"
-msgstr ""
+msgstr "Copiar figura para área de transferência como imagem"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:183
 #: spyder/plugins/plots/widgets/figurebrowser.py:1089
 msgid "Remove plot"
-msgstr ""
+msgstr "Remover figura"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:190
 msgid "Remove all plots"
-msgstr ""
+msgstr "Remover todas as figuras"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:200
 msgid "Previous plot"
-msgstr ""
+msgstr "Gráfico anterior"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:207
 msgid "Next plot"
-msgstr ""
+msgstr "Próximo gráfico"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:255
 msgid "Mute inline plotting"
@@ -4366,7 +4366,7 @@ msgstr "Ajustar figuras automaticamente ao tamanho do painel."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:1084
 msgid "Copy Image"
-msgstr ""
+msgstr "Copiar Imagem"
 
 #: spyder/plugins/profiler/confpage.py:19 spyder/plugins/pylint/confpage.py:34
 msgid "Results"
@@ -4558,7 +4558,7 @@ msgstr "Projetos Recentes"
 
 #: spyder/plugins/projects/plugin.py:113
 msgid "Maximum number of recent projects..."
-msgstr ""
+msgstr "Número máximo de projetos recentes..."
 
 #: spyder/plugins/projects/plugin.py:294
 msgid "Open project"
@@ -4578,11 +4578,11 @@ msgstr "<b>Não foi possível deletar <i>{varpath}</i></b><br><br>Mensagem de er
 
 #: spyder/plugins/projects/plugin.py:401
 msgid "Projects"
-msgstr ""
+msgstr "Projetos"
 
 #: spyder/plugins/projects/plugin.py:402
 msgid "Maximum number of recent projects"
-msgstr ""
+msgstr "Número máximo de projetos recentes"
 
 #: spyder/plugins/projects/projecttypes/__init__.py:91
 msgid "Empty project"
@@ -4838,7 +4838,7 @@ msgstr "%s não é suportado no momento"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:694
 msgid "NumPy object array"
-msgstr ""
+msgstr "Matriz do NumPy"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:696
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:879
@@ -5102,7 +5102,7 @@ msgstr "Para string"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:605
 msgid "Text can't be copied."
-msgstr ""
+msgstr "O texto não pode ser copiado."
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:871
 msgid "%s editor"
@@ -5779,7 +5779,7 @@ msgstr "Insira valores para diferentes telas separados por ponto e vírgula ';'.
 
 #: spyder/preferences/general.py:323
 msgid "We're sorry but setting a scale factor bellow 1.0 isn't possible. Any scale factor bellow 1.0 will be set to 1.0"
-msgstr ""
+msgstr "Não é possível definir um fator de escala abaixo de 1.0. Qualquer fator de escala abaixo de 1.0 será definido como 1.0"
 
 #: spyder/preferences/general.py:348
 msgid "We're sorry but the following error occurred while trying to set your selected language:<br><br><tt>{}</tt>"
@@ -6264,11 +6264,11 @@ msgstr "Recurso fornecido"
 
 #: spyder/widgets/dependencies.py:35
 msgid "Mandatory"
-msgstr ""
+msgstr "Obrigatório"
 
 #: spyder/widgets/dependencies.py:45
 msgid "Spyder plugins"
-msgstr ""
+msgstr "Plugins do Spyder"
 
 #: spyder/widgets/dependencies.py:88
 msgid "Optional modules are not required to run Spyder but enhance its functions."
