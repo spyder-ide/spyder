@@ -84,7 +84,7 @@ CUSTOM_EXTENSION_LEXER = {
     '.nt': 'bat',
     '.m': 'matlab',
     ('.properties', '.session', '.inf', '.reg', '.url',
-    '.cfg', '.cnf', '.aut', '.iss'): 'ini'
+     '.cfg', '.cnf', '.aut', '.iss'): 'ini'
 }
 
 # Convert custom extensions into a one-to-one mapping for easier lookup.
