@@ -81,7 +81,6 @@ COLOR_SCHEME_NAMES = CONF.get('appearance', 'names')
 # extensions or tuples of extensions, values are Pygments lexer names.
 CUSTOM_EXTENSION_LEXER = {
     '.ipynb': 'json',
-    '.txt': 'text',
     '.nt': 'bat',
     '.m': 'matlab',
     ('.properties', '.session', '.inf', '.reg', '.url',
@@ -1378,20 +1377,25 @@ class PythonLoggingLexer(RegexLexer):
 
 
 def guess_pygments_highlighter(filename):
-    """Factory to generate syntax highlighter for the given filename.
+    """
+    Factory to generate syntax highlighter for the given filename.
 
     If a syntax highlighter is not available for a particular file, this
-    function will attempt to generate one based on the lexers in Pygments.  If
+    function will attempt to generate one based on the lexers in Pygments. If
     Pygments is not available or does not have an appropriate lexer, TextSH
     will be returned instead.
-
     """
     try:
         from pygments.lexers import get_lexer_for_filename, get_lexer_by_name
     except Exception:
         return TextSH
+
     root, ext = os.path.splitext(filename)
-    if ext in custom_extension_lexer_mapping:
+    if ext == '.txt':
+        # Pygments assigns a lexer that doesn’t highlight anything to
+        # txt files. So we avoid that here.
+        return TextSH
+    elif ext in custom_extension_lexer_mapping:
         try:
             lexer = get_lexer_by_name(custom_extension_lexer_mapping[ext])
         except Exception:
@@ -1403,6 +1407,8 @@ def guess_pygments_highlighter(filename):
             lexer = get_lexer_for_filename(filename)
         except Exception:
             return TextSH
+
     class GuessedPygmentsSH(PygmentsSH):
         _lexer = lexer
+
     return GuessedPygmentsSH
