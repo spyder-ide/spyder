@@ -802,6 +802,9 @@ class Editor(SpyderPluginWidget):
         showindentguides_action = self._create_checkable_action(
             _("Show indent guides"), 'indent_guides', 'set_indent_guides')
 
+        showcodefolding_action = self._create_checkable_action(
+            _("Show code folding"), 'code_folding', 'set_code_folding_enabled')
+
         show_classfunc_dropdown_action = self._create_checkable_action(
             _("Show selector for classes and functions"),
             'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
@@ -820,6 +823,7 @@ class Editor(SpyderPluginWidget):
                 'blank_spaces': showblanks_action,
                 'scroll_past_end': scrollpastend_action,
                 'indent_guides': showindentguides_action,
+                'code_folding': showcodefolding_action,
                 'show_class_func_dropdown': show_classfunc_dropdown_action,
                 'pycodestyle': show_codestyle_warnings_action,
                 'pydocstyle': show_docstring_warnings_action,
@@ -989,6 +993,7 @@ class Editor(SpyderPluginWidget):
             showblanks_action,
             scrollpastend_action,
             showindentguides_action,
+            showcodefolding_action,
             show_classfunc_dropdown_action,
             show_codestyle_warnings_action,
             show_docstring_warnings_action,
@@ -1276,6 +1281,7 @@ class Editor(SpyderPluginWidget):
             ('set_edgeline_enabled',                'edge_line'),
             ('set_edgeline_columns',                'edge_line_columns'),
             ('set_indent_guides',                   'indent_guides'),
+            ('set_code_folding_enabled',            'code_folding'),
             ('set_focus_to_editor',                 'focus_to_editor'),
             ('set_run_cell_copy',                   'run_cell_copy'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
@@ -2697,6 +2703,8 @@ class Editor(SpyderPluginWidget):
             wrap_o = self.get_option(wrap_n)
             indentguides_n = 'indent_guides'
             indentguides_o = self.get_option(indentguides_n)
+            codefolding_n = 'code_folding'
+            codefolding_o = self.get_option(codefolding_n)
             tabindent_n = 'tab_always_indent'
             tabindent_o = self.get_option(tabindent_n)
             stripindent_n = 'strip_trailing_spaces_on_modify'
@@ -2743,6 +2751,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_scrollpastend_enabled(scrollpastend_o)
                 if indentguides_n in options:
                     editorstack.set_indent_guides(indentguides_o)
+                if codefolding_n in options:
+                    editorstack.set_code_folding_enabled(codefolding_o)
                 if classfuncdropdown_n in options:
                     editorstack.set_classfunc_dropdown_visible(
                         classfuncdropdown_o)
