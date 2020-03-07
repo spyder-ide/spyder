@@ -54,7 +54,7 @@ class FallbackActor(QObject):
         self.thread.started.connect(self.started)
         self.sig_mailbox.connect(self.handle_msg)
 
-    def tokenize(self, text, offset, language):
+    def tokenize(self, text, offset, language, current_word):
         """
         Return all tokens in `text` and all keywords associated by
         Pygments to `language`.
@@ -94,11 +94,11 @@ class FallbackActor(QObject):
                 keywords.append(token)
 
         # Filter matching results
-        current_word = text[:offset].split()[-1]
-        matching_keywords = [k for k in keywords
-                             if current_word in k['insertText']]
+        if current_word is not None:
+            keywords = [k for k in keywords
+                        if current_word in k['insertText']]
 
-        return matching_keywords
+        return keywords
 
     def stop(self):
         """Stop actor."""
@@ -150,6 +150,7 @@ class FallbackActor(QObject):
                 tokens = self.tokenize(
                     text_info['text'],
                     text_info['offset'],
-                    text_info['language'])
+                    text_info['language'],
+                    msg['current_word'])
             tokens = {'params': tokens}
             self.sig_set_tokens.emit(_id, tokens)

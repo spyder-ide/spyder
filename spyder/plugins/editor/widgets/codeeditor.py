@@ -1110,6 +1110,11 @@ class CodeEditor(TextEditBaseWidget):
         """Trigger completion."""
         self.document_did_change('')
         cursor = self.textCursor()
+        current_word = self.get_current_word(
+            completion=True,
+            valid_python_variable=False
+        )
+
         params = {
             'file': self.filename,
             'line': cursor.blockNumber(),
@@ -1117,6 +1122,7 @@ class CodeEditor(TextEditBaseWidget):
             'offset': cursor.position(),
             'selection_start': cursor.selectionStart(),
             'selection_end': cursor.selectionEnd(),
+            'current_word': current_word
         }
         self.completion_args = (self.textCursor().position(), automatic)
         return params
