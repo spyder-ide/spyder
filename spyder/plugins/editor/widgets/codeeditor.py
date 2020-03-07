@@ -1440,7 +1440,6 @@ class CodeEditor(TextEditBaseWidget):
              requires_response=False)
     def notify_save(self):
         """Send save request."""
-        # self.document_did_change()
         params = {'file': self.filename}
         if self.save_include_text:
             params['text'] = self.toPlainText()
@@ -1665,7 +1664,7 @@ class CodeEditor(TextEditBaseWidget):
         return self.is_python() or self.is_cython() or self.is_enaml()
 
     def intelligent_tab(self):
-        """Provide intelligent behavoir for Tab key press"""
+        """Provide intelligent behavior for Tab key press."""
         leading_text = self.get_text('sol', 'cursor')
         if not leading_text.strip() or leading_text.endswith('#'):
             # blank line or start of comment
@@ -3702,8 +3701,6 @@ class CodeEditor(TextEditBaseWidget):
 
     def keyPressEvent(self, event):
         """Reimplement Qt method."""
-        self._start_completion_timer()
-
         tab_pressed = False
         if self.completions_hint_after_ms > 0:
             self._completions_hint_idle = False
@@ -3730,6 +3727,12 @@ class CodeEditor(TextEditBaseWidget):
 
         if text:
             self.__clear_occurrences()
+
+            # Only ask for completions if there's some text generated
+            # as part of the event. Events such as pressing Crtl,
+            # Shift or Alt don't generate any text.
+            # Fixes spyder-ide/spyder#11021
+            self._start_completion_timer()
 
         if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
             self.hide_tooltip()
