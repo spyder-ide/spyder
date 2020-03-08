@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-03 18:30-0500\n"
-"PO-Revision-Date: 2020-03-06 02:26\n"
+"PO-Revision-Date: 2020-03-08 02:35\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -21,11 +21,11 @@ msgstr "Initialisierungsvorgang..."
 
 #: spyder/app/mainwindow.py:222
 msgid "Python2 documentation"
-msgstr "Python2 Dokumentation"
+msgstr "Python2-Dokumentation"
 
 #: spyder/app/mainwindow.py:224
 msgid "Python3 documentation"
-msgstr "Python3 Dokumentation"
+msgstr "Python3-Dokumentation"
 
 #: spyder/app/mainwindow.py:226
 msgid "Numpy and Scipy documentation"
@@ -162,7 +162,7 @@ msgstr "Ausführen-Werkzeugleiste"
 
 #: spyder/app/mainwindow.py:670 spyder/plugins/editor/plugin.py:529
 msgid "&Debug"
-msgstr ""
+msgstr "&Debuggen"
 
 #: spyder/app/mainwindow.py:671 spyder/plugins/editor/plugin.py:1445
 msgid "Debug toolbar"
@@ -569,7 +569,7 @@ msgstr "Das Ausführen eines externen Systemterminals wird auf der Plattform %s 
 
 #: spyder/app/mainwindow.py:2912
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
-msgstr ""
+msgstr "Bitte verwenden Sie <code>spyder -p \"{fname}\"</code>, um <code>{fpath}</code> als ein Projekt mit Spyder zu öffnen."
 
 #: spyder/app/mainwindow.py:3250
 msgid "Spyder will restart and reset to default settings: <br><br>Do you want to continue?"
@@ -863,7 +863,7 @@ msgstr "IPython interaktive Python-Umgebung"
 
 #: spyder/dependencies.py:111
 msgid "Main backend for the Python Language Server"
-msgstr ""
+msgstr "Haupt-Backend für den Python-Sprachserver"
 
 #: spyder/dependencies.py:115
 msgid "Save Github credentials to report internal errors securely"
@@ -2497,7 +2497,7 @@ msgstr "&Letzte öffnen"
 
 #: spyder/plugins/editor/plugin.py:1687
 msgid "Spyder Editor"
-msgstr ""
+msgstr "Spyder-Editor"
 
 #: spyder/plugins/editor/plugin.py:1688
 msgid "This is a temporary script file."
@@ -2883,7 +2883,7 @@ msgstr "Cursorposition"
 
 #: spyder/plugins/editor/widgets/status.py:127
 msgid "Git branch"
-msgstr ""
+msgstr "Git-Zweig"
 
 #: spyder/plugins/explorer/confpage.py:28
 #: spyder/plugins/explorer/widgets/explorer.py:333
@@ -3567,7 +3567,7 @@ msgstr "Entsperren"
 
 #: spyder/plugins/help/plugin.py:684
 msgid "The following error occurred when calling <b>Sphinx %s</b>. <br>Incompatible Sphinx version or doc string decoding failed.<br><br>Error message:<br>%s"
-msgstr ""
+msgstr "Beim Aufruf von <b>Sphinx %s</b>ist der folgende Fehler aufgetreten. <br>Inkompatible Sphinx-Version oder doc-string-Dekodierung fehlgeschlagen.<br><br>Fehlermeldung:<br>%s"
 
 #: spyder/plugins/help/plugin.py:728
 msgid "No source code available."
@@ -3754,7 +3754,7 @@ msgstr "Entscheiden Sie, wie Grafik in der Konsole angezeigt wird. Wenn Sie unsi
 
 #: spyder/plugins/ipythonconsole/confpage.py:138
 msgid "Backend:"
-msgstr ""
+msgstr "Backend:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:141
 msgid "This option will be applied the next time a console is opened."
@@ -4211,7 +4211,7 @@ msgstr "%s.<br><br>Hinweis: Bitte melden Sie das Problem nicht bei Github, es gi
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:124
 msgid "Do you want to overwrite old variables (if any) in the namespace when loading the data?"
-msgstr ""
+msgstr "Möchten Sie beim Laden der Daten alte Variablen (falls vorhanden) im Namensraum überschreiben?"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:129
 msgid "Data loading"
@@ -4317,32 +4317,32 @@ msgstr "Abbildungen"
 #: spyder/plugins/plots/widgets/figurebrowser.py:162
 #: spyder/plugins/plots/widgets/figurebrowser.py:1079
 msgid "Save plot as..."
-msgstr ""
+msgstr "Plot speichern als..."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:169
 msgid "Save all plots..."
-msgstr ""
+msgstr "Alle Plots speichern..."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:176
 msgid "Copy plot to clipboard as image"
-msgstr ""
+msgstr "Plot als Bild in die Zwischenablage kopieren"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:183
 #: spyder/plugins/plots/widgets/figurebrowser.py:1089
 msgid "Remove plot"
-msgstr ""
+msgstr "Plot entfernen"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:190
 msgid "Remove all plots"
-msgstr ""
+msgstr "Alle Plots entfernen"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:200
 msgid "Previous plot"
-msgstr ""
+msgstr "Vorheriger Plot"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:207
 msgid "Next plot"
-msgstr ""
+msgstr "Nächster Plot"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:255
 msgid "Mute inline plotting"
@@ -4370,7 +4370,7 @@ msgstr "Passt Diagramme automatisch an die Größe des Diagrammfensters an."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:1084
 msgid "Copy Image"
-msgstr ""
+msgstr "Bild kopieren"
 
 #: spyder/plugins/profiler/confpage.py:19 spyder/plugins/pylint/confpage.py:34
 msgid "Results"
@@ -4498,7 +4498,7 @@ msgstr "Gesamtzeit"
 #: spyder/plugins/profiler/widgets/profilergui.py:445
 #: spyder/plugins/profiler/widgets/profilergui.py:446
 msgid "Diff"
-msgstr ""
+msgstr "Diff"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:446
 msgid "Calls"
@@ -4562,7 +4562,7 @@ msgstr "Letzte Projekte"
 
 #: spyder/plugins/projects/plugin.py:113
 msgid "Maximum number of recent projects..."
-msgstr ""
+msgstr "Maximale Anzahl der letzten Projekte..."
 
 #: spyder/plugins/projects/plugin.py:294
 msgid "Open project"
@@ -4582,11 +4582,11 @@ msgstr "<b><i>{varpath}</i> kann nicht gelöscht werden</b><br><br>Die Fehlermel
 
 #: spyder/plugins/projects/plugin.py:401
 msgid "Projects"
-msgstr ""
+msgstr "Projekte"
 
 #: spyder/plugins/projects/plugin.py:402
 msgid "Maximum number of recent projects"
-msgstr ""
+msgstr "Maximale Anzahl der letzten Projekte"
 
 #: spyder/plugins/projects/projecttypes/__init__.py:91
 msgid "Empty project"
@@ -4705,7 +4705,7 @@ msgstr "Konvention"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:87
 msgid "Refactor"
-msgstr ""
+msgstr "Refaktorieren"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:171
 msgid "Analyze"
@@ -4750,7 +4750,7 @@ msgstr "vorheriger Durchlauf:"
 
 #: spyder/plugins/variableexplorer/confpage.py:19
 msgid "Filter"
-msgstr ""
+msgstr "Filter"
 
 #: spyder/plugins/variableexplorer/confpage.py:21
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:277
@@ -4795,7 +4795,7 @@ msgstr "Es war nicht möglich, Werte für dieses Array zu kopieren"
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:916
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1238
 msgid "Format"
-msgstr ""
+msgstr "Format"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:587
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:920
@@ -4875,7 +4875,7 @@ msgstr "Achse:"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:759
 msgid "Index:"
-msgstr ""
+msgstr "Index:"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:772
 msgid "<u>Warning</u>: changes are applied separately"
@@ -4920,12 +4920,12 @@ msgstr "Spyder konnte den Wert dieser Variablen nicht von der Konsole abrufen.<b
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:800
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:805
 msgid "Index"
-msgstr ""
+msgstr "Index"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:166
 #: spyder/preferences/shortcuts.py:579
 msgid "Name"
-msgstr ""
+msgstr "Name"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:169
 msgid "Tuple"
@@ -5106,7 +5106,7 @@ msgstr "Zu str"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:605
 msgid "Text can't be copied."
-msgstr ""
+msgstr "Text kann nicht kopiert werden."
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:871
 msgid "%s editor"
@@ -5431,7 +5431,7 @@ msgstr "Blendet __special__ Attribute ein oder aus"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:271
 msgid "Details"
-msgstr ""
+msgstr "Details"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/toggle_column_mixin.py:65
 msgid "Shows or hides the {} column"
@@ -6023,7 +6023,7 @@ msgstr "Tastenkombination: {0}"
 
 #: spyder/preferences/shortcuts.py:391
 msgid "This key sequence conflicts with:"
-msgstr ""
+msgstr "Diese Schlüsselsequenz steht in Konflikt mit:"
 
 #: spyder/preferences/shortcuts.py:398
 msgid "Press 'Ok' to unbind it and assign it to"
@@ -6123,7 +6123,7 @@ msgstr "Vorkommen:"
 
 #: spyder/utils/syntaxhighlighters.py:62
 msgid "Link:"
-msgstr ""
+msgstr "Link:"
 
 #: spyder/utils/syntaxhighlighters.py:63
 msgid "Side areas:"
@@ -6151,7 +6151,7 @@ msgstr "Eingebaut:"
 
 #: spyder/utils/syntaxhighlighters.py:69
 msgid "Definition:"
-msgstr ""
+msgstr "Definition:"
 
 #: spyder/utils/syntaxhighlighters.py:70
 msgid "Comment:"
