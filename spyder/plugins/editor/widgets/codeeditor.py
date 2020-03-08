@@ -492,9 +492,6 @@ class CodeEditor(TextEditBaseWidget):
         # the highlighter in order to generate the correct coloring.
         self.timer_syntax_highlight = QTimer(self)
         self.timer_syntax_highlight.setSingleShot(True)
-        # We wait 300 ms to trigger a new coloring as this value is a good
-        # proxy for estimating when an user has stopped typing
-        self.timer_syntax_highlight.setInterval(300)
         self.timer_syntax_highlight.timeout.connect(
             self.run_pygments_highlighter)
 
@@ -3678,7 +3675,25 @@ class CodeEditor(TextEditBaseWidget):
         if key in direction_keys:
             self.request_cursor_event()
 
-        # self.timer_syntax_highlight.start()
+        # This necessary to run our Pygments highlighter again after the
+        # user generated text changes
+        if event.text():
+            # Stop the active timer and start it again to not run it on
+            # every event
+            if self.timer_syntax_highlight.isActive():
+                self.timer_syntax_highlight.stop()
+
+            # Adjust interval to rehighlight according to the lines
+            # present in the file
+            total_lines = self.get_line_count()
+            if total_lines < 1000:
+                self.timer_syntax_highlight.setInterval(600)
+            elif total_lines < 2000:
+                self.timer_syntax_highlight.setInterval(800)
+            else:
+                self.timer_syntax_highlight.setInterval(1000)
+            self.timer_syntax_highlight.start()
+
         self._restore_editor_cursor_and_selections()
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
