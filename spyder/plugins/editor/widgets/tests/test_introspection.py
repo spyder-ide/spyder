@@ -425,11 +425,6 @@ def test_completions(lsp_codeeditor, qtbot):
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    qtbot.keyPress(code_editor, Qt.Key_Escape)
-
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyPress(code_editor, Qt.Key_Tab)
     if PY2:
         assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
     else:
@@ -437,6 +432,20 @@ def test_completions(lsp_codeeditor, qtbot):
                                                         "hypot(*coordinates)"]
 
     assert code_editor.toPlainText() == 'import math\nmath.hypot'
+
+    qtbot.keyPress(code_editor, Qt.Key_Escape)
+
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=10000) as sig:
+            qtbot.keyPress(code_editor, Qt.Key_Tab)
+    except pytestqt.exceptions.TimeoutError:
+        # This should generate a timeout error because the completion
+        # prefix is the same that the completions returned by Jedi.
+        # This is a regression test for spyder-ide/spyder#11600
+        pass
+
+
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
