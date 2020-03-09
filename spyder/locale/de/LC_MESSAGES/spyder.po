@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-03 18:30-0500\n"
-"PO-Revision-Date: 2020-03-08 02:35\n"
+"PO-Revision-Date: 2020-03-09 01:35\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -496,7 +496,7 @@ msgstr "Fehler"
 
 #: spyder/app/mainwindow.py:1463
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
-msgstr ""
+msgstr "<b>Sie haben fehlende Abhängigkeiten!</b><br><br><tt>%s</tt><br><b>Bitte installieren Sie diese, um diese Nachricht zu vermeiden.</b><br><br><i>Hinweis</i>: Spyder könnte ohne einige dieser Abhängigkeiten arbeiten, aber um ein reibungsloses Erlebnis bei der Verwendung von Spyder zu haben, empfehlen wir Ihnen <i>dringend</i>, alle aufgeführten fehlenden Abhängigkeiten zu installieren.<br><br>Wenn diese Abhängigkeiten nicht installiert werden, kann es zu Fehlern kommen. Bitte stellen Sie sicher, dass gefundene Fehler nicht die direkte Folge fehlender Abhängigkeiten sind, bevor Sie ein neues Problem melden."
 
 #: spyder/app/mainwindow.py:1943
 msgid "Spyder Default Layout"
@@ -2054,7 +2054,7 @@ msgstr "Erweiterte Einstellungen"
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:138
 #: spyder/preferences/shortcuts.py:142
 msgid "<None>"
-msgstr ""
+msgstr "<Keine>"
 
 #: spyder/plugins/editor/plugin.py:403
 msgid "&New file..."
@@ -3527,15 +3527,15 @@ msgstr "Dokumentation wird abgerufen"
 
 #: spyder/plugins/help/plugin.py:410
 msgid "Here you can get help of any object by pressing %s in front of it, either on the Editor or the Console.%s"
-msgstr ""
+msgstr "Hier können Sie Hilfe zu jedem Objekt erhalten, indem Sie %s davor drücken, entweder im Editor oder in der Konsole.%s"
 
 #: spyder/plugins/help/plugin.py:414
 msgid "Here you can get help of any object by pressing %s in front of it on the Editor, or %s in front of it on the Console.%s"
-msgstr ""
+msgstr "Hier können Sie Hilfe zu jedem Objekt erhalten, indem Sie %s davor im Editor oder %s davor in der Konsole drücken.%s"
 
 #: spyder/plugins/help/plugin.py:418
 msgid "Help can also be shown automatically after writing a left parenthesis next to an object. You can activate this behavior in %s."
-msgstr ""
+msgstr "Hilfe kann auch automatisch angezeigt werden, nachdem eine linke Klammer neben ein Objekt geschrieben wurde. Sie können dieses Verhalten in %s aktivieren."
 
 #: spyder/plugins/help/plugin.py:422
 msgid "Preferences > Help"
@@ -5165,7 +5165,7 @@ msgstr "Zeilentrennzeichen:"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:167
 msgid "EOL"
-msgstr ""
+msgstr "Zeilenende"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:182
 msgid "Additional options"
@@ -5782,7 +5782,7 @@ msgstr "Geben Sie Werte für verschiedene Bildschirme ein, die durch Semikolons 
 
 #: spyder/preferences/general.py:323
 msgid "We're sorry but setting a scale factor bellow 1.0 isn't possible. Any scale factor bellow 1.0 will be set to 1.0"
-msgstr ""
+msgstr "Es tut uns leid, aber die Einstellung eines Skalierungsfaktors unter 1.0 ist nicht möglich. Jeder Skalierungsfaktor unter 1.0 wird auf 1.0 festgelegt"
 
 #: spyder/preferences/general.py:348
 msgid "We're sorry but the following error occurred while trying to set your selected language:<br><br><tt>{}</tt>"
