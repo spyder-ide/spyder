@@ -405,6 +405,16 @@ def test_completions(lsp_codeeditor, qtbot):
 
     qtbot.keyPress(code_editor, Qt.Key_Escape)
 
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=10000) as sig:
+            qtbot.keyPress(code_editor, Qt.Key_Tab)
+    except pytestqt.exceptions.TimeoutError:
+        # This one should generate a timeout error because the prefix is the
+        # same that the returned completions of jedi
+        pass
+
+
     if PY2:
         assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
     else:
