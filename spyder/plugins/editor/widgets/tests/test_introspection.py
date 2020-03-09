@@ -405,9 +405,6 @@ def test_completions(lsp_codeeditor, qtbot):
 
     qtbot.keyPress(code_editor, Qt.Key_Escape)
 
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyPress(code_editor, Qt.Key_Tab)
     if PY2:
         assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
     else:
