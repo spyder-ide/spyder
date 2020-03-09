@@ -418,8 +418,9 @@ def test_completions(lsp_codeeditor, qtbot):
                               timeout=10000) as sig:
             qtbot.keyPress(code_editor, Qt.Key_Tab)
     except pytestqt.exceptions.TimeoutError:
-        # This one should generate a timeout error because the prefix is the
-        # same that the returned completions of jedi
+        # This should generate a timeout error because the completion
+        # prefix is the same that the completions returned by Jedi.
+        # This is a regression test for spyder-ide/spyder#11600
         pass
 
 
