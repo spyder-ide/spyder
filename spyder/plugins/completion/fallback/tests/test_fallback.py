@@ -109,7 +109,8 @@ def test_tokenize(qtbot_module, fallback_fixture, file_fixture):
     qtbot_module.wait(1000)
 
     tokens_request = {
-        'file': filename
+        'file': filename,
+        'current_word': ''
     }
     with qtbot_module.waitSignal(completions.sig_recv_tokens,
                                  timeout=3000) as blocker:
@@ -136,6 +137,7 @@ def test_token_update(qtbot_module, fallback_fixture):
 
     tokens_request = {
         'file': 'test.py',
+        'current_word': ''
     }
     with qtbot_module.waitSignal(completions.sig_recv_tokens,
                                  timeout=3000) as blocker:

@@ -941,20 +941,22 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
     code_editor.go_to_line(1)
 
     # Add some words in comments
-    qtbot.keyClicks(code_editor, '# some comment and words')
+    qtbot.keyClicks(code_editor, '# some comment and whole words')
     code_editor.document_did_change()
 
     # Enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'w')
+        qtbot.keyClicks(code_editor, 'wh')
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
 
-    assert 'words' in {x['insertText'] for x in sig.args[0]}
+    # Assert all retrieved words start with 'wh'
+    assert all({x['insertText'].startswith('wh') for x in sig.args[0]})
 
-    # Delete 'w'
-    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+    # Delete 'wh'
+    for _ in range(2):
+        qtbot.keyPress(code_editor, Qt.Key_Backspace)
 
     # Insert another word
     qtbot.keyClicks(code_editor, 'another')
@@ -970,9 +972,8 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
     # Assert that keywords are also retrieved
     assert 'assert' in word_set
 
-    qtbot.keyPress(code_editor, Qt.Key_Backspace)
-    qtbot.keyPress(code_editor, Qt.Key_Backspace)
-    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+    for _ in range(3):
+        qtbot.keyPress(code_editor, Qt.Key_Backspace)
 
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
     with qtbot.waitSignal(completion.sig_show_completions,
