@@ -403,6 +403,14 @@ def test_completions(lsp_codeeditor, qtbot):
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
+    if PY2:
+        assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
+    else:
+        assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
+                                                        "hypot(*coordinates)"]
+
+    assert code_editor.toPlainText() == 'import math\nmath.hypot'
+
     qtbot.keyPress(code_editor, Qt.Key_Escape)
 
     try:
@@ -415,13 +423,6 @@ def test_completions(lsp_codeeditor, qtbot):
         pass
 
 
-    if PY2:
-        assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
-    else:
-        assert [x['label'] for x in sig.args[0]][0] in ["hypot(x, y)",
-                                                        "hypot(*coordinates)"]
-
-    assert code_editor.toPlainText() == 'import math\nmath.hypot'
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
