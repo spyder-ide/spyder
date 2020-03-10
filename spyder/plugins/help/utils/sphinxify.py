@@ -197,7 +197,7 @@ def sphinxify(docstring, context, buildername='html'):
     if os.name == 'nt':
         drive = pathlib.Path(confdir).parts[0]
         base_dir = osp.join(drive, 'TMP', 'spyder')
-        pathlib.Path(base_dir).mkdir(exist_ok=True)
+        pathlib.Path(base_dir).mkdir(parents=True, exist_ok=True)
         srcdir = mkdtemp(dir=base_dir)
     else:
         srcdir = mkdtemp()
