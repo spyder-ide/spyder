@@ -2329,6 +2329,14 @@ class EditorStack(QWidget):
             if not osp.isfile(finfo.filename):
                 # This is an 'untitledX.py' file (newly created)
                 read_only = False
+            try:
+                # Try to open the file to see if the permissions allow writing
+                # in Windows. For further info, see issue
+                # https://github.com/spyder-ide/spyder/issues/10657
+                fd = open(finfo.filename, os.O_RDWR)
+                fd.close()
+            except PermissionError:
+                read_only = True
             finfo.editor.setReadOnly(read_only)
             self.readonly_changed.emit(read_only)
 
