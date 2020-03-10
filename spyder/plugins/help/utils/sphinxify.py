@@ -196,8 +196,11 @@ def sphinxify(docstring, context, buildername='html'):
 
     if os.name == 'nt':
         drive = pathlib.Path(confdir).parts[0]
-        srcdir = mkdtemp(dir=osp.join(drive, 'TMP'))
-    srcdir = mkdtemp()
+        base_dir = osp.join(drive, 'TMP', 'spyder')
+        pathlib.Path(base_dir).mkdir(exist_ok=True)
+        srcdir = mkdtemp(dir=base_dir)
+    else:
+        srcdir = mkdtemp()
     srcdir = encoding.to_unicode_from_fs(srcdir)
     destdir = osp.join(srcdir, '_build')
 
