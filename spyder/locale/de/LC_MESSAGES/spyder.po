@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-03 18:30-0500\n"
-"PO-Revision-Date: 2020-03-09 01:35\n"
+"PO-Revision-Date: 2020-03-10 01:31\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -250,7 +250,7 @@ msgstr "guiqwt-Beispiele"
 
 #: spyder/app/mainwindow.py:794
 msgid "Sift"
-msgstr ""
+msgstr "Sift"
 
 #: spyder/app/mainwindow.py:812
 msgid "Fullscreen mode"
@@ -466,7 +466,7 @@ msgstr "Warnung"
 
 #: spyder/app/mainwindow.py:1403
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
-msgstr ""
+msgstr "Es wurde eine Änderung der Monitorgröße erkannt. <br><br>Wir empfehlen, Spyder neu zu starten, um sicherzustellen, dass es korrekt angezeigt wird. Wenn Sie das nicht möchten bitte aktivieren Sie die Option<br><br><tt>Automatische hohe DPI-Skalierung aktivieren</tt><br><br>in <tt>Einstellungen > Allgemein > Oberfläche</tt>, falls Spyder nicht korrekt angezeigt wird.<br><br>Möchten Sie Spyder neu starten?"
 
 #: spyder/app/mainwindow.py:1462 spyder/app/mainwindow.py:2182
 #: spyder/app/mainwindow.py:2911
@@ -883,7 +883,7 @@ msgstr "Mit einem vorhandenen Kernel über SSH verbinden"
 
 #: spyder/dependencies.py:134
 msgid "Python parser that supports error recovery and round-trip parsing"
-msgstr ""
+msgstr "Python-Parser, der Fehlerwiederherstellung und Round Trip Parsing unterstützt"
 
 #: spyder/dependencies.py:139
 msgid "Stdio support for our language server client"
@@ -2867,7 +2867,7 @@ msgstr "{} kann nicht verworfen werden"
 
 #: spyder/plugins/editor/widgets/recover.py:279
 msgid "<b>{}</b><br><br>{}<br>{}"
-msgstr ""
+msgstr "<b>{}</b><br><br>{}<br>{}"
 
 #: spyder/plugins/editor/widgets/status.py:31
 msgid "File permissions"
@@ -3006,7 +3006,7 @@ msgstr "Im Ordner anzeigen"
 
 #: spyder/plugins/explorer/widgets/explorer.py:564
 msgid "Commit"
-msgstr ""
+msgstr "Commit"
 
 #: spyder/plugins/explorer/widgets/explorer.py:567
 msgid "Browse repository"
@@ -3515,7 +3515,7 @@ msgstr "Quelle anzeigen"
 
 #: spyder/plugins/help/plugin.py:128
 msgid "Rich Text"
-msgstr ""
+msgstr "Rich Text"
 
 #: spyder/plugins/help/plugin.py:138
 msgid "Automatic import"
@@ -3738,7 +3738,7 @@ msgstr "Auf diese Weise können Sie Grafikunterstützung laden,\n"
 
 #: spyder/plugins/ipythonconsole/confpage.py:114
 msgid "Inline"
-msgstr ""
+msgstr "Eingebettet"
 
 #: spyder/plugins/ipythonconsole/confpage.py:115
 msgid "Automatic"
@@ -3778,7 +3778,7 @@ msgstr "Auflösung:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:161
 msgid "dpi"
-msgstr ""
+msgstr "dpi"
 
 #: spyder/plugins/ipythonconsole/confpage.py:163
 msgid "Only used when the format is PNG. Default is 72"
@@ -4215,7 +4215,7 @@ msgstr "Möchten Sie beim Laden der Daten alte Variablen (falls vorhanden) im Na
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:129
 msgid "Data loading"
-msgstr ""
+msgstr "Daten laden"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:138
 msgid "Data is too big to be loaded"
@@ -4384,7 +4384,7 @@ msgstr "Die Ergebnisse des Profiler-Plugins (die Ausgabe von Pythons profile/cPr
 
 #: spyder/plugins/profiler/plugin.py:55
 msgid "Profiler"
-msgstr ""
+msgstr "Profiler"
 
 #: spyder/plugins/profiler/plugin.py:81
 #: spyder/plugins/profiler/widgets/profilergui.py:84
@@ -4842,7 +4842,7 @@ msgstr "%s werden momentan nicht unterstützt"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:694
 msgid "NumPy object array"
-msgstr ""
+msgstr "NumPy Objektarray"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:696
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:879
@@ -4937,11 +4937,11 @@ msgstr "Liste"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:175
 msgid "Set"
-msgstr ""
+msgstr "Set"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:179
 msgid "Dictionary"
-msgstr ""
+msgstr "Dictionary"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:181
 msgid "Key"
@@ -5312,7 +5312,7 @@ msgstr "<keine Hilfe verfügbar>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:201
 msgid "<AttributeModel for {!r}>"
-msgstr ""
+msgstr "<AttributeModel für {!r}>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:217
 msgid "The value of the object."
@@ -5325,7 +5325,7 @@ msgstr "Der Name des Objekts."
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:226
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:235
 msgid "<root>"
-msgstr ""
+msgstr "<root>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:233
 msgid "A path to the data: e.g. var[1]['a'].item"
@@ -5439,17 +5439,17 @@ msgstr "Blendet die Spalte {} ein oder aus"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:52
 msgid "<TreeItem(0x{:x}): {} = {}>"
-msgstr ""
+msgstr "<TreeItem(0x{:x}): {} = {}>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:57
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:64
 msgid "<TreeItem(0x{:x}): {} ({:d} children)>"
-msgstr ""
+msgstr "<TreeItem(0x{:x}): {} ({:d} children)>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_model.py:321
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_model.py:322
 msgid "<invisible_root>"
-msgstr ""
+msgstr "<invisible_root>"
 
 #: spyder/plugins/variableexplorer/widgets/texteditor.py:92
 msgid "Text editor"
@@ -5601,7 +5601,7 @@ msgstr "Farbschema-Editor"
 
 #: spyder/preferences/configdialog.py:153
 msgid "Preferences"
-msgstr "Voreinstellungen"
+msgstr "Einstellungen"
 
 #: spyder/preferences/configdialog.py:604
 msgid "Invalid directory path"
@@ -5831,7 +5831,7 @@ msgstr "Letzte benutzerdefinierte Interpreter"
 
 #: spyder/preferences/maininterpreter.py:107
 msgid "User Module Reloader (UMR)"
-msgstr ""
+msgstr "Benutzermodul Reloader (UMR)"
 
 #: spyder/preferences/maininterpreter.py:108
 msgid "UMR forces Python to reload modules which were imported when executing a file in a Python or IPython console with the <i>runfile</i> function."
@@ -6273,7 +6273,7 @@ msgstr "Obligatorisch"
 
 #: spyder/widgets/dependencies.py:45
 msgid "Spyder plugins"
-msgstr ""
+msgstr "Spyder Plugins"
 
 #: spyder/widgets/dependencies.py:88
 msgid "Optional modules are not required to run Spyder but enhance its functions."
