@@ -38,8 +38,13 @@ from sphinx.application import Sphinx
 # Local imports
 from spyder.config.base import (_, get_module_data_path,
                                 get_module_source_path)
+from spyder.py3compat import PY2
 from spyder.utils import encoding
 
+if PY2:
+    import pathlib2 as pathlib
+else:
+    import pathlib
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -180,6 +185,18 @@ def sphinxify(docstring, context, buildername='html'):
     on the value of `buildername`
     """
 
+    temp_confdir = False
+    if temp_confdir:
+        # TODO: This may be inefficient. Find a faster way to do it.
+        confdir = mkdtemp()
+        confdir = encoding.to_unicode_from_fs(confdir)
+        generate_configuration(confdir)
+    else:
+        confdir = osp.join(get_module_source_path('spyder.plugins.help.utils'))
+
+    if os.name == 'nt':
+        drive = pathlib.Path(confdir).parts[0]
+        srcdir = mkdtemp(dir=osp.join(drive, 'TMP'))
     srcdir = mkdtemp()
     srcdir = encoding.to_unicode_from_fs(srcdir)
     destdir = osp.join(srcdir, '_build')
@@ -213,15 +230,6 @@ def sphinxify(docstring, context, buildername='html'):
     doc_file = codecs.open(rst_name, 'w', encoding='utf-8')
     doc_file.write(docstring)
     doc_file.close()
-
-    temp_confdir = False
-    if temp_confdir:
-        # TODO: This may be inefficient. Find a faster way to do it.
-        confdir = mkdtemp()
-        confdir = encoding.to_unicode_from_fs(confdir)
-        generate_configuration(confdir)
-    else:
-        confdir = osp.join(get_module_source_path('spyder.plugins.help.utils'))
 
     confoverrides = {'html_context': context}
 
