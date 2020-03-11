@@ -144,7 +144,7 @@ class CompletionManager(SpyderCompletionPlugin):
         request_responses = self.requests[req_id]
 
         def send():
-            # Needed to prevent send of completions for old requests
+            # Needed to prevent sending completions for old requests
             # See spyder-ide/spyder#10798
             req_type = self.requests[req_id]['req_type']
             response_instance = id(self.requests[req_id]['response_instance'])
@@ -157,6 +157,8 @@ class CompletionManager(SpyderCompletionPlugin):
                     or [-1])
                 send = req_id == max_req_id
 
+            logger.debug("Completion plugin: Request {} "
+                         "removed".format(req_id))
             del self.requests[req_id]
 
             # Response only to recent requests.
