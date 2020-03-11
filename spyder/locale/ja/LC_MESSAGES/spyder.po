@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-03 18:30-0500\n"
-"PO-Revision-Date: 2020-03-04 00:13\n"
+"PO-Revision-Date: 2020-03-11 01:31\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -45,7 +45,7 @@ msgstr "PyQt5 APIリファレンス"
 
 #: spyder/app/mainwindow.py:236
 msgid "WinPython"
-msgstr ""
+msgstr "WinPython"
 
 #: spyder/app/mainwindow.py:503
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
@@ -234,19 +234,19 @@ msgstr "WinPythonコントロールパネル"
 
 #: spyder/app/mainwindow.py:753
 msgid "Qt Designer"
-msgstr ""
+msgstr "Qt Designer"
 
 #: spyder/app/mainwindow.py:757
 msgid "Qt Linguist"
-msgstr ""
+msgstr "Qt Linguist"
 
 #: spyder/app/mainwindow.py:778
 msgid "guidata examples"
-msgstr ""
+msgstr "GUIデータ例"
 
 #: spyder/app/mainwindow.py:789
 msgid "guiqwt examples"
-msgstr ""
+msgstr "QwtのGUI例"
 
 #: spyder/app/mainwindow.py:794
 msgid "Sift"
@@ -464,7 +464,7 @@ msgstr "警告"
 
 #: spyder/app/mainwindow.py:1403
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
-msgstr ""
+msgstr "モニターのスケール変更が検知されました。 <br><br>変更が正しく反映されるようためにSpyderを再起動することが推奨されます。 再起動しない場合はSpyderが正しく表示されるように、オプション<br><br><tt>高DPIスケーリングを有効にする</tt><br><br>をメニューの<tt>設定 > 一般 > インターフェイス</tt>から設定してください。<br><br>Spyderを再起動しますかr?"
 
 #: spyder/app/mainwindow.py:1462 spyder/app/mainwindow.py:2182
 #: spyder/app/mainwindow.py:2911
@@ -494,7 +494,7 @@ msgstr "エラー"
 
 #: spyder/app/mainwindow.py:1463
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
-msgstr ""
+msgstr "<b>依存パッケージが見つかりません!</b><br><br><tt>%s</tt><br><b>このメッセージ表示を避けるにはこれらのパッケージをインストールしてください。</b><br><br><i>注</i>: Spyderは依存関係を満足させなくても動作しますが、円滑な動作のためには依存関係を解決することが <i>強く</i> 推奨されます。<br><br>これらの依存パッケージがインストールされていない場合不具合が発生する可能性があります。新しい問題を報告する前には、発生した不具合が依存性の欠如によるものではないことを確認してください。"
 
 #: spyder/app/mainwindow.py:1943
 msgid "Spyder Default Layout"
@@ -567,7 +567,7 @@ msgstr "プラットフォーム %s では外部システムターミナルの�
 
 #: spyder/app/mainwindow.py:2912
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
-msgstr ""
+msgstr "<code>{fpath}</code> をSpyderのプロジェクトとして開くには、<code>spyder -p \"{fname}\"</code>を使用してください。"
 
 #: spyder/app/mainwindow.py:3250
 msgid "Spyder will restart and reset to default settings: <br><br>Do you want to continue?"
@@ -724,7 +724,7 @@ msgstr "ステップへ移動: "
 
 #: spyder/config/manager.py:293
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
-msgstr ""
+msgstr "ショートカットコンテキストは'_'またはプラグイン`CONF_SECTION`と一致する必要があります！"
 
 #: spyder/config/utils.py:25 spyder/plugins/pylint/widgets/pylintgui.py:268
 msgid "Python files"
@@ -808,7 +808,7 @@ msgstr "Jsonファイル"
 
 #: spyder/config/utils.py:46
 msgid "IPython notebooks"
-msgstr ""
+msgstr "IPython notebooks"
 
 #: spyder/config/utils.py:47
 msgid "Enaml files"
@@ -852,7 +852,7 @@ msgstr "編集中にテキストファイルの差分を取る"
 
 #: spyder/dependencies.py:103
 msgid "Compute folding range nesting levels"
-msgstr ""
+msgstr "折りたたみ範囲のネスト深さを計算する"
 
 #: spyder/dependencies.py:107
 msgid "IPython interactive python environment"
@@ -860,7 +860,7 @@ msgstr "IPythonインタラクティブpython環境"
 
 #: spyder/dependencies.py:111
 msgid "Main backend for the Python Language Server"
-msgstr ""
+msgstr "Python言語サーバーのメインバックエンド"
 
 #: spyder/dependencies.py:115
 msgid "Save Github credentials to report internal errors securely"
@@ -880,7 +880,7 @@ msgstr "リモートののカーネルにSSH接続する"
 
 #: spyder/dependencies.py:134
 msgid "Python parser that supports error recovery and round-trip parsing"
-msgstr ""
+msgstr "エラー回復とラウンドトリップ解析をサポートするPythonパーサー"
 
 #: spyder/dependencies.py:139
 msgid "Stdio support for our language server client"
@@ -981,7 +981,7 @@ msgstr "オプション"
 
 #: spyder/plugins/base.py:196
 msgid "Dock"
-msgstr ""
+msgstr "ドック"
 
 #: spyder/plugins/base.py:198
 msgid "Dock the pane"
@@ -1065,7 +1065,7 @@ msgstr "次回以降表示しない。"
 
 #: spyder/plugins/completion/kite/utils/install.py:34
 msgid "No status"
-msgstr ""
+msgstr "ステータスなし"
 
 #: spyder/plugins/completion/kite/utils/install.py:35
 msgid "Downloading script installer"
@@ -1136,7 +1136,7 @@ msgstr "Kite はCopilotというネイティブアプリケーションを含み
 
 #: spyder/plugins/completion/kite/widgets/install.py:219
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: spyder/plugins/completion/kite/widgets/install.py:330
 msgid "<b>An error ocurred while installing Kite!</b><br><br>Please try to <a href=\"{kite_url}\">install it manually</a> or <a href=\"{kite_contact}\">contact Kite</a> for help"
@@ -1618,7 +1618,7 @@ msgstr "{language} 言語のサーバーが以下のアドレス:ポートに見
 
 #: spyder/plugins/completion/languageserver/plugin.py:165
 msgid "Completion and linting in the editor for {language} files will not work during the current session, or stopped working.<br><br>To fix this, please verify that your firewall or antivirus allows Python processes to open ports in your system, or restart Spyder."
-msgstr ""
+msgstr "{language} ファイルエディタ での補完とlintingは現在のセッションでは動作しないか、停止されています。<br><br>これを修正するにはファイアウォール、アンチウイルスソフトでPythonプロセスによるポート開放を許可するか、Spyderを再起動するかしてください。"
 
 #: spyder/plugins/completion/plugin.py:353
 msgid "Kite installation process has not finished. Do you really want to exit?"
@@ -1835,7 +1835,7 @@ msgstr "変更後に構文を強調するまでの時間"
 #: spyder/plugins/editor/confpage.py:67 spyder/preferences/general.py:190
 #: spyder/preferences/general.py:199
 msgid " ms"
-msgstr ""
+msgstr " ms"
 
 #: spyder/plugins/editor/confpage.py:106
 msgid "Automatic insertion of parentheses, braces and brackets"
@@ -1975,15 +1975,15 @@ msgstr "Docstringsのタイプ ({}あるいは{}) を選択することができ
 
 #: spyder/plugins/editor/confpage.py:245
 msgid "Numpy"
-msgstr ""
+msgstr "Numpy"
 
 #: spyder/plugins/editor/confpage.py:246
 msgid "Google"
-msgstr ""
+msgstr "Google"
 
 #: spyder/plugins/editor/confpage.py:247
 msgid "Sphinx"
-msgstr ""
+msgstr "Sphinx"
 
 #: spyder/plugins/editor/confpage.py:259
 msgid "Annotations"
@@ -2019,11 +2019,11 @@ msgstr "LF  (UNIX)"
 
 #: spyder/plugins/editor/confpage.py:290
 msgid "CRLF (Windows)"
-msgstr ""
+msgstr "CRLF (Windows)"
 
 #: spyder/plugins/editor/confpage.py:291
 msgid "CR (Mac)"
-msgstr ""
+msgstr "CR (Mac)"
 
 #: spyder/plugins/editor/confpage.py:315
 #: spyder/plugins/ipythonconsole/confpage.py:374
@@ -2048,7 +2048,7 @@ msgstr "詳細設定"
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:138
 #: spyder/preferences/shortcuts.py:142
 msgid "<None>"
-msgstr ""
+msgstr "<None>"
 
 #: spyder/plugins/editor/plugin.py:403
 msgid "&New file..."
@@ -2176,7 +2176,7 @@ msgstr "デバッギング時にPythonライブラリを無視"
 
 #: spyder/plugins/editor/plugin.py:520
 msgid "Process execute events while debugging"
-msgstr ""
+msgstr "デバッグ中のプロセス実行イベント"
 
 #: spyder/plugins/editor/plugin.py:523
 msgid "Debug with winpdb"
@@ -2188,7 +2188,7 @@ msgstr "ファイルをデバッグ開始"
 
 #: spyder/plugins/editor/plugin.py:537
 msgid "Step"
-msgstr ""
+msgstr "Step"
 
 #: spyder/plugins/editor/plugin.py:538
 msgid "Run current line"
@@ -2196,7 +2196,7 @@ msgstr "現在行を実行"
 
 #: spyder/plugins/editor/plugin.py:544
 msgid "Continue"
-msgstr ""
+msgstr "Continue"
 
 #: spyder/plugins/editor/plugin.py:546
 msgid "Continue execution until next breakpoint"
@@ -2204,7 +2204,7 @@ msgstr "次のブレークポイントまで実行を続ける"
 
 #: spyder/plugins/editor/plugin.py:553
 msgid "Step Into"
-msgstr ""
+msgstr "Step Into"
 
 #: spyder/plugins/editor/plugin.py:555
 msgid "Step into function or method of current line"
@@ -2212,7 +2212,7 @@ msgstr "現在行のメソッド/関数までStep inする"
 
 #: spyder/plugins/editor/plugin.py:561
 msgid "Step Return"
-msgstr ""
+msgstr "Step Return"
 
 #: spyder/plugins/editor/plugin.py:563
 msgid "Run until current function or method returns"
