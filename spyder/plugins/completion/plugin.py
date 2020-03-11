@@ -50,7 +50,6 @@ class CompletionManager(SpyderCompletionPlugin):
             LSPRequestTypes.DOCUMENT_COMPLETION: {
                 KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
                 LanguageServerPlugin.COMPLETION_CLIENT_NAME,
-                FallbackPlugin.COMPLETION_CLIENT_NAME
             },
             LSPRequestTypes.DOCUMENT_SIGNATURE: {
                 KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
@@ -142,11 +141,12 @@ class CompletionManager(SpyderCompletionPlugin):
         if req_id not in self.requests:
             return
         request_responses = self.requests[req_id]
+        language = request_responses['language']
 
         def send():
             # Needed to prevent sending completions for old requests
             # See spyder-ide/spyder#10798
-            req_type = self.requests[req_id]['req_type']
+            req_type = request_responses['req_type']
             response_instance = id(self.requests[req_id]['response_instance'])
             send = True
             if req_type in self.SKIP_INTERMEDIATE_REQUESTS:
@@ -165,6 +165,19 @@ class CompletionManager(SpyderCompletionPlugin):
             if send:
                 self.gather_and_send(request_responses)
 
+        # Skip the waiting logic below when fallback is the only
+        # client that works for language
+        if self._is_fallback_only(language):
+            # Only send response when fallback is among its sources
+            if 'fallback' in request_responses['sources']:
+                self.gather_and_send(request_responses)
+                return
+
+            # This drops responses that don't contain fallback
+            return
+
+        # Waiting between the LSP and Kite to return responses. This favors
+        # Kite when the LSP takes too much time to respond.
         wait_for = set(source for source
                        in self.WAIT_FOR_SOURCE[request_responses['req_type']]
                        if self._is_client_running(source))
@@ -172,6 +185,7 @@ class CompletionManager(SpyderCompletionPlugin):
 
         all_returned = all(source in request_responses['sources']
                            for source in wait_for)
+
         if not timed_out:
             # Before the timeout
             if all_returned:
@@ -182,6 +196,17 @@ class CompletionManager(SpyderCompletionPlugin):
                                for source in wait_for)
             if all_returned or any_nonempty:
                 send()
+
+    def _is_fallback_only(self, language):
+        """
+        Detect if fallback is the only client that works for language.
+        """
+        lang_status = self.language_status.get(language, {})
+        if lang_status:
+            if (not lang_status.get('lsp', {}) and
+                    not lang_status.get('kite', {})):
+                return True
+        return False
 
     @Slot(str)
     def client_available(self, client_name):
