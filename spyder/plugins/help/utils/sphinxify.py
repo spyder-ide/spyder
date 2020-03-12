@@ -186,20 +186,23 @@ def sphinxify(docstring, context, buildername='html'):
     """
 
     confdir = osp.join(get_module_source_path('spyder.plugins.help.utils'))
-    drive_confdir = pathlib.Path(confdir).parts[0]
-
     srcdir = mkdtemp()
     srcdir = encoding.to_unicode_from_fs(srcdir)
     destdir = osp.join(srcdir, '_build')
-    drive_srcdir = pathlib.Path(srcdir).parts[0]
+    temp_confdir_needed = False
 
-    temp_confdir_needed = drive_confdir != drive_srcdir
+    if os.name == 'nt':
+        # Check if confdir and srcdir are in the same drive
+        # See spyder-ide/spyder#11762
+        drive_confdir = pathlib.Path(confdir).parts[0]
+        drive_srcdir = pathlib.Path(srcdir).parts[0]
+        temp_confdir_needed = drive_confdir != drive_srcdir
 
-    if os.name == 'nt' and temp_confdir_needed:
-        # TODO: This may be inefficient. Find a faster way to do it.
-        confdir = mkdtemp()
-        confdir = encoding.to_unicode_from_fs(confdir)
-        generate_configuration(confdir)
+        if temp_confdir_needed:
+            # TODO: This may be inefficient. Find a faster way to do it.
+            confdir = mkdtemp()
+            confdir = encoding.to_unicode_from_fs(confdir)
+            generate_configuration(confdir)
 
     rst_name = osp.join(srcdir, 'docstring.rst')
     if buildername == 'html':
