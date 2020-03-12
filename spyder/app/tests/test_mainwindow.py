@@ -2999,6 +2999,8 @@ def test_runcell_after_restart(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="It fails sometimes on Linux")
 @pytest.mark.parametrize(
     "ipython", [True, False])
 @pytest.mark.parametrize(

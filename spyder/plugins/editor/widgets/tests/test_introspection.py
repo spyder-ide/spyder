@@ -295,6 +295,7 @@ def test_automatic_completions_parens_bug(lsp_codeeditor, qtbot):
     Test on-the-fly completions.
 
     Autocompletions for variables don't work inside function calls.
+    Note: Don't mark this as first because it fails on Windows.
 
     See: spyder-ide/spyder#10448
     """
