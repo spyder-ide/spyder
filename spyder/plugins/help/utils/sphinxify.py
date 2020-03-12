@@ -185,24 +185,21 @@ def sphinxify(docstring, context, buildername='html'):
     on the value of `buildername`
     """
 
-    temp_confdir = False
-    if temp_confdir:
+    confdir = osp.join(get_module_source_path('spyder.plugins.help.utils'))
+    drive_confdir = pathlib.Path(confdir).parts[0]
+
+    srcdir = mkdtemp()
+    srcdir = encoding.to_unicode_from_fs(srcdir)
+    destdir = osp.join(srcdir, '_build')
+    drive_srcdir = pathlib.Path(srcdir).parts[0]
+
+    temp_confdir_needed = drive_confdir != drive_srcdir
+
+    if os.name == 'nt' and temp_confdir_needed:
         # TODO: This may be inefficient. Find a faster way to do it.
         confdir = mkdtemp()
         confdir = encoding.to_unicode_from_fs(confdir)
         generate_configuration(confdir)
-    else:
-        confdir = osp.join(get_module_source_path('spyder.plugins.help.utils'))
-
-    if os.name == 'nt':
-        drive = pathlib.Path(confdir).parts[0]
-        base_dir = osp.join(drive, 'TMP', 'spyder')
-        pathlib.Path(base_dir).mkdir(parents=True, exist_ok=True)
-        srcdir = mkdtemp(dir=base_dir)
-    else:
-        srcdir = mkdtemp()
-    srcdir = encoding.to_unicode_from_fs(srcdir)
-    destdir = osp.join(srcdir, '_build')
 
     rst_name = osp.join(srcdir, 'docstring.rst')
     if buildername == 'html':
@@ -259,7 +256,7 @@ def sphinxify(docstring, context, buildername='html'):
                     "Please see it in plain text.")
         return warning(output)
 
-    if temp_confdir:
+    if temp_confdir_needed:
         shutil.rmtree(confdir, ignore_errors=True)
     shutil.rmtree(srcdir, ignore_errors=True)
 
