@@ -997,7 +997,11 @@ class BaseEditMixin(object):
         # Find a valid Python variable name
         if valid_python_variable:
             match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
-            if match:
+            if not match:
+                # This is assumed in several places of our codebase,
+                # so please don't change this return!
+                return None
+            else:
                 text = match[0]
 
         if completion:
