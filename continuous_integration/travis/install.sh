@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
 # -- Install Miniconda
-MINICONDA=Miniconda3-latest-Linux-x86_64.sh
+MINICONDA=Miniconda3-4.7.12.1-Linux-x86_64.sh
 wget https://repo.continuum.io/miniconda/$MINICONDA -O miniconda.sh
 bash miniconda.sh -b -p $HOME/miniconda
 source $HOME/miniconda/etc/profile.d/conda.sh
