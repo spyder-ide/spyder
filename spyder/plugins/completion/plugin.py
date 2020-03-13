@@ -120,8 +120,7 @@ class CompletionManager(SpyderCompletionPlugin):
         with QMutexLocker(self.collection_mutex):
             request_responses = self.requests[req_id]
             request_responses['sources'][completion_source] = resp
-
-            self._maybe_send_locked(req_id)
+            self.howto_send_to_codeeditor(req_id)
 
     @Slot(int)
     def receive_timeout(self, req_id):
@@ -134,40 +133,21 @@ class CompletionManager(SpyderCompletionPlugin):
         with QMutexLocker(self.collection_mutex):
             request_responses = self.requests[req_id]
             request_responses['timed_out'] = True
+            self.howto_send_to_codeeditor(req_id)
 
-            self._maybe_send_locked(req_id)
-
-    def _maybe_send_locked(self, req_id):
+    def howto_send_to_codeeditor(self, req_id):
+        """
+        Decide how to send the responses corresponding to req_id to
+        the CodeEditor instance that requested them.
+        """
         if req_id not in self.requests:
             return
         request_responses = self.requests[req_id]
         language = request_responses['language']
 
-        def send():
-            # Needed to prevent sending completions for old requests
-            # See spyder-ide/spyder#10798
-            req_type = request_responses['req_type']
-            response_instance = id(self.requests[req_id]['response_instance'])
-            send = True
-            if req_type in self.SKIP_INTERMEDIATE_REQUESTS:
-                max_req_id = max(
-                    [key for key, item in self.requests.items()
-                     if item['req_type'] == req_type
-                     and id(item['response_instance']) == response_instance]
-                    or [-1])
-                send = req_id == max_req_id
-
-            logger.debug("Completion plugin: Request {} "
-                         "removed".format(req_id))
-            del self.requests[req_id]
-
-            # Response only to recent requests.
-            if send:
-                self.gather_and_send(request_responses)
-
         # Skip the waiting logic below when fallback is the only
         # client that works for language
-        if self._is_fallback_only(language):
+        if self.is_fallback_only(language):
             # Only send response when fallback is among its sources
             if 'fallback' in request_responses['sources']:
                 self.gather_and_send(request_responses)
@@ -176,28 +156,55 @@ class CompletionManager(SpyderCompletionPlugin):
             # This drops responses that don't contain fallback
             return
 
-        # Waiting between the LSP and Kite to return responses. This favors
+        # Wait between the LSP and Kite to return responses. This favors
         # Kite when the LSP takes too much time to respond.
         wait_for = set(source for source
                        in self.WAIT_FOR_SOURCE[request_responses['req_type']]
                        if self._is_client_running(source))
         timed_out = request_responses['timed_out']
-
         all_returned = all(source in request_responses['sources']
                            for source in wait_for)
 
         if not timed_out:
             # Before the timeout
             if all_returned:
-                send()
+                self.skip_and_send_to_codeeditor(req_id)
         else:
             # After the timeout
             any_nonempty = any(request_responses['sources'].get(source)
                                for source in wait_for)
             if all_returned or any_nonempty:
-                send()
+                self.skip_and_send_to_codeeditor(req_id)
 
-    def _is_fallback_only(self, language):
+    def skip_and_send_to_codeeditor(self, req_id):
+        """
+        Skip intermediate responses coming from the same CodeEditor
+        instance for some types of requests, and send the last one to
+        it.
+        """
+        request_responses = self.requests[req_id]
+        req_type = request_responses['req_type']
+        response_instance = id(request_responses['response_instance'])
+        do_send = True
+
+        # This is necessary to prevent sending completions for old requests
+        # See spyder-ide/spyder#10798
+        if req_type in self.SKIP_INTERMEDIATE_REQUESTS:
+            max_req_id = max(
+                [key for key, item in self.requests.items()
+                 if item['req_type'] == req_type
+                 and id(item['response_instance']) == response_instance]
+                or [-1])
+            do_send = (req_id == max_req_id)
+
+        logger.debug("Completion plugin: Request {} removed".format(req_id))
+        del self.requests[req_id]
+
+        # Send only recent responses
+        if do_send:
+            self.gather_and_send(request_responses)
+
+    def is_fallback_only(self, language):
         """
         Detect if fallback is the only client that works for language.
         """
