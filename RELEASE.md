@@ -6,6 +6,8 @@ To release a new version of Spyder you need to follow these steps:
 
 * Update CHANGELOG.md
 
+`loghub spyder-ide/spyder -zr "spyder vN.N.N"`
+
 * Update Announcements.md
 
 * git clean -xfdi
