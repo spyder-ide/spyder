@@ -942,9 +942,12 @@ class BaseEditMixin(object):
             self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
 
-    def get_current_word_and_position(self, completion=False, help_req=False):
-        """Return current word, i.e. word at cursor position,
-            and the start position."""
+    def get_current_word_and_position(self, completion=False, help_req=False,
+                                      valid_python_variable=True):
+        """
+        Return current word, i.e. word at cursor position, and the start
+        position.
+        """
         cursor = self.textCursor()
         cursor_pos = cursor.position()
 
@@ -989,18 +992,32 @@ class BaseEditMixin(object):
 
         cursor.select(QTextCursor.WordUnderCursor)
         text = to_text_string(cursor.selectedText())
-        # find a valid python variable name
-        match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
-        if match:
-            text, startpos = match[0], cursor.selectionStart()
-            if completion:
-                text = text[:cursor_pos - startpos]
-            return text, startpos
+        startpos = cursor.selectionStart()
 
-    def get_current_word(self, completion=False, help_req=False):
+        # Find a valid Python variable name
+        if valid_python_variable:
+            match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
+            if not match:
+                # This is assumed in several places of our codebase,
+                # so please don't change this return!
+                return None
+            else:
+                text = match[0]
+
+        if completion:
+            text = text[:cursor_pos - startpos]
+
+        return text, startpos
+
+    def get_current_word(self, completion=False, help_req=False,
+                         valid_python_variable=True):
         """Return current word, i.e. word at cursor position."""
         ret = self.get_current_word_and_position(
-            completion=completion, help_req=help_req)
+            completion=completion,
+            help_req=help_req,
+            valid_python_variable=valid_python_variable
+        )
+
         if ret is not None:
             return ret[0]
 
