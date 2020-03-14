@@ -1,0 +1,56 @@
+name: Windows tests 1.x
+
+on:
+  push:
+    branches:
+    - 1.x
+  pull_request:
+    branches:
+    - 1.x
+
+jobs:
+  windows:
+    name: Windows Py${{ matrix.PYTHON_VERSION }}
+    runs-on: windows-latest
+    env:
+      CI: True
+      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+      RUNNER_OS: 'windows'
+    strategy:
+      fail-fast: false 
+      matrix:
+        PYTHON_VERSION: ['2.7', '3.6', '3.7', '3.8']
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v1
+      - name: Install Conda
+        uses: goanpeca/setup-miniconda@v1
+        with:
+           activate-environment: test
+           auto-update-conda: true
+           auto-activate-base: false
+           python-version: ${{ matrix.PYTHON_VERSION }}
+      - name: Install package dependencies
+        shell: bash -l {0}
+        run: conda install --file requirements/windows.txt -y -q
+      - name: Install test dependencies
+        shell: bash -l {0}
+        run: conda install --file requirements/tests.txt -y -q
+      - name: Install Package
+        shell: bash -l {0}
+        run: pip install -e .
+      - name: Show environment information
+        shell: bash -l {0}
+        run: |
+          conda info
+          conda list
+      - name: Set correct enconding
+        shell: bash -l {0}
+        if: matrix.PYTHON_VERSION == '2.7'
+        run: echo "::set-env name=PYTHONIOENCODING::cp1252"
+      - name: Run tests
+        shell: bash -l {0}
+        run: pytest spyder_kernels --cov=spyder_kernels -x -vv
+      - name: Upload coverage to Codecov
+        shell: bash -l {0}
+        run: codecov -t 02fa9892-fa7f-4cf8-ac3c-d54143ddc933
