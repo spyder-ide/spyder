@@ -1,10 +1,11 @@
+codecov
+cython
+flaky
+matplotlib
+mock
 numpy
 pandas
-scipy
 pytest
 pytest-cov
-flaky
-mock
-cython
-matplotlib
+scipy
 xarray

@@ -79,6 +79,9 @@ class NamespaceManager(object):
                 sys.modules['__main__'] = main_mod
                 self._reset_main = True
 
+        # Save current namespace for access by variable explorer
+        get_ipython().kernel._running_namespace = self.ns_globals
+
         if (self._file_code is not None
                 and not PY2
                 and isinstance(self._file_code, bytes)):
@@ -100,6 +103,7 @@ class NamespaceManager(object):
         """
         Reset the namespace.
         """
+        get_ipython().kernel._running_namespace = None
         if self._previous_filename:
             self.ns_globals['__file__'] = self._previous_filename
         elif '__file__' in self.ns_globals:

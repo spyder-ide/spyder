@@ -73,6 +73,7 @@ class SpyderKernel(IPythonKernel):
         self._pdb_print_code = True
         self._do_publish_pdb_state = True
         self._mpl_backend_error = None
+        self._running_namespace = None
 
     def frontend_call(self, blocking=False, broadcast=True, timeout=None):
         """Call the frontend."""
@@ -264,7 +265,8 @@ class SpyderKernel(IPythonKernel):
             return error_message
 
         if not overwrite:
-            for key in data.keys():
+            # We convert to list since we mutate this dictionary
+            for key in list(data.keys()):
                 new_key = fix_reference_name(key, blacklist=list(glbs.keys()))
                 if new_key != key:
                     data[new_key] = data.pop(key)
@@ -422,6 +424,9 @@ class SpyderKernel(IPythonKernel):
         else:
             ns.update(glbs)
             ns.update(self._pdb_locals)
+
+        if self._running_namespace is not None:
+            ns.update(self._running_namespace)
 
         # Add magics to ns so we can show help about them on the Help
         # plugin
