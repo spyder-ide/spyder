@@ -6,6 +6,7 @@
 # (see spyder_kernels/__init__.py for details)
 # -----------------------------------------------------------------------------
 
+import os
 import sys
 
 from spyder_kernels.customize.utils import create_pathlist
@@ -16,7 +17,7 @@ def test_user_sitepackages_in_pathlist():
     if sys.platform.startswith('linux'):
         user_path = 'local'
     elif sys.platform == 'darwin':
-        user_path = '/Users/travis/.local'
+        user_path = os.path.expanduser('~/.local')
     else:
         user_path = 'Roaming'
 
