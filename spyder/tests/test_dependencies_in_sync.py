@@ -224,6 +224,11 @@ def test_dependencies_for_spyder_dialog_in_sync():
     spyder_deps = parse_spyder_dependencies()
     spyder_reqs = parse_requirements(REQ_FPATH)
 
+    # No need to check for spyder-kernels because we're using
+    # a subrepo for it in some cases
+    for req in [spyder_deps, spyder_reqs]:
+        req.pop('spyder-kernels')
+
     # RTree is only available the right way with conda not pypi
     if 'rtree' in spyder_deps:
         spyder_deps.pop('rtree')
@@ -247,6 +252,11 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
     """
     spyder_setup = parse_setup_install_requires(SETUP_FPATH)
     spyder_reqs = parse_requirements(REQ_FPATH)
+
+    # No need to check for spyder-kernels because we're using
+    # a subrepo for it in some cases
+    for req in [spyder_reqs, spyder_setup]:
+        req.pop('spyder-kernels')
 
     if 'pyqtwebengine' in spyder_setup:
         spyder_setup.pop('pyqtwebengine')
