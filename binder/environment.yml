@@ -36,7 +36,10 @@ dependencies:
 - qtpy >=1.5.0
 - rtree >=0.8.3
 - sphinx >=0.6.6
-- spyder-kernels >=1.8.1,<2.0.0
+# NOTE: There's no need to set constraints for spyder-kernels
+# here because Spyder uses the subrepo for it when started in
+# in Binder.
+- spyder-kernels
 - watchdog
 
 # We can not refer to an environment.yml file from another
