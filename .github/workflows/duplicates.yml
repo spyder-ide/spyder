@@ -40,5 +40,11 @@ jobs:
                "reply": "This is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
                "labels": ["resolution:Duplicate"],
                "close": true
+             },
+             {
+               "pattern": "AttributeError: '_ModuleMock' object has no attribute 'PLUGIN_CLASS'",
+               "reply": "This is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
              }
              ]
