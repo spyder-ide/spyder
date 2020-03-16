@@ -34,7 +34,9 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, create_plugin_layout,
+                                    create_toolbutton,
+                                    create_plugin_layout,
+                                    create_waitspinner,
                                     MENU_SEPARATOR)
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView)
@@ -162,6 +164,9 @@ class NamespaceBrowser(QWidget):
         self.tools_layout.addStretch()
         self.setup_options_button()
 
+        self.editor.sig_open_editor.connect(self.loading_widget.start)
+        self.editor.sig_show_editor.connect(self.loading_widget.stop)
+
         # Setup layout.
 
         layout = create_plugin_layout(self.tools_layout, self.editor)
@@ -263,9 +268,11 @@ class NamespaceBrowser(QWidget):
             icon=ima.icon('refresh'),
             triggered=lambda: self.refresh_table(interrupt=True))
 
+        self.loading_widget = create_waitspinner(size=16, parent=self)
+
         return [load_button, self.save_button, save_as_button,
                 reset_namespace_button, self.search_button,
-                self.refresh_button]
+                self.refresh_button, self.loading_widget]
 
     def setup_option_actions(self, exclude_private, exclude_uppercase,
                              exclude_capitalized, exclude_unsupported,

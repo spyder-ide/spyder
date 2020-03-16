@@ -496,6 +496,8 @@ class BaseTableView(QTableView):
     sig_files_dropped = Signal(list)
     redirect_stdio = Signal(bool)
     sig_free_memory = Signal()
+    sig_open_editor = Signal()
+    sig_show_editor = Signal()
 
     def __init__(self, parent):
         QTableView.__init__(self, parent)
@@ -1423,6 +1425,8 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
         self.delegate = RemoteCollectionsDelegate(self)
         self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
+        self.delegate.sig_open_editor.connect(self.sig_open_editor.emit)
+        self.delegate.sig_show_editor.connect(self.sig_show_editor.emit)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()
