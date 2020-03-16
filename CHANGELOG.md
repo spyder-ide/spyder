@@ -4,7 +4,7 @@
 
 ### New features
 
-* Several improvements to inteface and user experience of the Plots pane.
+* Several improvements to the interface and user experience of the Plots pane.
 * Allow to show hidden files in Files and Project panes.
 * Allow automatic introduction of docstrings in the Sphhinx format.
 * Implicitly create a project when Spyder is launched with a folder path as
@@ -19,16 +19,16 @@
 
 * Disable code folding and indent guides when files have more than 2000 lines
   for performance reasons.
-* Critical perfomance improvements to the Editor and Files.
+* Critical performance improvements to the Editor and Files.
 * Several fixes to the autosave mechanism.
 * Preserve creation time when saving files.
 * Don't corrupt symlinks when saving files associated to them.
 * Improve the code completion experience in the Editor.
 * Start kernels in a thread to avoid freezing the entire interface.
 * Correctly update the debugging panel in the Editor when debugging in
-  multipĺe consoles.
-* Make the Code Analysis pane to read the nearest pylintrc, according to the
-  hierarchy defined by Pylint.
+  multiple consoles.
+* Make the Code Analysis pane to read the nearest pylintrc file, according to
+  the hierarchy defined by Pylint.
 
 ### Issues Closed
 
