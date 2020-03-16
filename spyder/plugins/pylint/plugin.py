@@ -46,7 +46,7 @@ class Pylint(SpyderPluginWidget):
     CONF_FILE = False
 
     def __init__(self, parent=None):
-        SpyderPluginWidget.__init__(self, parent)
+        super().__init__(parent)
 
         max_entries = self.get_option('max_entries', 50)
         self.pylint = PylintWidget(self, max_entries=max_entries,

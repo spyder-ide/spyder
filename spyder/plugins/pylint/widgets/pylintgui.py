@@ -12,8 +12,8 @@
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import print_function, with_statement
 import os.path as osp
+import pickle
 import re
 import sys
 import time
@@ -27,7 +27,6 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMessageBox, QTreeWidgetItem,
 
 # Local imports
 from spyder.config.base import get_conf_path, get_translation
-from spyder.py3compat import pickle, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_toolbutton
 from spyder.utils.misc import getcwd_or_home
@@ -52,7 +51,7 @@ class ResultsTree(OneColumnTree):
     sig_edit_goto = Signal(str, int, str)
 
     def __init__(self, parent):
-        OneColumnTree.__init__(self, parent)
+        super().__init__(parent)
         self.filename = None
         self.results = None
         self.data = None
@@ -147,7 +146,7 @@ class PylintWidget(QWidget):
 
     def __init__(self, parent, max_entries=100, options_button=None,
                  text_color=None, prevrate_color=None):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         self.setWindowTitle("Pylint")
 
@@ -240,7 +239,7 @@ class PylintWidget(QWidget):
     @Slot(str)
     def set_filename(self, filename):
         """Set filename without performing code analysis."""
-        filename = to_text_string(filename) # filename is a QString instance
+        filename = str(filename) # filename is a QString instance
         self.kill_if_running()
         index, _data = self.get_data(filename)
         if index is None:
@@ -330,7 +329,7 @@ class PylintWidget(QWidget):
     @Slot()
     def start(self):
         """Start the code analysis."""
-        filename = to_text_string(self.filecombo.currentText())
+        filename = str(self.filecombo.currentText())
 
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
@@ -388,7 +387,7 @@ class PylintWidget(QWidget):
                 qba += self.process.readAllStandardError()
             else:
                 qba += self.process.readAllStandardOutput()
-        text = to_text_string(qba.data(), encoding='utf-8')
+        text = str(qba.data(), 'utf-8')
         if error:
             self.error_output += text
         else:
@@ -449,7 +448,7 @@ class PylintWidget(QWidget):
                 previous = self.output[i_prun+len(txt_prun):i_prun_end]
 
 
-        filename = to_text_string(self.filecombo.currentText())
+        filename = str(self.filecombo.currentText())
         self.set_data(filename, (time.localtime(), rate, previous, results))
         self.output = self.error_output + self.output
         self.show_data(justanalyzed=True)
@@ -466,7 +465,7 @@ class PylintWidget(QWidget):
         self.log_button.setEnabled(self.output is not None \
                                    and len(self.output) > 0)
         self.kill_if_running()
-        filename = to_text_string(self.filecombo.currentText())
+        filename = str(self.filecombo.currentText())
         if not filename:
             return
 
@@ -499,9 +498,7 @@ class PylintWidget(QWidget):
                     text_prun = ' (%s %s/10)' % (text_prun, previous_rate)
                     text += prevrate_style % (self.prevrate_color, text_prun)
                 self.treewidget.set_results(filename, results)
-                date = to_text_string(time.strftime("%Y-%m-%d %H:%M:%S",
-                                                    datetime),
-                                      encoding='utf8')
+                date = time.strftime("%Y-%m-%d %H:%M:%S", datetime)
                 date_text = text_style % (self.text_color, date)
 
         self.ratelabel.setText(text)
