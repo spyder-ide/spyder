@@ -62,12 +62,12 @@ class FakeObject(object):
 try:
     from numpy import ndarray
 except:
-    ndarray = FakeObject()
+    ndarray = FakeObject()  # analysis:ignore
 
 try:
     from numpy import array
 except:
-    array = FakeObject()
+    array = FakeObject()  # analysis:ignore
 
 #----date and datetime objects support
 import datetime
