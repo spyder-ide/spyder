@@ -1,20 +1,19 @@
-# Copyright (C) YEAR ORGANIZATION
-#
-# Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>, 2020.
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-11 08:58-0500\n"
-"PO-Revision-Date: 2020-01-31 08:49+0100\n"
-"Last-Translator: Łukasz Wojniłowicz <lukasz.wojnilowicz@gmail.com>\n"
-"Language-Team: Polish <kde-i18n-doc@kde.org>\n"
-"Language: pl_PL\n"
+"PO-Revision-Date: 2020-03-11 15:59\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: ENCODING\n"
-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Lokalize 20.03.70\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
+"X-Crowdin-Project: spyder\n"
+"X-Crowdin-Language: pl\n"
+"X-Crowdin-File: /4.x/spyder/locale/spyder.pot\n"
+"Language: pl_PL\n"
 
 #: spyder/app/mainwindow.py:144
 msgid "Initializing..."
@@ -249,16 +248,12 @@ msgid "Main toolbar"
 msgstr "Główny pasek narzędzi"
 
 #: spyder/app/mainwindow.py:837
-msgid ""
-"Spyder Internal Console\n"
-"\n"
+msgid "Spyder Internal Console\n\n"
 "This console is used to report application\n"
 "internal errors and to inspect Spyder\n"
 "internals with the following commands:\n"
-"  spy.app, spy.window, dir(spy)\n"
-"\n"
-"Please don't use it to run your code\n"
-"\n"
+"  spy.app, spy.window, dir(spy)\n\n"
+"Please don't use it to run your code\n\n"
 msgstr ""
 
 #: spyder/app/mainwindow.py:846
@@ -458,8 +453,7 @@ msgid "Reset to spyder default"
 msgstr "Przywróć domyślne ustawienia spydera"
 
 #: spyder/app/mainwindow.py:1990
-msgid ""
-"Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
+msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
 msgstr ""
 
@@ -536,20 +530,17 @@ msgid "Spyder is up to date."
 msgstr ""
 
 #: spyder/app/restart.py:136
-msgid ""
-"It was not possible to close the previous Spyder instance.\n"
+msgid "It was not possible to close the previous Spyder instance.\n"
 "Restart aborted."
 msgstr ""
 
 #: spyder/app/restart.py:138
-msgid ""
-"Spyder could not reset to factory defaults.\n"
+msgid "Spyder could not reset to factory defaults.\n"
 "Restart aborted."
 msgstr ""
 
 #: spyder/app/restart.py:140
-msgid ""
-"It was not possible to restart Spyder.\n"
+msgid "It was not possible to restart Spyder.\n"
 "Operation aborted."
 msgstr ""
 
@@ -1070,14 +1061,12 @@ msgid "not reachable"
 msgstr "niedostępny"
 
 #: spyder/plugins/completion/kite/widgets/status.py:54
-msgid ""
-"Kite installation will continue in the background.\n"
+msgid "Kite installation will continue in the background.\n"
 "Click here to show the installation dialog again"
 msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/status.py:59
-msgid ""
-"Click here to show the\n"
+msgid "Click here to show the\n"
 "installation dialog again"
 msgstr ""
 
@@ -1254,8 +1243,7 @@ msgid "Enable Go to definition"
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:761
-msgid ""
-"If enabled, left-clicking on an object name while \n"
+msgid "If enabled, left-clicking on an object name while \n"
 "pressing the {} key will go to that object's definition\n"
 "(if resolved)."
 msgstr ""
@@ -1273,8 +1261,7 @@ msgid "Enable hover hints"
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:771
-msgid ""
-"If enabled, hovering the mouse pointer over an object\n"
+msgid "If enabled, hovering the mouse pointer over an object\n"
 "name will display that object's signature and/or\n"
 "docstring (if present)."
 msgstr ""
@@ -1696,9 +1683,8 @@ msgid "Show indent guides"
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:41 spyder/plugins/editor/plugin.py:806
-#, fuzzy
 msgid "Show code folding"
-msgstr "Pokaż zarys wykresu"
+msgstr ""
 
 #: spyder/plugins/editor/confpage.py:42 spyder/plugins/history/confpage.py:35 spyder/plugins/history/plugin.py:116
 msgid "Show line numbers"
@@ -1757,8 +1743,7 @@ msgid "Tab always indent"
 msgstr "Tabulator zawsze wcina"
 
 #: spyder/plugins/editor/confpage.py:122
-msgid ""
-"If enabled, pressing Tab will always indent,\n"
+msgid "If enabled, pressing Tab will always indent,\n"
 "even when the cursor is not at the beginning\n"
 "of a line (when this option is enabled, code\n"
 "completion may be triggered using the alternate\n"
@@ -1770,8 +1755,7 @@ msgid "Automatically strip trailing spaces on changed lines"
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:130
-msgid ""
-"If enabled, modified lines of code (excluding strings)\n"
+msgid "If enabled, modified lines of code (excluding strings)\n"
 "will have their trailing whitespace stripped when leaving them.\n"
 "If disabled, only whitespace added by Spyder will be stripped."
 msgstr ""
@@ -2141,8 +2125,7 @@ msgid "Run cell"
 msgstr "Wykonaj komórkę"
 
 #: spyder/plugins/editor/plugin.py:615
-msgid ""
-"Run current cell \n"
+msgid "Run current cell \n"
 "[Use #%% to create cells]"
 msgstr ""
 
@@ -2471,9 +2454,8 @@ msgid "This file contains more than 2000 lines!  Code folding and indent guideli
 msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:1397
-#, fuzzy
 msgid "File too long"
-msgstr "Pasek narzędzi pliku"
+msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:2458
 msgid "Code analysis"
@@ -2488,9 +2470,7 @@ msgid "Removal error"
 msgstr "Błąd usuwania"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3073
-msgid ""
-"It was not possible to remove outputs from this notebook. The error is:\n"
-"\n"
+msgid "It was not possible to remove outputs from this notebook. The error is:\n\n"
 msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3085 spyder/plugins/explorer/widgets/explorer.py:872
@@ -2498,9 +2478,7 @@ msgid "Conversion error"
 msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3086 spyder/plugins/explorer/widgets/explorer.py:873
-msgid ""
-"It was not possible to convert this notebook. The error is:\n"
-"\n"
+msgid "It was not possible to convert this notebook. The error is:\n\n"
 msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3593
@@ -2664,9 +2642,7 @@ msgid "Recover from autosave"
 msgstr ""
 
 #: spyder/plugins/editor/widgets/recover.py:151
-msgid ""
-"Autosave files found. What would you like to do?\n"
-"\n"
+msgid "Autosave files found. What would you like to do?\n\n"
 "This dialog will be shown again on next startup if any autosave files are not restored, moved or deleted."
 msgstr ""
 
@@ -2967,9 +2943,7 @@ msgid "File/Folder copy error"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1118
-msgid ""
-"Cannot copy this type of file(s) or folder(s). The error was:\n"
-"\n"
+msgid "Cannot copy this type of file(s) or folder(s). The error was:\n\n"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1166
@@ -2977,9 +2951,7 @@ msgid "Error pasting file"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1167 spyder/plugins/explorer/widgets/explorer.py:1195
-msgid ""
-"Unsupported copy operation. The error was:\n"
-"\n"
+msgid "Unsupported copy operation. The error was:\n\n"
 msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1186
@@ -3339,9 +3311,8 @@ msgid "Automatic import"
 msgstr ""
 
 #: spyder/plugins/help/plugin.py:400
-#, fuzzy
 msgid "Retrieving documentation"
-msgstr "Dokumentacja Qt"
+msgstr ""
 
 #: spyder/plugins/help/plugin.py:410
 msgid "Here you can get help of any object by pressing %s in front of it, either on the Editor or the Console.%s"
@@ -3444,8 +3415,7 @@ msgid "Display initial banner"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:35
-msgid ""
-"This option lets you hide the message shown at\n"
+msgid "This option lets you hide the message shown at\n"
 "the top of the console when it's opened."
 msgstr ""
 
@@ -3454,8 +3424,7 @@ msgid "Use a pager to display additional text inside the console"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:40
-msgid ""
-"Useful if you don't want to fill the console with long help or completion texts.\n"
+msgid "Useful if you don't want to fill the console with long help or completion texts.\n"
 "Note: Use the Q key to get out of the pager."
 msgstr ""
 
@@ -3468,8 +3437,7 @@ msgid "Ask for confirmation before removing all user-defined variables"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:52
-msgid ""
-"This option lets you hide the warning message shown\n"
+msgid "This option lets you hide the warning message shown\n"
 "when resetting the namespace from Spyder."
 msgstr ""
 
@@ -3482,8 +3450,7 @@ msgid "Ask for confirmation before restarting"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:58
-msgid ""
-"This option lets you hide the warning message shown\n"
+msgid "This option lets you hide the warning message shown\n"
 "when restarting the kernel."
 msgstr ""
 
@@ -3520,8 +3487,7 @@ msgid "Buffer:  "
 msgstr "Bufor:  "
 
 #: spyder/plugins/ipythonconsole/confpage.py:87
-msgid ""
-"Set the maximum number of lines of text shown in the\n"
+msgid "Set the maximum number of lines of text shown in the\n"
 "console before truncation. Specifying -1 disables it\n"
 "(not recommended!)"
 msgstr ""
@@ -3539,8 +3505,7 @@ msgid "Automatically load Pylab and NumPy modules"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:101
-msgid ""
-"This lets you load graphics support without importing\n"
+msgid "This lets you load graphics support without importing\n"
 "the commands to do plots. Useful to work with other\n"
 "plotting libraries different to Matplotlib or to develop\n"
 "GUIs with Spyder."
@@ -3619,8 +3584,7 @@ msgid "Use a tight layout for inline plots"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:176
-msgid ""
-"Sets bbox_inches to \"tight\" when\n"
+msgid "Sets bbox_inches to \"tight\" when\n"
 "plotting inline with matplotlib.\n"
 "When enabled, can cause discrepancies\n"
 "between the image displayed inline and\n"
@@ -3848,15 +3812,11 @@ msgid "Connection error"
 msgstr "Błąd połączenia"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1502
-msgid ""
-"An error occurred while trying to load the kernel connection file. The error was:\n"
-"\n"
+msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/plugin.py:1522
-msgid ""
-"Could not open ssh tunnel. The error was:\n"
-"\n"
+msgid "Could not open ssh tunnel. The error was:\n\n"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/utils/ssh.py:65
@@ -3920,8 +3880,7 @@ msgid "Error restarting kernel: %s\n"
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/client.py:597
-msgid ""
-"<br>Restarting kernel...\n"
+msgid "<br>Restarting kernel...\n"
 "<hr><br>"
 msgstr ""
 
@@ -3930,8 +3889,7 @@ msgid "Connecting to kernel..."
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/figurebrowser.py:63
-msgid ""
-"<br><hr>\n"
+msgid "<br><hr>\n"
 "Figures now render in the Plots pane by default. To make them also appear inline in the Console, uncheck \"Mute Inline Plotting\" under the Plots pane options menu. \n"
 "<hr><br>"
 msgstr ""
@@ -4013,9 +3971,8 @@ msgid "Do you want to overwrite old variables (if any) in the namespace when loa
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:129
-#, fuzzy
 msgid "Data loading"
-msgstr "Pobieranie"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:138
 msgid "Data is too big to be loaded"
@@ -4030,8 +3987,7 @@ msgid "All user-defined variables will be removed. Are you sure you want to proc
 msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:340
-msgid ""
-"<br><br>Removing all variables...\n"
+msgid "<br><br>Removing all variables...\n"
 "<hr>"
 msgstr ""
 
@@ -4112,39 +4068,32 @@ msgid "Plots"
 msgstr "Wykresy"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:162 spyder/plugins/plots/widgets/figurebrowser.py:1079
-#, fuzzy
 msgid "Save plot as..."
-msgstr "Zapisz kopię jako..."
+msgstr ""
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:169
-#, fuzzy
 msgid "Save all plots..."
-msgstr "Z&apisz jako..."
+msgstr ""
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:176
-#, fuzzy
 msgid "Copy plot to clipboard as image"
-msgstr "Skopiuj ścieżkę do schowka"
+msgstr ""
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:183 spyder/plugins/plots/widgets/figurebrowser.py:1089
-#, fuzzy
 msgid "Remove plot"
-msgstr "Usuń ścieżkę"
+msgstr ""
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:190
-#, fuzzy
 msgid "Remove all plots"
-msgstr "Usuń wszystkie zmienne"
+msgstr ""
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:200
-#, fuzzy
 msgid "Previous plot"
-msgstr "Poprzedni"
+msgstr ""
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:207
-#, fuzzy
 msgid "Next plot"
-msgstr "Następny"
+msgstr ""
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:255
 msgid "Mute inline plotting"
@@ -4171,17 +4120,15 @@ msgid "Automatically fit plots to Plot pane size."
 msgstr ""
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:1084
-#, fuzzy
 msgid "Copy Image"
-msgstr "Pokaż obraz"
+msgstr ""
 
 #: spyder/plugins/profiler/confpage.py:19 spyder/plugins/pylint/confpage.py:34
 msgid "Results"
 msgstr "Wyniki"
 
 #: spyder/plugins/profiler/confpage.py:20
-msgid ""
-"Profiler plugin results (the output of python's profile/cProfile)\n"
+msgid "Profiler plugin results (the output of python's profile/cProfile)\n"
 "are stored here:"
 msgstr ""
 
@@ -4374,9 +4321,8 @@ msgid "<b>Unable to delete <i>{varpath}</i></b><br><br>The error message was:<br
 msgstr ""
 
 #: spyder/plugins/projects/plugin.py:401
-#, fuzzy
 msgid "Projects"
-msgstr "&Projekty"
+msgstr ""
 
 #: spyder/plugins/projects/plugin.py:402
 msgid "Maximum number of recent projects"
@@ -4619,9 +4565,8 @@ msgid "%s are currently not supported"
 msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:694
-#, fuzzy
 msgid "NumPy object array"
-msgstr "Macierz NumPy"
+msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:696 spyder/plugins/variableexplorer/widgets/arrayeditor.py:879
 msgid "Array editor"
@@ -4668,9 +4613,7 @@ msgid "Save and Close"
 msgstr "Zapisz i zamknij"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:103 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:407
-msgid ""
-"Opening this variable can be slow\n"
-"\n"
+msgid "Opening this variable can be slow\n\n"
 "Do you want to continue anyway?"
 msgstr ""
 
@@ -4843,8 +4786,7 @@ msgid "Nothing to be imported from clipboard."
 msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:341
-msgid ""
-"It is not possible to display this value because\n"
+msgid "It is not possible to display this value because\n"
 "an error ocurred while trying to do it"
 msgstr ""
 
@@ -5253,8 +5195,7 @@ msgid "Back"
 msgstr "Wstecz"
 
 #: spyder/plugins/workingdirectory/plugin.py:82
-msgid ""
-"This is the working directory for newly\n"
+msgid "This is the working directory for newly\n"
 "opened consoles (Python/IPython consoles and\n"
 "terminals), for the file explorer, for the\n"
 "find in files plugin and for new files\n"
@@ -5518,8 +5459,7 @@ msgid "Set this for high DPI displays when auto scaling does not work"
 msgstr ""
 
 #: spyder/preferences/general.py:269
-msgid ""
-"Enter values for different screens separated by semicolons ';'.\n"
+msgid "Enter values for different screens separated by semicolons ';'.\n"
 "Float values are supported"
 msgstr ""
 
@@ -5620,8 +5560,7 @@ msgid "You are working with Python 2, this means that you can not import a modul
 msgstr ""
 
 #: spyder/preferences/maininterpreter.py:223
-msgid ""
-"The following modules are not installed on your machine:\n"
+msgid "The following modules are not installed on your machine:\n"
 "%s"
 msgstr ""
 
@@ -5910,8 +5849,7 @@ msgid "Instance:"
 msgstr "Wystąpienie:"
 
 #: spyder/widgets/arraybuilder.py:200
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy Array/Matrix Helper</b><br>\n"
 "           Type an array in Matlab    : <code>[1 2;3 4]</code><br>\n"
 "           or Spyder simplified syntax : <code>1 2;3 4</code>\n"
@@ -5924,8 +5862,7 @@ msgid ""
 msgstr ""
 
 #: spyder/widgets/arraybuilder.py:211
-msgid ""
-"\n"
+msgid "\n"
 "           <b>Numpy Array/Matrix Helper</b><br>\n"
 "           Enter an array in the table. <br>\n"
 "           Use Tab to move between cells.\n"
@@ -5994,9 +5931,8 @@ msgid "Mandatory"
 msgstr ""
 
 #: spyder/widgets/dependencies.py:45
-#, fuzzy
 msgid "Spyder plugins"
-msgstr "Uaktualnienia Spyder"
+msgstr ""
 
 #: spyder/widgets/dependencies.py:88
 msgid "Optional modules are not required to run Spyder but enhance its functions."
@@ -6370,20 +6306,3 @@ msgstr ""
 msgid "Unable to check for updates."
 msgstr ""
 
-#~ msgid "Save Image As..."
-#~ msgstr "Zapisz obraz jako..."
-
-#~ msgid "Remove image"
-#~ msgstr "Usuń obraz"
-
-#~ msgid "Delete image"
-#~ msgstr "Usuń obraz"
-
-#~ msgid "Password: "
-#~ msgstr "Hasło: "
-
-#~ msgid "Remember me"
-#~ msgstr "Zapamiętaj mnie"
-
-#~ msgid "Password Only"
-#~ msgstr "Tylko hasło"
