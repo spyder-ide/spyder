@@ -37,7 +37,7 @@ class Breakpoints(SpyderPluginWidget):
 
     def __init__(self, parent=None):
         """Initialization."""
-        SpyderPluginWidget.__init__(self, parent)
+        super().__init__(parent)
 
         self.breakpoints = BreakpointWidget(self,
                                             options_button=self.options_button)
