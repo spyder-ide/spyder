@@ -201,10 +201,6 @@ def test_dependencies_for_binder_in_sync():
     spyder_reqs = parse_requirements(REQ_FPATH)
     test_reqs = parse_requirements(REQ_TEST_FPATH)
 
-    # RTree is only available the right way with conda not pypi
-    if 'rtree' in spyder_env:
-        spyder_env.pop('rtree')
-
     # xvfb is only available on linux (which binder runs on)
     if 'pytest-xvfb' in spyder_env:
         spyder_env.pop('pytest-xvfb')
@@ -228,10 +224,6 @@ def test_dependencies_for_spyder_dialog_in_sync():
     # a subrepo for it in some cases
     for req in [spyder_deps, spyder_reqs]:
         req.pop('spyder-kernels')
-
-    # RTree is only available the right way with conda not pypi
-    if 'rtree' in spyder_deps:
-        spyder_deps.pop('rtree')
 
     if 'pyqt' in spyder_reqs:
         spyder_reqs.pop('pyqt')
@@ -257,6 +249,10 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
     # a subrepo for it in some cases
     for req in [spyder_reqs, spyder_setup]:
         req.pop('spyder-kernels')
+
+    # rtree is only available through conda
+    if 'rtree' in spyder_reqs:
+        spyder_reqs.pop('rtree')
 
     if 'pyqtwebengine' in spyder_setup:
         spyder_setup.pop('pyqtwebengine')

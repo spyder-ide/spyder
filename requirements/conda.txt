@@ -28,6 +28,7 @@ qdarkstyle >=2.8
 qtawesome >=0.5.7
 qtconsole >=4.6.0
 qtpy >=1.5.0
+rtree >=0.8.3
 sphinx >=0.6.6
 # NOTE: There's no need to set a version for spyder-kernels
 # here because we're using a subrepo for it to run our tests.
