@@ -433,6 +433,45 @@ def test_get_help_combo(main_window, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.skipif(PY2, reason="Invalid definition of function in Python 2.")
+def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
+    """
+    Test that Help works when called from the IPython console
+    with dot calls i.e np.sin
+
+    See spyder-ide/spyder#11821
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = shell._control
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Open test file
+    test_file = osp.join(LOCATION, 'script_unicode.py')
+    main_window.editor.load(test_file)
+    code_editor = main_window.editor.get_focus_widget()
+
+    # Run test file
+    qtbot.keyClick(code_editor, Qt.Key_F5)
+    qtbot.wait(500)
+
+    help_plugin = main_window.help
+    webview = help_plugin.rich_text.webview._webview
+    webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
+
+    # Write function name
+    qtbot.keyClicks(control, u'np.sin')
+
+    # Get help
+    control.inspect_current_object()
+
+    # Check that a expected text is part of the page
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "Trigonometric sine, element-wise."),
+        timeout=6000)
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(PY2, reason="Invalid definition of function in Python 2.")
 def test_get_help_ipython_console_special_characters(
         main_window, qtbot, tmpdir):
     """
