@@ -1141,8 +1141,12 @@ class CodeEditor(TextEditBaseWidget):
             prefix = self.get_current_word()
             completions = ([] if completions is None else
                            [completion for completion in completions
-                            if completion.get('insertText') != prefix
+                            if completion.get('insertText')
                             or completion.get('textEdit', {}).get('newText')])
+            if (len(completions) == 1
+                    and completions[0].get('insertText') == prefix
+                    and not completions[0].get('textEdit', {}).get('newText')):
+                completions.pop()
 
             replace_end = self.textCursor().position()
             under_cursor = self.get_current_word_and_position(completion=True)
