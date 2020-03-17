@@ -1359,9 +1359,17 @@ class GetHelpMixin(object):
         self.help_enabled = state
 
     def inspect_current_object(self):
-        text = self.get_current_word(help_req=True)
-        if text:
-            self.show_object_info(text, force=True)
+        regex_word = ''
+        start_text = self.get_text('sol', 'cursor')
+        tl1 = re.findall(r'([a-zA-Z_]+[^\s^\(]*)', start_text)
+        if tl1 and start_text.endswith(tl1[-1]):
+            regex_word += tl1[-1]
+        end_text = self.get_text('cursor', 'eol')
+        tl2 = re.findall(r'([^\s^\(]+[0-9a-zA-Z_\.]*)', end_text)
+        if tl2 and end_text.startswith(tl2[0]):
+            regex_word += tl2[0]
+        if regex_word:
+            self.show_object_info(regex_word, force=True)
 
     def show_object_info(self, text, call=False, force=False):
         """Show signature calltip and/or docstring in the Help plugin"""
