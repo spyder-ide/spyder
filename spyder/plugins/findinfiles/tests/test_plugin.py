@@ -68,6 +68,5 @@ def test_closing_plugin(findinfiles, qtbot, mocker):
     assert path_selection_combo.get_external_paths() == expected_results
 
 
-
 if __name__ == "__main__":
     pytest.main(['-x', osp.basename(__file__), '-v', '-rw'])
