@@ -130,20 +130,21 @@ CMDCLASS = {'install_data': MyInstallData}
 # platforms due to a bug in pip installation process
 # See spyder-ide/spyder#1158.
 SCRIPTS = ['%s_win_post_install.py' % NAME]
+
 if PY3 and sys.platform.startswith('linux'):
     SCRIPTS.append('spyder3')
 else:
     SCRIPTS.append('spyder')
 
+if os.name == 'nt':
+    SCRIPTS += ['spyder.bat']
 
 #==============================================================================
 # Files added to the package
 #==============================================================================
 EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
-           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom']
-if os.name == 'nt':
-    SCRIPTS += ['spyder.bat']
-    EXTLIST += ['.ico']
+           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom',
+           '.ico', '.gif', '.mp3', '.ogg', '.sfd', '.bat', '.sh']
 
 
 #==============================================================================
