@@ -178,11 +178,12 @@ class PylintWidget(QWidget):
             tip=_("Run analysis"),
             triggered=self.analyze_button_handler,
             text_beside_icon=True)
-        self.stop_button = create_toolbutton(self,
-                                             icon=ima.icon('stop'),
-                                             text=_("Stop"),
-                                             tip=_("Stop current analysis"),
-                                             text_beside_icon=True)
+        self.stop_button = create_toolbutton(
+            self,
+            icon=ima.icon('stop'),
+            text=_("Stop"),
+            tip=_("Stop current analysis"),
+            text_beside_icon=True)
         self.filecombo.valid.connect(self.start_button.setEnabled)
         self.filecombo.valid.connect(self.check_new_file)
 
@@ -194,12 +195,13 @@ class PylintWidget(QWidget):
 
         self.ratelabel = QLabel()
         self.datelabel = QLabel()
-        self.log_button = create_toolbutton(self,
-                                            icon=ima.icon('log'),
-                                            text=_("Output"),
-                                            text_beside_icon=True,
-                                            tip=_("Complete output"),
-                                            triggered=self.show_log)
+        self.log_button = create_toolbutton(
+            self,
+            icon=ima.icon('log'),
+            text=_("Output"),
+            text_beside_icon=True,
+            tip=_("Complete output"),
+            triggered=self.show_log)
         self.treewidget = ResultsTree(self)
 
         hlayout1 = QHBoxLayout()
