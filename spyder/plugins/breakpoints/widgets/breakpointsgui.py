@@ -192,19 +192,13 @@ class BreakpointTableView(QTableView):
             c_row = index_clicked.row()
             filename = self.model.breakpoints[c_row][COL_FULL]
             lineno = int(self.model.breakpoints[c_row][COL_LINE])
-            # QAction.triggered works differently for PySide and PyQt
-            if not API == 'pyside':
-                clear_slot = lambda _checked, filename=filename, lineno=lineno: \
-                    self.clear_breakpoint.emit(filename, lineno)
-                edit_slot = lambda _checked, filename=filename, lineno=lineno: \
-                    (self.edit_goto.emit(filename, lineno, ''),
-                     self.set_or_edit_conditional_breakpoint.emit())
-            else:
-                clear_slot = lambda filename=filename, lineno=lineno: \
-                    self.clear_breakpoint.emit(filename, lineno)
-                edit_slot = lambda filename=filename, lineno=lineno: \
-                    (self.edit_goto.emit(filename, lineno, ''),
-                     self.set_or_edit_conditional_breakpoint.emit())
+
+            def clear_slot(filename=filename, lineno=lineno):
+                return self.clear_breakpoint.emit(filename, lineno)
+
+            def edit_slot(filename=filename, lineno=lineno):
+                self.edit_goto.emit(filename, lineno, '')
+                self.set_or_edit_conditional_breakpoint.emit()
 
             clear_breakpoint_action = create_action(
                     self, _("Clear this breakpoint"),
