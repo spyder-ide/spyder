@@ -24,6 +24,7 @@ spyder_crash.log
 .idea/
 .cache
 .coverage*
+MANIFEST
 
 # git .orig files
 *.orig
