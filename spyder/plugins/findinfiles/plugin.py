@@ -131,7 +131,7 @@ class FindInFiles(SpyderPluginWidget):
         self.set_option('max_results', value)
         self.findinfiles.set_max_results(value)
 
-    #------ SpyderPluginMixin API ---------------------------------------------
+    # ------ SpyderPluginMixin API --------------------------------------------
     def switch_to_plugin(self):
         """
         Switch to plugin.
@@ -142,7 +142,7 @@ class FindInFiles(SpyderPluginWidget):
             super(FindInFiles, self).switch_to_plugin()
         self.findinfiles_callback()  # Necessary at least with PyQt5 on Windows
 
-    #------ SpyderPluginWidget API --------------------------------------------
+    # ------ SpyderPluginWidget API -------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Find")

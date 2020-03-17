@@ -8,7 +8,6 @@
 """Test scripts for `findinfiles` plugin."""
 
 # Standard library imports
-import re
 import os
 import os.path as osp
 
@@ -20,7 +19,7 @@ from spyder.plugins.findinfiles.plugin import FindInFiles
 from spyder.plugins.findinfiles.widgets import SELECT_OTHER
 
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
-NONASCII_DIR = osp.join(LOCATION, u"èáïü Øαôå 字分误")
+NONASCII_DIR = osp.join(LOCATION, "èáïü Øαôå 字分误")
 if not osp.exists(NONASCII_DIR):
     os.makedirs(NONASCII_DIR)
 
@@ -40,7 +39,8 @@ def test_closing_plugin(findinfiles, qtbot, mocker):
     Test that the external paths listed in the combobox are saved and loaded
     correctly from the spyder config file.
     """
-    path_selection_combo = findinfiles.findinfiles.find_options.path_selection_combo
+    path_selection_combo = (
+        findinfiles.findinfiles.find_options.path_selection_combo)
     path_selection_combo.clear_external_paths()
     assert path_selection_combo.get_external_paths() == []
 
@@ -63,7 +63,8 @@ def test_closing_plugin(findinfiles, qtbot, mocker):
     # Close the plugin and assert that the external_path_history
     # has been saved and loaded as expected.
     findinfiles.close()
-    path_selection_combo = findinfiles.findinfiles.find_options.path_selection_combo
+    path_selection_combo = (
+        findinfiles.findinfiles.find_options.path_selection_combo)
     assert path_selection_combo.get_external_paths() == expected_results
 
 

@@ -18,15 +18,15 @@ import pytest
 from qtpy.QtCore import Qt
 
 # Local imports
-from spyder.plugins.findinfiles import widgets
-from spyder.plugins.findinfiles.widgets import (FindInFilesWidget, SearchInComboBox,
-                                                EXTERNAL_PATHS, SELECT_OTHER, CWD,
-                                                CLEAR_LIST, PROJECT, FILE_PATH,
-                                                QMessageBox, SearchThread)
-from spyder.py3compat import PY2
+from spyder.plugins.findinfiles.widgets import (FindInFilesWidget,
+                                                SearchInComboBox,
+                                                EXTERNAL_PATHS, SELECT_OTHER,
+                                                CWD, CLEAR_LIST, PROJECT,
+                                                FILE_PATH, QMessageBox,
+                                                SearchThread)
 
 LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
-NONASCII_DIR = osp.join(LOCATION, u"èáïü Øαôå 字分误")
+NONASCII_DIR = osp.join(LOCATION, "èáïü Øαôå 字分误")
 if not osp.exists(NONASCII_DIR):
     os.makedirs(NONASCII_DIR)
 
@@ -219,12 +219,9 @@ def test_truncate_result_with_different_input(findinfiles, qtbot, line_input):
     slice_start = 1
     slice_end = 2
 
-    if PY2:
-        line_input_expected = line_input.decode('utf-8')
-    else:
-        line_input_expected = line_input
+    line_input_expected = line_input
 
-    expected_result = u'<span style="color:None">%s<b>%s</b>%s</span>' % (
+    expected_result = '<span style="color:None">%s<b>%s</b>%s</span>' % (
         line_input_expected[:slice_start],
         line_input_expected[slice_start:slice_end],
         line_input_expected[slice_end:])
@@ -482,10 +479,11 @@ def test_set_project_path(findinfiles, qtbot):
 
 
 @pytest.mark.parametrize('findinfiles',
-                         [{'external_path_history': [LOCATION,
-                                                     osp.dirname(LOCATION),
-                                                     osp.dirname(osp.dirname(LOCATION)),
-                                                     NONASCII_DIR]}],
+                         [{'external_path_history': [
+                             LOCATION,
+                             osp.dirname(LOCATION),
+                             osp.dirname(osp.dirname(LOCATION)),
+                             NONASCII_DIR]}],
                          indirect=True)
 def test_current_search_path(findinfiles, qtbot):
     """
