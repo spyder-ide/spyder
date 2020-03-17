@@ -37,7 +37,7 @@ class FindInFiles(SpyderPluginWidget):
 
     def __init__(self, parent=None):
         """Initialization."""
-        SpyderPluginWidget.__init__(self, parent)
+        super(FindInFiles, self).__init__(parent)
 
         supported_encodings = self.get_option('supported_encodings')
         self.search_text_samples = self.get_option('search_text_samples')
@@ -81,7 +81,7 @@ class FindInFiles(SpyderPluginWidget):
         """Toggle widget visibility"""
         if self.dockwidget:
             self.dockwidget.setVisible(state)
-    
+
     def refreshdir(self):
         """Refresh search directory"""
         self.findinfiles.find_options.set_directory(
@@ -146,7 +146,7 @@ class FindInFiles(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         return _("Find")
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
