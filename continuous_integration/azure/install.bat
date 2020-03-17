@@ -41,6 +41,10 @@ if %USE_CONDA% == yes (
     if errorlevel 1 exit 1
 )
 
+:: To check our manifest
+pip install check-manifest
+if errorlevel 1 exit 1
+
 :: Create environment for Jedi environments tests
 conda create -n jedi-test-env -q -y python=3.6 flask spyder-kernels
 if errorlevel 1 exit 1
