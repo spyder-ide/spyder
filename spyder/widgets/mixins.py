@@ -458,7 +458,11 @@ class BaseEditMixin(object):
         signature_or_text = signature_or_text.replace('{', '&#123;')
         signature_or_text = signature_or_text.replace('}', '&#125;')
 
-        lines = signature_or_text.split('\n')
+        # Remove 'ufunc' signature if needed. See spyder-ide/spyder#11821
+        lines = [line for line in signature_or_text.split('\n')
+                 if 'ufunc' not in line]
+        signature_or_text = '\n'.join(lines)
+
         if language == 'python':
             open_func_char = '('
             has_multisignature = False
