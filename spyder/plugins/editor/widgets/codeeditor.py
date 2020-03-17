@@ -1185,9 +1185,8 @@ class CodeEditor(TextEditBaseWidget):
                         completion['insertText'] = insert_text
                         del completion['textEdit']
 
-            if len(completion_list) > 0:
-                self.completion_widget.show_list(
-                        completion_list, position, automatic)
+            self.completion_widget.show_list(
+                completion_list, position, automatic)
 
             self.kite_call_to_action.handle_processed_completions(completions)
         except RuntimeError:
