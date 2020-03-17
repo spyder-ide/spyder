@@ -40,13 +40,15 @@ from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 # This is needed for testing this module as a stand alone script
 try:
     _ = get_translation("pylint", "spyder_pylint")
-except KeyError as error:
+except KeyError:
     import gettext
     _ = gettext.gettext
 
 
 PYLINT_VER = pylint.__version__
-#TODO: display results on 3 columns instead of 1: msg_id, lineno, message
+
+
+# TODO: display results on 3 columns instead of 1: msg_id, lineno, message
 class ResultsTree(OneColumnTree):
     sig_edit_goto = Signal(str, int, str)
 
@@ -93,7 +95,7 @@ class ResultsTree(OneColumnTree):
                    ima.icon('error'), self.results['E:']))
         for title, icon, messages in results:
             title += ' (%d message%s)' % (len(messages),
-                                          's' if len(messages)>1 else '')
+                                          's' if len(messages) > 1 else '')
             title_item = QTreeWidgetItem(self, [title], QTreeWidgetItem.Type)
             title_item.setIcon(0, icon)
             if not messages:
@@ -130,7 +132,8 @@ class ResultsTree(OneColumnTree):
                     text = "[%s] %d : %s" % (msg_id, lineno, message)
                 else:
                     text = "%d : %s" % (lineno, message)
-                msg_item = QTreeWidgetItem(parent, [text], QTreeWidgetItem.Type)
+                msg_item = QTreeWidgetItem(parent, [text],
+                                           QTreeWidgetItem.Type)
                 msg_item.setIcon(0, ima.icon('arrow'))
                 self.data[id(msg_item)] = (modname, lineno)
 
@@ -168,11 +171,13 @@ class PylintWidget(QWidget):
 
         self.filecombo = PythonModulesComboBox(self)
 
-        self.start_button = create_toolbutton(self, icon=ima.icon('run'),
-                                    text=_("Analyze"),
-                                    tip=_("Run analysis"),
-                                    triggered=self.analyze_button_handler,
-                                    text_beside_icon=True)
+        self.start_button = create_toolbutton(
+            self,
+            icon=ima.icon('run'),
+            text=_("Analyze"),
+            tip=_("Run analysis"),
+            triggered=self.analyze_button_handler,
+            text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
                                              icon=ima.icon('stop'),
                                              text=_("Stop"),
@@ -181,17 +186,20 @@ class PylintWidget(QWidget):
         self.filecombo.valid.connect(self.start_button.setEnabled)
         self.filecombo.valid.connect(self.check_new_file)
 
-        browse_button = create_toolbutton(self, icon=ima.icon('fileopen'),
-                               tip=_('Select Python file'),
-                               triggered=self.select_file)
+        browse_button = create_toolbutton(
+            self,
+            icon=ima.icon('fileopen'),
+            tip=_('Select Python file'),
+            triggered=self.select_file)
 
         self.ratelabel = QLabel()
         self.datelabel = QLabel()
-        self.log_button = create_toolbutton(self, icon=ima.icon('log'),
-                                    text=_("Output"),
-                                    text_beside_icon=True,
-                                    tip=_("Complete output"),
-                                    triggered=self.show_log)
+        self.log_button = create_toolbutton(self,
+                                            icon=ima.icon('log'),
+                                            text=_("Output"),
+                                            text_beside_icon=True,
+                                            tip=_("Complete output"),
+                                            triggered=self.show_log)
         self.treewidget = ResultsTree(self)
 
         hlayout1 = QHBoxLayout()
@@ -239,7 +247,7 @@ class PylintWidget(QWidget):
     @Slot(str)
     def set_filename(self, filename):
         """Set filename without performing code analysis."""
-        filename = str(filename) # filename is a QString instance
+        filename = str(filename)  # filename is a QString instance
         self.kill_if_running()
         index, _data = self.get_data(filename)
         if index is None:
@@ -405,7 +413,7 @@ class PylintWidget(QWidget):
         results = {'C:': [], 'R:': [], 'W:': [], 'E:': []}
         txt_module = '************* Module '
 
-        module = '' # Should not be needed - just in case something goes wrong
+        module = ''  # Should not be needed - just in case something goes wrong
         for line in self.output.splitlines():
             if line.startswith(txt_module):
                 # New module
@@ -447,7 +455,6 @@ class PylintWidget(QWidget):
                 i_prun_end = self.output.find('/10', i_prun)
                 previous = self.output[i_prun+len(txt_prun):i_prun_end]
 
-
         filename = str(self.filecombo.currentText())
         self.set_data(filename, (time.localtime(), rate, previous, results))
         self.output = self.error_output + self.output
@@ -462,7 +469,7 @@ class PylintWidget(QWidget):
     def show_data(self, justanalyzed=False):
         if not justanalyzed:
             self.output = None
-        self.log_button.setEnabled(self.output is not None \
+        self.log_button.setEnabled(self.output is not None
                                    and len(self.output) > 0)
         self.kill_if_running()
         filename = str(self.filecombo.currentText())
