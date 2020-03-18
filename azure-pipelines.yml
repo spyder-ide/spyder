@@ -60,6 +60,11 @@ jobs:
     displayName: 'Show build environment'
     continueOnError: true
 
+  - script: |
+      check-manifest
+    displayName: 'Check manifest for missing files'
+    continueOnError: false
+
     # Run Tests
   - script: |
       ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh || ./continuous_integration/azure/runtests.sh
@@ -132,6 +137,11 @@ jobs:
       conda list
     displayName: 'Show build environment'
     continueOnError: true
+
+  - script: |
+      check-manifest
+    displayName: 'Check manifest for missing files'
+    continueOnError: false
 
     # Run Tests
   - script: |
