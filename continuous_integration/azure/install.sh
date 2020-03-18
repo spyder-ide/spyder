@@ -24,11 +24,6 @@ if [ "$USE_CONDA" = "yes" ]; then
 
     # Install python-language-server from Github with no deps
     pip install -q --no-deps git+https://github.com/palantir/python-language-server
-
-    # Avoid problems with wrong jupyter_client version being picked up
-    if [ "$PYTHON_VERSION" = "2.7" ]; then
-        conda install -q -y jupyter_client=5.3.4
-    fi
 else
     # Github backend tests are failing with 1.1.1d
     conda install -q -y openssl=1.1.1c
