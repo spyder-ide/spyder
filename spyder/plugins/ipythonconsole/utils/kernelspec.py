@@ -33,8 +33,8 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 logger = logging.getLogger(__name__)
 
 
-def validate_interpreter(pyexec):
-    """Check python excutable path and name."""
+def is_different_interpreter(pyexec):
+    """Check that pyexec is a different interpreter from sys.executable."""
     executable_validation = 'python' in osp.basename(pyexec)
     directory_validation = osp.dirname(pyexec) != osp.dirname(sys.executable)
     return directory_validation and executable_validation
@@ -95,7 +95,7 @@ class SpyderKernelSpec(KernelSpec):
                 CONF.set('main_interpreter', 'custom', False)
 
         # Part of spyder-ide/spyder#11819
-        is_different_interpreter = validate_interpreter(pyexec)
+        is_different_interpreter = is_different_interpreter(pyexec)
 
         # Fixes spyder-ide/spyder#3427.
         if os.name == 'nt':
