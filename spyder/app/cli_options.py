@@ -120,6 +120,13 @@ def get_options(argv=None):
                 "in your current working directory. Default is "
                 "'terminal'.")
      )
+     parser.add_argument(
+          '--report-segfault',
+          dest="report_segfault",
+          action='store_true',
+          default=False,
+          help="Report segmentation fault to Github."
+     )
 
      parser.add_argument('files', nargs='*')
      options = parser.parse_args(argv)
