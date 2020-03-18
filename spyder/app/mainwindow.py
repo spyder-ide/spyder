@@ -27,6 +27,7 @@ import logging
 import os
 import os.path as osp
 import re
+import shutil
 import signal
 import socket
 import glob
@@ -3672,37 +3673,31 @@ def main():
                                    args=[spyder.__path__[0]], p_args=['-O'])
         return
 
-    # **** Show crash dialog ****
-    if CONF.get('main', 'crash', False) and not DEV:
-        CONF.set('main', 'crash', False)
-        if SPLASH is not None:
-            SPLASH.hide()
-        QMessageBox.information(
-            None, "Spyder",
-            "Spyder crashed during last session.<br><br>"
-            "If Spyder does not start at all and <u>before submitting a "
-            "bug report</u>, please try to reset settings to defaults by "
-            "running Spyder with the command line option '--reset':<br>"
-            "<span style=\'color: #555555\'><b>spyder --reset</b></span>"
-            "<br><br>"
-            "<span style=\'color: #ff5555\'><b>Warning:</b></span> "
-            "this command will remove all your Spyder configuration files "
-            "located in '%s').<br><br>"
-            "If Spyder still fails to launch, you should consult our "
-            "comprehensive <b><a href=\"%s\">Troubleshooting Guide</a></b>, "
-            "which when followed carefully solves the vast majority of "
-            "crashes; also, take "
-            "the time to search for <a href=\"%s\">known bugs</a> or "
-            "<a href=\"%s\">discussions</a> matching your situation before "
-            "submitting a report to our <a href=\"%s\">issue tracker</a>. "
-            "Your feedback will always be greatly appreciated."
-            "" % (get_conf_path(), __trouble_url__, __project_url__,
-                  __forum_url__, __project_url__))
+    # **** Read faulthandler log file ****
+    faulthandler_file = get_conf_path('faulthandler.log')
+    previous_crash = ''
+    if osp.exists(faulthandler_file):
+        with open(faulthandler_file, 'r') as f:
+            previous_crash = f.read()
+
+        # Remove file to not pick it up for next time.
+        try:
+            dst = get_conf_path('faulthandler.log.old')
+            shutil.move(faulthandler_file, dst)
+        except Exception:
+            pass
+    CONF.set('main', 'previous_crash', previous_crash)
 
     # **** Create main window ****
     mainwindow = None
     try:
-        mainwindow = run_spyder(app, options, args)
+        if PY3 and options.report_segfault:
+            import faulthandler
+            with open(faulthandler_file, 'w') as f:
+                faulthandler.enable(file=f)
+                mainwindow = run_spyder(app, options, args)
+        else:
+            mainwindow = run_spyder(app, options, args)
     except FontError as fontError:
         QMessageBox.information(None, "Spyder",
                 "Spyder was unable to load the <i>Spyder 3</i> "
@@ -3710,11 +3705,6 @@ def main():
                 "theme used in Spyder 2.<br><br>"
                 "For that, please close this window and start Spyder again.")
         CONF.set('appearance', 'icon_theme', 'spyder 2')
-    except BaseException:
-        CONF.set('main', 'crash', True)
-        import traceback
-        traceback.print_exc(file=STDERR)
-        traceback.print_exc(file=open('spyder_crash.log', 'w'))
     if mainwindow is None:
         # An exception occurred
         if SPLASH is not None:
