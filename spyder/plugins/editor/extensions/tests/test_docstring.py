@@ -236,6 +236,63 @@ def test_get_function_body(editor_auto_docstring, text, indent, expected):
 
     """
     '''),
+        ('Sphinxdoc',
+         '''async def foo():
+    raise
+    raise ValueError
+    raise TypeError("test")
+    yield value
+    ''',
+         '''async def foo():
+    """\n    \n    :raises ValueError: DESCRIPTION
+    :raises TypeError: DESCRIPTION
+    :yield: DESCRIPTION
+    :rtype: TYPE
+
+    """
+    raise
+    raise ValueError
+    raise TypeError("test")
+    yield value
+    '''
+         ),
+        ('Sphinxdoc',
+         '''  def foo():
+      ''',
+         '''  def foo():
+      """\n      \n      :return: DESCRIPTION
+      :rtype: TYPE
+
+      """
+      ''',
+         ),
+        ('Sphinxdoc',
+         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
+  (List[Tuple[str, float]], str, float):
+    ''',
+         '''def foo(arg, arg0, arg1: int, arg2: List[Tuple[str, float]],
+    arg3='-> (float, int):', arg4=':float, int[', arg5: str='""') -> \
+  (List[Tuple[str, float]], str, float):
+    """\n    \n    :param arg: DESCRIPTION
+    :type arg: TYPE
+    :param arg0: DESCRIPTION
+    :type arg0: TYPE
+    :param arg1: DESCRIPTION
+    :type arg1: int
+    :param arg2: DESCRIPTION
+    :type arg2: List[Tuple[str, float]]
+    :param arg3: DESCRIPTION, defaults to '-> (float, int):'
+    :type arg3: TYPE, optional
+    :param arg4: DESCRIPTION, defaults to ':float, int['
+    :type arg4: TYPE, optional
+    :param arg5: DESCRIPTION, defaults to '""'
+    :type arg5: str, optional
+    :return: DESCRIPTION
+    :rtype: (List[Tuple[str, float]], str, float)
+
+    """
+    ''')
     ])
 def test_editor_docstring_by_shortcut(editor_auto_docstring, doc_type,
                                       text, expected, use_shortcut):

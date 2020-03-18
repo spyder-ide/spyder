@@ -29,7 +29,6 @@ from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
 
 # Local imports
 from spyder.config.base import _, get_conf_path, running_under_pytest
-from spyder.config.gui import get_shortcut
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter)
@@ -517,50 +516,61 @@ class Editor(SpyderPluginWidget):
         pdb_ignore_lib = create_action(
             self, _("Ignore Python libraries while debugging"),
             toggled=self.toggle_pdb_ignore_lib)
+        pdb_execute_events = create_action(
+            self, _("Process execute events while debugging"),
+            toggled=self.toggle_pdb_execute_events)
 
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
         self.winpdb_action.setEnabled(WINPDB_PATH is not None and PY2)
 
         # --- Debug toolbar ---
-        debug_action = create_action(self, _("&Debug"),
-                                     icon=ima.icon('debug'),
-                                     tip=_("Debug file"),
-                                     triggered=self.debug_file)
-        self.register_shortcut(debug_action, context="_", name="Debug",
+        self.debug_action = create_action(
+            self, _("&Debug"),
+            icon=ima.icon('debug'),
+            tip=_("Debug file"),
+            triggered=self.debug_file)
+        self.register_shortcut(self.debug_action, context="_", name="Debug",
                                add_shortcut_to_tip=True)
 
-        debug_next_action = create_action(self, _("Step"),
-               icon=ima.icon('arrow-step-over'), tip=_("Run current line"),
-               triggered=lambda: self.debug_command("next"))
-        self.register_shortcut(debug_next_action, "_", "Debug Step Over",
+        self.debug_next_action = create_action(
+            self, _("Step"),
+            icon=ima.icon('arrow-step-over'), tip=_("Run current line"),
+            triggered=lambda: self.debug_command("next"))
+        self.register_shortcut(self.debug_next_action, "_", "Debug Step Over",
                                add_shortcut_to_tip=True)
 
-        debug_continue_action = create_action(self, _("Continue"),
-               icon=ima.icon('arrow-continue'),
-               tip=_("Continue execution until next breakpoint"),
-               triggered=lambda: self.debug_command("continue"))
-        self.register_shortcut(debug_continue_action, "_", "Debug Continue",
+        self.debug_continue_action = create_action(
+            self, _("Continue"),
+            icon=ima.icon('arrow-continue'),
+            tip=_("Continue execution until next breakpoint"),
+            triggered=lambda: self.debug_command("continue"))
+        self.register_shortcut(
+            self.debug_continue_action, "_", "Debug Continue",
+            add_shortcut_to_tip=True)
+
+        self.debug_step_action = create_action(
+            self, _("Step Into"),
+            icon=ima.icon('arrow-step-in'),
+            tip=_("Step into function or method of current line"),
+            triggered=lambda: self.debug_command("step"))
+        self.register_shortcut(self.debug_step_action, "_", "Debug Step Into",
                                add_shortcut_to_tip=True)
 
-        debug_step_action = create_action(self, _("Step Into"),
-               icon=ima.icon('arrow-step-in'),
-               tip=_("Step into function or method of current line"),
-               triggered=lambda: self.debug_command("step"))
-        self.register_shortcut(debug_step_action, "_", "Debug Step Into",
-                               add_shortcut_to_tip=True)
+        self.debug_return_action = create_action(
+            self, _("Step Return"),
+            icon=ima.icon('arrow-step-out'),
+            tip=_("Run until current function or method returns"),
+            triggered=lambda: self.debug_command("return"))
+        self.register_shortcut(
+            self.debug_return_action, "_", "Debug Step Return",
+            add_shortcut_to_tip=True)
 
-        debug_return_action = create_action(self, _("Step Return"),
-               icon=ima.icon('arrow-step-out'),
-               tip=_("Run until current function or method returns"),
-               triggered=lambda: self.debug_command("return"))
-        self.register_shortcut(debug_return_action, "_", "Debug Step Return",
-                               add_shortcut_to_tip=True)
-
-        debug_exit_action = create_action(self, _("Stop"),
-               icon=ima.icon('stop_debug'), tip=_("Stop debugging"),
-               triggered=lambda: self.debug_command("exit"))
-        self.register_shortcut(debug_exit_action, "_", "Debug Exit",
+        self.debug_exit_action = create_action(
+            self, _("Stop"),
+            icon=ima.icon('stop_debug'), tip=_("Stop debugging"),
+            triggered=lambda: self.debug_command("exit"))
+        self.register_shortcut(self.debug_exit_action, "_", "Debug Exit",
                                add_shortcut_to_tip=True)
 
         # --- Run toolbar ---
@@ -570,11 +580,14 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(run_action, context="_", name="Run",
                                add_shortcut_to_tip=True)
 
-        configure_action = create_action(self, _("&Configuration per file..."),
-                                         icon=ima.icon('run_settings'),
-                               tip=_("Run settings"),
-                               menurole=QAction.NoRole,
-                               triggered=self.edit_run_configurations)
+        configure_action = create_action(
+            self,
+            _("&Configuration per file..."),
+            icon=ima.icon('run_settings'),
+            tip=_("Run settings"),
+            menurole=QAction.NoRole,
+            triggered=self.edit_run_configurations)
+
         self.register_shortcut(configure_action, context="_",
                                name="Configure", add_shortcut_to_tip=True)
 
@@ -599,29 +612,38 @@ class Editor(SpyderPluginWidget):
         run_cell_action = create_action(self,
                             _("Run cell"),
                             icon=ima.icon('run_cell'),
-                            shortcut=get_shortcut('editor', 'run cell'),
                             tip=_("Run current cell \n"
                                   "[Use #%% to create cells]"),
                             triggered=self.run_cell,
                             context=Qt.WidgetShortcut)
 
-        run_cell_advance_action = create_action(self,
-                   _("Run cell and advance"),
-                   icon=ima.icon('run_cell_advance'),
-                   shortcut=get_shortcut('editor', 'run cell and advance'),
-                   tip=_("Run current cell and go to the next one "),
-                   triggered=self.run_cell_and_advance,
-                   context=Qt.WidgetShortcut)
+        self.register_shortcut(run_cell_action, context="Editor",
+                               name="Run cell", add_shortcut_to_tip=True)
 
-        debug_cell_action = create_action(
+        run_cell_advance_action = create_action(
+            self,
+            _("Run cell and advance"),
+            icon=ima.icon('run_cell_advance'),
+            tip=_("Run current cell and go to the next one "),
+            triggered=self.run_cell_and_advance,
+            context=Qt.WidgetShortcut)
+
+        self.register_shortcut(run_cell_advance_action, context="Editor",
+                               name="Run cell and advance",
+                               add_shortcut_to_tip=True)
+
+        self.debug_cell_action = create_action(
             self,
             _("Debug cell"),
             icon=ima.icon('debug_cell'),
-            shortcut=get_shortcut('editor', 'debug cell'),
             tip=_("Debug current cell "
                   "(Alt+Shift+Enter)"),
             triggered=self.debug_cell,
             context=Qt.WidgetShortcut)
+
+        self.register_shortcut(self.debug_cell_action, context="Editor",
+                               name="Debug cell",
+                               add_shortcut_to_tip=True)
 
         re_run_last_cell_action = create_action(self,
                    _("Re-run last cell"),
@@ -780,6 +802,9 @@ class Editor(SpyderPluginWidget):
         showindentguides_action = self._create_checkable_action(
             _("Show indent guides"), 'indent_guides', 'set_indent_guides')
 
+        showcodefolding_action = self._create_checkable_action(
+            _("Show code folding"), 'code_folding', 'set_code_folding_enabled')
+
         show_classfunc_dropdown_action = self._create_checkable_action(
             _("Show selector for classes and functions"),
             'show_class_func_dropdown', 'set_classfunc_dropdown_visible')
@@ -798,6 +823,7 @@ class Editor(SpyderPluginWidget):
                 'blank_spaces': showblanks_action,
                 'scroll_past_end': scrollpastend_action,
                 'indent_guides': showindentguides_action,
+                'code_folding': showcodefolding_action,
                 'show_class_func_dropdown': show_classfunc_dropdown_action,
                 'pycodestyle': show_codestyle_warnings_action,
                 'pydocstyle': show_docstring_warnings_action,
@@ -835,13 +861,13 @@ class Editor(SpyderPluginWidget):
             self.go_to_next_file_action = create_action(
                 self,
                 _("Go to next file"),
-                shortcut=get_shortcut('editor', 'go to previous file'),
+                shortcut=CONF.get_shortcut('editor', 'go to previous file'),
                 triggered=self.go_to_next_file,
             )
             self.go_to_previous_file_action = create_action(
                 self,
                 _("Go to previous file"),
-                shortcut=get_shortcut('editor', 'go to next file'),
+                shortcut=CONF.get_shortcut('editor', 'go to next file'),
                 triggered=self.go_to_previous_file,
             )
             self.register_shortcut(
@@ -934,15 +960,16 @@ class Editor(SpyderPluginWidget):
         # plugin to add its "List breakpoints" action to this
         # menu
         debug_menu_actions = [
-            debug_action,
-            debug_cell_action,
-            debug_next_action,
-            debug_step_action,
-            debug_return_action,
-            debug_continue_action,
-            debug_exit_action,
+            self.debug_action,
+            self.debug_cell_action,
+            self.debug_next_action,
+            self.debug_step_action,
+            self.debug_return_action,
+            self.debug_continue_action,
+            self.debug_exit_action,
             MENU_SEPARATOR,
             pdb_ignore_lib,
+            pdb_execute_events,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             clear_all_breakpoints_action,
@@ -952,12 +979,12 @@ class Editor(SpyderPluginWidget):
         ]
         self.main.debug_menu_actions += debug_menu_actions
         debug_toolbar_actions = [
-            debug_action,
-            debug_next_action,
-            debug_step_action,
-            debug_return_action,
-            debug_continue_action,
-            debug_exit_action
+            self.debug_action,
+            self.debug_next_action,
+            self.debug_step_action,
+            self.debug_return_action,
+            self.debug_continue_action,
+            self.debug_exit_action
         ]
         self.main.debug_toolbar_actions += debug_toolbar_actions
 
@@ -966,6 +993,7 @@ class Editor(SpyderPluginWidget):
             showblanks_action,
             scrollpastend_action,
             showindentguides_action,
+            showcodefolding_action,
             show_classfunc_dropdown_action,
             show_codestyle_warnings_action,
             show_docstring_warnings_action,
@@ -1015,8 +1043,8 @@ class Editor(SpyderPluginWidget):
             configure_action,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
-            debug_action,
-            debug_cell_action,
+            self.debug_action,
+            self.debug_cell_action,
             run_selected_action,
             run_cell_action,
             run_cell_advance_action,
@@ -1054,6 +1082,25 @@ class Editor(SpyderPluginWidget):
         CONF.set('run', 'pdb_ignore_lib', checked)
         self.main.ipyconsole.set_pdb_ignore_lib()
 
+    def toggle_pdb_execute_events(self, checked):
+        """"Set pdb_execute_events"""
+        CONF.set('run', 'pdb_execute_events', checked)
+        self.main.ipyconsole.set_pdb_execute_events()
+
+    def update_pdb_state(self, state, last_step):
+        """Enable/disable debugging actions and handle pdb state change."""
+        # Enable/disable actions taking into account debugging state:
+        # self.debug_action.setEnabled(not state)
+        # self.debug_cell_action.setEnabled(not state)
+        # self.debug_next_action.setEnabled(state)
+        # self.debug_step_action.setEnabled(state)
+        # self.debug_return_action.setEnabled(state)
+        # self.debug_continue_action.setEnabled(state)
+        # self.debug_exit_action.setEnabled(state)
+        current_editor = self.get_current_editor()
+        if current_editor:
+            current_editor.update_debugger_panel_state(state, last_step)
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.restore_scrollbar_position.connect(
@@ -1069,6 +1116,7 @@ class Editor(SpyderPluginWidget):
         if not editorstack.data:
             self.__load_temp_file()
         self.add_dockwidget()
+        self.update_pdb_state(False, {})
 
         # Add modes to switcher
         self.switcher_manager = EditorSwitcherManager(
@@ -1090,6 +1138,22 @@ class Editor(SpyderPluginWidget):
                 kite_call_to_action = finfo.editor.kite_call_to_action
                 comp_widget.setup_appearance(completion_size, font)
                 kite_call_to_action.setFont(font)
+
+    def set_ancestor(self, ancestor):
+        """
+        Set ancestor of child widgets like the CompletionWidget.
+
+        Needed to properly set position of the widget based on the correct
+        parent/ancestor.
+
+        See spyder-ide/spyder#11076
+        """
+        for editorstack in self.editorstacks:
+            for finfo in editorstack.data:
+                comp_widget = finfo.editor.completion_widget
+                kite_call_to_action = finfo.editor.kite_call_to_action
+                comp_widget.setParent(ancestor)
+                kite_call_to_action.setParent(ancestor)
 
     def _create_checkable_action(self, text, conf_name, method=''):
         """Helper function to create a checkable action.
@@ -1217,6 +1281,7 @@ class Editor(SpyderPluginWidget):
             ('set_edgeline_enabled',                'edge_line'),
             ('set_edgeline_columns',                'edge_line_columns'),
             ('set_indent_guides',                   'indent_guides'),
+            ('set_code_folding_enabled',            'code_folding'),
             ('set_focus_to_editor',                 'focus_to_editor'),
             ('set_run_cell_copy',                   'run_cell_copy'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
@@ -1906,7 +1971,8 @@ class Editor(SpyderPluginWidget):
                 # (the one that can't be destroyed), then cloning this
                 # editor widget in all other editorstacks:
                 finfo = self.editorstacks[0].load(
-                    filename, set_current=False, add_where=add_where)
+                    filename, set_current=False, add_where=add_where,
+                    processevents=processevents)
                 finfo.path = self.main.get_spyder_pythonpath()
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename,
@@ -1932,6 +1998,9 @@ class Editor(SpyderPluginWidget):
                 current_sw = self.main.ipyconsole.get_current_shellwidget()
                 current_sw.sig_prompt_ready.connect(
                     current_editor.sig_debug_stop[()].emit)
+                current_pdb_state = self.main.ipyconsole.get_pdb_state()
+                pdb_last_step = self.main.ipyconsole.get_pdb_last_step()
+                self.update_pdb_state(current_pdb_state, pdb_last_step)
 
     @Slot()
     def print_file(self):
@@ -1967,11 +2036,28 @@ class Editor(SpyderPluginWidget):
         preview.exec_()
         self.redirect_stdio.emit(True)
 
+    def can_close_file(self, filename=None):
+        """
+        Check if a file can be closed taking into account debugging state.
+        """
+        debugging = self.main.ipyconsole.get_pdb_state()
+        last_pdb_step = self.main.ipyconsole.get_pdb_last_step()
+        can_close = True
+        if debugging and 'fname' in last_pdb_step and filename:
+            if osp.normcase(last_pdb_step['fname']) == osp.normcase(filename):
+                can_close = False
+        elif debugging:
+            can_close = False
+        return can_close
+
     @Slot()
     def close_file(self):
         """Close current file"""
-        editorstack = self.get_current_editorstack()
-        editorstack.close_file()
+        filename = self.get_current_filename()
+        if self.can_close_file(filename=filename):
+            editorstack = self.get_current_editorstack()
+            editorstack.close_file()
+
     @Slot()
     def close_all_files(self):
         """Close all opened scripts"""
@@ -2067,7 +2153,8 @@ class Editor(SpyderPluginWidget):
         Propagate file rename to editor stacks and autosave component.
 
         This function is called when a file is renamed in the file explorer
-        widget or the project explorer.
+        widget or the project explorer. The file may not be opened in the
+        editor.
         """
         filename = osp.abspath(to_text_string(source))
         index = self.editorstacks[0].has_filename(filename)
@@ -2075,8 +2162,8 @@ class Editor(SpyderPluginWidget):
             for editorstack in self.editorstacks:
                 editorstack.rename_in_data(filename,
                                            new_filename=to_text_string(dest))
-        self.editorstacks[0].autosave.file_renamed(
-            filename, to_text_string(dest))
+            self.editorstacks[0].autosave.file_renamed(
+                filename, to_text_string(dest))
 
     def renamed_tree(self, source, dest):
         """Directory was renamed in file explorer or in project explorer."""
@@ -2245,6 +2332,12 @@ class Editor(SpyderPluginWidget):
         current_stack = self.get_current_editorstack()
         if current_stack is not None:
             current_stack.hide_tooltip()
+
+        # Update debugging state
+        if self.main.ipyconsole is not None:
+            pdb_state = self.main.ipyconsole.get_pdb_state()
+            pdb_last_step = self.main.ipyconsole.get_pdb_last_step()
+            self.update_pdb_state(pdb_state, pdb_last_step)
 
     @Slot()
     def go_to_last_edit_location(self):
@@ -2610,6 +2703,8 @@ class Editor(SpyderPluginWidget):
             wrap_o = self.get_option(wrap_n)
             indentguides_n = 'indent_guides'
             indentguides_o = self.get_option(indentguides_n)
+            codefolding_n = 'code_folding'
+            codefolding_o = self.get_option(codefolding_n)
             tabindent_n = 'tab_always_indent'
             tabindent_o = self.get_option(tabindent_n)
             stripindent_n = 'strip_trailing_spaces_on_modify'
@@ -2656,6 +2751,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_scrollpastend_enabled(scrollpastend_o)
                 if indentguides_n in options:
                     editorstack.set_indent_guides(indentguides_o)
+                if codefolding_n in options:
+                    editorstack.set_code_folding_enabled(codefolding_o)
                 if classfuncdropdown_n in options:
                     editorstack.set_classfunc_dropdown_visible(
                         classfuncdropdown_o)

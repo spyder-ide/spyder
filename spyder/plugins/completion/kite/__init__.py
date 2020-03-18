@@ -26,9 +26,8 @@ class _KiteEndpoints(type):
     SIGNATURE_ENDPOINT = ('POST', '/clientapi/editor/signatures')
     ONBOARDING_ENDPOINT = ('GET',
                            '/clientapi/plugins/onboarding_file?editor=spyder')
-    FILENAME_STATUS_ENDPOINT = (
-        'GET', u'/clientapi/status?filename={filename}')
-    BUFFER_STATUS_ENDPOINT = ('GET', '/clientapi/status?filetype=python')
+    STATUS_ENDPOINT = (
+        'GET', u'/clientapi/status')  # Params: filename or filetype
 
     def __getattribute__(self, attr):
         value = object.__getattribute__(self, attr)
@@ -47,6 +46,7 @@ KITE_REQUEST_MAPPING = {
     LSPRequestTypes.DOCUMENT_DID_OPEN: KITE_ENDPOINTS.EVENT_ENDPOINT,
     LSPRequestTypes.DOCUMENT_DID_CLOSE: KITE_ENDPOINTS.EVENT_ENDPOINT,
     LSPRequestTypes.DOCUMENT_DID_CHANGE: KITE_ENDPOINTS.EVENT_ENDPOINT,
+    LSPRequestTypes.DOCUMENT_CURSOR_EVENT: KITE_ENDPOINTS.EVENT_ENDPOINT,
     LSPRequestTypes.DOCUMENT_HOVER: KITE_ENDPOINTS.HOVER_ENDPOINT,
     LSPRequestTypes.DOCUMENT_COMPLETION: KITE_ENDPOINTS.COMPLETION_ENDPOINT,
     LSPRequestTypes.DOCUMENT_SIGNATURE: KITE_ENDPOINTS.SIGNATURE_ENDPOINT

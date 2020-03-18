@@ -113,6 +113,20 @@ class Plots(SpyderPluginWidget):
             fig_browser = self.shellwidgets[shellwidget_id]
             self.set_current_widget(fig_browser)
 
+    # ------ SpyderPluginMixin API
+    def switch_to_plugin(self):
+        """Switch to plots pane plugin by shortcut key.
+
+        This method is called when pressing plugin's shortcut key
+        """
+        widget = self.current_widget()
+        if (widget and widget.setup_in_progress is False
+                and self._isvisible is True):
+            if widget.thumbnails_sb.current_thumbnail is not None:
+                widget.thumbnails_sb.scrollarea.setFocus()
+
+        super(Plots, self).switch_to_plugin()
+
     # ---- SpyderPluginWidget API
     def get_plugin_title(self):
         """Return widget title"""

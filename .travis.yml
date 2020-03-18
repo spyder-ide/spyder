@@ -8,11 +8,10 @@ services:
 matrix:
   fast_finish: true
   include:
-    - env: PYTHON_VERSION=2.7 USE_CONDA=yes
-    - env: PYTHON_VERSION=3.6 USE_CONDA=yes
-    - env: PYTHON_VERSION=3.7 USE_CONDA=yes
-    - env: PYTHON_VERSION=3.6 USE_CONDA=no
-    - env: PYTHON_VERSION=3.7 USE_CONDA=no
+    - env: PYTHON_VERSION=2.7 USE_CONDA=yes RUN_SLOW=true
+    - env: PYTHON_VERSION=2.7 USE_CONDA=yes RUN_SLOW=false
+    - env: PYTHON_VERSION=3.7 USE_CONDA=no RUN_SLOW=true
+    - env: PYTHON_VERSION=3.7 USE_CONDA=no RUN_SLOW=false
 
 before_install:
   # Avoid inotify errors when running projects test with Kite installed

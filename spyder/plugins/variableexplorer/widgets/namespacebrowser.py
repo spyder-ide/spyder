@@ -27,7 +27,6 @@ from spyder_kernels.utils.nsview import get_supported_types, REMOTE_SETTINGS
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
@@ -70,6 +69,7 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase = None
         self.exclude_capitalized = None
         self.exclude_unsupported = None
+        self.exclude_callables_and_modules = None
         self.excluded_names = None
         self.minmax = None
 
@@ -83,6 +83,7 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase_action = None
         self.exclude_capitalized_action = None
         self.exclude_unsupported_action = None
+        self.exclude_callables_and_modules_action = None
         self.finder = None
         self.options_button = options_button
         self.actions = None
@@ -93,9 +94,10 @@ class NamespaceBrowser(QWidget):
     def setup(self, check_all=None, exclude_private=None,
               exclude_uppercase=None, exclude_capitalized=None,
               exclude_unsupported=None, excluded_names=None,
+              exclude_callables_and_modules=None,
               minmax=None, dataframe_format=None,
               show_callable_attributes=None,
-              show_special_attributes=None):
+              show_special_attributes=None,):
         """
         Setup the namespace browser with provided settings.
 
@@ -110,6 +112,7 @@ class NamespaceBrowser(QWidget):
         self.exclude_uppercase = exclude_uppercase
         self.exclude_capitalized = exclude_capitalized
         self.exclude_unsupported = exclude_unsupported
+        self.exclude_callables_and_modules = exclude_callables_and_modules
         self.excluded_names = excluded_names
         self.minmax = minmax
         self.dataframe_format = dataframe_format
@@ -123,6 +126,8 @@ class NamespaceBrowser(QWidget):
             self.exclude_uppercase_action.setChecked(exclude_uppercase)
             self.exclude_capitalized_action.setChecked(exclude_capitalized)
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
+            self.exclude_callables_and_modules_action.setChecked(
+                exclude_callables_and_modules)
             self.refresh_table()
             return
 
@@ -140,8 +145,13 @@ class NamespaceBrowser(QWidget):
         self.editor.sig_files_dropped.connect(self.import_data)
         self.editor.sig_free_memory.connect(self.sig_free_memory.emit)
 
-        self.setup_option_actions(exclude_private, exclude_uppercase,
-                                  exclude_capitalized, exclude_unsupported)
+        self.setup_option_actions(
+            exclude_private,
+            exclude_uppercase,
+            exclude_capitalized,
+            exclude_unsupported,
+            exclude_callables_and_modules
+        )
 
         # Setup toolbar layout.
 
@@ -177,7 +187,34 @@ class NamespaceBrowser(QWidget):
 
         self.setLayout(layout)
 
+        # Local shortcuts
+        self.shortcuts = self.create_shortcuts()
+
         self.sig_option_changed.connect(self.option_changed)
+
+    def create_shortcuts(self):
+        """Create local shortcut for the nsbrowser."""
+        search = CONF.config_shortcut(
+            lambda: self.show_finder(set_visible=True),
+            context='variable_explorer',
+            name='search',
+            parent=self)
+        refresh = CONF.config_shortcut(
+            self.refresh_table,
+            context='variable_explorer',
+            name='refresh',
+            parent=self)
+
+        return [search, refresh]
+
+    def get_shortcut_data(self):
+        """
+        Returns shortcut data, a list of tuples (shortcut, text, default)
+        shortcut (QShortcut or QAction instance)
+        text (string): action/shortcut description
+        default (string): default key sequence
+        """
+        return [sc.data for sc in self.shortcuts]
 
     def set_shellwidget(self, shellwidget):
         """Bind shellwidget instance to namespace browser"""
@@ -190,34 +227,49 @@ class NamespaceBrowser(QWidget):
 
     def setup_toolbar(self):
         """Setup toolbar"""
-        load_button = create_toolbutton(self, text=_('Import data'),
-                                        icon=ima.icon('fileimport'),
-                                        triggered=lambda: self.import_data())
-        self.save_button = create_toolbutton(self, text=_("Save data"),
-                            icon=ima.icon('filesave'),
-                            triggered=lambda: self.save_data(self.filename))
+        load_button = create_toolbutton(
+            self,
+            text=_('Import data'),
+            icon=ima.icon('fileimport'),
+            triggered=lambda: self.import_data())
+
+        self.save_button = create_toolbutton(
+            self, text=_("Save data"),
+            icon=ima.icon('filesave'),
+            triggered=lambda: self.save_data(self.filename))
+
         self.save_button.setEnabled(False)
-        save_as_button = create_toolbutton(self,
-                                           text=_("Save data as..."),
-                                           icon=ima.icon('filesaveas'),
-                                           triggered=self.save_data)
+
+        save_as_button = create_toolbutton(
+            self,
+            text=_("Save data as..."),
+            icon=ima.icon('filesaveas'),
+            triggered=self.save_data)
+
         reset_namespace_button = create_toolbutton(
-                self, text=_("Remove all variables"),
-                icon=ima.icon('editdelete'), triggered=self.reset_namespace)
+            self, text=_("Remove all variables"),
+            icon=ima.icon('editdelete'),
+            triggered=self.reset_namespace)
 
         self.search_button = create_toolbutton(
-            self, text=_("Search variable names and types"),
+            self,
+            text=_("Search variable names and types"),
             icon=ima.icon('find'),
             toggled=self.show_finder)
-        config_shortcut(lambda: self.show_finder(set_visible=True),
-                        context='variable_explorer',
-                        name='search', parent=self)
+
+        self.refresh_button = create_toolbutton(
+            self,
+            text=_("Refresh variables"),
+            icon=ima.icon('refresh'),
+            triggered=lambda: self.refresh_table(interrupt=True))
 
         return [load_button, self.save_button, save_as_button,
-                reset_namespace_button, self.search_button]
+                reset_namespace_button, self.search_button,
+                self.refresh_button]
 
     def setup_option_actions(self, exclude_private, exclude_uppercase,
-                             exclude_capitalized, exclude_unsupported):
+                             exclude_capitalized, exclude_unsupported,
+                             exclude_callables_and_modules):
         """Setup the actions to show in the cog menu."""
         self.setup_in_progress = True
 
@@ -246,15 +298,29 @@ class NamespaceBrowser(QWidget):
         
         self.exclude_unsupported_action = create_action(self,
                 _("Exclude unsupported data types"),
-                tip=_("Exclude references to unsupported data types"
-                            " (i.e. which won't be handled/saved correctly)"),
+                tip=_("Exclude references to data types that don't have "
+                      "an specialized viewer or can't be edited."),
                 toggled=lambda state:
                 self.sig_option_changed.emit('exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
 
+        self.exclude_callables_and_modules_action = create_action(self,
+                _("Exclude callables and modules"),
+                tip=_("Exclude references to functions, modules and "
+                      "any other callable."),
+                toggled=lambda state:
+                self.sig_option_changed.emit('exclude_callables_and_modules',
+                                             state))
+        self.exclude_callables_and_modules_action.setChecked(
+            exclude_callables_and_modules)
+
         self.actions = [
-            self.exclude_private_action, self.exclude_uppercase_action,
-            self.exclude_capitalized_action, self.exclude_unsupported_action]
+            self.exclude_private_action,
+            self.exclude_uppercase_action,
+            self.exclude_capitalized_action,
+            self.exclude_unsupported_action,
+            self.exclude_callables_and_modules_action
+        ]
         if is_module_installed('numpy'):
             self.actions.extend([MENU_SEPARATOR, self.editor.minmax_action])
 
@@ -301,10 +367,10 @@ class NamespaceBrowser(QWidget):
         else:
             self.editor.setFocus()
 
-    def refresh_table(self):
+    def refresh_table(self, interrupt=False):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
-            self.shellwidget.refresh_namespacebrowser()
+            self.shellwidget.refresh_namespacebrowser(interrupt=interrupt)
             try:
                 self.editor.resizeRowToContents()
             except TypeError:
@@ -391,14 +457,14 @@ class NamespaceBrowser(QWidget):
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 QApplication.processEvents()
                 error_message = self.shellwidget.load_data(self.filename, ext)
-                self.shellwidget._kernel_reply = None
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
     
             if error_message is not None:
                 QMessageBox.critical(self, title,
                                      _("<b>Unable to load '%s'</b>"
-                                       "<br><br>Error message:<br>%s"
+                                       "<br><br>"
+                                       "The error message was:<br>%s"
                                        ) % (self.filename, error_message))
             self.refresh_table()
 
@@ -426,20 +492,20 @@ class NamespaceBrowser(QWidget):
         QApplication.processEvents()
 
         error_message = self.shellwidget.save_namespace(self.filename)
-        self.shellwidget._kernel_reply = None
 
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()
         if error_message is not None:
             if 'Some objects could not be saved:' in error_message:
                 save_data_message = (
-                    _('<b>Some objects could not be saved:</b>')
-                    + '<br><br><code>{obj_list}</code>'.format(
+                    _("<b>Some objects could not be saved:</b>")
+                    + "<br><br><code>{obj_list}</code>".format(
                         obj_list=error_message.split(': ')[1]))
             else:
                 save_data_message = _(
-                    '<b>Unable to save current workspace</b>'
-                    '<br><br>Error message:<br>') + error_message
+                    "<b>Unable to save current workspace</b>"
+                    "<br><br>"
+                    "The error message was:<br>") + error_message
             QMessageBox.critical(self, _("Save data"), save_data_message)
         self.save_button.setEnabled(self.filename is not None)
 

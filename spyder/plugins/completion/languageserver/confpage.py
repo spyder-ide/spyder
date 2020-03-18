@@ -760,7 +760,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
             'jedi_definition',
             tip=_("If enabled, left-clicking on an object name while \n"
                   "pressing the {} key will go to that object's definition\n"
-                  "(if resolved).".format(self.CTRL)))
+                  "(if resolved).").format(self.CTRL))
         follow_imports_box = newcb(_("Follow imports when going to a "
                                      "definition"),
                                    'jedi_definition/follow_imports')

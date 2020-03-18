@@ -26,7 +26,6 @@ import sys
 import warnings
 
 # Third party imports
-from pympler.asizeof import asizeof
 from qtpy.compat import getsavefilename, to_qvariant
 from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt,
                          Signal, Slot)
@@ -59,7 +58,7 @@ from spyder.plugins.variableexplorer.widgets.collectionsdelegate import (
     CollectionsDelegate)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
 from spyder.widgets.helperwidgets import CustomSortFilterProxy
-
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 # Maximum length of a serialized variable to be set in the kernel
 MAX_SERIALIZED_LENGHT = 1e6
@@ -157,8 +156,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self._data = data
         data_type = get_type_string(data)
 
-        if coll_filter is not None and not self.remote and \
-          isinstance(data, (tuple, list, dict, set)):
+        if (coll_filter is not None and not self.remote and
+                isinstance(data, (tuple, list, dict, set))):
             data = coll_filter(data)
         self.showndata = data
 
@@ -518,6 +517,8 @@ class BaseTableView(QTableView):
         self.last_regex = ''
         self.view_action = None
         self.delegate = None
+        self.proxy_model = None
+        self.source_model = None
         self.setAcceptDrops(True)
         self.automatic_column_width = True
         self.setHorizontalHeader(BaseHeaderView(parent=self))
@@ -707,7 +708,7 @@ class BaseTableView(QTableView):
 
     def refresh_plot_entries(self, index):
         if index.isValid():
-            key = self.source_model.get_key(index)
+            key = self.proxy_model.get_key(index)
             is_list = self.is_list(key)
             is_array = self.is_array(key) and self.get_len(key) != 0
             condition_plot = (is_array and len(self.get_array_shape(key)) <= 2)
@@ -741,6 +742,7 @@ class BaseTableView(QTableView):
         """Set table data"""
         if data is not None:
             self.source_model.set_data(data, self.dictfilter)
+            self.source_model.reset()
             self.sortByColumn(0, Qt.AscendingOrder)
 
     def mousePressEvent(self, event):
@@ -857,7 +859,7 @@ class BaseTableView(QTableView):
         self.edit(index.child(index.row(), 3))
 
     @Slot()
-    def remove_item(self):
+    def remove_item(self, force=False):
         """Remove item"""
         indexes = self.selectedIndexes()
         if not indexes:
@@ -865,22 +867,25 @@ class BaseTableView(QTableView):
         for index in indexes:
             if not index.isValid():
                 return
-        one = _("Do you want to remove the selected item?")
-        more = _("Do you want to remove all selected items?")
-        answer = QMessageBox.question(self, _( "Remove"),
-                                      one if len(indexes) == 1 else more,
-                                      QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            idx_rows = unsorted_unique([idx.row() for idx in indexes])
+        if not force:
+            one = _("Do you want to remove the selected item?")
+            more = _("Do you want to remove all selected items?")
+            answer = QMessageBox.question(self, _("Remove"),
+                                          one if len(indexes) == 1 else more,
+                                          QMessageBox.Yes | QMessageBox.No)
+        if force or answer == QMessageBox.Yes:
+            idx_rows = unsorted_unique(
+                [self.proxy_model.mapToSource(idx).row() for idx in indexes])
             keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
             self.remove_values(keys)
 
-    def copy_item(self, erase_original=False):
+    def copy_item(self, erase_original=False, new_name=None):
         """Copy item"""
         indexes = self.selectedIndexes()
         if not indexes:
             return
-        idx_rows = unsorted_unique([idx.row() for idx in indexes])
+        idx_rows = unsorted_unique(
+            [self.proxy_model.mapToSource(idx).row() for idx in indexes])
         if len(idx_rows) > 1 or not indexes[0].isValid():
             return
         orig_key = self.source_model.keys[idx_rows[0]]
@@ -893,6 +898,8 @@ class BaseTableView(QTableView):
         data = self.source_model.get_data()
         if isinstance(data, (list, set)):
             new_key, valid = len(data), True
+        elif new_name is not None:
+            new_key, valid = new_name, True
         else:
             new_key, valid = QInputDialog.getText(self, title, field_text,
                                                   QLineEdit.Normal, orig_key)
@@ -910,9 +917,9 @@ class BaseTableView(QTableView):
         self.copy_item()
 
     @Slot()
-    def rename_item(self):
+    def rename_item(self, new_name=None):
         """Rename item"""
-        self.copy_item(True)
+        self.copy_item(erase_original=True, new_name=new_name)
 
     @Slot()
     def insert_item(self):
@@ -921,7 +928,7 @@ class BaseTableView(QTableView):
         if not index.isValid():
             row = self.source_model.rowCount()
         else:
-            row = index.row()
+            row = self.proxy_model.mapToSource(index).row()
         data = self.source_model.get_data()
         if isinstance(data, list):
             key = row
@@ -969,7 +976,8 @@ class BaseTableView(QTableView):
         """Plot item"""
         index = self.currentIndex()
         if self.__prepare_plot():
-            key = self.source_model.get_key(index)
+            key = self.source_model.get_key(
+                self.proxy_model.mapToSource(index))
             try:
                 self.plot(key, funcname)
             except (ValueError, TypeError) as error:
@@ -983,7 +991,8 @@ class BaseTableView(QTableView):
         """Imshow item"""
         index = self.currentIndex()
         if self.__prepare_plot():
-            key = self.source_model.get_key(index)
+            key = self.source_model.get_key(
+                self.proxy_model.mapToSource(index))
             try:
                 if self.is_image(key):
                     self.show_image(key)
@@ -1101,8 +1110,8 @@ class CollectionsEditorTableView(BaseTableView):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, (tuple, set))
-        CollectionsModelClass = ReadOnlyCollectionsModel if self.readonly \
-                                else CollectionsModel
+        CollectionsModelClass = (ReadOnlyCollectionsModel if self.readonly
+                                 else CollectionsModel)
         self.source_model = CollectionsModelClass(self, data, title,
                                                   names=names,
                                                   minmax=minmax)
@@ -1260,7 +1269,7 @@ class CollectionsEditorWidget(QWidget):
         return self.editor.source_model.title
 
 
-class CollectionsEditor(QDialog):
+class CollectionsEditor(BaseDialog):
     """Collections Editor Dialog"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -1276,7 +1285,7 @@ class CollectionsEditor(QDialog):
         self.btn_save_and_close = None
         self.btn_close = None
 
-    def setup(self, data, title='', readonly=False, width=650, remote=False,
+    def setup(self, data, title='', readonly=False, remote=False,
               icon=None, parent=None):
         """Setup editor."""
         if isinstance(data, (dict, set)):
@@ -1330,12 +1339,6 @@ class CollectionsEditor(QDialog):
         btn_layout.addWidget(self.btn_close)
 
         layout.addLayout(btn_layout)
-
-        constant = 121
-        row_height = 30
-        error_margin = 10
-        height = constant + row_height * min([10, datalen]) + error_margin
-        self.resize(width, height)
 
         self.setWindowTitle(self.widget.get_title())
         if icon is None:
@@ -1429,23 +1432,12 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def get_value(self, name):
         """Get the value of a variable"""
         value = self.shellwidget.get_value(name)
-        # Reset temporal variable where value is saved to
-        # save memory
-        self.shellwidget._kernel_value = None
         return value
 
     def new_value(self, name, value):
         """Create new value in data"""
         try:
-            # Needed to prevent memory leaks. See spyder-ide/spyder#7158.
-            if asizeof(value) < MAX_SERIALIZED_LENGHT:
-                self.shellwidget.set_value(name, value)
-            else:
-                QMessageBox.warning(self, _("Warning"),
-                                    _("The object you are trying to modify is "
-                                      "too big to be sent back to the kernel. "
-                                      "Therefore, your modifications won't "
-                                      "take place."))
+            self.shellwidget.set_value(name, value)
         except TypeError as e:
             QMessageBox.critical(self, _("Error"),
                                  "TypeError: %s" % to_text_string(e))

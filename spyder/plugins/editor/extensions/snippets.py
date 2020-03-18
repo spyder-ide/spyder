@@ -82,6 +82,7 @@ class SnippetsExtension(EditorExtension):
     def __init__(self):
         EditorExtension.__init__(self)
         self.is_snippet_active = False
+        self.inserting_snippet = False
         self.active_snippet = -1
         self.node_number = 0
         self.index = None
@@ -361,6 +362,9 @@ class SnippetsExtension(EditorExtension):
             self._remove_selection(start, end)
             line, column = start
         node, snippet, text_node = self._find_node_by_position(line, column)
+        if node is None:
+            self.reset()
+            return
         tokens = tokenize(text)
         token_nodes = [nodes.LeafNode(t.token, t.value) for t in tokens]
         for token in token_nodes:
@@ -482,7 +486,7 @@ class SnippetsExtension(EditorExtension):
                 if isinstance(possible_snippet, nodes.SnippetASTNode):
                     # Placeholder replacement
                     first_tokens = (
-                        list(possible_snippet.placeholder) +
+                        list(possible_snippet.placeholder.tokens) +
                         list(new_node.tokens[1:])
                     )
                     second_tokens = []
@@ -490,7 +494,10 @@ class SnippetsExtension(EditorExtension):
                     first_tokens = list(new_node.tokens)
                     second_tokens = []
             if not single_token:
-                first_tokens.append(new_node)
+                if isinstance(new_node, nodes.TextNode):
+                    first_tokens += list(new_node.tokens)
+                else:
+                    first_tokens.append(new_node)
                 if not new_node.text().startswith(value):
                     first_tokens.append(leaf)
         elif leaf_end == (line, column):
@@ -513,7 +520,8 @@ class SnippetsExtension(EditorExtension):
     def _region_to_polygon(self, start, end):
         start_line, start_column = start
         end_line, end_column = end
-        root_position, _ = self.node_position[0]
+        root_col = min(self.node_position)
+        root_position, _ = self.node_position[root_col]
         line_limits = {}
         for segment in root_position:
             (_, start), (line, end) = segment
@@ -687,18 +695,14 @@ class SnippetsExtension(EditorExtension):
     def cursor_changed(self, line, col):
         if not rtree_available:
             return
-        # with QMutexLocker(self.reset_lock):
-        ignore_calls = {'undo', 'redo'}
+
+        if self.inserting_snippet:
+            self.inserting_snippet = False
+            return
+
         node, nearest_snippet, _ = self._find_node_by_position(line, col)
         if node is None:
-            stack = inspect.stack()
-            ignore = False
-            # Check if parent call was due to text update on codeeditor
-            # caused by a undo/redo call
-            for call in stack:
-                if call[3] in ignore_calls:
-                    ignore = True
-                    break
+            ignore = self.editor.is_undoing or self.editor.is_redoing
             if not ignore:
                 self.reset()
         else:
@@ -811,6 +815,7 @@ class SnippetsExtension(EditorExtension):
         ast.compute_position((line, column))
         ast.accept(visitor)
 
+        self.inserting_snippet = True
         self.editor.insert_text(ast.text(), will_insert_text=False)
         self.editor.document_did_change()
 
@@ -826,7 +831,6 @@ class SnippetsExtension(EditorExtension):
                 # This is a nested snippet / text on snippet
                 leaf, snippet_root, _ = self._find_node_by_position(
                     line, column)
-
                 if snippet_root is not None:
                     new_snippet = False
                     root_number = snippet_root.number
@@ -849,6 +853,7 @@ class SnippetsExtension(EditorExtension):
                     self._update_ast()
                     if len(snippet_map) > 0:
                         self.select_snippet(snippet_number=root_number + 1)
+                    self.draw_snippets()
                 elif leaf is not None:
                     self.reset()
 

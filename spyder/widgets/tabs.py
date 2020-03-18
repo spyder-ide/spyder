@@ -23,7 +23,8 @@ from qtpy.QtWidgets import (QHBoxLayout, QMenu, QTabBar,
 
 # Local imports
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
+from spyder.config.gui import STYLE_BUTTON_CSS
+from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import get_common_path
@@ -271,12 +272,9 @@ class BaseTabs(QTabWidget):
         corner_widgets.setdefault(Qt.TopLeftCorner, [])
         corner_widgets.setdefault(Qt.TopRightCorner, [])
 
-        self.browse_button = create_toolbutton(self,
-                                          icon=ima.icon('browse_tab'),
-                                          tip=_("Browse tabs"))
-        self.browse_button.setStyleSheet(
-            ("QToolButton::menu-indicator{image: none;}\n"
-             "QToolButton{margin: 1px; padding: 3px;}"))
+        self.browse_button = create_toolbutton(
+            self, icon=ima.icon('browse_tab'), tip=_("Browse tabs"))
+        self.browse_button.setStyleSheet(STYLE_BUTTON_CSS)
 
         self.browse_tabs_menu = QMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)
@@ -421,7 +419,7 @@ class BaseTabs(QTabWidget):
 
 
 class Tabs(BaseTabs):
-    """BaseTabs widget with movable tabs and tab navigation shortcuts"""
+    """BaseTabs widget with movable tabs and tab navigation shortcuts."""
     # Signals
     move_data = Signal(int, int)
     move_tab_finished = Signal()
@@ -442,14 +440,29 @@ class Tabs(BaseTabs):
                                           self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
 
-        config_shortcut(lambda: self.tab_navigate(1), context='editor',
-                        name='go to next file', parent=parent)
-        config_shortcut(lambda: self.tab_navigate(-1), context='editor',
-                        name='go to previous file', parent=parent)
-        config_shortcut(lambda: self.sig_close_tab.emit(self.currentIndex()),
-                        context='editor', name='close file 1', parent=parent)
-        config_shortcut(lambda: self.sig_close_tab.emit(self.currentIndex()),
-                        context='editor', name='close file 2', parent=parent)
+        CONF.config_shortcut(
+            lambda: self.tab_navigate(1),
+            context='editor',
+            name='go to next file',
+            parent=parent)
+
+        CONF.config_shortcut(
+            lambda: self.tab_navigate(-1),
+            context='editor',
+            name='go to previous file',
+            parent=parent)
+
+        CONF.config_shortcut(
+            lambda: self.sig_close_tab.emit(self.currentIndex()),
+            context='editor',
+            name='close file 1',
+            parent=parent)
+
+        CONF.config_shortcut(
+            lambda: self.sig_close_tab.emit(self.currentIndex()),
+            context='editor',
+            name='close file 2',
+            parent=parent)
 
     @Slot(int, int)
     def move_tab(self, index_from, index_to):

@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-IPython Console plugin based on QtConsole
+IPython Console plugin based on QtConsole.
 """
 
 # pylint: disable=C0103
@@ -16,15 +16,14 @@ IPython Console plugin based on QtConsole
 # Standard library imports
 import os
 import os.path as osp
-import uuid
 import sys
 import traceback
+import uuid
 
 # Third party imports
 from jupyter_client.connect import find_connection_file
 from jupyter_core.paths import jupyter_config_dir, jupyter_runtime_dir
 from qtconsole.client import QtKernelClient
-from qtconsole.manager import QtKernelManager
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
@@ -34,24 +33,27 @@ from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
 # Local imports
-from spyder.config.base import _, get_conf_path, get_home_dir
+from spyder.api.plugins import SpyderPluginWidget
+from spyder.config.base import (_, get_conf_path, get_home_dir,
+                                running_under_pytest)
 from spyder.config.gui import get_font, is_dark_interface
 from spyder.config.manager import CONF
-from spyder.api.plugins import SpyderPluginWidget
-from spyder.py3compat import is_string, to_text_string
 from spyder.plugins.ipythonconsole.confpage import IPythonConsoleConfigPage
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
-from spyder.plugins.ipythonconsole.utils.style import create_qss_style
-from spyder.utils.qthelpers import create_action, add_actions, MENU_SEPARATOR
+from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
+from spyder.plugins.ipythonconsole.utils.style import create_qss_style
+from spyder.plugins.ipythonconsole.widgets import (ClientWidget,
+                                                   KernelConnectionDialog)
+from spyder.py3compat import is_string, to_text_string
+from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
-from spyder.utils import encoding, programs, sourcecode
-from spyder.utils.programs import get_temp_dir
+from spyder.utils import programs, sourcecode
 from spyder.utils.misc import get_error_match, remove_backslashes
-from spyder.widgets.findreplace import FindReplace
-from spyder.plugins.ipythonconsole.widgets import ClientWidget
-from spyder.plugins.ipythonconsole.widgets import KernelConnectionDialog
+from spyder.utils.programs import get_temp_dir
+from spyder.utils.qthelpers import MENU_SEPARATOR, add_actions, create_action
 from spyder.widgets.browser import WebView
+from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.tabs import Tabs
 
 
@@ -75,6 +77,7 @@ class IPythonConsole(SpyderPluginWidget):
     # Signals
     focus_changed = Signal()
     edit_goto = Signal((str, int, str), (str, int, str, bool))
+    sig_pdb_state = Signal(bool, dict)
 
     # Error messages
     permission_error_msg = _("The directory {} is not writable and it is "
@@ -270,6 +273,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.variableexplorer.set_shellwidget_from_id(id(sw))
             self.main.plots.set_shellwidget_from_id(id(sw))
             self.main.help.set_shell(sw)
+            self.sig_pdb_state.emit(sw.in_debug_loop(), sw.get_pdb_last_step())
         self.update_tabs_text()
         self.sig_update_plugin_title.emit()
 
@@ -381,7 +385,11 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.workingdirectory.set_current_console_wd.connect(
             self.set_current_client_working_directory)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
+        self.tabwidget.currentChanged.connect(self.check_pdb_state)
         self._remove_old_stderr_files()
+
+        # Update kernels if python path is changed
+        self.main.sig_pythonpath_changed.connect(self.update_path)
 
     #------ Public API (for clients) ------------------------------------------
     def get_clients(self):
@@ -552,6 +560,14 @@ class IPythonConsole(SpyderPluginWidget):
         if shellwidget is not None:
             shellwidget.update_cwd()
 
+    def update_path(self, path_dict, new_path_dict):
+        """Update path on consoles."""
+        for client in self.get_clients():
+            shell = client.shellwidget
+            if shell is not None:
+                self.main.get_spyder_pythonpath()
+                shell.update_syspath(path_dict, new_path_dict)
+
     def execute_code(self, lines, current_client=True, clear_variables=False):
         """Execute code instructions."""
         sw = self.get_current_shellwidget()
@@ -586,6 +602,33 @@ class IPythonConsole(SpyderPluginWidget):
                 sw.pdb_execute(line, hidden)
             except AttributeError:
                 pass
+
+    def get_pdb_state(self):
+        """Get debugging state of the current console."""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            return sw.in_debug_loop()
+        return False
+
+    def get_pdb_last_step(self):
+        """Get last pdb step of the current console."""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            return sw.get_pdb_last_step()
+        return {}
+
+    def check_pdb_state(self):
+        """
+        Check if actions need to be taken checking the last pdb state.
+        """
+        pdb_state = self.get_pdb_state()
+        if pdb_state:
+            pdb_last_step = self.get_pdb_last_step()
+            sw = self.get_current_shellwidget()
+            if 'fname' in pdb_last_step and sw is not None:
+                fname = pdb_last_step['fname']
+                line = pdb_last_step['lineno']
+                self.pdb_has_stopped(fname, line, sw)
 
     @Slot()
     @Slot(bool)
@@ -635,21 +678,22 @@ class IPythonConsole(SpyderPluginWidget):
         if not CONF.get('main_interpreter', 'default'):
             pyexec = CONF.get('main_interpreter', 'executable')
             has_spyder_kernels = programs.is_module_installed(
-                                                        'spyder_kernels',
-                                                        interpreter=pyexec,
-                                                        version='>=1.0.0')
-            if not has_spyder_kernels:
+                'spyder_kernels',
+                interpreter=pyexec,
+                version='>=1.9.0;<1.10.0')
+            if not has_spyder_kernels and not running_under_pytest():
                 client.show_kernel_error(
-                        _("Your Python environment or installation doesn't "
-                          "have the <tt>spyder-kernels</tt> module or the "
-                          "right version of it installed. "
-                          "Without this module is not possible for "
-                          "Spyder to create a console for you.<br><br>"
-                          "You can install it by running in a system terminal:"
-                          "<br><br>"
-                          "<tt>conda install spyder-kernels</tt>"
-                          "<br><br>or<br><br>"
-                          "<tt>pip install spyder-kernels</tt>"))
+                    _("Your Python environment or installation doesn't have "
+                      "the <tt>spyder-kernels</tt> module or the right "
+                      "version of it installed (>= 1.9.0 and < 1.10.0). "
+                      "Without this module is not possible for Spyder to "
+                      "create a console for you.<br><br>"
+                      "You can install it by running in a system terminal:"
+                      "<br><br>"
+                      "<tt>conda install spyder-kernels</tt>"
+                      "<br><br>or<br><br>"
+                      "<tt>pip install spyder-kernels</tt>")
+                )
                 return
 
         self.connect_client_to_kernel(client, is_cython=is_cython,
@@ -852,6 +896,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.sig_pdb_step.connect(
                               lambda fname, lineno, shellwidget=shellwidget:
                               self.pdb_has_stopped(fname, lineno, shellwidget))
+        shellwidget.sig_pdb_state.connect(self.sig_pdb_state)
 
         # To handle %edit magic petitions
         shellwidget.custom_edit_requested.connect(self.edit_file)
@@ -1042,6 +1087,11 @@ class IPythonConsole(SpyderPluginWidget):
         for cl in self.clients:
             cl.shellwidget.set_pdb_ignore_lib()
 
+    def set_pdb_execute_events(self):
+        """Set pdb_execute_events into all clients"""
+        for cl in self.clients:
+            cl.shellwidget.set_pdb_execute_events()
+
     @Slot(str)
     def create_client_from_path(self, path):
         """Create a client with its cwd pointing to path."""
@@ -1136,8 +1186,11 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Kernel manager
         try:
-            kernel_manager = QtKernelManager(connection_file=connection_file,
-                                             config=None, autorestart=True)
+            kernel_manager = SpyderKernelManager(
+                connection_file=connection_file,
+                config=None,
+                autorestart=True,
+            )
         except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())

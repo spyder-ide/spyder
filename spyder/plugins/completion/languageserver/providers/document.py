@@ -168,6 +168,21 @@ class DocumentProvider:
                 LSPRequestTypes.DOCUMENT_HOVER,
                 {'params': contents})
 
+    @send_request(method=LSPRequestTypes.DOCUMENT_SYMBOL)
+    def document_symbol_request(self, params):
+        params = {
+            'textDocument': {
+                'uri': path_as_uri(params['file'])
+            },
+        }
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_SYMBOL)
+    def process_document_symbol_request(self, result, req_id):
+        if req_id in self.req_reply:
+            self.req_reply[req_id](LSPRequestTypes.DOCUMENT_SYMBOL,
+                                   {'params': result})
+
     @send_request(method=LSPRequestTypes.DOCUMENT_DEFINITION)
     def go_to_definition_request(self, params):
         params = {
@@ -196,6 +211,27 @@ class DocumentProvider:
             self.req_reply[req_id](
                 LSPRequestTypes.DOCUMENT_DEFINITION,
                 {'params': result})
+
+    @send_request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
+    def folding_range_request(self, params):
+        params = {
+            'textDocument': {
+                'uri': path_as_uri(params['file'])
+            }
+        }
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
+    def process_folding_range(self, result, req_id):
+        results = []
+        for folding_range in result:
+            start_line = folding_range['startLine']
+            end_line = folding_range['endLine']
+            results.append((start_line, end_line))
+        if req_id in self.req_reply:
+            self.req_reply[req_id](
+                LSPRequestTypes.DOCUMENT_FOLDING_RANGE,
+                {'params': results})
 
     @send_notification(method=LSPRequestTypes.DOCUMENT_WILL_SAVE)
     def document_will_save_notification(self, params):

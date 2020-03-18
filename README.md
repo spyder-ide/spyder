@@ -6,7 +6,9 @@ https://github.com/spyder-ide/spyder/graphs/contributors)*
 *Some source files and icons may be under other authorship/licenses; see
 [NOTICE.txt](https://github.com/spyder-ide/spyder/blob/master/NOTICE.txt).*
 
+## Project status
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/spyder-ide/spyder/4.x?urlpath=%2Fdesktop)
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE.txt)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.org/project/spyder/)
 [![conda version](https://img.shields.io/conda/vn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
@@ -15,11 +17,14 @@ https://github.com/spyder-ide/spyder/graphs/contributors)*
 [![OpenCollective Sponsors](https://opencollective.com/spyder/sponsors/badge.svg?color=blue)](#sponsors)
 [![Join the chat at https://gitter.im/spyder-ide/public](https://badges.gitter.im/spyder-ide/spyder.svg)](https://gitter.im/spyder-ide/public)<br>
 [![PyPI status](https://img.shields.io/pypi/status/spyder.svg)](https://github.com/spyder-ide/spyder)
+
+## Build status
 [![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
 [![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=shield)](https://circleci.com/gh/spyder-ide/spyder)
 [![Azure](https://dev.azure.com/spyder-ide/spyder/_apis/build/status/spyder-ide.spyder?branchName=master)](https://dev.azure.com/spyder-ide/spyder/_build/latest?definitionId=1?branchName=master)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
+[![Crowdin](https://badges.crowdin.net/spyder/localized.svg)](https://crowdin.com/project/spyder)
 
 ![Screenshot of Spyder's main window](https://raw.githubusercontent.com/spyder-ide/spyder/master/img_src/screenshot.png)
 
@@ -44,6 +49,8 @@ we're on [OpenCollective](https://opencollective.com/spyder).
 
 Thanks for all you do to make the Spyder project thrive! [More details](
 https://github.com/spyder-ide/spyder/wiki/Current-Funding-and-Development-Status)
+
+
 
 ----
 

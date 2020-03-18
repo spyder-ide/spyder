@@ -16,7 +16,7 @@ try:
 except AttributeError:
     time.monotonic = time.time
 
-from pickle import UnpicklingError
+from pickle import PicklingError, UnpicklingError
 
 from qtpy.QtWidgets import QMessageBox
 
@@ -27,6 +27,9 @@ from spyder.py3compat import PY2, to_text_string, TimeoutError
 
 
 logger = logging.getLogger(__name__)
+
+# Max time before giving up when making a blocking call to the kernel
+CALL_KERNEL_TIMEOUT = 30
 
 
 class NamepaceBrowserWidget(RichJupyterWidget):
@@ -43,7 +46,6 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     _kernel_methods = {}
 
     # To save values and messages returned by the kernel
-    _kernel_value = None
     _kernel_is_starting = True
 
     # --- Public API --------------------------------------------------
@@ -51,15 +53,19 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         """Set namespace browser widget"""
         self.namespacebrowser = namespacebrowser
 
-    def refresh_namespacebrowser(self):
+    def refresh_namespacebrowser(self, interrupt=False):
         """Refresh namespace browser"""
         if self.kernel_client is None:
             return
         if self.namespacebrowser:
             self.call_kernel(
-                callback=self.set_namespace_view).get_namespace_view()
+                interrupt=interrupt,
+                callback=self.set_namespace_view
+            ).get_namespace_view()
             self.call_kernel(
-                callback=self.set_var_properties).get_var_properties()
+                interrupt=interrupt,
+                callback=self.set_var_properties
+            ).get_var_properties()
 
     def set_namespace_view(self, view):
         """Set the current namespace view."""
@@ -81,11 +87,20 @@ class NamepaceBrowserWidget(RichJupyterWidget):
 
     def get_value(self, name):
         """Ask kernel for a value"""
+        reason_big = _("The variable is too big to be retrieved")
+        reason_not_picklable = _("The variable is not picklable")
+        msg = _("%s.<br><br>"
+                "Note: Please don't report this problem on Github, "
+                "there's nothing to do about it.")
         try:
             return self.call_kernel(
-                interrupt=True, blocking=True).get_value(name)
-        except (TimeoutError, UnpicklingError):
-            raise ValueError('Kernel did not send the value.')
+                interrupt=True,
+                blocking=True,
+                timeout=CALL_KERNEL_TIMEOUT).get_value(name)
+        except TimeoutError:
+            raise ValueError(msg % reason_big)
+        except (PicklingError, UnpicklingError):
+            raise ValueError(msg % reason_not_picklable)
 
     def set_value(self, name, value):
         """Set value for a variable"""
@@ -103,17 +118,38 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                          ).copy_value(orig_name, new_name)
 
     def load_data(self, filename, ext):
+        """Load data from a file."""
+        overwrite = False
+        if self.namespacebrowser.editor.var_properties:
+            message = _('Do you want to overwrite old '
+                        'variables (if any) in the namespace '
+                        'when loading the data?')
+            buttons = QMessageBox.Yes | QMessageBox.No
+            result = QMessageBox.question(
+                self, _('Data loading'), message, buttons)
+            overwrite = result == QMessageBox.Yes
         try:
-            return self.call_kernel(interrupt=True, blocking=True
-                                    ).load_data(filename, ext)
-        except (TimeoutError, UnpicklingError):
+            return self.call_kernel(
+                interrupt=True,
+                blocking=True,
+                timeout=CALL_KERNEL_TIMEOUT).load_data(
+                    filename, ext, overwrite=overwrite)
+        except TimeoutError:
+            msg = _("Data is too big to be loaded")
+            return msg
+        except UnpicklingError:
             return None
 
     def save_namespace(self, filename):
         try:
-            return self.call_kernel(interrupt=True, blocking=True
-                                    ).save_namespace(filename)
-        except (TimeoutError, UnpicklingError):
+            return self.call_kernel(
+                interrupt=True,
+                blocking=True,
+                timeout=CALL_KERNEL_TIMEOUT).save_namespace(filename)
+        except TimeoutError:
+            msg = _("Data is too big to be saved")
+            return msg
+        except UnpicklingError:
             return None
 
     # ---- Private API (overrode by us) ----------------------------

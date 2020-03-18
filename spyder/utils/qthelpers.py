@@ -22,18 +22,27 @@ from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
                             QLineEdit, QMenu, QProxyStyle, QStyle, QToolBar,
                             QToolButton, QVBoxLayout, QWidget)
-if sys.platform == "darwin":
-    import applaunchservices as als
 
 # Local imports
 from spyder.config.base import get_image_path, MAC_APP_NAME
-from spyder.config.gui import get_shortcut, is_dark_interface
-from spyder.py3compat import is_text_string, to_text_string
+from spyder.config.manager import CONF
+from spyder.config.gui import is_dark_interface
+from spyder.py3compat import is_text_string, to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
-from spyder.utils.icon_manager import get_icon, get_kite_icon, get_std_icon
+from spyder.utils.icon_manager import get_icon, get_std_icon
 from spyder.widgets.waitingspinner import QWaitingSpinner
 from spyder.config.manager import CONF
+
+# Third party imports
+if sys.platform == "darwin":
+    import applaunchservices as als
+
+if PY2:
+    from urllib import unquote
+else:
+    from urllib.parse import unquote
+
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----
@@ -44,7 +53,6 @@ from spyder.config.manager import CONF
 # (self.listwidget is widget *a* and self is widget *b*)
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
-
 logger = logging.getLogger(__name__)
 MENU_SEPARATOR = None
 
@@ -139,13 +147,13 @@ def _process_mime_path(path, extlist):
         if os.name == 'nt':
             # On Windows platforms, a local path reads: file:///c:/...
             # and a UNC based path reads like: file://server/share
-            if path.startswith(r"file:///"): # this is a local path
-                path=path[8:]
-            else: # this is a unc path
+            if path.startswith(r"file:///"):  # this is a local path
+                path = path[8:]
+            else:  # this is a unc path
                 path = path[5:]
         else:
             path = path[7:]
-    path = path.replace('%5C' , os.sep)  # Transforming backslashes
+    path = path.replace('\\', os.sep)  # Transforming backslashes
     if osp.exists(path):
         if extlist is None or osp.splitext(path)[1] in extlist:
             return path
@@ -159,7 +167,8 @@ def mimedata2url(source, extlist=None):
     pathlist = []
     if source.hasUrls():
         for url in source.urls():
-            path = _process_mime_path(to_text_string(url.toString()), extlist)
+            path = _process_mime_path(
+                unquote(to_text_string(url.toString())), extlist)
             if path is not None:
                 pathlist.append(path)
     elif source.hasText():
@@ -312,8 +321,14 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 
 def add_shortcut_to_tooltip(action, context, name):
     """Add the shortcut associated with a given action to its tooltip"""
-    action.setToolTip(action.toolTip() + ' (%s)' %
-                      get_shortcut(context=context, name=name))
+    if not hasattr(action, '_tooltip_backup'):
+        # We store the original tooltip of the action without its associated
+        # shortcut so that we can update the tooltip properly if shortcuts
+        # are changed by the user over the course of the current session.
+        # See spyder-ide/spyder#10726.
+        action._tooltip_backup = action.toolTip()
+    action.setToolTip(action._tooltip_backup + ' (%s)' %
+                      CONF.get_shortcut(context=context, name=name))
 
 
 def add_actions(target, actions, insert_before=None):

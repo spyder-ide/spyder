@@ -220,7 +220,7 @@ def start_file(filename):
 
     This function is simply wrapping QDesktopServices.openUrl
 
-    Returns True if successfull, otherwise returns False.
+    Returns True if successful, otherwise returns False.
     """
     from qtpy.QtCore import QUrl
     from qtpy.QtGui import QDesktopServices
@@ -335,6 +335,15 @@ def _get_win_reg_info(key_path, hive, flag, subkeys):
     return software_list
 
 
+def _clean_win_application_path(path):
+    """Normalize windows path and remove extra quotes."""
+    path = path.replace('\\', '/').lower()
+    # Check for quotes at start and end
+    if path[0] == '"' and path[-1] == '"':
+        path = literal_eval(path)
+    return path
+
+
 def _get_win_applications():
     """Return all system installed windows applications."""
     import winreg
@@ -357,9 +366,8 @@ def _get_win_applications():
     for software in sorted(software_list, key=lambda x: x[sort_key]):
         if software[None]:
             key = software['key'].capitalize().replace('.exe', '')
-            expanded_fpath = os.path.expandvars(software[None]).lower()
-            if '"' in expanded_fpath or "'" in expanded_fpath:
-                expanded_fpath = literal_eval(expanded_fpath)
+            expanded_fpath = os.path.expandvars(software[None])
+            expanded_fpath = _clean_win_application_path(expanded_fpath)
             app_paths[key] = expanded_fpath
 
     # See:
@@ -377,7 +385,7 @@ def _get_win_applications():
         icon = software['DisplayIcon']
         key = software['key']
         if name and icon:
-            icon = icon.replace('"', '').replace("'", '')
+            icon = icon.replace('"', '')
             icon = icon.split(',')[0]
 
             if location == '' and icon:
@@ -395,9 +403,9 @@ def _get_win_applications():
                         valid_file = fn_low.endswith(('.exe', '.com', '.bat'))
                         if valid_file and not fn_low.startswith('unins'):
                             fpath = os.path.join(location, fname)
-                            expanded_fpath = os.path.expandvars(fpath.lower())
-                            if '"' in expanded_fpath or "'" in expanded_fpath:
-                                expanded_fpath = literal_eval(expanded_fpath)
+                            expanded_fpath = os.path.expandvars(fpath)
+                            expanded_fpath = _clean_win_application_path(
+                                expanded_fpath)
                             apps[name + ' (' + fname + ')'] = expanded_fpath
     # Join data
     values = list(zip(*apps.values()))[-1]
@@ -511,19 +519,8 @@ def open_files_with_application(app_path, fnames):
     """
     return_codes = {}
 
-    # Add quotes as needed
-    if sys.platform != 'darwin':
-        new_fnames = []
-        for fname in fnames:
-            if ' ' in fname:
-                if '"' in fname:
-                    fname = '"{}"'.format(fname)
-                else:
-                    fname = "'{}'".format(fname)
-                new_fnames.append(fname)
-            else:
-                new_fnames.append(fname)
-        fnames = new_fnames
+    if os.name == 'nt':
+        fnames = [fname.replace('\\', '/') for fname in fnames]
 
     if sys.platform == 'darwin':
         if not (app_path.endswith('.app') and os.path.isdir(app_path)):
@@ -827,7 +824,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
     in a determined interpreter
     """
     if interpreter:
-        if osp.isfile(interpreter) and ('python' in interpreter):
+        if is_python_interpreter(interpreter):
             checkver = inspect.getsource(check_version)
             get_modver = inspect.getsource(get_module_version)
             stable_ver = inspect.getsource(is_stable_version)
@@ -866,9 +863,8 @@ def is_module_installed(module_name, version=None, installed_version=None,
                     f.close()
                 os.remove(script)
         else:
-            # Try to not take a wrong decision if there is no interpreter
-            # available (needed for the change_pystartup method of ExtConsole
-            # config page)
+            # Try to not take a wrong decision if interpreter check
+            # fails
             return True
     else:
         if installed_version is None:
@@ -900,6 +896,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
 
             return check_version(actver, version, symb)
 
+
 def is_python_interpreter_valid_name(filename):
     """Check that the python interpreter file has a valid name."""
     pattern = r'.*python(\d\.?\d*)?(w)?(.exe)?$'
@@ -908,8 +905,9 @@ def is_python_interpreter_valid_name(filename):
     else:
         return True
 
+
 def is_python_interpreter(filename):
-    """Evaluate wether a file is a python interpreter or not."""
+    """Evaluate whether a file is a python interpreter or not."""
     real_filename = os.path.realpath(filename)  # To follow symlink if existent
     if (not osp.isfile(real_filename) or
         not is_python_interpreter_valid_name(filename)):
@@ -950,17 +948,22 @@ def is_pythonw(filename):
 
 
 def check_python_help(filename):
-    """Check that the python interpreter can execute help."""
+    """Check that the python interpreter can compile and provide the zen."""
     try:
-        proc = run_program(filename, ["-h"])
-        output = to_text_string(proc.communicate()[0])
-        valid = ("Options and arguments (and corresponding environment "
-                 "variables)")
-        if 'usage:' in output and valid in output:
+        proc = run_program(filename, ['-c', 'import this'])
+        stdout, _ = proc.communicate()
+        stdout = to_text_string(stdout)
+        valid_lines = [
+            'Beautiful is better than ugly.',
+            'Explicit is better than implicit.',
+            'Simple is better than complex.',
+            'Complex is better than complicated.',
+        ]
+        if all(line in stdout for line in valid_lines):
             return True
         else:
             return False
-    except:
+    except Exception:
         return False
 
 

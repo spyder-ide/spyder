@@ -33,13 +33,14 @@ from spyder_kernels.utils.nsview import value_to_display
 # Local imports
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font, config_shortcut
+from spyder.config.gui import get_font
+from spyder.config.manager import CONF
 from spyder.py3compat import (io, is_binary_string, is_string,
                               is_text_string, PY3, to_binary_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, keybinding
-
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
@@ -159,15 +160,19 @@ class ArrayModel(QAbstractTableModel):
             self.hue0 = huerange[0]
             self.dhue = huerange[1]-huerange[0]
             self.bgcolor_enabled = True
-        except (TypeError, ValueError):
+        except (AttributeError, TypeError, ValueError):
             self.vmin = None
             self.vmax = None
             self.hue0 = None
             self.dhue = None
             self.bgcolor_enabled = False
 
-        # Deactivate coloring for object arrays
-        if self._data.dtype.name == 'object':
+        # Array with infinite values cannot display background colors and
+        # crashes. See: spyder-ide/spyder#8093
+        self.has_inf = np.inf in data
+
+        # Deactivate coloring for object arrays or arrays with inf values
+        if self._data.dtype.name == 'object' or self.has_inf:
             self.bgcolor_enabled = False
 
         # Use paging when the total size, number of rows or number of
@@ -288,7 +293,7 @@ class ArrayModel(QAbstractTableModel):
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
         elif (role == Qt.BackgroundColorRole and self.bgcolor_enabled
-                and value is not np.ma.masked):
+                and value is not np.ma.masked and not self.has_inf):
             try:
                 hue = (self.hue0 +
                        self.dhue * (float(self.vmax) - self.color_func(value))
@@ -341,11 +346,16 @@ class ArrayModel(QAbstractTableModel):
         # Add change to self.changes
         self.changes[(i, j)] = val
         self.dataChanged.emit(index, index)
+
         if not is_string(val):
+            val = self.color_func(val)
+
             if val > self.vmax:
                 self.vmax = val
+
             if val < self.vmin:
                 self.vmin = val
+
         return True
 
     def flags(self, index):
@@ -426,8 +436,11 @@ class ArrayView(QTableView):
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
         self.menu = self.setup_menu()
-        config_shortcut(self.copy, context='variable_explorer', name='copy',
-                        parent=self)
+        CONF.config_shortcut(
+            self.copy,
+            context='variable_explorer',
+            name='copy',
+            parent=self)
         self.horizontalScrollBar().valueChanged.connect(
                             lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
@@ -613,7 +626,7 @@ class ArrayEditorWidget(QWidget):
             self.model.set_format(format)
 
 
-class ArrayEditor(QDialog):
+class ArrayEditor(BaseDialog):
     """Array Editor Dialog"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -678,13 +691,12 @@ class ArrayEditor(QDialog):
         self.setLayout(self.layout)
         self.setWindowIcon(ima.icon('arredit'))
         if title:
-            title = to_text_string(title) + " - " + _("NumPy array")
+            title = to_text_string(title) + " - " + _("NumPy object array")
         else:
             title = _("Array editor")
         if readonly:
             title += ' (' + _('read only') + ')'
         self.setWindowTitle(title)
-        self.resize(600, 500)
 
         # Stack widget
         self.stack = QStackedWidget(self)
@@ -846,10 +858,15 @@ class ArrayEditor(QDialog):
 
     @Slot()
     def accept(self):
-        """Reimplement Qt method"""
-        for index in range(self.stack.count()):
-            self.stack.widget(index).accept_changes()
-        QDialog.accept(self)
+        """Reimplement Qt method."""
+        try:
+            for index in range(self.stack.count()):
+                self.stack.widget(index).accept_changes()
+            QDialog.accept(self)
+        except RuntimeError:
+            # Sometimes under CI testing the object the following error appears
+            # RuntimeError: wrapped C/C++ object has been deleted
+            pass
 
     def get_value(self):
         """Return modified array -- this is *not* a copy"""
@@ -858,7 +875,7 @@ class ArrayEditor(QDialog):
         return self.data
 
     def error(self, message):
-        """An error occured, closing the dialog box"""
+        """An error occurred, closing the dialog box"""
         QMessageBox.critical(self, _("Array editor"), message)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.reject()

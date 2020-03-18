@@ -10,6 +10,7 @@ Shell Widget for the IPython Console
 
 # Standard library imports
 import os
+import os.path as osp
 import uuid
 from textwrap import dedent
 
@@ -18,9 +19,8 @@ from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.manager import CONF
 from spyder.config.base import _
-from spyder.config.gui import config_shortcut
+from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import programs, encoding
 from spyder.utils import syntaxhighlighters as sh
@@ -51,12 +51,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
+    sig_pdb_state = Signal(bool, dict)
 
     # For ShellWidget
     focus_changed = Signal()
     new_client = Signal()
     sig_is_spykernel = Signal(object)
-    sig_kernel_restarted = Signal(str)
+    sig_kernel_restarted_message = Signal(str)
+    sig_kernel_restarted = Signal()
     sig_prompt_ready = Signal()
 
     # For global working directory
@@ -101,15 +103,40 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'current_filename': self.handle_current_filename,
             'get_file_code': self.handle_get_file_code,
             'set_debug_state': self.handle_debug_state,
+            'update_syspath': self.update_syspath,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
 
-    def call_kernel(self, interrupt=False, blocking=False, callback=None):
-        """Send message to spyder."""
+    def call_kernel(self, interrupt=False, blocking=False, callback=None,
+                    timeout=None):
+        """
+        Send message to Spyder kernel connected to this console.
+
+        Parameters
+        ----------
+        interrupt: bool
+            Interrupt the kernel while running or in Pdb to perform
+            the call.
+        blocking: bool
+            Make a blocking call, i.e. wait on this side until the
+            kernel sends its response.
+        callback: callable
+            Callable to process the response sent from the kernel
+            on the Spyder side.
+        timeout: int or None
+            Maximum time (in seconds) before giving up when making a
+            blocking call to the kernel. If None, a default timeout
+            (defined in commbase.py, present in spyder-kernels) is
+            used.
+        """
         return self.spyder_kernel_comm.remote_call(
-            interrupt=interrupt, blocking=blocking, callback=callback)
+            interrupt=interrupt,
+            blocking=blocking,
+            callback=callback,
+            timeout=timeout
+        )
 
     def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
         """Set the kernel client and manager"""
@@ -142,9 +169,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def set_cwd(self, dirname):
         """Set shell current working directory."""
-        # Replace single for double backslashes on Windows
         if os.name == 'nt':
-            dirname = dirname.replace(u"\\", u"\\\\")
+            # Use normpath instead of replacing '\' with '\\'
+            # See spyder-ide/spyder#10785
+            dirname = osp.normpath(dirname)
 
         if self.ipyclient.hostname is None:
             self.call_kernel(interrupt=True).set_cwd(dirname)
@@ -183,14 +211,16 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if not dark_color:
             # Needed to change the colors of tracebacks
             self.silent_execute("%colors linux")
-            self.call_kernel(
-                interrupt=True,
-                blocking=False).set_sympy_forecolor(background_color='dark')
+            self.call_kernel().set_sympy_forecolor(background_color='dark')
         else:
             self.silent_execute("%colors lightbg")
-            self.call_kernel(
-                interrupt=True,
-                blocking=False).set_sympy_forecolor(background_color='light')
+            self.call_kernel().set_sympy_forecolor(background_color='light')
+
+    def update_syspath(self, path_dict, new_path_dict):
+        """Update sys.path contents on kernel."""
+        self.call_kernel(
+            interrupt=True,
+            blocking=False).update_syspath(path_dict, new_path_dict)
 
     def request_syspath(self):
         """Ask the kernel for sys.path contents."""
@@ -333,29 +363,53 @@ the sympy module (e.g. plot)
 
     def create_shortcuts(self):
         """Create shortcuts for ipyconsole."""
-        inspect = config_shortcut(self._control.inspect_current_object,
-                                  context='Console',
-                                  name='Inspect current object', parent=self)
-        clear_console = config_shortcut(self.clear_console, context='Console',
-                                        name='Clear shell', parent=self)
-        restart_kernel = config_shortcut(self.ipyclient.restart_kernel,
-                                         context='ipython_console',
-                                         name='Restart kernel', parent=self)
-        new_tab = config_shortcut(lambda: self.new_client.emit(),
-                                  context='ipython_console', name='new tab',
-                                  parent=self)
-        reset_namespace = config_shortcut(lambda: self._reset_namespace(),
-                                          context='ipython_console',
-                                          name='reset namespace', parent=self)
-        array_inline = config_shortcut(self._control.enter_array_inline,
-                                       context='array_builder',
-                                       name='enter array inline', parent=self)
-        array_table = config_shortcut(self._control.enter_array_table,
-                                      context='array_builder',
-                                      name='enter array table', parent=self)
-        clear_line = config_shortcut(self.ipyclient.clear_line,
-                                     context='console', name='clear line',
-                                     parent=self)
+        inspect = CONF.config_shortcut(
+            self._control.inspect_current_object,
+            context='Console',
+            name='Inspect current object',
+            parent=self)
+
+        clear_console = CONF.config_shortcut(
+            self.clear_console,
+            context='Console',
+            name='Clear shell',
+            parent=self)
+
+        restart_kernel = CONF.config_shortcut(
+            self.ipyclient.restart_kernel,
+            context='ipython_console',
+            name='Restart kernel',
+            parent=self)
+
+        new_tab = CONF.config_shortcut(
+            lambda: self.new_client.emit(),
+            context='ipython_console',
+            name='new tab',
+            parent=self)
+
+        reset_namespace = CONF.config_shortcut(
+            lambda: self._reset_namespace(),
+            context='ipython_console',
+            name='reset namespace',
+            parent=self)
+
+        array_inline = CONF.config_shortcut(
+            self._control.enter_array_inline,
+            context='array_builder',
+            name='enter array inline',
+            parent=self)
+
+        array_table = CONF.config_shortcut(
+            self._control.enter_array_table,
+            context='array_builder',
+            name='enter array table',
+            parent=self)
+
+        clear_line = CONF.config_shortcut(
+            self.ipyclient.clear_line,
+            context='console',
+            name='clear line',
+            parent=self)
 
         return [inspect, clear_console, restart_kernel, new_tab,
                 reset_namespace, array_inline, array_table, clear_line]
@@ -474,9 +528,7 @@ the sympy module (e.g. plot)
         if index is None:
             return None
 
-        editor = editorstack.data[index].editor
-        editorstack.set_stack_index(index)
-        return editor
+        return editorstack.data[index].editor
 
     def get_editorstack(self):
         """Get the current editorstack."""
@@ -567,7 +619,11 @@ the sympy module (e.g. plot)
 
     def _kernel_restarted_message(self, died=True):
         msg = _("Kernel died, restarting") if died else _("Kernel restarting")
-        self.sig_kernel_restarted.emit(msg)
+        self.sig_kernel_restarted_message.emit(msg)
+
+    def _handle_kernel_restarted(self):
+        super(ShellWidget, self)._handle_kernel_restarted()
+        self.sig_kernel_restarted.emit()
 
     def _syntax_style_changed(self):
         """Refresh the highlighting with the current syntax style by class."""

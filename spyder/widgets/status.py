@@ -44,6 +44,14 @@ class StatusBarWidget(QWidget):
         self.label_icon = QLabel()
         self.label_value = QLabel()
 
+        # Layout setup
+        layout = QHBoxLayout(self)
+        layout.setSpacing(0)  # Reduce space between icon and label
+        layout.addWidget(self.label_icon)
+        layout.addWidget(self.label_value)
+        layout.addSpacing(20)
+        layout.setContentsMargins(0, 0, 0, 0)
+
         # Widget setup
         self.set_icon(icon)
 
@@ -51,20 +59,6 @@ class StatusBarWidget(QWidget):
         self.text_font = QFont(QFont().defaultFamily(), weight=QFont.Normal)
         self.label_value.setAlignment(Qt.AlignRight)
         self.label_value.setFont(self.text_font)
-
-        # Layout
-        layout = QHBoxLayout()
-        layout.setSpacing(0)  # Reduce space between icon and label
-        layout.addWidget(self.label_icon)
-        self.label_icon.setVisible(icon is not None)
-
-
-        layout.addWidget(self.label_value)
-        layout.addSpacing(20)
-
-        # Layout setup
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
 
         # Setup
         statusbar.addPermanentWidget(self)
@@ -262,7 +256,10 @@ class CondaStatus(StatusBarWidget):
 
         envs_folder = os.path.sep + 'envs' + os.path.sep
         if envs_folder in self._interpreter:
-            env = os.path.dirname(os.path.dirname(self._interpreter))
+            if os.name == 'nt':
+                env = os.path.dirname(self._interpreter)
+            else:
+                env = os.path.dirname(os.path.dirname(self._interpreter))
             env = os.path.basename(env)
         else:
             env = 'base'
@@ -290,6 +287,28 @@ class CondaStatus(StatusBarWidget):
         self.update_tooltip()
 
 
+class ClockStatus(BaseTimerStatus):
+    """"Add clock to statusbar in a fullscreen mode."""
+
+    def import_test(self):
+        pass
+
+    def get_value(self):
+        """Return the time."""
+        from time import localtime, strftime
+        text = strftime("%H:%M", localtime())
+
+        return text.rjust(3)
+
+    def get_tooltip(self):
+        """Return the widget tooltip text."""
+        return _('Clock')
+
+    def get_icon(self):
+        """Return the widget tooltip text."""
+        return QIcon()
+
+
 def test():
     from qtpy.QtWidgets import QMainWindow
     from spyder.utils.qthelpers import qapplication
@@ -300,7 +319,7 @@ def test():
     win.resize(900, 300)
     statusbar = win.statusBar()
     status_widgets = []
-    for status_class in (MemoryStatus, CPUStatus):
+    for status_class in (MemoryStatus, CPUStatus, ClockStatus):
         status_widget = status_class(win, statusbar)
         status_widgets.append(status_widget)
     win.show()

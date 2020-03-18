@@ -14,8 +14,8 @@ from flaky import flaky
 import pytest
 
 # Local imports
-from spyder.utils.programs import (check_version, find_program,
-                                   get_application_icon,
+from spyder.utils.programs import (_clean_win_application_path, check_version,
+                                   find_program, get_application_icon,
                                    get_installed_applications, get_temp_dir,
                                    is_module_installed, is_python_interpreter,
                                    is_python_interpreter_valid_name,
@@ -203,6 +203,15 @@ def test_get_temp_dir_ensure_dir_exists():
 
     assert os.path.exists(another_call)
     assert another_call == temp_dir
+
+
+def test_clean_win_application_path(qtbot):
+    data = (
+        ('"c:\\some thing\\foo.exe"', 'c:/some thing/foo.exe'),
+        ("c:\\some' thing\\foo.exe", "c:/some' thing/foo.exe"),
+    )
+    for path, expected_output in data:
+        assert _clean_win_application_path(path) == expected_output
 
 
 def test_get_installed_apps_and_icons(qtbot):

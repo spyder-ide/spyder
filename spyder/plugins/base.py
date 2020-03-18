@@ -131,10 +131,15 @@ class PluginWindow(QMainWindow):
 
     def closeEvent(self, event):
         """Reimplement Qt method."""
+        self.plugin.set_ancestor(self.plugin.main)
         self.plugin.dockwidget.setWidget(self.plugin)
         self.plugin.dockwidget.setVisible(True)
         self.plugin.switch_to_plugin()
         QMainWindow.closeEvent(self, event)
+        # Qt might want to do something with this soon,
+        # So it should not be deleted by python yet.
+        # Fixes spyder-ide/spyder#10704
+        self.plugin.__unsafe__window = self
         self.plugin._undocked_window = None
 
 
@@ -161,6 +166,8 @@ class BasePluginWidgetMixin(object):
         self._default_margins = None
         self._isvisible = False
 
+        self.shortcut = None
+
         # Options buttons
         self.options_button = create_toolbutton(self, text=_('Options'),
                                                 icon=ima.icon('tooloptions'))
@@ -177,15 +184,6 @@ class BasePluginWidgetMixin(object):
 
         # Options menu
         self._options_menu = QMenu(self)
-
-        # NOTE: Don't use the default option of CONF.get to assign a
-        # None shortcut to plugins that don't have one. That will mess
-        # the creation of our Keyboard Shortcuts prefs page
-        try:
-            self.shortcut = CONF.get('shortcuts', '_/switch to %s' %
-                                     self.CONF_SECTION)
-        except configparser.NoOptionError:
-            pass
 
         # We decided to create our own toggle action instead of using
         # the one that comes with dockwidget because it's not possible
@@ -265,10 +263,24 @@ class BasePluginWidgetMixin(object):
         dock.topLevelChanged.connect(self._on_top_level_changed)
         dock.sig_plugin_closed.connect(self._plugin_closed)
         self.dockwidget = dock
-        if self.shortcut is not None:
+
+        # NOTE: Don't use the default option of CONF.get to assign a
+        # None shortcut to plugins that don't have one. That will mess
+        # the creation of our Keyboard Shortcuts prefs page
+        try:
+            context = '_'
+            name = 'switch to {}'.format(self.CONF_SECTION)
+            self.shortcut = CONF.get_shortcut(context, name,
+                                              plugin_name=self.CONF_SECTION)
+        except (configparser.NoSectionError, configparser.NoOptionError):
+            pass
+
+        if self.shortcut is not None and self.main is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
-                            self.switch_to_plugin)
-            self.register_shortcut(sc, "_", "Switch to %s" % self.CONF_SECTION)
+                           self.switch_to_plugin)
+            self.register_shortcut(sc, "_", "Switch to {}".format(
+                self.CONF_SECTION))
+
         return (dock, self._LOCATION)
 
     def _switch_to_plugin(self):
@@ -283,8 +295,9 @@ class BasePluginWidgetMixin(object):
 
     @Slot()
     def _plugin_closed(self):
-        """DockWidget was closed"""
-        self._toggle_view_action.setChecked(False)
+        """DockWidget was closed."""
+        if self._toggle_view_action:
+            self._toggle_view_action.setChecked(False)
 
     def _get_font(self, rich_text=False):
         """Return plugin font."""
@@ -348,7 +361,7 @@ class BasePluginWidgetMixin(object):
         window.setCentralWidget(self)
         window.resize(self.size())
         self.refresh_plugin()
-
+        self.set_ancestor(window)
         self.dockwidget.setFloating(False)
         self.dockwidget.setVisible(False)
 
@@ -425,8 +438,12 @@ class BasePluginWidgetMixin(object):
     def _register_shortcut(self, qaction_or_qshortcut, context, name,
                            add_shortcut_to_tip=False):
         """Register a shortcut associated to a QAction or QShortcut."""
-        self.main.register_shortcut(qaction_or_qshortcut, context,
-                                    name, add_shortcut_to_tip)
+        self.main.register_shortcut(
+            qaction_or_qshortcut,
+            context,
+            name,
+            add_shortcut_to_tip,
+            self.CONF_SECTION)
 
     def _get_color_scheme(self):
         """Get the current color scheme."""

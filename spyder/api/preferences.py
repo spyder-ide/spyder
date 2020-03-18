@@ -17,6 +17,7 @@ class PluginConfigPage(SpyderConfigPage):
 
     def __init__(self, plugin, parent):
         self.plugin = plugin
+        self.main = parent.main
         self.get_option = plugin.get_option
         self.set_option = plugin.set_option
         self.get_font = plugin.get_font

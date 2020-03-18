@@ -8,9 +8,9 @@ jobs:
 - job: 'macOS'
 
   pool:
-    vmImage: 'macOS-10.13'
+    vmImage: 'macOS-10.14'
 
-  timeoutInMinutes: 100
+  timeoutInMinutes: 30
 
   variables:
     USE_CONDA: "yes"
@@ -20,12 +20,18 @@ jobs:
   # Run the pipeline with multiple Python versions
   strategy:
     matrix:
-      Python27:
+      Python27-slow:
         python.version: '2.7'
-      Python36:
-        python.version: '3.6'
-      Python37:
+        run.slow: 'true'
+      Python27-fast:
+        python.version: '2.7'
+        run.slow: 'false'
+      Python37-slow:
         python.version: '3.7'
+        run.slow: 'true'
+      Python37-fast:
+        python.version: '3.7'
+        run.slow: 'false'
     maxParallel: 4
 
   steps:
@@ -59,6 +65,11 @@ jobs:
       conda list
     displayName: 'Show build environment'
     continueOnError: true
+
+  - script: |
+      check-manifest
+    displayName: 'Check manifest for missing files'
+    continueOnError: false
 
     # Run Tests
   - script: |
@@ -95,9 +106,14 @@ jobs:
     matrix:
       #Python27:
       #  python.version: '2.7'
-      Python36:
+      Python36-slow:
         python.version: '3.6'
-        use.conda: "yes"
+        use.conda: 'yes'
+        run.slow: 'true'
+      Python36-fast:
+        python.version: '3.6'
+        use.conda: 'yes'
+        run.slow: 'false'
       #Python37_pip:
       #  python.version: '3.7'
       #  use.conda: "no"
@@ -129,6 +145,11 @@ jobs:
       conda list
     displayName: 'Show build environment'
     continueOnError: true
+
+  - script: |
+      check-manifest
+    displayName: 'Check manifest for missing files'
+    continueOnError: false
 
     # Run Tests
   - script: |

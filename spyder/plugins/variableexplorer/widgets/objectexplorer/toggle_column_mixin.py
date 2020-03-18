@@ -14,7 +14,7 @@ import logging
 # Third-party imports
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import (QAbstractItemView, QAction, QActionGroup,
-                            QTableWidget, QTreeView, QTreeWidget)
+                            QHeaderView, QTableWidget, QTreeView, QTreeWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -164,6 +164,13 @@ class ToggleColumnTreeView(QTreeView, ToggleColumnMixIn):
             import ToggleColumnDelegate
         self.setItemDelegate(ToggleColumnDelegate(self))
         self.setEditTriggers(QAbstractItemView.DoubleClicked)
+        self.expanded.connect(self.resize_columns_to_contents)
+        self.collapsed.connect(self.resize_columns_to_contents)
+
+    @Slot()
+    def resize_columns_to_contents(self):
+        """Resize all the columns to its contents."""
+        self._horizontal_header().resizeSections(QHeaderView.ResizeToContents)
 
     @Slot(str)
     def set_dataframe_format(self, new_format):

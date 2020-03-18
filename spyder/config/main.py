@@ -83,6 +83,8 @@ DEFAULTS = [
               'memory_usage/timeout': 2000,
               'cpu_usage/enable': False,
               'cpu_usage/timeout': 2000,
+              'clock/enable': False,
+              'clock/timeout': 1000,
               'use_custom_margin': True,
               'custom_margin': 0,
               'use_custom_cursor_blinking': False,
@@ -91,7 +93,6 @@ DEFAULTS = [
               'toolbars_visible': True,
               'cursor/width': 2,
               'completion/size': (300, 180),
-              'report_error/remember_me': False,
               'report_error/remember_token': False,
               }),
             ('quick_layouts',
@@ -163,7 +164,8 @@ DEFAULTS = [
               'exclude_private': True,
               'exclude_uppercase': True,
               'exclude_capitalized': False,
-              'exclude_unsupported': True,
+              'exclude_unsupported': False,
+              'exclude_callables_and_modules': True,
               'truncate': True,
               'minmax': False,
               'show_callable_attributes': True,
@@ -192,6 +194,8 @@ DEFAULTS = [
               'edge_line': True,
               'edge_line_columns': '79',
               'indent_guides': False,
+              'code_folding': True,
+              'code_folding_warn': True,
               'scroll_past_end': False,
               'toolbox_panel': True,
               'close_parentheses': True,
@@ -267,6 +271,7 @@ DEFAULTS = [
               'name_filters': NAME_FILTERS,
               'show_all': True,
               'show_hscrollbar': True,
+              'max_recent_projects': 10,
               'visible_if_project_open': True
               }),
             ('explorer',
@@ -288,8 +293,9 @@ DEFAULTS = [
               'search_text_regexp': False,
               'search_text': [''],
               'search_text_samples': [TASKS_PATTERN],
-              'more_options': True,
+              'more_options': False,
               'case_sensitive': False,
+              'max_results': 1000,
               }),
             ('breakpoints',
              {
@@ -362,10 +368,10 @@ DEFAULTS = [
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
-              'editor/duplicate line': "Ctrl+Alt+Up" if WIN else \
-                                       "Shift+Alt+Up",
-              'editor/copy line': "Ctrl+Alt+Down" if WIN else \
-                                  "Shift+Alt+Down",
+              'editor/duplicate line up': (
+                  "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),
+              'editor/duplicate line down': (
+                  "Ctrl+Alt+Down" if WIN else "Shift+Alt+Down"),
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
@@ -460,10 +466,17 @@ DEFAULTS = [
               'variable_explorer/copy': 'Ctrl+C',
               # ---- In widgets/variableexplorer/namespacebrowser.py ----
               'variable_explorer/search': 'Ctrl+F',
+              'variable_explorer/refresh': 'Ctrl+R',
               # ---- In widgets/plots/figurebrowser.py ----
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
               'plots/next figure': 'Ctrl+PgDown',
+              'plots/save': 'Ctrl+S',
+              'plots/save all': 'Ctrl+Alt+S',
+              'plots/close': 'Ctrl+W',
+              'plots/close all': 'Ctrl+Shift+W',
+              'plots/zoom in': "Ctrl++",
+              'plots/zoom out': "Ctrl+-",
               # ---- In widgets/explorer ----
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
@@ -514,6 +527,7 @@ DEFAULTS = [
               # Enable the installation dialog
               'show_installation_dialog': True,
               'show_onboarding': True,
+              'show_installation_error_message': True,
              }),
             ]
 
@@ -579,6 +593,7 @@ NAME_MAP = {
             'current_project_path',
             'expanded_state',
             'recent_projects',
+            'max_recent_projects',
             'scrollbar_position',
           ]
          ),
@@ -609,4 +624,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '53.1.0'
+CONF_VERSION = '56.0.0'

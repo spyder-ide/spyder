@@ -64,9 +64,9 @@ class BasePlugin(BasePluginMixin):
         Parameters
         ----------
         message: str
-            Message to display in the status bar
+            Message to display in the status bar.
         timeout: int
-            Amound of time to display the message
+            Amount of time to display the message.
         """
         super(BasePlugin, self)._show_status_message(message, timeout)
 
@@ -148,6 +148,10 @@ class SpyderPlugin(BasePlugin):
     # config system (i.e. in spyder.ini)
     # Status: Optional
     CONF_SECTION = None
+
+    # One line localized description of the features this plugin implements
+    # Status: Optional
+    DESCRIPTION = None
 
     # Widget to be used as entry in Spyder Preferences dialog
     # Status: Optional
@@ -523,3 +527,9 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
             self.dockwidget.raise_()
         else:
             self.dockwidget.hide()
+
+    def set_ancestor(self, ancestor):
+        """
+        Needed to update the ancestor/parent of child widgets when undocking.
+        """
+        pass

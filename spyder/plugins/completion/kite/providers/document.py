@@ -41,7 +41,8 @@ def convert_text_snippet(snippet_info):
     text_builder = []
     prev_pos = 0
     next_pos = None
-    total_placeholders = len(snippet_info['placeholders']) + 1
+    num_placeholders = len(snippet_info['placeholders'])
+    total_placeholders = num_placeholders + 1
     for i, placeholder in enumerate(snippet_info['placeholders']):
         placeholder_begin = placeholder['begin']
         placeholder_end = placeholder['end']
@@ -57,7 +58,8 @@ def convert_text_snippet(snippet_info):
             snippet = '$%d' % (placeholder_number)
         text_builder.append(snippet)
     text_builder.append(text[prev_pos:])
-    text_builder.append('$0')
+    if num_placeholders > 0:
+        text_builder.append('$0')
     return ''.join(text_builder)
 
 
@@ -71,8 +73,8 @@ class DocumentProvider:
             'text': params['text'],
             'action': 'focus',
             'selections': [{
-                'start': params['offset'],
-                'end': params['offset'],
+                'start': params['selection_start'],
+                'end': params['selection_end'],
                 'encoding': 'utf-16',
             }],
         }
@@ -90,13 +92,28 @@ class DocumentProvider:
             'text': params['text'],
             'action': 'edit',
             'selections': [{
-                'start': params['offset'],
-                'end': params['offset'],
+                'start': params['selection_start'],
+                'end': params['selection_end'],
                 'encoding': 'utf-16',
             }],
         }
         with QMutexLocker(self.mutex):
             self.opened_files[params['file']] = params['text']
+        return request
+
+    @send_request(method=LSPRequestTypes.DOCUMENT_CURSOR_EVENT)
+    def document_cursor_event(self, params):
+        request = {
+            'source': 'spyder',
+            'filename': osp.realpath(params['file']),
+            'text': params['text'],
+            'action': 'edit',
+            'selections': [{
+                'start': params['selection_start'],
+                'end': params['selection_end'],
+                'encoding': 'utf-16',
+            }],
+        }
         return request
 
     @send_request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
@@ -108,7 +125,8 @@ class DocumentProvider:
             'no_snippets': not self.enable_code_snippets,
             'text': text,
             'position': {
-                'begin': params['offset']
+                'begin': params['selection_start'],
+                'end': params['selection_end'],
             },
             'offset_encoding': 'utf-16',
         }
@@ -116,6 +134,9 @@ class DocumentProvider:
 
     @handles(LSPRequestTypes.DOCUMENT_COMPLETION)
     def convert_completion_request(self, response):
+        # The response schema is tested via mocking in
+        # spyder/plugins/editor/widgets/tests/test_introspection.py
+
         logger.debug(response)
         if response is None:
             return {'params': []}
@@ -177,7 +198,7 @@ class DocumentProvider:
         logger.debug(path)
         if os.name == 'nt':
             path = path.replace('::', ':')
-            path = 'windows:' + path
+            path = ':windows:' + path
         request = {
             'filename': path,
             'hash': md5,

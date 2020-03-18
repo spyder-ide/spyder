@@ -1,0 +1,11 @@
+codecov
+cython
+flaky
+matplotlib
+mock
+numpy
+pandas
+pytest
+pytest-cov
+scipy
+xarray

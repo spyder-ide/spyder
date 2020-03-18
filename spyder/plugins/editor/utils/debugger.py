@@ -124,6 +124,10 @@ class DebuggerManager(Manager):
         for data in self.editor.blockuserdata_list():
             data.breakpoint = False
             # data.breakpoint_condition = None  # not necessary, but logical
+        # Inform the editor that the breakpoints are changed
+        self.editor.sig_breakpoints_changed.emit()
+        # Inform the editor that the flags must be updated
+        self.editor.sig_flags_changed.emit()
 
     def set_breakpoints(self, breakpoints):
         """Set breakpoints"""

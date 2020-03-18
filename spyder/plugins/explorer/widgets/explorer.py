@@ -33,7 +33,7 @@ from qtpy.QtWidgets import (QApplication, QFileIconProvider, QFileSystemModel,
 
 # Local imports
 from spyder.config.base import _, get_home_dir
-from spyder.config.gui import config_shortcut, get_shortcut
+from spyder.config.manager import CONF
 from spyder.py3compat import str_lower, to_binary_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
@@ -131,7 +131,12 @@ class IconProvider(QFileIconProvider):
         else:
             qfileinfo = icontype_or_qfileinfo
             fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
-            return ima.get_icon_by_extension_or_type(fname, scale_factor=1.0)
+            if osp.isfile(fname) or osp.isdir(fname):
+                icon = ima.get_icon_by_extension_or_type(fname,
+                                                         scale_factor=1.0)
+            else:
+                icon = ima.get_icon('binary', adjust_for_interface=True)
+            return icon
 
 
 class DirView(QTreeView):
@@ -179,7 +184,8 @@ class DirView(QTreeView):
     #---- Model
     def setup_fs_model(self):
         """Setup filesystem model"""
-        filters = QDir.AllDirs | QDir.Files | QDir.Drives | QDir.NoDotAndDotDot
+        filters = (QDir.AllDirs | QDir.Files | QDir.Drives
+                   | QDir.NoDotAndDotDot | QDir.Hidden)
         self.fsmodel = QFileSystemModel(self)
         self.fsmodel.setFilter(filters)
         self.fsmodel.setNameFilterDisables(False)
@@ -434,39 +440,61 @@ class DirView(QTreeView):
             self, _("Open in Spyder"), icon=ima.icon('edit'),
             triggered=self.open)
         open_with_menu = QMenu(_('Open with'), self)
+
         open_external_action = create_action(
-            self, _("Open externally"),
+            self,
+            _("Open externally"),
             triggered=self.open_external)
-        move_action = create_action(self, _("Move..."),
-                                    icon="move.png",
-                                    triggered=self.move)
-        delete_action = create_action(self, _("Delete..."),
-                                      icon=ima.icon('editdelete'),
-                                      triggered=self.delete)
-        rename_action = create_action(self, _("Rename..."),
-                                      icon=ima.icon('rename'),
-                                      triggered=self.rename)
-        ipynb_convert_action = create_action(self, _("Convert to Python script"),
-                                             icon=ima.icon('python'),
-                                             triggered=self.convert_notebooks)
-        copy_file_clipboard_action = (
-            create_action(self, _("Copy"),
-                          QKeySequence(get_shortcut('explorer', 'copy file')),
-                          icon=ima.icon('editcopy'),
-                          triggered=self.copy_file_clipboard))
-        save_file_clipboard_action = (
-            create_action(self, _("Paste"),
-                          QKeySequence(get_shortcut('explorer', 'paste file')),
-                          icon=ima.icon('editpaste'),
-                          triggered=self.save_file_clipboard))
-        copy_absolute_path_action = (
-            create_action(self, _("Copy Absolute Path"), QKeySequence(
-                get_shortcut('explorer', 'copy absolute path')),
-                          triggered=self.copy_absolute_path))
-        copy_relative_path_action = (
-            create_action(self, _("Copy Relative Path"), QKeySequence(
-                get_shortcut('explorer', 'copy relative path')),
-                          triggered=self.copy_relative_path))
+
+        move_action = create_action(
+            self,
+            _("Move..."),
+            icon="move.png",
+            triggered=self.move)
+
+        delete_action = create_action(
+            self,
+            _("Delete..."),
+            icon=ima.icon('editdelete'),
+            triggered=self.delete)
+
+        rename_action = create_action(
+            self,
+            _("Rename..."),
+            icon=ima.icon('rename'),
+            triggered=self.rename)
+
+        ipynb_convert_action = create_action(
+            self,
+            _("Convert to Python script"),
+            icon=ima.icon('python'),
+            triggered=self.convert_notebooks)
+
+        copy_file_clipboard_action = create_action(
+            self,
+            _("Copy"),
+            QKeySequence(CONF.get_shortcut('explorer', 'copy file')),
+            icon=ima.icon('editcopy'),
+            triggered=self.copy_file_clipboard)
+
+        save_file_clipboard_action = create_action(
+            self,
+            _("Paste"),
+            QKeySequence(CONF.get_shortcut('explorer', 'paste file')),
+            icon=ima.icon('editpaste'),
+            triggered=self.save_file_clipboard)
+
+        copy_absolute_path_action = create_action(
+            self,
+            _("Copy Absolute Path"),
+            QKeySequence(CONF.get_shortcut('explorer', 'copy absolute path')),
+            triggered=self.copy_absolute_path)
+
+        copy_relative_path_action = create_action(
+            self,
+            _("Copy Relative Path"),
+            QKeySequence(CONF.get_shortcut('explorer', 'copy relative path')),
+            triggered=self.copy_relative_path)
 
         actions = []
         if only_modules:
@@ -875,7 +903,7 @@ class DirView(QTreeView):
                     return
             try:
                 misc.rename_file(fname, path)
-                if osp.isfile(fname):
+                if osp.isfile(path):
                     self.sig_renamed.emit(fname, path)
                 else:
                     self.sig_renamed_tree.emit(fname, path)
@@ -1181,20 +1209,30 @@ class DirView(QTreeView):
     def create_shortcuts(self):
         """Create shortcuts for this file explorer."""
         # Configurable
-        copy_clipboard_file = config_shortcut(self.copy_file_clipboard,
-                                              context='explorer',
-                                              name='copy file', parent=self)
-        paste_clipboard_file = config_shortcut(self.save_file_clipboard,
-                                               context='explorer',
-                                               name='paste file', parent=self)
-        copy_absolute_path = config_shortcut(self.copy_absolute_path,
-                                             context='explorer',
-                                             name='copy absolute path',
-                                             parent=self)
-        copy_relative_path = config_shortcut(self.copy_relative_path,
-                                             context='explorer',
-                                             name='copy relative path',
-                                             parent=self)
+        copy_clipboard_file = CONF.config_shortcut(
+            self.copy_file_clipboard,
+            context='explorer',
+            name='copy file',
+            parent=self)
+
+        paste_clipboard_file = CONF.config_shortcut(
+            self.save_file_clipboard,
+            context='explorer',
+            name='paste file',
+            parent=self)
+
+        copy_absolute_path = CONF.config_shortcut(
+            self.copy_absolute_path,
+            context='explorer',
+            name='copy absolute path',
+            parent=self)
+
+        copy_relative_path = CONF.config_shortcut(
+            self.copy_relative_path,
+            context='explorer',
+            name='copy relative path',
+            parent=self)
+
         return [copy_clipboard_file, paste_clipboard_file, copy_absolute_path,
                 copy_relative_path]
 
@@ -1702,6 +1740,7 @@ class FileExplorerTest(QWidget):
             self.directory = directory
         else:
             self.directory = osp.dirname(osp.abspath(__file__))
+        self.explorer.treewidget.set_current_folder(self.directory)
         vlayout.addWidget(self.explorer)
 
         hlayout1 = QHBoxLayout()

@@ -20,16 +20,18 @@ from qtpy.QtCore import Slot, Signal, QModelIndex, QPoint, QSize, Qt
 from qtpy.QtGui import QKeySequence, QTextOption
 from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
                             QDialog, QGroupBox, QHBoxLayout, QHeaderView,
-                            QLabel, QMenu, QPushButton, QRadioButton,
-                            QSplitter, QToolButton, QVBoxLayout, QWidget)
+                            QMenu, QPushButton, QRadioButton, QSplitter,
+                            QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, is_dark_interface
 from spyder.config.manager import CONF
 from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
                                     create_toolbutton, qapplication)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
     TreeItem, TreeModel, TreeProxyModel)
@@ -43,7 +45,7 @@ logger = logging.getLogger(__name__)
 EDITOR_NAME = 'Object'
 
 
-class ObjectExplorer(QDialog):
+class ObjectExplorer(BaseDialog):
     """Object explorer main widget window."""
     # TODO: Use signal to trigger update of configs
     sig_option_changed = Signal(str, object)
@@ -108,6 +110,16 @@ class ObjectExplorer(QDialog):
         self._proxy_tree_model.setDynamicSortFilter(True)
         # self._proxy_tree_model.setSortCaseSensitivity(Qt.CaseInsensitive)
 
+        # Tree widget
+        self.obj_tree = ToggleColumnTreeView(
+                dataframe_format=self._dataframe_format)
+        self.obj_tree.setAlternatingRowColors(True)
+        self.obj_tree.setModel(self._proxy_tree_model)
+        self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.obj_tree.setUniformRowHeights(True)
+        self.obj_tree.add_header_context_menu()
+        self.obj_tree.sig_option_changed.connect(self.sig_option_changed.emit)
+
         # Views
         self._setup_actions()
         self._setup_menu(show_callable_attributes=show_callable_attributes,
@@ -152,6 +164,8 @@ class ObjectExplorer(QDialog):
                                 "that are callable (functions, methods, etc)"))
         self.toggle_show_callable_action.toggled.connect(
             self._proxy_tree_model.setShowCallables)
+        self.toggle_show_callable_action.toggled.connect(
+            self.obj_tree.resize_columns_to_contents)
 
         # Show/hide special attributes
         self.toggle_show_special_attribute_action = \
@@ -160,6 +174,8 @@ class ObjectExplorer(QDialog):
                     statusTip=_("Shows or hides __special__ attributes"))
         self.toggle_show_special_attribute_action.toggled.connect(
             self._proxy_tree_model.setShowSpecialAttributes)
+        self.toggle_show_special_attribute_action.toggled.connect(
+            self.obj_tree.resize_columns_to_contents)
 
     def _setup_menu(self, show_callable_attributes=False,
                     show_special_attributes=False):
@@ -234,17 +250,6 @@ class ObjectExplorer(QDialog):
                                       self.central_splitter)
         self.setLayout(layout)
 
-        # Tree widget
-        self.obj_tree = ToggleColumnTreeView(
-                dataframe_format=self._dataframe_format)
-        self.obj_tree.setAlternatingRowColors(True)
-        self.obj_tree.setModel(self._proxy_tree_model)
-        self.obj_tree.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.obj_tree.setUniformRowHeights(True)
-        self.obj_tree.setAnimated(True)
-        self.obj_tree.add_header_context_menu()
-        self.obj_tree.sig_option_changed.connect(self.sig_option_changed.emit)
-
         # Stretch last column?
         # It doesn't play nice when columns are hidden and then shown again.
         obj_tree_header = self.obj_tree.header()
@@ -295,12 +300,6 @@ class ObjectExplorer(QDialog):
         self.editor = CodeEditor(self)
         self.editor.setReadOnly(True)
         h_group_layout.addWidget(self.editor)
-
-        # Warining label about repr
-        repr_label = QLabel(_("(*) Some objects have very large repr's, "
-                              "which can freeze Spyder. Please use this "
-                              "with care."))
-        v_group_layout.addWidget(repr_label)
 
         # Save and close buttons
         btn_layout = QHBoxLayout()
@@ -377,7 +376,8 @@ class ObjectExplorer(QDialog):
                 if not self._resize_to_contents and size > 0:  # Just in case
                     header.resizeSection(idx, size)
                 else:
-                    header.setSectionResizeMode(QHeaderView.ResizeToContents)
+                    header.resizeSections(QHeaderView.ResizeToContents)
+                    break
 
             for idx, visible in enumerate(column_visible):
                 elem = self.obj_tree.toggle_column_actions_group.actions()[idx]
@@ -425,11 +425,12 @@ class ObjectExplorer(QDialog):
             show_blanks = CONF.get('editor', 'blank_spaces')
             update_scrollbar = CONF.get('editor', 'scroll_past_end')
             scheme_name = CONF.get('appearance', 'selected')
-            self.editor.setup_editor(tab_mode=False,
-                                     font=get_font(),
-                                     show_blanks=show_blanks,
-                                     color_scheme=scheme_name,
-                                     scroll_past_end=update_scrollbar)
+            self.editor.setup_editor(
+                tab_mode=False,
+                font=get_font(font_size_delta=DEFAULT_SMALL_DELTA),
+                show_blanks=show_blanks,
+                color_scheme=scheme_name,
+                scroll_past_end=update_scrollbar)
             self.editor.set_text(data)
             if attr_details.name == 'Source code':
                 self.editor.set_language('Python')

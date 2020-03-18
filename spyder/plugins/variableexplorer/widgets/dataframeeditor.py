@@ -54,13 +54,15 @@ import numpy as np
 # Local imports
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
-from spyder.config.gui import get_font, config_shortcut
+from spyder.config.gui import get_font
+from spyder.config.manager import CONF
 from spyder.py3compat import (io, is_text_string, is_type_text_string, PY2,
                               to_text_string, perf_counter)
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     keybinding, qapplication)
 from spyder.plugins.variableexplorer.widgets.arrayeditor import get_idx_rect
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 # Supported Numbers and complex numbers
 REAL_NUMBER_TYPES = (float, int, np.int64, np.int32)
@@ -122,8 +124,6 @@ class DataFrameModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
-        self.df_index = dataFrame.index.tolist()
-        self.df_header = dataFrame.columns.tolist()
         self._format = format
         self.complex_intran = None
         self.display_error_idxs = []
@@ -198,7 +198,7 @@ class DataFrameModel(QAbstractTableModel):
         given level.
         """
         ax = self._axis(axis)
-        return ax.values[x] if not hasattr(ax, 'levels') \
+        return ax.tolist()[x] if not hasattr(ax, 'levels') \
             else ax.values[x][level]
 
     def name(self, axis, level):
@@ -305,10 +305,6 @@ class DataFrameModel(QAbstractTableModel):
             value = self.df.iloc[row, column]
         return value
 
-    def update_df_index(self):
-        """"Update the DataFrame index"""
-        self.df_index = self.df.index.tolist()
-
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
         if not index.isValid():
@@ -376,11 +372,9 @@ class DataFrameModel(QAbstractTableModel):
                     # See spyder-ide/spyder#5361.
                     QMessageBox.critical(self.dialog, "Error",
                                          "SystemError: %s" % to_text_string(e))
-                self.update_df_index()
             else:
                 # To sort by index
                 self.df.sort_index(inplace=True, ascending=ascending)
-                self.update_df_index()
         except TypeError as e:
             QMessageBox.critical(self.dialog, "Error",
                                  "TypeError error: %s" % str(e))
@@ -515,8 +509,11 @@ class DataFrameView(QTableView):
         self.header_class = header
         self.header_class.sectionClicked.connect(self.sortByColumn)
         self.menu = self.setup_menu()
-        config_shortcut(self.copy, context='variable_explorer', name='copy',
-                        parent=self)
+        CONF.config_shortcut(
+            self.copy,
+            context='variable_explorer',
+            name='copy',
+            parent=self)
         self.horizontalScrollBar().valueChanged.connect(
                         lambda val: self.load_more_data(val, columns=True))
         self.verticalScrollBar().valueChanged.connect(
@@ -590,12 +587,22 @@ class DataFrameView(QTableView):
             return
         (row_min, row_max,
          col_min, col_max) = get_idx_rect(self.selectedIndexes())
-        index = header = False
+        # Copy index and header too (equal True).
+        # See spyder-ide/spyder#11096
+        index = header = True
         df = self.model().df
         obj = df.iloc[slice(row_min, row_max + 1),
                       slice(col_min, col_max + 1)]
         output = io.StringIO()
-        obj.to_csv(output, sep='\t', index=index, header=header)
+        try:
+            obj.to_csv(output, sep='\t', index=index, header=header)
+        except UnicodeEncodeError:
+            # Needed to handle enconding errors in Python 2
+            # See spyder-ide/spyder#4833
+            QMessageBox.critical(
+                self,
+                _("Error"),
+                _("Text can't be copied."))
         if not PY2:
             contents = output.getvalue()
         else:
@@ -819,7 +826,7 @@ class DataFrameLevelModel(QAbstractTableModel):
         return None
 
 
-class DataFrameEditor(QDialog):
+class DataFrameEditor(BaseDialog):
     """
     Dialog for displaying and editing DataFrame and related objects.
 
@@ -869,7 +876,6 @@ class DataFrameEditor(QDialog):
             data = DataFrame(data)
 
         self.setWindowTitle(title)
-        self.resize(600, 500)
 
         self.hscroll = QScrollBar(Qt.Horizontal)
         self.vscroll = QScrollBar(Qt.Vertical)
@@ -893,7 +899,9 @@ class DataFrameEditor(QDialog):
 
         # autosize columns on-demand
         self._autosized_cols = set()
-        self._max_autosize_ms = None
+        # Set limit time to calculate column sizeHint to 300ms,
+        # See spyder-ide/spyder#11060
+        self._max_autosize_ms = 300
         self.dataTable.installEventFilter(self)
 
         avg_width = self.fontMetrics().averageCharWidth()
@@ -901,7 +909,6 @@ class DataFrameEditor(QDialog):
         self.max_width = avg_width * 64  # Maximum size for columns
 
         self.setLayout(self.layout)
-        self.setMinimumSize(400, 300)
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         btn_layout = QHBoxLayout()
@@ -1092,8 +1099,8 @@ class DataFrameEditor(QDialog):
         if old_sel_model:
             del old_sel_model
 
-    def setAutosizeLimit(self, limit_ms):
-        """Set maximum size for columns."""
+    def setAutosizeLimitTime(self, limit_ms):
+        """Set maximum time to calculate size hint for columns."""
         self._max_autosize_ms = limit_ms
 
     def setModel(self, model, relayout=True):

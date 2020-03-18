@@ -59,6 +59,7 @@ class DebuggingWidget(RichJupyterWidget):
         self._pdb_last_cmd = ''
         self._pdb_line_num = 0
         self._pdb_history_file = PdbHistory()
+        self._pdb_last_step = {}
 
         self._pdb_history = [
             line[-1] for line in self._pdb_history_file.get_tail(
@@ -67,6 +68,7 @@ class DebuggingWidget(RichJupyterWidget):
         self._pdb_history_index = len(self._pdb_history)
 
         self._tmp_reading = False
+        self._pdb_frame_loc = (None, None)
 
     def handle_debug_state(self, in_debug_loop):
         """Update the debug state."""
@@ -74,12 +76,15 @@ class DebuggingWidget(RichJupyterWidget):
         # If debugging starts or stops, clear the input queue.
         self._pdb_input_queue = []
         self._pdb_line_num = 0
+        self._pdb_frame_loc = (None, None)
 
         # start/stop pdb history session
         if in_debug_loop:
             self._pdb_history_file.new_session()
         else:
             self._pdb_history_file.end_session()
+
+        self.sig_pdb_state.emit(self._pdb_in_loop, self._pdb_last_step)
 
     # --- Public API --------------------------------------------------
     def pdb_execute(self, line, hidden=False):
@@ -128,6 +133,8 @@ class DebuggingWidget(RichJupyterWidget):
             "breakpoints": CONF.get('run', 'breakpoints', {}),
             "pdb_ignore_lib": CONF.get(
                 'run', 'pdb_ignore_lib', False),
+            "pdb_execute_events": CONF.get(
+                'run', 'pdb_execute_events', False),
             }
 
     def set_spyder_breakpoints(self):
@@ -139,6 +146,11 @@ class DebuggingWidget(RichJupyterWidget):
         """Set pdb_ignore_lib into a debugging session"""
         self.call_kernel(interrupt=True).set_pdb_ignore_lib(
             CONF.get('run', 'pdb_ignore_lib', False))
+
+    def set_pdb_execute_events(self):
+        """Set pdb_execute_events into a debugging session"""
+        self.call_kernel(interrupt=True).set_pdb_execute_events(
+            CONF.get('run', 'pdb_execute_events', False))
 
     def dbg_exec_magic(self, magic, args=''):
         """Run an IPython magic while debugging."""
@@ -158,7 +170,15 @@ class DebuggingWidget(RichJupyterWidget):
         if 'step' in pdb_state and 'fname' in pdb_state['step']:
             fname = pdb_state['step']['fname']
             lineno = pdb_state['step']['lineno']
-            self.sig_pdb_step.emit(fname, lineno)
+
+            # Save last step
+            self._pdb_last_step = {'fname': fname,
+                                   'lineno': lineno}
+
+            # Only step if the location changed
+            if (fname, lineno) != self._pdb_frame_loc:
+                self._pdb_frame_loc = (fname, lineno)
+                self.sig_pdb_step.emit(fname, lineno)
 
         if 'namespace_view' in pdb_state:
             self.set_namespace_view(pdb_state['namespace_view'])
@@ -170,6 +190,10 @@ class DebuggingWidget(RichJupyterWidget):
         """Set current pdb state."""
         if pdb_state is not None and isinstance(pdb_state, dict):
             self.refresh_from_pdb(pdb_state)
+
+    def get_pdb_last_step(self):
+        """Get last pdb step retrieved from a Pdb session."""
+        return self._pdb_last_step
 
     def pdb_continue(self):
         """Continue debugging."""
@@ -289,22 +313,15 @@ class DebuggingWidget(RichJupyterWidget):
             self._finalize_input_request()
             return self.kernel_client.input(line)
 
-        # This is the Spyder addition: add a %plot magic to display
-        # plots while debugging
-        if line.startswith('%plot '):
-            line = line.split()[-1]
-            line = "__spy_code__ = get_ipython().run_cell('%s')" % line
-            self.pdb_execute(line, hidden=True)
-        else:
-            self.set_pdb_echo_code(True)
-            self.pdb_execute(line)
+        self.set_pdb_echo_code(True)
+        self.pdb_execute(line)
 
     def set_pdb_echo_code(self, state):
         """Choose if the code should echo in the console."""
         self.call_kernel(interrupt=True).set_pdb_echo_code(state)
 
     def _handle_input_request(self, msg):
-        """Save history and add a %plot magic."""
+        """Process an input request."""
         if self._hidden:
             raise RuntimeError(
                 'Request for raw input during hidden execution.')
@@ -336,6 +353,7 @@ class DebuggingWidget(RichJupyterWidget):
             if self.is_waiting_pdb_input():
                 self._executing = False
                 self._highlighter.highlighting_on = True
+                self.executed.emit(msg)
 
         if self.is_waiting_pdb_input():
             self._pdb_input_ready = True

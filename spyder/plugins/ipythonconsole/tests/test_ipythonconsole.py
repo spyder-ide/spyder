@@ -12,6 +12,7 @@ Tests for the IPython console plugin.
 
 # Standard library imports
 import codecs
+from distutils.version import LooseVersion
 import os
 import os.path as osp
 import shutil
@@ -44,12 +45,7 @@ from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.programs import get_temp_dir
-
-
-# Global skip
-if sys.platform == 'darwin' and PY2:
-    pytest.skip("These tests are segfaulting too much in macOS and Python 2",
-                allow_module_level=True)
+from spyder.utils.conda import is_conda_env
 
 
 # =============================================================================
@@ -74,6 +70,23 @@ def get_console_background_color(style_sheet):
     background_color = style_sheet.split('background-color:')[1]
     background_color = background_color.split(';')[0]
     return background_color
+
+
+def get_conda_test_env(test_env_name=u'spytest-ž'):
+    """Return the full prefix path of the given `test_env_name`."""
+    if 'envs' in sys.prefix:
+        root_prefix = os.path.dirname(os.path.dirname(sys.prefix))
+    else:
+        root_prefix = sys.prefix
+
+    test_env_prefix = os.path.join(root_prefix, 'envs', test_env_name)
+
+    if os.name == 'nt':
+        test_env_executable = os.path.join(test_env_prefix, 'python.exe')
+    else:
+        test_env_executable = os.path.join(test_env_prefix, 'bin', 'python')
+
+    return test_env_executable
 
 
 class FaultyKernelSpec(KernelSpec):
@@ -152,6 +165,18 @@ def ipyconsole(qtbot, request):
         CONF.set('main_interpreter', 'default', True)
         CONF.set('main_interpreter', 'executable', '')
 
+    # Use the test environment interpreter if requested
+    test_environment_interpreter = request.node.get_closest_marker(
+        'test_environment_interpreter')
+
+    if test_environment_interpreter:
+        CONF.set('main_interpreter', 'default', False)
+        CONF.set('main_interpreter', 'executable', get_conda_test_env())
+    else:
+        CONF.set('main_interpreter', 'default', True)
+        CONF.set('main_interpreter', 'executable', '')
+
+
     # Create the console and a new client
     window = MainWindowMock()
     console = IPythonConsole(parent=window,
@@ -164,6 +189,10 @@ def ipyconsole(qtbot, request):
                               is_sympy=is_sympy,
                               is_cython=is_cython)
     window.setCentralWidget(console)
+
+    # This segfaults on macOS
+    if not sys.platform == "darwin":
+        qtbot.addWidget(window)
     window.show()
 
     yield console
@@ -182,12 +211,12 @@ def ipyconsole(qtbot, request):
     # Close
     console.closing_plugin()
     console.close()
+    window.close()
 
 
 # =============================================================================
 # Tests
 # =============================================================================
-@pytest.mark.slow
 @pytest.mark.external_interpreter
 def test_banners(ipyconsole, qtbot):
     """Test that console banners are generated correctly."""
@@ -211,7 +240,6 @@ def test_banners(ipyconsole, qtbot):
     assert expected == short_banner
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     "function,signature,documentation",
@@ -260,7 +288,6 @@ def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
         assert element in control.calltip_widget.text()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.auto_backend
 @pytest.mark.skipif(os.name == 'nt', reason="It times out sometimes on Windows")
@@ -281,7 +308,6 @@ def test_auto_backend(ipyconsole, qtbot):
     assert 'Error' not in control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.pylab_client
 def test_pylab_client(ipyconsole, qtbot):
@@ -312,7 +338,6 @@ def test_pylab_client(ipyconsole, qtbot):
     assert 'Error' not in control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.sympy_client
 @pytest.mark.xfail('1.0' < sympy.__version__ < '1.2',
@@ -345,10 +370,12 @@ def test_sympy_client(ipyconsole, qtbot):
     assert 'NameError' not in control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.cython_client
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(
+    (os.name == 'nt' or
+     LooseVersion(ipy_release.version) == LooseVersion('7.11.0')),
+    reason="Doesn't work on Windows and fails for IPython 7.11.0")
 def test_cython_client(ipyconsole, qtbot):
     """Test that the Cython console is working correctly."""
     # Wait until the window is fully up
@@ -381,7 +408,6 @@ def test_cython_client(ipyconsole, qtbot):
     assert 'Error' not in control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_tab_rename_for_slaves(ipyconsole, qtbot):
     """Test slave clients are renamed correctly."""
@@ -402,7 +428,6 @@ def test_tab_rename_for_slaves(ipyconsole, qtbot):
     assert 'foo' in ipyconsole.get_clients()[1].get_name()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_no_repeated_tabs_name(ipyconsole, qtbot):
     """Test that tabs can't have repeated given names."""
@@ -421,7 +446,6 @@ def test_no_repeated_tabs_name(ipyconsole, qtbot):
     assert '2' in client_name
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
     """Test that tabs preserve their names after they are moved."""
@@ -439,7 +463,6 @@ def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
     assert '2' in client_name
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_conf_env_vars(ipyconsole, qtbot):
     """Test that kernels have env vars set by our kernel spec."""
@@ -456,7 +479,6 @@ def test_conf_env_vars(ipyconsole, qtbot):
     assert shell.get_value('a') == 'False'
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.no_stderr_file
 def test_no_stderr_file(ipyconsole, qtbot):
@@ -474,7 +496,6 @@ def test_no_stderr_file(ipyconsole, qtbot):
     assert shell.get_value('a') == 1
 
 
-@pytest.mark.slow
 @pytest.mark.non_ascii_dir
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
@@ -493,7 +514,6 @@ def test_non_ascii_stderr_file(ipyconsole, qtbot):
     assert shell.get_value('a') == 1
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(PY2 and sys.platform == 'darwin',
                     reason="It hangs frequently on Python 2.7 and macOS")
@@ -512,7 +532,6 @@ def test_console_import_namespace(ipyconsole, qtbot):
     assert shell.get_value('e') == 2.718281828459045
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_console_disambiguation(ipyconsole, qtbot):
     """Test the disambiguation of dedicated consoles."""
@@ -550,7 +569,6 @@ def test_console_disambiguation(ipyconsole, qtbot):
     assert client.get_name() == 'c.py - b/A'
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_console_coloring(ipyconsole, qtbot):
     """Test that console gets the same coloring present in the Editor."""
@@ -578,7 +596,6 @@ def test_console_coloring(ipyconsole, qtbot):
     assert console_font_color.strip() == editor_font_color.strip()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_set_cwd(ipyconsole, qtbot, tmpdir):
     """Test kernel when changing cwd."""
@@ -603,7 +620,6 @@ def test_set_cwd(ipyconsole, qtbot, tmpdir):
     shell.set_cwd(savetemp)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_get_cwd(ipyconsole, qtbot, tmpdir):
     """Test current working directory."""
@@ -637,7 +653,6 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
     shell.set_cwd(savetemp)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_request_env(ipyconsole, qtbot):
     """Test that getting env vars from the kernel is working as expected."""
@@ -659,7 +674,6 @@ def test_request_env(ipyconsole, qtbot):
     assert env_contents['FOO'] == 'bar'
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt',
                     reason="Fails due to differences in path handling")
@@ -687,7 +701,6 @@ def test_request_syspath(ipyconsole, qtbot, tmpdir):
     assert tmp_dir in syspath_contents
 
 
-@pytest.mark.slow
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_save_history_dbg(ipyconsole, qtbot):
@@ -768,7 +781,6 @@ def test_save_history_dbg(ipyconsole, qtbot):
     assert '...:     print(1)' in control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(PY2, reason="insert is not the same in py2")
 def test_dbg_input(ipyconsole, qtbot):
@@ -803,7 +815,6 @@ def test_dbg_input(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: 'Hello test' in control.toPlainText())
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(PY2, reason="It doesn't work on PY2")
 def test_unicode_vars(ipyconsole, qtbot):
@@ -827,7 +838,6 @@ def test_unicode_vars(ipyconsole, qtbot):
     assert shell.get_value('д') == 20
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_read_stderr(ipyconsole, qtbot):
     """
@@ -845,7 +855,6 @@ def test_read_stderr(ipyconsole, qtbot):
     assert content == client._read_stderr()
 
 
-@pytest.mark.slow
 @flaky(max_runs=10)
 @pytest.mark.no_xvfb
 @pytest.mark.skipif(os.environ.get('CI', None) is not None and os.name == 'nt',
@@ -902,13 +911,10 @@ def test_values_dbg(ipyconsole, qtbot):
     assert "*** NameError: name 'aa' is not defined" in control.toPlainText()
 
 
-@pytest.mark.slow
-@flaky(max_runs=10)
-@pytest.mark.skipif(
-    os.environ.get('AZURE', None) is not None,
-    reason="It doesn't work on Windows and fails often on macOS")
-def test_plot_magic_dbg(ipyconsole, qtbot):
-    """Test our plot magic while debugging"""
+@flaky(max_runs=3)
+def test_execute_events_dbg(ipyconsole, qtbot):
+    """Test execute events while debugging"""
+
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
@@ -926,16 +932,39 @@ def test_plot_magic_dbg(ipyconsole, qtbot):
     shell.execute('%debug')
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
+    # Set processing events to True
+    CONF.set('run', 'pdb_execute_events', True)
+    ipyconsole.set_pdb_execute_events()
+
     # Test reset magic
-    qtbot.keyClicks(control, '%plot plt.plot(range(10))')
+    qtbot.keyClicks(control, 'plt.plot(range(10))')
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.wait(1000)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Assert that there's a plot in the console
     assert shell._control.toHtml().count('img src') == 1
 
+    # Set processing events to False
+    CONF.set('run', 'pdb_execute_events', False)
+    ipyconsole.set_pdb_execute_events()
 
-@pytest.mark.slow
+    # Test reset magic
+    qtbot.keyClicks(control, 'plt.plot(range(10))')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Assert that there's no new plots in the console
+    assert shell._control.toHtml().count('img src') == 1
+
+    # Test if the plot is shown with plt.show()
+    qtbot.keyClicks(control, 'plt.show()')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Assert that there's a new plots in the console
+    assert shell._control.toHtml().count('img src') == 2
+
+
 @flaky(max_runs=3)
 def test_run_doctest(ipyconsole, qtbot):
     """
@@ -971,7 +1000,6 @@ def test_run_doctest(ipyconsole, qtbot):
     assert "TestResults(failed=0, attempted=2)" in shell._control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or (PY2 and PYQT5),
                     reason="It times out frequently")
@@ -1033,7 +1061,6 @@ def test_ctrl_c_dbg(ipyconsole, qtbot):
     assert 'For copying text while debugging, use Ctrl+Shift+C' in control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=10)
 @pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
 def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
@@ -1075,7 +1102,6 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     assert "*** NameError: name 'bb' is not defined" in control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_restart_kernel(ipyconsole, qtbot):
     """
@@ -1097,7 +1123,6 @@ def test_restart_kernel(ipyconsole, qtbot):
     assert not shell.is_defined('a')
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_load_kernel_file_from_id(ipyconsole, qtbot):
     """
@@ -1117,7 +1142,6 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     assert new_client.id_ == dict(int_id='1', str_id='B')
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_load_kernel_file_from_location(ipyconsole, qtbot, tmpdir):
     """
@@ -1137,7 +1161,7 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot, tmpdir):
 
     assert len(ipyconsole.get_clients()) == 2
 
-@pytest.mark.slow
+
 @flaky(max_runs=3)
 def test_load_kernel_file(ipyconsole, qtbot, tmpdir):
     """
@@ -1165,7 +1189,6 @@ def test_load_kernel_file(ipyconsole, qtbot, tmpdir):
     assert shell.get_value('a') == new_shell.get_value('a')
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 def test_sys_argv_clear(ipyconsole, qtbot):
     """Test that sys.argv is cleared up correctly"""
@@ -1179,8 +1202,8 @@ def test_sys_argv_clear(ipyconsole, qtbot):
     assert argv == ['']
 
 
-@pytest.mark.slow
 @flaky(max_runs=5)
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_set_elapsed_time(ipyconsole, qtbot):
     """Test that the IPython console elapsed timer is set correctly."""
     shell = ipyconsole.get_current_shellwidget()
@@ -1210,7 +1233,6 @@ def test_set_elapsed_time(ipyconsole, qtbot):
     client.timer.timeout.disconnect(client.show_time)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
 def test_stderr_file_is_removed_one_kernel(ipyconsole, qtbot, monkeypatch):
@@ -1229,7 +1251,6 @@ def test_stderr_file_is_removed_one_kernel(ipyconsole, qtbot, monkeypatch):
     assert not osp.exists(client.stderr_file)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
 def test_stderr_file_is_removed_two_kernels(ipyconsole, qtbot, monkeypatch):
@@ -1257,7 +1278,6 @@ def test_stderr_file_is_removed_two_kernels(ipyconsole, qtbot, monkeypatch):
     assert not osp.exists(client.stderr_file)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on Windows")
 def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
@@ -1285,7 +1305,6 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
     assert osp.exists(client.stderr_file)
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(not sys.platform.startswith('linux'),
                     reason="It only works on Linux")
@@ -1311,10 +1330,10 @@ def test_kernel_crash(ipyconsole, mocker, qtbot):
         webpage = webview.page()
     else:
         webpage = webview.page().mainFrame()
-    qtbot.waitUntil(lambda: check_text(webpage, "foo"), timeout=6000)
+    qtbot.waitUntil(lambda: check_text(webpage, "No module named"),
+                    timeout=6000)
 
 
-@pytest.mark.slow
 @pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
 def test_remove_old_stderr_files(ipyconsole, qtbot):
     """Test that we are removing old stderr files."""
@@ -1328,7 +1347,6 @@ def test_remove_old_stderr_files(ipyconsole, qtbot):
     assert not osp.isfile(osp.join(tmpdir, 'foo.stderr'))
 
 
-@pytest.mark.slow
 @pytest.mark.use_startup_wdir
 def test_console_working_directory(ipyconsole, qtbot):
     """Test for checking the working directory."""
@@ -1343,11 +1361,10 @@ def test_console_working_directory(ipyconsole, qtbot):
     assert folders[-1] == NEW_DIR
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
                     reason="It only works on Linux with python 3.")
-def test_console_complete(ipyconsole, qtbot):
+def test_console_complete(ipyconsole, qtbot, tmpdir):
     """Test for checking the working directory."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -1387,10 +1404,6 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbba')
 
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('abba = 1')
-    qtbot.waitUntil(lambda: check_value('abba', 1))
-
     # Generate a traceback and enter debugging mode
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
@@ -1399,10 +1412,10 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Test complete in debug mode
-    # check abba is completed twice (as the cursor moves)
+    # check abs is completed twice (as the cursor moves)
     qtbot.keyClicks(control, '!ab')
     qtbot.keyClick(control, Qt.Key_Tab)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!abba')
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!abs')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
@@ -1410,7 +1423,7 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.keyClicks(control, 'print(ab')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(
-        lambda: control.toPlainText().split()[-1] == 'print(abba')
+        lambda: control.toPlainText().split()[-1] == 'print(abs')
     qtbot.keyClicks(control, ')')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
@@ -1423,26 +1436,24 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: check_value('baab', 10))
 
     # Check baab is completed
-    qtbot.keyClicks(control, 'ba')
+    qtbot.keyClicks(control, 'baa')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'baab')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
-    # Get a second ba*
-    qtbot.keyClicks(control, 'ba2ab = 10')
+    # Check the completion widget is shown for abba, abs
+    qtbot.keyClicks(control, 'abba = 10')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(100)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-    qtbot.waitUntil(lambda: check_value('ba2ab', 10))
-
-    # Check the completion widget is shown
-    qtbot.keyClicks(control, 'ba')
+    qtbot.waitUntil(lambda: check_value('abba', 10))
+    qtbot.keyClicks(control, 'ab')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(shell._completion_widget.isVisible)
-    assert control.toPlainText().split()[-1] == 'ba'
+    assert control.toPlainText().split()[-1] == 'ab'
     qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'baab')
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abba')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
@@ -1462,9 +1473,30 @@ def test_console_complete(ipyconsole, qtbot):
     qtbot.keyClicks(control, '!a.ba')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!a.baba')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Check we can complete pdb command names
+    qtbot.keyClicks(control, 'longl')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'longlist')
+
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Check we can use custom complete for pdb
+    test_file = tmpdir.join('test.py')
+    test_file.write('stuff\n')
+    # Set a breakpoint in the new file
+    qtbot.keyClicks(control, 'b ' + str(test_file) + ':1')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    # Check we can complete the breakpoint number
+    qtbot.keyClicks(control, 'ignore ')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '1')
 
 
-@pytest.mark.slow
 @pytest.mark.use_startup_wdir
 def test_pdb_multiline(ipyconsole, qtbot):
     """Test entering a multiline statment into pdb"""
@@ -1495,11 +1527,10 @@ def test_pdb_multiline(ipyconsole, qtbot):
     assert "if True:\n   ...:     bb = 10\n" in control.toPlainText()
 
 
-@pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="It only works on Linux")
-def test_pdb_ignore_lib(ipyconsole, qtbot):
+@pytest.mark.parametrize(
+    "show_lib", [True, False])
+def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
     """Test that pdb can avoid closed files."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -1510,7 +1541,7 @@ def test_pdb_ignore_lib(ipyconsole, qtbot):
     control.setFocus()
 
     # Tests assume inline backend
-    CONF.set('run', 'pdb_ignore_lib', False)
+    CONF.set('run', 'pdb_ignore_lib', not show_lib)
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
         qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
@@ -1523,26 +1554,87 @@ def test_pdb_ignore_lib(ipyconsole, qtbot):
         qtbot.keyClicks(control, 'q')
         qtbot.keyClick(control, Qt.Key_Enter)
 
-    assert 'iostream.py' in control.toPlainText()
-
-    shell.clear_console()
-    qtbot.wait(500)
-
-    # Tests assume inline backend
+    if show_lib:
+        assert 'iostream.py' in control.toPlainText()
+    else:
+        assert 'iostream.py' not in control.toPlainText()
     CONF.set('run', 'pdb_ignore_lib', True)
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
+def test_calltip(ipyconsole, qtbot):
+    """
+    Test Calltip.
+
+    See spyder-ide/spyder#10842
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
     with qtbot.waitSignal(shell.executed):
-        shell.execute('%debug print()')
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+        shell.execute('a = {"a": 1}')
+    qtbot.keyClicks(control, 'a.keys(', delay=100)
+    qtbot.wait(1000)
+    assert control.calltip_widget.isVisible()
 
-        qtbot.keyClicks(control, 's')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.wait(500)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
-        qtbot.keyClicks(control, 'q')
-        qtbot.keyClick(control, Qt.Key_Enter)
+@flaky(max_runs=3)
+@pytest.mark.test_environment_interpreter
+def test_conda_env_activation(ipyconsole, qtbot):
+    """
+    Test that the conda environment associated with an external interpreter
+    is activated before a kernel is created for it.
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
 
-    assert 'iostream.py' not in control.toPlainText()
+    # Get conda activation environment variable
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "import os; conda_prefix = os.environ.get('CONDA_PREFIX')")
+
+    expected_output = get_conda_test_env().replace('\\', '/')
+    if is_conda_env(expected_output):
+        output = shell.get_value('conda_prefix').replace('\\', '/')
+        assert expected_output == output
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="no SIGTERM on Windows")
+def test_kernel_kill(ipyconsole, qtbot):
+    """
+    Test that the kernel correctly restarts after a kill.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    # Wait for the restarter to start
+    qtbot.wait(3000)
+    crash_string = 'import os, signal; os.kill(os.getpid(), signal.SIGTERM)'
+    # Check only one comm is open
+    old_open_comms = list(shell.spyder_kernel_comm._comms.keys())
+    assert len(old_open_comms) == 1
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=30000):
+        shell.execute(crash_string)
+    assert crash_string in shell._control.toPlainText()
+    assert "Restarting kernel..." in shell._control.toPlainText()
+    # Check a new comm replaced the old one
+    new_open_comms = list(shell.spyder_kernel_comm._comms.keys())
+    assert len(new_open_comms) == 1
+    assert old_open_comms[0] != new_open_comms[0]
+    # Wait until the comm replies
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_comm._comms[new_open_comms[0]][
+            'status'] == 'ready')
+    assert shell.spyder_kernel_comm._comms[new_open_comms[0]][
+        'status'] == 'ready'
 
 
 if __name__ == "__main__":
