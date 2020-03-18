@@ -80,7 +80,7 @@ class KernelComm(CommBase, QObject):
         if not self.comm_channel_connected():
             # Ask again for comm config
             self.remote_call()._send_comm_config()
-            timeout = 10
+            timeout = 45
             self._wait(self.comm_channel_connected,
                        self._sig_channel_open,
                        "Timeout while waiting for comm port.",
@@ -146,7 +146,7 @@ class KernelComm(CommBase, QObject):
         Wait until condition() is True by running an event loop.
 
         signal: qt signal that should interrupt the event loop.
-        timeout_msg: Meaage to display in case of a timeout.
+        timeout_msg: Message to display in case of a timeout.
         timeout: time in seconds before a timeout
         """
         if condition():
