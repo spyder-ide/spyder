@@ -35,7 +35,6 @@ import sys
 import threading
 import traceback
 import importlib
-import faulthandler
 
 logger = logging.getLogger(__name__)
 
@@ -3637,8 +3636,12 @@ def main():
     # **** Create main window ****
     mainwindow = None
     try:
-        with open(faulthandler_file, 'w') as f:
-            faulthandler.enable(file=f)
+        if PY3:
+            import faulthandler
+            with open(faulthandler_file, 'w') as f:
+                faulthandler.enable(file=f)
+                mainwindow = run_spyder(app, options, args)
+        else:
             mainwindow = run_spyder(app, options, args)
     except FontError as fontError:
         QMessageBox.information(None, "Spyder",

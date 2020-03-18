@@ -233,7 +233,6 @@ install_requires = [
     'sphinx',
     'spyder-kernels>=1.6.0,<1.7.0',
     'watchdog',
-    'faulthandler;python_version<"3"',
 ]
 
 extras_require = {
