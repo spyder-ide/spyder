@@ -221,15 +221,15 @@ class Console(SpyderPluginWidget):
                 self.error_dlg.set_title(title)
                 self.error_dlg.title.setEnabled(False)
             if is_faulthandler_report:
-                title = "Faulthandler crash report"
+                title = "Segmentation fault crash"
                 self.error_dlg.set_title(title)
                 self.error_dlg.title.setEnabled(False)
                 self.error_dlg.main_label.setText(
-                    "<h3>Spyder crashed during last session</h3>")
+                    _("<h3>Spyder crashed during last session</h3>"))
                 self.error_dlg.submit_btn.setEnabled(True)
                 self.error_dlg.steps_text.setText(
-                    'Please give any futher informations you might have about'
-                    ' the crash.')
+                    _("Please provide any additional information you "
+                      "might have about the crash."))
                 self.error_dlg.set_require_minimum_length(False)
             self.error_dlg.append_traceback(text)
             self.error_dlg.show()

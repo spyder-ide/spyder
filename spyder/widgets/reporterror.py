@@ -169,10 +169,12 @@ class SpyderErrorDialog(QDialog):
         # Description
         steps_header = QLabel(
             _("<b>Steps to reproduce:</b> {}").format(red_asterisk))
-        self.steps_text = QLabel(_("Please enter a detailed step-by-step "
-                              "description (in English) of what led up to "
-                              "the problem below. Issue reports without a "
-                              "clear way to reproduce them will be closed."))
+        self.steps_text = QLabel(
+            _("Please enter a detailed step-by-step "
+              "description (in English) of what led up to "
+              "the problem below. Issue reports without a "
+              "clear way to reproduce them will be closed.")
+        )
         self.steps_text.setWordWrap(True)
         self.steps_text.setAlignment(Qt.AlignJustify)
         self.steps_text.setStyleSheet('font-size: 12px;')
