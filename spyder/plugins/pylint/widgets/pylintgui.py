@@ -53,7 +53,7 @@ class ResultsTree(OneColumnTree):
     sig_edit_goto = Signal(str, int, str)
 
     def __init__(self, parent):
-        super().__init__(parent)
+        super(ResultsTree, self).__init__(parent)
         self.filename = None
         self.results = None
         self.data = None
@@ -149,7 +149,7 @@ class PylintWidget(QWidget):
 
     def __init__(self, parent, max_entries=100, options_button=None,
                  text_color=None, prevrate_color=None):
-        super().__init__(parent)
+        super(PylintWidget, self).__init__(parent)
 
         self.setWindowTitle("Pylint")
 
