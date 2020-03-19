@@ -1399,6 +1399,14 @@ class MainWindow(QMainWindow):
         """Show message to restart Spyder since the DPI scale changed."""
         self.screen.logicalDotsPerInchChanged.disconnect(
             self.show_dpi_change_message)
+
+        # Check the window state in MacOS for not showing the message if the
+        # main window is fullscreen
+        window = self.window().windowHandle()
+        if window.windowState() == Qt.WindowFullScreen and (
+            sys.platform == 'darwin'):
+            return
+
         answer = QMessageBox.warning(
             self, _("Warning"),
             _("A monitor scale change was detected. <br><br>"
