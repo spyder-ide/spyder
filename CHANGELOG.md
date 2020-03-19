@@ -1,5 +1,49 @@
 # History of changes
 
+## 4.1.1 (2020-03-18)
+
+### New features
+
+* Add file path completions to the Editor. This works by writing the
+  beginning of a file path, either absolute or relative, inside a
+  string and pressing `Tab` or `Ctrl+Space`.
+* Add a new command line option called `--report-segfault` to be
+  able to send segmentation fault reports to Github.
+
+### Important fixes
+
+* Fix a critical error when starting kernels on Windows.
+* Update Jedi to 0.15.2.
+* Add conda activation scripts for the kernel to the package.
+
+### Issues Closed
+
+* [Issue 11851](https://github.com/spyder-ide/spyder/issues/11851) - TimeoutError: Timeout while waiting for comm port ([PR 11853](https://github.com/spyder-ide/spyder/pull/11853) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 11819](https://github.com/spyder-ide/spyder/issues/11819) - Activation of kernel env fails when using anaconda shortcut (FileNotFound error kernel start 4.1.0) ([PR 11838](https://github.com/spyder-ide/spyder/pull/11838) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 11634](https://github.com/spyder-ide/spyder/issues/11634) - Error when importing CSV  file from  Variable tab  ([PR 11812](https://github.com/spyder-ide/spyder/pull/11812) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11150](https://github.com/spyder-ide/spyder/issues/11150) - Unable to load docstring into "Help" pane for functions with certain decorators ([PR 11809](https://github.com/spyder-ide/spyder/pull/11809) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 10536](https://github.com/spyder-ide/spyder/issues/10536) - Send segmentation fault reports to Github ([PR 10553](https://github.com/spyder-ide/spyder/pull/10553) by [@impact27](https://github.com/impact27))
+* [Issue 5519](https://github.com/spyder-ide/spyder/issues/5519) - Add path autocompletion to the Editor
+
+In this release 6 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 11854](https://github.com/spyder-ide/spyder/pull/11854) - PR: Update minimal required version for the PyLS, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11853](https://github.com/spyder-ide/spyder/pull/11853) - PR: Increase time to detect if kernel is alive and to receive the comm config, by [@ccordoba12](https://github.com/ccordoba12) ([11851](https://github.com/spyder-ide/spyder/issues/11851))
+* [PR 11841](https://github.com/spyder-ide/spyder/pull/11841) - PR: Install the right version of jupyter_client for Python 2 in our CIs, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11838](https://github.com/spyder-ide/spyder/pull/11838) - PR: Add conda activation scripts to the package, by [@ccordoba12](https://github.com/ccordoba12) ([11819](https://github.com/spyder-ide/spyder/issues/11819))
+* [PR 11812](https://github.com/spyder-ide/spyder/pull/11812) - PR: Fix validation for import as ndarray/array, by [@dalthviz](https://github.com/dalthviz) ([11634](https://github.com/spyder-ide/spyder/issues/11634))
+* [PR 11809](https://github.com/spyder-ide/spyder/pull/11809) - PR: Update Jedi requirement to 0.15.2, by [@ccordoba12](https://github.com/ccordoba12) ([11150](https://github.com/spyder-ide/spyder/issues/11150))
+* [PR 11807](https://github.com/spyder-ide/spyder/pull/11807) - PR: Restore rtree to the conda deps, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 10553](https://github.com/spyder-ide/spyder/pull/10553) - PR: Allow to report segmentation faults to Github, by [@impact27](https://github.com/impact27) ([10536](https://github.com/spyder-ide/spyder/issues/10536))
+
+In this release 8 pull requests were closed.
+
+
+----
+
+
 ## Version 4.1.0 (2020-03-15)
 
 ### New features
