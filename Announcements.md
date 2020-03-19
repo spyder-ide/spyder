@@ -1,46 +1,31 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 4.1.0 is released!
+**Subject**: [ANN] Spyder 4.1.1 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **4.1.0** has been released and is available for
+I'm pleased to announce that Spyder **4.1.1** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes two months and a half after version 4.0.1 and it contains the
+This release comes three days after version 4.1.1 and it contains the
 following new features and important fixes:
 
-- New features:
-    * Several improvements to the interface and user experience of the Plots
-      pane.
-    * Allow to show hidden files in Files and Project panes.
-    * Allow automatic introduction of docstrings in the Sphhinx format.
-    * Implicitly create a project when Spyder is launched with a folder path as
-      argument in the command line
-    * Activate conda environment prior to kernel start in the IPython console.
-    * Allow to run again IPython magics in cells.
-    * Allow to run PyQt applications multiple times.
-    * Make adjustable the maximum number of recent projects in the Projects
-      menu.
+- New features
+  * Add file path completions to the Editor. This works by writing the
+    beginning of a file path, either absolute or relative, inside a
+    string and pressing `Tab` or `Ctrl+Space`.
+  * Add a new command line option called `--report-segfault` to be
+    able to send segmentation fault reports to Github.
 
-- Important fixes:
-    * Disable code folding and indent guides when files have more than 2000 lines
-      for performance reasons.
-    * Critical performance improvements to the Editor and Files.
-    * Several fixes to the autosave mechanism.
-    * Preserve creation time when saving files.
-    * Don't corrupt symlinks when saving files associated to them.
-    * Improve the code completion experience in the Editor.
-    * Start kernels in a thread to avoid freezing the entire interface.
-    * Correctly update the debugging panel in the Editor when debugging in
-      multiple consoles.
-    * Make the Code Analysis pane to read the nearest pylintrc file, according to
-      the hierarchy defined by Pylint.
+- Important fixes
+  * Fix a critical error when starting kernels on Windows.
+  * Update Jedi to 0.15.2.
+  * Add conda activation scripts for the kernel to the package.
 
-In this release we fixed 96 issues and merged 115 pull requests that amount
-to more than 530 commits. For a full list of fixes, please see our
+In this release we fixed 6 issues and merged 8 pull requests that amount
+to more than 40 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/4.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's
