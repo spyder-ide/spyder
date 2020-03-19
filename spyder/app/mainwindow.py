@@ -1404,7 +1404,7 @@ class MainWindow(QMainWindow):
         # main window is fullscreen
         window = self.window().windowHandle()
         if window.windowState() == Qt.WindowFullScreen and (
-            sys.platform == 'darwin'):
+                sys.platform == 'darwin'):
             return
 
         answer = QMessageBox.warning(
