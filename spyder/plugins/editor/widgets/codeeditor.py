@@ -1519,11 +1519,8 @@ class CodeEditor(TextEditBaseWidget):
             self.code_folding = True
 
     def toggle_identation_guides(self, state):
-        folding_panel = self.panels.get(FoldingPanel)
         if state and not self.code_folding:
             self.code_folding = True
-        elif not state and not folding_panel.isVisible():
-            self.code_folding = False
         self.indent_guides.set_enabled(state)
 
     def toggle_completions_hint(self, state):
