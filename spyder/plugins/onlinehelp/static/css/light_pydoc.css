@@ -1,3 +1,130 @@
 body {
-    background-color: #f0f0f8;
+    font-face: Garamond, serif;
+    background-color: white;
+}
+
+table {
+    border: none;
+    background-color: #fff7bf;
+    width: 100%;
+    border-spacing: 10px;
+    padding-bottom: 10px;
+    -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 100);
+    -moz-box-shadow: 0 0 5px rgba(0, 0, 0, 100);
+    box-shadow: 0 0 5px rgba(0, 0, 0, 200);
+}
+
+p {
+    padding-left:20px;
+}
+
+td {vertical-align: bottom;}
+td {padding-bottom: 0}
+
+div.main {
+    clear:both;
+    padding-top:.5em;
+    font-family: Arial, Helvetica, sans-serif;
+}
+a {
+    color: #0050cc;
+    text-decoration: none;
+}
+
+a:visited {
+    color: #6363bb;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+.align_right {
+    text-align: right;
+}
+
+.heading {  /* see HTMLDoc.heading */
+    height: 3em;
+    font-weight: bold;
+    border: 5px solid #151590;
+    font-size: 180%;
+    font-family: 'Trebuchet MS', sans-serif;
+    background-color: #6487DC;
+    background-image: -webkit-gradient(
+        linear,
+        0 0,
+        0 100%,
+        from(#54b4eb),
+        color-stop(60%, #2fa4e7),
+        to(#1d9ce5)
+    );
+    text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+    padding: 6px 0px 6px 20px;
+    color: #FFFFFF;
+}
+
+.normal {font-weight: normal;
+         font-size: 0.75em;}
+
+.grey {color:grey;}
+
+.repr_string {color:#40c054}  /* see HTMLRepr.repr_string */
+
+.docmodule{ /* see HTMLDoc.docmodule */
+    height: 4em;
+    border-left: 10px solid #7799ee;
+    border-top: 10px solid #7799ee;
+}
+
+.docmodule_link {  /* see HTMLDoc.docmodule */
+    font-size: smaller;
+}
+.docmodule_head {  /* see HTMLDoc.docmodule */
+    font-size: 1.5em;
+}
+
+.section_title {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.package, .module {
+    border: 10px solid #aa55cc;
+}
+
+.functions {
+    border: 10px solid #263fa7;
+}
+
+.data {
+    border: 10px solid #55aa55;
+}
+
+.author, .credits {
+    border-left: 10px solid #7799ee;
+    border-top: 10px solid #7799ee;
+}
+
+.error {
+    color: white;
+    background-color: #bb0000;
+}
+
+.docclass {
+    color: black;
+    border: 10px solid #3ab155;
+    background-color: white;
+    margin-left: 10px;
+}
+
+.ka_ping_yee {
+    float: right;
+    color: #909090;
+}
+.inner_table {
+    width:100%;
+    color: black;
+    padding-bottom: 0;
+    font-family: Garamond, serif;
+    font-size: 20px;
+    border-bottom: none;
 }
