@@ -63,14 +63,17 @@ def test_folding(lsp_codeeditor, qtbot):
     code_editor, _ = lsp_codeeditor
     code_editor.toggle_code_folding(True)
     code_editor.insert_text(text)
+    folding_panel = code_editor.panels.get('FoldingPanel')
 
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
-    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
-        code_editor.request_folding()
+    while folding_panel.folding_regions == {}:
+        # This fixes the race condition on the PyLS with the
+        # document_did_change() event
+        with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+            code_editor.request_folding()
 
-    folding_panel = code_editor.panels.get('FoldingPanel')
     folding_regions = folding_panel.folding_regions
     folding_levels = folding_panel.folding_levels
 
