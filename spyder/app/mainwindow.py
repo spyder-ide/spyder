@@ -1403,7 +1403,7 @@ class MainWindow(QMainWindow):
         # Check the window state in MacOS for not showing the message if the
         # main window is fullscreen
         window = self.window().windowHandle()
-        if window.windowState() == Qt.WindowFullScreen and (
+        if (window.windowState() == Qt.WindowFullScreen and
                 sys.platform == 'darwin'):
             return
 
