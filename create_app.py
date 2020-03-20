@@ -140,9 +140,9 @@ system_python_lib = get_python_lib()
 app_python_lib = osp.join(resources, 'lib', 'python%s' % py_ver)
 
 # Add our docs to the app
-docs_orig = 'build/lib/spyder/doc'
-docs_dest = osp.join(app_python_lib, 'spyder', 'doc')
-shutil.copytree(docs_orig, docs_dest)
+# docs_orig = 'build/lib/spyder/doc'
+# docs_dest = osp.join(app_python_lib, 'spyder', 'doc')
+# shutil.copytree(docs_orig, docs_dest)
 
 # Create a minimal library inside Resources to add it to PYTHONPATH instead of
 # app_python_lib. This must be done when the user changes to an interpreter
