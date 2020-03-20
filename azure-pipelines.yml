@@ -47,6 +47,9 @@ jobs:
   - script: sudo install -d -m 0777 /usr/local/miniconda/envs/
     displayName: Fix Conda env permissions
 
+  - script: sudo chown -R 501:20 /usr/local/miniconda/pkgs
+    displayName: Fix Conda pkgs permissions
+
     # Conda setup environment.
     # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/conda-environment?view=vsts
   - task: CondaEnvironment@0
