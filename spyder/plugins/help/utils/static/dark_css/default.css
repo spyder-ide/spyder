@@ -7,6 +7,7 @@ body {
 
 /* --- Title style --- */
 div.title h1 {
+    font-size: 180%;
     font-family: 'Trebuchet MS', sans-serif;
     background-color: #6487DC;
     background-image: -webkit-gradient(
