@@ -50,7 +50,7 @@ class BreakpointTableModel(QAbstractTableModel):
     """
 
     def __init__(self, parent, data):
-        super(BreakpointTableModel, self).__init__(parent)
+        super().__init__(parent)
         if data is None:
             data = {}
         self._data = None
@@ -137,7 +137,7 @@ class BreakpointTableModel(QAbstractTableModel):
 
 class BreakpointDelegate(QItemDelegate):
     def __init__(self, parent=None):
-        super(BreakpointDelegate, self).__init__(parent)
+        super().__init__(parent)
 
 
 class BreakpointTableView(QTableView):
@@ -147,7 +147,7 @@ class BreakpointTableView(QTableView):
     set_or_edit_conditional_breakpoint = Signal()
 
     def __init__(self, parent, data):
-        super(BreakpointTableView, self).__init__(parent)
+        super().__init__(parent)
         self.model = BreakpointTableModel(self, data)
         self.setModel(self.model)
         self.delegate = BreakpointDelegate(self)
@@ -225,7 +225,7 @@ class BreakpointWidget(QWidget):
     edit_goto = Signal(str, int, str)
 
     def __init__(self, parent, options_button=None):
-        super(BreakpointWidget, self).__init__(parent)
+        super().__init__(parent)
 
         self.setWindowTitle("Breakpoints")
         self.dictwidget = BreakpointTableView(self,
