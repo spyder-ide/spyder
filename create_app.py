@@ -93,14 +93,11 @@ shutil.copyfile('scripts/spyder', APP_MAIN_SCRIPT)
 APP = [APP_MAIN_SCRIPT]
 DEPS = ['pylint', 'logilab', 'astroid', 'pycodestyle', 'setuptools']
 EXCLUDES = DEPS + ['mercurial']
-PACKAGES = ['spyder', 'sphinx', 'jinja2', 'docutils',
-            'alabaster', 'babel', 'snowballstemmer', 'sphinx_rtd_theme',
-            'IPython', 'ipykernel', 'ipython_genutils', 'jupyter_client',
-            'jupyter_core', 'traitlets', 'qtconsole', 'pexpect', 'jedi',
-            'jsonschema', 'nbconvert', 'nbformat', 'qtpy', 'qtawesome',
-            'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt5',
-            'sklearn', 'skimage', 'pandas', 'sympy', 'pyflakes', 'psutil',
-            'nose', 'patsy','statsmodels', 'seaborn', 'networkx']
+PACKAGES = ['spyder', 'sphinx', 'jinja2', 'docutils', 'alabaster', 'babel',
+			'snowballstemmer', 'IPython', 'ipykernel', 'ipython_genutils',
+			'jupyter_client', 'jupyter_core', 'traitlets', 'qtconsole',
+			'pexpect', 'jedi', 'jsonschema', 'nbconvert', 'nbformat', 'qtpy',
+			'qtawesome', 'zmq', 'pygments', 'distutils', 'PyQt5', 'psutil']
 
 INCLUDES = get_stdlib_modules()
 EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
