@@ -1,12 +1,13 @@
 # History of changes
 
-## 4.1.1 (2020-03-18)
+## Version 4.1.1 (2020-03-18)
 
 ### New features
 
 * Add file path completions to the Editor. This works by writing the
   beginning of a file path, either absolute or relative, inside a
-  string and pressing `Tab` or `Ctrl+Space`.
+  string and pressing `Tab` or `Ctrl+Space` to get completions for
+  it.
 * Add a new command line option called `--report-segfault` to be
   able to send segmentation fault reports to Github.
 
@@ -49,13 +50,13 @@ In this release 8 pull requests were closed.
 ### New features
 
 * Several improvements to the interface and user experience of the Plots pane.
-* Allow to show hidden files in Files and Project panes.
-* Allow automatic introduction of docstrings in the Sphhinx format.
+* Show hidden files in Files and Project panes.
+* Allow automatic introduction of docstrings in the Sphinx format.
 * Implicitly create a project when Spyder is launched with a folder path as
   argument in the command line
 * Activate conda environment prior to kernel start in the IPython console.
-* Allow to run again IPython magics in cells.
-* Allow to run PyQt applications multiple times.
+* Re-add the ability to run IPython magics inside of cells.
+* Allow running PyQt applications multiple times.
 * Make adjustable the maximum number of recent projects in the Projects
   menu.
 

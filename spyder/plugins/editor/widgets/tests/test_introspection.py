@@ -1101,11 +1101,8 @@ def test_completions_environment(lsp_codeeditor, qtbot, tmpdir):
     code_editor.toggle_code_snippets(False)
 
     # Get jedi test env
-    if sys.platform == 'darwin':
-        conda_jedi_env = '/Users/runner/.conda/envs/jedi-test-env'
-    else:
-        conda_envs_path = os.path.dirname(sys.prefix)
-        conda_jedi_env = os.path.join(conda_envs_path, 'jedi-test-env')
+    conda_envs_path = os.path.dirname(sys.prefix)
+    conda_jedi_env = os.path.join(conda_envs_path, 'jedi-test-env')
 
     if os.name == 'nt':
         py_exe = os.path.join(conda_jedi_env, 'python.exe')
