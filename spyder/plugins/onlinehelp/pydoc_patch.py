@@ -115,8 +115,7 @@ def _url_handler(url, content_type="text/html"):
             """ % (version, html.escape(platform.platform(terse=True)))
 
     def html_index():
-        """Module Index page."""
-
+        """Index page."""
         def bltinlink(name):
             return '<a href="%s.html">%s</a>' % (name, name)
 
@@ -150,9 +149,11 @@ def _url_handler(url, content_type="text/html"):
             search_result.append((modname, desc and '- ' + desc))
 
         with warnings.catch_warnings():
-            warnings.filterwarnings('ignore') # ignore problems during import
+            warnings.filterwarnings('ignore')  # ignore problems during import
+
             def onerror(modname):
                 pass
+
             ModuleScanner().run(callback, key, onerror=onerror)
 
         # format page
@@ -184,7 +185,6 @@ def _url_handler(url, content_type="text/html"):
 
     def html_topics():
         """Index of topic texts available."""
-
         def bltinlink(name):
             return '<a href="topic?key=%s">%s</a>' % (name, name)
 
@@ -226,7 +226,7 @@ def _url_handler(url, content_type="text/html"):
             '<big><big><strong>%s</strong></big></big>' % title,
             '#ffffff', '#7799ee')
         contents = '<pre>%s</pre>' % html.markup(contents)
-        contents = html.bigsection(topic , '#ffffff','#ee77aa', contents)
+        contents = html.bigsection(topic, '#ffffff', '#ee77aa', contents)
         if xrefs:
             xrefs = sorted(xrefs.split())
 
@@ -407,7 +407,7 @@ def _start_server(urlhandler, hostname, port):
             self.url = 'http://%s:%d/' % (self.host, self.port)
 
         def stop(self):
-            """Stop the server and this thread nicely"""
+            """Stop the server and this thread nicely."""
             self.docserver.quit = True
             self.join()
             # explicitly break a reference cycle: DocServer.callback
