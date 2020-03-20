@@ -78,7 +78,7 @@ class SearchThread(QThread):
     max_power = 9   # 2**9 = 512
 
     def __init__(self, parent, search_text, text_color=None):
-        super(SearchThread, self).__init__(parent)
+        super().__init__(parent)
         self.mutex = QMutex()
         self.stopped = None
         self.search_text = search_text
@@ -366,7 +366,7 @@ class SearchInComboBox(QComboBox):
     widget.
     """
     def __init__(self, external_path_history=[], parent=None):
-        super(SearchInComboBox, self).__init__(parent)
+        super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setToolTip(_('Search directory'))
         self.setEditable(False)
@@ -557,7 +557,7 @@ class FindOptions(QWidget):
                  supported_encodings, more_options,
                  case_sensitive, external_path_history, search_in_index,
                  options_button=None):
-        super(FindOptions, self).__init__(parent)
+        super().__init__(parent)
         self._running = False
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
@@ -831,8 +831,7 @@ class LineMatchItem(QTreeWidgetItem):
         self.match = match
         self.text_color = text_color
         self.font = font
-        super(LineMatchItem, self).__init__(parent, [self.__repr__()],
-                                            QTreeWidgetItem.Type)
+        super().__init__(parent, [self.__repr__()], QTreeWidgetItem.Type)
 
     def __repr__(self):
         match = str(self.match).rstrip()
@@ -871,8 +870,7 @@ class FileMatchItem(QTreeWidgetItem):
         title = (title_format.format(osp.basename(filename),
                                      osp.dirname(filename),
                                      text_color))
-        super(FileMatchItem, self).__init__(parent, [title],
-                                            QTreeWidgetItem.Type)
+        super().__init__(parent, [title], QTreeWidgetItem.Type)
 
         self.setToolTip(0, filename)
 
@@ -892,7 +890,7 @@ class FileMatchItem(QTreeWidgetItem):
 class ItemDelegate(QStyledItemDelegate):
 
     def __init__(self, parent):
-        super(ItemDelegate, self).__init__(parent)
+        super().__init__(parent)
         self._margin = None
 
     def paint(self, painter, option, index):
@@ -938,7 +936,7 @@ class ResultsBrowser(OneColumnTree):
     sig_max_results_reached = Signal()
 
     def __init__(self, parent, text_color=None, max_results=1000):
-        super(ResultsBrowser, self).__init__(parent)
+        super().__init__(parent)
         self.search_text = None
         self.results = None
         self.max_results = max_results
@@ -1038,7 +1036,7 @@ class FileProgressBar(QWidget):
     """Simple progress spinner with a label."""
 
     def __init__(self, parent):
-        super(FileProgressBar, self).__init__(parent)
+        super().__init__(parent)
 
         self.status_text = QLabel(self)
         self.spinner = create_waitspinner(parent=self)
@@ -1093,7 +1091,7 @@ class FindInFilesWidget(QWidget):
                  options_button=None,
                  text_color=None,
                  max_results=1000):
-        super(FindInFilesWidget, self).__init__(parent)
+        super().__init__(parent)
 
         self.search_thread = None
         self.text_color = text_color

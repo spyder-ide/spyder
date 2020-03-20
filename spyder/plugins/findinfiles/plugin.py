@@ -37,7 +37,7 @@ class FindInFiles(SpyderPluginWidget):
 
     def __init__(self, parent=None):
         """Initialization."""
-        super(FindInFiles, self).__init__(parent)
+        super().__init__(parent)
 
         supported_encodings = self.get_option('supported_encodings')
         self.search_text_samples = self.get_option('search_text_samples')
@@ -139,7 +139,7 @@ class FindInFiles(SpyderPluginWidget):
         This method is called when pressing the plugin shortcut.
         """
         if self.dockwidget:
-            super(FindInFiles, self).switch_to_plugin()
+            super().switch_to_plugin()
         self.findinfiles_callback()  # Necessary at least with PyQt5 on Windows
 
     # ------ SpyderPluginWidget API -------------------------------------------
