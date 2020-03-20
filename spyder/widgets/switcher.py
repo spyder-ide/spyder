@@ -770,7 +770,7 @@ class Switcher(QDialog):
             switcher_height = max(switcher_height, self._MIN_HEIGHT)
         else:
             switcher_height = self._MIN_HEIGHT
-        self.setFixedHeight(switcher_height)
+        self.setFixedHeight(int(switcher_height))
 
     def set_position(self, top):
         """Set the position of the dialog."""
