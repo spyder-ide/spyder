@@ -7,10 +7,6 @@
 
 """Tests for the execution of pylint."""
 
-
-# Future imports
-from __future__ import unicode_literals
-
 # Standard library imports
 from io import open
 import os.path as osp
@@ -21,8 +17,6 @@ import pytest
 # Local imports
 from spyder.plugins.pylint.widgets.pylintgui import PylintWidget
 from spyder.plugins.pylint.utils import get_pylintrc_path
-from spyder.py3compat import PY2
-
 
 # pylint: disable=redefined-outer-name
 
@@ -134,7 +128,6 @@ def test_pylint_widget_noproject(pylint_test_script, qtbot):
     assert pylint_data[1] is not None
 
 
-@pytest.mark.skipif(PY2, reason="It fails on PY2 for no obvious reason")
 def test_pylint_widget_pylintrc(
         pylint_test_script, pylintrc_files, mocker, qtbot):
     """Test that entire pylint widget gets results depending on pylintrc."""

@@ -6,10 +6,7 @@
 # ----------------------------------------------------------------------------
 """Tests for plugin config dialog."""
 
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 from qtpy.QtCore import Signal, QObject
@@ -24,7 +21,7 @@ class MainWindowMock(QObject):
     sig_editor_focus_changed = Signal(str)
 
     def __init__(self):
-        super(MainWindowMock, self).__init__(None)
+        super().__init__(None)
         self.editor = Mock()
         self.editor.sig_editor_focus_changed = self.sig_editor_focus_changed
 
