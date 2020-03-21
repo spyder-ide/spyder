@@ -20,10 +20,8 @@ from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import get_translation
 from spyder.plugins.console.widgets.main_widget import ConsoleWidget
 
-
 # Localization
 _ = get_translation('spyder')
-
 
 # Logging
 logger = logging.getLogger(__name__)
@@ -44,16 +42,35 @@ class Console(SpyderDockablePlugin):
 
     # --- Signals
     # ------------------------------------------------------------------------
+    sig_focus_changed = Signal()  # TODO: I think this is not being used now?
 
-    # This signal will request to open a file in a given row and column
-    # using a code editor.
     sig_edit_goto_requested = Signal(str, int, str)
+    """
+    This signal will request to open a file in a given row and column
+    using a code editor.
 
-    # TODO: I think this is not being used now?
-    sig_focus_changed = Signal()
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    row: int
+        Cursor starting row position.
+    word: str
+        Word to select on given row.
+    """
 
-    # Emit this when the interpreter buffer is flushed
     sig_refreshed = Signal()
+    """This signal is emitted when the interpreter buffer is flushed."""
+
+    sig_help_requested = Signal(dict)
+    """
+    This signal is emitted to request help on a given object `name`.
+
+    Parameters
+    ----------
+    help_data: dict
+        Example `{'name': str, 'ignore_unknown': bool}`.
+    """
 
     # --- SpyderDockablePlugin API
     # ------------------------------------------------------------------------
@@ -74,6 +91,7 @@ class Console(SpyderDockablePlugin):
         widget.sig_focus_changed.connect(self.sig_focus_changed)
         widget.sig_quit_requested.connect(self.sig_quit_requested)
         widget.sig_refreshed.connect(self.sig_refreshed)
+        widget.sig_help_requested.connect(self.sig_help_requested)
 
         # Crash handling
         previous_crash = self.get_conf_option(

@@ -646,6 +646,17 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     # request opening the file that traceback comes from in the Editor.
     sig_go_to_error_requested = Signal(str)
 
+    # Signal
+    sig_help_requested = Signal(dict)
+    """
+    This signal is emitted to request help on a given object `name`.
+
+    Parameters
+    ----------
+    help_data: dict
+        Example `{'name': str, 'ignore_unknown': bool}`.
+    """
+
     def __init__(self, parent, history_filename, profile=False, initial_message=None):
         ShellBaseWidget.__init__(self, parent, history_filename,
                                  profile=profile,

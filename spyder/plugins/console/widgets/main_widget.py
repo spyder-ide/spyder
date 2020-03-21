@@ -33,11 +33,10 @@ from spyder.py3compat import to_text_string
 from spyder.utils.environ import EnvDialog
 from spyder.utils.misc import (get_error_match, getcwd_or_home,
                                remove_backslashes)
-from spyder.utils.qthelpers import mimedata2url, DialogManager
+from spyder.utils.qthelpers import DialogManager, mimedata2url
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.findreplace import FindReplace
 from spyder.widgets.reporterror import SpyderErrorDialog
-
 
 # Localization
 _ = get_translation('spyder')
@@ -109,6 +108,16 @@ class ConsoleWidget(PluginMainWidget):
     # Request the main application to quit.
     sig_quit_requested = Signal()
 
+    sig_help_requested = Signal(dict)
+    """
+    This signal is emitted to request help on a given object `name`.
+
+    Parameters
+    ----------
+    help_data: dict
+        Example `{'name': str, 'ignore_unknown': bool}`.
+    """
+
     def __init__(self, name, plugin, parent=None, options=DEFAULT_OPTIONS):
         super().__init__(name, plugin, parent, options)
 
@@ -145,6 +154,7 @@ class ConsoleWidget(PluginMainWidget):
         self.setLayout(layout)
 
         # Signals
+        self.shell.sig_help_requested.connect(self.sig_help_requested)
         self.shell.sig_exception_occurred.connect(self.handle_exception)
         self.shell.sig_focus_changed.connect(self.sig_focus_changed)
         self.shell.sig_go_to_error_requested.connect(self.go_to_error)
