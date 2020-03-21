@@ -1271,7 +1271,15 @@ class MainWindow(QMainWindow):
         # Load other plugins (former external plugins)
         # TODO: Use this bucle to load all internall plugins and remove
         # duplicated code
-        other_plugins = ['breakpoints', 'profiler', 'pylint']
+
+        # Breakpoints
+        if CONF.get('breakpoints', 'enable'):
+            from spyder.plugins.breakpoints.plugin import Breakpoints
+            self.breakpoints = Breakpoints(self, configuration=CONF)
+            self.register_plugin(self.breakpoints)
+            self.thirdparty_plugins.append(self.breakpoints)
+
+        other_plugins = ['profiler', 'pylint']
         for plugin_name in other_plugins:
             if CONF.get(plugin_name, 'enable'):
                 module = importlib.import_module(
