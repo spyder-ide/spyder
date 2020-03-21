@@ -95,7 +95,9 @@ class CollectionsDelegate(QItemDelegate):
 
         return False
 
-    def createEditor(self, parent, option, index, object_explorer=False):
+    # FIXME: Add editor options in the options key
+    def createEditor(self, parent, option, index, object_explorer=False,
+                     options={}):
         """Overriding method createEditor"""
         self.sig_open_editor.emit()
         if index.column() < 3:
@@ -226,6 +228,8 @@ class CollectionsDelegate(QItemDelegate):
 
             from spyder.plugins.variableexplorer.widgets.objectexplorer \
                 import ObjectExplorer
+
+            # FIXME: Use options key here!
             editor = ObjectExplorer(
                 value,
                 name=key,

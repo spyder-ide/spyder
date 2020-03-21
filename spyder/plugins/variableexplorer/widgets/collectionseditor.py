@@ -601,13 +601,16 @@ class BaseTableView(QTableView):
                         self.view_action,
                         None, self.rename_action, self.duplicate_action,
                         None, resize_action, resize_columns_action]
+
         if ndarray is not FakeObject:
             menu_actions.append(self.minmax_action)
+
         add_actions(menu, menu_actions)
         self.empty_ws_menu = QMenu(self)
         add_actions(self.empty_ws_menu,
                     [self.insert_action, self.paste_action,
                      None, resize_action, resize_columns_action])
+
         return menu
 
     # ------ Remote/local API -------------------------------------------------
@@ -698,8 +701,8 @@ class BaseTableView(QTableView):
     def show_image(self, key):
         """Show image (item is a PIL image)"""
         raise NotImplementedError
-    #--------------------------------------------------------------------------
 
+    # ------------------------------------------------------------------------
     def refresh_menu(self):
         """Refresh context menu"""
         index = self.currentIndex()
@@ -1424,9 +1427,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.hideColumn(4)  # Column 4 for Score
 
         self.delegate = RemoteCollectionsDelegate(self)
-        self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
-        self.delegate.sig_open_editor.connect(self.sig_open_editor.emit)
-        self.delegate.sig_editor_shown.connect(self.sig_editor_shown.emit)
+        self.delegate.sig_free_memory.connect(
+            self.sig_free_memory)
+        self.delegate.sig_open_editor.connect(self.sig_open_editor)
+        self.delegate.sig_editor_shown.connect(self.sig_editor_shown)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()

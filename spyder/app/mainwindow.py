@@ -546,6 +546,7 @@ class MainWindow(QMainWindow):
         self._PLUGINS = OrderedDict()
 
         # Plugins
+        self._PLUGINS = {}
         self.console = None
         self.workingdirectory = None
         self.editor = None
@@ -1153,13 +1154,6 @@ class MainWindow(QMainWindow):
         self.file_menu_actions += file_actions
         self.set_splash("")
 
-        # Namespace browser
-        self.set_splash(_("Loading namespace browser..."))
-        from spyder.plugins.variableexplorer.plugin import VariableExplorer
-        self.variableexplorer = VariableExplorer(self)
-        self.variableexplorer.register_plugin()
-        self.add_plugin(self.variableexplorer)
-
         # Figure browser
         self.set_splash(_("Loading figure browser..."))
         from spyder.plugins.plots.plugin import Plots
@@ -1181,6 +1175,11 @@ class MainWindow(QMainWindow):
         self.ipyconsole = IPythonConsole(self, css_path=css_path)
         self.ipyconsole.register_plugin()
         self.add_plugin(self.ipyconsole)
+
+        # Namespace browser
+        from spyder.plugins.variableexplorer.plugin import VariableExplorer
+        self.variableexplorer = VariableExplorer(self, configuration=CONF)
+        self.register_plugin(self.variableexplorer)
 
         # Explorer
         if CONF.get('explorer', 'enable'):
@@ -2723,7 +2722,6 @@ class MainWindow(QMainWindow):
                     # Old API
                     if plugin.isAncestorOf(self.last_focused_widget):
                         plugin._visibility_changed(True)
-
             QMainWindow.hideEvent(self, event)
         except RuntimeError:
             QMainWindow.hideEvent(self, event)
@@ -2886,7 +2884,6 @@ class MainWindow(QMainWindow):
 
             for plugin in (self.widgetlist + self.thirdparty_plugins):
                 plugin.dockwidget.hide()
-
                 try:
                     # New API
                     if plugin.get_widget().isAncestorOf(focus_widget):

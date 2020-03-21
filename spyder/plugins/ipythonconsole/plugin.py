@@ -79,6 +79,11 @@ class IPythonConsole(SpyderPluginWidget):
     edit_goto = Signal((str, int, str), (str, int, str, bool))
     sig_pdb_state = Signal(bool, dict)
 
+    # New API Signals: name can change while API is debugged
+    sig_shellwidget_process_started = Signal(object)  # Shelwidget
+    sig_shellwidget_process_finished = Signal(object)  # Shelwidget
+    sig_shellwidget_changed = Signal(object)  # Shelwidget
+
     # Error messages
     permission_error_msg = _("The directory {} is not writable and it is "
                              "required to create IPython consoles. Please "
@@ -272,12 +277,17 @@ class IPythonConsole(SpyderPluginWidget):
             widgets = []
         self.find_widget.set_editor(control)
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
+
         if client:
             sw = client.shellwidget
-            self.main.variableexplorer.set_shellwidget_from_id(id(sw))
             self.main.plots.set_shellwidget_from_id(id(sw))
+
+            # TODO: New signal!
+            self.sig_shellwidget_changed.emit(sw)
+
             self.main.help.set_shell(sw)
             self.sig_pdb_state.emit(sw.in_debug_loop(), sw.get_pdb_last_step())
+
         self.update_tabs_text()
         self.sig_update_plugin_title.emit()
 
@@ -1447,17 +1457,19 @@ class IPythonConsole(SpyderPluginWidget):
         return cf
 
     def process_started(self, client):
+        # New signal API
+        self.sig_shellwidget_process_started.emit(client.shellwidget)
+
         if self.main.help is not None:
             self.main.help.set_shell(client.shellwidget)
-        if self.main.variableexplorer is not None:
-            self.main.variableexplorer.add_shellwidget(client.shellwidget)
+
         if self.main.plots is not None:
             self.main.plots.add_shellwidget(client.shellwidget)
 
     def process_finished(self, client):
-        if self.main.variableexplorer is not None:
-            self.main.variableexplorer.remove_shellwidget(
-                id(client.shellwidget))
+        # New signal API
+        self.sig_shellwidget_process_finished.emit(client.shellwidget)
+
         if self.main.plots is not None:
             self.main.plots.remove_shellwidget(id(client.shellwidget))
 
@@ -1566,8 +1578,17 @@ class IPythonConsole(SpyderPluginWidget):
                 return
 
         # Assign kernel manager and client to shellwidget
-        kernel_client.start_channels()
         shellwidget = client.shellwidget
+
+        # This connects to the variable explorer
+        kernel_client.started_channels.connect(
+            lambda shellwidget=shellwidget:
+                self.sig_shellwidget_process_started.emit(shellwidget))
+        kernel_client.stopped_channels.connect(
+            lambda shellwidget=shellwidget:
+                self.sig_shellwidget_process_finished.emit(shellwidget))
+        kernel_client.start_channels()
+
         shellwidget.set_kernel_client_and_manager(
             kernel_client, kernel_manager)
         shellwidget.sig_exception_occurred.connect(

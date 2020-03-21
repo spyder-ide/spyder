@@ -24,20 +24,38 @@ from spyder.plugins.variableexplorer.widgets.tests.test_collectioneditor import 
 def test_setup_sets_dataframe_format(qtbot):
     browser = NamespaceBrowser(None)
     browser.set_shellwidget(Mock())
-    browser.setup(exclude_private=True, exclude_uppercase=True,
-                  exclude_capitalized=True, exclude_unsupported=False,
-                  exclude_callables_and_modules=True,
-                  minmax=False, dataframe_format='%10.5f')
+
+    options = {
+        'exclude_private': True,
+        'exclude_uppercase': True,
+        'exclude_capitalized': True,
+        'exclude_unsupported': False,
+        'exclude_callables_and_modules': True,
+        'minmax': False,
+        'dataframe_format': '%10.5f',
+        'show_callable_attributes': True,
+        'show_special_attributes': True,
+    }
+    browser.setup(options)
     assert browser.editor.source_model.dataframe_format == '%10.5f'
 
 
 def test_automatic_column_width(qtbot):
     browser = NamespaceBrowser(None)
     browser.set_shellwidget(Mock())
-    browser.setup(exclude_private=True, exclude_uppercase=True,
-                  exclude_capitalized=True, exclude_unsupported=False,
-                  exclude_callables_and_modules=True,
-                  minmax=False)
+
+    options = {
+        'exclude_private': True,
+        'exclude_uppercase': True,
+        'exclude_capitalized': True,
+        'exclude_unsupported': False,
+        'exclude_callables_and_modules': True,
+        'minmax': False,
+        'dataframe_format': '%10.5f',
+        'show_callable_attributes': True,
+        'show_special_attributes': True,
+    }
+    browser.setup(options)
     col_width = [browser.editor.columnWidth(i) for i in range(4)]
     browser.set_data({'a_variable':
             {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}})
@@ -60,10 +78,18 @@ def test_sort_by_column(qtbot):
     browser = NamespaceBrowser(None)
     qtbot.addWidget(browser)
     browser.set_shellwidget(Mock())
-    browser.setup(exclude_private=True, exclude_uppercase=True,
-                  exclude_capitalized=True, exclude_unsupported=False,
-                  exclude_callables_and_modules=True,
-                  minmax=False)
+    options = {
+        'exclude_private': True,
+        'exclude_uppercase': True,
+        'exclude_capitalized': True,
+        'exclude_unsupported': False,
+        'exclude_callables_and_modules': True,
+        'minmax': False,
+        'dataframe_format': '%10.5f',
+        'show_callable_attributes': True,
+        'show_special_attributes': True,
+    }
+    browser.setup(options)
     browser.set_data(
         {'a_variable':
             {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'},

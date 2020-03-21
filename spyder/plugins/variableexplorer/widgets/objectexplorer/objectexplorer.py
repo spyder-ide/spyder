@@ -27,7 +27,6 @@ from qtpy.QtWidgets import (QAbstractItemView, QAction, QButtonGroup,
 from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, is_dark_interface
-from spyder.config.manager import CONF
 from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
                                     create_toolbutton, qapplication)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
@@ -62,7 +61,11 @@ class ObjectExplorer(BaseDialog):
                  show_special_attributes=False,
                  dataframe_format=None,
                  readonly=None,
-                 reset=False):
+                 reset=False,
+                 blank_spaces=False,
+                 update_scrollbar=True,
+                 scheme_name='spyder/dark',
+                 ):
         """
         Constructor
 
@@ -93,6 +96,11 @@ class ObjectExplorer(BaseDialog):
         self._attr_details = attribute_details
         self._dataframe_format = dataframe_format
         self.readonly = readonly
+
+        # Edito options
+        self.blank_spaces = blank_spaces
+        self.update_scrollbar = update_scrollbar
+        self.scheme_name = scheme_name
 
         self.btn_save_and_close = None
         self.btn_close = None
@@ -420,15 +428,12 @@ class ObjectExplorer(BaseDialog):
             data = attr_details.data_fn(tree_item)
             self.editor.setPlainText(data)
             self.editor.setWordWrapMode(attr_details.line_wrap)
-            show_blanks = CONF.get('editor', 'blank_spaces')
-            update_scrollbar = CONF.get('editor', 'scroll_past_end')
-            scheme_name = CONF.get('appearance', 'selected')
             self.editor.setup_editor(
                 tab_mode=False,
                 font=get_font(font_size_delta=DEFAULT_SMALL_DELTA),
-                show_blanks=show_blanks,
-                color_scheme=scheme_name,
-                scroll_past_end=update_scrollbar)
+                show_blanks=self.blank_spaces,
+                color_scheme=self.scheme_name,
+                scroll_past_end=self.update_scrollbar)
             self.editor.set_text(data)
             if attr_details.name == 'Source code':
                 self.editor.set_language('Python')
