@@ -34,9 +34,9 @@ def setup_workingdirectory(qtbot, request):
         CONF.set('workingdir', 'console/use_fixed_directory', False)
         CONF.set('workingdir', 'startup/fixed_directory', get_home_dir())
 
-    workingdirectory = WorkingDirectory(None)
+    workingdirectory = WorkingDirectory(None, configuration=CONF)
+    workingdirectory.close = lambda: True
     qtbot.addWidget(workingdirectory)
-    workingdirectory.show()
 
     return workingdirectory, qtbot
 

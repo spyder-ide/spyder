@@ -374,8 +374,10 @@ class MainWindow(QMainWindow):
                 plugin._shortcut = sc
                 self.register_shortcut(sc, context, name)
 
-        toolbars = plugin.get_application_toolbars()
-        for toolbar in toolbars:
+        toolbars = plugin.get_registered_application_toolbars()
+        for __, toolbar in toolbars.items():
+            # TODO: To update this render call
+            toolbar._render()
             self.toolbarslist.append(toolbar)
 
     def unregister_plugin(self, plugin):
@@ -1140,14 +1142,6 @@ class MainWindow(QMainWindow):
         from spyder.plugins.completion.plugin import CompletionManager
         self.completions = CompletionManager(self)
 
-        # Working directory plugin
-        logger.info("Loading working directory...")
-        from spyder.plugins.workingdirectory.plugin import WorkingDirectory
-        self.workingdirectory = WorkingDirectory(self, self.init_workdir, main=self)
-        self.workingdirectory.register_plugin()
-        self.toolbarslist.append(self.workingdirectory.toolbar)
-        self.add_plugin(self.workingdirectory)
-
         # Outline explorer widget
         if CONF.get('outline_explorer', 'enable'):
             self.set_splash(_("Loading outline explorer..."))
@@ -1258,6 +1252,12 @@ class MainWindow(QMainWindow):
         self.projects.register_plugin()
         self.project_path = self.projects.get_pythonpath(at_start=True)
         self.add_plugin(self.projects)
+
+        # Working directory plugin
+        from spyder.plugins.workingdirectory.plugin import WorkingDirectory
+        CONF.set('workingdir', 'init_workdir', self.init_workdir)
+        self.workingdirectory = WorkingDirectory(self, configuration=CONF)
+        self.register_plugin(self.workingdirectory)
 
         # Find in files
         if CONF.get('find_in_files', 'enable'):

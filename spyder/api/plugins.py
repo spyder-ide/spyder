@@ -735,6 +735,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         self._conf = configuration
         self._plugin_path = os.path.dirname(inspect.getfile(self.__class__))
         self._container = None
+        self._added_toolbars = OrderedDict()
         self._actions = {}
         self.is_compatible = None
         self.is_registered = None
@@ -1358,6 +1359,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         iconsize = 24
         toolbar.setIconSize(QSize(iconsize, iconsize))
         self._main._APPLICATION_TOOLBARS[name] = toolbar
+        self._added_toolbars[name] = toolbar
         self.main.addToolBar(toolbar)
 
     def add_item_to_application_toolbar(self, item, toolbar, section=None,
@@ -1400,6 +1402,12 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         Return all created application toolbars.
         """
         return self._main._APPLICATION_TOOLBARS
+
+    def get_registered_application_toolbars(self):
+        """
+        Return all created application toolbars.
+        """
+        return self._added_toolbars
 
     # --- API Application Status Widgets
     # ------------------------------------------------------------------------

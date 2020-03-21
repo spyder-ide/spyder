@@ -142,6 +142,17 @@ class IPythonConsole(SpyderPluginWidget):
         Example `{'name': str, 'ignore_unknown': bool}`.
     """
 
+    sig_current_directory_changed = Signal(str)
+    """
+    This signal is emitted when the current directory of the active shell
+    widget has changed.
+
+    Parameters
+    ----------
+    working_directory: str
+        The new working directory path.
+    """
+
     # Error messages
     permission_error_msg = _("The directory {} is not writable and it is "
                              "required to create IPython consoles. Please "
@@ -452,8 +463,6 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.editor.run_in_current_ipyclient.connect(self.run_script)
         self.main.editor.run_cell_in_ipyclient.connect(self.run_cell)
         self.main.editor.debug_cell_in_ipyclient.connect(self.debug_cell)
-        self.main.workingdirectory.set_current_console_wd.connect(
-            self.set_current_client_working_directory)
         self.tabwidget.currentChanged.connect(self.update_working_directory)
         self.tabwidget.currentChanged.connect(self.check_pdb_state)
         self._remove_old_stderr_files()
@@ -621,9 +630,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Set current working directory.
         In the workingdirectory and explorer plugins.
         """
-        if dirname:
-            self.main.workingdirectory.chdir(dirname, refresh_explorer=True,
-                                             refresh_console=False)
+        self.sig_current_directory_changed.emit(dirname)
 
     def update_working_directory(self):
         """Update working directory to console cwd."""

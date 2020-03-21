@@ -170,7 +170,8 @@ class FindInFiles(SpyderPluginWidget):
                                                          self.main.editor.load)
         self.findinfiles.find_options.redirect_stdio.connect(
                                         self.main.redirect_internalshell_stdio)
-        self.main.workingdirectory.refresh_findinfiles.connect(self.refreshdir)
+        self.main.workingdirectory.sig_current_directory_changed.connect(
+            lambda x: self.refreshdir())
         self.main.projects.sig_project_loaded.connect(self.set_project_path)
         self.main.projects.sig_project_closed.connect(self.unset_project_path)
         self.main.editor.open_file_update.connect(self.set_current_opened_file)
