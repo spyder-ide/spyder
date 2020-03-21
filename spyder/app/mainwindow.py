@@ -1207,13 +1207,6 @@ class MainWindow(QMainWindow):
         self.variableexplorer.register_plugin()
         self.add_plugin(self.variableexplorer)
 
-        # Figure browser
-        self.set_splash(_("Loading figure browser..."))
-        from spyder.plugins.plots.plugin import Plots
-        self.plots = Plots(self)
-        self.plots.register_plugin()
-        self.add_plugin(self.plots)
-
         # IPython console
         self.set_splash(_("Loading IPython console..."))
         from spyder.plugins.ipythonconsole.plugin import IPythonConsole
@@ -1232,6 +1225,12 @@ class MainWindow(QMainWindow):
             from spyder.plugins.history.plugin import HistoryLog
             self.historylog = HistoryLog(self, configuration=CONF)
             self.register_plugin(self.historylog)
+
+        # Figure browser
+        self.set_splash(_("Loading figure browser..."))
+        from spyder.plugins.plots.plugin import Plots
+        self.plots = Plots(self, configuration=CONF)
+        self.register_plugin(self.plots)
 
         # Explorer
         if CONF.get('explorer', 'enable'):
@@ -3670,6 +3669,16 @@ class MainWindow(QMainWindow):
                         # Avoid a crash at startup if a plugin's config
                         # page fails to load.
                         traceback.print_exc(file=sys.stderr)
+                    if getattr(plugin, 'CONF_WIDGET_CLASS', None):
+                        try:
+                            widget = self.create_plugin_conf_widget(plugin)
+                            if widget is not None:
+                                dlg.add_page(widget)
+                        except Exception:
+                            # Avoid a crash at startup if a plugin's config
+                            # page fails to load.
+                            traceback.print_exc(file=sys.stderr)
+
 
 
             if self.prefs_index is not None:

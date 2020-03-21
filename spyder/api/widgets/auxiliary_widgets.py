@@ -27,6 +27,11 @@ class SpyderWindowWidget(QMainWindow):
     This signal is emitted when this widget is closed.
     """
 
+    # --- Signals
+    # ------------------------------------------------------------------------
+    sig_closed = Signal()
+    """This signal is emitted when the close event is fired."""
+
     def __init__(self, widget):
         super().__init__()
         self.widget = widget
