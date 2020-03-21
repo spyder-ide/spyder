@@ -914,6 +914,8 @@ def _start_server(urlhandler, hostname, port):
                 # for example when the client stops the load of the previously
                 # requested page. See spyder-ide/spyder#10755
                 pass
+            except BrokenPipeError:
+                pass
 
         def log_message(self, *args):
             # Don't log messages.

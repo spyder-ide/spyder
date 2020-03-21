@@ -182,6 +182,9 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
         self._default_margins = None
         self.is_maximized = None
         self.is_visible = None
+        self.dock_action = None
+        self.undock_action = None
+        self.close_action = None
 
         # We create our toggle action instead of using the one that comes with
         # dockwidget because it was not possible to raise and focus the plugin
@@ -422,7 +425,7 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
             self.dock_action,
             self.undock_action,
             self.close_action,
-            'switch to ' + self._name,
+            self.toggle_view_action,
         ]
 
         for child in all_children:

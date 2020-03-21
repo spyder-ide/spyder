@@ -8,7 +8,7 @@
 Tests for pydocgui.py
 """
 # Standard library imports
-import os
+import sys
 
 # Test library imports
 import pytest
@@ -21,7 +21,13 @@ from spyder.plugins.onlinehelp.widgets import PydocBrowser
 @pytest.fixture
 def pydocbrowser(qtbot):
     """Set up pydocbrowser."""
-    widget = PydocBrowser(None)
+    widget = PydocBrowser(parent=None, name='pydoc')
+    options = PydocBrowser.DEFAULT_OPTIONS.copy()
+    widget._setup(options)
+
+    with qtbot.waitSignal(widget.sig_load_finished, timeout=6000):
+        widget.setup(options)
+
     qtbot.addWidget(widget)
     return qtbot, widget
 
@@ -37,7 +43,8 @@ def test_pydocbrowser(pydocbrowser):
     "lib", [('str', 'class str', 1),
             ('numpy.compat', 'numpy.compat', 2)
             ])
-@pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
+@pytest.mark.skipif(
+    sys.platform == 'darwin', reason="Does not work on Mac")
 def test_get_pydoc(pydocbrowser, lib):
     """
     Go to the documentation by url.
@@ -45,12 +52,12 @@ def test_get_pydoc(pydocbrowser, lib):
     """
     qtbot, browser = pydocbrowser
     element, doc, matches = lib
+
     webview = browser.webview
-    with qtbot.waitSignal(webview.loadFinished, timeout=6000):
-        browser.initialize()
     element_url = browser.text_to_url(element)
     with qtbot.waitSignal(webview.loadFinished):
         browser.set_url(element_url)
+
     # Check number of matches. In Python 2 are 3 matches instead
     # of 2 for numpy.compat
     qtbot.waitUntil(

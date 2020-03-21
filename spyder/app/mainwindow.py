@@ -1245,11 +1245,9 @@ class MainWindow(QMainWindow):
 
         # Online help widget
         if CONF.get('onlinehelp', 'enable'):
-            self.set_splash(_("Loading online help..."))
             from spyder.plugins.onlinehelp.plugin import OnlineHelp
-            self.onlinehelp = OnlineHelp(self)
-            self.onlinehelp.register_plugin()
-            self.add_plugin(self.onlinehelp)
+            self.onlinehelp = OnlineHelp(self, configuration=CONF)
+            self.register_plugin(self.onlinehelp)
 
         # Project explorer widget
         self.set_splash(_("Loading project explorer..."))
