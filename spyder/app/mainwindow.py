@@ -1264,9 +1264,8 @@ class MainWindow(QMainWindow):
         # Find in files
         if CONF.get('find_in_files', 'enable'):
             from spyder.plugins.findinfiles.plugin import FindInFiles
-            self.findinfiles = FindInFiles(self)
-            self.findinfiles.register_plugin()
-            self.add_plugin(self.findinfiles)
+            self.findinfiles = FindInFiles(self, configuration=CONF)
+            self.register_plugin(self.findinfiles)
 
         # Load other plugins (former external plugins)
         # TODO: Use this bucle to load all internall plugins and remove

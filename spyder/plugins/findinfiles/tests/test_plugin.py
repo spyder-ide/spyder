@@ -15,6 +15,7 @@ import os.path as osp
 import pytest
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.plugins.findinfiles.plugin import FindInFiles
 from spyder.plugins.findinfiles.widgets import SELECT_OTHER
 
@@ -27,8 +28,12 @@ if not osp.exists(NONASCII_DIR):
 @pytest.fixture
 def findinfiles(qtbot):
     """Set up SearchInComboBox combobox."""
-    findinfiles_plugin = FindInFiles()
+    findinfiles_plugin = FindInFiles(None, configuration=CONF)
+
+    # qtbot wants to close the widget
+    findinfiles_plugin.close = lambda: True
     qtbot.addWidget(findinfiles_plugin)
+
     return findinfiles_plugin
 
 
@@ -39,32 +44,31 @@ def test_closing_plugin(findinfiles, qtbot, mocker):
     Test that the external paths listed in the combobox are saved and loaded
     correctly from the spyder config file.
     """
-    path_selection_combo = (
-        findinfiles.findinfiles.find_options.path_selection_combo)
+    path_selection_combo = findinfiles.get_widget().path_selection_combo
     path_selection_combo.clear_external_paths()
     assert path_selection_combo.get_external_paths() == []
 
     # Add external paths to the path_selection_combo.
     expected_results = [
-            LOCATION,
-            osp.dirname(LOCATION),
-            osp.dirname(osp.dirname(LOCATION)),
-            NONASCII_DIR
-            ]
+        LOCATION,
+        osp.dirname(LOCATION),
+        osp.dirname(osp.dirname(LOCATION)),
+        NONASCII_DIR,
+    ]
     for external_path in expected_results:
         mocker.patch('spyder.plugins.findinfiles.widgets.getexistingdirectory',
                      return_value=external_path)
         path_selection_combo.setCurrentIndex(SELECT_OTHER)
+
     assert path_selection_combo.get_external_paths() == expected_results
 
-    findinfiles.closing_plugin()
-    assert findinfiles.get_option('path_history') == expected_results
+    findinfiles.on_close()
+    path_history = findinfiles.get_widget().get_option('path_history')
+    assert path_history == expected_results
 
     # Close the plugin and assert that the external_path_history
     # has been saved and loaded as expected.
-    findinfiles.close()
-    path_selection_combo = (
-        findinfiles.findinfiles.find_options.path_selection_combo)
+    path_selection_combo = findinfiles.get_widget().path_selection_combo
     assert path_selection_combo.get_external_paths() == expected_results
 
 

@@ -29,7 +29,7 @@ import os
 # Third party imports
 from qtpy.QtCore import QObject, Qt, Signal, Slot, QSize
 from qtpy.QtGui import QCursor
-from qtpy.QtWidgets import QApplication, QWidget
+from qtpy.QtWidgets import QApplication, QToolBar, QWidget
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
@@ -1367,8 +1367,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         """
         Add action or widget `item` to given application toolbar section.
         """
-        if not isinstance(toolbar, ApplicationToolBar):
-            raise SpyderAPIError('Not an ApplicationMenu!')
+        # TODO: Restrict to application toolbar types
+        if not isinstance(toolbar, (ApplicationToolBar, QToolBar)):
+            raise SpyderAPIError('Not an ApplicationToolBar!')
 
         toolbar.addAction(item)
 
