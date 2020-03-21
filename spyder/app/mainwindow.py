@@ -1214,14 +1214,6 @@ class MainWindow(QMainWindow):
         self.plots.register_plugin()
         self.add_plugin(self.plots)
 
-        # History log widget
-        if CONF.get('historylog', 'enable'):
-            self.set_splash(_("Loading history plugin..."))
-            from spyder.plugins.history.plugin import HistoryLog
-            self.historylog = HistoryLog(self)
-            self.historylog.register_plugin()
-            self.add_plugin(self.historylog)
-
         # IPython console
         self.set_splash(_("Loading IPython console..."))
         from spyder.plugins.ipythonconsole.plugin import IPythonConsole
@@ -1234,6 +1226,12 @@ class MainWindow(QMainWindow):
             from spyder.plugins.help.plugin import Help
             self.help = Help(self, configuration=CONF)
             self.register_plugin(self.help)
+
+        # History log widget
+        if CONF.get('historylog', 'enable'):
+            from spyder.plugins.history.plugin import HistoryLog
+            self.historylog = HistoryLog(self, configuration=CONF)
+            self.register_plugin(self.historylog)
 
         # Explorer
         if CONF.get('explorer', 'enable'):

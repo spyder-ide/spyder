@@ -974,7 +974,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         """
         Apply `options_set` to this plugin's widget.
         """
-        if self._conf is not None:
+        if self._conf is not None and options_set:
             container = self.get_container()
             # The container might not implement the SpyderWidgetMixin API
             # for example a completion client that only implements the

@@ -29,6 +29,8 @@ from spyder.utils import icon_manager as ima
 
 
 class MainWindowMock(QMainWindow):
+    register_shortcut = Mock()
+
     def __init__(self):
         super().__init__(None)
 
