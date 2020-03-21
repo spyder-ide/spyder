@@ -9,33 +9,129 @@ from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QTreeWidget, QMenu
 
 # Local imports
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import _
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     get_item_user_text)
 
 
-class OneColumnTree(QTreeWidget):
-    """One-column tree widget with context menu, ..."""
+class OneColumnTreeActions:
+    CollapseAllAction = "collapse_all_action"
+    ExpandAllAction = "expand_all_action"
+    RestoreAction = "restore_action"
+    CollapseSelectionAction = "collapse_selection_action"
+    ExpandSelectionAction = "expand_selection_action"
+
+
+class OneColumnTreeContextMenuSections:
+    Global = "global_section"
+    Restore = "restore_section"
+    Section = "section_section"
+    History = "history_section"
+
+
+class OneColumnTree(QTreeWidget, SpyderWidgetMixin):
+    """
+    One-column tree widget with context menu.
+    """
+    DEFAULT_OPTIONS = {}
+
     def __init__(self, parent):
-        QTreeWidget.__init__(self, parent)
+        super().__init__(parent)
+
+        self.__expanded_state = None
+
+        # Widgets
+        self.menu = self.create_menu("context_menu")
+
+        # Widget setup
         self.setItemsExpandable(True)
         self.setColumnCount(1)
-        self.itemActivated.connect(self.activated)
-        self.itemClicked.connect(self.clicked)
+
         # Setup context menu
-        self.menu = QMenu(self)
         self.collapse_all_action = None
         self.collapse_selection_action = None
         self.expand_all_action = None
         self.expand_selection_action = None
+        self.setup()
         self.common_actions = self.setup_common_actions()
 
-        self.__expanded_state = None
-
+        # Signals
+        self.itemActivated.connect(self.activated)
+        self.itemClicked.connect(self.clicked)
         self.itemSelectionChanged.connect(self.item_selection_changed)
+
         self.item_selection_changed()
 
+    # --- SpyderWidgetMixin API
+    # ------------------------------------------------------------------------
+    def setup(self, options=DEFAULT_OPTIONS):
+        self.collapse_all_action = self.create_action(
+            OneColumnTreeActions.CollapseAllAction,
+            text=_("Collapse all"),
+            icon=ima.icon("collapse"),
+            triggered=self.collapseAll,
+            register_shortcut=False,
+        )
+        self.expand_all_action = self.create_action(
+            OneColumnTreeActions.ExpandAllAction,
+            text=_("Expand all"),
+            icon=ima.icon("expand"),
+            triggered=self.expandAll,
+            register_shortcut=False,
+        )
+        self.restore_action = self.create_action(
+            OneColumnTreeActions.RestoreAction,
+            text=_("Restore"),
+            tip=_("Restore original tree layout"),
+            icon=ima.icon("restore"),
+            triggered=self.restore,
+            register_shortcut=False,
+        )
+        self.collapse_selection_action = self.create_action(
+            OneColumnTreeActions.CollapseSelectionAction,
+            text=_("Collapse section"),
+            icon=ima.icon("collapse_selection"),
+            triggered=self.collapse_selection,
+            register_shortcut=False,
+        )
+        self.expand_selection_action = self.create_action(
+            OneColumnTreeActions.ExpandSelectionAction,
+            text=_("Expand section"),
+            icon=ima.icon("expand_selection"),
+            triggered=self.expand_selection,
+            register_shortcut=False,
+        )
+
+        for item in [self.collapse_all_action, self.expand_all_action]:
+            self.add_item_to_menu(
+                item,
+                self.menu,
+                section=OneColumnTreeContextMenuSections.Global,
+            )
+
+        self.add_item_to_menu(
+            self.restore_action,
+            self.menu,
+            section=OneColumnTreeContextMenuSections.Restore,
+        )
+        for item in [self.collapse_selection_action,
+                     self.expand_selection_action]:
+            self.add_item_to_menu(
+                item,
+                self.menu,
+                section=OneColumnTreeContextMenuSections.Section,
+            )
+
+    def on_option_update(self, option, value):
+        pass
+
+    def update_actions(self):
+        pass
+
+    # --- Public API
+    # ------------------------------------------------------------------------
     def activated(self, item):
         """Double-click event"""
         raise NotImplementedError
@@ -48,32 +144,7 @@ class OneColumnTree(QTreeWidget):
 
     def setup_common_actions(self):
         """Setup context menu common actions"""
-        self.collapse_all_action = create_action(self,
-                                     text=_('Collapse all'),
-                                     icon=ima.icon('collapse'),
-                                     triggered=self.collapseAll)
-        self.expand_all_action = create_action(self,
-                                     text=_('Expand all'),
-                                     icon=ima.icon('expand'),
-                                     triggered=self.expandAll)
-        self.restore_action = create_action(self,
-                                     text=_('Restore'),
-                                     tip=_('Restore original tree layout'),
-                                     icon=ima.icon('restore'),
-                                     triggered=self.restore)
-        self.collapse_selection_action = create_action(
-            self,
-            text=_('Collapse section'),
-            icon=ima.icon('collapse_selection'),
-            triggered=self.collapse_selection
-        )
-        self.expand_selection_action = create_action(
-            self,
-            text=_('Expand section'),
-            icon=ima.icon('expand_selection'),
-            triggered=self.expand_selection
-        )
-        return [self.collapse_all_action, self.expand_all_action, None,
+        return [self.collapse_all_action, self.expand_all_action,
                 self.collapse_selection_action, self.expand_selection_action]
 
     def get_menu_actions(self):
@@ -82,13 +153,9 @@ class OneColumnTree(QTreeWidget):
         actions = self.get_actions_from_items(items)
         if actions:
             actions.append(None)
+
         actions += self.common_actions
         return actions
-
-    def update_menu(self):
-        self.menu.clear()
-        actions = self.get_menu_actions()
-        add_actions(self.menu, actions)
 
     def get_actions_from_items(self, items):
         # Right here: add other actions if necessary
@@ -215,5 +282,4 @@ class OneColumnTree(QTreeWidget):
 
     def contextMenuEvent(self, event):
         """Override Qt method"""
-        self.update_menu()
         self.menu.popup(event.globalPos())

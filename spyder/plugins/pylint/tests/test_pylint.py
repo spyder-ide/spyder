@@ -15,11 +15,12 @@ from unittest.mock import Mock, MagicMock
 # Third party imports
 import pytest
 from qtpy.QtCore import Signal, QObject
+from qtpy.QtWidgets import QMainWindow
 
 # Local imports
 from spyder.config.manager import CONF
+from spyder.plugins.pylint.main_widget import PylintWidget
 from spyder.plugins.pylint.plugin import Pylint
-from spyder.plugins.pylint.widgets.pylintgui import PylintWidget
 from spyder.plugins.pylint.utils import get_pylintrc_path
 
 # pylint: disable=redefined-outer-name
@@ -52,14 +53,32 @@ good-names=e
 """
 
 
-class MainWindowMock(QObject):
+class MainWindowMock(QMainWindow):
     sig_editor_focus_changed = Signal(str)
+    _PLUGINS = {}
 
     def __init__(self):
         super(MainWindowMock, self).__init__(None)
         self.editor = Mock()
         self.editor.sig_editor_focus_changed = self.sig_editor_focus_changed
         self.projects = MagicMock()
+
+        self._PLUGINS['editor'] = self.editor
+        self._PLUGINS['projects'] = self.projects
+
+
+@pytest.fixture
+def pylint_plugin(mocker, qtbot):
+    main_window = MainWindowMock()
+    main_window.projects.get_active_project_path = mocker.MagicMock(
+        return_value=None)
+    plugin = Pylint(parent=main_window, configuration=CONF)
+    plugin._register()
+    plugin.set_conf_option("history_filenames", [])
+    widget = plugin.get_widget()
+    widget.filecombo.clear()
+    qtbot.addWidget(widget)
+    yield plugin
 
 
 @pytest.fixture
@@ -90,17 +109,25 @@ def pylint_test_scripts(pylintrc_search_paths):
         for filename in filenames:
             script_path = osp.join(
                 pylintrc_search_paths[SCRIPT_DIR], filename)
+
             with open(script_path, mode="w",
                       encoding="utf-8", newline="\n") as script_file:
                 script_file.write(PYLINT_TEST_SCRIPT)
+
             script_paths.append(script_path)
+
         return script_paths
+
     return _pylint_test_scripts
 
 
 @pytest.fixture(
     params=[
-        [], [SCRIPT_DIR], [WORKING_DIR], [PROJECT_DIR], [HOME_DIR],
+        [],
+        [SCRIPT_DIR],
+        [WORKING_DIR],
+        [PROJECT_DIR],
+        [HOME_DIR],
         [SCRIPT_DIR, HOME_DIR], [WORKING_DIR, PROJECT_DIR],
         [SCRIPT_DIR, PROJECT_DIR], [PROJECT_DIR, HOME_DIR],
         [SCRIPT_DIR, WORKING_DIR, PROJECT_DIR, HOME_DIR]],
@@ -130,6 +157,11 @@ def pylintrc_files(pylintrc_search_paths, request):
         with open(pylintrc_path, mode="w",
                   encoding="utf-8", newline="\n") as rc_file:
             rc_file.write(pylintrc_test_contents)
+
+    print(search_paths)
+    print(expected_path)
+    print(bad_names)
+
     return search_paths, expected_path, bad_names
 
 
@@ -145,46 +177,45 @@ def test_get_pylintrc_path(pylintrc_files, mocker):
     assert actual_path == expected_path
 
 
-def test_pylint_widget_noproject(pylint_test_script, mocker, qtbot):
+def test_pylint_widget_noproject(pylint_plugin, pylint_test_script, mocker,
+                                 qtbot):
     """Test that pylint works without errors with no project open."""
-    main_window = MainWindowMock()
-    main_window.projects.get_active_project_path = mocker.MagicMock(
-        return_value=None)
-    pylint_sw = Pylint(parent=main_window)
-    pylint_widget = PylintWidget(parent=pylint_sw)
-    pylint_widget.analyze(filename=pylint_test_script)
+    pylint_plugin.start_code_analysis(filename=pylint_test_script)
+    pylint_widget = pylint_plugin.get_widget()
+
     qtbot.waitUntil(
         lambda: pylint_widget.get_data(pylint_test_script)[1] is not None,
         timeout=5000)
     pylint_data = pylint_widget.get_data(filename=pylint_test_script)
+
     print(pylint_data)
+
     assert pylint_data
     assert pylint_data[0] is not None
     assert pylint_data[1] is not None
 
 
 def test_pylint_widget_pylintrc(
-        pylint_test_script, pylintrc_files, mocker, qtbot):
+        pylint_plugin, pylint_test_script, pylintrc_files, mocker, qtbot):
     """Test that entire pylint widget gets results depending on pylintrc."""
     search_paths, __, bad_names = pylintrc_files
     mocker.patch("pylint.config.os.path.expanduser",
                  return_value=search_paths[HOME_DIR])
-    mocker.patch("spyder.plugins.pylint.widgets.pylintgui.getcwd_or_home",
+    mocker.patch("spyder.plugins.pylint.main_widget.getcwd_or_home",
                  return_value=search_paths[WORKING_DIR])
-    mocker.patch("spyder.plugins.pylint.widgets.pylintgui.osp.expanduser",
+    mocker.patch("spyder.plugins.pylint.main_widget.osp.expanduser",
                  return_value=search_paths[HOME_DIR])
-    main_window = MainWindowMock()
-    main_window.projects.get_active_project_path = mocker.MagicMock(
-        return_value=search_paths[PROJECT_DIR])
-    pylint_sw = Pylint(parent=main_window)
+    pylint_plugin.set_conf_option("project_dir", search_paths[PROJECT_DIR])
 
-    pylint_widget = PylintWidget(parent=pylint_sw)
-    pylint_widget.analyze(filename=pylint_test_script)
+    pylint_widget = pylint_plugin.get_widget()
+    pylint_plugin.start_code_analysis(filename=pylint_test_script)
     qtbot.waitUntil(
         lambda: pylint_widget.get_data(pylint_test_script)[1] is not None,
         timeout=5000)
     pylint_data = pylint_widget.get_data(filename=pylint_test_script)
+
     print(pylint_data)
+
     assert pylint_data
     conventions = pylint_data[1][3]["C:"]
     assert conventions
@@ -193,26 +224,20 @@ def test_pylint_widget_pylintrc(
                 for bad_name in bad_names])
 
 
-def test_pylint_max_history_conf(pylint_test_scripts, mocker):
+def test_pylint_max_history_conf(pylint_plugin, pylint_test_scripts):
     """Regression test for checking max_entries configuration.
 
     For further information see spyder-ide/spyder#12884
     """
-    # Create the pylint widget for code analysis
-    main_window = MainWindowMock()
-    main_window.projects.get_active_project_path = mocker.MagicMock(
-        return_value=None)
-    pylint_sw = Pylint(parent=main_window)
-    pylint_widget = PylintWidget(parent=pylint_sw)
-    pylint_widget.filecombo.clear()
-
+    pylint_widget = pylint_plugin.get_widget()
     script_0, script_1, script_2 = pylint_test_scripts(
         ["test_script_{}.py".format(n) for n in range(3)])
 
     # Change the max_entry to 2
-    pylint_widget.parent.set_option('max_entries', 2)
-    pylint_widget.change_history_limit(2)
-    assert pylint_widget.parent.get_option('max_entries') == 2
+    assert pylint_widget.filecombo.count() == 0
+    pylint_plugin.change_history_depth(2)
+    assert pylint_plugin.get_conf_option('max_entries') == 2
+    assert pylint_widget.get_option('max_entries') == 2
 
     # Call to set_filename
     pylint_widget.set_filename(filename=script_0)
@@ -228,11 +253,9 @@ def test_pylint_max_history_conf(pylint_test_scripts, mocker):
     assert 'test_script_1.py' in pylint_widget.curr_filenames[1]
 
     # Change the max entry to 1
-    pylint_widget.parent.set_option('max_entries', 1)
-    pylint_widget.change_history_limit(1)
+    pylint_plugin.change_history_depth(1)
 
     assert pylint_widget.filecombo.count() == 1
-
     assert 'test_script_2.py' in pylint_widget.curr_filenames[0]
 
 

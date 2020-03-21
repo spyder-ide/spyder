@@ -1042,6 +1042,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                 )
 
             self._conf.set(section, str(option), value)
+            self.apply_conf({str(option)})
 
     def apply_conf(self, options_set):
         """
