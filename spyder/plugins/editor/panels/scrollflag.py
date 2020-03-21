@@ -313,7 +313,7 @@ class ScrollFlagArea(Panel):
         if self.slider and event.button() == Qt.LeftButton:
             vsb = self.editor.verticalScrollBar()
             value = self.position_to_value(event.pos().y())
-            vsb.setValue(value-vsb.pageStep()/2)
+            vsb.setValue(int(value-vsb.pageStep()/2))
 
     def keyReleaseEvent(self, event):
         """Override Qt method."""
@@ -376,7 +376,7 @@ class ScrollFlagArea(Panel):
     def value_to_position(self, y, scale_factor, offset):
         """Convert value to position in pixels"""
         vsb = self.editor.verticalScrollBar()
-        return (y - vsb.minimum()) * scale_factor + offset
+        return int((y - vsb.minimum()) * scale_factor + offset)
 
     def position_to_value(self, y):
         """Convert position in pixels to value"""
