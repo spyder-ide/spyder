@@ -23,6 +23,7 @@ import pytest
 from flaky import flaky
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.plugins.console.plugin import Console
 
 
@@ -38,8 +39,9 @@ def console_plugin(qtbot):
             return Mock()
 
     window = MainWindowMock()
-    console_plugin = Console(parent=window)
-    window.setCentralWidget(console_plugin)
+    console_plugin = Console(parent=window, configuration=CONF)
+    console_plugin.start_interpreter({})
+    window.setCentralWidget(console_plugin.get_widget())
 
     qtbot.addWidget(window)
     window.resize(640, 480)
@@ -53,7 +55,7 @@ def console_plugin(qtbot):
 @flaky(max_runs=3)
 def test_run_code(console_plugin, capsys):
     """Test that the console runs code."""
-    shell = console_plugin.shell
+    shell = console_plugin.get_widget().shell
 
     # Run a simple code
     shell.insert_text('2+2', at_end=True)
@@ -67,7 +69,7 @@ def test_run_code(console_plugin, capsys):
 @flaky(max_runs=3)
 def test_completions(console_plugin, qtbot):
     """Test that completions work as expected."""
-    shell = console_plugin.shell
+    shell = console_plugin.get_widget().shell
 
     # Get completions
     qtbot.keyClicks(shell, 'impor')

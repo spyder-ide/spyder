@@ -1107,7 +1107,7 @@ class Editor(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.main.restore_scrollbar_position.connect(
             self.restore_scrollbar_position)
-        self.main.console.edit_goto.connect(self.load)
+        self.main.console.sig_edit_goto_requested.connect(self.load)
         self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.open_dir.connect(self.main.workingdirectory.chdir)

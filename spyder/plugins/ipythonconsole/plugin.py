@@ -762,7 +762,7 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget = client.shellwidget
         shellwidget.set_kernel_client_and_manager(kc, km)
         shellwidget.sig_exception_occurred.connect(
-            self.main.console.exception_occurred)
+            self.main.console.handle_exception)
 
     @Slot(object, object)
     def edit_file(self, filename, line):
@@ -1574,7 +1574,8 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.set_kernel_client_and_manager(
             kernel_client, kernel_manager)
         shellwidget.sig_exception_occurred.connect(
-            self.main.console.exception_occurred)
+            self.main.console.handle_exception)
+
         if external_kernel:
             shellwidget.sig_is_spykernel.connect(
                 self.connect_external_kernel)

@@ -136,8 +136,8 @@ class WorkingDirectory(SpyderPluginWidget):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
-        self.main.console.shell.refresh.connect(self.refresh_plugin)
-        iconsize = 24 
+        self.main.console.sig_refreshed.connect(self.refresh_plugin)
+        iconsize = 24
         self.toolbar.setIconSize(QSize(iconsize, iconsize))
         self.main.addToolBar(self.toolbar)
         

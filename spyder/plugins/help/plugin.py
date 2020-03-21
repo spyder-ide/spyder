@@ -212,9 +212,9 @@ class Help(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.add_dockwidget()
-        self.main.console.set_help(self)
+        self.main.console.get_widget().set_help(self)
 
-        self.internal_shell = self.main.console.shell
+        self.internal_shell = self.main.console.get_widget().shell
         self.console = self.main.console
 
     def refresh_plugin(self):
