@@ -30,6 +30,7 @@ from spyder.utils import icon_manager as ima
 
 class MainWindowMock(QMainWindow):
     register_shortcut = Mock()
+    editor = Mock()
 
     def __init__(self):
         super().__init__(None)
@@ -87,7 +88,8 @@ class ConfigDialogTester(ConfigDialog):
                     # New API
                     plugin = plugin(parent=self._main, configuration=CONF)
                     widget = self._main.create_plugin_conf_widget(plugin)
-                except Exception:
+                except Exception as e:
+                    print(e)
                     # Old API
                     plugin = plugin(parent=self._main)
                     widget = plugin._create_configwidget(self, self._main)

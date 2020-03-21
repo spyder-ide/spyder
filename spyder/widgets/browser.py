@@ -13,7 +13,7 @@ import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, QUrl, Signal, Slot
-from qtpy.QtGui import QFontInfo
+from qtpy.QtGui import QColor, QFontInfo
 from qtpy.QtWebEngineWidgets import (WEBENGINE, QWebEnginePage,
                                      QWebEngineSettings, QWebEngineView)
 from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QMenu, QProgressBar,
@@ -349,6 +349,13 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             self.setEnabled(True)
         else:
             super(WebView, self).setHtml(html, baseUrl)
+
+    def set_background_color(self, color):
+        """Set background color."""
+        if WEBENGINE:
+            self.page().setBackgroundColor(QColor(color))
+        else:
+            self.setStyleSheet("background:{}".format(color))
 
 
 class WebBrowser(QWidget):

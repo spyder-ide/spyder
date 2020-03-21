@@ -13,8 +13,12 @@ the Plots plugin
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 # ---- Local library imports
-from spyder.config.base import _
+from spyder.api.translations import get_translation
 from spyder.py3compat import decodebytes
+
+
+# Localization
+_ = get_translation('spyder')
 
 
 class FigureBrowserWidget(RichJupyterWidget):

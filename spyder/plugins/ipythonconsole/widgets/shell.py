@@ -9,19 +9,19 @@ Shell Widget for the IPython Console
 """
 
 # Standard library imports
+from textwrap import dedent
 import os
 import os.path as osp
 import uuid
-from textwrap import dedent
 
 # Third party imports
 from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _, running_under_pytest
-from spyder.config.manager import CONF
-from spyder.py3compat import to_text_string
+from spyder.api.translations import get_translation
+from spyder.api.widgets import SpyderWidgetMixin
+from spyder.config.base import running_under_pytest
 from spyder.utils import programs, encoding
 from spyder.utils import syntaxhighlighters as sh
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style, create_style_class
@@ -32,13 +32,26 @@ from spyder.plugins.ipythonconsole.widgets import (
         HelpWidget, NamepaceBrowserWidget, PageControlWidget)
 
 
+# Localization
+_ = get_translation('spyder')
+
+
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
-                  FigureBrowserWidget):
+                  FigureBrowserWidget, SpyderWidgetMixin):
     """
     Shell widget for the IPython Console
 
     This is the widget in charge of executing code
     """
+    DEFAULT_OPTIONS = {
+        'save_all_before_run': True,
+        'show_reset_namespace_warning': True,
+        # Debbuging
+        'breakpoints': {},
+        'pdb_ignore_lib': False,
+        'pdb_execute_events': False,
+    }
+
     # NOTE: Signals can't be assigned separately to each widget
     #       That's why we define all needed signals here.
 
@@ -51,7 +64,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
-    sig_pdb_state = Signal(bool, dict)
+    sig_pdb_state_changed = Signal(bool, dict)
 
     # For ShellWidget
     focus_changed = Signal()
@@ -63,13 +76,17 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_remote_execute = Signal()
 
     # For global working directory
-    sig_change_cwd = Signal(str)
+    sig_working_directory_changed = Signal(str)
 
     # For printing internal errors
     sig_exception_occurred = Signal(dict)
 
-    def __init__(self, ipyclient, additional_options, interpreter_versions,
-                 external_kernel, *args, **kw):
+    # For SpyderWidgetMixin
+    sig_option_changed = Signal(str, object)
+
+    def __init__(self, parent, ipyclient, additional_options,
+                 interpreter_versions, external_kernel, *args, **kw):
+
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
         self.custom_page_control = PageControlWidget
@@ -77,7 +94,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.spyder_kernel_comm = KernelComm()
         self.spyder_kernel_comm.sig_exception_occurred.connect(
             self.sig_exception_occurred)
+
         super(ShellWidget, self).__init__(*args, **kw)
+
+        # Needed for SpyderWidgetMixin
+        self.change_options(self.DEFAULT_OPTIONS)
+        self.setParent(parent)
 
         self.ipyclient = ipyclient
         self.additional_options = additional_options
@@ -86,7 +108,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self._cwd = ''
 
         # Keyboard shortcuts
-        self.shortcuts = self.create_shortcuts()
+        # self.shortcuts = self.create_shortcuts()
 
         # Set the color of the matched parentheses here since the qtconsole
         # uses a hard-coded value that is not modified when the color scheme is
@@ -153,6 +175,19 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 self.kernel_client.stop_channels()
         super(ShellWidget, self).will_close(externally_managed)
 
+    # --- SpyderWidgetMixin
+    # ------------------------------------------------------------------------
+    def setup(self, options=DEFAULT_OPTIONS):
+        pass
+
+    def update_actions(self):
+        pass
+
+    def on_option_update(self, option, value):
+        pass
+
+    # Other API
+    # ------------------------------------------------------------------------
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
                     timeout=None):
         """
@@ -234,7 +269,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     def remote_set_cwd(self, cwd):
         """Get current working directory from kernel."""
         self._cwd = cwd
-        self.sig_change_cwd.emit(self._cwd)
+        self.sig_working_directory_changed.emit(self._cwd)
 
     def set_bracket_matcher_color_scheme(self, color_scheme):
         """Set color scheme for matched parentheses."""
@@ -337,8 +372,8 @@ the sympy module (e.g. plot)
         self._reading = False
 
     def _reset_namespace(self):
-        warning = CONF.get('ipython_console', 'show_reset_namespace_warning')
-        self.reset_namespace(warning=warning)
+        show_warning = self.get_option('show_reset_namespace_warning')
+        self.reset_namespace(warning=show_warning)
 
     def reset_namespace(self, warning=False, message=False):
         """Reset the namespace by removing all names defined by the user."""
@@ -372,9 +407,11 @@ the sympy module (e.g. plot)
             answer = box.exec_()
 
             # Update checkbox based on user interaction
-            CONF.set('ipython_console', 'show_reset_namespace_warning',
-                     not box.is_checked())
-            self.ipyclient.reset_warning = not box.is_checked()
+            # CONF.set('ipython_console', 'show_reset_namespace_warning',
+            #          not box.is_checked())
+            show_warning = not box.is_checked()
+            self.set_option('show_reset_namespace_warning', show_warning)
+            self.ipyclient.reset_warning = show_warning
 
             if answer != QMessageBox.Yes:
                 return
@@ -413,64 +450,64 @@ the sympy module (e.g. plot)
         except AttributeError:
             pass
 
-    def create_shortcuts(self):
-        """Create shortcuts for ipyconsole."""
-        inspect = CONF.config_shortcut(
-            self._control.inspect_current_object,
-            context='Console',
-            name='Inspect current object',
-            parent=self)
+    # def create_shortcuts(self):
+    #     """Create shortcuts for ipyconsole."""
+    #     inspect = CONF.config_shortcut(
+    #         self._control.inspect_current_object,
+    #         context='Console',
+    #         name='Inspect current object',
+    #         parent=self)
 
-        clear_console = CONF.config_shortcut(
-            self.clear_console,
-            context='Console',
-            name='Clear shell',
-            parent=self)
+    #     clear_console = CONF.config_shortcut(
+    #         self.clear_console,
+    #         context='Console',
+    #         name='Clear shell',
+    #         parent=self)
 
-        restart_kernel = CONF.config_shortcut(
-            self.ipyclient.restart_kernel,
-            context='ipython_console',
-            name='Restart kernel',
-            parent=self)
+    #     restart_kernel = CONF.config_shortcut(
+    #         self.ipyclient.restart_kernel,
+    #         context='ipython_console',
+    #         name='Restart kernel',
+    #         parent=self)
 
-        new_tab = CONF.config_shortcut(
-            lambda: self.new_client.emit(),
-            context='ipython_console',
-            name='new tab',
-            parent=self)
+    #     new_tab = CONF.config_shortcut(
+    #         lambda: self.new_client.emit(),
+    #         context='ipython_console',
+    #         name='new tab',
+    #         parent=self)
 
-        reset_namespace = CONF.config_shortcut(
-            lambda: self._reset_namespace(),
-            context='ipython_console',
-            name='reset namespace',
-            parent=self)
+    #     reset_namespace = CONF.config_shortcut(
+    #         lambda: self._reset_namespace(),
+    #         context='ipython_console',
+    #         name='reset namespace',
+    #         parent=self)
 
-        array_inline = CONF.config_shortcut(
-            self._control.enter_array_inline,
-            context='array_builder',
-            name='enter array inline',
-            parent=self)
+    #     array_inline = CONF.config_shortcut(
+    #         self._control.enter_array_inline,
+    #         context='array_builder',
+    #         name='enter array inline',
+    #         parent=self)
 
-        array_table = CONF.config_shortcut(
-            self._control.enter_array_table,
-            context='array_builder',
-            name='enter array table',
-            parent=self)
+    #     array_table = CONF.config_shortcut(
+    #         self._control.enter_array_table,
+    #         context='array_builder',
+    #         name='enter array table',
+    #         parent=self)
 
-        clear_line = CONF.config_shortcut(
-            self.ipyclient.clear_line,
-            context='console',
-            name='clear line',
-            parent=self)
+    #     clear_line = CONF.config_shortcut(
+    #         self.ipyclient.clear_line,
+    #         context='console',
+    #         name='clear line',
+    #         parent=self)
 
-        return [inspect, clear_console, restart_kernel, new_tab,
-                reset_namespace, array_inline, array_table, clear_line]
+    #     return [inspect, clear_console, restart_kernel, new_tab,
+    #             reset_namespace, array_inline, array_table, clear_line]
 
     # --- To communicate with the kernel
     def silent_execute(self, code):
         """Execute code in the kernel without increasing the prompt"""
         try:
-            self.kernel_client.execute(to_text_string(code), silent=True)
+            self.kernel_client.execute(str(code), silent=True)
         except AttributeError:
             pass
 
@@ -500,8 +537,8 @@ the sympy module (e.g. plot)
         """
         # Generate uuid, which would be used as an indication of whether or
         # not the unique request originated from here
-        local_uuid = to_text_string(uuid.uuid1())
-        code = to_text_string(code)
+        local_uuid = str(uuid.uuid1())
+        code = str(code)
         if self.kernel_client is None:
             return
 
@@ -582,12 +619,14 @@ the sympy module (e.g. plot)
 
         return editorstack.data[index].editor
 
+    # FIXME: This is horrible...
     def get_editorstack(self):
         """Get the current editorstack."""
         plugin = self.ipyclient.plugin
         if plugin.main.editor is not None:
             editor = plugin.main.editor
             return editor.get_current_editorstack()
+
         raise RuntimeError('No editorstack found.')
 
     def handle_get_file_code(self, filename):
@@ -597,8 +636,9 @@ the sympy module (e.g. plot)
         Bytes are returned instead of str to support non utf-8 files.
         """
         editorstack = self.get_editorstack()
-        if CONF.get('editor', 'save_all_before_run', True):
+        if self.get_option('save_all_before_run'):
             editorstack.save_all(save_new_files=False)
+
         editor = self.get_editor(filename)
 
         if editor is None:
@@ -613,8 +653,9 @@ the sympy module (e.g. plot)
         Get cell code from cell name and file name.
         """
         editorstack = self.get_editorstack()
-        if CONF.get('editor', 'save_all_before_run', True):
+        if self.get_option('save_all_before_run'):
             editorstack.save_all(save_new_files=False)
+
         editor = self.get_editor(filename)
 
         if editor is None:

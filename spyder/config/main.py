@@ -15,7 +15,7 @@ import os
 import sys
 
 # Local import
-from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES
+from spyder.config.base import CHECK_ALL, EXCLUDED_NAMES, get_home_dir
 from spyder.config.fonts import MEDIUM, SANS_SERIF
 from spyder.config.utils import IMPORT_EXT
 from spyder.config.appearance import APPEARANCE
@@ -317,7 +317,9 @@ DEFAULTS = [
               'console/use_project_or_home_directory': False,
               'console/use_cwd': True,
               'console/use_fixed_directory': False,
+              'console/fixed_directory': get_home_dir(),
               'startup/use_fixed_directory': False,
+              'startup/fixed_directory': get_home_dir(),
               }),
             ('shortcuts',
              {
@@ -530,6 +532,16 @@ DEFAULTS = [
               'show_installation_dialog': True,
               'show_onboarding': True,
               'show_installation_error_message': True,
+             }),
+            ("existing-kernel",
+             {
+              'settings': {},
+             }),
+            ('run',
+             {
+              'breakpoints': {},
+              'pdb_ignore_lib': False,
+              'pdb_execute_events': False,
              }),
             ]
 

@@ -21,16 +21,21 @@ from qtpy.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGridLayout,
                             QVBoxLayout)
 
 # Local imports
-from spyder.config.base import _, get_home_dir
-from spyder.config.manager import CONF
+from spyder.api.translations import get_translation
+from spyder.config.base import get_home_dir
+
+
+# Localization
+_ = get_translation("spyder")
 
 
 class KernelConnectionDialog(QDialog):
     """Dialog to connect to existing kernels (either local or remote)."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, connection_settings=None):
         super(KernelConnectionDialog, self).__init__(parent)
         self.setWindowTitle(_('Connect to an existing kernel'))
+        self.connection_settings = connection_settings
 
         main_label = QLabel(_(
             "<p>Please select the JSON connection file (<i>e.g.</i> "
@@ -164,7 +169,7 @@ class KernelConnectionDialog(QDialog):
 
     def load_connection_settings(self):
         """Load the user's previously-saved kernel connection settings."""
-        existing_kernel = CONF.get("existing-kernel", "settings", {})
+        existing_kernel = self.connection_settings
 
         connection_file_path = existing_kernel.get("json_file_path", "")
         is_remote = existing_kernel.get("is_remote", False)
@@ -207,7 +212,7 @@ class KernelConnectionDialog(QDialog):
             return
 
         is_ssh_key = bool(self.kf_radio.isChecked())
-        connection_settings = {
+        self.connection_settings = {
             "json_file_path": self.cf.text(),
             "is_remote": self.rm_group.isChecked(),
             "username": self.un.text(),
@@ -216,10 +221,9 @@ class KernelConnectionDialog(QDialog):
             "is_ssh_keyfile": is_ssh_key,
             "ssh_key_file_path": self.kf.text()
         }
-        CONF.set("existing-kernel", "settings", connection_settings)
-
         try:
             import keyring
+
             if is_ssh_key:
                 keyring.set_password("spyder_remote_kernel",
                                      "ssh_key_passphrase",
@@ -242,16 +246,21 @@ class KernelConnectionDialog(QDialog):
         self.kf.setText(kf)
 
     @staticmethod
-    def get_connection_parameters(parent=None, dialog=None):
+    def get_connection_parameters(parent=None, dialog=None,
+                                  connection_settings=None):
         if not dialog:
-            dialog = KernelConnectionDialog(parent)
+            dialog = KernelConnectionDialog(
+                parent, connection_settings=connection_settings)
+
         result = dialog.exec_()
         is_remote = bool(dialog.rm_group.isChecked())
         accepted = result == QDialog.Accepted
+        new_connection_settings = dialog.connection_settings
 
         if is_remote:
             def falsy_to_none(arg):
                 return arg if arg else None
+
             if dialog.hn.text() and dialog.un.text():
                 port = dialog.pn.text() if dialog.pn.text() else '22'
                 hostname = "{0}@{1}:{2}".format(dialog.un.text(),
@@ -268,10 +277,14 @@ class KernelConnectionDialog(QDialog):
             else:  # imposible?
                 keyfile = None
                 password = None
-            return (dialog.cf.text(), hostname, keyfile, password, accepted)
+
+            return (dialog.cf.text(), hostname, keyfile, password, accepted,
+                    new_connection_settings)
         else:
             path = dialog.cf.text()
             _dir, filename = osp.dirname(path), osp.basename(path)
             if _dir == '' and not filename.endswith('.json'):
                 path = osp.join(jupyter_runtime_dir(), 'kernel-'+path+'.json')
-            return (path, None, None, None, accepted)
+
+            return (path, None, None, None, accepted,
+                    new_connection_settings)

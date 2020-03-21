@@ -19,15 +19,10 @@ from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.preferences.tests.conftest import config_dialog
 
 
-class MainWindowMock:
-    register_shortcut = Mock()
-    editor = Mock()
-
-
 @pytest.mark.parametrize(
     'config_dialog',
     # [[MainWindowMock, [ConfigPlugins], [Plugins]]]
-    [[MainWindowMock, [], [IPythonConsole]]],
+    [[None, [], [IPythonConsole]]],
     indirect=True)
 def test_config_dialog(config_dialog):
     configpage = config_dialog.get_page()

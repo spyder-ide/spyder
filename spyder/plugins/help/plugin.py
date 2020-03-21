@@ -123,7 +123,7 @@ class Help(SpyderDockablePlugin):
 
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
         if ipyconsole:
-            ipyconsole.apply_plugin_settings({'connect_to_oi'})
+            ipyconsole.apply_conf({'connect_to_help'})
 
     # --- API
     # ------------------------------------------------------------------------

@@ -39,14 +39,14 @@ import sympy
 # Local imports
 from spyder.config.base import get_home_dir
 from spyder.config.gui import get_color_scheme
-from spyder.config.manager import CONF
+from spyder.config.manager import ConfigurationManager
 from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.help.tests.test_plugin import check_text
+from spyder.plugins.help.utils.sphinxify import CSS_PATH
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.programs import get_temp_dir
 from spyder.utils.conda import is_conda_env
-
 
 # =============================================================================
 # Constants
@@ -93,10 +93,14 @@ def get_conda_test_env(test_env_name=u'spytest-ž'):
 # Qt Test Fixtures
 # =============================================================================
 @pytest.fixture
-def ipyconsole(qtbot, request):
+def ipyconsole(qtbot, request, tmpdir):
     """IPython console fixture."""
 
+    configuration = ConfigurationManager(conf_path=str(tmpdir))
+
     class MainWindowMock(QMainWindow):
+        _PLUGINS = {}
+
         def __getattr__(self, attr):
             if attr == 'consoles_menu_actions':
                 return []
@@ -104,7 +108,7 @@ def ipyconsole(qtbot, request):
                 return Mock()
 
     # Tests assume inline backend
-    CONF.set('ipython_console', 'pylab/backend', 0)
+    configuration.set('ipython_console', 'pylab/backend', 0)
 
     # Start in a new working directory the console
     use_startup_wdir = request.node.get_closest_marker('use_startup_wdir')
@@ -112,11 +116,13 @@ def ipyconsole(qtbot, request):
         new_wdir = osp.join(os.getcwd(), NEW_DIR)
         if not osp.exists(new_wdir):
             os.mkdir(new_wdir)
-        CONF.set('workingdir', 'console/use_fixed_directory', True)
-        CONF.set('workingdir', 'console/fixed_directory', new_wdir)
+
+        configuration.set('workingdir', 'console/use_fixed_directory', True)
+        configuration.set('workingdir', 'console/fixed_directory', new_wdir)
     else:
-        CONF.set('workingdir', 'console/use_fixed_directory', False)
-        CONF.set('workingdir', 'console/fixed_directory', get_home_dir())
+        configuration.set('workingdir', 'console/use_fixed_directory', False)
+        configuration.set('workingdir',
+                          'console/fixed_directory', get_home_dir())
 
     # Test the console with a non-ascii temp dir
     non_ascii_dir = request.node.get_closest_marker('non_ascii_dir')
@@ -135,7 +141,7 @@ def ipyconsole(qtbot, request):
     # Use the automatic backend if requested
     auto_backend = request.node.get_closest_marker('auto_backend')
     if auto_backend:
-        CONF.set('ipython_console', 'pylab/backend', 1)
+        configuration.set('ipython_console', 'pylab/backend', 1)
 
     # Start a Pylab client if requested
     pylab_client = request.node.get_closest_marker('pylab_client')
@@ -152,43 +158,46 @@ def ipyconsole(qtbot, request):
     # Use an external interpreter if requested
     external_interpreter = request.node.get_closest_marker('external_interpreter')
     if external_interpreter:
-        CONF.set('main_interpreter', 'default', False)
-        CONF.set('main_interpreter', 'executable', sys.executable)
+        configuration.set('main_interpreter', 'default', False)
+        configuration.set('main_interpreter', 'executable', sys.executable)
     else:
-        CONF.set('main_interpreter', 'default', True)
-        CONF.set('main_interpreter', 'executable', '')
+        configuration.set('main_interpreter', 'default', True)
+        configuration.set('main_interpreter', 'executable', '')
 
     # Use the test environment interpreter if requested
     test_environment_interpreter = request.node.get_closest_marker(
         'test_environment_interpreter')
 
     if test_environment_interpreter:
-        CONF.set('main_interpreter', 'default', False)
-        CONF.set('main_interpreter', 'executable', get_conda_test_env())
+        configuration.set('main_interpreter', 'default', False)
+        configuration.set('main_interpreter', 'executable',
+                          get_conda_test_env())
     else:
-        CONF.set('main_interpreter', 'default', True)
-        CONF.set('main_interpreter', 'executable', '')
+        configuration.set('main_interpreter', 'default', True)
+        configuration.set('main_interpreter', 'executable', '')
 
 
     # Create the console and a new client
     window = MainWindowMock()
-    console = IPythonConsole(parent=window,
-                             testing=True,
-                             test_dir=test_dir,
-                             test_no_stderr=test_no_stderr)
-    console.dockwidget = Mock()
-    console._toggle_view_action = Mock()
+    configuration.set('ipython_console', 'testing', True)
+    configuration.set('ipython_console', 'test_dir', test_dir)
+    configuration.set('ipython_console', 'test_no_stderr', test_no_stderr)
+    configuration.set('appearance', 'css_path', CSS_PATH)
+    console = IPythonConsole(window, configuration=configuration)
+    console._register()
     console.create_new_client(is_pylab=is_pylab,
                               is_sympy=is_sympy,
                               is_cython=is_cython)
-    window.setCentralWidget(console)
+    window.setCentralWidget(console.get_widget())
 
     # This segfaults on macOS
     if not sys.platform == "darwin":
         qtbot.addWidget(window)
+
     window.resize(640, 480)
     window.show()
 
+    # raise Exception
     yield console
 
     # Print shell content if failed
@@ -203,8 +212,7 @@ def ipyconsole(qtbot, request):
                 print(client.info_page)
 
     # Close
-    console.closing_plugin()
-    console.close()
+    console.on_close()
     window.close()
 
 
@@ -298,7 +306,7 @@ def test_auto_backend(ipyconsole, qtbot):
         shell.execute("%matplotlib qt5")
 
     # Assert there are no errors in the console
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     assert 'NOTE' not in control.toPlainText()
     assert 'Error' not in control.toPlainText()
 
@@ -317,7 +325,7 @@ def test_pylab_client(ipyconsole, qtbot):
         shell.execute("e")
 
     # Assert there are no errors in the console
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     assert 'Error' not in control.toPlainText()
 
     # Reset the console namespace
@@ -329,7 +337,7 @@ def test_pylab_client(ipyconsole, qtbot):
         shell.execute("e")
 
     # Assert there are no errors after restting the console
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     assert 'Error' not in control.toPlainText()
 
 
@@ -349,7 +357,7 @@ def test_sympy_client(ipyconsole, qtbot):
         shell.execute("x")
 
     # Assert there are no errors in the console
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     assert 'NameError' not in control.toPlainText()
 
     # Reset the console namespace
@@ -361,7 +369,7 @@ def test_sympy_client(ipyconsole, qtbot):
         shell.execute("x")
 
     # Assert there are no errors after restting the console
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     assert 'NameError' not in control.toPlainText()
 
 
@@ -385,7 +393,7 @@ def test_cython_client(ipyconsole, qtbot):
                       "    return x + y")
 
     # Assert there are no errors in the console
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     assert 'Error' not in control.toPlainText()
 
     # Reset the console namespace
@@ -399,7 +407,7 @@ def test_cython_client(ipyconsole, qtbot):
                       "    return x + y")
 
     # Assert there are no errors after restting the console
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     assert 'Error' not in control.toPlainText()
 
 
@@ -412,11 +420,11 @@ def test_tab_rename_for_slaves(ipyconsole, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     cf = ipyconsole.get_current_client().connection_file
-    ipyconsole._create_client_for_kernel(cf, None, None, None)
+    ipyconsole.get_widget()._create_client_for_kernel(cf, None, None, None)
     qtbot.waitUntil(lambda: len(ipyconsole.get_clients()) == 2)
 
     # Rename slave
-    ipyconsole.rename_tabs_after_change('foo')
+    ipyconsole.get_widget().rename_tabs_after_change('foo')
 
     # Assert both clients have the same name
     assert 'foo' in ipyconsole.get_clients()[0].get_name()
@@ -430,11 +438,11 @@ def test_no_repeated_tabs_name(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Rename first client
-    ipyconsole.rename_tabs_after_change('foo')
+    ipyconsole.get_widget().rename_tabs_after_change('foo')
 
     # Create a new client and try to rename it
     ipyconsole.create_new_client()
-    ipyconsole.rename_tabs_after_change('foo')
+    ipyconsole.get_widget().rename_tabs_after_change('foo')
 
     # Assert the rename didn't take place
     client_name = ipyconsole.get_current_client().get_name()
@@ -451,7 +459,7 @@ def test_tabs_preserve_name_after_move(ipyconsole, qtbot):
     ipyconsole.create_new_client()
 
     # Move tabs
-    ipyconsole.tabwidget.tabBar().moveTab(0, 1)
+    ipyconsole.get_widget().tabwidget.tabBar().moveTab(0, 1)
 
     # Assert the second client is in the first position
     client_name = ipyconsole.get_clients()[0].get_name()
@@ -559,7 +567,7 @@ def test_console_disambiguation(ipyconsole, qtbot):
     ipyconsole.create_client_for_file(filename_d)
     client = ipyconsole.get_current_client()
     assert client.get_name() == 'c.py - d/A'
-    ipyconsole.tabwidget.setCurrentIndex(1)
+    ipyconsole.get_widget().tabwidget.setCurrentIndex(1)
     client = ipyconsole.get_current_client()
     assert client.get_name() == 'c.py - b/A'
 
@@ -570,14 +578,15 @@ def test_console_coloring(ipyconsole, qtbot):
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
-    config_options = ipyconsole.config_options()
+    config_options = ipyconsole.get_widget().config_options()
 
     syntax_style = config_options.JupyterWidget.syntax_style
     style_sheet = config_options.JupyterWidget.style_sheet
     console_font_color = get_console_font_color(syntax_style)
     console_background_color = get_console_background_color(style_sheet)
 
-    selected_color_scheme = CONF.get('appearance', 'selected')
+    selected_color_scheme = ipyconsole.get_conf_option(
+        'selected', section='appearance')
     color_scheme = get_color_scheme(selected_color_scheme)
     editor_background_color = color_scheme['background']
     editor_font_color = color_scheme['normal'][0]
@@ -637,7 +646,7 @@ def test_get_cwd(ipyconsole, qtbot, tmpdir):
         shell.execute(u"import os; os.chdir(u'''{}''')".format(tempdir))
 
     # Ask for directory.
-    with qtbot.waitSignal(shell.sig_change_cwd):
+    with qtbot.waitSignal(shell.sig_working_directory_changed):
         shell.update_cwd()
 
     if os.name == 'nt':
@@ -705,7 +714,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
 
     # Generate a traceback and enter debugging mode
@@ -749,7 +758,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
 
     # Generate a traceback and enter debugging mode
@@ -788,7 +797,7 @@ def test_dbg_input(ipyconsole, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
 
     # Debug with input
@@ -867,7 +876,7 @@ def test_values_dbg(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
 
     # Generate a traceback and enter debugging mode
@@ -912,12 +921,11 @@ def test_values_dbg(ipyconsole, qtbot):
 @flaky(max_runs=3)
 def test_execute_events_dbg(ipyconsole, qtbot):
     """Test execute events while debugging"""
-
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
 
     # Import Matplotlib
@@ -927,12 +935,15 @@ def test_execute_events_dbg(ipyconsole, qtbot):
     # Generate a traceback and enter debugging mode
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
+
     shell.execute('%debug')
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Set processing events to True
-    CONF.set('run', 'pdb_execute_events', True)
-    ipyconsole.set_pdb_execute_events()
+    print(ipyconsole.get_widget().get_options())
+    ipyconsole.set_conf_option('pdb_execute_events', True, section='run')
+    print(ipyconsole.get_widget().get_options())
+    ipyconsole.get_widget().set_pdb_execute_events()
 
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')
@@ -943,8 +954,8 @@ def test_execute_events_dbg(ipyconsole, qtbot):
     assert shell._control.toHtml().count('img src') == 1
 
     # Set processing events to False
-    CONF.set('run', 'pdb_execute_events', False)
-    ipyconsole.set_pdb_execute_events()
+    ipyconsole.set_conf_option('pdb_execute_events', False, section='run')
+    ipyconsole.get_widget().set_pdb_execute_events()
 
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')
@@ -1040,7 +1051,7 @@ def test_ctrl_c_dbg(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
 
     # Generate a traceback and enter debugging mode
@@ -1069,7 +1080,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
 
     # Generate a traceback and enter debugging mode
@@ -1133,7 +1144,7 @@ def test_load_kernel_file_from_id(ipyconsole, qtbot):
     connection_file = osp.basename(client.connection_file)
     id_ = connection_file.split('kernel-')[-1].split('.json')[0]
 
-    ipyconsole._create_client_for_kernel(id_, None, None, None)
+    ipyconsole.get_widget()._create_client_for_kernel(id_, None, None, None)
     qtbot.waitUntil(lambda: len(ipyconsole.get_clients()) == 2)
 
     new_client = ipyconsole.get_clients()[1]
@@ -1154,7 +1165,8 @@ def test_load_kernel_file_from_location(ipyconsole, qtbot, tmpdir):
     connection_file = to_text_string(tmpdir.join(fname))
     shutil.copy2(client.connection_file, connection_file)
 
-    ipyconsole._create_client_for_kernel(connection_file, None, None, None)
+    ipyconsole.get_widget()._create_client_for_kernel(
+        connection_file, None, None, None)
     qtbot.waitUntil(lambda: len(ipyconsole.get_clients()) == 2)
 
     assert len(ipyconsole.get_clients()) == 2
@@ -1171,7 +1183,7 @@ def test_load_kernel_file(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
-    ipyconsole._create_client_for_kernel(client.connection_file,
+    ipyconsole.get_widget()._create_client_for_kernel(client.connection_file,
                                          None, None, None)
     qtbot.waitUntil(lambda: len(ipyconsole.get_clients()) == 2)
 
@@ -1212,23 +1224,24 @@ def test_set_elapsed_time(ipyconsole, qtbot):
     # Set time to 2 minutes ago.
     client.t0 -= 120
     with qtbot.waitSignal(client.timer.timeout, timeout=5000):
-        ipyconsole.set_elapsed_time(client)
-    assert ('00:02:00' in client.time_label.text() or
-            '00:02:01' in client.time_label.text())
+        ipyconsole.get_widget().set_elapsed_time(client)
+
+    assert ('00:02:00' in client.current_elapsed_time
+            or '00:02:01' in client.current_elapsed_time)
 
     # Wait for a second to pass, to ensure timer is counting up
     with qtbot.waitSignal(client.timer.timeout, timeout=5000):
         pass
-    assert ('00:02:01' in client.time_label.text() or
-            '00:02:02' in client.time_label.text())
+    assert ('00:02:01' in client.current_elapsed_time or
+            '00:02:02' in client.current_elapsed_time)
 
     # Make previous time later than current time.
     client.t0 += 2000
     with qtbot.waitSignal(client.timer.timeout, timeout=5000):
         pass
-    assert '00:00:00' in client.time_label.text()
+    assert '00:00:00' in client.current_elapsed_time
 
-    client.timer.timeout.disconnect(client.show_time)
+    client.timer.timeout.disconnect(client.update_time)
 
 
 @flaky(max_runs=3)
@@ -1261,8 +1274,8 @@ def test_stderr_file_is_removed_two_kernels(ipyconsole, qtbot, monkeypatch):
                     timeout=SHELL_TIMEOUT)
 
     # New client with the same kernel
-    ipyconsole._create_client_for_kernel(client.connection_file, None, None,
-                                         None)
+    ipyconsole.get_widget()._create_client_for_kernel(
+        client.connection_file, None, None, None)
 
     assert len(ipyconsole.get_related_clients(client)) == 1
     other_client = ipyconsole.get_related_clients(client)[0]
@@ -1288,8 +1301,8 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
                     timeout=SHELL_TIMEOUT)
 
     # New client with the same kernel
-    ipyconsole._create_client_for_kernel(client.connection_file, None, None,
-                                         None)
+    ipyconsole.get_widget()._create_client_for_kernel(
+        client.connection_file, None, None, None)
 
     assert len(ipyconsole.get_related_clients(client)) == 1
     other_client = ipyconsole.get_related_clients(client)[0]
@@ -1358,6 +1371,7 @@ def test_console_working_directory(ipyconsole, qtbot):
         shell.execute('import os; cwd = os.getcwd()')
 
     current_wdir = shell.get_value('cwd')
+    print(current_wdir)
     folders = osp.split(current_wdir)
     assert folders[-1] == NEW_DIR
 
@@ -1372,7 +1386,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
                     timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
 
     def check_value(name, value):
@@ -1498,6 +1512,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '1')
 
 
+@pytest.mark.first
 @pytest.mark.use_startup_wdir
 def test_pdb_multiline(ipyconsole, qtbot):
     """Test entering a multiline statment into pdb"""
@@ -1506,7 +1521,7 @@ def test_pdb_multiline(ipyconsole, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
 
     shell.execute('%debug print()')
@@ -1538,11 +1553,11 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
                     timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
 
     # Tests assume inline backend
-    CONF.set('run', 'pdb_ignore_lib', not show_lib)
+    ipyconsole.set_conf_option('pdb_ignore_lib', not show_lib, section='run')
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
         qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
@@ -1559,7 +1574,8 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
         assert 'iostream.py' in control.toPlainText()
     else:
         assert 'iostream.py' not in control.toPlainText()
-    CONF.set('run', 'pdb_ignore_lib', True)
+
+    ipyconsole.set_conf_option('pdb_ignore_lib', True, section='run')
 
 
 @flaky(max_runs=3)
@@ -1575,7 +1591,7 @@ def test_calltip(ipyconsole, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     # Give focus to the widget that's going to receive clicks
-    control = ipyconsole.get_focus_widget()
+    control = ipyconsole.get_widget().get_focus_widget()
     control.setFocus()
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = {"a": 1}')
@@ -1714,7 +1730,8 @@ def test_stderr_poll(ipyconsole, qtbot):
         f.write("test_test")
     # Wait for the poll
     qtbot.wait(2000)
-    assert "test_test" in ipyconsole.get_focus_widget().toPlainText()
+    assert ("test_test"
+            in ipyconsole.get_widget().get_focus_widget().toPlainText())
 
 
 if __name__ == "__main__":

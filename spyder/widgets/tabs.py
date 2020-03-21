@@ -442,6 +442,10 @@ class Tabs(BaseTabs):
     move_data = Signal(int, int)
     move_tab_finished = Signal()
     sig_move_tab = Signal(str, str, int, int)
+    sig_name_changed = Signal(str)
+
+    # New signal
+    sig_tab_moved = Signal(int, int)
 
     def __init__(self, parent, actions=None, menu=None,
                  corner_widgets=None, menu_use_tooltips=False,
@@ -453,6 +457,9 @@ class Tabs(BaseTabs):
                          rename_tabs=rename_tabs,
                          split_char=split_char,
                          split_index=split_index)
+
+        tab_bar.sig_change_name.connect(self.sig_name_changed)
+        tab_bar.tabMoved.connect(self.sig_tab_moved)
         tab_bar.sig_move_tab.connect(self.move_tab)
         tab_bar.sig_move_tab[(str, int, int)].connect(
                                           self.move_tab_from_another_tabwidget)

@@ -87,7 +87,7 @@ class Console(SpyderDockablePlugin):
     def register(self):
         widget = self.get_widget()
 
-        # Signals
+        # Expose widget signals in the plugin
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
         widget.sig_focus_changed.connect(self.sig_focus_changed)
         widget.sig_quit_requested.connect(self.sig_quit_requested)

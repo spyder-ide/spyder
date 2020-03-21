@@ -202,7 +202,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             # This is needed to show the time a kernel
             # has been alive in each console.
             self.ipyclient.t0 = time.monotonic()
-            self.ipyclient.timer.timeout.connect(self.ipyclient.show_time)
+            self.ipyclient.timer.timeout.connect(self.ipyclient.update_time)
             self.ipyclient.timer.start(1000)
 
             # This handles restarts when the kernel dies

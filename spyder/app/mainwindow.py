@@ -323,6 +323,7 @@ class MainWindow(QMainWindow):
         # Signals
         plugin.sig_focus_changed.connect(self.plugin_focus_changed)
         plugin.sig_free_memory_requested.connect(self.free_memory)
+        plugin.sig_exception_occurred.connect(self.handle_exception)
         plugin.sig_quit_requested.connect(self.close)
         plugin.sig_restart_requested.connect(self.restart)
         plugin.sig_redirect_stdio_requested.connect(
@@ -854,6 +855,9 @@ class MainWindow(QMainWindow):
         else:
             css_path = CSS_PATH
 
+        # Add css_path to CONF to be able to use it as an option
+        CONF.set('appearance', 'css_path', css_path)
+
         logger.info("Creating core actions...")
         self.close_dockwidget_action = create_action(
             self, icon=ima.icon('close_pane'),
@@ -1200,19 +1204,17 @@ class MainWindow(QMainWindow):
         self.file_menu_actions += file_actions
         self.set_splash("")
 
+        # IPython console
+        from spyder.plugins.ipythonconsole.plugin import IPythonConsole
+        self.ipyconsole = IPythonConsole(self, configuration=CONF)
+        self.register_plugin(self.ipyconsole)
+
         # Namespace browser
         self.set_splash(_("Loading namespace browser..."))
         from spyder.plugins.variableexplorer.plugin import VariableExplorer
         self.variableexplorer = VariableExplorer(self)
         self.variableexplorer.register_plugin()
         self.add_plugin(self.variableexplorer)
-
-        # IPython console
-        self.set_splash(_("Loading IPython console..."))
-        from spyder.plugins.ipythonconsole.plugin import IPythonConsole
-        self.ipyconsole = IPythonConsole(self, css_path=css_path)
-        self.ipyconsole.register_plugin()
-        self.add_plugin(self.ipyconsole)
 
         # Help plugin
         if CONF.get('help', 'enable'):
@@ -1686,7 +1688,7 @@ class MainWindow(QMainWindow):
                 plugin.dockwidget.raise_()
 
         # Show history file if no console is visible
-        if not self.ipyconsole._isvisible:
+        if not self.ipyconsole.get_widget().is_visible:
             self.historylog.add_history(get_conf_path('history.py'))
 
         if self.open_project:
@@ -1704,7 +1706,8 @@ class MainWindow(QMainWindow):
         self.editor.kite_completions_file_status()
 
         # Connect Editor debug action with Console
-        self.ipyconsole.sig_pdb_state.connect(self.editor.update_pdb_state)
+        self.ipyconsole.sig_pdb_state_changed.connect(
+            self.editor.update_pdb_state)
 
         # Setup menus
         self.setup_menus()
@@ -1717,6 +1720,13 @@ class MainWindow(QMainWindow):
         # Show dialog with missing dependencies
         if not running_under_pytest():
             self.report_missing_dependencies()
+
+        # New API
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
+            try:
+                plugin.on_mainwindow_visible()
+            except AttributeError:
+                pass
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
@@ -3344,6 +3354,9 @@ class MainWindow(QMainWindow):
             getattr(widget, callback)()
         else:
             return
+
+    def handle_exception(self, error_data_dict):
+        self.console.handle_exception(error_data_dict)
 
     def redirect_internalshell_stdio(self, state):
         if state:

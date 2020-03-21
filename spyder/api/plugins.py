@@ -22,12 +22,12 @@ There are two types of plugins available:
 """
 
 # Standard library imports
-from collections import OrderedDict
 import inspect
 import os
+from collections import OrderedDict
 
 # Third party imports
-from qtpy.QtCore import QObject, Qt, Signal, Slot, QSize
+from qtpy.QtCore import QObject, QSize, Qt, Signal, Slot
 from qtpy.QtGui import QCursor
 from qtpy.QtWidgets import QApplication, QToolBar, QWidget
 
@@ -714,12 +714,19 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
     # using Open/Save/Browse dialogs within widgets.
     sig_redirect_stdio_requested = Signal(bool)
 
+    sig_exception_occurred = Signal(dict)
+    """
+    FIXME:
+    """
+
     # Signals below are not automatically connected by the Spyder main window
     # Emit this signal when the plugin focus has changed.
     sig_focus_changed = Signal()
 
     # This signal is fired when any option in the child widgets is modified.
     sig_option_changed = Signal(str, object)
+
+
 
     # --- Private attributes -------------------------------------------------
     # ------------------------------------------------------------------------
@@ -969,6 +976,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                 )
 
             self._conf.set(section, str(option), value)
+            self.apply_conf([str(option)])
 
     def apply_conf(self, options_set):
         """
@@ -1488,7 +1496,6 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
         self.CONTAINER_CLASS = self.WIDGET_CLASS
         super().__init__(parent, configuration=configuration)
-
         # Defined on mainwindow.py
         self._shortcut = None
 

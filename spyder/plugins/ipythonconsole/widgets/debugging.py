@@ -14,14 +14,10 @@ import pdb
 
 from IPython.core.history import HistoryManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
+from qtpy.QtCore import Signal
 
 from spyder.config.base import get_conf_path
-from spyder.config.manager import CONF
-from spyder.py3compat import PY2
-if not PY2:
-    from IPython.core.inputtransformer2 import TransformerManager
-else:
-    from IPython.core.inputsplitter import IPythonInputSplitter
+from IPython.core.inputtransformer2 import TransformerManager
 
 
 class PdbHistory(HistoryManager):
@@ -83,6 +79,7 @@ class DebuggingWidget(RichJupyterWidget):
         except AttributeError:
             pass
 
+    # --- Private API? --------------------------------------------------
     def handle_debug_state(self, in_debug_loop):
         """Update the debug state."""
         self._pdb_in_loop = in_debug_loop
@@ -97,7 +94,7 @@ class DebuggingWidget(RichJupyterWidget):
         else:
             self._pdb_history_file.end_session()
 
-        self.sig_pdb_state.emit(self._pdb_in_loop, self._pdb_last_step)
+        self.sig_pdb_state_changed.emit(self._pdb_in_loop, self._pdb_last_step)
 
     # --- Public API --------------------------------------------------
     def pdb_execute(self, line, hidden=False):
@@ -143,27 +140,25 @@ class DebuggingWidget(RichJupyterWidget):
     def handle_get_pdb_settings(self):
         """Get pdb settings"""
         return {
-            "breakpoints": CONF.get('run', 'breakpoints', {}),
-            "pdb_ignore_lib": CONF.get(
-                'run', 'pdb_ignore_lib', False),
-            "pdb_execute_events": CONF.get(
-                'run', 'pdb_execute_events', False),
-            }
+            "breakpoints": self.get_option('breakpoints'),
+            "pdb_ignore_lib": self.get_option('pdb_ignore_lib'),
+            "pdb_execute_events": self.get_option('pdb_execute_events'),
+        }
 
     def set_spyder_breakpoints(self):
         """Set Spyder breakpoints into a debugging session"""
         self.call_kernel(interrupt=True).set_breakpoints(
-            CONF.get('run', 'breakpoints', {}))
+            self.get_option('breakpoints'))
 
     def set_pdb_ignore_lib(self):
         """Set pdb_ignore_lib into a debugging session"""
         self.call_kernel(interrupt=True).set_pdb_ignore_lib(
-            CONF.get('run', 'pdb_ignore_lib', False))
+            self.get_option('pdb_ignore_lib'))
 
     def set_pdb_execute_events(self):
         """Set pdb_execute_events into a debugging session"""
         self.call_kernel(interrupt=True).set_pdb_execute_events(
-            CONF.get('run', 'pdb_execute_events', False))
+            self.get_option('pdb_execute_events'))
 
     def dbg_exec_magic(self, magic, args=''):
         """Run an IPython magic while debugging."""
@@ -271,13 +266,12 @@ class DebuggingWidget(RichJupyterWidget):
         """
         if source and source[0] == '!':
             source = source[1:]
-        if PY2:
-            tm = IPythonInputSplitter()
-        else:
-            tm = TransformerManager()
+
+        tm = TransformerManager()
         complete, indent = tm.check_complete(source)
         if indent is not None:
             indent = indent * ' '
+
         return complete != 'incomplete', indent
 
     # ---- Public API (overrode by us) ----------------------------

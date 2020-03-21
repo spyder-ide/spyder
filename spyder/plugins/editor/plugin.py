@@ -2079,6 +2079,7 @@ class Editor(SpyderPluginWidget):
             current_editor.clearFocus()
             current_editor.setFocus()
             current_editor.window().raise_()
+
             if processevents:
                 QApplication.processEvents()
             else:

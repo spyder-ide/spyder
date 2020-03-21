@@ -202,8 +202,7 @@ class AppearanceConfigPage(GeneralConfigPage):
             if 'ui_theme' not in self.changed_options:
                 self.main.editor.apply_plugin_settings(['color_scheme_name'])
                 if self.main.ipyconsole is not None:
-                    self.main.ipyconsole.apply_plugin_settings(
-                        ['color_scheme_name'])
+                    self.main.ipyconsole.apply_conf(['color_scheme'])
 
                 if self.main.help is not None:
                     self.main.help.apply_conf(['color_scheme_name'])
@@ -227,8 +226,7 @@ class AppearanceConfigPage(GeneralConfigPage):
             if 'ui_theme' not in self.changed_options:
                 self.main.editor.apply_plugin_settings(['color_scheme_name'])
                 if self.main.ipyconsole is not None:
-                    self.main.ipyconsole.apply_plugin_settings(
-                        ['color_scheme_name'])
+                    self.main.ipyconsole.apply_conf(['color_scheme'])
 
                 if self.main.help is not None:
                     self.main.help.apply_plugin_settings(['color_scheme_name'])

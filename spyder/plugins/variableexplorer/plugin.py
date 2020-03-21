@@ -43,6 +43,16 @@ class VariableExplorer(SpyderPluginWidget):
         layout.addWidget(self.stack)
         self.setLayout(layout)
 
+    def register_plugin(self):
+        self.main.ipyconsole.sig_shellwidget_process_started.connect(
+            self.add_shellwidget)
+        self.main.ipyconsole.sig_shellwidget_process_finished.connect(
+            lambda sw: self.remove_shellwidget(id(sw)))
+        self.main.ipyconsole.sig_shellwidget_changed.connect(
+            lambda sw: self.set_shellwidget_from_id(id(sw)))
+
+        self.add_dockwidget()
+
     def get_settings(self):
         """
         Retrieve all Variable Explorer configuration settings.
