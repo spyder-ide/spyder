@@ -204,13 +204,22 @@ class AppearanceConfigPage(GeneralConfigPage):
                 if self.main.ipyconsole is not None:
                     self.main.ipyconsole.apply_plugin_settings(
                         ['color_scheme_name'])
+
                 if self.main.historylog is not None:
                     self.main.historylog.apply_plugin_settings(
                         ['color_scheme_name'])
+
                 if self.main.help is not None:
                     self.main.help.apply_plugin_settings(['color_scheme_name'])
+
                 for plugin in self.main.thirdparty_plugins:
-                    plugin.apply_plugin_settings(['color_scheme_name'])
+                    try:
+                        # New API
+                        plugin.apply_conf(['color_scheme_name'])
+                    except AttributeError:
+                        # Old API
+                        plugin.apply_plugin_settings(['color_scheme_name'])
+
                 self.update_combobox()
                 self.update_preview()
         else:
@@ -224,15 +233,25 @@ class AppearanceConfigPage(GeneralConfigPage):
                 if self.main.ipyconsole is not None:
                     self.main.ipyconsole.apply_plugin_settings(
                         ['color_scheme_name'])
+
                 if self.main.historylog is not None:
                     self.main.historylog.apply_plugin_settings(
                         ['color_scheme_name'])
+
                 if self.main.help is not None:
                     self.main.help.apply_plugin_settings(['color_scheme_name'])
+
                 for plugin in self.main.thirdparty_plugins:
-                    plugin.apply_plugin_settings(['color_scheme_name'])
+                    try:
+                        # New API
+                        plugin.apply_conf(['color_scheme_name'])
+                    except AttributeError:
+                        # Old API
+                        plugin.apply_plugin_settings(['color_scheme_name'])
+
                 self.update_combobox()
                 self.update_preview()
+
         self.main.apply_settings()
 
     # Helpers
