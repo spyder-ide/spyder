@@ -21,13 +21,14 @@ from qtpy.QtWidgets import (QApplication, QButtonGroup, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QMessageBox, QTabWidget,
                             QVBoxLayout)
 
-from spyder.config.base import (_, DISABLED_LANGUAGES, LANGUAGE_CODES,
+from spyder.api.translations import get_translation
+from spyder.api.preferences import PluginConfigPage
+from spyder.config.base import (DISABLED_LANGUAGES, LANGUAGE_CODES,
                                 running_in_mac_app, save_lang_conf)
-from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import to_text_string
-import spyder.utils.icon_manager as ima
 from spyder.utils.qthelpers import (register_app_launchservices,
                                     restore_launchservices)
+import spyder.utils.icon_manager as ima
 
 # To open files from Finder directly in Spyder.
 if sys.platform == "darwin":
@@ -35,14 +36,12 @@ if sys.platform == "darwin":
 
 
 HDPI_QT_PAGE = "https://doc.qt.io/qt-5/highdpi.html"
+_ = get_translation('spyder')
 
 
-class MainConfigPage(GeneralConfigPage):
-    CONF_SECTION = "main"
-    NAME = _("General")
+class MainConfigPage(PluginConfigPage):
 
     def setup_page(self):
-        self.ICON = ima.icon('genprefs')
         newcb = self.create_checkbox
 
         # --- Interface
@@ -186,23 +185,23 @@ class MainConfigPage(GeneralConfigPage):
         show_status_bar = newcb(_("Show status bar"), 'show_status_bar')
 
         memory_box = newcb(_("Show memory usage every"), 'memory_usage/enable',
-                           tip=self.main.mem_status.toolTip())
+                           tip=self.plugin.mem_status.toolTip())
         memory_spin = self.create_spinbox("", _(" ms"), 'memory_usage/timeout',
                                           min_=100, max_=1000000, step=100)
         memory_box.toggled.connect(memory_spin.setEnabled)
         memory_spin.setEnabled(self.get_option('memory_usage/enable'))
-        memory_box.setEnabled(self.main.mem_status.is_supported())
-        memory_spin.setEnabled(self.main.mem_status.is_supported())
+        memory_box.setEnabled(self.plugin.mem_status.is_supported())
+        memory_spin.setEnabled(self.plugin.mem_status.is_supported())
 
         cpu_box = newcb(_("Show CPU usage every"), 'cpu_usage/enable',
-                        tip=self.main.cpu_status.toolTip())
+                        tip=self.plugin.cpu_status.toolTip())
         cpu_spin = self.create_spinbox("", _(" ms"), 'cpu_usage/timeout',
                                        min_=100, max_=1000000, step=100)
         cpu_box.toggled.connect(cpu_spin.setEnabled)
         cpu_spin.setEnabled(self.get_option('cpu_usage/enable'))
 
-        cpu_box.setEnabled(self.main.cpu_status.is_supported())
-        cpu_spin.setEnabled(self.main.cpu_status.is_supported())
+        cpu_box.setEnabled(self.plugin.cpu_status.is_supported())
+        cpu_spin.setEnabled(self.plugin.cpu_status.is_supported())
 
         clock_box = newcb(_("Show clock"), 'clock/enable')
 

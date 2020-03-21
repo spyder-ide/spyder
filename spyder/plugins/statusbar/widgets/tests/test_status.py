@@ -17,8 +17,9 @@ import pytest
 
 # Local imports
 from spyder.config import utils
-from spyder.widgets.status import (BaseTimerStatus, CondaStatus, CPUStatus,
-                                   MemoryStatus, StatusBarWidget)
+from spyder.plugins.core.widgets.status import (BaseTimerStatus, CondaStatus,
+                                                CPUStatus, MemoryStatus,
+                                                StatusBarWidget)
 
 
 @pytest.fixture

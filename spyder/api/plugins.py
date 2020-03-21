@@ -37,9 +37,11 @@ from spyder.api.menus import ApplicationMenus
 from spyder.api.toolbars import ApplicationToolBars
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer, PluginMainWidget
+from spyder.api.widgets.mixins import SpyderActionMixin, SpyderOptionMixin
 from spyder.api.widgets.menus import ApplicationMenu
 from spyder.api.widgets.mixins import (SpyderActionMixin, SpyderOptionMixin,
                                        SpyderWidgetMixin)
+from spyder.api.widgets.status import StatusBarWidget
 from spyder.api.widgets.toolbars import ApplicationToolBar
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.manager import CONF  # TODO: Remove after migration
@@ -595,6 +597,7 @@ class Plugins:
     Projects = 'project_explorer'
     Pylint = 'pylint'
     Shortcuts = 'shortcuts'
+    StatusBar = 'statusbar'
     VariableExplorer = 'variable_explorer'
     WorkingDirectory = 'workingdir'
 
@@ -1479,33 +1482,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         Return all created application toolbars.
         """
         return self._added_toolbars
-
-    # --- API Application Status Widgets
-    # ------------------------------------------------------------------------
-    def add_application_status_widget(self, name, widget):
-        """
-        Add status widget to main application status bar.
-        """
-        # TODO: Check widget class
-        # TODO: Check existence
-        status_bar = self._main.statusBar()
-        status_bar.insertPermanentWidget(0, widget)
-        self._main._STATUS_WIDGETS[name] = widget
-
-    def get_application_status_widget(self, name):
-        """
-        Return an application status widget by name.
-        """
-        if name in self._main._STATUS_WIDGETS:
-            return self._main._STATUS_WIDGETS[name]
-        else:
-            raise SpyderAPIError('Status widget "{}" not found!'.format(name))
-
-    def get_application_status_widgets(self):
-        """
-        Return all application status widgets created.
-        """
-        return self._main._STATUS_WIDGETS
 
 
 class SpyderDockablePlugin(SpyderPluginV2):

@@ -26,6 +26,7 @@ from spyder.config.manager import CONF
 from spyder.plugins.shortcuts.widgets.table import load_shortcuts_data
 from spyder.preferences.configdialog import ConfigDialog
 from spyder.preferences.general import MainConfigPage
+from spyder.preferences.shortcuts import ShortcutsConfigPage
 from spyder.utils import icon_manager as ima
 
 

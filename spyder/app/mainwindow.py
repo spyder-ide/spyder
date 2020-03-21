@@ -725,12 +725,6 @@ class MainWindow(QMainWindow):
         self.help_menu = None
         self.help_menu_actions = []
 
-        # Status bar widgets
-        self.conda_status = None
-        self.mem_status = None
-        self.cpu_status = None
-        self.clock_status = None
-
         # Toolbars
         self.visible_toolbars = []
         self.toolbarslist = []
@@ -1223,6 +1217,11 @@ class MainWindow(QMainWindow):
 
         # TODO: Load and register the rest of the plugins using new API
 
+        # StatusBar plugin
+        from spyder.plugins.statusbar.plugin import StatusBar
+        self.statusbar_plugin = StatusBar(self, configuration=CONF)
+        self.register_plugin(self.statusbar_plugin)
+
         # Run plugin
         from spyder.plugins.run.plugin import Run
         self.run = Run(self, configuration=CONF)
@@ -1245,12 +1244,6 @@ class MainWindow(QMainWindow):
             self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
             self.add_plugin(self.outlineexplorer)
-
-        if is_anaconda():
-            from spyder.widgets.status import CondaStatus
-            self.conda_status = CondaStatus(self, status,
-                                            icon=ima.icon('environment'))
-            self.conda_status.update_interpreter(self.get_main_interpreter())
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
@@ -1515,6 +1508,7 @@ class MainWindow(QMainWindow):
                                 triggered=lambda:
                                 programs.start_file(get_python_doc_path()))
             self.help_menu_actions.append(pydoc_act)
+
         # IPython documentation
         if self.help is not None:
             ipython_menu = QMenu(_("IPython documentation"), self)
@@ -1527,6 +1521,7 @@ class MainWindow(QMainWindow):
             add_actions(ipython_menu, (intro_action, guiref_action,
                                         quickref_action))
             self.help_menu_actions.append(ipython_menu)
+
         # Windows-only: documentation located in sys.prefix/Doc
         ipm_actions = []
         def add_ipm_action(text, path):
@@ -1580,13 +1575,6 @@ class MainWindow(QMainWindow):
                                 icon=ima.icon('MessageBoxInformation'),
                                 triggered=self.show_about)
         self.help_menu_actions += [MENU_SEPARATOR, about_action]
-
-        # Status bar widgets
-        from spyder.widgets.status import MemoryStatus, CPUStatus, ClockStatus
-        self.mem_status = MemoryStatus(self, status)
-        self.cpu_status = CPUStatus(self, status)
-        self.clock_status = ClockStatus(self, status)
-        self.apply_statusbar_settings()
 
         # ----- View
         # View menu
@@ -3058,6 +3046,7 @@ class MainWindow(QMainWindow):
 
         # Apply lock to toolbars
         for toolbar in self.toolbarslist:
+            break
             if self.interface_locked:
                 toolbar.setMovable(False)
             else:
@@ -3513,25 +3502,11 @@ class MainWindow(QMainWindow):
                 # Old API
                 plugin._update_margins()
 
+    # FIXME: Remove method?
     def apply_statusbar_settings(self):
         """Update status bar widgets settings"""
         show_status_bar = CONF.get('main', 'show_status_bar')
         self.statusBar().setVisible(show_status_bar)
-
-        if show_status_bar:
-            for widget, name in ((self.mem_status, 'memory_usage'),
-                                 (self.cpu_status, 'cpu_usage'),
-                                 (self.clock_status, 'clock')):
-                if widget is not None:
-                    widget.setVisible(CONF.get('main', '%s/enable' % name))
-                    widget.set_interval(CONF.get('main', '%s/timeout' % name))
-
-            # Update conda status widget
-            if is_anaconda() and self.conda_status:
-                interpreter = self.get_main_interpreter()
-                self.conda_status.update_interpreter(interpreter)
-        else:
-            return
 
     @Slot()
     def show_preferences(self):

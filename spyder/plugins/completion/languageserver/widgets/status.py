@@ -17,10 +17,10 @@ from qtpy.QtCore import QPoint, Slot
 from qtpy.QtWidgets import QMenu
 
 # Local imports
+from spyder.api.widgets.status import StatusBarWidget
 from spyder.config.base import _
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action
-from spyder.widgets.status import StatusBarWidget
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +34,9 @@ class LSPStatusWidget(StatusBarWidget):
     )
     STATUS = "LSP {}: {}"
 
-    def __init__(self, parent, statusbar, plugin):
+    def __init__(self, parent, plugin):
         self.tooltip = self.BASE_TOOLTIP
-        super(LSPStatusWidget, self).__init__(
-            parent, statusbar, icon=ima.icon('lspserver'))
+        super().__init__(parent, icon=ima.icon('lspserver'))
 
         self.plugin = plugin
         self.menu = QMenu(self)
