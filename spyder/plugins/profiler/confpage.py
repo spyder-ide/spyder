@@ -11,7 +11,7 @@ from qtpy.QtWidgets import QGroupBox, QLabel, QVBoxLayout
 
 from spyder.api.preferences import PluginConfigPage
 from spyder.config.base import _
-from spyder.plugins.profiler.widgets.profilergui import ProfilerWidget
+from spyder.plugins.profiler.widgets.main_widget import ProfilerWidget
 
 
 class ProfilerConfigPage(PluginConfigPage):

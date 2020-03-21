@@ -1275,7 +1275,15 @@ class MainWindow(QMainWindow):
             self.register_plugin(self.breakpoints)
             self.thirdparty_plugins.append(self.breakpoints)
 
-        other_plugins = ['profiler', 'pylint']
+        # Profiler plugin
+        if CONF.get('profiler', 'enable'):
+            from spyder.plugins.profiler.plugin import Profiler
+            self.profiler = Profiler(self, configuration=CONF)
+            self.register_plugin(self.profiler)
+            self.thirdparty_plugins.append(self.profiler)
+
+        other_plugins = ['pylint']
+
         for plugin_name in other_plugins:
             if CONF.get(plugin_name, 'enable'):
                 module = importlib.import_module(
@@ -3642,15 +3650,6 @@ class MainWindow(QMainWindow):
                            ] + self.thirdparty_plugins:
                 if plugin is not None:
                     # New API
-                    try:
-                        self.create_plugin_conf_widget(plugin)
-                    except AttributeError:
-                        pass
-                    except Exception:
-                        # Avoid a crash at startup if a plugin's config
-                        # page fails to load.
-                        traceback.print_exc(file=sys.stderr)
-
                     if getattr(plugin, 'CONF_WIDGET_CLASS', None):
                         try:
                             widget = self.create_plugin_conf_widget(plugin)

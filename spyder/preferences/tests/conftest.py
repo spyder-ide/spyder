@@ -47,6 +47,7 @@ class MainWindowMock(QMainWindow):
             setattr(mock_attr, 'toolTip', lambda: '')
             setattr(mock_attr, 'setToolTip', lambda x: '')
             setattr(mock_attr, 'is_supported', lambda: True)
+            setattr(mock_attr, 'prefs_dialog_instance', lambda: '')
             setattr(self, attr, mock_attr)
 
     def create_plugin_conf_widget(self, plugin):

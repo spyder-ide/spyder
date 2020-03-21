@@ -7,21 +7,21 @@
 # (see spyder/__init__.py for details)
 
 """
-Profiler widget
+Profiler widget.
 
 See the official documentation on python profiling:
 https://docs.python.org/3/library/profile.html
 """
 
 # Standard library imports
-from __future__ import with_statement
+import logging
 import os
 import os.path as osp
-from itertools import islice
+import re
 import sys
 import time
-import re
-import logging
+from enum import Enum
+from itertools import islice
 
 # Third party imports
 from qtpy.compat import getopenfilename, getsavefilename
@@ -31,350 +31,61 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMessageBox,
                             QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import get_conf_path, get_translation
-from spyder.py3compat import to_text_string
-from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,
-                                    set_item_user_text)
-from spyder.utils.programs import shell_split
-from spyder.widgets.comboboxes import PythonModulesComboBox
-from spyder.utils.misc import add_pathlist_to_PYTHONPATH, getcwd_or_home
+from spyder.api.translations import get_translation
+from spyder.api.widgets import PluginMainWidget, SpyderWidgetMixin
+from spyder.config.base import get_conf_path
+from spyder.config.gui import is_dark_interface
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
+from spyder.py3compat import to_text_string
+from spyder.utils.misc import add_pathlist_to_PYTHONPATH, getcwd_or_home
+from spyder.utils.programs import shell_split
+from spyder.utils.qthelpers import get_item_user_text, set_item_user_text
+from spyder.widgets.comboboxes import PythonModulesComboBox
 
-# This is needed for testing this module as a stand alone script
-try:
-    _ = get_translation("profiler", "spyder_profiler")
-except KeyError as error:
-    import gettext
-    _ = gettext.gettext
+# Localization
+_ = get_translation('spyder')
 
-
+# Logging
 logger = logging.getLogger(__name__)
+
+
+# --- Constants
+# ----------------------------------------------------------------------------
+if is_dark_interface():
+    MAIN_TEXT_COLOR = 'white'
+else:
+    MAIN_TEXT_COLOR = '#444444'
+
+
+class ProfilerWidgetActions:
+    # Triggers
+    Browse = 'browse_action'
+    Clear = 'clear_action'
+    Collapse = 'collapse_action'
+    Expand = 'expand_action'
+    LoadData = 'load_data_action'
+    Run = 'run_action'
+    SaveData = 'save_data_action'
+    ShowOutput = 'show_output_action'
+
+
+class ProfilerWidgetToolBars:
+    Information = 'information_toolbar'
+
+
+class ProfilerWidgetMainToolBarSections:
+    Main = 'main_section'
+
+
+class ProfilerWidgetInformationToolBarSections:
+    Main = 'main_section'
+
+
+# --- Utils
+# ----------------------------------------------------------------------------
 def is_profiler_installed():
     from spyder.utils.programs import is_module_installed
     return is_module_installed('cProfile') and is_module_installed('pstats')
-
-
-class ProfilerWidget(QWidget):
-    """
-    Profiler widget
-    """
-    DATAPATH = get_conf_path('profiler.results')
-    VERSION = '0.0.1'
-    redirect_stdio = Signal(bool)
-
-    def __init__(self, parent, max_entries=100, options_button=None,
-                 text_color=None):
-        QWidget.__init__(self, parent)
-
-        self.setWindowTitle("Profiler")
-
-        self.output = None
-        self.error_output = None
-
-        self.text_color = text_color
-
-        self._last_wdir = None
-        self._last_args = None
-        self._last_pythonpath = None
-
-        self.filecombo = PythonModulesComboBox(self)
-
-        self.start_button = create_toolbutton(self, icon=ima.icon('run'),
-                                    text=_("Profile"),
-                                    tip=_("Run profiler"),
-                                    triggered=lambda : self.start(),
-                                    text_beside_icon=True)
-        self.stop_button = create_toolbutton(self,
-                                             icon=ima.icon('stop'),
-                                             text=_("Stop"),
-                                             tip=_("Stop current profiling"),
-                                             text_beside_icon=True)
-        self.filecombo.valid.connect(self.start_button.setEnabled)
-        #self.connect(self.filecombo, SIGNAL('valid(bool)'), self.show_data)
-        # FIXME: The combobox emits this signal on almost any event
-        #        triggering show_data() too early, too often.
-
-        browse_button = create_toolbutton(self, icon=ima.icon('fileopen'),
-                                          tip=_('Select Python script'),
-                                          triggered=self.select_file)
-
-        self.datelabel = QLabel()
-
-        self.log_button = create_toolbutton(self, icon=ima.icon('log'),
-                                            text=_("Output"),
-                                            text_beside_icon=True,
-                                            tip=_("Show program's output"),
-                                            triggered=self.show_log)
-
-        self.datatree = ProfilerDataTree(self)
-
-        self.collapse_button = create_toolbutton(self,
-                                                 icon=ima.icon('collapse'),
-                                                 triggered=lambda dD:
-                                                 self.datatree.change_view(-1),
-                                                 tip=_('Collapse one level up'))
-        self.expand_button = create_toolbutton(self,
-                                               icon=ima.icon('expand'),
-                                               triggered=lambda dD:
-                                               self.datatree.change_view(1),
-                                               tip=_('Expand one level down'))
-
-        self.save_button = create_toolbutton(self, text_beside_icon=True,
-                                             text=_("Save data"),
-                                             icon=ima.icon('filesave'),
-                                             triggered=self.save_data,
-                                             tip=_('Save profiling data'))
-        self.load_button = create_toolbutton(self, text_beside_icon=True,
-                            text=_("Load data"),
-                            icon=ima.icon('fileimport'),
-                            triggered=self.compare,
-                            tip=_('Load profiling data for comparison'))
-        self.clear_button = create_toolbutton(self, text_beside_icon=True,
-                                              text=_("Clear comparison"),
-                                              icon=ima.icon('editdelete'),
-                                              triggered=self.clear)
-
-        hlayout1 = QHBoxLayout()
-        hlayout1.addWidget(self.filecombo)
-        hlayout1.addWidget(browse_button)
-        hlayout1.addWidget(self.start_button)
-        hlayout1.addWidget(self.stop_button)
-        if options_button:
-            hlayout1.addWidget(options_button)
-
-        hlayout2 = QHBoxLayout()
-        hlayout2.addWidget(self.collapse_button)
-        hlayout2.addWidget(self.expand_button)
-        hlayout2.addStretch()
-        hlayout2.addWidget(self.datelabel)
-        hlayout2.addStretch()
-        hlayout2.addWidget(self.log_button)
-        hlayout2.addWidget(self.save_button)
-        hlayout2.addWidget(self.load_button)
-        hlayout2.addWidget(self.clear_button)
-
-        layout = QVBoxLayout()
-        layout.addLayout(hlayout1)
-        layout.addLayout(hlayout2)
-        layout.addWidget(self.datatree)
-        self.setLayout(layout)
-
-        self.process = None
-        self.set_running_state(False)
-        self.start_button.setEnabled(False)
-        self.clear_button.setEnabled(False)
-
-        if not is_profiler_installed():
-            # This should happen only on certain GNU/Linux distributions
-            # or when this a home-made Python build because the Python
-            # profilers are included in the Python standard library
-            for widget in (self.datatree, self.filecombo,
-                           self.start_button, self.stop_button):
-                widget.setDisabled(True)
-            url = 'https://docs.python.org/3/library/profile.html'
-            text = '%s <a href=%s>%s</a>' % (_('Please install'), url,
-                                             _("the Python profiler modules"))
-            self.datelabel.setText(text)
-        else:
-            pass # self.show_data()
-
-    def save_data(self):
-        """Save data"""
-        title = _( "Save profiler result")
-        filename, _selfilter = getsavefilename(
-                self, title, getcwd_or_home(),
-                _("Profiler result")+" (*.Result)")
-        if filename:
-            self.datatree.save_data(filename)
-
-    def compare(self):
-        filename, _selfilter = getopenfilename(
-                self, _("Select script to compare"),
-                getcwd_or_home(), _("Profiler result")+" (*.Result)")
-        if filename:
-            self.datatree.compare(filename)
-            self.show_data()
-            self.clear_button.setEnabled(True)
-
-    def clear(self):
-        self.datatree.compare(None)
-        self.datatree.hide_diff_cols(True)
-        self.show_data()
-        self.clear_button.setEnabled(False)
-
-    def analyze(self, filename, wdir=None, args=None, pythonpath=None):
-        if not is_profiler_installed():
-            return
-        self.kill_if_running()
-        #index, _data = self.get_data(filename)
-        index = None # FIXME: storing data is not implemented yet
-        if index is None:
-            self.filecombo.addItem(filename)
-            self.filecombo.setCurrentIndex(self.filecombo.count()-1)
-        else:
-            self.filecombo.setCurrentIndex(self.filecombo.findText(filename))
-        self.filecombo.selected()
-        if self.filecombo.is_valid():
-            if wdir is None:
-                wdir = osp.dirname(filename)
-            self.start(wdir, args, pythonpath)
-
-    def select_file(self):
-        self.redirect_stdio.emit(False)
-        filename, _selfilter = getopenfilename(
-                self, _("Select Python script"),
-                getcwd_or_home(), _("Python scripts")+" (*.py ; *.pyw)")
-        self.redirect_stdio.emit(True)
-        if filename:
-            self.analyze(filename)
-
-    def show_log(self):
-        if self.output:
-            output_dialog = TextEditor(self.output, title=_("Profiler output"),
-                                       readonly=True, parent=self)
-            output_dialog.resize(700, 500)
-            output_dialog.exec_()
-
-    def show_errorlog(self):
-        if self.error_output:
-            output_dialog = TextEditor(self.error_output,
-                                       title=_("Profiler output"),
-                                       readonly=True, parent=self)
-            output_dialog.resize(700, 500)
-            output_dialog.exec_()
-
-    def start(self, wdir=None, args=None, pythonpath=None):
-        filename = to_text_string(self.filecombo.currentText())
-        if wdir is None:
-            wdir = self._last_wdir
-            if wdir is None:
-                wdir = osp.basename(filename)
-        if args is None:
-            args = self._last_args
-            if args is None:
-                args = []
-        if pythonpath is None:
-            pythonpath = self._last_pythonpath
-        self._last_wdir = wdir
-        self._last_args = args
-        self._last_pythonpath = pythonpath
-
-        self.datelabel.setText(_('Profiling, please wait...'))
-
-        self.process = QProcess(self)
-        self.process.setProcessChannelMode(QProcess.SeparateChannels)
-        self.process.setWorkingDirectory(wdir)
-        self.process.readyReadStandardOutput.connect(self.read_output)
-        self.process.readyReadStandardError.connect(
-                                          lambda: self.read_output(error=True))
-        self.process.finished.connect(lambda ec, es=QProcess.ExitStatus:
-                                      self.finished(ec, es))
-        self.stop_button.clicked.connect(self.kill)
-
-        if pythonpath is not None:
-            env = [to_text_string(_pth)
-                   for _pth in self.process.systemEnvironment()]
-            add_pathlist_to_PYTHONPATH(env, pythonpath)
-            processEnvironment = QProcessEnvironment()
-            for envItem in env:
-                envName, separator, envValue = envItem.partition('=')
-                processEnvironment.insert(envName, envValue)
-            processEnvironment.insert("PYTHONIOENCODING", "utf8")
-            self.process.setProcessEnvironment(processEnvironment)
-
-        self.output = ''
-        self.error_output = ''
-        self.stopped = False
-
-        p_args = ['-m', 'cProfile', '-o', self.DATAPATH]
-        if os.name == 'nt':
-            # On Windows, one has to replace backslashes by slashes to avoid
-            # confusion with escape characters (otherwise, for example, '\t'
-            # will be interpreted as a tabulation):
-            p_args.append(osp.normpath(filename).replace(os.sep, '/'))
-        else:
-            p_args.append(filename)
-        if args:
-            p_args.extend(shell_split(args))
-        executable = sys.executable
-        if executable.endswith("spyder.exe"):
-            # py2exe distribution
-            executable = "python.exe"
-        self.process.start(executable, p_args)
-
-        running = self.process.waitForStarted()
-        self.set_running_state(running)
-        if not running:
-            QMessageBox.critical(self, _("Error"),
-                                 _("Process failed to start"))
-
-    def kill(self):
-        """Stop button pressed."""
-        self.process.kill()
-        self.stopped = True
-
-    def set_running_state(self, state=True):
-        self.start_button.setEnabled(not state)
-        self.stop_button.setEnabled(state)
-
-    def read_output(self, error=False):
-        if error:
-            self.process.setReadChannel(QProcess.StandardError)
-        else:
-            self.process.setReadChannel(QProcess.StandardOutput)
-        qba = QByteArray()
-        while self.process.bytesAvailable():
-            if error:
-                qba += self.process.readAllStandardError()
-            else:
-                qba += self.process.readAllStandardOutput()
-        text = to_text_string(qba.data(), encoding='utf-8')
-        if error:
-            self.error_output += text
-        else:
-            self.output += text
-
-    def finished(self, exit_code, exit_status):
-        self.set_running_state(False)
-        self.show_errorlog()  # If errors occurred, show them.
-        self.output = self.error_output + self.output
-        # FIXME: figure out if show_data should be called here or
-        #        as a signal from the combobox
-        self.show_data(justanalyzed=True)
-
-    def kill_if_running(self):
-        if self.process is not None:
-            if self.process.state() == QProcess.Running:
-                self.process.kill()
-                self.process.waitForFinished()
-
-    def show_data(self, justanalyzed=False):
-        if not justanalyzed:
-            self.output = None
-        self.log_button.setEnabled(self.output is not None
-                                   and len(self.output) > 0)
-        self.kill_if_running()
-        filename = to_text_string(self.filecombo.currentText())
-        if not filename:
-            return
-
-        if self.stopped:
-            self.datelabel.setText(_('Run stopped by user.'))
-            self.datatree.initialize_view()
-            return
-
-        self.datelabel.setText(_('Sorting data, please wait...'))
-        QApplication.processEvents()
-
-        self.datatree.load_data(self.DATAPATH)
-        self.datatree.show_tree()
-
-        text_style = "<span style=\'color: %s\'><b>%s </b></span>"
-        date_text = text_style % (self.text_color,
-                                  time.strftime("%Y-%m-%d %H:%M:%S",
-                                                time.localtime()))
-        self.datelabel.setText(date_text)
 
 
 def gettime_s(text):
@@ -404,6 +115,508 @@ def gettime_s(text):
         time += tmp
     return time
 
+
+# --- Widgets
+# ----------------------------------------------------------------------------
+class ProfilerWidget(PluginMainWidget):
+    """
+    Profiler widget.
+    """
+    DEFAULT_OPTIONS = {
+        'text_color': MAIN_TEXT_COLOR,
+    }
+    DATAPATH = get_conf_path('profiler.results')
+
+    # --- Signals
+    # ------------------------------------------------------------------------
+    sig_edit_goto_requested = Signal(str, int, str)
+    """
+    This signal will request to open a file in a given row and column
+    using a code editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    row: int
+        Cursor starting row position.
+    word: str
+        Word to select on given row.
+    """
+
+    sig_redirect_stdio_requested = Signal(bool)
+    """
+    This signal is emitted to request the main application to redirect
+    standard output/error when using Open/Save/Browse dialogs within widgets.
+
+    Parameters
+    ----------
+    redirect: bool
+        Start redirect (True) or stop redirect (False).
+    """
+
+    sig_started = Signal()
+    """This signal is emitted to inform the profiling process has started."""
+
+    sig_finished = Signal()
+    """This signal is emitted to inform the profile profiling has finished."""
+
+    def __init__(self, name=None, plugin=None, parent=None,
+                 options=DEFAULT_OPTIONS):
+        super().__init__(name, plugin, parent, options)
+
+        # Attributes
+        self._last_wdir = None
+        self._last_args = None
+        self._last_pythonpath = None
+        self.error_output = None
+        self.output = None
+        self.running = False
+        self.text_color = self.get_option('text_color')
+
+        # Widgets
+        self.process = None
+        self.filecombo = PythonModulesComboBox(self)
+        self.datatree = ProfilerDataTree(self)
+        self.datelabel = QLabel()
+
+        # Layout
+        layout = QVBoxLayout()
+        layout.addWidget(self.datatree)
+        self.setLayout(layout)
+
+        # Signals
+        self.datatree.sig_edit_goto_requested.connect(
+            self.sig_edit_goto_requested)
+
+    # --- PluginMainWidget API
+    # ------------------------------------------------------------------------
+    def get_title(self):
+        return _('Profiler')
+
+    def get_focus_widget(self):
+        return self.datatree
+
+    def setup(self, options):
+        self.start_action = self.create_action(
+            ProfilerWidgetActions.Run,
+            text=_("Run profiler"),
+            tip=_("Run profiler"),
+            icon=self.create_icon('run'),
+            triggered=self.run,
+        )
+        browse_action = self.create_action(
+            ProfilerWidgetActions.Browse,
+            text=_('Browse'),
+            tip=_('Select Python script'),
+            icon=self.create_icon('fileopen'),
+            triggered=lambda x: self.select_file(),
+        )
+        self.log_action = self.create_action(
+            ProfilerWidgetActions.ShowOutput,
+            text=_("Output"),
+            tip=_("Show program's output"),
+            icon=self.create_icon('log'),
+            triggered=self.show_log,
+        )
+        self.collapse_action = self.create_action(
+            ProfilerWidgetActions.Collapse,
+            text=_('Collapse'),
+            tip=_('Collapse one level up'),
+            icon=self.create_icon('collapse'),
+            triggered=lambda x=None: self.datatree.change_view(-1),
+        )
+        self.expand_action = self.create_action(
+            ProfilerWidgetActions.Expand,
+            text=_('Expand'),
+            tip=_('Expand one level down'),
+            icon=self.create_icon('expand'),
+            triggered=lambda x=None: self.datatree.change_view(1),
+        )
+        self.save_action = self.create_action(
+            ProfilerWidgetActions.SaveData,
+            text=_("Save data"),
+            tip=_('Save profiling data'),
+            icon=self.create_icon('filesave'),
+            triggered=self.save_data,
+        )
+        self.load_action = self.create_action(
+            ProfilerWidgetActions.LoadData,
+            text=_("Load data"),
+            tip=_('Load profiling data for comparison'),
+            icon=self.create_icon('fileimport'),
+            triggered=self.compare,
+        )
+        self.clear_action = self.create_action(
+            ProfilerWidgetActions.Clear,
+            text=_("Clear comparison"),
+            icon=self.create_icon('editdelete'),
+            triggered=self.clear,
+        )
+
+        # Main Toolbar
+        toolbar = self.get_main_toolbar()
+        for item in [self.filecombo, browse_action, self.start_action]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar=toolbar,
+                section=ProfilerWidgetMainToolBarSections.Main,
+            )
+        toolbar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+
+        # Secondary Toolbar
+        secondary_toolbar = self.create_toolbar(
+            ProfilerWidgetToolBars.Information)
+        for item in [self.collapse_action, self.expand_action,
+                     self.create_stretcher(), self.datelabel,
+                     self.create_stretcher(), self.log_action,
+                     self.save_action, self.load_action, self.clear_action]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar=secondary_toolbar,
+                section=ProfilerWidgetInformationToolBarSections.Main,
+            )
+
+        # Setup
+        if not is_profiler_installed():
+            # This should happen only on certain GNU/Linux distributions
+            # or when this a home-made Python build because the Python
+            # profilers are included in the Python standard library
+            for widget in (self.datatree, self.filecombo,
+                           self.start_action):
+                widget.setDisabled(True)
+            url = 'https://docs.python.org/3/library/profile.html'
+            text = '%s <a href=%s>%s</a>' % (_('Please install'), url,
+                                             _("the Python profiler modules"))
+            self.datelabel.setText(text)
+
+    def update_actions(self):
+        if self.running:
+            icon = self.create_icon('stop')
+            text = _('Stop')
+        else:
+            icon = self.create_icon('run')
+            text = _('Start')
+
+        self.start_action.setIcon(icon)
+        self.start_action.setIconText(text)
+
+        self.start_action.setEnabled(bool(self.filecombo.currentText()))
+
+    def on_option_update(self, option, value):
+        pass
+
+    # --- Private API
+    # ------------------------------------------------------------------------
+    def _kill_if_running(self):
+        """Kill the profiling process if it is running."""
+        if self.process is not None:
+            if self.process.state() == QProcess.Running:
+                self.process.kill()
+                self.process.waitForFinished()
+
+        self.update_actions()
+
+    def _finished(self, exit_code, exit_status):
+        """
+        Parse results once the profiling process has ended.
+
+        Parameters
+        ----------
+        exit_code: int
+            QProcess exit code.
+        exit_status: str
+            QProcess exit status.
+        """
+        self.running = False
+        self.show_errorlog()  # If errors occurred, show them.
+        self.output = self.error_output + self.output
+        self.datelabel.setText('')
+        self.show_data(justanalyzed=True)
+        self.update_actions()
+
+    def _read_output(self, error=False):
+        """
+        Read otuput from QProcess.
+
+        Parameters
+        ----------
+        error: bool, optional
+            Process QProcess output or error channels. Default is False.
+        """
+        if error:
+            self.process.setReadChannel(QProcess.StandardError)
+        else:
+            self.process.setReadChannel(QProcess.StandardOutput)
+
+        qba = QByteArray()
+        while self.process.bytesAvailable():
+            if error:
+                qba += self.process.readAllStandardError()
+            else:
+                qba += self.process.readAllStandardOutput()
+
+        text = to_text_string(qba.data(), encoding='utf-8')
+        if error:
+            self.error_output += text
+        else:
+            self.output += text
+
+    # --- Public API
+    # ------------------------------------------------------------------------
+    def save_data(self):
+        """Save data."""
+        title = _( "Save profiler result")
+        filename, _selfilter = getsavefilename(
+            self,
+            title,
+            getcwd_or_home(),
+            _("Profiler result") + " (*.Result)",
+        )
+
+        if filename:
+            self.datatree.save_data(filename)
+
+    def compare(self):
+        """Compare previous saved run with last run."""
+        filename, _selfilter = getopenfilename(
+            self,
+            _("Select script to compare"),
+            getcwd_or_home(),
+            _("Profiler result") + " (*.Result)",
+        )
+
+        if filename:
+            self.datatree.compare(filename)
+            self.show_data()
+            self.clear_action.setEnabled(True)
+
+    def clear(self):
+        """Clear data in tree."""
+        self.datatree.compare(None)
+        self.datatree.hide_diff_cols(True)
+        self.show_data()
+        self.clear_action.setEnabled(False)
+
+    def analyze(self, filename, wdir=None, args=None, pythonpath=None):
+        """
+        Start the profiling process.
+
+        Parameters
+        ----------
+        wdir: str
+            Working directory path string. Default is None.
+        args: list
+            Arguments to pass to the profiling process. Default is None.
+        pythonpath: str
+            Python path string. Default is None.
+        """
+        if not is_profiler_installed():
+            return
+
+        self._kill_if_running()
+
+        # TODO: storing data is not implemented yet
+        # index, _data = self.get_data(filename)
+        combo = self.filecombo
+        items = [combo.itemText(idx) for idx in range(combo.count())]
+        index = None
+        if index is None and filename not in items:
+            self.filecombo.addItem(filename)
+            self.filecombo.setCurrentIndex(self.filecombo.count() - 1)
+        else:
+            self.filecombo.setCurrentIndex(self.filecombo.findText(filename))
+
+        self.filecombo.selected()
+        if self.filecombo.is_valid():
+            if wdir is None:
+                wdir = osp.dirname(filename)
+
+            self.start(wdir, args, pythonpath)
+
+    def select_file(self, filename=None):
+        """
+        Select filename to profile.
+
+        Parameters
+        ----------
+        filename: str, optional
+            Path to filename to profile. default is None.
+
+        Notes
+        -----
+        If no `filename` is provided an open filename dialog will be used.
+        """
+        if filename is None:
+            self.sig_redirect_stdio_requested.emit(False)
+            filename, _selfilter = getopenfilename(
+                self,
+                _("Select Python script"),
+                getcwd_or_home(),
+                _("Python scripts") + " (*.py ; *.pyw)"
+            )
+            self.sig_redirect_stdio_requested.emit(True)
+
+        if filename:
+            self.analyze(filename)
+
+    def show_log(self):
+        """Show process output log."""
+        if self.output:
+            output_dialog = TextEditor(
+                self.output,
+                title=_("Profiler output"),
+                readonly=True,
+                parent=self,
+            )
+            output_dialog.resize(700, 500)
+            output_dialog.exec_()
+
+    def show_errorlog(self):
+        """Show process error log."""
+        if self.error_output:
+            output_dialog = TextEditor(
+                self.error_output,
+                title=_("Profiler output"),
+                readonly=True,
+                parent=self,
+            )
+            output_dialog.resize(700, 500)
+            output_dialog.exec_()
+
+    def start(self, wdir=None, args=None, pythonpath=None):
+        """
+        Start the profiling process.
+
+        Parameters
+        ----------
+        wdir: str
+            Working directory path string. Default is None.
+        args: list
+            Arguments to pass to the profiling process. Default is None.
+        pythonpath: str
+            Python path string. Default is None.
+        """
+        filename = to_text_string(self.filecombo.currentText())
+        if wdir is None:
+            wdir = self._last_wdir
+            if wdir is None:
+                wdir = osp.basename(filename)
+
+        if args is None:
+            args = self._last_args
+            if args is None:
+                args = []
+
+        if pythonpath is None:
+            pythonpath = self._last_pythonpath
+
+        self._last_wdir = wdir
+        self._last_args = args
+        self._last_pythonpath = pythonpath
+
+        self.datelabel.setText(_('Profiling, please wait...'))
+
+        self.process = QProcess(self)
+        self.process.setProcessChannelMode(QProcess.SeparateChannels)
+        self.process.setWorkingDirectory(wdir)
+        self.process.readyReadStandardOutput.connect(self._read_output)
+        self.process.readyReadStandardError.connect(
+            lambda: self._read_output(error=True))
+        self.process.finished.connect(
+            lambda ec, es=QProcess.ExitStatus: self._finished(ec, es))
+        self.process.finished.connect(self.stop_spinner)
+
+        if pythonpath is not None:
+            env = [to_text_string(_pth)
+                   for _pth in self.process.systemEnvironment()]
+            add_pathlist_to_PYTHONPATH(env, pythonpath)
+            processEnvironment = QProcessEnvironment()
+            for envItem in env:
+                envName, __, envValue = envItem.partition('=')
+                processEnvironment.insert(envName, envValue)
+
+            processEnvironment.insert("PYTHONIOENCODING", "utf8")
+            self.process.setProcessEnvironment(processEnvironment)
+
+        self.output = ''
+        self.error_output = ''
+        self.running = True
+        self.start_spinner()
+
+        p_args = ['-m', 'cProfile', '-o', self.DATAPATH]
+        if os.name == 'nt':
+            # On Windows, one has to replace backslashes by slashes to avoid
+            # confusion with escape characters (otherwise, for example, '\t'
+            # will be interpreted as a tabulation):
+            p_args.append(osp.normpath(filename).replace(os.sep, '/'))
+        else:
+            p_args.append(filename)
+
+        if args:
+            p_args.extend(shell_split(args))
+
+        executable = sys.executable
+        if executable.endswith("spyder.exe"):
+            # py2exe distribution
+            executable = "python.exe"
+
+        self.process.start(executable, p_args)
+        running = self.process.waitForStarted()
+        if not running:
+            QMessageBox.critical(
+                self,
+                _("Error"),
+                _("Process failed to start"),
+            )
+        self.update_actions()
+
+    def stop(self):
+        """Stop the running process."""
+        self.running = False
+        self.process.kill()
+        self.stop_spinner()
+        self.update_actions()
+
+    def run(self):
+        """Toggle starting or running the profiling process."""
+        if self.running:
+            self.stop()
+        else:
+            self.start()
+
+    def show_data(self, justanalyzed=False):
+        """
+        Show analyzed data on results tree.
+
+        Parameters
+        ----------
+        justanalyzed: bool, optional
+            Default is False.
+        """
+        if not justanalyzed:
+            self.output = None
+
+        self.log_action.setEnabled(self.output is not None
+                                   and len(self.output) > 0)
+        self._kill_if_running()
+        filename = to_text_string(self.filecombo.currentText())
+        if not filename:
+            return
+
+        self.datelabel.setText(_('Sorting data, please wait...'))
+        QApplication.processEvents()
+
+        self.datatree.load_data(self.DATAPATH)
+        self.datatree.show_tree()
+
+        text_style = "<span style=\'color: %s\'><b>%s </b></span>"
+        date_text = text_style % (self.text_color,
+                                  time.strftime("%Y-%m-%d %H:%M:%S",
+                                                time.localtime()))
+        self.datelabel.setText(date_text)
+
+
 class TreeWidgetItem( QTreeWidgetItem ):
     def __init__(self, parent=None):
         QTreeWidgetItem.__init__(self, parent)
@@ -411,7 +624,7 @@ class TreeWidgetItem( QTreeWidgetItem ):
     def __lt__(self, otherItem):
         column = self.treeWidget().sortColumn()
         try:
-            if column == 1 or column == 3: #TODO: Hardcoded Column
+            if column == 1 or column == 3:  # TODO: Hardcoded Column
                 t0 = gettime_s(self.text(column))
                 t1 = gettime_s(otherItem.text(column))
                 if t0 is not None and t1 is not None:
@@ -421,7 +634,8 @@ class TreeWidgetItem( QTreeWidgetItem ):
         except ValueError:
             return self.text(column) > otherItem.text(column)
 
-class ProfilerDataTree(QTreeWidget):
+
+class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
     """
     Convenience tree widget (with built-in model)
     to store and view profiler data.
@@ -439,21 +653,23 @@ class ProfilerDataTree(QTreeWidget):
     [4] = A dictionary indicating for each function name, the number of times
           it was called by us.
     """
-
-    sig_edit_goto = Signal(str, int, str)
-
     SEP = r"<[=]>"  # separator between filename and linenumber
     # (must be improbable as a filename to avoid splitting the filename itself)
 
+    # Signals
+    sig_edit_goto_requested = Signal(str, int, str)
+
     def __init__(self, parent=None):
-        QTreeWidget.__init__(self, parent)
+        super().__init__(parent)
         self.header_list = [_('Function/Module'), _('Total Time'), _('Diff'),
                             _('Local Time'), _('Diff'), _('Calls'), _('Diff'),
                             _('File:line')]
-        self.icon_list = {'module': ima.icon('python'),
-                         'function': ima.icon('function'),
-                         'builtin': ima.icon('python'),
-                         'constructor': ima.icon('class')}
+        self.icon_list = {
+            'module': self.create_icon('python'),
+            'function': self.create_icon('function'),
+            'builtin': self.create_icon('python'),
+            'constructor': self.create_icon('class')
+        }
         self.profdata = None   # To be filled by self.load_data()
         self.stats = None      # To be filled by self.load_data()
         self.item_depth = None
@@ -710,7 +926,7 @@ class ProfilerDataTree(QTreeWidget):
 
     def item_activated(self, item):
         filename, line_number = self.get_item_data(item)
-        self.sig_edit_goto.emit(filename, line_number, '')
+        self.sig_edit_goto_requested.emit(filename, line_number, '')
 
     def item_expanded(self, item):
         if item.childCount() == 0 and id(item) in self.items_to_be_shown:
@@ -762,9 +978,9 @@ class ProfilerDataTree(QTreeWidget):
                 item.setExpanded(True)
 
 
-#==============================================================================
+# =============================================================================
 # Tests
-#==============================================================================
+# =============================================================================
 def primes(n):
     """
     Simple test function
@@ -793,9 +1009,9 @@ def primes(n):
 
 def test():
     """Run widget test"""
+    from spyder.utils.qthelpers import qapplication
     import inspect
     import tempfile
-    from spyder.utils.qthelpers import qapplication
 
     primes_sc = inspect.getsource(primes)
     fd, script = tempfile.mkstemp(suffix='.py')
@@ -805,7 +1021,10 @@ def test():
         f.write("primes(100000)")
 
     app = qapplication(test_time=5)
-    widget = ProfilerWidget(None)
+    options = ProfilerWidget.DEFAULT_OPTIONS.copy()
+    widget = ProfilerWidget('test')
+    widget._setup(options)
+    widget.setup(options)
     widget.resize(800, 600)
     widget.show()
     widget.analyze(script)
