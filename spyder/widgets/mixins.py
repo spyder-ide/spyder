@@ -96,16 +96,18 @@ class BaseEditMixin(object):
         if at_point is not None:
             # Showing tooltip at point position
             margin = (self.document().documentMargin() / 2) + 1
-            cx, cy = at_point.x() - margin, at_point.y() - margin
+            cx = int(at_point.x() - margin)
+            cy = int(at_point.y() - margin)
         elif at_line is not None:
             # Showing tooltip at line
             cx = 5
             line = at_line - 1
             cursor = QTextCursor(self.document().findBlockByNumber(line))
-            cy = self.cursorRect(cursor).top()
+            cy = int(self.cursorRect(cursor).top())
         else:
             # Showing tooltip at cursor position
             cx, cy = self.get_coordinates('cursor')
+            cx = int(cx)
             cy = int(cy - font.pointSize() / 2)
 
         # Calculate vertical delta
@@ -134,7 +136,7 @@ class BaseEditMixin(object):
         self._styled_widgets.add(id(widget))
 
         if is_dark_interface():
-            css = qdarkstyle.load_stylesheet_from_environment()
+            css = qdarkstyle.load_stylesheet(qt_api='')
             widget.setStyleSheet(css)
             palette = widget.palette()
             background = palette.color(palette.Window).lighter(150).name()
@@ -1276,9 +1278,9 @@ class BaseEditMixin(object):
 
         # TODO: adapt to font size
         x = rect.left()
-        x = x - 14
+        x = int(x - 14)
         y = rect.top() + (rect.bottom() - rect.top())/2
-        y = y - dlg.height()/2 - 3
+        y = int(y - dlg.height()/2 - 3)
 
         pos = QPoint(x, y)
         pos = self.calculate_real_position(pos)
