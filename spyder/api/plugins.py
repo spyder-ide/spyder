@@ -37,9 +37,11 @@ from spyder.api.menus import ApplicationMenus
 from spyder.api.toolbars import ApplicationToolBars
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainContainer, PluginMainWidget
+from spyder.api.widgets.mixins import SpyderActionMixin, SpyderOptionMixin
 from spyder.api.widgets.menus import ApplicationMenu
 from spyder.api.widgets.mixins import (SpyderActionMixin, SpyderOptionMixin,
                                        SpyderWidgetMixin)
+from spyder.api.widgets.status import StatusBarWidget
 from spyder.api.widgets.toolbars import ApplicationToolBar
 from spyder.config.gui import get_color_scheme, get_font
 from spyder.config.manager import CONF  # TODO: Remove after migration
@@ -578,6 +580,7 @@ class Plugins:
     Breakpoints = 'breakpoints'
     CodeAnalysis = 'code_analysis'
     CodeCompletion = 'code_completion'
+    Core = 'core'
     KiteCompletion = 'kite'
     FallBackCompletion = 'fallback'
     LanguageServerCompletion = 'lsp'
@@ -838,6 +841,10 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                     self.sig_redirect_stdio_requested)
                 container.sig_restart_requested.connect(
                     self.sig_restart_requested)
+
+        # Update extendable actions state on focus change
+        qapp = QApplication.instance()
+        qapp.focusChanged.connect(self.update_actions_state)
 
     # --- Private methods ----------------------------------------------------
     # ------------------------------------------------------------------------
@@ -1202,6 +1209,40 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
             raise SpyderAPIError('Action "{0}" not found! Available '
                                  'actions are: {1}'.format(name, actions))
 
+    def extend_action(self, action, triggered, tracker, text=None):
+        """
+        """
+        # Check that the action is extendable
+        if action.extendable:
+            action.extension_triggers.append(
+                {
+                    'tracker': tracker,
+                    'triggered': triggered,
+                    'text': text,
+                    'extend': True,
+                    'overload': False,
+                }
+            )
+        else:
+            raise SpyderAPIError('Action cannot be extended')
+
+    def overload_action(self, action, triggered, tracker, text=None):
+        """
+        """
+        # Check that the action is extendable
+        if action.extendable:
+            action.extension_triggers.append(
+                {
+                    'tracker': tracker,
+                    'triggered': triggered,
+                    'text': text,
+                    'extend': False,
+                    'overload': True,
+                }
+            )
+        else:
+            raise SpyderAPIError('Action cannot be extended')
+
     # --- API: Mandatory methods to define -----------------------------------
     # ------------------------------------------------------------------------
     def get_name(self):
@@ -1481,15 +1522,26 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
 
     # --- API Application Status Widgets
     # ------------------------------------------------------------------------
-    def add_application_status_widget(self, name, widget):
+    def add_application_status_widget(self, name, widget, index=None):
         """
         Add status widget to main application status bar.
         """
-        # TODO: Check widget class
-        # TODO: Check existence
-        status_bar = self._main.statusBar()
-        status_bar.insertPermanentWidget(0, widget)
+        if name in self._main._STATUS_WIDGETS:
+            raise SpyderAPIError('Status widget `{}` already added!'.format(
+                name))
+
+        # Check widget class
+        if not isinstance(widget, StatusBarWidget):
+            raise SpyderAPIError(
+                'Status widget must subclass StatusBarWidget!')
+
         self._main._STATUS_WIDGETS[name] = widget
+        count = len(self._main._STATUS_WIDGETS)
+        statusbar = self._main.statusBar()
+        statusbar.setStyleSheet('QStatusBar::item {border: None;}')
+        statusbar.addPermanentWidget(widget)
+        statusbar.layout().setContentsMargins(0, 0, 0, 0)
+        statusbar.layout().setSpacing(0)
 
     def get_application_status_widget(self, name):
         """
@@ -1505,6 +1557,18 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         Return all application status widgets created.
         """
         return self._main._STATUS_WIDGETS
+
+    def update_actions_state(self, old_widget, new_widget):
+        """
+        TODO:
+        """
+        if getattr(self, "_extendable_actions", False):
+            print(old_widget, new_widget)
+            for action_name, action in self.get_actions().items():
+                if action.extendable:
+                    print(action_name)
+                    # Do something to update the state of actions
+            print('\n')
 
 
 class SpyderDockablePlugin(SpyderPluginV2):

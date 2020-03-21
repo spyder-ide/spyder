@@ -10,12 +10,16 @@
 import os.path as osp
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.widgets.status import StatusBarWidget
+from spyder.api.translations import get_translation
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.workers import WorkerManager
 from spyder.utils.vcs import get_git_refs
-from spyder.widgets.status import StatusBarWidget
+
+
+# Localization
+_ = get_translation("spyder")
 
 
 class ReadWriteStatus(StatusBarWidget):
@@ -74,9 +78,8 @@ class CursorPositionStatus(StatusBarWidget):
 class VCSStatus(StatusBarWidget):
     """Status bar widget for system vcs."""
 
-    def __init__(self, parent, statusbar):
-        super(VCSStatus, self).__init__(parent, statusbar,
-                                        icon=ima.icon('code_fork'))
+    def __init__(self, parent):
+        super().__init__(parent, icon=ima.icon('code_fork'))
         self._worker_manager = WorkerManager(max_threads=1)
         self._git_is_working = None
         self._git_job_queue = None

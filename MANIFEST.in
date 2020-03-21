@@ -10,3 +10,4 @@ include CHANGELOG.md
 include AUTHORS.txt
 include NOTICE.txt
 include bootstrap.py
+recursive-include spyder *.py

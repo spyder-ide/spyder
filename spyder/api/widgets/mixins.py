@@ -411,6 +411,26 @@ class SpyderActionMixin:
     This mixin uses a custom action object.
     """
 
+    def update_overloaded_actions_state(self):
+        for action in self.get_actions():
+            if action.extendable:
+                enable = False
+                for data in action.extension_triggers:
+                    if data['tracker']():
+                        enable = True
+                        break
+
+                action.setEnabled(enable)
+
+    def _handle_extendable_triggers(self, action_name):
+        action = self.get_action(action_name)
+        for data in action.extension_triggers:
+            if data['tracker']():
+                data['triggered']()
+
+                if data['overload']:
+                    break
+
     def _update_action_state(self, action_name, value):
         """
         This allows to update the state of a togglable action without emitting
@@ -434,7 +454,7 @@ class SpyderActionMixin:
     def create_action(self, name, text, icon=None, icon_text='', tip=None,
                       toggled=None, triggered=None, shortcut_context=None,
                       context=Qt.WidgetWithChildrenShortcut, initial=None,
-                      register_shortcut=True, parent=None):
+                      register_shortcut=True, parent=None, extendable=False):
         """
         name: str
             unique identifiable name for the action
@@ -462,6 +482,8 @@ class SpyderActionMixin:
             If True, main window will expose the shortcut in Preferences.
         parent: QWidget (None)
             Define the parent of the widget. Use `self` if not provided.
+        extendable: bool (False)
+            Set if the action can be extended/overloaded.
 
         Notes
         -----
@@ -478,6 +500,14 @@ class SpyderActionMixin:
         actions = getattr(self, '_actions', None)
         if actions is None:
             self._actions = OrderedDict()
+
+        if extendable:
+            if bool(toggled):
+                raise SpyderAPIError(
+                    'Extendable actions cannot define triggers or toggles!')
+
+            triggered = lambda: self._handle_extendable_triggers(name)
+            self._extendable_actions = True
 
         if triggered is None and toggled is None:
             raise SpyderAPIError(
@@ -503,12 +533,15 @@ class SpyderActionMixin:
             context=context,
         )
         action.name = name
+        action.text_ = text
         if icon_text:
             action.setIconText(icon_text)
 
         action.text_beside_icon = bool(icon_text)
         action.shortcut_context = shortcut_context
         action.register_shortcut = register_shortcut
+        action.extension_triggers = []  # Store the overload info here!
+        action.extendable = extendable
 
         if initial is not None:
             if toggled:
