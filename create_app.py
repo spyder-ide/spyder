@@ -206,6 +206,7 @@ for p in PROGRAMS:
 # Add RESOURCEPATH to PATH, so that Spyder can find PROGRAMS inside the app
 new_path = \
 """
+import os
 old_path = os.environ['PATH']
 os.environ['PATH'] = os.environ['RESOURCEPATH'] + os.pathsep + old_path
 """
@@ -214,7 +215,7 @@ os.environ['PATH'] = os.environ['RESOURCEPATH'] + os.pathsep + old_path
 # about its location when running inside the app
 ip_dir = \
 """
-from IPython.utils.path import get_ipython_dir
+from IPython.paths import get_ipython_dir
 os.environ['IPYTHONDIR'] = get_ipython_dir()
 """
 
