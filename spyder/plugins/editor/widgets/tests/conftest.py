@@ -233,7 +233,7 @@ def lsp_codeeditor(lsp_plugin, qtbot_module, request, capsys):
     editor.start_completion_services()
     editor.update_completion_configuration(server_settings)
 
-    with qtbot_module.waitSignal(editor.lsp_response_signal, timeout=30000):
+    with qtbot_module.waitSignal(editor.lsp_response_signal, timeout=60000):
         editor.document_did_open()
 
     def teardown():
