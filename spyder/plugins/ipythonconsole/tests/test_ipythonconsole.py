@@ -26,8 +26,8 @@ except ImportError:
 
 # Third party imports
 from IPython.core import release as ipy_release
+from IPython.core.application import get_ipython_dir
 from flaky import flaky
-from jupyter_client.kernelspec import KernelSpec
 from pygments.token import Name
 import pytest
 from qtpy import PYQT5
@@ -87,13 +87,6 @@ def get_conda_test_env(test_env_name=u'spytest-ž'):
         test_env_executable = os.path.join(test_env_prefix, 'bin', 'python')
 
     return test_env_executable
-
-
-class FaultyKernelSpec(KernelSpec):
-    """Kernelspec that generates a kernel crash"""
-
-    argv = [sys.executable, '-m', 'spyder_kernels.foo', '-f',
-            '{connection_file}']
 
 
 # =============================================================================
@@ -1306,16 +1299,15 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="It only works on Linux")
 def test_kernel_crash(ipyconsole, mocker, qtbot):
-    """Test that we show kernel error messages when a kernel crash occurs."""
-    # Patch create_kernel_spec method to make it return a faulty
-    # kernel spec
-    mocker.patch.object(ipyconsole, 'create_kernel_spec')
-    ipyconsole.create_kernel_spec.return_value = FaultyKernelSpec()
+    """Test that we show an error message when a kernel crash occurs."""
+    # Create an IPython kernel config file with a bad config
+    ipy_kernel_cfg = osp.join(get_ipython_dir(), 'profile_default',
+                              'ipython_kernel_config.py')
+    with open(ipy_kernel_cfg, 'w') as f:
+        # This option must be a string, not an int
+        f.write("c.InteractiveShellApp.extra_extension = 1")
 
-    # Create a new client, which will use FaultyKernelSpec
     ipyconsole.create_new_client()
 
     # Assert that the console is showing an error
@@ -1330,8 +1322,12 @@ def test_kernel_crash(ipyconsole, mocker, qtbot):
         webpage = webview.page()
     else:
         webpage = webview.page().mainFrame()
-    qtbot.waitUntil(lambda: check_text(webpage, "No module named"),
-                    timeout=6000)
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "Bad config encountered"),
+        timeout=6000)
+
+    # Remove bad kernel config file
+    os.remove(ipy_kernel_cfg)
 
 
 @pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
