@@ -97,13 +97,6 @@ class SpyderKernelSpec(KernelSpec):
         # Part of spyder-ide/spyder#11819
         is_different = is_different_interpreter(pyexec)
 
-        # Fixes spyder-ide/spyder#3427.
-        if os.name == 'nt':
-            dir_pyexec = osp.dirname(pyexec)
-            pyexec_w = osp.join(dir_pyexec, 'pythonw.exe')
-            if osp.isfile(pyexec_w):
-                pyexec = pyexec_w
-
         # Command used to start kernels
         if is_different and is_conda_env(pyexec=pyexec):
             # If this is a conda environment we need to call an intermediate

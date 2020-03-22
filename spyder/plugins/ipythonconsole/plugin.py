@@ -1197,16 +1197,10 @@ class IPythonConsole(SpyderPluginWidget):
             return (error_msg, None)
         kernel_manager._kernel_spec = kernel_spec
 
-        kwargs = {}
-        if os.name == 'nt':
-            # avoid closing fds on win+Python 3.7
-            # which prevents interrupts
-            # jupyter_client > 5.2.3 will do this by default
-            kwargs['close_fds'] = False
         # Catch any error generated when trying to start the kernel.
         # See spyder-ide/spyder#7302.
         try:
-            kernel_manager.start_kernel(stderr=stderr_handle, **kwargs)
+            kernel_manager.start_kernel(stderr=stderr_handle)
         except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())
