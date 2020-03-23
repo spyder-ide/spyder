@@ -289,8 +289,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self._show_mpl_backend_errors()
 
         # To show if special console is valid
-        self.shellwidget.sig_prompt_ready.connect(
-            self._check_special_console_error)
+        self._check_special_console_error()
 
         self.shellwidget.sig_prompt_ready.disconnect(
             self._when_prompt_is_ready)
