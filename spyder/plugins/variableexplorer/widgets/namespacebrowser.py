@@ -33,11 +33,9 @@ from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
 from spyder.utils.programs import is_module_installed
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton,
-                                    create_plugin_layout,
-                                    create_waitspinner,
-                                    MENU_SEPARATOR)
+from spyder.utils.qthelpers import (
+    add_actions, create_action, create_toolbutton, create_plugin_layout,
+    create_waitspinner, MENU_SEPARATOR)
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
@@ -163,10 +161,10 @@ class NamespaceBrowser(QWidget):
             self.tools_layout.addWidget(widget)
         self.tools_layout.addStretch()
 
-        # Loading widget (spinnig widget)
+        # Show loading widget
         self.loading_widget = create_waitspinner(size=16, parent=self)
         self.editor.sig_open_editor.connect(self.loading_widget.start)
-        self.editor.sig_show_editor.connect(self.loading_widget.stop)
+        self.editor.sig_editor_shown.connect(self.loading_widget.stop)
         self.tools_layout.addWidget(self.loading_widget)
 
         # Options button actions addition and addition to layout
