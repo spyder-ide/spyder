@@ -739,11 +739,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def _hide_loading_page(self):
         """Hide animation shown while the kernel is loading."""
-        if not self.is_error_shown:
-            self.infowidget.hide()
-            self.shellwidget.show()
-            self.info_page = self.blank_page
-            self.set_info_page()
+        self.infowidget.hide()
+        self.info_page = self.blank_page
+        self.set_info_page()
+        self.shellwidget.show()
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""
