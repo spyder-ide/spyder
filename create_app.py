@@ -98,7 +98,7 @@ PACKAGES = ['spyder', 'sphinx', 'jinja2', 'docutils', 'alabaster', 'babel',
 			'jupyter_client', 'jupyter_core', 'traitlets', 'qtconsole',
 			'pexpect', 'jedi', 'jsonschema', 'nbconvert', 'nbformat', 'qtpy',
 			'qtawesome', 'zmq', 'pygments', 'distutils', 'PyQt5', 'psutil',
-			'wrapt', 'lazy_object_proxy']
+			'wrapt', 'lazy_object_proxy', 'spyder_kernels', 'pyls']
 
 INCLUDES = get_stdlib_modules()
 EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
