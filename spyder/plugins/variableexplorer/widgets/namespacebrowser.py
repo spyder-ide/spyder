@@ -162,10 +162,15 @@ class NamespaceBrowser(QWidget):
         for widget in toolbar:
             self.tools_layout.addWidget(widget)
         self.tools_layout.addStretch()
-        self.setup_options_button()
 
+        # Loading widget (spinnig widget)
+        self.loading_widget = create_waitspinner(size=16, parent=self)
         self.editor.sig_open_editor.connect(self.loading_widget.start)
         self.editor.sig_show_editor.connect(self.loading_widget.stop)
+        self.tools_layout.addWidget(self.loading_widget)
+
+        # Options button actions addition and addition to layout
+        self.setup_options_button()
 
         # Setup layout.
 
@@ -268,11 +273,9 @@ class NamespaceBrowser(QWidget):
             icon=ima.icon('refresh'),
             triggered=lambda: self.refresh_table(interrupt=True))
 
-        self.loading_widget = create_waitspinner(size=16, parent=self)
-
         return [load_button, self.save_button, save_as_button,
                 reset_namespace_button, self.search_button,
-                self.refresh_button, self.loading_widget]
+                self.refresh_button]
 
     def setup_option_actions(self, exclude_private, exclude_uppercase,
                              exclude_capitalized, exclude_unsupported,
