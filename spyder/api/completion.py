@@ -9,7 +9,7 @@ spyder.api.completion
 =====================
 
 Here, 'completion' are Qt objects that provide code completion, introspection
-and workspace managment functions.
+and workspace management functions.
 """
 
 from qtpy.QtCore import QObject, Signal
