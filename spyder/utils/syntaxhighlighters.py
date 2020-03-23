@@ -54,34 +54,39 @@ DEFAULT_PATTERNS = {
     'url':
         r"https?://([\da-z\.-]+)\.([a-z\.]{2,6})([/\w\.-]*)[^ ^'^\"]+",
 }
+
 COLOR_SCHEME_KEYS = {
-                      "background":     _("Background:"),
-                      "currentline":    _("Current line:"),
-                      "currentcell":    _("Current cell:"),
-                      "occurrence":     _("Occurrence:"),
-                      "ctrlclick":      _("Link:"),
-                      "sideareas":      _("Side areas:"),
-                      "matched_p":      _("Matched <br>parens:"),
-                      "unmatched_p":    _("Unmatched <br>parens:"),
-                      "normal":         _("Normal text:"),
-                      "keyword":        _("Keyword:"),
-                      "builtin":        _("Builtin:"),
-                      "definition":     _("Definition:"),
-                      "comment":        _("Comment:"),
-                      "string":         _("String:"),
-                      "number":         _("Number:"),
-                      "instance":       _("Instance:"),
-                      }
+    "background":     _("Background:"),
+    "currentline":    _("Current line:"),
+    "currentcell":    _("Current cell:"),
+    "occurrence":     _("Occurrence:"),
+    "ctrlclick":      _("Link:"),
+    "sideareas":      _("Side areas:"),
+    "matched_p":      _("Matched <br>parens:"),
+    "unmatched_p":    _("Unmatched <br>parens:"),
+    "normal":         _("Normal text:"),
+    "keyword":        _("Keyword:"),
+    "builtin":        _("Builtin:"),
+    "definition":     _("Definition:"),
+    "comment":        _("Comment:"),
+    "string":         _("String:"),
+    "number":         _("Number:"),
+    "instance":       _("Instance:"),
+}
+
 COLOR_SCHEME_NAMES = CONF.get('appearance', 'names')
+
 # Mapping for file extensions that use Pygments highlighting but should use
 # different lexers than Pygments' autodetection suggests.  Keys are file
 # extensions or tuples of extensions, values are Pygments lexer names.
-CUSTOM_EXTENSION_LEXER = {'.ipynb': 'json',
-                          '.txt': 'text',
-                          '.nt': 'bat',
-                          '.m': 'matlab',
-                          ('.properties', '.session', '.inf', '.reg', '.url',
-                           '.cfg', '.cnf', '.aut', '.iss'): 'ini'}
+CUSTOM_EXTENSION_LEXER = {
+    '.ipynb': 'json',
+    '.nt': 'bat',
+    '.m': 'matlab',
+    ('.properties', '.session', '.inf', '.reg', '.url',
+     '.cfg', '.cnf', '.aut', '.iss'): 'ini'
+}
+
 # Convert custom extensions into a one-to-one mapping for easier lookup.
 custom_extension_lexer_mapping = {}
 for key, value in CUSTOM_EXTENSION_LEXER.items():
@@ -162,6 +167,8 @@ class BaseSH(QSyntaxHighlighter):
     BLANK_ALPHA_FACTOR = 0.31
 
     sig_outline_explorer_data_changed = Signal()
+    # Signal to advertise a new cell
+    sig_new_cell = Signal(OutlineExplorerData)
 
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
@@ -311,7 +318,8 @@ class BaseSH(QSyntaxHighlighter):
                     font = self.format(start)
                     font.setUnderlineStyle(True)
                     self.setFormat(start, end - start, font)
-            match = self.patterns.search(text, end)
+
+            match = self.patterns.search(text, match.end())
 
     def highlight_spaces(self, text, offset=0):
         """
@@ -538,6 +546,8 @@ class PythonSH(BaseSH):
                     oedata.def_type = OutlineExplorerData.CELL
                     def_name = get_code_cell_name(text)
                     oedata.def_name = def_name
+                    # Let the editor know a new cell was added in the document
+                    self.sig_new_cell.emit(oedata)
                 elif self.OECOMMENT.match(text.lstrip()):
                     oedata = OutlineExplorerData(self.currentBlock())
                     oedata.text = to_text_string(text).strip()
@@ -1219,7 +1229,7 @@ class MarkdownSH(BaseSH):
 # current native PythonSH syntax highlighter.
 
 class PygmentsSH(BaseSH):
-    """ Generic Pygments syntax highlighter """
+    """Generic Pygments syntax highlighter."""
     # Store the language name and a ref to the lexer
     _lang_name = None
     _lexer = None
@@ -1367,20 +1377,25 @@ class PythonLoggingLexer(RegexLexer):
 
 
 def guess_pygments_highlighter(filename):
-    """Factory to generate syntax highlighter for the given filename.
+    """
+    Factory to generate syntax highlighter for the given filename.
 
     If a syntax highlighter is not available for a particular file, this
-    function will attempt to generate one based on the lexers in Pygments.  If
+    function will attempt to generate one based on the lexers in Pygments. If
     Pygments is not available or does not have an appropriate lexer, TextSH
     will be returned instead.
-
     """
     try:
         from pygments.lexers import get_lexer_for_filename, get_lexer_by_name
     except Exception:
         return TextSH
+
     root, ext = os.path.splitext(filename)
-    if ext in custom_extension_lexer_mapping:
+    if ext == '.txt':
+        # Pygments assigns a lexer that doesn’t highlight anything to
+        # txt files. So we avoid that here.
+        return TextSH
+    elif ext in custom_extension_lexer_mapping:
         try:
             lexer = get_lexer_by_name(custom_extension_lexer_mapping[ext])
         except Exception:
@@ -1392,6 +1407,8 @@ def guess_pygments_highlighter(filename):
             lexer = get_lexer_for_filename(filename)
         except Exception:
             return TextSH
+
     class GuessedPygmentsSH(PygmentsSH):
         _lexer = lexer
+
     return GuessedPygmentsSH

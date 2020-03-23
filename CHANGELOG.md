@@ -1,11 +1,311 @@
 # History of changes
 
-## Version 4.0.1 (2020-01-02)
+## Version 4.1.1 (2020-03-18)
 
 ### New features
 
-* Remove password-based authentication to report error on Github.
-* Several performance improvements in the editor.
+* Add file path completions to the Editor. This works by writing the
+  beginning of a file path, either absolute or relative, inside a
+  string and pressing `Tab` or `Ctrl+Space` to get completions for
+  it.
+* Add a new command line option called `--report-segfault` to be
+  able to send segmentation fault reports to Github.
+
+### Important fixes
+
+* Fix a critical error when starting kernels on Windows.
+* Update Jedi to 0.15.2.
+* Add conda activation scripts for the kernel to the package.
+
+### Issues Closed
+
+* [Issue 11851](https://github.com/spyder-ide/spyder/issues/11851) - TimeoutError: Timeout while waiting for comm port ([PR 11853](https://github.com/spyder-ide/spyder/pull/11853) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 11819](https://github.com/spyder-ide/spyder/issues/11819) - Activation of kernel env fails when using anaconda shortcut (FileNotFound error kernel start 4.1.0) ([PR 11838](https://github.com/spyder-ide/spyder/pull/11838) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 11634](https://github.com/spyder-ide/spyder/issues/11634) - Error when importing CSV  file from  Variable tab  ([PR 11812](https://github.com/spyder-ide/spyder/pull/11812) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11150](https://github.com/spyder-ide/spyder/issues/11150) - Unable to load docstring into "Help" pane for functions with certain decorators ([PR 11809](https://github.com/spyder-ide/spyder/pull/11809) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 10536](https://github.com/spyder-ide/spyder/issues/10536) - Send segmentation fault reports to Github ([PR 10553](https://github.com/spyder-ide/spyder/pull/10553) by [@impact27](https://github.com/impact27))
+* [Issue 5519](https://github.com/spyder-ide/spyder/issues/5519) - Add path autocompletion to the Editor
+
+In this release 6 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 11854](https://github.com/spyder-ide/spyder/pull/11854) - PR: Update minimal required version for the PyLS, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11853](https://github.com/spyder-ide/spyder/pull/11853) - PR: Increase time to detect if kernel is alive and to receive the comm config, by [@ccordoba12](https://github.com/ccordoba12) ([11851](https://github.com/spyder-ide/spyder/issues/11851))
+* [PR 11841](https://github.com/spyder-ide/spyder/pull/11841) - PR: Install the right version of jupyter_client for Python 2 in our CIs, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11838](https://github.com/spyder-ide/spyder/pull/11838) - PR: Add conda activation scripts to the package, by [@ccordoba12](https://github.com/ccordoba12) ([11819](https://github.com/spyder-ide/spyder/issues/11819))
+* [PR 11812](https://github.com/spyder-ide/spyder/pull/11812) - PR: Fix validation for import as ndarray/array, by [@dalthviz](https://github.com/dalthviz) ([11634](https://github.com/spyder-ide/spyder/issues/11634))
+* [PR 11809](https://github.com/spyder-ide/spyder/pull/11809) - PR: Update Jedi requirement to 0.15.2, by [@ccordoba12](https://github.com/ccordoba12) ([11150](https://github.com/spyder-ide/spyder/issues/11150))
+* [PR 11807](https://github.com/spyder-ide/spyder/pull/11807) - PR: Restore rtree to the conda deps, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 10553](https://github.com/spyder-ide/spyder/pull/10553) - PR: Allow to report segmentation faults to Github, by [@impact27](https://github.com/impact27) ([10536](https://github.com/spyder-ide/spyder/issues/10536))
+
+In this release 8 pull requests were closed.
+
+
+----
+
+
+## Version 4.1.0 (2020-03-15)
+
+### New features
+
+* Several improvements to the interface and user experience of the Plots pane.
+* Show hidden files in Files and Project panes.
+* Allow automatic introduction of docstrings in the Sphinx format.
+* Implicitly create a project when Spyder is launched with a folder path as
+  argument in the command line
+* Activate conda environment prior to kernel start in the IPython console.
+* Re-add the ability to run IPython magics inside of cells.
+* Allow running PyQt applications multiple times.
+* Make adjustable the maximum number of recent projects in the Projects
+  menu.
+
+### Important fixes
+
+* Disable code folding and indent guides when files have more than 2000 lines
+  for performance reasons.
+* Critical performance improvements to the Editor and Files.
+* Several fixes to the autosave mechanism.
+* Preserve creation time when saving files.
+* Don't corrupt symlinks when saving files associated to them.
+* Improve the code completion experience in the Editor.
+* Start kernels in a thread to avoid freezing the entire interface.
+* Correctly update the debugging panel in the Editor when debugging in
+  multiple consoles.
+* Make the Code Analysis pane to read the nearest pylintrc file, according to
+  the hierarchy defined by Pylint.
+
+### Issues Closed
+
+* [Issue 11765](https://github.com/spyder-ide/spyder/issues/11765) - Highlighting does not work for terminal-style completions in the iPython console ([PR 11766](https://github.com/spyder-ide/spyder/pull/11766) by [@keepiru](https://github.com/keepiru))
+* [Issue 11731](https://github.com/spyder-ide/spyder/issues/11731) - Update translations for 4.1 ([PR 11772](https://github.com/spyder-ide/spyder/pull/11772) by [@spyder-bot](https://github.com/spyder-bot))
+* [Issue 11718](https://github.com/spyder-ide/spyder/issues/11718) - Symbolic and hard links "broken" when saving files ([PR 11722](https://github.com/spyder-ide/spyder/pull/11722) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11692](https://github.com/spyder-ide/spyder/issues/11692) - Crowdin translations are outdated ([PR 11711](https://github.com/spyder-ide/spyder/pull/11711) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 11671](https://github.com/spyder-ide/spyder/issues/11671) - No code folding at startup ([PR 11681](https://github.com/spyder-ide/spyder/pull/11681) by [@andfoy](https://github.com/andfoy))
+* [Issue 11652](https://github.com/spyder-ide/spyder/issues/11652) - Facing error when trying to open spyder tutorial ([PR 11762](https://github.com/spyder-ide/spyder/pull/11762) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11630](https://github.com/spyder-ide/spyder/issues/11630) - Cell shortcut remap not sticking on macOS ([PR 11661](https://github.com/spyder-ide/spyder/pull/11661) by [@steff456](https://github.com/steff456))
+* [Issue 11625](https://github.com/spyder-ide/spyder/issues/11625) - Code completion is added when indenting code ([PR 11650](https://github.com/spyder-ide/spyder/pull/11650) by [@andfoy](https://github.com/andfoy))
+* [Issue 11609](https://github.com/spyder-ide/spyder/issues/11609) - UnicodeEncodeError in save_autosave_mapping ([PR 11619](https://github.com/spyder-ide/spyder/pull/11619) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 11600](https://github.com/spyder-ide/spyder/issues/11600) - Auto-completion should not complete already complete words ([PR 11732](https://github.com/spyder-ide/spyder/pull/11732) by [@steff456](https://github.com/steff456))
+* [Issue 11597](https://github.com/spyder-ide/spyder/issues/11597) - Spyder not launching when Kite installation is faulty ([PR 11602](https://github.com/spyder-ide/spyder/pull/11602) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11596](https://github.com/spyder-ide/spyder/issues/11596) - Variable of npz file cannot be read if namespace has the same name ([PR 11628](https://github.com/spyder-ide/spyder/pull/11628) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11591](https://github.com/spyder-ide/spyder/issues/11591) - Options for different modes of documentation are not available when the Help Pane is undocked.  ([PR 11593](https://github.com/spyder-ide/spyder/pull/11593) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11586](https://github.com/spyder-ide/spyder/issues/11586) - spyder --defaults raises TypeError ([PR 11587](https://github.com/spyder-ide/spyder/pull/11587) by [@steff456](https://github.com/steff456))
+* [Issue 11579](https://github.com/spyder-ide/spyder/issues/11579) - Help is not displaying single-line docstrings ([PR 11672](https://github.com/spyder-ide/spyder/pull/11672) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11546](https://github.com/spyder-ide/spyder/issues/11546) - test_goto_uri hangs when not run from git repository ([PR 11547](https://github.com/spyder-ide/spyder/pull/11547) by [@bnavigator](https://github.com/bnavigator))
+* [Issue 11539](https://github.com/spyder-ide/spyder/issues/11539) - Unable to restart Spyder: FileNotFoundError - 'external-deps' ([PR 11541](https://github.com/spyder-ide/spyder/pull/11541) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 11532](https://github.com/spyder-ide/spyder/issues/11532) - Crash when trying to run a Python file in a project from the explorer pane - Spyder 4.0.1 ([PR 11533](https://github.com/spyder-ide/spyder/pull/11533) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11526](https://github.com/spyder-ide/spyder/issues/11526) - Autocomplete dict error ([PR 11592](https://github.com/spyder-ide/spyder/pull/11592) by [@andfoy](https://github.com/andfoy))
+* [Issue 11514](https://github.com/spyder-ide/spyder/issues/11514) - Error when changing the Python interpreter to Python 2 ([PR 11540](https://github.com/spyder-ide/spyder/pull/11540) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11503](https://github.com/spyder-ide/spyder/issues/11503) - "Maintain focus ..." option has no effect in Spyder4 ([PR 11554](https://github.com/spyder-ide/spyder/pull/11554) by [@steff456](https://github.com/steff456))
+* [Issue 11502](https://github.com/spyder-ide/spyder/issues/11502) - Unintuitive behavior: Mouse wheel scrolling in editor steals keyboard focus ([PR 11530](https://github.com/spyder-ide/spyder/pull/11530) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11497](https://github.com/spyder-ide/spyder/issues/11497) - Spyder 4 cannot launch when Kite is installed ([PR 11517](https://github.com/spyder-ide/spyder/pull/11517) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 11495](https://github.com/spyder-ide/spyder/issues/11495) - Flags are misaligned when scrolling if code is folded ([PR 11488](https://github.com/spyder-ide/spyder/pull/11488) by [@impact27](https://github.com/impact27))
+* [Issue 11493](https://github.com/spyder-ide/spyder/issues/11493) - Make fallback completions respect prefix ([PR 11531](https://github.com/spyder-ide/spyder/pull/11531) by [@andfoy](https://github.com/andfoy))
+* [Issue 11489](https://github.com/spyder-ide/spyder/issues/11489) - Copy file reference in variable explorer generates PicklingError ([PR 11574](https://github.com/spyder-ide/spyder/pull/11574) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11477](https://github.com/spyder-ide/spyder/issues/11477) - Imports hang after debugging (Spyder 4) ([PR 11479](https://github.com/spyder-ide/spyder/pull/11479) by [@impact27](https://github.com/impact27))
+* [Issue 11471](https://github.com/spyder-ide/spyder/issues/11471) - Cannot open objects in variable explorer ([PR 11549](https://github.com/spyder-ide/spyder/pull/11549) by [@impact27](https://github.com/impact27))
+* [Issue 11468](https://github.com/spyder-ide/spyder/issues/11468) - Another KeyError while autosaving ([PR 11647](https://github.com/spyder-ide/spyder/pull/11647) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 11464](https://github.com/spyder-ide/spyder/issues/11464) - Error when renaming file in the open files dialog  ([PR 11627](https://github.com/spyder-ide/spyder/pull/11627) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11455](https://github.com/spyder-ide/spyder/issues/11455) - Unable to delete multiple variables in Variable Explorer ([PR 11567](https://github.com/spyder-ide/spyder/pull/11567) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11435](https://github.com/spyder-ide/spyder/issues/11435) - Add sphinx/reStructuredText docstrings ([PR 11460](https://github.com/spyder-ide/spyder/pull/11460) by [@ok97465](https://github.com/ok97465))
+* [Issue 11417](https://github.com/spyder-ide/spyder/issues/11417) - Signature calltip doesn't work without automatic bracket completion (Kite example) ([PR 11422](https://github.com/spyder-ide/spyder/pull/11422) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11412](https://github.com/spyder-ide/spyder/issues/11412) - Spyder 4.0.1 editing *really* laggy ([PR 11488](https://github.com/spyder-ide/spyder/pull/11488) by [@impact27](https://github.com/impact27))
+* [Issue 11406](https://github.com/spyder-ide/spyder/issues/11406) - Kernel dies silently and doesn't restart properly. ([PR 11192](https://github.com/spyder-ide/spyder/pull/11192) by [@impact27](https://github.com/impact27))
+* [Issue 11403](https://github.com/spyder-ide/spyder/issues/11403) - Spyder 4 is not preserving files creation time ([PR 11443](https://github.com/spyder-ide/spyder/pull/11443) by [@andfoy](https://github.com/andfoy))
+* [Issue 11399](https://github.com/spyder-ide/spyder/issues/11399) - Snippets do not display when the text starts by underscore ([PR 11400](https://github.com/spyder-ide/spyder/pull/11400) by [@andfoy](https://github.com/andfoy))
+* [Issue 11376](https://github.com/spyder-ide/spyder/issues/11376) - Infinite loop when "gl-N" (with a single digit) appears in multiline docstring ([PR 11378](https://github.com/spyder-ide/spyder/pull/11378) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 11375](https://github.com/spyder-ide/spyder/issues/11375) - Corrupt autosave files don't get reset ([PR 11608](https://github.com/spyder-ide/spyder/pull/11608) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 11370](https://github.com/spyder-ide/spyder/issues/11370) - Issue reporter due to disconnected network drive after wakeup ([PR 11473](https://github.com/spyder-ide/spyder/pull/11473) by [@andfoy](https://github.com/andfoy))
+* [Issue 11363](https://github.com/spyder-ide/spyder/issues/11363) - Implicitly create project when launched with a folder path as argument ([PR 11416](https://github.com/spyder-ide/spyder/pull/11416) by [@akdor1154](https://github.com/akdor1154))
+* [Issue 11358](https://github.com/spyder-ide/spyder/issues/11358) - Don't restart automatically Spyder when a monitor scale change is detected ([PR 11359](https://github.com/spyder-ide/spyder/pull/11359) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11355](https://github.com/spyder-ide/spyder/issues/11355) - Editor: wrong tooltip position when undocking ([PR 11361](https://github.com/spyder-ide/spyder/pull/11361) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11351](https://github.com/spyder-ide/spyder/issues/11351) - Spyder showing Kite: unsupported on status bar ([PR 11449](https://github.com/spyder-ide/spyder/pull/11449) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11348](https://github.com/spyder-ide/spyder/issues/11348) - Renaming a python file in the file explorer causes an error ([PR 11505](https://github.com/spyder-ide/spyder/pull/11505) by [@jitseniesen](https://github.com/jitseniesen))
+* [Issue 11346](https://github.com/spyder-ide/spyder/issues/11346) - Don't show "No documentation available" tooltip on hover ([PR 11377](https://github.com/spyder-ide/spyder/pull/11377) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 11331](https://github.com/spyder-ide/spyder/issues/11331) - Numpy arrays not writable ([PR 11555](https://github.com/spyder-ide/spyder/pull/11555) by [@steff456](https://github.com/steff456))
+* [Issue 11318](https://github.com/spyder-ide/spyder/issues/11318) - Add external plugins to dependencies ([PR 11364](https://github.com/spyder-ide/spyder/pull/11364) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 11308](https://github.com/spyder-ide/spyder/issues/11308) - Spyder 4.0.1: Error when saving file to network drive (but saving worked) ([PR 11465](https://github.com/spyder-ide/spyder/pull/11465) by [@andfoy](https://github.com/andfoy))
+* [Issue 11293](https://github.com/spyder-ide/spyder/issues/11293) - AltGr closes completion widget ([PR 11321](https://github.com/spyder-ide/spyder/pull/11321) by [@MaxGyver83](https://github.com/MaxGyver83))
+* [Issue 11291](https://github.com/spyder-ide/spyder/issues/11291) - KeyError in folding when deleting a line ([PR 11310](https://github.com/spyder-ide/spyder/pull/11310) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 11267](https://github.com/spyder-ide/spyder/issues/11267) - Improvements to the Help panel ([PR 11272](https://github.com/spyder-ide/spyder/pull/11272) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11258](https://github.com/spyder-ide/spyder/issues/11258) - Replace text is always enabled even for read-only plugins. ([PR 11259](https://github.com/spyder-ide/spyder/pull/11259) by [@jnsebgosselin](https://github.com/jnsebgosselin))
+* [Issue 11247](https://github.com/spyder-ide/spyder/issues/11247) - Opening a folder with a lot of binary files freezes Spyder ([PR 11248](https://github.com/spyder-ide/spyder/pull/11248) by [@impact27](https://github.com/impact27))
+* [Issue 11244](https://github.com/spyder-ide/spyder/issues/11244) - Tooltip doesn't disappear if generated on first line of editor ([PR 11271](https://github.com/spyder-ide/spyder/pull/11271) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11240](https://github.com/spyder-ide/spyder/issues/11240) - Spyder crashes at startup after setting custom high DPI scaling at less than 1.0 ([PR 11254](https://github.com/spyder-ide/spyder/pull/11254) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11237](https://github.com/spyder-ide/spyder/issues/11237) - code autocomplete inserts extra characters ([PR 11400](https://github.com/spyder-ide/spyder/pull/11400) by [@andfoy](https://github.com/andfoy))
+* [Issue 11228](https://github.com/spyder-ide/spyder/issues/11228) - TypeError when disconnecting sig_display_object_info signal ([PR 11241](https://github.com/spyder-ide/spyder/pull/11241) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11227](https://github.com/spyder-ide/spyder/issues/11227) - set_options_opengl is called too late ([PR 11585](https://github.com/spyder-ide/spyder/pull/11585) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 11226](https://github.com/spyder-ide/spyder/issues/11226) - AttributeError in dockwidgets tabbar ([PR 11239](https://github.com/spyder-ide/spyder/pull/11239) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11222](https://github.com/spyder-ide/spyder/issues/11222) - PyLS freezes spyder ([PR 11223](https://github.com/spyder-ide/spyder/pull/11223) by [@impact27](https://github.com/impact27))
+* [Issue 11217](https://github.com/spyder-ide/spyder/issues/11217) - Extra closing parenthesis added after new line ([PR 11256](https://github.com/spyder-ide/spyder/pull/11256) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11216](https://github.com/spyder-ide/spyder/issues/11216) - Loadmat internal error in variable explorer ([PR 11238](https://github.com/spyder-ide/spyder/pull/11238) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11148](https://github.com/spyder-ide/spyder/issues/11148) - Commenting lines that include the first one in a file freezes Spyder ([PR 11212](https://github.com/spyder-ide/spyder/pull/11212) by [@impact27](https://github.com/impact27))
+* [Issue 11137](https://github.com/spyder-ide/spyder/issues/11137) - TimeoutError when running cells after a kernel restart ([PR 11192](https://github.com/spyder-ide/spyder/pull/11192) by [@impact27](https://github.com/impact27))
+* [Issue 11129](https://github.com/spyder-ide/spyder/issues/11129) - Variable explorer shows DatetimeIndex with numpy datetime64 format instead of timestamp ([PR 11210](https://github.com/spyder-ide/spyder/pull/11210) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11128](https://github.com/spyder-ide/spyder/issues/11128) - Indentation level is not reset when writing a comment after indent within a long instruction ([PR 11334](https://github.com/spyder-ide/spyder/pull/11334) by [@impact27](https://github.com/impact27))
+* [Issue 11092](https://github.com/spyder-ide/spyder/issues/11092) - Copy line and duplicate line shortcuts are confusing ([PR 11122](https://github.com/spyder-ide/spyder/pull/11122) by [@jnsebgosselin](https://github.com/jnsebgosselin))
+* [Issue 11082](https://github.com/spyder-ide/spyder/issues/11082) - Hitting esc requests code completions ([PR 11328](https://github.com/spyder-ide/spyder/pull/11328) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 11061](https://github.com/spyder-ide/spyder/issues/11061) - IPython magics no longer work in Spyder 4 ([PR 11103](https://github.com/spyder-ide/spyder/pull/11103) by [@impact27](https://github.com/impact27))
+* [Issue 11024](https://github.com/spyder-ide/spyder/issues/11024) - Spyder 4.0.0 gives an error when restarting it in Python 2.7 ([PR 11219](https://github.com/spyder-ide/spyder/pull/11219) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11023](https://github.com/spyder-ide/spyder/issues/11023) - Unexpected indent when running a single cell
+* [Issue 11021](https://github.com/spyder-ide/spyder/issues/11021) - Autocomplete triggered by Ctrl + Enter ([PR 11745](https://github.com/spyder-ide/spyder/pull/11745) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 11001](https://github.com/spyder-ide/spyder/issues/11001) - KeyError when removing variables in the Variable Explorer ([PR 11567](https://github.com/spyder-ide/spyder/pull/11567) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 10971](https://github.com/spyder-ide/spyder/issues/10971) - Crashing in kite_tutorial.py ([PR 11287](https://github.com/spyder-ide/spyder/pull/11287) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 10911](https://github.com/spyder-ide/spyder/issues/10911) - Change theme settings in external plugins is not possible ([PR 11389](https://github.com/spyder-ide/spyder/pull/11389) by [@steff456](https://github.com/steff456))
+* [Issue 10883](https://github.com/spyder-ide/spyder/issues/10883) - Show hidden files in the project explorer ([PR 11545](https://github.com/spyder-ide/spyder/pull/11545) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 10864](https://github.com/spyder-ide/spyder/issues/10864) - Date/time-based filename (when saving) for figures on Plots pane ([PR 11690](https://github.com/spyder-ide/spyder/pull/11690) by [@jnsebgosselin](https://github.com/jnsebgosselin))
+* [Issue 10863](https://github.com/spyder-ide/spyder/issues/10863) - Plots should remember last saved path ([PR 11670](https://github.com/spyder-ide/spyder/pull/11670) by [@jnsebgosselin](https://github.com/jnsebgosselin))
+* [Issue 10798](https://github.com/spyder-ide/spyder/issues/10798) - Completions sometimes insert extraneous text ([PR 11437](https://github.com/spyder-ide/spyder/pull/11437) by [@ok97465](https://github.com/ok97465))
+* [Issue 10785](https://github.com/spyder-ide/spyder/issues/10785) - Can't change dir to network drive in console ([PR 11393](https://github.com/spyder-ide/spyder/pull/11393) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 10745](https://github.com/spyder-ide/spyder/issues/10745) - Variable explorer viewers too small on high DPI ([PR 10976](https://github.com/spyder-ide/spyder/pull/10976) by [@jsh9](https://github.com/jsh9))
+* [Issue 10704](https://github.com/spyder-ide/spyder/issues/10704) - Segmentation fault when closing an undocked plugin ([PR 11472](https://github.com/spyder-ide/spyder/pull/11472) by [@impact27](https://github.com/impact27))
+* [Issue 10657](https://github.com/spyder-ide/spyder/issues/10657) - Saving a protected file hangs Spyder ([PR 11764](https://github.com/spyder-ide/spyder/pull/11764) by [@steff456](https://github.com/steff456))
+* [Issue 10640](https://github.com/spyder-ide/spyder/issues/10640) - Increase or make adjustable the maximum number of Recent Projects ([PR 10801](https://github.com/spyder-ide/spyder/pull/10801) by [@juanis2112](https://github.com/juanis2112))
+* [Issue 10627](https://github.com/spyder-ide/spyder/issues/10627) - Variable explorer shortcuts not updated after configuration change ([PR 11441](https://github.com/spyder-ide/spyder/pull/11441) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 10538](https://github.com/spyder-ide/spyder/issues/10538) - Debugging improvements ([PR 10610](https://github.com/spyder-ide/spyder/pull/10610) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 9888](https://github.com/spyder-ide/spyder/issues/9888) - Missing space when rendering NumPy docstrings ([PR 11270](https://github.com/spyder-ide/spyder/pull/11270) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 9367](https://github.com/spyder-ide/spyder/issues/9367) - Some issues with the Plot viewer ([PR 11576](https://github.com/spyder-ide/spyder/pull/11576) by [@jnsebgosselin](https://github.com/jnsebgosselin))
+* [Issue 9077](https://github.com/spyder-ide/spyder/issues/9077) - Compiled modules of non-default interpreters fail to import on Windows ([PR 11327](https://github.com/spyder-ide/spyder/pull/11327) by [@goanpeca](https://github.com/goanpeca))
+* [Issue 7699](https://github.com/spyder-ide/spyder/issues/7699) - Unusual characters break help ([PR 11332](https://github.com/spyder-ide/spyder/pull/11332) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 6695](https://github.com/spyder-ide/spyder/issues/6695) - Cannot plot local varibles in variable explorer when debugging
+* [Issue 6181](https://github.com/spyder-ide/spyder/issues/6181) - Code completion window too small on high resolution screens ([PR 11322](https://github.com/spyder-ide/spyder/pull/11322) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 5345](https://github.com/spyder-ide/spyder/issues/5345) - Static Code Analysis Not Reading .pylintrc file ([PR 11708](https://github.com/spyder-ide/spyder/pull/11708) by [@CAM-Gerlach](https://github.com/CAM-Gerlach))
+* [Issue 2970](https://github.com/spyder-ide/spyder/issues/2970) - PyQt code cannot run twice
+* [Issue 1918](https://github.com/spyder-ide/spyder/issues/1918) - `__file__` continues in namespace after runfile if ctrl-c
+
+In this release 96 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 11801](https://github.com/spyder-ide/spyder/pull/11801) - PR: Disable Polish translation, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11800](https://github.com/spyder-ide/spyder/pull/11800) - PR: Update version constraints for spyder-kernels, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11793](https://github.com/spyder-ide/spyder/pull/11793) - PR: Update spyder-kernels subrepo, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11772](https://github.com/spyder-ide/spyder/pull/11772) - PR: Update translations, by [@spyder-bot](https://github.com/spyder-bot) ([11731](https://github.com/spyder-ide/spyder/issues/11731))
+* [PR 11770](https://github.com/spyder-ide/spyder/pull/11770) - PR: Remove line wrap from po files, by [@goanpeca](https://github.com/goanpeca)
+* [PR 11766](https://github.com/spyder-ide/spyder/pull/11766) - PR: Fix broken completions highlighting in the IPython console, by [@keepiru](https://github.com/keepiru) ([11765](https://github.com/spyder-ide/spyder/issues/11765))
+* [PR 11764](https://github.com/spyder-ide/spyder/pull/11764) - PR: Fix saving protected files on Windows by checking if they are read-only, by [@steff456](https://github.com/steff456) ([10657](https://github.com/spyder-ide/spyder/issues/10657))
+* [PR 11762](https://github.com/spyder-ide/spyder/pull/11762) - PR: Use the same temp base dir for Sphinx config, src and build paths, by [@dalthviz](https://github.com/dalthviz) ([11652](https://github.com/spyder-ide/spyder/issues/11652))
+* [PR 11755](https://github.com/spyder-ide/spyder/pull/11755) - PR: Some improvements to fallback completions, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11746](https://github.com/spyder-ide/spyder/pull/11746) - PR: Fix highlighting based on Pygments, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11745](https://github.com/spyder-ide/spyder/pull/11745) - PR: Only ask for completions when text is generated after pressing a key in the Editor, by [@ccordoba12](https://github.com/ccordoba12) ([11021](https://github.com/spyder-ide/spyder/issues/11021))
+* [PR 11739](https://github.com/spyder-ide/spyder/pull/11739) - PR: Add API entry for translation utilities, by [@goanpeca](https://github.com/goanpeca)
+* [PR 11732](https://github.com/spyder-ide/spyder/pull/11732) - PR: Do not include complete words as part of completion suggestions, by [@steff456](https://github.com/steff456) ([11600](https://github.com/spyder-ide/spyder/issues/11600))
+* [PR 11722](https://github.com/spyder-ide/spyder/pull/11722) - PR: Use resolved path (without symlinks) to save files, by [@dalthviz](https://github.com/dalthviz) ([11718](https://github.com/spyder-ide/spyder/issues/11718))
+* [PR 11715](https://github.com/spyder-ide/spyder/pull/11715) - PR: Disable code folding when files are too long and add an option to disable code folding, by [@andfoy](https://github.com/andfoy)
+* [PR 11714](https://github.com/spyder-ide/spyder/pull/11714) - PR: Fix issues with autocompletion characters and prevent whitespace from triggering completions, by [@andfoy](https://github.com/andfoy)
+* [PR 11713](https://github.com/spyder-ide/spyder/pull/11713) - PR: Fix translations, by [@goanpeca](https://github.com/goanpeca)
+* [PR 11711](https://github.com/spyder-ide/spyder/pull/11711) - PR: Update translation files, by [@goanpeca](https://github.com/goanpeca) ([11692](https://github.com/spyder-ide/spyder/issues/11692))
+* [PR 11708](https://github.com/spyder-ide/spyder/pull/11708) - PR: Make pylint plugin find most local .pylintrc to given file and set cwd correctly, by [@CAM-Gerlach](https://github.com/CAM-Gerlach) ([5345](https://github.com/spyder-ide/spyder/issues/5345))
+* [PR 11690](https://github.com/spyder-ide/spyder/pull/11690) - PR: Date/time-based filename (when saving) figures in Plots pane, by [@jnsebgosselin](https://github.com/jnsebgosselin) ([10864](https://github.com/spyder-ide/spyder/issues/10864))
+* [PR 11684](https://github.com/spyder-ide/spyder/pull/11684) - PR: Give focus to Plots pane when switching to it by shortcut if it's visible, by [@ok97465](https://github.com/ok97465)
+* [PR 11681](https://github.com/spyder-ide/spyder/pull/11681) - PR: Prevent code folding from not being called on startup, by [@andfoy](https://github.com/andfoy) ([11671](https://github.com/spyder-ide/spyder/issues/11671))
+* [PR 11672](https://github.com/spyder-ide/spyder/pull/11672) - PR: Fix hover endpoint for Kite on Windows and allow docs without signature in Help, by [@dalthviz](https://github.com/dalthviz) ([11579](https://github.com/spyder-ide/spyder/issues/11579))
+* [PR 11670](https://github.com/spyder-ide/spyder/pull/11670) - PR: Remember last saved path in Plots pane, by [@jnsebgosselin](https://github.com/jnsebgosselin) ([10863](https://github.com/spyder-ide/spyder/issues/10863))
+* [PR 11664](https://github.com/spyder-ide/spyder/pull/11664) - PR: Remove highlight on key release event, by [@goanpeca](https://github.com/goanpeca)
+* [PR 11661](https://github.com/spyder-ide/spyder/pull/11661) - PR: Use register_shortcut for a successful remap of cell shortcuts, by [@steff456](https://github.com/steff456) ([11630](https://github.com/spyder-ide/spyder/issues/11630))
+* [PR 11656](https://github.com/spyder-ide/spyder/pull/11656) - PR: Fix test_conda_env_activation, by [@goanpeca](https://github.com/goanpeca)
+* [PR 11650](https://github.com/spyder-ide/spyder/pull/11650) - PR: Prevent Tab/Backtab from triggering completions, by [@andfoy](https://github.com/andfoy) ([11625](https://github.com/spyder-ide/spyder/issues/11625))
+* [PR 11647](https://github.com/spyder-ide/spyder/pull/11647) - PR: Fix KeyError on autosave, by [@jitseniesen](https://github.com/jitseniesen) ([11468](https://github.com/spyder-ide/spyder/issues/11468))
+* [PR 11628](https://github.com/spyder-ide/spyder/pull/11628) - PR: Handle loading data from NpzFile instances and add an override flag to the load, by [@dalthviz](https://github.com/dalthviz) ([11596](https://github.com/spyder-ide/spyder/issues/11596))
+* [PR 11627](https://github.com/spyder-ide/spyder/pull/11627) - PR: Validation for tab indexes when refreshing the Editor, by [@dalthviz](https://github.com/dalthviz) ([11464](https://github.com/spyder-ide/spyder/issues/11464))
+* [PR 11626](https://github.com/spyder-ide/spyder/pull/11626) - PR: Skip some tests that are failing or timing out too much, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11619](https://github.com/spyder-ide/spyder/pull/11619) - PR: Convert autosave mapping to ASCII before saving, by [@jitseniesen](https://github.com/jitseniesen) ([11609](https://github.com/spyder-ide/spyder/issues/11609))
+* [PR 11608](https://github.com/spyder-ide/spyder/pull/11608) - PR: Handle corrupted pid files in autosave component, by [@jitseniesen](https://github.com/jitseniesen) ([11375](https://github.com/spyder-ide/spyder/issues/11375))
+* [PR 11602](https://github.com/spyder-ide/spyder/pull/11602) - PR: Add handling for faulty Kite installations, by [@dalthviz](https://github.com/dalthviz) ([11597](https://github.com/spyder-ide/spyder/issues/11597))
+* [PR 11593](https://github.com/spyder-ide/spyder/pull/11593) - PR: Ensure Help pane actions are enabled after being undocked, by [@dalthviz](https://github.com/dalthviz) ([11591](https://github.com/spyder-ide/spyder/issues/11591))
+* [PR 11592](https://github.com/spyder-ide/spyder/pull/11592) - PR: Handle TextEdit correctly when receiving completions, by [@andfoy](https://github.com/andfoy) ([11526](https://github.com/spyder-ide/spyder/issues/11526))
+* [PR 11590](https://github.com/spyder-ide/spyder/pull/11590) - PR: Fix running tests locally from file, by [@jnsebgosselin](https://github.com/jnsebgosselin)
+* [PR 11587](https://github.com/spyder-ide/spyder/pull/11587) - PR: Fix TypeError in `spyder --defaults`, by [@steff456](https://github.com/steff456) ([11586](https://github.com/spyder-ide/spyder/issues/11586))
+* [PR 11585](https://github.com/spyder-ide/spyder/pull/11585) - PR: Set OpenGL backend before the QApplication is created, by [@ccordoba12](https://github.com/ccordoba12) ([11227](https://github.com/spyder-ide/spyder/issues/11227))
+* [PR 11576](https://github.com/spyder-ide/spyder/pull/11576) - PR: UX and UI Improvements to the Plots pane, by [@jnsebgosselin](https://github.com/jnsebgosselin) ([9367](https://github.com/spyder-ide/spyder/issues/9367))
+* [PR 11574](https://github.com/spyder-ide/spyder/pull/11574) - PR: Add handling for PicklingError when getting values from the kernel, by [@dalthviz](https://github.com/dalthviz) ([11489](https://github.com/spyder-ide/spyder/issues/11489))
+* [PR 11567](https://github.com/spyder-ide/spyder/pull/11567) - PR: Reset source model from parent after setting data (Variable explorer), by [@dalthviz](https://github.com/dalthviz) ([11455](https://github.com/spyder-ide/spyder/issues/11455), [11001](https://github.com/spyder-ide/spyder/issues/11001))
+* [PR 11555](https://github.com/spyder-ide/spyder/pull/11555) - PR: Change variable explorer title for NumPy object arrays, by [@steff456](https://github.com/steff456) ([11331](https://github.com/spyder-ide/spyder/issues/11331))
+* [PR 11554](https://github.com/spyder-ide/spyder/pull/11554) - PR: Fix focus to the editor given the focus_to_editor option, by [@steff456](https://github.com/steff456) ([11503](https://github.com/spyder-ide/spyder/issues/11503))
+* [PR 11549](https://github.com/spyder-ide/spyder/pull/11549) - PR: Remove usage of load_exception in KernelComm and fix importing spyder-kernels subrepo, by [@impact27](https://github.com/impact27) ([11471](https://github.com/spyder-ide/spyder/issues/11471))
+* [PR 11548](https://github.com/spyder-ide/spyder/pull/11548) - PR: Only run git tests when in a git repo, by [@bnavigator](https://github.com/bnavigator)
+* [PR 11547](https://github.com/spyder-ide/spyder/pull/11547) - PR: Fix hanging test when not in git repository, by [@bnavigator](https://github.com/bnavigator) ([11546](https://github.com/spyder-ide/spyder/issues/11546))
+* [PR 11545](https://github.com/spyder-ide/spyder/pull/11545) - PR: Show hidden files in explorer and project explorer, by [@goanpeca](https://github.com/goanpeca) ([10883](https://github.com/spyder-ide/spyder/issues/10883))
+* [PR 11544](https://github.com/spyder-ide/spyder/pull/11544) - PR: Add debug calls for 3rd party plugin loading, by [@goanpeca](https://github.com/goanpeca)
+* [PR 11541](https://github.com/spyder-ide/spyder/pull/11541) - PR: Fix restarting Spyder when it was started using bootstrap.py, by [@ccordoba12](https://github.com/ccordoba12) ([11539](https://github.com/spyder-ide/spyder/issues/11539))
+* [PR 11540](https://github.com/spyder-ide/spyder/pull/11540) - PR: Update Chinese translation text to use the correct % character, by [@dalthviz](https://github.com/dalthviz) ([11514](https://github.com/spyder-ide/spyder/issues/11514))
+* [PR 11533](https://github.com/spyder-ide/spyder/pull/11533) - PR: Add console_namespace positional arg (set to False) when calling Run in an Explorer widget, by [@dalthviz](https://github.com/dalthviz) ([11532](https://github.com/spyder-ide/spyder/issues/11532))
+* [PR 11531](https://github.com/spyder-ide/spyder/pull/11531) - PR: Prevent fallback to output completions when the prefix is invalid, by [@andfoy](https://github.com/andfoy) ([11493](https://github.com/spyder-ide/spyder/issues/11493))
+* [PR 11530](https://github.com/spyder-ide/spyder/pull/11530) - PR: Prevent editor stealing focus of other widgets while scrolling, by [@dalthviz](https://github.com/dalthviz) ([11502](https://github.com/spyder-ide/spyder/issues/11502))
+* [PR 11517](https://github.com/spyder-ide/spyder/pull/11517) - PR: Update psutil dependency constraint and add checks for dependency integrity, by [@goanpeca](https://github.com/goanpeca) ([11497](https://github.com/spyder-ide/spyder/issues/11497))
+* [PR 11505](https://github.com/spyder-ide/spyder/pull/11505) - PR: Handle file renamed in the explorer correctly in the editor, by [@jitseniesen](https://github.com/jitseniesen) ([11348](https://github.com/spyder-ide/spyder/issues/11348))
+* [PR 11498](https://github.com/spyder-ide/spyder/pull/11498) - PR: Add Polish translation, by [@wojnilowicz](https://github.com/wojnilowicz)
+* [PR 11488](https://github.com/spyder-ide/spyder/pull/11488) - PR: Optimise keyPressEvent in the editor, by [@impact27](https://github.com/impact27) ([11495](https://github.com/spyder-ide/spyder/issues/11495), [11412](https://github.com/spyder-ide/spyder/issues/11412))
+* [PR 11479](https://github.com/spyder-ide/spyder/pull/11479) - PR: Fix errors when restarting the kernel while in debugging, by [@impact27](https://github.com/impact27) ([11477](https://github.com/spyder-ide/spyder/issues/11477))
+* [PR 11478](https://github.com/spyder-ide/spyder/pull/11478) - PR: Improve formatting of Contributing guide, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11476](https://github.com/spyder-ide/spyder/pull/11476) - PR: Pin parso to 0.5.2 because version 0.6.0 is incompatible with Jedi 0.14, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11473](https://github.com/spyder-ide/spyder/pull/11473) - PR: Monkeypatch watchdog's main dispatcher to prevent network failures, by [@andfoy](https://github.com/andfoy) ([11370](https://github.com/spyder-ide/spyder/issues/11370))
+* [PR 11472](https://github.com/spyder-ide/spyder/pull/11472) - PR: Avoid Python destroying Qt window and causing segfault, by [@impact27](https://github.com/impact27) ([10704](https://github.com/spyder-ide/spyder/issues/10704))
+* [PR 11465](https://github.com/spyder-ide/spyder/pull/11465) - PR: Prevent operation not permitted errors when writing to samba shares, by [@andfoy](https://github.com/andfoy) ([11308](https://github.com/spyder-ide/spyder/issues/11308))
+* [PR 11462](https://github.com/spyder-ide/spyder/pull/11462) - PR: Add debug logger calls for dragEnterEvent in the Editor, by [@dalthviz](https://github.com/dalthviz)
+* [PR 11460](https://github.com/spyder-ide/spyder/pull/11460) - PR: Add automatic introduction of docstrings in Sphinx format, by [@ok97465](https://github.com/ok97465) ([11435](https://github.com/spyder-ide/spyder/issues/11435))
+* [PR 11449](https://github.com/spyder-ide/spyder/pull/11449) - PR: Encode url parameters before sending requests to Kite, by [@dalthviz](https://github.com/dalthviz) ([11351](https://github.com/spyder-ide/spyder/issues/11351))
+* [PR 11443](https://github.com/spyder-ide/spyder/pull/11443) - PR: Preserve creation time when performing an atomic_write, by [@andfoy](https://github.com/andfoy) ([11403](https://github.com/spyder-ide/spyder/issues/11403))
+* [PR 11441](https://github.com/spyder-ide/spyder/pull/11441) - PR: Properly register shortcuts for some actions of the Variable Explorer, by [@dalthviz](https://github.com/dalthviz) ([10627](https://github.com/spyder-ide/spyder/issues/10627))
+* [PR 11437](https://github.com/spyder-ide/spyder/pull/11437) - PR: Display the latest result of requested completions, by [@ok97465](https://github.com/ok97465) ([10798](https://github.com/spyder-ide/spyder/issues/10798))
+* [PR 11422](https://github.com/spyder-ide/spyder/pull/11422) - PR: Enable signature request without automatic bracket completion, by [@dalthviz](https://github.com/dalthviz) ([11417](https://github.com/spyder-ide/spyder/issues/11417))
+* [PR 11416](https://github.com/spyder-ide/spyder/pull/11416) - PR: Interpret -p project argument relative to the directory of invocation, by [@akdor1154](https://github.com/akdor1154) ([11363](https://github.com/spyder-ide/spyder/issues/11363))
+* [PR 11415](https://github.com/spyder-ide/spyder/pull/11415) - PR: Fix some spelling errors, by [@hjung4](https://github.com/hjung4)
+* [PR 11400](https://github.com/spyder-ide/spyder/pull/11400) - PR: Prevent underscore prefixed snippets to be omitted, by [@andfoy](https://github.com/andfoy) ([11399](https://github.com/spyder-ide/spyder/issues/11399), [11237](https://github.com/spyder-ide/spyder/issues/11237))
+* [PR 11395](https://github.com/spyder-ide/spyder/pull/11395) - PR: Handle screen change to trigger restart and prevent display issues, by [@dalthviz](https://github.com/dalthviz)
+* [PR 11393](https://github.com/spyder-ide/spyder/pull/11393) - PR: Use normpath to set network folders as cwd on Windows, by [@dalthviz](https://github.com/dalthviz) ([10785](https://github.com/spyder-ide/spyder/issues/10785))
+* [PR 11389](https://github.com/spyder-ide/spyder/pull/11389) - PR: Add support for third party plugins to react to color scheme changes, by [@steff456](https://github.com/steff456) ([10911](https://github.com/spyder-ide/spyder/issues/10911))
+* [PR 11378](https://github.com/spyder-ide/spyder/pull/11378) - PR: Fix infinite loop with issue shorthand within comments, by [@goanpeca](https://github.com/goanpeca) ([11376](https://github.com/spyder-ide/spyder/issues/11376))
+* [PR 11377](https://github.com/spyder-ide/spyder/pull/11377) - PR: Add check to prevent hover with no docs, by [@goanpeca](https://github.com/goanpeca) ([11346](https://github.com/spyder-ide/spyder/issues/11346))
+* [PR 11364](https://github.com/spyder-ide/spyder/pull/11364) - PR: Include plugins in dependencies dialog, by [@goanpeca](https://github.com/goanpeca) ([11318](https://github.com/spyder-ide/spyder/issues/11318))
+* [PR 11361](https://github.com/spyder-ide/spyder/pull/11361) - PR: Fix tooltip position after the editor is undocked, by [@dalthviz](https://github.com/dalthviz) ([11355](https://github.com/spyder-ide/spyder/issues/11355))
+* [PR 11359](https://github.com/spyder-ide/spyder/pull/11359) - PR: Make scale restart optional, by [@dalthviz](https://github.com/dalthviz) ([11358](https://github.com/spyder-ide/spyder/issues/11358))
+* [PR 11350](https://github.com/spyder-ide/spyder/pull/11350) - PR: Add a git subrepo for spyder-kernels, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11334](https://github.com/spyder-ide/spyder/pull/11334) - PR: Fix several indentation cases, by [@impact27](https://github.com/impact27) ([11128](https://github.com/spyder-ide/spyder/issues/11128))
+* [PR 11332](https://github.com/spyder-ide/spyder/pull/11332) - PR: Get current word to inspect current object from the IPython console, by [@dalthviz](https://github.com/dalthviz) ([7699](https://github.com/spyder-ide/spyder/issues/7699))
+* [PR 11329](https://github.com/spyder-ide/spyder/pull/11329) - PR: Remove "The send queue is full! Retrying..." when LSP is not initialised, by [@impact27](https://github.com/impact27)
+* [PR 11328](https://github.com/spyder-ide/spyder/pull/11328) - PR: Add escape key to completion ignore keys, by [@goanpeca](https://github.com/goanpeca) ([11082](https://github.com/spyder-ide/spyder/issues/11082))
+* [PR 11327](https://github.com/spyder-ide/spyder/pull/11327) - PR: Activate conda environment prior to kernel start, by [@goanpeca](https://github.com/goanpeca) ([9077](https://github.com/spyder-ide/spyder/issues/9077), [89](https://github.com/spyder-ide/spyder-kernels/issues/89))
+* [PR 11322](https://github.com/spyder-ide/spyder/pull/11322) - PR: Add a restart message when a monitor scale change is detected, by [@dalthviz](https://github.com/dalthviz) ([6181](https://github.com/spyder-ide/spyder/issues/6181))
+* [PR 11321](https://github.com/spyder-ide/spyder/pull/11321) - PR: Don't close autocompletion menu when AltGr is pressed, by [@MaxGyver83](https://github.com/MaxGyver83) ([11293](https://github.com/spyder-ide/spyder/issues/11293))
+* [PR 11317](https://github.com/spyder-ide/spyder/pull/11317) - PR: Finalise kernel shutdown in a thread, by [@impact27](https://github.com/impact27) ([197](https://github.com/spyder-ide/spyder-kernels/issues/197))
+* [PR 11310](https://github.com/spyder-ide/spyder/pull/11310) - PR: Catch KeyError when trying to highlight folding region, by [@ccordoba12](https://github.com/ccordoba12) ([11291](https://github.com/spyder-ide/spyder/issues/11291))
+* [PR 11287](https://github.com/spyder-ide/spyder/pull/11287) - PR: Fix snippets completion with a single token in placeholder, by [@dalthviz](https://github.com/dalthviz) ([10971](https://github.com/spyder-ide/spyder/issues/10971))
+* [PR 11272](https://github.com/spyder-ide/spyder/pull/11272) - PR: Improvements to the Help pane (style, loading page and some other issues), by [@dalthviz](https://github.com/dalthviz) ([11267](https://github.com/spyder-ide/spyder/issues/11267))
+* [PR 11271](https://github.com/spyder-ide/spyder/pull/11271) - PR: Hide tooltip when the window is blocked, by [@dalthviz](https://github.com/dalthviz) ([11244](https://github.com/spyder-ide/spyder/issues/11244))
+* [PR 11270](https://github.com/spyder-ide/spyder/pull/11270) - PR: Add css to style parameters in the Help pane when using Sphinx >=2, by [@dalthviz](https://github.com/dalthviz) ([9888](https://github.com/spyder-ide/spyder/issues/9888))
+* [PR 11259](https://github.com/spyder-ide/spyder/pull/11259) - PR: Do not show replace widget when it is not enabled, by [@jnsebgosselin](https://github.com/jnsebgosselin) ([11258](https://github.com/spyder-ide/spyder/issues/11258))
+* [PR 11256](https://github.com/spyder-ide/spyder/pull/11256) - PR: Change unmatched brackets in line validation, by [@dalthviz](https://github.com/dalthviz) ([11217](https://github.com/spyder-ide/spyder/issues/11217))
+* [PR 11254](https://github.com/spyder-ide/spyder/pull/11254) - PR: Validate custom scale factor not being below 1.0, by [@dalthviz](https://github.com/dalthviz) ([11240](https://github.com/spyder-ide/spyder/issues/11240))
+* [PR 11248](https://github.com/spyder-ide/spyder/pull/11248) - PR: Cache call to get_icon_by_extension_or_type, by [@impact27](https://github.com/impact27) ([11247](https://github.com/spyder-ide/spyder/issues/11247))
+* [PR 11241](https://github.com/spyder-ide/spyder/pull/11241) - PR: Handle error when disconnecting object info signal after idle, by [@dalthviz](https://github.com/dalthviz) ([11228](https://github.com/spyder-ide/spyder/issues/11228))
+* [PR 11239](https://github.com/spyder-ide/spyder/pull/11239) - PR: Handle AttributeError when generating context menu on dockwidget tabs, by [@dalthviz](https://github.com/dalthviz) ([11226](https://github.com/spyder-ide/spyder/issues/11226))
+* [PR 11238](https://github.com/spyder-ide/spyder/pull/11238) - PR: Handle AttributeError when creating an ArrayEditor, by [@dalthviz](https://github.com/dalthviz) ([11216](https://github.com/spyder-ide/spyder/issues/11216))
+* [PR 11223](https://github.com/spyder-ide/spyder/pull/11223) - PR: Fix freeze when LSP client queue is full, by [@impact27](https://github.com/impact27) ([11222](https://github.com/spyder-ide/spyder/issues/11222))
+* [PR 11219](https://github.com/spyder-ide/spyder/pull/11219) - PR: Handle encoding when restarting Spyder to fix an error with Python 2.7, by [@dalthviz](https://github.com/dalthviz) ([11024](https://github.com/spyder-ide/spyder/issues/11024))
+* [PR 11212](https://github.com/spyder-ide/spyder/pull/11212) - PR: Fix infinite loop when commenting first block, by [@impact27](https://github.com/impact27) ([11148](https://github.com/spyder-ide/spyder/issues/11148))
+* [PR 11210](https://github.com/spyder-ide/spyder/pull/11210) - PR: Use Pandas tolist to get formatted indexes and headers in the DataFrame editor, by [@dalthviz](https://github.com/dalthviz) ([11129](https://github.com/spyder-ide/spyder/issues/11129))
+* [PR 11192](https://github.com/spyder-ide/spyder/pull/11192) - PR: Send comm config again if comm times out, by [@impact27](https://github.com/impact27) ([11406](https://github.com/spyder-ide/spyder/issues/11406), [11137](https://github.com/spyder-ide/spyder/issues/11137))
+* [PR 11122](https://github.com/spyder-ide/spyder/pull/11122) - PR: Rename copy line and duplicate line shortcuts, by [@jnsebgosselin](https://github.com/jnsebgosselin) ([11092](https://github.com/spyder-ide/spyder/issues/11092))
+* [PR 11103](https://github.com/spyder-ide/spyder/pull/11103) - PR: Add IPython magic runcell test, by [@impact27](https://github.com/impact27) ([11061](https://github.com/spyder-ide/spyder/issues/11061))
+* [PR 10976](https://github.com/spyder-ide/spyder/pull/10976) - PR: Implement dynamic variable explorer window size, by [@jsh9](https://github.com/jsh9) ([10745](https://github.com/spyder-ide/spyder/issues/10745))
+* [PR 10801](https://github.com/spyder-ide/spyder/pull/10801) - PR: Make adjustable the maximum number of recent projects, by [@juanis2112](https://github.com/juanis2112) ([10640](https://github.com/spyder-ide/spyder/issues/10640))
+* [PR 10610](https://github.com/spyder-ide/spyder/pull/10610) - PR: Update debugging panel with current console pdb state, by [@dalthviz](https://github.com/dalthviz) ([10538](https://github.com/spyder-ide/spyder/issues/10538))
+* [PR 9554](https://github.com/spyder-ide/spyder/pull/9554) - PR: Remove stylesheet workarounds for the options and browse button when under the dark theme, by [@jnsebgosselin](https://github.com/jnsebgosselin)
+
+In this release 115 pull requests were closed.
+
+
+----
+
+
+## Version 4.0.1 (2020-01-02)
+
+### Important fixes
+
+* Remove password-based authentication to report errors on Github.
+* Several performance improvements in the Editor.
 
 ### Issues Closed
 
@@ -1125,7 +1425,7 @@ In this release 87 pull requests were closed.
 * [Issue 8270](https://github.com/spyder-ide/spyder/issues/8270) - Simplify Github PR template ([PR 8272](https://github.com/spyder-ide/spyder/pull/8272))
 * [Issue 8267](https://github.com/spyder-ide/spyder/issues/8267) - Triple quotes in a code cell breaks runcell ([PR 8276](https://github.com/spyder-ide/spyder/pull/8276))
 * [Issue 8244](https://github.com/spyder-ide/spyder/issues/8244) - Runcell traceback line number off by one for every code block it's after  ([PR 8245](https://github.com/spyder-ide/spyder/pull/8245))
-* [Issue 8242](https://github.com/spyder-ide/spyder/issues/8242) - Double Quotes at the begining or end of the a code cell breaks runcell ([PR 8245](https://github.com/spyder-ide/spyder/pull/8245))
+* [Issue 8242](https://github.com/spyder-ide/spyder/issues/8242) - Double Quotes at the beginning or end of the a code cell breaks runcell ([PR 8245](https://github.com/spyder-ide/spyder/pull/8245))
 * [Issue 8241](https://github.com/spyder-ide/spyder/issues/8241) - Cannot runcell if double backslash is present ([PR 8243](https://github.com/spyder-ide/spyder/pull/8243))
 * [Issue 8237](https://github.com/spyder-ide/spyder/issues/8237) - Mitigate Spyder wiping users' files with more robust atomic saves/autosaves ([PR 8347](https://github.com/spyder-ide/spyder/pull/8347))
 * [Issue 8213](https://github.com/spyder-ide/spyder/issues/8213) - PyLS hangs if definition cannot be located ([PR 9138](https://github.com/spyder-ide/spyder/pull/9138))
@@ -5419,7 +5719,7 @@ In this release 6 pull requests were merged
     * Fixed Preferences Dialog flickering issue introduced with revision a4e1565e93c5
     * Run configuration dialog: fixed Tab focus order behavior
     * Fixed "Run > Configure..." and "PYTHONPATH management" entry locations on MacOSX
-    * Updated bootstrap script and Qt library selection logic to accomodate launch of Spyder using PySide while PyQt is also installed ([Issue 1013](../../issues/1013), see [Issue 975](../../issues/975) for additional background).
+    * Updated bootstrap script and Qt library selection logic to accommodate launch of Spyder using PySide while PyQt is also installed ([Issue 1013](../../issues/1013), see [Issue 975](../../issues/975) for additional background).
     * Fixed several encoding problems preventing Spyder from launching when the user's home directory contains non-ASCII characters ([Issue 812](../../issues/812), [Issue 1027](../../issues/2017)).
     * Debugging: [Issue 684](../../issues/684): Debug with winpdb will now use the command line options and working directory specified in the General Setting section of the Run Configuration dialog
 * Console:

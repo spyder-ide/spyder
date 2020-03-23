@@ -700,17 +700,9 @@ class SnippetsExtension(EditorExtension):
             self.inserting_snippet = False
             return
 
-        ignore_calls = {'undo', 'redo'}
         node, nearest_snippet, _ = self._find_node_by_position(line, col)
         if node is None:
-            stack = inspect.stack()
-            ignore = False
-            # Check if parent call was due to text update on codeeditor
-            # caused by a undo/redo call
-            for call in stack:
-                if call[3] in ignore_calls:
-                    ignore = True
-                    break
+            ignore = self.editor.is_undoing or self.editor.is_redoing
             if not ignore:
                 self.reset()
         else:

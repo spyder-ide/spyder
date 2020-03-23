@@ -7,7 +7,7 @@
 """Mix-in classes
 
 These classes were created to be able to provide Spyder's regular text and
-console widget features to an independant widget based on QTextEdit for the
+console widget features to an independent widget based on QTextEdit for the
 IPython console plugin.
 """
 
@@ -96,16 +96,18 @@ class BaseEditMixin(object):
         if at_point is not None:
             # Showing tooltip at point position
             margin = (self.document().documentMargin() / 2) + 1
-            cx, cy = at_point.x() - margin, at_point.y() - margin
+            cx = int(at_point.x() - margin)
+            cy = int(at_point.y() - margin)
         elif at_line is not None:
             # Showing tooltip at line
             cx = 5
             line = at_line - 1
             cursor = QTextCursor(self.document().findBlockByNumber(line))
-            cy = self.cursorRect(cursor).top()
+            cy = int(self.cursorRect(cursor).top())
         else:
             # Showing tooltip at cursor position
             cx, cy = self.get_coordinates('cursor')
+            cx = int(cx)
             cy = int(cy - font.pointSize() / 2)
 
         # Calculate vertical delta
@@ -134,7 +136,7 @@ class BaseEditMixin(object):
         self._styled_widgets.add(id(widget))
 
         if is_dark_interface():
-            css = qdarkstyle.load_stylesheet_from_environment()
+            css = qdarkstyle.load_stylesheet(qt_api='')
             widget.setStyleSheet(css)
             palette = widget.palette()
             background = palette.color(palette.Window).lighter(150).name()
@@ -635,17 +637,20 @@ class BaseEditMixin(object):
         html_signature, extra_text, _ = res
         point = self.get_word_start_pos(at_point)
 
-        # This is needed to get hover hints
-        cursor = self.cursorForPosition(at_point)
-        cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
-        self._last_hover_cursor = cursor
+        # Only display hover hint if there is documentation
+        if extra_text is not None:
+            # This is needed to get hover hints
+            cursor = self.cursorForPosition(at_point)
+            cursor.movePosition(QTextCursor.StartOfWord,
+                                QTextCursor.MoveAnchor)
+            self._last_hover_cursor = cursor
 
-        self.show_tooltip(signature=html_signature, text=extra_text,
-                          at_point=point, inspect_word=inspect_word,
-                          display_link=True, max_lines=max_lines,
-                          max_width=max_width, cursor=cursor,
-                          text_new_line=text_new_line,
-                          completion_doc=completion_doc)
+            self.show_tooltip(signature=html_signature, text=extra_text,
+                              at_point=point, inspect_word=inspect_word,
+                              display_link=True, max_lines=max_lines,
+                              max_width=max_width, cursor=cursor,
+                              text_new_line=text_new_line,
+                              completion_doc=completion_doc)
 
     def hide_tooltip(self):
         """
@@ -763,6 +768,15 @@ class BaseEditMixin(object):
     def get_cursor_line_number(self):
         """Return cursor line number"""
         return self.textCursor().blockNumber()+1
+
+    def get_position_line_number(self, line, col):
+        """Get position offset from (line, col) coordinates."""
+        block = self.document().findBlockByNumber(line)
+        cursor = QTextCursor(block)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor,
+                            n=col + 1)
+        return cursor.position()
 
     def set_cursor_position(self, position):
         """Set cursor position"""
@@ -930,9 +944,12 @@ class BaseEditMixin(object):
             self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
 
-    def get_current_word_and_position(self, completion=False, help_req=False):
-        """Return current word, i.e. word at cursor position,
-            and the start position."""
+    def get_current_word_and_position(self, completion=False, help_req=False,
+                                      valid_python_variable=True):
+        """
+        Return current word, i.e. word at cursor position, and the start
+        position.
+        """
         cursor = self.textCursor()
         cursor_pos = cursor.position()
 
@@ -977,18 +994,32 @@ class BaseEditMixin(object):
 
         cursor.select(QTextCursor.WordUnderCursor)
         text = to_text_string(cursor.selectedText())
-        # find a valid python variable name
-        match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
-        if match:
-            text, startpos = match[0], cursor.selectionStart()
-            if completion:
-                text = text[:cursor_pos - startpos]
-            return text, startpos
+        startpos = cursor.selectionStart()
 
-    def get_current_word(self, completion=False, help_req=False):
+        # Find a valid Python variable name
+        if valid_python_variable:
+            match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
+            if not match:
+                # This is assumed in several places of our codebase,
+                # so please don't change this return!
+                return None
+            else:
+                text = match[0]
+
+        if completion:
+            text = text[:cursor_pos - startpos]
+
+        return text, startpos
+
+    def get_current_word(self, completion=False, help_req=False,
+                         valid_python_variable=True):
         """Return current word, i.e. word at cursor position."""
         ret = self.get_current_word_and_position(
-            completion=completion, help_req=help_req)
+            completion=completion,
+            help_req=help_req,
+            valid_python_variable=valid_python_variable
+        )
+
         if ret is not None:
             return ret[0]
 
@@ -1247,9 +1278,9 @@ class BaseEditMixin(object):
 
         # TODO: adapt to font size
         x = rect.left()
-        x = x - 14
+        x = int(x - 14)
         y = rect.top() + (rect.bottom() - rect.top())/2
-        y = y - dlg.height()/2 - 3
+        y = int(y - dlg.height()/2 - 3)
 
         pos = QPoint(x, y)
         pos = self.calculate_real_position(pos)

@@ -34,6 +34,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import (is_module_or_package,
                                        PythonModulesComboBox)
 from spyder.widgets.onecolumntree import OneColumnTree
+from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 
 
@@ -43,6 +44,7 @@ try:
 except KeyError as error:
     import gettext
     _ = gettext.gettext
+
 
 PYLINT_VER = pylint.__version__
 #TODO: display results on 3 columns instead of 1: msg_id, lineno, message
@@ -310,6 +312,21 @@ class PylintWidget(QWidget):
         """Try to start code analysis when Analyze button pressed."""
         self.start_analysis.emit()
 
+    def get_pylintrc_path(self, filename):
+        """Get the path to the most proximate pylintrc config to the file."""
+        parent = self.parentWidget()
+        if parent is not None:
+            project_dir = parent.main.projects.get_active_project_path()
+        else:
+            project_dir = None
+        search_paths = [
+            osp.dirname(filename),  # File's directory
+            getcwd_or_home(),  # Working directory
+            project_dir,  # Project directory
+            osp.expanduser("~"),  # Home directory
+        ]
+        return get_pylintrc_path(search_paths=search_paths)
+
     @Slot()
     def start(self):
         """Start the code analysis."""
@@ -317,7 +334,7 @@ class PylintWidget(QWidget):
 
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
-        self.process.setWorkingDirectory(osp.dirname(filename))
+        self.process.setWorkingDirectory(getcwd_or_home())
         self.process.readyReadStandardOutput.connect(self.read_output)
         self.process.readyReadStandardError.connect(
                                           lambda: self.read_output(error=True))
@@ -336,11 +353,14 @@ class PylintWidget(QWidget):
             else:
                 # Option '-i' (alias for '--include-ids') was removed in pylint
                 # 1.0
-                p_args += ["--msg-template='{msg_id}:{line:3d},"\
+                p_args += ["--msg-template='{msg_id}:{line:3d},"
                            "{column}: {obj}: {msg}"]
-            p_args += [osp.basename(filename)]
-        else:
-            p_args = [osp.basename(filename)]
+
+        pylintrc_path = self.get_pylintrc_path(filename=filename)
+        if pylintrc_path is not None:
+            p_args += ['--rcfile={}'.format(pylintrc_path)]
+
+        p_args += [filename]
         processEnvironment = QProcessEnvironment()
         processEnvironment.insert("PYTHONIOENCODING", "utf8")
         self.process.setProcessEnvironment(processEnvironment)

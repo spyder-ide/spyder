@@ -74,6 +74,10 @@ class CompletionManager(SpyderCompletionPlugin):
             ),
         })
 
+    SKIP_INTERMEDIATE_REQUESTS = {
+        LSPRequestTypes.DOCUMENT_COMPLETION
+    }
+
     def __init__(self, parent, plugins=['lsp', 'kite', 'fallback']):
         SpyderCompletionPlugin.__init__(self, parent)
         self.clients = {}
@@ -116,8 +120,7 @@ class CompletionManager(SpyderCompletionPlugin):
         with QMutexLocker(self.collection_mutex):
             request_responses = self.requests[req_id]
             request_responses['sources'][completion_source] = resp
-
-            self._maybe_send_locked(req_id)
+            self.howto_send_to_codeeditor(req_id)
 
     @Slot(int)
     def receive_timeout(self, req_id):
@@ -130,35 +133,87 @@ class CompletionManager(SpyderCompletionPlugin):
         with QMutexLocker(self.collection_mutex):
             request_responses = self.requests[req_id]
             request_responses['timed_out'] = True
+            self.howto_send_to_codeeditor(req_id)
 
-            self._maybe_send_locked(req_id)
-
-    def _maybe_send_locked(self, req_id):
+    def howto_send_to_codeeditor(self, req_id):
+        """
+        Decide how to send the responses corresponding to req_id to
+        the CodeEditor instance that requested them.
+        """
         if req_id not in self.requests:
             return
         request_responses = self.requests[req_id]
+        language = request_responses['language']
 
-        def send():
-            del self.requests[req_id]
-            self.gather_and_send(request_responses)
+        # Skip the waiting logic below when fallback is the only
+        # client that works for language
+        if self.is_fallback_only(language):
+            # Only send response when fallback is among its sources
+            if 'fallback' in request_responses['sources']:
+                self.gather_and_send_to_codeeditor(request_responses)
+                return
 
+            # This drops responses that don't contain fallback
+            return
+
+        # Wait between the LSP and Kite to return responses. This favors
+        # Kite when the LSP takes too much time to respond.
         wait_for = set(source for source
                        in self.WAIT_FOR_SOURCE[request_responses['req_type']]
-                       if self._is_client_running(source))
+                       if self.is_client_running(source))
         timed_out = request_responses['timed_out']
-
         all_returned = all(source in request_responses['sources']
                            for source in wait_for)
+
         if not timed_out:
             # Before the timeout
             if all_returned:
-                send()
+                self.skip_and_send_to_codeeditor(req_id)
         else:
             # After the timeout
             any_nonempty = any(request_responses['sources'].get(source)
                                for source in wait_for)
             if all_returned or any_nonempty:
-                send()
+                self.skip_and_send_to_codeeditor(req_id)
+
+    def skip_and_send_to_codeeditor(self, req_id):
+        """
+        Skip intermediate responses coming from the same CodeEditor
+        instance for some types of requests, and send the last one to
+        it.
+        """
+        request_responses = self.requests[req_id]
+        req_type = request_responses['req_type']
+        response_instance = id(request_responses['response_instance'])
+        do_send = True
+
+        # This is necessary to prevent sending completions for old requests
+        # See spyder-ide/spyder#10798
+        if req_type in self.SKIP_INTERMEDIATE_REQUESTS:
+            max_req_id = max(
+                [key for key, item in self.requests.items()
+                 if item['req_type'] == req_type
+                 and id(item['response_instance']) == response_instance]
+                or [-1])
+            do_send = (req_id == max_req_id)
+
+        logger.debug("Completion plugin: Request {} removed".format(req_id))
+        del self.requests[req_id]
+
+        # Send only recent responses
+        if do_send:
+            self.gather_and_send_to_codeeditor(request_responses)
+
+    def is_fallback_only(self, language):
+        """
+        Detect if fallback is the only client that works for language.
+        """
+        lang_status = self.language_status.get(language, {})
+        if lang_status:
+            if (not lang_status.get('lsp', {}) and
+                    not lang_status.get('kite', {})):
+                return True
+        return False
 
     @Slot(str)
     def client_available(self, client_name):
@@ -166,6 +221,7 @@ class CompletionManager(SpyderCompletionPlugin):
         client_info['status'] = self.RUNNING
 
     def gather_completions(self, req_id_responses):
+        """Gather completion responses from plugins."""
         priorities = self.SOURCE_PRIORITY[LSPRequestTypes.DOCUMENT_COMPLETION]
 
         merge_stats = {source: 0 for source in req_id_responses}
@@ -188,7 +244,8 @@ class CompletionManager(SpyderCompletionPlugin):
         responses = {'params': responses}
         return responses
 
-    def gather_default(self, req_type, responses):
+    def gather_responses(self, req_type, responses):
+        """Gather responses other than completions from plugins."""
         response = None
         for source in self.SOURCE_PRIORITY[req_type]:
             if source in responses:
@@ -197,7 +254,11 @@ class CompletionManager(SpyderCompletionPlugin):
                     break
         return {'params': response}
 
-    def gather_and_send(self, request_responses):
+    def gather_and_send_to_codeeditor(self, request_responses):
+        """
+        Gather request responses from all plugins and send them to the
+        CodeEditor instance that requested them.
+        """
         req_type = request_responses['req_type']
         req_id_responses = request_responses['sources']
         response_instance = request_responses['response_instance']
@@ -206,7 +267,7 @@ class CompletionManager(SpyderCompletionPlugin):
         if req_type == LSPRequestTypes.DOCUMENT_COMPLETION:
             responses = self.gather_completions(req_id_responses)
         else:
-            responses = self.gather_default(req_type, req_id_responses)
+            responses = self.gather_responses(req_type, req_id_responses)
 
         try:
             response_instance.handle_response(req_type, responses)
@@ -215,7 +276,7 @@ class CompletionManager(SpyderCompletionPlugin):
             # removed before the response can be processed.
             pass
 
-    def _is_client_running(self, name):
+    def is_client_running(self, name):
         if name == LanguageServerPlugin.COMPLETION_CLIENT_NAME:
             # The LSP plugin does not emit a plugin ready signal
             return name in self.clients

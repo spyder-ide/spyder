@@ -8,10 +8,9 @@
 import os
 
 # Third party imports
+import pytest
 from qtpy.QtCore import QPoint, Qt
 from qtpy.QtGui import QFont
-
-import pytest
 
 # Local imports
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
@@ -147,7 +146,8 @@ def test_flag_painting(editor_bot, qtbot):
         editor.setTextCursor(cursor)
 
 
-@pytest.mark.skipif(not os.name == 'nt', reason="It fails on Travis")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
+                    reason="It fails on CIs")
 def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     """Test that the slider range indicator is visible only when hovering
     over the scrollflag area when the editor vertical scrollbar is visible.
@@ -167,8 +167,8 @@ def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     # that the slider range indicator remains hidden. The slider range
     # indicator should remains hidden at all times when the vertical scrollbar
     # of the editor is not visible.
-    x = sfa.width()/2
-    y = sfa.height()/2
+    x = int(sfa.width()/2)
+    y = int(sfa.height()/2)
     qtbot.mouseMove(sfa, pos=QPoint(x, y), delay=-1)
 
     assert sfa._range_indicator_is_visible is False
@@ -181,21 +181,22 @@ def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     # that the slider range indicator is now shown. When the vertical scrollbar
     # of the editor is visible, the slider range indicator should be visible
     # only when the mouse cursor hover above the scrollflagarea.
-    x = sfa.width()/2
-    y = sfa.height()/2
+    x = int(sfa.width()/2)
+    y = int(sfa.height()/2)
     qtbot.mouseMove(sfa, pos=QPoint(x, y), delay=-1)
 
     assert sfa._range_indicator_is_visible is True
 
     # Move the mouse cursor outside of the scrollflagarea and assert that the
     # slider range indicator becomes hidden.
-    x = editor.width()/2
-    y = editor.height()/2
+    x = int(editor.width()/2)
+    y = int(editor.height()/2)
     qtbot.mouseMove(editor, pos=QPoint(x, y), delay=-1)
     qtbot.waitUntil(lambda: not sfa._range_indicator_is_visible)
 
 
-@pytest.mark.skipif(not os.name == 'nt', reason="It fails on Travis")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
+                    reason="It fails on CIs")
 def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     """Test that the slider range indicator is visible while the alt key is
     held down while the cursor is over the editor, but outside of the

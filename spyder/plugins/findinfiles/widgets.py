@@ -658,7 +658,7 @@ class FindOptions(QWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         fm = self.ok_button.fontMetrics()
-        width = fm.width('Search') * 1.8
+        width = int(fm.width('Search') * 1.8)
         self.ok_button.setMinimumWidth(width)
         self.stop_button.setMinimumWidth(width)
         self.refresh_buttons(start=False)

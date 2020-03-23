@@ -29,7 +29,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-version_info = (4, 1, 0, "dev0")
+version_info = (4, 2, 0, "dev0")
 
 __version__ = '.'.join(map(str, version_info))
 __license__ = __doc__
@@ -91,5 +91,6 @@ def get_versions(reporev=True):
         'qt_api_ver': qtpy.PYQT_VERSION,
         'system': system,   # Linux, Windows, ...
         'release': platform.release(),  # XP, 10.6, 2.2.0, etc.
-        'revision': revision,  # '9fdf926eccce'
+        'revision': revision,  # '9fdf926eccce',
+        'branch': branch,  # '4.x' or master
     }

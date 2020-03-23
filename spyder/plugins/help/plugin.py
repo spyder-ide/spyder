@@ -45,6 +45,7 @@ class Help(SpyderPluginWidget):
     CONF_FILE = False
     LOG_PATH = get_conf_path(CONF_SECTION)
     FONT_SIZE_DELTA = DEFAULT_SMALL_DELTA
+    DISABLE_ACTIONS_WHEN_HIDDEN = False  # SpyderPluginWidget class attribute
 
     # Signals
     focus_changed = Signal()
@@ -680,7 +681,7 @@ class Help(SpyderPluginWidget):
         sphinx_ver = programs.get_module_version('sphinx')
         QMessageBox.critical(self,
                     _('Help'),
-                    _("The following error occured when calling "
+                    _("The following error occurred when calling "
                       "<b>Sphinx %s</b>. <br>Incompatible Sphinx "
                       "version or doc string decoding failed."
                       "<br><br>Error message:<br>%s"

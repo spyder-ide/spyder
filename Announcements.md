@@ -1,20 +1,31 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 4.0.1 is released!
+**Subject**: [ANN] Spyder 4.1.1 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **4.0.1** has been released and is available for
+I'm pleased to announce that Spyder **4.1.1** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes almost one month after version 4.0.0 and it doesn't add new
-features. However, it has important performance improvements and also fixes
-several regressions over Spyder 3 detected after releasing version 4.
+This release comes three days after version 4.1.1 and it contains the
+following new features and important fixes:
 
-In this release we fixed 32 issues and merged 43 pull requests that amount
-to more than 170 commits. For a full list of fixes, please see our
+- New features
+  * Add file path completions to the Editor. This works by writing the
+    beginning of a file path, either absolute or relative, inside a
+    string and pressing `Tab` or `Ctrl+Space`.
+  * Add a new command line option called `--report-segfault` to be
+    able to send segmentation fault reports to Github.
+
+- Important fixes
+  * Fix a critical error when starting kernels on Windows.
+  * Update Jedi to 0.15.2.
+  * Add conda activation scripts for the kernel to the package.
+
+In this release we fixed 6 issues and merged 8 pull requests that amount
+to more than 40 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/4.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

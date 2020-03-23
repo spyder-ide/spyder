@@ -149,6 +149,10 @@ class SpyderPlugin(BasePlugin):
     # Status: Optional
     CONF_SECTION = None
 
+    # One line localized description of the features this plugin implements
+    # Status: Optional
+    DESCRIPTION = None
+
     # Widget to be used as entry in Spyder Preferences dialog
     # Status: Optional
     CONFIGWIDGET_CLASS = None

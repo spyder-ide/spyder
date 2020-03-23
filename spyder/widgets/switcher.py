@@ -111,7 +111,9 @@ class SwitcherBaseItem(QStandardItem):
         self._height = self._get_height()
 
         # Setup
-        self.setSizeHint(QSize(0, self._height))
+        # self._height is a float from QSizeF but
+        # QSize() expects a QSize or (int, int) as parameters
+        self.setSizeHint(QSize(0, int(self._height)))
 
     def _render_text(self):
         """Render the html template for this item."""
@@ -156,7 +158,7 @@ class SwitcherBaseItem(QStandardItem):
         self._set_rendered_text()
 
     def is_action_item(self):
-        """Return wether the item is of action type."""
+        """Return whether the item is of action type."""
         return bool(self._action_item)
 
     # --- Qt overrides
@@ -332,8 +334,8 @@ class SwitcherItem(SwitcherBaseItem):
             section = ''
 
         padding = self._PADDING
-        width = self._width - self._icon_width
-        height = self.get_height()
+        width = int(self._width - self._icon_width)
+        height = int(self.get_height())
         self.setSizeHint(QSize(width, height))
 
         shortcut = '&lt;' + self._shortcut + '&gt;' if self._shortcut else ''
@@ -768,7 +770,7 @@ class Switcher(QDialog):
             switcher_height = max(switcher_height, self._MIN_HEIGHT)
         else:
             switcher_height = self._MIN_HEIGHT
-        self.setFixedHeight(switcher_height)
+        self.setFixedHeight(int(switcher_height))
 
     def set_position(self, top):
         """Set the position of the dialog."""

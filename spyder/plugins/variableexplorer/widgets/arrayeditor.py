@@ -40,7 +40,7 @@ from spyder.py3compat import (io, is_binary_string, is_string,
                               to_text_string)
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import add_actions, create_action, keybinding
-
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
@@ -169,7 +169,9 @@ class ArrayModel(QAbstractTableModel):
 
         # Array with infinite values cannot display background colors and
         # crashes. See: spyder-ide/spyder#8093
-        self.has_inf = np.inf in data
+        self.has_inf = False
+        if data.dtype.kind in ['f', 'c']:
+            self.has_inf = np.any(np.isinf(data))
 
         # Deactivate coloring for object arrays or arrays with inf values
         if self._data.dtype.name == 'object' or self.has_inf:
@@ -626,7 +628,7 @@ class ArrayEditorWidget(QWidget):
             self.model.set_format(format)
 
 
-class ArrayEditor(QDialog):
+class ArrayEditor(BaseDialog):
     """Array Editor Dialog"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
@@ -691,13 +693,12 @@ class ArrayEditor(QDialog):
         self.setLayout(self.layout)
         self.setWindowIcon(ima.icon('arredit'))
         if title:
-            title = to_text_string(title) + " - " + _("NumPy array")
+            title = to_text_string(title) + " - " + _("NumPy object array")
         else:
             title = _("Array editor")
         if readonly:
             title += ' (' + _('read only') + ')'
         self.setWindowTitle(title)
-        self.resize(600, 500)
 
         # Stack widget
         self.stack = QStackedWidget(self)
@@ -876,7 +877,7 @@ class ArrayEditor(QDialog):
         return self.data
 
     def error(self, message):
-        """An error occured, closing the dialog box"""
+        """An error occurred, closing the dialog box"""
         QMessageBox.critical(self, _("Array editor"), message)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.reject()

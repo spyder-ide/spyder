@@ -26,7 +26,8 @@ from diff_match_patch import diff_match_patch
 # Local imports
 from spyder.plugins.completion.languageserver import CompletionItemKind
 from spyder.plugins.completion.languageserver import LSPRequestTypes
-from spyder.plugins.completion.fallback.utils import get_keywords, get_words
+from spyder.plugins.completion.fallback.utils import (
+    get_keywords, get_words, is_prefix_valid)
 
 
 FALLBACK_COMPLETION = "Fallback"
@@ -53,11 +54,16 @@ class FallbackActor(QObject):
         self.thread.started.connect(self.started)
         self.sig_mailbox.connect(self.handle_msg)
 
-    def tokenize(self, text, offset, language):
+    def tokenize(self, text, offset, language, current_word):
         """
         Return all tokens in `text` and all keywords associated by
         Pygments to `language`.
         """
+        valid = is_prefix_valid(text, offset, language)
+        if not valid:
+            return []
+
+        # Get language keywords provided by Pygments
         try:
             lexer = get_lexer_by_name(language)
             keywords = get_keywords(lexer)
@@ -72,11 +78,11 @@ class FallbackActor(QObject):
                      'documentation': '',
                      'provider': FALLBACK_COMPLETION}
                     for keyword in keywords]
-        # logger.debug(keywords)
-        # tokens = list(lexer.get_tokens(text))
-        # logger.debug(tokens)
+
+        # Get file tokens
         tokens = get_words(text, offset, language)
-        tokens = [{'kind': CompletionItemKind.TEXT, 'insertText': token,
+        tokens = [{'kind': CompletionItemKind.TEXT,
+                   'insertText': token,
                    'label': token,
                    'sortText': token,
                    'filterText': token,
@@ -86,6 +92,13 @@ class FallbackActor(QObject):
         for token in tokens:
             if token['insertText'] not in keyword_set:
                 keywords.append(token)
+
+        # Filter matching results
+        if current_word is not None:
+            current_word = current_word.lower()
+            keywords = [k for k in keywords
+                        if current_word in k['insertText'].lower()]
+
         return keywords
 
     def stop(self):
@@ -138,6 +151,7 @@ class FallbackActor(QObject):
                 tokens = self.tokenize(
                     text_info['text'],
                     text_info['offset'],
-                    text_info['language'])
+                    text_info['language'],
+                    msg['current_word'])
             tokens = {'params': tokens}
             self.sig_set_tokens.emit(_id, tokens)

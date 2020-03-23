@@ -32,6 +32,7 @@ class KernelComm(CommBase, QObject):
     """
 
     _sig_got_reply = Signal()
+    _sig_channel_open = Signal()
     sig_exception_occurred = Signal(str, bool)
 
     def __init__(self):
@@ -43,16 +44,18 @@ class KernelComm(CommBase, QObject):
         self.register_call_handler('_async_error', self._async_error)
         self.register_call_handler('_set_comm_port', self._set_comm_port)
 
-
     def _set_comm_port(self, port):
         """Set comm port."""
         client = self.kernel_client
-        client.comm_port = port
-        identity = client.session.bsession
-        socket = client._create_connected_socket(
-            'comm', identity=identity)
-        client.comm_channel = client.shell_channel_class(
-            socket, client.session, client.ioloop)
+        if not (hasattr(client, 'comm_port') and client.comm_port == port):
+            client.comm_port = port
+            identity = client.session.bsession
+            socket = client._create_connected_socket(
+                'comm', identity=identity)
+            client.comm_channel = client.shell_channel_class(
+                socket, client.session, client.ioloop)
+        # We emit in case we are waiting on this
+        self._sig_channel_open.emit()
 
     def shutdown_comm_channel(self):
         """Shutdown the comm channel."""
@@ -62,12 +65,27 @@ class KernelComm(CommBase, QObject):
             channel.send(msg)
             self.kernel_client.comm_channel = None
 
+    def comm_channel_connected(self):
+        """Check if the comm channel is connected."""
+        return self.kernel_client.comm_channel is not None
+
     @contextmanager
-    def comm_channel_manager(self, comm_id):
+    def comm_channel_manager(self, comm_id, queue_message=False):
         """Use comm_channel instead of shell_channel."""
-        if not self.kernel_client.comm_channel:
+        if queue_message:
+            # Send without comm_channel
             yield
             return
+
+        if not self.comm_channel_connected():
+            # Ask again for comm config
+            self.remote_call()._send_comm_config()
+            timeout = 45
+            self._wait(self.comm_channel_connected,
+                       self._sig_channel_open,
+                       "Timeout while waiting for comm port.",
+                       timeout)
+
         id_list = self.get_comm_id_list(comm_id)
         for comm_id in id_list:
             self._comms[comm_id]['comm']._send_channel = (
@@ -108,47 +126,58 @@ class KernelComm(CommBase, QObject):
         """
         settings = call_dict['settings']
         interrupt = 'interrupt' in settings and settings['interrupt']
-        if interrupt:
-            with self.comm_channel_manager(comm_id):
-                return super(KernelComm, self)._get_call_return_value(
-                    call_dict, call_data, comm_id)
-        else:
+
+        with self.comm_channel_manager(comm_id, queue_message=not interrupt):
             return super(KernelComm, self)._get_call_return_value(
                 call_dict, call_data, comm_id)
 
     def _wait_reply(self, call_id, call_name, timeout):
         """Wait for the other side reply."""
-        if call_id in self._reply_inbox:
+
+        def got_reply():
+            return call_id in self._reply_inbox
+
+        timeout_msg = "Timeout while waiting for {}".format(
+            self._reply_waitlist)
+        self._wait(got_reply, self._sig_got_reply, timeout_msg, timeout)
+
+    def _wait(self, condition, signal, timeout_msg, timeout):
+        """
+        Wait until condition() is True by running an event loop.
+
+        signal: qt signal that should interrupt the event loop.
+        timeout_msg: Message to display in case of a timeout.
+        timeout: time in seconds before a timeout
+        """
+        if condition():
             return
 
         # Create event loop to wait with
         wait_loop = QEventLoop()
-        self._sig_got_reply.connect(wait_loop.quit)
+        signal.connect(wait_loop.quit)
         wait_timeout = QTimer()
         wait_timeout.setSingleShot(True)
         wait_timeout.timeout.connect(wait_loop.quit)
 
         # Wait until the kernel returns the value
         wait_timeout.start(timeout * 1000)
-        while len(self._reply_waitlist) > 0:
+        while not condition():
             if not wait_timeout.isActive():
-                self._sig_got_reply.disconnect(wait_loop.quit)
-                if call_id in self._reply_waitlist:
-                    raise TimeoutError(
-                        "Timeout while waiting for {}".format(
-                            self._reply_waitlist))
+                signal.disconnect(wait_loop.quit)
+                if not condition():
+                    raise TimeoutError(timeout_msg)
                 return
             wait_loop.exec_()
 
         wait_timeout.stop()
-        self._sig_got_reply.disconnect(wait_loop.quit)
+        signal.disconnect(wait_loop.quit)
 
-    def _handle_remote_call_reply(self, msg_dict, buffer, load_exception):
+    def _handle_remote_call_reply(self, msg_dict, buffer):
         """
         A blocking call received a reply.
         """
         super(KernelComm, self)._handle_remote_call_reply(
-            msg_dict, buffer, load_exception)
+            msg_dict, buffer)
         self._sig_got_reply.emit()
 
     def _async_error(self, error_wrapper):

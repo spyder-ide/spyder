@@ -8,7 +8,7 @@ jobs:
 - job: 'macOS'
 
   pool:
-    vmImage: 'macOS-10.13'
+    vmImage: 'macOS-10.14'
 
   timeoutInMinutes: 30
 
@@ -47,6 +47,9 @@ jobs:
   - script: sudo install -d -m 0777 /usr/local/miniconda/envs/
     displayName: Fix Conda env permissions
 
+  - script: sudo chown -R 501:20 /usr/local/miniconda/pkgs
+    displayName: Fix Conda pkgs permissions
+
     # Conda setup environment.
     # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/conda-environment?view=vsts
   - task: CondaEnvironment@0
@@ -65,6 +68,11 @@ jobs:
       conda list
     displayName: 'Show build environment'
     continueOnError: true
+
+  - script: |
+      check-manifest
+    displayName: 'Check manifest for missing files'
+    continueOnError: false
 
     # Run Tests
   - script: |
@@ -140,6 +148,11 @@ jobs:
       conda list
     displayName: 'Show build environment'
     continueOnError: true
+
+  - script: |
+      check-manifest
+    displayName: 'Check manifest for missing files'
+    continueOnError: false
 
     # Run Tests
   - script: |

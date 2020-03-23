@@ -23,6 +23,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QMenu, QTabBar,
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.gui import STYLE_BUTTON_CSS
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
@@ -271,12 +272,9 @@ class BaseTabs(QTabWidget):
         corner_widgets.setdefault(Qt.TopLeftCorner, [])
         corner_widgets.setdefault(Qt.TopRightCorner, [])
 
-        self.browse_button = create_toolbutton(self,
-                                          icon=ima.icon('browse_tab'),
-                                          tip=_("Browse tabs"))
-        self.browse_button.setStyleSheet(
-            ("QToolButton::menu-indicator{image: none;}\n"
-             "QToolButton{margin: 1px; padding: 3px;}"))
+        self.browse_button = create_toolbutton(
+            self, icon=ima.icon('browse_tab'), tip=_("Browse tabs"))
+        self.browse_button.setStyleSheet(STYLE_BUTTON_CSS)
 
         self.browse_tabs_menu = QMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)

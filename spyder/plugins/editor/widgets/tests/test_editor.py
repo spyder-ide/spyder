@@ -225,6 +225,7 @@ def test_move_multiple_lines_up(editor_bot):
     assert editor.toPlainText() == expected_new_text
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
 def test_copy_lines_down_up(editor_bot, mocker, qtbot):
     """
     Test that copy lines down and copy lines up are working as expected.
@@ -530,7 +531,7 @@ def test_advance_cell(editor_cells_bot):
     # cursor at the end of the file
     assert editor.get_cursor_line_column() == (10, 0)
 
-    # advance backwards to the begining of the 3rd cell
+    # advance backwards to the beginning of the 3rd cell
     editor_stack.advance_cell(reverse=True)
     assert editor.get_cursor_line_column() == (6, 0)
 
@@ -640,7 +641,8 @@ def test_tab_moves_focus_from_search_to_replace(editor_find_replace_bot,
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not os.name == 'nt', reason="Fails on Linux and macOS.")
+@pytest.mark.skipif(os.environ.get('CI', None) is not None,
+                    reason="It fails on CIs")
 def test_tab_copies_find_to_replace(editor_find_replace_bot, qtbot):
     """Check that text in the find box is copied to the replace box on tab
     keypress. Regression test spyder-ide/spyder#4482."""

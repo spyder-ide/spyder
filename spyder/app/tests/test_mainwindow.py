@@ -75,7 +75,7 @@ LOCATION = osp.realpath(osp.join(os.getcwd(), osp.dirname(__file__)))
 
 # Time to wait until the IPython console is ready to receive input
 # (in milliseconds)
-SHELL_TIMEOUT = 20000
+SHELL_TIMEOUT = 40000 if os.name == 'nt' else 20000
 
 # Need longer EVAL_TIMEOUT, because need to cythonize and C compile ".pyx" file
 # before import and eval it
@@ -235,6 +235,7 @@ def cleanup(request):
 # =============================================================================
 # ---- Tests
 # =============================================================================
+@flaky(max_runs=3)
 @pytest.mark.slow
 @pytest.mark.single_instance
 @pytest.mark.skipif((os.environ.get('CI', None) is None or (PY2
@@ -256,7 +257,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
                  "lock_created = lock.lock()".format(spy_dir_str=spy_dir))
 
     # Test single instance
-    with qtbot.waitSignal(shell.executed):
+    with qtbot.waitSignal(shell.executed, timeout=2000):
         shell.execute(lock_code)
     assert not shell.get_value('lock_created')
 
@@ -500,11 +501,16 @@ def test_get_help_ipython_console(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.name == 'nt' and os.environ.get('CI') is not None,
-                    reason="Times out on AppVeyor")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Only works on Linux")
 @pytest.mark.use_introspection
-def test_get_help_editor(main_window, qtbot):
-    """ Test that Help works when called from the Editor."""
+@pytest.mark.parametrize(
+    "object_info",
+    [("range", "range"),
+     ("import matplotlib.pyplot as plt",
+      "The object-oriented API is recommended for more complex plots.")])
+def test_get_help_editor(main_window, qtbot, object_info):
+    """Test that Help works when called from the Editor."""
     help_plugin = main_window.help
     webview = help_plugin.rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
@@ -516,8 +522,9 @@ def test_get_help_editor(main_window, qtbot):
         code_editor.document_did_open()
 
     # Write some object in the editor
-    code_editor.set_text('range')
-    code_editor.move_cursor(len('range'))
+    object_name, expected_text = object_info
+    code_editor.set_text(object_name)
+    code_editor.move_cursor(len(object_name))
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
 
@@ -526,7 +533,7 @@ def test_get_help_editor(main_window, qtbot):
         editorstack.inspect_current_object()
 
     # Check that a expected text is part of the page
-    qtbot.waitUntil(lambda: check_text(webpage, "range"), timeout=30000)
+    qtbot.waitUntil(lambda: check_text(webpage, expected_text), timeout=30000)
 
 
 @pytest.mark.slow
@@ -1627,15 +1634,19 @@ def test_varexp_magic_dbg(main_window, qtbot):
     control = main_window.ipyconsole.get_focus_widget()
     control.setFocus()
 
-    # Create an object that can be plotted
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('li = [1, 2, 3]')
-
     # Click the debug button
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
     qtbot.mouseClick(debug_button, Qt.LeftButton)
-    qtbot.wait(1000)
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Get to an object that can be plotted
+    for _ in range(2):
+        qtbot.keyClicks(control, 'n')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
     # Generate the plot from the Variable Explorer
     nsb.editor.plot('li', 'plot')
@@ -1917,6 +1928,8 @@ def test_edidorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Times out sometimes on macOS")
 def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
     # Select the third-party plugin
@@ -2065,7 +2078,7 @@ def test_report_issue_url(monkeypatch):
 def test_render_issue():
     """Test that render issue works without errors and returns text."""
     test_description = "This is a test description"
-    test_traceback = "An error occured. Oh no!"
+    test_traceback = "An error occurred. Oh no!"
 
     MockMainWindow = MagicMock(spec=MainWindow)
     mockMainWindow_instance = MockMainWindow()
@@ -2143,6 +2156,7 @@ def test_save_on_runfile(main_window, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Fails on macOS")
 def test_pylint_follows_file(qtbot, tmpdir, main_window):
     """Test that file editor focus change updates pylint combobox filename."""
     for plugin in main_window.thirdparty_plugins:
@@ -2463,10 +2477,10 @@ def test_go_to_definition(main_window, qtbot, capsys):
     assert 'QtCore.py' in _get_filenames()
 
 
-@pytest.mark.skipif(sys.platform == 'darwin' and not PY2,
-                    reason="It times out on macOS/PY3")
 @pytest.mark.slow
 @flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin' and not PY2,
+                    reason="It times out on macOS/PY3")
 def test_debug_unsaved_file(main_window, qtbot):
     """Test that we can debug an unsaved file."""
     # Wait until the window is fully up
@@ -2504,7 +2518,7 @@ def test_debug_unsaved_file(main_window, qtbot):
 
 
 @pytest.mark.slow
-@flaky(max_runs=1)
+@flaky(max_runs=3)
 @pytest.mark.parametrize(
     "debug", [True, False])
 def test_runcell(main_window, qtbot, tmpdir, debug):
@@ -2952,6 +2966,87 @@ def test_pbd_step(main_window, qtbot, tmpdir):
     assert osp.samefile(
         main_window.editor.get_current_editor().filename,
         str(test_file))
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_runcell_after_restart(main_window, qtbot):
+    """Test runcell after a kernel restart."""
+    # Write code to a file
+    code = "print('test_runcell_after_restart')"
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(code)
+
+    # Restart Kernel
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
+        shell.ipyclient.restart_kernel()
+
+    # call runcell
+    code_editor.setFocus()
+    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.waitUntil(
+        lambda: "test_runcell_after_restart" in shell._control.toPlainText())
+
+    # Make sure no errors are shown
+    assert "error" not in shell._control.toPlainText().lower()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="It fails sometimes on Linux")
+@pytest.mark.parametrize(
+    "ipython", [True, False])
+@pytest.mark.parametrize(
+    "test_cell_magic", [True, False])
+def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
+    """Test the runcell command with cell magic."""
+    # Write code with a cell to a file
+    write_file = tmpdir.mkdir("foo").join("bar.txt")
+    assert not osp.exists(to_text_string(write_file))
+    if test_cell_magic:
+        code = "\n\n%%writefile " + to_text_string(write_file) + "\ntest\n"
+    else:
+        code = "\n\n%debug print()"
+    if ipython:
+        fn = "cell-test.ipy"
+    else:
+        fn = "cell-test.py"
+    p = tmpdir.join(fn)
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Execute runcell
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("runcell(0, r'{}')".format(to_text_string(p)))
+    control = main_window.ipyconsole.get_focus_widget()
+
+    error_text = 'save this file with the .ipy extension'
+    try:
+        if ipython:
+            if test_cell_magic:
+                qtbot.waitUntil(
+                    lambda: 'Writing' in control.toPlainText())
+
+                # Verify that the code was executed
+                assert osp.exists(to_text_string(write_file))
+            else:
+                qtbot.waitUntil(lambda: 'ipdb>' in control.toPlainText())
+            assert error_text not in control.toPlainText()
+        else:
+            qtbot.waitUntil(lambda: error_text in control.toPlainText())
+    finally:
+        if osp.exists(to_text_string(write_file)):
+            os.remove(to_text_string(write_file))
 
 
 if __name__ == "__main__":
