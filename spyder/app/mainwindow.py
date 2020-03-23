@@ -1389,8 +1389,12 @@ class MainWindow(QMainWindow):
 
     def handle_new_screen(self, screen):
         """Connect DPI signals for new screen."""
-        self.screen.logicalDotsPerInchChanged.disconnect(
-            self.show_dpi_change_message)
+        try:
+            self.screen.logicalDotsPerInchChanged.disconnect(
+                self.show_dpi_change_message)
+        except TypeError:
+            # See spyder-ide/spyder#11903
+            pass
         self.screen = screen
         self.screen.logicalDotsPerInchChanged.connect(
             self.show_dpi_change_message)
