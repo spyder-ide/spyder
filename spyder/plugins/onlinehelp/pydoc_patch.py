@@ -45,7 +45,7 @@ if PY2:
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 %s</head><body><div style="clear:both;padding-top:.5em;">%s</div>
 </body></html>''' % (title, css_link, contents)
-            print(html_page)
+
             return html_page
 else:
     from pydoc import (
@@ -665,7 +665,7 @@ def _url_handler(url, content_type="text/html"):
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 %s</head><body>%s<div style="clear:both;padding-top:.5em;">%s</div>
 </body></html>''' % (title, css_link, html_navbar(), contents)
-            print(html_page)
+
             return html_page
 
         def filelink(self, url, path):
