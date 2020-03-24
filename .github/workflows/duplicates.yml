@@ -46,5 +46,11 @@ jobs:
                "reply": "This is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
                "labels": ["resolution:Duplicate"],
                "close": true
+             },
+             {
+               "pattern": "TypeError: _handle_remote_call_reply() missing 1 required positional argument: 'load_exception'",
+               "reply": "This is fixed in our latest Spyder 4 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=4.1.*`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
              }
              ]
