@@ -47,6 +47,8 @@ LARGE_ARRAY = 5e6
 class CollectionsDelegate(QItemDelegate):
     """CollectionsEditor Item Delegate"""
     sig_free_memory = Signal()
+    sig_open_editor = Signal()
+    sig_editor_shown = Signal()
 
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
@@ -95,6 +97,7 @@ class CollectionsDelegate(QItemDelegate):
 
     def createEditor(self, parent, option, index, object_explorer=False):
         """Overriding method createEditor"""
+        self.sig_open_editor.emit()
         if index.column() < 3:
             return None
         if self.show_warning(index):
@@ -232,6 +235,7 @@ class CollectionsDelegate(QItemDelegate):
                      lambda eid=id(editor): self.editor_accepted(eid))
         editor.rejected.connect(
                      lambda eid=id(editor): self.editor_rejected(eid))
+        self.sig_editor_shown.emit()
         editor.show()
 
     @Slot(str, object)
