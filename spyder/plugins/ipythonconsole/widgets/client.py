@@ -288,6 +288,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # Show possible errors when setting Matplotlib backend
         self._show_mpl_backend_errors()
 
+        # To show if special console is valid
+        self._check_special_console_error()
+
         self.shellwidget.sig_prompt_ready.disconnect(
             self._when_prompt_is_ready)
 
@@ -737,9 +740,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def _hide_loading_page(self):
         """Hide animation shown while the kernel is loading."""
         self.infowidget.hide()
-        self.shellwidget.show()
         self.info_page = self.blank_page
         self.set_info_page()
+        self.shellwidget.show()
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""
@@ -771,3 +774,21 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """
         if not self.external_kernel:
             self.shellwidget.call_kernel().show_mpl_backend_errors()
+
+    def _check_special_console_error(self):
+        """Check if the dependecies for special consoles are available."""
+        self.shellwidget.call_kernel(
+            callback=self._show_special_console_error
+            ).is_special_kernel_valid()
+
+    def _show_special_console_error(self, missing_dependency):
+        if missing_dependency is not None:
+            error_message = _(
+                "Your Python environment or installation doesn't have the "
+                "<tt>{missing_dependency}</tt> module installed or it "
+                "occurred a problem importing it. Due to that, it is not "
+                "possible for Spyder to create this special console for "
+                "you.".format(missing_dependency=missing_dependency)
+            )
+
+            self.show_kernel_error(error_message)
