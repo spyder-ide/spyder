@@ -783,7 +783,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def _show_special_console_error(self, missing_dependency):
         if missing_dependency is not None:
-            error_message = _("Unable to start special console since "
-                              "a dependency is missing: {}".format(
-                                  missing_dependency))
+            error_message = _(
+                "Your Python environment or installation doesn't have the "
+                "<tt>{missing_dependency}</tt> module installed or it "
+                "occurred a problem importing it. Due to that, it is not "
+                "possible for Spyder to create this special console for "
+                "you.".format(missing_dependency=missing_dependency)
+            )
+
             self.show_kernel_error(error_message)
