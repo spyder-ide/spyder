@@ -946,6 +946,48 @@ class BaseEditMixin(object):
             self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
 
+    def get_current_object(self):
+        """
+        Return current object under cursor.
+
+        Get the text of the current word plus all the characters
+        to the left until a space is found. Used to get text to inspect
+        for Help of elements following dot notation for example
+        np.linalg.norm
+        """
+        cursor = self.textCursor()
+        cursor_pos = cursor.position()
+        current_word = self.get_current_word(help_req=True)
+
+        # Get text to the left of cursor until space or no more
+        # charaters are left
+        cursor.movePosition(
+            QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor)
+        while to_text_string(cursor.selectedText()).strip():
+            cursor.clearSelection()
+            cursor.movePosition(
+                QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor)
+        cursor.clearSelection()
+        cursor.setPosition(cursor_pos, QTextCursor.KeepAnchor)
+        text_left = to_text_string(cursor.selectedText()).strip()
+
+        # Merge both strings
+        if (text_left is not None and current_word is not None and
+                text_left != current_word):
+            sub_current_word = current_word
+            while (not text_left.endswith(sub_current_word) and
+                   not text_left.endswith('.')):
+                sub_current_word = sub_current_word[:-1]
+            if text_left.endswith('.'):
+                text_object = text_left + current_word
+            else:
+                text_object = text_left + current_word.replace(
+                    sub_current_word, '')
+        else:
+            text_object = current_word
+
+        return text_object
+
     def get_current_word_and_position(self, completion=False, help_req=False,
                                       valid_python_variable=True):
         """
@@ -975,14 +1017,24 @@ class BaseEditMixin(object):
                 return not to_text_string(curs.selectedText()).strip()
 
             def is_special_character(move):
-                    curs = self.textCursor()
-                    curs.movePosition(move, QTextCursor.KeepAnchor)
-                    text_cursor = to_text_string(curs.selectedText()).strip()
-                    return len(re.findall(r'([^\d\W]\w*)',
-                                          text_cursor, re.UNICODE)) == 0
+                curs = self.textCursor()
+                curs.movePosition(move, QTextCursor.KeepAnchor)
+                text_cursor = to_text_string(curs.selectedText()).strip()
+                return len(
+                    re.findall(r'([^\d\W]\w*)', text_cursor, re.UNICODE)) == 0
+
+            def is_dot(move):
+                curs = self.textCursor()
+                curs.movePosition(move, QTextCursor.KeepAnchor)
+                text_cursor = to_text_string(curs.selectedText()).strip()
+                return text_cursor == '.'
+
             if help_req:
-                if is_special_character(QTextCursor.NoMove):
+                if (is_special_character(QTextCursor.NoMove) and
+                        not is_dot(QTextCursor.PreviousCharacter)):
                     cursor.movePosition(QTextCursor.WordLeft)
+                elif is_dot(QTextCursor.PreviousCharacter):
+                    cursor.movePosition(QTextCursor.NextCharacter)
             elif not completion:
                 if is_space(QTextCursor.NextCharacter):
                     if is_space(QTextCursor.PreviousCharacter):
@@ -1363,17 +1415,9 @@ class GetHelpMixin(object):
         self.help_enabled = state
 
     def inspect_current_object(self):
-        regex_word = ''
-        start_text = self.get_text('sol', 'cursor')
-        tl1 = re.findall(r'([a-zA-Z_]+[^\s^\(]*)', start_text)
-        if tl1 and start_text.endswith(tl1[-1]):
-            regex_word += tl1[-1]
-        end_text = self.get_text('cursor', 'eol')
-        tl2 = re.findall(r'([^\s^\(]+[0-9a-zA-Z_\.]*)', end_text)
-        if tl2 and end_text.startswith(tl2[0]):
-            regex_word += tl2[0]
-        if regex_word:
-            self.show_object_info(regex_word, force=True)
+        current_object = self.get_current_object()
+        if current_object is not None:
+            self.show_object_info(current_object, force=True)
 
     def show_object_info(self, text, call=False, force=False):
         """Show signature calltip and/or docstring in the Help plugin"""
