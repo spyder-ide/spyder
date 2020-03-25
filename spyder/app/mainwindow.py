@@ -75,7 +75,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
                             QMainWindow, QMenu, QMessageBox, QShortcut,
-                            QSplashScreen, QStyleFactory, QWidget)
+                            QSplashScreen, QStyleFactory, QWidget, QCheckBox)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -489,6 +489,9 @@ class MainWindow(QMainWindow):
         # To keep track of the last focused widget
         self.last_focused_widget = None
         self.previous_focused_widget = None
+
+        # Keep track of dpi message
+        self.show_dpi_message = True
 
         # Server to open external files on a single instance
         # This is needed in order to handle socket creation problems.
@@ -1400,6 +1403,9 @@ class MainWindow(QMainWindow):
         self.screen.logicalDotsPerInchChanged.disconnect(
             self.show_dpi_change_message)
 
+        if not self.show_dpi_message:
+            return
+
         # Check the window state in MacOS for not showing the message if the
         # main window is fullscreen
         window = self.window().windowHandle()
@@ -1407,18 +1413,27 @@ class MainWindow(QMainWindow):
                 sys.platform == 'darwin'):
             return
 
-        answer = QMessageBox.warning(
-            self, _("Warning"),
+        dismiss_box = QCheckBox(_("Hide this message during this session"))
+
+        msgbox = QMessageBox(self)
+        msgbox.setIcon(QMessageBox.Warning)
+        msgbox.setText(
             _("A monitor scale change was detected. <br><br>"
               "We recommend restarting Spyder to ensure that it's properly "
               "displayed. If you don't want to do that, please be sure to "
               "activate the option<br><br><tt>Enable auto high DPI scaling"
               "</tt><br><br>in <tt>Preferences > General > Interface</tt>, "
               "in case Spyder is not displayed correctly.<br><br>"
-              "Do you want to restart Spyder?"),
-            QMessageBox.Yes | QMessageBox.No)
+              "Do you want to restart Spyder?"))
+        yes_button = msgbox.addButton(QMessageBox.Yes)
+        msgbox.addButton(QMessageBox.No)
+        msgbox.setCheckBox(dismiss_box)
+        msgbox.exec()
 
-        if answer == QMessageBox.Yes:
+        if dismiss_box.isChecked():
+            self.show_dpi_message = False
+
+        if msgbox.clickedButton() == yes_button:
             # Activate HDPI auto-scaling option since is needed for a proper
             # display when using OS scaling
             CONF.set('main', 'normal_screen_resolution', False)
