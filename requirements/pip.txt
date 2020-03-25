@@ -19,6 +19,8 @@ pexpect >=4.4.0
 pickleshare >=0.4
 psutil >=5.3
 py2app
+pycodestyle
+pyflakes
 pygments >=2.0
 pylint >=0.25
 pyqt5 <5.13
