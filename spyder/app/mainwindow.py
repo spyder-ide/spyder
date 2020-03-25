@@ -75,7 +75,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
                             QMainWindow, QMenu, QMessageBox, QShortcut,
-                            QSplashScreen, QStyleFactory, QWidget)
+                            QSplashScreen, QStyleFactory, QWidget, QCheckBox)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -489,6 +489,9 @@ class MainWindow(QMainWindow):
         # To keep track of the last focused widget
         self.last_focused_widget = None
         self.previous_focused_widget = None
+
+        # Keep track of dpi message
+        self.show_dpi_message = True
 
         # Server to open external files on a single instance
         # This is needed in order to handle socket creation problems.
@@ -1378,11 +1381,16 @@ class MainWindow(QMainWindow):
         self.is_setting_up = False
 
         # Handle DPI scale and window changes to show a restart message
-        window = self.window().windowHandle()
-        window.screenChanged.connect(self.handle_new_screen)
-        self.screen = self.window().windowHandle().screen()
-        self.screen.logicalDotsPerInchChanged.connect(
-            self.show_dpi_change_message)
+        # Handle DPI scale and window changes to show a restart message.
+        # Don't activate this functionality on macOS because it's being
+        # triggered in the wrong situations.
+        # See spyder-ide/spyder#11846
+        if not sys.platform == 'darwin':
+            window = self.window().windowHandle()
+            window.screenChanged.connect(self.handle_new_screen)
+            self.screen = self.window().windowHandle().screen()
+            self.screen.logicalDotsPerInchChanged.connect(
+                self.show_dpi_change_message)
 
         # Notify that the setup of the mainwindow was finished
         self.sig_setup_finished.emit()
@@ -1403,18 +1411,40 @@ class MainWindow(QMainWindow):
         """Show message to restart Spyder since the DPI scale changed."""
         self.screen.logicalDotsPerInchChanged.disconnect(
             self.show_dpi_change_message)
-        answer = QMessageBox.warning(
-            self, _("Warning"),
+
+        if not self.show_dpi_message:
+            return
+
+        # Check the window state to not show the message if the window
+        # is in fullscreen mode.
+        window = self.window().windowHandle()
+        if (window.windowState() == Qt.WindowFullScreen and
+                sys.platform == 'darwin'):
+            return
+
+        dismiss_box = QCheckBox(
+            _("Hide this message during the current session")
+        )
+
+        msgbox = QMessageBox(self)
+        msgbox.setIcon(QMessageBox.Warning)
+        msgbox.setText(
             _("A monitor scale change was detected. <br><br>"
               "We recommend restarting Spyder to ensure that it's properly "
               "displayed. If you don't want to do that, please be sure to "
               "activate the option<br><br><tt>Enable auto high DPI scaling"
               "</tt><br><br>in <tt>Preferences > General > Interface</tt>, "
               "in case Spyder is not displayed correctly.<br><br>"
-              "Do you want to restart Spyder?"),
-            QMessageBox.Yes | QMessageBox.No)
+              "Do you want to restart Spyder?"))
+        yes_button = msgbox.addButton(QMessageBox.Yes)
+        msgbox.addButton(QMessageBox.No)
+        msgbox.setCheckBox(dismiss_box)
+        msgbox.exec_()
 
-        if answer == QMessageBox.Yes:
+        if dismiss_box.isChecked():
+            self.show_dpi_message = False
+
+        if msgbox.clickedButton() == yes_button:
             # Activate HDPI auto-scaling option since is needed for a proper
             # display when using OS scaling
             CONF.set('main', 'normal_screen_resolution', False)
