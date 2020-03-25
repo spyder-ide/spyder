@@ -116,6 +116,9 @@ def test_move_warnings(qtbot, lsp_codeeditor):
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_change()
 
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
+
     # Move between warnings
     editor.go_to_next_warning()
     assert 2 == editor.get_cursor_line_number()
