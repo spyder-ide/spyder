@@ -248,7 +248,7 @@ class EditorConfigPage(PluginConfigPage):
                                    (_("Google"), 'Googledoc'),
                                    (_("Sphinx"), 'Sphinxdoc'),)
         docstring_combo = self.create_combobox(
-            "Type:",
+            _("Type:"),
             docstring_combo_choices,
             'docstring_type')
 
