@@ -1381,11 +1381,16 @@ class MainWindow(QMainWindow):
         self.is_setting_up = False
 
         # Handle DPI scale and window changes to show a restart message
-        window = self.window().windowHandle()
-        window.screenChanged.connect(self.handle_new_screen)
-        self.screen = self.window().windowHandle().screen()
-        self.screen.logicalDotsPerInchChanged.connect(
-            self.show_dpi_change_message)
+        # Handle DPI scale and window changes to show a restart message.
+        # Don't activate this functionality on macOS because it's being
+        # triggered in the wrong situations.
+        # See spyder-ide/spyder#11846
+        if not sys.platform == 'darwin':
+            window = self.window().windowHandle()
+            window.screenChanged.connect(self.handle_new_screen)
+            self.screen = self.window().windowHandle().screen()
+            self.screen.logicalDotsPerInchChanged.connect(
+                self.show_dpi_change_message)
 
         # Notify that the setup of the mainwindow was finished
         self.sig_setup_finished.emit()
@@ -1406,14 +1411,16 @@ class MainWindow(QMainWindow):
         if not self.show_dpi_message:
             return
 
-        # Check the window state in MacOS for not showing the message if the
-        # main window is fullscreen
+        # Check the window state to not show the message if the window
+        # is in fullscreen mode.
         window = self.window().windowHandle()
         if (window.windowState() == Qt.WindowFullScreen and
                 sys.platform == 'darwin'):
             return
 
-        dismiss_box = QCheckBox(_("Hide this message during this session"))
+        dismiss_box = QCheckBox(
+            _("Hide this message during the current session")
+        )
 
         msgbox = QMessageBox(self)
         msgbox.setIcon(QMessageBox.Warning)
