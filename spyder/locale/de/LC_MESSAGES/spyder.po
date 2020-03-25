@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-11 08:58-0500\n"
-"PO-Revision-Date: 2020-03-12 15:57\n"
+"PO-Revision-Date: 2020-03-25 13:52\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -181,7 +181,7 @@ msgstr "Willkommen bei Spyder!"
 
 #: spyder/app/mainwindow.py:699
 msgid "Pre&ferences"
-msgstr "Vor&einstellungen"
+msgstr "&Einstellungen"
 
 #: spyder/app/mainwindow.py:706 spyder/widgets/pathmanager.py:71
 msgid "PYTHONPATH manager"
@@ -453,7 +453,7 @@ msgstr "Aktuelles Layout speichern"
 
 #: spyder/app/mainwindow.py:1965
 msgid "Layout preferences"
-msgstr "Layout-Voreinstellungen"
+msgstr "Layout-Einstellungen"
 
 #: spyder/app/mainwindow.py:1969
 msgid "Reset to spyder default"
@@ -3357,7 +3357,7 @@ msgstr "Hilfe kann auch automatisch angezeigt werden, nachdem eine linke Klammer
 
 #: spyder/plugins/help/plugin.py:422
 msgid "Preferences > Help"
-msgstr "Voreinstellungen > Hilfe"
+msgstr "Einstellungen > Hilfe"
 
 #: spyder/plugins/help/plugin.py:433
 msgid "Usage"
