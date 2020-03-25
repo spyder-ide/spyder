@@ -1428,7 +1428,7 @@ class MainWindow(QMainWindow):
         yes_button = msgbox.addButton(QMessageBox.Yes)
         msgbox.addButton(QMessageBox.No)
         msgbox.setCheckBox(dismiss_box)
-        msgbox.exec()
+        msgbox.exec_()
 
         if dismiss_box.isChecked():
             self.show_dpi_message = False
