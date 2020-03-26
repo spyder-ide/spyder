@@ -459,14 +459,14 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
     # Write function name
-    qtbot.keyClicks(control, u'np.sin')
+    qtbot.keyClicks(control, u'np.linalg.norm')
 
     # Get help
     control.inspect_current_object()
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(
-        lambda: check_text(webpage, "Trigonometric sine, element-wise."),
+        lambda: check_text(webpage, "Matrix or vector norm."),
         timeout=6000)
 
 

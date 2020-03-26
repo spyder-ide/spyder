@@ -964,6 +964,8 @@ class BaseEditMixin(object):
         cursor.movePosition(QTextCursor.PreviousCharacter)
         while self.get_character(cursor.position()).strip():
             cursor.movePosition(QTextCursor.PreviousCharacter)
+            if cursor.atBlockStart():
+                break
         cursor_pos_left = cursor.position()
 
         # Get max position to the right of cursor until space or no more
@@ -971,6 +973,8 @@ class BaseEditMixin(object):
         cursor.setPosition(cursor_pos)
         while self.get_character(cursor.position()).strip():
             cursor.movePosition(QTextCursor.NextCharacter)
+            if cursor.atBlockEnd():
+                break
         cursor_pos_right = cursor.position()
 
         # Get text of the object under the cursor
