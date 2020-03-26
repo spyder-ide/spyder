@@ -959,34 +959,30 @@ class BaseEditMixin(object):
         cursor_pos = cursor.position()
         current_word = self.get_current_word(help_req=True)
 
-        # Get text to the left of cursor until space or no more
+        # Get max position to the left of cursor until space or no more
         # charaters are left
-        cursor.movePosition(
-            QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor)
-        while to_text_string(cursor.selectedText()).strip():
-            cursor.clearSelection()
-            cursor.movePosition(
-                QTextCursor.PreviousCharacter, QTextCursor.KeepAnchor)
-        cursor.clearSelection()
-        cursor.setPosition(cursor_pos, QTextCursor.KeepAnchor)
-        text_left = to_text_string(cursor.selectedText()).strip()
+        cursor.movePosition(QTextCursor.PreviousCharacter)
+        while self.get_character(cursor.position()).strip():
+            cursor.movePosition(QTextCursor.PreviousCharacter)
+        cursor_pos_left = cursor.position()
 
-        # Merge both strings
-        if (text_left is not None and current_word is not None and
-                text_left != current_word):
-            sub_current_word = current_word
-            while (not text_left.endswith(sub_current_word) and
-                   not text_left.endswith('.')):
-                sub_current_word = sub_current_word[:-1]
-            if text_left.endswith('.'):
-                text_object = text_left + current_word
-            else:
-                text_object = text_left + current_word.replace(
-                    sub_current_word, '')
-        else:
-            text_object = current_word
+        # Get max position to the right of cursor until space or no more
+        # charaters are left
+        cursor.setPosition(cursor_pos)
+        while self.get_character(cursor.position()).strip():
+            cursor.movePosition(QTextCursor.NextCharacter)
+        cursor_pos_right = cursor.position()
 
-        return text_object
+        # Get text of the object under the cursor
+        current_text = self.get_text(
+            cursor_pos_left, cursor_pos_right).strip()
+        current_object = current_word
+        if current_text and current_word is not None:
+            if current_word != current_text:
+                current_object = (
+                    current_text.split(current_word)[0] + current_word)
+
+        return current_object
 
     def get_current_word_and_position(self, completion=False, help_req=False,
                                       valid_python_variable=True):
@@ -1017,24 +1013,18 @@ class BaseEditMixin(object):
                 return not to_text_string(curs.selectedText()).strip()
 
             def is_special_character(move):
+                """Check if a character is a non-letter including numbers."""
                 curs = self.textCursor()
                 curs.movePosition(move, QTextCursor.KeepAnchor)
                 text_cursor = to_text_string(curs.selectedText()).strip()
                 return len(
                     re.findall(r'([^\d\W]\w*)', text_cursor, re.UNICODE)) == 0
 
-            def is_dot(move):
-                curs = self.textCursor()
-                curs.movePosition(move, QTextCursor.KeepAnchor)
-                text_cursor = to_text_string(curs.selectedText()).strip()
-                return text_cursor == '.'
-
             if help_req:
-                if (is_special_character(QTextCursor.NoMove) and
-                        not is_dot(QTextCursor.PreviousCharacter)):
-                    cursor.movePosition(QTextCursor.WordLeft)
-                elif is_dot(QTextCursor.PreviousCharacter):
+                if is_special_character(QTextCursor.PreviousCharacter):
                     cursor.movePosition(QTextCursor.NextCharacter)
+                elif is_special_character(QTextCursor.NextCharacter):
+                    cursor.movePosition(QTextCursor.PreviousCharacter)
             elif not completion:
                 if is_space(QTextCursor.NextCharacter):
                     if is_space(QTextCursor.PreviousCharacter):
