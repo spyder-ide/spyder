@@ -195,7 +195,7 @@ DEFAULTS = [
               'edge_line_columns': '79',
               'indent_guides': False,
               'code_folding': True,
-              'code_folding_warn': True,
+              'show_code_folding_warning': True,
               'scroll_past_end': False,
               'toolbox_panel': True,
               'close_parentheses': True,
@@ -624,4 +624,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '56.0.0'
+CONF_VERSION = '57.0.0'
