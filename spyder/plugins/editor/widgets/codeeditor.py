@@ -88,6 +88,7 @@ from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
 from spyder.utils.qstringhelpers import qstring_length
+from spyder.widgets.helperwidgets import MessageCheckBox
 
 
 try:
@@ -1394,15 +1395,27 @@ class CodeEditor(TextEditBaseWidget):
         """Request folding."""
         total_lines = self.get_line_count()
         if total_lines > 2000 and self.code_folding:
-            warn = CONF.get('editor', 'code_folding_warn')
-            warn_str = _("This file contains more than 2000 lines!  "
-                         "Code folding and indent guidelines will be  "
-                         "disabled in order to prevent performance "
-                         "degradation.")
+            warn = CONF.get('editor', 'show_code_folding_warning')
+            warn_str = _(
+                "One of the files in the editor or the file you are trying "
+                "to open contains more than 2000 lines.<br><br>"
+                "Code folding and indent guidelines will be disabled for "
+                "this kind of files in order to prevent performance "
+                "degradation."
+            )
             if warn:
-                QMessageBox.information(self, _('File too long'), warn_str,
-                                        QMessageBox.Ok)
-                CONF.set('editor', 'code_folding_warn', False)
+                box = MessageCheckBox(
+                    icon=QMessageBox.Warning, parent=self)
+                box.setWindowTitle(_('File too long'))
+                box.set_checkbox_text(_("Don't show again."))
+                box.setStandardButtons(QMessageBox.Ok)
+                box.set_checked(False)
+                box.set_check_visible(True)
+                box.setText(warn_str)
+                box.exec_()
+
+                CONF.set('editor', 'show_code_folding_warning',
+                         not box.is_checked())
             self.toggle_code_folding(False)
             self.toggle_identation_guides(False)
 
@@ -1519,11 +1532,8 @@ class CodeEditor(TextEditBaseWidget):
             self.code_folding = True
 
     def toggle_identation_guides(self, state):
-        folding_panel = self.panels.get(FoldingPanel)
         if state and not self.code_folding:
             self.code_folding = True
-        elif not state and not folding_panel.isVisible():
-            self.code_folding = False
         self.indent_guides.set_enabled(state)
 
     def toggle_completions_hint(self, state):
