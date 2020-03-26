@@ -977,8 +977,9 @@ class BaseEditMixin(object):
         current_text = self.get_text(
             cursor_pos_left, cursor_pos_right).strip()
         current_object = current_word
+
         if current_text and current_word is not None:
-            if current_word != current_text:
+            if current_word != current_text and current_word in current_text:
                 current_object = (
                     current_text.split(current_word)[0] + current_word)
 

@@ -31,6 +31,57 @@ def mixinsbot(qtbot):
 
 # --- Tests
 # -----------------------------------------------------------------------------
+def test_get_current_object(mixinsbot):
+    """
+    Test that we can get the current object to get help for the console.
+
+    For spyder-ide/spyder#11821
+    """
+    qtbot, widget = mixinsbot
+    # get_current_object = widget.get_current_object
+
+    code = (u'test.attr = np.linalg.norm()\n')
+    widget.setPlainText(code)
+    cursor = widget.textCursor()
+    cursor.setPosition(widget.get_position('sof'))
+
+    widget.move_cursor(1)
+    current_word = widget.get_current_object()
+    assert current_word == 'test'
+
+    # widget.move_cursor(4)
+    # current_word = get_current_object()
+    # assert current_word == 'test'
+
+    # widget.move_cursor(1)
+    # current_word = get_current_object()
+    # assert current_word == 'test.attr'
+
+    # widget.move_cursor(4)
+    # current_word = get_current_object()
+    # assert current_word == 'test.attr'
+
+    # widget.move_cursor(1)
+    # current_word = get_current_object()
+    # assert current_word is None
+
+    # widget.move_cursor(1)
+    # current_word = get_current_object()
+    # assert current_word is None
+
+    # widget.move_cursor(1)
+    # current_word = get_current_object()
+    # assert current_word is None
+
+    # widget.move_cursor(1)
+    # current_word = get_current_object()
+    # assert current_word == 'np'
+
+    # widget.move_cursor(2)
+    # current_word = get_current_object()
+    # assert current_word == 'np.linalg'
+
+
 def test_get_current_word(mixinsbot):
     """
     Test that we can get the current word to get help for the editor.
