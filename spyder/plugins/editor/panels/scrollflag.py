@@ -205,11 +205,19 @@ class ScrollFlagArea(Panel):
 
                 return ceil(middle-self.FLAGS_DY/2)
 
-        # Paint all the code analysis flags
-        for block, data in self._code_analysis_list:
+        def should_paint_block(block):
+            """Check if the block should be painted."""
+            if not block.isValid():
+                return False
+            # Don't paint local flags outside of the window
             if paint_local and not (
                     min_line <= block.blockNumber() + 1 <= max_line):
-                # No need to paint flags outside of the window
+                return False
+            return True
+
+        # Paint all the code analysis flags
+        for block, data in self._code_analysis_list:
+            if not should_paint_block(block):
                 continue
             # Paint the warnings
             for source, code, severity, message in data.code_analysis:
@@ -227,8 +235,7 @@ class ScrollFlagArea(Panel):
 
         # Paint all the todo flags
         for block, data in self._todo_list:
-            if paint_local and not (
-                    min_line <= block.blockNumber() + 1 <= max_line):
+            if not should_paint_block(block):
                 continue
             # Paint the todos
             rect_y = compute_flag_ypos(block)
@@ -238,8 +245,7 @@ class ScrollFlagArea(Panel):
 
         # Paint all the breakpoints flags
         for block, data in self._breakpoint_list:
-            if paint_local and not (
-                    min_line <= block.blockNumber() + 1 <= max_line):
+            if not should_paint_block(block):
                 continue
             # Paint the breakpoints
             rect_y = compute_flag_ypos(block)
