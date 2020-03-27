@@ -17,8 +17,8 @@ import os.path as osp
 import sys
 
 # Third-party imports
-from qtpy.QtCore import Slot
-from qtpy.QtWidgets import QMessageBox, QCheckBox
+from qtpy.QtCore import Slot, QPoint
+from qtpy.QtWidgets import QMenu, QMessageBox, QCheckBox
 
 # Local imports
 from spyder.config.base import _, get_conf_path, running_under_pytest
@@ -30,6 +30,9 @@ from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.completion.languageserver.client import LSPClient
 from spyder.plugins.completion.languageserver.confpage import (
     LanguageServerConfigPage)
+from spyder.plugins.completion.languageserver.widgets.status import (
+    LSPStatusWidget)
+from spyder.utils.qthelpers import add_actions, create_action
 
 
 logger = logging.getLogger(__name__)
@@ -54,7 +57,55 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         self.register_queue = {}
 
         self.update_configuration()
+        statusbar = parent.statusBar()  # MainWindow status bar
+        self.status_widget = LSPStatusWidget(
+            self.main, statusbar, plugin=self)
+        self.status_widget.set_value('stopped')
 
+        # Signals
+        self.status_widget.sig_clicked.connect(self.show_menu)
+
+    # --- Status bar widget handling
+    def show_menu(self):
+        """"""
+        menu = self.status_widget.menu
+        menu.clear()
+        restart_action = create_action(
+            self,
+            text=_("Restart python language server"),
+            triggered=self.restart_manually,
+        )
+        add_actions(menu, [restart_action])
+        rect = self.status_widget.contentsRect()
+        pos = self.status_widget.mapToGlobal(rect.topLeft() + QPoint(0, -rect.height()))
+        self.status_widget.menu.popup(pos)
+
+    def restart_manually(self):
+        """"""
+        language = 'python'
+        self.set_status('restarting...')
+        client_config = {
+            'status': self.STOPPED,
+            'config': self.get_language_config(language),
+            'instance': None,
+        }
+        self.restart_client('python', client_config)
+
+    def set_status(self, status):
+        """Show status for the current file."""
+        self.status_widget.set_value('PyLS: {}'.format(status))
+
+    def on_initialize(self, options, language):
+        """"""
+        self.set_status('ready')
+
+    def update_status(self):
+        """"""
+        if self.main.editor:
+            filename = self.main.editor.get_current_filename()
+            self.status_widget.setVisible(filename.endswith('.py'))
+
+    # ---
     def register_file(self, language, filename, codeeditor):
         if language in self.clients:
             language_client = self.clients[language]['instance']
@@ -179,6 +230,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         Report that either the transport layer or the LSP server are
         down.
         """
+        self.set_status('down')
+
         if self.main.hide_report_lsp_down_message:
             return
 
@@ -218,6 +271,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         started = False
         if language in self.clients:
             language_client = self.clients[language]
+
             queue = self.register_queue[language]
 
             # Don't start LSP services when testing unless we demand
@@ -267,9 +321,13 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             self.main.sig_main_interpreter_changed.connect(
                 self.update_configuration)
             instance.sig_lsp_down.connect(self.report_lsp_down)
+            instance.sig_initialize.connect(self.on_initialize)
+
             if self.main.editor:
                 instance.sig_initialize.connect(
                     self.main.editor.register_completion_server_settings)
+                self.main.editor.sig_editor_focus_changed.connect(
+                    self.update_status)
             if self.main.console:
                 instance.sig_server_error.connect(self.report_server_error)
             if self.main.projects:
