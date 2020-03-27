@@ -17,8 +17,8 @@ import os.path as osp
 import sys
 
 # Third-party imports
-from qtpy.QtCore import Slot, QPoint, QTimer
-from qtpy.QtWidgets import QMenu, QMessageBox, QCheckBox
+from qtpy.QtCore import Slot, QTimer
+from qtpy.QtWidgets import QMessageBox, QCheckBox
 
 # Local imports
 from spyder.config.base import _, get_conf_path, running_under_pytest
@@ -32,7 +32,6 @@ from spyder.plugins.completion.languageserver.confpage import (
     LanguageServerConfigPage)
 from spyder.plugins.completion.languageserver.widgets.status import (
     LSPStatusWidget)
-from spyder.utils.qthelpers import add_actions, create_action
 
 
 logger = logging.getLogger(__name__)
@@ -66,31 +65,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         statusbar = parent.statusBar()
         self.status_widget = LSPStatusWidget(
             self.main, statusbar, plugin=self)
-        self.status_widget.set_value('stopped')
-
-        # Signals
-        self.status_widget.sig_clicked.connect(self.show_menu)
 
     # --- Status bar widget handling
-    def show_menu(self):
-        """Display a PyLS status bar widget menu, if pyls is down."""
-        client = self.clients['python']
-
-        if (client['status'] != self.RUNNING
-                or client['instance'].lsp_server.poll() is not None):
-            menu = self.status_widget.menu
-            menu.clear()
-            restart_action = create_action(
-                self,
-                text=_("Restart python language server"),
-                triggered=lambda: self.restart_ls('python', force=True),
-            )
-            add_actions(menu, [restart_action])
-            rect = self.status_widget.contentsRect()
-            pos = self.status_widget.mapToGlobal(
-                rect.topLeft() + QPoint(0, -rect.height()))
-            self.status_widget.menu.popup(pos)
-
     def restart_ls(self, language, force=False):
         """Restart language server on failure."""
         client_config = {
@@ -112,7 +88,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             self.set_status('restarting...')
 
             self.clients_restart_count[language] -= 1
-            self.restart_client(language, client_config)
+            # self.restart_client(language, client_config)
             client = self.clients[language]
 
             # Restarted the maximum amount of times without
@@ -145,15 +121,6 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """
         if not self.clients_restarting.get(language, False):
             self.set_status('ready')
-
-    def update_status(self):
-        """
-        Check language of current editor file to hide/show status widget.
-        """
-        if self.main:
-            if self.main.editor:
-                filename = self.main.editor.get_current_filename()
-                self.status_widget.setVisible(filename.endswith('.py'))
 
     def handle_lsp_down(self, language):
         """
@@ -395,7 +362,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 instance.sig_initialize.connect(
                     self.main.editor.register_completion_server_settings)
                 self.main.editor.sig_editor_focus_changed.connect(
-                    self.update_status)
+                    self.status_widget.update_status)
             if self.main.console:
                 instance.sig_server_error.connect(self.report_server_error)
             if self.main.projects:
