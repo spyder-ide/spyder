@@ -18,7 +18,7 @@ import sys
 
 # Third-party imports
 from qtpy.QtCore import Slot
-from qtpy.QtWidgets import QMessageBox
+from qtpy.QtWidgets import QMessageBox, QCheckBox
 
 # Local imports
 from spyder.config.base import _, get_conf_path, running_under_pytest
@@ -135,23 +135,43 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         Report that connection couldn't be established with
         an external server.
         """
-        QMessageBox.critical(
-            self.main,
-            _("Error"),
+        if self.main.hide_report_lsp_no_external_server:
+            return
+
+        # Only show this section on windows
+        win_message = (
+            "<br><br>"
+            "To fix this, please verify that your firewall or antivirus "
+            "allows Python processes to open ports in your system, or the "
+            "settings you introduced in our Preferences to connect to "
+            "external LSP servers."
+        ) if os.name == 'nt' else ''
+
+        dismiss_box = QCheckBox(
+            _("Hide this message during the current session")
+        )
+        msgbox = QMessageBox(self.main)
+        msgbox.setIcon(QMessageBox.Warning)
+        msgbox.setWindowTitle(_("Warning"))
+        msgbox.setText(
             _("It appears there is no {language} language server listening "
               "at address:"
               "<br><br>"
               "<tt>{host}:{port}</tt>"
               "<br><br>"
               "Therefore, completion and linting for {language} will not "
-              "work during this session."
-              "<br><br>"
-              "To fix this, please verify that your firewall or antivirus "
-              "allows Python processes to open ports in your system, or the "
-              "settings you introduced in our Preferences to connect to "
-              "external LSP servers.").format(host=host, port=port,
-                                              language=language.capitalize())
+              "work during this session." + win_message
+              ).format(host=host, port=port, language=language.capitalize())
         )
+        yes_button = msgbox.addButton(QMessageBox.Yes)
+        msgbox.addButton(QMessageBox.No)
+        msgbox.setCheckBox(dismiss_box)
+        msgbox.exec_()
+
+        self.main.hide_report_lsp_no_external_server = dismiss_box.isChecked()
+
+        if msgbox.clickedButton() == yes_button:
+            self.main.restart()
 
     @Slot(str)
     def report_lsp_down(self, language):
@@ -159,16 +179,39 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         Report that either the transport layer or the LSP server are
         down.
         """
-        QMessageBox.critical(
-            self.main,
-            _("Error"),
+        if self.main.hide_report_lsp_down_message:
+            return
+
+        # Only show this section on windows
+        win_message = (
+            "To fix this, please verify that your firewall or antivirus "
+            "allows Python processes to open ports in your system, or "
+            "restart Spyder.<br><br>"
+        ) if os.name == 'nt' else ''
+
+        dismiss_box = QCheckBox(
+            _("Hide this message during the current session")
+        )
+        msgbox = QMessageBox(self.main)
+        msgbox.setIcon(QMessageBox.Warning)
+        msgbox.setWindowTitle(_("Warning"))
+        msgbox.setText(
             _("Completion and linting in the editor for {language} files "
               "will not work during the current session, or stopped working."
               "<br><br>"
-              "To fix this, please verify that your firewall or antivirus "
-              "allows Python processes to open ports in your system, or "
-              "restart Spyder.").format(language=language.capitalize())
+              + win_message +
+              "Do you want to restart Spyder?").format(
+                  language=language.capitalize())
         )
+        yes_button = msgbox.addButton(QMessageBox.Yes)
+        msgbox.addButton(QMessageBox.No)
+        msgbox.setCheckBox(dismiss_box)
+        msgbox.exec_()
+
+        self.main.hide_report_lsp_down_message = dismiss_box.isChecked()
+
+        if msgbox.clickedButton() == yes_button:
+            self.main.restart()
 
     def start_client(self, language):
         """Start an LSP client for a given language."""
