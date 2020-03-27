@@ -1400,8 +1400,8 @@ class MainWindow(QMainWindow):
         try:
             self.screen.logicalDotsPerInchChanged.disconnect(
                 self.show_dpi_change_message)
-        except TypeError:
-            # See spyder-ide/spyder#11903
+        except (TypeError, RuntimeError):
+            # See spyder-ide/spyder#11903 and spyder-ide/spyder#11997
             pass
         self.screen = screen
         self.screen.logicalDotsPerInchChanged.connect(
