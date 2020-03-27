@@ -32,7 +32,7 @@ class LSPStatusWidget(StatusBarWidget):
         self.tooltip = self.BASE_TOOLTIP
         super(LSPStatusWidget, self).__init__(
             parent, statusbar, icon=ima.icon('lspserver'))
-    
+
         self.plugin = plugin
         self.menu = QMenu(self)
 

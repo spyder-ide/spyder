@@ -61,7 +61,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         self.requests = set({})
         self.register_queue = {}
         self.update_configuration()
-        
+
         # Status bar widget
         statusbar = parent.statusBar()
         self.status_widget = LSPStatusWidget(
@@ -106,7 +106,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
         elif self.clients_restarting[language]:
             attemp = (self.MAX_RESTART_ATTEMPS
-                        - self.clients_restart_count[language] + 1)
+                      - self.clients_restart_count[language] + 1)
             logger.info("Automatic restart attemp {} for {}...".format(
                 attemp, language))
             self.set_status('restarting...')
