@@ -105,10 +105,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             self.restart_client(language, client_config)
 
         elif self.clients_restarting[language]:
-            attemp = (self.MAX_RESTART_ATTEMPS
-                      - self.clients_restart_count[language] + 1)
+            attempt = (self.MAX_RESTART_ATTEMPS
+                       - self.clients_restart_count[language] + 1)
             logger.info("Automatic restart attemp {} for {}...".format(
-                attemp, language))
+                attempt, language))
             self.set_status('restarting...')
 
             self.clients_restart_count[language] -= 1
@@ -143,7 +143,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """
         Update the status bar widget on client initilization.
         """
-        if self.clients_restarting.get(language, True):
+        if not self.clients_restarting.get(language, False):
             self.set_status('ready')
 
     def update_status(self):
