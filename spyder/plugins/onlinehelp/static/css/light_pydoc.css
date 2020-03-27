@@ -1,11 +1,14 @@
 body {
-    font-face: Garamond, serif;
     background-color: white;
+    color: rgb(51, 51, 51);
+    margin: 25px 25px 25px 25px;
+    font-family: 'Trebuchet MS', sans-serif;
+    width: 95%;
 }
+
 
 table {
     border: none;
-    background-color: #fff7bf;
     width: 100%;
     border-spacing: 10px;
     padding-bottom: 10px;
@@ -16,6 +19,7 @@ table {
 
 p {
     padding-left:20px;
+    font-size: 1.25em;
 }
 
 td {vertical-align: bottom;}
@@ -24,7 +28,7 @@ td {padding-bottom: 0}
 div.main {
     clear:both;
     padding-top:.5em;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Trebuchet MS', sans-serif;
 }
 a {
     color: #0050cc;
@@ -43,9 +47,9 @@ a:hover {
 }
 
 .heading {  /* see HTMLDoc.heading */
+    text-overflow: clip;
     height: 3em;
     font-weight: bold;
-    border: 5px solid #151590;
     font-size: 180%;
     font-family: 'Trebuchet MS', sans-serif;
     background-color: #6487DC;
@@ -63,7 +67,7 @@ a:hover {
 }
 
 .normal {font-weight: normal;
-         font-size: 0.75em;}
+         font-size: 1em;}
 
 .grey {color:grey;}
 
@@ -83,23 +87,22 @@ a:hover {
 }
 
 .section_title {
-    font-size: 1.2em;
+    font-size: 1em;
     font-weight: bold;
+    font-family: 'Helvetica', sans-serif;
+    color: rgb(49, 126, 172);
+    margin-top: 20px;
+    margin-bottom: 10px;
 }
 
-.package, .module {
-    border: 10px solid #aa55cc;
-}
-
-.functions {
-    border: 10px solid #263fa7;
-}
-
-.data {
-    border: 10px solid #55aa55;
+.builtin_modules, .index, .package, .module, .classes, .functions, .data,
+.topics, .keywords {
+    font-size: 1em;
+    background-color: #e9ecef;
 }
 
 .author, .credits {
+    background-color: #e9ecef;
     border-left: 10px solid #7799ee;
     border-top: 10px solid #7799ee;
 }
@@ -111,8 +114,7 @@ a:hover {
 
 .docclass {
     color: black;
-    border: 10px solid #3ab155;
-    background-color: white;
+    background-color: #e9ecef;
     margin-left: 10px;
 }
 
@@ -120,11 +122,13 @@ a:hover {
     float: right;
     color: #909090;
 }
+
 .inner_table {
+    background-color: #e9ecef;
     width:100%;
     color: black;
     padding-bottom: 0;
-    font-family: Garamond, serif;
-    font-size: 20px;
+    font-family: monospace, serif;
+    font-size: 1.2em;
     border-bottom: none;
 }
