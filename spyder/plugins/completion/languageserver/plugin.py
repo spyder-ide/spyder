@@ -47,7 +47,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     RUNNING = 'running'
     LOCALHOST = ['127.0.0.1', 'localhost']
     CONFIGWIDGET_CLASS = LanguageServerConfigPage
-    MAX_RESTART_ATTEMPS = 5
+    MAX_RESTART_ATTEMPTS = 5
     TIME_BETWEEN_RESTARTS = 2000  # ms
 
     def __init__(self, parent):
@@ -81,7 +81,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             self.restart_client(language, client_config)
 
         elif self.clients_restarting[language]:
-            attempt = (self.MAX_RESTART_ATTEMPS
+            attempt = (self.MAX_RESTART_ATTEMPTS
                        - self.clients_restart_count[language] + 1)
             logger.info("Automatic restart attemp {} for {}...".format(
                 attempt, language))
@@ -136,7 +136,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
             self.set_status('restarting...')
             self.clients_restarting[language] = True
-            self.clients_restart_count[language] = self.MAX_RESTART_ATTEMPS
+            self.clients_restart_count[language] = self.MAX_RESTART_ATTEMPTS
             self.clients_restart_timers[language] = timer
             timer.start()
 
