@@ -17,7 +17,7 @@ import os.path as osp
 import sys
 
 # Third-party imports
-from qtpy.QtCore import Slot, QPoint
+from qtpy.QtCore import Slot, QPoint, QTimer
 from qtpy.QtWidgets import QMenu, QMessageBox, QCheckBox
 
 # Local imports
@@ -48,16 +48,22 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     RUNNING = 'running'
     LOCALHOST = ['127.0.0.1', 'localhost']
     CONFIGWIDGET_CLASS = LanguageServerConfigPage
+    MAX_RESTART_ATTEMPS = 5
+    TIME_BETWEEN_RESTARTS = 2000  # ms
 
     def __init__(self, parent):
         SpyderCompletionPlugin.__init__(self, parent)
 
         self.clients = {}
+        self.clients_restart_count = {}
+        self.clients_restart_timers = {}
+        self.clients_restarting = {}
         self.requests = set({})
         self.register_queue = {}
-
         self.update_configuration()
-        statusbar = parent.statusBar()  # MainWindow status bar
+        
+        # Status bar widget
+        statusbar = parent.statusBar()
         self.status_widget = LSPStatusWidget(
             self.main, statusbar, plugin=self)
         self.status_widget.set_value('stopped')
@@ -67,45 +73,107 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
     # --- Status bar widget handling
     def show_menu(self):
-        """"""
-        menu = self.status_widget.menu
-        menu.clear()
-        restart_action = create_action(
-            self,
-            text=_("Restart python language server"),
-            triggered=self.restart_manually,
-        )
-        add_actions(menu, [restart_action])
-        rect = self.status_widget.contentsRect()
-        pos = self.status_widget.mapToGlobal(rect.topLeft() + QPoint(0, -rect.height()))
-        self.status_widget.menu.popup(pos)
+        """Display a PyLS status bar widget menu, if pyls is down."""
+        client = self.clients['python']
 
-    def restart_manually(self):
-        """"""
-        language = 'python'
-        self.set_status('restarting...')
+        if (client['status'] != self.RUNNING
+                or client['instance'].lsp_server.poll() is not None):
+            menu = self.status_widget.menu
+            menu.clear()
+            restart_action = create_action(
+                self,
+                text=_("Restart python language server"),
+                triggered=lambda: self.restart_ls('python', force=True),
+            )
+            add_actions(menu, [restart_action])
+            rect = self.status_widget.contentsRect()
+            pos = self.status_widget.mapToGlobal(
+                rect.topLeft() + QPoint(0, -rect.height()))
+            self.status_widget.menu.popup(pos)
+
+    def restart_ls(self, language, force=False):
+        """Restart language server on failure."""
         client_config = {
             'status': self.STOPPED,
             'config': self.get_language_config(language),
             'instance': None,
         }
-        self.restart_client('python', client_config)
+
+        if force:
+            logger.info("Manual restart for {}...".format(language))
+            self.set_status('restarting...')
+            self.restart_client(language, client_config)
+
+        elif self.clients_restarting[language]:
+            attemp = (self.MAX_RESTART_ATTEMPS
+                        - self.clients_restart_count[language] + 1)
+            logger.info("Automatic restart attemp {} for {}...".format(
+                attemp, language))
+            self.set_status('restarting...')
+
+            self.clients_restart_count[language] -= 1
+            self.restart_client(language, client_config)
+            client = self.clients[language]
+
+            # Restarted the maximum amount of times without
+            if self.clients_restart_count[language] <= 0:
+                logger.info("Restart failed!")
+                self.clients_restarting[language] = False
+                self.clients_restart_timers[language].stop()
+                self.clients_restart_timers[language] = None
+                self.report_lsp_down(language)
+
+            # Restarted succesfully
+            if (client['status'] == self.RUNNING
+                    and client['instance'].lsp_server.poll() is None):
+                logger.info("Restart successful!")
+                self.clients_restarting[language] = False
+                self.clients_restart_timers[language].stop()
+                self.clients_restart_timers[language] = None
+                self.clients_restart_count[language] = 0
+                self.set_status('ready')
 
     def set_status(self, status):
-        """Show status for the current file."""
+        """
+        Show status for the current file.
+        """
         self.status_widget.set_value('PyLS: {}'.format(status))
 
     def on_initialize(self, options, language):
-        """"""
-        self.set_status('ready')
+        """
+        Update the status bar widget on client initilization.
+        """
+        if self.clients_restarting.get(language, True):
+            self.set_status('ready')
 
     def update_status(self):
-        """"""
-        if self.main.editor:
-            filename = self.main.editor.get_current_filename()
-            self.status_widget.setVisible(filename.endswith('.py'))
+        """
+        Check language of current editor file to hide/show status widget.
+        """
+        if self.main:
+            if self.main.editor:
+                filename = self.main.editor.get_current_filename()
+                self.status_widget.setVisible(filename.endswith('.py'))
 
-    # ---
+    def handle_lsp_down(self, language):
+        """
+        Handle automatic restart of client/server on failure.
+        """
+        if not self.clients_restarting.get(language, False):
+            logger.info("Automatic restart for {}...".format(language))
+
+            timer = QTimer(self)
+            timer.setSingleShot(False)
+            timer.setInterval(self.TIME_BETWEEN_RESTARTS)
+            timer.timeout.connect(lambda: self.restart_ls(language))
+
+            self.set_status('restarting...')
+            self.clients_restarting[language] = True
+            self.clients_restart_count[language] = self.MAX_RESTART_ATTEMPS
+            self.clients_restart_timers[language] = timer
+            timer.start()
+
+    # --- Other methods
     def register_file(self, language, filename, codeeditor):
         if language in self.clients:
             language_client = self.clients[language]['instance']
@@ -320,7 +388,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.update_configuration)
             self.main.sig_main_interpreter_changed.connect(
                 self.update_configuration)
-            instance.sig_lsp_down.connect(self.report_lsp_down)
+            instance.sig_lsp_down.connect(self.handle_lsp_down)
             instance.sig_initialize.connect(self.on_initialize)
 
             if self.main.editor:
