@@ -81,5 +81,9 @@ class LSPStatusWidget(StatusBarWidget):
         main = self.plugin.main
         if main:
             if main.editor:
-                filename = main.editor.get_current_filename()
-                self.setVisible(filename.endswith('.py'))
+                codeeditor = main.editor.get_current_editor()
+                lsp_language = codeeditor.language.lower()
+                if self.plugin.clients.get(lsp_language, False):
+                    self.setVisible(True)
+                else:
+                    self.setVisible(False)
