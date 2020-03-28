@@ -32,6 +32,7 @@ from spyder.plugins.completion.languageserver.confpage import (
     LanguageServerConfigPage)
 from spyder.plugins.completion.languageserver.widgets.status import (
     LSPStatusWidget)
+from spyder.widgets.helperwidgets import MessageCheckBox
 
 
 logger = logging.getLogger(__name__)
@@ -299,28 +300,29 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 "This problem could be fixed by restarting Spyder. "
             )
 
-        dismiss_box = QCheckBox(
-            _("Hide this message during the current session")
+        warn_str = _(
+            "Completion and linting in the editor for {language} files "
+            "will not work during the current session, or stopped working."
+            "<br><br>"
+            + os_message +
+            "Do you want to restart Spyder now?").format(
+                  language=language.capitalize()
         )
-        msgbox = QMessageBox(self.main)
-        msgbox.setIcon(QMessageBox.Warning)
-        msgbox.setWindowTitle(_("Warning"))
-        msgbox.setText(
-            _("Completion and linting in the editor for {language} files "
-              "will not work during the current session, or stopped working."
-              "<br><br>"
-              + os_message +
-              "Do you want to restart Spyder now?").format(
-                  language=language.capitalize())
-        )
-        yes_button = msgbox.addButton(QMessageBox.Yes)
-        msgbox.addButton(QMessageBox.No)
-        msgbox.setCheckBox(dismiss_box)
-        msgbox.exec_()
 
-        self.main.hide_report_lsp_down_message = dismiss_box.isChecked()
+        box = MessageCheckBox(icon=QMessageBox.Warning, parent=self.main)
+        box.setWindowTitle(_("Warning"))
+        box.set_checkbox_text(
+            _("Hide this message during the current session"))
+        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        box.setDefaultButton(QMessageBox.No)
+        box.set_checked(False)
+        box.set_check_visible(True)
+        box.setText(warn_str)
+        answer = box.exec_()
 
-        if msgbox.clickedButton() == yes_button:
+        self.main.hide_report_lsp_down_message = box.is_checked()
+
+        if answer == QMessageBox.Yes:
             self.main.restart()
 
     def start_client(self, language):
