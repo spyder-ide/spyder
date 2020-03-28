@@ -81,6 +81,7 @@ class LSPStatusWidget(StatusBarWidget):
         """
         language = self.get_current_language()
         if self.plugin.clients.get(language, False):
+            self.plugin.set_status(language)
             self.setVisible(True)
         else:
             self.setVisible(False)
