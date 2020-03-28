@@ -288,11 +288,16 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             return
 
         # Only show this section on windows
-        win_message = (
-            "To fix this, please verify that your firewall or antivirus "
-            "allows Python processes to open ports in your system, or "
-            "restart Spyder.<br><br>"
-        ) if os.name == 'nt' else ''
+        if os.name == 'nt':
+            os_message = (
+                "To try to fix this, please verify that your firewall or "
+                "antivirus allows Python processes to open ports in your "
+                "system, or restart Spyder.<br><br>"
+            )
+        else:
+            os_message = (
+                "This problem could be fixed by restarting Spyder. "
+            )
 
         dismiss_box = QCheckBox(
             _("Hide this message during the current session")
@@ -304,8 +309,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             _("Completion and linting in the editor for {language} files "
               "will not work during the current session, or stopped working."
               "<br><br>"
-              + win_message +
-              "Do you want to restart Spyder?").format(
+              + os_message +
+              "Do you want to restart Spyder now?").format(
                   language=language.capitalize())
         )
         yes_button = msgbox.addButton(QMessageBox.Yes)
