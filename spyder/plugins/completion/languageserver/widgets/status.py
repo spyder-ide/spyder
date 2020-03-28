@@ -27,7 +27,10 @@ logger = logging.getLogger(__name__)
 class LSPStatusWidget(StatusBarWidget):
     """Status bar widget for LSP  status."""
 
-    BASE_TOOLTIP = _("PyLS completions status")
+    BASE_TOOLTIP = _(
+        "Completions, linting, code\n"
+        "folding and symbols status."
+    )
     DEFAULT_STATUS = _('off')
 
     def __init__(self, parent, statusbar, plugin):
@@ -45,25 +48,23 @@ class LSPStatusWidget(StatusBarWidget):
         self.sig_clicked.connect(self.show_menu)
 
     def show_menu(self):
-        """
-        Display a PyLS status bar widget menu, if pyls is down.
-        """
-        plugin = self.plugin
+        """Display a menu when clicking on the widget."""
         menu = self.menu
-        client = plugin.clients['python']
+        language = self.get_current_language()
 
-        if (client['status'] != plugin.RUNNING
-                or client['instance'].lsp_server.poll() is not None):
+        if language is not None:
             menu.clear()
+            text = _(
+                "Restart {} Language Server").format(language.capitalize())
             restart_action = create_action(
                 self,
-                text=_("Restart python language server"),
-                triggered=lambda: self.plugin.restart_lsp('python', force=True),
+                text=text,
+                triggered=lambda: self.plugin.restart_lsp(language, force=True),
             )
             add_actions(menu, [restart_action])
             rect = self.contentsRect()
             pos = self.mapToGlobal(
-                rect.topLeft() + QPoint(0, -rect.height()))
+                rect.topLeft() + QPoint(-40, -rect.height() - 12))
             menu.popup(pos)
 
     def set_value(self, value):
@@ -78,12 +79,18 @@ class LSPStatusWidget(StatusBarWidget):
         """
         Check language of current editor file to hide/show status widget.
         """
+        language = self.get_current_language()
+        if self.plugin.clients.get(language, False):
+            self.setVisible(True)
+        else:
+            self.setVisible(False)
+
+    def get_current_language(self):
+        """Get current LSP language."""
         main = self.plugin.main
-        if main:
-            if main.editor:
-                codeeditor = main.editor.get_current_editor()
-                lsp_language = codeeditor.language.lower()
-                if self.plugin.clients.get(lsp_language, False):
-                    self.setVisible(True)
-                else:
-                    self.setVisible(False)
+        lsp_language = None
+
+        if main and main.editor:
+            codeeditor = main.editor.get_current_editor()
+            lsp_language = codeeditor.language.lower()
+        return lsp_language
