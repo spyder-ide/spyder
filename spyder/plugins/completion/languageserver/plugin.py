@@ -88,7 +88,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             self.set_status('restarting...')
 
             self.clients_restart_count[language] -= 1
-            # self.restart_client(language, client_config)
+            self.restart_client(language, client_config)
             client = self.clients[language]
 
             # Restarted the maximum amount of times without
