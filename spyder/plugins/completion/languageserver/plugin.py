@@ -101,6 +101,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.clients_restarting[language] = False
                 self.clients_restart_timers[language].stop()
                 self.clients_restart_timers[language] = None
+                self.clients_hearbeat[language].stop()
+                self.clients_hearbeat[language] = None
+                client['instance'].disconnect()
                 self.report_lsp_down(language)
 
             # Restarted succesfully
