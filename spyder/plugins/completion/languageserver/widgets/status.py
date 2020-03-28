@@ -58,7 +58,7 @@ class LSPStatusWidget(StatusBarWidget):
             restart_action = create_action(
                 self,
                 text=_("Restart python language server"),
-                triggered=lambda: self.plugin.restart_ls('python', force=True),
+                triggered=lambda: self.plugin.restart_lsp('python', force=True),
             )
             add_actions(menu, [restart_action])
             rect = self.contentsRect()

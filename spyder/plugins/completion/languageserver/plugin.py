@@ -64,12 +64,13 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         self.update_configuration()
 
         # Status bar widget
-        statusbar = parent.statusBar()
-        self.status_widget = LSPStatusWidget(
-            self.main, statusbar, plugin=self)
+        if parent is not None:
+            statusbar = parent.statusBar()
+            self.status_widget = LSPStatusWidget(
+                None, statusbar, plugin=self)
 
     # --- Status bar widget handling
-    def restart_ls(self, language, force=False):
+    def restart_lsp(self, language, force=False):
         """Restart language server on failure."""
         client_config = {
             'status': self.STOPPED,
@@ -139,14 +140,15 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """
         Handle automatic restart of client/server on failure.
         """
-        if not self.clients_restarting.get(language, False):
+        if (not self.clients_restarting.get(language, False)
+                and not running_under_pytest()):
             self.clients_hearbeat[language].stop()
             logger.info("Automatic restart for {}...".format(language))
 
             timer = QTimer(self)
             timer.setSingleShot(False)
             timer.setInterval(self.TIME_BETWEEN_RESTARTS)
-            timer.timeout.connect(lambda: self.restart_ls(language))
+            timer.timeout.connect(lambda: self.restart_lsp(language))
 
             self.set_status('restarting...')
             self.clients_restarting[language] = True
