@@ -107,8 +107,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.report_lsp_down(language)
 
             # Restarted succesfully
-            if (client['status'] == self.RUNNING
-                    and client['instance'].lsp_server.poll() is None):
+            lsp_server = client['instance'].lsp_server
+            status = client['status']
+            if (status == self.RUNNING and lsp_server is not None and
+                    lsp_server.poll() is None):
                 logger.info("Restart successful!")
                 self.clients_restarting[language] = False
                 self.clients_restart_timers[language].stop()
@@ -122,9 +124,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """
         client = self.clients[language]
         instance = client['instance']
-        client_status = client['status']
+        status = client['status']
         lsp_server = instance.lsp_server
-        if client_status != self.RUNNING or lsp_server.poll() is not None:
+        if ((lsp_server is not None and lsp_server.poll() is not None) or
+                status != self.RUNNING):
             instance.sig_lsp_down.emit(language)
 
     def set_status(self, language, status):
