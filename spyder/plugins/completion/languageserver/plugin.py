@@ -48,7 +48,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     LOCALHOST = ['127.0.0.1', 'localhost']
     CONFIGWIDGET_CLASS = LanguageServerConfigPage
     MAX_RESTART_ATTEMPTS = 5
-    TIME_BETWEEN_RESTARTS = 2000  # ms
+    TIME_BETWEEN_RESTARTS = 1500  # ms
+    TIME_HEARTBEAT = 1000  # ms
 
     def __init__(self, parent):
         SpyderCompletionPlugin.__init__(self, parent)
@@ -57,6 +58,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         self.clients_restart_count = {}
         self.clients_restart_timers = {}
         self.clients_restarting = {}
+        self.clients_hearbeat = {}
         self.requests = set({})
         self.register_queue = {}
         self.update_configuration()
@@ -88,7 +90,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             self.set_status('restarting...')
 
             self.clients_restart_count[language] -= 1
-            # self.restart_client(language, client_config)
+            self.restart_client(language, client_config)
             client = self.clients[language]
 
             # Restarted the maximum amount of times without
@@ -109,6 +111,17 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.clients_restart_count[language] = 0
                 self.set_status('ready')
 
+    def check_heartbeat(self, language):
+        """
+        Check if client or server for a given language are down.
+        """
+        client = self.clients[language]
+        instance = client['instance']
+        client_status = client['status']
+        lsp_server = instance.lsp_server
+        if client_status != self.RUNNING or lsp_server.poll() is not None:
+            instance.sig_lsp_down.emit(language)
+
     def set_status(self, status):
         """
         Show status for the current file.
@@ -127,6 +140,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         Handle automatic restart of client/server on failure.
         """
         if not self.clients_restarting.get(language, False):
+            self.clients_hearbeat[language].stop()
             logger.info("Automatic restart for {}...".format(language))
 
             timer = QTimer(self)
@@ -315,8 +329,14 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
                     return started
 
-            # Start client
+            # Start client heartbeat
             started = language_client['status'] == self.RUNNING
+            timer = QTimer(self)
+            self.clients_hearbeat[language] = timer
+            timer.setInterval(self.TIME_HEARTBEAT)
+            timer.timeout.connect(lambda: self.check_heartbeat(language))
+            timer.start()
+
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
 
@@ -346,6 +366,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 for entry in queue:
                     language_client['instance'].register_file(*entry)
                 self.register_queue[language] = []
+
         return started
 
     def register_client_instance(self, instance):
