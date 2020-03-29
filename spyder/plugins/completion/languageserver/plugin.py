@@ -157,7 +157,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """
         if (not self.clients_restarting.get(language, False)
                 and not running_under_pytest()):
-            self.clients_hearbeat[language].stop()
+            try:
+                self.clients_hearbeat[language].stop()
+            except KeyError:
+                pass
             logger.info("Automatic restart for {}...".format(language))
 
             timer = QTimer(self)
