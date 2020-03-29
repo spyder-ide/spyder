@@ -129,12 +129,13 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         Check if client or server for a given language are down.
         """
         client = self.clients[language]
-        instance = client['instance']
         status = client['status']
-        lsp_server = instance.lsp_server
-        if ((lsp_server is not None and lsp_server.poll() is not None) or
-                status != self.RUNNING):
-            instance.sig_lsp_down.emit(language)
+        instance = client.get('instance', None)
+        if instance is not None:
+            lsp_server = instance.lsp_server
+            if ((lsp_server is not None and lsp_server.poll() is not None) or
+                    status != self.RUNNING):
+                instance.sig_lsp_down.emit(language)
 
     def set_status(self, language, status=None):
         """
@@ -355,12 +356,11 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             started = language_client['status'] == self.RUNNING
 
             # Start client heartbeat
-            if language_client['instance'] is not None:
-                timer = QTimer(self)
-                self.clients_hearbeat[language] = timer
-                timer.setInterval(self.TIME_HEARTBEAT)
-                timer.timeout.connect(lambda: self.check_heartbeat(language))
-                timer.start()
+            timer = QTimer(self)
+            self.clients_hearbeat[language] = timer
+            timer.setInterval(self.TIME_HEARTBEAT)
+            timer.timeout.connect(lambda: self.check_heartbeat(language))
+            timer.start()
 
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
