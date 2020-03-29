@@ -46,6 +46,9 @@ class EditorMock(QObject):
     def stop_completion_services(self, language):
         pass
 
+    def get_current_editor(self):
+        return Mock()
+
 
 class ProjectsMock(QObject):
     """
