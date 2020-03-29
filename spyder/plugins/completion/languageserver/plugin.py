@@ -65,6 +65,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         self.register_queue = {}
         self.update_configuration()
 
+        self.show_no_external_server_warning = True
+
         # Status bar widget
         if parent is not None:
             statusbar = parent.statusBar()
@@ -250,43 +252,40 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         Report that connection couldn't be established with
         an external server.
         """
-        if self.main.hide_report_lsp_no_external_server:
-            return
+        if os.name == 'nt':
+            os_message = (
+                "<br><br>"
+                "To fix this, please verify that your firewall or antivirus "
+                "allows Python processes to open ports in your system, or the "
+                "settings you introduced in our Preferences to connect to "
+                "external LSP servers."
+            )
+        else:
+            os_message = (
+                "<br><br>"
+                "To fix this, please verify the settings you introduced in "
+                "our Preferences to connect to external LSP servers."
+            )
 
-        # Only show this section on windows
-        win_message = (
-            "<br><br>"
-            "To fix this, please verify that your firewall or antivirus "
-            "allows Python processes to open ports in your system, or the "
-            "settings you introduced in our Preferences to connect to "
-            "external LSP servers."
-        ) if os.name == 'nt' else ''
-
-        dismiss_box = QCheckBox(
-            _("Hide this message during the current session")
-        )
-        msgbox = QMessageBox(self.main)
-        msgbox.setIcon(QMessageBox.Warning)
-        msgbox.setWindowTitle(_("Warning"))
-        msgbox.setText(
+        warn_str = (
             _("It appears there is no {language} language server listening "
               "at address:"
               "<br><br>"
               "<tt>{host}:{port}</tt>"
               "<br><br>"
               "Therefore, completion and linting for {language} will not "
-              "work during this session." + win_message
-              ).format(host=host, port=port, language=language.capitalize())
+              "work during this session.").format(
+                host=host, port=port, language=language.capitalize())
+            + os_message
         )
-        yes_button = msgbox.addButton(QMessageBox.Yes)
-        msgbox.addButton(QMessageBox.No)
-        msgbox.setCheckBox(dismiss_box)
-        msgbox.exec_()
 
-        self.main.hide_report_lsp_no_external_server = dismiss_box.isChecked()
+        QMessageBox.warning(
+            self.main,
+            _("Warning"),
+            warn_str
+        )
 
-        if msgbox.clickedButton() == yes_button:
-            self.main.restart()
+        self.show_no_external_server_warning = False
 
     @Slot(str)
     def report_lsp_down(self, language):
@@ -299,7 +298,6 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         if self.main.hide_report_lsp_down_message:
             return
 
-        # Only show this section on windows
         if os.name == 'nt':
             os_message = (
                 "To try to fix this, please verify that your firewall or "
@@ -350,13 +348,15 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
                     return started
 
-            # Start client heartbeat
             started = language_client['status'] == self.RUNNING
-            timer = QTimer(self)
-            self.clients_hearbeat[language] = timer
-            timer.setInterval(self.TIME_HEARTBEAT)
-            timer.timeout.connect(lambda: self.check_heartbeat(language))
-            timer.start()
+
+            # Start client heartbeat
+            if language_client['instance'] is not None:
+                timer = QTimer(self)
+                self.clients_hearbeat[language] = timer
+                timer.setInterval(self.TIME_HEARTBEAT)
+                timer.timeout.connect(lambda: self.check_heartbeat(language))
+                timer.start()
 
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
@@ -369,7 +369,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                     port = config['port']
                     response = check_connection_port(host, port)
                     if not response:
-                        self.report_no_external_server(host, port, language)
+                        if self.show_no_external_server_warning:
+                            self.report_no_external_server(
+                                host, port, language)
+                        self.set_status(language, _("down"))
                         return False
 
                 language_client['instance'] = LSPClient(

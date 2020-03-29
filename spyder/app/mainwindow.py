@@ -495,7 +495,6 @@ class MainWindow(QMainWindow):
 
         # Keep track of lsp down report message
         self.hide_report_lsp_down_message = False
-        self.hide_report_lsp_no_external_server = False
 
         # Server to open external files on a single instance
         # This is needed in order to handle socket creation problems.
