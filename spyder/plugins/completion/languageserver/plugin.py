@@ -137,16 +137,12 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                     status != self.RUNNING):
                 instance.sig_lsp_down.emit(language)
 
-    def set_status(self, language, status=None):
+    def set_status(self, language, status):
         """
         Show status for the current file.
         """
-        language = language.capitalize()
-        if status is not None:
-            self.clients_statusbar[language] = status
-        else:
-            status = self.clients_statusbar.get(language, _("starting..."))
-        self.status_widget.set_value('LSP {}: {}'.format(language, status))
+        self.clients_statusbar[language] = status
+        self.status_widget.update_status(language, status)
 
     def on_initialize(self, options, language):
         """

@@ -12,7 +12,7 @@ Language server Status widget for pyls completions.
 import logging
 
 # Third party imports
-from qtpy.QtCore import QPoint
+from qtpy.QtCore import QPoint, Slot
 from qtpy.QtWidgets import QMenu
 
 # Local imports
@@ -31,7 +31,7 @@ class LSPStatusWidget(StatusBarWidget):
         "Completions, linting, code\n"
         "folding and symbols status."
     )
-    DEFAULT_STATUS = _('off')
+    STATUS = "LSP {}: {}"
 
     def __init__(self, parent, statusbar, plugin):
         self.tooltip = self.BASE_TOOLTIP
@@ -50,7 +50,7 @@ class LSPStatusWidget(StatusBarWidget):
     def show_menu(self):
         """Display a menu when clicking on the widget."""
         menu = self.menu
-        language = self.get_current_language()
+        language = self.get_current_editor_language().lower()
 
         if language is not None:
             menu.clear()
@@ -75,23 +75,37 @@ class LSPStatusWidget(StatusBarWidget):
         """Reimplementation to get a dynamic tooltip."""
         return self.tooltip
 
-    def update_status(self):
-        """
-        Check language of current editor file to hide/show status widget.
-        """
-        language = self.get_current_language()
-        if self.plugin.clients.get(language, False):
-            self.plugin.set_status(language)
-            self.setVisible(True)
-        else:
-            self.setVisible(False)
+    @Slot()
+    def update_status(self, lsp_language=None, status=None):
+        """Update status message."""
+        editor_language = self.get_current_editor_language()
 
-    def get_current_language(self):
+        # This case can only happen when switching files in the editor
+        if lsp_language is None and status is None:
+            lsp_language = editor_language.lower()
+            if not self.plugin.clients.get(lsp_language, None):
+                self.setVisible(False)
+            else:
+                status = self.plugin.clients_statusbar.get(
+                    lsp_language, _("starting..."))
+                self.set_value(self.STATUS.format(editor_language, status))
+                self.setVisible(True)
+            return
+
+        # Don't update the status in case the editor and LSP languages
+        # are different.
+        if editor_language.lower() != lsp_language:
+            return
+        else:
+            self.set_value(self.STATUS.format(editor_language, status))
+            self.setVisible(True)
+
+    def get_current_editor_language(self):
         """Get current LSP language."""
         main = self.plugin.main
-        lsp_language = None
+        language = None
 
         if main and main.editor:
             codeeditor = main.editor.get_current_editor()
-            lsp_language = codeeditor.language.lower()
-        return lsp_language
+            language = codeeditor.language
+        return language
