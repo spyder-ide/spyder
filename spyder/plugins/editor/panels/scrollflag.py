@@ -223,7 +223,8 @@ class ScrollFlagArea(Panel):
         dict_flags_lists = {
             "occurrence": editor.occurrences,
             "found_results": editor.found_results
-            }.update(self._dict_flag_list)
+            }
+        dict_flags_lists.update(self._dict_flag_list)
 
         for flag_type in dict_flags_lists:
             painter.setBrush(self._facecolors[flag_type])
