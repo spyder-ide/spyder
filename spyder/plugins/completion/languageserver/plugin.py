@@ -298,7 +298,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """
         self.set_status(language, _('down'))
 
-        if self.main.hide_report_lsp_down_message:
+        if not self.get_option('show_lsp_down_warning'):
             return
 
         if os.name == 'nt':
@@ -312,19 +312,17 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 "This problem could be fixed by restarting Spyder. "
             )
 
-        warn_str = _(
-            "Completion and linting in the editor for {language} files "
-            "will not work during the current session, or stopped working."
-            "<br><br>"
+        warn_str = (
+            _("Completion and linting in the editor for {language} files "
+              "will not work during the current session, or stopped working."
+              "<br><br>").format(language=language.capitalize())
             + os_message +
-            "Do you want to restart Spyder now?").format(
-                  language=language.capitalize()
+            _("Do you want to restart Spyder now?")
         )
 
         box = MessageCheckBox(icon=QMessageBox.Warning, parent=self.main)
         box.setWindowTitle(_("Warning"))
-        box.set_checkbox_text(
-            _("Hide this message during the current session"))
+        box.set_checkbox_text(_("Don't show again"))
         box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         box.setDefaultButton(QMessageBox.No)
         box.set_checked(False)
@@ -332,7 +330,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         box.setText(warn_str)
         answer = box.exec_()
 
-        self.main.hide_report_lsp_down_message = box.is_checked()
+        self.set_option('show_lsp_down_warning', not box.is_checked())
 
         if answer == QMessageBox.Yes:
             self.main.restart()
