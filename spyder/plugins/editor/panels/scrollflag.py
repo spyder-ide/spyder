@@ -221,9 +221,9 @@ class ScrollFlagArea(Panel):
 
         # All the lists of block numbers for flags
         dict_flags_lists = {
-            **self._dict_flag_list,
             "occurrence": editor.occurrences,
-            "found_results": editor.found_results}
+            "found_results": editor.found_results
+            }.update(self._dict_flag_list)
 
         for flag_type in dict_flags_lists:
             painter.setBrush(self._facecolors[flag_type])
