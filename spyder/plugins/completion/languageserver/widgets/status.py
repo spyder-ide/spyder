@@ -105,9 +105,10 @@ class LSPStatusWidget(StatusBarWidget):
     def get_current_editor_language(self):
         """Get current LSP language."""
         main = self.plugin.main
-        language = None
+        language = _('Unknown')
 
         if main and main.editor:
             codeeditor = main.editor.get_current_editor()
-            language = codeeditor.language
+            if codeeditor is not None:
+                language = codeeditor.language
         return language
