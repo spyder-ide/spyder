@@ -639,3 +639,189 @@ def test_get_cls_body(editor_auto_docstring, text, indent,
 
     assert expected_body == body
     assert expected_init == init
+
+
+
+@pytest.mark.parametrize(
+    "text, indent, expected_body, expected_init",
+    [
+        ("""  class CLS():
+      var: int = 1
+
+      def __init__(self, in: Union[float,
+                                   int],
+                   in1 = 3):
+          self.in = 5
+
+      sig_option_changed = Signal()
+
+      async def foo():
+
+def foo1(""",
+         "  ",
+         """      var: int = 1
+
+      def __init__(self, in: Union[float,
+                                   int],
+                   in1 = 3):
+          self.in = 5
+
+      sig_option_changed = Signal()
+
+      async def foo():
+""",
+         """      def __init__(self, in: Union[float,
+                                   int],
+                   in1 = 3):""")
+    ])
+def test_get_cls_body(editor_auto_docstring, text, indent,
+                      expected_body, expected_init):
+    """Test get class body."""
+    editor = editor_auto_docstring
+    editor.set_text(text)
+
+    cursor = editor.textCursor()
+    cursor.setPosition(0, QTextCursor.MoveAnchor)
+    cursor.movePosition(QTextCursor.NextBlock)
+    editor.setTextCursor(cursor)
+
+    writer = editor.writer_docstring
+    body, init = writer.get_cls_body(indent)
+
+    assert expected_body == body
+    assert expected_init == init
+
+
+@pytest.mark.parametrize(
+    'text, expected',
+    [
+        ('''  class BB():''',
+         '''  class BB():\n      """"""'''),
+        ('''class AA:
+    _fields_ = []
+    __slots__ = 'dhwodn', 'wien'
+
+    sig_option_changed = Signal(str, object)
+
+    datacls_var1 : Tuple[float, float]
+    cls_var1 : List[int] = 1
+    cls_var2: Tuple[int, float] = 2
+    cls_var3 =\\
+        3
+
+    def __init__(self, in1, in2: int = 5, in3 = 4):
+        self.var: int = 0
+
+    def __repr__(self):
+        return str(self.var)
+
+    cls_var4:int = 4
+    cls_var5 :float =5
+    cls_var6 =6
+    cls_var7= 7
+
+    def method(self, p,
+               p1,
+               p2):
+        self.var = 1
+        l_var: int = 5
+        l_var2 = 5
+        return 0
+
+    async def async_method(self, p, p1, p2):
+        self.var = 1
+        return 0
+    ''',
+         '''class AA:
+    """\n    \n
+    Parameters
+    ----------
+    in1 : TYPE
+        DESCRIPTION.
+    in2 : int, optional
+        DESCRIPTION. The default is 5.
+    in3 : TYPE, optional
+        DESCRIPTION. The default is 4.
+
+    Attributes
+    ----------
+    datacls_var1 : Tuple[float, float]
+        DESCRIPTION.
+    cls_var1 : List[int]
+        DESCRIPTION.
+    cls_var2 : Tuple[int, float]
+        DESCRIPTION.
+    cls_var4 : int
+        DESCRIPTION.
+    cls_var5 : float
+        DESCRIPTION.
+    _fields_ : TYPE
+        DESCRIPTION.
+    __slots__ : TYPE
+        DESCRIPTION.
+    sig_option_changed : TYPE
+        DESCRIPTION.
+    cls_var3 : TYPE
+        DESCRIPTION.
+    cls_var6 : TYPE
+        DESCRIPTION.
+    cls_var7 : TYPE
+        DESCRIPTION.
+
+    Methods
+    -------
+    __init__
+    __repr__
+    method
+    async_method
+
+    """
+    _fields_ = []
+    __slots__ = 'dhwodn', 'wien'
+
+    sig_option_changed = Signal(str, object)
+
+    datacls_var1 : Tuple[float, float]
+    cls_var1 : List[int] = 1
+    cls_var2: Tuple[int, float] = 2
+    cls_var3 =\\
+        3
+
+    def __init__(self, in1, in2: int = 5, in3 = 4):
+        self.var: int = 0
+
+    def __repr__(self):
+        return str(self.var)
+
+    cls_var4:int = 4
+    cls_var5 :float =5
+    cls_var6 =6
+    cls_var7= 7
+
+    def method(self, p,
+               p1,
+               p2):
+        self.var = 1
+        l_var: int = 5
+        l_var2 = 5
+        return 0
+
+    async def async_method(self, p, p1, p2):
+        self.var = 1
+        return 0
+    '''),
+    ])
+def test_editor_docstring_of_class_numpydoc(qtbot, editor_auto_docstring,
+                                            text, expected):
+    CONF.set('editor', 'docstring_type', 'Numpydoc')
+    editor = editor_auto_docstring
+    editor.set_text(text)
+
+    cursor = editor.textCursor()
+    cursor.setPosition(0, QTextCursor.MoveAnchor)
+    editor.setTextCursor(cursor)
+    writer = editor.writer_docstring
+
+    writer.write_docstring_for_shortcut()
+
+    assert editor.toPlainText() == expected
