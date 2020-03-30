@@ -19,10 +19,10 @@ if DEV:
 
 # Supported LSP programming languages
 LSP_LANGUAGES = [
-    'C#', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Haxe', 'HTML',
-    'Java', 'JavaScript', 'JSON', 'Julia', 'OCaml', 'PHP',
-    'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang', 'Fortran',
-    'Elixir', 'Kotlin', 'Cpp'
+    'Bash', 'C#', 'Cpp', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Elixir',
+    'Erlang', 'Fortran', 'Haxe', 'HTML', 'Java', 'JavaScript', 'JSON',
+    'Julia', 'Kotlin', 'OCaml', 'PHP', 'R', 'Rust', 'Scala', 'Swift',
+    'TypeScript'
 ]
 
 # -------------------- WORKSPACE CONFIGURATION CONSTANTS ----------------------
