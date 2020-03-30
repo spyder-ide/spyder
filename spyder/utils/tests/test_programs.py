@@ -90,7 +90,7 @@ def test_run_python_script_in_terminal(scriptpath, qtbot):
     outfilepath = osp.join(scriptpath.dirname, 'out.txt')
     run_python_script_in_terminal(
         scriptpath.strpath, scriptpath.dirname, '', False, False, '')
-    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=5000)
+    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=10000)
     # Assert the result.
     with open(outfilepath, 'r') as txtfile:
         res = txtfile.read()
@@ -112,7 +112,7 @@ def test_run_python_script_in_terminal_blank_wdir(scriptpath_with_blanks,
     run_python_script_in_terminal(
         scriptpath_with_blanks.strpath, scriptpath_with_blanks.dirname,
         '', False, False, '')
-    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=5000)
+    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=10000)
     # Assert the result.
     with open(outfilepath, 'r') as txtfile:
         res = txtfile.read()
@@ -135,7 +135,7 @@ def test_run_python_script_in_terminal_with_wdir_empty(scriptpath, qtbot):
         outfilepath = osp.join(os.getcwd(), 'out.txt')
 
     run_python_script_in_terminal(scriptpath.strpath, '', '', False, False, '')
-    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=5000)
+    qtbot.waitUntil(lambda: osp.exists(outfilepath), timeout=10000)
     # Assert the result.
     with open(outfilepath, 'r') as txtfile:
         res = txtfile.read()
