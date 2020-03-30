@@ -49,8 +49,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     LOCALHOST = ['127.0.0.1', 'localhost']
     CONFIGWIDGET_CLASS = LanguageServerConfigPage
     MAX_RESTART_ATTEMPTS = 5
-    TIME_BETWEEN_RESTARTS = 1500  # ms
-    TIME_HEARTBEAT = 1000  # ms
+    TIME_BETWEEN_RESTARTS = 5000  # ms
+    TIME_HEARTBEAT = 3000  # ms
 
     def __init__(self, parent):
         SpyderCompletionPlugin.__init__(self, parent)
