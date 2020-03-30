@@ -115,7 +115,7 @@ class ScrollFlagArea(Panel):
             'warning': [],
             'todo': [],
             'breakpoint': [],
-            }
+        }
 
         editor = self.editor
         block = editor.document().firstBlock()
@@ -131,10 +131,8 @@ class ScrollFlagArea(Panel):
                             break
                     else:
                         flag_type = 'warning'
-
                 elif data.todo:
                     flag_type = 'todo'
-
                 elif data.breakpoint:
                     flag_type = 'breakpoint'
                 else:
@@ -220,16 +218,16 @@ class ScrollFlagArea(Panel):
                 return ceil(middle-self.FLAGS_DY/2)
 
         # All the lists of block numbers for flags
-        dict_flags_lists = {
+        dict_flag_lists = {
             "occurrence": editor.occurrences,
             "found_results": editor.found_results
-            }
-        dict_flags_lists.update(self._dict_flag_list)
+        }
+        dict_flag_lists.update(self._dict_flag_list)
 
-        for flag_type in dict_flags_lists:
+        for flag_type in dict_flag_lists:
             painter.setBrush(self._facecolors[flag_type])
             painter.setPen(self._edgecolors[flag_type])
-            for block_number in dict_flags_lists[flag_type]:
+            for block_number in dict_flag_lists[flag_type]:
                 # Don't paint local flags outside of the window
                 if paint_local and not (
                         min_line <= block_number + 1 <= max_line):
