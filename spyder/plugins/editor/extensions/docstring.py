@@ -8,7 +8,7 @@
 
 # Standard library imports
 import re
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 
 # Third party imports
 from qtpy.QtGui import QTextCursor
@@ -22,6 +22,8 @@ from spyder.py3compat import to_text_string
 
 FUNC_TYPE = 1
 CLS_TYPE = 2
+
+Var_info = namedtuple('Var_info', ['name', 'type', 'default_val'])
 
 
 def is_start_of_func_cls(text):
@@ -950,6 +952,65 @@ class FunctionInfo(object):
 
                 is_found_return = False
                 line_return_tmp = ''
+
+
+class ClassInfo(object):
+    """Parse class definition text."""
+
+    def __init__(self, editor_indent):
+        """."""
+        self.editor_indent = editor_indent
+        self.cls_indent = ''
+        self.cls_name = ''
+        self.method_list = []
+        self.attribute_list = []
+        self.parameter_list = []
+
+    def get_cls_name(self, text):
+        """Get class name from text."""
+        text_lstrip = text.lstrip()
+        cls_name_re = re.search(r"class (\w+)[\(:]", text_lstrip)
+        if cls_name_re:
+            self.cls_indent = get_indent(text)
+            self.cls_name = cls_name_re.group(1)
+
+    def parse_body(self, body, init):
+        """Parse the cls body, __init__."""
+        indent1 = self.cls_indent + self.editor_indent
+
+        method_re = re.compile(r"\n{}(def|async def) (\w+)\(".format(indent1))
+        var_re = re.compile(r"\n{}(\w+) ?=".format(indent1))
+        var_hint_re = re.compile(
+            r"\n{}(\w+) ?:([ \[\w\],]+)=?".format(indent1))
+
+        for match in re.finditer(method_re, body):
+            self.method_list.append(match.group(2))
+
+        for match in re.finditer(var_hint_re, body):
+            self.attribute_list.append(
+                Var_info(match.group(1), match.group(2).strip(), None))
+
+        for match in re.finditer(var_re, body):
+            self.attribute_list.append(Var_info(match.group(1), None, None))
+
+        func_info = FunctionInfo()
+        func_info.parse_def(init)
+
+        for name, _type, val in zip(func_info.arg_name_list,
+                                    func_info.arg_type_list,
+                                    func_info.arg_value_list):
+            if name == "self":
+                continue
+
+            self.parameter_list.append(Var_info(name, _type, val))
+
+    def has_info(self):
+        """Return True if cls has information for docstring."""
+        if (len(self.method_list) == 0
+                and len(self.attribute_list) == 0
+                and len(self.parameter_list) == 0):
+            return False
+        return True
 
 
 class QMenuOnlyForEnter(QMenu):
