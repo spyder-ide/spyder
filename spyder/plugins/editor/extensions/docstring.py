@@ -153,6 +153,7 @@ class DocstringWriterExtension(object):
             func_text = prev_text + func_text
 
             number_of_lines_of_function += 1
+
             definition_type = is_start_of_func_cls(prev_text)
             if definition_type:
                 return func_text, number_of_lines_of_function, definition_type
@@ -322,6 +323,22 @@ class DocstringWriterExtension(object):
                     docstring = self._generate_google_doc(func_info)
                 elif doc_type == "Sphinxdoc":
                     docstring = self._generate_sphinx_doc(func_info)
+
+        elif def_type == CLS_TYPE:
+            cls_info = ClassInfo(self.code_editor.indent_chars)
+            cls_info.get_cls_name(text_def)
+
+            if cls_info.cls_name:
+                cls_body, init_def = self.get_cls_body(cls_info.cls_indent)
+
+                if cls_body:
+                    cls_info.parse_body(cls_body, init_def)
+
+                if cls_info.has_info() is False:
+                    return self.quote3
+
+                if doc_type == 'Numpydoc':
+                    docstring = self._generate_numpy_doc_for_cls(cls_info)
 
         return docstring
 
@@ -554,6 +571,73 @@ class DocstringWriterExtension(object):
         sphinx_doc += '\n\n{}{}'.format(indent1, self.quote3)
 
         return sphinx_doc
+
+    def _generate_numpy_doc_for_cls(self, cls_info):
+        """Generate a docstring of numpy type for class."""
+        numpy_doc = ''
+
+        indent1 = cls_info.cls_indent + self.code_editor.indent_chars
+        indent2 = cls_info.cls_indent + self.code_editor.indent_chars * 2
+
+        methods = cls_info.method_list
+        attrs = cls_info.attribute_list
+        parameters = cls_info.parameter_list
+
+        numpy_doc += '\n{}\n\n'.format(indent1)
+
+        if parameters:
+            numpy_doc += "{}Parameters\n".format(indent1)
+            numpy_doc += "{}----------\n".format(indent1)
+
+            para_text = ''
+            for info in parameters:
+                name, _type, val = info.name, info.type, info.default_val
+
+                para_text += '{}{} : '.format(indent1, name)
+                if _type:
+                    para_text += '{}'.format(_type)
+                else:
+                    para_text += 'TYPE'
+
+                if val:
+                    para_text += ', optional'
+
+                para_text += '\n{}DESCRIPTION.'.format(indent2)
+
+                if val:
+                    val = val.replace(self.quote3, self.quote3_other)
+                    para_text += ' The default is {}.'.format(val)
+
+                para_text += '\n'
+
+            numpy_doc += para_text + '\n'
+
+        if attrs:
+            numpy_doc += "{}Attributes\n".format(indent1)
+            numpy_doc += "{}----------\n".format(indent1)
+
+            for info in attrs:
+                if info.type:
+                    typename = info.type
+                else:
+                    typename = 'TYPE'
+                numpy_doc += "{}{} : {}\n".format(indent1, info.name, typename)
+                numpy_doc += '{}DESCRIPTION.\n'.format(indent2)
+
+            numpy_doc += "\n"
+
+        if methods:
+            numpy_doc += "{}Methods\n".format(indent1)
+            numpy_doc += "{}-------\n".format(indent1)
+
+            for name in methods:
+                numpy_doc += "{}{}\n".format(indent1, name)
+
+            numpy_doc += "\n"
+
+        numpy_doc += "{}{}".format(indent1, self.quote3)
+
+        return numpy_doc
 
     @staticmethod
     def find_top_level_bracket_locations(string_toparse):
