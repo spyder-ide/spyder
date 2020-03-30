@@ -2188,7 +2188,7 @@ class EditorStack(QWidget):
             return
         if index is None:
             index = self.get_stack_index()
-        if self.data:
+        if self.data and len(self.data) > index:
             finfo = self.data[index]
             if self.todolist_enabled:
                 finfo.run_todo_finder()
