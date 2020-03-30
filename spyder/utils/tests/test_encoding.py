@@ -5,9 +5,11 @@
 
 """Tests for encodings.py"""
 
-import pytest
 import os
 import stat
+
+from flaky import flaky
+import pytest
 
 from spyder.utils.encoding import is_text_file, get_coding, write
 from spyder.py3compat import to_text_string, PY2
@@ -70,9 +72,7 @@ def test_permissions(tmpdir):
     assert old_mode == new_mode
 
 
-@pytest.mark.skipif(
-    PY2,
-    reason="It fails with very small differences on Python 2")
+@flaky(max_runs=10)
 def test_timestamp(tmpdir):
     """Check that the modification timestamp is preserved."""
     tmp_file = tmpdir.mkdir("timestamp").join('test_file.txt')
