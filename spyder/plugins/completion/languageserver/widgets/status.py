@@ -10,6 +10,7 @@ Language server Status widget for pyls completions.
 
 # Standard library imports
 import logging
+import os
 
 # Third party imports
 from qtpy.QtCore import QPoint, Slot
@@ -63,8 +64,9 @@ class LSPStatusWidget(StatusBarWidget):
             )
             add_actions(menu, [restart_action])
             rect = self.contentsRect()
+            os_height = 7 if os.name == 'nt' else 12
             pos = self.mapToGlobal(
-                rect.topLeft() + QPoint(-40, -rect.height() - 12))
+                rect.topLeft() + QPoint(-40, -rect.height() - os_height))
             menu.popup(pos)
 
     def set_value(self, value):
