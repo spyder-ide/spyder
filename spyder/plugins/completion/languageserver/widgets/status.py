@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Language server Status widget for pyls completions.
+Language server Status widget.
 """
 
 # Standard library imports
