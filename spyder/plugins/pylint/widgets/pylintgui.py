@@ -313,8 +313,14 @@ class PylintWidget(QWidget):
     @Slot()
     def show_log(self):
         if self.output:
-            TextEditor(self.output, title=_("Pylint output"), parent=self,
-                       readonly=True, size=(700, 500)).exec_()
+            output_dialog = TextEditor(
+                self.output,
+                title=_("Pylint output"),
+                parent=self,
+                readonly=True
+            )
+            output_dialog.resize(700, 500)
+            output_dialog.exec_()
 
     @Slot()
     def analyze_button_handler(self):
