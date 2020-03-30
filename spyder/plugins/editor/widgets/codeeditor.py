@@ -1641,7 +1641,11 @@ class CodeEditor(TextEditBaseWidget):
             sh_class = sh.guess_pygments_highlighter(filename)
             self.support_language = sh_class is not sh.TextSH
             if self.support_language:
-                self.language = sh_class._lexer.name
+                # Pygments report S for the lexer name of R files
+                if sh_class._lexer.name == 'S':
+                    self.language = 'R'
+                else:
+                    self.language = sh_class._lexer.name
 
         self._set_highlighter(sh_class)
         self.completion_widget.set_language(self.language)

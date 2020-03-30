@@ -17,8 +17,8 @@ import os.path as osp
 import sys
 
 # Third-party imports
-from qtpy.QtCore import Slot
-from qtpy.QtWidgets import QMessageBox
+from qtpy.QtCore import Slot, QTimer
+from qtpy.QtWidgets import QMessageBox, QCheckBox
 
 # Local imports
 from spyder.config.base import _, get_conf_path, running_under_pytest
@@ -30,6 +30,9 @@ from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.completion.languageserver.client import LSPClient
 from spyder.plugins.completion.languageserver.confpage import (
     LanguageServerConfigPage)
+from spyder.plugins.completion.languageserver.widgets.status import (
+    LSPStatusWidget)
+from spyder.widgets.helperwidgets import MessageCheckBox
 
 
 logger = logging.getLogger(__name__)
@@ -45,16 +48,133 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     RUNNING = 'running'
     LOCALHOST = ['127.0.0.1', 'localhost']
     CONFIGWIDGET_CLASS = LanguageServerConfigPage
+    MAX_RESTART_ATTEMPTS = 5
+    TIME_BETWEEN_RESTARTS = 5000  # ms
+    TIME_HEARTBEAT = 3000  # ms
 
     def __init__(self, parent):
         SpyderCompletionPlugin.__init__(self, parent)
 
         self.clients = {}
+        self.clients_restart_count = {}
+        self.clients_restart_timers = {}
+        self.clients_restarting = {}
+        self.clients_hearbeat = {}
+        self.clients_statusbar = {}
         self.requests = set({})
         self.register_queue = {}
-
         self.update_configuration()
 
+        self.show_no_external_server_warning = True
+
+        # Status bar widget
+        if parent is not None:
+            statusbar = parent.statusBar()
+            self.status_widget = LSPStatusWidget(
+                None, statusbar, plugin=self)
+
+    # --- Status bar widget handling
+    def restart_lsp(self, language, force=False):
+        """Restart language server on failure."""
+        client_config = {
+            'status': self.STOPPED,
+            'config': self.get_language_config(language),
+            'instance': None,
+        }
+
+        if force:
+            logger.info("Manual restart for {}...".format(language))
+            self.set_status(language, _('restarting...'))
+            self.restart_client(language, client_config)
+
+        elif self.clients_restarting[language]:
+            attempt = (self.MAX_RESTART_ATTEMPTS
+                       - self.clients_restart_count[language] + 1)
+            logger.info("Automatic restart attemp {} for {}...".format(
+                attempt, language))
+            self.set_status(language, _('restarting...'))
+
+            self.clients_restart_count[language] -= 1
+            self.restart_client(language, client_config)
+            client = self.clients[language]
+
+            # Restarted the maximum amount of times without
+            if self.clients_restart_count[language] <= 0:
+                logger.info("Restart failed!")
+                self.clients_restarting[language] = False
+                self.clients_restart_timers[language].stop()
+                self.clients_restart_timers[language] = None
+                try:
+                    self.clients_hearbeat[language].stop()
+                    client['instance'].disconnect()
+                except (TypeError, KeyError, RuntimeError):
+                    pass
+                self.clients_hearbeat[language] = None
+                self.report_lsp_down(language)
+
+            # Restarted succesfully
+            lsp_server = client['instance'].lsp_server
+            status = client['status']
+            if (status == self.RUNNING and lsp_server is not None and
+                    lsp_server.poll() is None):
+                logger.info("Restart successful!")
+                self.clients_restarting[language] = False
+                self.clients_restart_timers[language].stop()
+                self.clients_restart_timers[language] = None
+                self.clients_restart_count[language] = 0
+                self.set_status(language, _('ready'))
+
+    def check_heartbeat(self, language):
+        """
+        Check if client or server for a given language are down.
+        """
+        client = self.clients[language]
+        status = client['status']
+        instance = client.get('instance', None)
+        if instance is not None:
+            lsp_server = instance.lsp_server
+            if ((lsp_server is not None and lsp_server.poll() is not None) or
+                    status != self.RUNNING):
+                instance.sig_lsp_down.emit(language)
+
+    def set_status(self, language, status):
+        """
+        Show status for the current file.
+        """
+        self.clients_statusbar[language] = status
+        self.status_widget.update_status(language, status)
+
+    def on_initialize(self, options, language):
+        """
+        Update the status bar widget on client initilization.
+        """
+        if not self.clients_restarting.get(language, False):
+            self.set_status(language, _('ready'))
+
+    def handle_lsp_down(self, language):
+        """
+        Handle automatic restart of client/server on failure.
+        """
+        if (not self.clients_restarting.get(language, False)
+                and not running_under_pytest()):
+            try:
+                self.clients_hearbeat[language].stop()
+            except KeyError:
+                pass
+            logger.info("Automatic restart for {}...".format(language))
+
+            timer = QTimer(self)
+            timer.setSingleShot(False)
+            timer.setInterval(self.TIME_BETWEEN_RESTARTS)
+            timer.timeout.connect(lambda: self.restart_lsp(language))
+
+            self.set_status(language, _('restarting...'))
+            self.clients_restarting[language] = True
+            self.clients_restart_count[language] = self.MAX_RESTART_ATTEMPTS
+            self.clients_restart_timers[language] = timer
+            timer.start()
+
+    # --- Other methods
     def register_file(self, language, filename, codeeditor):
         if language in self.clients:
             language_client = self.clients[language]['instance']
@@ -135,23 +255,40 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         Report that connection couldn't be established with
         an external server.
         """
-        QMessageBox.critical(
-            self.main,
-            _("Error"),
+        if os.name == 'nt':
+            os_message = (
+                "<br><br>"
+                "To fix this, please verify that your firewall or antivirus "
+                "allows Python processes to open ports in your system, or the "
+                "settings you introduced in our Preferences to connect to "
+                "external LSP servers."
+            )
+        else:
+            os_message = (
+                "<br><br>"
+                "To fix this, please verify the settings you introduced in "
+                "our Preferences to connect to external LSP servers."
+            )
+
+        warn_str = (
             _("It appears there is no {language} language server listening "
               "at address:"
               "<br><br>"
               "<tt>{host}:{port}</tt>"
               "<br><br>"
               "Therefore, completion and linting for {language} will not "
-              "work during this session."
-              "<br><br>"
-              "To fix this, please verify that your firewall or antivirus "
-              "allows Python processes to open ports in your system, or the "
-              "settings you introduced in our Preferences to connect to "
-              "external LSP servers.").format(host=host, port=port,
-                                              language=language.capitalize())
+              "work during this session.").format(
+                host=host, port=port, language=language.capitalize())
+            + os_message
         )
+
+        QMessageBox.warning(
+            self.main,
+            _("Warning"),
+            warn_str
+        )
+
+        self.show_no_external_server_warning = False
 
     @Slot(str)
     def report_lsp_down(self, language):
@@ -159,22 +296,51 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         Report that either the transport layer or the LSP server are
         down.
         """
-        QMessageBox.critical(
-            self.main,
-            _("Error"),
+        self.set_status(language, _('down'))
+
+        if not self.get_option('show_lsp_down_warning'):
+            return
+
+        if os.name == 'nt':
+            os_message = (
+                "To try to fix this, please verify that your firewall or "
+                "antivirus allows Python processes to open ports in your "
+                "system, or restart Spyder.<br><br>"
+            )
+        else:
+            os_message = (
+                "This problem could be fixed by restarting Spyder. "
+            )
+
+        warn_str = (
             _("Completion and linting in the editor for {language} files "
               "will not work during the current session, or stopped working."
-              "<br><br>"
-              "To fix this, please verify that your firewall or antivirus "
-              "allows Python processes to open ports in your system, or "
-              "restart Spyder.").format(language=language.capitalize())
+              "<br><br>").format(language=language.capitalize())
+            + os_message +
+            _("Do you want to restart Spyder now?")
         )
+
+        box = MessageCheckBox(icon=QMessageBox.Warning, parent=self.main)
+        box.setWindowTitle(_("Warning"))
+        box.set_checkbox_text(_("Don't show again"))
+        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        box.setDefaultButton(QMessageBox.No)
+        box.set_checked(False)
+        box.set_check_visible(True)
+        box.setText(warn_str)
+        answer = box.exec_()
+
+        self.set_option('show_lsp_down_warning', not box.is_checked())
+
+        if answer == QMessageBox.Yes:
+            self.main.restart()
 
     def start_client(self, language):
         """Start an LSP client for a given language."""
         started = False
         if language in self.clients:
             language_client = self.clients[language]
+
             queue = self.register_queue[language]
 
             # Don't start LSP services when testing unless we demand
@@ -183,8 +349,15 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 if not os.environ.get('SPY_TEST_USE_INTROSPECTION'):
                     return started
 
-            # Start client
             started = language_client['status'] == self.RUNNING
+
+            # Start client heartbeat
+            timer = QTimer(self)
+            self.clients_hearbeat[language] = timer
+            timer.setInterval(self.TIME_HEARTBEAT)
+            timer.timeout.connect(lambda: self.check_heartbeat(language))
+            timer.start()
+
             if language_client['status'] == self.STOPPED:
                 config = language_client['config']
 
@@ -196,7 +369,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                     port = config['port']
                     response = check_connection_port(host, port)
                     if not response:
-                        self.report_no_external_server(host, port, language)
+                        if self.show_no_external_server_warning:
+                            self.report_no_external_server(
+                                host, port, language)
+                        self.set_status(language, _("down"))
                         return False
 
                 language_client['instance'] = LSPClient(
@@ -214,6 +390,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 for entry in queue:
                     language_client['instance'].register_file(*entry)
                 self.register_queue[language] = []
+
         return started
 
     def register_client_instance(self, instance):
@@ -223,10 +400,14 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.update_configuration)
             self.main.sig_main_interpreter_changed.connect(
                 self.update_configuration)
-            instance.sig_lsp_down.connect(self.report_lsp_down)
+            instance.sig_lsp_down.connect(self.handle_lsp_down)
+            instance.sig_initialize.connect(self.on_initialize)
+
             if self.main.editor:
                 instance.sig_initialize.connect(
                     self.main.editor.register_completion_server_settings)
+                self.main.editor.sig_editor_focus_changed.connect(
+                    self.status_widget.update_status)
             if self.main.console:
                 instance.sig_server_error.connect(self.report_server_error)
             if self.main.projects:
