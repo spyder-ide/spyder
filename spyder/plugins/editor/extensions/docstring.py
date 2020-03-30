@@ -20,15 +20,22 @@ from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 
 
-def is_start_of_function(text):
-    """Return True if text is the beginning of the function definition."""
+FUNC_TYPE = 1
+CLS_TYPE = 2
+
+
+def is_start_of_func_cls(text):
+    """Return True if text is the beginning of the func, cls definition."""
     if isinstance(text, str) or isinstance(text, unicode):
-        function_prefix = ['def', 'async def']
+        function_prefix = ('def', 'async def')
+        class_prefix = ('class')
         text = text.lstrip()
 
-        for prefix in function_prefix:
-            if text.startswith(prefix):
-                return True
+        if text.startswith(function_prefix):
+            return FUNC_TYPE
+
+        if text.startswith(class_prefix):
+            return CLS_TYPE
 
     return False
 
@@ -76,6 +83,7 @@ class DocstringWriterExtension(object):
         func_text = ''
         func_indent = ''
 
+        definition_type = None
         is_first_line = True
         line_number = cursor.blockNumber() + 1
 
@@ -87,7 +95,8 @@ class DocstringWriterExtension(object):
             cur_text = to_text_string(cursor.block().text()).rstrip()
 
             if is_first_line:
-                if not is_start_of_function(cur_text):
+                definition_type = is_start_of_func_cls(cur_text)
+                if not definition_type:
                     return None
 
                 func_indent = get_indent(cur_text)
@@ -96,7 +105,7 @@ class DocstringWriterExtension(object):
                 cur_indent = get_indent(cur_text)
                 if cur_indent <= func_indent:
                     return None
-                if is_start_of_function(cur_text):
+                if is_start_of_func_cls(cur_text):
                     return None
                 if cur_text.strip == '':
                     return None
@@ -108,7 +117,7 @@ class DocstringWriterExtension(object):
             number_of_lines_of_function += 1
 
             if cur_text.endswith(':'):
-                return func_text, number_of_lines_of_function
+                return func_text, number_of_lines_of_function, definition_type
 
             cursor.movePosition(QTextCursor.NextBlock)
 
@@ -142,8 +151,9 @@ class DocstringWriterExtension(object):
             func_text = prev_text + func_text
 
             number_of_lines_of_function += 1
-            if is_start_of_function(prev_text):
-                return func_text, number_of_lines_of_function
+            definition_type = is_start_of_func_cls(prev_text)
+            if definition_type:
+                return func_text, number_of_lines_of_function, definition_type
 
         return None
 
@@ -199,7 +209,7 @@ class DocstringWriterExtension(object):
         result = self.get_function_definition_from_first_line()
         editor = self.code_editor
         if result:
-            func_text, number_of_line_func = result
+            func_text, number_of_line_func, def_type = result
             line_number_function = (self.line_number_cursor +
                                     number_of_line_func - 1)
 
@@ -224,7 +234,7 @@ class DocstringWriterExtension(object):
         # cursor placed below function definition
         result = self.get_function_definition_from_below_last_line()
         if result is not None:
-            __, number_of_lines_of_function = result
+            __, number_of_lines_of_function, def_type = result
             cursor = self.code_editor.textCursor()
             for __ in range(number_of_lines_of_function):
                 cursor.movePosition(QTextCursor.PreviousBlock)
@@ -248,10 +258,14 @@ class DocstringWriterExtension(object):
 
         result = self.get_function_definition_from_below_last_line()
 
-        if result:
-            func_def, __ = result
+        if not result:
+            return
+
+        text_def, __, def_type = result
+
+        if def_type == FUNC_TYPE:
             func_info = FunctionInfo()
-            func_info.parse_def(func_def)
+            func_info.parse_def(text_def)
 
             if func_info.has_info:
                 func_body = self.get_function_body(func_info.func_indent)
@@ -816,7 +830,7 @@ class FunctionInfo(object):
         """Parse the function definition text."""
         self.__init__()
 
-        if not is_start_of_function(text):
+        if is_start_of_func_cls(text) != FUNC_TYPE:
             return
 
         self.func_indent = get_indent(text)
