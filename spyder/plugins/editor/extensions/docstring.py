@@ -179,6 +179,48 @@ class DocstringWriterExtension(object):
 
         return '\n'.join(body_list)
 
+    def get_cls_body(self, cls_indent):
+        """Get the cls body text and __init__ text."""
+        cursor = self.code_editor.textCursor()
+        line_number = cursor.blockNumber() + 1
+        number_of_lines = self.code_editor.blockCount()
+        body_list = []
+        init_def_list = []
+
+        init_indent = cls_indent + self.code_editor.indent_chars
+        init_start_str = "{}def __init__(self".format(init_indent)
+        is_init_parsing = False
+
+        for idx in range(number_of_lines - line_number + 1):
+            text = to_text_string(cursor.block().text()).rstrip()
+            text_indent = get_indent(text)
+
+            if text == '':
+                if is_init_parsing:
+                    is_init_parsing = False
+                    init_def_list = []
+            elif len(text_indent) <= len(cls_indent):
+                break
+
+            if is_init_parsing:
+                init_def_list.append(text)
+            else:
+                if text.startswith(init_start_str):
+                    is_init_parsing = True
+                    init_def_list.append(text)
+
+            if is_init_parsing and text.endswith(":"):
+                is_init_parsing = False
+
+            body_list.append(text)
+
+            cursor.movePosition(QTextCursor.NextBlock)
+
+        if is_init_parsing:
+            init_def_list = []
+
+        return '\n'.join(body_list), '\n'.join(init_def_list)
+
     def write_docstring(self):
         """Write docstring to editor."""
         line_to_cursor = self.code_editor.get_text('sol', 'cursor')
