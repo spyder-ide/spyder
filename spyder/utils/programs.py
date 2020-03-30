@@ -533,7 +533,7 @@ def open_files_with_application(app_path, fnames):
             return_code = 1
         return_codes[' '.join(cmd)] = return_code
     elif os.name == 'nt':
-        if not (app_path.endswith(('.exe', '.bar', '.com'))
+        if not (app_path.endswith(('.exe', '.bat', '.com', '.cmd'))
                 and os.path.isfile(app_path)):
             raise ValueError('`app_path`  must point to a valid Windows '
                              'executable!')
