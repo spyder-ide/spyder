@@ -589,3 +589,53 @@ def test_editor_docstring_with_body_googledoc(qtbot, editor_auto_docstring,
     writer.write_docstring_for_shortcut()
 
     assert editor.toPlainText() == expected
+
+
+@pytest.mark.parametrize(
+    "text, indent, expected_body, expected_init",
+    [
+        ("""  class CLS():
+      var: int = 1
+
+      def __init__(self, in: Union[float,
+                                   int],
+                   in1 = 3):
+          self.in = 5
+
+      sig_option_changed = Signal()
+
+      async def foo():
+
+def foo1(""",
+         "  ",
+         """      var: int = 1
+
+      def __init__(self, in: Union[float,
+                                   int],
+                   in1 = 3):
+          self.in = 5
+
+      sig_option_changed = Signal()
+
+      async def foo():
+""",
+         """      def __init__(self, in: Union[float,
+                                   int],
+                   in1 = 3):""")
+    ])
+def test_get_cls_body(editor_auto_docstring, text, indent,
+                      expected_body, expected_init):
+    """Test get class body."""
+    editor = editor_auto_docstring
+    editor.set_text(text)
+
+    cursor = editor.textCursor()
+    cursor.setPosition(0, QTextCursor.MoveAnchor)
+    cursor.movePosition(QTextCursor.NextBlock)
+    editor.setTextCursor(cursor)
+
+    writer = editor.writer_docstring
+    body, init = writer.get_cls_body(indent)
+
+    assert expected_body == body
+    assert expected_init == init
