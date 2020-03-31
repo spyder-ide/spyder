@@ -928,8 +928,8 @@ def test_completion_order(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason='Only works on Linux')
+@pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
+                    reason='Only works on Linux and Python 3')
 @flaky(max_runs=5)
 def test_fallback_completions(fallback_codeeditor, qtbot):
     code_editor, _ = fallback_codeeditor
@@ -983,6 +983,18 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
     word_set = {x['insertText'] for x in sig.args[0]}
     assert 'another' not in word_set
+
+    # Check that fallback doesn't give an error with utf-16 characters.
+    # This is a regression test for issue spyder-ide/spyder#11862.
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        code_editor.append("'😒 foobar'")
+        qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+        qtbot.keyClicks(code_editor, 'foob')
+        qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
+    word_set = {x['insertText'] for x in sig.args[0]}
+    assert 'foobar' in word_set
 
     code_editor.toggle_automatic_completions(True)
     code_editor.toggle_code_snippets(True)
