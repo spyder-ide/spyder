@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 #
 
-"""Tests for completion that doesn't fit in instropection.py due to Windows."""
+"""Tests some cases were completions need to be hidden."""
 
 # Third party imports
 from flaky import flaky
