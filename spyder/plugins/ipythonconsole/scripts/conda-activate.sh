@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -l
 # This script helps activate a conda environment before running a spyder-kernel
 
 # Create variables for arguments
