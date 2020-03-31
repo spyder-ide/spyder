@@ -101,10 +101,8 @@ def test_get_credentials_from_settings():
 
 
 @pytest.mark.skipif((os.environ.get('CI', None) is not None and
-                     sys.platform.startswith('linux') or
-                     sys.platform.startswith('linux') and PY2),
-                    reason=("Not possible to make it work on Linux and our "
-                            "CIs and skip it locally on Linux and Python 2"))
+                     not sys.platform == 'darwin'),
+                    reason="Only work on macOS and our CIs")
 def test_store_user_credentials():
     b = get_backend()
     b._store_token('token', True)
