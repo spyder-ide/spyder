@@ -2188,7 +2188,7 @@ class EditorStack(QWidget):
             return
         if index is None:
             index = self.get_stack_index()
-        if self.data:
+        if self.data and len(self.data) > index:
             finfo = self.data[index]
             if self.todolist_enabled:
                 finfo.run_todo_finder()
@@ -2549,10 +2549,13 @@ class EditorStack(QWidget):
             underline_errors=self.underline_errors_enabled,
             scroll_past_end=self.scrollpastend_enabled,
             edge_line=self.edgeline_enabled,
-            edge_line_columns=self.edgeline_columns, language=language,
-            markers=self.has_markers(), font=self.default_font,
+            edge_line_columns=self.edgeline_columns,
+            language=language,
+            markers=self.has_markers(),
+            font=self.default_font,
             color_scheme=self.color_scheme,
-            wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
+            wrap=self.wrap_enabled,
+            tab_mode=self.tabmode_enabled,
             strip_mode=self.stripmode_enabled,
             intelligent_backspace=self.intelligent_backspace_enabled,
             automatic_completions=self.automatic_completions_enabled,

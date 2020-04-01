@@ -1142,7 +1142,7 @@ class CollectionsEditorTableView(BaseTableView):
         data = self.source_model.get_data()
         for key in sorted(keys, reverse=True):
             data.pop(key)
-            self.set_data(data)
+        self.set_data(data)
 
     def copy_value(self, orig_key, new_key):
         """Copy value"""

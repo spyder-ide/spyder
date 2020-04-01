@@ -242,8 +242,11 @@ def write(text, filename, encoding='utf-8', mode='wb'):
 
     if os.name == 'nt':
         try:
-            absolute_filename = to_text_string(
-                pathlib.Path(filename).resolve())
+            absolute_path_filename = pathlib.Path(filename).resolve()
+            if absolute_path_filename.exists():
+                absolute_filename = to_text_string(absolute_path_filename)
+            else:
+                absolute_filename = osp.realpath(filename)
         except (OSError, RuntimeError):
             absolute_filename = osp.realpath(filename)
     else:

@@ -398,7 +398,9 @@ class SpyderKernel(IPythonKernel):
                 import sympy
             elif os.environ.get('SPY_RUN_CYTHON') == 'True':
                 import cython
-        except ImportError:
+        except Exception:
+            # Use Exception instead of ImportError here because modules can
+            # fail to be imported due to a lot of issues.
             if os.environ.get('SPY_AUTOLOAD_PYLAB_O') == 'True':
                 return u'matplotlib'
             elif os.environ.get('SPY_SYMPY_O') == 'True':

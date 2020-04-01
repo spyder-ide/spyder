@@ -278,7 +278,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if self.transport_client is not None:
             self.transport_client.kill()
         self.context.destroy()
-        if not self.external_server:
+        if self.lsp_server is not None:
             self.lsp_server.kill()
 
     def send(self, method, params, kind):
