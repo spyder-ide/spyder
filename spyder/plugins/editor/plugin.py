@@ -1982,11 +1982,6 @@ class Editor(SpyderPluginWidget):
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
-            if goto is not None: # 'word' is assumed to be None as well
-                current_editor.go_to_line(goto[index], word=word,
-                                          start_column=start_column)
-                position = current_editor.get_position('cursor')
-                self.cursor_moved(filename0, position0, filename, position)
             current_editor.clearFocus()
             current_editor.setFocus()
             current_editor.window().raise_()
