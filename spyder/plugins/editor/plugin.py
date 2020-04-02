@@ -1377,6 +1377,7 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_breakpoints_saved.connect(self.breakpoints_saved)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
+        editorstack.will_change_file.connect(self.will_change_file)
         editorstack.plugin_load.connect(self.load)
         editorstack.plugin_load[()].connect(self.load)
         editorstack.edit_goto.connect(self.load)
@@ -2291,7 +2292,7 @@ class Editor(SpyderPluginWidget):
     def add_cursor_position_to_history(self, filename, position, fc=False):
         if self.__ignore_cursor_position:
             return
-        for index, (fname, pos) in enumerate(self.cursor_pos_history[:]):
+        for index, (fname, pos) in enumerate(self.cursor_pos_history):
             if fname == filename:
                 if pos == position or pos == 0:
                     if fc:
@@ -2311,11 +2312,6 @@ class Editor(SpyderPluginWidget):
         self.cursor_pos_index = len(self.cursor_pos_history)-1
         self.update_cursorpos_actions()
 
-    def cursor_moved(self, filename0, position0, filename1, position1):
-        """Cursor was just moved: 'go to'"""
-        if position0 is not None:
-            self.add_cursor_position_to_history(filename0, position0)
-        self.add_cursor_position_to_history(filename1, position1)
 
     def text_changed_at(self, filename, position):
         self.last_edit_cursor_pos = (to_text_string(filename), position)
@@ -2323,6 +2319,10 @@ class Editor(SpyderPluginWidget):
     def current_file_changed(self, filename, position):
         self.add_cursor_position_to_history(to_text_string(filename), position,
                                             fc=True)
+        code_editor = self.get_current_editor()
+        code_editor.sig_cursor_position_changed.connect(
+            self.current_editor_cursor_changed)
+
         # Hide any open tooltips
         current_stack = self.get_current_editorstack()
         if current_stack is not None:
@@ -2333,6 +2333,19 @@ class Editor(SpyderPluginWidget):
             pdb_state = self.main.ipyconsole.get_pdb_state()
             pdb_last_step = self.main.ipyconsole.get_pdb_last_step()
             self.update_pdb_state(pdb_state, pdb_last_step)
+
+    def current_editor_cursor_changed(self, line, column):
+        """Handles the change of the cursor inside the current editor."""
+        code_editor = self.get_current_editor()
+        filename = code_editor.filename
+        position = code_editor.get_position('cursor')
+        self.add_cursor_position_to_history(to_text_string(filename), position,
+                                            fc=True)
+
+    def will_change_file(self):
+        code_editor = self.get_current_editor()
+        code_editor.sig_cursor_position_changed.disconnect(
+            self.current_editor_cursor_changed)
 
     @Slot()
     def go_to_last_edit_location(self):
