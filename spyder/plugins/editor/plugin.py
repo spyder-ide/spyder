@@ -2343,9 +2343,13 @@ class Editor(SpyderPluginWidget):
                                             fc=True)
 
     def will_change_file(self):
-        code_editor = self.get_current_editor()
-        code_editor.sig_cursor_position_changed.disconnect(
-            self.current_editor_cursor_changed)
+        """Handles the options when the file is going to change."""
+        try:
+            code_editor = self.get_current_editor()
+            code_editor.sig_cursor_position_changed.disconnect(
+                self.current_editor_cursor_changed)
+        except TypeError:
+            pass
 
     @Slot()
     def go_to_last_edit_location(self):
