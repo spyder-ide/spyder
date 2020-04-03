@@ -80,7 +80,8 @@ class NamespaceManager(object):
                 self._reset_main = True
 
         # Save current namespace for access by variable explorer
-        get_ipython().kernel._running_namespace = self.ns_globals
+        get_ipython().kernel._running_namespace = (
+            self.ns_globals, self.ns_locals)
 
         if (self._file_code is not None
                 and not PY2
