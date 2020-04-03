@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-31 18:05-0500\n"
-"PO-Revision-Date: 2020-03-11 15:59\n"
+"PO-Revision-Date: 2020-04-01 17:04\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Russian\n"
 "Language: ru_RU\n"
@@ -437,9 +437,8 @@ msgid "Attached console window (debugging)"
 msgstr "Прикреплённая консоль (отладка)"
 
 #: spyder/app/mainwindow.py:1426
-#, fuzzy
 msgid "Hide this message during the current session"
-msgstr "Спрятать будущие ошибки в этой сессии"
+msgstr ""
 
 #: spyder/app/mainwindow.py:1432
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
@@ -1540,9 +1539,8 @@ msgid "The address of the external server you are trying to connect to is the sa
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:87 spyder/plugins/completion/languageserver/plugin.py:95 spyder/plugins/completion/languageserver/plugin.py:171
-#, fuzzy
 msgid "restarting..."
-msgstr "Перезапуск"
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:125 spyder/plugins/completion/languageserver/plugin.py:152
 #, fuzzy
@@ -1553,28 +1551,36 @@ msgstr "только чтение"
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Therefore, completion and linting for {language} will not work during this session."
 msgstr ""
 
+#: spyder/plugins/completion/languageserver/plugin.py:125 spyder/plugins/completion/languageserver/plugin.py:152
+msgid "ready"
+msgstr ""
+
+#: spyder/plugins/completion/languageserver/plugin.py:316
+msgid "Completion and linting in the editor for {language} files will not work during the current session, or stopped working.<br><br>"
+msgstr ""
+
+#: spyder/plugins/completion/languageserver/plugin.py:274
+msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Therefore, completion and linting for {language} will not work during this session."
+msgstr ""
+
 #: spyder/plugins/completion/languageserver/plugin.py:299 spyder/plugins/completion/languageserver/plugin.py:375
-#, fuzzy
 msgid "down"
-msgstr "Переместить ниже"
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:316
 msgid "Completion and linting in the editor for {language} files will not work during the current session, or stopped working.<br><br>"
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:320
-#, fuzzy
 msgid "Do you want to restart Spyder now?"
-msgstr "Хотите выполнить перезапуск сейчас?"
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:325
-#, fuzzy
 msgid "Don't show again"
-msgstr "Не показывать снова."
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:31
-msgid ""
-"Completions, linting, code\n"
+msgid "Completions, linting, code\n"
 "folding and symbols status."
 msgstr ""
 
@@ -1583,9 +1589,8 @@ msgid "Restart {} Language Server"
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:92
-#, fuzzy
 msgid "starting..."
-msgstr "Перезапуск"
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:108
 msgid "Unknown"
@@ -1961,9 +1966,9 @@ msgid "Sphinx"
 msgstr ""
 
 #: spyder/plugins/editor/confpage.py:251
-#, fuzzy
 msgid "Type:"
-msgstr "Тип"
+msgstr ""
+
 
 #: spyder/plugins/editor/confpage.py:261
 msgid "Annotations"

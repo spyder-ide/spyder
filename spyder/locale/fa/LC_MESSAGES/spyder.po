@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-31 18:05-0500\n"
-"PO-Revision-Date: 2020-03-13 15:55\n"
+"PO-Revision-Date: 2020-04-01 17:04\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Persian\n"
 "Language: fa_IR\n"
@@ -18,235 +18,235 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:145
 msgid "Initializing..."
-msgstr ""
+msgstr "در حال راه‌اندازی..."
 
 #: spyder/app/mainwindow.py:223
 msgid "Python2 documentation"
-msgstr ""
+msgstr "راهنمای Python 2"
 
 #: spyder/app/mainwindow.py:225
 msgid "Python3 documentation"
-msgstr ""
+msgstr "راهنمای Python3"
 
 #: spyder/app/mainwindow.py:227
 msgid "Numpy and Scipy documentation"
-msgstr ""
+msgstr "راهنمای Numpy و Scipy"
 
 #: spyder/app/mainwindow.py:229
 msgid "Matplotlib documentation"
-msgstr ""
+msgstr "راهنمای Matplotlib"
 
 #: spyder/app/mainwindow.py:232
 msgid "PyQt5 Reference Guide"
-msgstr ""
+msgstr "راهنمای مرجع PyQt5"
 
 #: spyder/app/mainwindow.py:235
 msgid "PyQt5 API Reference"
-msgstr ""
+msgstr "راهنمای PyQt5 API"
 
 #: spyder/app/mainwindow.py:237
 msgid "WinPython"
-msgstr ""
+msgstr "WinPython"
 
 #: spyder/app/mainwindow.py:507
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
-msgstr ""
+msgstr "در هنگام ایجاد سوکت توسط Spyder مشکلی به وجود آمده. لطفا دستور زیر را در کنسول cmd.exe در حالت Administrator اجرا کرده و س‍پس سیستم خود را ریستارت کنید: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
 
 #: spyder/app/mainwindow.py:575
 msgid "Close current pane"
-msgstr ""
+msgstr "بستن زبانه کنونی"
 
 #: spyder/app/mainwindow.py:583
 msgid "Lock panes and toolbars"
-msgstr ""
+msgstr "بستن زبانه ها و منوی ابزار"
 
 #: spyder/app/mainwindow.py:590
 msgid "Use next layout"
-msgstr ""
+msgstr "استفاده از Layout بعدی"
 
 #: spyder/app/mainwindow.py:594
 msgid "Use previous layout"
-msgstr ""
+msgstr "استفاده از Layout قبلی"
 
 #: spyder/app/mainwindow.py:604 spyder/plugins/editor/widgets/editor.py:494
 msgid "File switcher..."
-msgstr ""
+msgstr "تعویض کننده ی فایل..."
 
 #: spyder/app/mainwindow.py:606
 msgid "Fast switch between files"
-msgstr ""
+msgstr "تعویض سریع بین فایل ها"
 
 #: spyder/app/mainwindow.py:612
 msgid "Symbol finder..."
-msgstr ""
+msgstr "جستجوگر Symbol..."
 
 #: spyder/app/mainwindow.py:614
 msgid "Fast symbol search in file"
-msgstr ""
+msgstr "جستجوی سریع Symbol درون فایل"
 
 #: spyder/app/mainwindow.py:633 spyder/plugins/editor/widgets/codeeditor.py:3589
 msgid "Undo"
-msgstr ""
+msgstr "بازگرد"
 
 #: spyder/app/mainwindow.py:635 spyder/plugins/editor/widgets/codeeditor.py:3592
 msgid "Redo"
-msgstr ""
+msgstr "انجام دوباره"
 
 #: spyder/app/mainwindow.py:637 spyder/plugins/console/widgets/shell.py:127 spyder/plugins/editor/widgets/codeeditor.py:3598 spyder/plugins/explorer/widgets/explorer.py:475 spyder/plugins/variableexplorer/widgets/arrayeditor.py:504 spyder/plugins/variableexplorer/widgets/collectionseditor.py:553 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:559
 msgid "Copy"
-msgstr ""
+msgstr "کپی"
 
 #: spyder/app/mainwindow.py:639 spyder/plugins/console/widgets/shell.py:123 spyder/plugins/editor/widgets/codeeditor.py:3595
 msgid "Cut"
-msgstr ""
+msgstr "بریدن و انتقال"
 
 #: spyder/app/mainwindow.py:641 spyder/plugins/console/widgets/shell.py:131 spyder/plugins/editor/widgets/codeeditor.py:3601 spyder/plugins/explorer/widgets/explorer.py:482 spyder/plugins/variableexplorer/widgets/collectionseditor.py:550
 msgid "Paste"
-msgstr ""
+msgstr "جای گذاری"
 
 #: spyder/app/mainwindow.py:644 spyder/plugins/console/widgets/shell.py:144 spyder/plugins/editor/widgets/codeeditor.py:3605
 msgid "Select All"
-msgstr ""
+msgstr "انتخاب همه"
 
 #: spyder/app/mainwindow.py:653 spyder/plugins/editor/plugin.py:1455
 msgid "&File"
-msgstr ""
+msgstr "&فایل"
 
 #: spyder/app/mainwindow.py:654 spyder/plugins/editor/plugin.py:1443
 msgid "File toolbar"
-msgstr ""
+msgstr "نوار ابزار فایل"
 
 #: spyder/app/mainwindow.py:657 spyder/plugins/editor/plugin.py:1456
 msgid "&Edit"
-msgstr ""
+msgstr "&ویرایش"
 
 #: spyder/app/mainwindow.py:658 spyder/plugins/editor/plugin.py:1453
 msgid "Edit toolbar"
-msgstr ""
+msgstr "نوار ابزار ویرایش"
 
 #: spyder/app/mainwindow.py:661 spyder/plugins/editor/plugin.py:1457
 msgid "&Search"
-msgstr ""
+msgstr "&جستجو"
 
 #: spyder/app/mainwindow.py:662 spyder/plugins/editor/plugin.py:1445
 msgid "Search toolbar"
-msgstr ""
+msgstr "نوار ابزار جست وجو"
 
 #: spyder/app/mainwindow.py:665 spyder/plugins/editor/plugin.py:1458
 msgid "Sour&ce"
-msgstr ""
+msgstr "منبع"
 
 #: spyder/app/mainwindow.py:666 spyder/plugins/editor/plugin.py:1447
 msgid "Source toolbar"
-msgstr ""
+msgstr "نوار ابزار منبع"
 
 #: spyder/app/mainwindow.py:669 spyder/plugins/editor/plugin.py:577 spyder/plugins/editor/plugin.py:1459
 msgid "&Run"
-msgstr ""
+msgstr "&اجرا"
 
 #: spyder/app/mainwindow.py:670 spyder/plugins/editor/plugin.py:1449
 msgid "Run toolbar"
-msgstr ""
+msgstr "نوار ابزار اجرا"
 
 #: spyder/app/mainwindow.py:674 spyder/plugins/editor/plugin.py:529
 msgid "&Debug"
-msgstr ""
+msgstr "&اشکال زدایی"
 
 #: spyder/app/mainwindow.py:675 spyder/plugins/editor/plugin.py:1451
 msgid "Debug toolbar"
-msgstr ""
+msgstr "نوار ابزار اشکال زدایی"
 
 #: spyder/app/mainwindow.py:679
 msgid "C&onsoles"
-msgstr ""
+msgstr "کنسول"
 
 #: spyder/app/mainwindow.py:684
 msgid "&Projects"
-msgstr ""
+msgstr "&پروژه ها"
 
 #: spyder/app/mainwindow.py:688 spyder/plugins/editor/plugin.py:1460
 msgid "&Tools"
-msgstr ""
+msgstr "&ابزارها"
 
 #: spyder/app/mainwindow.py:691 spyder/plugins/editor/plugin.py:1461
 msgid "&View"
-msgstr ""
+msgstr "&نما"
 
 #: spyder/app/mainwindow.py:694 spyder/plugins/editor/plugin.py:1462
 msgid "&Help"
-msgstr ""
+msgstr "&راهنما"
 
 #: spyder/app/mainwindow.py:699
 msgid "Welcome to Spyder!"
-msgstr ""
+msgstr "به Spyder خوش آمدید!"
 
 #: spyder/app/mainwindow.py:703
 msgid "Pre&ferences"
-msgstr ""
+msgstr "ترجیحات"
 
 #: spyder/app/mainwindow.py:710 spyder/widgets/pathmanager.py:71
 msgid "PYTHONPATH manager"
-msgstr ""
+msgstr "مدیریت PYTHONPATH"
 
 #: spyder/app/mainwindow.py:713
 msgid "Python Path Manager"
-msgstr ""
+msgstr "مدیریت Python Path"
 
 #: spyder/app/mainwindow.py:716
 msgid "Reset Spyder to factory defaults"
-msgstr ""
+msgstr "بازگرداندن Spyder به تنظیمات پیشفرض"
 
 #: spyder/app/mainwindow.py:721
 msgid "Current user environment variables..."
-msgstr ""
+msgstr "متغیر های محیطی کنونی کاربر..."
 
 #: spyder/app/mainwindow.py:723
 msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
-msgstr ""
+msgstr "نمایش و ویرایش متغیر های محیطی کنونی کاربر در داخل رجیستری Windows( برای تمامی session ها)"
 
 #: spyder/app/mainwindow.py:733
 msgid "Install Kite completion engine"
-msgstr ""
+msgstr "نصب موتور تکمیلگر Kite"
 
 #: spyder/app/mainwindow.py:739
 msgid "LSP logs"
-msgstr ""
+msgstr "لاگ های LSP"
 
 #: spyder/app/mainwindow.py:743 spyder/app/mainwindow.py:1193
 msgid "External Tools"
-msgstr ""
+msgstr "ابزارهای خارجی"
 
 #: spyder/app/mainwindow.py:747
 msgid "WinPython control panel"
-msgstr ""
+msgstr "پنل کاربری WinPython"
 
 #: spyder/app/mainwindow.py:757
 msgid "Qt Designer"
-msgstr ""
+msgstr "طراح Qt"
 
 #: spyder/app/mainwindow.py:761
 msgid "Qt Linguist"
-msgstr ""
+msgstr "زبان شناس Qt"
 
 #: spyder/app/mainwindow.py:782
 msgid "guidata examples"
-msgstr ""
+msgstr "مثال های guidata"
 
 #: spyder/app/mainwindow.py:793
 msgid "guiqwt examples"
-msgstr ""
+msgstr "مثال های guiqwt"
 
 #: spyder/app/mainwindow.py:798
 msgid "Sift"
-msgstr ""
+msgstr "غربالگری"
 
 #: spyder/app/mainwindow.py:816
 msgid "Fullscreen mode"
-msgstr ""
+msgstr "حالت تمام‌صفحه"
 
 #: spyder/app/mainwindow.py:828
 msgid "Main toolbar"
-msgstr ""
+msgstr "نوار ابزار اصلی"
 
 #: spyder/app/mainwindow.py:841
 msgid ""
@@ -257,21 +257,22 @@ msgid ""
 "internals with the following commands:\n"
 "  spy.app, spy.window, dir(spy)\n"
 "\n"
-"Please don't use it to run your code\n"
-"\n"
-msgstr ""
+msgstr "کنسول داخلی Spdyer\n\n"
+"از این کنسول برای گزارش مشکلات داخلی نرم افزار با نوشتن دستور زیر استفاده می شود:\n"
+"(spy.app, spy.window, dir(spy\n\n"
+"لطفا از آن برای اجرای کد خود استفاده نکنید\n\n"
 
 #: spyder/app/mainwindow.py:850
 msgid "Starting code completion manager..."
-msgstr ""
+msgstr "راه اندازی مدیر کاملگر خودکار کد..."
 
 #: spyder/app/mainwindow.py:863
 msgid "Loading help..."
-msgstr ""
+msgstr "در حال بارگذاری راهنما..."
 
 #: spyder/app/mainwindow.py:870
 msgid "Loading outline explorer..."
-msgstr ""
+msgstr "بار گذاری کاوشگر outline..."
 
 #: spyder/app/mainwindow.py:882
 msgid "Loading editor..."
@@ -459,7 +460,7 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:2024 spyder/app/mainwindow.py:2046 spyder/app/mainwindow.py:2112 spyder/app/mainwindow.py:2120 spyder/app/mainwindow.py:3284 spyder/plugins/completion/languageserver/confpage.py:1245 spyder/plugins/completion/languageserver/plugin.py:287 spyder/plugins/completion/languageserver/plugin.py:324 spyder/plugins/ipythonconsole/plugin.py:484 spyder/plugins/ipythonconsole/plugin.py:532 spyder/plugins/ipythonconsole/plugin.py:1063 spyder/plugins/ipythonconsole/utils/ssh.py:68 spyder/plugins/pylint/widgets/pylintgui.py:91 spyder/plugins/variableexplorer/widgets/arrayeditor.py:547 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:105 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:410 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1052 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1064 spyder/preferences/appearance.py:403 spyder/preferences/maininterpreter.py:162 spyder/preferences/maininterpreter.py:183 spyder/preferences/maininterpreter.py:212 spyder/utils/environ.py:91 spyder/utils/environ.py:142 spyder/utils/environ.py:155
 msgid "Warning"
-msgstr ""
+msgstr "هشدار"
 
 #: spyder/app/mainwindow.py:2025
 msgid ""
@@ -1548,8 +1549,7 @@ msgid "Don't show again"
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:31
-msgid ""
-"Completions, linting, code\n"
+msgid "Completions, linting, code\n"
 "folding and symbols status."
 msgstr ""
 

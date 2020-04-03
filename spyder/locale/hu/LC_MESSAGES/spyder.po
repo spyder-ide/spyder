@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-31 18:05-0500\n"
-"PO-Revision-Date: 2020-03-11 15:59\n"
+"PO-Revision-Date: 2020-04-01 17:03\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Hungarian\n"
 "Language: hu_HU\n"
@@ -1525,9 +1525,12 @@ msgid "The address of the external server you are trying to connect to is the sa
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:87 spyder/plugins/completion/languageserver/plugin.py:95 spyder/plugins/completion/languageserver/plugin.py:171
-#, fuzzy
 msgid "restarting..."
-msgstr "Újraindítás"
+msgstr ""
+
+#: spyder/plugins/completion/languageserver/plugin.py:125 spyder/plugins/completion/languageserver/plugin.py:152
+msgid "ready"
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:125 spyder/plugins/completion/languageserver/plugin.py:152
 msgid "ready"
@@ -1538,9 +1541,8 @@ msgid "It appears there is no {language} language server listening at address:<b
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:299 spyder/plugins/completion/languageserver/plugin.py:375
-#, fuzzy
 msgid "down"
-msgstr "Mozgatás le"
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:316
 msgid "Completion and linting in the editor for {language} files will not work during the current session, or stopped working.<br><br>"
@@ -1555,8 +1557,7 @@ msgid "Don't show again"
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:31
-msgid ""
-"Completions, linting, code\n"
+msgid "Completions, linting, code\n"
 "folding and symbols status."
 msgstr ""
 
@@ -1565,9 +1566,8 @@ msgid "Restart {} Language Server"
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:92
-#, fuzzy
 msgid "starting..."
-msgstr "Újraindítás"
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:108
 msgid "Unknown"

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-31 18:05-0500\n"
-"PO-Revision-Date: 2020-03-15 15:56\n"
+"PO-Revision-Date: 2020-04-01 17:03\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: French\n"
 "Language: fr_FR\n"
@@ -436,9 +436,8 @@ msgid "Attached console window (debugging)"
 msgstr "Invite de commandes attachée (débogage)"
 
 #: spyder/app/mainwindow.py:1426
-#, fuzzy
 msgid "Hide this message during the current session"
-msgstr "Masquer toutes les futures erreurs pour cette session"
+msgstr ""
 
 #: spyder/app/mainwindow.py:1432
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
@@ -1544,14 +1543,12 @@ msgid "The address of the external server you are trying to connect to is the sa
 msgstr "L'adresse du serveur externe auquel vous essayez de vous connecter est la même que celle du serveur interne actuel démarré par Spyder. <br> <br> Veuillez indiquer une adresse différente!"
 
 #: spyder/plugins/completion/languageserver/plugin.py:87 spyder/plugins/completion/languageserver/plugin.py:95 spyder/plugins/completion/languageserver/plugin.py:171
-#, fuzzy
 msgid "restarting..."
-msgstr "Redémarrage"
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:125 spyder/plugins/completion/languageserver/plugin.py:152
-#, fuzzy
 msgid "ready"
-msgstr "lecture seule"
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:274
 #, fuzzy
@@ -1566,33 +1563,39 @@ msgstr "Descendre"
 #: spyder/plugins/completion/languageserver/plugin.py:316
 #, fuzzy
 msgid "Completion and linting in the editor for {language} files will not work during the current session, or stopped working.<br><br>"
-msgstr "La complétion et le linting dans l'éditeur pour les fichiers {language} ne fonctionneront pas au cours de cette séance , ou ont cessé de fonctionner.<br><br>Pour résoudre ce problème, vérifiez que votre pare-feu ou votre antivirus autorise les processus Python à ouvrir des ports sur votre système , ou redémarrez Spyder."
+
+#: spyder/plugins/completion/languageserver/plugin.py:274
+msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Therefore, completion and linting for {language} will not work during this session."
+msgstr ""
+
+#: spyder/plugins/completion/languageserver/plugin.py:299 spyder/plugins/completion/languageserver/plugin.py:375
+msgid "down"
+msgstr ""
+
+#: spyder/plugins/completion/languageserver/plugin.py:316
+msgid "Completion and linting in the editor for {language} files will not work during the current session, or stopped working.<br><br>"
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:320
-#, fuzzy
 msgid "Do you want to restart Spyder now?"
-msgstr "Souhaitez-vous redémarrer Spyder ?"
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:325
-#, fuzzy
 msgid "Don't show again"
-msgstr "Ne plus me demander."
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:31
-msgid ""
-"Completions, linting, code\n"
+msgid "Completions, linting, code\n"
 "folding and symbols status."
 msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:58
-#, fuzzy
 msgid "Restart {} Language Server"
-msgstr "Serveur de langage"
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:92
-#, fuzzy
 msgid "starting..."
-msgstr "Redémarrage"
+msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:108
 msgid "Unknown"
@@ -1968,9 +1971,9 @@ msgid "Sphinx"
 msgstr "Sphinx"
 
 #: spyder/plugins/editor/confpage.py:251
-#, fuzzy
 msgid "Type:"
-msgstr "Type"
+msgstr ""
+
 
 #: spyder/plugins/editor/confpage.py:261
 msgid "Annotations"
@@ -2563,9 +2566,8 @@ msgid "click to open"
 msgstr "cliquer pour ouvrir"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:1399
-#, fuzzy
 msgid "One of the files in the editor or the file you are trying to open contains more than 2000 lines.<br><br>Code folding and indent guidelines will be disabled for this kind of files in order to prevent performance degradation."
-msgstr "Ce fichier contient plus de 2000 lignes! Les directives de pliage et d'indentation du code seront désactivées afin d'éviter la dégradation des performances."
+msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:1409
 msgid "File too long"
@@ -3936,9 +3938,8 @@ msgid "No IPython console is currently available to run <b>{}</b>.<br><br>Please
 msgstr "Aucune console IPython n'est actuellement disponible pour exécuter <b> {} </ b>. <br> <br> Veuillez en ouvrir une nouvelle et réessayer."
 
 #: spyder/plugins/ipythonconsole/plugin.py:686
-#, fuzzy
 msgid "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed (>= 1.9.0 and < 1.10.0). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by running in a system terminal:<br><br><tt>conda install spyder-kernels</tt><br><br>or<br><br><tt>pip install spyder-kernels</tt>"
-msgstr "Votre environnement ou votre installation Python ne dispose pas du module <tt>spyder-kernels</tt> ou la version de celui-ci n'est pas appropriée  (>= 1.8.0 and < 2.0.0). Sans ce module, il est impossible pour Spyder de créer une console pour vous. <br><br>Vous pouvez l'installer en exécutant dans un terminal système :<br><br><tt>conda install spyder-kernels</tt><br><br> ou <br><br><tt>pip install spyder-kernels</tt>"
+msgstr ""
 
 #: spyder/plugins/ipythonconsole/plugin.py:985
 msgid "Do you want to close this console?"
