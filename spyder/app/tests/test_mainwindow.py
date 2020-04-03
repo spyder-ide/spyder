@@ -3088,8 +3088,8 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
             os.remove(to_text_string(write_file))
 
 
-# @pytest.mark.slow
-# @flaky(max_runs=3)
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_running_namespace(main_window, qtbot, tmpdir):
     """
     Test that the running namespace is correctly sent when debugging in a
