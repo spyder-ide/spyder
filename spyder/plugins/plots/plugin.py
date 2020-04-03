@@ -32,7 +32,7 @@ class Plots(SpyderPluginWidget):
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     def __init__(self, parent):
-        SpyderPluginWidget.__init__(self, parent)
+        super().__init__(parent)
 
         # Widgets
         self.stack = QStackedWidget(self)
