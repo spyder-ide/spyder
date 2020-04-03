@@ -635,20 +635,31 @@ class DataFrameHeaderModel(QAbstractTableModel):
         self.model = model
         self.axis = axis
         self._palette = palette
-        if self.axis == 0:
-            self.total_cols = self.model.shape[1]
-            self._shape = (self.model.header_shape[0], self.model.shape[1])
+        self.total_rows = self.model.shape[0]
+        self.total_cols = self.model.shape[1]
+        size = self.total_rows * self.total_cols
+
+        # Use paging when the total size, number of rows or number of
+        # columns is too large
+        if size > LARGE_SIZE:
+            self.rows_loaded = ROWS_TO_LOAD
+            self.cols_loaded = COLS_TO_LOAD
+        else:
             if self.total_cols > LARGE_COLS:
                 self.cols_loaded = COLS_TO_LOAD
             else:
                 self.cols_loaded = self.total_cols
-        else:
-            self.total_rows = self.model.shape[0]
-            self._shape = (self.model.shape[0], self.model.header_shape[1])
             if self.total_rows > LARGE_NROWS:
                 self.rows_loaded = ROWS_TO_LOAD
             else:
                 self.rows_loaded = self.total_rows
+
+        if self.axis == 0:
+            self.total_cols = self.model.shape[1]
+            self._shape = (self.model.header_shape[0], self.model.shape[1])
+        else:
+            self.total_rows = self.model.shape[0]
+            self._shape = (self.model.shape[0], self.model.header_shape[1])
 
     def rowCount(self, index=None):
         """Get number of rows in the header."""

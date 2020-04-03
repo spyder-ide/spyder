@@ -130,20 +130,21 @@ CMDCLASS = {'install_data': MyInstallData}
 # platforms due to a bug in pip installation process
 # See spyder-ide/spyder#1158.
 SCRIPTS = ['%s_win_post_install.py' % NAME]
+
 if PY3 and sys.platform.startswith('linux'):
     SCRIPTS.append('spyder3')
 else:
     SCRIPTS.append('spyder')
 
+if os.name == 'nt':
+    SCRIPTS += ['spyder.bat']
 
 #==============================================================================
 # Files added to the package
 #==============================================================================
 EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
-           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom']
-if os.name == 'nt':
-    SCRIPTS += ['spyder.bat']
-    EXTLIST += ['.ico']
+           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom',
+           '.ico', '.gif', '.mp3', '.ogg', '.sfd', '.bat', '.sh']
 
 
 #==============================================================================
@@ -209,7 +210,7 @@ install_requires = [
     'ipython>=4.0',
     # This is here until Jedi 0.15+ fixes completions for
     # Numpy and Pandas
-    'jedi==0.14.1',
+    'jedi==0.15.2',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
@@ -225,7 +226,7 @@ install_requires = [
     'pylint>=0.25',
     'pyqt5<5.13;python_version>="3"',
     'pyqtwebengine<5.13;python_version>="3"',
-    'python-language-server[all]>=0.31.2,<0.32.0',
+    'python-language-server[all]>=0.31.9,<0.32.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8',

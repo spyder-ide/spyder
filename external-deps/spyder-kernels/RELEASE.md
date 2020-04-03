@@ -10,7 +10,7 @@ To release a new version of spyder-kernels on PyPI:
 
 * git clean -xfdi
 
-* Update CHANGELOG.md with loghub
+* Update CHANGELOG.md with `loghub spyder-ide/spyder-kernels -zr "spyder-kernels vX.X.X"`
 
 * Update `_version.py` (set release version, remove 'dev0')
 
@@ -30,10 +30,10 @@ To release a new version of spyder-kernels on PyPI:
 
 * git checkout master
 
-* git merge 0.x
+* git merge 1.x
 
 * git push upstream master
 
-* git push upstream 0.x
+* git push upstream 1.x
 
 * git push upstream --tags

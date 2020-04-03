@@ -1,10 +1,10 @@
 To release a new version of Spyder you need to follow these steps:
 
-* Close the current milestone on Github
+* Close the current release on Zenhub
 
 * git pull or git fetch/merge
 
-* Update CHANGELOG.md
+* Update CHANGELOG.md with `loghub spyder-ide/spyder -zr "spyder vX.X.X"`
 
 * Update Announcements.md
 
@@ -26,13 +26,13 @@ To release a new version of Spyder you need to follow these steps:
 
 * Update version in `__init__.py` (add 'dev0' and increment minor)
 
-* git add and git commit with `[ci skip]`
+* git add and git commit with `Back to work [ci skip]`
 
 * git checkout master
 
 * git merge 4.x
 
-* git commit with `[ci skip]`
+* git commit with `Release X.X.X [ci skip]`
 
 * git push upstream master
 

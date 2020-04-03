@@ -169,7 +169,9 @@ class ArrayModel(QAbstractTableModel):
 
         # Array with infinite values cannot display background colors and
         # crashes. See: spyder-ide/spyder#8093
-        self.has_inf = np.inf in data
+        self.has_inf = False
+        if data.dtype.kind in ['f', 'c']:
+            self.has_inf = np.any(np.isinf(data))
 
         # Deactivate coloring for object arrays or arrays with inf values
         if self._data.dtype.name == 'object' or self.has_inf:

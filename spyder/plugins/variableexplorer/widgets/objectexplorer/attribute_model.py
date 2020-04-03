@@ -27,7 +27,7 @@ from spyder.py3compat import TEXT_TYPES, to_text_string
 # Attribute models constants
 try:
     import numpy as np
-except ImportError:
+except Exception:
     _NUMPY_INSTALLED = False
 else:
     _NUMPY_INSTALLED = True

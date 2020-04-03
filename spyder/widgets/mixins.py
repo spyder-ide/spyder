@@ -96,16 +96,18 @@ class BaseEditMixin(object):
         if at_point is not None:
             # Showing tooltip at point position
             margin = (self.document().documentMargin() / 2) + 1
-            cx, cy = at_point.x() - margin, at_point.y() - margin
+            cx = int(at_point.x() - margin)
+            cy = int(at_point.y() - margin)
         elif at_line is not None:
             # Showing tooltip at line
             cx = 5
             line = at_line - 1
             cursor = QTextCursor(self.document().findBlockByNumber(line))
-            cy = self.cursorRect(cursor).top()
+            cy = int(self.cursorRect(cursor).top())
         else:
             # Showing tooltip at cursor position
             cx, cy = self.get_coordinates('cursor')
+            cx = int(cx)
             cy = int(cy - font.pointSize() / 2)
 
         # Calculate vertical delta
@@ -134,7 +136,7 @@ class BaseEditMixin(object):
         self._styled_widgets.add(id(widget))
 
         if is_dark_interface():
-            css = qdarkstyle.load_stylesheet_from_environment()
+            css = qdarkstyle.load_stylesheet(qt_api='')
             widget.setStyleSheet(css)
             palette = widget.palette()
             background = palette.color(palette.Window).lighter(150).name()
@@ -458,7 +460,11 @@ class BaseEditMixin(object):
         signature_or_text = signature_or_text.replace('{', '&#123;')
         signature_or_text = signature_or_text.replace('}', '&#125;')
 
-        lines = signature_or_text.split('\n')
+        # Remove 'ufunc' signature if needed. See spyder-ide/spyder#11821
+        lines = [line for line in signature_or_text.split('\n')
+                 if 'ufunc' not in line]
+        signature_or_text = '\n'.join(lines)
+
         if language == 'python':
             open_func_char = '('
             has_multisignature = False
@@ -942,6 +948,49 @@ class BaseEditMixin(object):
             self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
 
+    def get_current_object(self):
+        """
+        Return current object under cursor.
+
+        Get the text of the current word plus all the characters
+        to the left until a space is found. Used to get text to inspect
+        for Help of elements following dot notation for example
+        np.linalg.norm
+        """
+        cursor = self.textCursor()
+        cursor_pos = cursor.position()
+        current_word = self.get_current_word(help_req=True)
+
+        # Get max position to the left of cursor until space or no more
+        # charaters are left
+        cursor.movePosition(QTextCursor.PreviousCharacter)
+        while self.get_character(cursor.position()).strip():
+            cursor.movePosition(QTextCursor.PreviousCharacter)
+            if cursor.atBlockStart():
+                break
+        cursor_pos_left = cursor.position()
+
+        # Get max position to the right of cursor until space or no more
+        # charaters are left
+        cursor.setPosition(cursor_pos)
+        while self.get_character(cursor.position()).strip():
+            cursor.movePosition(QTextCursor.NextCharacter)
+            if cursor.atBlockEnd():
+                break
+        cursor_pos_right = cursor.position()
+
+        # Get text of the object under the cursor
+        current_text = self.get_text(
+            cursor_pos_left, cursor_pos_right).strip()
+        current_object = current_word
+
+        if current_text and current_word is not None:
+            if current_word != current_text and current_word in current_text:
+                current_object = (
+                    current_text.split(current_word)[0] + current_word)
+
+        return current_object
+
     def get_current_word_and_position(self, completion=False, help_req=False,
                                       valid_python_variable=True):
         """
@@ -971,14 +1020,18 @@ class BaseEditMixin(object):
                 return not to_text_string(curs.selectedText()).strip()
 
             def is_special_character(move):
-                    curs = self.textCursor()
-                    curs.movePosition(move, QTextCursor.KeepAnchor)
-                    text_cursor = to_text_string(curs.selectedText()).strip()
-                    return len(re.findall(r'([^\d\W]\w*)',
-                                          text_cursor, re.UNICODE)) == 0
+                """Check if a character is a non-letter including numbers."""
+                curs = self.textCursor()
+                curs.movePosition(move, QTextCursor.KeepAnchor)
+                text_cursor = to_text_string(curs.selectedText()).strip()
+                return len(
+                    re.findall(r'([^\d\W]\w*)', text_cursor, re.UNICODE)) == 0
+
             if help_req:
-                if is_special_character(QTextCursor.NoMove):
-                    cursor.movePosition(QTextCursor.WordLeft)
+                if is_special_character(QTextCursor.PreviousCharacter):
+                    cursor.movePosition(QTextCursor.NextCharacter)
+                elif is_special_character(QTextCursor.NextCharacter):
+                    cursor.movePosition(QTextCursor.PreviousCharacter)
             elif not completion:
                 if is_space(QTextCursor.NextCharacter):
                     if is_space(QTextCursor.PreviousCharacter):
@@ -1276,9 +1329,9 @@ class BaseEditMixin(object):
 
         # TODO: adapt to font size
         x = rect.left()
-        x = x - 14
+        x = int(x - 14)
         y = rect.top() + (rect.bottom() - rect.top())/2
-        y = y - dlg.height()/2 - 3
+        y = int(y - dlg.height()/2 - 3)
 
         pos = QPoint(x, y)
         pos = self.calculate_real_position(pos)
@@ -1359,9 +1412,9 @@ class GetHelpMixin(object):
         self.help_enabled = state
 
     def inspect_current_object(self):
-        text = self.get_current_word(help_req=True)
-        if text:
-            self.show_object_info(text, force=True)
+        current_object = self.get_current_object()
+        if current_object is not None:
+            self.show_object_info(current_object, force=True)
 
     def show_object_info(self, text, call=False, force=False):
         """Show signature calltip and/or docstring in the Help plugin"""

@@ -70,9 +70,8 @@ class ScrollFlagArea(Panel):
         self._update_list_timer = QTimer(self)
         self._update_list_timer.setSingleShot(True)
         self._update_list_timer.timeout.connect(self.update_flags)
-        self._todo_list = []
-        self._code_analysis_list = []
-        self._breakpoint_list = []
+        # Dictionnary with flag lists
+        self._dict_flag_list = {}
 
     @property
     def slider(self):
@@ -111,9 +110,13 @@ class ScrollFlagArea(Panel):
         large files. Save all the flags in lists for painting during
         paint events.
         """
-        self._todo_list = []
-        self._code_analysis_list = []
-        self._breakpoint_list = []
+        self._dict_flag_list = {
+            'error': [],
+            'warning': [],
+            'todo': [],
+            'breakpoint': [],
+        }
+
         editor = self.editor
         block = editor.document().firstBlock()
         while block.isValid():
@@ -121,13 +124,22 @@ class ScrollFlagArea(Panel):
             data = block.userData()
             if data:
                 if data.code_analysis:
-                    self._code_analysis_list.append((block, data))
+                    # Paint the errors and warnings
+                    for _, _, severity, _ in data.code_analysis:
+                        if severity == DiagnosticSeverity.ERROR:
+                            flag_type = 'error'
+                            break
+                    else:
+                        flag_type = 'warning'
+                elif data.todo:
+                    flag_type = 'todo'
+                elif data.breakpoint:
+                    flag_type = 'breakpoint'
+                else:
+                    flag_type = None
 
-                if data.todo:
-                    self._todo_list.append((block, data))
-
-                if data.breakpoint:
-                    self._breakpoint_list.append((block, data))
+                if flag_type is not None:
+                    self._dict_flag_list[flag_type].append(block.blockNumber())
 
             block = block.next()
 
@@ -205,69 +217,26 @@ class ScrollFlagArea(Panel):
 
                 return ceil(middle-self.FLAGS_DY/2)
 
-        # Paint all the code analysis flags
-        for block, data in self._code_analysis_list:
-            if paint_local and not (
-                    min_line <= block.blockNumber() + 1 <= max_line):
-                # No need to paint flags outside of the window
-                continue
-            # Paint the warnings
-            for source, code, severity, message in data.code_analysis:
-                error = severity == DiagnosticSeverity.ERROR
-                if error:
-                    painter.setBrush(self._facecolors['error'])
-                    painter.setPen(self._edgecolors['error'])
-                    break
-            else:
-                painter.setBrush(self._facecolors['warning'])
-                painter.setPen(self._edgecolors['warning'])
+        # All the lists of block numbers for flags
+        dict_flag_lists = {
+            "occurrence": editor.occurrences,
+            "found_results": editor.found_results
+        }
+        dict_flag_lists.update(self._dict_flag_list)
 
-            rect_y = compute_flag_ypos(block)
-            painter.drawRect(rect_x, rect_y, rect_w, rect_h)
-
-        # Paint all the todo flags
-        for block, data in self._todo_list:
-            if paint_local and not (
-                    min_line <= block.blockNumber() + 1 <= max_line):
-                continue
-            # Paint the todos
-            rect_y = compute_flag_ypos(block)
-            painter.setBrush(self._facecolors['todo'])
-            painter.setPen(self._edgecolors['todo'])
-            painter.drawRect(rect_x, rect_y, rect_w, rect_h)
-
-        # Paint all the breakpoints flags
-        for block, data in self._breakpoint_list:
-            if paint_local and not (
-                    min_line <= block.blockNumber() + 1 <= max_line):
-                continue
-            # Paint the breakpoints
-            rect_y = compute_flag_ypos(block)
-            painter.setBrush(self._facecolors['breakpoint'])
-            painter.setPen(self._edgecolors['breakpoint'])
-            painter.drawRect(rect_x, rect_y, rect_w, rect_h)
-
-        # Paint the occurrences of selected word flags
-        if editor.occurrences:
-            painter.setBrush(self._facecolors['occurrence'])
-            painter.setPen(self._edgecolors['occurrence'])
-            for line_number in editor.occurrences:
+        for flag_type in dict_flag_lists:
+            painter.setBrush(self._facecolors[flag_type])
+            painter.setPen(self._edgecolors[flag_type])
+            for block_number in dict_flag_lists[flag_type]:
+                # Don't paint local flags outside of the window
                 if paint_local and not (
-                        min_line <= line_number + 1 <= max_line):
+                        min_line <= block_number + 1 <= max_line):
                     continue
-                block = editor.document().findBlockByNumber(line_number)
-                rect_y = compute_flag_ypos(block)
-                painter.drawRect(rect_x, rect_y, rect_w, rect_h)
-
-        # Paint the found results flags
-        if editor.found_results:
-            painter.setBrush(self._facecolors['found_results'])
-            painter.setPen(self._edgecolors['found_results'])
-            for line_number in editor.found_results:
-                if paint_local and not (
-                        min_line <= line_number + 1 <= max_line):
+                # Find the block
+                block = editor.document().findBlockByNumber(block_number)
+                if not block.isValid():
                     continue
-                block = editor.document().findBlockByNumber(line_number)
+                # paint if everything else is fine
                 rect_y = compute_flag_ypos(block)
                 painter.drawRect(rect_x, rect_y, rect_w, rect_h)
 
@@ -313,7 +282,7 @@ class ScrollFlagArea(Panel):
         if self.slider and event.button() == Qt.LeftButton:
             vsb = self.editor.verticalScrollBar()
             value = self.position_to_value(event.pos().y())
-            vsb.setValue(value-vsb.pageStep()/2)
+            vsb.setValue(int(value-vsb.pageStep()/2))
 
     def keyReleaseEvent(self, event):
         """Override Qt method."""
@@ -376,7 +345,7 @@ class ScrollFlagArea(Panel):
     def value_to_position(self, y, scale_factor, offset):
         """Convert value to position in pixels"""
         vsb = self.editor.verticalScrollBar()
-        return (y - vsb.minimum()) * scale_factor + offset
+        return int((y - vsb.minimum()) * scale_factor + offset)
 
     def position_to_value(self, y):
         """Convert position in pixels to value"""

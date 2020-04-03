@@ -77,6 +77,9 @@ else
     pip install -q coveralls
 fi
 
+# To check our manifest
+pip install check-manifest
+
 # Create environment for Jedi environments testsTest for Jedi environments
 conda create -n jedi-test-env -q -y python=3.6 flask spyder-kernels
 conda list -n jedi-test-env

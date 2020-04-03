@@ -27,6 +27,7 @@ import logging
 import os
 import os.path as osp
 import re
+import shutil
 import signal
 import socket
 import glob
@@ -74,7 +75,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
                             QMainWindow, QMenu, QMessageBox, QShortcut,
-                            QSplashScreen, QStyleFactory, QWidget)
+                            QSplashScreen, QStyleFactory, QWidget, QCheckBox)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -488,6 +489,9 @@ class MainWindow(QMainWindow):
         # To keep track of the last focused widget
         self.last_focused_widget = None
         self.previous_focused_widget = None
+
+        # Keep track of dpi message
+        self.show_dpi_message = True
 
         # Server to open external files on a single instance
         # This is needed in order to handle socket creation problems.
@@ -1377,19 +1381,28 @@ class MainWindow(QMainWindow):
         self.is_setting_up = False
 
         # Handle DPI scale and window changes to show a restart message
-        window = self.window().windowHandle()
-        window.screenChanged.connect(self.handle_new_screen)
-        self.screen = self.window().windowHandle().screen()
-        self.screen.logicalDotsPerInchChanged.connect(
-            self.show_dpi_change_message)
+        # Handle DPI scale and window changes to show a restart message.
+        # Don't activate this functionality on macOS because it's being
+        # triggered in the wrong situations.
+        # See spyder-ide/spyder#11846
+        if not sys.platform == 'darwin':
+            window = self.window().windowHandle()
+            window.screenChanged.connect(self.handle_new_screen)
+            self.screen = self.window().windowHandle().screen()
+            self.screen.logicalDotsPerInchChanged.connect(
+                self.show_dpi_change_message)
 
         # Notify that the setup of the mainwindow was finished
         self.sig_setup_finished.emit()
 
     def handle_new_screen(self, screen):
         """Connect DPI signals for new screen."""
-        self.screen.logicalDotsPerInchChanged.disconnect(
-            self.show_dpi_change_message)
+        try:
+            self.screen.logicalDotsPerInchChanged.disconnect(
+                self.show_dpi_change_message)
+        except (TypeError, RuntimeError):
+            # See spyder-ide/spyder#11903 and spyder-ide/spyder#11997
+            pass
         self.screen = screen
         self.screen.logicalDotsPerInchChanged.connect(
             self.show_dpi_change_message)
@@ -1398,18 +1411,40 @@ class MainWindow(QMainWindow):
         """Show message to restart Spyder since the DPI scale changed."""
         self.screen.logicalDotsPerInchChanged.disconnect(
             self.show_dpi_change_message)
-        answer = QMessageBox.warning(
-            self, _("Warning"),
+
+        if not self.show_dpi_message:
+            return
+
+        # Check the window state to not show the message if the window
+        # is in fullscreen mode.
+        window = self.window().windowHandle()
+        if (window.windowState() == Qt.WindowFullScreen and
+                sys.platform == 'darwin'):
+            return
+
+        dismiss_box = QCheckBox(
+            _("Hide this message during the current session")
+        )
+
+        msgbox = QMessageBox(self)
+        msgbox.setIcon(QMessageBox.Warning)
+        msgbox.setText(
             _("A monitor scale change was detected. <br><br>"
               "We recommend restarting Spyder to ensure that it's properly "
               "displayed. If you don't want to do that, please be sure to "
               "activate the option<br><br><tt>Enable auto high DPI scaling"
               "</tt><br><br>in <tt>Preferences > General > Interface</tt>, "
               "in case Spyder is not displayed correctly.<br><br>"
-              "Do you want to restart Spyder?"),
-            QMessageBox.Yes | QMessageBox.No)
+              "Do you want to restart Spyder?"))
+        yes_button = msgbox.addButton(QMessageBox.Yes)
+        msgbox.addButton(QMessageBox.No)
+        msgbox.setCheckBox(dismiss_box)
+        msgbox.exec_()
 
-        if answer == QMessageBox.Yes:
+        if dismiss_box.isChecked():
+            self.show_dpi_message = False
+
+        if msgbox.clickedButton() == yes_button:
             # Activate HDPI auto-scaling option since is needed for a proper
             # display when using OS scaling
             CONF.set('main', 'normal_screen_resolution', False)
@@ -3672,37 +3707,31 @@ def main():
                                    args=[spyder.__path__[0]], p_args=['-O'])
         return
 
-    # **** Show crash dialog ****
-    if CONF.get('main', 'crash', False) and not DEV:
-        CONF.set('main', 'crash', False)
-        if SPLASH is not None:
-            SPLASH.hide()
-        QMessageBox.information(
-            None, "Spyder",
-            "Spyder crashed during last session.<br><br>"
-            "If Spyder does not start at all and <u>before submitting a "
-            "bug report</u>, please try to reset settings to defaults by "
-            "running Spyder with the command line option '--reset':<br>"
-            "<span style=\'color: #555555\'><b>spyder --reset</b></span>"
-            "<br><br>"
-            "<span style=\'color: #ff5555\'><b>Warning:</b></span> "
-            "this command will remove all your Spyder configuration files "
-            "located in '%s').<br><br>"
-            "If Spyder still fails to launch, you should consult our "
-            "comprehensive <b><a href=\"%s\">Troubleshooting Guide</a></b>, "
-            "which when followed carefully solves the vast majority of "
-            "crashes; also, take "
-            "the time to search for <a href=\"%s\">known bugs</a> or "
-            "<a href=\"%s\">discussions</a> matching your situation before "
-            "submitting a report to our <a href=\"%s\">issue tracker</a>. "
-            "Your feedback will always be greatly appreciated."
-            "" % (get_conf_path(), __trouble_url__, __project_url__,
-                  __forum_url__, __project_url__))
+    # **** Read faulthandler log file ****
+    faulthandler_file = get_conf_path('faulthandler.log')
+    previous_crash = ''
+    if osp.exists(faulthandler_file):
+        with open(faulthandler_file, 'r') as f:
+            previous_crash = f.read()
+
+        # Remove file to not pick it up for next time.
+        try:
+            dst = get_conf_path('faulthandler.log.old')
+            shutil.move(faulthandler_file, dst)
+        except Exception:
+            pass
+    CONF.set('main', 'previous_crash', previous_crash)
 
     # **** Create main window ****
     mainwindow = None
     try:
-        mainwindow = run_spyder(app, options, args)
+        if PY3 and options.report_segfault:
+            import faulthandler
+            with open(faulthandler_file, 'w') as f:
+                faulthandler.enable(file=f)
+                mainwindow = run_spyder(app, options, args)
+        else:
+            mainwindow = run_spyder(app, options, args)
     except FontError as fontError:
         QMessageBox.information(None, "Spyder",
                 "Spyder was unable to load the <i>Spyder 3</i> "
@@ -3710,11 +3739,6 @@ def main():
                 "theme used in Spyder 2.<br><br>"
                 "For that, please close this window and start Spyder again.")
         CONF.set('appearance', 'icon_theme', 'spyder 2')
-    except BaseException:
-        CONF.set('main', 'crash', True)
-        import traceback
-        traceback.print_exc(file=STDERR)
-        traceback.print_exc(file=open('spyder_crash.log', 'w'))
     if mainwindow is None:
         # An exception occurred
         if SPLASH is not None:
