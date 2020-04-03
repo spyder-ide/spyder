@@ -223,10 +223,9 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     filenames = editor_plugin.get_filenames()
     expected_cursor_pos_history = [
         (filenames[0], 0),
-        (filenames[4], 108),
+        (filenames[4], len(editorstack.data[4].get_source_code())),
         (filenames[2], 5)
         ]
-
     assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
 
     # Navigate to previous and next cursor positions.
