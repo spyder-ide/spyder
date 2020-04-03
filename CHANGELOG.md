@@ -1,5 +1,77 @@
 # History of changes
 
+## Version 4.1.2 (2020-04-03)
+
+### New features
+
+* Add a new entry to the status bar to show the current state of Python
+  language server. This will allow users to know if completions, linting and
+  folding are working as expected or have issues. Clicking on this entry will
+  also show a menu from which is possible to restart the server manually.
+
+### Important fixes
+
+* Completely disable warning informing to restart Spyder when a screen
+  resolution is detected on macOS.
+* Show an error message when it's not possible to create a special console
+  for Sympy, Cython or Pylab.
+* Restore code folding for all files with less than 2000 lines.
+* Fix showing help for dot object (e.g. `np.sin`) in the IPython console.
+* Fix showing kernel initialization error messages on Windows.
+
+### Issues Closed
+
+* [Issue 12091](https://github.com/spyder-ide/spyder/issues/12091) - Update translations for 4.1.2 ([PR 11825](https://github.com/spyder-ide/spyder/pull/11825) by [@spyder-bot](https://github.com/spyder-bot))
+* [Issue 12052](https://github.com/spyder-ide/spyder/issues/12052) - TypeError when trying to view output of Code Analysis pane ([PR 12053](https://github.com/spyder-ide/spyder/pull/12053) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 12026](https://github.com/spyder-ide/spyder/issues/12026) - Segmentation fault while painting flags ([PR 12036](https://github.com/spyder-ide/spyder/pull/12036) by [@impact27](https://github.com/impact27))
+* [Issue 12024](https://github.com/spyder-ide/spyder/issues/12024) - Unable to save file to mapped network drive on Windows 7 ([PR 12050](https://github.com/spyder-ide/spyder/pull/12050) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11997](https://github.com/spyder-ide/spyder/issues/11997) - RuntimeError when disconnecting monitors ([PR 12008](https://github.com/spyder-ide/spyder/pull/12008) by [@steff456](https://github.com/steff456))
+* [Issue 11988](https://github.com/spyder-ide/spyder/issues/11988) - OSError when importing Numpy in Object Explorer  ([PR 12003](https://github.com/spyder-ide/spyder/pull/12003) by [@steff456](https://github.com/steff456))
+* [Issue 11963](https://github.com/spyder-ide/spyder/issues/11963) - Error when trying to delete two or more variables ([PR 11968](https://github.com/spyder-ide/spyder/pull/11968) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11903](https://github.com/spyder-ide/spyder/issues/11903) - TypeError when changing monitors ([PR 11937](https://github.com/spyder-ide/spyder/pull/11937) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11885](https://github.com/spyder-ide/spyder/issues/11885) - test_arrayeditor.py::test_arrayeditor_with_inf_array fails because of deprecation warning (Py3.8) ([PR 11899](https://github.com/spyder-ide/spyder/pull/11899) by [@bnavigator](https://github.com/bnavigator))
+* [Issue 11872](https://github.com/spyder-ide/spyder/issues/11872) - psutil.NoSuchProcess when restarting the kernel ([PR 11910](https://github.com/spyder-ide/spyder/pull/11910) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 11869](https://github.com/spyder-ide/spyder/issues/11869) - Code folding disabled w/ <2000 lines (4.1.1) ([PR 11888](https://github.com/spyder-ide/spyder/pull/11888) by [@steff456](https://github.com/steff456))
+* [Issue 11862](https://github.com/spyder-ide/spyder/issues/11862) - IndexError: string index out of range in fallback plugin ([PR 12077](https://github.com/spyder-ide/spyder/pull/12077) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 11846](https://github.com/spyder-ide/spyder/issues/11846) - Popup "A monitor scale change was detected" every few minutes ([PR 11884](https://github.com/spyder-ide/spyder/pull/11884) by [@steff456](https://github.com/steff456))
+* [Issue 11821](https://github.com/spyder-ide/spyder/issues/11821) - Completion doc widget and editor/console to help improvements ([PR 11826](https://github.com/spyder-ide/spyder/pull/11826) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11622](https://github.com/spyder-ide/spyder/issues/11622) - UI enhancements to the Variable Explorer ([PR 11814](https://github.com/spyder-ide/spyder/pull/11814) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 11026](https://github.com/spyder-ide/spyder/issues/11026) - Code completion and linting stop working during the current session ([PR 12020](https://github.com/spyder-ide/spyder/pull/12020) by [@goanpeca](https://github.com/goanpeca))
+
+In this release 16 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 12083](https://github.com/spyder-ide/spyder/pull/12083) - PR: Update translation files, by [@goanpeca](https://github.com/goanpeca)
+* [PR 12077](https://github.com/spyder-ide/spyder/pull/12077) - PR: Prevent error when checking if prefix is valid in fallback with utf-16 characters, by [@ccordoba12](https://github.com/ccordoba12) ([11862](https://github.com/spyder-ide/spyder/issues/11862))
+* [PR 12053](https://github.com/spyder-ide/spyder/pull/12053) - PR: Fix error when showing Pylint output, by [@ccordoba12](https://github.com/ccordoba12) ([12052](https://github.com/spyder-ide/spyder/issues/12052))
+* [PR 12050](https://github.com/spyder-ide/spyder/pull/12050) - PR: Add validation for path existence before writing to filename, by [@dalthviz](https://github.com/dalthviz) ([12024](https://github.com/spyder-ide/spyder/issues/12024))
+* [PR 12043](https://github.com/spyder-ide/spyder/pull/12043) - PR: Fix typo in Windows executable filename extensions, by [@StefRe](https://github.com/StefRe)
+* [PR 12036](https://github.com/spyder-ide/spyder/pull/12036) - PR: Avoid segfault when painting flags after removing lines, by [@impact27](https://github.com/impact27) ([12026](https://github.com/spyder-ide/spyder/issues/12026))
+* [PR 12020](https://github.com/spyder-ide/spyder/pull/12020) - PR: Add autorestart mechanism for LSP servers and status widget with menu to restart them manually, by [@goanpeca](https://github.com/goanpeca) ([11026](https://github.com/spyder-ide/spyder/issues/11026))
+* [PR 12008](https://github.com/spyder-ide/spyder/pull/12008) - PR: Catch RuntimeError to prevent errors when disconnecting monitors, by [@steff456](https://github.com/steff456) ([11997](https://github.com/spyder-ide/spyder/issues/11997))
+* [PR 12003](https://github.com/spyder-ide/spyder/pull/12003) - PR: Fix OSError when importing Numpy in Object Explorer, by [@steff456](https://github.com/steff456) ([11988](https://github.com/spyder-ide/spyder/issues/11988))
+* [PR 11991](https://github.com/spyder-ide/spyder/pull/11991) - PR: Check if block is valid before painting it in the scrollflag panel, by [@impact27](https://github.com/impact27)
+* [PR 11982](https://github.com/spyder-ide/spyder/pull/11982) - PR: Make a string translatable, by [@bnavigator](https://github.com/bnavigator)
+* [PR 11968](https://github.com/spyder-ide/spyder/pull/11968) - PR: Set data only one time after multiple removes, by [@dalthviz](https://github.com/dalthviz) ([11963](https://github.com/spyder-ide/spyder/issues/11963))
+* [PR 11937](https://github.com/spyder-ide/spyder/pull/11937) - PR: Catch TypeError when handling screen change, by [@dalthviz](https://github.com/dalthviz) ([11903](https://github.com/spyder-ide/spyder/issues/11903))
+* [PR 11910](https://github.com/spyder-ide/spyder/pull/11910) - PR: Fix error when restarting the kernel and restore showing kernel errors on Windows, by [@ccordoba12](https://github.com/ccordoba12) ([11872](https://github.com/spyder-ide/spyder/issues/11872))
+* [PR 11899](https://github.com/spyder-ide/spyder/pull/11899) - PR: Fix deprecation warnings, by [@bnavigator](https://github.com/bnavigator) ([11885](https://github.com/spyder-ide/spyder/issues/11885))
+* [PR 11888](https://github.com/spyder-ide/spyder/pull/11888) - PR: Activate code folding when the panel is not visible, by [@steff456](https://github.com/steff456) ([11869](https://github.com/spyder-ide/spyder/issues/11869))
+* [PR 11886](https://github.com/spyder-ide/spyder/pull/11886) - PR: Fix tests in Azure/macOS, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 11884](https://github.com/spyder-ide/spyder/pull/11884) - PR: Disable screen resolution change message in macOS and allow to hide it during the current session, by [@steff456](https://github.com/steff456) ([11846](https://github.com/spyder-ide/spyder/issues/11846))
+* [PR 11826](https://github.com/spyder-ide/spyder/pull/11826) - PR: Fix getting help from the console for dot objects and remove redundant info from completion hints, by [@dalthviz](https://github.com/dalthviz) ([11821](https://github.com/spyder-ide/spyder/issues/11821))
+* [PR 11825](https://github.com/spyder-ide/spyder/pull/11825) - PR: New translations for 4.1.2, by [@spyder-bot](https://github.com/spyder-bot) ([12091](https://github.com/spyder-ide/spyder/issues/12091))
+* [PR 11824](https://github.com/spyder-ide/spyder/pull/11824) - PR: Correctly hide already complete word in completion widget, by [@ElieGouzien](https://github.com/ElieGouzien)
+* [PR 11814](https://github.com/spyder-ide/spyder/pull/11814) - PR: Add loading indicator for the Variable Explorer, by [@dalthviz](https://github.com/dalthviz) ([11622](https://github.com/spyder-ide/spyder/issues/11622))
+* [PR 11365](https://github.com/spyder-ide/spyder/pull/11365) - PR: Detect unavailable dependencies for special consoles, by [@dalthviz](https://github.com/dalthviz)
+
+In this release 23 pull requests were closed.
+
+
+----
+
+
 ## Version 4.1.1 (2020-03-18)
 
 ### New features
