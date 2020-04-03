@@ -228,10 +228,10 @@ class MainWindow(QMainWindow):
          ('matplotlib', "https://matplotlib.org/contents.html",
           _("Matplotlib documentation")),
          ('PyQt5',
-          "http://pyqt.sourceforge.net/Docs/PyQt5/",
+          "https://www.riverbankcomputing.com/static/Docs/PyQt5/",
           _("PyQt5 Reference Guide")),
          ('PyQt5',
-          "http://pyqt.sourceforge.net/Docs/PyQt5/class_reference.html",
+          "https://www.riverbankcomputing.com/static/Docs/PyQt5/module_index.html",
           _("PyQt5 API Reference")),
          ('winpython', "https://winpython.github.io/",
           _("WinPython"))
