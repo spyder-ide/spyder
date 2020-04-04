@@ -424,7 +424,7 @@ class FileAssociationsWidget(QWidget):
                 _('Enter new file extension. You can add several values '
                   'separated by commas.<br>Examples include:')
                 + '<ul><li><code>*.txt</code></li>'
-                + '<li><code>*.json,*,csv</code></li>'
+                + '<li><code>*.json,*.csv</code></li>'
                 + '<li><code>*.json,README.md</code></li></ul>'
             ),
         )
