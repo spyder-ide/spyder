@@ -60,7 +60,9 @@ class SpyderKernel(IPythonKernel):
             'set_sympy_forecolor': self.set_sympy_forecolor,
             'set_pdb_echo_code': self.set_pdb_echo_code,
             'update_syspath': self.update_syspath,
-            'is_special_kernel_valid': self.is_special_kernel_valid
+            'is_special_kernel_valid': self.is_special_kernel_valid,
+            'set_inline_backend_figure_format':
+                self.set_inline_backend_figure_format
             }
         for call_id in handlers:
             self.frontend_comm.register_call_handler(
@@ -408,6 +410,17 @@ class SpyderKernel(IPythonKernel):
             elif os.environ.get('SPY_RUN_CYTHON') == 'True':
                 return u'cython'
         return None
+
+    def set_inline_backend_figure_format(self, figure_format):
+        """Set matplolib inline backend figure format."""
+        from IPython.core.getipython import get_ipython
+        try:
+            get_ipython().run_line_magic(
+                'config',
+                "InlineBackend.figure_format = '{figure_format}'".format(
+                    figure_format=figure_format))
+        except Exception:
+            pass
 
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer

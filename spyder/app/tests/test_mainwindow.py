@@ -1700,7 +1700,8 @@ def test_varexp_magic_dbg(main_window, qtbot):
 @pytest.mark.skipif(PY2, reason="It times out sometimes")
 @pytest.mark.parametrize(
     'main_window',
-    [{'spy_config': ('ipython_console', 'pylab/inline/figure_format', 1)},
+    [{'spy_config': ('ipython_console', 'pylab/inline/figure_format', 2)},
+     {'spy_config': ('ipython_console', 'pylab/inline/figure_format', 1)},
      {'spy_config': ('ipython_console', 'pylab/inline/figure_format', 0)}],
     indirect=True)
 def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
@@ -1723,8 +1724,10 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
 
     if CONF.get('ipython_console', 'pylab/inline/figure_format') == 0:
         assert figbrowser.figviewer.figcanvas.fmt == 'image/png'
-    else:
+    elif CONF.get('ipython_console', 'pylab/inline/figure_format') == 1:
         assert figbrowser.figviewer.figcanvas.fmt == 'image/svg+xml'
+    elif CONF.get('ipython_console', 'pylab/inline/figure_format') == 2:
+        assert figbrowser.figviewer.figcanvas.fmt == 'image/png'
 
     # Get the image name from the html, fetch the image from the shell, and
     # save it as a png.

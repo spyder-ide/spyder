@@ -498,6 +498,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except AttributeError:
             pass
 
+    def set_inline_backend_figure_format(self, inline_backend_figure_format):
+        """Set matplotlib inline backend figure format."""
+        self.shellwidget.set_inline_backend_figure_format(
+            inline_backend_figure_format)
+
     def shutdown(self):
         """Shutdown kernel"""
         if self.get_kernel() is not None and not self.slave:
