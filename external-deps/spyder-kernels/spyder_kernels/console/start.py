@@ -182,7 +182,8 @@ def kernel_config():
                 # Figure format
                 format_o = os.environ.get('SPY_FORMAT_O')
                 formats = {'0': 'png',
-                           '1': 'svg'}
+                           '1': 'svg',
+                           '2': 'retina'}
                 if format_o is not None:
                     spy_cfg.InlineBackend.figure_format = formats[format_o]
 
