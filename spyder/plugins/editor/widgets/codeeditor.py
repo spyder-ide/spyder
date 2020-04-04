@@ -1139,11 +1139,12 @@ class CodeEditor(TextEditBaseWidget):
         position, automatic = args
         try:
             completions = params['params']
-            prefix = self.get_current_word()
             completions = ([] if completions is None else
                            [completion for completion in completions
                             if completion.get('insertText')
                             or completion.get('textEdit', {}).get('newText')])
+            prefix = self.get_current_word(completion=True,
+                                           valid_python_variable=False)
             if (len(completions) == 1
                     and completions[0].get('insertText') == prefix
                     and not completions[0].get('textEdit', {}).get('newText')):

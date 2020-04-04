@@ -10,6 +10,8 @@
 from flaky import flaky
 import pytest
 
+from qtpy.QtCore import Qt
+
 
 @pytest.mark.slow
 @pytest.mark.first
@@ -17,7 +19,7 @@ import pytest
 def test_automatic_completions_hide_complete(lsp_codeeditor, qtbot):
     """Test on-the-fly completion closing when already complete.
 
-    Regression test for issue #11600 and pull request #11824.
+    Regression test for issue #11600 and pull requests #11824 and #12140.
     """
     code_editor, _ = lsp_codeeditor
     completion = code_editor.completion_widget
@@ -36,6 +38,19 @@ def test_automatic_completions_hide_complete(lsp_codeeditor, qtbot):
 
     # No completion for 'something' as already complete
     qtbot.keyClicks(code_editor, 'thing')
+    qtbot.wait(500)
+    assert completion.isHidden()
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)  # newline
+
+    # Hide even within a function
+    qtbot.keyClicks(code_editor, 'print(something')
+    qtbot.wait(500)
+    assert completion.isHidden()
+    qtbot.keyClicks(code_editor, ')')
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)  # newline
+
+    # Hide even inside comprehension
+    qtbot.keyClicks(code_editor, 'a = {something')
     qtbot.wait(500)
     assert completion.isHidden()
 
