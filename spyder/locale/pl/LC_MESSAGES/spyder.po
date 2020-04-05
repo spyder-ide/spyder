@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-31 18:05-0500\n"
-"PO-Revision-Date: 2020-04-04 18:05\n"
+"PO-Revision-Date: 2020-04-05 17:12\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -426,7 +426,7 @@ msgstr "Dołączone okno konsoli (badanie)"
 
 #: spyder/app/mainwindow.py:1426
 msgid "Hide this message during the current session"
-msgstr ""
+msgstr "Nie pokazuj tej wiadomości podczas bieżącej sesji"
 
 #: spyder/app/mainwindow.py:1432
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
@@ -532,7 +532,7 @@ msgstr "<hr><b>UWAGA:</b> Wygląda na to, że używasz Spyder z <b>Anaconda/Mini
 
 #: spyder/app/mainwindow.py:3446
 msgid "<b>Spyder %s is available!</b> <br><br>Please use your package manager to update Spyder or go to our <a href=\"%s\">Releases</a> page to download this new version. <br><br>If you are not sure how to proceed to update Spyder please refer to our  <a href=\"%s\">Installation</a> instructions."
-msgstr ""
+msgstr "<b>Spyder %s jest dostępny!</b> <br><br>Skorzystaj z menedżera pakietów, aby zaktualizować Spyder lub przejdź do strony <a href=\"%s\">wydania</a>, aby pobrać nową wersję. <br><br>Jeśli nie jesteś pewien, jak kontynuować aktualizację, zapoznaj się z instrukcjami  <a href=\"%s\">Instalacji</a>."
 
 #: spyder/app/mainwindow.py:3459
 msgid "Spyder is up to date."
@@ -586,7 +586,7 @@ msgstr ""
 
 #: spyder/app/tour.py:134
 msgid "<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for the Python programming language.<br><br>Here we are going to guide you through its most important features.<br><br>Please use the arrow keys or click on the buttons below to move along the tour."
-msgstr ""
+msgstr "<b>Spyder</b> jest potężnym interaktywnym środowiskiem programistycznym (Interactive Development Environment, IDE) dla języka programowania Pythona.<br><br>Teraz chcielibyśmy przedstawić Ci jego najważniejsze możliwości.<br><br>Używaj klawiszy strzałek lub przycisków poniżej, aby zapoznać się z kolejnymi funkcjami."
 
 #: spyder/app/tour.py:143
 msgid "The Editor"
@@ -3459,7 +3459,7 @@ msgstr "Historia..."
 
 #: spyder/plugins/history/plugin.py:110 spyder/plugins/pylint/plugin.py:64
 msgid "Set history maximum entries"
-msgstr ""
+msgstr "Ustaw maksymalną ilość wpisów historii"
 
 #: spyder/plugins/history/plugin.py:243 spyder/plugins/pylint/plugin.py:132
 msgid "Maximum entries"
@@ -3475,12 +3475,13 @@ msgstr "Interfejs"
 
 #: spyder/plugins/ipythonconsole/confpage.py:34
 msgid "Display initial banner"
-msgstr ""
+msgstr "Wyświetlaj początkowy baner"
 
 #: spyder/plugins/ipythonconsole/confpage.py:35
 msgid "This option lets you hide the message shown at\n"
 "the top of the console when it's opened."
-msgstr ""
+msgstr "Ta opcja pozwala ukryć wiadomość wyświetlaną na\n"
+"górze konsoli po jej otwarciu."
 
 #: spyder/plugins/ipythonconsole/confpage.py:38
 msgid "Use a pager to display additional text inside the console"
@@ -3493,16 +3494,16 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:46
 msgid "Ask for confirmation before closing"
-msgstr ""
+msgstr "Pytaj o potwierdzenie przed zamknięciem"
 
 #: spyder/plugins/ipythonconsole/confpage.py:49
 msgid "Ask for confirmation before removing all user-defined variables"
-msgstr ""
+msgstr "Pytaj o potwierdzenie przed usunięciem wszystkich zmiennych zdefiniowanych przez użytkownika"
 
 #: spyder/plugins/ipythonconsole/confpage.py:52
 msgid "This option lets you hide the warning message shown\n"
 "when resetting the namespace from Spyder."
-msgstr ""
+msgstr "Ta opcja pozwala ukrywać ostrzeżenie podczas resetowania przestrzeni nazw w Spyderze."
 
 #: spyder/plugins/ipythonconsole/confpage.py:54 spyder/plugins/ipythonconsole/widgets/client.py:152
 msgid "Show elapsed time"
@@ -3510,7 +3511,7 @@ msgstr "Pokaż czas trwania"
 
 #: spyder/plugins/ipythonconsole/confpage.py:56
 msgid "Ask for confirmation before restarting"
-msgstr ""
+msgstr "Pytaj o potwierdzenie przed ponownym uruchomieniem"
 
 #: spyder/plugins/ipythonconsole/confpage.py:58
 msgid "This option lets you hide the warning message shown\n"
