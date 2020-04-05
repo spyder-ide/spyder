@@ -439,7 +439,8 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
             # Ignore BdbQuit if we are debugging, as it is expected.
             ipython_shell.kernel._pdb_obj = None
         elif post_mortem and isinstance(error, Exception):
-            post_mortem_excepthook(*sys.exc_info())
+            error_type, error, tb = sys.exc_info()
+            post_mortem_excepthook(error_type, error, tb.tb_next)
         else:
             # We ignore the call to exec
             ipython_shell.showtraceback(tb_offset=1)
