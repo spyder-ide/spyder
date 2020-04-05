@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-31 18:05-0500\n"
-"PO-Revision-Date: 2020-04-04 18:05\n"
+"PO-Revision-Date: 2020-04-05 17:12\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -3395,7 +3395,7 @@ msgstr "Recuperando documentação"
 
 #: spyder/plugins/help/plugin.py:410
 msgid "Here you can get help of any object by pressing %s in front of it, either on the Editor or the Console.%s"
-msgstr "Aqui você pode obter ajuda de qualquer objeto pressionando %s na frente dele no Editor, ou %s na frente dele no Console.%s"
+msgstr "Aqui você pode obter ajuda de qualquer objeto pressionando %s na frente dele no Editor, ou na frente dele no Console.%s"
 
 #: spyder/plugins/help/plugin.py:414
 msgid "Here you can get help of any object by pressing %s in front of it on the Editor, or %s in front of it on the Console.%s"
