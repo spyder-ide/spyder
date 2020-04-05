@@ -3095,14 +3095,15 @@ def test_post_mortem(main_window, qtbot, tmpdir):
     shell = main_window.ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
+    control = main_window.ipyconsole.get_focus_widget()
 
     test_file = tmpdir.join('test.py')
     test_file.write('raise RuntimeError\n')
 
     with qtbot.waitSignal(shell.executed):
-        shell.execute("runfile('" + str(test_file) + "', post_mortem=True)")
+        shell.execute(
+            "runfile(" + repr(str(test_file)) + ", post_mortem=True)")
 
-    control = main_window.ipyconsole.get_focus_widget()
     assert "ipdb>" in control.toPlainText()
 
 
