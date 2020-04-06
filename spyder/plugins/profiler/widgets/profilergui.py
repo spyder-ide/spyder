@@ -231,13 +231,18 @@ class ProfilerWidget(QWidget):
 
     def show_log(self):
         if self.output:
-            TextEditor(self.output, title=_("Profiler output"),
-                       readonly=True, size=(700, 500), parent=self).exec_()
+            output_dialog = TextEditor(self.output, title=_("Profiler output"),
+                                       readonly=True, parent=self)
+            output_dialog.resize(700, 500)
+            output_dialog.exec_()
 
     def show_errorlog(self):
         if self.error_output:
-            TextEditor(self.error_output, title=_("Profiler output"),
-                       readonly=True, size=(700, 500), parent=self).exec_()
+            output_dialog = TextEditor(self.error_output,
+                                       title=_("Profiler output"),
+                                       readonly=True, parent=self)
+            output_dialog.resize(700, 500)
+            output_dialog.exec_()
 
     def start(self, wdir=None, args=None, pythonpath=None):
         filename = to_text_string(self.filecombo.currentText())
