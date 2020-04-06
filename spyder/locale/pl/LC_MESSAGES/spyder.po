@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-31 18:05-0500\n"
-"PO-Revision-Date: 2020-04-05 17:12\n"
+"PO-Revision-Date: 2020-04-06 17:16\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -1516,52 +1516,52 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:87 spyder/plugins/completion/languageserver/plugin.py:95 spyder/plugins/completion/languageserver/plugin.py:171
 msgid "restarting..."
-msgstr ""
+msgstr "ponownie uruchamianie..."
 
 #: spyder/plugins/completion/languageserver/plugin.py:125 spyder/plugins/completion/languageserver/plugin.py:152
 msgid "ready"
-msgstr ""
+msgstr "gotowy"
 
 #: spyder/plugins/completion/languageserver/plugin.py:274
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Therefore, completion and linting for {language} will not work during this session."
-msgstr ""
+msgstr "Wygląda na to, że nie ma serwera języka {language} nasłuchującego na adresie:<br><br><tt>{host}:{port}</tt><br><br>Dlatego, uzupełnianie i linting dla {language} nie będzie działać podczas tej sesji."
 
 #: spyder/plugins/completion/languageserver/plugin.py:299 spyder/plugins/completion/languageserver/plugin.py:375
 msgid "down"
-msgstr ""
+msgstr "w dół"
 
 #: spyder/plugins/completion/languageserver/plugin.py:316
 msgid "Completion and linting in the editor for {language} files will not work during the current session, or stopped working.<br><br>"
-msgstr ""
+msgstr "Uzupełnianie i linting w edytorze dla plików języka {language} nie będzie działać podczas bieżącej sesji.<br><br>"
 
 #: spyder/plugins/completion/languageserver/plugin.py:320
 msgid "Do you want to restart Spyder now?"
-msgstr ""
+msgstr "Czy chcesz teraz zrestartować edytor Spyder?"
 
 #: spyder/plugins/completion/languageserver/plugin.py:325
 msgid "Don't show again"
-msgstr ""
+msgstr "Nie pokazuj ponownie"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:31
 msgid "Completions, linting, code\n"
 "folding and symbols status."
-msgstr ""
+msgstr "Uzupełnianie, linting, zwijanie kodu i status symboli."
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:58
 msgid "Restart {} Language Server"
-msgstr ""
+msgstr "Uruchom ponownie Serwer Języka {}"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:92
 msgid "starting..."
-msgstr ""
+msgstr "uruchamianie..."
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:108
 msgid "Unknown"
-msgstr ""
+msgstr "Nieznany"
 
 #: spyder/plugins/completion/plugin.py:394
 msgid "Kite installation process has not finished. Do you really want to exit?"
-msgstr ""
+msgstr "Proces instalacji Kite nie został zakończony. Czy na pewno chcesz wyjść?"
 
 #: spyder/plugins/console/plugin.py:118
 msgid "Internal console"
@@ -1573,7 +1573,7 @@ msgstr "&Wykonaj..."
 
 #: spyder/plugins/console/plugin.py:147
 msgid "Run a Python script"
-msgstr ""
+msgstr "Uruchom skrypt Pythona"
 
 #: spyder/plugins/console/plugin.py:150
 msgid "Environment variables..."
@@ -1581,15 +1581,15 @@ msgstr "Zmienne środowiskowe..."
 
 #: spyder/plugins/console/plugin.py:152
 msgid "Show and edit environment variables (for current session)"
-msgstr ""
+msgstr "Pokaż i edytuj zmienne środowiskowe (dla bieżącej sesji)"
 
 #: spyder/plugins/console/plugin.py:156
 msgid "Show sys.path contents..."
-msgstr ""
+msgstr "Pokaż zawartość sys.path..."
 
 #: spyder/plugins/console/plugin.py:158
 msgid "Show (read-only) sys.path"
-msgstr ""
+msgstr "Pokaż (tylko do odczytu) sys.path"
 
 #: spyder/plugins/console/plugin.py:161
 msgid "Buffer..."
@@ -1597,15 +1597,15 @@ msgstr "Bufor..."
 
 #: spyder/plugins/console/plugin.py:162 spyder/plugins/history/confpage.py:31
 msgid "Set maximum line count"
-msgstr ""
+msgstr "Ustaw maksymalną liczbę linii"
 
 #: spyder/plugins/console/plugin.py:165
 msgid "External editor path..."
-msgstr ""
+msgstr "Ścieżka edytora zewnętrznego..."
 
 #: spyder/plugins/console/plugin.py:166
 msgid "Set external editor executable path"
-msgstr ""
+msgstr "Ustaw ścieżkę wykonywalną edytora zewnętrznego"
 
 #: spyder/plugins/console/plugin.py:169 spyder/plugins/editor/confpage.py:48 spyder/plugins/help/confpage.py:60 spyder/plugins/help/plugin.py:73 spyder/plugins/history/confpage.py:34 spyder/plugins/history/plugin.py:112
 msgid "Wrap lines"
@@ -1613,19 +1613,19 @@ msgstr "Zawijaj wiersze"
 
 #: spyder/plugins/console/plugin.py:173
 msgid "Automatic code completion"
-msgstr ""
+msgstr "Automatyczne uzupełnianie kodu"
 
 #: spyder/plugins/console/plugin.py:177
 msgid "Internal console settings"
-msgstr ""
+msgstr "Wewnętrzne ustawienia konsoli"
 
 #: spyder/plugins/console/plugin.py:228
 msgid "<h3>Spyder crashed during last session</h3>"
-msgstr ""
+msgstr "<h3>Spyder uległ awarii podczas ostatniej sesji</h3>"
 
 #: spyder/plugins/console/plugin.py:231
 msgid "Please provide any additional information you might have about the crash."
-msgstr ""
+msgstr "Podaj wszelkie dodatkowe informacje o awarii."
 
 #: spyder/plugins/console/plugin.py:279
 msgid "Run Python script"
@@ -1641,7 +1641,7 @@ msgstr "Bufor"
 
 #: spyder/plugins/console/plugin.py:325
 msgid "Maximum line count"
-msgstr ""
+msgstr "Maksymalna liczba linii"
 
 #: spyder/plugins/console/plugin.py:335
 msgid "External editor"
@@ -1649,7 +1649,7 @@ msgstr "Zewnętrzny edytor"
 
 #: spyder/plugins/console/plugin.py:336
 msgid "External editor executable path:"
-msgstr ""
+msgstr "Ścieżka wykonywalna zewnętrznego edytora:"
 
 #: spyder/plugins/console/widgets/internalshell.py:261
 msgid "Help..."
@@ -1657,7 +1657,7 @@ msgstr "Pomoc..."
 
 #: spyder/plugins/console/widgets/internalshell.py:278
 msgid "Shell special commands:"
-msgstr ""
+msgstr "Specjalne polecenia powłoki:"
 
 #: spyder/plugins/console/widgets/internalshell.py:279
 msgid "Internal editor:"
@@ -1673,7 +1673,7 @@ msgstr "Wykonaj skrypt:"
 
 #: spyder/plugins/console/widgets/internalshell.py:282
 msgid "Remove references:"
-msgstr ""
+msgstr "Usuń referencje:"
 
 #: spyder/plugins/console/widgets/internalshell.py:283
 msgid "System commands:"
@@ -1689,7 +1689,7 @@ msgstr "Edytor z interfejsem graficznym:"
 
 #: spyder/plugins/console/widgets/internalshell.py:416
 msgid "In order to use commands like \"raw_input\" or \"input\" run Spyder with the multithread option (--multithread) from a system terminal"
-msgstr ""
+msgstr "Aby użyć poleceń takich jak \"raw_input\" lub \"input\" uruchom Spyder w trybie wielowątkowym (--multithread) w terminalu systemowym"
 
 #: spyder/plugins/console/widgets/shell.py:135
 msgid "Save history log..."
@@ -1713,7 +1713,7 @@ msgstr "Dziennik działań"
 
 #: spyder/plugins/console/widgets/shell.py:689
 msgid "Copy without prompts"
-msgstr ""
+msgstr "Kopiuj bez monitów"
 
 #: spyder/plugins/console/widgets/shell.py:695 spyder/plugins/console/widgets/shell.py:698
 msgid "Clear line"
@@ -1725,7 +1725,7 @@ msgstr "Wyczyść powłokę"
 
 #: spyder/plugins/console/widgets/shell.py:706
 msgid "Clear shell contents ('cls' command)"
-msgstr ""
+msgstr "Wyczyść zawartość powłoki (polecenie \"cls\")"
 
 #: spyder/plugins/editor/confpage.py:35
 msgid "Show tab bar"
@@ -1737,11 +1737,11 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:39 spyder/plugins/editor/plugin.py:803
 msgid "Show indent guides"
-msgstr ""
+msgstr "Pokaż wskazówki dotyczące wcięć"
 
 #: spyder/plugins/editor/confpage.py:41 spyder/plugins/editor/plugin.py:806
 msgid "Show code folding"
-msgstr ""
+msgstr "Pokaż zwijanie kodu"
 
 #: spyder/plugins/editor/confpage.py:42 spyder/plugins/history/confpage.py:35 spyder/plugins/history/plugin.py:116
 msgid "Show line numbers"
@@ -1753,19 +1753,19 @@ msgstr "Pokaż odstępy nieoddzielające niczego"
 
 #: spyder/plugins/editor/confpage.py:44
 msgid "Highlight current line"
-msgstr ""
+msgstr "Podświetl bieżącą linię"
 
 #: spyder/plugins/editor/confpage.py:46
 msgid "Highlight current cell"
-msgstr ""
+msgstr "Podświetl bieżącą komórkę"
 
 #: spyder/plugins/editor/confpage.py:49 spyder/plugins/editor/plugin.py:799
 msgid "Scroll past the end"
-msgstr ""
+msgstr "Przewiń na koniec"
 
 #: spyder/plugins/editor/confpage.py:52
 msgid "Show vertical lines at"
-msgstr ""
+msgstr "Pokaż linie pionowe na"
 
 #: spyder/plugins/editor/confpage.py:59
 msgid "characters"
@@ -1773,7 +1773,7 @@ msgstr "znaki"
 
 #: spyder/plugins/editor/confpage.py:65
 msgid "Highlight occurrences after"
-msgstr ""
+msgstr "Podświetl wystąpienia po"
 
 #: spyder/plugins/editor/confpage.py:68 spyder/preferences/general.py:190 spyder/preferences/general.py:199
 msgid " ms"
@@ -2409,7 +2409,7 @@ msgstr "Edytor Spyder"
 
 #: spyder/plugins/editor/plugin.py:1694
 msgid "This is a temporary script file."
-msgstr ""
+msgstr "To jest tymczasowy plik skryptu."
 
 #: spyder/plugins/editor/plugin.py:1778
 msgid "untitled"
@@ -2417,7 +2417,7 @@ msgstr "bez nazwy"
 
 #: spyder/plugins/editor/plugin.py:1853
 msgid "Maximum number of recent files"
-msgstr ""
+msgstr "Maksymalna liczba ostatnio używanych plików"
 
 #: spyder/plugins/editor/plugin.py:2019
 msgid "Printing..."
@@ -2425,11 +2425,11 @@ msgstr "Drukowanie..."
 
 #: spyder/plugins/editor/utils/autosave.py:308
 msgid "Error while removing autosave file {}"
-msgstr ""
+msgstr "Błąd podczas usuwania pliku autozapisu {}"
 
 #: spyder/plugins/editor/utils/autosave.py:336
 msgid "Error while creating autosave directory"
-msgstr ""
+msgstr "Błąd podczas tworzenia katalogu autozapisu"
 
 #: spyder/plugins/editor/utils/autosave.py:404
 msgid "Error while autosaving {} to {}"
