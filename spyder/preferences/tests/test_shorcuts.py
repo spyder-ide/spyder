@@ -27,6 +27,15 @@ from spyder.preferences.shortcuts import (
 def shortcut_table(qtbot):
     """Set up shortcuts."""
     shortcut_table = ShortcutsTable()
+
+    # Load shortcuts from CONF
+    shortcut_data = []
+    for context, name, __ in CONF.iter_shortcuts():
+        shortcut_data.append((None, context, name, None, None))
+
+    shortcut_table.set_shortcut_data(shortcut_data)
+    shortcut_table.load_shortcuts()
+
     qtbot.addWidget(shortcut_table)
     return shortcut_table
 
@@ -178,6 +187,7 @@ def test_sequence_conflict(create_shortcut_editor, qtbot):
     assert shortcut_editor.new_sequence == 'Ctrl+X'
     assert shortcut_editor.warning == SEQUENCE_CONFLICT
     assert shortcut_editor.button_ok.isEnabled()
+
 
     # Check that the conflict is detected for a compound of key sequences.
     qtbot.keyClick(shortcut_editor, Qt.Key_X)
