@@ -45,7 +45,7 @@ from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (ClientWidget,
                                                    KernelConnectionDialog)
-from spyder.py3compat import is_string, to_text_string
+from spyder.py3compat import is_string, to_text_string, PY38_OR_MORE
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs, sourcecode
@@ -158,6 +158,10 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Accepting drops
         self.setAcceptDrops(True)
+
+        # Needed to start Spyder in Windows with Python 3.8
+        # See spyder-ide/spyder#11880
+        self._init_asyncio_patch()
 
     #------ SpyderPluginMixin API ---------------------------------------------
     def update_font(self):
@@ -1378,6 +1382,40 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.help.show_plain_text(quick_reference)
 
     #------ Private API -------------------------------------------------------
+    def _init_asyncio_patch(self):
+        """
+        Same workaround fix as https://github.com/ipython/ipykernel/pull/456
+        Set default asyncio policy to be compatible with tornado
+        Tornado 6 (at least) is not compatible with the default
+        asyncio implementation on Windows
+        Pick the older SelectorEventLoopPolicy on Windows
+        if the known-incompatible default policy is in use.
+        Do this as early as possible to make it a low priority and overrideable
+        ref: https://github.com/tornadoweb/tornado/issues/2608
+        FIXME: if/when tornado supports the defaults in asyncio,
+               remove and bump tornado requirement for py38
+        Based on: jupyter/qtconsole#406
+        """
+        if os.name == 'nt' and PY38_OR_MORE:
+            import asyncio
+            try:
+                from asyncio import (
+                    WindowsProactorEventLoopPolicy,
+                    WindowsSelectorEventLoopPolicy,
+                )
+            except ImportError:
+                # not affected
+                pass
+            else:
+                if isinstance(
+                        asyncio.get_event_loop_policy(),
+                        WindowsProactorEventLoopPolicy):
+                    # WindowsProactorEventLoopPolicy is not compatible
+                    # with tornado 6 fallback to the pre-3.8
+                    # default of Selector
+                    asyncio.set_event_loop_policy(
+                        WindowsSelectorEventLoopPolicy())
+
     def _new_connection_file(self):
         """
         Generate a new connection file
