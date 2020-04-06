@@ -22,12 +22,8 @@ from spyder.preferences.shortcuts import (
     INVALID_KEY, SEQUENCE_EMPTY)
 
 
-# ---- Qt Test Fixtures
-@pytest.fixture
-def shortcut_table(qtbot):
-    """Set up shortcuts."""
-    shortcut_table = ShortcutsTable()
-
+# --- Helpers
+def load_shortcuts(shortcut_table):
     # Load shortcuts from CONF
     shortcut_data = []
     for context, name, __ in CONF.iter_shortcuts():
@@ -35,7 +31,15 @@ def shortcut_table(qtbot):
 
     shortcut_table.set_shortcut_data(shortcut_data)
     shortcut_table.load_shortcuts()
+    return shortcut_table
 
+
+# ---- Qt Test Fixtures
+@pytest.fixture
+def shortcut_table(qtbot):
+    """Set up shortcuts."""
+    shortcut_table = ShortcutsTable()
+    shortcut_table = load_shortcuts(shortcut_table)
     qtbot.addWidget(shortcut_table)
     return shortcut_table
 
@@ -72,6 +76,24 @@ def test_shortcuts(shortcut_table):
     shortcut_table.show()
     shortcut_table.check_shortcuts()
     assert shortcut_table
+
+
+def test_shortcut_in_conf_is_filtered_with_shortcut_data(qtbot):
+    shortcut_table = ShortcutsTable()
+    shortcut_table = load_shortcuts(shortcut_table)
+    qtbot.addWidget(shortcut_table)
+    row_count = shortcut_table.model().rowCount()
+    assert row_count != 0
+
+    shortcut_table_empty = ShortcutsTable()
+    shortcut_table_empty.set_shortcut_data([
+        (None, '_', 'switch to plots', None, None),
+        (None, '_', 'switch to editor', None, None),
+    ])
+    shortcut_table_empty.load_shortcuts()
+    qtbot.addWidget(shortcut_table_empty)
+    row_count = shortcut_table_empty.model().rowCount()
+    assert row_count == 2
 
 
 def test_shortcuts_filtering(shortcut_table):
