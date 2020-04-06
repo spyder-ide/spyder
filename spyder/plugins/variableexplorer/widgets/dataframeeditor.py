@@ -522,13 +522,19 @@ class DataFrameView(QTableView):
         """Load more columns to display."""
         # Needed to avoid a NameError while fetching data when closing
         # See spyder-ide/spyder#12034.
-        self.load_more_data(value, columns=True)
+        try:
+            self.load_more_data(value, columns=True)
+        except NameError:
+            pass
 
     def _load_more_rows(self, value):
         """Load more rows to display."""
         # Needed to avoid a NameError while fetching data when closing
         # See spyder-ide/spyder#12034.
-        self.load_more_data(value, rows=True)
+        try:
+            self.load_more_data(value, rows=True)
+        except NameError:
+            pass
 
     def load_more_data(self, value, rows=False, columns=False):
         """Load more rows and columns to display."""
