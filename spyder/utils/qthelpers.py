@@ -338,7 +338,7 @@ def add_shortcut_to_tooltip(action, context, name):
         keyseq = QKeySequence(shortcut)
         # See: spyder-ide/spyder#12168
         string = keyseq.toString(QKeySequence.NativeText)
-        action.setToolTip('{0} ({1})'.format(action._tooltip_backup, string))
+        action.setToolTip(u'{0} ({1})'.format(action._tooltip_backup, string))
 
 
 def add_actions(target, actions, insert_before=None):
