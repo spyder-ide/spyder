@@ -3100,7 +3100,7 @@ class MainWindow(QMainWindow):
     def apply_panes_settings(self):
         """Update dockwidgets features settings"""
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            features = plugin._FEATURES
+            features = plugin.dockwidget.FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
             plugin.dockwidget.setFeatures(features)
@@ -3212,26 +3212,40 @@ class MainWindow(QMainWindow):
                                    name, add_shortcut_to_tip, plugin_name))
 
     def apply_shortcuts(self):
-        """Apply shortcuts settings to all widgets/plugins"""
+        """Apply shortcuts settings to all widgets/plugins."""
         toberemoved = []
         for index, (qobject, context, name, add_shortcut_to_tip,
                     plugin_name) in enumerate(self.shortcut_data):
-            keyseq = QKeySequence(CONF.get_shortcut(context, name,
-                                                    plugin_name))
             try:
-                if isinstance(qobject, QAction):
-                    if sys.platform == 'darwin' and \
-                      qobject._shown_shortcut == 'missing':
-                        qobject._shown_shortcut = keyseq
-                    else:
-                        qobject.setShortcut(keyseq)
-                    if add_shortcut_to_tip:
-                        add_shortcut_to_tooltip(qobject, context, name)
-                elif isinstance(qobject, QShortcut):
-                    qobject.setKey(keyseq)
-            except RuntimeError:
-                # Object has been deleted
-                toberemoved.append(index)
+                shortcut_sequence = CONF.get_shortcut(context, name,
+                                                      plugin_name)
+            except (cp.NoSectionError, cp.NoOptionError):
+                # If shortcut does not exist, save it to CONF. This is an
+                # action for which there is no shortcut assigned (yet) in
+                # the configuration
+                CONF.set_shortcut(context, name, '', plugin_name)
+                shortcut_sequence = ''
+
+            if shortcut_sequence:
+                keyseq = QKeySequence(shortcut_sequence)
+                try:
+                    if isinstance(qobject, QAction):
+                        if (sys.platform == 'darwin'
+                                and qobject._shown_shortcut == 'missing'):
+                            qobject._shown_shortcut = keyseq
+                        else:
+                            qobject.setShortcut(keyseq)
+
+                        if add_shortcut_to_tip:
+                            add_shortcut_to_tooltip(qobject, context, name)
+
+                    elif isinstance(qobject, QShortcut):
+                        qobject.setKey(keyseq)
+
+                except RuntimeError:
+                    # Object has been deleted
+                    toberemoved.append(index)
+
         for index in sorted(toberemoved, reverse=True):
             self.shortcut_data.pop(index)
 
