@@ -574,13 +574,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         }
 
         # Jedi configuration
-        if self.get_option('default', section='main_interpreter'):
-            environment = None
-        else:
-            environment = self.get_option('custom_interpreter',
-                                          section='main_interpreter')
         jedi = {
-            'environment': environment,
+            'environment': sys.executable,
             'extra_paths': self.get_option('spyder_pythonpath',
                                            section='main', default=[]),
         }
