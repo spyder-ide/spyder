@@ -188,6 +188,13 @@ class DockTitleBar(QWidget):
 
 class SpyderDockWidget(QDockWidget):
     """Subclass to override needed methods"""
+
+    # Attributes
+    ALLOWED_AREAS = Qt.AllDockWidgetAreas
+    LOCATION = Qt.LeftDockWidgetArea
+    FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
+
+    # Signals
     sig_plugin_closed = Signal()
 
     def __init__(self, title, parent):
