@@ -47,7 +47,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_show_env = Signal(object)
 
     # For FigureBrowserWidget
-    sig_new_inline_figure = Signal(object, str)
+    sig_new_inline_figure = Signal(dict)
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
@@ -104,6 +104,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'get_file_code': self.handle_get_file_code,
             'set_debug_state': self.handle_debug_state,
             'update_syspath': self.update_syspath,
+            'display_data': self.display_data,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(

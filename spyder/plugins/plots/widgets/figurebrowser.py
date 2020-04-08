@@ -17,7 +17,7 @@ import sys
 
 # ---- Third library imports
 import qdarkstyle
-from qtconsole.svg import svg_to_image, svg_to_clipboard
+from qtconsole.svg import svg_to_clipboard
 from qtpy.compat import getsavefilename, getexistingdirectory
 from qtpy.QtCore import Qt, Signal, QRect, QEvent, QPoint, QSize, QTimer, Slot
 from qtpy.QtGui import QPixmap, QPainter, QKeySequence
@@ -40,15 +40,8 @@ from spyder.config.gui import is_dark_interface
 def save_figure_tofile(fig, fmt, fname):
     """Save fig to fname in the format specified by fmt."""
     root, ext = osp.splitext(fname)
-    if ext == '.png' and fmt == 'image/svg+xml':
-        qimg = svg_to_image(fig)
-        qimg.save(fname)
-    else:
-        if fmt == 'image/svg+xml' and isinstance(fig, str):
-            fig = fig.encode('utf-8')
-
-        with open(fname, 'wb') as f:
-            f.write(fig)
+    with open(fname, 'wb') as f:
+        f.write(fig)
 
 
 def get_unique_figname(dirname, root, ext):
@@ -405,12 +398,12 @@ class FigureBrowser(QWidget):
         """Get the actions of the widget."""
         return self.actions
 
-    def _handle_new_figure(self, fig, fmt):
+    def _handle_new_figure(self, fig_data):
         """
         Handle when a new figure is sent to the IPython console by the
         kernel.
         """
-        self.thumbnails_sb.add_thumbnail(fig, fmt)
+        self.thumbnails_sb.add_thumbnail(fig_data)
 
     # ---- Toolbar Handlers
     def zoom_in(self):
@@ -743,11 +736,12 @@ class ThumbnailScrollBar(QFrame):
         figname_root = ('Figure ' +
                         datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
         for thumbnail in self._thumbnails:
-            fig = thumbnail.canvas.fig
-            fmt = thumbnail.canvas.fmt
+            fmt = thumbnail.preffered_format()
+            fig = thumbnail._fig_data[fmt]
             fext = {'image/png': '.png',
                     'image/jpeg': '.jpg',
-                    'image/svg+xml': '.svg'}[fmt]
+                    'image/svg+xml': '.svg',
+                    'application/pdf': '.pdf'}[fmt]
 
             figname = get_unique_figname(dirname, figname_root, fext)
             save_figure_tofile(fig, fmt, figname)
@@ -757,15 +751,21 @@ class ThumbnailScrollBar(QFrame):
     def save_current_figure_as(self):
         """Save the currently selected figure."""
         if self.current_thumbnail is not None:
-            self.save_figure_as(self.current_thumbnail.canvas.fig,
-                                self.current_thumbnail.canvas.fmt)
+            self.save_figure_as(self.current_thumbnail)
 
-    def save_figure_as(self, fig, fmt):
+    def save_figure_as(self, thumbnail):
         """Save the figure to a file."""
-        fext, ffilt = {
+        format_dict =  {
             'image/png': ('.png', 'PNG (*.png)'),
             'image/jpeg': ('.jpg', 'JPEG (*.jpg;*.jpeg;*.jpe;*.jfif)'),
-            'image/svg+xml': ('.svg', 'SVG (*.svg);;PNG (*.png)')}[fmt]
+            'image/svg+xml': ('.svg', 'SVG (*.svg)'),
+            'application/pdf': ('.pdf', 'PDF (*.pdf)')}
+        fext, _ = format_dict[thumbnail.preffered_format()]
+
+        ffilt = [format_dict[fmt][1] for fmt in thumbnail._fig_data.keys()
+                 if fmt in format_dict]
+        ffilt = ';;'.join(ffilt)
+
 
         save_dir = CONF.get('plots', 'save_dir', getcwd_or_home())
         figname = get_unique_figname(
@@ -779,6 +779,16 @@ class ThumbnailScrollBar(QFrame):
             basedir=figname, filters=ffilt,
             selectedfilter='', options=None)
         self.redirect_stdio.emit(True)
+
+        fmt = None
+        for format in format_dict:
+            if format_dict[format][0] in fext:
+                fmt = format
+                break
+        else:
+            return
+
+        fig = thumbnail._fig_data[fmt]
 
         if fname:
             CONF.set('plots', 'save_dir', osp.dirname(fname))
@@ -829,13 +839,13 @@ class ThumbnailScrollBar(QFrame):
             self._setup_thumbnail_size(thumbnail)
         self.view.show()
 
-    def add_thumbnail(self, fig, fmt):
+    def add_thumbnail(self, fig_data):
         """
         Add a new thumbnail to that thumbnail scrollbar.
         """
         thumbnail = FigureThumbnail(
             parent=self, background_color=self.background_color)
-        thumbnail.canvas.load_figure(fig, fmt)
+        thumbnail.set_data(fig_data)
         thumbnail.sig_canvas_clicked.connect(self.set_current_thumbnail)
         thumbnail.sig_remove_figure.connect(self.remove_thumbnail)
         thumbnail.sig_save_figure.connect(self.save_figure_as)
@@ -969,7 +979,7 @@ class FigureThumbnail(QWidget):
     """
     sig_canvas_clicked = Signal(object)
     sig_remove_figure = Signal(object)
-    sig_save_figure = Signal(object, str)
+    sig_save_figure = Signal(object)
 
     def __init__(self, parent=None, background_color=None):
         super().__init__(parent)
@@ -978,6 +988,25 @@ class FigureThumbnail(QWidget):
         self.canvas.sig_clear_fig_requested.connect(self.emit_remove_figure)
         self.canvas.sig_save_fig_requested.connect(self.emit_save_figure)
         self.setup_gui()
+        self._fig_data = None
+
+    def set_data(self, fig_data):
+        """Set current fig data."""
+        self._fig_data = fig_data
+        fmt = 'image/png'
+        self.canvas.load_figure(fig_data[fmt], fmt)
+
+    def preffered_format(self):
+        """Return the preffered format for saving."""
+        formats = [
+            'image/svg+xml',
+            'application/pdf',
+            'image/jpeg',
+            'image/png',
+            ]
+        for format in formats:
+            if format in self._fig_data:
+                return format
 
     def setup_gui(self):
         """Setup the main layout of the widget."""
@@ -1035,7 +1064,8 @@ class FigureThumbnail(QWidget):
         """
         Emit a signal when the toolbutton to save the figure is clicked.
         """
-        self.sig_save_figure.emit(self.canvas.fig, self.canvas.fmt)
+        if self._fig_data:
+            self.sig_save_figure.emit(self)
 
     def emit_remove_figure(self):
         """
@@ -1127,11 +1157,8 @@ class FigureCanvas(QFrame):
         self.fig = fig
         self.fmt = fmt
 
-        if fmt in ['image/png', 'image/jpeg']:
-            self._qpix_orig = QPixmap()
-            self._qpix_orig.loadFromData(fig, fmt.upper())
-        elif fmt == 'image/svg+xml':
-            self._qpix_orig = QPixmap(svg_to_image(fig))
+        self._qpix_orig = QPixmap()
+        self._qpix_orig.loadFromData(fig, fmt.upper())
 
         self._qpix_scaled = self._qpix_orig
         self.fwidth = self._qpix_orig.width()
@@ -1152,12 +1179,8 @@ class FigureCanvas(QFrame):
         # Prepare the scaled qpixmap to paint on the widget.
         if (self._qpix_scaled is None or
                 self._qpix_scaled.size().width() != rect.width()):
-            if self.fmt in ['image/png', 'image/jpeg']:
-                self._qpix_scaled = self._qpix_orig.scaledToWidth(
-                    rect.width(), mode=Qt.SmoothTransformation)
-            elif self.fmt == 'image/svg+xml':
-                self._qpix_scaled = QPixmap(svg_to_image(
-                    self.fig, rect.size()))
+            self._qpix_scaled = self._qpix_orig.scaledToWidth(
+                rect.width(), mode=Qt.SmoothTransformation)
 
         if self._qpix_scaled is not None:
             # Paint the image on the widget.

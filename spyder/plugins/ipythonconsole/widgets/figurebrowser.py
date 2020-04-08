@@ -34,28 +34,18 @@ class FigureBrowserWidget(RichJupyterWidget):
         self.figurebrowser = figurebrowser
         self.sended_render_message = False
 
+    def display_data(self, fig_data):
+        """Display data in figure browser."""
+        if 'image/png' in fig_data:
+            self.sig_new_inline_figure.emit(fig_data)
+
     # ---- Private API (overrode by us)
     def _handle_display_data(self, msg):
         """
         Reimplemented to handle communications between the figure explorer
         and the kernel.
         """
-        img = None
-        data = msg['content']['data']
-        if 'image/svg+xml' in data:
-            fmt = 'image/svg+xml'
-            img = data['image/svg+xml']
-        elif 'image/png' in data:
-            # PNG data is base64 encoded as it passes over the network
-            # in a JSON structure so we decode it.
-            fmt = 'image/png'
-            img = decodebytes(data['image/png'].encode('ascii'))
-        elif 'image/jpeg' in data and self._jpg_supported:
-            fmt = 'image/jpeg'
-            img = decodebytes(data['image/jpeg'].encode('ascii'))
-
-        if img is not None:
-            self.sig_new_inline_figure.emit(img, fmt)
+        if 'image/png' in msg['content']['data']:
             if (self.figurebrowser is not None and
                     self.figurebrowser.mute_inline_plotting):
                 if not self.sended_render_message:
