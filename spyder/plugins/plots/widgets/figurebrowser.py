@@ -755,7 +755,7 @@ class ThumbnailScrollBar(QFrame):
 
     def save_figure_as(self, thumbnail):
         """Save the figure to a file."""
-        format_dict =  {
+        format_dict = {
             'image/png': ('.png', 'PNG (*.png)'),
             'image/jpeg': ('.jpg', 'JPEG (*.jpg;*.jpeg;*.jpe;*.jfif)'),
             'image/svg+xml': ('.svg', 'SVG (*.svg)'),
@@ -765,7 +765,6 @@ class ThumbnailScrollBar(QFrame):
         ffilt = [format_dict[fmt][1] for fmt in thumbnail._fig_data.keys()
                  if fmt in format_dict]
         ffilt = ';;'.join(ffilt)
-
 
         save_dir = CONF.get('plots', 'save_dir', getcwd_or_home())
         figname = get_unique_figname(
