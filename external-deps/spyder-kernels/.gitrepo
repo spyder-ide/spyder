@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
 	branch = improve_plot_pane
-	commit = df35784943a5316729b3808231d8edcd0ef76674
-	parent = d0ce0ef86487a92e09351c53351faebc136fa54d
+	commit = 9b2aaccd4b9420fd42a8f09e4cced7a386085f70
+	parent = a91afb7d6216beabdeae230e0b8023dc283dc31e
 	method = merge
 	cmdver = 0.4.1

@@ -44,23 +44,23 @@ logger = logging.getLogger(__name__)
 # Subsequent draw calls not called but could modify to update the figure
 try:
     from IPython.display import set_matplotlib_formats
-    from matplotlib.figure import Figure
+    import matplotlib.figure
 
-    super_draw = Figure.draw
+    class MyFigure(matplotlib.figure.Figure):
+        def draw(self, *args, **kwargs):
+            sent = getattr(self, '_was_sent', False)
+            if not sent:
+                # Send all file types so we can choose the extension
+                # Should we replace retina by png? large png can be resized.
+                # TODO: add options for 'pdf', 'retina', 'jpeg'
+                set_matplotlib_formats('svg', 'png')
+                self._was_sent = True
+                format = get_ipython().kernel.shell.display_formatter.format
+                format_dict, md_dict = format(self)
+                frontend_request(blocking=False).display_data(format_dict)
+            return super().draw(*args, **kwargs)
 
-    def draw(self, *args, **kwargs):
-        sent = getattr(self, '_was_sent', False)
-        if not sent:
-            # Send all file types so we can choose the extension
-            # Should we replace retina by png? large png can always be resized.
-            set_matplotlib_formats('svg', 'pdf', 'retina', 'jpeg')
-            self._was_sent = True
-            format = get_ipython().kernel.shell.display_formatter.format
-            format_dict, md_dict = format(self)
-            frontend_request(blocking=False).display_data(format_dict)
-        return super_draw(self, *args, **kwargs)
-
-    Figure.draw = draw
+    matplotlib.figure.Figure = MyFigure
 except Exception:
     pass
 
