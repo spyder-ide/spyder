@@ -274,8 +274,7 @@ class BasePluginWidgetMixin(object):
         if self.shortcut is not None and self.main is not None:
             sc = QShortcut(QKeySequence(self.shortcut), self.main,
                            self.switch_to_plugin)
-            self.register_shortcut(sc, "_", "Switch to {}".format(
-                self.CONF_SECTION))
+            self.register_shortcut(sc, "_", name)
 
         return (dock, dock.LOCATION)
 
