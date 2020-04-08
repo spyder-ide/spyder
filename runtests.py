@@ -61,13 +61,12 @@ def run_pytest(run_slow=False, extra_args=None):
 def main():
     """Parse args then run the pytest suite for Spyder."""
     test_parser = argparse.ArgumentParser(
+        usage='python runtests.py [-h] [--run-slow] [pytest_args]',
         description="Helper script to run Spyder's test suite")
     test_parser.add_argument('--run-slow', action='store_true', default=False,
                              help='Run the slow tests')
-    test_parser.add_argument('pytest_args', nargs=argparse.REMAINDER,
-                             metavar="...", help="Args to pass to pytest")
-    test_args = test_parser.parse_args()
-    run_pytest(run_slow=test_args.run_slow, extra_args=test_args.pytest_args)
+    test_args, pytest_args = test_parser.parse_known_args()
+    run_pytest(run_slow=test_args.run_slow, extra_args=pytest_args)
 
 
 if __name__ == '__main__':
