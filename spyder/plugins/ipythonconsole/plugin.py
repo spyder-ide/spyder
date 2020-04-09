@@ -161,7 +161,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Needed to start Spyder in Windows with Python 3.8
         # See spyder-ide/spyder#11880
-        self._init_asyncio_patch()
+        # self._init_asyncio_patch()
 
     #------ SpyderPluginMixin API ---------------------------------------------
     def update_font(self):
