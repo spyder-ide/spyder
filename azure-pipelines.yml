@@ -135,7 +135,7 @@ jobs:
     inputs:
       environmentName: 'test'
       packageSpecs: 'python=$(python.version)'
-      updateConda: false
+      updateConda: true
 
     # Install dependencies
   - script: |
