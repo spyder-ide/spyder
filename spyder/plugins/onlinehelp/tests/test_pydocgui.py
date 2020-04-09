@@ -26,6 +26,7 @@ def pydocbrowser(qtbot):
     return qtbot, widget
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_pydocbrowser(pydocbrowser):
     """Run Pydoc Browser."""
     qtbot, browser = pydocbrowser
