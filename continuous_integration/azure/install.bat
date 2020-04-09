@@ -9,11 +9,21 @@ if %USE_CONDA% == yes (
     :: Remove spyder-kernels to be sure that we use its subrepo
     conda remove -q -y --force spyder-kernels
     if errorlevel 1 exit 1
-) else (
-    :: Github backend tests are failing with 1.1.1d
-    conda install -q -y openssl=1.1.1c
+
+    :: Create environment for Jedi environments tests
+    conda create -n jedi-test-env -q -y python=3.6 flask spyder-kernels
     if errorlevel 1 exit 1
 
+    conda list -n jedi-test-env
+    if errorlevel 1 exit 1
+
+    :: Create environment to test conda activation before launching a spyder kernel
+    conda create -n spytest-ž -q -y python=3.6 spyder-kernels
+    if errorlevel 1 exit 1
+
+    conda list -n spytest-ž
+    if errorlevel 1 exit 1
+) else (
     :: Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
     if errorlevel 1 exit 1
@@ -33,20 +43,6 @@ if %USE_CONDA% == yes (
 
 :: To check our manifest
 pip install check-manifest
-if errorlevel 1 exit 1
-
-:: Create environment for Jedi environments tests
-conda create -n jedi-test-env -q -y python=3.6 flask spyder-kernels
-if errorlevel 1 exit 1
-
-conda list -n jedi-test-env
-if errorlevel 1 exit 1
-
-:: Create environment to test conda activation before launching a spyder kernel
-conda create -n spytest-ž -q -y python=3.6 spyder-kernels
-if errorlevel 1 exit 1
-
-conda list -n spytest-ž
 if errorlevel 1 exit 1
 
 :: Install python-language-server from master
