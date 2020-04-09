@@ -70,15 +70,13 @@ def test_no_git(monkeypatch):
 
 
 @skipnogit
+@pytest.mark.skipif(os.environ.get('TRAVIS', None) is not None,
+                    reason="It doesn't work well in Travis")
 def test_get_git_refs():
     branch_tags, branch, files_modified = get_git_refs(__file__)
     assert bool(branch)  # This must always return a branch_name
     assert len(files_modified) >= 0
-
-    # It seems when Travis run tests on tags, master doesn't
-    # appear among the list of git branches.
-    if not os.environ.get('TRAVIS_TAG'):
-        assert any(['master' in b for b in branch_tags])
+    assert any(['master' in b for b in branch_tags])
 
 
 @skipnogit
