@@ -51,7 +51,9 @@ def main(run_slow=False, extra_args=None):
             pytest_args += ['--cache-clear', '--junitxml=result.xml']
     elif run_slow:
         pytest_args += ['--run-slow']
-    elif extra_args:
+        sys.argv.remove('--run-slow')  # cli_options doesn't know this option
+
+    if extra_args:
         pytest_args += extra_args
 
     print("Pytest Arguments: " + str(pytest_args))
