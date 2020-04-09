@@ -8,30 +8,20 @@
 Tests for shortcuts.py
 """
 
+# Standard library imports
 import os
 import sys
 
-# Test library imports
-import pytest
+# Third party imports
 from qtpy.QtCore import Qt
+import pytest
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.preferences.shortcuts import (
-    ShortcutsTable, ShortcutEditor, NO_WARNING, SEQUENCE_CONFLICT,
-    INVALID_KEY, SEQUENCE_EMPTY)
-
-
-# --- Helpers
-def load_shortcuts(shortcut_table):
-    # Load shortcuts from CONF
-    shortcut_data = []
-    for context, name, __ in CONF.iter_shortcuts():
-        shortcut_data.append((None, context, name, None, None))
-
-    shortcut_table.set_shortcut_data(shortcut_data)
-    shortcut_table.load_shortcuts()
-    return shortcut_table
+from spyder.preferences.shortcuts import (INVALID_KEY, NO_WARNING,
+                                          SEQUENCE_CONFLICT, SEQUENCE_EMPTY,
+                                          ShortcutEditor, ShortcutsTable,
+                                          load_shortcuts)
 
 
 # ---- Qt Test Fixtures
