@@ -832,6 +832,79 @@ class CodeEditor(TextEditBaseWidget):
                      scroll_past_end=False,
                      debug_panel=True,
                      folding=True):
+        '''
+        Set-up configuration for the CodeEditor instance.
+
+        Usually the parameters here are related with a configurable preference 
+        in the Preference Dialog and Editor configurations:
+        
+        linenumbers: Enable/Disable line number panel. Default True.
+        language: Set editor language for example python. Default None.
+        markers: Enable/Disable markers panel. Used to show elements like 
+            Code Analysis. Default False.
+        font: Base font for the Editor to use. Default None.
+        color_scheme: Initial color scheme for the Editor to use. Default None.
+        wrap: Enable/Disable line wrap. Default False.
+        tab_mode: Enable/Disable using Tab as delimiter between word, Default True.
+        strip_mode: strip_mode: Enable/Disable striping trailing spaces when 
+            modifying the file. Default False.
+        intelligent_backspace: Enable/Disable automatically unindenting 
+            inserted text (unindenting happens if the leading text length of 
+            the line isn't module of the length of indentation chars being use).
+            Default True.
+        automatic_completions: Enable/Disable automatic completions. 
+            The behavior of the trigger of this the completions can be 
+            established with the two following kwargs. Default True.
+        automatic_completions_after_chars: Number of charts to type to trigger 
+            an automatic completion. Default 3.
+        automatic_completions_after_ms: Number of milliseconds to pass before 
+            an autocompletion is triggered. Default 300.
+        completions_hint: Enable/Disable documentation hints for completions. 
+            Default True.
+        completions_hint_after_ms: Number of milliseconds over a completion 
+            item to show the documentation hint. Default 500.
+        hover_hints: Enable/Disable documentation hover hints. Default True.
+        code_snippets: Enable/Disable code snippets completions. Default True.
+        highlight_current_line: Enable/Disable current line highlighting. 
+            Default True.
+        highlight_current_cell: Enable/Disable current cell highlighting. 
+            Default True.
+        occurrence_highlighting: Enable/Disable highlighting of current word 
+            occurrence in the file. Default True.
+        scrollflagarea : Enable/Disable flag area that shows at the left of 
+            the scroll bar. Default True.
+        edge_line: Enable/Disable vertical line to show max number of 
+            characters per line. Customizable number of columns in the 
+            following kwarg. Default True.
+        edge_line_columns: Number of columns/characters where the editor 
+            horizontal edge line will show. Default (79,).
+        show_blanks: Enable/Disable blanks highlighting. Default False.
+        underline_errors: Enable/Disable showing and underline to highlight 
+            errors. Default False.
+        close_parentheses: Enable/Disable automatic parentheses closing 
+            insertion. Default True.
+        close_quotes: Enable/Disable automatic closing of quotes . Default False.
+        add_colons: Enable/Disable automatic addition of colons. Default True.
+        auto_unindent: Enable/Disable automatically unindentation before else, 
+            elif, finally or except statements. Default True.
+        indent_chars: Characters to use for indentation. Default " "*4.
+        tab_stop_width_spaces: Enable/Disable using tabs for indentation. 
+            Default 4.
+        cloned_from: Editor instance used as template to instantiate this 
+            CodeEditor instance. Default None.
+        filename: Initial filename to show. Default None.
+        occurrence_timeout : Timeout in milliseconds to start highlighting 
+            matches/occurrences for the current word under the cursor. 
+            Default 1500 ms.
+        show_class_func_dropdown: Enable/Disable a Matlab like widget to show 
+            classes and functions available in the current file. Default False.
+        indent_guides: Enable/Disable highlighting of code indentation. 
+            Default False.
+        scroll_past_end: Enable/Disable possibility to scroll file passed 
+            its end. Default False.
+        debug_panel: Enable/Disable debug panel. Default True.
+        folding: Enable/Disable code folding. Default True.
+        '''
 
         self.set_close_parentheses_enabled(close_parentheses)
         self.set_close_quotes_enabled(close_quotes)
