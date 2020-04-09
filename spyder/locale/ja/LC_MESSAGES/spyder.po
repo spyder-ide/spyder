@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-31 18:05-0500\n"
-"PO-Revision-Date: 2020-04-04 18:05\n"
+"PO-Revision-Date: 2020-04-09 13:50\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -427,7 +427,7 @@ msgstr "コンソールウインドウを表示 (デバッグ)"
 
 #: spyder/app/mainwindow.py:1426
 msgid "Hide this message during the current session"
-msgstr ""
+msgstr "現在のセッションではこのメッセージを表示しない"
 
 #: spyder/app/mainwindow.py:1432
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
@@ -1523,11 +1523,11 @@ msgstr "接続しようとしている外部サーバーのアドレスが、Spy
 
 #: spyder/plugins/completion/languageserver/plugin.py:87 spyder/plugins/completion/languageserver/plugin.py:95 spyder/plugins/completion/languageserver/plugin.py:171
 msgid "restarting..."
-msgstr ""
+msgstr "再起動しています..."
 
 #: spyder/plugins/completion/languageserver/plugin.py:125 spyder/plugins/completion/languageserver/plugin.py:152
 msgid "ready"
-msgstr ""
+msgstr "準備完了"
 
 #: spyder/plugins/completion/languageserver/plugin.py:274
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Therefore, completion and linting for {language} will not work during this session."
