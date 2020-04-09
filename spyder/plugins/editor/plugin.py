@@ -1353,6 +1353,7 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_new_file.connect(lambda s: self.new(text=s))
         editorstack.sig_new_file[()].connect(self.new)
         editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
+        editorstack.sig_close_file.connect(self.remove_file_cursor_history)
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
@@ -2350,6 +2351,14 @@ class Editor(SpyderPluginWidget):
                 self.current_editor_cursor_changed)
         except TypeError:
             pass
+
+    def remove_file_cursor_history(self, id, filename):
+        """Remove the cursor history of a file in the file is closed."""
+        for i, (cur_filename, pos) in enumerate(self.cursor_pos_history):
+            if cur_filename == filename:
+                self.cursor_pos_history.pop(i)
+                if i < self.cursor_pos_index:
+                    self.cursor_pos_index = self.cursor_pos_index - 1
 
     @Slot()
     def go_to_last_edit_location(self):
