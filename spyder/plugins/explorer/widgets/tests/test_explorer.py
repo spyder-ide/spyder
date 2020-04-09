@@ -55,7 +55,6 @@ def file_explorer_associations(qtbot):
         ],
     }
     widget = FileExplorerTest(file_associations=associations)
-    widget.show()
     qtbot.addWidget(widget)
     return widget
 
