@@ -110,11 +110,11 @@ jobs:
       #Python27:
       #  python.version: '2.7'
       Python36-slow:
-        python.version: '3.6'
+        python.version: '3.7'
         use.conda: 'yes'
         run.slow: 'true'
       Python36-fast:
-        python.version: '3.6'
+        python.version: '3.7'
         use.conda: 'yes'
         run.slow: 'false'
       #Python37_pip:
