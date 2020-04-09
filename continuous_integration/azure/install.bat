@@ -2,9 +2,9 @@
 if %USE_CONDA% == yes (
     :: The newly introduced changes to the Python packages in Anaconda
     :: are breaking our tests. Reverting to known working builds.
-    if %PYTHON_VERSION% == 3.6 (
-        conda install -q -y python=3.6.8=h9f7ef89_7
-    )
+    :: if %PYTHON_VERSION% == 3.6 (
+    ::     conda install -q -y python=3.6.8=h9f7ef89_7
+    :: )
 
     conda install -q -y -c spyder-ide --file requirements/conda.txt
     if errorlevel 1 exit 1
@@ -13,8 +13,8 @@ if %USE_CONDA% == yes (
     if errorlevel 1 exit 1
 
     :: Github backend tests are failing with 1.1.1d
-    conda install -q -y openssl=1.1.1c
-    if errorlevel 1 exit 1
+    :: conda install -q -y openssl=1.1.1c
+    :: if errorlevel 1 exit 1
 
     :: Remove spyder-kernels to be sure that we use its subrepo
     conda remove -q -y --force spyder-kernels
