@@ -3,6 +3,7 @@
 if %PYTHON_VERSION% == 2.7 (
     python runtests.py || exit 0
 ) else (
+    conda activate test
     python runtests.py || python runtests.py || python runtests.py || python runtests.py || python runtests.py || exit 1
 )
 
