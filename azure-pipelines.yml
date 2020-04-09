@@ -96,7 +96,7 @@ jobs:
   pool:
     vmImage: 'vs2017-win2016'
 
-  timeoutInMinutes: 100
+  timeoutInMinutes: 40
 
   variables:
     CI: True
@@ -109,12 +109,12 @@ jobs:
     matrix:
       #Python27:
       #  python.version: '2.7'
-      Python36-slow:
-        python.version: '3.6'
+      Python37-slow:
+        python.version: '3.7'
         use.conda: 'yes'
         run.slow: 'true'
-      Python36-fast:
-        python.version: '3.6'
+      Python37-fast:
+        python.version: '3.7'
         use.conda: 'yes'
         run.slow: 'false'
       #Python37_pip:
