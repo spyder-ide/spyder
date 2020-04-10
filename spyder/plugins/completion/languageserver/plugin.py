@@ -355,7 +355,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             timer = QTimer(self)
             self.clients_hearbeat[language] = timer
             timer.setInterval(self.TIME_HEARTBEAT)
-            timer.timeout.connect(lambda: self.check_heartbeat(language))
+            try:
+                timer.timeout.connect(lambda: self.check_heartbeat(language))
+            except NameError:
+                pass
             timer.start()
 
             if language_client['status'] == self.STOPPED:
