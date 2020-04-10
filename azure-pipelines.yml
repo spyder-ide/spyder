@@ -128,7 +128,8 @@ jobs:
     displayName: Create conda environment
 
     # Install dependencies
-  - script: continuous_integration\azure\install.bat
+  - script: |
+      continuous_integration\azure\install.bat
     displayName: 'Install dependencies'
     continueOnError: false
 
@@ -146,7 +147,8 @@ jobs:
     continueOnError: false
 
     # Run Tests
-  - script: continuous_integration\azure\runtests.bat
+  - script: |
+      continuous_integration\azure\runtests.bat
     displayName: 'Run tests'
     continueOnError: false
 
