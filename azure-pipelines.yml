@@ -142,11 +142,23 @@ jobs:
     displayName: 'Show build environment'
     continueOnError: true
 
+  - script: |
+      call activate test
+      check-manifest
+    displayName: 'Check manifest for missing files'
+    continueOnError: false
+
     # Run Tests
   - script: |
       call activate test
       continuous_integration\azure\runtests.bat
     displayName: 'Run tests'
+    continueOnError: false
+
+  - script: |
+      call activate test
+      codecov
+    displayName: 'Run codecov'
     continueOnError: false
 
     # Publish test results to the Azure DevOps server
