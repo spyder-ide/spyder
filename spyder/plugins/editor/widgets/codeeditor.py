@@ -837,7 +837,7 @@ class CodeEditor(TextEditBaseWidget):
 
         Usually the parameters here are related with a configurable preference
         in the Preference Dialog and Editor configurations:
-        
+
         linenumbers: Enable/Disable line number panel. Default True.
         language: Set editor language for example python. Default None.
         markers: Enable/Disable markers panel. Used to show elements like
@@ -887,7 +887,7 @@ class CodeEditor(TextEditBaseWidget):
         close_quotes: Enable/Disable automatic closing of quotes.
             Default False.
         add_colons: Enable/Disable automatic addition of colons. Default True.
-        auto_unindent: Enable/Disable automatically unindentation before else, 
+        auto_unindent: Enable/Disable automatically unindentation before else,
             elif, finally or except statements. Default True.
         indent_chars: Characters to use for indentation. Default " "*4.
         tab_stop_width_spaces: Enable/Disable using tabs for indentation.
