@@ -118,8 +118,9 @@ jobs:
     maxParallel: 4
 
   steps:
-    # Set the UsePythonVersion task to reference the matrix variable for its Python version
-  - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+  - powershell: |
+      Write-Host "##vso[task.prependpath]$env:CONDA"
+      Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
     displayName: Add conda to PATH
 
   - script: conda update -q -n base conda
