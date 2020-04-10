@@ -142,11 +142,6 @@ jobs:
     displayName: 'Show build environment'
     continueOnError: true
 
-  - script: |
-      call activate test
-    displayName: 'Check manifest for missing files'
-    continueOnError: false
-
     # Run Tests
   - script: |
       call activate test
