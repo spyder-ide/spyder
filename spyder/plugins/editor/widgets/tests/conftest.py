@@ -146,14 +146,7 @@ def kite_codeeditor(qtbot_module, request):
     return editor, kite
 
 
-# Windows tests fail if using module scope
-if os.name == 'nt':
-    LSP_PLUGIN_SCOPE = 'module'
-else:
-    LSP_PLUGIN_SCOPE = 'function'
-
-
-@pytest.fixture(scope=LSP_PLUGIN_SCOPE)
+@pytest.fixture(scope='function')
 def lsp_plugin(qtbot_module, request):
     # Activate pycodestyle and pydocstyle
     CONF.set('lsp-server', 'pycodestyle', True)
