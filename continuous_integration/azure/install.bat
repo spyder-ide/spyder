@@ -1,13 +1,5 @@
 call activate test
 
-where python
-
-python -m pip install check-manifest
-if errorlevel 1 exit 1
-
-check-manifest
-if errorlevel 1 exit 1
-
 :: Install dependencies
 if %USE_CONDA% == yes (
     conda install -q -y --file requirements/conda.txt
@@ -50,6 +42,8 @@ if %USE_CONDA% == yes (
     pip uninstall -q -y spyder-kernels
     if errorlevel 1 exit 1
 )
+
+call activate test
 
 :: To check our manifest
 python -m pip install check-manifest
