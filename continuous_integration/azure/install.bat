@@ -1,13 +1,5 @@
 activate test
 
-echo where python
-
-python -m pip install check-manifest
-if errorlevel 1 exit 1
-
-check-manifest
-if errorlevel 1 exit 1
-
 :: Install dependencies
 if %USE_CONDA% == yes (
     conda install -q -y --file requirements/conda.txt

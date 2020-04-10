@@ -129,7 +129,6 @@ jobs:
 
     # Install dependencies
   - script: |
-       call activate test
        continuous_integration\azure\install.bat
     displayName: 'Install dependencies'
     continueOnError: false
@@ -143,7 +142,6 @@ jobs:
 
     # Run Tests
   - script: |
-      call activate test
       continuous_integration\azure\runtests.bat
     displayName: 'Run tests'
     continueOnError: false
