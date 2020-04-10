@@ -43,7 +43,7 @@ if %USE_CONDA% == yes (
     if errorlevel 1 exit 1
 )
 
-call activate test
+where python
 
 :: To check our manifest
 python -m pip install check-manifest
