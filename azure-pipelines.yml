@@ -42,7 +42,7 @@ jobs:
   - bash: sudo chown -R $USER $CONDA
     displayName: Take ownership of conda installation
 
-  - bash: conda create --yes --quiet --name test
+  - script: conda create --yes --quiet --name test
     displayName: Create conda environment
 
   # Install dependencies
