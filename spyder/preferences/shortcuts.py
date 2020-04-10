@@ -885,11 +885,24 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.main.apply_shortcuts()
 
 
+def load_shortcuts(shortcut_table):
+    """
+    Load shortcuts from CONF for testing.
+    """
+    shortcut_data = []
+    for context, name, __ in CONF.iter_shortcuts():
+        shortcut_data.append((None, context, name, None, None))
+
+    shortcut_table.set_shortcut_data(shortcut_data)
+    shortcut_table.load_shortcuts()
+    return shortcut_table
+
+
 def test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
     table = ShortcutsTable()
-    table.load_shortcuts()
+    table = load_shortcuts(table)
     table.show()
     app.exec_()
 
