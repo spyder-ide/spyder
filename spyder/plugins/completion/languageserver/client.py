@@ -23,6 +23,7 @@ import time
 # Third-party imports
 from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
 import zmq
+import psutil
 
 # Local imports
 from spyder.config.base import (DEV, get_conf_path, get_debug_level,
@@ -84,6 +85,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.zmq_out_port = None
         self.transport_client = None
         self.lsp_server = None
+        self.stdio_pid = None
         self.notifier = None
         self.language = language
 
@@ -301,6 +303,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 self.sig_lsp_down.emit(self.language)
             return
 
+        if (self.stdio_pid is not None and
+                not psutil.pid_exists(self.stdio_pid)):
+            logger.debug("LSP server for {} is down!!".format(self.language))
+            if not self.server_unresponsive:
+                self.server_unresponsive = True
+                self.sig_lsp_down.emit(self.language)
+            return
+
         if ClientConstants.CANCEL in params:
             return
         _id = self.request_seq
@@ -417,7 +427,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     # ------ LSP initialization methods --------------------------------
     @handles(SERVER_READY)
     @send_request(method=LSPRequestTypes.INITIALIZE)
-    def initialize(self, *args, **kwargs):
+    def initialize(self, params, *args, **kwargs):
+        self.stdio_pid = params['pid']
         pid = self.transport_client.pid if not self.external_server else None
         params = {
             'processId': pid,

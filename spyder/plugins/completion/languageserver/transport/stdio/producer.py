@@ -80,4 +80,4 @@ class StdioLanguageServerClient(LanguageServerClient):
                     break
         except Exception as e:
             connection_error = e
-        return connected, connection_error
+        return connected, connection_error, self.process.pid
