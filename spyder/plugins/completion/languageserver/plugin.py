@@ -250,7 +250,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 folder = self.get_root_path(language)
                 instance = language_client['instance']
                 instance.folder = folder
-                instance.initialize()
+                instance.initialize({'pid': instance.stdio_pid})
 
     @Slot(str)
     def report_server_error(self, error):
