@@ -87,4 +87,4 @@ class TCPLanguageServerClient(LanguageServerClient):
 
             if time.time() - initial_time > self.MAX_TIMEOUT_TIME:
                 break
-        return connected, connection_error
+        return connected, connection_error, None

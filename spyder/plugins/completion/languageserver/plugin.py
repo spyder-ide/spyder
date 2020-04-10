@@ -17,6 +17,7 @@ import os.path as osp
 import sys
 
 # Third-party imports
+import psutil
 from qtpy.QtCore import Slot, QTimer
 from qtpy.QtWidgets import QMessageBox, QCheckBox
 
@@ -114,9 +115,12 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
             # Restarted succesfully
             lsp_server = client['instance'].lsp_server
+            stdio_pid = client['instance'].stdio_pid
             status = client['status']
-            if (status == self.RUNNING and lsp_server is not None and
-                    lsp_server.poll() is None):
+            tcp_check = lsp_server is not None and lsp_server.poll() is None
+            stdio_check = (stdio_pid is not None and
+                               psutil.pid_exists(stdio_pid))
+            if (status == self.RUNNING and (tcp_check or stdio_check)):
                 logger.info("Restart successful!")
                 self.clients_restarting[language] = False
                 self.clients_restart_timers[language].stop()
@@ -133,8 +137,12 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         instance = client.get('instance', None)
         if instance is not None:
             lsp_server = instance.lsp_server
-            if ((lsp_server is not None and lsp_server.poll() is not None) or
-                    status != self.RUNNING):
+            stdio_pid = instance.stdio_pid
+            tcp_check = (lsp_server is not None and
+                           lsp_server.poll() is not None)
+            stdio_check = (stdio_pid is not None and
+                            not psutil.pid_exists(stdio_pid))
+            if (tcp_check or stdio_check or status != self.RUNNING):
                 instance.sig_lsp_down.emit(language)
 
     def set_status(self, language, status):
