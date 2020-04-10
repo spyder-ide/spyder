@@ -101,7 +101,7 @@ jobs:
   variables:
     CI: True
     AZURE: True
-    PYTHON: "C:\\hostedtoolcache\\windows\\Python\\3.7.6\\x64"
+    PYTHON: "C:\\Miniconda"
     CODECOV_TOKEN: "56731c25-9b1f-4340-8b58-35739bfbc52d"
 
   # Run the pipeline with multiple Python versions
@@ -109,48 +109,48 @@ jobs:
     matrix:
       Python37-slow:
         python.version: '3.7'
-        use.conda: 'no'
+        use.conda: 'yes'
         run.slow: 'true'
       Python37-fast:
         python.version: '3.7'
-        use.conda: 'no'
+        use.conda: 'yes'
         run.slow: 'false'
     maxParallel: 4
 
   steps:
     # Set the UsePythonVersion task to reference the matrix variable for its Python version
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: '$(python.version)'
-      # architecture: 'x64'
+  - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+    displayName: Add conda to PATH
 
-    # Conda setup environment.
-    # https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/conda-environment?view=vsts
-  #- task: CondaEnvironment@0
-  #  inputs:
-  #    environmentName: 'test'
-  #    packageSpecs: 'python=$(python.version)'
-  #    updateConda: true
+  - script: conda update -q -n base conda
+    displayName: 'Update conda'
+
+  - script: conda create --yes --quiet --name test python=%PYTHON_VERSION%
+    displayName: Create conda environment
 
     # Install dependencies
   - script: |
+       call activate test
        continuous_integration\azure\install.bat
     displayName: 'Install dependencies'
     continueOnError: false
 
     # Show Conda Build Env
   - script: |
-      pip list
+      call activate test
+      conda list
     displayName: 'Show build environment'
     continueOnError: true
 
   - script: |
+      call activate test
       check-manifest
     displayName: 'Check manifest for missing files'
     continueOnError: false
 
     # Run Tests
   - script: |
+      call activate test
       continuous_integration\azure\runtests.bat
     displayName: 'Run tests'
     continueOnError: false
