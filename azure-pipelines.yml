@@ -42,9 +42,6 @@ jobs:
   - bash: sudo chown -R $USER $CONDA
     displayName: Take ownership of conda installation
 
-  - script: conda update -q -n base conda
-    displayName: 'Update conda'
-
   - bash: conda create --yes --quiet --name test
     displayName: Create conda environment
 
