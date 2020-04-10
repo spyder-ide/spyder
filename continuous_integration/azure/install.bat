@@ -25,6 +25,18 @@ if %USE_CONDA% == yes (
 
     conda list -n spytest-ž
     if errorlevel 1 exit 1
+
+    :: To check our manifest
+    python -m pip install check-manifest
+    if errorlevel 1 exit 1
+
+    :: Install python-language-server from master
+    python -m pip install -q --no-deps git+https://github.com/palantir/python-language-server
+    if errorlevel 1 exit 1
+
+    :: Install codecov
+    python -m pip install -q codecov
+    if errorlevel 1 exit 1
 ) else (
     :: Install Spyder and its dependencies from our setup.py
     pip install -e .[test]
@@ -41,18 +53,16 @@ if %USE_CONDA% == yes (
     :: Remove spyder-kernels to be sure that we use its subrepo
     pip uninstall -q -y spyder-kernels
     if errorlevel 1 exit 1
+
+    :: To check our manifest
+    python -m pip install check-manifest
+    if errorlevel 1 exit 1
+
+    :: Install python-language-server from master
+    python -m pip install -q --no-deps git+https://github.com/palantir/python-language-server
+    if errorlevel 1 exit 1
+
+    :: Install codecov
+    python -m pip install -q codecov
+    if errorlevel 1 exit 1
 )
-
-where python
-
-:: To check our manifest
-python -m pip install check-manifest
-if errorlevel 1 exit 1
-
-:: Install python-language-server from master
-python -m pip install -q --no-deps git+https://github.com/palantir/python-language-server
-if errorlevel 1 exit 1
-
-:: Install codecov
-python -m pip install -q codecov
-if errorlevel 1 exit 1

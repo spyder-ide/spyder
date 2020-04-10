@@ -11,7 +11,7 @@ if [ "$USE_CONDA" = "yes" ]; then
     conda install -q -y nomkl
 
     # Install main dependencies
-    conda install -q -y -c spyder-ide --file requirements/conda.txt
+    conda install -q -y --file requirements/conda.txt
 
     # Install test ones
     conda install -q -y -c spyder-ide --file requirements/tests.txt
