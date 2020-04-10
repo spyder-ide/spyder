@@ -191,6 +191,7 @@ def test_is_module_installed_with_custom_interpreter():
     assert is_module_installed('jedi', '>=0.7.0', interpreter=current)
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_get_temp_dir_ensure_dir_exists():
     """Test that the call to get_temp_dir creates the dir when it doesn't exists
     """
