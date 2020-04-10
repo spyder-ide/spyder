@@ -1,0 +1,67 @@
+name: File tests
+
+on:
+  # This avoids having duplicate builds for a pull request
+  push:
+    branches:
+    - master
+    - 5.x
+    - 4.x
+  pull_request:
+    branches:
+    - master
+    - 5.x
+    - 4.x
+
+jobs:
+  cleanup-previous-runs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: rokroskar/workflow-run-cleanup-action@master
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+  build:
+    name: Py${{ matrix.PYTHON_VERSION }}
+    needs: cleanup-previous-runs
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    env:
+      CI: 'true'
+      USE_CONDA: 'true'
+      OS: 'linux'
+      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+    strategy:
+      fail-fast: false 
+      matrix:
+        PYTHON_VERSION: ['3.7', '3.6', '2.7']
+    steps:
+      - name: Install dependencies
+        shell: bash
+        run: sudo apt-get install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev libegl1-mesa libxkbcommon-x11-0
+      - name: Checkout branch
+        uses: actions/checkout@v1.2.0
+      - name: Cache pip
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/*.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+      - name: Install Conda
+        uses: goanpeca/setup-miniconda@v1
+        with:
+           activate-environment: test
+           auto-update-conda: true
+           auto-activate-base: false
+           python-version: ${{ matrix.PYTHON_VERSION }} 
+      - name: Create test environment
+        shell: bash -l {0}
+        run: bash -l .github/scripts/install.sh
+      - name: Show test environment
+        shell: bash -l {0}
+        run: |
+          conda info
+          conda list
+      - name: Run file tests
+        shell: bash -l {0}
+        run: xvfb-run --auto-servernum .github/scripts/modules_test.sh || xvfb-run --auto-servernum .github/scripts/modules_test.sh

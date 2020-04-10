@@ -15,6 +15,13 @@ import os
 import os.path as osp
 import shutil
 import sys
+import warnings
+
+
+if sys.version_info[0] == 2:
+    # Hide warnings on py2 due to qtawesome as it makes the results unreadable
+    warnings.filterwarnings("ignore")
+
 
 # To activate/deactivate certain things for pytest's only
 # NOTE: Please leave this before any other import here!!
