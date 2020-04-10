@@ -1,6 +1,15 @@
+activate test
+
+where python
+
+python -m pip install check-manifest
+if errorlevel 1 exit 1
+
+check-manifest
+
 :: Install dependencies
 if %USE_CONDA% == yes (
-    conda install -q -y -c spyder-ide --file requirements/conda.txt
+    conda install -q -y --file requirements/conda.txt
     if errorlevel 1 exit 1
 
     conda install -q -y -c spyder-ide --file requirements/tests.txt
@@ -42,13 +51,13 @@ if %USE_CONDA% == yes (
 )
 
 :: To check our manifest
-C:\Miniconda\envs\test\python.exe -m pip install check-manifest
+python -m pip install check-manifest
 if errorlevel 1 exit 1
 
 :: Install python-language-server from master
-C:\Miniconda\envs\test\python.exe\python.exe -m pip install -q --no-deps git+https://github.com/palantir/python-language-server
+python -m pip install -q --no-deps git+https://github.com/palantir/python-language-server
 if errorlevel 1 exit 1
 
 :: Install codecov
-C:\Miniconda\envs\test\python.exe\python.exe -m pip install -q codecov
+python -m pip install -q codecov
 if errorlevel 1 exit 1

@@ -118,9 +118,7 @@ jobs:
     maxParallel: 4
 
   steps:
-  - powershell: |
-      Write-Host "##vso[task.prependpath]$env:CONDA"
-      Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
+  - powershell: Write-Host "##vso[task.prependpath]$env:CONDA\Scripts"
     displayName: Add conda to PATH
 
   - script: conda update -q -n base conda
@@ -142,12 +140,6 @@ jobs:
       conda list
     displayName: 'Show build environment'
     continueOnError: true
-
-  - script: |
-      call activate test
-      check-manifest
-    displayName: 'Check manifest for missing files'
-    continueOnError: false
 
     # Run Tests
   - script: |
