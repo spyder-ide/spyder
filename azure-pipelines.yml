@@ -144,7 +144,6 @@ jobs:
 
   - script: |
       call activate test
-      check-manifest
     displayName: 'Check manifest for missing files'
     continueOnError: false
 
