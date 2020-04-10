@@ -1,4 +1,4 @@
-activate test
+call activate test
 
 :: Install dependencies
 if %USE_CONDA% == yes (
