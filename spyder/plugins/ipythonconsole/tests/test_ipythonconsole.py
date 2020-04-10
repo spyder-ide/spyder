@@ -90,6 +90,15 @@ def get_conda_test_env(test_env_name=u'spytest-ž'):
 
 
 # =============================================================================
+# Skip these on Windows for now, until we migrate to Github actions
+# =============================================================================
+if os.name == 'nt':
+    pytest.skip(("Skip these tests on Windows because a segfault makes them "
+                 "hang in Azure"),
+                allow_module_level=True)
+
+
+# =============================================================================
 # Qt Test Fixtures
 # =============================================================================
 @pytest.fixture

@@ -128,8 +128,7 @@ jobs:
     displayName: Create conda environment
 
     # Install dependencies
-  - script: |
-       continuous_integration\azure\install.bat
+  - script: continuous_integration\azure\install.bat
     displayName: 'Install dependencies'
     continueOnError: false
 
@@ -140,9 +139,14 @@ jobs:
     displayName: 'Show build environment'
     continueOnError: true
 
+   - script: |
+      call activate test
+      check-manifest
+    displayName: 'Check manifest'
+    continueOnError: false
+
     # Run Tests
-  - script: |
-      continuous_integration\azure\runtests.bat
+  - script: continuous_integration\azure\runtests.bat
     displayName: 'Run tests'
     continueOnError: false
 
@@ -150,7 +154,7 @@ jobs:
       call activate test
       codecov
     displayName: 'Run codecov'
-    continueOnError: false
+    continueOnError: true
 
     # Publish test results to the Azure DevOps server
   - task: PublishTestResults@2
