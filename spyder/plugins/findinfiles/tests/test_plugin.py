@@ -34,7 +34,7 @@ def findinfiles(qtbot):
 
 
 # ---- Tests for FindInFiles plugin
-
+@pytest.mark.first
 def test_closing_plugin(findinfiles, qtbot, mocker):
     """
     Test that the external paths listed in the combobox are saved and loaded
