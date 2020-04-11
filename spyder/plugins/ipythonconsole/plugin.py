@@ -45,7 +45,7 @@ from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (ClientWidget,
                                                    KernelConnectionDialog)
-from spyder.py3compat import is_string, to_text_string, PY38_OR_MORE
+from spyder.py3compat import is_string, to_text_string, PY2, PY38_OR_MORE
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs, sourcecode
@@ -844,10 +844,17 @@ class IPythonConsole(SpyderPluginWidget):
             import subprocess
             versions = {}
             pyexec = CONF.get('main_interpreter', 'executable')
-            py_cmd = '%s -c "import sys; print(sys.version)"' % pyexec
-            ipy_cmd = ('%s -c "import IPython.core.release as r; print(r.version)"'
-                       % pyexec)
+            py_cmd = u'%s -c "import sys; print(sys.version)"' % pyexec
+            ipy_cmd = (
+                u'%s -c "import IPython.core.release as r; print(r.version)"'
+                % pyexec
+            )
             for cmd in [py_cmd, ipy_cmd]:
+                if PY2:
+                    # We need to encode as run_shell_command will treat the
+                    # string as str
+                    cmd = cmd.encode('utf-8')
+
                 try:
                     proc = programs.run_shell_command(cmd)
                     output, _err = proc.communicate()

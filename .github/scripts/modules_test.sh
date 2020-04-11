@@ -2,9 +2,6 @@
 
 set -ex
 
-source $HOME/miniconda/etc/profile.d/conda.sh
-conda activate test
-
 export TEST_CI_WIDGETS=True
 export PYTHONPATH=.:./external-deps/spyder-kernels
 
@@ -68,6 +65,9 @@ for f in spyder/*/*/*.py; do
         continue
     fi
     if [[ $f == spyder/plugins/completion/*.py ]]; then
+        continue
+    fi
+    if [[ $f == spyder/plugins/onlinehelp/widgets.py ]]; then
         continue
     fi
     if [[ $f == spyder/plugins/*/__init__.py ]]; then
