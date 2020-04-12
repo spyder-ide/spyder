@@ -4,7 +4,7 @@ HEAD_REF=$(git rev-parse HEAD)
 echo "base: $BASE_REF"
 echo "head: $HEAD_REF"
 FILES=$(git diff --name-only $BASE_REF $HEAD_REF)
-COUNT=$(echo $FILES | grep -c ".*\.py.*")
+COUNT=$(echo $FILES | grep -c ".*\.py.*\|.*MANIFEST\.in.*\|.*\.sh.*\|.*\.bat.*\|.*\.yml.*\|.*\conda.txt.*\|.*tests.txt.*")
 
 echo "Files including the filter: $FILES"
 echo "Py files filter count: $COUNT"
