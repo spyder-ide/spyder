@@ -51,7 +51,7 @@ jobs:
         uses: goanpeca/setup-miniconda@v1
         with:
            activate-environment: test
-           auto-update-conda: true
+           auto-update-conda: false
            auto-activate-base: false
            python-version: ${{ matrix.PYTHON_VERSION }} 
       - name: Create test environment
