@@ -546,8 +546,9 @@ def test_get_help_ipython_console(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Only works on Linux")
+@pytest.mark.skipif((not sys.platform.startswith('linux') or
+                     os.environ.get('CI', None) is None),
+                    reason="Only works on Linux and CIs")
 @pytest.mark.use_introspection
 @pytest.mark.parametrize(
     "object_info",
