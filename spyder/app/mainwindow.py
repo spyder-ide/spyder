@@ -103,10 +103,11 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 #==============================================================================
 from spyder.app.utils import set_opengl_implementation
 from spyder.app.cli_options import get_options
+from spyder.config.base import running_under_pytest
 
-# Get CLI options/args and make them available for future use
-# Ignore args if running tests or Spyder will try and fail to parse pytests's
-if bool(os.environ.get('SPYDER_PYTEST')):
+# Get CLI options/args and make them available for future use.
+# Ignore args if running tests or Spyder will try and fail to parse pytests's.
+if running_under_pytest():
     sys_argv = [sys.argv[0]]
 else:
     sys_argv = sys.argv
@@ -139,7 +140,7 @@ MAIN_APP.setWindowIcon(APP_ICON)
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time.
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV, running_under_pytest
+from spyder.config.base import _, get_image_path, DEV
 
 if not running_under_pytest():
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
