@@ -17,9 +17,11 @@ jobs:
   cleanup-previous-runs:
     runs-on: ubuntu-latest
     steps:
-    - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+      - run: echo $GITHUB_EVENT_NAME
+      - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
   build:
     name: Py${{ matrix.PYTHON_VERSION }}
