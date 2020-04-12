@@ -2461,26 +2461,38 @@ class MainWindow(QMainWindow):
         """Exit tasks"""
         if self.already_closed or self.is_starting_up:
             return True
+
         if cancelable and CONF.get('main', 'prompt_on_exit'):
             reply = QMessageBox.critical(self, 'Spyder',
                                          'Do you really want to exit?',
                                          QMessageBox.Yes, QMessageBox.No)
             if reply == QMessageBox.No:
                 return False
-        prefix = 'window' + '/'
-        self.save_current_window_settings(prefix)
+
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
+
         if not self.completions.closing_plugin(cancelable):
             return False
+
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             plugin._close_window()
             if not plugin.closing_plugin(cancelable):
                 return False
+
+        # Save window settings *after* closing all plugin windows, in order
+        # to show them in their previous locations in the next session.
+        # Fixes spyder-ide/spyder#12139
+        prefix = 'window' + '/'
+        self.save_current_window_settings(prefix)
+
         self.dialog_manager.close_all()
+
         if self.toolbars_visible:
             self.save_visible_toolbars()
+
         self.completions.shutdown()
+
         self.already_closed = True
         return True
 
