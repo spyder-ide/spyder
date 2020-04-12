@@ -3670,32 +3670,13 @@ def run_spyder(app, options, args):
 def main():
     """Main function"""
     # **** For Pytest ****
-    # We need to create MainWindow **here** to avoid passing pytest
-    # options to Spyder
     if running_under_pytest():
-        try:
-            from unittest.mock import Mock
-        except ImportError:
-            from mock import Mock  # Python 2
-
-        options = Mock()
-        options.working_directory = None
-        options.profile = False
-        options.multithreaded = False
-        options.new_instance = False
-        options.project = None
-        options.window_title = None
-        options.opengl_implementation = None
-        options.debug_info = None
-        options.debug_output = None
-        options.paths = None
-
         if CONF.get('main', 'opengl') != 'automatic':
             option = CONF.get('main', 'opengl')
             set_opengl_implementation(option)
 
         app = initialize()
-        window = run_spyder(app, options, None)
+        window = run_spyder(app, CLI_OPTIONS, None)
         return window
 
     # **** Collect command line options ****
