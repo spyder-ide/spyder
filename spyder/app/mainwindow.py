@@ -103,9 +103,15 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 #==============================================================================
 from spyder.app.utils import set_opengl_implementation
 from spyder.app.cli_options import get_options
+from spyder.config.base import running_under_pytest
 
-# Get CLI options/args and make them available for future use
-CLI_OPTIONS, CLI_ARGS = get_options()
+# Get CLI options/args and make them available for future use.
+# Ignore args if running tests or Spyder will try and fail to parse pytests's.
+if running_under_pytest():
+    sys_argv = [sys.argv[0]]
+else:
+    sys_argv = sys.argv
+CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
 
 # **** Set OpenGL implementation to use ****
 if CLI_OPTIONS.opengl_implementation:
@@ -134,7 +140,7 @@ MAIN_APP.setWindowIcon(APP_ICON)
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time.
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV, running_under_pytest
+from spyder.config.base import _, get_image_path, DEV
 
 if not running_under_pytest():
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
@@ -3664,32 +3670,13 @@ def run_spyder(app, options, args):
 def main():
     """Main function"""
     # **** For Pytest ****
-    # We need to create MainWindow **here** to avoid passing pytest
-    # options to Spyder
     if running_under_pytest():
-        try:
-            from unittest.mock import Mock
-        except ImportError:
-            from mock import Mock  # Python 2
-
-        options = Mock()
-        options.working_directory = None
-        options.profile = False
-        options.multithreaded = False
-        options.new_instance = False
-        options.project = None
-        options.window_title = None
-        options.opengl_implementation = None
-        options.debug_info = None
-        options.debug_output = None
-        options.paths = None
-
         if CONF.get('main', 'opengl') != 'automatic':
             option = CONF.get('main', 'opengl')
             set_opengl_implementation(option)
 
         app = initialize()
-        window = run_spyder(app, options, None)
+        window = run_spyder(app, CLI_OPTIONS, None)
         return window
 
     # **** Collect command line options ****
