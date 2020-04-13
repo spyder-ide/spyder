@@ -166,7 +166,7 @@ else:
             else:
                 url = '%s.html' % name
             if ispackage:
-                text = '<strong>%s</strong>&nbsp;(package)' % name
+                text = '%s&nbsp;(package)' % name
             else:
                 text = name
             return '<a href="%s">%s</a>' % (url, text)
@@ -209,7 +209,7 @@ else:
                     results.append(
                         self.namelink(name, methods, funcs, classes))
                 elif selfdot:
-                    results.append('self.<strong>%s</strong>' % name)
+                    results.append('self.%s' % name)
                 else:
                     results.append(self.namelink(name, classes))
                 here = end
@@ -507,10 +507,10 @@ else:
             contents = ''.join(contents)
 
             if name == realname:
-                title = '<a id="%s">class <strong>%s</strong></a>' % (
+                title = '<a id="%s">class %s</a>' % (
                     name, realname)
             else:
-                title = '<strong>%s</strong> = <a id="%s">class %s</a>' % (
+                title = '%s = <a id="%s">class %s</a>' % (
                     name, name, realname)
             if bases:
                 parents = []
@@ -550,7 +550,7 @@ else:
                             imclass, mod)
 
             if name == realname:
-                title = '<a id="%s"><strong>%s</strong></a>' % (
+                title = '<a id="%s">%s</a>' % (
                     anchor, realname)
             else:
                 if (cl and realname in cl.__dict__ and
@@ -560,7 +560,7 @@ else:
                     skipdocs = 1
                 else:
                     reallink = realname
-                title = '<a id="%s"><strong>%s</strong></a> = %s' % (
+                title = '<a id="%s">%s</a> = %s' % (
                     anchor, name, reallink)
             argspec = None
             if inspect.isroutine(object):
@@ -571,7 +571,7 @@ else:
                 if signature:
                     argspec = str(signature)
                     if realname == '<lambda>':
-                        title = '<strong>%s</strong> <em>lambda</em> ' % name
+                        title = '%s <em>lambda</em> ' % name
                         # XXX lambda's won't usually have
                         # func_annotations['return']
                         # since the syntax doesn't support but it is possible.
@@ -595,7 +595,7 @@ else:
             push = results.append
 
             if name:
-                push('<dl><dt><strong>%s</strong></dt>\n' % name)
+                push('<dl><dt>%s</dt>\n' % name)
             if value.__doc__ is not None:
                 doc = self.markup(getdoc(value), self.preformat)
                 push('<dd><code>%s</code></dd>\n' % doc)
@@ -609,7 +609,7 @@ else:
 
         def docother(self, object, name=None, mod=None, *ignored):
             """Produce HTML documentation for a data object."""
-            lhs = name and '<strong>%s</strong> = ' % name or ''
+            lhs = name and '%s = ' % name or ''
             return lhs + self.repr(object)
 
         def docdata(self, object, name=None, mod=None, cl=None):
