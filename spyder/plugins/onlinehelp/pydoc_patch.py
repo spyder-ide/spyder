@@ -767,7 +767,7 @@ def _url_handler(url, content_type="text/html"):
         def bltinlink(name):
             return '<a href="topic?key=%s">%s</a>' % (name, name)
 
-        heading = html.heading('Index of Topics')
+        heading = html.heading('Index of Topics') + '<br>'
         names = sorted(Helper.topics.keys())
 
         contents = html.multicolumn(names, bltinlink)
@@ -784,7 +784,7 @@ def _url_handler(url, content_type="text/html"):
             return '<a href="topic?key=%s">%s</a>' % (name, name)
 
         contents = html.multicolumn(names, bltinlink)
-        contents = heading + html.bigsection(
+        contents = heading + '<br>' + html.bigsection(
             'Keywords', contents, css_class="keywords")
         return 'Keywords', contents
 
