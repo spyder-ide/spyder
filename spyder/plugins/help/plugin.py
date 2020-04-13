@@ -373,14 +373,14 @@ class Help(SpyderPluginWidget):
             try:
                 if text['argspec']:
                     definition = ''.join(
-                        ['Definition: ', name, text['argspec'], '\n'])
+                        ['Definition: ', name, text['argspec'], '\n\n'])
                 else:
                     definition = ''
 
                 if text['note']:
                     note = ''.join(['Type: ', text['note'], '\n\n----\n\n'])
                 else:
-                    note = ''
+                    note = _('No further documentation available')
             except TypeError:
                 definition = _('No documentation available')
                 note = ''
