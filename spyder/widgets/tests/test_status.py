@@ -16,8 +16,9 @@ from qtpy.QtWidgets import QMainWindow
 import pytest
 
 # Local imports
-from spyder.config import utils
-from spyder.widgets.status import (BaseTimerStatus, CondaStatus, CPUStatus,
+from spyder.utils import conda
+from spyder.config import base
+from spyder.widgets.status import (BaseTimerStatus, InterpreterStatus, CPUStatus,
                                    MemoryStatus, StatusBarWidget)
 
 
@@ -62,18 +63,18 @@ def test_status_bar_widget_signal(status_bar, qtbot):
     assert w.get_icon() == 'icon'
 
 
-def test_status_bar_conda_status(status_bar, qtbot, mocker):
-    mocker.patch.object(utils, 'is_anaconda', return_value=True)
+def test_status_bar_conda_interpreter_status(status_bar, qtbot, mocker):
+    mocker.patch.object(conda, 'is_conda_env', return_value=True)
     mock_py_ver = 'Python 6.6.6'
 
     win, statusbar = status_bar
-    w = CondaStatus(win, statusbar)
+    w = InterpreterStatus(win, statusbar)
 
     # Check that we process stdout and stderr correctly
     out_or_err = mock_py_ver + ' (hello!)'
     for (out, err) in [(out_or_err, ''), ('', out_or_err)]:
         # We patch the method that calls for info to return values to test
-        mocker.patch.object(w, '_get_conda_env_info', return_value=(out, err))
+        mocker.patch.object(w, '_get_interpreter_env_info', return_value=(out, err))
 
         if os.name == 'nt':
             interpreter = os.sep.join(['miniconda', 'python'])
@@ -81,9 +82,7 @@ def test_status_bar_conda_status(status_bar, qtbot, mocker):
             interpreter = os.sep.join(['miniconda', 'bin', 'python'])
         w.update_interpreter(interpreter)
         assert w.get_tooltip() == interpreter
-        text = w._process_conda_env_info()
-        assert 'base' in text
-        assert mock_py_ver in text
+        assert 'conda: base (Python 6.6.6)' == w._process_interpreter_env_info()
 
         # We patch the method that calls for info to return values to test
         if os.name == 'nt':
@@ -92,23 +91,35 @@ def test_status_bar_conda_status(status_bar, qtbot, mocker):
             interpreter = os.sep.join(['miniconda', 'envs', 'foo', 'bin', 'python'])
         w.update_interpreter(interpreter)
         assert w.get_tooltip() == interpreter
-        text = w._process_conda_env_info()
-        assert 'foo' in text
-        assert mock_py_ver in text
+        assert 'conda: foo (Python 6.6.6)' == w._process_interpreter_env_info()
 
 
-def test_status_bar_no_conda_status(status_bar, qtbot, mocker):
-    mocker.patch.object(utils, 'is_anaconda', return_value=False)
+def test_status_bar_other_interpreter_status(status_bar, qtbot, mocker):
+    mocker.patch.object(conda, 'is_conda_env', return_value=False)
 
     win, statusbar = status_bar
-    w = CondaStatus(win, statusbar)
-    mocker.patch.object(w, '_get_conda_env_info',
+    w = InterpreterStatus(win, statusbar)
+    mocker.patch.object(w, '_get_interpreter_env_info',
                         return_value=('Python 3.6.6', ''))
 
     interpreter = os.sep.join(['some-other', 'bin', 'python'])
     w.update_interpreter(interpreter)
     assert w.get_tooltip() == interpreter
-    assert '' == w._process_conda_env_info()
+    assert 'venv (Python 3.6.6)' == w._process_interpreter_env_info()
+
+
+def test_status_bar_internal_interpreter_status(status_bar, qtbot, mocker):
+    mocker.patch.object(conda, 'is_conda_env', return_value=False)
+
+    win, statusbar = status_bar
+    w = InterpreterStatus(win, statusbar)
+    mocker.patch.object(w, '_get_interpreter_env_info',
+                        return_value=('Python 3.6.6', ''))
+
+    interpreter = os.sep.join(['Spyder.app', 'Contents', 'MacOS', 'Python'])
+    w.update_interpreter(interpreter)
+    assert w.get_tooltip() == interpreter
+    assert 'internal (Python 3.6.6)' == w._process_interpreter_env_info()
 
 
 if __name__ == "__main__":

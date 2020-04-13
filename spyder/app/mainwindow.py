@@ -425,7 +425,7 @@ class MainWindow(QMainWindow):
         self.help_menu_actions = []
 
         # Status bar widgets
-        self.conda_status = None
+        self.interpreter_status = None
         self.mem_status = None
         self.cpu_status = None
         self.clock_status = None
@@ -903,11 +903,10 @@ class MainWindow(QMainWindow):
             self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
 
-        if is_anaconda():
-            from spyder.widgets.status import CondaStatus
-            self.conda_status = CondaStatus(self, status,
-                                            icon=ima.icon('environment'))
-            self.conda_status.update_interpreter(self.get_main_interpreter())
+        from spyder.widgets.status import InterpreterStatus
+        self.interpreter_status = InterpreterStatus(self, status,
+                                              icon=ima.icon('environment'))
+        self.interpreter_status.update_interpreter(self.get_main_interpreter())
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
@@ -3057,9 +3056,9 @@ class MainWindow(QMainWindow):
                     widget.set_interval(CONF.get('main', '%s/timeout' % name))
 
             # Update conda status widget
-            if is_anaconda() and self.conda_status:
+            if self.interpreter_status:
                 interpreter = self.get_main_interpreter()
-                self.conda_status.update_interpreter(interpreter)
+                self.interpreter_status.update_interpreter(interpreter)
         else:
             return
 
