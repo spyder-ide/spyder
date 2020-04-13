@@ -93,9 +93,13 @@ from qtawesome.iconic_font import FontError
 #==============================================================================
 from spyder.config.manager import CONF
 
+HIGH_DPI_SCALING = CONF.get('main', 'high_dpi_scaling')
 if hasattr(Qt, 'AA_EnableHighDpiScaling'):
     QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
-                                  CONF.get('main', 'high_dpi_scaling'))
+                                  HIGH_DPI_SCALING)
+if HIGH_DPI_SCALING:
+    # Set inline backend figure format to 'retina'
+    CONF.set('ipython_console', 'pylab/inline/figure_format', 2)
 
 #==============================================================================
 # Get CLI options and set OpenGL backend. This attibute must

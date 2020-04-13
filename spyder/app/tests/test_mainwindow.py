@@ -1706,8 +1706,9 @@ def test_varexp_magic_dbg(main_window, qtbot):
 @pytest.mark.skipif(PY2, reason="It times out sometimes")
 @pytest.mark.parametrize(
     'main_window',
-    [{'spy_config': ('ipython_console', 'pylab/inline/figure_format', 1)},
-     {'spy_config': ('ipython_console', 'pylab/inline/figure_format', 0)}],
+    [{'spy_config': ('ipython_console', 'pylab/inline/figure_format', 2)},   # PNG
+     {'spy_config': ('ipython_console', 'pylab/inline/figure_format', 1)},   # SVG
+     {'spy_config': ('ipython_console', 'pylab/inline/figure_format', 0)}],  # Retina
     indirect=True)
 def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
     """
@@ -1727,27 +1728,37 @@ def test_plots_plugin(main_window, qtbot, tmpdir, mocker):
         shell.execute(("import matplotlib.pyplot as plt\n"
                        "fig = plt.plot([1, 2, 3, 4], '.')\n"))
 
-    if CONF.get('ipython_console', 'pylab/inline/figure_format') == 0:
+    figure_format = CONF.get('ipython_console', 'pylab/inline/figure_format')
+    if figure_format == 0:
         assert figbrowser.figviewer.figcanvas.fmt == 'image/png'
-    else:
+    elif figure_format == 1:
         assert figbrowser.figviewer.figcanvas.fmt == 'image/svg+xml'
+    elif figure_format == 2:
+        assert figbrowser.figviewer.figcanvas.fmt == 'image/png'
 
-    # Get the image name from the html, fetch the image from the shell, and
-    # save it as a png.
-    html = shell._control.toHtml()
-    img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
+    if figure_format < 2:
+        # Get the image name from the html, fetch the image from the shell, and
+        # save it as a png.
+        # When using 'retina' (2) the raw image width and
+        # height is doubled so the test fails since the console resizes the
+        # image to fit (width and height of the resize can
+        # be accessed through the metadata key of the message that the console
+        # handles)
+        html = shell._control.toHtml()
+        img_name = re.search('''<img src="(.+?)" /></p>''', html).group(1)
 
-    ipython_figname = osp.join(to_text_string(tmpdir), 'ipython_img.png')
-    ipython_qimg = shell._get_image(img_name)
-    ipython_qimg.save(ipython_figname)
+        ipython_figname = osp.join(to_text_string(tmpdir), 'ipython_img.png')
+        ipython_qimg = shell._get_image(img_name)
+        ipython_qimg.save(ipython_figname)
 
-    # Save the image with the Plots plugin as a png.
-    plots_figname = osp.join(to_text_string(tmpdir), 'plots_img.png')
-    mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
-                 return_value=(plots_figname, '.png'))
-    figbrowser.save_figure()
+        # Save the image with the Plots plugin as a png.
+        plots_figname = osp.join(to_text_string(tmpdir), 'plots_img.png')
+        mocker.patch(
+            'spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
+            return_value=(plots_figname, '.png'))
+        figbrowser.save_figure()
 
-    assert compare_images(ipython_figname, plots_figname, 0.1) is None
+        assert compare_images(ipython_figname, plots_figname, 0.1) is None
 
 
 @pytest.mark.slow

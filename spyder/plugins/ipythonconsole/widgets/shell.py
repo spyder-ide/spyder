@@ -31,6 +31,9 @@ from spyder.plugins.ipythonconsole.widgets import (
         ControlWidget, DebuggingWidget, FigureBrowserWidget,
         HelpWidget, NamepaceBrowserWidget, PageControlWidget)
 
+# Matplotlib inline backend figure formats
+FIGURE_FORMATS = {'0': 'png', '1': 'svg', '2': 'retina'}
+
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                   FigureBrowserWidget):
@@ -231,6 +234,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Ask the kernel for environment variables."""
         self.call_kernel(
             interrupt=True, callback=self.sig_show_env.emit).get_env()
+
+    def set_inline_backend_figure_format(self, inline_backend_figure_format):
+        """Set matplolib inline backend figure format."""
+        figure_format = FIGURE_FORMATS[
+            to_text_string(inline_backend_figure_format)]
+        self.call_kernel().set_inline_backend_figure_format(figure_format)
 
     # --- To handle the banner
     def long_banner(self):

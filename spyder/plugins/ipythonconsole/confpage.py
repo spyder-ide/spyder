@@ -153,7 +153,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_label = QLabel(_("Decide how to render the figures created by "
                                 "this backend"))
         inline_label.setWordWrap(True)
-        formats = (("PNG", 0), ("SVG", 1))
+        formats = (("PNG", 0), ("SVG", 1), ("Retina", 2))
         format_box = self.create_combobox(_("Format:")+"   ", formats,
                                           'pylab/inline/figure_format',
                                           default=0)

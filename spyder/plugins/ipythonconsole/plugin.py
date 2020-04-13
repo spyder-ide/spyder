@@ -184,6 +184,9 @@ class IPythonConsole(SpyderPluginWidget):
         reset_namespace_o = self.get_option(reset_namespace_n)
         ask_before_restart_n = 'ask_before_restart'
         ask_before_restart_o = self.get_option(ask_before_restart_n)
+        inline_backend_figure_format_n = 'pylab/inline/figure_format'
+        inline_backend_figure_format_o = self.get_option(
+            inline_backend_figure_format_n)
         for client in self.clients:
             control = client.get_control()
             if font_n in options:
@@ -199,6 +202,9 @@ class IPythonConsole(SpyderPluginWidget):
                 client.reset_warning = reset_namespace_o
             if ask_before_restart_n in options:
                 client.ask_before_restart = ask_before_restart_o
+            if inline_backend_figure_format_n in options:
+                client.set_inline_backend_figure_format(
+                    inline_backend_figure_format_o)
 
     def toggle_view(self, checked):
         """Toggle view"""
