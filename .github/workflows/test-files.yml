@@ -1,17 +1,33 @@
 name: File tests
 
 on:
-  # This avoids having duplicate builds for a pull request
   push:
     branches:
-    - master
-    - 5.x
-    - 4.x
+      - master
+      - 5.x
+      - 4.x
+    paths:
+      - '.github/scripts/*.sh'
+      - '.github/workflows/*.yml'
+      - 'requirements/*.txt'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+
   pull_request:
     branches:
-    - master
-    - 5.x
-    - 4.x
+      - master
+      - 5.x
+      - 4.x
+    paths:
+      - '.github/scripts/*.sh'
+      - '.github/workflows/*.yml'
+      - 'requirements/*.txt'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
 
 jobs:
   cleanup-previous-runs:
@@ -37,30 +53,38 @@ jobs:
       matrix:
         PYTHON_VERSION: ['3.7', '3.6', '2.7']
     steps:
-      - name: Checkout
+      - name: Checkout Pull Requests
+        if: github.event_name == 'pull_request'
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+      - name: Checkout Push
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@v2
       - name: Fetch branches
+        if: github.event_name == 'pull_request'
         run: git fetch --prune --unshallow
       - name: Check build skips
+        if: github.event_name == 'pull_request'
         shell: bash -l {0}
-        run: |
-          source .github/scripts/check_skip.sh
-          source .github/scripts/check_skip_py.sh
+        run: source .github/scripts/check_skip.sh
+      - name: Check build runs
+        if: github.event_name != 'pull_request'
+        shell: bash -l {0}
+        run: echo "::set-env name=RUN_BUILD::true"
       - name: Install dependencies
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        if: env.RUN_BUILD == 'true'
         shell: bash
         run: sudo apt-get install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev libegl1-mesa libxkbcommon-x11-0
       - name: Cache pip
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        if: env.RUN_BUILD == 'true'
         uses: actions/cache@v1
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements/*.txt') }}
           restore-keys: ${{ runner.os }}-pip-
       - name: Install Conda
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        if: env.RUN_BUILD == 'true'
         uses: goanpeca/setup-miniconda@v1
         with:
            activate-environment: test
@@ -68,16 +92,16 @@ jobs:
            auto-activate-base: false
            python-version: ${{ matrix.PYTHON_VERSION }} 
       - name: Create test environment
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh
       - name: Show test environment
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: |
           conda info
           conda list
       - name: Run file tests
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: xvfb-run --auto-servernum .github/scripts/modules_test.sh || xvfb-run --auto-servernum .github/scripts/modules_test.sh
