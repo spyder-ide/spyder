@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-31 18:05-0500\n"
-"PO-Revision-Date: 2020-04-09 13:50\n"
+"PO-Revision-Date: 2020-04-13 23:20\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
@@ -49,7 +49,7 @@ msgstr "WinPython"
 
 #: spyder/app/mainwindow.py:507
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
-msgstr "通信ソケット作成中にエラーが発生しました。cmd.exeから以下のコマンドを管理者権限で実行し、PCを再起動して下さい: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
+msgstr "通信ソケット作成中にエラーが発生しました。cmd.exeから以下のコマンドを管理者権限で実行し、コンピュータを再起動して下さい: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
 
 #: spyder/app/mainwindow.py:575
 msgid "Close current pane"
@@ -1531,40 +1531,41 @@ msgstr "準備完了"
 
 #: spyder/plugins/completion/languageserver/plugin.py:274
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Therefore, completion and linting for {language} will not work during this session."
-msgstr ""
+msgstr "{language} 言語サーバーが以下のアドレスに見つかりません:<br><br><tt>{host}:{port}</tt><br><br>このためこのセッションでは{language} の補完及びlintingは使用できません。"
 
 #: spyder/plugins/completion/languageserver/plugin.py:299 spyder/plugins/completion/languageserver/plugin.py:375
 msgid "down"
-msgstr ""
+msgstr "下"
 
 #: spyder/plugins/completion/languageserver/plugin.py:316
 msgid "Completion and linting in the editor for {language} files will not work during the current session, or stopped working.<br><br>"
-msgstr ""
+msgstr "このセッションでは {language} ファイルの補完および静的解析は使用できません。<br><br>"
 
 #: spyder/plugins/completion/languageserver/plugin.py:320
 msgid "Do you want to restart Spyder now?"
-msgstr ""
+msgstr "Spyderを再起動しますか？"
 
 #: spyder/plugins/completion/languageserver/plugin.py:325
 msgid "Don't show again"
-msgstr ""
+msgstr "今後表示しない"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:31
 msgid "Completions, linting, code\n"
 "folding and symbols status."
-msgstr ""
+msgstr "補完、静的解析、コードの\n"
+"折りたたみ及びシンボルの状態。"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:58
 msgid "Restart {} Language Server"
-msgstr ""
+msgstr "{} 言語サーバーを再起動"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:92
 msgid "starting..."
-msgstr ""
+msgstr "開始中..."
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:108
 msgid "Unknown"
-msgstr ""
+msgstr "不明"
 
 #: spyder/plugins/completion/plugin.py:394
 msgid "Kite installation process has not finished. Do you really want to exit?"
@@ -1628,11 +1629,11 @@ msgstr "内部コンソール設定"
 
 #: spyder/plugins/console/plugin.py:228
 msgid "<h3>Spyder crashed during last session</h3>"
-msgstr ""
+msgstr "<h3>前回のセッションでSpyderはクラッシュしました</h3>"
 
 #: spyder/plugins/console/plugin.py:231
 msgid "Please provide any additional information you might have about the crash."
-msgstr ""
+msgstr "クラッシュに関する追加情報を提供してください。"
 
 #: spyder/plugins/console/plugin.py:279
 msgid "Run Python script"
@@ -1936,7 +1937,7 @@ msgstr "Sphinx"
 
 #: spyder/plugins/editor/confpage.py:251
 msgid "Type:"
-msgstr ""
+msgstr "タイプ:"
 
 #: spyder/plugins/editor/confpage.py:261
 msgid "Annotations"
@@ -2526,7 +2527,7 @@ msgstr "クリックして開く"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:1399
 msgid "One of the files in the editor or the file you are trying to open contains more than 2000 lines.<br><br>Code folding and indent guidelines will be disabled for this kind of files in order to prevent performance degradation."
-msgstr ""
+msgstr "エディタで開いていた、あるいは今開こうとしているファイルは2000行以上あります。<br><br>このようなファイルを編集する場合、パフォーマンスの低下を防ぐため、コードの折りたたみとインデントガイドラインは無効化されます。"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:1409
 msgid "File too long"
@@ -3870,7 +3871,7 @@ msgstr "<b>{}</b>を実行するためのIPythonコンソールは現在使用�
 
 #: spyder/plugins/ipythonconsole/plugin.py:686
 msgid "Your Python environment or installation doesn't have the <tt>spyder-kernels</tt> module or the right version of it installed (>= 1.9.0 and < 1.10.0). Without this module is not possible for Spyder to create a console for you.<br><br>You can install it by running in a system terminal:<br><br><tt>conda install spyder-kernels</tt><br><br>or<br><br><tt>pip install spyder-kernels</tt>"
-msgstr ""
+msgstr "Python環境に<tt>spyder-kernels</tt>モジュールが無い、あるいは正しいバージョン(>= 1.9.0 and < 1.10.0) のものがインストールされておりません。このモジュールがない場合Spyderでコンソールを開くことができません。<br><br>システムのターミナルで以下のコマンドを入力することによってインストールできます:<br><br><tt>conda install spyder-kernels</tt><br><br>あるいは<br><br><tt>pip install spyder-kernels</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:985
 msgid "Do you want to close this console?"
