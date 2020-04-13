@@ -105,7 +105,8 @@ def test_status_bar_conda_interpreter_status(status_bar, qtbot, mocker):
 
 
 def test_status_bar_other_interpreter_status(status_bar, qtbot, mocker):
-    mocker.patch.object(conda, 'is_conda_env', return_value=False)
+    mocker.patch.object(spyder.widgets.status, 'is_conda_env',
+                        return_value=False)
 
     win, statusbar = status_bar
     w = InterpreterStatus(win, statusbar)
@@ -120,7 +121,10 @@ def test_status_bar_other_interpreter_status(status_bar, qtbot, mocker):
 
 @pytest.mark.skipif(sys.platform != 'darwin', reason="Only valid on Mac")
 def test_status_bar_internal_interpreter_status(status_bar, qtbot, mocker):
-    mocker.patch.object(conda, 'is_conda_env', return_value=False)
+    mocker.patch.object(spyder.widgets.status, 'is_conda_env',
+                        return_value=False)
+    mocker.patch.object(spyder.widgets.status, 'running_in_mac_app',
+                        return_value=True)
 
     win, statusbar = status_bar
     w = InterpreterStatus(win, statusbar)

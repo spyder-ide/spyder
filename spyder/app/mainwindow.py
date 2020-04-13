@@ -3058,7 +3058,7 @@ class MainWindow(QMainWindow):
                     widget.setVisible(CONF.get('main', '%s/enable' % name))
                     widget.set_interval(CONF.get('main', '%s/timeout' % name))
 
-            # Update conda status widget
+            # Update interpreter status widget
             if self.interpreter_status:
                 interpreter = self.get_main_interpreter()
                 self.interpreter_status.update_interpreter(interpreter)
