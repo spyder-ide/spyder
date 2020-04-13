@@ -89,12 +89,10 @@ else:
                 prelude='', marginalia=None, gap='&nbsp;',
                 css_class=''):
             """Format a section with a heading."""
-            if marginalia is None:
-                marginalia = '<code>' + '&nbsp;' * width + '</code>'
-            result = '''<br>
+            result = '''
     <table class="{}">
     <tr>
-    <td colspan="3">&nbsp;<br>
+    <td colspan="3">
     {}</td></tr>
         '''.format(css_class, title)
             if prelude:
@@ -102,11 +100,11 @@ else:
     <tr><td rowspan="2">{}</td>
     <td colspan="2">{}</td></tr>
     <tr><td>{}</td>'''.format(marginalia, prelude, gap)
-            else:
+            elif marginalia:
                 result = result + '''
     <tr><td>{}</td><td>{}</td>'''.format(marginalia, gap)
 
-            contents = '{}</td></tr></table>'.format(contents)
+            contents = '{}</td></tr></table><br>'.format(contents)
             return result + '\n<td class="inner_table">' + contents
 
         def bigsection(self, title, *args, **kwargs):
@@ -632,8 +630,11 @@ else:
                 shadowed[name] = 1
 
             modpkgs.sort()
-            contents = self.multicolumn(modpkgs, self.modpkglink)
-            return self.bigsection(dir, contents, css_class="index")
+            if len(modpkgs):
+                contents = self.multicolumn(modpkgs, self.modpkglink)
+                return self.bigsection(dir, contents, css_class="index")
+            else:
+                return ''
 
 
 def _url_handler(url, content_type="text/html"):
@@ -690,11 +691,11 @@ def _url_handler(url, content_type="text/html"):
                 <div>
                     <form action="get" style='display:inline;'>
                       <input class="input-search" type=text name=key size=15>
-                      <input class="input-get" type=submit value="Get">
+                      <input class="submit-get" type=submit value="Get">
                     </form>&nbsp;
                     <form action="search" style='display:inline;'>
                       <input class="input-search" type=text name=key size=15>
-                      <input class="input-search" type=submit value="Search">
+                      <input class="submit-search" type=submit value="Search">
                     </form>
                 </div>
             </div>
@@ -714,6 +715,7 @@ def _url_handler(url, content_type="text/html"):
 
         seen = {}
         for dir in sys.path:
+
             contents.append(html.index(dir, seen))
 
         contents.append(

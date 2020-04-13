@@ -1,35 +1,39 @@
+/* --- Base tags --- */
+
 body {
     background-color: white;
     color: rgb(51, 51, 51);
     margin: 25px 25px 25px 25px;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-family: sans-serif, 'Trebuchet MS';
     width: 95%;
 }
 
+code {
+ font-family: sans-serif, 'Trebuchet MS';
+}
 
 table {
-    border: none;
     width: 100%;
     border-spacing: 10px;
-    padding-bottom: 10px;
-    -webkit-box-shadow: 0 0 5px rgba(0, 0, 0, 100);
-    -moz-box-shadow: 0 0 5px rgba(0, 0, 0, 100);
-    box-shadow: 0 0 5px rgba(0, 0, 0, 200);
 }
 
-p {
-    padding-left:20px;
-    font-size: 1.25em;
+td {
+    padding-bottom: 0
+    vertical-align: bottom;
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
-
-td {vertical-align: bottom;}
-td {padding-bottom: 0}
 
 div.main {
-    clear:both;
-    padding-top:.5em;
-    font-family: 'Trebuchet MS', sans-serif;
+    clear: both;
+    padding-top: .5em;
+    font-family: sans-serif, 'Trebuchet MS';
 }
+
+/* --- Links --- */
+
 a {
     color: #0050cc;
     text-decoration: none;
@@ -42,16 +46,32 @@ a:hover {
     text-decoration: underline;
 }
 
+/* --- Input classes ---*/
+
+.input-search {
+    background-color: white;
+    border: 1px solid #222;
+    border-radius: 0.25rem;
+    color: #444;
+}
+
+.submit-get, .submit-search{
+    border: 1px solid #444;
+    border-radius: 0.25rem;
+    color: black;
+}
+
+
+/* --- Section classes --- */
+
 .align_right {
     text-align: right;
 }
 
 .heading {  /* see HTMLDoc.heading */
     text-overflow: clip;
-    height: 3em;
     font-weight: bold;
-    font-size: 180%;
-    font-family: 'Trebuchet MS', sans-serif;
+    font-size: 1.3em;
     background-color: #6487DC;
     background-image: -webkit-gradient(
         linear,
@@ -62,12 +82,12 @@ a:hover {
         to(#1d9ce5)
     );
     text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
-    padding: 6px 0px 6px 20px;
     color: #FFFFFF;
+    border-radius: 0.3rem;
 }
 
 .normal {font-weight: normal;
-         font-size: 1em;}
+         font-size: .8em;}
 
 .grey {color:grey;}
 
@@ -75,8 +95,6 @@ a:hover {
 
 .docmodule{ /* see HTMLDoc.docmodule */
     height: 4em;
-    border-left: 10px solid #7799ee;
-    border-top: 10px solid #7799ee;
 }
 
 .docmodule_link {  /* see HTMLDoc.docmodule */
@@ -87,9 +105,9 @@ a:hover {
 }
 
 .section_title {
-    font-size: 1em;
+    font-size: .9em;
     font-weight: bold;
-    font-family: 'Helvetica', sans-serif;
+    font-family: sans-serif, 'Helvetica';
     color: rgb(49, 126, 172);
     margin-top: 20px;
     margin-bottom: 10px;
@@ -97,14 +115,13 @@ a:hover {
 
 .builtin_modules, .index, .package, .module, .classes, .functions, .data,
 .topics, .keywords {
-    font-size: 1em;
     background-color: #e9ecef;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 0.3rem;
 }
 
 .author, .credits {
     background-color: #e9ecef;
-    border-left: 10px solid #7799ee;
-    border-top: 10px solid #7799ee;
 }
 
 .error {
@@ -115,7 +132,6 @@ a:hover {
 .docclass {
     color: black;
     background-color: #e9ecef;
-    margin-left: 10px;
 }
 
 .ka_ping_yee {
@@ -128,7 +144,5 @@ a:hover {
     width:100%;
     color: black;
     padding-bottom: 0;
-    font-family: monospace, serif;
-    font-size: 1.2em;
-    border-bottom: none;
+    font-family: sans-serif;
 }
