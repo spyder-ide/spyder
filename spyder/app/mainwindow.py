@@ -103,9 +103,15 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 #==============================================================================
 from spyder.app.utils import set_opengl_implementation
 from spyder.app.cli_options import get_options
+from spyder.config.base import running_under_pytest
 
-# Get CLI options/args and make them available for future use
-CLI_OPTIONS, CLI_ARGS = get_options()
+# Get CLI options/args and make them available for future use.
+# Ignore args if running tests or Spyder will try and fail to parse pytests's.
+if running_under_pytest():
+    sys_argv = [sys.argv[0]]
+else:
+    sys_argv = sys.argv
+CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
 
 # **** Set OpenGL implementation to use ****
 if CLI_OPTIONS.opengl_implementation:
@@ -134,7 +140,7 @@ MAIN_APP.setWindowIcon(APP_ICON)
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time.
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV, running_under_pytest
+from spyder.config.base import _, get_image_path, DEV
 
 if not running_under_pytest():
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
@@ -228,10 +234,10 @@ class MainWindow(QMainWindow):
          ('matplotlib', "https://matplotlib.org/contents.html",
           _("Matplotlib documentation")),
          ('PyQt5',
-          "http://pyqt.sourceforge.net/Docs/PyQt5/",
+          "https://www.riverbankcomputing.com/static/Docs/PyQt5/",
           _("PyQt5 Reference Guide")),
          ('PyQt5',
-          "http://pyqt.sourceforge.net/Docs/PyQt5/class_reference.html",
+          "https://www.riverbankcomputing.com/static/Docs/PyQt5/module_index.html",
           _("PyQt5 API Reference")),
          ('winpython', "https://winpython.github.io/",
           _("WinPython"))
@@ -2461,26 +2467,38 @@ class MainWindow(QMainWindow):
         """Exit tasks"""
         if self.already_closed or self.is_starting_up:
             return True
+
         if cancelable and CONF.get('main', 'prompt_on_exit'):
             reply = QMessageBox.critical(self, 'Spyder',
                                          'Do you really want to exit?',
                                          QMessageBox.Yes, QMessageBox.No)
             if reply == QMessageBox.No:
                 return False
-        prefix = 'window' + '/'
-        self.save_current_window_settings(prefix)
+
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
+
         if not self.completions.closing_plugin(cancelable):
             return False
+
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             plugin._close_window()
             if not plugin.closing_plugin(cancelable):
                 return False
+
+        # Save window settings *after* closing all plugin windows, in order
+        # to show them in their previous locations in the next session.
+        # Fixes spyder-ide/spyder#12139
+        prefix = 'window' + '/'
+        self.save_current_window_settings(prefix)
+
         self.dialog_manager.close_all()
+
         if self.toolbars_visible:
             self.save_visible_toolbars()
+
         self.completions.shutdown()
+
         self.already_closed = True
         return True
 
@@ -3100,7 +3118,7 @@ class MainWindow(QMainWindow):
     def apply_panes_settings(self):
         """Update dockwidgets features settings"""
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            features = plugin._FEATURES
+            features = plugin.dockwidget.FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
             plugin.dockwidget.setFeatures(features)
@@ -3212,26 +3230,40 @@ class MainWindow(QMainWindow):
                                    name, add_shortcut_to_tip, plugin_name))
 
     def apply_shortcuts(self):
-        """Apply shortcuts settings to all widgets/plugins"""
+        """Apply shortcuts settings to all widgets/plugins."""
         toberemoved = []
         for index, (qobject, context, name, add_shortcut_to_tip,
                     plugin_name) in enumerate(self.shortcut_data):
-            keyseq = QKeySequence(CONF.get_shortcut(context, name,
-                                                    plugin_name))
             try:
-                if isinstance(qobject, QAction):
-                    if sys.platform == 'darwin' and \
-                      qobject._shown_shortcut == 'missing':
-                        qobject._shown_shortcut = keyseq
-                    else:
-                        qobject.setShortcut(keyseq)
-                    if add_shortcut_to_tip:
-                        add_shortcut_to_tooltip(qobject, context, name)
-                elif isinstance(qobject, QShortcut):
-                    qobject.setKey(keyseq)
-            except RuntimeError:
-                # Object has been deleted
-                toberemoved.append(index)
+                shortcut_sequence = CONF.get_shortcut(context, name,
+                                                      plugin_name)
+            except (cp.NoSectionError, cp.NoOptionError):
+                # If shortcut does not exist, save it to CONF. This is an
+                # action for which there is no shortcut assigned (yet) in
+                # the configuration
+                CONF.set_shortcut(context, name, '', plugin_name)
+                shortcut_sequence = ''
+
+            if shortcut_sequence:
+                keyseq = QKeySequence(shortcut_sequence)
+                try:
+                    if isinstance(qobject, QAction):
+                        if (sys.platform == 'darwin'
+                                and qobject._shown_shortcut == 'missing'):
+                            qobject._shown_shortcut = keyseq
+                        else:
+                            qobject.setShortcut(keyseq)
+
+                        if add_shortcut_to_tip:
+                            add_shortcut_to_tooltip(qobject, context, name)
+
+                    elif isinstance(qobject, QShortcut):
+                        qobject.setKey(keyseq)
+
+                except RuntimeError:
+                    # Object has been deleted
+                    toberemoved.append(index)
+
         for index in sorted(toberemoved, reverse=True):
             self.shortcut_data.pop(index)
 
@@ -3638,32 +3670,13 @@ def run_spyder(app, options, args):
 def main():
     """Main function"""
     # **** For Pytest ****
-    # We need to create MainWindow **here** to avoid passing pytest
-    # options to Spyder
     if running_under_pytest():
-        try:
-            from unittest.mock import Mock
-        except ImportError:
-            from mock import Mock  # Python 2
-
-        options = Mock()
-        options.working_directory = None
-        options.profile = False
-        options.multithreaded = False
-        options.new_instance = False
-        options.project = None
-        options.window_title = None
-        options.opengl_implementation = None
-        options.debug_info = None
-        options.debug_output = None
-        options.paths = None
-
         if CONF.get('main', 'opengl') != 'automatic':
             option = CONF.get('main', 'opengl')
             set_opengl_implementation(option)
 
         app = initialize()
-        window = run_spyder(app, options, None)
+        window = run_spyder(app, CLI_OPTIONS, None)
         return window
 
     # **** Collect command line options ****

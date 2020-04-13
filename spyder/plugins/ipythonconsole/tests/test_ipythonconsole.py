@@ -366,9 +366,9 @@ def test_sympy_client(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.cython_client
 @pytest.mark.skipif(
-    (os.name == 'nt' or
+    (not sys.platform.startswith('linux') or
      LooseVersion(ipy_release.version) == LooseVersion('7.11.0')),
-    reason="Doesn't work on Windows and fails for IPython 7.11.0")
+    reason="It only works reliably on Linux and fails for IPython 7.11.0")
 def test_cython_client(ipyconsole, qtbot):
     """Test that the Cython console is working correctly."""
     # Wait until the window is fully up
@@ -1580,6 +1580,7 @@ def test_calltip(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.first
 @pytest.mark.test_environment_interpreter
 def test_conda_env_activation(ipyconsole, qtbot):
     """

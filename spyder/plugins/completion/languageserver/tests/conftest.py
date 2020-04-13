@@ -32,6 +32,7 @@ class EditorMock(QObject):
     LanguageServerPlugin.
     """
     sig_lsp_initialized = Signal()
+    sig_editor_focus_changed = Signal()
 
     def __init__(self):
         QObject.__init__(self)
@@ -44,6 +45,9 @@ class EditorMock(QObject):
 
     def stop_completion_services(self, language):
         pass
+
+    def get_current_editor(self):
+        return Mock()
 
 
 class ProjectsMock(QObject):

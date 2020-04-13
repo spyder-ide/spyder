@@ -148,10 +148,6 @@ class BasePluginWidgetMixin(object):
     Implementation of the basic functionality for Spyder plugin widgets.
     """
 
-    _ALLOWED_AREAS = Qt.AllDockWidgetAreas
-    _LOCATION = Qt.LeftDockWidgetArea
-    _FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
-
     def __init__(self, parent=None):
         super(BasePluginWidgetMixin, self).__init__()
 
@@ -255,8 +251,8 @@ class BasePluginWidgetMixin(object):
 
         # Set properties
         dock.setObjectName(self.__class__.__name__+"_dw")
-        dock.setAllowedAreas(self._ALLOWED_AREAS)
-        dock.setFeatures(self._FEATURES)
+        dock.setAllowedAreas(dock.ALLOWED_AREAS)
+        dock.setFeatures(dock.FEATURES)
         dock.setWidget(self)
         self._update_margins()
         dock.visibilityChanged.connect(self._visibility_changed)
@@ -281,7 +277,7 @@ class BasePluginWidgetMixin(object):
             self.register_shortcut(sc, "_", "Switch to {}".format(
                 self.CONF_SECTION))
 
-        return (dock, self._LOCATION)
+        return (dock, dock.LOCATION)
 
     def _switch_to_plugin(self):
         """Switch to plugin."""

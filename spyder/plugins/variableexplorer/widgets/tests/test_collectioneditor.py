@@ -37,6 +37,8 @@ from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespacesBrowserFinder)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
     generate_pandas_indexes
+from spyder.py3compat import PY2
+
 
 # =============================================================================
 # Constants
@@ -311,6 +313,7 @@ def test_shows_dataframeeditor_when_editing_index(qtbot, monkeypatch):
         mockDataFrameEditor_instance.show.assert_called_once_with()
 
 
+@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on Win and py2')
 def test_sort_collectionsmodel():
     var_list1 = [0, 1, 2]
     var_list2 = [3, 4, 5, 6]

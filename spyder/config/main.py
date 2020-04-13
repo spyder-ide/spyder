@@ -489,6 +489,7 @@ DEFAULTS = [
               # This option is not used with the LSP server config
               # It is used to disable hover hints in the editor
               'enable_hover_hints': True,
+              'show_lsp_down_warning': True,
               'code_completion': True,
               'code_snippets': True,
               'jedi_definition': True,
@@ -624,4 +625,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '57.0.0'
+CONF_VERSION = '57.1.0'

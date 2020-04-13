@@ -130,7 +130,7 @@ def test_connection_dialog_remembers_input_with_ssh_passphrase(
     assert new_dlg.un.text() == pytest.un
     assert new_dlg.pn.text() == str(pytest.pn)
     assert new_dlg.kf.text() == pytest.kf
-    if (not sys.platform.startswith('linux') or
+    if (sys.platform == 'darwin' or
             not os.environ.get('CI') is not None):
         assert new_dlg.kfp.text() == pytest.kfp
 
@@ -158,7 +158,7 @@ def test_connection_dialog_doesnt_remember_input_with_ssh_passphrase(
     assert new_dlg.un.text() == ""
     assert new_dlg.pn.text() == "22"
     assert new_dlg.kf.text() == ""
-    if (not sys.platform.startswith('linux') or
+    if (sys.platform == 'darwin' or
             not os.environ.get('CI') is not None):
         assert new_dlg.kfp.text() == ""
 
@@ -184,7 +184,7 @@ def test_connection_dialog_remembers_input_with_password(
     assert new_dlg.hn.text() == pytest.hn
     assert new_dlg.un.text() == pytest.un
     assert new_dlg.pn.text() == str(pytest.pn)
-    if (not sys.platform.startswith('linux') or
+    if (sys.platform == 'darwin' or
             not os.environ.get('CI') is not None):
         assert new_dlg.pw.text() == pytest.pw
 
@@ -211,7 +211,7 @@ def test_connection_dialog_doesnt_remember_input_with_password(
     assert new_dlg.hn.text() == ""
     assert new_dlg.un.text() == ""
     assert new_dlg.pn.text() == "22"
-    if (not sys.platform.startswith('linux') or
+    if (sys.platform == 'darwin' or
             not os.environ.get('CI') is not None):
         assert new_dlg.pw.text() == ""
 

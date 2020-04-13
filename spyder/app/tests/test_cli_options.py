@@ -11,6 +11,7 @@ import pytest
 from spyder.app import cli_options
 
 
+@pytest.mark.first
 def test_get_options():
     getopt = cli_options.get_options
 

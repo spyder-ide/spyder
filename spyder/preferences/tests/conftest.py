@@ -19,6 +19,7 @@ from qtpy.QtGui import QIcon
 import pytest
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.preferences.appearance import AppearanceConfigPage
 from spyder.preferences.configdialog import ConfigDialog
 from spyder.preferences.general import MainConfigPage
@@ -31,6 +32,11 @@ class MainWindowMock:
         self.default_style = None
         self.widgetlist = []
         self.thirdparty_plugins = []
+        self.shortcut_data = []
+
+        # Load shortcuts for tests
+        for context, name, __ in CONF.iter_shortcuts():
+            self.shortcut_data.append((None, context, name, None, None))
 
         for attr in ['mem_status', 'cpu_status']:
             mock_attr = Mock()

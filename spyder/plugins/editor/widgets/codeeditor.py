@@ -1139,11 +1139,16 @@ class CodeEditor(TextEditBaseWidget):
         position, automatic = args
         try:
             completions = params['params']
-            prefix = self.get_current_word()
             completions = ([] if completions is None else
                            [completion for completion in completions
-                            if completion.get('insertText') != prefix
+                            if completion.get('insertText')
                             or completion.get('textEdit', {}).get('newText')])
+            prefix = self.get_current_word(completion=True,
+                                           valid_python_variable=False)
+            if (len(completions) == 1
+                    and completions[0].get('insertText') == prefix
+                    and not completions[0].get('textEdit', {}).get('newText')):
+                completions.pop()
 
             replace_end = self.textCursor().position()
             under_cursor = self.get_current_word_and_position(completion=True)
@@ -1186,9 +1191,8 @@ class CodeEditor(TextEditBaseWidget):
                         completion['insertText'] = insert_text
                         del completion['textEdit']
 
-            if len(completion_list) > 0:
-                self.completion_widget.show_list(
-                        completion_list, position, automatic)
+            self.completion_widget.show_list(
+                completion_list, position, automatic)
 
             self.kite_call_to_action.handle_processed_completions(completions)
         except RuntimeError:
@@ -1641,7 +1645,11 @@ class CodeEditor(TextEditBaseWidget):
             sh_class = sh.guess_pygments_highlighter(filename)
             self.support_language = sh_class is not sh.TextSH
             if self.support_language:
-                self.language = sh_class._lexer.name
+                # Pygments report S for the lexer name of R files
+                if sh_class._lexer.name == 'S':
+                    self.language = 'R'
+                else:
+                    self.language = sh_class._lexer.name
 
         self._set_highlighter(sh_class)
         self.completion_widget.set_language(self.language)

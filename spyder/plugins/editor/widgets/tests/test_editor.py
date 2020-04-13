@@ -651,8 +651,8 @@ def test_tab_copies_find_to_replace(editor_find_replace_bot, qtbot):
     finder.show_replace()
     finder.search_text.setFocus()
     finder.search_text.set_current_text('This is some test text!')
-    qtbot.keyClick(finder.search_text, Qt.Key_Tab)
     qtbot.wait(500)
+    qtbot.keyClick(finder.search_text, Qt.Key_Tab)
     assert finder.replace_text.currentText() == 'This is some test text!'
 
 

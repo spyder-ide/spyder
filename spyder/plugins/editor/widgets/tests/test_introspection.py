@@ -93,9 +93,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
 @pytest.mark.slow
 @pytest.mark.first
 @flaky(max_runs=5)
-@pytest.mark.skipif(
-    os.environ.get('CI') and (PY2 or os.name != 'nt'),
-    reason='Fails consistently on CI with Linux/Mac or Python 2')
+@pytest.mark.skipif(bool(os.environ.get('CI', None)), reason='Fails on CI!')
 def test_hide_widget_completion(lsp_codeeditor, qtbot):
     """Validate hiding completion widget after a delimeter or operator."""
     code_editor, _ = lsp_codeeditor
@@ -820,23 +818,19 @@ def test_kite_code_snippets(kite_codeeditor, qtbot):
 
     CONF.set('lsp-server', 'code_snippets', True)
     CONF.set('kite', 'enable', True)
-    kite.update_configuration()
-
     code_editor.toggle_automatic_completions(False)
     code_editor.toggle_code_snippets(True)
+    kite.update_configuration()
+
     # Set cursor to start
     code_editor.go_to_line(1)
-
-    text = """
-    import numpy as np
-    """
-    text = textwrap.dedent(text)
-    code_editor.insert_text(text)
-
+    qtbot.keyClicks(code_editor, 'import numpy as np')
+    qtbot.keyPress(code_editor, Qt.Key_Return)
     qtbot.keyClicks(code_editor, 'np.sin')
+
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
 
     assert 'sin('+u'\u2026'+')' in {
         x['label'] for x in sig.args[0]}
@@ -846,6 +840,7 @@ def test_kite_code_snippets(kite_codeeditor, qtbot):
     assert expected_insert == insert['insertText']
 
     # Insert completion
+    qtbot.wait(500)
     qtbot.keyPress(completion, Qt.Key_Tab)
     assert snippets.is_snippet_active
 
@@ -856,12 +851,12 @@ def test_kite_code_snippets(kite_codeeditor, qtbot):
     assert snippets.active_snippet == 1
 
     code_editor.set_cursor_position('eol')
-    code_editor.move_cursor(-1)
+    qtbot.keyPress(code_editor, Qt.Key_Left)
 
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig2:
-        qtbot.keyPress(code_editor, Qt.Key_Space, modifier=Qt.ControlModifier,
-                       delay=300)
+        code_editor.do_completion()
+
     assert '<x>)' in {x['label'] for x in sig2.args[0]}
 
     expected_insert = '${1:[x]})$0'
@@ -928,8 +923,8 @@ def test_completion_order(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason='Only works on Linux')
+@pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
+                    reason='Only works on Linux and Python 3')
 @flaky(max_runs=5)
 def test_fallback_completions(fallback_codeeditor, qtbot):
     code_editor, _ = fallback_codeeditor
@@ -983,6 +978,18 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
     word_set = {x['insertText'] for x in sig.args[0]}
     assert 'another' not in word_set
+
+    # Check that fallback doesn't give an error with utf-16 characters.
+    # This is a regression test for issue spyder-ide/spyder#11862.
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        code_editor.append("'😒 foobar'")
+        qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+        qtbot.keyClicks(code_editor, 'foob')
+        qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
+    word_set = {x['insertText'] for x in sig.args[0]}
+    assert 'foobar' in word_set
 
     code_editor.toggle_automatic_completions(True)
     code_editor.toggle_code_snippets(True)
