@@ -43,7 +43,7 @@ if PY2:
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html><head><title>Pydoc: %s</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-%s</head><body><div style="clear:both;padding-top:.5em;">%s</div>
+%s</head><body><div style="clear:both;padding-top:.7em;">%s</div>
 </body></html>''' % (title, css_link, contents)
 
             return html_page
@@ -664,7 +664,7 @@ def _url_handler(url, content_type="text/html"):
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html><head><title>Pydoc: %s</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-%s</head><body>%s<div style="clear:both;padding-top:.5em;">%s</div>
+%s</head><body>%s<div style="clear:both;padding-top:.7em;">%s</div>
 </body></html>''' % (title, css_link, html_navbar(), contents)
 
             return html_page
@@ -683,7 +683,7 @@ def _url_handler(url, content_type="text/html"):
                 Python %s<br>%s
             </div>
             <div style='float:right'>
-                <div style='text-align:center'>
+                <div style='text-align:right; padding-bottom:.7em;'>
                   <a href="index.html">Module Index</a>
                   : <a href="topics.html">Topics</a>
                   : <a href="keywords.html">Keywords</a>
