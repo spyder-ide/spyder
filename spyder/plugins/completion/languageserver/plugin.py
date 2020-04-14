@@ -49,7 +49,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     LOCALHOST = ['127.0.0.1', 'localhost']
     CONFIGWIDGET_CLASS = LanguageServerConfigPage
     MAX_RESTART_ATTEMPTS = 5
-    TIME_BETWEEN_RESTARTS = 5000  # ms
+    TIME_BETWEEN_RESTARTS = 10000  # ms
     TIME_HEARTBEAT = 3000  # ms
 
     def __init__(self, parent):
@@ -148,7 +148,6 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         if instance is not None:
             tcp_check = not instance.is_tcp_alive()
             stdio_check = not instance.is_stdio_alive()
-
             if (tcp_check or stdio_check or status != self.RUNNING):
                 instance.sig_lsp_down.emit(language)
 
