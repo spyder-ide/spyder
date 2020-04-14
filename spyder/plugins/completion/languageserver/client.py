@@ -183,7 +183,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 self.transport_args += ['--server-log-file', server_log_file]
 
             # Start server with logging options
-            if self.language != 'cpp':
+            if self.language == 'python':
                 if get_debug_level() == 2:
                     self.server_args.append('-v')
                 elif get_debug_level() == 3:
