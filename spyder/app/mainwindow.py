@@ -109,9 +109,9 @@ from spyder.config.base import running_under_pytest
 # Ignore args if running tests or Spyder will try and fail to parse pytests's.
 if running_under_pytest():
     sys_argv = [sys.argv[0]]
+    CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
 else:
-    sys_argv = sys.argv
-CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
+    CLI_OPTIONS, CLI_ARGS = get_options()
 
 # **** Set OpenGL implementation to use ****
 if CLI_OPTIONS.opengl_implementation:
