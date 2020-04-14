@@ -124,8 +124,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """
         status = client['status']
         if kind == 'tcp':
-            lsp_server = client['instance'].lsp_server
-            check = lsp_server is not None and lsp_server.poll() is None
+            check = client['instance'].is_tcp_alive()
         elif kind == 'stdio':
             check = client['instance'].is_stdio_alive()
         else:
@@ -147,9 +146,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         status = client['status']
         instance = client.get('instance', None)
         if instance is not None:
-            lsp_server = instance.lsp_server
-            tcp_check = (lsp_server is not None and
-                             lsp_server.poll() is not None)
+            tcp_check = not instance.is_tcp_alive()
             stdio_check = not instance.is_stdio_alive()
 
             if (tcp_check or stdio_check or status != self.RUNNING):
