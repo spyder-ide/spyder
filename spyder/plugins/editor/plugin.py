@@ -1260,6 +1260,8 @@ class Editor(SpyderPluginWidget):
                                          self.encoding_status.update_encoding)
             editorstack.sig_editor_cursor_position_changed.connect(
                                  self.cursorpos_status.update_cursor_position)
+            editorstack.sig_editor_cursor_position_changed.connect(
+                self.current_editor_cursor_changed)
             editorstack.sig_refresh_eol_chars.connect(
                 self.eol_status.update_eol)
             editorstack.current_file_changed.connect(
@@ -1378,7 +1380,6 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_breakpoints_saved.connect(self.breakpoints_saved)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
-        editorstack.will_change_file.connect(self.will_change_file)
         editorstack.plugin_load.connect(self.load)
         editorstack.plugin_load[()].connect(self.load)
         editorstack.edit_goto.connect(self.load)
@@ -1984,6 +1985,9 @@ class Editor(SpyderPluginWidget):
                 self.register_widget_shortcuts(current_editor)
                 current_es.analyze_script()
                 self.__add_recent_file(filename)
+            if goto is not None: # 'word' is assumed to be None as well
+                current_editor.go_to_line(goto[index], word=word,
+                                          start_column=start_column)
             current_editor.clearFocus()
             current_editor.setFocus()
             current_editor.window().raise_()
@@ -2320,9 +2324,6 @@ class Editor(SpyderPluginWidget):
     def current_file_changed(self, filename, position):
         self.add_cursor_position_to_history(to_text_string(filename), position,
                                             fc=True)
-        code_editor = self.get_current_editor()
-        code_editor.sig_cursor_position_changed.connect(
-            self.current_editor_cursor_changed)
 
         # Hide any open tooltips
         current_stack = self.get_current_editorstack()
@@ -2340,25 +2341,19 @@ class Editor(SpyderPluginWidget):
         code_editor = self.get_current_editor()
         filename = code_editor.filename
         position = code_editor.get_position('cursor')
-        self.add_cursor_position_to_history(to_text_string(filename), position,
-                                            fc=True)
-
-    def will_change_file(self):
-        """Handles the options when the file is going to change."""
-        try:
-            code_editor = self.get_current_editor()
-            code_editor.sig_cursor_position_changed.disconnect(
-                self.current_editor_cursor_changed)
-        except TypeError:
-            pass
+        self.add_cursor_position_to_history(
+            to_text_string(filename), position, fc=True)
 
     def remove_file_cursor_history(self, id, filename):
         """Remove the cursor history of a file in the file is closed."""
+        new_history = []
         for i, (cur_filename, pos) in enumerate(self.cursor_pos_history):
             if cur_filename == filename:
-                self.cursor_pos_history.pop(i)
                 if i < self.cursor_pos_index:
                     self.cursor_pos_index = self.cursor_pos_index - 1
+            else:
+                new_history.append((cur_filename, pos))
+        self.cursor_pos_history = new_history
 
     @Slot()
     def go_to_last_edit_location(self):

@@ -438,7 +438,6 @@ class EditorStack(QWidget):
     sig_breakpoints_saved = Signal()
     text_changed_at = Signal(str, int)
     current_file_changed = Signal(str, int)
-    will_change_file = Signal()
     plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
     sig_split_vertically = Signal()
@@ -2211,7 +2210,6 @@ class EditorStack(QWidget):
 #        count = self.get_stack_count()
 #        for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
 #            btn.setEnabled(count > 1)
-        self.will_change_file.emit()
         editor = self.get_current_editor()
         if editor.completions_available and not editor.document_opened:
             editor.document_did_open()
