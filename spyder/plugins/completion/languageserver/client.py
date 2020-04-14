@@ -283,6 +283,22 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if self.lsp_server is not None:
             self.lsp_server.kill()
 
+    def is_stdio_alive(self):
+        """Check if an stdio server is alive."""
+        alive = True
+        if self.stdio_pid is not None:
+            if not psutil.pid_exists(self.stdio_pid):
+                alive = False
+            else:
+                try:
+                    pid_status = psutil.Process(self.stdio_pid).status()
+                except psutil.NoSuchProcess:
+                    pid_status = ''
+                if pid_status == psutil.STATUS_ZOMBIE:
+                    alive = False
+
+        return alive
+
     def send(self, method, params, kind):
         # Detect when the transport layer is down to show a message
         # to our users about it.
@@ -303,8 +319,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 self.sig_lsp_down.emit(self.language)
             return
 
-        if (self.stdio_pid is not None and
-                not psutil.pid_exists(self.stdio_pid)):
+        if not self.is_stdio_alive():
             logger.debug("LSP server for {} is down!!".format(self.language))
             if not self.server_unresponsive:
                 self.server_unresponsive = True

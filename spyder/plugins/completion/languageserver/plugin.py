@@ -17,7 +17,6 @@ import os.path as osp
 import sys
 
 # Third-party imports
-import psutil
 from qtpy.QtCore import Slot, QTimer
 from qtpy.QtWidgets import QMessageBox, QCheckBox
 
@@ -128,8 +127,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             lsp_server = client['instance'].lsp_server
             check = lsp_server is not None and lsp_server.poll() is None
         elif kind == 'stdio':
-            stdio_pid = client['instance'].stdio_pid
-            check = stdio_pid is not None and psutil.pid_exists(stdio_pid)
+            check = client['instance'].is_stdio_alive()
         else:
             check = False
 
@@ -150,11 +148,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         instance = client.get('instance', None)
         if instance is not None:
             lsp_server = instance.lsp_server
-            stdio_pid = instance.stdio_pid
             tcp_check = (lsp_server is not None and
-                           lsp_server.poll() is not None)
-            stdio_check = (stdio_pid is not None and
-                            not psutil.pid_exists(stdio_pid))
+                             lsp_server.poll() is not None)
+            stdio_check = not instance.is_stdio_alive()
+
             if (tcp_check or stdio_check or status != self.RUNNING):
                 instance.sig_lsp_down.emit(language)
 
