@@ -110,7 +110,19 @@ class FunctionItem(TreeItem):
         return self.oedata.get_function_name()
 
     def is_method(self):
-        return isinstance(self.parent(), ClassItem)
+        if isinstance(self.parent(), ClassItem):
+            return True
+        elif isinstance(self.parent(), CommentItem):
+            ancestor = self.parent().parent()
+            while not isinstance(ancestor, ClassItem):
+                ancestor = ancestor.parent()
+                if ancestor is None:
+                    break
+            if isinstance(ancestor, ClassItem):
+                return True
+            else:
+                return False
+        return False
 
     def setup(self):
         if self.is_method():
@@ -568,6 +580,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 if citem is not None:
                     remove_from_tree_cache(tree_cache, line=line_nb)
                 continue
+            
+            # Skip iteration for comments.
+            if not self.show_comments and data.def_type == data.COMMENT:
+                if citem is not None:
+                    remove_from_tree_cache(tree_cache, line=line_nb)
+                continue
 
             if citem is not None:
                 cname = to_text_string(citem.text(0))
@@ -587,6 +605,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         cell_ancestors.append((prev_cell_item,
                                                prev_cell_level))
                     else:
+                        _item, prev_cell_level = cell_ancestors[-1]
                         while (len(cell_ancestors) > 1 and
                                cell_level <= prev_cell_level):
                             cell_ancestors.pop(-1)
@@ -611,23 +630,24 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 continue
 
             # Blocks for Code Groups.
+            # Use even levels only for folding comments
+            level *= 2
+            if not data.def_type == data.COMMENT:
+                level += 1
             if previous_level is not None:
                 if level == previous_level:
                     pass
                 elif level > previous_level:
                     ancestors.append((previous_item, previous_level))
                 else:
+                    _item, previous_level = ancestors[-1]
                     while len(ancestors) > 1 and level <= previous_level:
                         ancestors.pop(-1)
                         _item, previous_level = ancestors[-1]
             parent, _level = ancestors[-1]
-
             preceding = root_item if previous_item is None else previous_item
+
             if not_class_nor_function and data.is_comment():
-                if not self.show_comments:
-                    if citem is not None:
-                        remove_from_tree_cache(tree_cache, line=line_nb)
-                    continue
                 if citem is not None:
                     if data.text == cname and level == clevel:
                         previous_level = clevel
