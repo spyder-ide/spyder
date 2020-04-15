@@ -583,7 +583,8 @@ class DataFrameView(QTableView):
                      (_("To str"), to_text_string))
         types_in_menu = [copy_action]
         for name, func in functions:
-            slot = lambda func=func: self.change_type(func)
+            def slot():
+                self.change_type(func)
             types_in_menu += [create_action(self, name,
                                             triggered=slot,
                                             context=Qt.WidgetShortcut)]
