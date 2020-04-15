@@ -3982,7 +3982,9 @@ class CodeEditor(TextEditBaseWidget):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
                 prevtxt = to_text_string(self.textCursor(
                                                 ).block().previous().text())
-                if ind(leading_text) == ind(prevtxt.rstrip()):
+                if self.language == 'Python':
+                    prevtxt = prevtxt.rstrip()
+                if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
             insert_text(event)
         elif key == Qt.Key_Space and not shift and not ctrl \
@@ -3993,7 +3995,9 @@ class CodeEditor(TextEditBaseWidget):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
                 prevtxt = to_text_string(self.textCursor(
                                                 ).block().previous().text())
-                if ind(leading_text) == ind(prevtxt.rstrip()):
+                if self.language == 'Python':
+                    prevtxt = prevtxt.rstrip()
+                if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
             insert_text(event)
         elif key == Qt.Key_Tab and not ctrl:
