@@ -3982,6 +3982,8 @@ class CodeEditor(TextEditBaseWidget):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
                 prevtxt = to_text_string(self.textCursor(
                                                 ).block().previous().text())
+                if self.language == 'Python':
+                    prevtxt = prevtxt.rstrip()
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
             insert_text(event)
@@ -3993,6 +3995,8 @@ class CodeEditor(TextEditBaseWidget):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
                 prevtxt = to_text_string(self.textCursor(
                                                 ).block().previous().text())
+                if self.language == 'Python':
+                    prevtxt = prevtxt.rstrip()
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
             insert_text(event)
