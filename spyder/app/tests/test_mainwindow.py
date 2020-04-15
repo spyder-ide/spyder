@@ -56,7 +56,6 @@ from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.py3compat import PY2, to_text_string
-from spyder.utils.programs import is_module_installed
 from spyder.widgets.dock import DockTitleBar
 from spyder.utils.misc import remove_backslashes
 

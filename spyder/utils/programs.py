@@ -24,6 +24,7 @@ import sys
 import tempfile
 import threading
 import time
+import ast  # TODO: issue #12664
 
 # Third party imports
 import psutil
@@ -978,6 +979,24 @@ def check_python_help(filename):
             return False
     except Exception:
         return False
+
+
+def get_python_site_packages(pyexec):
+    """Get the site-packages for a given python executable.
+    TODO: issue #12664. This function is only used as part of a patch for
+          davidhalter/jedi#1540 and can be removed when python-language-server
+          adopts jedi>0.17.0 (palantir/python-language-server#744).
+    """
+    script = 'import site; print(site.getsitepackages())'
+    try:
+        # clean environment is more reliable
+        proc = run_program(pyexec, ['-c', script], env={})
+        stdout, stderr = proc.communicate()
+        pkgs = ast.literal_eval(stdout.decode())
+    except Exception:
+        pkgs = []
+
+    return pkgs
 
 
 def is_spyder_process(pid):
