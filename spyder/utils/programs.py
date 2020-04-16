@@ -830,84 +830,67 @@ def is_module_installed(module_name, version=None, installed_version=None,
     If version is not None, checking module version
     (module must have an attribute named '__version__')
 
-    version may starts with =, >=, > or < to specify the exact requirement ;
+    version may start with =, >=, > or < to specify the exact requirement ;
     multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')
 
     interpreter: check if a module is installed with a given version
     in a determined interpreter
     """
-    if interpreter:
+    if installed_version is not None:
+        '''
+        installed_version only passed in from dependencies.Dependency.check
+        which retrieved it from get_module_version, so we know the module is
+        already installed
+        '''
+        return True
+
+    module_version = None
+    if interpreter is not None:
         if is_python_interpreter(interpreter):
-            checkver = inspect.getsource(check_version)
-            get_modver = inspect.getsource(get_module_version)
-            stable_ver = inspect.getsource(is_stable_version)
-            ismod_inst = inspect.getsource(is_module_installed)
-
-            f = tempfile.NamedTemporaryFile('wt', suffix='.py',
-                                            dir=get_temp_dir(), delete=False)
+            cmd = 'import %s; print(%s.__version__)' % ((module_name,) * 2)
             try:
-                script = f.name
-                f.write("# -*- coding: utf-8 -*-" + "\n\n")
-                f.write("from distutils.version import LooseVersion" + "\n")
-                f.write("import re" + "\n\n")
-                f.write(stable_ver + "\n")
-                f.write(checkver + "\n")
-                f.write(get_modver + "\n")
-                f.write(ismod_inst + "\n")
-                if version:
-                    f.write("print(is_module_installed('%s','%s'))"\
-                            % (module_name, version))
-                else:
-                    f.write("print(is_module_installed('%s'))" % module_name)
+                # use clean environment
+                proc = run_program(interpreter, ['-c', cmd], env={})
+                output, _err = proc.communicate()
+            except Exception:
+                return False
 
-                # We need to flush and sync changes to ensure that the content
-                # of the file is in disk before running the script
-                f.flush()
-                os.fsync(f)
-                f.close()
-                try:
-                    proc = run_program(interpreter, [script])
-                    output, _err = proc.communicate()
-                except subprocess.CalledProcessError:
-                    return True
-                return eval(output.decode())
-            finally:
-                if not f.closed:
-                    f.close()
-                os.remove(script)
+            if _err.decode() == '':
+                module_version = output.decode().strip()
+            else:
+                return False
         else:
             # Try to not take a wrong decision if interpreter check
             # fails
             return True
-    else:
-        if installed_version is None:
-            try:
-                actver = get_module_version(module_name)
-            except:
-                # Module is not installed
-                return False
-        else:
-            actver = installed_version
-        if actver is None and version is not None:
+
+    if module_version is None:
+        try:
+            module_version = get_module_version(module_name)
+        except Exception:
+            # Module is not installed
             return False
-        elif version is None:
-            return True
+
+    if version is None:
+        return True
+    else:
+        if ';' in version:
+            versions = version.split(';')
         else:
-            if ';' in version:
-                output = True
-                for ver in version.split(';'):
-                    output = output and is_module_installed(module_name, ver)
-                return output
-            match = re.search(r'[0-9]', version)
+            versions = [version]
+
+        output = True
+        for _ver in versions:
+            match = re.search(r'[0-9]', _ver)
             assert match is not None, "Invalid version number"
-            symb = version[:match.start()]
+            symb = _ver[:match.start()]
             if not symb:
                 symb = '='
             assert symb in ('>=', '>', '=', '<', '<='),\
-                    "Invalid version condition '%s'" % symb
-            version = version[match.start():]
-
-            return check_version(actver, version, symb)
+                "Invalid version condition '%s'" % symb
+            ver = _ver[match.start():]
+            output = output and check_version(module_version, ver, symb)
+        return output
 
 
 def is_python_interpreter_valid_name(filename):
@@ -963,7 +946,7 @@ def is_pythonw(filename):
 def check_python_help(filename):
     """Check that the python interpreter can compile and provide the zen."""
     try:
-        proc = run_program(filename, ['-c', 'import this'])
+        proc = run_program(filename, ['-c', 'import this'], env={})
         stdout, _ = proc.communicate()
         stdout = to_text_string(stdout)
         valid_lines = [
