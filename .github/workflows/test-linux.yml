@@ -48,6 +48,11 @@ jobs:
             PYTHON_VERSION: '2.7'
             TEST_TYPE: 'slow'
     steps:
+      - name: Setup systemd
+        run: |
+          export XDG_RUNTIME_DIR="/run/user/$UID"
+          export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"
+          systemctl edit --user --full --force wagoOpenhabBridge.service
       - name: Checkout
         uses: actions/checkout@v2
         with:

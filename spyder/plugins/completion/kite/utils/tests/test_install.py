@@ -68,7 +68,7 @@ def test_kite_install(qtbot):
     # Check that kite was installed and is running
     qtbot.waitUntil(
         lambda: check_if_kite_installed() and check_if_kite_running(),
-        timeout=10000)
+        timeout=5000)
 
 
 if __name__ == "__main__":
