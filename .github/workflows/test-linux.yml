@@ -64,7 +64,7 @@ jobs:
             systemctl --failed
             sudo systemctl reset-failed
             sudo systemctl status dbus
-            systemctl --user
+            sudo systemctl --version
             printenv
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
