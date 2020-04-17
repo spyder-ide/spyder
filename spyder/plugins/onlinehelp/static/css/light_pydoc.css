@@ -4,12 +4,12 @@ body {
     background-color: white;
     color: rgb(51, 51, 51);
     margin: 25px 25px 25px 25px;
-    font-family: sans-serif, 'Trebuchet MS';
+    font-family: sans-serif, 'Trebuchet MS', 'Helvetica';
     width: 95%;
 }
 
 code {
- font-family: sans-serif, 'Trebuchet MS';
+ font-family: sans-serif, 'Trebuchet MS', 'Helvetica';
 }
 
 table {
@@ -29,7 +29,7 @@ td {
 div.main {
     clear: both;
     padding-top: .5em;
-    font-family: sans-serif, 'Trebuchet MS';
+    font-family: sans-serif, 'Trebuchet MS', 'Helvetica';
 }
 
 /* --- Links --- */
@@ -107,7 +107,7 @@ a:hover {
 .section_title {
     font-size: .9em;
     font-weight: bold;
-    font-family: sans-serif, 'Helvetica';
+    font-family: sans-serif, 'Trebuchet MS', 'Helvetica';
     color: rgb(49, 126, 172);
     margin-top: 20px;
     margin-bottom: 10px;
@@ -144,5 +144,5 @@ a:hover {
     width:100%;
     color: black;
     padding-bottom: 0;
-    font-family: sans-serif;
+    font-family: sans-serif, 'Trebuchet MS', 'Helvetica';
 }
