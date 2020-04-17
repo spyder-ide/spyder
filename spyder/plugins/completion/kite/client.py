@@ -110,6 +110,8 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
         if not filename or kite_status is None:
             kite_status = status()
             self.sig_status_response_ready[str].emit(kite_status)
+        elif isinstance(kite_status, TEXT_TYPES):
+            self.sig_status_response_ready[str].emit(kite_status)
         else:
             self.sig_status_response_ready[dict].emit(kite_status)
 
