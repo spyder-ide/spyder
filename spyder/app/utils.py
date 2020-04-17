@@ -29,6 +29,9 @@ except Exception:
     QQuickWindow = QSGRendererInterface = None
 
 
+root_logger = logging.getLogger()
+
+
 def get_python_doc_path():
     """
     Return Python documentation path
@@ -77,15 +80,34 @@ def setup_logging(cli_options):
         log_level = levels[get_debug_level()]
         log_format = '%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s'
 
+        handlers = [logging.StreamHandler()]
         if cli_options.debug_output == 'file':
             log_file = 'spyder-debug.log'
+            handlers.append(logging.FileHandler(open(log_file, 'w+')))
         else:
             log_file = None
 
-        logging.basicConfig(level=log_level,
-                            format=log_format,
-                            filename=log_file,
-                            filemode='w+')
+        f = logging.Formatter(log_format)
+
+        class LSPFilter(logging.Filter):
+            def filter(self, record):
+                # print(record.name)
+                return record.name.startswith('spyder.plugins.completion')
+        # logging.basicConfig(level=log_level,
+        #                     format=log_format,
+        #                     filename=log_file,
+        #                     filemode='w+')
+        # spyder_logger = logging.getLogger('spyder')
+        filter = LSPFilter()
+        root_logger.setLevel(log_level)
+        # spyder_logger.setLevel(log_level)
+        for h in handlers:
+            h.addFilter(filter)
+            h.setFormatter(f)
+            h.setLevel(log_level)
+            print(root_logger)
+            root_logger.addHandler(h)
+            # spyder_logger.addHandler(h)
 
 
 def delete_lsp_log_files():
