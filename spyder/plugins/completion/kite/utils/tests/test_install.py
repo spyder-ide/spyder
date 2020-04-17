@@ -7,8 +7,6 @@
 """Kite install utilities test."""
 
 # Local imports
-import os
-import re
 import sys
 
 # Third-party imports
@@ -28,7 +26,6 @@ INSTALL_TIMEOUT = 360000
 
 @pytest.mark.slow
 @pytest.mark.first
-@pytest.mark.skipif(bool(os.environ.get('CI', None)), reason='Fails on CI!')
 def test_kite_install(qtbot):
     """Test the correct execution of the installation process of kite."""
     install_manager = KiteInstallationThread(None)
@@ -71,7 +68,7 @@ def test_kite_install(qtbot):
     # Check that kite was installed and is running
     qtbot.waitUntil(
         lambda: check_if_kite_installed() and check_if_kite_running(),
-        timeout=5000)
+        timeout=10000)
 
 
 if __name__ == "__main__":
