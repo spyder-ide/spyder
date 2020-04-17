@@ -112,15 +112,16 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
             kite_status = status()
             self.sig_status_response_ready[str].emit(kite_status)
         elif isinstance(kite_status, TEXT_TYPES):
-            status_str = status()
-            long_str = kite_status
             if not success_status:
                 status_str = status(extra_status=' with errors')
-                long_str = _("If you are using a VPN, "
+                long_str = _("<code>{error}</code><br><br>"
+                             "Note: If you are using a VPN, "
                              "please don't route requests to "
-                             "localhost/127.0.0.1 with it. <br>"
-                             "<code>Error: {error}</code>").format(
+                             "localhost/127.0.0.1 with it").format(
                                  error=kite_status)
+            else:
+                status_str = status()
+                long_str = kite_status
             kite_status_dict = {
                 'status': status_str,
                 'short': status_str,
