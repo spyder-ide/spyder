@@ -34,6 +34,8 @@ jobs:
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUN_SLOW: ${{ matrix.TEST_TYPE == 'slow' }}
       USE_CONDA: ${{ matrix.INSTALL_TYPE == 'conda' }}
+      XDG_RUNTIME_DIR: "/run/user/$UID"
+      DBUS_SESSION_BUS_ADDRESS: "unix:path=${XDG_RUNTIME_DIR}/bus"
     strategy:
       fail-fast: false 
       matrix:
@@ -50,10 +52,7 @@ jobs:
     steps:
       - name: Setup systemd
         shell: bash -l {0}
-        run: |
-          export XDG_RUNTIME_DIR="/run/user/$UID"
-          export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"
-          systemctl edit --user --full --force wagoOpenhabBridge.service
+        run: systemctl edit --user --full --force wagoOpenhabBridge.service
       - name: Checkout
         uses: actions/checkout@v2
         with:
