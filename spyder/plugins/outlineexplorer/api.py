@@ -162,7 +162,7 @@ class OutlineExplorerProxy(QObject):
 
 
 class OutlineExplorerData(QObject):
-    CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
+    CLASS, FUNCTION, STATEMENT, COMMENT, COMMENTFOLD, CELL = list(range(6))
     FUNCTION_TOKEN = 'def'
     CLASS_TOKEN = 'class'
 
@@ -175,7 +175,8 @@ class OutlineExplorerData(QObject):
         Args:
             text (str)
             fold_level (int)
-            def_type (int): [CLASS, FUNCTION, STATEMENT, COMMENT, CELL]
+            def_type (int): [CLASS, FUNCTION, STATEMENT,
+                             COMMENT, COMMENTFOLD, CELL]
             def_name (str)
             color (PyQt.QtGui.QTextCharFormat)
         """
@@ -199,7 +200,7 @@ class OutlineExplorerData(QObject):
         return self.def_type in (self.CLASS, self.FUNCTION)
 
     def is_comment(self):
-        return self.def_type in (self.COMMENT, self.CELL)
+        return self.def_type in (self.COMMENT, self.CELL, self.COMMENTFOLD)
 
     def get_class_name(self):
         if self.def_type == self.CLASS:

@@ -497,6 +497,7 @@ class PythonSH(BaseSH):
                  "class": OutlineExplorerData.CLASS}
     # Comments suitable for Outline Explorer
     OECOMMENT = re.compile(r'^(# ?--[-]+|# ?#[#]+ )[ -]*[^- ]+')
+    OECOMMENTFOLD = re.compile(r'^(# ?#[#]+> )')
 
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
@@ -548,12 +549,19 @@ class PythonSH(BaseSH):
                     oedata.def_name = def_name
                     # Let the editor know a new cell was added in the document
                     self.sig_new_cell.emit(oedata)
+                elif self.OECOMMENTFOLD.match(text.lstrip()):
+                    oedata = OutlineExplorerData(self.currentBlock())
+                    oedata.text = to_text_string(text).strip()
+                    oedata.fold_level = start
+                    oedata.def_type = OutlineExplorerData.COMMENTFOLD
+                    oedata.def_name = text.strip()
                 elif self.OECOMMENT.match(text.lstrip()):
                     oedata = OutlineExplorerData(self.currentBlock())
                     oedata.text = to_text_string(text).strip()
                     oedata.fold_level = start
                     oedata.def_type = OutlineExplorerData.COMMENT
                     oedata.def_name = text.strip()
+
             elif key == "keyword":
                 if value in ("def", "class"):
                     match1 = self.IDPROG.match(text, end)

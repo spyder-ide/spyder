@@ -142,7 +142,7 @@ class FunctionItem(TreeItem):
 class CommentItem(TreeItem):
     def get_name(self):
         """Get name."""
-        return self.oedata.def_name.lstrip("# ")
+        return self.oedata.def_name.lstrip("#> ")
 
     def setup(self):
         self.set_icon(ima.icon('blockcomment'))
@@ -581,7 +581,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                     remove_from_tree_cache(tree_cache, line=line_nb)
                 continue
             
-            # Skip iteration for comments.
+            # Skip iteration for comments when not self.show_comments.
             if not self.show_comments and data.def_type == data.COMMENT:
                 if citem is not None:
                     remove_from_tree_cache(tree_cache, line=line_nb)
@@ -590,7 +590,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if citem is not None:
                 cname = to_text_string(citem.text(0))
                 cparent = citem.parent()
-                clevel = citem.level()
+                clevel = citem.level() * 2 + 1
+                if (data.def_type == data.COMMENT or
+                        data.def_type == data.COMMENTFOLD):
+                    clevel -= 1
 
             # Blocks for Cell Groups.
             if (data is not None and data.def_type == data.CELL and
@@ -631,9 +634,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
             # Blocks for Code Groups.
             # Use even levels only for folding comments
-            level *= 2
-            if not data.def_type == data.COMMENT:
-                level += 1
+            level = level * 2 + 1
+            if (data.def_type == data.COMMENT or
+                    data.def_type == data.COMMENTFOLD):
+                level -= 1
             if previous_level is not None:
                 if level == previous_level:
                     pass
@@ -650,7 +654,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if not_class_nor_function and data.is_comment():
                 if citem is not None:
                     if data.text == cname and level == clevel:
-                        previous_level = clevel
+                        if data.def_type == data.COMMENT:
+                            previous_level = clevel + 1
+                        else:
+                            previous_level = clevel
                         previous_item = citem
                         continue
                     else:
@@ -684,7 +691,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                                      to_text_string(item.parent().text(0)),
                                      to_text_string(item.text(0)))
             tree_cache[line_nb] = (item, debug)
-            previous_level = level
+            if data.def_type == data.COMMENT:
+                previous_level = level + 1
+            else:
+                previous_level = level
             previous_item = item
 
         return tree_cache
