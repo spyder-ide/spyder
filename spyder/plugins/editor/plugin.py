@@ -1786,12 +1786,12 @@ class Editor(SpyderPluginWidget):
             if self.untitled_num == 0:
                 for finfo in current_es.data:
                     current_filename = finfo.editor.filename
-                    if 'untitled' in current_filename:
+                    if _("untitled") in current_filename:
                         # Start the counter of the untitled_num with respect
                         # to this number if there's other untitled file in
                         # spyder. Please see spyder-ide/spyder#7831
                         fname_data = osp.splitext(current_filename)
-                        act_num = int(fname_data[0].split('untitled')[-1])
+                        act_num = int(fname_data[0].split(_("untitled"))[-1])
                         self.untitled_num = act_num + 1
 
             while True:
