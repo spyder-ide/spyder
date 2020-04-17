@@ -11,7 +11,6 @@ This is the main widget used in the Plots plugin
 """
 
 # ---- Standard library imports
-from __future__ import division
 import datetime
 import os.path as osp
 import sys
@@ -30,7 +29,6 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
 # ---- Local library imports
 from spyder.config.base import _
 from spyder.config.manager import CONF
-from spyder.py3compat import is_unicode, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (
     add_actions, add_shortcut_to_tooltip, create_action, create_toolbutton,
@@ -46,7 +44,7 @@ def save_figure_tofile(fig, fmt, fname):
         qimg = svg_to_image(fig)
         qimg.save(fname)
     else:
-        if fmt == 'image/svg+xml' and is_unicode(fig):
+        if fmt == 'image/svg+xml' and isinstance(fig, str):
             fig = fig.encode('utf-8')
 
         with open(fname, 'wb') as f:
@@ -78,7 +76,7 @@ class FigureBrowser(QWidget):
 
     def __init__(self, parent=None, options_button=None, plugin_actions=[],
                  background_color=None):
-        super(FigureBrowser, self).__init__(parent)
+        super().__init__(parent)
 
         self.shellwidget = None
         self.is_visible = True
@@ -369,7 +367,7 @@ class FigureBrowser(QWidget):
 
     def option_changed(self, option, value):
         """Handle when the value of an option has changed"""
-        setattr(self, to_text_string(option), value)
+        setattr(self, str(option), value)
         self.shellwidget.set_namespace_view_settings()
         if self.setup_in_progress is False:
             self.sig_option_changed.emit(option, value)
@@ -468,7 +466,7 @@ class FigureViewer(QScrollArea):
     sig_zoom_changed = Signal(int)
 
     def __init__(self, parent=None, background_color=None):
-        super(FigureViewer, self).__init__(parent)
+        super().__init__(parent)
         self.setAlignment(Qt.AlignCenter)
         self.viewport().setObjectName("figviewport")
         self.viewport().setStyleSheet(
@@ -650,7 +648,7 @@ class ThumbnailScrollBar(QFrame):
     _min_scrollbar_width = 100
 
     def __init__(self, figure_viewer, parent=None, background_color=None):
-        super(ThumbnailScrollBar, self).__init__(parent)
+        super().__init__(parent)
         self._thumbnails = []
 
         self.background_color = background_color
@@ -974,7 +972,7 @@ class FigureThumbnail(QWidget):
     sig_save_figure = Signal(object, str)
 
     def __init__(self, parent=None, background_color=None):
-        super(FigureThumbnail, self).__init__(parent)
+        super().__init__(parent)
         self.canvas = FigureCanvas(self, background_color=background_color)
         self.canvas.installEventFilter(self)
         self.canvas.sig_clear_fig_requested.connect(self.emit_remove_figure)
@@ -1054,7 +1052,7 @@ class FigureCanvas(QFrame):
     sig_save_fig_requested = Signal()
 
     def __init__(self, parent=None, background_color=None):
-        super(FigureCanvas, self).__init__(parent)
+        super().__init__(parent)
         self.setLineWidth(2)
         self.setMidLineWidth(1)
         self.setObjectName("figcanvas")

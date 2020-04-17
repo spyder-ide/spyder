@@ -11,12 +11,8 @@ Tests for the widgets used in the Plots plugin.
 """
 
 # Standard library imports
-from __future__ import division
 import os.path as osp
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 import pytest
@@ -30,7 +26,6 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.plugins.plots.widgets.figurebrowser import (FigureBrowser,
                                                         FigureThumbnail)
-from spyder.py3compat import to_text_string
 
 
 # =============================================================================
@@ -76,7 +71,7 @@ def add_figures_to_browser(figbrowser, nfig, tmpdir, fmt='image/png'):
     fext = '.svg' if fmt == 'image/svg+xml' else '.png'
     figs = []
     for i in range(nfig):
-        figname = osp.join(to_text_string(tmpdir), 'mplfig' + str(i) + fext)
+        figname = osp.join(str(tmpdir), 'mplfig' + str(i) + fext)
         figs.append(create_figure(figname))
         figbrowser._handle_new_figure(figs[-1], fmt)
 
@@ -111,7 +106,7 @@ def test_handle_new_figures(figbrowser, tmpdir, fmt, fext):
     assert figbrowser.figviewer.figcanvas.fig is None
 
     for i in range(3):
-        figname = osp.join(to_text_string(tmpdir), 'mplfig' + str(i) + fext)
+        figname = osp.join(str(tmpdir), 'mplfig' + str(i) + fext)
         fig = create_figure(figname)
         figbrowser._handle_new_figure(fig, fmt)
         assert len(figbrowser.thumbnails_sb._thumbnails) == i + 1
@@ -133,7 +128,7 @@ def test_save_figure_to_file(figbrowser, tmpdir, mocker, fmt, fext):
     expected_qpix.loadFromData(fig, fmt.upper())
 
     # Save the figure to disk with the figure browser.
-    saved_figname = osp.join(to_text_string(tmpdir), 'spyfig' + fext)
+    saved_figname = osp.join(str(tmpdir), 'spyfig' + fext)
     mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
                  return_value=(saved_figname, fext))
 
@@ -163,7 +158,7 @@ def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
     # Save all figures.
     mocker.patch(
         'spyder.plugins.plots.widgets.figurebrowser.getexistingdirectory',
-        return_value=to_text_string(tmpdir.mkdir('all_saved_figures')))
+        return_value=str(tmpdir.mkdir('all_saved_figures')))
     fignames = figbrowser.save_all_figures()
     assert len(fignames) == len(figs)
     for fig, figname in zip(figs, fignames):
@@ -291,7 +286,7 @@ def test_scroll_down_to_newest_plot(figbrowser, tmpdir, qtbot):
     nfig = 8
     for i in range(8):
         newfig = create_figure(
-            osp.join(to_text_string(tmpdir), 'new_mplfig{}.png'.format(i)))
+            osp.join(str(tmpdir), 'new_mplfig{}.png'.format(i)))
         figbrowser._handle_new_figure(newfig, 'image/png')
         qtbot.wait(500)
 
@@ -330,7 +325,7 @@ def test_save_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
     fext = '.svg' if fmt == 'image/svg+xml' else '.png'
 
     # Select and save the second thumbnail of the scrollbar.
-    figname = osp.join(to_text_string(tmpdir), 'figname' + fext)
+    figname = osp.join(str(tmpdir), 'figname' + fext)
     mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
                  return_value=(figname, fext))
     figbrowser.thumbnails_sb.set_current_index(1)

@@ -37,7 +37,7 @@ class FindInFiles(SpyderPluginWidget):
 
     def __init__(self, parent=None):
         """Initialization."""
-        SpyderPluginWidget.__init__(self, parent)
+        super().__init__(parent)
 
         supported_encodings = self.get_option('supported_encodings')
         self.search_text_samples = self.get_option('search_text_samples')
@@ -81,7 +81,7 @@ class FindInFiles(SpyderPluginWidget):
         """Toggle widget visibility"""
         if self.dockwidget:
             self.dockwidget.setVisible(state)
-    
+
     def refreshdir(self):
         """Refresh search directory"""
         self.findinfiles.find_options.set_directory(
@@ -131,7 +131,7 @@ class FindInFiles(SpyderPluginWidget):
         self.set_option('max_results', value)
         self.findinfiles.set_max_results(value)
 
-    #------ SpyderPluginMixin API ---------------------------------------------
+    # ------ SpyderPluginMixin API --------------------------------------------
     def switch_to_plugin(self):
         """
         Switch to plugin.
@@ -139,14 +139,14 @@ class FindInFiles(SpyderPluginWidget):
         This method is called when pressing the plugin shortcut.
         """
         if self.dockwidget:
-            super(FindInFiles, self).switch_to_plugin()
+            super().switch_to_plugin()
         self.findinfiles_callback()  # Necessary at least with PyQt5 on Windows
 
-    #------ SpyderPluginWidget API --------------------------------------------
+    # ------ SpyderPluginWidget API -------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Find")
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when

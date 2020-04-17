@@ -39,8 +39,8 @@ except KeyError:
 
 COLUMN_COUNT = 4
 EXTRA_COLUMNS = 1
-COL_FILE, COL_LINE, COL_CONDITION, COL_BLANK, COL_FULL = range(COLUMN_COUNT +
-                                                               EXTRA_COLUMNS)
+COL_FILE, COL_LINE, COL_CONDITION, COL_BLANK, COL_FULL = list(
+    range(COLUMN_COUNT + EXTRA_COLUMNS))
 COLUMN_HEADERS = (_("File"), _("Line"), _("Condition"), (""))
 
 
@@ -50,7 +50,7 @@ class BreakpointTableModel(QAbstractTableModel):
     """
 
     def __init__(self, parent, data):
-        QAbstractTableModel.__init__(self, parent)
+        super().__init__(parent)
         if data is None:
             data = {}
         self._data = None
@@ -63,7 +63,7 @@ class BreakpointTableModel(QAbstractTableModel):
         self.breakpoints = []
         files = []
         # Generate list of filenames with active breakpoints
-        for key in data.keys():
+        for key in data:
             if data[key] and key not in files:
                 files.append(key)
         # Insert items
@@ -137,7 +137,7 @@ class BreakpointTableModel(QAbstractTableModel):
 
 class BreakpointDelegate(QItemDelegate):
     def __init__(self, parent=None):
-        QItemDelegate.__init__(self, parent)
+        super().__init__(parent)
 
 
 class BreakpointTableView(QTableView):
@@ -147,7 +147,7 @@ class BreakpointTableView(QTableView):
     set_or_edit_conditional_breakpoint = Signal()
 
     def __init__(self, parent, data):
-        QTableView.__init__(self, parent)
+        super().__init__(parent)
         self.model = BreakpointTableModel(self, data)
         self.setModel(self.model)
         self.delegate = BreakpointDelegate(self)
@@ -184,35 +184,29 @@ class BreakpointTableView(QTableView):
         index_clicked = self.indexAt(event.pos())
         actions = []
         self.popup_menu = QMenu(self)
-        clear_all_breakpoints_action = create_action(self,
-            _("Clear breakpoints in all files"),
+        clear_all_breakpoints_action = create_action(
+            self, _("Clear breakpoints in all files"),
             triggered=lambda: self.clear_all_breakpoints.emit())
         actions.append(clear_all_breakpoints_action)
         if self.model.breakpoints:
             c_row = index_clicked.row()
             filename = self.model.breakpoints[c_row][COL_FULL]
             lineno = int(self.model.breakpoints[c_row][COL_LINE])
-            # QAction.triggered works differently for PySide and PyQt
-            if not API == 'pyside':
-                clear_slot = lambda _checked, filename=filename, lineno=lineno: \
-                    self.clear_breakpoint.emit(filename, lineno)
-                edit_slot = lambda _checked, filename=filename, lineno=lineno: \
-                    (self.edit_goto.emit(filename, lineno, ''),
-                     self.set_or_edit_conditional_breakpoint.emit())
-            else:
-                clear_slot = lambda filename=filename, lineno=lineno: \
-                    self.clear_breakpoint.emit(filename, lineno)
-                edit_slot = lambda filename=filename, lineno=lineno: \
-                    (self.edit_goto.emit(filename, lineno, ''),
-                     self.set_or_edit_conditional_breakpoint.emit())
 
-            clear_breakpoint_action = create_action(self,
-                    _("Clear this breakpoint"),
+            def clear_slot(filename=filename, lineno=lineno):
+                return self.clear_breakpoint.emit(filename, lineno)
+
+            def edit_slot(filename=filename, lineno=lineno):
+                self.edit_goto.emit(filename, lineno, '')
+                self.set_or_edit_conditional_breakpoint.emit()
+
+            clear_breakpoint_action = create_action(
+                    self, _("Clear this breakpoint"),
                     triggered=clear_slot)
-            actions.insert(0,clear_breakpoint_action)
+            actions.insert(0, clear_breakpoint_action)
 
-            edit_breakpoint_action = create_action(self,
-                    _("Edit this breakpoint"),
+            edit_breakpoint_action = create_action(
+                    self, _("Edit this breakpoint"),
                     triggered=edit_slot)
             actions.append(edit_breakpoint_action)
         add_actions(self.popup_menu, actions)
@@ -231,11 +225,11 @@ class BreakpointWidget(QWidget):
     edit_goto = Signal(str, int, str)
 
     def __init__(self, parent, options_button=None):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         self.setWindowTitle("Breakpoints")
         self.dictwidget = BreakpointTableView(self,
-                               self._load_all_breakpoints())
+                                              self._load_all_breakpoints())
         if options_button:
             btn_layout = QHBoxLayout()
             btn_layout.setAlignment(Qt.AlignLeft)
@@ -272,9 +266,9 @@ class BreakpointWidget(QWidget):
         self.dictwidget.sortByColumn(COL_FILE, Qt.DescendingOrder)
 
 
-#==============================================================================
+# =============================================================================
 # Tests
-#==============================================================================
+# =============================================================================
 def test():
     """Run breakpoint widget test"""
     from spyder.utils.qthelpers import qapplication

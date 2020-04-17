@@ -1,0 +1,62 @@
+name: Close duplicate issues
+
+on: [issues]
+
+jobs:
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: spyder-ide/action-close-duplicate-issues@master
+        with:
+          repo-token: ${{ secrets.SECRET_TOKEN }}
+          items: >-
+            [
+             {
+               "pattern": "ValueError: cannot set WRITEABLE flag to True of this array",
+               "reply": "This is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "TypeError: _start_server() missing 1 required positional argument",
+               "reply": "This is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "PermissionError: [Errno 13] Permission denied",
+               "reply": "To fix this, please open the Anaconda Prompt and run there the following commands:<br><br>`conda update anaconda`<br>`conda install jupyter_client=5.3.4`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "AttributeError: 'NoneType' object has no attribute 'execute'",
+               "reply": "This is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "AttributeError: module 'dateutil.tz' has no attribute 'UTC'",
+               "reply": "This is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "AttributeError: '_ModuleMock' object has no attribute 'PLUGIN_CLASS'",
+               "reply": "This is fixed in our latest Spyder 3 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=3.3.6`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "TypeError: _handle_remote_call_reply() missing 1 required positional argument: 'load_exception'",
+               "reply": "This is fixed in our latest Spyder 4 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=4.1.*`",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "psutil.NoSuchProcess: psutil.NoSuchProcess process no longer exists",
+               "reply": "Duplicate of #11872. It will be fixed in our next version (4.1.2)",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             }
+             ]

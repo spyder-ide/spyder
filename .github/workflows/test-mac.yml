@@ -1,17 +1,33 @@
 name: Mac tests
 
 on:
-  # This avoids having duplicate builds for a pull request
   push:
     branches:
-    - master
-    - 5.x
-    - 4.x
+      - master
+      - 5.x
+      - 4.x
+    paths:
+      - '.github/scripts/*.sh'
+      - '.github/workflows/*.yml'
+      - 'requirements/*.txt'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+
   pull_request:
     branches:
-    - master
-    - 5.x
-    - 4.x
+      - master
+      - 5.x
+      - 4.x
+    paths:
+      - '.github/scripts/*.sh'
+      - '.github/workflows/*.yml'
+      - 'requirements/*.txt'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
 
 jobs:
   cleanup-previous-runs:
@@ -38,46 +54,54 @@ jobs:
       fail-fast: false
       matrix:
         INSTALL_TYPE: ['conda']
-        PYTHON_VERSION: ['3.7', '2.7']
+        PYTHON_VERSION: ['3.7']
         TEST_TYPE: ['fast', 'slow']
     steps:
-      - name: Checkout
+      - name: Checkout Pull Requests
+        if: github.event_name == 'pull_request'
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+      - name: Checkout Push
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@v2
       - name: Fetch branches
+        if: github.event_name == 'pull_request'
         run: git fetch --prune --unshallow
       - name: Check build skips
+        if: github.event_name == 'pull_request'
         shell: bash -l {0}
-        run: |
-          source .github/scripts/check_skip.sh
-          source .github/scripts/check_skip_py.sh
+        run: source .github/scripts/check_skip.sh
+      - name: Check build runs
+        if: github.event_name != 'pull_request'
+        shell: bash -l {0}
+        run: echo "::set-env name=RUN_BUILD::true"
       - name: Install Conda
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        if: env.RUN_BUILD == 'true'
         uses: goanpeca/setup-miniconda@v1
         with:
            activate-environment: test
            auto-update-conda: true
            python-version: ${{ matrix.PYTHON_VERSION }} 
       - name: Create test environment
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: bash -l .github/scripts/install.sh
       - name: Show test environment
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: |
           conda info
           conda list
       - name: Run manifest checks
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: check-manifest
       - name: Run tests
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: python runtests.py || python runtests.py || python runtests.py || python runtests.py || python runtests.py
       - name: Coverage
-        if: env.RUN_BUILD == 'true' && env.RUN_BUILD_PY == 'true'
+        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: codecov

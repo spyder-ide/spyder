@@ -12,7 +12,6 @@
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import with_statement, print_function
 import fnmatch
 import os
 import os.path as osp
@@ -34,7 +33,6 @@ from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QLabel,
 # Local imports
 from spyder.config.base import _
 from spyder.config.main import EXCLUDE_PATTERNS
-from spyder.py3compat import to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
 from spyder.widgets.comboboxes import PatternComboBox
@@ -80,7 +78,7 @@ class SearchThread(QThread):
     max_power = 9   # 2**9 = 512
 
     def __init__(self, parent, search_text, text_color=None):
-        QThread.__init__(self, parent)
+        super().__init__(parent)
         self.mutex = QMutex()
         self.stopped = None
         self.search_text = search_text
@@ -290,32 +288,29 @@ class SearchThread(QThread):
         """
         Shorten text on line to display the match within `max_line_length`.
         """
-        ellipsis = u'...'
+        ellipsis = '...'
         max_line_length = 80
         max_num_char_fragment = 40
 
         html_escape_table = {
-            u"&": u"&amp;",
-            u'"': u"&quot;",
-            u"'": u"&apos;",
-            u">": u"&gt;",
-            u"<": u"&lt;",
+            "&": "&amp;",
+            '"': "&quot;",
+            "'": "&apos;",
+            ">": "&gt;",
+            "<": "&lt;",
         }
 
         def html_escape(text):
             """Produce entities within text."""
-            return u"".join(html_escape_table.get(c, c) for c in text)
+            return "".join(html_escape_table.get(c, c) for c in text)
 
-        if PY2:
-            line = to_text_string(line, encoding='utf8')
-        else:
-            line = to_text_string(line)
+        line = str(line)
         left, match, right = line[:start], line[start:end], line[end:]
 
         if len(line) > max_line_length:
             offset = (len(line) - len(match)) // 2
 
-            left = left.split(u' ')
+            left = left.split(' ')
             num_left_words = len(left)
 
             if num_left_words == 1:
@@ -324,7 +319,7 @@ class SearchThread(QThread):
                     left = ellipsis + left[-offset:]
                 left = [left]
 
-            right = right.split(u' ')
+            right = right.split(' ')
             num_right_words = len(right)
 
             if num_right_words == 1:
@@ -342,8 +337,8 @@ class SearchThread(QThread):
             if len(right) < num_right_words:
                 right = right + [ellipsis]
 
-            left = u' '.join(left)
-            right = u' '.join(right)
+            left = ' '.join(left)
+            right = ' '.join(right)
 
             if len(left) > max_num_char_fragment:
                 left = ellipsis + left[-30:]
@@ -351,7 +346,7 @@ class SearchThread(QThread):
             if len(right) > max_num_char_fragment:
                 right = right[:30] + ellipsis
 
-        line_match_format = (u'<span style="color:{0}">{{0}}'
+        line_match_format = ('<span style="color:{0}">{{0}}'
                              '<b>{{1}}</b>{{2}}</span>')
         line_match_format = line_match_format.format(self.text_color)
 
@@ -371,7 +366,7 @@ class SearchInComboBox(QComboBox):
     widget.
     """
     def __init__(self, external_path_history=[], parent=None):
-        super(SearchInComboBox, self).__init__(parent)
+        super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setToolTip(_('Search directory'))
         self.setEditable(False)
@@ -431,7 +426,7 @@ class SearchInComboBox(QComboBox):
 
     def get_external_paths(self):
         """Returns a list of the external paths listed in the combobox."""
-        return [to_text_string(self.itemText(i))
+        return [str(self.itemText(i))
                 for i in range(EXTERNAL_PATHS, self.count())]
 
     def clear_external_paths(self):
@@ -487,7 +482,7 @@ class SearchInComboBox(QComboBox):
                 self.clear_external_paths()
             self.setCurrentIndex(CWD)
         elif idx >= EXTERNAL_PATHS:
-            self.external_path = to_text_string(self.itemText(idx))
+            self.external_path = str(self.itemText(idx))
 
     @Slot()
     def select_directory(self):
@@ -562,7 +557,7 @@ class FindOptions(QWidget):
                  supported_encodings, more_options,
                  case_sensitive, external_path_history, search_in_index,
                  options_button=None):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
         self._running = False
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
@@ -717,9 +712,9 @@ class FindOptions(QWidget):
         # Return current options for them to be saved when closing
         # Spyder.
         if to_save:
-            search_text = [to_text_string(self.search_text.itemText(index))
+            search_text = [str(self.search_text.itemText(index))
                            for index in range(self.search_text.count())]
-            exclude = [to_text_string(self.exclude_pattern.itemText(index))
+            exclude = [str(self.exclude_pattern.itemText(index))
                        for index in range(self.exclude_pattern.count())]
             exclude_idx = self.exclude_pattern.currentIndex()
             path_history = self.path_selection_combo.get_external_paths()
@@ -737,7 +732,7 @@ class FindOptions(QWidget):
         self.search_text.setToolTip("")
         self.exclude_pattern.setToolTip("")
 
-        utext = to_text_string(self.search_text.currentText())
+        utext = str(self.search_text.currentText())
         if not utext:
             return
 
@@ -751,7 +746,7 @@ class FindOptions(QWidget):
                 except UnicodeDecodeError:
                     pass
 
-        exclude = to_text_string(self.exclude_pattern.currentText())
+        exclude = str(self.exclude_pattern.currentText())
 
         if not case_sensitive:
             texts = [(text[0].lower(), text[1]) for text in texts]
@@ -771,7 +766,7 @@ class FindOptions(QWidget):
             if error_msg:
                 exclude_edit = self.exclude_pattern.lineEdit()
                 exclude_edit.setStyleSheet(self.REGEX_INVALID)
-                tooltip = self.REGEX_ERROR + u': ' + to_text_string(error_msg)
+                tooltip = self.REGEX_ERROR + ': ' + str(error_msg)
                 self.exclude_pattern.setToolTip(tooltip)
                 return None
             else:
@@ -782,7 +777,7 @@ class FindOptions(QWidget):
             error_msg = regexp_error_msg(texts[0][0])
             if error_msg:
                 self.search_text.lineEdit().setStyleSheet(self.REGEX_INVALID)
-                tooltip = self.REGEX_ERROR + u': ' + to_text_string(error_msg)
+                tooltip = self.REGEX_ERROR + ': ' + str(error_msg)
                 self.search_text.setToolTip(tooltip)
                 return None
             else:
@@ -836,15 +831,14 @@ class LineMatchItem(QTreeWidgetItem):
         self.match = match
         self.text_color = text_color
         self.font = font
-        QTreeWidgetItem.__init__(self, parent, [self.__repr__()],
-                                 QTreeWidgetItem.Type)
+        super().__init__(parent, [self.__repr__()], QTreeWidgetItem.Type)
 
     def __repr__(self):
-        match = to_text_string(self.match).rstrip()
-        _str = to_text_string("<!-- LineMatchItem -->"
-                              "<p style=\"color:'{4}';\"><b>{1}</b> ({2}): "
-                              "<span style='font-family:{0};"
-                              "font-size:75%;'>{3}</span></p>")
+        match = str(self.match).rstrip()
+        _str = ("<!-- LineMatchItem -->"
+                "<p style=\"color:'{4}';\"><b>{1}</b> ({2}): "
+                "<span style='font-family:{0};"
+                "font-size:75%;'>{3}</span></p>")
         return _str.format(self.font.family(), self.lineno, self.colno, match,
                            self.text_color)
 
@@ -868,15 +862,15 @@ class FileMatchItem(QTreeWidgetItem):
         self.sorting = sorting
         self.filename = osp.basename(filename)
 
-        title_format = to_text_string('<!-- FileMatchItem -->'
-                                      '<b style="color:{2}">{0}</b>'
-                                      '&nbsp;&nbsp;&nbsp;'
-                                      '<small style="color:{2}"><em>{1}</em>'
-                                      '</small>')
+        title_format = ('<!-- FileMatchItem -->'
+                        '<b style="color:{2}">{0}</b>'
+                        '&nbsp;&nbsp;&nbsp;'
+                        '<small style="color:{2}"><em>{1}</em>'
+                        '</small>')
         title = (title_format.format(osp.basename(filename),
                                      osp.dirname(filename),
                                      text_color))
-        QTreeWidgetItem.__init__(self, parent, [title], QTreeWidgetItem.Type)
+        super().__init__(parent, [title], QTreeWidgetItem.Type)
 
         self.setToolTip(0, filename)
 
@@ -896,7 +890,7 @@ class FileMatchItem(QTreeWidgetItem):
 class ItemDelegate(QStyledItemDelegate):
 
     def __init__(self, parent):
-        QStyledItemDelegate.__init__(self, parent)
+        super().__init__(parent)
         self._margin = None
 
     def paint(self, painter, option, index):
@@ -942,7 +936,7 @@ class ResultsBrowser(OneColumnTree):
     sig_max_results_reached = Signal()
 
     def __init__(self, parent, text_color=None, max_results=1000):
-        OneColumnTree.__init__(self, parent)
+        super().__init__(parent)
         self.search_text = None
         self.results = None
         self.max_results = max_results
@@ -1042,7 +1036,7 @@ class FileProgressBar(QWidget):
     """Simple progress spinner with a label."""
 
     def __init__(self, parent):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         self.status_text = QLabel(self)
         self.spinner = create_waitspinner(parent=self)
@@ -1055,9 +1049,9 @@ class FileProgressBar(QWidget):
     def set_label_path(self, path, folder=False):
         text = truncate_path(path)
         if not folder:
-            status_str = _(u' Scanning: {0}').format(text)
+            status_str = _(' Scanning: {0}').format(text)
         else:
-            status_str = _(u' Searching for files in folder:'
+            status_str = _(' Searching for files in folder:'
                            ' {0}').format(text)
         self.status_text.setText(status_str)
 
@@ -1097,7 +1091,7 @@ class FindInFilesWidget(QWidget):
                  options_button=None,
                  text_color=None,
                  max_results=1000):
-        QWidget.__init__(self, parent)
+        super().__init__(parent)
 
         self.search_thread = None
         self.text_color = text_color

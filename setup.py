@@ -43,8 +43,8 @@ PY3 = sys.version_info[0] == 3
 # Taken from the notebook setup.py -- Modified BSD License
 #==============================================================================
 v = sys.version_info
-if v[:2] < (2, 7) or (v[0] >= 3 and v[:2] < (3, 5)):
-    error = "ERROR: Spyder requires Python version 2.7 or 3.5 and above."
+if v[0] >= 3 and v[:2] < (3, 6):
+    error = "ERROR: Spyder 5 requires Python version 3.6 or above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -234,6 +234,7 @@ install_requires = [
     'qtconsole>=4.6.0',
     'qtpy>=1.5.0',
     'sphinx>=0.6.6',
+    # Don't forget to update this to >=2.0 for Spyder 5!
     'spyder-kernels>=1.9.0,<1.10.0',
     'watchdog',
 ]

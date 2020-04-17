@@ -37,7 +37,7 @@ class Breakpoints(SpyderPluginWidget):
 
     def __init__(self, parent=None):
         """Initialization."""
-        SpyderPluginWidget.__init__(self, parent)
+        super().__init__(parent)
 
         self.breakpoints = BreakpointWidget(self,
                                             options_button=self.options_button)
@@ -51,7 +51,7 @@ class Breakpoints(SpyderPluginWidget):
         path = osp.join(self.PLUGIN_PATH, self.IMG_PATH)
         self.icon = ima.icon('breakpoints', icon_path=path)
 
-    #------ SpyderPluginWidget API --------------------------------------------
+    # ----- SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Breakpoints")
@@ -74,7 +74,6 @@ class Breakpoints(SpyderPluginWidget):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.breakpoints.edit_goto.connect(self.main.editor.load)
-        #self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.breakpoints.clear_all_breakpoints.connect(
                                         self.main.editor.clear_all_breakpoints)
         self.breakpoints.clear_breakpoint.connect(

@@ -8,7 +8,7 @@ https://github.com/spyder-ide/spyder/graphs/contributors)*
 
 ## Project status
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/spyder-ide/spyder/4.x?urlpath=%2Fdesktop)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/spyder-ide/spyder/master?urlpath=%2Fdesktop)
 [![license](https://img.shields.io/pypi/l/spyder.svg)](./LICENSE.txt)
 [![pypi version](https://img.shields.io/pypi/v/spyder.svg)](https://pypi.org/project/spyder/)
 [![conda version](https://img.shields.io/conda/vn/conda-forge/spyder.svg)](https://www.anaconda.com/download/)
