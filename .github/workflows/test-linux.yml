@@ -49,6 +49,7 @@ jobs:
             TEST_TYPE: 'slow'
     steps:
       - name: Setup systemd
+        shell: bash -l {0}
         run: |
           export XDG_RUNTIME_DIR="/run/user/$UID"
           export DBUS_SESSION_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR}/bus"
