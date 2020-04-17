@@ -60,9 +60,6 @@ jobs:
         TEST_TYPE: ['fast', 'slow']
 
     steps:
-      - name: Setup systemd
-        shell: bash -l {0}
-        run: systemctl edit --user --full --force wagoOpenhabBridge.service
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
         uses: actions/checkout@v2
