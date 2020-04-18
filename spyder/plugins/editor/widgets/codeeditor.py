@@ -3926,7 +3926,6 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
         elif key == Qt.Key_Backspace and not shift and not ctrl:
-            self.document_did_change()
             leading_text = self.get_text('sol', 'cursor')
             leading_length = len(leading_text)
             trailing_spaces = leading_length-len(leading_text.rstrip())
@@ -3952,6 +3951,7 @@ class CodeEditor(TextEditBaseWidget):
                     cursor.removeSelectedText()
                 else:
                     insert_text(event)
+            self.document_did_change()
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
