@@ -127,7 +127,7 @@ if args.debug:
 
 # Add this path to the front of sys.path
 sys.path.insert(0, DEVPATH)
-print("01. Patched sys.path with %s" % DEVPATH)
+print("*. Patched sys.path with %s" % DEVPATH)
 
 # Add external dependencies subrepo paths to be the next entries
 # (1, 2, etc) of sys.path
@@ -136,7 +136,7 @@ i = 1
 for path in os.listdir(DEPS_PATH):
     external_dep_path = osp.join(DEPS_PATH, path)
     sys.path.insert(i, external_dep_path)
-    print("01-%d. Patched sys.path with %s" % (i, external_dep_path))
+    print("*. Patched sys.path with %s" % external_dep_path)
     i += 1
 
 # Install our PyLS subrepo in development mode. Else the server is unable
@@ -147,7 +147,7 @@ try:
 
     # Remove the PyLS stable version first (in case it's present)
     if 'dirty' not in pkg.egg_name():
-        print("01-x. Removing stable version of the PyLS.")
+        print("*. Removing stable version of the PyLS.")
         uninstall_with_pip = False
         is_conda = osp.exists(osp.join(sys.prefix, 'conda-meta'))
 
@@ -188,7 +188,7 @@ except pkg_resources.DistributionNotFound:
     install_pyls_subrepo = True
 
 if install_pyls_subrepo:
-    print("01-x. Installing the PyLS in development mode")
+    print("*. Installing the PyLS in development mode")
     PYLS_PATH = osp.join(DEPS_PATH, 'python-language-server')
     subprocess.check_output(
         [sys.executable,
@@ -205,12 +205,12 @@ if install_pyls_subrepo:
 if args.gui is None:
     try:
         import PyQt5  # analysis:ignore
-        print("02. PyQt5 is detected, selecting")
+        print("*. PyQt5 is detected, selecting")
         os.environ['QT_API'] = 'pyqt5'
     except ImportError:
         sys.exit("ERROR: No PyQt5 detected!")
 else:
-    print ("02. Skipping GUI toolkit detection")
+    print ("*. Skipping GUI toolkit detection")
     os.environ['QT_API'] = args.gui
 
 
@@ -218,7 +218,7 @@ else:
 # QT_API environment variable if this has not yet been done just above)
 from spyder import get_versions
 versions = get_versions(reporev=True)
-print("03. Imported Spyder %s - Revision %s, Branch: %s" %
+print("*. Imported Spyder %s - Revision %s, Branch: %s" %
       (versions['spyder'], versions['revision'], versions['branch']))
 print("    [Python %s %dbits, Qt %s, %s %s on %s]" %
       (versions['python'], versions['bitness'], versions['qt'],
@@ -240,7 +240,7 @@ if args.show_console:
           "is to show the console, use --hide-console if you want to hide it")
 
 if args.hide_console and os.name == 'nt':
-    print("0x. Hiding parent console (Windows only)")
+    print("*. Hiding parent console (Windows only)")
     sys.argv.append("--hide-console")  # Windows only: show parent console
 
 # Reset temporary config directory if starting in --safe-mode
@@ -250,7 +250,7 @@ if args.safe_mode or os.environ.get('SPYDER_SAFE_MODE'):
     if osp.isdir(conf_dir):
         shutil.rmtree(conf_dir)
 
-print("04. Running Spyder")
+print("*. Running Spyder")
 from spyder.app import start  # analysis:ignore
 
 time_lapse = time.time() - time_start
