@@ -19,14 +19,20 @@ See spyder-ide/spyder#741.
 # pylint: disable=C0412
 # pylint: disable=C0413
 
-import time
-time_start = time.time()
-
+# Standard library imports
+import argparse
 import os
 import os.path as osp
-import sys
-import argparse
 import shutil
+import subprocess
+import sys
+import time
+
+# Third-party imports
+import pkg_resources
+
+
+time_start = time.time()
 
 
 # --- Parse command line
@@ -132,6 +138,68 @@ for path in os.listdir(DEPS_PATH):
     sys.path.insert(i, external_dep_path)
     print("01-%d. Patched sys.path with %s" % (i, external_dep_path))
     i += 1
+
+# Install our PyLS subrepo in development mode. Else the server is unable
+# to load its plugins with setuptools.
+install_pyls_subrepo = False
+try:
+    pkg = pkg_resources.get_distribution('python-language-server')
+
+    # Remove the PyLS stable version first (in case it's present)
+    if 'dirty' not in pkg.egg_name():
+        print("01-x. Removing stable version of the PyLS.")
+        uninstall_with_pip = False
+        is_conda = osp.exists(osp.join(sys.prefix, 'conda-meta'))
+
+        if is_conda:
+            output = subprocess.check_output(
+                ['conda',
+                 'list',
+                 'python-language-server',
+                 '--json']
+            )
+
+            # Remove with conda if the package was installed by conda
+            if b'pypi' not in output:
+                subprocess.check_output(
+                    ['conda',
+                     'remove',
+                     '-q',
+                     '-y',
+                     '--force',
+                     'python-language-server']
+                )
+            else:
+                uninstall_with_pip = True
+        else:
+            uninstall_with_pip = True
+
+        if uninstall_with_pip:
+            subprocess.check_output(
+                ['pip',
+                 'uninstall',
+                 '-q',
+                 '-y',
+                 'python-language-server']
+            )
+        install_pyls_subrepo = True
+except pkg_resources.DistributionNotFound:
+    # This could only happen if the PyLS was not previously installed
+    install_pyls_subrepo = True
+
+if install_pyls_subrepo:
+    print("01-x. Installing the PyLS in development mode")
+    PYLS_PATH = osp.join(DEPS_PATH, 'python-language-server')
+    subprocess.check_output(
+        [sys.executable,
+         '-m',
+         'pip',
+         'install',
+         '--no-deps',
+         '-e',
+         '.'],
+        cwd=PYLS_PATH
+    )
 
 # Selecting the GUI toolkit: PyQt5 if installed
 if args.gui is None:
