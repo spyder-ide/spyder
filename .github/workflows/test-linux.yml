@@ -61,13 +61,10 @@ jobs:
       - name: Check systemctl and env vars
         shell: bash -l {0}
         run: |
-            systemctl status
-            systemctl --failed
-            sudo systemctl reset-failed
-            sudo systemctl status dbus
             sudo systemctl --version
+            sudo systemctl status dbus
             printenv
-            /etc/init.d/dbus start
+            /etc/init.d/dbus restart
             systemctl --user status
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
