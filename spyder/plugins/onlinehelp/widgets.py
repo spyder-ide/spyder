@@ -140,7 +140,7 @@ class PydocBrowser(WebBrowser):
     def reload(self):
         """Reload page"""
         self.start_server()
-        WebBrowser.reload(self)
+        self.webview.reload()
 
     def load_finished(self, ok):
         """Handle load finished."""

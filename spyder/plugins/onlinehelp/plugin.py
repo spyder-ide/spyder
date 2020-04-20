@@ -91,3 +91,7 @@ class OnlineHelp(SpyderPluginWidget):
     def on_first_registration(self):
         """Action to be performed on first plugin registration"""
         self.tabify(self.main.help)
+
+    def update_font(self):
+        """Reload pydoc browser to get the new font set."""
+        self.pydocbrowser.reload()
