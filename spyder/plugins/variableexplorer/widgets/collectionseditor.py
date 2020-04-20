@@ -1451,7 +1451,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         """Remove values from data"""
         for name in names:
             self.shellwidget.remove_value(name)
-        self.shellwidget.refresh_namespacebrowser(interrupt=True)
+        self.shellwidget.refresh_namespacebrowser()
 
     def copy_value(self, orig_name, new_name):
         """Copy value"""
