@@ -59,6 +59,7 @@ jobs:
 
     steps:
       - name: Check systemctl and env vars
+        shell: bash -l {0}
         run: |
             systemctl status
             systemctl --failed
@@ -66,6 +67,9 @@ jobs:
             sudo systemctl status dbus
             sudo systemctl --version
             printenv
+            export XDG_RUNTIME_DIR=/run/user/`id -u`
+            sudo systemctl restart systemd-logind.service
+            systemctl --user status
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
         uses: actions/checkout@v2
