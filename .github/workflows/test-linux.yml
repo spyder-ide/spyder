@@ -67,8 +67,7 @@ jobs:
             sudo systemctl status dbus
             sudo systemctl --version
             printenv
-            export XDG_RUNTIME_DIR=/run/user/`id -u`
-            sudo systemctl restart systemd-logind.service
+            /etc/init.d/dbus start
             systemctl --user status
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
