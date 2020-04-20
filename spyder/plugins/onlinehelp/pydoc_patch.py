@@ -20,7 +20,7 @@ import warnings
 
 
 # Local imports
-from spyder.config.gui import is_dark_interface
+from spyder.config.gui import is_dark_interface, get_font
 from spyder.py3compat import PY2
 
 if PY2:
@@ -31,6 +31,7 @@ if PY2:
 
         def page(self, title, contents):
             """Format an HTML page."""
+            rich_text_font = get_font(option="rich_font").family()
             if is_dark_interface():
                 css_path = "static/css/dark_pydoc.css"
             else:
@@ -43,8 +44,9 @@ if PY2:
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html><head><title>Pydoc: %s</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-%s</head><body><div style="clear:both;padding-top:.7em;">%s</div>
-</body></html>''' % (title, css_link, contents)
+%s</head><body style="font-family:'%s';">
+<div style="clear:both;padding-top:.7em;">%s</div>
+</body></html>''' % (title, css_link, rich_text_font, contents)
 
             return html_page
 else:
@@ -652,6 +654,7 @@ def _url_handler(url, content_type="text/html"):
 
         def page(self, title, contents):
             """Format an HTML page."""
+            rich_text_font = get_font(option="rich_font").family()
             if is_dark_interface():
                 css_path = "static/css/dark_pydoc.css"
             else:
@@ -664,8 +667,9 @@ def _url_handler(url, content_type="text/html"):
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html><head><title>Pydoc: %s</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-%s</head><body>%s<div style="clear:both;padding-top:.7em;">%s</div>
-</body></html>''' % (title, css_link, html_navbar(), contents)
+%s</head><body style="clear:both;font-family:'%s'">
+%s<div style="clear:both;padding-top:.7em;">%s</div>
+</body></html>''' % (title, css_link, rich_text_font, html_navbar(), contents)
 
             return html_page
 

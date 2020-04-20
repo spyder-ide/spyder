@@ -83,12 +83,11 @@ body {
     background-color: #19232D;
     color: white;
     margin: 25px 25px 25px 25px;
-    font-family: sans-serif, 'Trebuchet MS', 'Helvetica';
     width: 95%;
 }
 
 code {
- font-family: sans-serif, 'Trebuchet MS', 'Helvetica';
+    font-family: inherit;
 }
 
 table {
@@ -108,7 +107,6 @@ td {
 div.main {
     clear: both;
     padding-top: .5em;
-    font-family: sans-serif, 'Trebuchet MS', 'Helvetica';
 }
 
 /* --- Links --- */
@@ -184,7 +182,6 @@ a:hover {
 .section_title {
     font-size: .9em;
     font-weight: bold;
-    font-family: sans-serif, 'Trebuchet MS', 'Helvetica';
     color: white;
     margin-top: 20px;
     margin-bottom: 10px;
@@ -222,5 +219,4 @@ a:hover {
     width:100%;
     color: white;
     padding-bottom: 0;
-    font-family: sans-serif, 'Trebuchet MS', 'Helvetica';
 }
