@@ -50,6 +50,7 @@ jobs:
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUN_SLOW: ${{ matrix.TEST_TYPE == 'slow' }}
       USE_CONDA: ${{ matrix.INSTALL_TYPE == 'conda' }}
+      XDG_RUNTIME_DIR: '/run/user/`id -u`'
     strategy:
       fail-fast: false 
       matrix:
@@ -64,8 +65,6 @@ jobs:
             sudo systemctl --version
             sudo systemctl status dbus
             printenv
-            sudo /etc/init.d/dbus start
-            systemctl --user status
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
         uses: actions/checkout@v2
