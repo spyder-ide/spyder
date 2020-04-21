@@ -454,7 +454,7 @@ class IPythonConsole(SpyderPluginWidget):
                 if console_namespace:
                     line += ", current_namespace=True"
                 line += ")"
-            else: # External kernels: use %run for non spyder-kernels
+            else:  # External kernels, use %run for non spyder-kernels
                 line = "%run "
                 if debug:
                     line += "-d "
