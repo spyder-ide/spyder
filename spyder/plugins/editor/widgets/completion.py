@@ -62,6 +62,7 @@ class CompletionWidget(QListWidget):
 
     def __init__(self, parent, ancestor):
         super(CompletionWidget, self).__init__(ancestor)
+        self._current_row = 0
         self.textedit = parent
         self._language = None
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
@@ -189,14 +190,17 @@ class CompletionWidget(QListWidget):
             if not self.check_can_complete(completion_label, current_word):
                 continue
             item = QListWidgetItem()
+            selected = i == self._current_row
 
             if not self.is_internal_console:
                 self.set_item_display(
-                    item, completion, height=height, width=width)
+                    item, completion, height=height, width=width,
+                    selected=selected)
                 item.setData(Qt.UserRole, completion)
             else:
                 completion_text = self.get_html_item_representation(
-                    completion_label, '', height=height, width=width)
+                    completion_label, '', height=height, width=width,
+                    selected=selected)
                 item.setData(Qt.UserRole, completion_label)
                 item.setText(completion_text)
 
@@ -211,7 +215,8 @@ class CompletionWidget(QListWidget):
             self.ICON_MAP[name] = ima.icon(name)
         return self.ICON_MAP[name]
 
-    def set_item_display(self, item_widget, item_info, height, width):
+    def set_item_display(self, item_widget, item_info, height, width,
+                         selected):
         """Set item text & icons using the info available."""
         item_provider = item_info['provider']
         item_type = self.ITEM_TYPE_MAP.get(item_info['kind'], 'no_match')
@@ -231,7 +236,7 @@ class CompletionWidget(QListWidget):
         item_text = self.get_html_item_representation(
             item_label, item_type, icon_provider=icon_provider,
             img_height=img_height, img_width=img_width, height=height,
-            width=width)
+            width=width, selected=selected)
 
         item_widget.setText(item_text)
         item_widget.setIcon(self._get_cached_icon(item_type))
@@ -241,7 +246,8 @@ class CompletionWidget(QListWidget):
                                      img_height=0,
                                      img_width=0,
                                      height=DEFAULT_COMPLETION_ITEM_HEIGHT,
-                                     width=DEFAULT_COMPLETION_ITEM_WIDTH):
+                                     width=DEFAULT_COMPLETION_ITEM_WIDTH,
+                                     selected=False):
         """Get HTML representation of and item."""
         height = to_text_string(height)
         width = to_text_string(width)
@@ -252,15 +258,22 @@ class CompletionWidget(QListWidget):
         # f-strings in new versions of Python are fast due to Python
         # compiling them into efficient string operations, but to be
         # compatible with old versions of Python, we manually join strings.
+
+        """Change color for selected items"""
+        if selected:
+            text_color = ima.MAIN_FG_COLOR_SELECTED
+        else:
+            text_color = ima.MAIN_FG_COLOR
+
         parts = [
             '<table width="', width, '" height="', height, '">', '<tr>',
 
-            '<td valign="middle" style="color:' + ima.MAIN_FG_COLOR + '">',
+            '<td valign="middle" style="color:' + text_color + '">',
             html.escape(item_completion).replace(' ', '&nbsp;'),
             '</td>',
 
             '<td valign="middle" align="right" float="right" style="color:',
-            ima.MAIN_FG_COLOR, '">',
+            text_color, '">',
             item_type,
             '</td>',
         ]
@@ -472,4 +485,10 @@ class CompletionWidget(QListWidget):
     @Slot(int)
     def row_changed(self, row):
         """Set completion hint info and show it."""
+        self._current_row = row
         self.trigger_completion_hint(row)
+        self.blockSignals(True)
+        self.setCurrentRow(row)
+        self.update_current()
+        self.setCurrentRow(row)
+        self.blockSignals(False)

@@ -25,8 +25,10 @@ import qtawesome as qta
 
 if is_dark_interface():
     MAIN_FG_COLOR = 'white'
+    MAIN_FG_COLOR_SELECTED = 'white'
 else:
     MAIN_FG_COLOR = 'black'
+    MAIN_FG_COLOR_SELECTED = 'white'
 
 BIN_FILES = {x: 'ArchiveFileIcon' for x in ['zip', 'x-tar',
                                             'x-7z-compressed', 'rar']}
