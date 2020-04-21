@@ -15,7 +15,7 @@ from qtpy.QtWidgets import QVBoxLayout
 # Local imports
 from spyder.config.base import _, get_conf_path
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.py3compat import to_text_string
+from spyder.py3compat import PY2, to_text_string
 from spyder.plugins.onlinehelp.widgets import PydocBrowser
 
 
@@ -94,4 +94,5 @@ class OnlineHelp(SpyderPluginWidget):
 
     def update_font(self):
         """Reload pydoc browser to get the new font set."""
-        self.pydocbrowser.reload()
+        if not PY2:
+            self.pydocbrowser.reload()
