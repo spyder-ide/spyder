@@ -254,7 +254,8 @@ def create_waitspinner(size=32, n=11, parent=None):
     return spinner
 
 
-def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
+def action2button(action, autoraise=True, text_beside_icon=False, parent=None,
+                  icon=None):
     """Create a QToolButton directly from a QAction object"""
     if parent is None:
         parent = action.parent()
@@ -263,6 +264,8 @@ def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
     button.setAutoRaise(autoraise)
     if text_beside_icon:
         button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+    if icon:
+        action.setIcon(icon)
     return button
 
 
