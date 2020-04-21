@@ -19,7 +19,7 @@ from qtpy.QtWidgets import QApplication
 # Local imports
 from spyder.config.base import _
 from spyder.plugins.onlinehelp.pydoc_patch import (
-    _start_server, _url_handler, CustomHTMLDoc)
+    _start_server, _url_handler)
 from spyder.py3compat import PY3, to_text_string
 from spyder.utils.misc import select_port
 from spyder.widgets.browser import WebBrowser
@@ -63,7 +63,6 @@ class PydocServer(QThread):
                                         port=self.port))
         else:
             # Python 2
-            pydoc.html = CustomHTMLDoc()
             pydoc.serve(self.port, self.callback, self.completer)
 
     def callback(self, server):
