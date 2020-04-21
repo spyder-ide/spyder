@@ -711,6 +711,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 QUrl.fromLocalFile(self.css_path)
             )
 
+    def has_spyder_kernel(self):
+        """Determine if the kernel in use is from Spyder."""
+        return self.shellwidget.is_spyder_kernel()
+
     #------ Private API -------------------------------------------------------
     def _create_loading_page(self):
         """Create html page to show while the kernel is starting"""

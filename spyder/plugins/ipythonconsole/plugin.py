@@ -442,7 +442,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         if client is not None:
             # Internal kernels, use runfile
-            if client.get_kernel() is not None:
+            if client.get_kernel() is not None or client.has_spyder_kernel():
                 line = "%s('%s'" % ('debugfile' if debug else 'runfile',
                                     norm(filename))
                 if args:
@@ -454,7 +454,7 @@ class IPythonConsole(SpyderPluginWidget):
                 if console_namespace:
                     line += ", current_namespace=True"
                 line += ")"
-            else: # External kernels, use %run
+            else: # External kernels: use %run for non spyder-kernels
                 line = "%run "
                 if debug:
                     line += "-d "
