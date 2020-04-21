@@ -180,42 +180,11 @@ See [NOTICE.txt](https://github.com/spyder-ide/spyder/blob/master/NOTICE.txt)
 for full legal information.
 
 
-## Running from a Github clone
+## Running from a git clone
 
-Spyder can be run directly from the source code, hosted on the
-[Spyder github repo](https://github.com/spyder-ide/spyder).
-You may want to do this for fixing bugs in Spyder, adding new
-features, learning how Spyder works or to try out development versions before
-they are officially released.
-
-If using `conda` (strongly recommended), this can be done by running the
-following from the command line (the Anaconda Prompt, if on Windows):
-
-```bash
-conda install spyder
-conda remove spyder
-git clone https://github.com/spyder-ide/spyder.git
-cd spyder
-python bootstrap.py
-```
-
-You also need to make sure the correct `spyder-kernels` version is installed
-for the version of Spyder you are testing. The above procedure will give you
-`spyder-kernels` 0.x for the `3.x` branch (Spyder 3),
-so to run the `master` branch (Spyder 4) you need to additionally execute:
-
-```bash
-conda install -c spyder-ide spyder-kernels=1.*
-```
-
-Alternatively, you can use `pip` to install PyQt5 and the other
-*runtime dependencies* listed below. However, beware:
-this method is recommended for experts only, and you'll need to solve any
-problems on your own.
-
-See the [installation instructions](
-https://docs.spyder-ide.org/installation.html) for more details on all of this.
-
+Please see the instructions in our
+[Contributing guide](https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md#setting-up-a-development-environment)
+to learn how to do run Spyder after cloning its repo from Github.
 
 ## Dependencies
 
