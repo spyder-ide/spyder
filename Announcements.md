@@ -1,31 +1,34 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 4.1.1 is released!
+**Subject**: [ANN] Spyder 4.1.2 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **4.1.1** has been released and is available for
+I'm pleased to announce that Spyder **4.1.2** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes three days after version 4.1.1 and it contains the
+This release comes two weeks after version 4.1.1 and it contains the
 following new features and important fixes:
 
 - New features
-  * Add file path completions to the Editor. This works by writing the
-    beginning of a file path, either absolute or relative, inside a
-    string and pressing `Tab` or `Ctrl+Space`.
-  * Add a new command line option called `--report-segfault` to be
-    able to send segmentation fault reports to Github.
+  * Add a new entry to the status bar to show the current state of Python
+    language server. This will allow users to know if completions, linting and
+    folding are working as expected or have issues. Clicking on this entry will
+    also show a menu from which is possible to restart the server manually.
 
 - Important fixes
-  * Fix a critical error when starting kernels on Windows.
-  * Update Jedi to 0.15.2.
-  * Add conda activation scripts for the kernel to the package.
+  * Completely disable warning informing to restart Spyder when a screen
+    resolution is detected on macOS.
+  * Show an error message when it's not possible to create a special console
+    for Sympy, Cython or Pylab.
+  * Restore code folding for all files with less than 2000 lines.
+  * Fix showing help for dot object (e.g. `np.sin`) in the IPython console.
+  * Fix showing kernel initialization error messages on Windows.
 
-In this release we fixed 6 issues and merged 8 pull requests that amount
-to more than 40 commits. For a full list of fixes, please see our
+In this release we fixed 16 issues and merged 23 pull requests that amount
+to more than 120 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/4.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

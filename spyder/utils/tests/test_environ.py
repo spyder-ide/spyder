@@ -45,7 +45,10 @@ def test_environ(environ_dialog, qtbot):
     assert environ_dialog
 
 
-@pytest.mark.skipif(PY3, reason=("This tests only applies to Python 2."))
+@pytest.mark.skipif(
+    PY3 or os.name == 'nt',
+    reason=("This tests only applies to Python 2."),
+)
 def test_clean_env():
     env = {
         'foo': '/foo/bar/測試',

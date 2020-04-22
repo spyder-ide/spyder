@@ -27,7 +27,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
 from spyder.config.base import get_image_path, MAC_APP_NAME
 from spyder.config.manager import CONF
 from spyder.config.gui import is_dark_interface
-from spyder.py3compat import is_text_string, to_text_string, PY2
+from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.icon_manager import get_icon, get_std_icon
@@ -254,7 +254,8 @@ def create_waitspinner(size=32, n=11, parent=None):
     return spinner
 
 
-def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
+def action2button(action, autoraise=True, text_beside_icon=False, parent=None,
+                  icon=None):
     """Create a QToolButton directly from a QAction object"""
     if parent is None:
         parent = action.parent()
@@ -263,6 +264,8 @@ def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
     button.setAutoRaise(autoraise)
     if text_beside_icon:
         button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+    if icon:
+        action.setIcon(icon)
     return button
 
 
@@ -327,8 +330,18 @@ def add_shortcut_to_tooltip(action, context, name):
         # are changed by the user over the course of the current session.
         # See spyder-ide/spyder#10726.
         action._tooltip_backup = action.toolTip()
-    action.setToolTip(action._tooltip_backup + ' (%s)' %
-                      CONF.get_shortcut(context=context, name=name))
+
+    try:
+        # Some shortcuts might not be assigned so we need to catch the error
+        shortcut = CONF.get_shortcut(context=context, name=name)
+    except (configparser.NoSectionError, configparser.NoOptionError):
+        shortcut = None
+
+    if shortcut:
+        keyseq = QKeySequence(shortcut)
+        # See: spyder-ide/spyder#12168
+        string = keyseq.toString(QKeySequence.NativeText)
+        action.setToolTip(u'{0} ({1})'.format(action._tooltip_backup, string))
 
 
 def add_actions(target, actions, insert_before=None):

@@ -283,8 +283,12 @@ class DataFrameModel(QAbstractTableModel):
             else:
                 color_func = float
             vmax, vmin = self.return_max(self.max_min_col, column)
+            if vmax - vmin == 0:
+                vmax_vmin_diff = 1.0
+            else:
+                vmax_vmin_diff = vmax - vmin
             hue = (BACKGROUND_NUMBER_MINHUE + BACKGROUND_NUMBER_HUERANGE *
-                   (vmax - color_func(value)) / (vmax - vmin))
+                   (vmax - color_func(value)) / (vmax_vmin_diff))
             hue = float(abs(hue))
             if hue > 1:
                 hue = 1
@@ -515,9 +519,26 @@ class DataFrameView(QTableView):
             name='copy',
             parent=self)
         self.horizontalScrollBar().valueChanged.connect(
-                        lambda val: self.load_more_data(val, columns=True))
-        self.verticalScrollBar().valueChanged.connect(
-                        lambda val: self.load_more_data(val, rows=True))
+            self._load_more_columns)
+        self.verticalScrollBar().valueChanged.connect(self._load_more_rows)
+
+    def _load_more_columns(self, value):
+        """Load more columns to display."""
+        # Needed to avoid a NameError while fetching data when closing
+        # See spyder-ide/spyder#12034.
+        try:
+            self.load_more_data(value, columns=True)
+        except NameError:
+            pass
+
+    def _load_more_rows(self, value):
+        """Load more rows to display."""
+        # Needed to avoid a NameError while fetching data when closing
+        # See spyder-ide/spyder#12034.
+        try:
+            self.load_more_data(value, rows=True)
+        except NameError:
+            pass
 
     def load_more_data(self, value, rows=False, columns=False):
         """Load more rows and columns to display."""
@@ -566,7 +587,8 @@ class DataFrameView(QTableView):
                      (_("To str"), to_text_string))
         types_in_menu = [copy_action]
         for name, func in functions:
-            slot = lambda func=func: self.change_type(func)
+            def slot():
+                self.change_type(func)
             types_in_menu += [create_action(self, name,
                                             triggered=slot,
                                             context=Qt.WidgetShortcut)]

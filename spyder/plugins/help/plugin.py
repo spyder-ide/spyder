@@ -370,16 +370,19 @@ class Help(SpyderPluginWidget):
                                     '='*len(name), '\n\n'])
             else:
                 rst_title = ''
+            try:
+                if text['argspec']:
+                    definition = ''.join(
+                        ['Definition: ', name, text['argspec'], '\n\n'])
+                else:
+                    definition = ''
 
-            if text['argspec']:
-                definition = ''.join(['Definition: ', name, text['argspec'],
-                                      '\n'])
-            else:
-                definition = ''
-
-            if text['note']:
-                note = ''.join(['Type: ', text['note'], '\n\n----\n\n'])
-            else:
+                if text['note']:
+                    note = ''.join(['Type: ', text['note'], '\n\n----\n\n'])
+                else:
+                    note = _('No further documentation available')
+            except TypeError:
+                definition = _('No documentation available')
                 note = ''
 
             full_text = ''.join([rst_title, definition, note,

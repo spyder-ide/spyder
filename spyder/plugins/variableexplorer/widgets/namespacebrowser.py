@@ -269,7 +269,7 @@ class NamespaceBrowser(QWidget):
             self,
             text=_("Refresh variables"),
             icon=ima.icon('refresh'),
-            triggered=lambda: self.refresh_table(interrupt=True))
+            triggered=self.refresh_table)
 
         return [load_button, self.save_button, save_as_button,
                 reset_namespace_button, self.search_button,
@@ -375,10 +375,10 @@ class NamespaceBrowser(QWidget):
         else:
             self.editor.setFocus()
 
-    def refresh_table(self, interrupt=False):
+    def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
-            self.shellwidget.refresh_namespacebrowser(interrupt=interrupt)
+            self.shellwidget.refresh_namespacebrowser()
             try:
                 self.editor.resizeRowToContents()
             except TypeError:

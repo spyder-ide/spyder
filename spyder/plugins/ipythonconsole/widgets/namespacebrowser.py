@@ -53,7 +53,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         """Set namespace browser widget"""
         self.namespacebrowser = namespacebrowser
 
-    def refresh_namespacebrowser(self, interrupt=False):
+    def refresh_namespacebrowser(self, interrupt=True):
         """Refresh namespace browser"""
         if self.kernel_client is None:
             return
