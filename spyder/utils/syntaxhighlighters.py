@@ -497,7 +497,8 @@ class PythonSH(BaseSH):
                  "class": OutlineExplorerData.CLASS}
     # Comments suitable for Outline Explorer
     OECOMMENT = re.compile(r'^(# ?--[-]+|# ?#[#]+ )[ -]*[^- ]+')
-    OECOMMENTFOLD = re.compile(r'^(# ?#[#]+> )')
+    OECOMMENTFOLD = re.compile(r'^(# ?<[<]+|# ?region)')
+    OECOMMENTEND = re.compile(r'^(# ?>[>]+|# ?endregion)')
 
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
@@ -555,6 +556,11 @@ class PythonSH(BaseSH):
                     oedata.fold_level = start
                     oedata.def_type = OutlineExplorerData.COMMENTFOLD
                     oedata.def_name = text.strip()
+                elif self.OECOMMENTEND.match(text.lstrip()):
+                    oedata = OutlineExplorerData(self.currentBlock())
+                    oedata.text = to_text_string(text).strip()
+                    oedata.fold_level = start
+                    oedata.def_type = OutlineExplorerData.COMMENTEND
                 elif self.OECOMMENT.match(text.lstrip()):
                     oedata = OutlineExplorerData(self.currentBlock())
                     oedata.text = to_text_string(text).strip()
