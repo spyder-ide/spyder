@@ -1,12 +1,12 @@
-name: Linux tests
+name: Linux tests 1.x
 
 on:
   push:
     branches:
-    - master
+    - 1.x
   pull_request:
     branches:
-    - master
+    - 1.x
 
 jobs:
   linux:
@@ -54,6 +54,5 @@ jobs:
         shell: bash -l {0}
         run: xvfb-run --auto-servernum pytest spyder_kernels --cov=spyder_kernels -x -vv
       - name: Upload coverage to Codecov
-        if: matrix.PYTHON_VERSION == '3.8'
         shell: bash -l {0}
         run: codecov -t 02fa9892-fa7f-4cf8-ac3c-d54143ddc933
