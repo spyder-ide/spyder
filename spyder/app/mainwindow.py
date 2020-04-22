@@ -2530,7 +2530,8 @@ class MainWindow(QMainWindow):
             if self.interface_locked:
                 if plugin.dockwidget.isFloating():
                     plugin.dockwidget.setFloating(False)
-                plugin.dockwidget.setTitleBarWidget(QWidget())
+
+                plugin.dockwidget.remove_title_bar()
             else:
                 plugin.dockwidget.set_title_bar()
 
