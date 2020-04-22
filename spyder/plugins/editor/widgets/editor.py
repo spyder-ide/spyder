@@ -437,7 +437,7 @@ class EditorStack(QWidget):
     refresh_save_all_action = Signal()
     sig_breakpoints_saved = Signal()
     text_changed_at = Signal(str, int)
-    current_file_changed = Signal(str, int)
+    current_file_changed = Signal(str, int, int, int)
     plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
     sig_split_vertically = Signal()
@@ -2241,8 +2241,10 @@ class EditorStack(QWidget):
             # Needed in order to handle the close of files open in a directory
             # that has been renamed. See spyder-ide/spyder#5157.
             try:
+                line, col = editor.get_cursor_line_column()
                 self.current_file_changed.emit(self.data[index].filename,
-                                               editor.get_position('cursor'))
+                                               editor.get_position('cursor'),
+                                               line, col)
             except IndexError:
                 pass
 
