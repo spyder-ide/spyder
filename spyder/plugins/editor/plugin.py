@@ -2387,7 +2387,7 @@ class Editor(SpyderPluginWidget):
             return
         filename, _position, _line, _column = (
             self.cursor_pos_history[self.cursor_pos_index])
-        cur_line, cur_col  = self.get_current_editor().get_cursor_line_column()
+        cur_line, cur_col = self.get_current_editor().get_cursor_line_column()
         self.cursor_pos_history[self.cursor_pos_index] = (
             filename, self.get_current_editor().get_position('cursor'),
             cur_line, cur_col)
