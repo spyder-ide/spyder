@@ -2872,7 +2872,9 @@ class Editor(SpyderPluginWidget):
             # spyder-ide/spyder#8458.
             if layout:
                 is_vertical, cfname, clines = layout.get('splitsettings')[0]
-                if cfname in filenames:
+                # Check that a value for current line exist for each filename
+                # in the available settings. See spyder-ide/spyder#12201
+                if cfname in filenames and len(filenames) == len(clines):
                     index = filenames.index(cfname)
                     # First we load the last focused file.
                     self.load(filenames[index], goto=clines[index], set_focus=True)
