@@ -243,9 +243,9 @@ def test_comment(editorbot):
     cursor.setPosition(8)
     cursor.setPosition(11, QTextCursor.KeepAnchor)
     widget.setTextCursor(cursor)
-    qtbot.keyPress(widget, "1", modifier=Qt.ControlModifier)
+    widget.toggle_comment()
     assert widget.toPlainText() == "# import numpy"
-    qtbot.keyPress(widget, "1", modifier=Qt.ControlModifier)
+    widget.toggle_comment()
     assert widget.toPlainText() == "import numpy"
 
 

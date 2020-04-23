@@ -177,6 +177,7 @@ class CollectionsDelegate(QItemDelegate):
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)
                 editor.setFont(get_font(font_size_delta=DEFAULT_SMALL_DELTA))
+                self.sig_editor_shown.emit()
                 return editor
         # TextEditor for a long string
         elif is_text_string(value) and len(value) > 40 and not object_explorer:
@@ -201,6 +202,7 @@ class CollectionsDelegate(QItemDelegate):
                 # evaluation. So the object on which this method is trying to
                 # act doesn't exist anymore.
                 # editor.returnPressed.connect(self.commitAndCloseEditor)
+                self.sig_editor_shown.emit()
                 return editor
         # ObjectExplorer for an arbitrary Python object
         else:
