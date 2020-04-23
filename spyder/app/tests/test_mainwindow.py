@@ -3148,6 +3148,8 @@ def test_running_namespace(main_window, qtbot, tmpdir):
     assert nsb.editor.source_model._data['a']['view'] == '10'
     assert nsb.editor.source_model._data['b']['view'] == '10'
 
+
+@pytest.mark.slow
 @flaky(max_runs=3)
 def test_post_mortem(main_window, qtbot, tmpdir):
     """Test post mortem works"""
