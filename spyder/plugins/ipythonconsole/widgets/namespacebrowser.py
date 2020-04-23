@@ -89,6 +89,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         """Ask kernel for a value"""
         reason_big = _("The variable is too big to be retrieved")
         reason_not_picklable = _("The variable is not picklable")
+        reason_dead = _("The kernel is dead")
         msg = _("%s.<br><br>"
                 "Note: Please don't report this problem on Github, "
                 "there's nothing to do about it.")
@@ -101,6 +102,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             raise ValueError(msg % reason_big)
         except (PicklingError, UnpicklingError):
             raise ValueError(msg % reason_not_picklable)
+        except RuntimeError:
+            raise ValueError(msg % reason_dead)
 
     def set_value(self, name, value):
         """Set value for a variable"""
@@ -137,7 +140,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         except TimeoutError:
             msg = _("Data is too big to be loaded")
             return msg
-        except UnpicklingError:
+        except (UnpicklingError, RuntimeError):
             return None
 
     def save_namespace(self, filename):
@@ -149,7 +152,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         except TimeoutError:
             msg = _("Data is too big to be saved")
             return msg
-        except UnpicklingError:
+        except (UnpicklingError, RuntimeError):
             return None
 
     # ---- Private API (overrode by us) ----------------------------
