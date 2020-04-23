@@ -25,9 +25,11 @@ from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
                             QScrollArea, QScrollBar, QSpinBox, QSplitter,
-                            QStyle)
+                            QStyle, QLabel)
 
 # ---- Local library imports
+import spyder.utils.icon_manager as ima
+
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import is_unicode, to_text_string
@@ -606,12 +608,18 @@ class FigureViewer(QScrollArea):
             height = (size.height() -
                       style.pixelMetric(QStyle.PM_LayoutTopMargin) -
                       style.pixelMetric(QStyle.PM_LayoutBottomMargin))
-            if (fwidth / fheight) > (width / height):
-                new_width = int(width)
-                new_height = int(width / fwidth * fheight)
-            else:
-                new_height = int(height)
-                new_width = int(height / fheight * fwidth)
+            try:
+                if (fwidth / fheight) > (width / height):
+                    new_width = int(width)
+                    new_height = int(width / fwidth * fheight)
+                else:
+                    new_height = int(height)
+                    new_width = int(height / fheight * fwidth)
+            except ZeroDivisionError:
+                icon = ima.icon('broken_variant')
+                self.figcanvas._qpix_orig = icon.pixmap(fwidth, fheight)
+                new_width = fwidth
+                new_height = fheight
 
         if self.figcanvas.size() != QSize(new_width, new_height):
             self.figcanvas.setFixedSize(new_width, new_height)
