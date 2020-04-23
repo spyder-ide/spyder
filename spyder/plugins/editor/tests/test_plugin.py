@@ -212,18 +212,20 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     # Open a new file.
     editor_plugin.new()
     # Go to the third file.
+    cur_editor = editorstack.get_current_editor()
+    cur_line, cur_col = cur_editor.get_cursor_line_column()
     editorstack.set_stack_index(2)
     # Move the cursor within the third file. Note that this new position is
     # not added to the cursor position history.
     editorstack.get_current_editor().set_cursor_position(5)
-
     # Note that we use the filenames from the editor to define the expected
     # results because those returned by the python_files fixture are
     # normalized, so this would cause issues when assessing the results.
     filenames = editor_plugin.get_filenames()
     expected_cursor_pos_history = [
         (filenames[0], 0, 0, 0),
-        (filenames[4], len(editorstack.data[4].get_source_code()), 9, 0),
+        (filenames[4], len(editorstack.data[4].get_source_code()),
+         cur_line, cur_col),
         (filenames[2], 5, 0, 5)
         ]
     assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
