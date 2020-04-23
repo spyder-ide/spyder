@@ -3148,5 +3148,26 @@ def test_running_namespace(main_window, qtbot, tmpdir):
     assert nsb.editor.source_model._data['a']['view'] == '10'
     assert nsb.editor.source_model._data['b']['view'] == '10'
 
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_post_mortem(main_window, qtbot, tmpdir):
+    """Test post mortem works"""
+    # Check we can use custom complete for pdb
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = main_window.ipyconsole.get_focus_widget()
+
+    test_file = tmpdir.join('test.py')
+    test_file.write('raise RuntimeError\n')
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "runfile(" + repr(str(test_file)) + ", post_mortem=True)")
+
+    assert "ipdb>" in control.toPlainText()
+
+
 if __name__ == "__main__":
     pytest.main()
