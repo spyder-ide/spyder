@@ -4042,7 +4042,7 @@ class CodeEditor(TextEditBaseWidget):
 
         key = self._last_pressed_key
         if key is not None:
-            if key in [Qt.Key_Backspace, Qt.Key_Return, Qt.Key_Escape,
+            if key in [Qt.Key_Return, Qt.Key_Escape,
                        Qt.Key_Tab, Qt.Key_Backtab, Qt.Key_Space]:
                 self._last_pressed_key = None
                 return
@@ -4062,18 +4062,16 @@ class CodeEditor(TextEditBaseWidget):
             cursor.select(QTextCursor.WordUnderCursor)
             text = to_text_string(cursor.selectedText())
 
-        if (len(text) >= self.automatic_completions_after_chars
-                and self._last_key_pressed_text):
-            self.document_did_change(text)
+        self.document_did_change(text)
 
-            # Perform completion on the fly
-            if self.automatic_completions and not self.in_comment_or_string():
-                # Variables can include numbers and underscores
-                if (text.isalpha() or text.isalnum() or '_' in text
-                        or '.' in text):
-                    self.do_completion(automatic=True)
-                    self._last_key_pressed_text = ''
-                    self._last_pressed_key = None
+        # Perform completion on the fly
+        if self.automatic_completions and not self.in_comment_or_string():
+            # Variables can include numbers and underscores
+            if (text.isalpha() or text.isalnum() or '_' in text
+                    or '.' in text):
+                self.do_completion(automatic=True)
+                self._last_key_pressed_text = ''
+                self._last_pressed_key = None
 
     def fix_and_strip_indent(self, *args, **kwargs):
         """
