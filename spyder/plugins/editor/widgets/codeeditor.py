@@ -2067,13 +2067,12 @@ class CodeEditor(TextEditBaseWidget):
                                                     self.contentOffset()).top()
         bottom = top + self.blockBoundingRect(block).height()
         folding_panel = self.panels.get(FoldingPanel)
-
         while block.isValid() and top < event.pos().y():
             block = block.next()
             if block.isVisible():  # skip collapsed blocks
                 top = bottom
                 bottom = top + self.blockBoundingRect(block).height()
-                line_number += 1
+            line_number += 1
         return line_number
 
     def select_lines(self, linenumber_pressed, linenumber_released):
