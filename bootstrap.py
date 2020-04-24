@@ -156,7 +156,8 @@ try:
                 ['conda',
                  'list',
                  'python-language-server',
-                 '--json']
+                 '--json'],
+                shell=True if os.name == 'nt' else False
             )
 
             # Remove with conda if the package was installed by conda
@@ -167,7 +168,8 @@ try:
                      '-q',
                      '-y',
                      '--force',
-                     'python-language-server']
+                     'python-language-server'],
+                    shell=True if os.name == 'nt' else False
                 )
             else:
                 uninstall_with_pip = True
