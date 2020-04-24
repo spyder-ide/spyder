@@ -73,6 +73,24 @@ def test_setup_open_files_cleanprefs(editor_plugin_open_files):
     assert current_filename == expected_current_filename
 
 
+def test_open_untitled_files(editor_plugin_open_files):
+    """
+    Test for checking the counter of the untitled files is starting
+    correctly when there is one or more `untitledx.py` files saved.
+
+    Regression test for spyder-ide/spyder#7831
+    """
+    editor_factory = editor_plugin_open_files
+    editor, expected_filenames, expected_current_filename = (
+        editor_factory(None, None))
+
+    editor.new()
+    filenames = editor.get_current_editorstack().get_filenames()
+    new_filename = filenames[-1]
+    assert 'untitled5.py' in new_filename
+
+
+
 def test_renamed_tree(editor_plugin, mocker):
     """Test editor.renamed_tree().
 
@@ -223,7 +241,7 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     filenames = editor_plugin.get_filenames()
     expected_cursor_pos_history = [
         (filenames[0], 0),
-        (filenames[4], len(editorstack.data[4].get_source_code())),
+        (filenames[-1], len(editorstack.data[-1].get_source_code())),
         (filenames[2], 0)
         ]
     assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
