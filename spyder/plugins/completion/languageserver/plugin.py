@@ -17,7 +17,6 @@ import os.path as osp
 import sys
 
 # Third-party imports
-import psutil
 from qtpy.QtCore import Slot, QTimer
 from qtpy.QtWidgets import QMessageBox, QCheckBox
 
@@ -50,7 +49,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     LOCALHOST = ['127.0.0.1', 'localhost']
     CONFIGWIDGET_CLASS = LanguageServerConfigPage
     MAX_RESTART_ATTEMPTS = 5
-    TIME_BETWEEN_RESTARTS = 5000  # ms
+    TIME_BETWEEN_RESTARTS = 10000  # ms
     TIME_HEARTBEAT = 3000  # ms
 
     def __init__(self, parent):
@@ -91,7 +90,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         elif self.clients_restarting[language]:
             attempt = (self.MAX_RESTART_ATTEMPTS
                        - self.clients_restart_count[language] + 1)
-            logger.info("Automatic restart attemp {} for {}...".format(
+            logger.info("Automatic restart attempt {} for {}...".format(
                 attempt, language))
             self.set_status(language, _('restarting...'))
 
@@ -113,20 +112,31 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.clients_hearbeat[language] = None
                 self.report_lsp_down(language)
 
-            # Restarted succesfully
-            lsp_server = client['instance'].lsp_server
-            stdio_pid = client['instance'].stdio_pid
-            status = client['status']
-            tcp_check = lsp_server is not None and lsp_server.poll() is None
-            stdio_check = (stdio_pid is not None and
-                               psutil.pid_exists(stdio_pid))
-            if (status == self.RUNNING and (tcp_check or stdio_check)):
-                logger.info("Restart successful!")
-                self.clients_restarting[language] = False
-                self.clients_restart_timers[language].stop()
-                self.clients_restart_timers[language] = None
-                self.clients_restart_count[language] = 0
-                self.set_status(language, _('ready'))
+            # Check if the restart was successful
+            self.check_restart(client, language, kind='tcp')
+
+    def check_restart(self, client, language, kind):
+        """
+        Check if a server restart was successful in order to stop
+        further attempts.
+
+        `kind` can only be "tcp" or "stdio".
+        """
+        status = client['status']
+        if kind == 'tcp':
+            check = client['instance'].is_tcp_alive()
+        elif kind == 'stdio':
+            check = client['instance'].is_stdio_alive()
+        else:
+            check = False
+
+        if status == self.RUNNING and check:
+            logger.info("Restart successful!")
+            self.clients_restarting[language] = False
+            self.clients_restart_timers[language].stop()
+            self.clients_restart_timers[language] = None
+            self.clients_restart_count[language] = 0
+            self.set_status(language, _('ready'))
 
     def check_heartbeat(self, language):
         """
@@ -136,12 +146,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         status = client['status']
         instance = client.get('instance', None)
         if instance is not None:
-            lsp_server = instance.lsp_server
-            stdio_pid = instance.stdio_pid
-            tcp_check = (lsp_server is not None and
-                           lsp_server.poll() is not None)
-            stdio_check = (stdio_pid is not None and
-                            not psutil.pid_exists(stdio_pid))
+            tcp_check = not instance.is_tcp_alive()
+            stdio_check = not instance.is_stdio_alive()
             if (tcp_check or stdio_check or status != self.RUNNING):
                 instance.sig_lsp_down.emit(language)
 
@@ -158,6 +164,13 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """
         if not self.clients_restarting.get(language, False):
             self.set_status(language, _('ready'))
+
+        # This is the only place where we can detect if restarting
+        # a stdio server was successful because its pid is updated
+        # on initialization.
+        if self.clients_restarting.get(language):
+            client = self.clients[language]
+            self.check_restart(client, language, kind='stdio')
 
     def handle_lsp_down(self, language):
         """

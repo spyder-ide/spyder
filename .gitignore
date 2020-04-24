@@ -36,3 +36,6 @@ MANIFEST
 .ropeproject/
 .vscode/
 result.xml
+
+# Pylint dirs/files
+.pylint.d/

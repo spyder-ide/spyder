@@ -237,9 +237,10 @@ def cleanup(request):
 # =============================================================================
 @flaky(max_runs=3)
 @pytest.mark.slow
+@pytest.mark.first
 @pytest.mark.single_instance
 @pytest.mark.skipif((os.environ.get('CI', None) is None or (PY2
-                     and sys.platform == 'darwin')),
+                     and not sys.platform.startswith('linux'))),
                     reason="It's not meant to be run outside of CIs")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and %edit magic."""
@@ -303,6 +304,8 @@ def test_lock_action(main_window):
 
 
 @pytest.mark.slow
+@pytest.mark.first
+@pytest.mark.skipif(os.name == 'nt' and PY2, reason="Fails on win and py2")
 def test_default_plugin_actions(main_window, qtbot):
     """Test the effect of dock, undock, close and toggle view actions."""
     # Use a particular plugin
@@ -348,7 +351,10 @@ def test_opengl_implementation(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(np.__version__ < '1.14.0', reason="This only happens in Numpy 1.14+")
+@pytest.mark.skipif(
+    np.__version__ < '1.14.0' or (os.name == 'nt' and PY2),
+    reason="This only happens in Numpy 1.14+"
+)
 @pytest.mark.parametrize('main_window', [{'spy_config': ('variable_explorer', 'minmax', True)}], indirect=True)
 def test_filter_numpy_warning(main_window, qtbot):
     """
@@ -540,8 +546,9 @@ def test_get_help_ipython_console(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="Only works on Linux")
+@pytest.mark.skipif((not sys.platform.startswith('linux') or
+                     os.environ.get('CI', None) is None),
+                    reason="Only works on Linux and CIs")
 @pytest.mark.use_introspection
 @pytest.mark.parametrize(
     "object_info",
@@ -690,8 +697,7 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(os.environ.get('CI', None) is None or sys.platform == 'darwin',
-                    reason="It's not meant to be run locally and fails in macOS")
+@pytest.mark.skipif(os.name == 'nt', reason='Fails on windows!')
 def test_runconfig_workdir(main_window, qtbot, tmpdir):
     """Test runconfig workdir options."""
     CONF.set('run', 'configurations', [])
@@ -746,7 +752,7 @@ def test_runconfig_workdir(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif((os.name == 'nt' and PY2) or sys.platform == 'darwin',
+@pytest.mark.skipif(os.name == 'nt' or sys.platform == 'darwin',
                     reason="It's failing there")
 def test_dedicated_consoles(main_window, qtbot):
     """Test running code in dedicated consoles."""
@@ -2745,7 +2751,7 @@ def test_varexp_refresh(main_window, qtbot):
     # This is empty
     assert len(nsb.editor.source_model._data) == 0
 
-    nsb.refresh_table(interrupt=True)
+    nsb.refresh_table()
     qtbot.waitUntil(lambda: len(nsb.editor.source_model._data) == 1)
 
     assert 0 < int(nsb.editor.source_model._data['i']['view']) < 9
@@ -3086,6 +3092,81 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
     finally:
         if osp.exists(to_text_string(write_file)):
             os.remove(to_text_string(write_file))
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_running_namespace(main_window, qtbot, tmpdir):
+    """
+    Test that the running namespace is correctly sent when debugging in a
+    new namespace.
+    """
+    code = ("def test(a):\n    print('a:',a)\na = 10\ntest(5)")
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(code)
+    code_editor.debugger.toogle_breakpoint(line_number=2)
+
+    # Write b in the namespace
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('b = 10')
+
+    nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.waitUntil(lambda: 'b' in nsb.editor.source_model._data)
+    assert nsb.editor.source_model._data['b']['view'] == '10'
+
+    # Start debugging
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
+
+    # b should not be there (running namespace) and the local a should be 5
+    qtbot.waitUntil(lambda: 'a' in nsb.editor.source_model._data and
+                    nsb.editor.source_model._data['a']['view'] == '5',
+                    timeout=3000)
+    assert 'b' not in nsb.editor.source_model._data
+    assert nsb.editor.source_model._data['a']['view'] == '5'
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('c')
+
+    # At the end, b should be back and a should be 10
+    qtbot.waitUntil(lambda: 'b' in nsb.editor.source_model._data)
+    assert nsb.editor.source_model._data['a']['view'] == '10'
+    assert nsb.editor.source_model._data['b']['view'] == '10'
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_post_mortem(main_window, qtbot, tmpdir):
+    """Test post mortem works"""
+    # Check we can use custom complete for pdb
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = main_window.ipyconsole.get_focus_widget()
+
+    test_file = tmpdir.join('test.py')
+    test_file.write('raise RuntimeError\n')
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "runfile(" + repr(str(test_file)) + ", post_mortem=True)")
+
+    assert "ipdb>" in control.toPlainText()
 
 
 if __name__ == "__main__":

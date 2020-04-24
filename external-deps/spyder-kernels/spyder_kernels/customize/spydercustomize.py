@@ -314,20 +314,11 @@ __umr__ = UserModuleReloader(namelist=os.environ.get("SPY_UMR_NAMELIST", None))
 # =============================================================================
 # Handle Post Mortem Debugging and Traceback Linkage to Spyder
 # =============================================================================
-def clear_post_mortem():
-    """
-    Remove the post mortem excepthook and replace with a standard one.
-    """
-    ipython_shell = get_ipython()
-    ipython_shell.set_custom_exc((), None)
-
-
 def post_mortem_excepthook(type, value, tb):
     """
     For post mortem exception handling, print a banner and enable post
     mortem debugging.
     """
-    clear_post_mortem()
     ipython_shell = get_ipython()
     ipython_shell.showtraceback((type, value, tb))
     p = pdb.Pdb(ipython_shell.colors)
@@ -342,32 +333,9 @@ def post_mortem_excepthook(type, value, tb):
         p.send_initial_notification = False
         p.reset()
         frame = tb.tb_frame
-        prev = frame
-        while frame.f_back:
-            prev = frame
-            frame = frame.f_back
-        frame = prev
         # wait for stdout to print
         time.sleep(0.1)
         p.interaction(frame, tb)
-
-
-def set_post_mortem():
-    """
-    Enable the post mortem debugging excepthook.
-    """
-    def ipython_post_mortem_debug(shell, etype, evalue, tb,
-                                  tb_offset=None):
-        post_mortem_excepthook(etype, evalue, tb)
-
-    ipython_shell = get_ipython()
-    ipython_shell.set_custom_exc((Exception,), ipython_post_mortem_debug)
-
-
-# Add post mortem debugging if requested and in a dedicated interpreter
-# existing interpreters use "runfile" below
-if "SPYDER_EXCEPTHOOK" in os.environ:
-    set_post_mortem()
 
 
 # ==============================================================================
@@ -421,7 +389,7 @@ def transform_cell(code):
     return '\n' * number_empty_lines + code
 
 
-def exec_code(code, filename, ns_globals, ns_locals=None):
+def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
     """Execute code and display any exception."""
     global SHOW_INVALID_SYNTAX_MSG
 
@@ -470,6 +438,9 @@ def exec_code(code, filename, ns_globals, ns_locals=None):
                 and ipython_shell.kernel._pdb_obj):
             # Ignore BdbQuit if we are debugging, as it is expected.
             ipython_shell.kernel._pdb_obj = None
+        elif post_mortem and isinstance(error, Exception):
+            error_type, error, tb = sys.exc_info()
+            post_mortem_excepthook(error_type, error, tb.tb_next)
         else:
             # We ignore the call to exec
             ipython_shell.showtraceback(tb_offset=1)
@@ -551,17 +522,15 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
                 os.chdir(wdir)
             else:
                 _print("Working directory {} doesn't exist.\n".format(wdir))
-        if post_mortem:
-            set_post_mortem()
 
         if __umr__.has_cython:
             # Cython files
             with io.open(filename, encoding='utf-8') as f:
                 ipython_shell.run_cell_magic('cython', '', f.read())
         else:
-            exec_code(file_code, filename, ns_globals, ns_locals)
+            exec_code(file_code, filename, ns_globals, ns_locals,
+                      post_mortem=post_mortem)
 
-        clear_post_mortem()
         sys.argv = ['']
 
 
@@ -589,7 +558,7 @@ def debugfile(filename=None, args=None, wdir=None, post_mortem=False,
 builtins.debugfile = debugfile
 
 
-def runcell(cellname, filename=None):
+def runcell(cellname, filename=None, post_mortem=False):
     """
     Run a code cell from an editor as a file.
 
@@ -643,13 +612,14 @@ def runcell(cellname, filename=None):
         file_code = None
     with NamespaceManager(filename, current_namespace=True,
                           file_code=file_code) as (ns_globals, ns_locals):
-        exec_code(cell_code, filename, ns_globals, ns_locals)
+        exec_code(cell_code, filename, ns_globals, ns_locals,
+                  post_mortem=post_mortem)
 
 
 builtins.runcell = runcell
 
 
-def debugcell(cellname, filename=None):
+def debugcell(cellname, filename=None, post_mortem=False):
     """Debug a cell."""
     if filename is None:
         filename = get_current_file_name()

@@ -183,7 +183,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 self.transport_args += ['--server-log-file', server_log_file]
 
             # Start server with logging options
-            if self.language != 'cpp':
+            if self.language == 'python':
                 if get_debug_level() == 2:
                     self.server_args.append('-v')
                 elif get_debug_level() == 3:
@@ -283,11 +283,44 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if self.lsp_server is not None:
             self.lsp_server.kill()
 
+    def is_transport_alive(self):
+        """Detect if transport layer is alive."""
+        alive = True
+        if self.transport_client is not None:
+            if self.transport_client.poll() is not None:
+                alive = False
+
+        return alive
+
+    def is_stdio_alive(self):
+        """Check if an stdio server is alive."""
+        alive = True
+        if self.stdio_pid is not None:
+            if not psutil.pid_exists(self.stdio_pid):
+                alive = False
+            else:
+                try:
+                    pid_status = psutil.Process(self.stdio_pid).status()
+                except psutil.NoSuchProcess:
+                    pid_status = ''
+                if pid_status == psutil.STATUS_ZOMBIE:
+                    alive = False
+
+        return alive
+
+    def is_tcp_alive(self):
+        """Detect if a tcp server is alive."""
+        alive = True
+        if self.lsp_server is not None:
+            if self.lsp_server.poll() is not None:
+                alive = False
+
+        return alive
+
     def send(self, method, params, kind):
         # Detect when the transport layer is down to show a message
         # to our users about it.
-        if (self.transport_client is not None and
-                self.transport_client.poll() is not None):
+        if not self.is_transport_alive():
             logger.debug(
                 "Transport layer for {} is down!!".format(self.language))
             if not self.transport_unresponsive:
@@ -295,8 +328,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 self.sig_lsp_down.emit(self.language)
             return
 
-        if (self.lsp_server is not None and
-                self.lsp_server.poll() is not None):
+        if not self.is_tcp_alive():
+            logger.debug("LSP server for {} is down!!".format(self.language))
+            if not self.server_unresponsive:
+                self.server_unresponsive = True
+                self.sig_lsp_down.emit(self.language)
+            return
+
+        if not self.is_stdio_alive():
             logger.debug("LSP server for {} is down!!".format(self.language))
             if not self.server_unresponsive:
                 self.server_unresponsive = True

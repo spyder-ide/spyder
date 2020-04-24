@@ -155,12 +155,11 @@ def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
     vertical scrollbar is not visible."""
     editor = editor_bot
     sfa = editor.scrollflagarea
-
-    editor.resize(450, 300)
     editor.show()
 
     # Set a short text in the editor and assert that the slider is not visible.
     editor.set_text(short_code)
+    editor.resize(450, 150)
     qtbot.waitUntil(lambda: not sfa.slider)
 
     # Move the mouse cursor to the center of the scrollflagarea and assert
@@ -175,6 +174,7 @@ def test_range_indicator_visible_on_hover_only(editor_bot, qtbot):
 
     # Set a long text in the editor and assert that the slider is visible.
     editor.set_text(long_code)
+    editor.resize(450, 150)
     qtbot.waitUntil(lambda: sfa.slider)
 
     # Move the mouse cursor to the center of the scrollflagarea and assert
@@ -208,11 +208,12 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     sfa._unit_testing = True
     vsb = editor.verticalScrollBar()
 
-    editor.resize(600, 300)
     editor.show()
+    editor.resize(600, 150)
 
     # Set a long text in the editor and assert that the slider is visible.
     editor.set_text(long_code)
+    editor.resize(600, 150)
     qtbot.waitUntil(lambda: sfa.slider)
 
     # Set the cursor position to the center of the editor.
@@ -226,6 +227,10 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
     # that is set to True when pressing the alt key and to false when releasing
     # it. This flag is only used for testing purpose.
     qtbot.keyPress(editor, Qt.Key_Alt)
+    editor.resize(600, 150)
+    x = int(sfa.width()/2)
+    y = int(sfa.height()/2)
+    qtbot.mouseMove(sfa, pos=QPoint(x, y), delay=-1)
     qtbot.waitUntil(lambda: sfa._range_indicator_is_visible)
 
     # While the alt key is pressed, click with the mouse in the middle of the
@@ -254,10 +259,14 @@ def test_range_indicator_alt_modifier_response(editor_bot, qtbot):
 
     # Release the alt key and assert that the slider range indicator is
     # not visible.
+    editor.resize(600, 150)
+    x = int(sfa.width()/2)
+    y = int(sfa.height()/2)
+    qtbot.mouseMove(sfa, pos=QPoint(x*100, y), delay=-1)
     qtbot.keyRelease(editor, Qt.Key_Alt)
     qtbot.waitUntil(lambda: not sfa._range_indicator_is_visible, timeout=3000)
 
 
-if __name__ == "__main__":                                   # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     pytest.main([os.path.basename(__file__)])
     # pytest.main()

@@ -231,12 +231,18 @@ class WebBrowser(QWidget):
         zoom_out_button = action2button(self.webview.zoom_out_action)
         zoom_in_button = action2button(self.webview.zoom_in_action)
 
-        pageact2btn = lambda prop: action2button(self.webview.pageAction(prop),
-                                                 parent=self.webview)
-        refresh_button = pageact2btn(QWebEnginePage.Reload)
-        stop_button = pageact2btn(QWebEnginePage.Stop)
-        previous_button = pageact2btn(QWebEnginePage.Back)
-        next_button = pageact2btn(QWebEnginePage.Forward)
+        def pageact2btn(prop, icon=None):
+            return action2button(
+                self.webview.pageAction(prop), parent=self.webview, icon=icon)
+
+        refresh_button = pageact2btn(
+            QWebEnginePage.Reload, icon=ima.icon('refresh'))
+        stop_button = pageact2btn(
+            QWebEnginePage.Stop, icon=ima.icon('stop'))
+        previous_button = pageact2btn(
+            QWebEnginePage.Back, icon=ima.icon('previous'))
+        next_button = pageact2btn(
+            QWebEnginePage.Forward, icon=ima.icon('next'))
 
         stop_button.setEnabled(False)
         self.webview.loadStarted.connect(lambda: stop_button.setEnabled(True))

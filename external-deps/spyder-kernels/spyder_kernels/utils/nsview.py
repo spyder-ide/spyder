@@ -123,7 +123,13 @@ def get_size(item):
     elif isinstance(item, Image):
         return item.size
     if isinstance(item, (DataFrame, Index, Series)):
-        return item.shape
+        try:
+            return item.shape
+        except RecursionError:
+            # This is necessary to avoid an error when trying to
+            # get the shape of these objects.
+            # Fixes spyder-ide/spyder-kernels#217
+            return (-1, -1)
     else:
         return 1
 

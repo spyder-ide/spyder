@@ -419,16 +419,16 @@ class SpyderKernel(IPythonKernel):
         both locals() and globals() for current frame when debugging
         """
         ns = {}
-        glbs = self._mglobals()
-
-        if self._pdb_frame is None:
-            ns.update(glbs)
+        if self._running_namespace is None:
+            ns.update(self._mglobals())
         else:
-            ns.update(glbs)
-            ns.update(self._pdb_locals)
+            running_globals, running_locals = self._running_namespace
+            ns.update(running_globals)
+            if running_locals is not None:
+                ns.update(running_locals)
 
-        if self._running_namespace is not None:
-            ns.update(self._running_namespace)
+        if self._pdb_frame is not None:
+            ns.update(self._pdb_locals)
 
         # Add magics to ns so we can show help about them on the Help
         # plugin

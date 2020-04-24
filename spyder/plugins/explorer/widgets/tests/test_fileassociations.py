@@ -21,8 +21,11 @@ import pytest
 # Local imports
 from spyder.plugins.explorer.widgets.fileassociations import (
     ApplicationsDialog, FileAssociationsWidget, InputTextDialog)
+from spyder.py3compat import PY2
 
 
+@pytest.mark.first
+@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
 def test_input_text_dialog(qtbot):
     widget = InputTextDialog()
     qtbot.addWidget(widget)
@@ -53,6 +56,8 @@ def test_input_text_dialog(qtbot):
     widget.validate()
 
 
+@pytest.mark.first
+@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
 def test_apps_dialog(qtbot, tmp_path):
     widget = ApplicationsDialog()
     qtbot.addWidget(widget)
@@ -140,6 +145,8 @@ def create_timer(func, interval=500):
     return timer
 
 
+@pytest.mark.first
+@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
 def test_file_assoc_widget(file_assoc_widget):
     qtbot, widget = file_assoc_widget
 

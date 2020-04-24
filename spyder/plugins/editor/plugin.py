@@ -1783,6 +1783,17 @@ class Editor(SpyderPluginWidget):
             current_es = editorstack
         created_from_here = fname is None
         if created_from_here:
+            if self.untitled_num == 0:
+                for finfo in current_es.data:
+                    current_filename = finfo.editor.filename
+                    if _("untitled") in current_filename:
+                        # Start the counter of the untitled_num with respect
+                        # to this number if there's other untitled file in
+                        # spyder. Please see spyder-ide/spyder#7831
+                        fname_data = osp.splitext(current_filename)
+                        act_num = int(fname_data[0].split(_("untitled"))[-1])
+                        self.untitled_num = act_num + 1
+
             while True:
                 fname = create_fname(self.untitled_num)
                 self.untitled_num += 1
@@ -2872,7 +2883,9 @@ class Editor(SpyderPluginWidget):
             # spyder-ide/spyder#8458.
             if layout:
                 is_vertical, cfname, clines = layout.get('splitsettings')[0]
-                if cfname in filenames:
+                # Check that a value for current line exist for each filename
+                # in the available settings. See spyder-ide/spyder#12201
+                if cfname in filenames and len(filenames) == len(clines):
                     index = filenames.index(cfname)
                     # First we load the last focused file.
                     self.load(filenames[index], goto=clines[index], set_focus=True)

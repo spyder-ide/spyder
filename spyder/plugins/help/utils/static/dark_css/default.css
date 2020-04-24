@@ -433,6 +433,7 @@ div.admonition p.admonition-title {
 ::-webkit-scrollbar {
     background-color: #19232D;
     width: 14px;
+    height: 14px;
     margin: 16px 2px 16px 2px;
     border: 1px solid #32414B;
     border-radius: 4px;
@@ -454,21 +455,45 @@ div.admonition p.admonition-title {
     width: 1px;
 }
 
-::-webkit-scrollbar-button:increment {
+::-webkit-scrollbar-button:vertical:increment {
     background-repeat: no-repeat;
     background-image: url(../images/down_arrow_disabled.png);
     background-position: center center;
 }
 
-::-webkit-scrollbar-button:decrement {
+::-webkit-scrollbar-button:vertical:decrement {
     background-repeat: no-repeat;
     background-image: url(../images/up_arrow_disabled.png);
     background-position: center center;
 }
 
-::-webkit-scrollbar-button:increment:hover {
+::-webkit-scrollbar-button:vertical:increment:hover {
     background-repeat: no-repeat;
     background-image: url(../images/down_arrow.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:decrement:hover {
+    background-repeat: no-repeat;
+    background-image: url(../images/up_arrow_horizontal.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:increment {
+    background-repeat: no-repeat;
+    background-image: url(../images/down_arrow_disabled_horizontal.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:decrement {
+    background-repeat: no-repeat;
+    background-image: url(../images/up_arrow_disabled_horizontal.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:increment:hover {
+    background-repeat: no-repeat;
+    background-image: url(../images/down_arrow_horizontal.png);
     background-position: center center;
 }
 

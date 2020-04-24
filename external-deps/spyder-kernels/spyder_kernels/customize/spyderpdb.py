@@ -134,7 +134,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             if frame and frame.f_back:
                 return self.interaction(frame.f_back, traceback)
         if (frame is not None
-                and "spydercustomize.py" in frame.f_code.co_filename):
+                and "spydercustomize.py" in frame.f_code.co_filename
+                and "exec_code" == frame.f_code.co_name):
             self.onecmd('exit')
         else:
             self.setup(frame, traceback)
