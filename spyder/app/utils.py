@@ -92,7 +92,8 @@ def setup_logging(cli_options):
         match_func = lambda x: True
         if len(FILTER_NAMES) > 0:
             dafsa = DAFSA(FILTER_NAMES)
-            match_func = lambda x: dafsa.lookup(x, stop_on_prefix=True) is not None
+            match_func = lambda x: (dafsa.lookup(x, stop_on_prefix=True)
+                                    is not None)
 
         f = logging.Formatter(log_format)
 
