@@ -342,14 +342,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 self.sig_lsp_down.emit(self.language)
             return
 
-        if (self.stdio_pid is not None and
-                not psutil.pid_exists(self.stdio_pid)):
-            logger.debug("LSP server for {} is down!!".format(self.language))
-            if not self.server_unresponsive:
-                self.server_unresponsive = True
-                self.sig_lsp_down.emit(self.language)
-            return
-
         if ClientConstants.CANCEL in params:
             return
         _id = self.request_seq
