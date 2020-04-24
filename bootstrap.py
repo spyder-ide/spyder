@@ -56,7 +56,7 @@ parser.add_argument('--debug', action='store_true',
 parser.add_argument('--filter-log', nargs='*',
                     help="Module name hierarchies whose log messages "
                          "should be shown. e.g., spyder.plugins.completion "
-                         "spyder.plugins.editor")
+                         "spyder.plugins.editor", default=[])
 parser.add_argument('spyder_options', nargs='*')
 
 args = parser.parse_args()

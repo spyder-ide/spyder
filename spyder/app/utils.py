@@ -90,7 +90,7 @@ def setup_logging(cli_options):
             log_file = None
 
         match_func = lambda x: True
-        if len(FILTER_NAMES) > 0:
+        if FILTER_NAMES != [''] and len(FILTER_NAMES) > 0:
             dafsa = DAFSA(FILTER_NAMES)
             match_func = lambda x: (dafsa.lookup(x, stop_on_prefix=True)
                                     is not None)
