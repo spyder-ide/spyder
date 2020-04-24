@@ -53,6 +53,10 @@ parser.add_argument('--no-apport', action='store_true',
                     default=False, help="Disable Apport exception hook (Ubuntu)")
 parser.add_argument('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
+parser.add_argument('--filter-log', nargs='*',
+                    help="Module name hierarchies whose log messages "
+                         "should be shown. e.g., spyder.plugins.completion "
+                         "spyder.plugins.editor")
 parser.add_argument('spyder_options', nargs='*')
 
 args = parser.parse_args()
@@ -115,6 +119,10 @@ if args.debug:
         sys.exit("ERROR: Can't enable debug mode - Spyder is already imported")
     print("0x. Switching debug mode on")
     os.environ["SPYDER_DEBUG"] = "3"
+    if len(args.filter_log) > 0:
+        print("0x. Displaying log messages only from the "
+              "following modules: {0}".format(', '.join(args.filter_log)))
+    os.environ["SPYDER_FILTER_LOG"] = ' '.join(args.filter_log)
     # this way of interaction suxx, because there is no feedback
     # if operation is successful
 

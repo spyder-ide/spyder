@@ -21,6 +21,7 @@ from qtpy.QtCore import QCoreApplication, Qt
 # Local imports
 from spyder.config.base import DEV, get_conf_path, get_debug_level
 from spyder.utils.qthelpers import file_uri
+from spyder.utils.external.dafsa.dafsa import DAFSA
 
 # For spyder-ide/spyder#7447.
 try:
@@ -30,6 +31,7 @@ except Exception:
 
 
 root_logger = logging.getLogger()
+FILTER_NAMES = os.environ.get('SPYDER_FILTER_LOG', "").split(' ')
 
 
 def get_python_doc_path():
@@ -87,27 +89,24 @@ def setup_logging(cli_options):
         else:
             log_file = None
 
+        match_func = lambda x: True
+        if len(FILTER_NAMES) > 0:
+            dafsa = DAFSA(FILTER_NAMES)
+            match_func = lambda x: dafsa.lookup(x, stop_on_prefix=True) is not None
+
         f = logging.Formatter(log_format)
 
         class LSPFilter(logging.Filter):
             def filter(self, record):
-                # print(record.name)
-                return record.name.startswith('spyder.plugins.completion')
-        # logging.basicConfig(level=log_level,
-        #                     format=log_format,
-        #                     filename=log_file,
-        #                     filemode='w+')
-        # spyder_logger = logging.getLogger('spyder')
+                return match_func(record.name)
+
         filter = LSPFilter()
         root_logger.setLevel(log_level)
-        # spyder_logger.setLevel(log_level)
         for h in handlers:
             h.addFilter(filter)
             h.setFormatter(f)
             h.setLevel(log_level)
-            print(root_logger)
             root_logger.addHandler(h)
-            # spyder_logger.addHandler(h)
 
 
 def delete_lsp_log_files():
