@@ -503,7 +503,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if self.get_kernel() is not None and not self.slave:
             self.shellwidget.spyder_kernel_comm.close()
             self.shellwidget.spyder_kernel_comm.shutdown_comm_channel()
-            self.shellwidget._pdb_history_file.save_thread.stop()
+            try:
+                self.shellwidget._pdb_history_file.save_thread.stop()
+            except AttributeError:
+                pass
             self.shellwidget.kernel_manager.stop_restarter()
         self.shutdown_thread = QThread()
         self.shutdown_thread.run = self.finalize_shutdown

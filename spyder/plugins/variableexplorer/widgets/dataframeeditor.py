@@ -283,8 +283,12 @@ class DataFrameModel(QAbstractTableModel):
             else:
                 color_func = float
             vmax, vmin = self.return_max(self.max_min_col, column)
+            if vmax - vmin == 0:
+                vmax_vmin_diff = 1.0
+            else:
+                vmax_vmin_diff = vmax - vmin
             hue = (BACKGROUND_NUMBER_MINHUE + BACKGROUND_NUMBER_HUERANGE *
-                   (vmax - color_func(value)) / (vmax - vmin))
+                   (vmax - color_func(value)) / (vmax_vmin_diff))
             hue = float(abs(hue))
             if hue > 1:
                 hue = 1
@@ -583,7 +587,8 @@ class DataFrameView(QTableView):
                      (_("To str"), to_text_string))
         types_in_menu = [copy_action]
         for name, func in functions:
-            slot = lambda func=func: self.change_type(func)
+            def slot():
+                self.change_type(func)
             types_in_menu += [create_action(self, name,
                                             triggered=slot,
                                             context=Qt.WidgetShortcut)]

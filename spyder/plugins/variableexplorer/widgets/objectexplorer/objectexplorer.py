@@ -322,8 +322,6 @@ class ObjectExplorer(BaseDialog):
         self.central_splitter.setCollapsible(0, False)
         self.central_splitter.setCollapsible(1, True)
         self.central_splitter.setSizes([500, 320])
-        self.central_splitter.setStretchFactor(0, 10)
-        self.central_splitter.setStretchFactor(1, 0)
 
         # Connect signals
         # Keep a temporary reference of the selection_model to prevent

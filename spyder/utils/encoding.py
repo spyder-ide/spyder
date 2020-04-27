@@ -209,12 +209,6 @@ def encode(text, orig_coding):
         except (UnicodeError, LookupError):
             pass
 
-    # Try saving as ASCII
-    try:
-        return text.encode('ascii'), 'ascii'
-    except UnicodeError:
-        pass
-
     # Save as UTF-8 without BOM
     return text.encode('utf-8'), 'utf-8'
 
