@@ -4064,14 +4064,16 @@ class CodeEditor(TextEditBaseWidget):
 
         self.document_did_change(text)
 
-        # Perform completion on the fly
-        if self.automatic_completions and not self.in_comment_or_string():
-            # Variables can include numbers and underscores
-            if (text.isalpha() or text.isalnum() or '_' in text
-                    or '.' in text):
-                self.do_completion(automatic=True)
-                self._last_key_pressed_text = ''
-                self._last_pressed_key = None
+        if (len(text) >= self.automatic_completions_after_chars
+                and self._last_key_pressed_text) or key == Qt.Key_Backspace:
+            # Perform completion on the fly
+            if self.automatic_completions and not self.in_comment_or_string():
+                # Variables can include numbers and underscores
+                if (text.isalpha() or text.isalnum() or '_' in text
+                        or '.' in text):
+                    self.do_completion(automatic=True)
+                    self._last_key_pressed_text = ''
+                    self._last_pressed_key = None
 
     def fix_and_strip_indent(self, *args, **kwargs):
         """
