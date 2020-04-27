@@ -2811,6 +2811,7 @@ class CodeEditor(TextEditBaseWidget):
                            QTextCursor.KeepAnchor)
         if to_text_string(cursor.selectedText()) == suffix:
             cursor.removeSelectedText()
+            self.document_did_change()
 
     def remove_prefix(self, prefix):
         """Remove prefix from current line or selected line(s)"""
@@ -3196,8 +3197,8 @@ class CodeEditor(TextEditBaseWidget):
         leading_text = self.get_text('sol', 'cursor')
         if self.has_selected_text():
             self.add_prefix(self.indent_chars)
-        elif force or not leading_text.strip() \
-             or (self.tab_indents and self.tab_mode):
+        elif (force or not leading_text.strip() or
+                (self.tab_indents and self.tab_mode)):
             if self.is_python_like():
                 if not self.fix_indent(forward=True):
                     self.add_prefix(self.indent_chars)
@@ -3209,7 +3210,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.insert_text(" "*(length-(len(leading_text) % length)))
             else:
                 self.insert_text(self.indent_chars)
-        self.document_did_change()
+            self.document_did_change()
 
     def indent_or_replace(self):
         """Indent or replace by 4 spaces depending on selection and tab mode"""
@@ -3217,8 +3218,8 @@ class CodeEditor(TextEditBaseWidget):
             self.indent()
         else:
             cursor = self.textCursor()
-            if self.get_selected_text() == \
-               to_text_string(cursor.block().text()):
+            if (self.get_selected_text() ==
+                    to_text_string(cursor.block().text())):
                 self.indent()
             else:
                 cursor1 = self.textCursor()
@@ -3229,6 +3230,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.indent()
                 else:
                     self.replace(self.indent_chars)
+                    self.document_did_change()
 
     def unindent(self, force=False):
         """
@@ -3254,8 +3256,8 @@ class CodeEditor(TextEditBaseWidget):
                     self.remove_prefix(self.indent_chars)
         else:
             leading_text = self.get_text('sol', 'cursor')
-            if force or not leading_text.strip() \
-               or (self.tab_indents and self.tab_mode):
+            if (force or not leading_text.strip() or
+                    (self.tab_indents and self.tab_mode)):
                 if self.is_python_like():
                     if not self.fix_indent(forward=False):
                         self.remove_prefix(self.indent_chars)
@@ -3884,8 +3886,8 @@ class CodeEditor(TextEditBaseWidget):
                 self.completion_widget.hide()
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
-                if self.add_colons_enabled and self.is_python_like() and \
-                  self.autoinsert_colons():
+                if (self.add_colons_enabled and self.is_python_like() and
+                        self.autoinsert_colons()):
                     self.textCursor().beginEditBlock()
                     self.insert_text(':' + self.get_line_separator())
                     if self.strip_trailing_spaces_on_modify:
@@ -3909,7 +3911,7 @@ class CodeEditor(TextEditBaseWidget):
                     cursor.setPosition(cursor.block().position(),
                                        QTextCursor.KeepAnchor)
                     cmt_or_str_line_begin = self.in_comment_or_string(
-                                                cursor=cursor)
+                        cursor=cursor)
 
                     # Check if we are in a comment or a string
                     cmt_or_str = cmt_or_str_cursor and cmt_or_str_line_begin
@@ -3927,30 +3929,30 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Backspace and not shift and not ctrl:
             leading_text = self.get_text('sol', 'cursor')
             leading_length = len(leading_text)
-            trailing_spaces = leading_length-len(leading_text.rstrip())
+            trailing_spaces = leading_length - len(leading_text.rstrip())
             if has_selection or not self.intelligent_backspace:
                 insert_text(event)
             else:
                 trailing_text = self.get_text('cursor', 'eol')
-                if not leading_text.strip() \
-                   and leading_length > len(self.indent_chars):
+                matches = ('()', '[]', '{}', '\'\'', '""')
+                if (not leading_text.strip() and
+                        (leading_length > len(self.indent_chars))):
                     if leading_length % len(self.indent_chars) == 0:
                         self.unindent()
                     else:
                         insert_text(event)
                 elif trailing_spaces and not trailing_text.strip():
                     self.remove_suffix(leading_text[-trailing_spaces:])
-                elif leading_text and trailing_text and \
-                     leading_text[-1]+trailing_text[0] in ('()', '[]', '{}',
-                                                           '\'\'', '""'):
+                elif (leading_text and trailing_text and
+                        (leading_text[-1] + trailing_text[0] in matches)):
                     cursor = self.textCursor()
                     cursor.movePosition(QTextCursor.PreviousCharacter)
                     cursor.movePosition(QTextCursor.NextCharacter,
                                         QTextCursor.KeepAnchor, 2)
                     cursor.removeSelectedText()
+                    self.document_did_change()
                 else:
                     insert_text(event)
-            self.document_did_change()
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
@@ -3965,9 +3967,10 @@ class CodeEditor(TextEditBaseWidget):
                     text = self.get_text('sol', 'cursor')
                     last_obj = getobj(text)
                     prev_char = text[-2] if len(text) > 1 else ''
-                    if prev_char in {')', ']', '}'} or (last_obj and not last_obj.isdigit()):
-                        # Completions should be triggered immediately when an
-                        # autocompletion character is introduced.
+                    if (prev_char in {')', ']', '}'} or
+                            (last_obj and not last_obj.isdigit())):
+                        # Completions should be triggered immediately when
+                        # an autocompletion character is introduced.
                         self.do_completion(automatic=True)
             else:
                 self.do_completion(automatic=True)
@@ -3975,26 +3978,26 @@ class CodeEditor(TextEditBaseWidget):
                 not self.has_selected_text()):
             self.insert_text(text)
             self.request_signature()
-        elif key == Qt.Key_Colon and not has_selection \
-             and self.auto_unindent_enabled:
+        elif (key == Qt.Key_Colon and not has_selection and
+                self.auto_unindent_enabled):
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('else', 'finally'):
-                ind = lambda txt: len(txt)-len(txt.lstrip())
-                prevtxt = to_text_string(self.textCursor(
-                                                ).block().previous().text())
+                ind = lambda txt: len(txt) - len(txt.lstrip())
+                prevtxt = (to_text_string(self.textCursor().block().
+                           previous().text()))
                 if self.language == 'Python':
                     prevtxt = prevtxt.rstrip()
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
             insert_text(event)
-        elif key == Qt.Key_Space and not shift and not ctrl \
-             and not has_selection and self.auto_unindent_enabled:
+        elif (key == Qt.Key_Space and not shift and not ctrl and not
+                has_selection and self.auto_unindent_enabled):
             self.completion_widget.hide()
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('elif', 'except'):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
-                prevtxt = to_text_string(self.textCursor(
-                                                ).block().previous().text())
+                prevtxt = (to_text_string(self.textCursor().block().
+                           previous().text()))
                 if self.language == 'Python':
                     prevtxt = prevtxt.rstrip()
                 if ind(leading_text) == ind(prevtxt):
@@ -4028,7 +4031,7 @@ class CodeEditor(TextEditBaseWidget):
             self._handle_completions()
 
         if not event.modifiers():
-            # Accept event to avoid it being handled by the parent
+            # Accept event to avoid it being handled by the parent.
             # Modifiers should be passed to the parent because they
             # could be shortcuts
             event.accept()
