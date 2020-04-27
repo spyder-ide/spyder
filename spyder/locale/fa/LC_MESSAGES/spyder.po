@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-03-31 18:05-0500\n"
-"PO-Revision-Date: 2020-04-04 18:05\n"
+"PO-Revision-Date: 2020-04-27 19:17\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -273,167 +273,167 @@ msgstr "بار گذاری کاوشگر outline..."
 
 #: spyder/app/mainwindow.py:882
 msgid "Loading editor..."
-msgstr ""
+msgstr "در حال بارگذاری ویرایشگر..."
 
 #: spyder/app/mainwindow.py:888
 msgid "Launching code completion client for Python..."
-msgstr ""
+msgstr "در حال اجرای کاملگر کد باری پایتون..."
 
 #: spyder/app/mainwindow.py:893 spyder/plugins/console/plugin.py:140 spyder/plugins/ipythonconsole/widgets/client.py:478
 msgid "&Quit"
-msgstr ""
+msgstr "&خروج"
 
 #: spyder/app/mainwindow.py:895 spyder/plugins/console/plugin.py:142
 msgid "Quit"
-msgstr ""
+msgstr "خروج"
 
 #: spyder/app/mainwindow.py:899
 msgid "&Restart"
-msgstr ""
+msgstr "&راه اندازی مجدد"
 
 #: spyder/app/mainwindow.py:901
 msgid "Restart"
-msgstr ""
+msgstr "راه اندازی مجدد"
 
 #: spyder/app/mainwindow.py:919
 msgid "Loading namespace browser..."
-msgstr ""
+msgstr "در حال بارگذاری مرورگر namespace..."
 
 #: spyder/app/mainwindow.py:925
 msgid "Loading figure browser..."
-msgstr ""
+msgstr "در حال بارگداری مرورگر figure..."
 
 #: spyder/app/mainwindow.py:932
 msgid "Loading history plugin..."
-msgstr ""
+msgstr "در حال بارگذاری تاریخچه پلاگین..."
 
 #: spyder/app/mainwindow.py:938
 msgid "Loading IPython console..."
-msgstr ""
+msgstr "در حال بارگذاری کنسول IPython..."
 
 #: spyder/app/mainwindow.py:945
 msgid "Loading file explorer..."
-msgstr ""
+msgstr "بار گذاری کاوشگر فایل..."
 
 #: spyder/app/mainwindow.py:952
 msgid "Loading online help..."
-msgstr ""
+msgstr "بارگذاری کمک آنلاین..."
 
 #: spyder/app/mainwindow.py:958
 msgid "Loading project explorer..."
-msgstr ""
+msgstr "بار گذاری کاوشگر پروژه..."
 
 #: spyder/app/mainwindow.py:986
 msgid "Loading third-party plugins..."
-msgstr ""
+msgstr "در حال بارگذاری پلاگین های اضافی..."
 
 #: spyder/app/mainwindow.py:1012
 msgid "Setting up main window..."
-msgstr ""
+msgstr "در حال تکمیل پنجره ی اصلی..."
 
 #: spyder/app/mainwindow.py:1016
 msgid "Troubleshooting..."
-msgstr ""
+msgstr "ایرادیابی..."
 
 #: spyder/app/mainwindow.py:1018
 msgid "Dependencies..."
-msgstr ""
+msgstr "وابستگی ها..."
 
 #: spyder/app/mainwindow.py:1022
 msgid "Report issue..."
-msgstr ""
+msgstr "گزارش اشکال..."
 
 #: spyder/app/mainwindow.py:1026
 msgid "Spyder support..."
-msgstr ""
+msgstr "پشتیبانی اسپایدر..."
 
 #: spyder/app/mainwindow.py:1029
 msgid "Check for updates..."
-msgstr ""
+msgstr "بررسي بروزرساني..."
 
 #: spyder/app/mainwindow.py:1034
 msgid "Spyder documentation"
-msgstr ""
+msgstr "دفترچه راهنمای اسپایدر"
 
 #: spyder/app/mainwindow.py:1042
 msgid "Spyder tutorial"
-msgstr ""
+msgstr "آموزش اسپایدر"
 
 #: spyder/app/mainwindow.py:1047
 msgid "Shortcuts Summary"
-msgstr ""
+msgstr "خلاصه ی کلید های میانبر"
 
 #: spyder/app/mainwindow.py:1053
 msgid "Interactive tours"
-msgstr ""
+msgstr "گردش های تعاملی"
 
 #: spyder/app/mainwindow.py:1080
 msgid "Python documentation"
-msgstr ""
+msgstr "دفترچه راهنمای Python"
 
 #: spyder/app/mainwindow.py:1086
 msgid "IPython documentation"
-msgstr ""
+msgstr "دفترچه راهنمای IPython"
 
 #: spyder/app/mainwindow.py:1087
 msgid "Intro to IPython"
-msgstr ""
+msgstr "مقدمه به IPython"
 
 #: spyder/app/mainwindow.py:1089
 msgid "Quick reference"
-msgstr ""
+msgstr "مرجع سریع"
 
 #: spyder/app/mainwindow.py:1091
 msgid "Console help"
-msgstr ""
+msgstr "راهنمای کنسول"
 
 #: spyder/app/mainwindow.py:1121
 msgid "Installed Python modules"
-msgstr ""
+msgstr "ماژول های نصب شده Python"
 
 #: spyder/app/mainwindow.py:1125
 msgid "Online documentation"
-msgstr ""
+msgstr "مشاهده مستندات آنلاین"
 
 #: spyder/app/mainwindow.py:1138
 msgid "Qt documentation"
-msgstr ""
+msgstr "دفترچه راهنمای Qt"
 
 #: spyder/app/mainwindow.py:1145
 msgid "About %s..."
-msgstr ""
+msgstr "درباره %s..."
 
 #: spyder/app/mainwindow.py:1159
 msgid "Panes"
-msgstr ""
+msgstr "زبانه ها"
 
 #: spyder/app/mainwindow.py:1161
 msgid "Toolbars"
-msgstr ""
+msgstr "نوار ابزارها"
 
 #: spyder/app/mainwindow.py:1162
 msgid "Window layouts"
-msgstr ""
+msgstr "طراحی پنجره ها"
 
 #: spyder/app/mainwindow.py:1171 spyder/app/mainwindow.py:2142 spyder/app/mainwindow.py:2143
 msgid "Show toolbars"
-msgstr ""
+msgstr "نمایش نوار ابزار"
 
 #: spyder/app/mainwindow.py:1186
 msgid "Attached console window (debugging)"
-msgstr ""
+msgstr "پنجره ی کنسول چسبانده شده (مشکل یابی)"
 
 #: spyder/app/mainwindow.py:1426
 msgid "Hide this message during the current session"
-msgstr ""
+msgstr "مخفی کردن این پیام هنگام session کنونی"
 
 #: spyder/app/mainwindow.py:1432
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
-msgstr ""
+msgstr "تغییر مقیاس مانیتور تشخیص داده شد. <br><br> برای اطمینان از نمایش درست آن ، Spyder را مجدداً راه اندازی کنید. اگر نمی خواهید این کار را انجام دهید ، لطفاً این گزینه را فعال کنید <br><br><tt> پوسته پوسته شدن خودکار DPI خودکار را فعال کنید </tt <br><br> در <tt> تنظیمات > عمومی > رابط در صورت عدم نمایش Spyder به درستی نمایش داده می شود. <br> <br> آیا می خواهید Spyder را مجدداً راه اندازی کنید?"
 
 #: spyder/app/mainwindow.py:1497 spyder/app/mainwindow.py:2217 spyder/app/mainwindow.py:2946 spyder/plugins/completion/languageserver/confpage.py:1277 spyder/plugins/completion/languageserver/confpage.py:1295 spyder/plugins/explorer/widgets/explorer.py:959 spyder/plugins/explorer/widgets/explorer.py:1258 spyder/plugins/profiler/widgets/profilergui.py:304 spyder/plugins/profiler/widgets/profilergui.py:499 spyder/plugins/projects/plugin.py:299 spyder/plugins/pylint/widgets/pylintgui.py:93 spyder/plugins/pylint/widgets/pylintgui.py:379 spyder/plugins/pylint/widgets/pylintgui.py:407 spyder/plugins/variableexplorer/widgets/arrayeditor.py:625 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:117 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:426 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1446 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:604 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1259 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1263 spyder/preferences/general.py:322 spyder/preferences/general.py:347 spyder/widgets/reporterror.py:302
 msgid "Error"
-msgstr ""
+msgstr "خطا"
 
 #: spyder/app/mainwindow.py:1498
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
@@ -441,19 +441,19 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:1978
 msgid "Spyder Default Layout"
-msgstr ""
+msgstr "طرح پیش‌فرض اسپایدر"
 
 #: spyder/app/mainwindow.py:1996
 msgid "Save current layout"
-msgstr ""
+msgstr "ذخیره layout کنونی"
 
 #: spyder/app/mainwindow.py:2000
 msgid "Layout preferences"
-msgstr ""
+msgstr "تنظیمات layout"
 
 #: spyder/app/mainwindow.py:2004
 msgid "Reset to spyder default"
-msgstr ""
+msgstr "بازیابی به تنظیمات اسپایدر(ریست کن بره)"
 
 #: spyder/app/mainwindow.py:2024 spyder/app/mainwindow.py:2046 spyder/app/mainwindow.py:2112 spyder/app/mainwindow.py:2120 spyder/app/mainwindow.py:3284 spyder/plugins/completion/languageserver/confpage.py:1245 spyder/plugins/completion/languageserver/plugin.py:287 spyder/plugins/completion/languageserver/plugin.py:324 spyder/plugins/ipythonconsole/plugin.py:484 spyder/plugins/ipythonconsole/plugin.py:532 spyder/plugins/ipythonconsole/plugin.py:1063 spyder/plugins/ipythonconsole/utils/ssh.py:68 spyder/plugins/pylint/widgets/pylintgui.py:91 spyder/plugins/variableexplorer/widgets/arrayeditor.py:547 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:105 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:410 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1052 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1064 spyder/preferences/appearance.py:403 spyder/preferences/maininterpreter.py:162 spyder/preferences/maininterpreter.py:183 spyder/preferences/maininterpreter.py:212 spyder/utils/environ.py:91 spyder/utils/environ.py:142 spyder/utils/environ.py:155
 msgid "Warning"
@@ -462,7 +462,7 @@ msgstr "هشدار"
 #: spyder/app/mainwindow.py:2025
 msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
-msgstr ""
+msgstr "طرح پنجره به تنظیمات پیش فرض بازگردانی می شود: این بر وضعیت پنجره ، اندازه و داک ویجت تأثیر می گذارد. می خواهید ادامه دهید؟"
 
 #: spyder/app/mainwindow.py:2047
 msgid "Layout <b>%s</b> will be                                                overwritten. Do you want to                                                continue?"
@@ -470,7 +470,7 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:2113
 msgid "Error opening the custom layout.  Please close Spyder and try again.  If the issue persists, then you must use 'Reset to Spyder default' from the layout menu."
-msgstr ""
+msgstr "خطا در باز کردن طرح سفارشی. لطفا اسپایدر را ببندید و دوباره امتحان کنید. اگر مشکل همچنان ادامه داشت ، باید از \"تنظیم مجدد به طور پیش فرض اسپایدر\" از منوی طرح استفاده کنید."
 
 #: spyder/app/mainwindow.py:2121
 msgid "Quick switch layout #%s has not yet been defined."
