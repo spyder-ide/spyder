@@ -2365,7 +2365,7 @@ class Editor(SpyderPluginWidget):
             to_text_string(filename), position, line, column, fc=True)
 
     def remove_file_cursor_history(self, id, filename):
-        """Remove the cursor history of a file in the file is closed."""
+        """Remove the cursor history of a file if the file is closed."""
         new_history = []
         for i, (cur_filename, pos, line, column) in enumerate(
                 self.cursor_pos_history):
