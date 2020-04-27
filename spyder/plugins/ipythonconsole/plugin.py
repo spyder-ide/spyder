@@ -329,6 +329,8 @@ class IPythonConsole(SpyderPluginWidget):
                                      icon=ima.icon('editdelete'),
                                      triggered=self.reset_kernel,
                                      context=Qt.WidgetWithChildrenShortcut)
+        self.register_shortcut(reset_action, context="ipython_console",
+                               name="Reset namespace")
 
         if self.interrupt_action is None:
             self.interrupt_action = create_action(

@@ -79,6 +79,7 @@ class Console(SpyderPluginWidget):
         self.find_widget.hide()
         if parent is not None:
             self.register_widget_shortcuts(self.find_widget)
+            self.register_widget_shortcuts(self.shell)
 
         # Main layout
         btn_layout = QHBoxLayout()
@@ -173,7 +174,7 @@ class Console(SpyderPluginWidget):
                                           _("Automatic code completion"),
                                           toggled=self.toggle_codecompletion)
         codecompletion_action.setChecked(self.get_option('codecompletion/auto'))
-        
+
         option_menu = QMenu(_('Internal console settings'), self)
         option_menu.setIcon(ima.icon('tooloptions'))
         add_actions(option_menu, (buffer_action, wrap_action,

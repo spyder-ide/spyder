@@ -689,16 +689,24 @@ class ShortcutsTable(QTableView):
     def load_shortcuts(self):
         """Load shortcuts and assign to table model."""
         # item[1] -> context, item[2] -> name
-        shortcut_data = [(item[1], item[2]) for item in self.shortcut_data]
+        # Data might be capitalized so we user lower()
+        # See: spyder-ide/spyder/#12415
+        shortcut_data = set([(item[1].lower(), item[2].lower()) for item
+                             in self.shortcut_data])
+        shortcut_data = list(sorted(set(shortcut_data)))
         shortcuts = []
+
         for context, name, keystr in CONF.iter_shortcuts():
             if (context, name) in shortcut_data:
+                context = context.lower()
+                name = name.lower()
+
                 # Only add to table actions that are registered from the main
                 # window
                 shortcut = Shortcut(context, name, keystr)
                 shortcuts.append(shortcut)
 
-        shortcuts = sorted(shortcuts, key=lambda x: x.context+x.name)
+        shortcuts = sorted(shortcuts, key=lambda item: item.context+item.name)
 
         # Store the original order of shortcuts
         for i, shortcut in enumerate(shortcuts):
@@ -891,6 +899,8 @@ def load_shortcuts(shortcut_table):
     """
     shortcut_data = []
     for context, name, __ in CONF.iter_shortcuts():
+        context = context.lower()
+        name = name.lower()
         shortcut_data.append((None, context, name, None, None))
 
     shortcut_table.set_shortcut_data(shortcut_data)

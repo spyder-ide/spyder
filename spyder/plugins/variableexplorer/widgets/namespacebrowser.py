@@ -212,8 +212,13 @@ class NamespaceBrowser(QWidget):
             context='variable_explorer',
             name='refresh',
             parent=self)
+        copy = CONF.config_shortcut(
+            self.editor.copy,
+            context='variable_explorer',
+            name='copy',
+            parent=self)
 
-        return [search, refresh]
+        return [search, refresh, copy]
 
     def get_shortcut_data(self):
         """
