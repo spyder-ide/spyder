@@ -26,11 +26,14 @@ import sys
 import uuid
 
 # Third party imports
-from IPython.core import release as ipy_release
 from flaky import flaky
+from IPython.core import release as ipy_release
 from jupyter_client.manager import KernelManager
+from matplotlib.testing.compare import compare_images
+import nbconvert
 import numpy as np
 from numpy.testing import assert_array_equal
+import pylint
 import pytest
 from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer, QEvent, QPoint, QUrl
@@ -39,8 +42,6 @@ from qtpy.QtGui import QImage
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QLineEdit,
                             QTabBar, QToolTip, QWidget)
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from matplotlib.testing.compare import compare_images
-import nbconvert
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
@@ -1978,7 +1979,7 @@ def test_edidorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
 def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
     # Select the third-party plugin
-    pylint = get_thirdparty_plugin(main_window, "Code Analysis")
+    pylint_plugin = get_thirdparty_plugin(main_window, "Code Analysis")
 
     # Do an analysis
     test_file = osp.join(LOCATION, 'script_pylint.py')
@@ -1989,12 +1990,18 @@ def test_run_static_code_analysis(main_window, qtbot):
 
     # Perform the test
     # Check output of the analysis
-    treewidget = pylint.get_focus_widget()
+    treewidget = pylint_plugin.get_focus_widget()
     qtbot.waitUntil(lambda: treewidget.results is not None,
                     timeout=SHELL_TIMEOUT)
     result_content = treewidget.results
     assert result_content['C:']
-    assert len(result_content['C:']) == 5
+
+    pylint_version = LooseVersion(pylint.__version__)
+    if pylint_version < LooseVersion('2.5.0'):
+        number_of_conventions = 5
+    else:
+        number_of_conventions = 3
+    assert len(result_content['C:']) == number_of_conventions
 
     # Close the file
     main_window.editor.close_file()
