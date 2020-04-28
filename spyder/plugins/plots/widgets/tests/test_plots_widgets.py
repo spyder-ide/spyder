@@ -211,7 +211,7 @@ def test_close_all_figures(figbrowser, tmpdir, fmt):
 
 
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
-def test_close_one_thumbnail(figbrowser, tmpdir, fmt):
+def test_close_one_thumbnail(qtbot, figbrowser, tmpdir, fmt):
     """
     Test the thumbnail is removed from the GUI.
     """
@@ -222,6 +222,9 @@ def test_close_one_thumbnail(figbrowser, tmpdir, fmt):
     # Remove the first figure
     figures = figbrowser.thumbnails_sb.findChildren(FigureThumbnail)
     figbrowser.thumbnails_sb.remove_thumbnail(figures[0])
+
+    # Removed thumbnails are unparented with a timer to prevent segfaults
+    qtbot.wait(200)
 
     assert len(figbrowser.thumbnails_sb.findChildren(FigureThumbnail)) == 1
 
