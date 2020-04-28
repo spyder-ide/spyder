@@ -608,6 +608,7 @@ class FigureViewer(QScrollArea):
             height = (size.height() -
                       style.pixelMetric(QStyle.PM_LayoutTopMargin) -
                       style.pixelMetric(QStyle.PM_LayoutBottomMargin))
+            self.figcanvas.setToolTip('')
             try:
                 if (fwidth / fheight) > (width / height):
                     new_width = int(width)
