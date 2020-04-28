@@ -2501,7 +2501,7 @@ class CodeEditor(TextEditBaseWidget):
         max_lines_msglist = 25
         sorted_code_analysis = sorted(code_analysis, key=lambda i: i[2])
         for src, code, sev, msg in sorted_code_analysis:
-            if '[' in msg and ']' in msg:
+            if src == 'pylint' and '[' in msg and ']' in msg:
                 # Remove extra redundant info from pyling messages
                 msg = msg.split(']')[-1]
 
