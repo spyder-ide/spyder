@@ -586,8 +586,11 @@ class MainWindow(QMainWindow):
                                "Close pane")
         self.lock_interface_action = create_action(
             self,
-            _("Lock panes and toolbars"),
-            toggled=self.toggle_lock,
+            (_("Unlock panes and toolbars") if self.interface_locked else
+             _("Lock panes and toolbars")),
+            icon=ima.icon('lock' if self.interface_locked else 'lock_open'),
+            triggered=lambda checked:
+                self.toggle_lock(not self.interface_locked),
             context=Qt.ApplicationShortcut)
         self.register_shortcut(self.lock_interface_action, "_",
                                "Lock unlock panes")
@@ -1332,7 +1335,7 @@ class MainWindow(QMainWindow):
         self.load_last_visible_toolbars()
 
         # Update lock status
-        self.lock_interface_action.setChecked(self.interface_locked)
+        self.toggle_lock(self.interface_locked)
 
         # Hide Internal Console so that people don't use it instead of
         # the External or IPython ones
@@ -2524,6 +2527,11 @@ class MainWindow(QMainWindow):
         """Lock/Unlock dockwidgets and toolbars"""
         self.interface_locked = value
         CONF.set('main', 'panes_locked', value)
+        self.lock_interface_action.setIcon(
+            ima.icon('lock' if self.interface_locked else 'lock_open'))
+        self.lock_interface_action.setText(
+            _("Unlock panes and toolbars") if self.interface_locked else
+            _("Lock panes and toolbars"))
 
         # Apply lock to panes
         for plugin in (self.widgetlist + self.thirdparty_plugins):
