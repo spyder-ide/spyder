@@ -28,6 +28,8 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QStyle)
 
 # ---- Local library imports
+import spyder.utils.icon_manager as ima
+
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import is_unicode, to_text_string
@@ -606,12 +608,21 @@ class FigureViewer(QScrollArea):
             height = (size.height() -
                       style.pixelMetric(QStyle.PM_LayoutTopMargin) -
                       style.pixelMetric(QStyle.PM_LayoutBottomMargin))
-            if (fwidth / fheight) > (width / height):
-                new_width = int(width)
-                new_height = int(width / fwidth * fheight)
-            else:
-                new_height = int(height)
-                new_width = int(height / fheight * fwidth)
+            self.figcanvas.setToolTip('')
+            try:
+                if (fwidth / fheight) > (width / height):
+                    new_width = int(width)
+                    new_height = int(width / fwidth * fheight)
+                else:
+                    new_height = int(height)
+                    new_width = int(height / fheight * fwidth)
+            except ZeroDivisionError:
+                icon = ima.icon('broken_image')
+                self.figcanvas._qpix_orig = icon.pixmap(fwidth, fheight)
+                self.figcanvas.setToolTip(
+                    _('The image is broken, please try to generate it again'))
+                new_width = fwidth
+                new_height = fheight
 
         if self.figcanvas.size() != QSize(new_width, new_height):
             self.figcanvas.setFixedSize(new_width, new_height)
