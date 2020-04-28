@@ -25,7 +25,7 @@ from qtpy.QtGui import QPixmap, QPainter, QKeySequence
 from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QVBoxLayout, QWidget, QGridLayout, QFrame,
                             QScrollArea, QScrollBar, QSpinBox, QSplitter,
-                            QStyle, QLabel)
+                            QStyle)
 
 # ---- Local library imports
 import spyder.utils.icon_manager as ima
@@ -616,8 +616,10 @@ class FigureViewer(QScrollArea):
                     new_height = int(height)
                     new_width = int(height / fheight * fwidth)
             except ZeroDivisionError:
-                icon = ima.icon('broken_variant')
+                icon = ima.icon('broken_image')
                 self.figcanvas._qpix_orig = icon.pixmap(fwidth, fheight)
+                self.figcanvas.setToolTip(
+                    _('The image is broken, please try to generate it again'))
                 new_width = fwidth
                 new_height = fheight
 
