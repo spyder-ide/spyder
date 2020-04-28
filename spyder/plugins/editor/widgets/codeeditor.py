@@ -2502,7 +2502,7 @@ class CodeEditor(TextEditBaseWidget):
         sorted_code_analysis = sorted(code_analysis, key=lambda i: i[2])
         for src, code, sev, msg in sorted_code_analysis:
             if src == 'pylint' and '[' in msg and ']' in msg:
-                # Remove extra redundant info from pyling messages
+                # Remove extra redundant info from pylint messages
                 msg = msg.split(']')[-1]
 
             msg = msg.strip()
