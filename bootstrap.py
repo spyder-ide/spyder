@@ -146,7 +146,8 @@ try:
     pkg = pkg_resources.get_distribution('python-language-server')
 
     # Remove the PyLS stable version first (in case it's present)
-    if 'dirty' not in pkg.egg_name():
+    if ('external-deps' not in pkg.module_path and
+            'site-packages' in pkg.module_path):
         print("*. Removing stable version of the PyLS.")
         uninstall_with_pip = False
         is_conda = osp.exists(osp.join(sys.prefix, 'conda-meta'))
