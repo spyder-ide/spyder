@@ -336,6 +336,8 @@ _qtaargs = {
     'dependency_ok':           [('fa.check',), {'color': MAIN_FG_COLOR}],
     'dependency_warning':      [('fa.warning',), {'color': 'orange'}],
     'dependency_error':        [('fa.warning',), {'color': 'darkred'}],
+    'broken_image':          [('mdi.image-broken-variant',),
+                                {'color': MAIN_FG_COLOR}],
     # --- Status bar --------------------------------------------------------
     'code_fork':               [('fa.code-fork',), {'color': MAIN_FG_COLOR}],
 }
