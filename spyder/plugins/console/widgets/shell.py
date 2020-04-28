@@ -668,8 +668,21 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             context='Console',
             name='Inspect current object',
             parent=self)
+        clear_line_sc = CONF.config_shortcut(
+            self.clear_line,
+            context='Console',
+            name="Clear line",
+            parent=self,
+        )
+        clear_shell_sc = CONF.config_shortcut(
+            self.clear_terminal,
+            context='Console',
+            name="Clear shell",
+            parent=self,
+        )
 
-        return [inspectsc, array_inline, array_table]
+        return [inspectsc, array_inline, array_table, clear_line_sc,
+                clear_shell_sc]
 
     def get_shortcut_data(self):
         """
