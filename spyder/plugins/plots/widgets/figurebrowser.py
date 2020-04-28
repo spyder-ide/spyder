@@ -860,11 +860,14 @@ class ThumbnailScrollBar(QFrame):
     def remove_all_thumbnails(self):
         """Remove all thumbnails."""
         for thumbnail in self._thumbnails:
-            self.layout().removeWidget(thumbnail)
             thumbnail.sig_canvas_clicked.disconnect()
             thumbnail.sig_remove_figure.disconnect()
             thumbnail.sig_save_figure.disconnect()
+            self.layout().removeWidget(thumbnail)
             thumbnail.setParent(None)
+            thumbnail.hide()
+            thumbnail.close()
+
         self._thumbnails = []
         self.current_thumbnail = None
         self.figure_viewer.figcanvas.clear_canvas()
@@ -873,20 +876,35 @@ class ThumbnailScrollBar(QFrame):
         """Remove thumbnail."""
         if thumbnail in self._thumbnails:
             index = self._thumbnails.index(thumbnail)
+
+        # Disconnect signals
+        try:
+            thumbnail.sig_canvas_clicked.disconnect()
+            thumbnail.sig_remove_figure.disconnect()
+            thumbnail.sig_save_figure.disconnect()
+        except TypeError:
+            pass
+
+        if thumbnail in self._thumbnails:
             self._thumbnails.remove(thumbnail)
-        self.layout().removeWidget(thumbnail)
-        thumbnail.setParent(None)
-        thumbnail.sig_canvas_clicked.disconnect()
-        thumbnail.sig_remove_figure.disconnect()
-        thumbnail.sig_save_figure.disconnect()
 
         # Select a new thumbnail if any :
         if thumbnail == self.current_thumbnail:
             if len(self._thumbnails) > 0:
-                self.set_current_index(min(index, len(self._thumbnails)-1))
+                self.set_current_index(
+                    min(index, len(self._thumbnails) - 1)
+                )
             else:
-                self.current_thumbnail = None
                 self.figure_viewer.figcanvas.clear_canvas()
+                self.current_thumbnail = None
+
+        # Hide and close thumbnails
+        self.layout().removeWidget(thumbnail)
+        thumbnail.hide()
+        thumbnail.close()
+
+        # See: spyder-ide/spyder#12459
+        QTimer.singleShot(150, lambda: thumbnail.setParent(None))
 
     def set_current_index(self, index):
         """Set the currently selected thumbnail by its index."""
