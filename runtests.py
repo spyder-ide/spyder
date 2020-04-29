@@ -11,6 +11,8 @@ Script for running Spyder tests programmatically.
 # Standard library imports
 import argparse
 import os
+import psutil
+import sys
 
 # To activate/deactivate certain things for pytests only
 # NOTE: Please leave this before any other import here!!
@@ -67,7 +69,11 @@ def main():
                              help='Run the slow tests')
     test_args, pytest_args = test_parser.parse_known_args()
     run_pytest(run_slow=test_args.run_slow, extra_args=pytest_args)
-
+    # Kill the children and grandchildren if they are still alive
+    proc = psutil.Process()
+    for process in proc.children(recursive=True):
+        sys.stderr.write('Killing: ' + str(process))
+        process.kill()
 
 if __name__ == '__main__':
     main()

@@ -24,6 +24,9 @@ except ImportError:
     from mock import Mock, MagicMock  # Python 2
 import sys
 import uuid
+import psutil
+import threading
+import traceback
 
 # Third party imports
 from flaky import flaky
@@ -152,7 +155,7 @@ def find_desired_tab_in_window(tab_name, window):
 # =============================================================================
 
 @pytest.fixture
-def main_window(request):
+def main_window(qtbot, request):
     """Main Window fixture"""
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
@@ -193,18 +196,28 @@ def main_window(request):
         # Start the window
         window = start.main()
         main_window.window = window
+        # Initialise the online help
+        pydocbrowser = window.onlinehelp.pydocbrowser
+        if pydocbrowser.server is None:
+            pydocbrowser.initialize()
     else:
         window = main_window.window
-        # Close everything we can think of
-        window.editor.close_file()
-        window.projects.close_project()
-        if window.console.error_dlg:
-            window.console.close_error_dlg()
-        window.switcher.close()
-        for client in window.ipyconsole.get_clients():
-            window.ipyconsole.close_client(client=client, force=True)
-        # Reset cwd
-        window.explorer.chdir(get_home_dir())
+
+    # Wait until console is up
+    shell = window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    # _DummyThread are created if current_thread() is called from them
+    # They will always leak (From python doc) so we ignore them.
+    init_threads = [
+        thread for thread in threading.enumerate()
+        if not isinstance(thread, threading._DummyThread)]
+    window._initial_number_threads = len(init_threads)
+    proc = psutil.Process()
+    window._initial_number_files = len(proc.open_files())
+    init_files = [repr(f) for f in proc.open_files()]
+    init_subprocesses = [repr(f) for f in proc.children()]
+    number_subprocesses = len(init_subprocesses)
 
     yield window
 
@@ -222,15 +235,83 @@ def main_window(request):
                 print(client.info_page)
             window.close()
             del main_window.window
+        else:
+            # Close everything we can think of
+            window.editor.close_file()
+            window.projects.close_project()
+            if window.console.error_dlg:
+                window.console.close_error_dlg()
+            window.switcher.close()
+            for client in window.ipyconsole.get_clients():
+                window.ipyconsole.close_client(client=client, force=True)
+            # Reset cwd
+            window.explorer.chdir(get_home_dir())
+
+            # The test is not allowed to open new files or threads.
+            try:
+
+                def threads_condition():
+                    threads = [
+                        thread for thread in threading.enumerate()
+                        if not isinstance(thread, threading._DummyThread)]
+                    return (window._initial_number_threads
+                            >= len(threads))
+
+                qtbot.waitUntil(threads_condition, timeout=SHELL_TIMEOUT)
+            except AssertionError:
+                # print for debug purposes
+                print("Initial threads:")
+                for thread in init_threads:
+                    print(thread)
+                print("Running threads:")
+                for thread in threading.enumerate():
+                    if not isinstance(thread, threading._DummyThread):
+                        print(thread)
+                sys.stderr.write("Running Threads stacks:\n")
+                for threadId, frame in sys._current_frames().items():
+                    sys.stderr.write("\nThread " + str(threadId) + ":\n")
+                    traceback.print_stack(frame)
+                raise
+            try:
+                qtbot.waitUntil(lambda: (number_subprocesses >=
+                                         len(proc.children())),
+                                timeout=SHELL_TIMEOUT)
+            except AssertionError:
+                # print for debug purposes
+                print("Initially open files:")
+                for file in init_subprocesses:
+                    print(file)
+                print("Open processes")
+                for process in proc.children():
+                    print(process)
+                raise
+
+            if os.name == 'nt':
+                # kernel stderr file leaks on windows
+                return
+            try:
+                qtbot.waitUntil(
+                    lambda: (window._initial_number_files
+                             >= len(proc.open_files())),
+                    timeout=SHELL_TIMEOUT)
+            except AssertionError:
+                # print for debug purposes
+                print("Initially open files:")
+                for file in init_files:
+                    print(file)
+                print("Open files:")
+                for file in proc.open_files():
+                    print(file)
+                raise
 
 
 @pytest.fixture(scope="session", autouse=True)
 def cleanup(request):
     """Cleanup a testing directory once we are finished."""
-    def remove_test_dir():
+    def close_window():
         if hasattr(main_window, 'window'):
             main_window.window.close()
-    request.addfinalizer(remove_test_dir)
+    request.addfinalizer(close_window)
 
 
 # =============================================================================

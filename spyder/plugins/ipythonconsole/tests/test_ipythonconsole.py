@@ -11,11 +11,13 @@ Tests for the IPython console plugin.
 """
 
 # Standard library imports
+import threading
 import codecs
 from distutils.version import LooseVersion
 import os
 import os.path as osp
 import shutil
+import psutil
 import sys
 import tempfile
 from textwrap import dedent
@@ -191,6 +193,14 @@ def ipyconsole(qtbot, request):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
+    threads_count = threading.active_count()
+    init_threads = [repr(t) for t in threading.enumerate()]
+    proc = psutil.Process()
+    init_subprocesses = [repr(f) for f in proc.children()]
+    number_subprocesses = len(init_subprocesses) - 1  # -1 from closed client
+    number_files = len(proc.open_files())
+    init_files = [repr(f) for f in proc.open_files()]
+
     yield console
 
     # Print shell content if failed
@@ -204,10 +214,54 @@ def ipyconsole(qtbot, request):
                 print('info_page')
                 print(client.info_page)
 
-    # Close
+    # Close clients harshly to avoid lingering Qthreads
+    for client in console.clients:
+        client.remove_stderr_file()
+        client.dialog_manager.close_all()
+        client.close()
+    console.clients = []
+
     console.closing_plugin()
     console.close()
     window.close()
+    try:
+        qtbot.waitUntil(
+            lambda: threads_count >= threading.active_count(),
+            timeout=SHELL_TIMEOUT)
+    except AssertionError:
+        # print for debug purposes
+        print("Initial threads:")
+        for thread in init_threads:
+            print(thread)
+        print("Running threads:")
+        for thread in threading.enumerate():
+            print(thread)
+        raise
+    try:
+        qtbot.waitUntil(lambda: number_files >= len(proc.open_files()),
+                        timeout=SHELL_TIMEOUT)
+    except AssertionError:
+        # print for debug purposes
+        print("Initially open files:")
+        for file in init_files:
+            print(file)
+        print("Open files:")
+        for file in proc.open_files():
+            print(file)
+        raise
+    try:
+        qtbot.waitUntil(lambda: (number_subprocesses >=
+                                 len(proc.children())),
+                        timeout=SHELL_TIMEOUT)
+    except AssertionError:
+        # print for debug purposes
+        print("Initially open processes:")
+        for file in init_subprocesses:
+            print(file)
+        print("Open processes")
+        for process in proc.children():
+            print(process)
+        raise
 
 
 # =============================================================================
