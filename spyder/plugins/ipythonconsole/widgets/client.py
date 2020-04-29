@@ -177,6 +177,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # Show timer
         self.update_time_label_visibility()
 
+    def __del__(self):
+        """Close threads to avoid segfault"""
+        if (self.restart_thread is not None
+                and self.restart_thread.isRunning()):
+            self.restart_thread.wait()
+
     #------ Public API --------------------------------------------------------
     @property
     def kernel_id(self):

@@ -95,6 +95,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.shutdown_called = False
         self.kernel_manager = None
         self.kernel_client = None
+        self.shutdown_thread = None
         handlers = {
             'pdb_state': self.set_pdb_state,
             'pdb_continue': self.pdb_continue,
@@ -109,6 +110,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
+
+    def __del__(self):
+        """Avoid destroying thread"""
+        if (self.shutdown_thread is not None
+                and self.shutdown_thread.isRunning()):
+            self.shutdown_thread.wait()
 
     def shutdown(self):
         """Shutdown kernel"""
