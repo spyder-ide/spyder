@@ -70,6 +70,21 @@ class DebuggingWidget(RichJupyterWidget):
         self._tmp_reading = False
         self._pdb_frame_loc = (None, None)
 
+    def will_close(self, externally_managed):
+        """
+        Close communication channels with the kernel if shutdown was not
+        called. If the kernel is not externally managed, shutdown the kernel
+        as well.
+        """
+        try:
+            self._pdb_history_file.save_thread.stop()
+        except AttributeError:
+            pass
+        try:
+            self._pdb_history_file.db.close()
+        except AttributeError:
+            pass
+
     def handle_debug_state(self, in_debug_loop):
         """Update the debug state."""
         self._pdb_in_loop = in_debug_loop

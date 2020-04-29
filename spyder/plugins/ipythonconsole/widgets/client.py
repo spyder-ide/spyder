@@ -501,27 +501,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def shutdown(self):
         """Shutdown kernel"""
         if self.get_kernel() is not None and not self.slave:
-            self.shellwidget.spyder_kernel_comm.close()
-            self.shellwidget.spyder_kernel_comm.shutdown_comm_channel()
-            try:
-                self.shellwidget._pdb_history_file.save_thread.stop()
-            except AttributeError:
-                pass
-            self.shellwidget.kernel_manager.stop_restarter()
-        self.shutdown_thread = QThread()
-        self.shutdown_thread.run = self.finalize_shutdown
-        self.shutdown_thread.finished.connect(self.stop_kernel_channels)
-        self.shutdown_thread.start()
+            self.shellwidget.shutdown()
 
-    def finalize_shutdown(self):
-        """Finalise the shutdown."""
-        if self.get_kernel() is not None and not self.slave:
-            self.shellwidget.kernel_manager.shutdown_kernel()
-
-    def stop_kernel_channels(self):
-        """Stop kernel channels."""
-        if self.shellwidget.kernel_client is not None:
-            self.shellwidget.kernel_client.stop_channels()
+    def close(self):
+        """Close client"""
+        self.shellwidget.will_close(
+            self.get_kernel() is None or self.slave)
+        super(ClientWidget, self).close()
 
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""

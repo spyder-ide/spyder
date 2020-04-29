@@ -15,7 +15,7 @@ import uuid
 from textwrap import dedent
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
@@ -92,6 +92,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # set in the qtconsole constructor. See spyder-ide/spyder#4806.
         self.set_bracket_matcher_color_scheme(self.syntax_style)
 
+        self.shutdown_called = False
         self.kernel_manager = None
         self.kernel_client = None
         handlers = {
@@ -108,6 +109,40 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
+
+    def shutdown(self):
+        """Shutdown kernel"""
+        self.shutdown_called = True
+        self.spyder_kernel_comm.close()
+        self.spyder_kernel_comm.shutdown_comm_channel()
+        self.kernel_manager.stop_restarter()
+
+        self.shutdown_thread = QThread()
+        self.shutdown_thread.run = self.kernel_manager.shutdown_kernel
+        if self.kernel_client is not None:
+            self.shutdown_thread.finished.connect(
+                self.kernel_client.stop_channels)
+        self.shutdown_thread.start()
+
+    def will_close(self, externally_managed):
+        """
+        Close communication channels with the kernel if shutdown was not
+        called. If the kernel is not externally managed, shutdown the kernel
+        as well.
+        """
+        if not self.shutdown_called and not externally_managed:
+            # Make sure the channels are stopped
+            self.spyder_kernel_comm.close()
+            self.spyder_kernel_comm.shutdown_comm_channel()
+            self.kernel_manager.stop_restarter()
+            self.kernel_manager.shutdown_kernel(now=True)
+            if self.kernel_client is not None:
+                self.kernel_client.stop_channels()
+        if externally_managed:
+            self.spyder_kernel_comm.close()
+            if self.kernel_client is not None:
+                self.kernel_client.stop_channels()
+        super(ShellWidget, self).will_close(externally_managed)
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
                     timeout=None):
