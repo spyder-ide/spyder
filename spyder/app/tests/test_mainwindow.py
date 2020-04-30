@@ -284,8 +284,8 @@ def test_lock_action(main_window):
     action = main_window.lock_interface_action
     plugins = main_window.widgetlist
 
-    # By default the action is checked
-    assert action.isChecked()
+    # By default the interface is locked.
+    assert main_window.interface_locked
 
     # In this state the title bar is an empty QWidget
     for plugin in plugins:
@@ -294,14 +294,16 @@ def test_lock_action(main_window):
         assert isinstance(title_bar, QWidget)
 
     # Test that our custom title bar is shown when the action
-    # is unchecked
-    action.setChecked(False)
+    # is triggered.
+    action.trigger()
     for plugin in plugins:
         title_bar = plugin.dockwidget.titleBarWidget()
         assert isinstance(title_bar, DockTitleBar)
+    assert not main_window.interface_locked
 
     # Restore default state
-    action.setChecked(True)
+    action.trigger()
+    assert main_window.interface_locked
 
 
 @pytest.mark.slow
