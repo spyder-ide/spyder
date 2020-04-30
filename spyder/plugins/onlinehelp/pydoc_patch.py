@@ -20,8 +20,9 @@ import warnings
 
 
 # Local imports
+from spyder.config.base import _, DEV
 from spyder.config.gui import is_dark_interface, get_font
-from spyder.py3compat import PY2
+from spyder.py3compat import PY2, to_text_string
 
 if not PY2:
     from pydoc import (
@@ -796,15 +797,20 @@ def _url_handler(url, content_type="text/html"):
     def html_getobj(url):
         obj = locate(url, forceload=1)
         if obj is None and url != 'None':
-            raise ValueError('could not find object')
+            raise ValueError(
+                _('There was an error while retrieving documentation '
+                  'for the object you requested: Object could not be found'))
         title = describe(obj)
         content = html.document(obj, url)
         return title, content
 
     def html_error(url, exc):
         heading = html.heading('Error')
-        contents = '<br>'.join(html.escape(line) for line in
-                               format_exception_only(type(exc), exc))
+        if DEV:
+            contents = '<br>'.join(html.escape(line) for line in
+                                   format_exception_only(type(exc), exc))
+        else:
+            contents = '%s' % to_text_string(exc)
         contents = heading + html.bigsection(url, contents, css_class="error")
         return "Error - %s" % url, contents
 
@@ -842,7 +848,9 @@ def _url_handler(url, content_type="text/html"):
                         except ValueError:
                             title, content = html_topicpage(url)
                 else:
-                    raise ValueError('bad pydoc url')
+                    raise ValueError(
+                        _('There was an error while retrieving documentation '
+                          'for the object you requested: Bad URL %s') % url)
             else:
                 title, content = html_getobj(url)
         except Exception as exc:
@@ -860,7 +868,10 @@ def _url_handler(url, content_type="text/html"):
     elif content_type == 'text/html':
         return get_html_page(url)
     # Errors outside the url handler are caught by the server.
-    raise TypeError('unknown content type %r for url %s' % (content_type, url))
+    raise TypeError(
+        _('There was an error while retrieving documentation '
+          'for the object you requested: unknown content type %r for url %s'
+          % (content_type, url)))
 
 
 def _start_server(urlhandler, hostname, port):
