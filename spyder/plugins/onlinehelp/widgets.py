@@ -134,7 +134,7 @@ class PydocBrowser(WebBrowser):
     #------ WebBrowser API -----------------------------------------------------
     def get_label(self):
         """Return address label text"""
-        return _("Module or package:")
+        return _("Module:")
 
     def reload(self):
         """Reload page"""

@@ -7,10 +7,6 @@ body {
     width: 95%;
 }
 
-code {
-    font-family: inherit;
-}
-
 table {
     width: 100%;
     border-spacing: 10px;
@@ -85,7 +81,7 @@ a:hover {
 }
 
 .normal {font-weight: normal;
-         font-size: .6em;}
+         font-size: .7em;}
 
 .grey {color:grey;}
 
@@ -111,14 +107,10 @@ a:hover {
 }
 
 .builtin_modules, .index, .package, .module, .classes, .functions, .data,
-.topics, .keywords {
+.topics, .keywords, .author, .credits {
     background-color: #e9ecef;
     border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 0.3rem;
-}
-
-.author, .credits {
-    background-color: #e9ecef;
 }
 
 .error {
@@ -142,3 +134,10 @@ a:hover {
     color: black;
     padding-bottom: 0;
 }
+
+.error .inner_table {
+    width:100%;
+    color: black;
+    padding-bottom: 0;
+}
+

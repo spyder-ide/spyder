@@ -629,6 +629,8 @@ def _url_handler(url, content_type="text/html"):
         def page(self, title, contents):
             """Format an HTML page."""
             rich_text_font = get_font(option="rich_font").family()
+            plain_text_font = get_font(option="font").family()
+
             if is_dark_interface():
                 css_path = "static/css/dark_pydoc.css"
             else:
@@ -637,13 +639,18 @@ def _url_handler(url, content_type="text/html"):
             css_link = (
                 '<link rel="stylesheet" type="text/css" href="%s">' %
                 css_path)
+
+            code_style = (
+                '<style>code {font-family: "%s"}</style>' % plain_text_font)
+
             html_page = '''\
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html><head><title>Pydoc: %s</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-%s</head><body style="clear:both;font-family:'%s'">
+%s%s</head><body style="clear:both;font-family:'%s'">
 %s<div style="clear:both;padding-top:.7em;">%s</div>
-</body></html>''' % (title, css_link, rich_text_font, html_navbar(), contents)
+</body></html>''' % (title, css_link, code_style, rich_text_font,
+                     html_navbar(), contents)
 
             return html_page
 
@@ -667,10 +674,6 @@ def _url_handler(url, content_type="text/html"):
                   : <a href="keywords.html">Keywords</a>
                 </div>
                 <div>
-                    <form action="get" style='display:inline;'>
-                      <input class="input-search" type=text name=key size=15>
-                      <input class="submit-get" type=submit value="Get">
-                    </form>&nbsp;
                     <form action="search" style='display:inline;'>
                       <input class="input-search" type=text name=key size=15>
                       <input class="submit-search" type=submit value="Search">
