@@ -435,4 +435,3 @@ APPEARANCE = {
     'vibrant-ink/number':     ('#477488', False, False),
     'vibrant-ink/instance':   ('#357a8f', False, False)
 }
-
