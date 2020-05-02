@@ -674,7 +674,7 @@ def _url_handler(url, content_type="text/html"):
                   : <a href="topics.html">Topics</a>
                   : <a href="keywords.html">Keywords</a>
                 </div>
-                <div>
+                <div style='text-align:right;'>
                     <form action="search" style='display:inline;'>
                       <input class="input-search" type=text name=key size=15>
                       <input class="submit-search" type=submit value="Search">

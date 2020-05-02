@@ -94,6 +94,8 @@ class PydocBrowser(WebBrowser):
                             handle_links=handle_links)
         self.server = None
         self.port = None
+        self.url_combo.lineEdit().setPlaceholderText(
+            _('Search for pandas, numpy, scipy, etc'))
 
     def initialize(self):
         """Start pydoc server"""
@@ -134,7 +136,7 @@ class PydocBrowser(WebBrowser):
     #------ WebBrowser API -----------------------------------------------------
     def get_label(self):
         """Return address label text"""
-        return _("Module:")
+        return _("Package:")
 
     def reload(self):
         """Reload page"""
