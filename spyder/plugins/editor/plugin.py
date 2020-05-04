@@ -1804,7 +1804,7 @@ class Editor(SpyderPluginWidget):
                 self.untitled_num += 1
                 if not osp.isfile(fname):
                     break
-            
+
             basedir = getcwd_or_home()
 
             if self.main.projects.get_active_project() is not None:
