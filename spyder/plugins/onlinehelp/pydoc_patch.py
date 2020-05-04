@@ -487,8 +487,9 @@ if not PY2:
                 title = '<span id="%s" class="signature"> class %s</span>' % (
                     name, realname)
             else:
-                title = '%s = <span id="%s" class="signature">class %s</span>' % (
-                    name, name, realname)
+                title = (
+                    '%s = <span id="%s" class="signature">class %s</span>' % (
+                        name, name, realname))
             if bases:
                 parents = []
                 for base in bases:
