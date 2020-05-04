@@ -95,7 +95,7 @@ class PydocBrowser(WebBrowser):
         self.server = None
         self.port = None
         self.url_combo.lineEdit().setPlaceholderText(
-            _('Search for pandas, numpy, scipy, etc'))
+            _('Write a package name here'))
 
     def initialize(self):
         """Start pydoc server"""
@@ -162,7 +162,7 @@ class PydocBrowser(WebBrowser):
         if 'about:blank' in string_url:
             return 'about:blank'
         elif 'get?key=' in string_url or 'search?key=' in string_url:
-            return url.toString().split('=')[-1]
+            return ''
         return osp.splitext(to_text_string(url.path()))[0][1:]
 
 

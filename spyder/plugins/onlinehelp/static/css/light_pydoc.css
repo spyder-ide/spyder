@@ -49,10 +49,11 @@ a:hover {
     color: #444;
 }
 
-.submit-get, .submit-search{
+.submit-search{
     border: 1px solid #444;
     border-radius: 0.25rem;
     color: black;
+    font-size: 1em;
 }
 
 
@@ -121,6 +122,10 @@ a:hover {
 .docclass {
     color: black;
     background-color: #e9ecef;
+}
+
+.signature {
+    color: #0050cc;
 }
 
 .ka_ping_yee {

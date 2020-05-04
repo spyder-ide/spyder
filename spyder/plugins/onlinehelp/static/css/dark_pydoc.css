@@ -127,11 +127,12 @@ a:hover {
     color: #444;
 }
 
-.submit-get, .submit-search{
+.submit-search{
     background-color: #444;
     border: 1px solid #444;
     border-radius: 0.25rem;
     color: white;
+    font-size: 1em;
 }
 
 /* --- Section classes --- */
@@ -200,6 +201,10 @@ a:hover {
 .docclass {
     background-color: #303030;
     color: white;
+}
+
+.signature {
+    color: #00bc8c;
 }
 
 .ka_ping_yee {

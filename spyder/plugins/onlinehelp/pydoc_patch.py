@@ -484,10 +484,10 @@ if not PY2:
             contents = ''.join(contents)
 
             if name == realname:
-                title = '<a id="%s">class %s</a>' % (
+                title = '<span id="%s" class="signature"> class %s</span>' % (
                     name, realname)
             else:
-                title = '%s = <a id="%s">class %s</a>' % (
+                title = '%s = <span id="%s" class="signature">class %s</span>' % (
                     name, name, realname)
             if bases:
                 parents = []
@@ -527,7 +527,7 @@ if not PY2:
                             imclass, mod)
 
             if name == realname:
-                title = '<a id="%s">%s</a>' % (
+                title = '<span id="%s" class="signature">%s</span>' % (
                     anchor, realname)
             else:
                 if (cl and realname in cl.__dict__ and
@@ -537,7 +537,7 @@ if not PY2:
                     skipdocs = 1
                 else:
                     reallink = realname
-                title = '<a id="%s">%s</a> = %s' % (
+                title = '<span id="%s" class="signature">%s</span> = %s' % (
                     anchor, name, reallink)
             argspec = None
             if inspect.isroutine(object):
@@ -676,7 +676,7 @@ def _url_handler(url, content_type="text/html"):
                 </div>
                 <div style='text-align:right;'>
                     <form action="search" style='display:inline;'>
-                      <input class="input-search" type=text name=key size=15>
+                      <input class="input-search" type=text name=key size="22">
                       <input class="submit-search" type=submit value="Search">
                     </form>
                 </div>
