@@ -352,18 +352,34 @@ class BaseTabs(QTabWidget):
         self.set_corner_widgets({corner:
                                  self.corner_widgets.get(corner, [])+widgets})
 
+    def get_offset_pos(self, event):
+        """
+        Add offset to position event to capture the mouse cursor
+        inside a tab.
+        """
+        # This is necessary because self.tabBar().tabAt(event.pos()) is not
+        # returning the expected index. For further information see
+        # spyder-ide/spyder#12617
+        point = event.pos()
+        if sys.platform == 'darwin':
+            # The close button on tab is on the left
+            point.setX(point.x() + 3)
+        else:
+            # The close buttton on tab is on the right
+            point.setX(point.x() - 30)
+        return self.tabBar().tabAt(point)
+
     def contextMenuEvent(self, event):
         """Override Qt method"""
-        self.setCurrentIndex(self.tabBar().tabAt(event.pos()))
+        index = self.get_offset_pos(event)
+        self.setCurrentIndex(index)
         if self.menu:
             self.menu.popup(event.globalPos())
 
     def mousePressEvent(self, event):
         """Override Qt method"""
         if event.button() == Qt.MidButton:
-            point = event.pos()
-            point.setX(point.x() + 5)
-            index = self.tabBar().tabAt(point)
+            index = self.get_offset_pos(event)
             if index >= 0:
                 self.sig_close_tab.emit(index)
                 event.accept()
