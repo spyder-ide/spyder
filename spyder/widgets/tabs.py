@@ -361,7 +361,9 @@ class BaseTabs(QTabWidget):
     def mousePressEvent(self, event):
         """Override Qt method"""
         if event.button() == Qt.MidButton:
-            index = self.tabBar().tabAt(event.pos())
+            point = event.pos()
+            point.setX(point.x() + 5)
+            index = self.tabBar().tabAt(point)
             if index >= 0:
                 self.sig_close_tab.emit(index)
                 event.accept()
