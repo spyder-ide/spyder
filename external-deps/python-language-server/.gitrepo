@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/palantir/python-language-server.git
+	branch = develop
+	commit = fdb8b3dbc5df7d12729d135932bf2264e0883061
+	parent = 0798ff6e51f6d1c353b8278469a32adab54b874f
+	method = merge
+	cmdver = 0.4.1

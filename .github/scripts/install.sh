@@ -1,5 +1,10 @@
 #!/bin/bash -ex
 
+if [ "$OS" = "macos" ]; then
+    # Adjust PATH in macOS because conda is not at front of it
+    PATH=/usr/local/miniconda/envs/test/bin:/usr/local/miniconda/condabin:$PATH
+fi
+
 # Install dependencies
 if [ "$USE_CONDA" = "true" ]; then
 
@@ -14,11 +19,14 @@ if [ "$USE_CONDA" = "true" ]; then
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
 
-    # Remove spyder-kernels to be sure that we use its subrepo
-    conda remove spyder-kernels --force -q -y
+    # Install Pylint 2.4 untill version 2.5 is fixed in Anaconda
+    if [ "$PYTHON_VERSION" != "2.7" ]; then
+        conda install python=$PYTHON_VERSION pylint=2.4*
+    fi
 
-    # Install python-language-server from Github with no deps
-    pip install --no-deps git+https://github.com/palantir/python-language-server -q
+    # Remove packages we have subrepos for
+    conda remove spyder-kernels --force -q -y
+    conda remove python-language-server --force -q -y
 else
     # Update pip and setuptools
     pip install -U pip setuptools
@@ -35,12 +43,15 @@ else
     # Install qtconsole from Github
     pip install git+https://github.com/jupyter/qtconsole.git
 
-    # Remove spyder-kernels to be sure that we use its subrepo
+    # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y
-
-    # Install python-language-server from Github
-    pip install git+https://github.com/palantir/python-language-server -q
+    pip uninstall python-language-server -q -y
 fi
+
+# Install python-language-server from our subrepo
+pushd external-deps/python-language-server
+pip install --no-deps -q -e .
+popd
 
 # To check our manifest
 pip install check-manifest

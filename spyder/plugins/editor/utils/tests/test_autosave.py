@@ -237,7 +237,8 @@ def test_autosave_remove_autosave_file(mocker, exception):
     assert mock_dialog.called == exception
 
 
-def test_autosave_file_renamed(mocker, tmpdir):
+@pytest.mark.parametrize('have_hash', [True, False])
+def test_autosave_file_renamed(mocker, tmpdir, have_hash):
     """Test that AutosaveForStack.file_renamed removes the old autosave file,
     creates a new one, and updates `name_mapping` and `file_hashes`."""
     mock_remove = mocker.patch('os.remove')
@@ -256,6 +257,10 @@ def test_autosave_file_renamed(mocker, tmpdir):
     new_autosavefile = str(tmpdir.join('new_foo.py'))
     addon.name_mapping = {'old_foo.py': old_autosavefile}
     addon.file_hashes = {'old_foo.py': 1, old_autosavefile: 42}
+    if have_hash:
+        addon.file_hashes = {'old_foo.py': 1, old_autosavefile: 42}
+    else:
+        addon.file_hashes = {old_autosavefile: 42}
 
     addon.file_renamed('old_foo.py', 'new_foo.py')
 
@@ -263,7 +268,10 @@ def test_autosave_file_renamed(mocker, tmpdir):
     mock_stack._write_to_file.assert_called_with(
         mock_fileinfo, new_autosavefile)
     assert addon.name_mapping == {'new_foo.py': new_autosavefile}
-    assert addon.file_hashes == {'new_foo.py': 1, new_autosavefile: 3}
+    if have_hash:
+        assert addon.file_hashes == {'new_foo.py': 1, new_autosavefile: 3}
+    else:
+        assert addon.file_hashes == {new_autosavefile: 3}
 
 
 if __name__ == "__main__":
