@@ -20,8 +20,9 @@ import warnings
 
 
 # Local imports
+from spyder.config.base import _, DEV
 from spyder.config.gui import is_dark_interface, get_font
-from spyder.py3compat import PY2
+from spyder.py3compat import PY2, to_text_string
 
 if not PY2:
     from pydoc import (
@@ -483,11 +484,12 @@ if not PY2:
             contents = ''.join(contents)
 
             if name == realname:
-                title = '<a id="%s">class %s</a>' % (
+                title = '<span id="%s" class="signature"> class %s</span>' % (
                     name, realname)
             else:
-                title = '%s = <a id="%s">class %s</a>' % (
-                    name, name, realname)
+                title = (
+                    '%s = <span id="%s" class="signature">class %s</span>' % (
+                        name, name, realname))
             if bases:
                 parents = []
                 for base in bases:
@@ -526,7 +528,7 @@ if not PY2:
                             imclass, mod)
 
             if name == realname:
-                title = '<a id="%s">%s</a>' % (
+                title = '<span id="%s" class="signature">%s</span>' % (
                     anchor, realname)
             else:
                 if (cl and realname in cl.__dict__ and
@@ -536,7 +538,7 @@ if not PY2:
                     skipdocs = 1
                 else:
                     reallink = realname
-                title = '<a id="%s">%s</a> = %s' % (
+                title = '<span id="%s" class="signature">%s</span> = %s' % (
                     anchor, name, reallink)
             argspec = None
             if inspect.isroutine(object):
@@ -629,6 +631,8 @@ def _url_handler(url, content_type="text/html"):
         def page(self, title, contents):
             """Format an HTML page."""
             rich_text_font = get_font(option="rich_font").family()
+            plain_text_font = get_font(option="font").family()
+
             if is_dark_interface():
                 css_path = "static/css/dark_pydoc.css"
             else:
@@ -637,13 +641,18 @@ def _url_handler(url, content_type="text/html"):
             css_link = (
                 '<link rel="stylesheet" type="text/css" href="%s">' %
                 css_path)
+
+            code_style = (
+                '<style>code {font-family: "%s"}</style>' % plain_text_font)
+
             html_page = '''\
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html><head><title>Pydoc: %s</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-%s</head><body style="clear:both;font-family:'%s'">
+%s%s</head><body style="clear:both;font-family:'%s'">
 %s<div style="clear:both;padding-top:.7em;">%s</div>
-</body></html>''' % (title, css_link, rich_text_font, html_navbar(), contents)
+</body></html>''' % (title, css_link, code_style, rich_text_font,
+                     html_navbar(), contents)
 
             return html_page
 
@@ -666,13 +675,9 @@ def _url_handler(url, content_type="text/html"):
                   : <a href="topics.html">Topics</a>
                   : <a href="keywords.html">Keywords</a>
                 </div>
-                <div>
-                    <form action="get" style='display:inline;'>
-                      <input class="input-search" type=text name=key size=15>
-                      <input class="submit-get" type=submit value="Get">
-                    </form>&nbsp;
+                <div style='text-align:right;'>
                     <form action="search" style='display:inline;'>
-                      <input class="input-search" type=text name=key size=15>
+                      <input class="input-search" type=text name=key size="22">
                       <input class="submit-search" type=submit value="Search">
                     </form>
                 </div>
@@ -793,15 +798,20 @@ def _url_handler(url, content_type="text/html"):
     def html_getobj(url):
         obj = locate(url, forceload=1)
         if obj is None and url != 'None':
-            raise ValueError('could not find object')
+            raise ValueError(
+                _('There was an error while retrieving documentation '
+                  'for the object you requested: Object could not be found'))
         title = describe(obj)
         content = html.document(obj, url)
         return title, content
 
     def html_error(url, exc):
         heading = html.heading('Error')
-        contents = '<br>'.join(html.escape(line) for line in
-                               format_exception_only(type(exc), exc))
+        if DEV:
+            contents = '<br>'.join(html.escape(line) for line in
+                                   format_exception_only(type(exc), exc))
+        else:
+            contents = '%s' % to_text_string(exc)
         contents = heading + html.bigsection(url, contents, css_class="error")
         return "Error - %s" % url, contents
 
@@ -839,7 +849,9 @@ def _url_handler(url, content_type="text/html"):
                         except ValueError:
                             title, content = html_topicpage(url)
                 else:
-                    raise ValueError('bad pydoc url')
+                    raise ValueError(
+                        _('There was an error while retrieving documentation '
+                          'for the object you requested: Bad URL %s') % url)
             else:
                 title, content = html_getobj(url)
         except Exception as exc:
@@ -857,7 +869,10 @@ def _url_handler(url, content_type="text/html"):
     elif content_type == 'text/html':
         return get_html_page(url)
     # Errors outside the url handler are caught by the server.
-    raise TypeError('unknown content type %r for url %s' % (content_type, url))
+    raise TypeError(
+        _('There was an error while retrieving documentation '
+          'for the object you requested: unknown content type %r for url %s'
+          % (content_type, url)))
 
 
 def _start_server(urlhandler, hostname, port):
