@@ -126,7 +126,7 @@ if args.debug:
     print("0x. Switching debug mode on")
     os.environ["SPYDER_DEBUG"] = "3"
     if len(args.filter_log) > 0:
-        print("0x-1. Displaying log messages only from the "
+        print("*. Displaying log messages only from the "
               "following modules: {0}".format(', '.join(args.filter_log)))
     os.environ["SPYDER_FILTER_LOG"] = ' '.join(args.filter_log)
     # this way of interaction suxx, because there is no feedback

@@ -95,19 +95,21 @@ def setup_logging(cli_options):
             match_func = lambda x: (dafsa.lookup(x, stop_on_prefix=True)
                                     is not None)
 
-        f = logging.Formatter(log_format)
+        formatter = logging.Formatter(log_format)
 
-        class LSPFilter(logging.Filter):
+        class ModuleFilter(logging.Filter):
+            """Filter messages based on module name prefix."""
+
             def filter(self, record):
                 return match_func(record.name)
 
-        filter = LSPFilter()
+        filter = ModuleFilter()
         root_logger.setLevel(log_level)
-        for h in handlers:
-            h.addFilter(filter)
-            h.setFormatter(f)
-            h.setLevel(log_level)
-            root_logger.addHandler(h)
+        for handler in handlers:
+            handler.addFilter(filter)
+            handler.setFormatter(formatter)
+            handler.setLevel(log_level)
+            root_logger.addHandler(handler)
 
 
 def delete_lsp_log_files():
