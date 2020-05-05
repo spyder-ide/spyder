@@ -95,7 +95,7 @@ class PydocBrowser(WebBrowser):
         self.server = None
         self.port = None
         self.url_combo.lineEdit().setPlaceholderText(
-            _('Write a package name here'))
+            _('Write a package name here, e.g. pandas'))
 
     def initialize(self):
         """Start pydoc server"""
