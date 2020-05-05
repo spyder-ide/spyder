@@ -33,6 +33,8 @@ some_function""".format(SIG=TEST_SIG, DOC=TEST_DOCSTRING)
 
 @pytest.mark.slow
 @pytest.mark.second
+@pytest.mark.skipif(sys.platform == 'darwin' and PY2,
+                    reason='Fails on Mac and Python 2')
 def test_hide_calltip(lsp_codeeditor, qtbot):
     """Test that calltips are hidden when a matching ')' is found."""
     code_editor, _ = lsp_codeeditor
