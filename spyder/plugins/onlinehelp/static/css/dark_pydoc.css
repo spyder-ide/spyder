@@ -195,7 +195,7 @@ a:hover {
 
 .error {
     color: white;
-    background-color: #bb0000;
+    background-color: #E74C3C;
 }
 
 .docclass {
@@ -220,7 +220,7 @@ a:hover {
 }
 
 .error .inner_table {
-    background-color: #bb0000;
+    background-color: #E74C3C;
     width:100%;
     color: white;
     padding-bottom: 0;
