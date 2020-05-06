@@ -637,14 +637,14 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Copy current line or selected text and paste the duplicated text
         *after* the current line or selected text.
         """
-        self.__duplicate_line_or_selection(after_current_line=True)
+        self.__duplicate_line_or_selection(after_current_line=False)
 
     def duplicate_line_up(self):
         """
         Copy current line or selected text and paste the duplicated text
         *before* the current line or selected text.
         """
-        self.__duplicate_line_or_selection(after_current_line=False)
+        self.__duplicate_line_or_selection(after_current_line=True)
 
     def __move_line_or_selection(self, after_current_line=True):
         """Move current line or selected text"""
