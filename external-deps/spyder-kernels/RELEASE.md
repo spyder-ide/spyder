@@ -1,8 +1,8 @@
 To release a new version of spyder-kernels on PyPI:
 
-* Create an issue announcing the incoming release
+* Close the respective project on Github
 
-* Close the respective milestone in GitHub
+* Close the respective milestone on Zenhub
 
 * git checkout master
 
