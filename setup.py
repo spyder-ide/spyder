@@ -235,7 +235,7 @@ install_requires = [
     'qtpy>=1.5.0',
     'sphinx>=0.6.6',
     # Don't forget to update this to >=2.0 for Spyder 5!
-    'spyder-kernels>=1.9.0,<1.10.0',
+    'spyder-kernels>=1.9.1,<1.10.0',
     'watchdog',
 ]
 
