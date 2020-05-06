@@ -256,7 +256,7 @@ def test_copy_lines_down_up(editor_bot, mocker, qtbot):
     # Copy lines down.
     editor.duplicate_line_down()
     qtbot.wait(100)
-    assert editor.get_cursor_line_column() == (2, 0)
+    assert editor.get_cursor_line_column() == (4, 0)
     assert editor.textCursor().selection().toPlainText() == 'a = 1\nprint(a)\n'
     assert editor.toPlainText() == 'a = 1\nprint(a)\n' * 2 + '\nx = 2\n'
 
