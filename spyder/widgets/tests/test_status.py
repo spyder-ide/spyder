@@ -9,6 +9,7 @@
 
 # Standard library imports
 import os
+import sys
 
 # Thrid party imports
 from qtpy.QtCore import Qt
@@ -117,6 +118,7 @@ def test_status_bar_other_interpreter_status(status_bar, qtbot, mocker):
     assert 'venv (Python 3.6.6)' == w._process_interpreter_env_info()
 
 
+@pytest.mark.skipif(sys.platform != 'darwin', reason="Only valid on Mac")
 def test_status_bar_internal_interpreter_status(status_bar, qtbot, mocker):
     mocker.patch.object(conda, 'is_conda_env', return_value=False)
 
