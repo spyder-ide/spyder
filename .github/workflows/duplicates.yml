@@ -58,5 +58,17 @@ jobs:
                "reply": "Duplicate of #11872. It will be fixed in our next version (4.1.2)",
                "labels": ["resolution:Duplicate"],
                "close": true
+             },
+             {
+               "pattern": "current_pos_text = text[offset - utf16_diff - 1]",
+               "reply": "This issue is a duplicate of #12266. Please keep track of that issue as it will be fixed in a future release.",
+               "labels": ["resolution:Duplicate"],
+               "close": true
+             },
+             {
+               "pattern": "TimeoutError: Timeout while waiting for comm port.",
+               "reply": "This issue is a duplicate of #11889. Please keep track of that issue as it will be fixed in a future release.",
+               "labels": ["resolution:Duplicate"],
+               "close": true
              }
              ]
