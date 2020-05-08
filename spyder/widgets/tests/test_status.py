@@ -16,10 +16,12 @@ from qtpy.QtWidgets import QMainWindow
 import pytest
 
 # Local imports
-from spyder.utils import conda
 from spyder.config import base
-from spyder.widgets.status import (BaseTimerStatus, InterpreterStatus, CPUStatus,
-                                   MemoryStatus, StatusBarWidget)
+from spyder.utils import conda
+from spyder.widgets.status import (BaseTimerStatus, CPUStatus,
+                                   InterpreterStatus, MemoryStatus,
+                                   StatusBarWidget)
+import spyder.widgets.status
 
 
 @pytest.fixture
@@ -64,7 +66,9 @@ def test_status_bar_widget_signal(status_bar, qtbot):
 
 
 def test_status_bar_conda_interpreter_status(status_bar, qtbot, mocker):
-    mocker.patch.object(conda, 'is_conda_env', return_value=True)
+    # We patch where the method is used not where it is imported from
+    mocker.patch.object(spyder.widgets.status, 'is_conda_env',
+                        return_value=True)
     mock_py_ver = 'Python 6.6.6'
 
     win, statusbar = status_bar
@@ -74,24 +78,29 @@ def test_status_bar_conda_interpreter_status(status_bar, qtbot, mocker):
     out_or_err = mock_py_ver + ' (hello!)'
     for (out, err) in [(out_or_err, ''), ('', out_or_err)]:
         # We patch the method that calls for info to return values to test
-        mocker.patch.object(w, '_get_interpreter_env_info', return_value=(out, err))
+        mocker.patch.object(w, '_get_interpreter_env_info',
+                            return_value=(out, err))
 
         if os.name == 'nt':
             interpreter = os.sep.join(['miniconda', 'python'])
         else:
             interpreter = os.sep.join(['miniconda', 'bin', 'python'])
         w.update_interpreter(interpreter)
+        expected = 'conda: base (Python 6.6.6)'
         assert w.get_tooltip() == interpreter
-        assert 'conda: base (Python 6.6.6)' == w._process_interpreter_env_info()
+        assert expected == w._process_interpreter_env_info()
 
         # We patch the method that calls for info to return values to test
         if os.name == 'nt':
             interpreter = os.sep.join(['miniconda', 'envs', 'foo', 'python'])
         else:
-            interpreter = os.sep.join(['miniconda', 'envs', 'foo', 'bin', 'python'])
+            interpreter = os.sep.join(['miniconda', 'envs', 'foo', 'bin',
+                                       'python'])
+
         w.update_interpreter(interpreter)
+        expected = 'conda: foo (Python 6.6.6)'
         assert w.get_tooltip() == interpreter
-        assert 'conda: foo (Python 6.6.6)' == w._process_interpreter_env_info()
+        assert expected == w._process_interpreter_env_info()
 
 
 def test_status_bar_other_interpreter_status(status_bar, qtbot, mocker):

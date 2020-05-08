@@ -904,8 +904,11 @@ class MainWindow(QMainWindow):
             self.outlineexplorer.register_plugin()
 
         from spyder.widgets.status import InterpreterStatus
-        self.interpreter_status = InterpreterStatus(self, status,
-                                              icon=ima.icon('environment'))
+        self.interpreter_status = InterpreterStatus(
+            self,
+            status,
+            icon=ima.icon('environment'),
+        )
         self.interpreter_status.update_interpreter(self.get_main_interpreter())
 
         # Editor plugin
