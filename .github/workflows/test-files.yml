@@ -30,18 +30,8 @@ on:
       - '**.sh'
 
 jobs:
-  cleanup-previous-runs:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo $GITHUB_EVENT_NAME
-      - uses: rokroskar/workflow-run-cleanup-action@v0.2.2
-        if: github.event_name == 'pull_request'
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
   build:
     name: Py${{ matrix.PYTHON_VERSION }}
-    needs: cleanup-previous-runs
     runs-on: ubuntu-latest
     env:
       CI: 'true'
