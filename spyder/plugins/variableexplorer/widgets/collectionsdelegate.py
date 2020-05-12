@@ -316,7 +316,12 @@ class CollectionsDelegate(QItemDelegate):
         elif isinstance(editor, QDateEdit):
             editor.setDate(value)
         elif isinstance(editor, QDateTimeEdit):
-            editor.setDateTime(QDateTime(value.date(), value.time()))
+            try:
+                editor.setDateTime(QDateTime(value.date(), value.time()))
+            except ValueError:
+                # Needed to handle NaT values
+                # See spyder-ide/spyder#8329
+                pass
 
     def setModelData(self, editor, model, index):
         """
