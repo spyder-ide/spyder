@@ -949,6 +949,8 @@ class CodeEditor(TextEditBaseWidget):
             # Needed to show indent guides for splited editor panels
             # See spyder-ide/spyder#10900
             self.patch = cloned_from.patch
+            # Clone the cell list
+            self._cell_list = cloned_from._cell_list
         self.toggle_line_numbers(linenumbers, markers)
 
         # Lexer
