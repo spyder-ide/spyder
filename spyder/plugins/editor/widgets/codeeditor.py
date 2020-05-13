@@ -364,6 +364,7 @@ class CodeEditor(TextEditBaseWidget):
 
         # Typing keys / handling on the fly completions
         # See: keyPressEvent
+        self._count_backspace = 0
         self._last_key_pressed_text = ''
         self._last_pressed_key = None
         self._timer_autocomplete = QTimer(self)
@@ -4025,6 +4026,11 @@ class CodeEditor(TextEditBaseWidget):
         elif not event.isAccepted():
             insert_text(event)
 
+        if key == Qt.Key_Backspace:
+            self._count_backspace += 1
+        else:
+            self._count_backspace = 0
+
         self._last_key_pressed_text = text
         self._last_pressed_key = key
         if self.automatic_completions_after_ms == 0 and not tab_pressed:
@@ -4057,6 +4063,7 @@ class CodeEditor(TextEditBaseWidget):
             text = to_text_string(cursor.selectedText())
             if text != '.':
                 text = ''
+                self._count_backspace = 0
 
         # WordUnderCursor fails if the cursor is next to a right brace.
         # If the returned text starts with it, we move to the left.
@@ -4067,8 +4074,10 @@ class CodeEditor(TextEditBaseWidget):
 
         self.document_did_change(text)
 
+        is_backspace = (
+            self._count_backspace >= self.automatic_completions_after_chars)
         if (len(text) >= self.automatic_completions_after_chars
-                and self._last_key_pressed_text) or key == Qt.Key_Backspace:
+                and self._last_key_pressed_text or is_backspace):
             # Perform completion on the fly
             if self.automatic_completions and not self.in_comment_or_string():
                 # Variables can include numbers and underscores
