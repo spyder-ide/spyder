@@ -70,5 +70,11 @@ jobs:
                "reply": "This issue is a duplicate of #11889. Please keep track of that issue as it will be fixed in a future release.",
                "labels": ["resolution:Duplicate"],
                "close": true
+             },
+             {
+               "pattern": "TypeError: __init__() got an unexpected keyword argument 'size'",
+               "reply": "This issue is a duplicate of #11875 and has been fixed in the latest Spyder version. Please update to the latest version.",
+               "labels": ["resolution:Duplicate"],
+               "close": true
              }
              ]
