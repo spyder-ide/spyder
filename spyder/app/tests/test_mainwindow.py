@@ -1024,7 +1024,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
     file_text = editorstack.get_current_editor().toPlainText()
     if nbconvert.__version__ >= '5.4.0':
         expected_text = ('#!/usr/bin/env python\n# coding: utf-8\n\n# In[1]:'
-                         '\n\n\n1 + 1\n\n\n# In[ ]:\n\n\n\n\n\n')
+                         '\n\n\n1 + 1\n\n\n# In[ ]:\n\n\n\n\n')
     else:
         expected_text = '\n# coding: utf-8\n\n# In[1]:\n\n\n1 + 1\n\n\n'
     assert file_text == expected_text
