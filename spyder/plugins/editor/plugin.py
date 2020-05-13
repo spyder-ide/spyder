@@ -1825,6 +1825,7 @@ class Editor(SpyderPluginWidget):
         # editorstacks:
         # Setting empty to True by default to avoid the additional space
         # created at the end of the templates.
+        # See: spyder-ide/spyder#12596
         finfo = self.editorstacks[0].new(fname, enc, text, default_content,
                                          empty=True)
         finfo.path = self.main.get_spyder_pythonpath()
