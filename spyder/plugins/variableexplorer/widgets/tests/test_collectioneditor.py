@@ -30,7 +30,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QWidget
 
 # Local imports
-from spyder.plugins.variableexplorer.widgets.collectionseditor import (
+from spyder.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView, CollectionsEditorTableView,
     CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD)
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
@@ -188,7 +188,7 @@ def test_remove_remote_variable(qtbot, monkeypatch):
                       'view': '5'}}
         editor.set_data(data)
     monkeypatch.setattr(
-        'spyder.plugins.variableexplorer.widgets'
+        'spyder.widgets'
         '.collectionseditor.RemoteCollectionsEditorTableView.remove_values',
         remove_values)
 
@@ -436,7 +436,7 @@ def test_edit_mutable_and_immutable_types(monkeypatch):
 
     MockCollectionsEditor = Mock()
     mockCollectionsEditor_instance = MockCollectionsEditor()
-    attr_to_patch_coledit = ('spyder.plugins.variableexplorer.widgets.' +
+    attr_to_patch_coledit = ('spyder.widgets.' +
                              'collectionseditor.CollectionsEditor')
     monkeypatch.setattr(attr_to_patch_coledit, MockCollectionsEditor)
 
@@ -553,7 +553,7 @@ def test_editor_parent_set(monkeypatch):
     test_parent = QWidget()
 
     MockCollectionsEditor = Mock()
-    attr_to_patch_coledit = ('spyder.plugins.variableexplorer.widgets.' +
+    attr_to_patch_coledit = ('spyder.widgets.' +
                              'collectionseditor.CollectionsEditor')
     monkeypatch.setattr(attr_to_patch_coledit, MockCollectionsEditor)
 
