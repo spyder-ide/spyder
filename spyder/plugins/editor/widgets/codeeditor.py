@@ -1739,10 +1739,32 @@ class CodeEditor(TextEditBaseWidget):
         self.highlighter = self.highlighter_class(self.document(),
                                                   self.font(),
                                                   self.color_scheme)
+        self.highlighter._cell_list = []
         self.highlighter.sig_new_cell.connect(self.add_to_cell_list)
         self._apply_highlighter_color_scheme()
 
         self.highlighter.editor = self
+
+    def add_to_cell_list(self, oedata):
+        """Add new cell to cell list."""
+        if self.highlighter is None:
+            return
+        self.highlighter._cell_list.append(oedata)
+
+    def get_cell_list(self):
+        """Get all cells."""
+        if self.highlighter is None:
+            return []
+        # Filter out old cells
+        def good(oedata):
+            return oedata.is_valid() and oedata.def_type == oedata.CELL
+
+        self.highlighter._cell_list = [
+            oedata for oedata in self.highlighter._cell_list if good(oedata)]
+
+        return sorted(
+            {oedata.get_block_number(): oedata
+             for oedata in self.highlighter._cell_list}.items())
 
     def is_json(self):
         return (isinstance(self.highlighter, sh.PygmentsSH) and
