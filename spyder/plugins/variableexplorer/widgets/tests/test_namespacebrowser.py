@@ -8,6 +8,7 @@ Tests for namespacebrowser.py
 """
 
 # Standard library imports
+import sys
 try:
     from unittest.mock import Mock
 except ImportError:
