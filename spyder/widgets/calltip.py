@@ -264,6 +264,7 @@ class CallTipWidget(QLabel):
         self.tip = None
         self._hide_timer = QBasicTimer()
         self._text_edit = text_edit
+        self._start_position = -1
 
         # Setup
         if sys.platform == 'darwin':
