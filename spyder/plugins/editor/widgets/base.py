@@ -99,8 +99,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         # Useful to avoid recomputing while scrolling.
         self.current_cell = None
 
-        self._cell_list = []
-
         def reset_current_cell():
             self.current_cell = None
 
@@ -380,23 +378,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             super(TextEditBaseWidget, self).keyPressEvent(event)
 
     #------Text: get, set, ...
-    def add_to_cell_list(self, oedata):
-        """Add new cell to cell list."""
-        self._cell_list.append(oedata)
-
     def get_cell_list(self):
         """Get all cells."""
-        # Filter out old cells
-
-        def good(oedata):
-            return oedata.is_valid() and oedata.def_type == oedata.CELL
-
-        self._cell_list = [
-            oedata for oedata in self._cell_list if good(oedata)]
-
-        return sorted(
-            {oedata.get_block_number(): oedata
-             for oedata in self._cell_list}.items())
+        # Reimplemented in childrens
+        return []
 
     def get_selection_as_executable_code(self, cursor=None):
         """Return selected text as a processed text,
