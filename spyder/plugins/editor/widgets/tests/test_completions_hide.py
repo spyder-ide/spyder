@@ -13,7 +13,7 @@ import pytest
 from qtpy.QtCore import Qt
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 @pytest.mark.first
 @flaky(max_runs=5)
 def test_automatic_completions_hide_complete(lsp_codeeditor, qtbot):
@@ -67,6 +67,9 @@ def test_automatic_completions_hide_complete(lsp_codeeditor, qtbot):
     code_editor.toggle_code_snippets(True)
 
 
+@pytest.mark.slow
+@pytest.mark.first
+@flaky(max_runs=5)
 def test_automatic_completions_widget_visible(lsp_codeeditor, qtbot):
     """Test on-the-fly completion when widget is visible and the backspace key
     is pressed.
