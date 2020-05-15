@@ -4050,13 +4050,13 @@ class CodeEditor(TextEditBaseWidget):
                 self._last_pressed_key = None
                 return
 
-        cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
-        cursor.select(QTextCursor.WordUnderCursor)
-        prev_text = to_text_string(cursor.selectedText())
-        cursor.setPosition(pos + 1, QTextCursor.MoveAnchor)
-
-        if prev_text == '' and key == Qt.Key_Backspace:
-            return
+        if key == Qt.Key_Backspace:
+            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.select(QTextCursor.WordUnderCursor)
+            prev_text = to_text_string(cursor.selectedText())
+            cursor.setPosition(pos + 1, QTextCursor.MoveAnchor)
+            if prev_text == '':
+                return
 
         # Text might be after a dot '.'
         if text == '':
