@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-05-06 14:33\n"
+"PO-Revision-Date: 2020-05-16 11:32\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -3520,7 +3520,7 @@ msgstr "Pytaj o potwierdzenie przed ponownym uruchomieniem"
 #: spyder/plugins/ipythonconsole/confpage.py:58
 msgid "This option lets you hide the warning message shown\n"
 "when restarting the kernel."
-msgstr ""
+msgstr "Ta opcja pozwala ukrywać ostrzeżenie podczas resetowania jądra."
 
 #: spyder/plugins/ipythonconsole/confpage.py:71
 msgid "Completion type"
@@ -3528,7 +3528,7 @@ msgstr "Rodzaj uzupełniania"
 
 #: spyder/plugins/ipythonconsole/confpage.py:72
 msgid "Decide what type of completion to use"
-msgstr ""
+msgstr "Zdecyduj, jaki rodzaj uzupełniania ma być używany"
 
 #: spyder/plugins/ipythonconsole/confpage.py:74
 msgid "Graphical"
