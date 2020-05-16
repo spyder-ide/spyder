@@ -33,13 +33,11 @@ class BaseComboBox(QComboBox):
     """Editable combo box base class"""
     valid = Signal(bool, bool)
     sig_tab_pressed = Signal(bool)
-    sig_double_tab_pressed = Signal(bool)
 
     def __init__(self, parent):
         QComboBox.__init__(self, parent)
         self.setEditable(True)
         self.setCompleter(QCompleter(self))
-        self.numpress = 0
         self.selected_text = self.currentText()
 
     # --- Qt overrides
@@ -50,9 +48,6 @@ class BaseComboBox(QComboBox):
         """
         if (event.type() == QEvent.KeyPress) and (event.key() == Qt.Key_Tab):
             self.sig_tab_pressed.emit(True)
-            self.numpress += 1
-            if self.numpress == 1:
-                self.presstimer = QTimer.singleShot(400, self.handle_keypress)
             return True
         return QComboBox.event(self, event)
 
@@ -71,13 +66,7 @@ class BaseComboBox(QComboBox):
         else:
             QComboBox.keyPressEvent(self, event)
 
-    # --- own methods
-    def handle_keypress(self):
-        """When hitting tab, it handles if single or double tab"""
-        if self.numpress == 2:
-            self.sig_double_tab_pressed.emit(True)
-        self.numpress = 0
-
+    # --- Own methods
     def is_valid(self, qstr):
         """
         Return True if string is valid
@@ -213,7 +202,6 @@ class PathComboBox(EditableComboBox):
         # Signals
         self.highlighted.connect(self.add_tooltip_to_highlighted_item)
         self.sig_tab_pressed.connect(self.tab_complete)
-        self.sig_double_tab_pressed.connect(self.double_tab_complete)
         self.valid.connect(lineedit.update_status)
 
     # --- Qt overrides
@@ -246,12 +234,6 @@ class PathComboBox(EditableComboBox):
         self.setCompleter(QCompleter(opts, self))
         return opts
 
-    def double_tab_complete(self):
-        """If several options available a double tab displays options."""
-        opts = self._complete_options()
-        if len(opts) > 1:
-            self.completer().complete()
-
     def tab_complete(self):
         """
         If there is a single option available one tab completes the option.
@@ -260,6 +242,8 @@ class PathComboBox(EditableComboBox):
         if len(opts) == 1:
             self.set_current_text(opts[0] + os.sep)
             self.hide_completer()
+        else:
+            self.completer().complete()
 
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
