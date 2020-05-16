@@ -18,6 +18,7 @@ import os
 import os.path as osp
 
 # Third party imports
+import qdarkstyle
 from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QComboBox, QCompleter, QLineEdit,
@@ -231,7 +232,12 @@ class PathComboBox(EditableComboBox):
         text = to_text_string(self.currentText())
         opts = glob.glob(text + "*")
         opts = sorted([opt for opt in opts if osp.isdir(opt)])
-        self.setCompleter(QCompleter(opts, self))
+
+        dark_qss = qdarkstyle.load_stylesheet_from_environment()
+        completer = QCompleter(opts, self)
+        completer.popup().setStyleSheet(dark_qss)
+        self.setCompleter(completer)
+
         return opts
 
     def tab_complete(self):
