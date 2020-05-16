@@ -319,10 +319,12 @@ class FileComboBox(PathComboBox):
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
     def is_valid(self, qstr=None):
-        """Return True if string is valid"""
+        """Return True if string is valid."""
         if qstr is None:
             qstr = self.currentText()
-        return osp.isfile(to_text_string(qstr))
+        valid = (osp.isfile(to_text_string(qstr)) or
+                    osp.isdir(to_text_string(qstr)))
+        return valid
 
 
 def is_module_or_package(path):
