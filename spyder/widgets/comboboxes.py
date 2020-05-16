@@ -326,6 +326,20 @@ class FileComboBox(PathComboBox):
                     osp.isdir(to_text_string(qstr)))
         return valid
 
+    def _complete_options(self):
+        """Find available completion options."""
+        text = to_text_string(self.currentText())
+        opts = glob.glob(text + "*")
+        opts = sorted([opt for opt in opts
+                       if osp.isdir(opt) or osp.isfile(opt)])
+
+        dark_qss = qdarkstyle.load_stylesheet_from_environment()
+        completer = QCompleter(opts, self)
+        completer.popup().setStyleSheet(dark_qss)
+        self.setCompleter(completer)
+
+        return opts
+
 
 def is_module_or_package(path):
     """Return True if path is a Python module/package"""
