@@ -273,17 +273,15 @@ class Editor(SpyderPluginWidget):
 
     @Slot(dict)
     def report_open_file(self, options):
-        """Request to start a completion server to attend a language."""
+        """Report that a file was opened to the completion manager."""
         filename = options['filename']
         language = options['language']
-        logger.debug('Start completion server for %s [%s]' % (
-            filename, language))
         codeeditor = options['codeeditor']
+
         status = self.main.completions.start_client(language.lower())
         self.main.completions.register_file(
             language.lower(), filename, codeeditor)
         if status:
-            logger.debug('{0} completion server is ready'.format(language))
             codeeditor.start_completion_services()
             if language.lower() in self.completion_editor_settings:
                 codeeditor.update_completion_configuration(
