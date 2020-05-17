@@ -166,7 +166,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args += ['--zmq-in-port', self.zmq_out_port,
                                 '--zmq-out-port', self.zmq_in_port]
 
-        server_log = subprocess.PIPE
+        # The server stdout needs to be set to 'None' by default on Windows
+        # to correctly handle errors that come from the server.
+        # Fixes spyder-ide/spyder#11506
+        server_log = None if os.name == 'nt' else subprocess.PIPE
+
         pid = os.getpid()
         if get_debug_level() > 0:
             # Create server log file
