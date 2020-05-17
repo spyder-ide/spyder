@@ -1115,8 +1115,6 @@ class Editor(SpyderPluginWidget):
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
         editorstack = self.get_current_editorstack()
-        if not editorstack.data:
-            self.__load_temp_file()
         self.add_dockwidget()
         self.update_pdb_state(False, {})
 
@@ -2891,7 +2889,7 @@ class Editor(SpyderPluginWidget):
                 filenames = self.get_open_filenames()
                 self.set_option('filenames', filenames)
 
-    def setup_open_files(self):
+    def setup_open_files(self, close_previous_files=True):
         """
         Open the list of saved files per project.
 
@@ -2906,7 +2904,9 @@ class Editor(SpyderPluginWidget):
             filenames = self.projects.get_project_filenames()
         else:
             filenames = self.get_option('filenames', default=[])
-        self.close_all_files()
+
+        if close_previous_files:
+            self.close_all_files()
 
         all_filenames = self.autosave.recover_files_to_open + filenames
         if all_filenames and any([osp.isfile(f) for f in all_filenames]):

@@ -1361,7 +1361,7 @@ class MainWindow(QMainWindow):
 
             # If no project is active, load last session
             if self.projects.get_active_project() is None:
-                self.editor.setup_open_files()
+                self.editor.setup_open_files(close_previous_files=False)
 
         # Connect Editor to Kite completions plugin status
         self.editor.kite_completions_file_status()
