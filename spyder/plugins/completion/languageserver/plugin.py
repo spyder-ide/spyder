@@ -408,6 +408,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 logger.info("Starting LSP client for {}...".format(language))
                 language_client['instance'].start()
                 language_client['status'] = self.RUNNING
+                started = True
                 for entry in queue:
                     language_client['instance'].register_file(*entry)
                 self.register_queue[language] = []
