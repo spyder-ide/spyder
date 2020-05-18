@@ -86,6 +86,7 @@ def setup_logging(cli_options):
         console_filters = cli_options.filter_log.split(',')
         console_filters = [x.strip() for x in console_filters]
         console_filters = console_filters + FILTER_NAMES
+        console_filters = [x for x in console_filters if x != '']
 
         handlers = [logging.StreamHandler()]
         if cli_options.debug_output == 'file':
