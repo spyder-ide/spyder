@@ -4072,7 +4072,7 @@ class CodeEditor(TextEditBaseWidget):
                 self._last_pressed_key = None
                 return
 
-        # Handle the correct completion when Backspace key is pressed
+        # Correctly handle completions when Backspace key is pressed.
         # We should not show the widget if deleting a space before a word.
         if key == Qt.Key_Backspace:
             cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
