@@ -57,5 +57,30 @@ def test_findreplace_multiline_replacement(findreplace_editor, qtbot):
     assert editor.toPlainText() == expected
 
 
+def test_replace_selection(findreplace_editor, qtbot):
+    """Test find replace final selection in the editor.
+    For further information see spyder-ide/spyder#12745
+    """
+    expected = 'Spyder is greit!\nSpyder is greit!'
+
+    findreplace, editor = findreplace_editor
+    editor.set_text('Spyder as great!\nSpyder as great!')
+    editor.show()
+    editor.select_lines(0, 2)
+
+    findreplace.show()
+    findreplace.show_replace()
+
+    edit = findreplace.search_text.lineEdit()
+    edit.clear()
+    edit.setText('a')
+
+    findreplace.replace_text.setCurrentText('i')
+    findreplace.replace_find_selection()
+    qtbot.wait(1000)
+    assert editor.get_selected_text() == expected
+    assert len(editor.get_selected_text()) == len(expected)
+
+
 if __name__ == "__main__":
     pytest.main([os.path.basename(__file__)])

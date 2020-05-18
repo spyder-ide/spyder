@@ -105,7 +105,7 @@ class Pylint(SpyderPluginWidget):
             self.main.redirect_internalshell_stdio)
         self.add_dockwidget()
 
-        pylint_act = create_action(self, _("Run static code analysis"),
+        pylint_act = create_action(self, _("Run code analysis"),
                                    triggered=self.run_pylint)
         pylint_act.setEnabled(is_module_installed('pylint'))
         self.register_shortcut(pylint_act, context="Pylint",

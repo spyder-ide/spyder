@@ -81,6 +81,8 @@ class ToolTipWidget(QLabel):
         # Signals
         self.linkHovered.connect(self._update_hover_html_link_style)
         self._timer_hide.timeout.connect(self.hide)
+        QApplication.instance().applicationStateChanged.connect(
+            self._should_hide)
 
     def paintEvent(self, event):
         """Reimplemented to paint the background panel."""
@@ -127,6 +129,10 @@ class ToolTipWidget(QLabel):
         """
         Attempts to show the specified tip at the current cursor location.
         """
+        # Don't show the widget if the main window is not focused
+        if QApplication.instance().applicationState() != Qt.ApplicationActive:
+            return
+
         # Set the text and resize the widget accordingly.
         self.tip = tip
         self.setText(tip)
@@ -228,6 +234,13 @@ class ToolTipWidget(QLabel):
         super(ToolTipWidget, self).hide()
         self._timer_hide.stop()
 
+    def _should_hide(self, state):
+        """
+        This widget should hide itself if the application is not active.
+        """
+        if state != Qt.ApplicationActive:
+            self.hide()
+
 
 
 class CallTipWidget(QLabel):
@@ -251,6 +264,7 @@ class CallTipWidget(QLabel):
         self.tip = None
         self._hide_timer = QBasicTimer()
         self._text_edit = text_edit
+        self._start_position = -1
 
         # Setup
         if sys.platform == 'darwin':
@@ -270,6 +284,10 @@ class CallTipWidget(QLabel):
         self.setFrameStyle(QFrame.NoFrame)
         self.setMargin(1 + self.style().pixelMetric(
                 QStyle.PM_ToolTipLabelFrameWidth, None, self))
+
+        # Signals
+        QApplication.instance().applicationStateChanged.connect(
+            self._should_hide)
 
     def eventFilter(self, obj, event):
         """ Reimplemented to hide on certain key presses and on text edit focus
@@ -389,6 +407,10 @@ class CallTipWidget(QLabel):
     def show_tip(self, point, tip, wrapped_tiplines):
         """ Attempts to show the specified tip at the current cursor location.
         """
+        # Don't show the widget if the main window is not focused
+        if QApplication.instance().applicationState() != Qt.ApplicationActive:
+            return
+
         # Don't attempt to show it if it's already visible and the text
         # to be displayed is the same as the one displayed before.
         if self.isVisible():
@@ -547,3 +569,10 @@ class CallTipWidget(QLabel):
             pos, _ = self._find_parenthesis(position - 1, forward=False)
             if pos == -1:
                 self.hide()
+
+    def _should_hide(self, state):
+        """
+        This widget should hide itself if the application is not active.
+        """
+        if state != Qt.ApplicationActive:
+            self.hide()

@@ -1739,10 +1739,32 @@ class CodeEditor(TextEditBaseWidget):
         self.highlighter = self.highlighter_class(self.document(),
                                                   self.font(),
                                                   self.color_scheme)
+        self.highlighter._cell_list = []
         self.highlighter.sig_new_cell.connect(self.add_to_cell_list)
         self._apply_highlighter_color_scheme()
 
         self.highlighter.editor = self
+
+    def add_to_cell_list(self, oedata):
+        """Add new cell to cell list."""
+        if self.highlighter is None:
+            return
+        self.highlighter._cell_list.append(oedata)
+
+    def get_cell_list(self):
+        """Get all cells."""
+        if self.highlighter is None:
+            return []
+        # Filter out old cells
+        def good(oedata):
+            return oedata.is_valid() and oedata.def_type == oedata.CELL
+
+        self.highlighter._cell_list = [
+            oedata for oedata in self.highlighter._cell_list if good(oedata)]
+
+        return sorted(
+            {oedata.get_block_number(): oedata
+             for oedata in self.highlighter._cell_list}.items())
 
     def is_json(self):
         return (isinstance(self.highlighter, sh.PygmentsSH) and
@@ -4050,6 +4072,16 @@ class CodeEditor(TextEditBaseWidget):
                 self._last_pressed_key = None
                 return
 
+        # Correctly handle completions when Backspace key is pressed.
+        # We should not show the widget if deleting a space before a word.
+        if key == Qt.Key_Backspace:
+            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.select(QTextCursor.WordUnderCursor)
+            prev_text = to_text_string(cursor.selectedText())
+            cursor.setPosition(pos + 1, QTextCursor.MoveAnchor)
+            if prev_text == '':
+                return
+
         # Text might be after a dot '.'
         if text == '':
             cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
@@ -4067,8 +4099,11 @@ class CodeEditor(TextEditBaseWidget):
 
         self.document_did_change(text)
 
+        is_backspace = (
+            self.is_completion_widget_visible() and key == Qt.Key_Backspace)
+
         if (len(text) >= self.automatic_completions_after_chars
-                and self._last_key_pressed_text) or key == Qt.Key_Backspace:
+                and self._last_key_pressed_text or is_backspace):
             # Perform completion on the fly
             if self.automatic_completions and not self.in_comment_or_string():
                 # Variables can include numbers and underscores
