@@ -71,8 +71,9 @@ def test_automatic_completions_hide_complete(lsp_codeeditor, qtbot):
 @pytest.mark.first
 @flaky(max_runs=5)
 def test_automatic_completions_widget_visible(lsp_codeeditor, qtbot):
-    """Test on-the-fly completion when widget is visible and the backspace key
-    is pressed.
+    """
+    Test on-the-fly completions when the widget is visible and the Backspace
+    key is pressed.
 
     Regression test for PR #12710
     """
