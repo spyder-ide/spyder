@@ -31,7 +31,8 @@ except Exception:
 
 
 root_logger = logging.getLogger()
-FILTER_NAMES = os.environ.get('SPYDER_FILTER_LOG', "").split(' ')
+FILTER_NAMES = os.environ.get('SPYDER_FILTER_LOG', "").split(',')
+FILTER_NAMES = [f.strip() for f in FILTER_NAMES]
 
 
 def get_python_doc_path():
@@ -82,6 +83,10 @@ def setup_logging(cli_options):
         log_level = levels[get_debug_level()]
         log_format = '%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s'
 
+        console_filters = cli_options.filter_log.split(',')
+        console_filters = [x.strip() for x in console_filters]
+        console_filters = console_filters + FILTER_NAMES
+
         handlers = [logging.StreamHandler()]
         if cli_options.debug_output == 'file':
             log_file = 'spyder-debug.log'
@@ -90,8 +95,8 @@ def setup_logging(cli_options):
             log_file = None
 
         match_func = lambda x: True
-        if FILTER_NAMES != [''] and len(FILTER_NAMES) > 0:
-            dafsa = DAFSA(FILTER_NAMES)
+        if console_filters != [''] and len(console_filters) > 0:
+            dafsa = DAFSA(console_filters)
             match_func = lambda x: (dafsa.lookup(x, stop_on_prefix=True)
                                     is not None)
 
