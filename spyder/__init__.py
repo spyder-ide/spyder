@@ -48,7 +48,6 @@ import os
 # Directory of the current file
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 
-
 def add_to_distribution(dist):
     """Add package to py2exe/cx_Freeze distribution object
     Extension to guidata.disthelpers"""
