@@ -1635,5 +1635,31 @@ def test_kernel_kill(ipyconsole, qtbot):
         'status'] == 'ready'
 
 
+@pytest.mark.slow
+@pytest.mark.use_startup_wdir
+def test_startup_code(ipyconsole, qtbot):
+    """Test entering a multiline statment into pdb"""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Run a line on startup
+    CONF.set('ipython_console', 'startup/pdb_run_lines',
+             'abba = 12; print("Hello")')
+
+    shell.execute('%debug print()')
+    qtbot.waitUntil(lambda: 'Hello' in control.toPlainText())
+
+    # Verify that the line was executed
+    assert shell.get_value('abba') == 12
+
+    # Reset setting
+    CONF.set('ipython_console', 'startup/pdb_run_lines', '')
+
+
 if __name__ == "__main__":
     pytest.main()
