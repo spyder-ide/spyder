@@ -103,18 +103,25 @@ class BasePluginMixin(object):
         """Return filesystem path to the root directory of the plugin."""
         return os.path.dirname(inspect.getfile(self.__class__))
 
-    def _create_configwidget(self, dlg, main_window):
-        """Create configuration dialog box page widget"""
+    def _create_configwidget(self, dlg, main_window, configuration=None):
+        from spyder.preferences.configdialog import (GeneralConfigPage,
+                                                     SpyderConfigPage)
+
         if self.CONFIGWIDGET_CLASS is not None:
-            parent = self
-            main = dlg
-            if not hasattr(self, 'dockwidget'):
-                # Prevent QWidget assignment to a plugin that does not have
-                # a graphical widget.
-                parent = dlg
-                main = main_window
-            configwidget = self.CONFIGWIDGET_CLASS(parent, main)
-            configwidget.initialize()
+            if issubclass(self.CONFIGWIDGET_CLASS, GeneralConfigPage):
+                configwidget = self.CONFIGWIDGET_CLASS(
+                    parent=dlg,
+                    main=main_window,
+                    configuration=configuration or CONF,
+                )
+                configwidget.initialize()
+            else:
+                configwidget = self.CONFIGWIDGET_CLASS(
+                    parent=dlg,
+                    plugin=self,
+                )
+                configwidget.initialize()
+
             return configwidget
 
 

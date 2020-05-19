@@ -31,8 +31,10 @@ class MainInterpreterConfigPage(GeneralConfigPage):
     NAME = _("Python interpreter")
     ICON = ima.icon('python')
 
-    def __init__(self, parent, main):
-        GeneralConfigPage.__init__(self, parent, main)
+    def __init__(self, parent, main, configuration):
+        super().__init__(parent=parent, main=main,
+                         configuration=configuration)
+
         self.cus_exec_radio = None
         self.pyexec_edit = None
         self.cus_exec_combo = None

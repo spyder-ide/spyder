@@ -442,7 +442,8 @@ class MainWindow(QMainWindow):
         """
         config_dialog = self.prefs_dialog_instance
         if plugin.CONF_WIDGET_CLASS is not None and config_dialog is not None:
-            conf_widget = plugin.CONF_WIDGET_CLASS(plugin, config_dialog)
+            conf_widget = plugin.CONF_WIDGET_CLASS(parent=config_dialog,
+                                                   plugin=plugin)
             conf_widget.initialize()
             return conf_widget
 
@@ -491,6 +492,10 @@ class MainWindow(QMainWindow):
     def __init__(self, options=None):
         QMainWindow.__init__(self)
         qapp = QApplication.instance()
+
+        # FIXME: Ensures that the config is present on spyder first run
+        from spyder.config.base import load_lang_conf
+        CONF.set('main', 'interface_language', load_lang_conf())
 
         if running_under_pytest():
             self._proxy_style = None
@@ -3544,7 +3549,8 @@ class MainWindow(QMainWindow):
                 dlg.resize(self.prefs_dialog_size)
 
             for PrefPageClass in self.general_prefs:
-                widget = PrefPageClass(dlg, main=self)
+                widget = PrefPageClass(parent=dlg, main=self,
+                                       configuration=CONF)
                 widget.initialize()
                 dlg.add_page(widget)
 
@@ -3555,6 +3561,7 @@ class MainWindow(QMainWindow):
             for completion_plugin in self.completions.clients.values():
                 completion_plugin = completion_plugin['plugin']
                 widget = completion_plugin._create_configwidget(dlg, self)
+
                 if widget is not None:
                     dlg.add_page(widget)
 
@@ -3586,9 +3593,12 @@ class MainWindow(QMainWindow):
 
                     # Old API
                     try:
-                        widget = plugin._create_configwidget(dlg, self)
+                        widget = plugin._create_configwidget(
+                            dlg, self, configuration=CONF)
+
                         if widget is not None:
                             dlg.add_page(widget)
+
                     except AttributeError:
                         pass
                     except Exception:
@@ -3608,7 +3618,7 @@ class MainWindow(QMainWindow):
             dlg.finished.connect(_dialog_finished)
             dlg.pages_widget.currentChanged.connect(
                 self.__preference_page_changed)
-            dlg.size_change.connect(self.set_prefs_size)
+            dlg.sig_size_changed.connect(self.set_prefs_size)
         else:
             self.prefs_dialog_instance.show()
             self.prefs_dialog_instance.activateWindow()
