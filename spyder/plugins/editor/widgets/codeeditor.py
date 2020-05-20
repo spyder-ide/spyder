@@ -336,6 +336,9 @@ class CodeEditor(TextEditBaseWidget):
     # Used to indicate that an undo operation will take place
     sig_redo = Signal()
 
+    def handle_scroll_bar_visibility(self):
+        self.anim.start()
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -556,6 +559,31 @@ class CodeEditor(TextEditBaseWidget):
 
         self.verticalScrollBar().valueChanged.connect(
                                        lambda value: self.rehighlight_cells())
+        if sys.platform == 'darwin':
+            self.verticalScrollBar().hide()
+
+        from qtpy.QtWidgets import QGraphicsOpacityEffect
+        from qtpy.QtCore import QPropertyAnimation
+        self._vsb_opacity = QGraphicsOpacityEffect(self)
+        self._vsb_opacity.setOpacity(1.0)
+        vsb =  self.verticalScrollBar()
+        vsb.setGraphicsEffect(self._vsb_opacity)
+        self.anim = QPropertyAnimation(self._vsb_opacity, b"opacity")
+        self.anim.setDuration(250)
+        self.anim.setStartValue(1.0)
+        self.anim.setEndValue(0.0)
+        self.anim.finished.connect(lambda: vsb.hide())
+        self.anim.finished.connect(
+            lambda: self._vsb_opacity.setOpacity(1.0))
+        self._timer_vertical_scroll_bar = QTimer()
+        self._timer_vertical_scroll_bar.setInterval(750)
+        self._timer_vertical_scroll_bar.setSingleShot(True)
+        self._timer_vertical_scroll_bar.timeout.connect(
+            self.handle_scroll_bar_visibility)
+        self.verticalScrollBar().valueChanged.connect(
+            lambda x: self._timer_vertical_scroll_bar.start())
+        vsb.valueChanged.connect(lambda x: vsb.show())
+        vsb.hide()
 
         self.oe_proxy = None
 

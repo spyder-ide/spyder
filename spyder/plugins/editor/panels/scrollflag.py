@@ -180,42 +180,60 @@ class ScrollFlagArea(Panel):
         # Check if the slider is visible
         paint_local = not bool(self.slider)
 
+        # Paint flags for the entire document
+        last_line = editor.document().lastBlock().firstLineNumber()
+        # The 0.5 offset is used to align the flags with the center of
+        # their corresponding text edit block before scaling.
+        first_y_pos = self.value_to_position(
+            0.5, scale_factor, offset) - self.FLAGS_DY / 2
+        last_y_pos = self.value_to_position(
+            last_line + 0.5, scale_factor, offset) - self.FLAGS_DY / 2
+
+        def compute_flag_ypos(block):
+            line_number = block.firstLineNumber()
+            frac = line_number / last_line
+            pos = first_y_pos + frac * (last_y_pos - first_y_pos)
+            return ceil(pos)
+
+        min_line = 0
+        max_line = editor.blockCount()
+
         # Define compute_flag_ypos to position the flags:
-        if not paint_local:
-            # Paint flags for the entire document
-            last_line = editor.document().lastBlock().firstLineNumber()
-            # The 0.5 offset is used to align the flags with the center of
-            # their corresponding text edit block before scaling.
-            first_y_pos = self.value_to_position(
-                0.5, scale_factor, offset) - self.FLAGS_DY / 2
-            last_y_pos = self.value_to_position(
-                last_line + 0.5, scale_factor, offset) - self.FLAGS_DY / 2
+        # if not paint_local:
+        #     # Paint flags for the entire document
+        #     last_line = editor.document().lastBlock().firstLineNumber()
+        #     # The 0.5 offset is used to align the flags with the center of
+        #     # their corresponding text edit block before scaling.
+        #     first_y_pos = self.value_to_position(
+        #         0.5, scale_factor, offset) - self.FLAGS_DY / 2
+        #     last_y_pos = self.value_to_position(
+        #         last_line + 0.5, scale_factor, offset) - self.FLAGS_DY / 2
 
-            def compute_flag_ypos(block):
-                line_number = block.firstLineNumber()
-                frac = line_number / last_line
-                pos = first_y_pos + frac * (last_y_pos - first_y_pos)
-                return ceil(pos)
+        #     def compute_flag_ypos(block):
+        #         line_number = block.firstLineNumber()
+        #         frac = line_number / last_line
+        #         pos = first_y_pos + frac * (last_y_pos - first_y_pos)
+        #         return ceil(pos)
 
-        else:
-            # Only paint flags for visible lines
-            visible_lines = [val[1] for val in editor.visible_blocks]
-            if not visible_lines:
-                # Nothing to do
-                return
-            min_line = min(visible_lines)
-            max_line = max(visible_lines)
+        # else:
+        #     # Only paint flags for visible lines
+        #     visible_lines = [val[1] for val in editor.visible_blocks]
+        #     if not visible_lines:
+        #         # Nothing to do
+        #         return
+        #     min_line = min(visible_lines)
+        #     max_line = max(visible_lines)
 
-            def compute_flag_ypos(block):
-                # When the vertical scrollbar is not visible, the flags are
-                # vertically aligned with the center of their corresponding
-                # text block with no scaling.
-                top = editor.blockBoundingGeometry(block).translated(
-                    editor.contentOffset()).top()
-                bottom = top + editor.blockBoundingRect(block).height()
-                middle = (top + bottom)/2
+        #     def compute_flag_ypos(block):
+        #         # When the vertical scrollbar is not visible, the flags are
+        #         # vertically aligned with the center of their corresponding
+        #         # text block with no scaling.
+        #         top = editor.blockBoundingGeometry(block).translated(
+        #             editor.contentOffset()).top()
+        #         bottom = top + editor.blockBoundingRect(block).height()
+        #         middle = (top + bottom)/2
 
-                return ceil(middle-self.FLAGS_DY/2)
+        #         return ceil(middle-self.FLAGS_DY/2)
 
         # All the lists of block numbers for flags
         dict_flag_lists = {
