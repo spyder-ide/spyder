@@ -73,6 +73,7 @@ class SpyderKernel(IPythonKernel):
         self._pdb_print_code = True
         self._do_publish_pdb_state = True
         self._mpl_backend_error = None
+        self._running_namespace = None
 
     def frontend_call(self, blocking=False, broadcast=True, timeout=None):
         """Call the frontend."""
@@ -264,7 +265,8 @@ class SpyderKernel(IPythonKernel):
             return error_message
 
         if not overwrite:
-            for key in data.keys():
+            # We convert to list since we mutate this dictionary
+            for key in list(data.keys()):
                 new_key = fix_reference_name(key, blacklist=list(glbs.keys()))
                 if new_key != key:
                     data[new_key] = data.pop(key)
@@ -396,7 +398,9 @@ class SpyderKernel(IPythonKernel):
                 import sympy
             elif os.environ.get('SPY_RUN_CYTHON') == 'True':
                 import cython
-        except ImportError:
+        except Exception:
+            # Use Exception instead of ImportError here because modules can
+            # fail to be imported due to a lot of issues.
             if os.environ.get('SPY_AUTOLOAD_PYLAB_O') == 'True':
                 return u'matplotlib'
             elif os.environ.get('SPY_SYMPY_O') == 'True':
@@ -415,12 +419,15 @@ class SpyderKernel(IPythonKernel):
         both locals() and globals() for current frame when debugging
         """
         ns = {}
-        glbs = self._mglobals()
-
-        if self._pdb_frame is None:
-            ns.update(glbs)
+        if self._running_namespace is None:
+            ns.update(self._mglobals())
         else:
-            ns.update(glbs)
+            running_globals, running_locals = self._running_namespace
+            ns.update(running_globals)
+            if running_locals is not None:
+                ns.update(running_locals)
+
+        if self._pdb_frame is not None:
             ns.update(self._pdb_locals)
 
         # Add magics to ns so we can show help about them on the Help

@@ -33,6 +33,13 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 logger = logging.getLogger(__name__)
 
 
+def is_different_interpreter(pyexec):
+    """Check that pyexec is a different interpreter from sys.executable."""
+    executable_validation = osp.basename(pyexec).startswith('python')
+    directory_validation = osp.dirname(pyexec) != osp.dirname(sys.executable)
+    return directory_validation and executable_validation
+
+
 def get_activation_script(quote=False):
     """
     Return path for bash/batch conda activation script to run spyder-kernels.
@@ -87,17 +94,11 @@ class SpyderKernelSpec(KernelSpec):
                 CONF.set('main_interpreter', 'default', True)
                 CONF.set('main_interpreter', 'custom', False)
 
-        is_different_interpreter = pyexec != sys.executable
-
-        # Fixes spyder-ide/spyder#3427.
-        if os.name == 'nt':
-            dir_pyexec = osp.dirname(pyexec)
-            pyexec_w = osp.join(dir_pyexec, 'pythonw.exe')
-            if osp.isfile(pyexec_w):
-                pyexec = pyexec_w
+        # Part of spyder-ide/spyder#11819
+        is_different = is_different_interpreter(pyexec)
 
         # Command used to start kernels
-        if is_different_interpreter and is_conda_env(pyexec=pyexec):
+        if is_different and is_conda_env(pyexec=pyexec):
             # If this is a conda environment we need to call an intermediate
             # activation script to correctly activate the spyder-kernel
 

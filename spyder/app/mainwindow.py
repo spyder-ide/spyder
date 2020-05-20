@@ -27,6 +27,7 @@ import logging
 import os
 import os.path as osp
 import re
+import shutil
 import signal
 import socket
 import glob
@@ -74,7 +75,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
                             QMainWindow, QMenu, QMessageBox, QShortcut,
-                            QSplashScreen, QStyleFactory, QWidget)
+                            QSplashScreen, QStyleFactory, QWidget, QCheckBox)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -102,9 +103,15 @@ if hasattr(Qt, 'AA_EnableHighDpiScaling'):
 #==============================================================================
 from spyder.app.utils import set_opengl_implementation
 from spyder.app.cli_options import get_options
+from spyder.config.base import running_under_pytest
 
-# Get CLI options/args and make them available for future use
-CLI_OPTIONS, CLI_ARGS = get_options()
+# Get CLI options/args and make them available for future use.
+# Ignore args if running tests or Spyder will try and fail to parse pytests's.
+if running_under_pytest():
+    sys_argv = [sys.argv[0]]
+    CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
+else:
+    CLI_OPTIONS, CLI_ARGS = get_options()
 
 # **** Set OpenGL implementation to use ****
 if CLI_OPTIONS.opengl_implementation:
@@ -133,7 +140,7 @@ MAIN_APP.setWindowIcon(APP_ICON)
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time.
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV, running_under_pytest
+from spyder.config.base import _, get_image_path, DEV
 
 if not running_under_pytest():
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
@@ -227,10 +234,10 @@ class MainWindow(QMainWindow):
          ('matplotlib', "https://matplotlib.org/contents.html",
           _("Matplotlib documentation")),
          ('PyQt5',
-          "http://pyqt.sourceforge.net/Docs/PyQt5/",
+          "https://www.riverbankcomputing.com/static/Docs/PyQt5/",
           _("PyQt5 Reference Guide")),
          ('PyQt5',
-          "http://pyqt.sourceforge.net/Docs/PyQt5/class_reference.html",
+          "https://www.riverbankcomputing.com/static/Docs/PyQt5/module_index.html",
           _("PyQt5 API Reference")),
          ('winpython', "https://winpython.github.io/",
           _("WinPython"))
@@ -488,6 +495,9 @@ class MainWindow(QMainWindow):
         # To keep track of the last focused widget
         self.last_focused_widget = None
         self.previous_focused_widget = None
+
+        # Keep track of dpi message
+        self.show_dpi_message = True
 
         # Server to open external files on a single instance
         # This is needed in order to handle socket creation problems.
@@ -1377,19 +1387,28 @@ class MainWindow(QMainWindow):
         self.is_setting_up = False
 
         # Handle DPI scale and window changes to show a restart message
-        window = self.window().windowHandle()
-        window.screenChanged.connect(self.handle_new_screen)
-        self.screen = self.window().windowHandle().screen()
-        self.screen.logicalDotsPerInchChanged.connect(
-            self.show_dpi_change_message)
+        # Handle DPI scale and window changes to show a restart message.
+        # Don't activate this functionality on macOS because it's being
+        # triggered in the wrong situations.
+        # See spyder-ide/spyder#11846
+        if not sys.platform == 'darwin':
+            window = self.window().windowHandle()
+            window.screenChanged.connect(self.handle_new_screen)
+            self.screen = self.window().windowHandle().screen()
+            self.screen.logicalDotsPerInchChanged.connect(
+                self.show_dpi_change_message)
 
         # Notify that the setup of the mainwindow was finished
         self.sig_setup_finished.emit()
 
     def handle_new_screen(self, screen):
         """Connect DPI signals for new screen."""
-        self.screen.logicalDotsPerInchChanged.disconnect(
-            self.show_dpi_change_message)
+        try:
+            self.screen.logicalDotsPerInchChanged.disconnect(
+                self.show_dpi_change_message)
+        except (TypeError, RuntimeError):
+            # See spyder-ide/spyder#11903 and spyder-ide/spyder#11997
+            pass
         self.screen = screen
         self.screen.logicalDotsPerInchChanged.connect(
             self.show_dpi_change_message)
@@ -1398,18 +1417,40 @@ class MainWindow(QMainWindow):
         """Show message to restart Spyder since the DPI scale changed."""
         self.screen.logicalDotsPerInchChanged.disconnect(
             self.show_dpi_change_message)
-        answer = QMessageBox.warning(
-            self, _("Warning"),
+
+        if not self.show_dpi_message:
+            return
+
+        # Check the window state to not show the message if the window
+        # is in fullscreen mode.
+        window = self.window().windowHandle()
+        if (window.windowState() == Qt.WindowFullScreen and
+                sys.platform == 'darwin'):
+            return
+
+        dismiss_box = QCheckBox(
+            _("Hide this message during the current session")
+        )
+
+        msgbox = QMessageBox(self)
+        msgbox.setIcon(QMessageBox.Warning)
+        msgbox.setText(
             _("A monitor scale change was detected. <br><br>"
               "We recommend restarting Spyder to ensure that it's properly "
               "displayed. If you don't want to do that, please be sure to "
               "activate the option<br><br><tt>Enable auto high DPI scaling"
               "</tt><br><br>in <tt>Preferences > General > Interface</tt>, "
               "in case Spyder is not displayed correctly.<br><br>"
-              "Do you want to restart Spyder?"),
-            QMessageBox.Yes | QMessageBox.No)
+              "Do you want to restart Spyder?"))
+        yes_button = msgbox.addButton(QMessageBox.Yes)
+        msgbox.addButton(QMessageBox.No)
+        msgbox.setCheckBox(dismiss_box)
+        msgbox.exec_()
 
-        if answer == QMessageBox.Yes:
+        if dismiss_box.isChecked():
+            self.show_dpi_message = False
+
+        if msgbox.clickedButton() == yes_button:
             # Activate HDPI auto-scaling option since is needed for a proper
             # display when using OS scaling
             CONF.set('main', 'normal_screen_resolution', False)
@@ -2426,26 +2467,38 @@ class MainWindow(QMainWindow):
         """Exit tasks"""
         if self.already_closed or self.is_starting_up:
             return True
+
         if cancelable and CONF.get('main', 'prompt_on_exit'):
             reply = QMessageBox.critical(self, 'Spyder',
                                          'Do you really want to exit?',
                                          QMessageBox.Yes, QMessageBox.No)
             if reply == QMessageBox.No:
                 return False
-        prefix = 'window' + '/'
-        self.save_current_window_settings(prefix)
+
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
+
         if not self.completions.closing_plugin(cancelable):
             return False
+
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             plugin._close_window()
             if not plugin.closing_plugin(cancelable):
                 return False
+
+        # Save window settings *after* closing all plugin windows, in order
+        # to show them in their previous locations in the next session.
+        # Fixes spyder-ide/spyder#12139
+        prefix = 'window' + '/'
+        self.save_current_window_settings(prefix)
+
         self.dialog_manager.close_all()
+
         if self.toolbars_visible:
             self.save_visible_toolbars()
+
         self.completions.shutdown()
+
         self.already_closed = True
         return True
 
@@ -2477,7 +2530,8 @@ class MainWindow(QMainWindow):
             if self.interface_locked:
                 if plugin.dockwidget.isFloating():
                     plugin.dockwidget.setFloating(False)
-                plugin.dockwidget.setTitleBarWidget(QWidget())
+
+                plugin.dockwidget.remove_title_bar()
             else:
                 plugin.dockwidget.set_title_bar()
 
@@ -3065,7 +3119,7 @@ class MainWindow(QMainWindow):
     def apply_panes_settings(self):
         """Update dockwidgets features settings"""
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            features = plugin._FEATURES
+            features = plugin.dockwidget.FEATURES
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features | QDockWidget.DockWidgetVerticalTitleBar
             plugin.dockwidget.setFeatures(features)
@@ -3177,26 +3231,40 @@ class MainWindow(QMainWindow):
                                    name, add_shortcut_to_tip, plugin_name))
 
     def apply_shortcuts(self):
-        """Apply shortcuts settings to all widgets/plugins"""
+        """Apply shortcuts settings to all widgets/plugins."""
         toberemoved = []
         for index, (qobject, context, name, add_shortcut_to_tip,
                     plugin_name) in enumerate(self.shortcut_data):
-            keyseq = QKeySequence(CONF.get_shortcut(context, name,
-                                                    plugin_name))
             try:
-                if isinstance(qobject, QAction):
-                    if sys.platform == 'darwin' and \
-                      qobject._shown_shortcut == 'missing':
-                        qobject._shown_shortcut = keyseq
-                    else:
-                        qobject.setShortcut(keyseq)
-                    if add_shortcut_to_tip:
-                        add_shortcut_to_tooltip(qobject, context, name)
-                elif isinstance(qobject, QShortcut):
-                    qobject.setKey(keyseq)
-            except RuntimeError:
-                # Object has been deleted
-                toberemoved.append(index)
+                shortcut_sequence = CONF.get_shortcut(context, name,
+                                                      plugin_name)
+            except (cp.NoSectionError, cp.NoOptionError):
+                # If shortcut does not exist, save it to CONF. This is an
+                # action for which there is no shortcut assigned (yet) in
+                # the configuration
+                CONF.set_shortcut(context, name, '', plugin_name)
+                shortcut_sequence = ''
+
+            if shortcut_sequence:
+                keyseq = QKeySequence(shortcut_sequence)
+                try:
+                    if isinstance(qobject, QAction):
+                        if (sys.platform == 'darwin'
+                                and qobject._shown_shortcut == 'missing'):
+                            qobject._shown_shortcut = keyseq
+                        else:
+                            qobject.setShortcut(keyseq)
+
+                        if add_shortcut_to_tip:
+                            add_shortcut_to_tooltip(qobject, context, name)
+
+                    elif isinstance(qobject, QShortcut):
+                        qobject.setKey(keyseq)
+
+                except RuntimeError:
+                    # Object has been deleted
+                    toberemoved.append(index)
+
         for index in sorted(toberemoved, reverse=True):
             self.shortcut_data.pop(index)
 
@@ -3603,32 +3671,13 @@ def run_spyder(app, options, args):
 def main():
     """Main function"""
     # **** For Pytest ****
-    # We need to create MainWindow **here** to avoid passing pytest
-    # options to Spyder
     if running_under_pytest():
-        try:
-            from unittest.mock import Mock
-        except ImportError:
-            from mock import Mock  # Python 2
-
-        options = Mock()
-        options.working_directory = None
-        options.profile = False
-        options.multithreaded = False
-        options.new_instance = False
-        options.project = None
-        options.window_title = None
-        options.opengl_implementation = None
-        options.debug_info = None
-        options.debug_output = None
-        options.paths = None
-
         if CONF.get('main', 'opengl') != 'automatic':
             option = CONF.get('main', 'opengl')
             set_opengl_implementation(option)
 
         app = initialize()
-        window = run_spyder(app, options, None)
+        window = run_spyder(app, CLI_OPTIONS, None)
         return window
 
     # **** Collect command line options ****
@@ -3672,37 +3721,31 @@ def main():
                                    args=[spyder.__path__[0]], p_args=['-O'])
         return
 
-    # **** Show crash dialog ****
-    if CONF.get('main', 'crash', False) and not DEV:
-        CONF.set('main', 'crash', False)
-        if SPLASH is not None:
-            SPLASH.hide()
-        QMessageBox.information(
-            None, "Spyder",
-            "Spyder crashed during last session.<br><br>"
-            "If Spyder does not start at all and <u>before submitting a "
-            "bug report</u>, please try to reset settings to defaults by "
-            "running Spyder with the command line option '--reset':<br>"
-            "<span style=\'color: #555555\'><b>spyder --reset</b></span>"
-            "<br><br>"
-            "<span style=\'color: #ff5555\'><b>Warning:</b></span> "
-            "this command will remove all your Spyder configuration files "
-            "located in '%s').<br><br>"
-            "If Spyder still fails to launch, you should consult our "
-            "comprehensive <b><a href=\"%s\">Troubleshooting Guide</a></b>, "
-            "which when followed carefully solves the vast majority of "
-            "crashes; also, take "
-            "the time to search for <a href=\"%s\">known bugs</a> or "
-            "<a href=\"%s\">discussions</a> matching your situation before "
-            "submitting a report to our <a href=\"%s\">issue tracker</a>. "
-            "Your feedback will always be greatly appreciated."
-            "" % (get_conf_path(), __trouble_url__, __project_url__,
-                  __forum_url__, __project_url__))
+    # **** Read faulthandler log file ****
+    faulthandler_file = get_conf_path('faulthandler.log')
+    previous_crash = ''
+    if osp.exists(faulthandler_file):
+        with open(faulthandler_file, 'r') as f:
+            previous_crash = f.read()
+
+        # Remove file to not pick it up for next time.
+        try:
+            dst = get_conf_path('faulthandler.log.old')
+            shutil.move(faulthandler_file, dst)
+        except Exception:
+            pass
+    CONF.set('main', 'previous_crash', previous_crash)
 
     # **** Create main window ****
     mainwindow = None
     try:
-        mainwindow = run_spyder(app, options, args)
+        if PY3 and options.report_segfault:
+            import faulthandler
+            with open(faulthandler_file, 'w') as f:
+                faulthandler.enable(file=f)
+                mainwindow = run_spyder(app, options, args)
+        else:
+            mainwindow = run_spyder(app, options, args)
     except FontError as fontError:
         QMessageBox.information(None, "Spyder",
                 "Spyder was unable to load the <i>Spyder 3</i> "
@@ -3710,11 +3753,6 @@ def main():
                 "theme used in Spyder 2.<br><br>"
                 "For that, please close this window and start Spyder again.")
         CONF.set('appearance', 'icon_theme', 'spyder 2')
-    except BaseException:
-        CONF.set('main', 'crash', True)
-        import traceback
-        traceback.print_exc(file=STDERR)
-        traceback.print_exc(file=open('spyder_crash.log', 'w'))
     if mainwindow is None:
         # An exception occurred
         if SPLASH is not None:

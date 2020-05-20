@@ -496,6 +496,8 @@ class BaseTableView(QTableView):
     sig_files_dropped = Signal(list)
     redirect_stdio = Signal(bool)
     sig_free_memory = Signal()
+    sig_open_editor = Signal()
+    sig_editor_shown = Signal()
 
     def __init__(self, parent):
         QTableView.__init__(self, parent)
@@ -1140,7 +1142,7 @@ class CollectionsEditorTableView(BaseTableView):
         data = self.source_model.get_data()
         for key in sorted(keys, reverse=True):
             data.pop(key)
-            self.set_data(data)
+        self.set_data(data)
 
     def copy_value(self, orig_key, new_key):
         """Copy value"""
@@ -1423,6 +1425,8 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
         self.delegate = RemoteCollectionsDelegate(self)
         self.delegate.sig_free_memory.connect(self.sig_free_memory.emit)
+        self.delegate.sig_open_editor.connect(self.sig_open_editor.emit)
+        self.delegate.sig_editor_shown.connect(self.sig_editor_shown.emit)
         self.setItemDelegate(self.delegate)
 
         self.setup_table()

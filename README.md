@@ -19,9 +19,9 @@ https://github.com/spyder-ide/spyder/graphs/contributors)*
 [![PyPI status](https://img.shields.io/pypi/status/spyder.svg)](https://github.com/spyder-ide/spyder)
 
 ## Build status
-[![Travis status](https://travis-ci.org/spyder-ide/spyder.svg?branch=master)](https://travis-ci.org/spyder-ide/spyder)
-[![CircleCI](https://circleci.com/gh/spyder-ide/spyder.svg?style=shield)](https://circleci.com/gh/spyder-ide/spyder)
-[![Azure](https://dev.azure.com/spyder-ide/spyder/_apis/build/status/spyder-ide.spyder?branchName=master)](https://dev.azure.com/spyder-ide/spyder/_build/latest?definitionId=1?branchName=master)
+[![Win](https://github.com/spyder-ide/spyder/workflows/Win%20tests/badge.svg)](https://github.com/spyder-ide/spyder/actions?query=workflow%3A%22Win+tests%22)
+[![Mac](https://github.com/spyder-ide/spyder/workflows/Mac%20tests/badge.svg)](https://github.com/spyder-ide/spyder/actions?query=workflow%3A%22Mac+tests%22)
+[![Linux](https://github.com/spyder-ide/spyder/workflows/Linux%20tests/badge.svg)](https://github.com/spyder-ide/spyder/actions?query=workflow%3A%Linux+tests%22)
 [![Coverage Status](https://coveralls.io/repos/github/spyder-ide/spyder/badge.svg?branch=master)](https://coveralls.io/github/spyder-ide/spyder?branch=master)
 [![codecov](https://codecov.io/gh/spyder-ide/spyder/branch/master/graph/badge.svg)](https://codecov.io/gh/spyder-ide/spyder)
 [![Crowdin](https://badges.crowdin.net/spyder/localized.svg)](https://crowdin.com/project/spyder)
@@ -180,42 +180,11 @@ See [NOTICE.txt](https://github.com/spyder-ide/spyder/blob/master/NOTICE.txt)
 for full legal information.
 
 
-## Running from a Github clone
+## Running from a git clone
 
-Spyder can be run directly from the source code, hosted on the
-[Spyder github repo](https://github.com/spyder-ide/spyder).
-You may want to do this for fixing bugs in Spyder, adding new
-features, learning how Spyder works or to try out development versions before
-they are officially released.
-
-If using `conda` (strongly recommended), this can be done by running the
-following from the command line (the Anaconda Prompt, if on Windows):
-
-```bash
-conda install spyder
-conda remove spyder
-git clone https://github.com/spyder-ide/spyder.git
-cd spyder
-python bootstrap.py
-```
-
-You also need to make sure the correct `spyder-kernels` version is installed
-for the version of Spyder you are testing. The above procedure will give you
-`spyder-kernels` 0.x for the `3.x` branch (Spyder 3),
-so to run the `master` branch (Spyder 4) you need to additionally execute:
-
-```bash
-conda install -c spyder-ide spyder-kernels=1.*
-```
-
-Alternatively, you can use `pip` to install PyQt5 and the other
-*runtime dependencies* listed below. However, beware:
-this method is recommended for experts only, and you'll need to solve any
-problems on your own.
-
-See the [installation instructions](
-https://docs.spyder-ide.org/installation.html) for more details on all of this.
-
+Please see the instructions in our
+[Contributing guide](https://github.com/spyder-ide/spyder/blob/master/CONTRIBUTING.md#setting-up-a-development-environment)
+to learn how to do run Spyder after cloning its repo from Github.
 
 ## Dependencies
 

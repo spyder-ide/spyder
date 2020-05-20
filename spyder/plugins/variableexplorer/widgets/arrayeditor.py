@@ -169,7 +169,9 @@ class ArrayModel(QAbstractTableModel):
 
         # Array with infinite values cannot display background colors and
         # crashes. See: spyder-ide/spyder#8093
-        self.has_inf = np.inf in data
+        self.has_inf = False
+        if data.dtype.kind in ['f', 'c']:
+            self.has_inf = np.any(np.isinf(data))
 
         # Deactivate coloring for object arrays or arrays with inf values
         if self._data.dtype.name == 'object' or self.has_inf:
@@ -442,9 +444,26 @@ class ArrayView(QTableView):
             name='copy',
             parent=self)
         self.horizontalScrollBar().valueChanged.connect(
-                            lambda val: self.load_more_data(val, columns=True))
-        self.verticalScrollBar().valueChanged.connect(
-                               lambda val: self.load_more_data(val, rows=True))
+            self._load_more_columns)
+        self.verticalScrollBar().valueChanged.connect(self._load_more_rows)
+
+    def _load_more_columns(self, value):
+        """Load more columns to display."""
+        # Needed to avoid a NameError while fetching data when closing
+        # See spyder-ide/spyder#12034.
+        try:
+            self.load_more_data(value, columns=True)
+        except NameError:
+            pass
+
+    def _load_more_rows(self, value):
+        """Load more rows to display."""
+        # Needed to avoid a NameError while fetching data when closing
+        # See spyder-ide/spyder#12034.
+        try:
+            self.load_more_data(value, rows=True)
+        except NameError:
+            pass
 
     def load_more_data(self, value, rows=False, columns=False):
 

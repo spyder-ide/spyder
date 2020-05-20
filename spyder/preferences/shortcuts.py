@@ -631,7 +631,7 @@ class ShortcutsTable(QTableView):
         QTableView.__init__(self, parent)
         self._parent = parent
         self.finder = None
-
+        self.shortcut_data = None
         self.source_model = ShortcutsModel(
                                     self,
                                     text_color=text_color,
@@ -654,7 +654,14 @@ class ShortcutsTable(QTableView):
         self.selectionModel().selectionChanged.connect(self.selection)
 
         self.verticalHeader().hide()
-        self.load_shortcuts()
+
+    def set_shortcut_data(self, shortcut_data):
+        """
+        Shortcut data comes from the registration of actions on the main
+        window. This allows to only display the right actions on the
+        shortcut table. This also allows to display the localize text.
+        """
+        self.shortcut_data = shortcut_data
 
     def focusOutEvent(self, e):
         """Qt Override."""
@@ -681,14 +688,30 @@ class ShortcutsTable(QTableView):
 
     def load_shortcuts(self):
         """Load shortcuts and assign to table model."""
+        # item[1] -> context, item[2] -> name
+        # Data might be capitalized so we user lower()
+        # See: spyder-ide/spyder/#12415
+        shortcut_data = set([(item[1].lower(), item[2].lower()) for item
+                             in self.shortcut_data])
+        shortcut_data = list(sorted(set(shortcut_data)))
         shortcuts = []
+
         for context, name, keystr in CONF.iter_shortcuts():
-            shortcut = Shortcut(context, name, keystr)
-            shortcuts.append(shortcut)
-        shortcuts = sorted(shortcuts, key=lambda x: x.context+x.name)
+            if (context, name) in shortcut_data:
+                context = context.lower()
+                name = name.lower()
+
+                # Only add to table actions that are registered from the main
+                # window
+                shortcut = Shortcut(context, name, keystr)
+                shortcuts.append(shortcut)
+
+        shortcuts = sorted(shortcuts, key=lambda item: item.context+item.name)
+
         # Store the original order of shortcuts
         for i, shortcut in enumerate(shortcuts):
             shortcut.index = i
+
         self.source_model.shortcuts = shortcuts
         self.source_model.scores = [0]*len(shortcuts)
         self.source_model.rich_text = [s.name for s in shortcuts]
@@ -807,6 +830,8 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.ICON = ima.icon('keyboard')
         # Widgets
         self.table = ShortcutsTable(self, text_color=ima.MAIN_FG_COLOR)
+        self.table.set_shortcut_data(self.main.shortcut_data)
+        self.table.load_shortcuts()
         self.finder = ShortcutFinder(self.table, self.table.set_regex)
         self.table.finder = self.finder
         self.table.finder.setPlaceholderText(
@@ -868,10 +893,26 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.main.apply_shortcuts()
 
 
+def load_shortcuts(shortcut_table):
+    """
+    Load shortcuts from CONF for testing.
+    """
+    shortcut_data = []
+    for context, name, __ in CONF.iter_shortcuts():
+        context = context.lower()
+        name = name.lower()
+        shortcut_data.append((None, context, name, None, None))
+
+    shortcut_table.set_shortcut_data(shortcut_data)
+    shortcut_table.load_shortcuts()
+    return shortcut_table
+
+
 def test():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
     table = ShortcutsTable()
+    table = load_shortcuts(table)
     table.show()
     app.exec_()
 

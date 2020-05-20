@@ -79,6 +79,7 @@ class Console(SpyderPluginWidget):
         self.find_widget.hide()
         if parent is not None:
             self.register_widget_shortcuts(self.find_widget)
+            self.register_widget_shortcuts(self.shell)
 
         # Main layout
         btn_layout = QHBoxLayout()
@@ -173,7 +174,7 @@ class Console(SpyderPluginWidget):
                                           _("Automatic code completion"),
                                           toggled=self.toggle_codecompletion)
         codecompletion_action.setChecked(self.get_option('codecompletion/auto'))
-        
+
         option_menu = QMenu(_('Internal console settings'), self)
         option_menu.setIcon(ima.icon('tooloptions'))
         add_actions(option_menu, (buffer_action, wrap_action,
@@ -191,8 +192,13 @@ class Console(SpyderPluginWidget):
         self.add_dockwidget()
         # Connecting the following signal once the dockwidget has been created:
         self.shell.exception_occurred.connect(self.exception_occurred)
-    
-    def exception_occurred(self, text, is_traceback, is_pyls_error=False):
+        previous_crash = CONF.get('main', 'previous_crash', '')
+        if previous_crash:
+            self.exception_occurred(previous_crash, True,
+                                    is_faulthandler_report=True)
+
+    def exception_occurred(self, text, is_traceback, is_pyls_error=False,
+                           is_faulthandler_report=False):
         """
         Exception ocurred in the internal console.
 
@@ -215,6 +221,17 @@ class Console(SpyderPluginWidget):
                 title = "Internal Python Language Server error"
                 self.error_dlg.set_title(title)
                 self.error_dlg.title.setEnabled(False)
+            if is_faulthandler_report:
+                title = "Segmentation fault crash"
+                self.error_dlg.set_title(title)
+                self.error_dlg.title.setEnabled(False)
+                self.error_dlg.main_label.setText(
+                    _("<h3>Spyder crashed during last session</h3>"))
+                self.error_dlg.submit_btn.setEnabled(True)
+                self.error_dlg.steps_text.setText(
+                    _("Please provide any additional information you "
+                      "might have about the crash."))
+                self.error_dlg.set_require_minimum_length(False)
             self.error_dlg.append_traceback(text)
             self.error_dlg.show()
         elif DEV or get_debug_level():

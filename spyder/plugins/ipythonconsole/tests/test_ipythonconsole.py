@@ -26,8 +26,8 @@ except ImportError:
 
 # Third party imports
 from IPython.core import release as ipy_release
+from IPython.core.application import get_ipython_dir
 from flaky import flaky
-from jupyter_client.kernelspec import KernelSpec
 from pygments.token import Name
 import pytest
 from qtpy import PYQT5
@@ -87,13 +87,6 @@ def get_conda_test_env(test_env_name=u'spytest-ž'):
         test_env_executable = os.path.join(test_env_prefix, 'bin', 'python')
 
     return test_env_executable
-
-
-class FaultyKernelSpec(KernelSpec):
-    """Kernelspec that generates a kernel crash"""
-
-    argv = [sys.executable, '-m', 'spyder_kernels.foo', '-f',
-            '{connection_file}']
 
 
 # =============================================================================
@@ -255,7 +248,8 @@ def test_banners(ipyconsole, qtbot):
       ["x", "/", "out"],
       ["Parameters<br>", "x : array_like ..."])]
     )
-@pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
+@pytest.mark.skipif(not os.name == 'nt',
+                    reason="Times out on macOS and fails on Linux")
 def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
     shell = ipyconsole.get_current_shellwidget()
@@ -373,9 +367,9 @@ def test_sympy_client(ipyconsole, qtbot):
 @flaky(max_runs=3)
 @pytest.mark.cython_client
 @pytest.mark.skipif(
-    (os.name == 'nt' or
+    (not sys.platform.startswith('linux') or
      LooseVersion(ipy_release.version) == LooseVersion('7.11.0')),
-    reason="Doesn't work on Windows and fails for IPython 7.11.0")
+    reason="It only works reliably on Linux and fails for IPython 7.11.0")
 def test_cython_client(ipyconsole, qtbot):
     """Test that the Cython console is working correctly."""
     # Wait until the window is fully up
@@ -1306,16 +1300,15 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="It only works on Linux")
 def test_kernel_crash(ipyconsole, mocker, qtbot):
-    """Test that we show kernel error messages when a kernel crash occurs."""
-    # Patch create_kernel_spec method to make it return a faulty
-    # kernel spec
-    mocker.patch.object(ipyconsole, 'create_kernel_spec')
-    ipyconsole.create_kernel_spec.return_value = FaultyKernelSpec()
+    """Test that we show an error message when a kernel crash occurs."""
+    # Create an IPython kernel config file with a bad config
+    ipy_kernel_cfg = osp.join(get_ipython_dir(), 'profile_default',
+                              'ipython_kernel_config.py')
+    with open(ipy_kernel_cfg, 'w') as f:
+        # This option must be a string, not an int
+        f.write("c.InteractiveShellApp.extra_extension = 1")
 
-    # Create a new client, which will use FaultyKernelSpec
     ipyconsole.create_new_client()
 
     # Assert that the console is showing an error
@@ -1330,8 +1323,12 @@ def test_kernel_crash(ipyconsole, mocker, qtbot):
         webpage = webview.page()
     else:
         webpage = webview.page().mainFrame()
-    qtbot.waitUntil(lambda: check_text(webpage, "No module named"),
-                    timeout=6000)
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "Bad config encountered"),
+        timeout=6000)
+
+    # Remove bad kernel config file
+    os.remove(ipy_kernel_cfg)
 
 
 @pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
@@ -1528,9 +1525,9 @@ def test_pdb_multiline(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="It only works on Linux")
-def test_pdb_ignore_lib(ipyconsole, qtbot):
+@pytest.mark.parametrize(
+    "show_lib", [True, False])
+def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
     """Test that pdb can avoid closed files."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -1541,7 +1538,7 @@ def test_pdb_ignore_lib(ipyconsole, qtbot):
     control.setFocus()
 
     # Tests assume inline backend
-    CONF.set('run', 'pdb_ignore_lib', False)
+    CONF.set('run', 'pdb_ignore_lib', not show_lib)
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
         qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
@@ -1554,26 +1551,11 @@ def test_pdb_ignore_lib(ipyconsole, qtbot):
         qtbot.keyClicks(control, 'q')
         qtbot.keyClick(control, Qt.Key_Enter)
 
-    assert 'iostream.py' in control.toPlainText()
-
-    shell.clear_console()
-    qtbot.wait(500)
-
-    # Tests assume inline backend
+    if show_lib:
+        assert 'iostream.py' in control.toPlainText()
+    else:
+        assert 'iostream.py' not in control.toPlainText()
     CONF.set('run', 'pdb_ignore_lib', True)
-    with qtbot.waitSignal(shell.executed):
-        shell.execute('%debug print()')
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-
-        qtbot.keyClicks(control, 's')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.wait(500)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-
-        qtbot.keyClicks(control, 'q')
-        qtbot.keyClick(control, Qt.Key_Enter)
-
-    assert 'iostream.py' not in control.toPlainText()
 
 
 @flaky(max_runs=3)
@@ -1599,6 +1581,7 @@ def test_calltip(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.first
 @pytest.mark.test_environment_interpreter
 def test_conda_env_activation(ipyconsole, qtbot):
     """

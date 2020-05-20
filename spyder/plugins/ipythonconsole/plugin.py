@@ -45,7 +45,7 @@ from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (ClientWidget,
                                                    KernelConnectionDialog)
-from spyder.py3compat import is_string, to_text_string
+from spyder.py3compat import is_string, to_text_string, PY2, PY38_OR_MORE
 from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs, sourcecode
@@ -158,6 +158,10 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Accepting drops
         self.setAcceptDrops(True)
+
+        # Needed to start Spyder in Windows with Python 3.8
+        # See spyder-ide/spyder#11880
+        self._init_asyncio_patch()
 
     #------ SpyderPluginMixin API ---------------------------------------------
     def update_font(self):
@@ -325,6 +329,8 @@ class IPythonConsole(SpyderPluginWidget):
                                      icon=ima.icon('editdelete'),
                                      triggered=self.reset_kernel,
                                      context=Qt.WidgetWithChildrenShortcut)
+        self.register_shortcut(reset_action, context="ipython_console",
+                               name="Reset namespace")
 
         if self.interrupt_action is None:
             self.interrupt_action = create_action(
@@ -438,7 +444,8 @@ class IPythonConsole(SpyderPluginWidget):
 
         if client is not None:
             # Internal kernels, use runfile
-            if client.get_kernel() is not None:
+            if (client.get_kernel() is not None or
+                    client.shellwidget.is_spyder_kernel()):
                 line = "%s('%s'" % ('debugfile' if debug else 'runfile',
                                     norm(filename))
                 if args:
@@ -450,7 +457,7 @@ class IPythonConsole(SpyderPluginWidget):
                 if console_namespace:
                     line += ", current_namespace=True"
                 line += ")"
-            else: # External kernels, use %run
+            else:  # External, non spyder-kernels, use %run
                 line = "%run "
                 if debug:
                     line += "-d "
@@ -680,12 +687,12 @@ class IPythonConsole(SpyderPluginWidget):
             has_spyder_kernels = programs.is_module_installed(
                 'spyder_kernels',
                 interpreter=pyexec,
-                version='>=1.8.0;<2.0.0')
+                version='>=1.9.1;<1.10.0')
             if not has_spyder_kernels and not running_under_pytest():
                 client.show_kernel_error(
                     _("Your Python environment or installation doesn't have "
                       "the <tt>spyder-kernels</tt> module or the right "
-                      "version of it installed (>= 1.8.0 and < 2.0.0). "
+                      "version of it installed (>= 1.9.1 and < 1.10.0). "
                       "Without this module is not possible for Spyder to "
                       "create a console for you.<br><br>"
                       "You can install it by running in a system terminal:"
@@ -840,10 +847,17 @@ class IPythonConsole(SpyderPluginWidget):
             import subprocess
             versions = {}
             pyexec = CONF.get('main_interpreter', 'executable')
-            py_cmd = '%s -c "import sys; print(sys.version)"' % pyexec
-            ipy_cmd = ('%s -c "import IPython.core.release as r; print(r.version)"'
-                       % pyexec)
+            py_cmd = u'%s -c "import sys; print(sys.version)"' % pyexec
+            ipy_cmd = (
+                u'%s -c "import IPython.core.release as r; print(r.version)"'
+                % pyexec
+            )
             for cmd in [py_cmd, ipy_cmd]:
+                if PY2:
+                    # We need to encode as run_shell_command will treat the
+                    # string as str
+                    cmd = cmd.encode('utf-8')
+
                 try:
                     proc = programs.run_shell_command(cmd)
                     output, _err = proc.communicate()
@@ -1197,16 +1211,10 @@ class IPythonConsole(SpyderPluginWidget):
             return (error_msg, None)
         kernel_manager._kernel_spec = kernel_spec
 
-        kwargs = {}
-        if os.name == 'nt':
-            # avoid closing fds on win+Python 3.7
-            # which prevents interrupts
-            # jupyter_client > 5.2.3 will do this by default
-            kwargs['close_fds'] = False
         # Catch any error generated when trying to start the kernel.
         # See spyder-ide/spyder#7302.
         try:
-            kernel_manager.start_kernel(stderr=stderr_handle, **kwargs)
+            kernel_manager.start_kernel(stderr=stderr_handle)
         except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())
@@ -1217,7 +1225,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Increase time to detect if a kernel is alive.
         # See spyder-ide/spyder#3444.
-        kernel_client.hb_channel.time_to_dead = 18.0
+        kernel_client.hb_channel.time_to_dead = 45.0
 
         return kernel_manager, kernel_client
 
@@ -1384,6 +1392,40 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.help.show_plain_text(quick_reference)
 
     #------ Private API -------------------------------------------------------
+    def _init_asyncio_patch(self):
+        """
+        Same workaround fix as https://github.com/ipython/ipykernel/pull/456
+        Set default asyncio policy to be compatible with tornado
+        Tornado 6 (at least) is not compatible with the default
+        asyncio implementation on Windows
+        Pick the older SelectorEventLoopPolicy on Windows
+        if the known-incompatible default policy is in use.
+        Do this as early as possible to make it a low priority and overrideable
+        ref: https://github.com/tornadoweb/tornado/issues/2608
+        FIXME: if/when tornado supports the defaults in asyncio,
+               remove and bump tornado requirement for py38
+        Based on: jupyter/qtconsole#406
+        """
+        if os.name == 'nt' and PY38_OR_MORE:
+            import asyncio
+            try:
+                from asyncio import (
+                    WindowsProactorEventLoopPolicy,
+                    WindowsSelectorEventLoopPolicy,
+                )
+            except ImportError:
+                # not affected
+                pass
+            else:
+                if isinstance(
+                        asyncio.get_event_loop_policy(),
+                        WindowsProactorEventLoopPolicy):
+                    # WindowsProactorEventLoopPolicy is not compatible
+                    # with tornado 6 fallback to the pre-3.8
+                    # default of Selector
+                    asyncio.set_event_loop_policy(
+                        WindowsSelectorEventLoopPolicy())
+
     def _new_connection_file(self):
         """
         Generate a new connection file

@@ -18,7 +18,8 @@ from qtpy.QtWidgets import QApplication
 
 # Local imports
 from spyder.config.base import _
-from spyder.plugins.onlinehelp.pydoc_patch import _start_server
+from spyder.plugins.onlinehelp.pydoc_patch import (
+    _start_server, _url_handler)
 from spyder.py3compat import PY3, to_text_string
 from spyder.utils.misc import select_port
 from spyder.widgets.browser import WebBrowser
@@ -57,7 +58,7 @@ class PydocServer(QThread):
     def run(self):
         if PY3:
             # Python 3
-            self.callback(_start_server(pydoc._url_handler,
+            self.callback(_start_server(_url_handler,
                                         hostname='127.0.0.1',
                                         port=self.port))
         else:
@@ -93,6 +94,8 @@ class PydocBrowser(WebBrowser):
                             handle_links=handle_links)
         self.server = None
         self.port = None
+        self.url_combo.lineEdit().setPlaceholderText(
+            _('Write a package name here, e.g. pandas'))
 
     def initialize(self):
         """Start pydoc server"""
@@ -133,12 +136,12 @@ class PydocBrowser(WebBrowser):
     #------ WebBrowser API -----------------------------------------------------
     def get_label(self):
         """Return address label text"""
-        return _("Module or package:")
+        return _("Package:")
 
     def reload(self):
         """Reload page"""
         self.start_server()
-        WebBrowser.reload(self)
+        self.webview.reload()
 
     def load_finished(self, ok):
         """Handle load finished."""
@@ -159,7 +162,7 @@ class PydocBrowser(WebBrowser):
         if 'about:blank' in string_url:
             return 'about:blank'
         elif 'get?key=' in string_url or 'search?key=' in string_url:
-            return url.toString().split('=')[-1]
+            return ''
         return osp.splitext(to_text_string(url.path()))[0][1:]
 
 

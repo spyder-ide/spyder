@@ -224,7 +224,8 @@ def kernel_config():
     use_file_o = os.environ.get('SPY_USE_FILE_O')
     run_file_o = os.environ.get('SPY_RUN_FILE_O')
     if use_file_o == 'True' and run_file_o is not None:
-        spy_cfg.IPKernelApp.file_to_run = run_file_o
+        if osp.exists(run_file_o):
+            spy_cfg.IPKernelApp.file_to_run = run_file_o
 
     # Autocall
     autocall_o = os.environ.get('SPY_AUTOCALL_O')
@@ -264,7 +265,8 @@ def varexp(line):
     except:
         import matplotlib.pyplot as pyplot
     __fig__ = pyplot.figure();
-    __items__ = getattr(pyplot, funcname[2:])(ip.user_ns[name])
+    __items__ = getattr(pyplot, funcname[2:])(
+        ip.kernel._get_current_namespace()[name])
     pyplot.show()
     del __fig__, __items__
 

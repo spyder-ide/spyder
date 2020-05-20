@@ -32,7 +32,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
 
 # Local imports
 from spyder.config.base import _, running_under_pytest
-from spyder.config.gui import is_dark_interface
+from spyder.config.gui import is_dark_interface, STYLE_BUTTON_CSS
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -437,7 +437,7 @@ class EditorStack(QWidget):
     refresh_save_all_action = Signal()
     sig_breakpoints_saved = Signal()
     text_changed_at = Signal(str, int)
-    current_file_changed = Signal(str, int)
+    current_file_changed = Signal(str, int, int, int)
     plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
     sig_split_vertically = Signal()
@@ -560,6 +560,7 @@ class EditorStack(QWidget):
         self.completions_hint_after_ms = 500
         self.hover_hints_enabled = True
         self.code_snippets_enabled = True
+        self.code_folding_enabled = True
         self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
@@ -867,14 +868,7 @@ class EditorStack(QWidget):
 
         menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
-        # Don't show menu arrow and remove padding
-        if is_dark_interface():
-            menu_btn.setStyleSheet(
-                ("QToolButton::menu-indicator{image: none;}\n"
-                 "QToolButton{margin: 1px; padding: 3px;}"))
-        else:
-            menu_btn.setStyleSheet(
-                "QToolButton::menu-indicator{image: none;}")
+        menu_btn.setStyleSheet(STYLE_BUTTON_CSS)
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
@@ -1182,7 +1176,7 @@ class EditorStack(QWidget):
         self.indent_guides = state
         if self.data:
             for finfo in self.data:
-                finfo.editor.indent_guides.set_enabled(state)
+                finfo.editor.toggle_identation_guides(state)
 
     def set_close_parentheses_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'close_parentheses')
@@ -1278,6 +1272,12 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_code_snippets(state)
+
+    def set_code_folding_enabled(self, state):
+        self.code_folding_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_code_folding(state)
 
     def set_automatic_completions_enabled(self, state):
         self.automatic_completions_enabled = state
@@ -2188,7 +2188,7 @@ class EditorStack(QWidget):
             return
         if index is None:
             index = self.get_stack_index()
-        if self.data:
+        if self.data and len(self.data) > index:
             finfo = self.data[index]
             if self.todolist_enabled:
                 finfo.run_todo_finder()
@@ -2210,7 +2210,6 @@ class EditorStack(QWidget):
 #        count = self.get_stack_count()
 #        for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
 #            btn.setEnabled(count > 1)
-
         editor = self.get_current_editor()
         if editor.completions_available and not editor.document_opened:
             editor.document_did_open()
@@ -2242,8 +2241,10 @@ class EditorStack(QWidget):
             # Needed in order to handle the close of files open in a directory
             # that has been renamed. See spyder-ide/spyder#5157.
             try:
+                line, col = editor.get_cursor_line_column()
                 self.current_file_changed.emit(self.data[index].filename,
-                                               editor.get_position('cursor'))
+                                               editor.get_position('cursor'),
+                                               line, col)
             except IndexError:
                 pass
 
@@ -2329,6 +2330,15 @@ class EditorStack(QWidget):
             if not osp.isfile(finfo.filename):
                 # This is an 'untitledX.py' file (newly created)
                 read_only = False
+            elif os.name == 'nt':
+                try:
+                    # Try to open the file to see if its permissions allow
+                    # to write on it
+                    # Fixes spyder-ide/spyder#10657
+                    fd = os.open(finfo.filename, os.O_RDWR)
+                    os.close(fd)
+                except (IOError, OSError):
+                    read_only = True
             finfo.editor.setReadOnly(read_only)
             self.readonly_changed.emit(read_only)
 
@@ -2540,10 +2550,13 @@ class EditorStack(QWidget):
             underline_errors=self.underline_errors_enabled,
             scroll_past_end=self.scrollpastend_enabled,
             edge_line=self.edgeline_enabled,
-            edge_line_columns=self.edgeline_columns, language=language,
-            markers=self.has_markers(), font=self.default_font,
+            edge_line_columns=self.edgeline_columns,
+            language=language,
+            markers=self.has_markers(),
+            font=self.default_font,
             color_scheme=self.color_scheme,
-            wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
+            wrap=self.wrap_enabled,
+            tab_mode=self.tabmode_enabled,
             strip_mode=self.stripmode_enabled,
             intelligent_backspace=self.intelligent_backspace_enabled,
             automatic_completions=self.automatic_completions_enabled,
@@ -2567,6 +2580,7 @@ class EditorStack(QWidget):
             filename=fname,
             show_class_func_dropdown=self.show_class_func_dropdown,
             indent_guides=self.indent_guides,
+            folding=self.code_folding_enabled,
         )
         if cloned_from is None:
             editor.set_text(txt)
@@ -2623,20 +2637,23 @@ class EditorStack(QWidget):
             return
         if self.help is not None \
           and (force or self.help.dockwidget.isVisible()):
+            editor = self.get_current_editor()
+            language = editor.language.lower()
             signature = to_text_string(signature)
             signature = unicodedata.normalize("NFKD", signature)
             parts = signature.split('\n\n')
             definition = parts[0]
             documentation = '\n\n'.join(parts[1:])
             args = ''
-            if '(' in definition:
+            if '(' in definition and language == 'python':
                 args = definition[definition.find('('):]
+            else:
+                documentation = signature
 
             doc = {'obj_text': '', 'name': name,
                    'argspec': args, 'note': '',
                    'docstring': documentation}
             self.help.set_editor_doc(doc, force_refresh=force)
-            editor = self.get_current_editor()
             editor.setFocus()
 
     def new(self, filename, encoding, text, default_content=False,

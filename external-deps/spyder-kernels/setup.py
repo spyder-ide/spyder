@@ -35,23 +35,28 @@ def get_version(module='spyder_kernels'):
     return version
 
 
-REQUIREMENTS = ['ipykernel',
-                'ipykernel>=5.1.3; python_version>"2"',
-                'pyzmq>=17',
-                'jupyter-client>=5.3.4',
-                'cloudpickle',
-                'wurlitzer>=1.0.3;platform_system!="Windows"']
+REQUIREMENTS = [
+    'cloudpickle',
+    'ipykernel',
+    'ipykernel>=5.1.3; python_version>"2"',
+    'jupyter-client>=5.3.4',
+    'pyzmq>=17',
+    'wurlitzer>=1.0.3;platform_system!="Windows"',
+]
 
-TEST_REQUIREMENTS = ['numpy',
-                     'pandas',
-                     'scipy',
-                     'pytest',
-                     'pytest-cov',
-                     'flaky',
-                     'mock',
-                     'cython',
-                     'matplotlib',
-                     'xarray']
+TEST_REQUIREMENTS = [
+    'codecov',
+    'cython',
+    'flaky',
+    'matplotlib',
+    'mock',
+    'numpy',
+    'pandas',
+    'pytest',
+    'pytest-cov',
+    'scipy',
+    'xarray',
+]
 
 setup(
     name='spyder-kernels',
@@ -69,13 +74,19 @@ setup(
     install_requires=REQUIREMENTS,
     extras_require={'test': TEST_REQUIREMENTS},
     include_package_data=True,
-    classifiers=['Development Status :: 5 - Production/Stable',
-                 'Framework :: Jupyter',
-                 'Framework :: IPython',
-                 'Intended Audience :: Developers',
-                 'License :: OSI Approved :: MIT License',
-                 'Operating System :: OS Independent',
-                 'Programming Language :: Python :: 2.7',
-                 'Programming Language :: Python :: 3',
-                 'Topic :: Software Development :: Interpreters']
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Framework :: Jupyter',
+        'Framework :: IPython',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Topic :: Software Development :: Interpreters',
+    ]
 )

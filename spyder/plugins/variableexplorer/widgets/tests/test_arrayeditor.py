@@ -239,6 +239,7 @@ def test_arrayeditor_edit_2d_array(qtbot):
     assert np.sum(diff_arr != dlg.get_value()) == 2
 
 
+@pytest.mark.slow
 def test_arrayeditor_edit_complex_array(qtbot):
     """See: spyder-ide/spyder#7848"""
     cnum = -1+0.5j

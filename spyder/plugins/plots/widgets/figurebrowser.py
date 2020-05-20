@@ -12,6 +12,7 @@ This is the main widget used in the Plots plugin
 
 # ---- Standard library imports
 from __future__ import division
+import datetime
 import os.path as osp
 import sys
 
@@ -27,6 +28,8 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QStyle)
 
 # ---- Local library imports
+import spyder.utils.icon_manager as ima
+
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import is_unicode, to_text_string
@@ -58,11 +61,11 @@ def get_unique_figname(dirname, root, ext):
     in "dirname".
     """
     i = 1
-    figname = root + '_%d' % i + ext
+    figname = '{}{}'.format(root, ext)
     while True:
         if osp.exists(osp.join(dirname, figname)):
+            figname = '{} ({}){}'.format(root, i, ext)
             i += 1
-            figname = root + '_%d' % i + ext
         else:
             return osp.join(dirname, figname)
 
@@ -605,12 +608,21 @@ class FigureViewer(QScrollArea):
             height = (size.height() -
                       style.pixelMetric(QStyle.PM_LayoutTopMargin) -
                       style.pixelMetric(QStyle.PM_LayoutBottomMargin))
-            if (fwidth / fheight) > (width / height):
-                new_width = int(width)
-                new_height = int(width / fwidth * fheight)
-            else:
-                new_height = int(height)
-                new_width = int(height / fheight * fwidth)
+            self.figcanvas.setToolTip('')
+            try:
+                if (fwidth / fheight) > (width / height):
+                    new_width = int(width)
+                    new_height = int(width / fwidth * fheight)
+                else:
+                    new_height = int(height)
+                    new_width = int(height / fheight * fwidth)
+            except ZeroDivisionError:
+                icon = ima.icon('broken_image')
+                self.figcanvas._qpix_orig = icon.pixmap(fwidth, fheight)
+                self.figcanvas.setToolTip(
+                    _('The image is broken, please try to generate it again'))
+                new_width = fwidth
+                new_height = fheight
 
         if self.figcanvas.size() != QSize(new_width, new_height):
             self.figcanvas.setFixedSize(new_width, new_height)
@@ -731,15 +743,18 @@ class ThumbnailScrollBar(QFrame):
     def save_all_figures_as(self):
         """Save all the figures to a file."""
         self.redirect_stdio.emit(False)
-        dirname = getexistingdirectory(self, caption='Save all figures',
-                                       basedir=getcwd_or_home())
+        save_dir = CONF.get('plots', 'save_dir', getcwd_or_home())
+        dirname = getexistingdirectory(self, 'Save all figures', save_dir)
         self.redirect_stdio.emit(True)
         if dirname:
+            CONF.set('plots', 'save_dir', dirname)
             return self.save_all_figures_todir(dirname)
 
     def save_all_figures_todir(self, dirname):
         """Save all figure in dirname."""
         fignames = []
+        figname_root = ('Figure ' +
+                        datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
         for thumbnail in self._thumbnails:
             fig = thumbnail.canvas.fig
             fmt = thumbnail.canvas.fmt
@@ -747,7 +762,7 @@ class ThumbnailScrollBar(QFrame):
                     'image/jpeg': '.jpg',
                     'image/svg+xml': '.svg'}[fmt]
 
-            figname = get_unique_figname(dirname, 'Figure', fext)
+            figname = get_unique_figname(dirname, figname_root, fext)
             save_figure_tofile(fig, fmt, figname)
             fignames.append(figname)
         return fignames
@@ -765,7 +780,11 @@ class ThumbnailScrollBar(QFrame):
             'image/jpeg': ('.jpg', 'JPEG (*.jpg;*.jpeg;*.jpe;*.jfif)'),
             'image/svg+xml': ('.svg', 'SVG (*.svg);;PNG (*.png)')}[fmt]
 
-        figname = get_unique_figname(getcwd_or_home(), 'Figure', fext)
+        save_dir = CONF.get('plots', 'save_dir', getcwd_or_home())
+        figname = get_unique_figname(
+            save_dir,
+            'Figure ' + datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'),
+            fext)
 
         self.redirect_stdio.emit(False)
         fname, fext = getsavefilename(
@@ -775,6 +794,7 @@ class ThumbnailScrollBar(QFrame):
         self.redirect_stdio.emit(True)
 
         if fname:
+            CONF.set('plots', 'save_dir', osp.dirname(fname))
             save_figure_tofile(fig, fmt, fname)
 
     # ---- Thumbails Handlers
@@ -851,11 +871,14 @@ class ThumbnailScrollBar(QFrame):
     def remove_all_thumbnails(self):
         """Remove all thumbnails."""
         for thumbnail in self._thumbnails:
-            self.layout().removeWidget(thumbnail)
             thumbnail.sig_canvas_clicked.disconnect()
             thumbnail.sig_remove_figure.disconnect()
             thumbnail.sig_save_figure.disconnect()
+            self.layout().removeWidget(thumbnail)
             thumbnail.setParent(None)
+            thumbnail.hide()
+            thumbnail.close()
+
         self._thumbnails = []
         self.current_thumbnail = None
         self.figure_viewer.figcanvas.clear_canvas()
@@ -864,20 +887,35 @@ class ThumbnailScrollBar(QFrame):
         """Remove thumbnail."""
         if thumbnail in self._thumbnails:
             index = self._thumbnails.index(thumbnail)
+
+        # Disconnect signals
+        try:
+            thumbnail.sig_canvas_clicked.disconnect()
+            thumbnail.sig_remove_figure.disconnect()
+            thumbnail.sig_save_figure.disconnect()
+        except TypeError:
+            pass
+
+        if thumbnail in self._thumbnails:
             self._thumbnails.remove(thumbnail)
-        self.layout().removeWidget(thumbnail)
-        thumbnail.setParent(None)
-        thumbnail.sig_canvas_clicked.disconnect()
-        thumbnail.sig_remove_figure.disconnect()
-        thumbnail.sig_save_figure.disconnect()
 
         # Select a new thumbnail if any :
         if thumbnail == self.current_thumbnail:
             if len(self._thumbnails) > 0:
-                self.set_current_index(min(index, len(self._thumbnails)-1))
+                self.set_current_index(
+                    min(index, len(self._thumbnails) - 1)
+                )
             else:
-                self.current_thumbnail = None
                 self.figure_viewer.figcanvas.clear_canvas()
+                self.current_thumbnail = None
+
+        # Hide and close thumbnails
+        self.layout().removeWidget(thumbnail)
+        thumbnail.hide()
+        thumbnail.close()
+
+        # See: spyder-ide/spyder#12459
+        QTimer.singleShot(150, lambda: thumbnail.setParent(None))
 
     def set_current_index(self, index):
         """Set the currently selected thumbnail by its index."""

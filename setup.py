@@ -43,8 +43,8 @@ PY3 = sys.version_info[0] == 3
 # Taken from the notebook setup.py -- Modified BSD License
 #==============================================================================
 v = sys.version_info
-if v[0] >= 3 and v[:2] < (3, 6):
-    error = "ERROR: Spyder 5 requires Python version 3.6 or above."
+if v[:2] < (2, 7) or (v[0] >= 3 and v[:2] < (3, 5)):
+    error = "ERROR: Spyder requires Python version 2.7 or 3.5 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -130,20 +130,21 @@ CMDCLASS = {'install_data': MyInstallData}
 # platforms due to a bug in pip installation process
 # See spyder-ide/spyder#1158.
 SCRIPTS = ['%s_win_post_install.py' % NAME]
+
 if PY3 and sys.platform.startswith('linux'):
     SCRIPTS.append('spyder3')
 else:
     SCRIPTS.append('spyder')
 
+if os.name == 'nt':
+    SCRIPTS += ['spyder.bat']
 
 #==============================================================================
 # Files added to the package
 #==============================================================================
 EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
-           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom']
-if os.name == 'nt':
-    SCRIPTS += ['spyder.bat']
-    EXTLIST += ['.ico']
+           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom',
+           '.ico', '.gif', '.mp3', '.ogg', '.sfd', '.bat', '.sh']
 
 
 #==============================================================================
@@ -209,7 +210,7 @@ install_requires = [
     'ipython>=4.0',
     # This is here until Jedi 0.15+ fixes completions for
     # Numpy and Pandas
-    'jedi==0.14.1',
+    'jedi==0.15.2',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
@@ -228,12 +229,12 @@ install_requires = [
     'python-language-server[all]>=0.32.0,<0.33.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
-    'qdarkstyle>=2.7',
+    'qdarkstyle>=2.8',
     'qtawesome>=0.5.7',
     'qtconsole>=4.6.0',
     'qtpy>=1.5.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=1.8.1,<2.0.0',
+    'spyder-kernels>=1.9.1,<1.10.0',
     'watchdog',
 ]
 

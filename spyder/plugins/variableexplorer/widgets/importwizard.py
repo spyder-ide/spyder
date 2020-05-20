@@ -60,11 +60,14 @@ class FakeObject(object):
     """Fake class used in replacement of missing modules"""
     pass
 try:
-    from numpy import ndarray, array
+    from numpy import ndarray
 except:
-    class ndarray(FakeObject):  # analysis:ignore
-        """Fake ndarray"""
-        pass
+    ndarray = FakeObject()  # analysis:ignore
+
+try:
+    from numpy import array
+except:
+    array = FakeObject()  # analysis:ignore
 
 #----date and datetime objects support
 import datetime
@@ -441,8 +444,11 @@ class PreviewWidget(QWidget):
         type_layout.addWidget(type_label)
 
         self.array_btn = array_btn = QRadioButton(_("array"))
-        array_btn.setEnabled(ndarray is not FakeObject)
-        array_btn.setChecked(ndarray is not FakeObject)
+        available_array = (
+            not isinstance(ndarray, FakeObject) and
+            not isinstance(array, FakeObject))
+        array_btn.setEnabled(available_array)
+        array_btn.setChecked(available_array)
         type_layout.addWidget(array_btn)
 
         list_btn = QRadioButton(_("list"))

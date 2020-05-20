@@ -8,18 +8,22 @@ Tests for namespacebrowser.py
 """
 
 # Standard library imports
+import sys
 try:
     from unittest.mock import Mock
 except ImportError:
     from mock import Mock # Python 2
 
 # Third party imports
+from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt, QPoint
 
 # Local imports
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import NamespaceBrowser
 from spyder.plugins.variableexplorer.widgets.tests.test_collectioneditor import data_table
+from spyder.py3compat import PY2
+
 
 def test_setup_sets_dataframe_format(qtbot):
     browser = NamespaceBrowser(None)
@@ -31,6 +35,11 @@ def test_setup_sets_dataframe_format(qtbot):
     assert browser.editor.source_model.dataframe_format == '%10.5f'
 
 
+@flaky(max_runs=5)
+@pytest.mark.skipif(
+    sys.platform.startswith('linux') and PY2,
+    reason="Sometimes fails on Linux and Python 2"
+)
 def test_automatic_column_width(qtbot):
     browser = NamespaceBrowser(None)
     browser.set_shellwidget(Mock())

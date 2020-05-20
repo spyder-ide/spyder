@@ -11,6 +11,7 @@ import pdb
 import sys
 import logging
 import traceback
+from collections import namedtuple
 
 from IPython.core.getipython import get_ipython
 from IPython.core.debugger import Pdb as ipyPdb
@@ -46,6 +47,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
     def __init__(self, completekey='tab', stdin=None, stdout=None,
                  skip=None, nosigint=False):
         """Init Pdb."""
+        self.curframe_locals = None
         # Only set to true when calling debugfile
         self.continue_if_has_breakpoints = False
         self.pdb_ignore_lib = False
@@ -132,7 +134,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             if frame and frame.f_back:
                 return self.interaction(frame.f_back, traceback)
         if (frame is not None
-                and "spydercustomize.py" in frame.f_code.co_filename):
+                and "spydercustomize.py" in frame.f_code.co_filename
+                and "exec_code" == frame.f_code.co_name):
             self.onecmd('exit')
         else:
             self.setup(frame, traceback)
@@ -213,7 +216,13 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             kernel = get_ipython().kernel
             # Make complete call with current frame
             if self.curframe:
-                kernel.shell.set_completer_frame(self.curframe)
+                if self.curframe_locals:
+                    Frame = namedtuple("Frame", ["f_locals", "f_globals"])
+                    frame = Frame(self.curframe_locals,
+                                  self.curframe.f_globals)
+                else:
+                    frame = self.curframe
+                kernel.shell.set_completer_frame(frame)
             result = kernel._do_complete(code, cursor_pos)
             # Reset frame
             kernel.shell.set_completer_frame()

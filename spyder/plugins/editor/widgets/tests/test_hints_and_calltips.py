@@ -33,6 +33,8 @@ some_function""".format(SIG=TEST_SIG, DOC=TEST_DOCSTRING)
 
 @pytest.mark.slow
 @pytest.mark.second
+@pytest.mark.skipif(sys.platform == 'darwin' and PY2,
+                    reason='Fails on Mac and Python 2')
 def test_hide_calltip(lsp_codeeditor, qtbot):
     """Test that calltips are hidden when a matching ')' is found."""
     code_editor, _ = lsp_codeeditor
@@ -63,6 +65,10 @@ def test_hide_calltip(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.second
+@pytest.mark.skipif(
+    os.name == 'nt' and PY2,
+    reason='Fails on Win',
+)
 @pytest.mark.parametrize('params', [
             # Parameter, Expected Output
             ('dict', 'dict'),
@@ -126,8 +132,7 @@ def test_get_calltips(qtbot, lsp_codeeditor, params):
 
 @pytest.mark.slow
 @pytest.mark.second
-@pytest.mark.skipif(sys.platform != 'darwin' and bool(os.environ.get('CI')),
-                    reason="Fails on Windows and Linux on CI")
+@pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
 @pytest.mark.parametrize('params', [
             # Parameter, Expected Output
             ('"".format', '-> str'),
@@ -169,8 +174,7 @@ def test_get_hints(qtbot, lsp_codeeditor, params, capsys):
 
 @pytest.mark.slow
 @pytest.mark.second
-@pytest.mark.skipif(sys.platform != 'darwin',
-                    reason="Fails on Windows and Linux")
+@pytest.mark.skipif(sys.platform == 'darwin', reason='Fails on Mac')
 def test_get_hints_not_triggered(qtbot, lsp_codeeditor):
     """Test that the editor is not returning hover hints for empty docs."""
     code_editor, _ = lsp_codeeditor

@@ -1,5 +1,53 @@
 # History of changes
 
+## Version 1.9.1 (2020-05-06)
+
+### Issues Closed
+
+* [Issue 217](https://github.com/spyder-ide/spyder-kernels/issues/217) - Maximum recursion depth exceeded ([PR 218](https://github.com/spyder-ide/spyder-kernels/pull/218) by [@ccordoba12](https://github.com/ccordoba12))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 219](https://github.com/spyder-ide/spyder-kernels/pull/219) - PR: Check that startup file exists, by [@impact27](https://github.com/impact27) ([12442](https://github.com/spyder-ide/spyder/issues/12442))
+* [PR 218](https://github.com/spyder-ide/spyder-kernels/pull/218) - PR: Avoid an error when computing the shape of Pandas objects, by [@ccordoba12](https://github.com/ccordoba12) ([217](https://github.com/spyder-ide/spyder-kernels/issues/217))
+* [PR 215](https://github.com/spyder-ide/spyder-kernels/pull/215) - PR: Fix post mortem functionality, by [@impact27](https://github.com/impact27)
+* [PR 212](https://github.com/spyder-ide/spyder-kernels/pull/212) - PR: Set namespace correctly when running in new namespace, by [@impact27](https://github.com/impact27)
+* [PR 211](https://github.com/spyder-ide/spyder-kernels/pull/211) - PR: Use Exception instead of ImportError in is_special_kernel_valid, by [@ccordoba12](https://github.com/ccordoba12)
+
+In this release 5 pull requests were closed.
+
+----
+
+## Version 1.9.0 (2020-03-14)
+
+### New features
+
+* Allow IPython magics in code again.
+* Allow PyQt applications to be run multiple times.
+* Remove `__file__` after running a file.
+
+### Pull Requests Merged
+
+* [PR 209](https://github.com/spyder-ide/spyder-kernels/pull/209) - PR: Improve message about using invalid syntax in cells and files, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 208](https://github.com/spyder-ide/spyder-kernels/pull/208) - PR: Add flag to override data and handle NpzFile instances, by [@dalthviz](https://github.com/dalthviz)
+* [PR 206](https://github.com/spyder-ide/spyder-kernels/pull/206) - PR: Move CI to github actions on branch 1.x, by [@goanpeca](https://github.com/goanpeca)
+* [PR 204](https://github.com/spyder-ide/spyder-kernels/pull/204) - PR: Remove load_exception in CommBase, by [@impact27](https://github.com/impact27)
+* [PR 200](https://github.com/spyder-ide/spyder-kernels/pull/200) - PR: Fix %varexp namespace, by [@impact27](https://github.com/impact27) ([6695](https://github.com/spyder-ide/spyder/issues/6695))
+* [PR 199](https://github.com/spyder-ide/spyder-kernels/pull/199) - PR: Prevent completion from changing local objects while debugging, by [@impact27](https://github.com/impact27)
+* [PR 198](https://github.com/spyder-ide/spyder-kernels/pull/198) - PR: Add method to check dependencies for special consoles, by [@dalthviz](https://github.com/dalthviz)
+* [PR 195](https://github.com/spyder-ide/spyder-kernels/pull/195) - PR: Give access to the running namespace when refreshing variables, by [@impact27](https://github.com/impact27)
+* [PR 193](https://github.com/spyder-ide/spyder-kernels/pull/193) - PR: Update test to work with IPython 7.10+, by [@impact27](https://github.com/impact27)
+* [PR 192](https://github.com/spyder-ide/spyder-kernels/pull/192) - PR: Resend comm configuration on timeout, by [@impact27](https://github.com/impact27)
+* [PR 190](https://github.com/spyder-ide/spyder-kernels/pull/190) - PR: Allow IPython magics in code again, by [@impact27](https://github.com/impact27) ([11023](https://github.com/spyder-ide/spyder/issues/11023))
+* [PR 189](https://github.com/spyder-ide/spyder-kernels/pull/189) - PR: Patch PyQt to save created QApplication instances, by [@impact27](https://github.com/impact27) ([2970](https://github.com/spyder-ide/spyder/issues/2970))
+* [PR 187](https://github.com/spyder-ide/spyder-kernels/pull/187) - PR: Remove `__file__` after running script, by [@impact27](https://github.com/impact27) ([1918](https://github.com/spyder-ide/spyder/issues/1918))
+
+In this release 13 pull requests were closed.
+
+----
+
 ## Version 1.8.1 (2019-12-05)
 
 

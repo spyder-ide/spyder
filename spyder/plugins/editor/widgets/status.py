@@ -40,6 +40,10 @@ class EOLStatus(StatusBarWidget):
         value = {"nt": "CRLF", "posix": "LF"}.get(os_name, "CR")
         self.set_value(value)
 
+    def get_tooltip(self):
+        """Return localized tool tip for widget."""
+        return _("File EOL Status")
+
 
 class EncodingStatus(StatusBarWidget):
     """Status bar widget for the current file encoding."""

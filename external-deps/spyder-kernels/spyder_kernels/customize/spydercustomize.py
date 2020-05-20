@@ -52,6 +52,7 @@ if not hasattr(sys, 'argv'):
 # =============================================================================
 IS_EXT_INTERPRETER = os.environ.get('SPY_EXTERNAL_INTERPRETER') == "True"
 HIDE_CMD_WINDOWS = os.environ.get('SPY_HIDE_CMD') == "True"
+SHOW_INVALID_SYNTAX_MSG = True
 
 
 # =============================================================================
@@ -142,6 +143,44 @@ else:
     except KeyError:
         pass
 
+
+# =============================================================================
+# Patch PyQt4 and PyQt5
+# =============================================================================
+# This saves the QApplication instances so that Python doesn't destroy them.
+# Python sees all the QApplication as differnet Python objects, while
+# Qt sees them as a singleton (There is only one Application!). Deleting one
+# QApplication causes all the other Python instances to become broken.
+# See spyder-ide/spyder/issues/2970
+try:
+    from PyQt5 import QtWidgets
+
+    class SpyderQApplication(QtWidgets.QApplication):
+        def __init__(self, *args, **kwargs):
+            super(SpyderQApplication, self).__init__(*args, **kwargs)
+            # Add reference to avoid destruction
+            # This creates a Memory leak but avoids a Segmentation fault
+            SpyderQApplication._instance_list.append(self)
+
+    SpyderQApplication._instance_list = []
+    QtWidgets.QApplication = SpyderQApplication
+except Exception:
+    pass
+
+try:
+    from PyQt4 import QtGui
+
+    class SpyderQApplication(QtGui.QApplication):
+        def __init__(self, *args, **kwargs):
+            super(SpyderQApplication, self).__init__(*args, **kwargs)
+            # Add reference to avoid destruction
+            # This creates a Memory leak but avoids a Segmentation fault
+            SpyderQApplication._instance_list.append(self)
+
+    SpyderQApplication._instance_list = []
+    QtGui.QApplication = SpyderQApplication
+except Exception:
+    pass
 
 # =============================================================================
 # IPython adjustments
@@ -275,20 +314,11 @@ __umr__ = UserModuleReloader(namelist=os.environ.get("SPY_UMR_NAMELIST", None))
 # =============================================================================
 # Handle Post Mortem Debugging and Traceback Linkage to Spyder
 # =============================================================================
-def clear_post_mortem():
-    """
-    Remove the post mortem excepthook and replace with a standard one.
-    """
-    ipython_shell = get_ipython()
-    ipython_shell.set_custom_exc((), None)
-
-
 def post_mortem_excepthook(type, value, tb):
     """
     For post mortem exception handling, print a banner and enable post
     mortem debugging.
     """
-    clear_post_mortem()
     ipython_shell = get_ipython()
     ipython_shell.showtraceback((type, value, tb))
     p = pdb.Pdb(ipython_shell.colors)
@@ -303,32 +333,9 @@ def post_mortem_excepthook(type, value, tb):
         p.send_initial_notification = False
         p.reset()
         frame = tb.tb_frame
-        prev = frame
-        while frame.f_back:
-            prev = frame
-            frame = frame.f_back
-        frame = prev
         # wait for stdout to print
         time.sleep(0.1)
         p.interaction(frame, tb)
-
-
-def set_post_mortem():
-    """
-    Enable the post mortem debugging excepthook.
-    """
-    def ipython_post_mortem_debug(shell, etype, evalue, tb,
-                                  tb_offset=None):
-        post_mortem_excepthook(etype, evalue, tb)
-
-    ipython_shell = get_ipython()
-    ipython_shell.set_custom_exc((Exception,), ipython_post_mortem_debug)
-
-
-# Add post mortem debugging if requested and in a dedicated interpreter
-# existing interpreters use "runfile" below
-if "SPYDER_EXCEPTHOOK" in os.environ:
-    set_post_mortem()
 
 
 # ==============================================================================
@@ -358,8 +365,34 @@ def get_debugger(filename):
     return debugger, filename
 
 
-def exec_code(code, filename, ns_globals, ns_locals=None):
+def count_leading_empty_lines(cell):
+    """Count the number of leading empty cells."""
+    if PY2:
+        lines = cell.splitlines(True)
+    else:
+        lines = cell.splitlines(keepends=True)
+    if not lines:
+        return 0
+    for i, line in enumerate(lines):
+        if line and not line.isspace():
+            return i
+    return len(lines)
+
+
+def transform_cell(code):
+    """Transform ipython code to python code."""
+    tm = TransformerManager()
+    number_empty_lines = count_leading_empty_lines(code)
+    code = tm.transform_cell(code)
+    if PY2:
+        return code
+    return '\n' * number_empty_lines + code
+
+
+def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
     """Execute code and display any exception."""
+    global SHOW_INVALID_SYNTAX_MSG
+
     if PY2:
         filename = encode(filename)
         code = encode(code)
@@ -367,14 +400,35 @@ def exec_code(code, filename, ns_globals, ns_locals=None):
     ipython_shell = get_ipython()
     is_ipython = os.path.splitext(filename)[1] == '.ipy'
     try:
-        if is_ipython:
-            # transform code
-            tm = TransformerManager()
-            if not PY2:
-                # Avoid removing lines
-                tm.cleanup_transforms = []
-            code = tm.transform_cell(code)
-        exec(compile(code, filename, 'exec'), ns_globals, ns_locals)
+        if not is_ipython:
+            # TODO: remove the try-except and let the SyntaxError raise
+            # Because there should not be ipython code in a python file
+            try:
+                compiled = compile(code, filename, 'exec')
+            except SyntaxError as e:
+                try:
+                    compiled = compile(transform_cell(code), filename, 'exec')
+                except SyntaxError:
+                    if PY2:
+                        raise e
+                    else:
+                        # Need to call exec to avoid Syntax Error in Python 2.
+                        # TODO: remove exec when dropping Python 2 support.
+                        exec("raise e from None")
+                else:
+                    if SHOW_INVALID_SYNTAX_MSG:
+                        _print(
+                            "\nWARNING: This is not valid Python code. "
+                            "If you want to use IPython magics, "
+                            "flexible indentation, and prompt removal, "
+                            "please save this file with the .ipy extension. "
+                            "This will be an error in a future version of "
+                            "Spyder.\n")
+                        SHOW_INVALID_SYNTAX_MSG = False
+        else:
+            compiled = compile(transform_cell(code), filename, 'exec')
+
+        exec(compiled, ns_globals, ns_locals)
     except SystemExit as status:
         # ignore exit(0)
         if status.code:
@@ -384,6 +438,9 @@ def exec_code(code, filename, ns_globals, ns_locals=None):
                 and ipython_shell.kernel._pdb_obj):
             # Ignore BdbQuit if we are debugging, as it is expected.
             ipython_shell.kernel._pdb_obj = None
+        elif post_mortem and isinstance(error, Exception):
+            error_type, error, tb = sys.exc_info()
+            post_mortem_excepthook(error_type, error, tb.tb_next)
         else:
             # We ignore the call to exec
             ipython_shell.showtraceback(tb_offset=1)
@@ -465,17 +522,15 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
                 os.chdir(wdir)
             else:
                 _print("Working directory {} doesn't exist.\n".format(wdir))
-        if post_mortem:
-            set_post_mortem()
 
         if __umr__.has_cython:
             # Cython files
             with io.open(filename, encoding='utf-8') as f:
                 ipython_shell.run_cell_magic('cython', '', f.read())
         else:
-            exec_code(file_code, filename, ns_globals, ns_locals)
+            exec_code(file_code, filename, ns_globals, ns_locals,
+                      post_mortem=post_mortem)
 
-        clear_post_mortem()
         sys.argv = ['']
 
 
@@ -503,7 +558,7 @@ def debugfile(filename=None, args=None, wdir=None, post_mortem=False,
 builtins.debugfile = debugfile
 
 
-def runcell(cellname, filename=None):
+def runcell(cellname, filename=None, post_mortem=False):
     """
     Run a code cell from an editor as a file.
 
@@ -557,13 +612,14 @@ def runcell(cellname, filename=None):
         file_code = None
     with NamespaceManager(filename, current_namespace=True,
                           file_code=file_code) as (ns_globals, ns_locals):
-        exec_code(cell_code, filename, ns_globals, ns_locals)
+        exec_code(cell_code, filename, ns_globals, ns_locals,
+                  post_mortem=post_mortem)
 
 
 builtins.runcell = runcell
 
 
-def debugcell(cellname, filename=None):
+def debugcell(cellname, filename=None, post_mortem=False):
     """Debug a cell."""
     if filename is None:
         filename = get_current_file_name()

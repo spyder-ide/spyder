@@ -1,0 +1,149 @@
+/* --- Base tags --- */
+
+body {
+    background-color: white;
+    color: rgb(51, 51, 51);
+    margin: 25px 25px 25px 25px;
+    width: 95%;
+}
+
+table {
+    width: 100%;
+    border-spacing: 10px;
+}
+
+td {
+    padding-bottom: 0
+    vertical-align: bottom;
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+div.main {
+    clear: both;
+    padding-top: .5em;
+}
+
+/* --- Links --- */
+
+a {
+    color: #0050cc;
+    text-decoration: none;
+}
+
+a:visited {
+    color: #6363bb;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* --- Input classes ---*/
+
+.input-search {
+    background-color: white;
+    border: 1px solid #222;
+    border-radius: 0.25rem;
+    color: #444;
+}
+
+.submit-search{
+    border: 1px solid #444;
+    border-radius: 0.25rem;
+    color: black;
+    font-size: 1em;
+}
+
+
+/* --- Section classes --- */
+
+.align_right {
+    text-align: right;
+}
+
+.heading {  /* see HTMLDoc.heading */
+    text-overflow: clip;
+    font-weight: bold;
+    font-size: 1.3em;
+    background-color: #6487DC;
+    background-image: -webkit-gradient(
+        linear,
+        0 0,
+        0 100%,
+        from(#54b4eb),
+        color-stop(60%, #2fa4e7),
+        to(#1d9ce5)
+    );
+    text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+    color: #FFFFFF;
+    border-radius: 0.3rem;
+}
+
+.normal {font-weight: normal;
+         font-size: .7em;}
+
+.grey {color:grey;}
+
+.repr_string {color:#40c054}  /* see HTMLRepr.repr_string */
+
+.docmodule{ /* see HTMLDoc.docmodule */
+    height: 4em;
+}
+
+.docmodule_link {  /* see HTMLDoc.docmodule */
+    font-size: smaller;
+}
+.docmodule_head {  /* see HTMLDoc.docmodule */
+    font-size: 1.5em;
+}
+
+.section_title {
+    font-size: .9em;
+    font-weight: bold;
+    color: rgb(49, 126, 172);
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.builtin_modules, .index, .package, .module, .classes, .functions, .data,
+.topics, .keywords, .author, .credits {
+    background-color: #e9ecef;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 0.3rem;
+}
+
+.error {
+    color: white;
+    background-color: #C71C22;
+}
+
+.docclass {
+    color: black;
+    background-color: #e9ecef;
+}
+
+.signature {
+    color: #0050cc;
+}
+
+.ka_ping_yee {
+    float: right;
+    color: #909090;
+}
+
+.inner_table {
+    background-color: #e9ecef;
+    width:100%;
+    color: black;
+    padding-bottom: 0;
+}
+
+.error .inner_table {
+    background-color: #C71C22;
+    width:100%;
+    color: black;
+    padding-bottom: 0;
+}
+

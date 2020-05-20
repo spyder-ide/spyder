@@ -41,7 +41,15 @@ class SpyderKernelManager(QtKernelManager):
         This is an new method not present in QtKernelManager.
         """
         assert pid != os.getpid()  # Won't kill myself!
-        parent = psutil.Process(pid)
+
+        # This is necessary to avoid showing an error when restarting the
+        # kernel after it failed to start in the first place.
+        # Fixes spyder-ide/spyder#11872
+        try:
+            parent = psutil.Process(pid)
+        except psutil.NoSuchProcess:
+            return ([], [])
+
         children = parent.children(recursive=True)
 
         if include_parent:
@@ -74,7 +82,7 @@ class SpyderKernelManager(QtKernelManager):
                     self.signal_kernel(signal.SIGKILL)
                 else:
                     # This is the additional line that was added to properly
-                    # kill the spyder started kernels.
+                    # kill the kernel started by Spyder.
                     self.kill_proc_tree(self.kernel.pid)
 
                     self.kernel.kill()

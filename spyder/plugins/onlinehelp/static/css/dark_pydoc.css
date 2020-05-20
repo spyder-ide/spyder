@@ -1,0 +1,228 @@
+/* --- Scrollbar --- */
+
+::-webkit-scrollbar {
+    background-color: #19232D;
+    width: 14px;
+    height: 14px;
+    margin: 16px 2px 16px 2px;
+    border: 1px solid #32414B;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-corner {
+    background-color: #19232D;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #787878;
+    border: 1px solid #32414B;
+    min-height: 8px;
+    border-radius: 10px;
+    width: 1px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #148CD2;
+    border: 1px solid #148CD2;
+    border-radius: 10px;
+    min-height: 8px;
+    width: 1px;
+}
+
+::-webkit-scrollbar-button:vertical:increment {
+    background-repeat: no-repeat;
+    background-image:  url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAGCAQAAAC7znxOAAAAAXNSR0IArs4c6QAAAAJiS0dEAP+Hj8y/AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3AgXCBU73DsMmwAAACpJREFUCNdjYMAAjAwMcz4gC6QIMDIwIAumCDAwMEKYEMEUARQTULWjAQDGuQeQXWYfgwAAAABJRU5ErkJggg==');
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:decrement {
+    background-repeat: no-repeat;
+    background-image:  url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAGCAQAAAC7znxOAAAAAXNSR0IArs4c6QAAAAJiS0dEAP+Hj8y/AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3AgXCBUP/Y/4LgAAACJJREFUCNdjYMAN/p+HsRiRBRgN4UJIKgwZGBiRBRAq0QAAyrUH0na7ssUAAAAASUVORK5CYII=');
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:increment:hover {
+    background-repeat: no-repeat;
+    background-image:  url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAGCAQAAAC7znxOAAAAAXNSR0IArs4c6QAAAAJiS0dEAJxTNPxdAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3AgXCwIEbZgbaQAAAClJREFUCNdjYMAAjAwM/8+jCBgyMjAgCzIaMjAwQpgQQUZDFBNQtaMBANYQB9IvSN9KAAAAAElFTkSuQmCC');
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:decrement:hover {
+    background-repeat: no-repeat;
+    background-image:  url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAGCAQAAAC7znxOAAAAAXNSR0IArs4c6QAAAAJiS0dEAP+Hj8y/AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3AgXCBUP/Y/4LgAAACJJREFUCNdjYMAN/p+HsRiRBRgN4UJIKgwZGBiRBRAq0QAAyrUH0na7ssUAAAAASUVORK5CYII=');
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:increment {
+    background-repeat: no-repeat;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAJCAYAAAARml2dAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAACxMAAAsTAQCanBgAAAACYktHRAD/h4/MvwAAAAd0SU1FB9wIFwgUH/kj2QsAAAA1SURBVBhXY8AL5syZ8wHKhAMmKI0hCZcAAWRJFAkQgEliSKSkpAiAaBQJmCAcYHMVDsDAAACnqBBX7dfI1AAAAABJRU5ErkJggg==');
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:decrement {
+    background-repeat: no-repeat;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAJCAYAAAARml2dAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAACxMAAAsTAQCanBgAAAACYktHRAD/h4/MvwAAAAd0SU1FB9wIFwgVO9w7DJsAAAA4SURBVBhXYyAazJkz5wOIZgLzoAAmCAJwCWRBEABLoAuCAFgiJSVFAMxDAnCjsEmiAGzGIgEGBgCaOBBXvDiq/AAAAABJRU5ErkJggg==');
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:increment:hover {
+    background-repeat: no-repeat;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAJCAYAAAARml2dAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAACxMAAAsTAQCanBgAAAACYktHRAD/h4/MvwAAAAd0SU1FB9wIFwgVD/2P+C4AAAA1SURBVBhXY8AL/v//fx7KhAMmKI0hCZcAAWRJFAkQgEliSDAyMhqCaBQJmCAcYHMVDsDAAACvRBNvNP7lWQAAAABJRU5ErkJggg==');
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:decrement:hover {
+    background-repeat: no-repeat;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAJCAYAAAARml2dAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAACxMAAAsTAQCanBgAAAACYktHRACcUzT8XQAAAAd0SU1FB9wIFwsCBG2YG2kAAAA4SURBVBhXYyAa/P///zyIZgLzoAAmCAJwCWRBEABLoAuCAFiCkZHREMxDAnCjsEmiAGzGIgEGBgCE9BNvQimS0gAAAABJRU5ErkJggg==');
+    background-position: center center;
+}
+
+/* --- Base tags --- */
+
+body {
+    background-color: #19232D;
+    color: white;
+    margin: 25px 25px 25px 25px;
+    width: 95%;
+}
+
+
+table {
+    width: 100%;
+    border-spacing: 10px;
+}
+
+td {
+    padding-bottom: 0
+    vertical-align: bottom;
+    max-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+div.main {
+    clear: both;
+    padding-top: .5em;
+}
+
+/* --- Links --- */
+
+a {
+    text-decoration: none;
+    color: #00bc8c;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+
+/* --- Input classes ---*/
+
+.input-search {
+    background-color: white;
+    border: 1px solid #222;
+    border-radius: 0.25rem;
+    color: #444;
+}
+
+.submit-search{
+    background-color: #444;
+    border: 1px solid #444;
+    border-radius: 0.25rem;
+    color: white;
+    font-size: 1em;
+}
+
+/* --- Section classes --- */
+
+.align_right {
+    text-align: right;
+}
+
+.heading {  /* see HTMLDoc.heading */
+    text-overflow: clip;
+    font-weight: bold;
+    font-size: 1.3em;
+    background-color: #6487DC;
+    background-image: -webkit-gradient(
+        linear,
+        0 0,
+        0 100%,
+        from(#3e6691),
+        color-stop(60%, #375a7f),
+        to(#2b4866)
+    );
+    text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+    color: #FFFFFF;
+    border-radius: 0.3rem;
+}
+
+.normal {font-weight: normal;
+         font-size: .7em;}
+
+.grey {color:grey;}
+
+.repr_string {color:#40c054}  /* see HTMLRepr.repr_string */
+
+.docmodule{ /* see HTMLDoc.docmodule */
+    height: 4em;
+}
+
+.docmodule_link {  /* see HTMLDoc.docmodule */
+    font-size: smaller;
+}
+.docmodule_head {  /* see HTMLDoc.docmodule */
+    font-size: 1.5em;
+}
+
+.section_title {
+    font-size: .9em;
+    font-weight: bold;
+    color: white;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.builtin_modules, .index, .package, .module, .classes, .functions, .data,
+.topics, .keywords, .author, .credits {
+    background-color: #303030;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 0.3rem;
+}
+
+.error {
+    color: white;
+    background-color: #E74C3C;
+}
+
+.docclass {
+    background-color: #303030;
+    color: white;
+}
+
+.signature {
+    color: #00bc8c;
+}
+
+.ka_ping_yee {
+    float: right;
+    color: #909090;
+}
+
+.inner_table {
+    background-color: #303030;
+    width:100%;
+    color: white;
+    padding-bottom: 0;
+}
+
+.error .inner_table {
+    background-color: #E74C3C;
+    width:100%;
+    color: white;
+    padding-bottom: 0;
+}
+

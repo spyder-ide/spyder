@@ -76,6 +76,7 @@ def fallback_codeeditor(qtbot_module, request):
     completions = CompletionManager(None, ['fallback'])
     completions.start()
     completions.start_client('python')
+    completions.language_status['python']['fallback'] = True
     qtbot_module.addWidget(completions)
 
     # Create a CodeEditor instance
@@ -116,6 +117,7 @@ def kite_codeeditor(qtbot_module, request):
     completions = CompletionManager(main, ['kite'])
     completions.start()
     completions.start_client('python')
+    completions.language_status['python']['kite'] = True
     qtbot_module.addWidget(completions)
 
     # Create a CodeEditor instance
@@ -144,14 +146,7 @@ def kite_codeeditor(qtbot_module, request):
     return editor, kite
 
 
-# Windows tests fail if using module scope
-if os.name == 'nt':
-    LSP_PLUGIN_SCOPE = 'module'
-else:
-    LSP_PLUGIN_SCOPE = 'function'
-
-
-@pytest.fixture(scope=LSP_PLUGIN_SCOPE)
+@pytest.fixture(scope='function')
 def lsp_plugin(qtbot_module, request):
     # Activate pycodestyle and pydocstyle
     CONF.set('lsp-server', 'pycodestyle', True)
@@ -168,6 +163,7 @@ def lsp_plugin(qtbot_module, request):
     with qtbot_module.waitSignal(
             main.editor.sig_lsp_initialized, timeout=30000):
         completions.start_client('python')
+    completions.language_status['python']['lsp'] = True
 
     def teardown():
         completions.shutdown()

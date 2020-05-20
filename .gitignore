@@ -24,6 +24,7 @@ spyder_crash.log
 .idea/
 .cache
 .coverage*
+MANIFEST
 
 # git .orig files
 *.orig
@@ -35,3 +36,9 @@ spyder_crash.log
 .ropeproject/
 .vscode/
 result.xml
+
+# Pylint dirs/files
+.pylint.d/
+
+# Ignore setuptools development files in the PyLS subrepo
+external-deps/python-language-server/python_language_server.egg-info/

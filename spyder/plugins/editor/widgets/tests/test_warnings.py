@@ -116,6 +116,9 @@ def test_move_warnings(qtbot, lsp_codeeditor):
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_change()
 
+    # Wait for linting info to arrive
+    qtbot.wait(2000)
+
     # Move between warnings
     editor.go_to_next_warning()
     assert 2 == editor.get_cursor_line_number()
@@ -149,6 +152,9 @@ def test_get_warnings(qtbot, lsp_codeeditor):
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_change()
 
+    # Wait for linting info to arrive
+    qtbot.wait(2000)
+
     # Get current warnings
     warnings = editor.get_current_warnings()
 
@@ -181,6 +187,9 @@ def test_update_warnings_after_delete_line(qtbot, lsp_codeeditor):
     # Notify changes.
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_change()
+
+    # Wait for linting info to arrive
+    qtbot.wait(2000)
 
     # Delete the blank line that is causing the W293 warning on line 2.
     editor.go_to_line(2)
@@ -220,6 +229,9 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_change()
 
+    # Wait for linting info to arrive
+    qtbot.wait(2000)
+
     assert editor.get_current_warnings() == expected
 
     # Wait for the lsp_response_signal.
@@ -253,6 +265,9 @@ def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
     # Notify changes.
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_change()
+
+    # Wait for linting info to arrive
+    qtbot.wait(2000)
 
     assert editor.get_current_warnings() == expected
 

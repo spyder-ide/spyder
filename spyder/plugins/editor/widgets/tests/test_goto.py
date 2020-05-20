@@ -29,7 +29,7 @@ TEST_FILE_ABS = TEST_FILES[0].replace(' ', '%20')
 TEST_FILE_REL = 'conftest.py'
 
 
-@pytest.mark.skipif(os.name == 'nt', reason="It fails on Windows")
+@pytest.mark.skipif(bool(os.environ.get('CI', None)), reason='Fails on CI!')
 @pytest.mark.parametrize('params', [
             # Parameter, expected output 1, full file path, expected output 2
             # ----------------------------------------------------------------

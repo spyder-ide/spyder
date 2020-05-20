@@ -284,29 +284,27 @@ class TreeModel(QAbstractItemModel):
         path_strings = []
         tree_items = []
 
-        # Only populate children for objects without their own editor
-        if not is_editable_type(obj):
-            is_attr_list = [False] * len(obj_children)
+        is_attr_list = [False] * len(obj_children)
 
-            # Object attributes
-            # Needed to handle errors while getting object's attributes
-            # Related with spyder-ide/spyder#6728 and spyder-ide/spyder#9959
-            for attr_name in dir(obj):
-                try:
-                    attr_value = getattr(obj, attr_name)
-                    obj_children.append((attr_name, attr_value))
-                    path_strings.append('{}.{}'.format(obj_path, attr_name)
-                                        if obj_path else attr_name)
-                    is_attr_list.append(True)
-                except Exception:
-                    # Attribute could not be get
-                    pass
-            assert len(obj_children) == len(path_strings), "sanity check"
+        # Object attributes
+        # Needed to handle errors while getting object's attributes
+        # Related with spyder-ide/spyder#6728 and spyder-ide/spyder#9959
+        for attr_name in dir(obj):
+            try:
+                attr_value = getattr(obj, attr_name)
+                obj_children.append((attr_name, attr_value))
+                path_strings.append('{}.{}'.format(obj_path, attr_name)
+                                    if obj_path else attr_name)
+                is_attr_list.append(True)
+            except Exception:
+                # Attribute could not be get
+                pass
+        assert len(obj_children) == len(path_strings), "sanity check"
 
-            for item, path_str, is_attr in zip(obj_children, path_strings,
-                                               is_attr_list):
-                name, child_obj = item
-                tree_items.append(TreeItem(child_obj, name, path_str, is_attr))
+        for item, path_str, is_attr in zip(obj_children, path_strings,
+                                           is_attr_list):
+            name, child_obj = item
+            tree_items.append(TreeItem(child_obj, name, path_str, is_attr))
 
         return tree_items
 

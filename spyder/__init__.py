@@ -29,7 +29,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-version_info = (5, 0, 0, "dev0")
+version_info = (4, 2, 0, "dev0")
 
 __version__ = '.'.join(map(str, version_info))
 __license__ = __doc__
@@ -47,7 +47,6 @@ DATAPATH = LOCALEPATH = DOCPATH = MATHJAXPATH = JQUERYPATH = ''
 import os
 # Directory of the current file
 __dir__ = os.path.dirname(os.path.abspath(__file__))
-
 
 def add_to_distribution(dist):
     """Add package to py2exe/cx_Freeze distribution object

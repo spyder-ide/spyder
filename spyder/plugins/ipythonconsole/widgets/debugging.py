@@ -353,6 +353,7 @@ class DebuggingWidget(RichJupyterWidget):
             if self.is_waiting_pdb_input():
                 self._executing = False
                 self._highlighter.highlighting_on = True
+                self.executed.emit(msg)
 
         if self.is_waiting_pdb_input():
             self._pdb_input_ready = True

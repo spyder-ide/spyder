@@ -33,7 +33,6 @@ from qtpy.QtWidgets import (QHBoxLayout, QLabel, QMenu, QMessageBox,
 # Local imports
 from spyder.config.base import (_, get_image_path, get_module_source_path,
                                 running_under_pytest)
-from spyder.config.gui import is_dark_interface
 from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils import sourcecode
@@ -289,6 +288,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # Show possible errors when setting Matplotlib backend
         self._show_mpl_backend_errors()
 
+        # To show if special console is valid
+        self._check_special_console_error()
+
         self.shellwidget.sig_prompt_ready.disconnect(
             self._when_prompt_is_ready)
 
@@ -413,8 +415,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.disable_stop_button()
             # set click event handler
             self.stop_button.clicked.connect(self.stop_button_click_handler)
-            if is_dark_interface():
-                self.stop_button.setStyleSheet("QToolButton{padding: 3px;}")
         if self.stop_button is not None:
             buttons.append(self.stop_button)
 
@@ -426,8 +426,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                                     icon=ima.icon('editdelete'),
                                     tip=_("Remove all variables"),
                                     triggered=self.reset_namespace)
-            if is_dark_interface():
-                self.reset_button.setStyleSheet("QToolButton{padding: 3px;}")
         if self.reset_button is not None:
             buttons.append(self.reset_button)
 
@@ -505,7 +503,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if self.get_kernel() is not None and not self.slave:
             self.shellwidget.spyder_kernel_comm.close()
             self.shellwidget.spyder_kernel_comm.shutdown_comm_channel()
-            self.shellwidget._pdb_history_file.save_thread.stop()
+            try:
+                self.shellwidget._pdb_history_file.save_thread.stop()
+            except AttributeError:
+                pass
             self.shellwidget.kernel_manager.stop_restarter()
         self.shutdown_thread = QThread()
         self.shutdown_thread.run = self.finalize_shutdown
@@ -742,9 +743,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def _hide_loading_page(self):
         """Hide animation shown while the kernel is loading."""
         self.infowidget.hide()
-        self.shellwidget.show()
         self.info_page = self.blank_page
         self.set_info_page()
+        self.shellwidget.show()
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""
@@ -776,3 +777,21 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """
         if not self.external_kernel:
             self.shellwidget.call_kernel().show_mpl_backend_errors()
+
+    def _check_special_console_error(self):
+        """Check if the dependecies for special consoles are available."""
+        self.shellwidget.call_kernel(
+            callback=self._show_special_console_error
+            ).is_special_kernel_valid()
+
+    def _show_special_console_error(self, missing_dependency):
+        if missing_dependency is not None:
+            error_message = _(
+                "Your Python environment or installation doesn't have the "
+                "<tt>{missing_dependency}</tt> module installed or it "
+                "occurred a problem importing it. Due to that, it is not "
+                "possible for Spyder to create this special console for "
+                "you.".format(missing_dependency=missing_dependency)
+            )
+
+            self.show_kernel_error(error_message)
