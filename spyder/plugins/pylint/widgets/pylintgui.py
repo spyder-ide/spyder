@@ -103,7 +103,7 @@ class ResultsTree(OneColumnTree):
             for message_data in messages:
                 # If message data is legacy version without message_name
                 if len(message_data) == 4:
-                    message_data = (*message_data, None)
+                    message_data = tuple(list(message_data) + [None])
 
                 module, lineno, message, msg_id, message_name = message_data
 
