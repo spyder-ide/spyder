@@ -839,8 +839,12 @@ def test_connection_to_external_kernel(main_window, qtbot):
     assert nsb.editor.source_model.rowCount() == 1
 
     # Shutdown the kernels
+    spykm.stop_restarter()
+    km.stop_restarter()
     spykm.shutdown_kernel(now=True)
     km.shutdown_kernel(now=True)
+    spykc.stop_channels()
+    kc.stop_channels()
 
 
 @pytest.mark.slow
