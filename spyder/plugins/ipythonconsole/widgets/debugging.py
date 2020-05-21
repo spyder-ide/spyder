@@ -72,9 +72,7 @@ class DebuggingWidget(RichJupyterWidget):
 
     def will_close(self, externally_managed):
         """
-        Close communication channels with the kernel if shutdown was not
-        called. If the kernel is not externally managed, shutdown the kernel
-        as well.
+        Close the save thread and database file.
         """
         try:
             self._pdb_history_file.save_thread.stop()
