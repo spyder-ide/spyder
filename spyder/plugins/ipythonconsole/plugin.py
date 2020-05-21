@@ -967,6 +967,9 @@ class IPythonConsole(SpyderPluginWidget):
         if not self.tabwidget.count():
             return
         if client is not None:
+            if client not in self.clients:
+                # Client already closed
+                return
             index = self.tabwidget.indexOf(client)
             # if index is not found in tabwidget it's because this client was
             # already closed and the call was performed by the exit callback
@@ -1012,7 +1015,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # if there aren't related clients we can remove stderr_file
         related_clients = self.get_related_clients(client)
-        if len(related_clients) == 0 and osp.exists(client.stderr_file):
+        if len(related_clients) == 0:
             client.remove_stderr_file()
 
         client.dialog_manager.close_all()
