@@ -112,7 +112,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 request_id, handlers[request_id])
 
     def __del__(self):
-        """Avoid destroying thread"""
+        """Avoid destroying shutdown_thread."""
         if (self.shutdown_thread is not None
                 and self.shutdown_thread.isRunning()):
             self.shutdown_thread.wait()
