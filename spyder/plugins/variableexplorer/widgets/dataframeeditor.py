@@ -124,6 +124,8 @@ class DataFrameModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
+        self.df_columns_list = None
+        self.df_index_list = None
         self._format = format
         self.complex_intran = None
         self.display_error_idxs = []
@@ -166,6 +168,21 @@ class DataFrameModel(QAbstractTableModel):
         """
         return self.df.columns if axis == 0 else self.df.index
 
+    def _axis_list(self, axis):
+        """
+        Return the corresponding labels as a list taking into account the axis.
+
+        The axis could be horizontal (0) or vertical (1).
+        """
+        if axis == 0:
+            if self.df_columns_list is None:
+                self.df_columns_list = self.df.columns.tolist()
+            return self.df_columns_list
+        else:
+            if self.df_index_list is None:
+                self.df_index_list = self.df.index.tolist()
+            return self.df_index_list
+
     def _axis_levels(self, axis):
         """
         Return the number of levels in the labels taking into account the axis.
@@ -198,8 +215,11 @@ class DataFrameModel(QAbstractTableModel):
         given level.
         """
         ax = self._axis(axis)
-        return ax.tolist()[x] if not hasattr(ax, 'levels') \
-            else ax.values[x][level]
+        if not hasattr(ax, 'levels'):
+            ax = self._axis_list(axis)
+            return ax[x]
+        else:
+            return ax.values[x][level]
 
     def name(self, axis, level):
         """Return the labels of the levels if any."""

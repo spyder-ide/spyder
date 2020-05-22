@@ -33,7 +33,8 @@ RUN_SLOW = os.environ.get('RUN_SLOW', None) == 'true'
 
 def run_pytest(run_slow=False, extra_args=None):
     """Run pytest tests for Spyder."""
-    pytest_args = ['-vv', '-rw', '--durations=10']
+    # Be sure to ignore subrepos
+    pytest_args = ['-vv', '-rw', '--durations=10', '--ignore=./external-deps']
 
     if CI:
         # Exit on first failure and show coverage
@@ -47,8 +48,6 @@ def run_pytest(run_slow=False, extra_args=None):
     # Allow user to pass a custom test path to pytest to e.g. run just one test
     if extra_args:
         pytest_args += extra_args
-    else:
-        pytest_args += ['spyder']
 
     print("Pytest Arguments: " + str(pytest_args))
     errno = pytest.main(pytest_args)

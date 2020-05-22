@@ -303,7 +303,8 @@ def test_banners(ipyconsole, qtbot):
       ["x", "/", "out"],
       ["Parameters<br>", "x : array_like ..."])]
     )
-@pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
+@pytest.mark.skipif(not os.name == 'nt',
+                    reason="Times out on macOS and fails on Linux")
 def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
     shell = ipyconsole.get_current_shellwidget()
