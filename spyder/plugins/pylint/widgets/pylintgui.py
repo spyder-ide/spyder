@@ -449,20 +449,16 @@ class PylintWidget(QWidget):
                     idx_1 = line.find(":", idx_0)
 
                 if idx_1 < 0:
-
                     break
                 item = line[(idx_0):idx_1]
 
                 if not item:
-
                     break
 
                 if key_name == "line_nb":
-
                     item = int(item.split(',')[0])
 
                 items[key_name] = item
-
                 idx_0 = idx_1 + 1
             else:
                 pylint_item = (module, items["line_nb"], items["message"],
