@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = 1.x
-	commit = 70651f2bff9aceccfabde24b7316ba11c0433e23
-	parent = 052089e3ca67947a4dfedb4a78ae7b97773c2de9
+	branch = remove-cwd-py37
+	commit = c9d018f08be52a4e60d6a4d2272dbaedd32f99ef
+	parent = 035a7224932442e6f48436ec068dcb51aa1d4977
 	method = merge
 	cmdver = 0.4.1
