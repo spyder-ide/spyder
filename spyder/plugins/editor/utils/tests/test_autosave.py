@@ -7,6 +7,7 @@
 
 # Standard library imports
 import ast
+import os.path as osp
 
 # Third party imports
 import pytest
@@ -154,7 +155,7 @@ def test_create_unique_autosave_filename(mocker, in_mapping, on_disk):
     original file name, unless that already exists in the autosave mapping
     or on disk."""
     def new_exists(path):
-        if path == 'autosave/ham.py':
+        if path == osp.join('autosave', 'ham.py'):
             return on_disk
         else:
             return False
@@ -162,15 +163,16 @@ def test_create_unique_autosave_filename(mocker, in_mapping, on_disk):
     mocker.patch('os.path.exists', side_effect=new_exists)
     addon = AutosaveForStack(mocker.Mock())
     if in_mapping:
-        addon.name_mapping = {'somedir/ham.py': 'autosave/ham.py'}
+        addon.name_mapping = {osp.join('somedir', 'ham.py'):
+                              osp.join('autosave', 'ham.py')}
 
     autosave_filename = addon.create_unique_autosave_filename(
-        'orig/ham.py', 'autosave')
+        osp.join('orig', 'ham.py') , 'autosave')
 
     if in_mapping or on_disk:
-        assert autosave_filename == 'autosave/ham-1.py'
+        assert autosave_filename == osp.join('autosave', 'ham-1.py')
     else:
-        assert autosave_filename == 'autosave/ham.py'
+        assert autosave_filename == osp.join('autosave', 'ham.py')
 
 
 @pytest.mark.parametrize('have_hash', [True, False])
@@ -265,8 +267,8 @@ def test_autosave_remove_autosave_file(mocker, exception):
 
 
 def test_get_autosave_filename(mocker, tmpdir):
-    """Test that AutosaveForStack.get_autosave_filename returns a consistent and
-    unique name for the autosave file is returned."""
+    """Test that AutosaveForStack.get_autosave_filename returns a consistent
+    and unique name for the autosave file is returned."""
     addon = AutosaveForStack(mocker.Mock())
     mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
                  return_value=str(tmpdir))
