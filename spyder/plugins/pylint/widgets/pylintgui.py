@@ -94,13 +94,19 @@ class ResultsTree(OneColumnTree):
                    ima.icon('error'), self.results['E:']))
         for title, icon, messages in results:
             title += ' (%d message%s)' % (len(messages),
-                                          's' if len(messages)>1 else '')
+                                          's' if len(messages) > 1 else '')
             title_item = QTreeWidgetItem(self, [title], QTreeWidgetItem.Type)
             title_item.setIcon(0, icon)
             if not messages:
                 title_item.setDisabled(True)
             modules = {}
-            for module, lineno, message, msg_id in messages:
+            for message_data in messages:
+                # If message data is legacy version without message_name
+                if len(message_data) == 4:
+                    message_data = tuple(list(message_data) + [None])
+
+                module, lineno, message, msg_id, message_name = message_data
+
                 basename = osp.splitext(osp.basename(self.filename))[0]
                 if not module.startswith(basename):
                     # Pylint bug
@@ -128,10 +134,18 @@ class ResultsTree(OneColumnTree):
                 else:
                     parent = title_item
                 if len(msg_id) > 1:
-                    text = "[%s] %d : %s" % (msg_id, lineno, message)
-                else:
-                    text = "%d : %s" % (lineno, message)
-                msg_item = QTreeWidgetItem(parent, [text], QTreeWidgetItem.Type)
+                    if not message_name:
+                        message_string = "{msg_id} "
+                    else:
+                        message_string = "{msg_id} ({message_name}) "
+
+                message_string += "line {lineno}: {message}"
+
+                message_string = message_string.format(
+                    msg_id=msg_id, message_name=message_name,
+                    lineno=lineno, message=message)
+                msg_item = QTreeWidgetItem(
+                    parent, [message_string], QTreeWidgetItem.Type)
                 msg_item.setIcon(0, ima.icon('arrow'))
                 self.data[id(msg_item)] = (modname, lineno)
 
@@ -351,27 +365,22 @@ class PylintWidget(QWidget):
         self.output = ''
         self.error_output = ''
 
-        plver = PYLINT_VER
-        if plver is not None:
-            p_args = ['-m', 'pylint', '--output-format=text']
-            if plver.split('.')[0] == '0':
-                p_args += ['-i', 'yes']
-            else:
-                # Option '-i' (alias for '--include-ids') was removed in pylint
-                # 1.0
-                p_args += ["--msg-template='{msg_id}:{line:3d},"
-                           "{column}: {obj}: {msg}"]
+        if PYLINT_VER is not None:
+            pylint_args = [
+                '-m', 'pylint', '--output-format=text',
+                '--msg-template='
+                "'{msg_id}:{symbol}:{line:3d},{column}: {msg}'"]
 
         pylintrc_path = self.get_pylintrc_path(filename=filename)
         if pylintrc_path is not None:
-            p_args += ['--rcfile={}'.format(pylintrc_path)]
+            pylint_args += ['--rcfile={}'.format(pylintrc_path)]
 
-        p_args += [filename]
+        pylint_args.append(filename)
         processEnvironment = QProcessEnvironment()
         processEnvironment.insert("PYTHONIOENCODING", "utf8")
         self.process.setProcessEnvironment(processEnvironment)
 
-        self.process.start(sys.executable, p_args)
+        self.process.start(sys.executable, pylint_args)
 
         running = self.process.waitForStarted()
         self.set_running_state(running)
@@ -412,7 +421,7 @@ class PylintWidget(QWidget):
         results = {'C:': [], 'R:': [], 'W:': [], 'E:': []}
         txt_module = '************* Module '
 
-        module = '' # Should not be needed - just in case something goes wrong
+        module = ''  # Should not be needed - just in case something goes wrong
         for line in self.output.splitlines():
             if line.startswith(txt_module):
                 # New module
@@ -421,20 +430,36 @@ class PylintWidget(QWidget):
             # Supporting option include-ids: ('R3873:' instead of 'R:')
             if not re.match(r'^[CRWE]+([0-9]{4})?:', line):
                 continue
-            i1 = line.find(':')
-            if i1 == -1:
-                continue
-            msg_id = line[:i1]
-            i2 = line.find(':', i1+1)
-            if i2 == -1:
-                continue
-            line_nb = line[i1+1:i2].strip()
-            if not line_nb:
-                continue
-            line_nb = int(line_nb.split(',')[0])
-            message = line[i2+1:]
-            item = (module, line_nb, message, msg_id)
-            results[line[0]+':'].append(item)
+            items = {}
+            idx_0 = 0
+            idx_1 = 0
+            key_names = ["msg_id", "message_name", "line_nb", "message"]
+            for key_idx, key_name in enumerate(key_names):
+                if key_idx == len(key_names) - 1:
+                    idx_1 = len(line)
+                else:
+                    idx_1 = line.find(":", idx_0)
+
+                if idx_1 < 0:
+
+                    break
+                item = line[(idx_0):idx_1]
+
+                if not item:
+
+                    break
+
+                if key_name == "line_nb":
+
+                    item = int(item.split(',')[0])
+
+                items[key_name] = item
+
+                idx_0 = idx_1 + 1
+            else:
+                pylint_item = (module, items["line_nb"], items["message"],
+                               items["msg_id"], items["message_name"])
+                results[line[0] + ':'].append(pylint_item)
 
         # Rate
         rate = None
