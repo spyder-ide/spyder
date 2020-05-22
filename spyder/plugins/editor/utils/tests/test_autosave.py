@@ -264,6 +264,21 @@ def test_autosave_remove_autosave_file(mocker, exception):
     assert mock_dialog.called == exception
 
 
+def test_get_autosave_filename(mocker, tmpdir):
+    """Test that AutosaveForStack.get_autosave_filename returns a consistent and
+    unique name for the autosave file is returned."""
+    addon = AutosaveForStack(mocker.Mock())
+    mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
+                 return_value=str(tmpdir))
+
+    expected = str(tmpdir.join('foo.py'))
+    assert addon.get_autosave_filename('foo.py') == expected
+
+    expected2 = str(tmpdir.join('foo-1.py'))
+    assert addon.get_autosave_filename('foo.py') == expected
+    assert addon.get_autosave_filename('ham/foo.py') == expected2
+
+
 @pytest.mark.parametrize('have_hash', [True, False])
 def test_autosave_file_renamed(mocker, tmpdir, have_hash):
     """Test that AutosaveForStack.file_renamed removes the old autosave file,
