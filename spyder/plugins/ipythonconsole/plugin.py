@@ -171,34 +171,101 @@ class IPythonConsole(SpyderPluginWidget):
             client.set_font(font)
 
     def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
+        """Apply configuration file's plugin settings."""
+        # GUI options
         font_n = 'plugin_font'
-        font_o = self.get_font()
         help_n = 'connect_to_oi'
-        help_o = CONF.get('help', 'connect/ipython_console')
         color_scheme_n = 'color_scheme_name'
-        color_scheme_o = CONF.get('appearance', 'selected')
         show_time_n = 'show_elapsed_time'
-        show_time_o = self.get_option(show_time_n)
         reset_namespace_n = 'show_reset_namespace_warning'
-        reset_namespace_o = self.get_option(reset_namespace_n)
         ask_before_restart_n = 'ask_before_restart'
-        ask_before_restart_o = self.get_option(ask_before_restart_n)
+        # use_pager_n = 'use_pager'
+        # use_pager_o = self.get_option(use_pager_n)
+        # show_calltips_n = 'show_calltips'
+        # show_calltips_o = self.get_option(show_calltips_n)
+        # ask_before_closing_n = 'ask_before_closing'
+        # ask_before_closing_o = self.get_option(ask_before_closing_n)
+        # buffer_size_n = 'buffer_size'
+        # buffer_size_o = self.get_option(buffer_size_n)
+
+        # Matplotlib options
+        pylab_n = 'pylab'
+        pylab_o = self.get_option(pylab_n)
+        pylab_autoload_n = 'pylab/autoload'
+        pylab_backend_n = 'pylab/backend'
+        inline_backend_figure_format_n = 'pylab/inline/figure_format'
+        inline_backend_resolution_n = 'pylab/inline/resolution'
+        inline_backend_width_n = 'pylab/inline/width'
+        inline_backend_height_n = 'pylab/inline/height'
+        inline_backend_bbox_inches_n = 'pylab/inline/bbox_inches'
+
+        # Startup options
+        run_lines_n = 'startup/run_lines'
+        use_run_file_n = 'startup/use_run_file'
+        runt_file_n = 'startup/run_file'
+        greedy_completer_n = 'greedy_completer'
+        jedi_completer_n = 'jedi_completer'
+        autocall_n = 'autocall'
+        symbolic_math_n = 'symbolic_math'
+        in_prompt_n = 'in_prompt'
+        out_prompt_n = 'out_prompt'
+
         for client in self.clients:
             control = client.get_control()
+            # GUI options
             if font_n in options:
+                font_o = self.get_font()
                 client.set_font(font_o)
             if help_n in options and control is not None:
+                help_o = CONF.get('help', 'connect/ipython_console')
                 control.set_help_enabled(help_o)
             if color_scheme_n in options:
+                color_scheme_o = CONF.get('appearance', 'selected')
                 client.set_color_scheme(color_scheme_o)
             if show_time_n in options:
+                show_time_o = self.get_option(show_time_n)
                 client.show_time_action.setChecked(show_time_o)
                 client.set_elapsed_time_visible(show_time_o)
             if reset_namespace_n in options:
+                reset_namespace_o = self.get_option(reset_namespace_n)
                 client.reset_warning = reset_namespace_o
             if ask_before_restart_n in options:
+                ask_before_restart_o = self.get_option(ask_before_restart_n)
                 client.ask_before_restart = ask_before_restart_o
+
+            # Matplotlib support options
+            if (pylab_o and
+                    pylab_backend_n in options or pylab_autoload_n in options):
+                pylab_autoload_o = self.get_option(pylab_autoload_n)
+                pylab_backend_o = self.get_option(pylab_backend_n)
+                client.set_matplotlib_backend(
+                    pylab_backend_o, pylab_autoload_o)
+            if pylab_o:
+                if inline_backend_figure_format_n in options:
+                    inline_backend_figure_format_o = self.get_option(
+                        inline_backend_figure_format_n)
+                    client.set_mpl_inline_figure_format(
+                        inline_backend_figure_format_o)
+                if inline_backend_resolution_n in options:
+                    inline_backend_resolution_o = self.get_option(
+                        inline_backend_resolution_n)
+                    client.set_mpl_inline_resolution(
+                        inline_backend_resolution_o)
+                if (inline_backend_width_n in options or
+                        inline_backend_height_n in options):
+                    inline_backend_width_o = self.get_option(
+                        inline_backend_width_n)
+                    inline_backend_height_o = self.get_option(
+                        inline_backend_height_n)
+                    client.set_mpl_inline_figure_size(
+                        inline_backend_width_o, inline_backend_height_o)
+                if inline_backend_bbox_inches_n in options:
+                    inline_backend_bbox_inches_o = self.get_option(
+                        inline_backend_bbox_inches_n)
+                    client.set_mpl_inline_bbox_inches(
+                        inline_backend_bbox_inches_o)
+
+            # Startup options
 
     def toggle_view(self, checked):
         """Toggle view"""

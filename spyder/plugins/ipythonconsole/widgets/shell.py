@@ -274,6 +274,32 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.call_kernel(
             interrupt=True, callback=self.sig_show_env.emit).get_env()
 
+    def set_matplotlib_backend(self, backend_option, pylab=False):
+        """Set matplotlib backend given a backend name."""
+        self.call_kernel(
+            interrupt=True).set_matplotlib_backend(
+                backend_option, pylab=pylab)
+
+    def set_mpl_inline_figure_format(self, figure_format):
+        """Set matplotlib inline figure format."""
+        self.call_kernel(
+            interrupt=True).set_mpl_inline_figure_format(figure_format)
+
+    def set_mpl_inline_resolution(self, resolution):
+        """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
+        self.call_kernel(
+            interrupt=True).set_mpl_inline_resolution(resolution)
+
+    def set_mpl_inline_figure_size(self, width, height):
+        """Set matplotlib inline resolution (savefig.dpi/figure.dpi)."""
+        self.call_kernel(
+            interrupt=True).set_mpl_inline_figure_size(width, height)
+
+    def set_mpl_inline_bbox_inches(self, bbox_inches):
+        """Set matplotlib inline print figure bbox_inches ('tight' or not)."""
+        self.call_kernel(
+            interrupt=True).set_mpl_inline_bbox_inches(bbox_inches)
+
     # --- To handle the banner
     def long_banner(self):
         """Banner for clients with additional content."""

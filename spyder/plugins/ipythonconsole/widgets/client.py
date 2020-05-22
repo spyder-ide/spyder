@@ -504,6 +504,33 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except AttributeError:
             pass
 
+    def set_matplotlib_backend(self, backend, pylab=False):
+        """
+        Set matplotlib backend.
+
+        Optionally use pylab magic to populate the namespace with
+        numpy and matplotlib elements.
+        """
+        self.shellwidget.set_matplotlib_backend(backend, pylab=pylab)
+
+    def set_mpl_inline_figure_format(self, figure_format):
+        """Set matplotlib inline backend figure format."""
+        self.shellwidget.set_mpl_inline_figure_format(figure_format)
+
+    def set_mpl_inline_resolution(self, resolution):
+        """Set matplotlib inline backend resolution."""
+        self.shellwidget.set_mpl_inline_resolution(resolution)
+
+    def set_mpl_inline_figure_size(self, width, height):
+        """Set matplotlib inline backend figure size."""
+        self.shellwidget.set_mpl_inline_figure_size(width, height)
+
+    def set_mpl_inline_bbox_inches(self, bbox_inches):
+        """
+        Set matplotlib inline backend print figure bbox inches ot 'tight.'
+        """
+        self.shellwidget.set_mpl_inline_figure_size(bbox_inches)
+
     def shutdown(self):
         """Shutdown kernel"""
         if self.get_kernel() is not None and not self.slave:
