@@ -167,7 +167,7 @@ def test_create_unique_autosave_filename(mocker, in_mapping, on_disk):
                               osp.join('autosave', 'ham.py')}
 
     autosave_filename = addon.create_unique_autosave_filename(
-        osp.join('orig', 'ham.py') , 'autosave')
+        osp.join('orig', 'ham.py'), 'autosave')
 
     if in_mapping or on_disk:
         assert autosave_filename == osp.join('autosave', 'ham-1.py')
