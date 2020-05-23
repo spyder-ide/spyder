@@ -396,11 +396,11 @@ def test_cwd_in_sys_path():
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not (os.name == 'nt' and PY3),
-                    reason="Only meant for Windows and Python 3")
+@pytest.mark.skipif(not PY3,
+                    reason="Only meant for Python 3")
 def test_multiprocessing(tmpdir):
     """
-    Test that multiprocessing works on Windows and Python 3.
+    Test that multiprocessing works on Python 3.
     """
     # Command to start the kernel
     cmd = "from spyder_kernels.console import start; start.main()"
@@ -430,6 +430,48 @@ if __name__ == '__main__':
 
         # Verify that the `result` variable is defined
         client.inspect('result')
+        msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
+        content = msg['content']
+        assert content['found']
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(not PY3,
+                    reason="Only meant for Python 3")
+def test_dask_multiprocessing(tmpdir):
+    """
+    Test that dask multiprocessing works on Python 3.
+    """
+    # Command to start the kernel
+    cmd = "from spyder_kernels.console import start; start.main()"
+
+    with setup_kernel(cmd) as client:
+        # Remove all variables
+        client.execute("%reset -f")
+        client.get_shell_msg(block=True, timeout=TIMEOUT)
+
+        # Write multiprocessing code to a file
+        # Runs two times to verify that in the second case it doesn't break
+        code = """
+from dask.distributed import Client
+
+if __name__=='__main__':
+    client = Client()
+    client.close()
+    x = 'hello'
+"""
+        p = tmpdir.join("mp-test.py")
+        p.write(code)
+
+        # Run code two times
+        client.execute("runfile(r'{}')".format(to_text_string(p)))
+        client.get_shell_msg(block=True, timeout=TIMEOUT)
+
+        client.execute("runfile(r'{}')".format(to_text_string(p)))
+        client.get_shell_msg(block=True, timeout=TIMEOUT)
+
+        # Verify that the `x` variable is defined
+        client.inspect('x')
         msg = client.get_shell_msg(block=True, timeout=TIMEOUT)
         content = msg['content']
         assert content['found']

@@ -1,5 +1,6 @@
 codecov
 cython
+dask
 flaky
 matplotlib
 mock
