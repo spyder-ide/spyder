@@ -273,8 +273,8 @@ except Exception:
 # =============================================================================
 # Multiprocessing adjustments
 # =============================================================================
-# This patch is only needed on Windows and Python 3
-if os.name == 'nt' and not PY2:
+# This patch is only needed on Python 3
+if not PY2:
     # This could fail with changes in Python itself, so we protect it
     # with a try/except
     try:
