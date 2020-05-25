@@ -105,8 +105,14 @@ def open_file_in_editor(main_window, fname, directory=None):
 def get_thirdparty_plugin(main_window, plugin_title):
     """Get a reference to the thirdparty plugin with the title given."""
     for plugin in main_window.thirdparty_plugins:
-        if plugin.get_plugin_title() == plugin_title:
-            return plugin
+        try:
+            # New API
+            if plugin.get_name() == plugin_title:
+                return plugin
+        except AttributeError:
+            # Old API
+            if plugin.get_plugin_title() == plugin_title:
+                return plugin
 
 
 def reset_run_code(qtbot, shell, code_editor, nsb):

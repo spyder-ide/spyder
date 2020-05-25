@@ -16,6 +16,7 @@ except ImportError:
 
 # Third party imports
 from qtpy.QtGui import QIcon
+from qtpy.QtWidgets import QMainWindow
 import pytest
 
 # Local imports
@@ -27,12 +28,15 @@ from spyder.preferences.shortcuts import ShortcutsConfigPage
 from spyder.utils import icon_manager as ima
 
 
-class MainWindowMock:
+class MainWindowMock(QMainWindow):
     def __init__(self):
+        super().__init__(None)
+
         self.default_style = None
         self.widgetlist = []
         self.thirdparty_plugins = []
         self.shortcut_data = []
+        self.prefs_dialog_instance = None
 
         # Load shortcuts for tests
         for context, name, __ in CONF.iter_shortcuts():
@@ -45,13 +49,27 @@ class MainWindowMock:
             setattr(mock_attr, 'is_supported', lambda: True)
             setattr(self, attr, mock_attr)
 
+    def create_plugin_conf_widget(self, plugin):
+        """
+        Create configuration dialog box page widget.
+        """
+        config_dialog = self.prefs_dialog_instance
+        if plugin.CONF_WIDGET_CLASS is not None and config_dialog is not None:
+            conf_widget = plugin.CONF_WIDGET_CLASS(plugin, config_dialog)
+            conf_widget.initialize()
+            return conf_widget
+
 
 class ConfigDialogTester(ConfigDialog):
 
     def __init__(self, params):
         main_class, general_config_plugins, plugins = params
         self._main = main_class() if main_class else None
+        if self._main is None:
+            self._main = MainWindowMock()
+
         super(ConfigDialogTester, self).__init__(parent=None)
+        self._main.prefs_dialog_instance = self
 
         if general_config_plugins:
             for widget_class in general_config_plugins:
@@ -61,8 +79,20 @@ class ConfigDialogTester(ConfigDialog):
 
         if plugins:
             for plugin in plugins:
-                plugin = plugin(parent=self._main)
-                widget = plugin._create_configwidget(self, self._main)
+                try:
+                    # New API
+                    plugin = plugin(parent=self._main, configuration=CONF)
+                    widget = self._main.create_plugin_conf_widget(plugin)
+                except Exception:
+                    # Old API
+                    try:
+                        # Already initialized plugins
+                        plugin = plugin(parent=self._main)
+                    except Exception:
+                        pass
+
+                    widget = plugin._create_configwidget(self, self._main)
+
                 if widget:
                     self.add_page(widget)
 
@@ -94,7 +124,7 @@ def global_config_dialog(qtbot):
 
 @pytest.fixture
 def config_dialog(qtbot, request, mocker):
-    mocker.patch.object(ima, 'icon', lambda x, y=None: QIcon())
+    mocker.patch.object(ima, 'icon', lambda x, icon_path=None: QIcon())
     dlg = ConfigDialogTester(request.param)
     qtbot.addWidget(dlg)
     dlg.show()
