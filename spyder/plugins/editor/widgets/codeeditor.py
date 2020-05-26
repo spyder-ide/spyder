@@ -4081,7 +4081,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
             cursor.setPosition(pos, QTextCursor.KeepAnchor)
             prev_char = cursor.selectedText()
-            if prev_text == '' or prev_char in ('\u2029', ' ', '\t'):
+            if prev_text == '' or prev_char in (u'\u2029', ' ', '\t'):
                 return
 
         # Text might be after a dot '.'
