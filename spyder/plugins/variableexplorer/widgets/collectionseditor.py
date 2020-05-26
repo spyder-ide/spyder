@@ -371,7 +371,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         if index.column() == 3 and self.remote:
             value = value['view']
         if index.column() == 3:
-            display = value_to_display(value, minmax=self.minmax)
+            display = value_to_display(
+                value, minmax=self.minmax, numeric_value=True)
         else:
             if is_type_text_string(value):
                 display = to_text_string(value, encoding="utf-8")
