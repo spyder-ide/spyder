@@ -279,11 +279,11 @@ def test_collectionsmodel_with_two_ints():
         row_with_y = 0
     assert data(cm, row_with_x, 1) == 'int'
     assert data(cm, row_with_x, 2) == 1
-    assert data(cm, row_with_x, 3) == '1'
+    assert data(cm, row_with_x, 3) == 1
     assert data(cm, row_with_y, 0) == 'y'
     assert data(cm, row_with_y, 1) == 'int'
     assert data(cm, row_with_y, 2) == 1
-    assert data(cm, row_with_y, 3) == '2'
+    assert data(cm, row_with_y, 3) == 2
 
 def test_collectionsmodel_with_index():
     # Regression test for spyder-ide/spyder#3380,
@@ -313,6 +313,32 @@ def test_shows_dataframeeditor_when_editing_index(qtbot, monkeypatch):
         mockDataFrameEditor_instance.show.assert_called_once_with()
 
 
+def test_sort_float_collectionsmodel():
+    var_list = [
+        float(1e16), float(10), float(1), float(0.1), float(1e-6),
+        float(0), float(-1e-6), float(-1), float(-10), float(-1e16)
+        ]
+    cm = CollectionsModel(None, var_list)
+    assert cm.rowCount() == 10
+    assert cm.columnCount() == 5
+    cm.sort(0)  # sort by index
+    assert data_table(cm, 10, 4) == [list(range(0, 10)),
+                                     ['float']*10,
+                                     [1]*10,
+                                     [float(1e16), float(10), float(1),
+                                      float(0.1), float(1e-6), float(0),
+                                      float(-1e-6), float(-1), float(-10),
+                                      float(-1e16)]]
+    cm.sort(3)  # sort by value
+    assert data_table(cm, 10, 4) == [list(range(9, -1, -1)),
+                                     ['float']*10,
+                                     [1]*10,
+                                     [float(-1e16), float(-10), float(-1),
+                                      float(-1e-6), float(-0), float(1e-6),
+                                      float(0.1), float(1), float(10),
+                                      float(1e16)]]
+
+
 @pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on Win and py2')
 def test_sort_collectionsmodel():
     var_list1 = [0, 1, 2]
@@ -330,12 +356,12 @@ def test_sort_collectionsmodel():
     assert data_table(cm, 3, 4) == [[0, 1, 2],
                                     ['int', 'int', 'int'],
                                     [1, 1, 1],
-                                    ['1', '3', '2']]
+                                    [1, 3, 2]]
     cm.sort(3)  # sort by value
     assert data_table(cm, 3, 4) == [[0, 2, 1],
                                     ['int', 'int', 'int'],
                                     [1, 1, 1],
-                                    ['1', '2', '3']]
+                                    [1, 2, 3]]
 
     coll = [1, var_list1, var_list2, var_dataframe1, var_dataframe2,
             var_series1, var_series2]
@@ -352,7 +378,7 @@ def test_sort_collectionsmodel():
          'Column names: 0, 1, 2',
          'Series object of pandas.core.series module',
          'Series object of pandas.core.series module',
-         '1',
+         1,
          '[0, 1, 2]',
          '[3, 4, 5, 6]']]
 
@@ -365,14 +391,14 @@ def test_sort_collectionsmodel():
          'Column names: 0, 1, 2',
          'Series object of pandas.core.series module',
          'Series object of pandas.core.series module',
-         '1',
+         1,
          '[0, 1, 2]',
          '[3, 4, 5, 6]']] or data_table(cm, 7, 4) == [
         [0, 1, 2, 4, 5, 3, 6],
         [u'int', u'list', u'list', u'DataFrame', u'Series', u'DataFrame',
          u'Series'],
         [1, 3, 4, u'(2, 3)', u'(3,)', u'(3, 3)', u'(4,)'],
-        ['1',
+        [1,
          '[0, 1, 2]',
          '[3, 4, 5, 6]',
          'Column names: 0, 1, 2',
