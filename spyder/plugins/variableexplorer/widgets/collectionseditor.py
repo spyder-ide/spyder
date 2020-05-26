@@ -385,7 +385,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             return to_qvariant(value_to_display(value))
         elif role == Qt.TextAlignmentRole:
             if index.column() == 3:
-                if len(display.splitlines()) < 3:
+                if len(to_text_string(display).splitlines()) < 3:
                     return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
                 else:
                     return to_qvariant(int(Qt.AlignLeft|Qt.AlignTop))
