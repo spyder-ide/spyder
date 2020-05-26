@@ -126,8 +126,7 @@ class CollectionsDelegate(QItemDelegate):
                     or not is_known_type(value))
         # CollectionsEditor for a list, tuple, dict, etc.
         if isinstance(value, (list, set, tuple, dict)) and not object_explorer:
-            from spyder.plugins.variableexplorer.widgets.collectionseditor \
-                import CollectionsEditor
+            from spyder.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)
@@ -448,8 +447,7 @@ class ToggleColumnDelegate(CollectionsDelegate):
 
         # CollectionsEditor for a list, tuple, dict, etc.
         if isinstance(value, (list, set, tuple, dict)):
-            from spyder.plugins.variableexplorer.widgets.collectionseditor \
-                import CollectionsEditor
+            from spyder.widgets.collectionseditor import CollectionsEditor
             editor = CollectionsEditor(parent=parent)
             editor.setup(value, key, icon=self.parent().windowIcon(),
                          readonly=readonly)

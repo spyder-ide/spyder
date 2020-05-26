@@ -33,9 +33,8 @@ from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_plugin_layout, DialogManager,
                                     mimedata2url, MENU_SEPARATOR)
 from spyder.plugins.console.widgets.internalshell import InternalShell
+from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.findreplace import FindReplace
-from spyder.plugins.variableexplorer.widgets.collectionseditor import (
-        CollectionsEditor)
 from spyder.widgets.reporterror import SpyderErrorDialog
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import to_text_string

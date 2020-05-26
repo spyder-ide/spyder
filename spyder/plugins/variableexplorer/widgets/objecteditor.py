@@ -62,10 +62,10 @@ def create_dialog(obj, obj_name):
                                              Image, is_known_type, DataFrame,
                                              Series)
     from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-    from spyder.plugins.variableexplorer.widgets.collectionseditor import (
-            CollectionsEditor)
     from spyder.plugins.variableexplorer.widgets.arrayeditor import (
             ArrayEditor)
+    from spyder.widgets.collectionseditor import CollectionsEditor
+
     if DataFrame is not FakeObject:
         from spyder.plugins.variableexplorer.widgets.dataframeeditor import (
                 DataFrameEditor)
