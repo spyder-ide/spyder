@@ -192,7 +192,7 @@ def test_pylint_max_history_conf(pylint_test_script, mocker, qtbot):
     pylint_data = pylint_widget.get_data(filename=pylint_test_script)
     results = pylint_data[1][-1]
 
-    max_entries =  pylint_widget.parent.get_option('max_entries')
+    max_entries = pylint_widget.parent.get_option('max_entries')
     for key in results:
         assert len(results[key]) <= max_entries
 
