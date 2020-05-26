@@ -165,6 +165,7 @@ class PylintWidget(QWidget):
 
         self.setWindowTitle("Pylint")
 
+        self.parent = parent
         self.output = None
         self.error_output = None
         self.filename = None
@@ -455,7 +456,9 @@ class PylintWidget(QWidget):
             else:
                 pylint_item = (module, items["line_nb"], items["message"],
                                items["msg_id"], items["message_name"])
-                results[line[0] + ':'].append(pylint_item)
+                act_result = results[line[0] + ':']
+                if len(act_result) < self.parent.get_option('max_entries'):
+                    results[line[0] + ':'].append(pylint_item)
 
         # Rate
         rate = None
