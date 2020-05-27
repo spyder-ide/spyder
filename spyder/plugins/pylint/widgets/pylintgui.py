@@ -169,6 +169,7 @@ class PylintWidget(QWidget):
         self.output = None
         self.error_output = None
         self.filename = None
+        self.curr_filenames = []
         self.text_color = text_color
         self.prevrate_color = prevrate_color
 
@@ -257,13 +258,15 @@ class PylintWidget(QWidget):
         """Set filename without performing code analysis."""
         filename = to_text_string(filename) # filename is a QString instance
         self.kill_if_running()
-        index, _data = self.get_data(filename)
-        if index is None:
-            self.filecombo.addItem(filename)
-            self.filecombo.setCurrentIndex(self.filecombo.count()-1)
-        else:
-            self.filecombo.setCurrentIndex(self.filecombo.findText(filename))
-        self.filecombo.selected()
+        if filename not in self.curr_filenames:
+            index, _data = self.get_data(filename)
+            if index is None:
+                self.filecombo.addItem(filename)
+                self.filecombo.setCurrentIndex(self.filecombo.count()-1)
+            else:
+                self.filecombo.setCurrentIndex(self.filecombo.findText(filename))
+            self.filecombo.selected()
+            self.curr_filenames.append(filename)
 
     def analyze(self, filename=None):
         """
