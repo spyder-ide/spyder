@@ -44,6 +44,7 @@ class Pylint(SpyderPluginWidget):
     CONF_SECTION = 'pylint'
     CONFIGWIDGET_CLASS = PylintConfigPage
     CONF_FILE = False
+    DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
