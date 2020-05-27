@@ -24,6 +24,7 @@ class MainWindowMock(QObject):
         super().__init__(None)
         self.editor = Mock()
         self.editor.sig_editor_focus_changed = self.sig_editor_focus_changed
+        self.projects = MagicMock()
 
 
 @pytest.mark.parametrize(
