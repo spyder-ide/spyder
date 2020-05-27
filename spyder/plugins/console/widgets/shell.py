@@ -46,7 +46,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     Shell base widget
     """
 
-    redirect_stdio = Signal(bool)
+    sig_redirect_stdio_requested = Signal(bool)
     sig_keyboard_interrupt = Signal()
     execute = Signal(str)
     append_to_history = Signal(str, str)
@@ -255,10 +255,10 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
     def save_historylog(self):
         """Save current history log (all text in console)"""
         title = _("Save history log")
-        self.redirect_stdio.emit(False)
+        self.sig_redirect_stdio_requested.emit(False)
         filename, _selfilter = getsavefilename(self, title,
                     self.historylog_filename, "%s (*.log)" % _("History logs"))
-        self.redirect_stdio.emit(True)
+        self.sig_redirect_stdio_requested.emit(True)
         if filename:
             filename = osp.normpath(filename)
             try:
@@ -640,7 +640,11 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
-    go_to_error = Signal(str)
+
+    # --- Signals
+    # This signal emits a parsed error traceback text so we can then
+    # request opening the file that traceback comes from in the Editor.
+    sig_go_to_error_requested = Signal(str)
 
     def __init__(self, parent, history_filename, profile=False, initial_message=None):
         ShellBaseWidget.__init__(self, parent, history_filename,
@@ -851,27 +855,35 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     def get_dir(self, objtxt):
         """Return dir(object)"""
         raise NotImplementedError
+
     def get_globals_keys(self):
         """Return shell globals() keys"""
         raise NotImplementedError
+
     def get_cdlistdir(self):
         """Return shell current directory list dir"""
         raise NotImplementedError
+
     def iscallable(self, objtxt):
         """Is object callable?"""
         raise NotImplementedError
+
     def get_arglist(self, objtxt):
         """Get func/method argument list"""
         raise NotImplementedError
+
     def get__doc__(self, objtxt):
         """Get object __doc__"""
         raise NotImplementedError
+
     def get_doc(self, objtxt):
         """Get object documentation dictionary"""
         raise NotImplementedError
+
     def get_source(self, objtxt):
         """Get object source"""
         raise NotImplementedError
+
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
         raise NotImplementedError
@@ -982,7 +994,10 @@ class TerminalWidget(ShellBaseWidget):
     COM = 'rem' if os.name == 'nt' else '#'
     INITHISTORY = ['%s *** Spyder Terminal History Log ***' % COM, COM,]
     SEPARATOR = '%s%s ---(%s)---' % (os.linesep*2, COM, time.ctime())
-    go_to_error = Signal(str)
+
+    # This signal emits a parsed error traceback text so we can then
+    # request opening the file that traceback comes from in the Editor.
+    sig_go_to_error_requested = Signal(str)
 
     def __init__(self, parent, history_filename, profile=False):
         ShellBaseWidget.__init__(self, parent, history_filename, profile)

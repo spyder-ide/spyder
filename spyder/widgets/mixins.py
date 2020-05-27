@@ -1362,7 +1362,10 @@ class BaseEditMixin(object):
 class TracebackLinksMixin(object):
     """ """
     QT_CLASS = None
-    go_to_error = None
+
+    # This signal emits a parsed error traceback text so we can then
+    # request opening the file that traceback comes from in the Editor.
+    sig_go_to_error_requested = None
 
     def __init__(self):
         self.__cursor_changed = False
@@ -1374,8 +1377,8 @@ class TracebackLinksMixin(object):
         self.QT_CLASS.mouseReleaseEvent(self, event)
         text = self.get_line_at(event.pos())
         if get_error_match(text) and not self.has_selected_text():
-            if self.go_to_error is not None:
-                self.go_to_error.emit(text)
+            if self.sig_go_to_error_requested is not None:
+                self.sig_go_to_error_requested.emit(text)
 
     def mouseMoveEvent(self, event):
         """Show Pointing Hand Cursor on error messages"""

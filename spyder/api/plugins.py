@@ -587,7 +587,7 @@ class Plugins:
     Explorer = 'explorer'
     Find = 'find_in_files'
     Help = 'help'
-    History = 'history'
+    History = 'historylog'
     IPythonConsole = 'ipython_console'
     OnlineHelp = 'online_help'
     OutlineExplorer = 'outline_explorer'
@@ -797,6 +797,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         self.sig_option_changed.connect(self.set_conf_option)
         self.is_registered = True
 
+        self.update_font()
+
     def _unregister(self):
         """
         Disconnect signals and clean up the plugin to be able to stop it while
@@ -983,7 +985,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                     options,
                     container.DEFAULT_OPTIONS,
                 )
-
                 # By using change_options we will not emit sig_option_changed
                 # when setting the options
                 # This will also cascade on all children
@@ -1441,9 +1442,9 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     # --- API: Optional attributes -------------------------------------------
     # ------------------------------------------------------------------------
-    # Define a plugin next to which we want to to tabify this plugin.
-    # Example: 'Plugins.Editor'
-    TABIFY = None
+    # Define a list of plugins next to which we want to to tabify this plugin.
+    # Example: ['Plugins.Editor']
+    TABIFY = [Plugins.Console]
 
     # Disable actions in Spyder main menus when the plugin is not visible
     DISABLE_ACTIONS_WHEN_HIDDEN = True
@@ -1581,7 +1582,7 @@ class SpyderDockablePlugin(SpyderPluginV2):
     # ------------------------------------------------------------------------
     @property
     def dockwidget(self):
-        return self.get_widget().widget.dockwidget
+        return self.get_widget().dockwidget
 
     @property
     def options_menu(self):

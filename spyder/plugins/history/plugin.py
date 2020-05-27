@@ -128,8 +128,7 @@ class HistoryLog(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.focus_changed.connect(self.main.plugin_focus_changed)
         self.add_dockwidget()
-#        self.main.console.set_historylog(self)
-        self.main.console.shell.refresh.connect(self.refresh_plugin)
+        self.main.console.sig_refreshed.connect(self.refresh_plugin)
 
     def update_font(self):
         """Update font from Preferences"""

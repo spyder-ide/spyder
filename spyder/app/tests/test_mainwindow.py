@@ -204,11 +204,14 @@ def main_window(request):
         # Close everything we can think of
         window.editor.close_file()
         window.projects.close_project()
-        if window.console.error_dlg:
-            window.console.close_error_dlg()
+
+        if window.console.error_dialog:
+            window.console.close_error_dialog()
+
         window.switcher.close()
         for client in window.ipyconsole.get_clients():
             window.ipyconsole.close_client(client=client, force=True)
+
         # Reset cwd
         window.explorer.chdir(get_home_dir())
 
@@ -2282,11 +2285,11 @@ def test_report_comms_error(qtbot, main_window):
     with qtbot.waitSignal(shell.executed, timeout=3000):
         shell.execute('ls')
 
-    error_dlg = main_window.console.error_dlg
-    assert error_dlg is not None
-    assert 'Exception in comms call get_cwd' in error_dlg.error_traceback
-    assert 'No module named' in error_dlg.error_traceback
-    main_window.console.close_error_dlg()
+    error_dialog = main_window.console.error_dialog
+    assert error_dialog is not None
+    assert 'Exception in comms call get_cwd' in error_dialog.error_traceback
+    assert 'No module named' in error_dialog.error_traceback
+    main_window.console.close_error_dialog()
     CONF.set('main', 'show_internal_errors', False)
 
 

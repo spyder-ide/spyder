@@ -316,6 +316,7 @@ class MainWindow(QMainWindow):
             return
 
         # Signals
+        plugin.sig_focus_changed.connect(self.plugin_focus_changed)
         plugin.sig_free_memory_requested.connect(self.free_memory)
         plugin.sig_quit_requested.connect(self.close)
         plugin.sig_restart_requested.connect(self.restart)
@@ -341,22 +342,9 @@ class MainWindow(QMainWindow):
             margin = 0
             if CONF.get('main', 'use_custom_margin'):
                 margin = CONF.get('main', 'custom_margin')
-
             plugin.update_margins(margin)
 
-        # First time plugin starts
-        if plugin.get_conf_option('first_time', True):
-            logger.info("Tabify {} dockwidget...".format(plugin.NAME))
-            if isinstance(plugin, SpyderDockablePlugin):
-                try:
-                    next_to_plugin = self.get_plugin(plugin.TABIFY)
-                except SpyderAPIError:
-                    next_to_plugin = Plugins.Console
-
-                self.tabify_plugins(plugin, next_to_plugin)
-
-            plugin.set_conf_option('enable', True)
-            plugin.set_conf_option('first_time', False)
+        self.add_plugin(plugin)
 
         logger.info("Registering shortcuts for {}...".format(plugin.NAME))
         for action_name, action in plugin.get_actions().items():
@@ -388,8 +376,6 @@ class MainWindow(QMainWindow):
         toolbars = plugin.get_application_toolbars()
         for toolbar in toolbars:
             self.toolbarslist.append(toolbar)
-
-        self.add_plugin(plugin)
 
     def unregister_plugin(self, plugin):
         """
@@ -490,6 +476,50 @@ class MainWindow(QMainWindow):
         """
         self.removeDockWidget(plugin.dockwidget)
         self.widgetlist.remove(plugin)
+
+    def tabify_plugin(self, plugin):
+        """
+        Tabify the plugin using the list of possible TABIFY options.
+
+        Only do this if the dockwidget does not have more dockwidgets
+        in the same position and if the plugin is using the New API.
+        """
+        def tabify_helper(plugin, next_to_plugins):
+            for next_to_plugin in next_to_plugins:
+                try:
+                    self.tabify_plugins(next_to_plugin, plugin)
+                    break
+                except SpyderAPIError as err:
+                    logger.error(err)
+
+        # If TABIFY not defined use the [Console]
+        tabify = getattr(plugin, 'TABIFY', [self.get_plugin(Plugins.Console)])
+        if not isinstance(tabify, list):
+            next_to_plugins = [tabify]
+        else:
+            next_to_plugins = tabify
+
+        # Get the actual plugins from the names
+        next_to_plugins = [self.get_plugin(p) for p in next_to_plugins]
+
+        # First time plugin starts
+        if plugin.get_conf_option('first_time', True):
+            if (isinstance(plugin, SpyderDockablePlugin)
+                    and plugin.NAME != Plugins.Console):
+                logger.info(
+                    "Tabify {} dockwidget for the first time...".format(
+                        plugin.NAME))
+                tabify_helper(plugin, next_to_plugins)
+
+            plugin.set_conf_option('enable', True)
+            plugin.set_conf_option('first_time', False)
+        else:
+            # This is needed to ensure new plugins are placed correctly
+            # without the need for a layout reset.
+            logger.info("Tabify {} dockwidget...".format(plugin.NAME))
+            # Check if plugin has no other dockwidgets in the same position
+            if not bool(self.tabifiedDockWidgets(plugin.dockwidget)):
+                tabify_helper(plugin, next_to_plugins)
 
     def __init__(self, options=None):
         QMainWindow.__init__(self)
@@ -1082,19 +1112,25 @@ class MainWindow(QMainWindow):
         self.create_switcher()
 
         # Internal console plugin
-        logger.info("Loading internal console...")
+        message = _(
+            "Spyder Internal Console\n\n"
+            "This console is used to report application\n"
+            "internal errors and to inspect Spyder\n"
+            "internals with the following commands:\n"
+            "  spy.app, spy.window, dir(spy)\n\n"
+            "Please don't use it to run your code\n\n"
+        )
+        CONF.set('internal_console', 'message', message)
+        CONF.set('internal_console', 'multithreaded', self.multithreaded)
+        CONF.set('internal_console', 'profile', self.profile)
+        CONF.set('internal_console', 'commands', [])
+        CONF.set('internal_console', 'namespace', {})
+        CONF.set('internal_console', 'show_internal_errors', True)
+
         from spyder.plugins.console.plugin import Console
-        self.console = Console(self, namespace=None, exitfunc=self.closing,
-                            profile=self.profile,
-                            multithreaded=self.multithreaded,
-                            message=_("Spyder Internal Console\n\n"
-                                    "This console is used to report application\n"
-                                    "internal errors and to inspect Spyder\n"
-                                    "internals with the following commands:\n"
-                                    "  spy.app, spy.window, dir(spy)\n\n"
-                                    "Please don't use it to run your code\n\n"))
-        self.console.register_plugin()
-        self.add_plugin(self.console)
+        self.console = Console(self, configuration=CONF)
+        self.console.set_exit_function(self.closing)
+        self.register_plugin(self.console)
 
         # Code completion client initialization
         self.set_splash(_("Starting code completion manager..."))
@@ -1594,7 +1630,7 @@ class MainWindow(QMainWindow):
         # Hide Internal Console so that people don't use it instead of
         # the External or IPython ones
         if self.console.dockwidget.isVisible() and DEV is None:
-            self.console._toggle_view_action.setChecked(False)
+            self.console.toggle_view_action.setChecked(False)
             self.console.dockwidget.hide()
 
         # Show Help and Consoles by default
@@ -1933,6 +1969,11 @@ class MainWindow(QMainWindow):
             except Exception as error:
                 print("%s: %s" % (plugin, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
+
+        # New API: Tabify at the end
+        for plugin in (self.widgetlist + self.thirdparty_plugins):
+            if isinstance(plugin, SpyderDockablePlugin):
+                self.tabify_plugin(plugin)
 
     def setup_default_layouts(self, index, settings):
         """Setup default layouts when run for the first time."""
@@ -3267,9 +3308,9 @@ class MainWindow(QMainWindow):
 
     def redirect_internalshell_stdio(self, state):
         if state:
-            self.console.shell.interpreter.redirect_stds()
+            self.console.redirect_stds()
         else:
-            self.console.shell.interpreter.restore_stds()
+            self.console.restore_stds()
 
     def open_external_console(self, fname, wdir, args, interact, debug, python,
                               python_args, systerm, post_mortem=False):
@@ -4044,7 +4085,7 @@ def run_spyder(app, options, args):
     except BaseException:
         if main.console is not None:
             try:
-                main.console.shell.exit_interpreter()
+                main.console.exit_interpreter()
             except BaseException:
                 pass
         raise
@@ -4053,8 +4094,9 @@ def run_spyder(app, options, args):
     main.post_visible_setup()
 
     if main.console:
-        main.console.shell.interpreter.namespace['spy'] = \
-                                                    Spy(app=app, window=main)
+        namespace = CONF.get('internal_console', 'namespace', {})
+        main.console.start_interpreter(namespace)
+        main.console.set_namespace_item('spy', Spy(app=app, window=main))
 
     # Don't show icons in menus for Mac
     if sys.platform == 'darwin':
