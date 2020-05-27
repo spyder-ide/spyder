@@ -356,9 +356,10 @@ class CallTipWidget(QLabel):
         try:
             self._text_edit.cursorPositionChanged.disconnect(
                 self._cursor_position_changed)
-        except TypeError:
+        except (TypeError, RuntimeError):
             pass
-        self._text_edit.removeEventFilter(self)
+        else:
+            self._text_edit.removeEventFilter(self)
 
     def leaveEvent(self, event):
         """ Reimplemented to start the hide timer.

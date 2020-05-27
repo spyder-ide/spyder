@@ -219,12 +219,24 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                     pass
                 subprocess._cleanup = patched_cleanup
 
+            # Set the PyLS current working to an empty dir inside
+            # our config one. This avoids the server to pick up user
+            # files such as random.py or string.py instead of the
+            # standard library modules named the same.
+            if self.language == 'python':
+                cwd = get_conf_path('empty_cwd')
+                if not osp.exists(cwd):
+                    os.mkdir(cwd)
+            else:
+                cwd = None
+
             self.lsp_server = subprocess.Popen(
                 self.server_args,
                 stdout=server_stdout,
                 stdin=server_stdin,
                 stderr=server_stderr,
-                creationflags=creation_flags)
+                creationflags=creation_flags,
+                cwd=cwd)
 
         client_log = subprocess.PIPE
         if get_debug_level() > 0:
