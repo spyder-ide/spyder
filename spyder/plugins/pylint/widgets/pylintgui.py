@@ -457,7 +457,8 @@ class PylintWidget(QWidget):
                 pylint_item = (module, items["line_nb"], items["message"],
                                items["msg_id"], items["message_name"])
                 act_result = results[line[0] + ':']
-                if len(act_result) < self.parent.get_option('max_entries'):
+                if (self.parent is not None and
+                    len(act_result) < self.parent.get_option('max_entries')):
                     results[line[0] + ':'].append(pylint_item)
 
         # Rate
