@@ -17,10 +17,13 @@ import os.path as osp
 
 # Third party imports
 import pytest
+from qtpy.QtCore import Signal, QObject
+try:
+    from unittest.mock import Mock, MagicMock
+except ImportError:
+    from mock import Mock, MagicMock  # Python 2
 
 # Local imports
-from spyder.plugins.pylint.tests.test_pylint_config_dialog import (
-    MainWindowMock)
 from spyder.plugins.pylint.plugin import Pylint
 from spyder.plugins.pylint.widgets.pylintgui import PylintWidget
 from spyder.plugins.pylint.utils import get_pylintrc_path
@@ -55,6 +58,16 @@ enable=blacklisted-name
 bad-names={bad_names}
 good-names=e
 """
+
+
+class MainWindowMock(QObject):
+    sig_editor_focus_changed = Signal(str)
+
+    def __init__(self):
+        super(MainWindowMock, self).__init__(None)
+        self.editor = Mock()
+        self.editor.sig_editor_focus_changed = self.sig_editor_focus_changed
+        self.projects = MagicMock()
 
 
 @pytest.fixture
