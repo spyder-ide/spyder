@@ -123,9 +123,13 @@ def test_get_pylintrc_path(pylintrc_files, mocker):
     assert actual_path == expected_path
 
 
-def test_pylint_widget_noproject(pylint_test_script, qtbot):
+def test_pylint_widget_noproject(pylint_test_script, mocker, qtbot):
     """Test that pylint works without errors with no project open."""
-    pylint_widget = PylintWidget(parent=None)
+    main_window = MainWindowMock()
+    main_window.projects.get_active_project_path = mocker.MagicMock(
+        return_value=None)
+    pylint_sw = Pylint(parent=main_window)
+    pylint_widget = PylintWidget(parent=pylint_sw)
     pylint_widget.analyze(filename=pylint_test_script)
     qtbot.waitUntil(
         lambda: pylint_widget.get_data(pylint_test_script)[1] is not None,
