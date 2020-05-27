@@ -57,11 +57,29 @@ def test_automatic_completions_hide_complete(lsp_codeeditor, qtbot):
 
     # Hide if removing spaces before a word
     code_editor.moveCursor(cursor.End)
-    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)  # newline
-    qtbot.keyClicks(code_editor, '   None')
-    qtbot.wait(500)
-    code_editor.moveCursor(cursor.End - 4)
-    qtbot.keyPress(code_editor, Qt.Key_Backspace, delay=300)
+    qtbot.keyPress(code_editor, Qt.Key_Enter)  # newline
+    qtbot.keyClicks(code_editor, 'some')
+    qtbot.keyPress(code_editor, Qt.Key_Enter)  # newline
+    qtbot.keyClicks(code_editor, '  None')
+    code_editor.moveCursor(cursor.End - 6)
+    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+    qtbot.wait(2000)
+    assert completion.isHidden()
+    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+    qtbot.wait(2000)
+    assert completion.isHidden()
+
+    # Hide if removing spaces before a word even not at the start of line.
+    code_editor.moveCursor(cursor.End)
+    qtbot.keyPress(code_editor, Qt.Key_Enter)  # newline
+    qtbot.keyClicks(code_editor, 'some +  some ')
+    qtbot.keyPress(code_editor, Qt.Key_Left)
+    qtbot.keyPress(code_editor, Qt.Key_Left)
+    qtbot.keyPress(code_editor, Qt.Key_Left)
+    qtbot.keyPress(code_editor, Qt.Key_Left)
+    qtbot.keyPress(code_editor, Qt.Key_Left)
+    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+    qtbot.wait(2000)
     assert completion.isHidden()
 
     code_editor.toggle_code_snippets(True)
