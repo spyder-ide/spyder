@@ -202,8 +202,8 @@ def test_pylint_widget_pylintrc(
                 for bad_name in bad_names])
 
 
-def test_pylint_max_history_conf(pylint_test_script,
-    pylint_test_scripts, mocker, qtbot):
+def test_pylint_max_history_conf(
+    pylint_test_script, pylint_test_scripts, mocker, qtbot):
     """Regression test for checking max_entries configuration.
 
     For further information see spyder-ide/spyder#12884

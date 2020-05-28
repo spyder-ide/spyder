@@ -264,13 +264,14 @@ class PylintWidget(QWidget):
                 self.filecombo.addItem(filename)
                 self.filecombo.setCurrentIndex(self.filecombo.count()-1)
             else:
-                self.filecombo.setCurrentIndex(self.filecombo.findText(filename))
+                self.filecombo.setCurrentIndex(
+                    self.filecombo.findText(filename))
 
             self.curr_filenames.append(filename)
 
-            last_index = self.parent.get_option('max_entries')
-            if (self.parent is not None and
-                self.filecombo.count() > last_index):
+            is_parent = self.parent is not None
+            if is_parent and (self.filecombo.count() >
+                    self.parent.get_option('max_entries')):
                 self.filecombo.removeItem(0)
                 self.curr_filenames.pop(0)
 
