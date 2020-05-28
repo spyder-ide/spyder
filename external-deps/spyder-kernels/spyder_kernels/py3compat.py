@@ -38,7 +38,7 @@ else:
     # Python 3
     TEXT_TYPES = (str,)
     INT_TYPES = (int,)
-NUMERIC_TYPES = tuple(list(INT_TYPES) + [float, complex])
+NUMERIC_TYPES = tuple(list(INT_TYPES) + [float])
 
 
 #==============================================================================

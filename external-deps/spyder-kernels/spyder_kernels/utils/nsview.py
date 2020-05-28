@@ -292,7 +292,7 @@ def default_display(value, with_module=True):
         return type_str[1:-1]
 
 
-def collections_display(value, level, numeric_value=False):
+def collections_display(value, level):
     """Display for collections (i.e. list, set, tuple and dict)."""
     is_dict = isinstance(value, dict)
     is_set = isinstance(value, set)
@@ -315,15 +315,11 @@ def collections_display(value, level, numeric_value=False):
     # Get display of each element
     if level <= 2:
         if is_dict:
-            displays = [value_to_display(
-                            k, level=level, numeric_value=numeric_value)
-                        + ':' +
-                        value_to_display(
-                            v, level=level, numeric_value=numeric_value)
+            displays = [value_to_display(k, level=level) + ':' +
+                        value_to_display(v, level=level)
                         for (k, v) in list(elements)]
         else:
-            displays = [value_to_display(
-                            e, level=level, numeric_value=numeric_value)
+            displays = [value_to_display(e, level=level)
                         for e in elements]
         if truncate:
             displays.append('...')
@@ -449,7 +445,9 @@ def value_to_display(value, minmax=False, level=0, numeric_value=False):
         elif (isinstance(value, datetime.date) or
               isinstance(value, datetime.timedelta)):
             display = str(value)
-        elif isinstance(value, NUMERIC_TYPES) and numeric_value:
+        elif ((isinstance(value, NUMERIC_TYPES) or
+               isinstance(value, numeric_numpy_types)) and
+              numeric_value):
             display = value
         elif (isinstance(value, NUMERIC_TYPES) or
               isinstance(value, bool) or
@@ -465,7 +463,9 @@ def value_to_display(value, minmax=False, level=0, numeric_value=False):
 
     # Truncate display at 70 chars to avoid freezing Spyder
     # because of large displays
-    if is_text_string(display) and len(display) > 70:
+    if (not isinstance(display, NUMERIC_TYPES) and
+            not isinstance(display, numeric_numpy_types) and
+            len(display) > 70):
         if is_binary_string(display):
             ellipses = b' ...'
         else:
