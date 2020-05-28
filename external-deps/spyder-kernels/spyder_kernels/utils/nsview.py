@@ -450,6 +450,7 @@ def value_to_display(value, minmax=False, level=0, numeric_value=False):
               numeric_value):
             display = value
         elif (isinstance(value, NUMERIC_TYPES) or
+              isinstance(value, complex) or
               isinstance(value, bool) or
               isinstance(value, numeric_numpy_types)):
             display = repr(value)
@@ -463,8 +464,9 @@ def value_to_display(value, minmax=False, level=0, numeric_value=False):
 
     # Truncate display at 70 chars to avoid freezing Spyder
     # because of large displays
-    if (not isinstance(display, NUMERIC_TYPES) and
-            not isinstance(display, numeric_numpy_types) and
+    if (not isinstance(value, NUMERIC_TYPES) and
+            not isinstance(value, numeric_numpy_types) and
+            not isinstance(value, complex) and
             len(display) > 70):
         if is_binary_string(display):
             ellipses = b' ...'
