@@ -258,6 +258,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.silent_execute("%colors lightbg")
             self.call_kernel().set_sympy_forecolor(background_color='light')
 
+    def set_show_calltips(self, show_calltips):
+        """Enable/Disable showing calltips."""
+        print(self.enable_calltips)
+
     def update_syspath(self, path_dict, new_path_dict):
         """Update sys.path contents on kernel."""
         self.call_kernel(

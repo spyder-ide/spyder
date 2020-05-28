@@ -504,6 +504,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except AttributeError:
             pass
 
+    def set_show_calltips(self, show_calltips):
+        """Enable/Disable showing calltips."""
+        self.shellwidget.set_show_calltips(show_calltips)
+
     def set_matplotlib_backend(self, backend, pylab=False):
         """
         Set matplotlib backend.

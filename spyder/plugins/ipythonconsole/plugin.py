@@ -181,8 +181,7 @@ class IPythonConsole(SpyderPluginWidget):
         ask_before_restart_n = 'ask_before_restart'
         # use_pager_n = 'use_pager'
         # use_pager_o = self.get_option(use_pager_n)
-        # show_calltips_n = 'show_calltips'
-        # show_calltips_o = self.get_option(show_calltips_n)
+        show_calltips_n = 'show_calltips'
         # ask_before_closing_n = 'ask_before_closing'
         # ask_before_closing_o = self.get_option(ask_before_closing_n)
         # buffer_size_n = 'buffer_size'
@@ -232,6 +231,9 @@ class IPythonConsole(SpyderPluginWidget):
             if ask_before_restart_n in options:
                 ask_before_restart_o = self.get_option(ask_before_restart_n)
                 client.ask_before_restart = ask_before_restart_o
+            if show_calltips_n in options:
+                show_calltips_o = self.get_option(show_calltips_n)
+                client.set_show_calltips(show_calltips_o)
 
             # Matplotlib support options
             if (pylab_o and
