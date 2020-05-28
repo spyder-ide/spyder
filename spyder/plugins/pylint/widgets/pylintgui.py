@@ -258,15 +258,14 @@ class PylintWidget(QWidget):
         """Set filename without performing code analysis."""
         filename = to_text_string(filename) # filename is a QString instance
         self.kill_if_running()
+        index, _data = self.get_data(filename)
         if filename not in self.curr_filenames:
-            index, _data = self.get_data(filename)
             if index is None:
                 self.filecombo.addItem(filename)
                 self.filecombo.setCurrentIndex(self.filecombo.count()-1)
             else:
                 self.filecombo.setCurrentIndex(
                     self.filecombo.findText(filename))
-
             self.curr_filenames.append(filename)
 
             is_parent = self.parent is not None
@@ -274,8 +273,10 @@ class PylintWidget(QWidget):
                     self.parent.get_option('max_entries')):
                 self.filecombo.removeItem(0)
                 self.curr_filenames.pop(0)
-
             self.filecombo.selected()
+        else:
+            self.filecombo.setCurrentIndex(
+                self.filecombo.findText(filename))
 
     def analyze(self, filename=None):
         """
