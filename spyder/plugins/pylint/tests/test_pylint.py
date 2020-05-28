@@ -214,5 +214,23 @@ def test_pylint_max_history_conf(pylint_test_script, mocker, qtbot):
         assert len(results[key]) <= max_entries
 
 
+def test_pylint_max_history_conf(pylint_test_script, mocker, qtbot):
+    """Regression test for checking history combobox.
+
+    For further information see spyder-ide/spyder#12884
+    """
+    # Create the pylint widget for code analysis
+    main_window = MainWindowMock()
+    main_window.projects.get_active_project_path = mocker.MagicMock(
+        return_value=None)
+    pylint_sw = Pylint(parent=main_window)
+    pylint_widget = PylintWidget(parent=pylint_sw)
+
+    assert pylint_widget.curr_filenames == []
+
+    print(pylint_widget.curr_filenames)
+
+
+
 if __name__ == "__main__":
     pytest.main([osp.basename(__file__), '-vv', '-rw'])

@@ -236,7 +236,7 @@ DEFAULTS = [
             ('historylog',
              {
               'enable': True,
-              'max_entries': 100,
+              'max_entries': 20,
               'wrap': True,
               'go_to_eof': True,
               'line_numbers': False,

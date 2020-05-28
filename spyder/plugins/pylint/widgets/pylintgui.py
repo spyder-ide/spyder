@@ -265,8 +265,16 @@ class PylintWidget(QWidget):
                 self.filecombo.setCurrentIndex(self.filecombo.count()-1)
             else:
                 self.filecombo.setCurrentIndex(self.filecombo.findText(filename))
-            self.filecombo.selected()
+
             self.curr_filenames.append(filename)
+
+            last_index = self.parent.get_option('max_entries')
+            if (self.parent is not None and
+                self.filecombo.count() > last_index):
+                self.filecombo.removeItem(0)
+                self.curr_filenames.pop(0)
+
+            self.filecombo.selected()
 
     def analyze(self, filename=None):
         """
@@ -459,10 +467,7 @@ class PylintWidget(QWidget):
             else:
                 pylint_item = (module, items["line_nb"], items["message"],
                                items["msg_id"], items["message_name"])
-                act_result = results[line[0] + ':']
-                if (self.parent is not None and
-                    len(act_result) < self.parent.get_option('max_entries')):
-                    results[line[0] + ':'].append(pylint_item)
+                results[line[0] + ':'].append(pylint_item)
 
         # Rate
         rate = None

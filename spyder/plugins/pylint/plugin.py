@@ -49,7 +49,7 @@ class Pylint(SpyderPluginWidget):
     def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
 
-        max_entries = self.get_option('max_entries', 50)
+        max_entries = self.get_option('max_entries', 20)
         self.pylint = PylintWidget(self, max_entries=max_entries,
                                    options_button=self.options_button,
                                    text_color=MAIN_TEXT_COLOR,
@@ -132,7 +132,7 @@ class Pylint(SpyderPluginWidget):
         depth, valid = QInputDialog.getInt(self, _('History'),
                                        _('Maximum entries'),
                                        self.get_option('max_entries'),
-                                       10, 10000)
+                                       5, 20)
         if valid:
             self.set_option('max_entries', depth)
 
