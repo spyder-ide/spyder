@@ -21,7 +21,7 @@ import time
 
 # Third party imports
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
-from qtpy.QtCore import QByteArray, Qt, Signal, Slot
+from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QFileDialog, QInputDialog, QMenu, QSplitter,
@@ -1916,6 +1916,7 @@ class Editor(SpyderPluginWidget):
             c_fname = self.get_current_filename()
             if c_fname is not None and c_fname != self.TEMPFILE_PATH:
                 basedir = osp.dirname(c_fname)
+
             self.redirect_stdio.emit(False)
             parent_widget = self.get_current_editorstack()
             if filename0 is not None:
@@ -1923,20 +1924,41 @@ class Editor(SpyderPluginWidget):
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
+
             if not running_under_pytest():
-                filenames, _sf = getopenfilenames(
-                                    parent_widget,
-                                    _("Open file"), basedir,
-                                    self.edit_filters,
-                                    selectedfilter=selectedfilter,
-                                    options=QFileDialog.HideNameFilterDetails)
+                # See: spyder-ide/spyder#3291
+                if sys.platform == 'darwin':
+                    dialog = QFileDialog(
+                        parent=parent_widget,
+                        caption=_("Open file"),
+                        directory=basedir,
+                    )
+                    dialog.setNameFilters(self.edit_filters.split(';;'))
+                    dialog.setOption(QFileDialog.HideNameFilterDetails, True)
+                    dialog.setFilter(QDir.AllDirs | QDir.Files | QDir.Drives
+                                     | QDir.Hidden)
+                    dialog.setFileMode(QFileDialog.ExistingFiles)
+
+                    if dialog.exec_():
+                        filenames = dialog.selectedFiles()
+                else:
+                    filenames, _sf = getopenfilenames(
+                        parent_widget,
+                        _("Open file"),
+                        basedir,
+                        self.edit_filters,
+                        selectedfilter=selectedfilter,
+                        options=QFileDialog.HideNameFilterDetails,
+                    )
             else:
                 # Use a Qt (i.e. scriptable) dialog for pytest
                 dialog = QFileDialog(parent_widget, _("Open file"),
                                      options=QFileDialog.DontUseNativeDialog)
                 if dialog.exec_():
                     filenames = dialog.selectedFiles()
+
             self.redirect_stdio.emit(True)
+
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
             else:
