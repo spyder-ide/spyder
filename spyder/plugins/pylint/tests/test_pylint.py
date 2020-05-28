@@ -89,6 +89,23 @@ def pylint_test_script(pylintrc_search_paths):
     return script_path
 
 
+@pytest.fixture
+def pylint_test_scripts(pylintrc_search_paths):
+    """Write a script for testing Pylint to a temporary directory."""
+    script_path_1 = osp.join(
+        pylintrc_search_paths[SCRIPT_DIR], "test_script_1.py")
+    with open(script_path_1, mode="w",
+              encoding="utf-8", newline="\n") as script_file:
+        script_file.write(PYLINT_TEST_SCRIPT)
+
+    script_path_2 = osp.join(
+        pylintrc_search_paths[SCRIPT_DIR], "test_script_2.py")
+    with open(script_path_2, mode="w",
+              encoding="utf-8", newline="\n") as script_file:
+        script_file.write(PYLINT_TEST_SCRIPT)
+    return script_path_1, script_path_2
+
+
 @pytest.fixture(
     params=[
         [], [SCRIPT_DIR], [WORKING_DIR], [PROJECT_DIR], [HOME_DIR],
@@ -185,37 +202,9 @@ def test_pylint_widget_pylintrc(
                 for bad_name in bad_names])
 
 
-def test_pylint_max_history_conf(pylint_test_script, mocker, qtbot):
+def test_pylint_max_history_conf(pylint_test_script,
+    pylint_test_scripts, mocker, qtbot):
     """Regression test for checking max_entries configuration.
-
-    For further information see spyder-ide/spyder#12874
-    """
-    # Create the pylint widget for code analysis
-    main_window = MainWindowMock()
-    main_window.projects.get_active_project_path = mocker.MagicMock(
-        return_value=None)
-    pylint_sw = Pylint(parent=main_window)
-    pylint_widget = PylintWidget(parent=pylint_sw)
-
-    # Change the max_entry to 2
-    pylint_widget.parent.set_option('max_entries', 2)
-    assert pylint_widget.parent.get_option('max_entries') == 2
-
-    # Analyze the test script with 1 as max_entry
-    pylint_widget.analyze(filename=pylint_test_script)
-    qtbot.waitUntil(
-        lambda: pylint_widget.get_data(pylint_test_script)[1] is not None,
-        timeout=5000)
-    pylint_data = pylint_widget.get_data(filename=pylint_test_script)
-    results = pylint_data[1][-1]
-
-    max_entries = pylint_widget.parent.get_option('max_entries')
-    for key in results:
-        assert len(results[key]) <= max_entries
-
-
-def test_pylint_max_history_conf(pylint_test_script, mocker, qtbot):
-    """Regression test for checking history combobox.
 
     For further information see spyder-ide/spyder#12884
     """
@@ -225,11 +214,25 @@ def test_pylint_max_history_conf(pylint_test_script, mocker, qtbot):
         return_value=None)
     pylint_sw = Pylint(parent=main_window)
     pylint_widget = PylintWidget(parent=pylint_sw)
+    pylint_widget.filecombo.clear()
 
-    assert pylint_widget.curr_filenames == []
+    # Change the max_entry to 2
+    pylint_widget.parent.set_option('max_entries', 2)
+    assert pylint_widget.parent.get_option('max_entries') == 2
 
-    print(pylint_widget.curr_filenames)
+    # Call to set_filename
+    pylint_widget.set_filename(filename=pylint_test_script)
+    assert pylint_widget.filecombo.count() == 1
 
+    # Add to more filenames
+    script_1, script_2 = pylint_test_scripts
+    pylint_widget.set_filename(filename=script_1)
+    pylint_widget.set_filename(filename=script_2)
+
+    assert pylint_widget.filecombo.count() == 2
+
+    assert 'test_script_1.py' in pylint_widget.curr_filenames[0]
+    assert 'test_script_2.py' in pylint_widget.curr_filenames[1]
 
 
 if __name__ == "__main__":
