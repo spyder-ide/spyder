@@ -37,7 +37,7 @@ from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespacesBrowserFinder)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
     generate_pandas_indexes
-from spyder.py3compat import PY2
+from spyder.py3compat import PY2, to_text_string
 
 
 # =============================================================================
@@ -311,6 +311,35 @@ def test_shows_dataframeeditor_when_editing_index(qtbot, monkeypatch):
         editor.delegate.createEditor(None, None,
                                      editor.model.index(0, 3))
         mockDataFrameEditor_instance.show.assert_called_once_with()
+
+
+def test_sort_float_collectionsmodel():
+    var_list = [
+        float(1e16), float(10), float(1), float(0.1), float(1e-6),
+        float(0), float(-1e-6), float(-1), float(-10), float(-1e16)
+        ]
+    cm = CollectionsModel(None, var_list)
+    assert cm.rowCount() == 10
+    assert cm.columnCount() == 5
+    cm.sort(0)  # sort by index
+    assert data_table(cm, 10, 4) == [list(range(0, 10)),
+                                     ['float']*10,
+                                     [1]*10,
+                                     to_text_string(
+                                         [float(1e16), float(10), float(1),
+                                          float(0.1), float(1e-6), float(0),
+                                          float(-1e-6), float(-1), float(-10),
+                                          float(-1e16)])]
+    cm.sort(3)  # sort by value
+    assert data_table(cm, 10, 4) == [list(range(9, -1, -1)),
+                                     ['float']*10,
+                                     [1]*10,
+                                     to_text_string(
+                                         [float(-1e16), float(-10), float(-1),
+                                          float(-1e-6), float(-0), float(1e-6),
+                                          float(0.1), float(1), float(10),
+                                          float(1e16)])]
+
 
 
 @pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on Win and py2')

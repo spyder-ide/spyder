@@ -379,7 +379,9 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                 display = to_text_string(value)
             else:
                 display = value
-        if role == Qt.DisplayRole:
+        if role == Qt.UserRole:
+            return to_qvariant(value)
+        elif role == Qt.DisplayRole:
             return to_qvariant(display)
         elif role == Qt.EditRole:
             return to_qvariant(value_to_display(value))
@@ -1123,6 +1125,7 @@ class CollectionsEditorTableView(BaseTableView):
         self.proxy_model.setSourceModel(self.source_model)
         self.proxy_model.setDynamicSortFilter(True)
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.proxy_model.setSortRole(Qt.UserRole)
         self.setModel(self.proxy_model)
 
         self.hideColumn(4)  # Column 4 for Score
@@ -1419,6 +1422,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.proxy_model.setDynamicSortFilter(True)
         self.proxy_model.setFilterKeyColumn(0)  # Col 0 for Name
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.proxy_model.setSortRole(Qt.UserRole)
         self.setModel(self.proxy_model)
 
         self.hideColumn(4)  # Column 4 for Score
