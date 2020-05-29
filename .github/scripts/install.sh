@@ -14,7 +14,11 @@ if [ "$USE_CONDA" = "true" ]; then
     fi
 
     # Install main dependencies
-    conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y
+    if [ "$PYTHON_VERSION" = "2.7" ]; then
+        conda install python=$PYTHON_VERSION --file requirements/conda-2.7.txt -q -y
+    else
+        conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y
+    fi
 
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
