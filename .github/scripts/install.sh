@@ -49,13 +49,17 @@ else
 
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y
-    pip uninstall python-language-server -q -y
+    if [ "$PYTHON_VERSION" != "2.7" ]; then
+        pip uninstall python-language-server -q -y
+    fi
 fi
 
 # Install python-language-server from our subrepo
-pushd external-deps/python-language-server
-pip install --no-deps -q -e .
-popd
+if [ "$PYTHON_VERSION" != "2.7" ]; then
+    pushd external-deps/python-language-server
+    pip install --no-deps -q -e .
+    popd
+fi
 
 # To check our manifest
 pip install check-manifest
