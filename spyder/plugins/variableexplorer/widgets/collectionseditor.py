@@ -41,7 +41,8 @@ from spyder_kernels.utils.nsview import (
     get_color_name, get_human_readable_type, get_size, Image,
     MaskedArray, ndarray, np_savetxt, Series, sort_against,
     try_to_eval, unsorted_unique, value_to_display, get_object_attrs,
-    get_type_string)
+    get_type_string, int64, int32, int16, int8, uint64, uint32, uint16, uint8,
+    float64, float32, float16, complex128, complex64, bool_)
 
 # Local imports
 from spyder.config.base import _, PICKLE_PROTOCOL
@@ -65,6 +66,10 @@ MAX_SERIALIZED_LENGHT = 1e6
 
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
+
+NUMERIC_NUMPY_TYPES = (int64, int32, int16, int8, uint64, uint32, uint16,
+                       uint8, float64, float32, float16, complex128,
+                       complex64, bool_)
 
 
 class ProxyObject(object):
@@ -375,12 +380,12 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             if is_type_text_string(value):
                 display = to_text_string(value, encoding="utf-8")
-            elif not isinstance(value, NUMERIC_TYPES):
+            elif not isinstance(value, NUMERIC_TYPES + NUMERIC_NUMPY_TYPES):
                 display = to_text_string(value)
             else:
                 display = value
         if role == Qt.UserRole:
-            if isinstance(value, NUMERIC_TYPES):
+            if isinstance(value, NUMERIC_TYPES + NUMERIC_NUMPY_TYPES):
                 return to_qvariant(value)
             else:
                 return to_qvariant(display)
