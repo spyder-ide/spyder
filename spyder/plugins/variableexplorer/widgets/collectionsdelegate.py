@@ -120,11 +120,11 @@ class CollectionsDelegate(QItemDelegate):
                 if module == 'numpy':
                     val_type = 'array'
                 else:
-                    val_type = 'dataframe or series'
+                    val_type = 'dataframe, series'
                 QMessageBox.critical(
                     self.parent(), _("Error"),
-                    _("Spyder is unable to show the {val_type} you're "
-                      "trying to visualize because <i>{module}</i> was "
+                    _("Spyder is unable to show the {val_type} or object "
+                      "you're trying to view because <tt>{module}</tt> was "
                       "not installed alongside Spyder. Please install "
                       "this package in your Spyder environment."
                       "<br>").format(val_type=val_type, module=module))
@@ -133,8 +133,8 @@ class CollectionsDelegate(QItemDelegate):
                 QMessageBox.critical(
                     self.parent(), _("Error"),
                     _("Spyder is unable to show the variable you're "
-                      "trying to visualize because the module "
-                      "<i>{module}</i> was not found in your  "
+                      "trying to view because the module "
+                      "<tt>{module}</tt> was not found in your  "
                       "Spyder environment. Please install "
                       "this package in your Spyder environment."
                       "<br>").format(module=module))
@@ -147,8 +147,6 @@ class CollectionsDelegate(QItemDelegate):
                   "The error message was:<br>"
                   "%s") % to_text_string(msg))
             return
-
-
 
         key = index.model().get_key(index)
         readonly = (isinstance(value, (tuple, set)) or self.parent().readonly
