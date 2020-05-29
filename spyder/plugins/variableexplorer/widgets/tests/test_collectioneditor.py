@@ -323,23 +323,18 @@ def test_sort_float_collectionsmodel():
     assert cm.columnCount() == 5
     cm.sort(0)  # sort by index
     assert data_table(cm, 10, 4) == [list(range(0, 10)),
-                                     ['float']*10,
+                                     [u'float']*10,
                                      [1]*10,
-                                     to_text_string(
-                                         [float(1e16), float(10), float(1),
-                                          float(0.1), float(1e-6), float(0),
-                                          float(-1e-6), float(-1), float(-10),
-                                          float(-1e16)])]
+                                     ['1e+16', '10.0', '1.0', '0.1',
+                                      '1e-06', '0.0', '-1e-06',
+                                      '-1.0', '-10.0', '-1e+16']]
     cm.sort(3)  # sort by value
     assert data_table(cm, 10, 4) == [list(range(9, -1, -1)),
-                                     ['float']*10,
+                                     [u'float']*10,
                                      [1]*10,
-                                     to_text_string(
-                                         [float(-1e16), float(-10), float(-1),
-                                          float(-1e-6), float(-0), float(1e-6),
-                                          float(0.1), float(1), float(10),
-                                          float(1e16)])]
-
+                                     ['-1e+16', '-10.0', '-1.0',
+                                      '-1e-06', '0.0', '1e-06',
+                                      '0.1', '1.0', '10.0', '1e+16']]
 
 
 @pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on Win and py2')
