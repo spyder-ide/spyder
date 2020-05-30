@@ -21,7 +21,7 @@ import sys
 import time
 
 # Third-party imports
-from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
+from qtpy.QtCore import QObject, QProcess, QSocketNotifier, Signal, Slot
 import zmq
 import psutil
 
@@ -166,22 +166,19 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args += ['--zmq-in-port', self.zmq_out_port,
                                 '--zmq-out-port', self.zmq_in_port]
 
-        # The server stdout needs to be set to 'None' by default on Windows
-        # to correctly handle errors that come from the server.
-        # Fixes spyder-ide/spyder#11506
-        server_log = None if os.name == 'nt' else subprocess.PIPE
-
+        # Create server log file in debug mode
+        server_log_file = None
         pid = os.getpid()
         if get_debug_level() > 0:
             # Create server log file
             server_log_fname = 'server_{0}_{1}.log'.format(self.language, pid)
             server_log_file = get_conf_path(osp.join('lsp_logs',
                                                      server_log_fname))
+
             if not osp.exists(osp.dirname(server_log_file)):
                 os.makedirs(osp.dirname(server_log_file))
-            server_log = open(server_log_file, 'w')
+
             if self.stdio:
-                server_log.close()
                 if self.language == 'python':
                     self.server_args += ['--log-file', server_log_file]
                 self.transport_args += ['--server-log-file', server_log_file]
@@ -193,17 +190,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 elif get_debug_level() == 3:
                     self.server_args.append('-vv')
 
-        server_stdin = subprocess.PIPE
-        server_stdout = server_log
-        server_stderr = subprocess.STDOUT
-
         if not self.external_server:
             logger.info('Starting server: {0}'.format(
                 ' '.join(self.server_args)))
-            creation_flags = 0
-            if os.name == 'nt':
-                creation_flags = (subprocess.CREATE_NEW_PROCESS_GROUP
-                                  | 0x08000000)  # CREATE_NO_WINDOW
 
             if os.environ.get('CI') and os.name == 'nt':
                 # The following patching avoids:
@@ -230,13 +219,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             else:
                 cwd = None
 
-            self.lsp_server = subprocess.Popen(
-                self.server_args,
-                stdout=server_stdout,
-                stdin=server_stdin,
-                stderr=server_stderr,
-                creationflags=creation_flags,
-                cwd=cwd)
+            # Start server
+            self.lsp_server = QProcess(self)
+            self.lsp_server.setWorkingDirectory(cwd)
+            self.lsp_server.setProcessChannelMode(QProcess.MergedChannels)
+            if server_log_file is not None:
+                self.lsp_server.setStandardOutputFile(server_log_file)
+            self.lsp_server.start(self.server_args[0], self.server_args[1:])
 
         client_log = subprocess.PIPE
         if get_debug_level() > 0:
@@ -328,7 +317,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         """Detect if a tcp server is alive."""
         alive = True
         if self.lsp_server is not None:
-            if self.lsp_server.poll() is not None:
+            if self.lsp_server.state() == QProcess.NotRunning:
                 alive = False
 
         return alive
