@@ -107,6 +107,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 try:
                     self.clients_hearbeat[language].stop()
                     client['instance'].disconnect()
+                    client['instance'].stop()
                 except (TypeError, KeyError, RuntimeError):
                     pass
                 self.clients_hearbeat[language] = None
