@@ -155,7 +155,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.external_server = True
         self.transport_unresponsive = False
 
-    def start(self):
+    def create_transport_sockets(self):
+        """Create PyZMQ sockets for transport."""
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
         self.zmq_out_port = self.zmq_out_socket.bind_to_random_port(
             'tcp://{}'.format(LOCALHOST))
@@ -166,12 +167,19 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args += ['--zmq-in-port', self.zmq_out_port,
                                 '--zmq-out-port', self.zmq_in_port]
 
-        # --- Set server log file
+    def start_server(self):
+        """Start server."""
+        # This is not necessary if we're trying to connect to an
+        # external server
+        if self.external_server:
+            return
+
+        # Set server log file
         server_log_file = None
-        pid = os.getpid()
         if get_debug_level() > 0:
             # Create server log file
-            server_log_fname = 'server_{0}_{1}.log'.format(self.language, pid)
+            server_log_fname = 'server_{0}_{1}.log'.format(self.language,
+                                                           os.getpid())
             server_log_file = get_conf_path(osp.join('lsp_logs',
                                                      server_log_fname))
 
@@ -190,31 +198,29 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 elif get_debug_level() == 3:
                     self.server_args.append('-vv')
 
-        # --- Start server
-        if not self.external_server:
-            logger.info('Starting server: {0}'.format(
-                ' '.join(self.server_args)))
+        logger.info('Starting server: {0}'.format(' '.join(self.server_args)))
 
-            # Set the PyLS current working to an empty dir inside
-            # our config one. This avoids the server to pick up user
-            # files such as random.py or string.py instead of the
-            # standard library modules named the same.
-            if self.language == 'python':
-                cwd = get_conf_path('empty_cwd')
-                if not osp.exists(cwd):
-                    os.mkdir(cwd)
-            else:
-                cwd = None
+        # Set the PyLS current working to an empty dir inside
+        # our config one. This avoids the server to pick up user
+        # files such as random.py or string.py instead of the
+        # standard library modules named the same.
+        if self.language == 'python':
+            cwd = get_conf_path('empty_cwd')
+            if not osp.exists(cwd):
+                os.mkdir(cwd)
+        else:
+            cwd = None
 
-            # Start server
-            self.server = QProcess(self)
-            self.server.setWorkingDirectory(cwd)
-            self.server.setProcessChannelMode(QProcess.MergedChannels)
-            if server_log_file is not None:
-                self.server.setStandardOutputFile(server_log_file)
-            self.server.start(self.server_args[0], self.server_args[1:])
+        # Start server
+        self.server = QProcess(self)
+        self.server.setWorkingDirectory(cwd)
+        self.server.setProcessChannelMode(QProcess.MergedChannels)
+        if server_log_file is not None:
+            self.server.setStandardOutputFile(server_log_file)
+        self.server.start(self.server_args[0], self.server_args[1:])
 
-        # --- Create transport
+    def start_transport(self):
+        """Start transport layer."""
         self.transport_args = list(map(str, self.transport_args))
         logger.info('Starting transport: {0}'
                     .format(' '.join(self.transport_args)))
@@ -236,11 +242,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.transport.setProcessEnvironment(new_env)
 
-        # Set transport logging file
+        # Set transport log file
         transport_log_file = None
         if get_debug_level() > 0:
             transport_log_fname = 'transport_{0}_{1}.log'.format(
-                self.language, pid)
+                self.language, os.getpid())
             transport_log_file = get_conf_path(
                 osp.join('lsp_logs', transport_log_fname))
             if not osp.exists(osp.dirname(transport_log_file)):
@@ -259,6 +265,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         # Start transport
         self.transport.start(self.transport_args[0], self.transport_args[1:])
+
+    def start(self):
+        """Start client."""
+        # NOTE: DO NOT change the order in which these methods are called.
+        self.create_transport_sockets()
+        self.start_server()
+        self.start_transport()
 
         # Create notifier
         fid = self.zmq_in_socket.getsockopt(zmq.FD)
