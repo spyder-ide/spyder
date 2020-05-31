@@ -83,7 +83,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.zmq_out_socket = None
         self.zmq_in_port = None
         self.zmq_out_port = None
-        self.transport_client = None
+        self.transport = None
         self.lsp_server = None
         self.stdio_pid = None
         self.notifier = None
@@ -218,7 +218,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args = list(map(str, self.transport_args))
         logger.info('Starting transport: {0}'
                     .format(' '.join(self.transport_args)))
-        self.transport_client = QProcess(self)
+        self.transport = QProcess(self)
 
         # This allows running LSP tests directly without having to install
         # Spyder
@@ -234,34 +234,31 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         #if PY2:
         #    new_env = clean_env(new_env)
 
-        self.transport_client.setProcessEnvironment(new_env)
+        self.transport.setProcessEnvironment(new_env)
 
         # Set transport logging file
-        client_log_file = None
+        transport_log_file = None
         if get_debug_level() > 0:
-            # Client log file
-            client_log_fname = 'client_{0}_{1}.log'.format(self.language, pid)
-            client_log_file = get_conf_path(osp.join('lsp_logs',
-                                                     client_log_fname))
-            if not osp.exists(osp.dirname(client_log_file)):
-                os.makedirs(osp.dirname(client_log_file))
+            transport_log_fname = 'transport_{0}_{1}.log'.format(
+                self.language, pid)
+            transport_log_file = get_conf_path(
+                osp.join('lsp_logs', transport_log_fname))
+            if not osp.exists(osp.dirname(transport_log_file)):
+                os.makedirs(osp.dirname(transport_log_file))
 
         # Set channel properties
         if self.stdio:
             self.transport_args += self.server_args
-            self.transport_client.setProcessChannelMode(
-                QProcess.SeparateChannels)
-            if client_log_file is not None:
-                self.transport_client.setStandardErrorFile(client_log_file)
+            self.transport.setProcessChannelMode(QProcess.SeparateChannels)
+            if transport_log_file is not None:
+                self.transport.setStandardErrorFile(transport_log_file)
         else:
-            self.transport_client.setProcessChannelMode(
-                QProcess.MergedChannels)
-            if client_log_file is not None:
-                self.transport_client.setStandardOutputFile(client_log_file)
+            self.transport.setProcessChannelMode(QProcess.MergedChannels)
+            if transport_log_file is not None:
+                self.transport.setStandardOutputFile(transport_log_file)
 
         # Start transport
-        self.transport_client.start(self.transport_args[0],
-                                    self.transport_args[1:])
+        self.transport.start(self.transport_args[0], self.transport_args[1:])
 
         # Create notifier
         fid = self.zmq_in_socket.getsockopt(zmq.FD)
@@ -272,14 +269,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         logger.debug('LSP {} client started!'.format(self.language))
 
     def stop(self):
-        """Stop transport client and server."""
+        """Stop transport and server."""
         logger.info('Stopping {} client...'.format(self.language))
         if self.notifier is not None:
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
             self.notifier = None
-        if self.transport_client is not None:
-            self.transport_client.kill()
+        if self.transport is not None:
+            self.transport.kill()
         self.context.destroy()
         if self.lsp_server is not None:
             self.lsp_server.kill()
@@ -287,8 +284,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def is_transport_alive(self):
         """Detect if transport layer is alive."""
         alive = True
-        if self.transport_client is not None:
-            if self.transport_client.state() == QProcess.NotRunning:
+        if self.transport is not None:
+            if self.transport.state() == QProcess.NotRunning:
                 alive = False
 
         return alive
@@ -461,8 +458,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     @send_request(method=LSPRequestTypes.INITIALIZE)
     def initialize(self, params, *args, **kwargs):
         self.stdio_pid = params['pid']
-        pid = (self.transport_client.pid()
-               if not self.external_server else None)
+        pid = self.transport.pid() if not self.external_server else None
         params = {
             'processId': pid,
             'rootUri': pathlib.Path(osp.abspath(self.folder)).as_uri(),
