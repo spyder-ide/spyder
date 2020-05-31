@@ -328,29 +328,39 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         return alive
 
-    def send(self, method, params, kind):
-        # Detect when the transport layer is down to show a message
-        # to our users about it.
+    def is_down(self):
+        """
+        Detect if the transport layer or server are down to inform our
+        users about it.
+        """
+        is_down = False
         if not self.is_transport_alive():
             logger.debug(
                 "Transport layer for {} is down!!".format(self.language))
             if not self.transport_unresponsive:
                 self.transport_unresponsive = True
                 self.sig_lsp_down.emit(self.language)
-            return
+            is_down = True
 
         if not self.is_tcp_alive():
             logger.debug("LSP server for {} is down!!".format(self.language))
             if not self.server_unresponsive:
                 self.server_unresponsive = True
                 self.sig_lsp_down.emit(self.language)
-            return
+            is_down = True
 
         if not self.is_stdio_alive():
             logger.debug("LSP server for {} is down!!".format(self.language))
             if not self.server_unresponsive:
                 self.server_unresponsive = True
                 self.sig_lsp_down.emit(self.language)
+            is_down = True
+
+        return is_down
+
+    def send(self, method, params, kind):
+        """Send message to transport."""
+        if self.is_down():
             return
 
         if ClientConstants.CANCEL in params:
@@ -397,6 +407,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     @Slot()
     def on_msg_received(self):
+        """Process received messages."""
         self.notifier.setEnabled(False)
         while True:
             try:
