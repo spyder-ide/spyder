@@ -16,12 +16,12 @@ import logging
 import os
 import os.path as osp
 import signal
-import subprocess
 import sys
 import time
 
 # Third-party imports
-from qtpy.QtCore import QObject, QProcess, QSocketNotifier, Signal, Slot
+from qtpy.QtCore import (QObject, QProcess, QProcessEnvironment,
+                         QSocketNotifier, Signal, Slot)
 import zmq
 import psutil
 
@@ -166,7 +166,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args += ['--zmq-in-port', self.zmq_out_port,
                                 '--zmq-out-port', self.zmq_in_port]
 
-        # Create server log file in debug mode
+        # --- Set server log file
         server_log_file = None
         pid = os.getpid()
         if get_debug_level() > 0:
@@ -190,23 +190,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 elif get_debug_level() == 3:
                     self.server_args.append('-vv')
 
+        # --- Start server
         if not self.external_server:
             logger.info('Starting server: {0}'.format(
                 ' '.join(self.server_args)))
-
-            if os.environ.get('CI') and os.name == 'nt':
-                # The following patching avoids:
-                #
-                # OSError: [WinError 6] The handle is invalid
-                #
-                # while running our tests in CI services on Windows
-                # (they run fine locally).
-                # See this comment for an explanation:
-                # https://stackoverflow.com/q/43966523/
-                # 438386#comment74964124_43966523
-                def patched_cleanup():
-                    pass
-                subprocess._cleanup = patched_cleanup
 
             # Set the PyLS current working to an empty dir inside
             # our config one. This avoids the server to pick up user
@@ -227,7 +214,30 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 self.lsp_server.setStandardOutputFile(server_log_file)
             self.lsp_server.start(self.server_args[0], self.server_args[1:])
 
-        client_log = subprocess.PIPE
+        # --- Create transport
+        self.transport_args = list(map(str, self.transport_args))
+        logger.info('Starting transport: {0}'
+                    .format(' '.join(self.transport_args)))
+        self.transport_client = QProcess(self)
+
+        # This allows running LSP tests directly without having to install
+        # Spyder
+        new_env = QProcessEnvironment.systemEnvironment()
+        python_path = os.pathsep.join(sys.path)[1:]
+        if running_under_pytest():
+            new_env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
+        else:
+            new_env.insert('PYTHONPATH', python_path)
+
+        # On some CI systems there are unicode characters inside PYTHOPATH
+        # which raise errors if not removed
+        #if PY2:
+        #    new_env = clean_env(new_env)
+
+        self.transport_client.setProcessEnvironment(new_env)
+
+        # Set transport logging file
+        client_log_file = None
         if get_debug_level() > 0:
             # Client log file
             client_log_fname = 'client_{0}_{1}.log'.format(self.language, pid)
@@ -235,40 +245,25 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                                                      client_log_fname))
             if not osp.exists(osp.dirname(client_log_file)):
                 os.makedirs(osp.dirname(client_log_file))
-            client_log = open(client_log_file, 'w')
 
-        new_env = dict(os.environ)
-        python_path = os.pathsep.join(sys.path)[1:]
-        new_env['PYTHONPATH'] = python_path
-
-        # This allows running LSP tests directly without having to install
-        # Spyder
-        if running_under_pytest():
-            new_env['PYTHONPATH'] = os.pathsep.join(sys.path)[:]
-
-        # On some CI systems there are unicode characters inside PYTHOPATH
-        # which raise errors if not removed
-        if PY2:
-            new_env = clean_env(new_env)
-
-        self.transport_args = list(map(str, self.transport_args))
-        logger.info('Starting transport: {0}'
-                    .format(' '.join(self.transport_args)))
+        # Set channel properties
         if self.stdio:
-            transport_stdin = subprocess.PIPE
-            transport_stdout = subprocess.PIPE
-            transport_stderr = client_log
             self.transport_args += self.server_args
+            self.transport_client.setProcessChannelMode(
+                QProcess.SeparateChannels)
+            if client_log_file is not None:
+                self.transport_client.setStandardErrorFile(client_log_file)
         else:
-            transport_stdout = client_log
-            transport_stdin = subprocess.PIPE
-            transport_stderr = subprocess.STDOUT
-        self.transport_client = subprocess.Popen(self.transport_args,
-                                                 stdout=transport_stdout,
-                                                 stdin=transport_stdin,
-                                                 stderr=transport_stderr,
-                                                 env=new_env)
+            self.transport_client.setProcessChannelMode(
+                QProcess.MergedChannels)
+            if client_log_file is not None:
+                self.transport_client.setStandardOutputFile(client_log_file)
 
+        # Start transport
+        self.transport_client.start(self.transport_args[0],
+                                    self.transport_args[1:])
+
+        # Create notifier
         fid = self.zmq_in_socket.getsockopt(zmq.FD)
         self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
         self.notifier.activated.connect(self.on_msg_received)
@@ -277,6 +272,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         logger.debug('LSP {} client started!'.format(self.language))
 
     def stop(self):
+        """Stop transport client and server."""
         logger.info('Stopping {} client...'.format(self.language))
         if self.notifier is not None:
             self.notifier.activated.disconnect(self.on_msg_received)
@@ -292,7 +288,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         """Detect if transport layer is alive."""
         alive = True
         if self.transport_client is not None:
-            if self.transport_client.poll() is not None:
+            if self.transport_client.state() == QProcess.NotRunning:
                 alive = False
 
         return alive
@@ -465,7 +461,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     @send_request(method=LSPRequestTypes.INITIALIZE)
     def initialize(self, params, *args, **kwargs):
         self.stdio_pid = params['pid']
-        pid = self.transport_client.pid if not self.external_server else None
+        pid = (self.transport_client.pid()
+               if not self.external_server else None)
         params = {
             'processId': pid,
             'rootUri': pathlib.Path(osp.abspath(self.folder)).as_uri(),
