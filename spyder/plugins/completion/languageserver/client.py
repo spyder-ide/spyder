@@ -84,7 +84,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.zmq_in_port = None
         self.zmq_out_port = None
         self.transport = None
-        self.lsp_server = None
+        self.server = None
         self.stdio_pid = None
         self.notifier = None
         self.language = language
@@ -207,12 +207,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 cwd = None
 
             # Start server
-            self.lsp_server = QProcess(self)
-            self.lsp_server.setWorkingDirectory(cwd)
-            self.lsp_server.setProcessChannelMode(QProcess.MergedChannels)
+            self.server = QProcess(self)
+            self.server.setWorkingDirectory(cwd)
+            self.server.setProcessChannelMode(QProcess.MergedChannels)
             if server_log_file is not None:
-                self.lsp_server.setStandardOutputFile(server_log_file)
-            self.lsp_server.start(self.server_args[0], self.server_args[1:])
+                self.server.setStandardOutputFile(server_log_file)
+            self.server.start(self.server_args[0], self.server_args[1:])
 
         # --- Create transport
         self.transport_args = list(map(str, self.transport_args))
@@ -278,8 +278,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if self.transport is not None:
             self.transport.kill()
         self.context.destroy()
-        if self.lsp_server is not None:
-            self.lsp_server.kill()
+        if self.server is not None:
+            self.server.kill()
 
     def is_transport_alive(self):
         """Detect if transport layer is alive."""
@@ -309,8 +309,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def is_tcp_alive(self):
         """Detect if a tcp server is alive."""
         alive = True
-        if self.lsp_server is not None:
-            if self.lsp_server.state() == QProcess.NotRunning:
+        if self.server is not None:
+            if self.server.state() == QProcess.NotRunning:
                 alive = False
 
         return alive
