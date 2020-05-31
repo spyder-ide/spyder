@@ -150,7 +150,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             tcp_check = not instance.is_tcp_alive()
             stdio_check = not instance.is_stdio_alive()
             if (tcp_check or stdio_check or status != self.RUNNING):
-                instance.sig_lsp_down.emit(language)
+                instance.sig_down.emit(language)
 
     def set_status(self, language, status):
         """
@@ -422,7 +422,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.update_configuration)
             self.main.sig_main_interpreter_changed.connect(
                 self.update_configuration)
-            instance.sig_lsp_down.connect(self.handle_lsp_down)
+            instance.sig_down.connect(self.handle_lsp_down)
             instance.sig_initialize.connect(self.on_initialize)
 
             if self.main.editor:
