@@ -482,7 +482,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     @send_request(method=LSPRequestTypes.INITIALIZE)
     def initialize(self, params, *args, **kwargs):
         self.stdio_pid = params['pid']
-        pid = self.transport.pid() if not self.external_server else None
+        pid = self.transport.processId() if not self.external_server else None
         params = {
             'processId': pid,
             'rootUri': pathlib.Path(osp.abspath(self.folder)).as_uri(),
