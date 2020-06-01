@@ -69,8 +69,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     sig_server_error = Signal(str)
 
     #: Signal to warn the user when either the transport layer or the
-    #  server are down
-    sig_down = Signal(str)
+    #  server went down
+    sig_went_down = Signal(str)
 
     def __init__(self, parent,
                  server_settings={},
@@ -333,21 +333,21 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 "Transport layer for {} is down!!".format(self.language))
             if not self.transport_unresponsive:
                 self.transport_unresponsive = True
-                self.sig_down.emit(self.language)
+                self.sig_went_down.emit(self.language)
             is_down = True
 
         if not self.is_tcp_alive():
             logger.debug("LSP server for {} is down!!".format(self.language))
             if not self.server_unresponsive:
                 self.server_unresponsive = True
-                self.sig_down.emit(self.language)
+                self.sig_went_down.emit(self.language)
             is_down = True
 
         if not self.is_stdio_alive():
             logger.debug("LSP server for {} is down!!".format(self.language))
             if not self.server_unresponsive:
                 self.server_unresponsive = True
-                self.sig_down.emit(self.language)
+                self.sig_went_down.emit(self.language)
             is_down = True
 
         return is_down
@@ -392,7 +392,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 return int(_id)
             except zmq.error.Again:
                 if time.time() > timeout_time:
-                    self.sig_down.emit(self.language)
+                    self.sig_went_down.emit(self.language)
                     return
                 # The send queue is full! wait 0.1 seconds before retrying.
                 if self.initialized:
