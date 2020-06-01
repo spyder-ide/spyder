@@ -38,7 +38,6 @@ from spyder.plugins.completion.languageserver.transport import MessageKind
 from spyder.plugins.completion.languageserver.providers import (
     LSPMethodProviderMixIn)
 from spyder.py3compat import PY2
-from spyder.utils.environ import clean_env
 from spyder.utils.misc import getcwd_or_home, select_port
 
 # Conditional imports
@@ -234,11 +233,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             new_env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
         else:
             new_env.insert('PYTHONPATH', python_path)
-
-        # On some CI systems there are unicode characters inside PYTHOPATH
-        # which raise errors if not removed
-        #if PY2:
-        #    new_env = clean_env(new_env)
 
         self.transport.setProcessEnvironment(new_env)
 
