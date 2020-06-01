@@ -113,23 +113,18 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.clients_hearbeat[language] = None
                 self.report_lsp_down(language)
 
-            # Check if the restart was successful
-            self.check_restart(client, language, kind='tcp')
-
-    def check_restart(self, client, language, kind):
+    def check_restart(self, client, language):
         """
         Check if a server restart was successful in order to stop
         further attempts.
-
-        `kind` can only be "tcp" or "stdio".
         """
         status = client['status']
-        if kind == 'tcp':
-            check = client['instance'].is_tcp_alive()
-        elif kind == 'stdio':
-            check = client['instance'].is_stdio_alive()
-        else:
-            check = False
+        instance = client['instance']
+
+        # This check is only necessary for stdio servers
+        check = True
+        if instance.stdio:
+            check = instance.is_stdio_alive()
 
         if status == self.RUNNING and check:
             logger.info("Restart successful!")
@@ -163,15 +158,14 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """
         Update the status bar widget on client initilization.
         """
+        # Set status after the server was started correctly.
         if not self.clients_restarting.get(language, False):
             self.set_status(language, _('ready'))
 
-        # This is the only place where we can detect if restarting
-        # a stdio server was successful because its pid is updated
-        # on initialization.
+        # Set status after a restart.
         if self.clients_restarting.get(language):
             client = self.clients[language]
-            self.check_restart(client, language, kind='stdio')
+            self.check_restart(client, language)
 
     def handle_lsp_down(self, language):
         """

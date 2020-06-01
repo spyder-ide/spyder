@@ -166,6 +166,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args += ['--zmq-in-port', self.zmq_out_port,
                                 '--zmq-out-port', self.zmq_in_port]
 
+    @Slot(QProcess.ProcessError)
+    def handle_process_errors(self, error):
+        """Handle errors with the transport layer or server processes."""
+        self.sig_went_down.emit(self.language)
+
     def start_server(self):
         """Start server."""
         # This is not necessary if we're trying to connect to an
@@ -210,12 +215,15 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         else:
             cwd = None
 
-        # Start server
+        # Setup server
         self.server = QProcess(self)
+        self.server.errorOccurred.connect(self.handle_process_errors)
         self.server.setWorkingDirectory(cwd)
         self.server.setProcessChannelMode(QProcess.MergedChannels)
         if server_log_file is not None:
             self.server.setStandardOutputFile(server_log_file)
+
+        # Start server
         self.server.start(self.server_args[0], self.server_args[1:])
 
     def start_transport(self):
@@ -223,7 +231,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport_args = list(map(str, self.transport_args))
         logger.info('Starting transport: {0}'
                     .format(' '.join(self.transport_args)))
+
         self.transport = QProcess(self)
+        self.transport.errorOccurred.connect(self.handle_process_errors)
 
         # This allows running LSP tests directly without having to install
         # Spyder
