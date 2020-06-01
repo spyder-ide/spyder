@@ -332,7 +332,7 @@ def post_mortem_excepthook(type, value, tb):
         #  add ability to move between frames
         p.send_initial_notification = False
         p.reset()
-        frame = tb.tb_frame
+        frame = tb.tb_next.tb_frame
         # wait for stdout to print
         time.sleep(0.1)
         p.interaction(frame, tb)
