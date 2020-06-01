@@ -192,6 +192,7 @@ def parse_setup_extra_requires(fpath):
     return deps
 
 
+@pytest.mark.first
 def test_dependencies_for_binder_in_sync():
     """
     Binder environment yaml should be the sum of conda.txt and tests.txt
@@ -218,6 +219,7 @@ def test_dependencies_for_binder_in_sync():
     assert spyder_env == full_reqs
 
 
+@pytest.mark.first
 def test_dependencies_for_spyder_dialog_in_sync():
     """
     Spyder dependencies dialog should share deps with conda.txt.
@@ -244,6 +246,7 @@ def test_dependencies_for_spyder_dialog_in_sync():
     assert spyder_deps == spyder_reqs
 
 
+@pytest.mark.first
 def test_dependencies_for_spyder_setup_install_requires_in_sync():
     """
     Spyder setup.py should share deps with conda.txt.
@@ -267,6 +270,7 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
     assert spyder_setup == spyder_reqs
 
 
+@pytest.mark.first
 def test_dependencies_for_spyder_setup_extras_requires_in_sync():
     """
     Spyder setup.py extra_requires should share deps with tests.txt.

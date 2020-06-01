@@ -25,7 +25,7 @@ dependencies:
 - psutil >=5.3
 - pygments >=2.0
 - pylint >=1.0
-- pyqt <5.13
+- pyqt <=5.14
 - pyyaml
 - python-language-server >=0.31.9,<0.32.0
 - pyxdg >=0.26
