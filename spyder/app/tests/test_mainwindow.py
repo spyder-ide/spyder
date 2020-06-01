@@ -290,7 +290,7 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     # Test single instance
     with qtbot.waitSignal(shell.executed, timeout=2000):
         shell.execute(lock_code)
-    assert not shell.get_value('lock_created')
+    assert shell.get_value('lock_created')
 
     # Test %edit magic
     n_editors = editorstack.get_stack_count()
