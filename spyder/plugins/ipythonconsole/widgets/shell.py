@@ -258,10 +258,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.silent_execute("%colors lightbg")
             self.call_kernel().set_sympy_forecolor(background_color='light')
 
-    def set_show_calltips(self, show_calltips):
-        """Enable/Disable showing calltips."""
-        print(self.enable_calltips)
-
     def update_syspath(self, path_dict, new_path_dict):
         """Update sys.path contents on kernel."""
         self.call_kernel(
@@ -303,6 +299,14 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Set matplotlib inline print figure bbox_inches ('tight' or not)."""
         self.call_kernel(
             interrupt=True).set_mpl_inline_bbox_inches(bbox_inches)
+
+    def set_jedi_completer(self, use_jedi):
+        """Set if jedi completions should be used."""
+        self.call_kernel(interrupt=True).set_jedi_completer(use_jedi)
+
+    def set_greedy_completer(self, use_greedy):
+        """Set if greedy completions should be used."""
+        self.call_kernel(interrupt=True).set_greedy_completer(use_jedi)
 
     # --- To handle the banner
     def long_banner(self):

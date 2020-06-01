@@ -179,13 +179,9 @@ class IPythonConsole(SpyderPluginWidget):
         show_time_n = 'show_elapsed_time'
         reset_namespace_n = 'show_reset_namespace_warning'
         ask_before_restart_n = 'ask_before_restart'
-        # use_pager_n = 'use_pager'
-        # use_pager_o = self.get_option(use_pager_n)
+        use_pager_n = 'use_pager'
         show_calltips_n = 'show_calltips'
-        # ask_before_closing_n = 'ask_before_closing'
-        # ask_before_closing_o = self.get_option(ask_before_closing_n)
-        # buffer_size_n = 'buffer_size'
-        # buffer_size_o = self.get_option(buffer_size_n)
+        buffer_size_n = 'buffer_size'
 
         # Matplotlib options
         pylab_n = 'pylab'
@@ -198,10 +194,13 @@ class IPythonConsole(SpyderPluginWidget):
         inline_backend_height_n = 'pylab/inline/height'
         inline_backend_bbox_inches_n = 'pylab/inline/bbox_inches'
 
-        # Startup options
+        # Startup options (need restart)
         run_lines_n = 'startup/run_lines'
         use_run_file_n = 'startup/use_run_file'
-        runt_file_n = 'startup/run_file'
+        run_file_n = 'startup/run_file'
+        startup_options = [run_lines_n, use_run_file_n, run_file_n]
+
+        # Advanced options
         greedy_completer_n = 'greedy_completer'
         jedi_completer_n = 'jedi_completer'
         autocall_n = 'autocall'
@@ -234,6 +233,19 @@ class IPythonConsole(SpyderPluginWidget):
             if show_calltips_n in options:
                 show_calltips_o = self.get_option(show_calltips_n)
                 client.set_show_calltips(show_calltips_o)
+            if use_pager_n in options:
+                use_pager_o = self.get_option(use_pager_n)
+                client.set_use_pager(use_pager_o)
+            if buffer_size_n in options:
+                buffer_size_o = self.get_option(buffer_size_n)
+                client.set_buffer_size(buffer_size_o)
+            # Advanced GUI options
+            if in_prompt_n in options:
+                in_prompt_o = self.get_option(in_prompt_n)
+                client.set_in_prompt(in_prompt_o)
+            if out_prompt_n in options:
+                out_prompt_o = self.get_option(out_prompt_n)
+                client.set_out_prompt(out_prompt_o)
 
             # Matplotlib support options
             if (pylab_o and
@@ -268,6 +280,16 @@ class IPythonConsole(SpyderPluginWidget):
                         inline_backend_bbox_inches_o)
 
             # Startup options
+            if any(startup_option in options
+                   for startup_option in startup_options):
+                run_lines_o = self.get_option(run_lines_n)
+                client.set_run_lines(run_lines_o)
+
+            # Advanced options
+            if greedy_completer_n in options:
+                jedi_completer_n = 'jedi_completer'
+                autocall_n = 'autocall'
+                symbolic_math_n = 'symbolic_math'
 
     def toggle_view(self, checked):
         """Toggle view"""
