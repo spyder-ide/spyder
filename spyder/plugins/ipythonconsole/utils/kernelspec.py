@@ -106,7 +106,7 @@ class SpyderKernelSpec(KernelSpec):
             # the activation scripts at spyder/plugins/ipythonconsole/scripts/
             kernel_cmd = [
                 get_activation_script(),  # This is bundled with Spyder
-                get_conda_activation_script(),
+                get_conda_activation_script(pyexec),
                 get_conda_env_path(pyexec),  # Might be external
                 pyexec,
                 '{connection_file}',
@@ -141,10 +141,6 @@ class SpyderKernelSpec(KernelSpec):
                 pathlist = [subrepo_path]
             else:
                 pathlist += [subrepo_path] + pathlist
-
-        # Create PYTHONPATH env entry to add it to the kernel
-        pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
-                                            drop_env=False)
 
         # Environment variables that we need to pass to our sitecustomize
         umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
@@ -201,7 +197,19 @@ class SpyderKernelSpec(KernelSpec):
             env_vars['SPY_SYMPY_O'] = False
             env_vars['SPY_RUN_CYTHON'] = True
 
+        # internal interpreter and external interpreter have mutually exclusive
+        # settings
+        if default_interpreter and os.environ.get('PYTHONHOME'):
+            # default interpreter should keep PYTHONHOME
+            env_vars.update({'PYTHONHOME': os.environ.get('PYTHONHOME')})
+        elif not default_interpreter and os.environ.get('HOME'):
+            # Add HOME to env_vars
+            env_vars.update({'HOME': os.environ.get('HOME')})
+
         # Add our PYTHONPATH to env_vars
+        # spyder env python should be omitted in kernels
+        pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
+                                            drop_env=True)
         env_vars.update(pypath)
 
         # Making all env_vars strings
