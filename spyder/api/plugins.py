@@ -1411,7 +1411,7 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         # TODO: Check widget class
         # TODO: Check existence
         status_bar = self._main.statusBar()
-        status_bar.addWidget(widget)
+        status_bar.insertPermanentWidget(0, widget)
         self._main._STATUS_WIDGETS[name] = widget
 
     def get_application_status_widget(self, name):

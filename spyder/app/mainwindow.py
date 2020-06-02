@@ -199,10 +199,11 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     MENU_SEPARATOR, set_menu_icons)
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
+from spyder.app.solver import find_external_plugins, solve_plugin_dependencies
 
 # Spyder API Imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderDockablePlugin
 
 #==============================================================================
 # Third-party library imports
@@ -1132,6 +1133,8 @@ class MainWindow(QMainWindow):
         self.console.set_exit_function(self.closing)
         self.register_plugin(self.console)
 
+        # TODO: Load and register the rest of the plugins using new API
+
         # Code completion client initialization
         self.set_splash(_("Starting code completion manager..."))
         from spyder.plugins.completion.plugin import CompletionManager
@@ -1307,6 +1310,21 @@ class MainWindow(QMainWindow):
             except Exception as error:
                 print("%s: %s" % (mod, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
+
+        # New API: Load and register external plugins
+        external_plugins = find_external_plugins()
+        plugin_deps = solve_plugin_dependencies(external_plugins.values())
+        for plugin_class in plugin_deps:
+            if issubclass(plugin_class, SpyderPluginV2):
+                try:
+                    plugin_instance = plugin_class(
+                        self,
+                        configuration=CONF,
+                    )
+                    self.register_plugin(plugin_instance)
+                except Exception as error:
+                    print("%s: %s" % (plugin_class, str(error)), file=STDERR)
+                    traceback.print_exc(file=STDERR)
 
         self.set_splash(_("Setting up main window..."))
 

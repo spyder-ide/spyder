@@ -199,7 +199,7 @@ DESCRIPTIONS = [
     {'modname': "watchdog",
      'package_name': "watchdog",
      'features': _("Watch file changes on project directories"),
-     'required_version': WATCHDOG_REQVER}
+     'required_version': WATCHDOG_REQVER},
 ]
 
 
