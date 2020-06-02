@@ -235,16 +235,15 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport = QProcess(self)
         self.transport.errorOccurred.connect(self.handle_process_errors)
 
-        # This allows running LSP tests directly without having to install
-        # Spyder
-        new_env = QProcessEnvironment.systemEnvironment()
-        python_path = os.pathsep.join(sys.path)[1:]
-        if running_under_pytest():
-            new_env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
-        else:
-            new_env.insert('PYTHONPATH', python_path)
-
-        self.transport.setProcessEnvironment(new_env)
+        # Modifying PYTHONPATH to run transport in development mode or
+        # tests
+        if DEV or running_under_pytest():
+            env = QProcessEnvironment()
+            if running_under_pytest():
+                env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
+            else:
+                env.insert('PYTHONPATH', os.pathsep.join(sys.path)[1:])
+            self.transport.setProcessEnvironment(env)
 
         # Set transport log file
         transport_log_file = None
