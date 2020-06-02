@@ -332,7 +332,7 @@ def post_mortem_excepthook(type, value, tb):
         #  add ability to move between frames
         p.send_initial_notification = False
         p.reset()
-        frame = tb.tb_frame
+        frame = tb.tb_next.tb_frame
         # wait for stdout to print
         time.sleep(0.1)
         p.interaction(frame, tb)
@@ -440,7 +440,7 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
             ipython_shell.kernel._pdb_obj = None
         elif post_mortem and isinstance(error, Exception):
             error_type, error, tb = sys.exc_info()
-            post_mortem_excepthook(error_type, error, tb.tb_next)
+            post_mortem_excepthook(error_type, error, tb)
         else:
             # We ignore the call to exec
             ipython_shell.showtraceback(tb_offset=1)
