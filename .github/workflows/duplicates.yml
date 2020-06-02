@@ -55,7 +55,7 @@ jobs:
              },
              {
                "pattern": "psutil.NoSuchProcess: psutil.NoSuchProcess process no longer exists",
-               "reply": "Duplicate of #11872. It will be fixed in our next version (4.1.2)",
+               "reply": "This issue is a duplicate of #11872 and fixed in our latest Spyder 4 version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=4.1.*`",
                "labels": ["resolution:Duplicate"],
                "close": true
              },
