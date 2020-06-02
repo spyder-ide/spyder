@@ -27,8 +27,13 @@ try:
 except:
     pass
 
-# Local imports
+# Start Spyder with a clean configuration directory for testing purposes
 from spyder.app.cli_options import get_options
+CLI_OPTIONS, CLI_ARGS = get_options()
+if CLI_OPTIONS.safe_mode:
+    os.environ['SPYDER_SAFE_MODE'] = 'True'
+
+# Local imports
 from spyder.config.base import (get_conf_path, running_in_mac_app,
                                 running_under_pytest)
 from spyder.config.manager import CONF
@@ -73,20 +78,7 @@ def main():
     options to the application.
     """
     # Parse command line options
-    if running_under_pytest():
-        try:
-            from unittest.mock import Mock
-        except ImportError:
-            from mock import Mock # Python 2
-
-        options = Mock()
-        options.new_instance = False
-        options.reset_config_files = False
-        options.debug_info = None
-        options.paths = False
-        args = None
-    else:
-        options, args = get_options()
+    options, args = (CLI_OPTIONS, CLI_ARGS)
 
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])

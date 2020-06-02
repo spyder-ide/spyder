@@ -23,6 +23,7 @@ import re
 import shutil
 import sys
 import tempfile
+import uuid
 import warnings
 
 # Local imports
@@ -41,9 +42,13 @@ DEV = os.environ.get('SPYDER_DEV')
 # Manually override whether the dev configuration directory is used.
 USE_DEV_CONFIG_DIR = os.environ.get('SPYDER_USE_DEV_CONFIG_DIR')
 
-# Make Spyder use a temp clean configuration directory for testing purposes
-# SPYDER_SAFE_MODE can be set using the --safe-mode option of bootstrap.py
-SAFE_MODE = os.environ.get('SPYDER_SAFE_MODE')
+
+def get_safe_mode():
+    """
+    Make Spyder use a temp clean configuration directory for testing
+    purposes SPYDER_SAFE_MODE can be set using the --safe-mode option.
+    """
+    return bool(os.environ.get('SPYDER_SAFE_MODE'))
 
 
 def running_under_pytest():
@@ -184,13 +189,9 @@ def get_clean_conf_dir():
     """
     Return the path to a temp clean configuration dir, for tests and safe mode.
     """
-    if sys.platform.startswith("win"):
-        current_user = ''
-    else:
-        current_user = '-' + str(getpass.getuser())
-
+    hash_id = str(uuid.uuid4()).split('-')[-1]
     conf_dir = osp.join(str(tempfile.gettempdir()),
-                        'pytest-spyder{0!s}'.format(current_user),
+                        'spyder{0!s}'.format(hash_id),
                         get_conf_subfolder())
     return conf_dir
 
@@ -198,7 +199,7 @@ def get_clean_conf_dir():
 def get_conf_path(filename=None):
     """Return absolute path to the config file with the specified filename."""
     # Define conf_dir
-    if running_under_pytest() or SAFE_MODE:
+    if running_under_pytest() or get_safe_mode():
         # Use clean config dir if running tests or the user requests it.
         conf_dir = get_clean_conf_dir()
     elif sys.platform.startswith('linux'):
@@ -217,7 +218,7 @@ def get_conf_path(filename=None):
 
     # Create conf_dir
     if not osp.isdir(conf_dir):
-        if running_under_pytest() or SAFE_MODE:
+        if running_under_pytest() or get_safe_mode():
             os.makedirs(conf_dir)
         else:
             os.mkdir(conf_dir)
