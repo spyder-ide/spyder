@@ -168,6 +168,8 @@ class FoldingPanel(Panel):
         self.action_collapse_all = None
         self.action_expand_all = None
         self._original_background = None
+        self._display_folding = False
+        self._key_pressed = False
         self._highlight_runner = DelayJobRunner(delay=250)
         self.folding_regions = {}
         self.folding_status = {}
@@ -247,6 +249,8 @@ class FoldingPanel(Panel):
         # Paints the fold indicators and the possible fold region background
         # on the folding panel.
         super(FoldingPanel, self).paintEvent(event)
+        if not self._display_folding and not self._key_pressed:
+            return
         painter = QPainter(self)
         # Draw background over the selected non collapsed fold region
         if self._mouse_over_line is not None:
@@ -503,6 +507,10 @@ class FoldingPanel(Panel):
                 QApplication.restoreOverrideCursor()
             self.repaint()
 
+    def enterEvent(self, event):
+        self._display_folding = True
+        self.repaint()
+
     def leaveEvent(self, event):
         """
         Removes scope decorations and background from the editor and the panel
@@ -520,6 +528,7 @@ class FoldingPanel(Panel):
             self._block_nbr = -1
             self._highlight_caret_scope()
         self.editor.repaint()
+        self._display_folding = False
 
     def _add_fold_decoration(self, block, end_line):
         """
@@ -631,6 +640,7 @@ class FoldingPanel(Panel):
                                          Qt.Key_Delete]
         if event.text() or delete_request:
             cursor = self.editor.textCursor()
+            self._key_pressed = True
             if cursor.hasSelection():
                 # change selection to encompass the whole scope.
                 positions_to_check = cursor.selectionStart(), cursor.selectionEnd()
@@ -658,6 +668,7 @@ class FoldingPanel(Panel):
                         self.editor.setTextCursor(tc)
                         self.folding_regions.pop(start_line)
                         self.folding_status.pop(start_line)
+            self._key_pressed = False
 
     @staticmethod
     def _show_previous_blank_lines(block):
