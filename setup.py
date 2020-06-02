@@ -205,6 +205,7 @@ install_requires = [
     'atomicwrites>=1.2.0',
     'chardet>=2.0.0',
     'cloudpickle>=0.5.0',
+    'cookiecutter>=1.6.0',
     'diff-match-patch>=20181111',
     'intervaltree',
     'ipython>=4.0',

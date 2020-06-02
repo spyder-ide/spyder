@@ -49,7 +49,7 @@ $ workon spyder-dev
 After you have created your development environment, you need to install Spyder's necessary dependencies. The easiest way to do so (with Anaconda) is
 
 ```bash
-$ conda install -c spyder-ide --file requirements/conda.txt
+$ conda install -c spyder-ide/label/alpha --file requirements/conda.txt
 ```
 
 This installs all Spyder's dependencies into the environment.
