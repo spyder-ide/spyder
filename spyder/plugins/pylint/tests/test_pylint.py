@@ -86,12 +86,7 @@ def pylint_test_script(pylintrc_search_paths):
     with open(script_path, mode="w",
               encoding="utf-8", newline="\n") as script_file:
         script_file.write(PYLINT_TEST_SCRIPT)
-    return script_path
 
-
-@pytest.fixture
-def pylint_test_scripts(pylintrc_search_paths):
-    """Write a script for testing Pylint to a temporary directory."""
     script_path_1 = osp.join(
         pylintrc_search_paths[SCRIPT_DIR], "test_script_1.py")
     with open(script_path_1, mode="w",
@@ -103,7 +98,7 @@ def pylint_test_scripts(pylintrc_search_paths):
     with open(script_path_2, mode="w",
               encoding="utf-8", newline="\n") as script_file:
         script_file.write(PYLINT_TEST_SCRIPT)
-    return script_path_1, script_path_2
+    return script_path, script_path_1, script_path_2
 
 
 @pytest.fixture(
@@ -160,6 +155,7 @@ def test_pylint_widget_noproject(pylint_test_script, mocker, qtbot):
         return_value=None)
     pylint_sw = Pylint(parent=main_window)
     pylint_widget = PylintWidget(parent=pylint_sw)
+    pylint_test_script, _, _ = pylint_test_script
     pylint_widget.analyze(filename=pylint_test_script)
     qtbot.waitUntil(
         lambda: pylint_widget.get_data(pylint_test_script)[1] is not None,
@@ -187,6 +183,8 @@ def test_pylint_widget_pylintrc(
         return_value=search_paths[PROJECT_DIR])
     pylint_sw = Pylint(parent=main_window)
 
+    pylint_test_script, _, _ = pylint_test_script
+
     pylint_widget = PylintWidget(parent=pylint_sw)
     pylint_widget.analyze(filename=pylint_test_script)
     qtbot.waitUntil(
@@ -202,8 +200,7 @@ def test_pylint_widget_pylintrc(
                 for bad_name in bad_names])
 
 
-def test_pylint_max_history_conf(
-    pylint_test_script, pylint_test_scripts, mocker, qtbot):
+def test_pylint_max_history_conf(pylint_test_script, mocker, qtbot):
     """Regression test for checking max_entries configuration.
 
     For further information see spyder-ide/spyder#12884
@@ -216,23 +213,33 @@ def test_pylint_max_history_conf(
     pylint_widget = PylintWidget(parent=pylint_sw)
     pylint_widget.filecombo.clear()
 
+    script_0, script_1, script_2 = pylint_test_script
+
     # Change the max_entry to 2
     pylint_widget.parent.set_option('max_entries', 2)
+    pylint_widget.change_history_limit(2)
     assert pylint_widget.parent.get_option('max_entries') == 2
 
     # Call to set_filename
-    pylint_widget.set_filename(filename=pylint_test_script)
+    pylint_widget.set_filename(filename=script_0)
     assert pylint_widget.filecombo.count() == 1
 
     # Add to more filenames
-    script_1, script_2 = pylint_test_scripts
     pylint_widget.set_filename(filename=script_1)
     pylint_widget.set_filename(filename=script_2)
 
     assert pylint_widget.filecombo.count() == 2
 
-    assert 'test_script_1.py' in pylint_widget.curr_filenames[0]
-    assert 'test_script_2.py' in pylint_widget.curr_filenames[1]
+    assert 'test_script.py' in pylint_widget.curr_filenames[0]
+    assert 'test_script_1.py' in pylint_widget.curr_filenames[1]
+
+    # Change the max entry to 1
+    pylint_widget.parent.set_option('max_entries', 1)
+    pylint_widget.change_history_limit(1)
+
+    assert pylint_widget.filecombo.count() == 1
+
+    assert 'test_script.py' in pylint_widget.curr_filenames[0]
 
 
 if __name__ == "__main__":
