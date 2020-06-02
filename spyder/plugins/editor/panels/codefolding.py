@@ -252,7 +252,8 @@ class FoldingPanel(Panel):
         painter = QPainter(self)
         if not self._display_folding and not self._key_pressed:
             if any(self.folding_status.values()):
-                for top_position, line_number, block in self.editor.visible_blocks:
+                for info in self.editor.visible_blocks:
+                    top_position, line_number, block = info
                     if line_number in self.folding_regions:
                         collapsed = self.folding_status[line_number]
                         line_end = self.folding_regions[line_number]
@@ -260,12 +261,13 @@ class FoldingPanel(Panel):
                         if collapsed:
                             self._draw_fold_indicator(
                                 top_position, mouse_over, collapsed, painter)
-                            # check if the block already has a decoration, it might
-                            # have been folded by the parent editor/document in the
-                            # case of cloned editor
+                            # check if the block already has a decoration,
+                            # it might have been folded by the parent
+                            # editor/document in the case of cloned editor
                             for deco in self._block_decos:
                                 if deco.block == block:
-                                    # no need to add a deco, just go to the next block
+                                    # no need to add a deco, just go to the
+                                    # next block
                                     break
                             else:
                                 self._add_fold_decoration(block, line_end)
