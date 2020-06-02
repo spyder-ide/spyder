@@ -29,7 +29,7 @@ import psutil
 from spyder.config.base import (DEV, get_conf_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.completion.languageserver import (
-    CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
+    CLIENT_CAPABILITES, SERVER_CAPABILITES,
     TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
     ClientConstants)
 from spyder.plugins.completion.languageserver.decorators import (
@@ -53,6 +53,10 @@ PENDING = 'pending'
 SERVER_READY = 'server_ready'
 LOCALHOST = '127.0.0.1'
 
+# Language server communication verbosity at server logs.
+TRACE = 'messages'
+if DEV:
+    TRACE = 'verbose'
 
 logger = logging.getLogger(__name__)
 
