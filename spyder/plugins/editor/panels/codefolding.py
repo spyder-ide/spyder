@@ -249,9 +249,27 @@ class FoldingPanel(Panel):
         # Paints the fold indicators and the possible fold region background
         # on the folding panel.
         super(FoldingPanel, self).paintEvent(event)
-        if not self._display_folding and not self._key_pressed:
-            return
         painter = QPainter(self)
+        if not self._display_folding and not self._key_pressed:
+            if any(self.folding_status.values()):
+                for top_position, line_number, block in self.editor.visible_blocks:
+                    if line_number in self.folding_regions:
+                        collapsed = self.folding_status[line_number]
+                        line_end = self.folding_regions[line_number]
+                        mouse_over = self._mouse_over_line == line_number
+                        if collapsed:
+                            self._draw_fold_indicator(
+                                top_position, mouse_over, collapsed, painter)
+                            # check if the block already has a decoration, it might
+                            # have been folded by the parent editor/document in the
+                            # case of cloned editor
+                            for deco in self._block_decos:
+                                if deco.block == block:
+                                    # no need to add a deco, just go to the next block
+                                    break
+                            else:
+                                self._add_fold_decoration(block, line_end)
+            return
         # Draw background over the selected non collapsed fold region
         if self._mouse_over_line is not None:
             block = self.editor.document().findBlockByNumber(
