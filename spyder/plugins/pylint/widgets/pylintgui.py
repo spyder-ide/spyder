@@ -184,6 +184,7 @@ class PylintWidget(QWidget):
                 pass
 
         self.filecombo = PythonModulesComboBox(self)
+        self.filecombo.setInsertPolicy(self.filecombo.InsertAtTop)
 
         self.start_button = create_toolbutton(self, icon=ima.icon('run'),
                                     text=_("Analyze"),
@@ -238,7 +239,7 @@ class PylintWidget(QWidget):
 
         if self.rdata:
             self.remove_obsolete_items()
-            self.filecombo.addItems(self.get_filenames())
+            self.filecombo.insertItems(0, self.get_filenames())
             self.start_button.setEnabled(self.filecombo.is_valid())
         else:
             self.start_button.setEnabled(False)
@@ -261,22 +262,34 @@ class PylintWidget(QWidget):
         index, _data = self.get_data(filename)
         if filename not in self.curr_filenames:
             if index is None:
-                self.filecombo.addItem(filename)
-                self.filecombo.setCurrentIndex(self.filecombo.count()-1)
+                self.filecombo.insertItem(0, filename)
+                self.filecombo.setCurrentIndex(0)
             else:
                 self.filecombo.setCurrentIndex(
                     self.filecombo.findText(filename))
             self.curr_filenames.append(filename)
 
             is_parent = self.parent is not None
-            if is_parent and (self.filecombo.count() >
-                    self.parent.get_option('max_entries')):
-                self.filecombo.removeItem(0)
-                self.curr_filenames.pop(0)
+            num_elements = self.filecombo.count()
+            if is_parent and (num_elements >
+                              self.parent.get_option('max_entries')):
+                self.filecombo.removeItem(num_elements - 1)
+                self.curr_filenames.pop(num_elements - 1)
             self.filecombo.selected()
         else:
             self.filecombo.setCurrentIndex(
                 self.filecombo.findText(filename))
+
+    def change_history_limit(self, new_limit):
+        """Change the number of files listed in the history combobox."""
+        if self.filecombo.count() > new_limit:
+            num_elements = self.filecombo.count()
+            diff = num_elements - new_limit
+            for i in range(diff):
+                num_elements = self.filecombo.count()
+                self.filecombo.removeItem(num_elements - 1)
+                self.curr_filenames.pop(num_elements - 1)
+            self.filecombo.selected()
 
     def analyze(self, filename=None):
         """

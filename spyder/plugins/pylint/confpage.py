@@ -16,6 +16,11 @@ from spyder.config.base import _
 from spyder.plugins.pylint.widgets.pylintgui import PylintWidget
 
 
+MIN_HISTORY_ENTRIES = 5
+MAX_HISTORY_ENTRIES = 100
+DEFAULT_HISTORY_ENTRIES = 30
+
+
 class PylintConfigPage(PluginConfigPage):
     def setup_page(self):
         settings_group = QGroupBox(_("Settings"))
@@ -28,8 +33,8 @@ class PylintConfigPage(PluginConfigPage):
         hist_label1.setWordWrap(True)
         hist_spin = self.create_spinbox(
             _("History: "),
-            _(" results"), 'max_entries', default=20,
-            min_=5, max_=20, step=1)
+            _(" results"), 'max_entries', default=DEFAULT_HISTORY_ENTRIES,
+            min_=MIN_HISTORY_ENTRIES, max_=MAX_HISTORY_ENTRIES, step=1)
 
         results_group = QGroupBox(_("Results"))
         results_label1 = QLabel(_("Results are stored here:"))
