@@ -299,37 +299,33 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     def is_transport_alive(self):
         """Detect if transport layer is alive."""
-        alive = True
-        if self.transport is not None:
-            if self.transport.state() == QProcess.NotRunning:
-                alive = False
-
-        return alive
+        state = self.transport.state()
+        if state == QProcess.Starting:
+            return True
+        else:
+            return state != QProcess.NotRunning
 
     def is_stdio_alive(self):
         """Check if an stdio server is alive."""
         alive = True
-        if self.stdio_pid is not None:
-            if not psutil.pid_exists(self.stdio_pid):
+        if not psutil.pid_exists(self.stdio_pid):
+            alive = False
+        else:
+            try:
+                pid_status = psutil.Process(self.stdio_pid).status()
+            except psutil.NoSuchProcess:
+                pid_status = ''
+            if pid_status == psutil.STATUS_ZOMBIE:
                 alive = False
-            else:
-                try:
-                    pid_status = psutil.Process(self.stdio_pid).status()
-                except psutil.NoSuchProcess:
-                    pid_status = ''
-                if pid_status == psutil.STATUS_ZOMBIE:
-                    alive = False
-
         return alive
 
-    def is_tcp_alive(self):
+    def is_server_alive(self):
         """Detect if a tcp server is alive."""
-        alive = True
-        if self.server is not None:
-            if self.server.state() == QProcess.NotRunning:
-                alive = False
-
-        return alive
+        state = self.server.state()
+        if state == QProcess.Starting:
+            return True
+        else:
+            return state != QProcess.NotRunning
 
     def is_down(self):
         """
@@ -337,7 +333,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         users about it.
         """
         is_down = False
-        if not self.is_transport_alive():
+        if self.transport and not self.is_transport_alive():
             logger.debug(
                 "Transport layer for {} is down!!".format(self.language))
             if not self.transport_unresponsive:
@@ -345,14 +341,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 self.sig_went_down.emit(self.language)
             is_down = True
 
-        if not self.is_tcp_alive():
+        if self.server and not self.is_server_alive():
             logger.debug("LSP server for {} is down!!".format(self.language))
             if not self.server_unresponsive:
                 self.server_unresponsive = True
                 self.sig_went_down.emit(self.language)
             is_down = True
 
-        if not self.is_stdio_alive():
+        if self.stdio_pid and not self.is_stdio_alive():
             logger.debug("LSP server for {} is down!!".format(self.language))
             if not self.server_unresponsive:
                 self.server_unresponsive = True

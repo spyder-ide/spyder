@@ -123,7 +123,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
         # This check is only necessary for stdio servers
         check = True
-        if instance.stdio:
+        if instance.stdio_pid:
             check = instance.is_stdio_alive()
 
         if status == self.RUNNING and check:
@@ -142,9 +142,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         status = client['status']
         instance = client.get('instance', None)
         if instance is not None:
-            tcp_check = not instance.is_tcp_alive()
-            stdio_check = not instance.is_stdio_alive()
-            if (tcp_check or stdio_check or status != self.RUNNING):
+            if instance.is_down() or status != self.RUNNING:
                 instance.sig_went_down.emit(language)
 
     def set_status(self, language, status):
