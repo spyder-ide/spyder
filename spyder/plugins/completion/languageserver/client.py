@@ -304,10 +304,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def is_transport_alive(self):
         """Detect if transport layer is alive."""
         state = self.transport.state()
-        if state == QProcess.Starting:
-            return True
-        else:
-            return state != QProcess.NotRunning
+        return state != QProcess.NotRunning
 
     def is_stdio_alive(self):
         """Check if an stdio server is alive."""
@@ -326,10 +323,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def is_server_alive(self):
         """Detect if a tcp server is alive."""
         state = self.server.state()
-        if state == QProcess.Starting:
-            return True
-        else:
-            return state != QProcess.NotRunning
+        return state != QProcess.NotRunning
 
     def is_down(self):
         """
