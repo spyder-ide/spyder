@@ -11,15 +11,18 @@ Spyder kernel for Jupyter.
 """
 
 # Standard library imports
+from distutils.version import LooseVersion
 import os
 import sys
 
 # Third-party imports
+import ipykernel
 from ipykernel.ipkernel import IPythonKernel
 
 # Local imports
+from spyder_kernels.py3compat import TEXT_TYPES
 from spyder_kernels.comms.frontendcomm import FrontendComm
-
+from spyder_kernels.utils.misc import MPL_BACKENDS, INLINE_FIGURE_FORMATS
 
 # Excluded variables from the Variable Explorer (i.e. they are not
 # shown at all there)
@@ -60,7 +63,15 @@ class SpyderKernel(IPythonKernel):
             'set_sympy_forecolor': self.set_sympy_forecolor,
             'set_pdb_echo_code': self.set_pdb_echo_code,
             'update_syspath': self.update_syspath,
-            'is_special_kernel_valid': self.is_special_kernel_valid
+            'is_special_kernel_valid': self.is_special_kernel_valid,
+            'set_matplotlib_backend': self.set_matplotlib_backend,
+            'set_mpl_inline_figure_format': self.set_mpl_inline_figure_format,
+            'set_mpl_inline_resolution': self.set_mpl_inline_resolution,
+            'set_mpl_inline_figure_size': self.set_mpl_inline_figure_size,
+            'set_mpl_inline_bbox_inches': self.set_mpl_inline_bbox_inches,
+            'set_jedi_completer': self.set_jedi_completer,
+            'set_greedy_completer': self.set_greedy_completer,
+            'set_autocall': self.set_autocall
             }
         for call_id in handlers:
             self.frontend_comm.register_call_handler(
@@ -361,6 +372,63 @@ class SpyderKernel(IPythonKernel):
         if valid:
             return getsource(obj)
 
+    # -- For Matplolib
+    def set_matplotlib_backend(self, backend, pylab=False):
+        """Set matplotlib backend given a Spyder backend option."""
+        mpl_backend = MPL_BACKENDS[backend]
+        self._set_mpl_backend(mpl_backend, pylab=pylab)
+
+    def set_mpl_inline_figure_format(self, figure_format):
+        """Set the inline figure format to use with matplotlib."""
+        mpl_figure_format = INLINE_FIGURE_FORMATS[figure_format]
+        self._set_config_option(
+            'InlineBackend.figure_format', mpl_figure_format)
+
+    def set_mpl_inline_resolution(self, resolution):
+        """Set inline figure resolution."""
+        if LooseVersion(ipykernel.__version__) < LooseVersion('4.5'):
+            option = 'savefig.dpi'
+        else:
+            option = 'figure.dpi'
+        self._set_mpl_inline_rc_config(option, resolution)
+
+    def set_mpl_inline_figure_size(self, width, height):
+        """Set inline figure size."""
+        value = (width, height)
+        self._set_mpl_inline_rc_config('figure.figsize', value)
+
+    def set_mpl_inline_bbox_inches(self, bbox_inches):
+        """
+        Set inline print figure bbox inches.
+
+        The change is done by updating the ´rint_figure_kwargs' config dict.
+        """
+        from IPython.core.getipython import get_ipython
+        config = get_ipython().kernel.config
+        inline_config = (
+            config['InlineBackend'] if 'InlineBackend' in config else {})
+        print_figure_kwargs = (
+            inline_config['print_figure_kwargs']
+            if 'print_figure_kwargs' in inline_config else {})
+        bbox_inches_dict = {
+            'bbox_inches': 'tight' if bbox_inches else None}
+        print_figure_kwargs.update(bbox_inches_dict)
+        self._set_config_option(
+            'InlineBackend.print_figure_kwargs', print_figure_kwargs)
+
+    # -- For completions
+    def set_jedi_completer(self, use_jedi):
+        """Enable/Disable jedi as the completer for the kernel."""
+        self._set_config_option('IPCompleter.use_jedi', use_jedi)
+
+    def set_greedy_completer(self, use_greedy):
+        """Enable/Disable greedy completer for the kernel."""
+        self._set_config_option('IPCompleter.greedy', use_greedy)
+
+    def set_autocall(self, autocall):
+        """Enable/Disable autocall funtionality."""
+        self._set_config_option('ZMQInteractiveShell.autocall', autocall)
+
     # --- Additional methods
     def set_cwd(self, dirname):
         """Set current working directory."""
@@ -550,6 +618,8 @@ class SpyderKernel(IPythonKernel):
 
         backend: A parameter that can be passed to %matplotlib
                  (e.g. 'inline' or 'tk').
+        pylab: Is the pylab magic should be used in order to populate the
+               namespace from numpy and matplotlib
         """
         import traceback
         from IPython.core.getipython import get_ipython
@@ -591,6 +661,33 @@ class SpyderKernel(IPythonKernel):
             error = generic_error.format(traceback.format_exc())
 
         self._mpl_backend_error = error
+
+    def _set_config_option(self, option, value):
+        """
+        Set config options using the %config magic.
+
+        As parameters:
+            option: config option, for example 'InlineBackend.figure_format'.
+            value: value of the option, for example 'SVG', 'Retina', etc.
+        """
+        from IPython.core.getipython import get_ipython
+        try:
+            base_config = "{option} = "
+            value_line = (
+                "'{value}'" if isinstance(value, TEXT_TYPES) else "{value}")
+            config_line = base_config + value_line
+            get_ipython().run_line_magic(
+                'config',
+                config_line.format(option=option, value=value))
+        except Exception:
+            pass
+
+    def _set_mpl_inline_rc_config(self, option, value):
+        """
+        Update any of the Matplolib rcParams given an option and value.
+        """
+        from matplotlib import rcParams
+        rcParams[option] = value
 
     def show_mpl_backend_errors(self):
         """Show Matplotlib backend errors after the prompt is ready."""
