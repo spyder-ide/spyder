@@ -202,7 +202,7 @@ def test_pylint_widget_pylintrc(
                 for bad_name in bad_names])
 
 
-def test_pylint_max_history_conf(pylint_test_scripts, mocker, qtbot):
+def test_pylint_max_history_conf(pylint_test_scripts, mocker):
     """Regression test for checking max_entries configuration.
 
     For further information see spyder-ide/spyder#12884
@@ -233,7 +233,7 @@ def test_pylint_max_history_conf(pylint_test_scripts, mocker, qtbot):
 
     assert pylint_widget.filecombo.count() == 2
 
-    assert 'test_script_0.py' in pylint_widget.curr_filenames[0]
+    assert 'test_script_2.py' in pylint_widget.curr_filenames[0]
     assert 'test_script_1.py' in pylint_widget.curr_filenames[1]
 
     # Change the max entry to 1
@@ -242,7 +242,7 @@ def test_pylint_max_history_conf(pylint_test_scripts, mocker, qtbot):
 
     assert pylint_widget.filecombo.count() == 1
 
-    assert 'test_script_0.py' in pylint_widget.curr_filenames[0]
+    assert 'test_script_2.py' in pylint_widget.curr_filenames[0]
 
 
 if __name__ == "__main__":
