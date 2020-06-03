@@ -27,8 +27,8 @@ from qtconsole.client import QtKernelClient
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from qtpy.QtWidgets import (QActionGroup, QApplication, QHBoxLayout, QMenu,
-                            QMessageBox, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QActionGroup, QApplication, QCheckBox, QHBoxLayout,
+                            QMenu, QMessageBox, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
@@ -170,8 +170,8 @@ class IPythonConsole(SpyderPluginWidget):
         for client in self.clients:
             client.set_font(font)
 
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings."""
+    def _apply_gui_plugin_settings(self, options, client):
+        """Apply GUI related configurations to a client."""
         # GUI options
         font_n = 'plugin_font'
         help_n = 'connect_to_oi'
@@ -182,38 +182,15 @@ class IPythonConsole(SpyderPluginWidget):
         use_pager_n = 'use_pager'
         show_calltips_n = 'show_calltips'
         buffer_size_n = 'buffer_size'
-
-        # Matplotlib options
-        pylab_n = 'pylab'
-        pylab_o = self.get_option(pylab_n)
-        pylab_autoload_n = 'pylab/autoload'
-        pylab_backend_n = 'pylab/backend'
-        inline_backend_figure_format_n = 'pylab/inline/figure_format'
-        inline_backend_resolution_n = 'pylab/inline/resolution'
-        inline_backend_width_n = 'pylab/inline/width'
-        inline_backend_height_n = 'pylab/inline/height'
-        inline_backend_bbox_inches_n = 'pylab/inline/bbox_inches'
-
-        # Startup options (need restart)
-        run_lines_n = 'startup/run_lines'
-        use_run_file_n = 'startup/use_run_file'
-        run_file_n = 'startup/run_file'
-        startup_options = [run_lines_n, use_run_file_n, run_file_n]
-
-        # Advanced options
-        greedy_completer_n = 'greedy_completer'
-        jedi_completer_n = 'jedi_completer'
-        autocall_n = 'autocall'
-        symbolic_math_n = 'symbolic_math'
+        # Advanced GUI options
         in_prompt_n = 'in_prompt'
         out_prompt_n = 'out_prompt'
+        # Control widget
+        control = client.get_control()
 
-        for client in self.clients:
-            control = client.get_control()
-            # GUI options
-            if font_n in options:
-                font_o = self.get_font()
-                client.set_font(font_o)
+        if font_n in options:
+            font_o = self.get_font()
+            client.set_font(font_o)
             if help_n in options and control is not None:
                 help_o = CONF.get('help', 'connect/ipython_console')
                 control.set_help_enabled(help_o)
@@ -247,49 +224,121 @@ class IPythonConsole(SpyderPluginWidget):
                 out_prompt_o = self.get_option(out_prompt_n)
                 client.set_out_prompt(out_prompt_o)
 
-            # Matplotlib support options
-            if (pylab_o and
-                    pylab_backend_n in options or pylab_autoload_n in options):
+    def _apply_mpl_plugin_settings(self, options, client):
+        """Apply Matplotlib related configurations to a client."""
+        # Matplotlib options
+        pylab_n = 'pylab'
+        pylab_o = self.get_option(pylab_n)
+        pylab_autoload_n = 'pylab/autoload'
+        pylab_backend_n = 'pylab/backend'
+        inline_backend_figure_format_n = 'pylab/inline/figure_format'
+        inline_backend_resolution_n = 'pylab/inline/resolution'
+        inline_backend_width_n = 'pylab/inline/width'
+        inline_backend_height_n = 'pylab/inline/height'
+        inline_backend_bbox_inches_n = 'pylab/inline/bbox_inches'
+
+        if pylab_o:
+            if pylab_backend_n in options or pylab_autoload_n in options:
                 pylab_autoload_o = self.get_option(pylab_autoload_n)
                 pylab_backend_o = self.get_option(pylab_backend_n)
                 client.set_matplotlib_backend(
                     pylab_backend_o, pylab_autoload_o)
-            if pylab_o:
-                if inline_backend_figure_format_n in options:
-                    inline_backend_figure_format_o = self.get_option(
-                        inline_backend_figure_format_n)
-                    client.set_mpl_inline_figure_format(
-                        inline_backend_figure_format_o)
-                if inline_backend_resolution_n in options:
-                    inline_backend_resolution_o = self.get_option(
-                        inline_backend_resolution_n)
-                    client.set_mpl_inline_resolution(
-                        inline_backend_resolution_o)
-                if (inline_backend_width_n in options or
-                        inline_backend_height_n in options):
-                    inline_backend_width_o = self.get_option(
-                        inline_backend_width_n)
-                    inline_backend_height_o = self.get_option(
-                        inline_backend_height_n)
-                    client.set_mpl_inline_figure_size(
-                        inline_backend_width_o, inline_backend_height_o)
-                if inline_backend_bbox_inches_n in options:
-                    inline_backend_bbox_inches_o = self.get_option(
-                        inline_backend_bbox_inches_n)
-                    client.set_mpl_inline_bbox_inches(
-                        inline_backend_bbox_inches_o)
+            if inline_backend_figure_format_n in options:
+                inline_backend_figure_format_o = self.get_option(
+                    inline_backend_figure_format_n)
+                client.set_mpl_inline_figure_format(
+                    inline_backend_figure_format_o)
+            if inline_backend_resolution_n in options:
+                inline_backend_resolution_o = self.get_option(
+                    inline_backend_resolution_n)
+                client.set_mpl_inline_resolution(
+                    inline_backend_resolution_o)
+            if (inline_backend_width_n in options or
+                    inline_backend_height_n in options):
+                inline_backend_width_o = self.get_option(
+                    inline_backend_width_n)
+                inline_backend_height_o = self.get_option(
+                    inline_backend_height_n)
+                client.set_mpl_inline_figure_size(
+                    inline_backend_width_o, inline_backend_height_o)
+            if inline_backend_bbox_inches_n in options:
+                inline_backend_bbox_inches_o = self.get_option(
+                    inline_backend_bbox_inches_n)
+                client.set_mpl_inline_bbox_inches(
+                    inline_backend_bbox_inches_o)
 
-            # Startup options
-            if any(startup_option in options
-                   for startup_option in startup_options):
-                run_lines_o = self.get_option(run_lines_n)
-                client.set_run_lines(run_lines_o)
+    def _apply_advanced_plugin_settings(self, options, client):
+        """Apply advanced configurations to a client."""
+        # Advanced options
+        greedy_completer_n = 'greedy_completer'
+        jedi_completer_n = 'jedi_completer'
+        autocall_n = 'autocall'
 
-            # Advanced options
-            if greedy_completer_n in options:
-                jedi_completer_n = 'jedi_completer'
-                autocall_n = 'autocall'
-                symbolic_math_n = 'symbolic_math'
+        if greedy_completer_n in options:
+            greedy_completer_o = self.get_option(greedy_completer_n)
+            client.set_greedy_completer(greedy_completer_o)
+        if jedi_completer_n in options:
+            jedi_completer_o = self.get_option(jedi_completer_n)
+            client.set_greedy_completer(jedi_completer_o)
+        if autocall_n in options:
+            autocall_o = self.get_option(autocall_n)
+            client.set_autocall(autocall_o)
+
+    def apply_plugin_settings(self, options):
+        """Apply configuration file's plugin settings."""
+        # Startup options (needs a restart)
+        run_lines_n = 'startup/run_lines'
+        use_run_file_n = 'startup/use_run_file'
+        run_file_n = 'startup/run_file'
+        # Advanced options (needs a restart)
+        symbolic_math_n = 'symbolic_math'
+
+        restart_options = [run_lines_n, use_run_file_n, run_file_n,
+                           symbolic_math_n]
+
+        # Setup message dialog to confirm futher actions
+        msgbox = QMessageBox(self)
+        msgbox.setIcon(QMessageBox.Information)
+        # Optional restart to see changes
+        settings_message = _(
+            "Please select if you want to apply the options "
+            "to all the consoles, the current console "
+            "or only for new consoles.<br><br>")
+        only_new_button = msgbox.addButton(_("Apply to new consoles"))
+        msgbox.setDefaultButton(only_new_button)
+        msgbox.addButton(_("Apply to current"))
+        all_button = msgbox.addButton(_("Apply to all"))
+        restart_needed = True
+        if any(restart_option in options
+               for restart_option in restart_options):
+            restart_needed = True
+            settings_message += _(
+                "NOTE: Some options require a restart to apply. "
+                "Applying the changes to all the consoles or the current one"
+                "will force a <b color='red'>kernel restart</b>")
+        msgbox.setText(settings_message)
+        msgbox.exec_()
+
+        only_new_clients = msgbox.clickedButton() == only_new_button
+        if not only_new_clients:
+            all_clients = msgbox.clickedButton() == all_button
+            clients = self.clients if all_clients else [
+                self.get_current_client()]
+
+            if restart_needed:
+                for client in clients:
+                    client.ask_before_restart = False
+                    client.restart_kernel()
+            else:
+                for client in clients:
+                    # GUI options
+                    self._apply_gui_plugin_settings(options, client)
+
+                    # Matplotlib options
+                    self._apply_mpl_plugin_settings(options, client)
+
+                    # Advanced options
+                    self._apply_advanced_plugin_settings(options, client)
 
     def toggle_view(self, checked):
         """Toggle view"""

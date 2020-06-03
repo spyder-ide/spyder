@@ -306,7 +306,11 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     def set_greedy_completer(self, use_greedy):
         """Set if greedy completions should be used."""
-        self.call_kernel(interrupt=True).set_greedy_completer(use_jedi)
+        self.call_kernel(interrupt=True).set_greedy_completer(use_greedy)
+
+    def set_autocall(self, autocall):
+        """Set if autocall functionality is enabled or not."""
+        self.call_kernel(interrupt=True).set_autocall(autocall)
 
     # --- To handle the banner
     def long_banner(self):

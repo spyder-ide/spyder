@@ -557,7 +557,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def set_greedy_completer(self, use_greedy):
         """Set if greedy completions should be used."""
-        self.shellwidget.set_greedy_completer(use_jedi)
+        self.shellwidget.set_greedy_completer(use_greedy)
+
+    def set_autocall(self, autocall):
+        """Enable/Disable autocall functionality."""
+        self.shellwidget.set_autocall(autocall)
 
     def shutdown(self):
         """Shutdown kernel"""
