@@ -260,21 +260,12 @@ class PylintWidget(QWidget):
         filename = to_text_string(filename) # filename is a QString instance
         self.kill_if_running()
         index, _data = self.get_data(filename)
-        if filename not in self.curr_filenames:
-            if index is None:
-                self.filecombo.insertItem(0, filename)
-                self.filecombo.setCurrentIndex(0)
-                self.curr_filenames.insert(0, filename)
-            else:
-                self.filecombo.setCurrentIndex(
-                    self.filecombo.findText(filename))
+        is_parent = self.parent is not None
 
-            is_parent = self.parent is not None
-            num_elements = self.filecombo.count()
-            if is_parent and (num_elements >
-                              self.parent.get_option('max_entries')):
-                self.filecombo.removeItem(num_elements - 1)
-                self.curr_filenames.pop(num_elements - 1)
+        if filename not in self.curr_filenames:
+            self.filecombo.insertItem(0, filename)
+            self.curr_filenames.insert(0, filename)
+            self.filecombo.setCurrentIndex(0)
         else:
             index = self.filecombo.findText(filename)
             self.filecombo.removeItem(index)
@@ -282,6 +273,12 @@ class PylintWidget(QWidget):
             self.filecombo.insertItem(0, filename)
             self.curr_filenames.insert(0, filename)
             self.filecombo.setCurrentIndex(0)
+
+        num_elements = self.filecombo.count()
+        if is_parent and (num_elements >
+                          self.parent.get_option('max_entries')):
+            self.filecombo.removeItem(num_elements - 1)
+            self.curr_filenames.pop(num_elements - 1)
         self.filecombo.selected()
 
     def change_history_limit(self, new_limit):
