@@ -179,6 +179,7 @@ class IPythonConsole(SpyderPluginWidget):
         show_time_n = 'show_elapsed_time'
         reset_namespace_n = 'show_reset_namespace_warning'
         ask_before_restart_n = 'ask_before_restart'
+        ask_before_closing_n = 'ask_before_closing'
         use_pager_n = 'use_pager'
         show_calltips_n = 'show_calltips'
         buffer_size_n = 'buffer_size'
@@ -187,42 +188,44 @@ class IPythonConsole(SpyderPluginWidget):
         out_prompt_n = 'out_prompt'
         # Control widget
         control = client.get_control()
-
         if font_n in options:
             font_o = self.get_font()
             client.set_font(font_o)
-            if help_n in options and control is not None:
-                help_o = CONF.get('help', 'connect/ipython_console')
-                control.set_help_enabled(help_o)
-            if color_scheme_n in options:
-                color_scheme_o = CONF.get('appearance', 'selected')
-                client.set_color_scheme(color_scheme_o)
-            if show_time_n in options:
-                show_time_o = self.get_option(show_time_n)
-                client.show_time_action.setChecked(show_time_o)
-                client.set_elapsed_time_visible(show_time_o)
-            if reset_namespace_n in options:
-                reset_namespace_o = self.get_option(reset_namespace_n)
-                client.reset_warning = reset_namespace_o
-            if ask_before_restart_n in options:
-                ask_before_restart_o = self.get_option(ask_before_restart_n)
-                client.ask_before_restart = ask_before_restart_o
-            if show_calltips_n in options:
-                show_calltips_o = self.get_option(show_calltips_n)
-                client.set_show_calltips(show_calltips_o)
-            if use_pager_n in options:
-                use_pager_o = self.get_option(use_pager_n)
-                client.set_use_pager(use_pager_o)
-            if buffer_size_n in options:
-                buffer_size_o = self.get_option(buffer_size_n)
-                client.set_buffer_size(buffer_size_o)
-            # Advanced GUI options
-            if in_prompt_n in options:
-                in_prompt_o = self.get_option(in_prompt_n)
-                client.set_in_prompt(in_prompt_o)
-            if out_prompt_n in options:
-                out_prompt_o = self.get_option(out_prompt_n)
-                client.set_out_prompt(out_prompt_o)
+        if help_n in options and control is not None:
+            help_o = CONF.get('help', 'connect/ipython_console')
+            control.set_help_enabled(help_o)
+        if color_scheme_n in options:
+            color_scheme_o = CONF.get('appearance', 'selected')
+            client.set_color_scheme(color_scheme_o)
+        if show_time_n in options:
+            show_time_o = self.get_option(show_time_n)
+            client.show_time_action.setChecked(show_time_o)
+            client.set_elapsed_time_visible(show_time_o)
+        if reset_namespace_n in options:
+            reset_namespace_o = self.get_option(reset_namespace_n)
+            client.reset_warning = reset_namespace_o
+        if ask_before_restart_n in options:
+            ask_before_restart_o = self.get_option(ask_before_restart_n)
+            client.ask_before_restart = ask_before_restart_o
+        if ask_before_closing_n in options:
+            ask_before_closing_o = self.get_option(ask_before_closing_n)
+            client.ask_before_closing = ask_before_closing_o
+        if show_calltips_n in options:
+            show_calltips_o = self.get_option(show_calltips_n)
+            client.set_show_calltips(show_calltips_o)
+        if use_pager_n in options:
+            use_pager_o = self.get_option(use_pager_n)
+            client.set_use_pager(use_pager_o)
+        if buffer_size_n in options:
+            buffer_size_o = self.get_option(buffer_size_n)
+            client.set_buffer_size(buffer_size_o)
+        # Advanced GUI options
+        if in_prompt_n in options:
+            in_prompt_o = self.get_option(in_prompt_n)
+            client.set_in_prompt(in_prompt_o)
+        if out_prompt_n in options:
+            out_prompt_o = self.get_option(out_prompt_n)
+            client.set_out_prompt(out_prompt_o)
 
     def _apply_mpl_plugin_settings(self, options, client):
         """Apply Matplotlib related configurations to a client."""
@@ -302,20 +305,24 @@ class IPythonConsole(SpyderPluginWidget):
         # Optional restart to see changes
         settings_message = _(
             "Please select if you want to apply the options "
-            "to all the consoles, the current console "
-            "or only for new consoles.<br><br>")
-        only_new_button = msgbox.addButton(_("Apply to new consoles"))
+            "only for new consoles, for the current console "
+            "or all the running consoles.<br><br>"
+            "Keep in mind that <b>the settings will be used "
+            "for any new launched console</b>.")
+        only_new_button = msgbox.addButton(
+            _("New consoles only"), QMessageBox.NoRole)
         msgbox.setDefaultButton(only_new_button)
-        msgbox.addButton(_("Apply to current"))
-        all_button = msgbox.addButton(_("Apply to all"))
-        restart_needed = True
+        msgbox.addButton(_("Current console"), QMessageBox.NoRole)
+        all_button = msgbox.addButton(
+            _("All the consoles"), QMessageBox.NoRole)
+        restart_needed = False
         if any(restart_option in options
                for restart_option in restart_options):
             restart_needed = True
             settings_message += _(
-                "NOTE: Some options require a restart to apply. "
-                "Applying the changes to all the consoles or the current one"
-                "will force a <b color='red'>kernel restart</b>")
+                "<br><br>NOTE: Some options require a restart to apply. "
+                "Applying these changes to the running consoles "
+                "will force a <b>kernel restart for them</b>")
         msgbox.setText(settings_message)
         msgbox.exec_()
 
@@ -325,12 +332,11 @@ class IPythonConsole(SpyderPluginWidget):
             clients = self.clients if all_clients else [
                 self.get_current_client()]
 
-            if restart_needed:
-                for client in clients:
+            for client in clients:
+                if restart_needed:
                     client.ask_before_restart = False
                     client.restart_kernel()
-            else:
-                for client in clients:
+                else:
                     # GUI options
                     self._apply_gui_plugin_settings(options, client)
 
@@ -793,6 +799,7 @@ class IPythonConsole(SpyderPluginWidget):
         show_elapsed_time = self.get_option('show_elapsed_time')
         reset_warning = self.get_option('show_reset_namespace_warning')
         ask_before_restart = self.get_option('ask_before_restart')
+        ask_before_closing = self.get_option('ask_before_closing')
         client = ClientWidget(self, id_=client_id,
                               history_filename=get_conf_path('history.py'),
                               config_options=self.config_options(),
@@ -807,6 +814,7 @@ class IPythonConsole(SpyderPluginWidget):
                               reset_warning=reset_warning,
                               given_name=given_name,
                               ask_before_restart=ask_before_restart,
+                              ask_before_closing=ask_before_closing,
                               css_path=self.css_path)
 
         # Change stderr_dir if requested
@@ -1137,7 +1145,7 @@ class IPythonConsole(SpyderPluginWidget):
         # and eventually ask before closing them
         if not self.mainwindow_close and not force:
             close_all = True
-            if self.get_option('ask_before_closing'):
+            if client.ask_before_closing:
                 close = QMessageBox.question(self, self.get_plugin_title(),
                                        _("Do you want to close this console?"),
                                        QMessageBox.Yes | QMessageBox.No)
