@@ -54,6 +54,12 @@ jobs:
             PYTHON_VERSION: '2.7'
             TEST_TYPE: 'slow'
     steps:
+      - name: Install Kite
+        shell: bash -l {0}
+        run: |
+            wget -O kite-installer.sh https://release.kite.com/dls/linux/current
+            chmod +x kite-installer.sh
+            kite-installer.sh --channel=spyder
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
         uses: actions/checkout@v2
