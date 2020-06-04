@@ -197,14 +197,20 @@ class SpyderKernelSpec(KernelSpec):
             env_vars['SPY_SYMPY_O'] = False
             env_vars['SPY_RUN_CYTHON'] = True
 
-        # internal interpreter and external interpreter have mutually exclusive
-        # settings
-        if default_interpreter and os.environ.get('PYTHONHOME'):
-            # default interpreter should keep PYTHONHOME
-            env_vars.update({'PYTHONHOME': os.environ.get('PYTHONHOME')})
-        elif not default_interpreter and os.environ.get('HOME'):
-            # Add HOME to env_vars
-            env_vars.update({'HOME': os.environ.get('HOME')})
+        # Each platform requires certain env variables
+        if os.name == 'nt':
+            req_env_vars = ['HOMEPATH', 'PATH', 'SYSTEMROOT']
+        elif sys.platform == 'darwin':
+            # keep PYTHONHOME for "Same as Spyder" kernels otherwise keep HOME
+            req_env_vars = ['PYTHONHOME'] if default_interpreter else ['HOME']
+        elif sys.platform == 'linux':
+            # Linux requires DISPLAY
+            req_env_vars = ['DISPLAY']
+        else:
+            logger.info('Unknown platform: {}'.format(sys.platform))
+            req_env_vars = []
+        env_vars.update({k: os.environ[k] for k in req_env_vars
+                         if k in os.environ})
 
         # Add our PYTHONPATH to env_vars
         # spyder env python should be omitted in kernels
