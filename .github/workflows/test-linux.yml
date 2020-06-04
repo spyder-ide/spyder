@@ -50,7 +50,7 @@ jobs:
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
       RUN_SLOW: ${{ matrix.TEST_TYPE == 'slow' }}
       USE_CONDA: ${{ matrix.INSTALL_TYPE == 'conda' }}
-      XDG_RUNTIME_DIR: '/run/user/`id -u`'
+      XDG_RUNTIME_DIR: "/run/user/`id -u`"
     strategy:
       fail-fast: false 
       matrix:
@@ -120,7 +120,7 @@ jobs:
       - name: Run tests
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
-        run: xvfb-run --auto-servernum python runtests.py || xvfb-run --auto-servernum python runtests.py
+        run: sudo xvfb-run --auto-servernum python runtests.py || xvfb-run --auto-servernum python runtests.py
       - name: Coverage
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
