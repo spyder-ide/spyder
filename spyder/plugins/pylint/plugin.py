@@ -26,7 +26,10 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
-from spyder.plugins.pylint.confpage import PylintConfigPage
+from spyder.plugins.pylint.confpage import (PylintConfigPage,
+                                            MAX_HISTORY_ENTRIES,
+                                            MIN_HISTORY_ENTRIES,
+                                            DEFAULT_HISTORY_ENTRIES)
 from spyder.plugins.pylint.widgets.pylintgui import PylintWidget
 
 
@@ -49,7 +52,7 @@ class Pylint(SpyderPluginWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        max_entries = self.get_option('max_entries', 50)
+        max_entries = self.get_option('max_entries', DEFAULT_HISTORY_ENTRIES)
         self.pylint = PylintWidget(self, max_entries=max_entries,
                                    options_button=self.options_button,
                                    text_color=MAIN_TEXT_COLOR,
@@ -123,7 +126,7 @@ class Pylint(SpyderPluginWidget):
         """Apply configuration file's plugin settings"""
         # The history depth option will be applied at
         # next Spyder startup, which is soon enough
-        pass
+        self.pylint.change_history_limit(self.get_option('max_entries'))
 
     # ----- Public API --------------------------------------------------------
     @Slot()
@@ -131,9 +134,12 @@ class Pylint(SpyderPluginWidget):
         "Change history max entries"""
         depth, valid = QInputDialog.getInt(
             self, _('History'), _('Maximum entries'),
-            self.get_option('max_entries'), 10, 10000)
+            self.get_option('max_entries'),
+            MIN_HISTORY_ENTRIES,
+            MAX_HISTORY_ENTRIES)
         if valid:
             self.set_option('max_entries', depth)
+            self.pylint.change_history_limit(depth)
 
     def get_filename(self):
         """Get current filename in combobox."""
