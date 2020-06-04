@@ -28,7 +28,6 @@ INSTALL_TIMEOUT = 360000
 
 @pytest.mark.slow
 @pytest.mark.first
-@pytest.mark.skipif(bool(os.environ.get('CI', None)), reason='Fails on CI!')
 def test_kite_install(qtbot):
     """Test the correct execution of the installation process of kite."""
     install_manager = KiteInstallationThread(None)
