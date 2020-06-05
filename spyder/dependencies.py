@@ -33,6 +33,7 @@ APPLAUNCHSERVICES_REQVER = '>=0.1.7'
 ATOMICWRITES_REQVER = '>=1.2.0'
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
+COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
 INTERVALTREE_REQVER = None
 IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
@@ -94,6 +95,10 @@ DESCRIPTIONS = [
      'package_name': "cloudpickle",
      'features': _("Handle communications between kernel and frontend"),
      'required_version': CLOUDPICKLE_REQVER},
+    {'modname': "cookiecutter",
+     'package_name': "cookiecutter",
+     'features': _("Create projects from cookiecutter templates"),
+     'required_version': COOKIECUTTER_REQVER},
     {'modname': "diff_match_patch",
      'package_name': "diff-match-patch",
      'features': _("Compute text file diff changes during edition"),
