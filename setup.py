@@ -210,7 +210,7 @@ install_requires = [
     'ipython>=4.0',
     # This is here until Jedi 0.15+ fixes completions for
     # Numpy and Pandas
-    'jedi==0.15.2',
+    'jedi==0.17.0',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
@@ -218,7 +218,7 @@ install_requires = [
     'numpydoc>=0.6.0',
     # Required to get SSH connections to remote kernels
     'paramiko>=2.4.0;platform_system=="Windows"',
-    'parso==0.5.2',
+    'parso==0.7.0',
     'pexpect>=4.4.0',
     'pickleshare>=0.4',
     'psutil>=5.3',
@@ -226,7 +226,7 @@ install_requires = [
     'pylint>=1.0',
     'pyqt5<5.13;python_version>="3"',
     'pyqtwebengine<5.13;python_version>="3"',
-    'python-language-server[all]>=0.31.9,<0.32.0',
+    'python-language-server[all]>=0.33.0,<0.34.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8',

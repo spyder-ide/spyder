@@ -1,7 +1,6 @@
 # Copyright 2017 Palantir Technologies, Inc.
-from distutils.version import LooseVersion
 
-from pyls import uris, _utils
+from pyls import uris
 from pyls.plugins.hover import pyls_hover
 from pyls.workspace import Document
 
@@ -21,7 +20,7 @@ np.sin
 """
 
 
-def test_numpy_hover():
+def test_numpy_hover(workspace):
     # Over the blank line
     no_hov_position = {'line': 1, 'character': 0}
     # Over 'numpy' in import numpy as np
@@ -33,38 +32,34 @@ def test_numpy_hover():
     # Over 'sin' in np.sin
     numpy_sin_hov_position = {'line': 3, 'character': 4}
 
-    doc = Document(DOC_URI, NUMPY_DOC)
+    doc = Document(DOC_URI, workspace, NUMPY_DOC)
 
-    if LooseVersion(_utils.JEDI_VERSION) >= LooseVersion('0.15.0'):
-        contents = ''
-        assert contents in pyls_hover(doc, no_hov_position)['contents']
+    contents = ''
+    assert contents in pyls_hover(doc, no_hov_position)['contents']
 
-        contents = 'NumPy\n=====\n\nProvides\n'
-        assert contents in pyls_hover(doc, numpy_hov_position_1)['contents'][0]
+    contents = 'NumPy\n=====\n\nProvides\n'
+    assert contents in pyls_hover(doc, numpy_hov_position_1)['contents'][0]
 
-        contents = 'NumPy\n=====\n\nProvides\n'
-        assert contents in pyls_hover(doc, numpy_hov_position_2)['contents'][0]
+    contents = 'NumPy\n=====\n\nProvides\n'
+    assert contents in pyls_hover(doc, numpy_hov_position_2)['contents'][0]
 
-        contents = 'NumPy\n=====\n\nProvides\n'
-        assert contents in pyls_hover(doc, numpy_hov_position_3)['contents'][0]
+    contents = 'NumPy\n=====\n\nProvides\n'
+    assert contents in pyls_hover(doc, numpy_hov_position_3)['contents'][0]
 
-        contents = 'Trigonometric sine, element-wise.\n\n'
-        assert contents in pyls_hover(
-            doc, numpy_sin_hov_position)['contents'][0]
+    contents = 'Trigonometric sine, element-wise.\n\n'
+    assert contents in pyls_hover(
+        doc, numpy_sin_hov_position)['contents'][0]
 
 
-def test_hover():
+def test_hover(workspace):
     # Over 'main' in def main():
     hov_position = {'line': 2, 'character': 6}
     # Over the blank second line
     no_hov_position = {'line': 1, 'character': 0}
 
-    doc = Document(DOC_URI, DOC)
+    doc = Document(DOC_URI, workspace, DOC)
 
-    if LooseVersion(_utils.JEDI_VERSION) >= LooseVersion('0.15.0'):
-        contents = [{'language': 'python', 'value': 'main()'}, 'hello world']
-    else:
-        contents = 'main()\n\nhello world'
+    contents = [{'language': 'python', 'value': 'main()'}, 'hello world']
 
     assert {
         'contents': contents

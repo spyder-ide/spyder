@@ -10,11 +10,11 @@ a.startswith("b")
 """
 
 
-def test_highlight():
+def test_highlight(workspace):
     # Over 'a' in a.startswith
     cursor_pos = {'line': 1, 'character': 0}
 
-    doc = Document(DOC_URI, DOC)
+    doc = Document(DOC_URI, workspace, DOC)
     assert pyls_document_highlight(doc, cursor_pos) == [{
         'range': {
             'start': {'line': 0, 'character': 0},
@@ -37,10 +37,10 @@ print sys.path
 '''
 
 
-def test_sys_highlight():
+def test_sys_highlight(workspace):
     cursor_pos = {'line': 0, 'character': 8}
 
-    doc = Document(DOC_URI, SYS_DOC)
+    doc = Document(DOC_URI, workspace, SYS_DOC)
     assert pyls_document_highlight(doc, cursor_pos) == [{
         'range': {
             'start': {'line': 0, 'character': 7},

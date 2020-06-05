@@ -53,6 +53,9 @@ jobs:
           - INSTALL_TYPE: 'pip'
             PYTHON_VERSION: '2.7'
             TEST_TYPE: 'slow'
+          - INSTALL_TYPE: 'conda'
+            PYTHON_VERSION: '2.7'
+            TEST_TYPE: 'slow'
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'

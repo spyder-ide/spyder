@@ -103,17 +103,17 @@ class Workspace(object):
     def _create_document(self, doc_uri, source=None, version=None):
         path = uris.to_fs_path(doc_uri)
         return Document(
-            doc_uri, source=source, version=version,
+            doc_uri, self, source=source, version=version,
             extra_sys_path=self.source_roots(path),
             rope_project_builder=self._rope_project_builder,
-            config=self._config, workspace=self,
+            config=self._config,
         )
 
 
 class Document(object):
 
-    def __init__(self, uri, source=None, version=None, local=True, extra_sys_path=None, rope_project_builder=None,
-                 config=None, workspace=None):
+    def __init__(self, uri, workspace, source=None, version=None, local=True, extra_sys_path=None,
+                 rope_project_builder=None, config=None):
         self.uri = uri
         self.version = version
         self.path = uris.to_fs_path(uri)
@@ -213,16 +213,9 @@ class Document(object):
         return m_start[0] + m_end[-1]
 
     def jedi_names(self, all_scopes=False, definitions=True, references=False):
-        environment_path = None
-        if self._config:
-            jedi_settings = self._config.plugin_settings('jedi', document_path=self.path)
-            environment_path = jedi_settings.get('environment')
-        environment = self.get_enviroment(environment_path) if environment_path else None
-
-        return jedi.api.names(
-            source=self.source, path=self.path, all_scopes=all_scopes,
-            definitions=definitions, references=references, environment=environment,
-        )
+        script = self.jedi_script()
+        return script.get_names(all_scopes=all_scopes, definitions=definitions,
+                                references=references)
 
     def jedi_script(self, position=None):
         extra_paths = []
@@ -233,19 +226,20 @@ class Document(object):
             environment_path = jedi_settings.get('environment')
             extra_paths = jedi_settings.get('extra_paths') or []
 
-        sys_path = self.sys_path(environment_path) + extra_paths
         environment = self.get_enviroment(environment_path) if environment_path else None
+        sys_path = self.sys_path(environment_path) + extra_paths
+        project_path = self._workspace.root_path
 
         kwargs = {
-            'source': self.source,
+            'code': self.source,
             'path': self.path,
-            'sys_path': sys_path,
             'environment': environment,
+            'project': jedi.Project(path=project_path, sys_path=sys_path),
         }
 
         if position:
-            kwargs['line'] = position['line'] + 1
-            kwargs['column'] = _utils.clip_column(position['character'], self.lines, position['line'])
+            # Deprecated by Jedi to use in Script() constructor
+            kwargs += _utils.position_to_jedi_linecolumn(self, position)
 
         return jedi.Script(**kwargs)
 
