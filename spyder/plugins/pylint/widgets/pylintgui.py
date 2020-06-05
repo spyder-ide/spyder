@@ -169,6 +169,7 @@ class PylintWidget(QWidget):
         self.output = None
         self.error_output = None
         self.filename = None
+        self.curr_filenames = []
         self.text_color = text_color
         self.prevrate_color = prevrate_color
 
@@ -183,6 +184,7 @@ class PylintWidget(QWidget):
                 pass
 
         self.filecombo = PythonModulesComboBox(self)
+        self.filecombo.setInsertPolicy(self.filecombo.InsertAtTop)
 
         self.start_button = create_toolbutton(self, icon=ima.icon('run'),
                                     text=_("Analyze"),
@@ -237,7 +239,7 @@ class PylintWidget(QWidget):
 
         if self.rdata:
             self.remove_obsolete_items()
-            self.filecombo.addItems(self.get_filenames())
+            self.filecombo.insertItems(0, self.get_filenames())
             self.start_button.setEnabled(self.filecombo.is_valid())
         else:
             self.start_button.setEnabled(False)
@@ -258,12 +260,37 @@ class PylintWidget(QWidget):
         filename = to_text_string(filename) # filename is a QString instance
         self.kill_if_running()
         index, _data = self.get_data(filename)
-        if index is None:
-            self.filecombo.addItem(filename)
-            self.filecombo.setCurrentIndex(self.filecombo.count()-1)
+        is_parent = self.parent is not None
+
+        if filename not in self.curr_filenames:
+            self.filecombo.insertItem(0, filename)
+            self.curr_filenames.insert(0, filename)
+            self.filecombo.setCurrentIndex(0)
         else:
-            self.filecombo.setCurrentIndex(self.filecombo.findText(filename))
+            index = self.filecombo.findText(filename)
+            self.filecombo.removeItem(index)
+            self.curr_filenames.pop(index)
+            self.filecombo.insertItem(0, filename)
+            self.curr_filenames.insert(0, filename)
+            self.filecombo.setCurrentIndex(0)
+
+        num_elements = self.filecombo.count()
+        if is_parent and (num_elements >
+                          self.parent.get_option('max_entries')):
+            self.filecombo.removeItem(num_elements - 1)
+            self.curr_filenames.pop(num_elements - 1)
         self.filecombo.selected()
+
+    def change_history_limit(self, new_limit):
+        """Change the number of files listed in the history combobox."""
+        if self.filecombo.count() > new_limit:
+            num_elements = self.filecombo.count()
+            diff = num_elements - new_limit
+            for __ in range(diff):
+                num_elements = self.filecombo.count()
+                self.filecombo.removeItem(num_elements - 1)
+                self.curr_filenames.pop(num_elements - 1)
+            self.filecombo.selected()
 
     def analyze(self, filename=None):
         """
@@ -456,10 +483,7 @@ class PylintWidget(QWidget):
             else:
                 pylint_item = (module, items["line_nb"], items["message"],
                                items["msg_id"], items["message_name"])
-                act_result = results[line[0] + ':']
-                if (self.parent is not None and
-                    len(act_result) < self.parent.get_option('max_entries')):
-                    results[line[0] + ':'].append(pylint_item)
+                results[line[0] + ':'].append(pylint_item)
 
         # Rate
         rate = None
