@@ -183,11 +183,14 @@ class IPythonConsole(SpyderPluginWidget):
         use_pager_n = 'use_pager'
         show_calltips_n = 'show_calltips'
         buffer_size_n = 'buffer_size'
+
         # Advanced GUI options
         in_prompt_n = 'in_prompt'
         out_prompt_n = 'out_prompt'
-        # Control widget
+
+        # Client widgets
         control = client.get_control()
+        sw = client.shellwidget
         if font_n in options:
             font_o = self.get_font()
             client.set_font(font_o)
@@ -212,20 +215,21 @@ class IPythonConsole(SpyderPluginWidget):
             client.ask_before_closing = ask_before_closing_o
         if show_calltips_n in options:
             show_calltips_o = self.get_option(show_calltips_n)
-            client.set_show_calltips(show_calltips_o)
+            sw.set_show_calltips(show_calltips_o)
         if use_pager_n in options:
             use_pager_o = self.get_option(use_pager_n)
-            client.set_use_pager(use_pager_o)
+            sw.set_paging(use_pager_o)
         if buffer_size_n in options:
             buffer_size_o = self.get_option(buffer_size_n)
-            client.set_buffer_size(buffer_size_o)
+            sw.set_buffer_size(buffer_size_o)
+
         # Advanced GUI options
         if in_prompt_n in options:
             in_prompt_o = self.get_option(in_prompt_n)
-            client.set_in_prompt(in_prompt_o)
+            sw.set_in_prompt(in_prompt_o)
         if out_prompt_n in options:
             out_prompt_o = self.get_option(out_prompt_n)
-            client.set_out_prompt(out_prompt_o)
+            sw.set_out_prompt(out_prompt_o)
 
     def _apply_mpl_plugin_settings(self, options, client):
         """Apply Matplotlib related configurations to a client."""
@@ -240,35 +244,33 @@ class IPythonConsole(SpyderPluginWidget):
         inline_backend_height_n = 'pylab/inline/height'
         inline_backend_bbox_inches_n = 'pylab/inline/bbox_inches'
 
+        # Client widgets
+        sw = client.shellwidget
         if pylab_o:
             if pylab_backend_n in options or pylab_autoload_n in options:
                 pylab_autoload_o = self.get_option(pylab_autoload_n)
                 pylab_backend_o = self.get_option(pylab_backend_n)
-                client.set_matplotlib_backend(
-                    pylab_backend_o, pylab_autoload_o)
+                sw.set_matplotlib_backend(pylab_backend_o, pylab_autoload_o)
             if inline_backend_figure_format_n in options:
                 inline_backend_figure_format_o = self.get_option(
                     inline_backend_figure_format_n)
-                client.set_mpl_inline_figure_format(
-                    inline_backend_figure_format_o)
+                sw.set_mpl_inline_figure_format(inline_backend_figure_format_o)
             if inline_backend_resolution_n in options:
                 inline_backend_resolution_o = self.get_option(
                     inline_backend_resolution_n)
-                client.set_mpl_inline_resolution(
-                    inline_backend_resolution_o)
+                sw.set_mpl_inline_resolution(inline_backend_resolution_o)
             if (inline_backend_width_n in options or
                     inline_backend_height_n in options):
                 inline_backend_width_o = self.get_option(
                     inline_backend_width_n)
                 inline_backend_height_o = self.get_option(
                     inline_backend_height_n)
-                client.set_mpl_inline_figure_size(
+                sw.set_mpl_inline_figure_size(
                     inline_backend_width_o, inline_backend_height_o)
             if inline_backend_bbox_inches_n in options:
                 inline_backend_bbox_inches_o = self.get_option(
                     inline_backend_bbox_inches_n)
-                client.set_mpl_inline_bbox_inches(
-                    inline_backend_bbox_inches_o)
+                sw.set_mpl_inline_bbox_inches(inline_backend_bbox_inches_o)
 
     def _apply_advanced_plugin_settings(self, options, client):
         """Apply advanced configurations to a client."""
@@ -277,15 +279,17 @@ class IPythonConsole(SpyderPluginWidget):
         jedi_completer_n = 'jedi_completer'
         autocall_n = 'autocall'
 
+        # Client widget
+        sw = client.shellwidget
         if greedy_completer_n in options:
             greedy_completer_o = self.get_option(greedy_completer_n)
-            client.set_greedy_completer(greedy_completer_o)
+            sw.set_greedy_completer(greedy_completer_o)
         if jedi_completer_n in options:
             jedi_completer_o = self.get_option(jedi_completer_n)
-            client.set_greedy_completer(jedi_completer_o)
+            sw.set_greedy_completer(jedi_completer_o)
         if autocall_n in options:
             autocall_o = self.get_option(autocall_n)
-            client.set_autocall(autocall_o)
+            sw.set_autocall(autocall_o)
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings."""
@@ -293,13 +297,14 @@ class IPythonConsole(SpyderPluginWidget):
         run_lines_n = 'startup/run_lines'
         use_run_file_n = 'startup/use_run_file'
         run_file_n = 'startup/run_file'
+
         # Advanced options (needs a restart)
         symbolic_math_n = 'symbolic_math'
 
         restart_options = [run_lines_n, use_run_file_n, run_file_n,
                            symbolic_math_n]
 
-        # Setup message dialog to confirm futher actions
+        # Setup message dialog to confirm further actions
         msgbox = QMessageBox(self)
         msgbox.setIcon(QMessageBox.Information)
         # Optional restart to see changes

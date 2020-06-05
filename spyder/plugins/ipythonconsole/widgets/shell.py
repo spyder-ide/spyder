@@ -274,6 +274,26 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.call_kernel(
             interrupt=True, callback=self.sig_show_env.emit).get_env()
 
+    def set_paging(self, use_pager):
+        """Set pager option."""
+        self.paging = 'inside' if use_pager else 'none'
+
+    def set_show_calltips(self, show_calltips):
+        """Enable/Disable showing calltips."""
+        self.enable_calltips = show_calltips
+
+    def set_buffer_size(self, buffer_size):
+        """Set buffer size for the shell."""
+        self.buffer_size = buffer_size
+
+    def set_in_prompt(self, in_prompt):
+        """Set appereance of the In prompt."""
+        self.in_prompt = in_prompt
+
+    def set_out_prompt(self, out_prompt):
+        """Set appereance of the Out prompt."""
+        self.out_prompt = out_prompt
+
     def set_matplotlib_backend(self, backend_option, pylab=False):
         """Set matplotlib backend given a backend name."""
         self.call_kernel(

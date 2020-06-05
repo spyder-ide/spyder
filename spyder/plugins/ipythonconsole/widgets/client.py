@@ -506,65 +506,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except AttributeError:
             pass
 
-    def set_use_pager(self, use_pager):
-        """Set pager option."""
-        self.shellwidget.paging = 'inside' if use_pager else 'none'
-
-    def set_show_calltips(self, show_calltips):
-        """Enable/Disable showing calltips."""
-        self.shellwidget.enable_calltips = show_calltips
-
-    def set_buffer_size(self, buffer_size):
-        """Set buffer size for the shell."""
-        self.shellwidget.buffer_size = buffer_size
-
-    def set_in_prompt(self, in_prompt):
-        """Set appereance of the In prompt."""
-        self.shellwidget.in_prompt = in_prompt
-
-    def set_out_prompt(self, out_prompt):
-        """Set appereance of the Out prompt."""
-        self.shellwidget.out_prompt = out_prompt
-
-    def set_matplotlib_backend(self, backend, pylab=False):
-        """
-        Set matplotlib backend.
-
-        Optionally use pylab magic to populate the namespace with
-        numpy and matplotlib elements.
-        """
-        self.shellwidget.set_matplotlib_backend(backend, pylab=pylab)
-
-    def set_mpl_inline_figure_format(self, figure_format):
-        """Set matplotlib inline backend figure format."""
-        self.shellwidget.set_mpl_inline_figure_format(figure_format)
-
-    def set_mpl_inline_resolution(self, resolution):
-        """Set matplotlib inline backend resolution."""
-        self.shellwidget.set_mpl_inline_resolution(resolution)
-
-    def set_mpl_inline_figure_size(self, width, height):
-        """Set matplotlib inline backend figure size."""
-        self.shellwidget.set_mpl_inline_figure_size(width, height)
-
-    def set_mpl_inline_bbox_inches(self, bbox_inches):
-        """
-        Set matplotlib inline backend print figure bbox inches ot 'tight'.
-        """
-        self.shellwidget.set_mpl_inline_figure_size(bbox_inches)
-
-    def set_jedi_completer(self, use_jedi):
-        """Set if jedi completions should be used."""
-        self.shellwidget.set_jedi_completer(use_jedi)
-
-    def set_greedy_completer(self, use_greedy):
-        """Set if greedy completions should be used."""
-        self.shellwidget.set_greedy_completer(use_greedy)
-
-    def set_autocall(self, autocall):
-        """Enable/Disable autocall functionality."""
-        self.shellwidget.set_autocall(autocall)
-
     def shutdown(self):
         """Shutdown kernel"""
         if self.get_kernel() is not None and not self.slave:
