@@ -95,15 +95,20 @@ def get_class_that_defined(method):
 def log_methods_calls(fname, some_class, prefix=None):
     """
     Hack `some_class` to log all method calls into `fname` file.
-    If `prefix` format is not set, each log entry is prefixed with:
-      --[ asked / called / defined ] --
-        asked   - name of `some_class`
-        called  - name of class for which a method is called
-        defined - name of class where method is defined
 
+    If `prefix` format is not set, each log entry is prefixed with:
+    `--[ asked / called / defined ] --`, where:
+    * `asked`: name of `some_class`.
+    * `called`: name of class for which a method is called.
+    * `defined`: name of class where method is defined.
+
+    Notes
+    -----
     Must be used carefully, because it monkeypatches __getattribute__ call.
 
-    Example:  log_methods_calls('log.log', ShellBaseWidget)
+    Examples
+    --------
+    >>> log_methods_calls('log.log', ShellBaseWidget)
     """
     # test if file is writable
     open(fname, 'a').close()

@@ -94,10 +94,13 @@ def is_keyword(text):
 
 
 def get_primary_at(source_code, offset, retry=True):
-    """Return Python object in *source_code* at *offset*
-    Periods to the left of the cursor are carried forward
-      e.g. 'functools.par^tial' would yield 'functools.partial'
-    Retry prevents infinite recursion: retry only once
+    """
+    Return Python object in `source_code` at `offset`.
+
+    Periods to the left of the cursor are carried forward e.g.
+    'functools.par^tial' would yield 'functools.partial'.
+
+    Retry prevents infinite recursion: retry only once.
     """
     obj = ''
     left = re.split(r"[^0-9a-zA-Z_.]", source_code[:offset])

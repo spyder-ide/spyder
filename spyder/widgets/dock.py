@@ -192,14 +192,15 @@ class SpyderDockWidget(QDockWidget):
     # Attributes
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
-    FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
+    FEATURES = None
 
     # Signals
     sig_plugin_closed = Signal()
 
     def __init__(self, title, parent):
+        SpyderDockWidget.FEATURES = (QDockWidget.DockWidgetClosable
+                                     | QDockWidget.DockWidgetMovable)
         super(SpyderDockWidget, self).__init__(title, parent)
-
         self.title = title
 
         # Widgets

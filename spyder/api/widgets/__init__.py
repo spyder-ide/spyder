@@ -521,7 +521,7 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
 
         Returns
         -------
-        SpyderPluginToolbar
+        spyder.api.widgets.toolbars.SpyderToolBar
             The auxiliary toolbar that was created and added to the plugin
             interface.
         """

@@ -9,7 +9,7 @@
 
 """
 DAFSA
------------
+-----
 
 Objects defined in this module were adapted from
 `DAFSA <https://github.com/tresoldi/dafsa>`_.

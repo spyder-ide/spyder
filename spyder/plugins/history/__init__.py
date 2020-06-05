@@ -6,7 +6,7 @@
 
 """
 spyder.plugins.history
-===========
+======================
 
 History plugin.
 """

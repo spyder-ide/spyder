@@ -46,7 +46,8 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 # Local imports
 from spyder import __trouble_url__, __project_url__
 from spyder.app import start
-from spyder.app.mainwindow import MainWindow  # Tests fail without this import
+# Tests fail without this import
+from spyder.app.mainwindow import MainWindow
 from spyder.config.base import get_home_dir, get_module_path
 from spyder.config.manager import CONF
 from spyder.widgets.dock import TabFilter

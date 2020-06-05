@@ -85,7 +85,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     Parameters
     ----------
-    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+    shellwidget: spyder.plugins.ipythonconsole.widgets.shell.ShellWidget
         The shellwigdet.
     """
 
@@ -95,7 +95,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     Parameters
     ----------
-    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+    shellwidget: spyder.plugins.ipythonconsole.widgets.shell.ShellWidget
         The shellwigdet.
     """
 
@@ -105,7 +105,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     Parameters
     ----------
-    shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+    shellwidget: spyder.plugins.ipythonconsole.widgets.shell.ShellWidget
         The shellwigdet.
     """
 

@@ -873,9 +873,15 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         """
         Get `options` values from the configuration system.
 
+        Parameters
+        ----------
+        options: iterable
+            Dict or set with options to load.
+
         Returns
         -------
-        Dictionary of {str: object}
+        dict
+            Dictionary of `{str: object}`.
         """
         conf_from_options = self.CONF_FROM_OPTIONS or {}
         config_options = {}

@@ -20,12 +20,14 @@ from qtconsole.styles import dark_color
 
 
 def create_qss_style(color_scheme):
-    """Returns a QSS stylesheet with Spyder color scheme settings.
+    """
+    Returns a QSS stylesheet with Spyder color scheme settings.
 
     The stylesheet can contain classes for:
-        Qt: QPlainTextEdit, QFrame, QWidget, etc
-       Pygments: .c, .k, .o, etc. (see PygmentsHighlighter)
-        IPython: .error, .in-prompt, .out-prompt, etc
+    * Qt, QPlainTextEdit, QFrame, QWidget, etc.
+    * Pygments, .c, .k, .o, etc. (see PygmentsHighlighter).
+    * IPython, .error, .in-prompt, .out-prompt, etc.
+
     """
 
     def give_font_weight(is_bold):

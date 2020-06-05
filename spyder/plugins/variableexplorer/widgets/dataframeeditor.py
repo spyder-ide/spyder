@@ -510,8 +510,8 @@ class DataFrameView(QTableView):
     """
     Data Frame view class.
 
-    Signals
-    -------
+    Notes
+    -----
     sig_option_changed(): Raised after a sort by column.
     sig_sort_by_column(): Raised after more columns are fetched.
     sig_fetch_more_rows(): Raised after more rows are fetched.
@@ -887,10 +887,10 @@ class DataFrameEditor(BaseDialog):
     For more information please see:
     https://github.com/wavexx/gtabview/blob/master/gtabview/viewer.py
 
-    Signals
-    -------
+    Notes
+    -----
     sig_option_changed(str, object): Raised if an option is changed.
-       Arguments are name of option and its new value.
+    Arguments are name of option and its new value.
     """
     sig_option_changed = Signal(str, object)
 

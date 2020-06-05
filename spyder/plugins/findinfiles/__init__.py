@@ -6,7 +6,7 @@
 
 """
 spyder.plugins.findinfiles.plugin.plugin
-===========
+========================================
 
 Find in files plugin.
 """

@@ -41,8 +41,9 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.confpage import EditorConfigPage
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
-from spyder.plugins.editor.widgets.editor import (EditorMainWindow, Printer,
-                                                  EditorSplitter, EditorStack,)
+from spyder.plugins.editor.widgets.editor import (EditorMainWindow,
+                                                  EditorSplitter, EditorStack,
+                                                  Printer)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.utils.bookmarks import (load_bookmarks,
                                                    save_bookmarks)
@@ -2114,7 +2115,8 @@ class Editor(SpyderPluginWidget):
                           header_font=self.get_font())
         preview = QPrintPreviewDialog(printer, self)
         preview.setWindowFlags(Qt.Window)
-        preview.paintRequested.connect(lambda printer: editor.print_(printer))
+        preview.paintRequested.connect(
+            lambda printer: editor.print_(printer))
         self.redirect_stdio.emit(False)
         preview.exec_()
         self.redirect_stdio.emit(True)

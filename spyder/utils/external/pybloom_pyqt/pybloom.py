@@ -187,7 +187,7 @@ class BloomFilter(object):
         return self.intersection(other)
 
     def tofile(self, path):
-        """Write the bloom filter to file object `f'. Underlying bits
+        """Write the bloom filter to file object `f`. Underlying bits
         are written as machine values. This is much more space
         efficient than pickling the object."""
         # f.write(pack(self.FILE_FMT, self.error_rate, self.num_slices,
@@ -208,8 +208,10 @@ class BloomFilter(object):
 
     @classmethod
     def fromfile(cls, path):
-        """Read a bloom filter from file-object `f' serialized with
-        ``BloomFilter.tofile''. """
+        """
+        Read a bloom filter from file-object `f` serialized with
+        ``BloomFilter.tofile``.
+        """
         f = QFile(path)
         if not f.open(QIODevice.ReadOnly):
             raise ValueError("unable to open file " + path)
@@ -358,8 +360,7 @@ class ScalableBloomFilter(object):
         return len(self)
 
     def tofile(self, f):
-        """Serialize this ScalableBloomFilter into the file-object
-        `f'."""
+        """Serialize this ScalableBloomFilter into the file-object `f`."""
         f.write(pack(self.FILE_FMT, self.scale, self.ratio,
                      self.initial_capacity, self.error_rate))
 
@@ -383,7 +384,7 @@ class ScalableBloomFilter(object):
 
     @classmethod
     def fromfile(cls, f):
-        """Deserialize the ScalableBloomFilter in file object `f'."""
+        """Deserialize the ScalableBloomFilter in file object `f`."""
         filter = cls()
         filter._setup(*unpack(cls.FILE_FMT, f.read(calcsize(cls.FILE_FMT))))
         nfilters, = unpack(b'<l', f.read(calcsize(b'<l')))

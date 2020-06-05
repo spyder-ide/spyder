@@ -691,8 +691,9 @@ class BaseEditMixin(object):
             return os.linesep
 
     def get_text_with_eol(self):
-        """Same as 'toPlainText', replace '\n'
-        by correct end-of-line characters"""
+        """
+        Same as 'toPlainText', replace `\\n` by correct eol characters.
+        """
         utext = to_text_string(self.toPlainText())
         lines = utext.splitlines()
         linesep = self.get_line_separator()
@@ -1147,8 +1148,8 @@ class BaseEditMixin(object):
         """
         Return text selected by current text cursor, converted in unicode.
 
-        Replace the unicode line separator character \u2029 by
-        the line separator characters returned by get_line_separator
+        Replace the unicode line separator character `\\u2029` by
+        the line separator characters returned by get_line_separator.
         """
         if cursor is None:
             cursor = self.textCursor()

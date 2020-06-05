@@ -50,7 +50,7 @@ class TextDecoration(QTextEdit.ExtraSelection):
     (useful for errors markers and so on...)
 
     Text decoration expose a **clicked** signal stored in a separate QObject:
-        :attr:`pyqode.core.api.TextDecoration.Signals`
+        `pyqode.core.api.TextDecoration.Signals`
 
     .. code-block:: python
 

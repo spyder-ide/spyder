@@ -133,7 +133,7 @@ class Help(SpyderDockablePlugin):
 
         Parameters
         ----------
-        shellwidget: spyder.plugins.ipyconsole.widgets.shell.ShellWidget
+        shellwidget: spyder.plugins.ipythonconsole.widgets.shell.ShellWidget
             The shell widget that is going to be connected to Help.
         """
         shellwidget._control.set_help_enabled(

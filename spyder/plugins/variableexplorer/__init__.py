@@ -6,7 +6,7 @@
 
 """
 spyder.plugins.variableexplorer
-===========
+===============================
 
 Variable Explorer plugin used to instrospect variables in the namespace.
 """

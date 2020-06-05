@@ -291,7 +291,7 @@ class BaseSH(QSyntaxHighlighter):
         """
         Highlights a block of text. Please do not override, this method.
         Instead you should implement
-        :func:`spyder.utils.syntaxhighplighters.SyntaxHighlighter.highlight_block`.
+        :func:`spyder.utils.syntaxhighlighters.BaseSH.highlight_block`.
 
         :param text: text to highlight.
         """

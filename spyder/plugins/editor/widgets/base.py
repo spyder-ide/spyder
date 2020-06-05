@@ -459,11 +459,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
     def select_current_cell(self, cursor=None):
         """
-        Select cell under cursor in the visible portion of the file
-        cell = group of lines separated by CELL_SEPARATORS
-        returns
-         -the textCursor
-         -a boolean indicating if the entire file is selected
+        Select cell under cursor in the visible portion of the file.
+
+        cell means group of lines separated by CELL_SEPARATORS.
+
+        Returns
+        -------
+        tuple
+            The textCursor and boolean indicating if the entire file is
+            selected.
         """
         if cursor is None:
             cursor = self.textCursor()

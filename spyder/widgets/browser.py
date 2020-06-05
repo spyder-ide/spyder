@@ -21,7 +21,7 @@ from qtpy.QtWidgets import (QFrame, QHBoxLayout, QLabel, QMenu, QProgressBar,
 
 # Local imports
 from spyder.api.translations import get_translation
-from spyder.api.widgets import SpyderWidgetMixin
+from spyder.api.widgets.mixins import SpyderWidgetMixin
 from spyder.config.base import DEV
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
@@ -64,11 +64,12 @@ class WebViewMenus:
 # ----------------------------------------------------------------------------
 class WebPage(QWebEnginePage):
     """
-    Web page subclass to manage hyperlinks for WebEngine
+    Web page subclass to manage hyperlinks for WebEngine.
 
-    Note: This can't be used for WebKit because the
-    acceptNavigationRequest method has a different
-    functionality for it.
+    Notes
+    -----
+    This can't be used for WebKit because the acceptNavigationRequest method
+    has a different functionality for it.
     """
     linkClicked = Signal(QUrl)
 
@@ -85,9 +86,7 @@ class WebPage(QWebEnginePage):
 
 
 class WebView(QWebEngineView, SpyderWidgetMixin):
-    """
-    Web view.
-    """
+    """Web view."""
 
     def __init__(self, parent, handle_links=True):
         super().__init__(parent)
@@ -104,7 +103,7 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
             self.setPage(web_page)
             self.source_text = ''
 
-    def setup(self, options={}):
+    def setup(self, options=None):
         # Actions
         original_back_action = self.pageAction(QWebEnginePage.Back)
         back_action = self.create_action(
@@ -128,7 +127,6 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         select_all_action = self.create_action(
             name=WebViewActions.SelectAll,
             text=_("Select all"),
-            # icon=self.create_icon(''),
             triggered=lambda: original_select_action.trigger(),
             context=Qt.WidgetWithChildrenShortcut,
         )
@@ -137,7 +135,6 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         copy_action = self.create_action(
             name=WebViewActions.Copy,
             text=_("Copy"),
-            # icon=self.create_icon(''),
             triggered=lambda: copy_action.trigger(),
             context=Qt.WidgetWithChildrenShortcut,
         )
@@ -163,7 +160,6 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         inspect_action = self.create_action(
             name=WebViewActions.Inspect,
             text=_("Inspect"),
-            # icon=self.create_icon(''),
             triggered=lambda: original_inspect_action.trigger(),
             context=Qt.WidgetWithChildrenShortcut,
         )

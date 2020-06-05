@@ -19,6 +19,7 @@ from spyder.plugins.help.utils.sphinxify import (CSS_PATH, generate_context,
 class SphinxThread(QThread):
     """
     A worker thread for handling rich text rendering.
+
     Parameters
     ----------
     doc : str or dict
@@ -28,7 +29,7 @@ class SphinxThread(QThread):
     context : dict
         A dict containing the substitution variables for the
         layout template
-    html_text_no_doc : unicode
+    html_text_no_doc : str
         Text to be rendered if doc string cannot be extracted.
     math_option : bool
         Use LaTeX math rendering.

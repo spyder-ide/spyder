@@ -29,16 +29,19 @@ import itertools
 def common_prefix_length(seq_a, seq_b):
     """
     Return the length of the common prefix between two sequences.
+
     Parameters
     ----------
     seq_a : iter
         An iterable holding the first sequence.
     seq_b : iter
         An iterable holding the second sequence.
+
     Returns
     -------
-    length: int
+    int
         The length of the common prefix between `seq_a` and `seq_b`.
+
     Examples
     --------
     >>> import dafsa
@@ -60,12 +63,15 @@ def common_prefix_length(seq_a, seq_b):
 def pairwise(iterable):
     """
     Iterate pairwise over an iterable.
+
     The function follows the recipe offered on Python's `itertools`
     documentation.
+
     Parameters
     ----------
     iterable : iter
         The iterable to be iterate pairwise.
+
     Examples
     --------
     >>> import dafsa
@@ -121,7 +127,7 @@ class DAFSANode:
         """
         Return a textual representation of the node.
 
-        The representation lists any edge, with ``id`` and ``attr``ibute. The
+        The representation lists any edge, with ``id`` and ``attr``. The
         edge dictionary is sorted at every call, so that, even if
         more expansive computationally, the function is guaranteed to be
         idempotent in all implementations.
@@ -131,19 +137,21 @@ class DAFSANode:
         nodes returning the same value. For unambigous representation,
         the ``.__repr__()`` method must be used.
 
-.. code:: python
+        Returns
+        -------
+        str
+            The (potentially ambiguous) textual representation of the
+            current node.
+
+        Examples
+        --------
+
         >>> from dafsa import DAFSANode, DAFSAEdge
         >>> node = DAFSANode(0)
         >>> node.final = True
         >>> node.edges["x"] = DAFSAEdge(DAFSANode(1), 1)
         >>> str(node)
         'x|1'
-
-        Returns
-        -------
-        string : str
-            The (potentially ambiguous) textual representation of the
-            current node.
         """
 
         # Build the buffer; please note the differences in implementation
@@ -170,18 +178,19 @@ class DAFSANode:
         edge weight, it cannot be used for minimization. For such purposes,
         the potentially ambiguous ``.__str__()`` method must be used.
 
-.. code:: python
+        Returns
+        -------
+        str
+            The unambiguous textual representation of the current node.
+
+        Examples
+        --------
         >>> from dafsa import DAFSANode, DAFSAEdge
         >>> node = DAFSANode(0)
         >>> node.final = True
         >>> node.edges["x"] = DAFSAEdge(DAFSANode(1), 1)
         >>> repr(node)
         '0(#1/0:<x>/1)'
-
-        Returns
-        -------
-        string : str
-            The unambiguous textual representation of the current node.
         """
 
         # Build the buffer; please note the differences in implementation
@@ -221,14 +230,14 @@ class DAFSANode:
         Please note that this method checks for *equivalence* (in particular,
         disregarding edge weight), and not for *equality*.
 
-        Paremeters
+        Parameters
         ----------
         other : DAFSANode
             The DAFSANode to be compared with the current one.
 
         Returns
         -------
-        eq : bool
+        bool
             A boolean indicating if the two nodes are equivalent.
         """
 
@@ -268,14 +277,14 @@ class DAFSANode:
         "information amount", only providing a convenient complementary
         method to ``.__eq__()``.
 
-        Paremeters
+        Parameters
         ----------
         other : DAFSANode
             The DAFSANode to be compared with the current one.
 
         Returns
         -------
-        gt : bool
+        bool
             A boolean indicating if the current node is greater than the one
             it is compared with (that is, if it should be placed after it
             in an ordered sequence).
@@ -295,7 +304,7 @@ class DAFSANode:
 
         Returns
         -------
-        hash : number
+        number
             The hash from the (potentially ambigous) textual representation of
             the current node.
         """
@@ -313,7 +322,7 @@ class DAFSANode:
 
         Returns
         -------
-        hash : number
+        number
             The hash from the unambigous textual representation of the
             current node.
         """
@@ -364,7 +373,7 @@ class DAFSAEdge(dict):
 
         Returns
         -------
-        string : str
+        str
             The (potentially ambiguous) textual representation of the
             current edge.
         """
@@ -380,7 +389,7 @@ class DAFSAEdge(dict):
 
         Returns
         -------
-        string : str
+        str
             The unambiguous textual representation of the current edge.
         """
 
@@ -398,7 +407,7 @@ class DAFSAEdge(dict):
 
         Returns
         -------
-        hash : number
+        number
             The hash from the (potentially ambigous) textual representation of
             the current edge.
         """
@@ -416,7 +425,7 @@ class DAFSAEdge(dict):
 
         Returns
         -------
-        hash : number
+        number
             The hash from the unambigous textual representation of the
             current edge.
         """
@@ -679,7 +688,7 @@ class DAFSA:
 
         Returns
         -------
-        num_operations: int
+        int
             The number of joining operations that was performed. When zero,
             it signals that no more joining is possible.
         """
@@ -766,7 +775,7 @@ class DAFSA:
 
         Parameters
         ----------
-        sequences : list
+        list
             List of sequences whose node and edge weights will be collected.
         """
 
@@ -797,7 +806,7 @@ class DAFSA:
 
         Returns
         -------
-        node : tuple of DAFSANode and int, or None
+        tuple or None
             Either a tuple with a DAFSANode referring to the final state
             that can be reached by following the specified sequence,
             plus the cumulative weight for reaching it, or None if no path
@@ -830,7 +839,7 @@ class DAFSA:
 
         Returns
         -------
-        node_count : int
+        int
             Number of minimized nodes in the structure.
         """
 
@@ -842,7 +851,7 @@ class DAFSA:
 
         Returns
         -------
-        edge_count : int
+        int
             Number of minimized edges in the structure.
         """
 
@@ -859,7 +868,7 @@ class DAFSA:
 
         Returns
         -------
-        seq_count : int
+        int
             Number of sequences in the structure.
         """
 
@@ -871,7 +880,7 @@ class DAFSA:
 
         Returns
         -------
-        string : str
+        str
             The textual representation of the object.
         """
 

@@ -404,8 +404,12 @@ class InternalShell(PythonShellWidget):
 
     def execute_command(self, cmd):
         """
-        Execute a command
-        cmd: one-line command only, with '\n' at the end
+        Execute a command.
+
+        Parameters
+        ----------
+        cmd: str
+            One-line command only, with '\\n' at the end.
         """
         if self.input_mode:
             self.end_input(cmd)

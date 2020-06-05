@@ -37,9 +37,17 @@ def drift_color(base_color, factor=110):
     If base_color.lightness is higher than 128, the returned color is darker
     otherwise is is lighter.
 
-    :param base_color: The base color to drift from
-    ;:param factor: drift factor (%)
-    :return A lighter or darker color.
+    Parameters
+    ----------
+    base_color: QColor
+        The base color to drift from
+    factor: int, optional
+        Drift factor (%)
+
+    Returns
+    -------
+    QColor
+        A lighter or darker color.
     """
     base_color = QColor(base_color)
     if base_color.lightness() > 128:
@@ -239,7 +247,7 @@ class TextHelper(object):
     def word_under_cursor(self, select_whole_word=False, text_cursor=None):
         """
         Gets the word under cursor using the separators defined by
-        :attr:`spyder.plugins.editor.widgets.codeeditor.CodeEditor.word_separators`.
+        `spyder.plugins.editor.widgets.codeeditor.CodeEditor.word_separators`.
 
         FIXME: This is not working because CodeEditor have no attribute
         word_separators
@@ -717,10 +725,14 @@ class TextHelper(object):
     def is_comment_or_string(self, cursor_or_block, formats=None):
         """
         Checks if a block/cursor is a string or a comment.
-        :param cursor_or_block: QTextCursor or QTextBlock
-        :param formats: the list of color scheme formats to consider. By
-            default, it will consider the following keys: 'comment', 'string',
-            'docstring'.
+
+        Parameters
+        -----------
+        cursor_or_block: QTextCursor or QTextBlock
+            Instance of cursor or textblock to check.
+        formats: list
+            The list of color scheme formats to consider. By default, it will
+            consider the following keys: 'comment', 'string', 'docstring'.
         """
         if formats is None:
             formats = ["comment", "string", "docstring"]

@@ -23,12 +23,13 @@ def get_search_regex(query, ignore_case=True):
     ----------
     query : str
         String to search in another string (in order of character occurrence).
-    ignore_case : True
-        Optional value perform a case insensitive search (True by default).
+    ignore_case : bool, optional
+        Optional value perform a case insensitive search. The default is True.
 
     Returns
     -------
-    pattern : SRE_Pattern
+    SRE_Pattern
+        Regex compiled pattern.
 
     Notes
     -----
@@ -192,7 +193,7 @@ def get_search_scores(query, choices, ignore_case=True, template='{}',
     ----------
     query : str
         String with letters to search in each choice (in order of appearance).
-    choices : list of str
+    choices : list
         List of sentences/words in which to search for the 'query' letters.
     ignore_case : bool, optional
         Optional value perform a case insensitive search (True by default).
@@ -203,7 +204,7 @@ def get_search_scores(query, choices, ignore_case=True, template='{}',
 
     Returns
     -------
-    results : list of tuples
+    list
         List of tuples where the first item is the text (enriched if a
         template was used) and a search score. Lower scores means better match.
     """

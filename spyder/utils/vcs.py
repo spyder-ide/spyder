@@ -98,11 +98,18 @@ def is_hg_installed():
 
 
 def get_hg_revision(repopath):
-    """Return Mercurial revision for the repository located at repopath
-       Result is a tuple (global, local, branch), with None values on error
-       For example:
-           >>> get_hg_revision(".")
-           ('eba7273c69df+', '2015+', 'default')
+    """
+    Return Mercurial revision for the repository located at repopath.
+
+    Returns
+    -------
+    tuple
+        Result is a tuple (global, local, branch), with None values on error
+
+    Examples
+    --------
+    >>> get_hg_revision(".")
+    ('eba7273c69df+', '2015+', 'default')
     """
     try:
         assert osp.isdir(osp.join(repopath, '.hg'))

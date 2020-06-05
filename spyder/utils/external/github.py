@@ -202,7 +202,7 @@ class GitHub(object):
 
     def get_access_token(self, code, state=None):
         '''
-        In callback url: http://host/callback?code=123&state=xyz
+        In callback url: `http://host/callback?code=123&state=xyz`
 
         use code and state to get an access token.
         '''

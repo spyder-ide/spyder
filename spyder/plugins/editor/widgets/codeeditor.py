@@ -788,8 +788,8 @@ class CodeEditor(TextEditBaseWidget):
     def panels(self):
         """
         Returns a reference to the
-        :class:`spyder.widgets.panels.managers.PanelsManager`
-        used to manage the collection of installed panels
+        :class:`spyder.plugins.editor.panels.manager.PanelsManager`
+        used to manage the collection of installed panels.
         """
         return self._panels
 
@@ -838,74 +838,114 @@ class CodeEditor(TextEditBaseWidget):
         Usually the parameters here are related with a configurable preference
         in the Preference Dialog and Editor configurations:
 
-        linenumbers: Enable/Disable line number panel. Default True.
-        language: Set editor language for example python. Default None.
-        markers: Enable/Disable markers panel. Used to show elements like
+        Parameters
+        ----------
+        linenumbers: bool, optional
+            Enable/Disable line number panel. Default True.
+        language: str, optional
+            Set editor language for example python. Default None.
+        markers: bool, optional
+            Enable/Disable markers panel. Used to show elements like
             Code Analysis. Default False.
-        font: Base font for the Editor to use. Default None.
-        color_scheme: Initial color scheme for the Editor to use. Default None.
-        wrap: Enable/Disable line wrap. Default False.
-        tab_mode: Enable/Disable using Tab as delimiter between word,
+        font: QFont, optional
+            Base font for the Editor to use. Default None.
+        color_scheme: str, optional
+            Initial color scheme for the Editor to use. Default None.
+        wrap: bool, optional
+            Enable/Disable line wrap. Default False.
+        tab_mode: bool, optional
+            Enable/Disable using Tab as delimiter between word,
             Default True.
-        strip_mode: strip_mode: Enable/Disable striping trailing spaces when
+        strip_mode: bool, optional
+            Enable/Disable striping trailing spaces when
             modifying the file. Default False.
-        intelligent_backspace: Enable/Disable automatically unindenting
+        intelligent_backspace: bool, optional
+            Enable/Disable automatically unindenting
             inserted text (unindenting happens if the leading text length of
             the line isn't module of the length of indentation chars being use)
             Default True.
-        automatic_completions: Enable/Disable automatic completions.
+        automatic_completions: bool, optional
+            Enable/Disable automatic completions.
             The behavior of the trigger of this the completions can be
             established with the two following kwargs. Default True.
-        automatic_completions_after_chars: Number of charts to type to trigger
+        automatic_completions_after_chars: int, optional
+            Number of charts to type to trigger
             an automatic completion. Default 3.
-        automatic_completions_after_ms: Number of milliseconds to pass before
+        automatic_completions_after_ms: int, optional
+            Number of milliseconds to pass before
             an autocompletion is triggered. Default 300.
-        completions_hint: Enable/Disable documentation hints for completions.
+        completions_hint: bool, optional
+            Enable/Disable documentation hints for completions.
             Default True.
-        completions_hint_after_ms: Number of milliseconds over a completion
+        completions_hint_after_ms: int, optional
+            Number of milliseconds over a completion
             item to show the documentation hint. Default 500.
-        hover_hints: Enable/Disable documentation hover hints. Default True.
-        code_snippets: Enable/Disable code snippets completions. Default True.
-        highlight_current_line: Enable/Disable current line highlighting.
+        hover_hints: bool, optional
+            Enable/Disable documentation hover hints. Default True.
+        code_snippets: bool, optional
+            Enable/Disable code snippets completions. Default True.
+        highlight_current_line: bool, optional
+            Enable/Disable current line highlighting.
             Default True.
-        highlight_current_cell: Enable/Disable current cell highlighting.
+        highlight_current_cell: bool, optional
+            Enable/Disable current cell highlighting.
             Default True.
-        occurrence_highlighting: Enable/Disable highlighting of current word
+        occurrence_highlighting: bool, optional
+            Enable/Disable highlighting of current word
             occurrence in the file. Default True.
-        scrollflagarea : Enable/Disable flag area that shows at the left of
+        scrollflagarea: bool, optional
+            Enable/Disable flag area that shows at the left of
             the scroll bar. Default True.
-        edge_line: Enable/Disable vertical line to show max number of
+        edge_line: bool, optional
+            Enable/Disable vertical line to show max number of
             characters per line. Customizable number of columns in the
             following kwarg. Default True.
-        edge_line_columns: Number of columns/characters where the editor
+        edge_line_columns: list or int
+            Number of columns/characters where the editor
             horizontal edge line will show. Default (79,).
-        show_blanks: Enable/Disable blanks highlighting. Default False.
-        underline_errors: Enable/Disable showing and underline to highlight
+        show_blanks: bool, optional
+            Enable/Disable blanks highlighting. Default False.
+        underline_errors: bool, optional
+            Enable/Disable showing and underline to highlight
             errors. Default False.
-        close_parentheses: Enable/Disable automatic parentheses closing
+        close_parentheses: bool, optional
+            Enable/Disable automatic parentheses closing
             insertion. Default True.
-        close_quotes: Enable/Disable automatic closing of quotes.
+        close_quotes: bool, optional
+            Enable/Disable automatic closing of quotes.
             Default False.
-        add_colons: Enable/Disable automatic addition of colons. Default True.
-        auto_unindent: Enable/Disable automatically unindentation before else,
+        add_colons: bool, optional
+            Enable/Disable automatic addition of colons. Default True.
+        auto_unindent: bool, optional
+            Enable/Disable automatically unindentation before else,
             elif, finally or except statements. Default True.
-        indent_chars: Characters to use for indentation. Default " "*4.
-        tab_stop_width_spaces: Enable/Disable using tabs for indentation.
+        indent_chars: str, optional
+            Characters to use for indentation. Default `" "*4`.
+        tab_stop_width_spaces: int, optional
+            Enable/Disable using tabs for indentation.
             Default 4.
-        cloned_from: Editor instance used as template to instantiate this
+        cloned_from: spyder.plugins.editor.widgets.codeeditor.CodeEditor
+            Editor instance used as template to instantiate this
             CodeEditor instance. Default None.
-        filename: Initial filename to show. Default None.
-        occurrence_timeout : Timeout in milliseconds to start highlighting
+        filename: str, optional
+            Initial filename to show. Default None.
+        occurrence_timeout: int, optional
+            Timeout in milliseconds to start highlighting
             matches/occurrences for the current word under the cursor.
             Default 1500 ms.
-        show_class_func_dropdown: Enable/Disable a Matlab like widget to show
+        show_class_func_dropdown: bool, optional
+            Enable/Disable a Matlab like widget to show
             classes and functions available in the current file. Default False.
-        indent_guides: Enable/Disable highlighting of code indentation.
+        indent_guides: bool, optional
+            Enable/Disable highlighting of code indentation.
             Default False.
-        scroll_past_end: Enable/Disable possibility to scroll file passed
+        scroll_past_end: bool, optional
+            Enable/Disable possibility to scroll file passed
             its end. Default False.
-        debug_panel: Enable/Disable debug panel. Default True.
-        folding: Enable/Disable code folding. Default True.
+        debug_panel: bool, optional
+            Enable/Disable debug panel. Default True.
+        folding: bool, optional
+            Enable/Disable code folding. Default True.
         """
 
         self.set_close_parentheses_enabled(close_parentheses)
@@ -4599,8 +4639,11 @@ class CodeEditor(TextEditBaseWidget):
         Each element in the list is a tuple made up of the line top position,
         the line number (already 1 based), and the QTextBlock itself.
 
-        :return: A list of tuple(top position, line number, block)
-        :rtype: List of tuple(int, int, QtGui.QTextBlock)
+        Returns
+        -------
+        list
+            A list of tuple(int: top position, int: line number,
+            QtGui.QTextBlock: block).
         """
         return self.__visible_blocks
 

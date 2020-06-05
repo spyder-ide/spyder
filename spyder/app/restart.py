@@ -128,9 +128,10 @@ class Restarter(QWidget):
 
         Parameters
         ----------
-        error_type : int [CLOSE_ERROR, RESET_ERROR, RESTART_ERROR]
+        error_type: int
+            [CLOSE_ERROR, RESET_ERROR, RESTART_ERROR]
             Possible error codes when restarting/reseting spyder.
-        error : Exception
+        error: Exception
             Actual Python exception error caught.
         """
         messages = {CLOSE_ERROR: _("It was not possible to close the previous "

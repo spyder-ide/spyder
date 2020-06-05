@@ -39,10 +39,15 @@ class TextDecorationsManager(Manager):
         Don't add duplicated decorations, and order decorations according
         draw_order and the size of the selection.
 
-        Args:
-            decorations (sourcecode.api.TextDecoration) (could be a list)
-        Returns:
-            int: Amount of decorations added.
+        Parameters
+        ----------
+        decorations: spyder.plugins.editor.api.decoration.TextDecoration
+            Could be a list of decorations.
+
+        Returns
+        -------
+        int
+            Amount of decorations added.
         """
         added = 0
         if isinstance(decorations, list):
@@ -62,11 +67,14 @@ class TextDecorationsManager(Manager):
         """
         Removes a text decoration from the editor.
 
-        :param decoration: Text decoration to remove
-        :type decoration: spyder.api.TextDecoration
-        update: Bool: should the decorations be updated immediately?
+        Parameters
+        ----------
+        decoration: spyder.plugins.editor.api.decoration.TextDecoration
+            Text decoration to remove.
+        update: bool, optional
+            Should the decorations be updated immediately?
             Set to False to avoid updating several times while removing
-            several decorations
+            several decorations.
         """
         try:
             self._decorations.remove(decoration)
@@ -88,9 +96,12 @@ class TextDecorationsManager(Manager):
             pass
 
     def update(self):
-        """Update editor extra selections with added decorations.
+        """
+        Update editor extra selections with added decorations.
 
-        NOTE: Update TextDecorations to use editor font, using a different
+        Notes
+        -----
+        Update TextDecorations to use editor font, using a different
         font family and point size could cause unwanted behaviors.
         """
         font = self.editor.font()

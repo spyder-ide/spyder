@@ -637,21 +637,22 @@ class TreeWidgetItem( QTreeWidgetItem ):
 
 class ProfilerDataTree(QTreeWidget, SpyderWidgetMixin):
     """
-    Convenience tree widget (with built-in model)
-    to store and view profiler data.
+    Convenience tree widget (with built-in model) to store and view profiler
+    data.
 
     The quantities calculated by the profiler are as follows
     (from profile.Profile):
-    [0] = The number of times this function was called, not counting direct
-          or indirect recursion,
-    [1] = Number of times this function appears on the stack, minus one
-    [2] = Total time spent internal to this function
-    [3] = Cumulative time that this function was present on the stack.  In
-          non-recursive functions, this is the total execution time from start
-          to finish of each invocation of a function, including time spent in
-          all subfunctions.
-    [4] = A dictionary indicating for each function name, the number of times
-          it was called by us.
+    * [0] = The number of times this function was called, not counting direct
+    or indirect recursion,
+    * [1] = Number of times this function appears on the stack, minus one
+    * [2] = Total time spent internal to this function
+    * [3] = Cumulative time that this function was present on the stack.  In
+    non-recursive functions, this is the total execution time from start
+    to finish of each invocation of a function, including time spent in
+    all subfunctions.
+    * [4] = A dictionary indicating for each function name, the number of times
+    it was called by us.
+
     """
     SEP = r"<[=]>"  # separator between filename and linenumber
     # (must be improbable as a filename to avoid splitting the filename itself)

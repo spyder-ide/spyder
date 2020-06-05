@@ -49,9 +49,9 @@ from spyder.widgets.findreplace import FindReplace
 from spyder.plugins.editor.utils.autosave import AutosaveForStack
 from spyder.plugins.editor.utils.switcher import EditorSwitcherManager
 from spyder.plugins.editor.widgets import codeeditor
-from spyder.plugins.editor.widgets.base import TextEditBaseWidget  # analysis:ignore
-from spyder.plugins.editor.widgets.codeeditor import Printer       # analysis:ignore
-from spyder.plugins.editor.widgets.codeeditor import get_file_language
+from spyder.plugins.editor.widgets.base import TextEditBaseWidget
+from spyder.plugins.editor.widgets.codeeditor import (get_file_language,
+                                                      Printer)
 from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
@@ -1627,12 +1627,16 @@ class EditorStack(QWidget):
     def has_filename(self, filename):
         """Return the self.data index position for the filename.
 
-        Args:
-            filename: Name of the file to search for in self.data.
+        Parameters
+        ----------
+        filename: str
+            Name of the file to search for in self.data.
 
-        Returns:
-            The self.data index for the filename.  Returns None
-            if the filename is not found in self.data.
+        Returns
+        -------
+        int
+            The self.data index for the filename. Returns None if the
+            filename is not found in self.data.
         """
         fixpath = lambda path: osp.normcase(osp.realpath(path))
         for index, finfo in enumerate(self.data):
@@ -1657,11 +1661,15 @@ class EditorStack(QWidget):
     def is_file_opened(self, filename=None):
         """Return if filename is in the editor stack.
 
-        Args:
-            filename: Name of the file to search for.  If filename is None,
-                then checks if any file is open.
+        Parameters
+        ----------
+        filename: str
+            Name of the file to search for.  If filename is None,
+            then checks if any file is open.
 
-        Returns:
+        Returns
+        -------
+        bool or None or int
             True: If filename is None and a file is open.
             False: If filename is None and no files are open.
             None: If filename is not None and the file isn't found.
@@ -1851,14 +1859,19 @@ class EditorStack(QWidget):
     def save_if_changed(self, cancelable=False, index=None):
         """Ask user to save file if modified.
 
-        Args:
-            cancelable: Show Cancel button.
-            index: File to check for modification.
+        Parameters
+        ----------
+        cancelable: bool, optional
+            Show Cancel button. Default is False.
+        index: int, optional
+            File to check for modification. Default is None.
 
-        Returns:
+        Returns
+        -------
+        bool
             False when save() fails or is cancelled.
             True when save() is successful, there are no modifications,
-                or user selects No or NoToAll.
+            or user selects No or NoToAll.
 
         This function controls the message box prompt for saving
         changed files.  The actual save is performed in save() for
@@ -1922,12 +1935,15 @@ class EditorStack(QWidget):
     def compute_hash(self, fileinfo):
         """Compute hash of contents of editor.
 
-        Args:
-            fileinfo: FileInfo object associated to editor whose hash needs
-                to be computed.
+        Parameters
+        ----------
+        fileinfo: QFileInfo
+            Object associated to editor whose hash needs to be computed.
 
-        Returns:
-            int: computed hash.
+        Returns
+        -------
+        int
+            Computed hash.
         """
         txt = fileinfo.editor.get_text_with_eol()
         return hash(txt)
@@ -1935,10 +1951,15 @@ class EditorStack(QWidget):
     def _write_to_file(self, fileinfo, filename):
         """Low-level function for writing text of editor to file.
 
-        Args:
-            fileinfo: FileInfo object associated to editor to be saved
-            filename: str with filename to save to
+        Parameters
+        ----------
+        fileinfo: QFileInfo
+            Object associated to editor to be saved
+        filename: str
+            String with filename to save to.
 
+        Notes
+        -----
         This is a low-level function that only saves the text to file in the
         correct encoding without doing any error handling.
         """
@@ -1948,15 +1969,21 @@ class EditorStack(QWidget):
     def save(self, index=None, force=False, save_new_files=True):
         """Write text of editor to a file.
 
-        Args:
-            index: self.data index to save.  If None, defaults to
-                currentIndex().
-            force: Force save regardless of file state.
+        Parameters
+        ----------
+        index: int
+            self.data index to save. If None, defaults to currentIndex().
+        force: bool, optional
+            Force save regardless of file state. Default is False.
 
-        Returns:
+        Returns
+        -------
+        bool
             True upon successful save or when file doesn't need to be saved.
             False if save failed.
 
+        Notes
+        -----
         If the text isn't modified and it's not newly created, then the save
         is aborted.  If the file hasn't been saved before, then save_as()
         is invoked.  Otherwise, the file is written using the file name
@@ -2046,11 +2073,14 @@ class EditorStack(QWidget):
     def select_savename(self, original_filename):
         """Select a name to save a file.
 
-        Args:
-            original_filename: Used in the dialog to display the current file
-                    path and name.
+        Parameters
+        ----------
+        original_filename: str
+            Used in the dialog to display the current file path and name.
 
-        Returns:
+        Returns
+        -------
+        str
             Normalized path for the selected file name or None if no name was
             selected.
         """
@@ -2084,13 +2114,19 @@ class EditorStack(QWidget):
     def save_as(self, index=None):
         """Save file as...
 
-        Args:
-            index: self.data index for the file to save.
+        Parameters
+        ----------
+        index: int, optional
+            self.data index for the file to save.
 
-        Returns:
+        Returns
+        -------
+        bool
             False if no file name was selected or if save() was unsuccessful.
             True is save() was successful.
 
+        Notes
+        -----
         Gets the new file name from select_savename().  If no name is chosen,
         then the save_as() aborts.  Otherwise, the current stack is checked
         to see if the selected name already exists and, if so, then the tab
@@ -2142,10 +2178,14 @@ class EditorStack(QWidget):
     def save_copy_as(self, index=None):
         """Save copy of file as...
 
-        Args:
-            index: self.data index for the file to save.
+        Parameters
+        ----------
+        index: int
+            self.data index for the file to save.
 
-        Returns:
+        Returns
+        -------
+        bool
             False if no file name was selected or if save() was unsuccessful.
             True is save() was successful.
 
@@ -2946,22 +2986,31 @@ class EditorSplitter(QSplitter):
 
     def __init__(self, parent, plugin, menu_actions, first=False,
                  register_editorstack_cb=None, unregister_editorstack_cb=None):
-        """Create a splitter for dividing an editor window into panels.
+        """
+        Create a splitter for dividing an editor window into panels.
 
         Adds a new EditorStack instance to this splitter.  If it's not
         the first splitter, clones the current EditorStack from the plugin.
 
-        Args:
-            parent: Parent widget.
-            plugin: Plugin this widget belongs to.
-            menu_actions: QActions to include from the parent.
-            first: Boolean if this is the first splitter in the editor.
-            register_editorstack_cb: Callback to register the EditorStack.
-                        Defaults to plugin.register_editorstack() to
-                        register the EditorStack with the Editor plugin.
-            unregister_editorstack_cb: Callback to unregister the EditorStack.
-                        Defaults to plugin.unregister_editorstack() to
-                        unregister the EditorStack with the Editor plugin.
+        Parameters
+        ----------
+        parent: QWidget
+            Parent widget.
+        plugin: spyder.api.plugins.SpyderPluginV2
+            Plugin this widget belongs to.
+        menu_actions: list
+            List of QActions to include from the parent.
+        first: bool, optional
+            Boolean if this is the first splitter in the editor.
+            Default is False.
+        register_editorstack_cb: callable, optional
+            Callback to register the EditorStack.
+            Defaults to plugin.register_editorstack() to
+            register the EditorStack with the Editor plugin.
+        unregister_editorstack_cb: callable, optional
+            Callback to unregister the EditorStack.
+            Defaults to plugin.unregister_editorstack() to
+            unregister the EditorStack with the Editor plugin.
         """
 
         QSplitter.__init__(self, parent)
@@ -3080,23 +3129,25 @@ class EditorSplitter(QSplitter):
         return editorstacks
 
     def get_layout_settings(self):
-        """Return the layout state for this splitter and its children.
+        """
+        Return the layout state for this splitter and its children.
 
         Record the current state, including file names and current line
         numbers, of the splitter panels.
 
-        Returns:
+        Returns
+        -------
+        dict
             A dictionary containing keys {hexstate, sizes, splitsettings}.
-                hexstate: String of saveState() for self.
-                sizes: List for size() for self.
-                splitsettings: List of tuples of the form
-                       (orientation, cfname, clines) for each EditorSplitter
-                       and its EditorStack.
-                           orientation: orientation() for the editor
-                                 splitter (which may be a child of self).
-                           cfname: EditorStack current file name.
-                           clines: Current line number for each file in the
-                               EditorStack.
+            * hexstate: String of saveState() for self.
+            * sizes: List for size() for self.
+            * splitsettings: List of tuples of the form
+            (orientation, cfname, clines) for each EditorSplitter
+            and its EditorStack.
+            * orientation: orientation() for the editor
+            splitter (which may be a child of self).
+            * cfname: EditorStack current file name.
+            * clines: Current line number for each file in the EditorStack.
         """
         splitsettings = []
         for editorstack, orientation in self.iter_editorstacks():
@@ -3127,7 +3178,7 @@ class EditorSplitter(QSplitter):
         The size and positioning of each splitter panel is restored from
         hexstate.
 
-        Args:
+        Parameters
             settings: A dictionary with keys {hexstate, sizes, orientation}
                     that define the layout for the EditorSplitter panels.
             dont_goto: Defaults to None, which positions the cursor to the

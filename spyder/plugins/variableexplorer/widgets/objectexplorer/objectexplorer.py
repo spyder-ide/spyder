@@ -446,7 +446,8 @@ class ObjectExplorer(BaseDialog):
         """
         Creates and shows and ObjectExplorer window.
 
-        The *args and **kwargs will be passed to the ObjectExplorer constructor
+        The `*args` and `**kwargs` will be passed to the ObjectExplorer
+        constructor.
 
         A (class attribute) reference to the browser window is kept to prevent
         it from being garbage-collected.

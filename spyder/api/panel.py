@@ -93,8 +93,8 @@ class Panel(QWidget, EditorExtension):
 
     def on_install(self, editor):
         """
-        Extends :meth:`spyder.api.EditorExtension.on_install` method to set the
-        editor instance as the parent widget.
+        Extends :meth:`spyder.api.editorextension.EditorExtension.on_install`
+        method to set the editor instance as the parent widget.
 
         .. warning:: Don't forget to call **super** if you override this
             method!

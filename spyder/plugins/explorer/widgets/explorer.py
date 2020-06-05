@@ -1462,10 +1462,8 @@ class FilteredDirView(DirView):
 
 
 class ExplorerTreeWidget(DirView):
-    """File/directory explorer tree widget
-    show_cd_only: Show current directory only
-    (True/False: enable/disable the option
-     None: enable the option and do not allow the user to disable it)"""
+    """File/directory explorer tree widget."""
+
     set_previous_enabled = Signal(bool)
     set_next_enabled = Signal(bool)
 
@@ -1602,7 +1600,7 @@ class ExplorerTreeWidget(DirView):
         directory: str
             The new working directory.
         browsing_history: bool, optional
-            Add the new `directory`to the browsing history. Default is False.
+            Add the new `directory` to the browsing history. Default is False.
         emit: bool, optional
             Emit a signal when changing the working directpory.
             Default is True.

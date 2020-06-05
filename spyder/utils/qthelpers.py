@@ -573,14 +573,19 @@ def calc_tools_spacing(tools_layout):
 
 def create_plugin_layout(tools_layout, main_widget=None):
     """
-    Returns a layout for a set of controls above a main widget. This is a
-    standard layout for many plugin panes (even though, it's currently
-    more often applied not to the pane itself but with in the one widget
-    contained in the pane.
+    Returns a layout for a set of controls above a main widget.
 
-    tools_layout: a layout containing the top toolbar
-    main_widget: the main widget. Can be None, if you want to add this
-        manually later on.
+    This is a standard layout for many plugin panes (even though, it's
+    currently more often applied not to the pane itself but with in the
+    one widget contained in the pane.
+
+    Parameters
+    ----------
+    tools_layout: QLayout
+        A layout containing the top toolbar.
+    main_widget: QWidget
+        the main widget. Can be None, if you want to add this manually
+        later on.
     """
     layout = QVBoxLayout()
     layout.setContentsMargins(0, 0, 0, 0)

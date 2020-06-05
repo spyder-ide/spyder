@@ -434,7 +434,7 @@ class FileAssociationsWidget(QWidget):
         """
         Load file associations data.
 
-        Format {'*.ext': [['Application Name', '/path/to/app/executable']]}
+        Format `{'*.ext': [['Application Name', '/path/to/app/executable']]}`
 
         `/path/to/app/executable` is an executable app on mac and windows and
         a .desktop xdg file on linux.

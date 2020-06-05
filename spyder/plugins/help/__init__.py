@@ -6,7 +6,7 @@
 
 """
 spyder.plugins.help
-===========
+===================
 
 Help plugin using a WebView
 """

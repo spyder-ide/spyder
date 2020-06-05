@@ -158,7 +158,7 @@ class UserConfig(DefaultsConfig):
         Name of the config
     path: str
         Configuration file will be saved in path/%name%.ini
-    defaults: {} or [(str, {}),]
+    defaults: dict or list
         Dictionary containing options *or* list of tuples (sec_name, options)
     load: bool
         If a previous configuration file is found, load will take the values

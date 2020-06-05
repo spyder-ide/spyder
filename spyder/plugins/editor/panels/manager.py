@@ -281,7 +281,7 @@ class PanelsManager(Manager):
         Gets the size of a specific margin.
 
         :param position: Margin position. See
-            :class:`spyder.api.Panel.Position`
+            :class:`spyder.api.panel.Panel.Position`
         :return: The size of the specified margin
         :rtype: float
         """

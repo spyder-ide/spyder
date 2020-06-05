@@ -79,10 +79,18 @@ def safe_data_fn(obj_fn, log_exceptions=False):
     """
     Creates a function that returns an empty string in case of an exception.
 
-    :param fnobj_fn: function that will be wrapped
-    :type obj_fn: object to basestring function
-    :returns: function that can be used as AttributeModel data_fn attribute
-    :rtype: objbrowser.treeitem.TreeItem to string function
+    Parameters
+    ----------
+    fnobj_fn: callable
+        Function that will be wrapped.
+    log_exceptions: bool, optional
+        Log exceptions.
+
+    Returns
+    -------
+    callable
+        Function that can be used as AttributeModel data_fn attribute
+        `objbrowser.treeitem.TreeItem` to string function
     """
     def data_fn(tree_item):
         """

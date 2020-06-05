@@ -50,11 +50,14 @@ class AutosaveForPlugin(object):
     """
     Component of editor plugin implementing autosave functionality.
 
-    Attributes:
-        name_mapping (dict): map between names of opened and autosave files.
-        file_hashes (dict): map between file names and hash of their contents.
-            This is used for both files opened in the editor and their
-            corresponding autosave files.
+    Attributes
+    ----------
+    name_mapping:  dict
+        Map between names of opened and autosave files.
+    file_hashes: dict
+        Map between file names and hash of their contents.
+        This is used for both files opened in the editor and their
+        corresponding autosave files.
     """
 
     # Interval (in ms) between two autosaves
@@ -67,8 +70,10 @@ class AutosaveForPlugin(object):
         Autosave is disabled after construction and needs to be enabled
         explicitly if required.
 
-        Args:
-            editor (Editor): editor plugin.
+        Parameters
+        ----------
+        editor: spyder.plugins.editor.Plugin
+            Editor plugin.
         """
         self.editor = editor
         self.name_mapping = {}
@@ -230,20 +235,26 @@ class AutosaveForStack(object):
     In Spyder, the `name_mapping` and `file_hashes` are set to references to
     the corresponding variables in `AutosaveForPlugin`.
 
-    Attributes:
-        stack (EditorStack): editor stack this component belongs to.
-        name_mapping (dict): map between names of opened and autosave files.
-        file_hashes (dict): map between file names and hash of their contents.
-            This is used for both files opened in the editor and their
-            corresponding autosave files.
+    Attributes
+    ----------
+    stack:  spyder.plugins.editor.widgets.editor.EditorStack
+        Editor stack this component belongs to.
+    name_mapping: dict
+        Map between names of opened and autosave files.
+    file_hashes: dict
+        Map between file names and hash of their contents.
+        This is used for both files opened in the editor and their
+        corresponding autosave files.
     """
 
     def __init__(self, editorstack):
         """
         Constructor.
 
-        Args:
-            editorstack (EditorStack): editor stack this component belongs to.
+        Parameters
+        ----------
+        editorstack: spyder.plugins.editor.widget.editor.EditorStack
+            Editor stack this component belongs to.
         """
         self.stack = editorstack
         self.name_mapping = {}
@@ -256,9 +267,12 @@ class AutosaveForStack(object):
         The created autosave file name does not yet exist either in
         `self.name_mapping` or on disk.
 
-        Args:
-            filename (str): original file name
-            autosave_dir (str): directory in which autosave files are stored
+        Parameters
+        ----------
+        filename: str
+            Original file name.
+        autosave_dir: str
+            Directory in which autosave files are stored.
         """
         basename = osp.basename(filename)
         autosave_filename = osp.join(autosave_dir, basename)
@@ -327,8 +341,10 @@ class AutosaveForStack(object):
         in the mapping, then return the corresponding autosave file name.
         Otherwise, construct a unique file name and update the mapping.
 
-        Args:
-            filename (str): original file name
+        Parameters
+        ----------
+        filename: str
+            Original file name.
         """
         try:
             autosave_filename = self.name_mapping[filename]
@@ -359,8 +375,10 @@ class AutosaveForStack(object):
         disc, but the autosave file is different, then remove the autosave
         file. In all other cases, autosave the file.
 
-        Args:
-            index (int): index into self.stack.data
+        Parameters
+        ----------
+        indexL: int
+            Index into `self.stack.data`.
         """
         finfo = self.stack.data[index]
         if finfo.newly_created:
@@ -396,8 +414,10 @@ class AutosaveForStack(object):
         update the cached hash of the autosave file. An error dialog notifies
         the user of any errors raised when saving.
 
-        Args:
-            fileinfo (FileInfo): file that is to be autosaved.
+        Parameters
+        ----------
+        fileinfo: FileInfo
+            File that is to be autosaved.
         """
         autosave_filename = self.get_autosave_filename(finfo.filename)
         logger.debug('Autosaving %s to %s', finfo.filename, autosave_filename)
@@ -420,9 +440,12 @@ class AutosaveForStack(object):
         """
         Update autosave files after a file is renamed.
 
-        Args:
-            old_name (str): name of file before it is renamed
-            new_name (str): name of file after it is renamed
+        Parameters
+        ----------
+        old_name: str
+            Name of file before it is renamed
+        new_name: str
+            Name of file after it is renamed
         """
         try:
             old_hash = self.file_hashes[old_name]

@@ -381,7 +381,7 @@ class PydocBrowser(PluginMainWidget):
 
         Parameters
         ----------
-        url: QUrl
+        url: qtpy.QtCore.QUrl
             Url address.
         """
         string_url = url.toString()
@@ -409,7 +409,7 @@ class PydocBrowser(PluginMainWidget):
 
         Parameters
         ----------
-        url: QUrl or str
+        url: qtpy.QtCore.QUrl or str
             Url address.
         """
         self._change_url(url)

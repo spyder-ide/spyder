@@ -6,38 +6,59 @@
 
 """Windows-specific utilities"""
 
+# Standard library ismport
+import os
 
-from ctypes import windll
+if os.name == 'nt':
+    from ctypes import windll
+else:
+    windll = None
 
 
-# --- Window control ---
-
-SW_SHOW = 5    # activate and display
+# --- Window control
+SW_SHOW = 5  # activate and display
 SW_SHOWNA = 8  # show without activation
 SW_HIDE = 0
 
-GetConsoleWindow = windll.kernel32.GetConsoleWindow
-ShowWindow = windll.user32.ShowWindow
-IsWindowVisible = windll.user32.IsWindowVisible
+if windll is not None:
+    GetConsoleWindow = windll.kernel32.GetConsoleWindow
+    ShowWindow = windll.user32.ShowWindow
+    IsWindowVisible = windll.user32.IsWindowVisible
 
-# Handle to console window associated with current Python
-# interpreter procss, 0 if there is no window
-console_window_handle = GetConsoleWindow()
+    # Handle to console window associated with current Python
+    # interpreter procss, 0 if there is no window
+    console_window_handle = GetConsoleWindow()
+else:
+    GetConsoleWindow = None
+    ShowWindow = None
+    IsWindowVisible = None
+    console_window_handle = None
+
 
 def set_attached_console_visible(state):
-    """Show/hide system console window attached to current process.
-       Return it's previous state.
+    """
+    Show/hide system console window attached to current process.
 
-       Availability: Windows"""
+    Returns
+    -------
+    bool
+        It's previous state.
+
+    Notes
+    -----
+    Availability only on Windows.
+    """
     flag = {True: SW_SHOW, False: SW_HIDE}
     return bool(ShowWindow(console_window_handle, flag[state]))
 
+
 def is_attached_console_visible():
-    """Return True if attached console window is visible"""
+    """Return True if attached console window is visible."""
     return IsWindowVisible(console_window_handle)
 
+
 def set_windows_appusermodelid():
-    """Make sure correct icon is used on Windows 7 taskbar"""
+    """Make sure correct icon is used on Windows 7 taskbar."""
     try:
         return windll.shell32.SetCurrentProcessExplicitAppUserModelID("spyder.Spyder")
     except AttributeError:
@@ -46,3 +67,7 @@ def set_windows_appusermodelid():
 
 # [ ] the console state asks for a storage container
 # [ ] reopen console on exit - better die open than become a zombie
+if os.name != 'nt':
+    set_attached_console_visible = None
+    set_windows_appusermodelid = None
+    set_attached_console_visible = None

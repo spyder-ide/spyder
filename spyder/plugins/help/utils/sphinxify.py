@@ -134,7 +134,8 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
 
     Returns
     -------
-    A dict of strings to be used by Jinja to generate the webpage
+    dict
+        A dict of strings to be used by Jinja to generate the webpage.
     """
 
     if img_path and os.name == 'nt':

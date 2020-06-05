@@ -29,7 +29,6 @@ from spyder.utils import programs
 class MainInterpreterConfigPage(GeneralConfigPage):
     CONF_SECTION = "main_interpreter"
     NAME = _("Python interpreter")
-    ICON = ima.icon('python')
 
     def __init__(self, parent, main):
         GeneralConfigPage.__init__(self, parent, main)

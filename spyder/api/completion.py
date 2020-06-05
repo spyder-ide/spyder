@@ -71,14 +71,11 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
         language: str
             Programming language for the incoming request
         req_type: str
-            Type of request, one of
-            :class:`spyder.plugins.completion.CompletionTypes`
+            Type of request. One of
+            :class:`spyder.plugins.completion.languageserver.LSPRequestTypes`
         req: dict
-            Request body
-            {
-                'filename': str,
-                **kwargs: request-specific parameters
-            }
+            Request body.
+            Example: `{'filename': str, **kwargs: request-specific params}`.
         req_id: int
             Request identifier for response
         """
@@ -93,14 +90,11 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
         language: str
             Programming language for the incoming request
         notification_type: str
-            Type of request, one of
-            :class:`spyder.plugins.completion.CompletionTypes`
+            Type of request. One of
+            :class:`spyder.plugins.completion.languageserver.LSPRequestTypes`
         notification: dict
-            Request body
-            {
-                'filename': str,
-                **kwargs: request-specific parameters
-            }
+            Request body.
+            Example: `{'filename': str, **kwargs: request-specific params}`.
         """
         pass
 
@@ -111,10 +105,7 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
         Parameters
         ----------
         response: dict
-            Response body for server
-            {
-                **kwargs: response-specific keys
-            }
+            Response body for server `{**kwargs: response-specific keys}`.
         resp_id: int
             Request identifier for response
         """
@@ -127,13 +118,11 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
         Parameters
         ----------
         req_type: str
-            Type of request, one of
-            :class:`spyder.plugins.completion.CompletionTypes`
+            Type of request. One of
+            :class:`spyder.plugins.completion.languageserver.LSPRequestTypes`
         req: dict
-            Request body
-            {
-                **kwargs: notification-specific parameters
-            }
+            Request body.
+            Example: `{'filename': str, **kwargs: request-specific params}`.
         req_id: int
             Request identifier for response, None if notification
         """
@@ -153,7 +142,7 @@ class SpyderCompletionPlugin(QObject, SpyderPlugin):
             Path to the project folder modified
         update_kind: str
             Path update kind, one of
-            :class:`spyder.plugins.completion.WorkspaceUpdateKind`
+            `spyder.plugins.completion.WorkspaceUpdateKind`
         """
         pass
 

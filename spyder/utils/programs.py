@@ -145,11 +145,11 @@ def run_shell_command(cmdstr, **subprocess_kwargs):
     """
     Execute the given shell command.
 
-    Note that *args and **kwargs will be passed to the subprocess call.
+    Note that `*args` and `**kwargs` will be passed to the subprocess call.
 
     If 'shell' is given in subprocess_kwargs it must be True,
     otherwise ProgramError will be raised.
-    .
+
     If 'executable' is not given in subprocess_kwargs, it will
     be set to the value of the SHELL environment variable.
 

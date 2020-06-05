@@ -764,7 +764,7 @@ class HelpWidget(PluginMainWidget):
 
         Parameters
         ----------
-        url: QUrl
+        url: qtpy.QtCore.QUrl
             QUrl object containing the link to open.
         """
         url = to_text_string(url.toString())
@@ -1042,7 +1042,7 @@ class HelpWidget(PluginMainWidget):
 
         Parameters
         ----------
-        console: :py:class:spyder.plugins.console.plugin.Console
+        console: spyder.plugins.console.plugin.Console
             Console plugin.
         """
         self.internal_console = console

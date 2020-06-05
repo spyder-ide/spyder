@@ -30,15 +30,13 @@ class EditorExtension(object):
     behaviours or to modify its appearance.
 
     A panel (model child class) is added to an editor by using the
-    PanelsManager:
-        - :meth:
-            `spyder.plugins.editor.widgets.codeeditor.CodeEditor.panels.append`
+    PanelsManager
+    `spyder.plugins.editor.widgets.codeeditor.CodeEditor.panels.append`
 
     Subclasses may/should override the following methods:
-
-        - :meth:`spyder.api.EditorExtension.on_install`
-        - :meth:`spyder.api.EditorExtension.on_uninstall`
-        - :meth:`spyder.api.EditorExtension.on_state_changed`
+    * :meth:`spyder.api.editorextension.EditorExtension.on_install`
+    * :meth:`spyder.api.editorextension.EditorExtension.on_uninstall`
+    * :meth:`spyder.api.editorextension.EditorExtension.on_state_changed`
 
     ..warning: The editor extension will be identified by its class name, this
     means that **there cannot be two editor extensions of the same type on the
@@ -64,8 +62,8 @@ class EditorExtension(object):
         """
         Tells if the editor extension is enabled.
 
-        :meth:`spyder.api.EditorExtension.on_state_changed` will be called as
-        soon as the editor extension state changed.
+        :meth:`spyder.api.editorextension.EditorExtension.on_state_changed`
+        will be called as soon as the editor extension state changed.
 
         :type: bool
         """

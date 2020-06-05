@@ -10,11 +10,12 @@ Configuration options for the Language Server.
 Notes:
 
 1. Please preserve the structure of this dictionary. This is what
-   we need to send to the PyLS to configure it.
+we need to send to the PyLS to configure it.
 1. Not all these options can be defined through our Preferences
-   (e.g. `ropeFolder`).
+(e.g. `ropeFolder`).
 3. The way we change the values of this dictionary with the options
-   saved in our Preferences can be found in editor/lsp/manager.py
+saved in our Preferences can be found in editor/lsp/manager.py
+
 """
 
 # =============================================================================

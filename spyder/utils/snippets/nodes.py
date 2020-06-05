@@ -334,7 +334,7 @@ class ChoiceNode(TabstopSnippetNode):
     """
     Node that represents an int tabstop choice snippet.
 
-    This node represents the expression ${int:|options|}, where options are
+    This node represents the expression `${int:|options|}`, where options are
     text sequences separated by comma.
     """
 

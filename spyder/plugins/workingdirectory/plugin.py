@@ -106,7 +106,7 @@ class WorkingDirectory(SpyderPluginV2):
         ----------
         directory: str
             The new working directory to set.
-        sender_plugin: spyder.api.plugins.SpyderPluginsV2
+        sender_plugin: spyder.api.plugins.SpyderPluginV2
             The plugin that requested this change: Default is None.
         """
         explorer = self.get_plugin(Plugins.Explorer)

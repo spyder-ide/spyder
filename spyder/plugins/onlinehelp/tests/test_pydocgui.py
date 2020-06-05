@@ -32,6 +32,7 @@ def pydocbrowser(qtbot):
     return qtbot, widget
 
 
+@pytest.mark.first
 def test_pydocbrowser(pydocbrowser):
     """Run Pydoc Browser."""
     qtbot, browser = pydocbrowser
@@ -39,6 +40,7 @@ def test_pydocbrowser(pydocbrowser):
 
 
 @flaky(max_runs=5)
+@pytest.mark.first
 @pytest.mark.parametrize(
     "lib", [('str', 'class str', 1),
             ('numpy.compat', 'numpy.compat', 2)

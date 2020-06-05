@@ -16,14 +16,14 @@ Licensed under the terms of the MIT License
 (see spyder/__init__.py for details)
 """
 
-# =============================================================================
-# Stdlib imports
-# =============================================================================
 from __future__ import print_function
-from collections import OrderedDict
-from enum import Enum
+
+# Standard library imports
 import errno
 import gc
+import glob
+import importlib
+import inspect
 import logging
 import os
 import os.path as osp
@@ -31,157 +31,126 @@ import re
 import shutil
 import signal
 import socket
-import glob
 import subprocess
 import sys
 import threading
 import traceback
-import importlib
+from collections import OrderedDict
+from enum import Enum
 
+# Third party imports
+import qdarkstyle
+from qtawesome.iconic_font import FontError
+from qtpy import PYQT5
+from qtpy.QtCore import (QCoreApplication, qInstallMessageHandler, Qt, Signal,
+                         Slot)
+from qtpy.QtGui import QColor, QDesktopServices, QIcon, QPixmap
+from qtpy.QtWidgets import (QApplication, QMainWindow, QMessageBox,
+                            QSplashScreen)
+# Avoid Cannot mix incompatible Qt library on windows
+from qtpy import QtSvg
+# Avoid https://bugreports.qt.io/browse/QTBUG-46720
+from qtpy import QtWebEngineWidgets
+
+# Local imports
+from spyder import requirements
+from spyder.api.translations import get_translation
+from spyder.app.cli_options import get_options
+# TODO: Slowest import is this one, try to optimize
+from spyder.app.utils import (qt_message_handler, set_opengl_implementation,
+                              setup_logging)
+from spyder.config.base import (DEV, get_conf_path, get_debug_level,
+                                get_image_path, reset_config_files,
+                                running_under_pytest)
+from spyder.config.manager import CONF
+from spyder.py3compat import PY3
+from spyder.utils.misc import getcwd_or_home
+from spyder.utils import encoding, programs
+from spyder.utils.qthelpers import qapplication
+from spyder.utils.windows import (set_attached_console_visible,
+                                  is_attached_console_visible,
+                                  set_windows_appusermodelid)
+
+
+# Logging
+# ----------------------------------------------------------------------------
 logger = logging.getLogger(__name__)
 
 
-#==============================================================================
-# Keeping a reference to the original sys.exit before patching it
-#==============================================================================
-ORIGINAL_SYS_EXIT = sys.exit
-
-#==============================================================================
-# Check requirements
-#==============================================================================
-from spyder import requirements
-requirements.check_path()
-requirements.check_qt()
-requirements.check_spyder_kernels()
-
-#==============================================================================
-# Windows only: support for hiding console window when started with python.exe
-#==============================================================================
-set_attached_console_visible = None
-is_attached_console_visible = None
-set_windows_appusermodelid = None
-if os.name == 'nt':
-    from spyder.utils.windows import (set_attached_console_visible,
-                                      is_attached_console_visible,
-                                      set_windows_appusermodelid)
-
-#==============================================================================
-# Qt imports
-#==============================================================================
-from qtpy import API, PYQT5
-from qtpy.compat import from_qvariant
-from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
-                         QThread, QTimer, QUrl, Signal, Slot,
-                         qInstallMessageHandler)
-from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
-from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
-                            QMainWindow, QMenu, QMessageBox, QShortcut,
-                            QSplashScreen, QStyleFactory, QWidget, QCheckBox)
-
-# Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
-from qtpy import QtSvg  # analysis:ignore
-
-# Avoid a bug in Qt: https://bugreports.qt.io/browse/QTBUG-46720
-from qtpy import QtWebEngineWidgets  # analysis:ignore
-
-# To catch font errors in QtAwesome
-from qtawesome.iconic_font import FontError
+# Localization
+# ----------------------------------------------------------------------------
+_ = get_translation('spyder')
 
 
-#==============================================================================
-# Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
-# be set before creating the application.
-#==============================================================================
-from spyder.config.manager import CONF
+# Constants
+# ----------------------------------------------------------------------------
+# Keep a reference to the splash screen, main application, icon, sys.exit and
+# original working directory.
+APP_ICON = None
+CWD = None
+MAIN_APP = qapplication()  # To render the splash screen
+ORIGINAL_SYS_EXIT = None
+SPLASH = None
 
-if hasattr(Qt, 'AA_EnableHighDpiScaling'):
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
-                                  CONF.get('main', 'high_dpi_scaling'))
 
-#==============================================================================
-# Get CLI options and set OpenGL backend. This attibute must
-# be set before creating the application. See spyder-ide/spyder#11227
-#==============================================================================
-from spyder.app.utils import set_opengl_implementation
-from spyder.app.cli_options import get_options
-from spyder.config.base import running_under_pytest
-
-# Get CLI options/args and make them available for future use.
-# Ignore args if running tests or Spyder will try and fail to parse pytests's.
-if running_under_pytest():
-    sys_argv = [sys.argv[0]]
-    CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
-else:
-    CLI_OPTIONS, CLI_ARGS = get_options()
-
-# **** Set OpenGL implementation to use ****
-if CLI_OPTIONS.opengl_implementation:
-    option = CLI_OPTIONS.opengl_implementation
-    set_opengl_implementation(option)
-else:
-    if CONF.get('main', 'opengl') != 'automatic':
-        option = CONF.get('main', 'opengl')
-        set_opengl_implementation(option)
-
-#==============================================================================
-# Create our QApplication instance here because it's needed to render the
-# splash screen created below
-#==============================================================================
-from spyder.utils.qthelpers import qapplication
-from spyder.config.base import get_image_path
-MAIN_APP = qapplication()
-
-if PYQT5:
-    APP_ICON = QIcon(get_image_path("spyder.svg"))
-else:
-    APP_ICON = QIcon(get_image_path("spyder.png"))
-
-MAIN_APP.setWindowIcon(APP_ICON)
-
-#==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time.
-#==============================================================================
-from spyder.config.base import _, get_image_path, DEV
-
-if not running_under_pytest():
+# ----------------------------------------------------------------------------
+if not running_under_pytest() and not os.environ.get('RUNNING_SPHINX', None):
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
     SPLASH_FONT = SPLASH.font()
     SPLASH_FONT.setPixelSize(10)
     SPLASH.setFont(SPLASH_FONT)
     SPLASH.show()
-    SPLASH.showMessage(_("Initializing..."),
-                       int(Qt.AlignBottom | Qt.AlignCenter | Qt.AlignAbsolute),
-                       QColor(Qt.white))
+    SPLASH.showMessage(
+        _("Initializing..."),
+        int(Qt.AlignBottom | Qt.AlignCenter | Qt.AlignAbsolute),
+        QColor(Qt.white),
+    )
     QApplication.processEvents()
-else:
-    SPLASH = None
 
-#==============================================================================
-# Local utility imports
-#==============================================================================
+
+# Import qt modules
+# ----------------------------------------------------------------------------
+from qtpy.compat import from_qvariant
+from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize,
+                         QThread, QTimer, QUrl)
+from qtpy.QtGui import QDesktopServices, QKeySequence
+from qtpy.QtWidgets import (QAction, QDesktopWidget, QDockWidget,
+                            QMenu, QShortcut, QStyleFactory, QWidget,
+                            QCheckBox)
+
+
+# Import locals modules
+# ----------------------------------------------------------------------------
 from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, __website_url__, get_versions)
+                    __trouble_url__, __website_url__, get_versions,
+                    dependencies, requirements)
+from spyder.api.exceptions import SpyderAPIError
+from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderDockablePlugin
+from spyder.app.cli_options import get_options
 from spyder.app.utils import (get_python_doc_path, delete_lsp_log_files,
-                              qt_message_handler, setup_logging)
-from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
-                                get_debug_level, MAC_APP_NAME, get_home_dir,
-                                running_in_mac_app, get_module_path,
-                                reset_config_files)
+                              qt_message_handler, setup_logging,
+                              set_opengl_implementation)
+from spyder.config.base import (_, get_conf_path, get_module_source_path,
+                                STDERR, get_debug_level, MAC_APP_NAME,
+                                get_home_dir, running_in_mac_app,
+                                get_module_path, reset_config_files,
+                                get_image_path, running_under_pytest, DEV)
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_anaconda, is_gtk_desktop
-from spyder import dependencies
 from spyder.py3compat import (is_text_string, to_text_string,
                               PY3, qbytearray_to_str, configparser as cp)
-from spyder.utils import encoding, programs
+from spyder.utils.qthelpers import qapplication
+from spyder.utils import programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
 from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
 from spyder.config.gui import is_dark_font_color
 
-#==============================================================================
-# Local gui imports
-#==============================================================================
+
+# Import UI modules
+# ----------------------------------------------------------------------------
 # NOTE: Move (if possible) import's of widgets and plugins exactly where they
 # are needed in MainWindow to speed up perceived startup time (i.e. the time
 # from clicking the Spyder icon to showing the splash screen).
@@ -201,31 +170,15 @@ from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
 from spyder.app.solver import find_external_plugins, solve_plugin_dependencies
 
-# Spyder API Imports
-from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import Plugins, SpyderPluginV2, SpyderDockablePlugin
-
-#==============================================================================
-# Third-party library imports
-#==============================================================================
-import qdarkstyle
-
-#==============================================================================
-# Get the cwd before initializing WorkingDirectory, which sets it to the one
-# used in the last session
-#==============================================================================
-CWD = getcwd_or_home()
-
-#==============================================================================
-# Install Qt messaage handler
-#==============================================================================
-qInstallMessageHandler(qt_message_handler)
 
 #==============================================================================
 # Main Window
 #==============================================================================
 class MainWindow(QMainWindow):
-    """Spyder main window"""
+    """
+    Spyder main window.
+    """
+
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
     CURSORBLINK_OSDEFAULT = QApplication.cursorFlashTime()
     SPYDER_PATH = get_conf_path('path')
@@ -258,9 +211,15 @@ class MainWindow(QMainWindow):
     sig_pythonpath_changed = Signal(object, object)
     sig_main_interpreter_changed = Signal()
     sig_open_external_file = Signal(str)
-    sig_resized = Signal("QResizeEvent")     # Related to interactive tour
-    sig_moved = Signal("QMoveEvent")         # Related to interactive tour
-    sig_layout_setup_ready = Signal(object)  # Related to default layouts
+
+    sig_resized = Signal("QResizeEvent")
+    """Needed by the interactive tours."""
+
+    sig_moved = Signal("QMoveEvent")
+    """Needed by the interactive tours."""
+
+    sig_layout_setup_ready = Signal(object)
+    """Used by default layouts handling."""
 
     # --- Plugin handling methods
     # ------------------------------------------------------------------------
@@ -4042,6 +4001,8 @@ class MainWindow(QMainWindow):
 #==============================================================================
 def initialize():
     """Initialize Qt, patching sys.exit and eventually setting up ETS"""
+    from spyder.utils.qthelpers import qapplication
+
     # This doesn't create our QApplication, just holds a reference to
     # MAIN_APP, created above to show our splash screen as early as
     # possible
@@ -4059,6 +4020,7 @@ def initialize():
         def exec_():
             """Do nothing because the Qt mainloop is already running"""
             pass
+
     from qtpy import QtWidgets
     QtWidgets.QApplication = FakeQApplication
 
@@ -4159,11 +4121,71 @@ def run_spyder(app, options, args):
     return main
 
 
-#==============================================================================
+# ============================================================================
 # Main
-#==============================================================================
+# ============================================================================
 def main():
-    """Main function"""
+    """Main function."""
+    global APP_ICON
+    global CWD
+    global MAIN_APP
+    global SPLASH
+
+    # ========================================================================
+    # Check requirements
+    # ========================================================================
+    requirements.check_path()
+    requirements.check_qt()
+    requirements.check_spyder_kernels()
+
+    # ========================================================================
+    # Proper high DPI scaling is available in Qt >= 5.6.0. This attibute must
+    # be set before creating the application.
+    # ========================================================================
+    if hasattr(Qt, 'AA_EnableHighDpiScaling'):
+        QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling,
+                                      CONF.get('main', 'high_dpi_scaling'))
+
+    # ========================================================================
+    # Get CLI options and set OpenGL backend. This attibute must
+    # be set before creating the application. See spyder-ide/spyder#11227
+    # ========================================================================
+    # Get CLI options/args and make them available for future use.
+    # Ignore args if running tests or Spyder will try and fail to parse
+    # pytests's.
+    if running_under_pytest():
+        sys_argv = [sys.argv[0]]
+        CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
+    else:
+        CLI_OPTIONS, CLI_ARGS = get_options()
+
+    # **** Set OpenGL implementation to use ****
+    if CLI_OPTIONS.opengl_implementation:
+        option = CLI_OPTIONS.opengl_implementation
+        set_opengl_implementation(option)
+    else:
+        if CONF.get('main', 'opengl') != 'automatic':
+            option = CONF.get('main', 'opengl')
+            set_opengl_implementation(option)
+
+    if PYQT5:
+        APP_ICON = QIcon(get_image_path("spyder.svg"))
+    else:
+        APP_ICON = QIcon(get_image_path("spyder.png"))
+
+    MAIN_APP.setWindowIcon(APP_ICON)
+
+    # ========================================================================
+    # Get the cwd before initializing WorkingDirectory, which sets it to the
+    # one used in the last session
+    # ========================================================================
+    CWD = getcwd_or_home()
+
+    # ========================================================================
+    # Install Qt messaage handler
+    # ========================================================================
+    qInstallMessageHandler(qt_message_handler)
+
     # **** For Pytest ****
     if running_under_pytest():
         if CONF.get('main', 'opengl') != 'automatic':
@@ -4235,17 +4257,21 @@ def main():
     try:
         if PY3 and options.report_segfault:
             import faulthandler
+
             with open(faulthandler_file, 'w') as f:
                 faulthandler.enable(file=f)
                 mainwindow = run_spyder(app, options, args)
         else:
             mainwindow = run_spyder(app, options, args)
     except FontError as fontError:
-        QMessageBox.information(None, "Spyder",
-                "Spyder was unable to load the <i>Spyder 3</i> "
-                "icon theme. That's why it's going to fallback to the "
-                "theme used in Spyder 2.<br><br>"
-                "For that, please close this window and start Spyder again.")
+        QMessageBox.information(
+            None,
+            "Spyder",
+            ("Spyder was unable to load the <i>Spyder 3</i> "
+             "icon theme. That's why it's going to fallback to the "
+             "theme used in Spyder 2.<br><br>"
+             "For that, please close this window and start Spyder again."),
+        )
         CONF.set('appearance', 'icon_theme', 'spyder 2')
     if mainwindow is None:
         # An exception occurred

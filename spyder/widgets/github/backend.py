@@ -49,7 +49,7 @@ class BaseBackend(object):
     and implement ``send_report(title, description)``.
 
     The report's title and body will be formatted automatically by the
-    associated :attr:`formatter`.
+    associated `formatter`.
     """
     def __init__(self, formatter, button_text, button_tooltip,
                  button_icon=None, need_review=True, parent_widget=None):
@@ -84,12 +84,19 @@ class BaseBackend(object):
         """
         Sends the actual bug report.
 
-        :param title: title of the report, already formatted.
-        :param body: body of the reporit, already formtatted.
-        :param application_log: Content of the application log.
-        Default is None.
+        Parameters
+        ----------
+        title: str
+            Title of the report, already formatted.
+        body: str
+            Body of the reporit, already formtatted.
+        application_log: str, optional
+            Content of the application log. Default is None.
 
-        :returns: Whether the dialog should be closed.
+        Returns
+        -------
+        bool
+            Whether the dialog should be closed.
         """
         raise NotImplementedError
 
