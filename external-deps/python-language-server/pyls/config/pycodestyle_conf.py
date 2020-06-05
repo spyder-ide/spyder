@@ -15,6 +15,7 @@ OPTIONS = [
     ('ignore', 'plugins.pycodestyle.ignore', list),
     ('max-line-length', 'plugins.pycodestyle.maxLineLength', int),
     ('select', 'plugins.pycodestyle.select', list),
+    ('aggressive', 'plugins.pycodestyle.aggressive', int),
 ]
 
 

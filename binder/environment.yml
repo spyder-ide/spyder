@@ -15,12 +15,12 @@ dependencies:
 - diff-match-patch >=20181111
 - intervaltree
 - ipython >=4.0
-- jedi =0.15.2
+- jedi =0.17.0
 - keyring
 - nbconvert >=4.0
 - numpydoc >=0.6.0
 - paramiko >=2.4.0
-- parso =0.5.2
+- parso =0.7.0
 - pexpect >=4.4.0
 - pickleshare >=0.4
 - psutil >=5.3
