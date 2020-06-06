@@ -17,7 +17,7 @@ import os.path as osp
 import sys
 
 # Third-party imports
-from qtpy.QtCore import Slot, QTimer
+from qtpy.QtCore import Signal, Slot, QTimer
 from qtpy.QtWidgets import QMessageBox, QCheckBox
 
 # Local imports
@@ -52,6 +52,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     TIME_BETWEEN_RESTARTS = 10000  # ms
     TIME_HEARTBEAT = 3000  # ms
 
+    # Signal to report that an error in a server
+    sig_server_error_occurred = Signal(dict)
+
     def __init__(self, parent):
         SpyderCompletionPlugin.__init__(self, parent)
 
@@ -72,6 +75,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             statusbar = parent.statusBar()
             self.status_widget = LSPStatusWidget(
                 None, statusbar, plugin=self)
+
+        # TODO: Move to register in the new API
+        self.sig_server_error_occurred.connect(
+            self.main.console.handle_exception)
 
     # --- Status bar widget handling
     def restart_lsp(self, language, force=False):
@@ -261,8 +268,12 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     @Slot(str)
     def report_server_error(self, error):
         """Report server errors in our error report dialog."""
-        self.main.console.exception_occurred(error, is_traceback=True,
-                                             is_pyls_error=True)
+        error_data = dict(
+            text=error,
+            is_traceback=True,
+            is_pyls_error=True,
+        )
+        self.sig_server_error_occurred.emit(error_data)
 
     def report_no_external_server(self, host, port, language):
         """

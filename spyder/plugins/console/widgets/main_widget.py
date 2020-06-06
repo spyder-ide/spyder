@@ -333,13 +333,19 @@ class ConsoleWidget(PluginMainWidget):
         """
         self.shell.help = help_plugin
 
-    def handle_exception(self, text, is_traceback, is_pyls_error=False,
-                         is_faulthandler_report=False):
+    @Slot(dict)
+    def handle_exception(self, error_data):
         """
         Exception ocurred in the internal console.
 
         Show a QDialog or the internal console to warn the user.
         """
+        text = error_data['text']
+        is_traceback = error_data.get('is_traceback', False)
+        is_pyls_error = error_data.get('is_pyls_error', False)
+        is_faulthandler_report = error_data.get('is_faulthandler_report',
+                                                False)
+
         # Skip errors without traceback or dismiss
         if (not is_traceback and self.error_dlg is None) or self.dismiss_error:
             return
