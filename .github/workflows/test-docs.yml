@@ -1,0 +1,131 @@
+name: Doc tests
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/scripts/*.sh'
+      - '.github/workflows/*.yml'
+      - 'requirements/*.txt'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+
+  pull_request:
+    branches:
+      - "*"
+    paths:
+      - '.github/scripts/*.sh'
+      - '.github/workflows/*.yml'
+      - 'requirements/*.txt'
+      - 'MANIFEST.in'
+      - '**.bat'
+      - '**.py'
+      - '**.sh'
+
+jobs:
+  build:
+    name: Build docs
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      OS: 'linux'
+    strategy:
+      fail-fast: false
+      matrix:
+        INSTALL_TYPE: ['conda']
+        PYTHON_VERSION: ['3.6']
+    steps:
+      - name: Checkout Pull Requests
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Checkout Push
+        if: github.event_name != 'pull_request'
+        uses: actions/checkout@v2
+      - name: Fetch branches
+        if: github.event_name == 'pull_request'
+        run: git fetch --prune --unshallow
+      - name: Check build skips
+        if: github.event_name == 'pull_request'
+        shell: bash -l {0}
+        run: source .github/scripts/check_skip.sh
+      - name: Check build runs
+        if: github.event_name != 'pull_request'
+        shell: bash -l {0}
+        run: echo "::set-env name=RUN_BUILD::true"
+      - name: Install dependencies
+        if: env.RUN_BUILD == 'true'
+        shell: bash
+        run: sudo apt-get install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev libegl1-mesa libxkbcommon-x11-0
+      - name: Cache conda
+        uses: actions/cache@v1
+        env:
+          # Increase this value to reset cache if requirements/*.txt has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.txt') }}
+      - name: Cache pip
+        if: env.RUN_BUILD == 'true'
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.txt') }}
+      - name: Install Conda
+        if: env.RUN_BUILD == 'true'
+        uses: goanpeca/setup-miniconda@v1
+        with:
+           activate-environment: test
+           auto-update-conda: true
+           auto-activate-base: false
+           python-version: ${{ matrix.PYTHON_VERSION }}
+           use-only-tar-bz2: true
+      - name: Create test environment
+        if: env.RUN_BUILD == 'true'
+        shell: bash -l {0}
+        run: |
+          conda install --file requirements/conda.txt -c spyder-ide/label/alpha -q -y
+          conda install --file requirements/tests.txt -c spyder-ide -q -y
+          conda remove spyder-kernels --force -q -y
+          conda remove python-language-server --force -q -y
+          pip install git+https://github.com/spyder-ide/spyder-kernels.git
+          pip install git+https://github.com/palantir/python-language-server.git
+      - name: Show test environment
+        if: env.RUN_BUILD == 'true'
+        shell: bash -l {0}
+        run: |
+          conda info
+          conda list
+      - name: Clone Spyder Docs
+        if: env.RUN_BUILD == 'true'
+        run: |
+          # git clone https://github.com/spyder-ide/spyder-docs
+          git clone https://github.com/goanpeca/spyder-docs/
+          cd spyder-docs
+          git checkout enh/build-api-docs
+          # git clone https://github.com/spyder-ide/spyder
+          git clone https://github.com/goanpeca/spyder spyder-repo
+          cd spyder-repo
+          git checkout enh/updates-for-sphinx-parsing
+      - name: Make autodocs
+        if: env.RUN_BUILD == 'true'
+        shell: bash -l {0}
+        run: |
+          cd spyder-docs
+          xvfb-run --auto-servernum make autodocs
+      - name: Make docs
+        if: env.RUN_BUILD == 'true'
+        shell: bash -l {0}
+        run: |
+          cd spyder-docs
+          xvfb-run --auto-servernum make docs
+      - name: Check doc links
+        if: env.RUN_BUILD == 'true'
+        shell: bash -l {0}
+        run: |
+          cd spyder-docs
+          xvfb-run --auto-servernum make check
