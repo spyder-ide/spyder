@@ -279,9 +279,13 @@ class Editor(SpyderPluginWidget):
         logger.debug('Start completion server for %s [%s]' % (
             filename, language))
         codeeditor = options['codeeditor']
-        status = self.main.completions.start_client(language.lower())
+
+        # FIXME: use a signal to make the request
+        status = self.main.completions.start_provider_clients(
+            language.lower())
         self.main.completions.register_file(
             language.lower(), filename, codeeditor)
+
         if status:
             logger.debug('{0} completion server is ready'.format(language))
             codeeditor.start_completion_services()
@@ -319,11 +323,6 @@ class Editor(SpyderPluginWidget):
     def send_completion_request(self, language, request, params):
         logger.debug("%s completion server request: %r" % (language, request))
         self.main.completions.send_request(language, request, params)
-
-    def kite_completions_file_status(self):
-        """Connect open_file_update to Kite's status."""
-        self.open_file_update.connect(
-            self.main.completions.get_client('kite').send_status_request)
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):

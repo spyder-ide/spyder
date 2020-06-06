@@ -18,7 +18,7 @@ from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
 # Local imports
 from spyder.api.panel import Panel
-from spyder.plugins.completion.languageserver import DiagnosticSeverity
+from spyder.plugins.completion.api import DiagnosticSeverity
 
 
 REFRESH_RATE = 1000

@@ -61,7 +61,9 @@ class StatusBarWidget(QWidget):
         self.label_value.setFont(self.text_font)
 
         # Setup
-        statusbar.addPermanentWidget(self)
+        if statusbar is not None:
+            statusbar.addPermanentWidget(self)
+
         self.set_value('')
         self.update_tooltip()
 

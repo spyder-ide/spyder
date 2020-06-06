@@ -1005,15 +1005,7 @@ class MainWindow(QMainWindow):
                             "(i.e. for all sessions)"),
                     triggered=self.win_env)
             self.tools_menu_actions.append(winenv_action)
-        from spyder.plugins.completion.kite.utils.install import (
-            check_if_kite_installed)
-        is_kite_installed, kite_path = check_if_kite_installed()
-        if not is_kite_installed:
-            install_kite_action = create_action(
-                self, _("Install Kite completion engine"),
-                icon=get_icon('kite', adjust_for_interface=True),
-                triggered=self.show_kite_installation)
-            self.tools_menu_actions.append(install_kite_action)
+
         self.tools_menu_actions += [MENU_SEPARATOR, reset_spyder_action]
         if get_debug_level() >= 3:
             self.menu_lsp_logs = QMenu(_("LSP logs"))
@@ -1136,9 +1128,9 @@ class MainWindow(QMainWindow):
         # TODO: Load and register the rest of the plugins using new API
 
         # Code completion client initialization
-        self.set_splash(_("Starting code completion manager..."))
-        from spyder.plugins.completion.plugin import CompletionManager
-        self.completions = CompletionManager(self)
+        from spyder.plugins.completion.plugin import CodeCompletion
+        self.completions = CodeCompletion(self, configuration=CONF)
+        self.register_plugin(self.completions)
 
         # Working directory plugin
         logger.info("Loading working directory...")
@@ -1176,11 +1168,6 @@ class MainWindow(QMainWindow):
         self.editor = Editor(self)
         self.editor.register_plugin()
         self.add_plugin(self.editor)
-
-        # Start code completion client
-        self.set_splash(_("Launching code completion client for Python..."))
-        self.completions.start()
-        self.completions.start_client(language='python')
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -1260,6 +1247,21 @@ class MainWindow(QMainWindow):
         self.projects.register_plugin()
         self.project_path = self.projects.get_pythonpath(at_start=True)
         self.add_plugin(self.projects)
+
+        # Register Language Server Provider
+        from spyder.plugins.languageserver.plugin import LanguageServer
+        self.languageserver = LanguageServer(self, configuration=CONF)
+        self.register_plugin(self.languageserver)
+
+        # Register Kite Provider
+        from spyder.plugins.kite.plugin import KiteCompletion
+        self.kite = KiteCompletion(self, configuration=CONF)
+        self.register_plugin(self.kite)
+
+        # Register Fallback Provider
+        from spyder.plugins.fallback.plugin import Fallback
+        self.fallback = Fallback(self, configuration=CONF)
+        self.register_plugin(self.fallback)
 
         # Find in files
         if CONF.get('find_in_files', 'enable'):
@@ -1606,6 +1608,13 @@ class MainWindow(QMainWindow):
         logger.info('Deleting previous Spyder instance LSP logs...')
         delete_lsp_log_files()
 
+        # Apply plugins on main window visible
+        for __, plugin in self._PLUGINS.items():
+            try:
+                plugin.on_mainwindow_visible()
+            except AttributeError:
+                pass
+
         # Workaround for spyder-ide/spyder#880.
         # QDockWidget objects are not painted if restored as floating
         # windows, so we must dock them before showing the mainwindow,
@@ -1673,9 +1682,6 @@ class MainWindow(QMainWindow):
             # If no project is active, load last session
             if self.projects.get_active_project() is None:
                 self.editor.setup_open_files()
-
-        # Connect Editor to Kite completions plugin status
-        self.editor.kite_completions_file_status()
 
         # Connect Editor debug action with Console
         self.ipyconsole.sig_pdb_state.connect(self.editor.update_pdb_state)
@@ -2839,9 +2845,6 @@ class MainWindow(QMainWindow):
         if CONF.get('main', 'single_instance') and self.open_files_server:
             self.open_files_server.close()
 
-        if not self.completions.closing_plugin(cancelable):
-            return False
-
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             # New API
             try:
@@ -2869,8 +2872,6 @@ class MainWindow(QMainWindow):
 
         if self.toolbars_visible:
             self.save_visible_toolbars()
-
-        self.completions.shutdown()
 
         self.already_closed = True
         return True
@@ -3518,11 +3519,6 @@ class MainWindow(QMainWindow):
     def win_env(self):
         """Show Windows current user environment variables."""
         self.dialog_manager.show(WinUserEnvDialog(self))
-
-    # --- Kite
-    def show_kite_installation(self):
-        """Show installation dialog for Kite."""
-        self.completions.get_client('kite').show_installation_dialog()
 
     #---- Preferences
     def apply_settings(self):

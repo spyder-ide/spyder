@@ -20,6 +20,7 @@ def request(req=None, method=None, requires_response=True):
         params = req(self, *args, **kwargs)
         if params is not None and self.completions_available:
             self.emit_request(method, params, requires_response)
+
     return wrapper
 
 
