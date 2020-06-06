@@ -357,7 +357,8 @@ LANGUAGE_CODES = {
     'zh_CN': u'简体中文',
     'ja': u'日本語',
     'de': u'Deutsch',
-    'pl': u'Polski'
+    'pl': u'Polski',
+    'uk': u'Українська'
 }
 
 # Disabled languages because their translations are outdated or incomplete
