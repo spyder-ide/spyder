@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-06 07:55\n"
+"PO-Revision-Date: 2020-06-06 08:06\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -1182,7 +1182,7 @@ msgstr "Nazwa hosta musi być prawidłowa"
 
 #: spyder/plugins/completion/languageserver/confpage.py:317
 msgid "Hostname or IP address of the host on which the server is running. Must be non empty."
-msgstr ""
+msgstr "Nazwa hosta lub adres IP hosta, na którym uruchomiony jest serwer. Nie może być pusty."
 
 #: spyder/plugins/completion/languageserver/confpage.py:321
 msgid "Hostname is valid"
@@ -1190,15 +1190,15 @@ msgstr "Nazwa gospodarza jest prawidłowa"
 
 #: spyder/plugins/completion/languageserver/confpage.py:329
 msgid "Command used to start the LSP server locally. Must be non empty"
-msgstr ""
+msgstr "Polecenie używane do uruchomienia serwera LSP lokalnie. Nie może być puste"
 
 #: spyder/plugins/completion/languageserver/confpage.py:336
 msgid "Program was not found on your system"
-msgstr ""
+msgstr "Program nie został znaleziony w Twoim systemie"
 
 #: spyder/plugins/completion/languageserver/confpage.py:340
 msgid "Program was found on your system"
-msgstr ""
+msgstr "Program został znaleziony w Twoim systemie"
 
 #: spyder/plugins/completion/languageserver/confpage.py:551
 msgid "Address"
@@ -1214,11 +1214,11 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:708
 msgid "Enable code completion"
-msgstr ""
+msgstr "Włącz uzupełnianie kodu"
 
 #: spyder/plugins/completion/languageserver/confpage.py:711
 msgid "Show completion details"
-msgstr ""
+msgstr "Pokaż szczegóły uzupełnienia kodu"
 
 #: spyder/plugins/completion/languageserver/confpage.py:715
 msgid "Show completion detail after keyboard idle (ms):"
