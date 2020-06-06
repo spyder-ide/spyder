@@ -11,10 +11,7 @@ Tests for the console plugin.
 """
 
 # Standard library imports
-try:
-    from unittest.mock import Mock
-except ImportError:
-    from mock import Mock  # Python 2
+from unittest.mock import Mock
 
 # Third party imports
 from qtpy.QtCore import Qt
@@ -80,7 +77,7 @@ def test_completions(console_plugin, qtbot):
     assert u'import' in shell.toPlainText()
 
 
-def test_handle_exception(console_plugin, qtbot, mocker):
+def test_handle_exception(console_plugin, mocker):
     """Test that error dialog is called """
     widget = console_plugin.get_widget()
     shell = widget.shell
