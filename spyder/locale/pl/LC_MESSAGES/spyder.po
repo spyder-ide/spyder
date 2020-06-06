@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-05-16 11:32\n"
+"PO-Revision-Date: 2020-06-06 07:55\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -1079,12 +1079,14 @@ msgstr "niedostępny"
 #: spyder/plugins/completion/kite/widgets/status.py:54
 msgid "Kite installation will continue in the background.\n"
 "Click here to show the installation dialog again"
-msgstr ""
+msgstr "Instalacja Kite będzie kontynuowana w tle.\n"
+"Kliknij tutaj, aby ponownie wyświetlić okno dialogowe instalacji"
 
 #: spyder/plugins/completion/kite/widgets/status.py:59
 msgid "Click here to show the\n"
 "installation dialog again"
-msgstr ""
+msgstr "Kliknij tutaj, aby ponownie wyświetlić\n"
+"okno dialogowe instalacji"
 
 #: spyder/plugins/completion/languageserver/confpage.py:111
 msgid "Valid JSON"
@@ -1140,23 +1142,23 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:189
 msgid "Additional arguments required to start the server"
-msgstr ""
+msgstr "Do uruchomienia serwera wymagane są dodatkowe argumenty"
 
 #: spyder/plugins/completion/languageserver/confpage.py:207
 msgid "Additional LSP server configuration set at runtime. JSON required"
-msgstr ""
+msgstr "Dodatkowa konfiguracja serwera LSP ustawiona podczas uruchomienia. Wymagany JSON"
 
 #: spyder/plugins/completion/languageserver/confpage.py:216
 msgid "Check if the server runs on a remote location"
-msgstr ""
+msgstr "Sprawdź, czy serwer działa w zdalnej lokalizacji"
 
 #: spyder/plugins/completion/languageserver/confpage.py:219
 msgid "Use stdio pipes for communication"
-msgstr ""
+msgstr "Użyj potoku stdio do komunikacji"
 
 #: spyder/plugins/completion/languageserver/confpage.py:220
 msgid "Check if the server communicates using stdin/out pipes"
-msgstr ""
+msgstr "Sprawdź, czy serwer komunikuje się za pomocą potoków stdin/out"
 
 #: spyder/plugins/completion/languageserver/confpage.py:231 spyder/plugins/completion/languageserver/confpage.py:549
 msgid "Language"
@@ -1176,7 +1178,7 @@ msgstr "Zaawansowane"
 
 #: spyder/plugins/completion/languageserver/confpage.py:314
 msgid "Hostname must be valid"
-msgstr ""
+msgstr "Nazwa hosta musi być prawidłowa"
 
 #: spyder/plugins/completion/languageserver/confpage.py:317
 msgid "Hostname or IP address of the host on which the server is running. Must be non empty."
