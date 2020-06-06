@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-06 15:15\n"
+"PO-Revision-Date: 2020-06-06 20:06\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -97,7 +97,7 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:645 spyder/plugins/console/widgets/shell.py:123 spyder/plugins/editor/widgets/codeeditor.py:3675
 msgid "Cut"
-msgstr ""
+msgstr "Вирізати"
 
 #: spyder/app/mainwindow.py:647 spyder/plugins/console/widgets/shell.py:131 spyder/plugins/editor/widgets/codeeditor.py:3681 spyder/plugins/explorer/widgets/explorer.py:482 spyder/plugins/variableexplorer/widgets/collectionseditor.py:550
 msgid "Paste"
