@@ -167,7 +167,7 @@ class KernelComm(CommBase, QObject):
         timeout_msg: Message to display in case of a timeout.
         timeout: time in seconds before a timeout
         """
-        # If the condition is fullfilled or the kernel is dead, exit function
+        # Exit if condition is fulfilled or the kernel is dead.
         if condition():
             return
         if not self.kernel_client.is_alive():
@@ -187,8 +187,7 @@ class KernelComm(CommBase, QObject):
         wait_timeout.start(timeout * 1000)
         while not condition():
             if not wait_timeout.isActive():
-                signal.disconnect(
-                    wait_loop.quit)
+                signal.disconnect(wait_loop.quit)
                 self.kernel_client.hb_channel.kernel_died.disconnect(
                     wait_loop.quit)
                 if condition():
