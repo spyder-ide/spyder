@@ -594,8 +594,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.set_color_scheme(sw.syntax_style, reset=reset)
             sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
                             before_prompt=True)
-        if reset:
-            self._hide_loading_page()
+
+        self._hide_loading_page()
+        self.stop_button.setDisabled(True)
+        sw.refresh_namespacebrowser()
         self.restart_thread = None
 
     @Slot(str)
