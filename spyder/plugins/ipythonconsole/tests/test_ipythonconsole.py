@@ -1659,5 +1659,39 @@ def test_wrong_std_module(ipyconsole, qtbot):
     os.remove(wrong_random_mod)
 
 
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="no SIGTERM on Windows")
+def test_kernel_restart_after_manual_restart_and_crash(ipyconsole, qtbot):
+    """
+    Test that the kernel restarts correctly after being restarted
+    manually and then it crashes.
+
+    This is a regresion for spyder-ide/spyder#12972.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Restart kernel and wait until it's up again
+    shell._prompt_html = None
+    ipyconsole.restart_kernel()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Wait for the restarter to start
+    qtbot.wait(3000)
+
+    # Generate a crash
+    crash_string = 'import os, signal; os.kill(os.getpid(), signal.SIGTERM)'
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=30000):
+        shell.execute(crash_string)
+    assert crash_string in shell._control.toPlainText()
+
+    # Evaluate an expression to be sure the restart was successful
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
+    assert shell.is_defined('a')
+
+
 if __name__ == "__main__":
     pytest.main()
