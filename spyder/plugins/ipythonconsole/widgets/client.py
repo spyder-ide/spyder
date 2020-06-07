@@ -750,6 +750,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self.info_page = self.blank_page
         self.set_info_page()
         self.shellwidget.show()
+        self.get_control().setFocus()
 
     def _read_stderr(self):
         """Read the stderr file of the kernel."""
