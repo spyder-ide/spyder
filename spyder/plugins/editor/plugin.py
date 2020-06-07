@@ -21,7 +21,7 @@ import time
 
 # Third party imports
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
-from qtpy.QtCore import QByteArray, Qt, Signal, Slot
+from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QFileDialog, QInputDialog, QMenu, QSplitter,
@@ -222,7 +222,9 @@ class Editor(SpyderPluginWidget):
         if current_editor is not None:
             filename = self.get_current_filename()
             position = current_editor.get_position('cursor')
-            self.add_cursor_position_to_history(filename, position)
+            line, column = current_editor.get_cursor_line_column()
+            self.add_cursor_position_to_history(filename, position, line,
+                                                column)
         self.update_cursorpos_actions()
         self.set_path()
 
@@ -1260,6 +1262,8 @@ class Editor(SpyderPluginWidget):
                                          self.encoding_status.update_encoding)
             editorstack.sig_editor_cursor_position_changed.connect(
                                  self.cursorpos_status.update_cursor_position)
+            editorstack.sig_editor_cursor_position_changed.connect(
+                self.current_editor_cursor_changed)
             editorstack.sig_refresh_eol_chars.connect(
                 self.eol_status.update_eol)
             editorstack.current_file_changed.connect(
@@ -1353,6 +1357,7 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_new_file.connect(lambda s: self.new(text=s))
         editorstack.sig_new_file[()].connect(self.new)
         editorstack.sig_close_file.connect(self.close_file_in_all_editorstacks)
+        editorstack.sig_close_file.connect(self.remove_file_cursor_history)
         editorstack.file_saved.connect(self.file_saved_in_editorstack)
         editorstack.file_renamed_in_data.connect(
                                       self.file_renamed_in_data_in_editorstack)
@@ -1783,6 +1788,17 @@ class Editor(SpyderPluginWidget):
             current_es = editorstack
         created_from_here = fname is None
         if created_from_here:
+            if self.untitled_num == 0:
+                for finfo in current_es.data:
+                    current_filename = finfo.editor.filename
+                    if _("untitled") in current_filename:
+                        # Start the counter of the untitled_num with respect
+                        # to this number if there's other untitled file in
+                        # spyder. Please see spyder-ide/spyder#7831
+                        fname_data = osp.splitext(current_filename)
+                        act_num = int(fname_data[0].split(_("untitled"))[-1])
+                        self.untitled_num = act_num + 1
+
             while True:
                 fname = create_fname(self.untitled_num)
                 self.untitled_num += 1
@@ -1807,8 +1823,11 @@ class Editor(SpyderPluginWidget):
         # Creating the editor widget in the first editorstack (the one that
         # can't be destroyed), then cloning this editor widget in all other
         # editorstacks:
+        # Setting empty to True by default to avoid the additional space
+        # created at the end of the templates.
+        # See: spyder-ide/spyder#12596
         finfo = self.editorstacks[0].new(fname, enc, text, default_content,
-                                         empty)
+                                         empty=True)
         finfo.path = self.main.get_spyder_pythonpath()
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)
@@ -1897,6 +1916,7 @@ class Editor(SpyderPluginWidget):
             c_fname = self.get_current_filename()
             if c_fname is not None and c_fname != self.TEMPFILE_PATH:
                 basedir = osp.dirname(c_fname)
+
             self.redirect_stdio.emit(False)
             parent_widget = self.get_current_editorstack()
             if filename0 is not None:
@@ -1904,20 +1924,41 @@ class Editor(SpyderPluginWidget):
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
+
             if not running_under_pytest():
-                filenames, _sf = getopenfilenames(
-                                    parent_widget,
-                                    _("Open file"), basedir,
-                                    self.edit_filters,
-                                    selectedfilter=selectedfilter,
-                                    options=QFileDialog.HideNameFilterDetails)
+                # See: spyder-ide/spyder#3291
+                if sys.platform == 'darwin':
+                    dialog = QFileDialog(
+                        parent=parent_widget,
+                        caption=_("Open file"),
+                        directory=basedir,
+                    )
+                    dialog.setNameFilters(self.edit_filters.split(';;'))
+                    dialog.setOption(QFileDialog.HideNameFilterDetails, True)
+                    dialog.setFilter(QDir.AllDirs | QDir.Files | QDir.Drives
+                                     | QDir.Hidden)
+                    dialog.setFileMode(QFileDialog.ExistingFiles)
+
+                    if dialog.exec_():
+                        filenames = dialog.selectedFiles()
+                else:
+                    filenames, _sf = getopenfilenames(
+                        parent_widget,
+                        _("Open file"),
+                        basedir,
+                        self.edit_filters,
+                        selectedfilter=selectedfilter,
+                        options=QFileDialog.HideNameFilterDetails,
+                    )
             else:
                 # Use a Qt (i.e. scriptable) dialog for pytest
                 dialog = QFileDialog(parent_widget, _("Open file"),
                                      options=QFileDialog.DontUseNativeDialog)
                 if dialog.exec_():
                     filenames = dialog.selectedFiles()
+
             self.redirect_stdio.emit(True)
+
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
             else:
@@ -1985,8 +2026,6 @@ class Editor(SpyderPluginWidget):
             if goto is not None: # 'word' is assumed to be None as well
                 current_editor.go_to_line(goto[index], word=word,
                                           start_column=start_column)
-                position = current_editor.get_position('cursor')
-                self.cursor_moved(filename0, position0, filename, position)
             current_editor.clearFocus()
             current_editor.setFocus()
             current_editor.window().raise_()
@@ -2229,7 +2268,8 @@ class Editor(SpyderPluginWidget):
         editor = self.get_current_editor()
         position = editor.go_to_next_todo()
         filename = self.get_current_filename()
-        self.add_cursor_position_to_history(filename, position)
+        line, column = editor.get_cursor_line_column()
+        self.add_cursor_position_to_history(filename, position, line, column)
 
     @Slot()
     def go_to_next_warning(self):
@@ -2237,7 +2277,8 @@ class Editor(SpyderPluginWidget):
         editor = self.get_current_editor()
         position = editor.go_to_next_warning()
         filename = self.get_current_filename()
-        self.add_cursor_position_to_history(filename, position)
+        line, column = editor.get_cursor_line_column()
+        self.add_cursor_position_to_history(filename, position, line, column)
 
     @Slot()
     def go_to_previous_warning(self):
@@ -2245,7 +2286,8 @@ class Editor(SpyderPluginWidget):
         editor = self.get_current_editor()
         position = editor.go_to_previous_warning()
         filename = self.get_current_filename()
-        self.add_cursor_position_to_history(filename, position)
+        line, column = editor.get_cursor_line_column()
+        self.add_cursor_position_to_history(filename, position, line, column)
 
     @Slot()
     def run_winpdb(self):
@@ -2293,14 +2335,17 @@ class Editor(SpyderPluginWidget):
         self.next_cursor_action.setEnabled(self.cursor_pos_index is not None \
                     and self.cursor_pos_index < len(self.cursor_pos_history)-1)
 
-    def add_cursor_position_to_history(self, filename, position, fc=False):
+    def add_cursor_position_to_history(self, filename, position, line, column,
+                                       fc=False):
         if self.__ignore_cursor_position:
             return
-        for index, (fname, pos) in enumerate(self.cursor_pos_history[:]):
+        for index, (fname, pos, c_line, c_col) in enumerate(
+                self.cursor_pos_history):
             if fname == filename:
-                if pos == position or pos == 0:
+                if pos == position or pos == 0 or line == c_line:
                     if fc:
-                        self.cursor_pos_history[index] = (filename, position)
+                        self.cursor_pos_history[index] = (filename, position,
+                                                          line, column)
                         self.cursor_pos_index = index
                         self.update_cursorpos_actions()
                         return
@@ -2312,22 +2357,18 @@ class Editor(SpyderPluginWidget):
         if self.cursor_pos_index is not None:
             self.cursor_pos_history = \
                         self.cursor_pos_history[:self.cursor_pos_index+1]
-        self.cursor_pos_history.append((filename, position))
+        self.cursor_pos_history.append((filename, position, line, column))
         self.cursor_pos_index = len(self.cursor_pos_history)-1
         self.update_cursorpos_actions()
 
-    def cursor_moved(self, filename0, position0, filename1, position1):
-        """Cursor was just moved: 'go to'"""
-        if position0 is not None:
-            self.add_cursor_position_to_history(filename0, position0)
-        self.add_cursor_position_to_history(filename1, position1)
 
     def text_changed_at(self, filename, position):
         self.last_edit_cursor_pos = (to_text_string(filename), position)
 
-    def current_file_changed(self, filename, position):
+    def current_file_changed(self, filename, position, line, column):
         self.add_cursor_position_to_history(to_text_string(filename), position,
-                                            fc=True)
+                                            line, column, fc=True)
+
         # Hide any open tooltips
         current_stack = self.get_current_editorstack()
         if current_stack is not None:
@@ -2338,6 +2379,27 @@ class Editor(SpyderPluginWidget):
             pdb_state = self.main.ipyconsole.get_pdb_state()
             pdb_last_step = self.main.ipyconsole.get_pdb_last_step()
             self.update_pdb_state(pdb_state, pdb_last_step)
+
+    def current_editor_cursor_changed(self, line, column):
+        """Handles the change of the cursor inside the current editor."""
+        code_editor = self.get_current_editor()
+        filename = code_editor.filename
+        position = code_editor.get_position('cursor')
+        line, column = code_editor.get_cursor_line_column()
+        self.add_cursor_position_to_history(
+            to_text_string(filename), position, line, column, fc=True)
+
+    def remove_file_cursor_history(self, id, filename):
+        """Remove the cursor history of a file if the file is closed."""
+        new_history = []
+        for i, (cur_filename, pos, line, column) in enumerate(
+                self.cursor_pos_history):
+            if cur_filename == filename:
+                if i < self.cursor_pos_index:
+                    self.cursor_pos_index = self.cursor_pos_index - 1
+            else:
+                new_history.append((cur_filename, pos, line, column))
+        self.cursor_pos_history = new_history
 
     @Slot()
     def go_to_last_edit_location(self):
@@ -2359,14 +2421,18 @@ class Editor(SpyderPluginWidget):
         """
         if self.cursor_pos_index is None:
             return
-        filename, _position = self.cursor_pos_history[self.cursor_pos_index]
+        filename, _position, _line, _column = (
+            self.cursor_pos_history[self.cursor_pos_index])
+        cur_line, cur_col = self.get_current_editor().get_cursor_line_column()
         self.cursor_pos_history[self.cursor_pos_index] = (
-            filename, self.get_current_editor().get_position('cursor'))
+            filename, self.get_current_editor().get_position('cursor'),
+            cur_line, cur_col)
         self.__ignore_cursor_position = True
         old_index = self.cursor_pos_index
         self.cursor_pos_index = min(len(self.cursor_pos_history) - 1,
                                     max(0, self.cursor_pos_index + index_move))
-        filename, position = self.cursor_pos_history[self.cursor_pos_index]
+        filename, position, line, col = (
+            self.cursor_pos_history[self.cursor_pos_index])
         filenames = self.get_current_editorstack().get_filenames()
         if not osp.isfile(filename) and filename not in filenames:
             self.cursor_pos_history.pop(self.cursor_pos_index)

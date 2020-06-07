@@ -26,7 +26,10 @@ from spyder.api.plugins import SpyderPluginWidget
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.qthelpers import create_action, MENU_SEPARATOR
-from spyder.plugins.pylint.confpage import PylintConfigPage
+from spyder.plugins.pylint.confpage import (PylintConfigPage,
+                                            MAX_HISTORY_ENTRIES,
+                                            MIN_HISTORY_ENTRIES,
+                                            DEFAULT_HISTORY_ENTRIES)
 from spyder.plugins.pylint.widgets.pylintgui import PylintWidget
 
 
@@ -44,11 +47,12 @@ class Pylint(SpyderPluginWidget):
     CONF_SECTION = 'pylint'
     CONFIGWIDGET_CLASS = PylintConfigPage
     CONF_FILE = False
+    DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     def __init__(self, parent=None):
         SpyderPluginWidget.__init__(self, parent)
 
-        max_entries = self.get_option('max_entries', 50)
+        max_entries = self.get_option('max_entries', DEFAULT_HISTORY_ENTRIES)
         self.pylint = PylintWidget(self, max_entries=max_entries,
                                    options_button=self.options_button,
                                    text_color=MAIN_TEXT_COLOR,
@@ -105,7 +109,7 @@ class Pylint(SpyderPluginWidget):
             self.main.redirect_internalshell_stdio)
         self.add_dockwidget()
 
-        pylint_act = create_action(self, _("Run static code analysis"),
+        pylint_act = create_action(self, _("Run code analysis"),
                                    triggered=self.run_pylint)
         pylint_act.setEnabled(is_module_installed('pylint'))
         self.register_shortcut(pylint_act, context="Pylint",
@@ -122,7 +126,7 @@ class Pylint(SpyderPluginWidget):
         """Apply configuration file's plugin settings"""
         # The history depth option will be applied at
         # next Spyder startup, which is soon enough
-        pass
+        self.pylint.change_history_limit(self.get_option('max_entries'))
 
     #------ Public API --------------------------------------------------------
     @Slot()
@@ -131,9 +135,11 @@ class Pylint(SpyderPluginWidget):
         depth, valid = QInputDialog.getInt(self, _('History'),
                                        _('Maximum entries'),
                                        self.get_option('max_entries'),
-                                       10, 10000)
+                                       MIN_HISTORY_ENTRIES,
+                                       MAX_HISTORY_ENTRIES)
         if valid:
             self.set_option('max_entries', depth)
+            self.pylint.change_history_limit(depth)
 
     def get_filename(self):
         """Get current filename in combobox."""

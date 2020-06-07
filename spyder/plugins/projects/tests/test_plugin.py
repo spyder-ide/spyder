@@ -63,7 +63,6 @@ def projects(qtbot, mocker):
     projects.shortcut = None
     mocker.patch.object(spyder.plugins.base.SpyderDockWidget,
                         'install_tab_event_filter')
-    mocker.patch.object(projects, '_toggle_view_action')
     projects._create_dockwidget()
 
     # This can only be done at this point
@@ -173,6 +172,17 @@ def test_open_project_uses_visible_config(projects, tmpdir, value):
     projects.set_option('visible_if_project_open', value)
     projects.open_project(path=to_text_string(tmpdir))
     assert projects.dockwidget.isVisible() == value
+
+
+@pytest.mark.parametrize('value', [True, False])
+def test_switch_to_plugin(projects, tmpdir, value):
+    """Test that switch_to_plugin always shows the plugin if a project is
+    opened, regardless of the config option visible_if_project_open.
+    Regression test for spyder-ide/spyder#12491."""
+    projects.set_option('visible_if_project_open', value)
+    projects.open_project(path=to_text_string(tmpdir))
+    projects.switch_to_plugin()
+    assert projects.dockwidget.isVisible()
 
 
 def test_set_get_project_filenames_when_closing_no_files(create_projects,

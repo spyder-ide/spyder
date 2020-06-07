@@ -21,12 +21,18 @@ from qtpy.QtCore import QCoreApplication, Qt
 # Local imports
 from spyder.config.base import DEV, get_conf_path, get_debug_level
 from spyder.utils.qthelpers import file_uri
+from spyder.utils.external.dafsa.dafsa import DAFSA
 
 # For spyder-ide/spyder#7447.
 try:
     from qtpy.QtQuick import QQuickWindow, QSGRendererInterface
 except Exception:
     QQuickWindow = QSGRendererInterface = None
+
+
+root_logger = logging.getLogger()
+FILTER_NAMES = os.environ.get('SPYDER_FILTER_LOG', "").split(',')
+FILTER_NAMES = [f.strip() for f in FILTER_NAMES]
 
 
 def get_python_doc_path():
@@ -77,15 +83,39 @@ def setup_logging(cli_options):
         log_level = levels[get_debug_level()]
         log_format = '%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s'
 
+        console_filters = cli_options.filter_log.split(',')
+        console_filters = [x.strip() for x in console_filters]
+        console_filters = console_filters + FILTER_NAMES
+        console_filters = [x for x in console_filters if x != '']
+
+        handlers = [logging.StreamHandler()]
         if cli_options.debug_output == 'file':
             log_file = 'spyder-debug.log'
+            handlers.append(logging.FileHandler(open(log_file, 'w+')))
         else:
             log_file = None
 
-        logging.basicConfig(level=log_level,
-                            format=log_format,
-                            filename=log_file,
-                            filemode='w+')
+        match_func = lambda x: True
+        if console_filters != [''] and len(console_filters) > 0:
+            dafsa = DAFSA(console_filters)
+            match_func = lambda x: (dafsa.lookup(x, stop_on_prefix=True)
+                                    is not None)
+
+        formatter = logging.Formatter(log_format)
+
+        class ModuleFilter(logging.Filter):
+            """Filter messages based on module name prefix."""
+
+            def filter(self, record):
+                return match_func(record.name)
+
+        filter = ModuleFilter()
+        root_logger.setLevel(log_level)
+        for handler in handlers:
+            handler.addFilter(filter)
+            handler.setFormatter(formatter)
+            handler.setLevel(log_level)
+            root_logger.addHandler(handler)
 
 
 def delete_lsp_log_files():

@@ -28,6 +28,8 @@ from qtpy.QtWidgets import (QApplication, QHBoxLayout, QMenu,
                             QStyle)
 
 # ---- Local library imports
+import spyder.utils.icon_manager as ima
+
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import is_unicode, to_text_string
@@ -606,12 +608,21 @@ class FigureViewer(QScrollArea):
             height = (size.height() -
                       style.pixelMetric(QStyle.PM_LayoutTopMargin) -
                       style.pixelMetric(QStyle.PM_LayoutBottomMargin))
-            if (fwidth / fheight) > (width / height):
-                new_width = int(width)
-                new_height = int(width / fwidth * fheight)
-            else:
-                new_height = int(height)
-                new_width = int(height / fheight * fwidth)
+            self.figcanvas.setToolTip('')
+            try:
+                if (fwidth / fheight) > (width / height):
+                    new_width = int(width)
+                    new_height = int(width / fwidth * fheight)
+                else:
+                    new_height = int(height)
+                    new_width = int(height / fheight * fwidth)
+            except ZeroDivisionError:
+                icon = ima.icon('broken_image')
+                self.figcanvas._qpix_orig = icon.pixmap(fwidth, fheight)
+                self.figcanvas.setToolTip(
+                    _('The image is broken, please try to generate it again'))
+                new_width = fwidth
+                new_height = fheight
 
         if self.figcanvas.size() != QSize(new_width, new_height):
             self.figcanvas.setFixedSize(new_width, new_height)
@@ -860,11 +871,14 @@ class ThumbnailScrollBar(QFrame):
     def remove_all_thumbnails(self):
         """Remove all thumbnails."""
         for thumbnail in self._thumbnails:
-            self.layout().removeWidget(thumbnail)
             thumbnail.sig_canvas_clicked.disconnect()
             thumbnail.sig_remove_figure.disconnect()
             thumbnail.sig_save_figure.disconnect()
+            self.layout().removeWidget(thumbnail)
             thumbnail.setParent(None)
+            thumbnail.hide()
+            thumbnail.close()
+
         self._thumbnails = []
         self.current_thumbnail = None
         self.figure_viewer.figcanvas.clear_canvas()
@@ -873,20 +887,35 @@ class ThumbnailScrollBar(QFrame):
         """Remove thumbnail."""
         if thumbnail in self._thumbnails:
             index = self._thumbnails.index(thumbnail)
+
+        # Disconnect signals
+        try:
+            thumbnail.sig_canvas_clicked.disconnect()
+            thumbnail.sig_remove_figure.disconnect()
+            thumbnail.sig_save_figure.disconnect()
+        except TypeError:
+            pass
+
+        if thumbnail in self._thumbnails:
             self._thumbnails.remove(thumbnail)
-        self.layout().removeWidget(thumbnail)
-        thumbnail.setParent(None)
-        thumbnail.sig_canvas_clicked.disconnect()
-        thumbnail.sig_remove_figure.disconnect()
-        thumbnail.sig_save_figure.disconnect()
 
         # Select a new thumbnail if any :
         if thumbnail == self.current_thumbnail:
             if len(self._thumbnails) > 0:
-                self.set_current_index(min(index, len(self._thumbnails)-1))
+                self.set_current_index(
+                    min(index, len(self._thumbnails) - 1)
+                )
             else:
-                self.current_thumbnail = None
                 self.figure_viewer.figcanvas.clear_canvas()
+                self.current_thumbnail = None
+
+        # Hide and close thumbnails
+        self.layout().removeWidget(thumbnail)
+        thumbnail.hide()
+        thumbnail.close()
+
+        # See: spyder-ide/spyder#12459
+        QTimer.singleShot(150, lambda: thumbnail.setParent(None))
 
     def set_current_index(self, index):
         """Set the currently selected thumbnail by its index."""

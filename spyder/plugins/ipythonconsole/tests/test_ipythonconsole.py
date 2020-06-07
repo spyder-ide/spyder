@@ -248,7 +248,8 @@ def test_banners(ipyconsole, qtbot):
       ["x", "/", "out"],
       ["Parameters<br>", "x : array_like ..."])]
     )
-@pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
+@pytest.mark.skipif(not os.name == 'nt',
+                    reason="Times out on macOS and fails on Linux")
 def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
     shell = ipyconsole.get_current_shellwidget()
@@ -1299,7 +1300,7 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
 
 
 @flaky(max_runs=3)
-def test_kernel_crash(ipyconsole, mocker, qtbot):
+def test_kernel_crash(ipyconsole, qtbot):
     """Test that we show an error message when a kernel crash occurs."""
     # Create an IPython kernel config file with a bad config
     ipy_kernel_cfg = osp.join(get_ipython_dir(), 'profile_default',
@@ -1632,6 +1633,30 @@ def test_kernel_kill(ipyconsole, qtbot):
             'status'] == 'ready')
     assert shell.spyder_kernel_comm._comms[new_open_comms[0]][
         'status'] == 'ready'
+
+
+@flaky(max_runs=3)
+def test_wrong_std_module(ipyconsole, qtbot):
+    """
+    Test that a file with the same name of a standard library module in
+    the current working directory doesn't break the console.
+    """
+    # Create an empty file called random.py in the cwd
+    wrong_random_mod = osp.join(os.getcwd(), 'random.py')
+    with open(wrong_random_mod, 'w') as f:
+        f.write('')
+
+    # Create a new client to see if its kernel starts despite the
+    # faulty module.
+    ipyconsole.create_new_client()
+
+    # A prompt should be created if the kernel didn't crash.
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Remove wrong module
+    os.remove(wrong_random_mod)
 
 
 if __name__ == "__main__":

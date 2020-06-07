@@ -425,8 +425,8 @@ DEFAULTS = [
               'editor/save as': 'Ctrl+Shift+S',
               'editor/close all': "Ctrl+Shift+W",
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
-              'editor/previous cursor position': "Ctrl+Alt+Left",
-              'editor/next cursor position': "Ctrl+Alt+Right",
+              'editor/previous cursor position': "Alt+Left",
+              'editor/next cursor position': "Alt+Right",
               'editor/previous warning': "Ctrl+Alt+Shift+,",
               'editor/next warning': "Ctrl+Alt+Shift+.",
               'editor/zoom in 1': "Ctrl++",
@@ -625,4 +625,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '57.1.0'
+CONF_VERSION = '57.3.0'

@@ -329,6 +329,8 @@ class IPythonConsole(SpyderPluginWidget):
                                      icon=ima.icon('editdelete'),
                                      triggered=self.reset_kernel,
                                      context=Qt.WidgetWithChildrenShortcut)
+        self.register_shortcut(reset_action, context="ipython_console",
+                               name="Reset namespace")
 
         if self.interrupt_action is None:
             self.interrupt_action = create_action(
@@ -685,12 +687,12 @@ class IPythonConsole(SpyderPluginWidget):
             has_spyder_kernels = programs.is_module_installed(
                 'spyder_kernels',
                 interpreter=pyexec,
-                version='>=1.9.0;<1.10.0')
+                version='>=1.9.1;<1.10.0')
             if not has_spyder_kernels and not running_under_pytest():
                 client.show_kernel_error(
                     _("Your Python environment or installation doesn't have "
                       "the <tt>spyder-kernels</tt> module or the right "
-                      "version of it installed (>= 1.9.0 and < 1.10.0). "
+                      "version of it installed (>= 1.9.1 and < 1.10.0). "
                       "Without this module is not possible for Spyder to "
                       "create a console for you.<br><br>"
                       "You can install it by running in a system terminal:"
@@ -965,6 +967,9 @@ class IPythonConsole(SpyderPluginWidget):
         if not self.tabwidget.count():
             return
         if client is not None:
+            if client not in self.clients:
+                # Client already closed
+                return
             index = self.tabwidget.indexOf(client)
             # if index is not found in tabwidget it's because this client was
             # already closed and the call was performed by the exit callback
@@ -1010,7 +1015,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # if there aren't related clients we can remove stderr_file
         related_clients = self.get_related_clients(client)
-        if len(related_clients) == 0 and osp.exists(client.stderr_file):
+        if len(related_clients) == 0:
             client.remove_stderr_file()
 
         client.dialog_manager.close_all()

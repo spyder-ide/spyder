@@ -279,8 +279,8 @@ _qtaargs = {
     'copywop':                 [('fa.terminal',), {'color': MAIN_FG_COLOR}],
     'editpaste':               [('fa.paste',), {'color': MAIN_FG_COLOR}],
     'edit':                    [('fa.edit',), {'color': MAIN_FG_COLOR}],
-    'convention':              [('spyder.circle-letter-c',), {'color':'#3775a9'}],
-    'refactor':                [('spyder.circle-letter-r',), {'color':'#3775a9'}],
+    'convention':              [('mdi.alpha-c-box',), {'color': '#3775a9', 'scale_factor': BIG_ATTR_FACTOR}],
+    'refactor':                [('mdi.alpha-r-box',), {'color': '#3775a9', 'scale_factor': BIG_ATTR_FACTOR}],
     '2uparrow':                [('fa.angle-double-up',), {'color': MAIN_FG_COLOR}],
     '1uparrow':                [('fa.angle-up',), {'color': MAIN_FG_COLOR}],
     '2downarrow':              [('fa.angle-double-down',), {'color': MAIN_FG_COLOR}],
@@ -336,6 +336,8 @@ _qtaargs = {
     'dependency_ok':           [('fa.check',), {'color': MAIN_FG_COLOR}],
     'dependency_warning':      [('fa.warning',), {'color': 'orange'}],
     'dependency_error':        [('fa.warning',), {'color': 'darkred'}],
+    'broken_image':          [('mdi.image-broken-variant',),
+                                {'color': MAIN_FG_COLOR}],
     # --- Status bar --------------------------------------------------------
     'code_fork':               [('fa.code-fork',), {'color': MAIN_FG_COLOR}],
 }

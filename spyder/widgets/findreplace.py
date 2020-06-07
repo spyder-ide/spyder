@@ -145,7 +145,7 @@ class FindReplace(QWidget):
                                      triggered=self.replace_find,
                                      text_beside_icon=True)
         self.replace_sel_button = create_toolbutton(self,
-                                     text=_('Replace selection'),
+                                     text=_('Replace in selection'),
                                      icon=ima.icon('DialogApplyButton'),
                                      triggered=self.replace_find_selection,
                                      text_beside_icon=True)
@@ -612,9 +612,7 @@ class FindReplace(QWidget):
                 cursor.insertText(replacement)
                 # Restore selection
                 self.editor.set_cursor_position(start_pos)
-                newl_cnt = replacement.count(self.editor.get_line_separator())
-                sel_len = len(replacement) - newl_cnt
-                for c in range(sel_len):
+                for c in range(len(replacement)):
                     self.editor.extend_selection_to_next('character', 'right')
                 cursor.endEditBlock()
 

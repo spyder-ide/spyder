@@ -26,11 +26,14 @@ import sys
 import uuid
 
 # Third party imports
-from IPython.core import release as ipy_release
 from flaky import flaky
+from IPython.core import release as ipy_release
 from jupyter_client.manager import KernelManager
+from matplotlib.testing.compare import compare_images
+import nbconvert
 import numpy as np
 from numpy.testing import assert_array_equal
+import pylint
 import pytest
 from qtpy import PYQT5, PYQT_VERSION
 from qtpy.QtCore import Qt, QTimer, QEvent, QPoint, QUrl
@@ -39,8 +42,6 @@ from qtpy.QtGui import QImage
 from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QLineEdit,
                             QTabBar, QToolTip, QWidget)
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from matplotlib.testing.compare import compare_images
-import nbconvert
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
@@ -838,8 +839,12 @@ def test_connection_to_external_kernel(main_window, qtbot):
     assert nsb.editor.source_model.rowCount() == 1
 
     # Shutdown the kernels
+    spykm.stop_restarter()
+    km.stop_restarter()
     spykm.shutdown_kernel(now=True)
     km.shutdown_kernel(now=True)
+    spykc.stop_channels()
+    kc.stop_channels()
 
 
 @pytest.mark.slow
@@ -1021,7 +1026,7 @@ def test_open_notebooks_from_project_explorer(main_window, qtbot, tmpdir):
     file_text = editorstack.get_current_editor().toPlainText()
     if nbconvert.__version__ >= '5.4.0':
         expected_text = ('#!/usr/bin/env python\n# coding: utf-8\n\n# In[1]:'
-                         '\n\n\n1 + 1\n\n\n# In[ ]:\n\n\n\n\n\n')
+                         '\n\n\n1 + 1\n\n\n# In[ ]:\n\n\n\n\n')
     else:
         expected_text = '\n# coding: utf-8\n\n# In[1]:\n\n\n1 + 1\n\n\n'
     assert file_text == expected_text
@@ -1978,7 +1983,7 @@ def test_edidorstack_open_symbolfinder_dlg(main_window, qtbot, tmpdir):
 def test_run_static_code_analysis(main_window, qtbot):
     """This tests that the Pylint plugin is working as expected."""
     # Select the third-party plugin
-    pylint = get_thirdparty_plugin(main_window, "Code Analysis")
+    pylint_plugin = get_thirdparty_plugin(main_window, "Code Analysis")
 
     # Do an analysis
     test_file = osp.join(LOCATION, 'script_pylint.py')
@@ -1989,12 +1994,18 @@ def test_run_static_code_analysis(main_window, qtbot):
 
     # Perform the test
     # Check output of the analysis
-    treewidget = pylint.get_focus_widget()
+    treewidget = pylint_plugin.get_focus_widget()
     qtbot.waitUntil(lambda: treewidget.results is not None,
                     timeout=SHELL_TIMEOUT)
     result_content = treewidget.results
     assert result_content['C:']
-    assert len(result_content['C:']) == 5
+
+    pylint_version = LooseVersion(pylint.__version__)
+    if pylint_version < LooseVersion('2.5.0'):
+        number_of_conventions = 5
+    else:
+        number_of_conventions = 3
+    assert len(result_content['C:']) == number_of_conventions
 
     # Close the file
     main_window.editor.close_file()
@@ -3147,6 +3158,27 @@ def test_running_namespace(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: 'b' in nsb.editor.source_model._data)
     assert nsb.editor.source_model._data['a']['view'] == '10'
     assert nsb.editor.source_model._data['b']['view'] == '10'
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_post_mortem(main_window, qtbot, tmpdir):
+    """Test post mortem works"""
+    # Check we can use custom complete for pdb
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = main_window.ipyconsole.get_focus_widget()
+
+    test_file = tmpdir.join('test.py')
+    test_file.write('raise RuntimeError\n')
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "runfile(" + repr(str(test_file)) + ", post_mortem=True)")
+
+    assert "ipdb>" in control.toPlainText()
+
 
 if __name__ == "__main__":
     pytest.main()
