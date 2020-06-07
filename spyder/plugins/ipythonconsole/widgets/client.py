@@ -552,6 +552,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
                 # Close comm
                 sw.spyder_kernel_comm.close()
+
+                # Stop autorestart mechanism
+                sw.kernel_manager.stop_restarter()
+                sw.kernel_manager.autorestart = False
+
+                # Create and run restarting thread
                 self.restart_thread = QThread()
                 self.restart_thread.run = self._restart_thread_main
                 self.restart_thread.error = None
@@ -583,10 +589,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 before_prompt=True
             )
         else:
-            # Reopen comm
+            # Reset Pdb state and reopen comm
             sw._pdb_in_loop = False
             sw.spyder_kernel_comm.close()
             sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+
+            # Start autorestart mechanism
+            sw.kernel_manager.autorestart = True
+            sw.kernel_manager.start_restarter()
 
             # For spyder-ide/spyder#6235, IPython was changing the
             # setting of %colors on windows by assuming it was using a
