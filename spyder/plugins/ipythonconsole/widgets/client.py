@@ -232,6 +232,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except Exception:
             pass
 
+    def get_stderr_contents(self):
+        """Get the contents of the stderr kernel file."""
+        try:
+            stderr = self._read_stderr()
+        except Exception:
+            stderr = None
+        return stderr
+
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is connected."""
         if give_focus:
@@ -548,6 +556,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             if sw.kernel_manager:
                 if self.infowidget.isVisible():
                     self.infowidget.hide()
+
+                if self._abort_restart():
+                    return
+
                 self._show_loading_page()
 
                 # Close comm
@@ -582,6 +594,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def _finalise_restart(self, reset=False):
         """Finishes the restarting of the kernel."""
+        if self._abort_restart():
+            return
+
         sw = self.shellwidget
         if self.restart_thread and self.restart_thread.error is not None:
             sw._append_plain_text(
@@ -620,10 +635,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             # So we read the kernel's stderr_file and display its
             # contents in the client instead of the usual message shown
             # by qtconsole.
-            try:
-                stderr = self._read_stderr()
-            except Exception:
-                stderr = None
+            stderr = self.get_stderr_contents()
             if stderr:
                 self.show_kernel_error('<tt>%s</tt>' % stderr)
         else:
@@ -800,3 +812,15 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             )
 
             self.show_kernel_error(error_message)
+
+    def _abort_restart(self):
+        """
+        Abort restart if there are errors while starting the kernel.
+
+        We also ignore errors about comms, which are irrelevant.
+        """
+        stderr = self.get_stderr_contents()
+        if stderr and not 'No such comm' in stderr:
+            return True
+        else:
+            return False
