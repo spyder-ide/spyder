@@ -1692,6 +1692,12 @@ def test_kernel_restart_after_manual_restart_and_crash(ipyconsole, qtbot):
         shell.execute('a = 10')
     assert shell.is_defined('a')
 
+    # Wait until the comm replies
+    open_comms = list(shell.spyder_kernel_comm._comms.keys())
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_comm._comms[open_comms[0]][
+            'status'] == 'ready')
+
 
 if __name__ == "__main__":
     pytest.main()
