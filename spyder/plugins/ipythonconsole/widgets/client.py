@@ -569,10 +569,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 sw.kernel_manager.stop_restarter()
                 sw.kernel_manager.autorestart = False
 
-                # Operations to perform after a kernel restart was
-                # successful.
-                sw.sig_prompt_ready.connect(self._after_kernel_restart)
-
                 # Create and run restarting thread
                 self.restart_thread = QThread()
                 self.restart_thread.run = self._restart_thread_main
@@ -827,11 +823,3 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             return True
         else:
             return False
-
-    def _after_kernel_restart(self):
-        """Operations to execute after a kernel restart."""
-        self.shellwidget.refresh_namespacebrowser(interrupt=False)
-        try:
-            self.shellwidget.sig_prompt_ready.disconnect()
-        except TypeError:
-            pass

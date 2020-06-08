@@ -172,7 +172,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         if exec_count == 0 and self._kernel_is_starting:
             if self.namespacebrowser is not None:
                 self.set_namespace_view_settings()
-                self.refresh_namespacebrowser()
+                self.refresh_namespacebrowser(interrupt=False)
             self._kernel_is_starting = False
             self.ipyclient.t0 = time.monotonic()
 
@@ -205,7 +205,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             # This handles restarts asked by the user
             if self.namespacebrowser is not None:
                 self.set_namespace_view_settings()
-                self.refresh_namespacebrowser()
+                self.refresh_namespacebrowser(interrupt=False)
             self.ipyclient.t0 = time.monotonic()
         else:
             super(NamepaceBrowserWidget, self)._handle_status(msg)
