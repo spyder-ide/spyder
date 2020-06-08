@@ -303,37 +303,44 @@ class IPythonConsole(SpyderPluginWidget):
 
         restart_options = [run_lines_n, use_run_file_n, run_file_n,
                            symbolic_math_n]
-
-        # Setup message dialog to confirm further actions
-        msgbox = QMessageBox(self)
-        msgbox.setIcon(QMessageBox.Information)
-        # Optional restart to see changes
-        settings_message = _(
-            "Please select if you want to apply the options "
-            "only for new consoles, for the current console "
-            "or all the running consoles.<br><br>"
-            "Keep in mind that <b>the settings will be used "
-            "for any new launched console</b>.")
-        only_new_button = msgbox.addButton(
-            _("New consoles only"), QMessageBox.NoRole)
-        msgbox.setDefaultButton(only_new_button)
-        msgbox.addButton(_("Current console"), QMessageBox.NoRole)
-        all_button = msgbox.addButton(
-            _("All the consoles"), QMessageBox.NoRole)
         restart_needed = False
-        if any(restart_option in options
-               for restart_option in restart_options):
-            restart_needed = True
-            settings_message += _(
-                "<br><br>NOTE: Some options require a restart to apply. "
-                "Applying these changes to the running consoles "
-                "will force a <b>kernel restart for them</b>")
-        msgbox.setText(settings_message)
-        msgbox.exec_()
 
-        only_new_clients = msgbox.clickedButton() == only_new_button
-        if not only_new_clients:
+        if running_under_pytest():
+            only_new_clients = False
+            all_clients = True
+        else:
+            # Setup message dialog to confirm further actions
+            msgbox = QMessageBox(self)
+            msgbox.setIcon(QMessageBox.Information)
+            # Optional restart to see changes
+            settings_message = _(
+                "Please select if you want to apply the options "
+                "only for new consoles, for the current console "
+                "or all the running consoles.<br><br>"
+                "Keep in mind that <b>the settings will be used "
+                "for any new launched console</b>.")
+            only_new_button = msgbox.addButton(
+                _("New consoles only"), QMessageBox.NoRole)
+            msgbox.setDefaultButton(only_new_button)
+            msgbox.addButton(_("Current console"), QMessageBox.NoRole)
+            all_button = msgbox.addButton(
+                _("All the consoles"), QMessageBox.NoRole)
+
+            if any(restart_option in options
+                   for restart_option in restart_options):
+                restart_needed = True
+                settings_message += _(
+                    "<br><br>NOTE: Some options require a restart to apply. "
+                    "Applying these changes to the running consoles "
+                    "will force a <b>kernel restart for them</b>")
+            msgbox.setText(settings_message)
+            msgbox.exec_()
+
+            only_new_clients = msgbox.clickedButton() == only_new_button
             all_clients = msgbox.clickedButton() == all_button
+
+        # Apply settings
+        if not only_new_clients and not running_under_pytest():
             clients = self.clients if all_clients else [
                 self.get_current_client()]
 
