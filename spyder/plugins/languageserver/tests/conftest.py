@@ -21,9 +21,8 @@ import pytest
 from pytestqt.plugin import QtBot
 
 from spyder.config.manager import CONF
-from spyder.plugins.completion.languageserver import SERVER_CAPABILITES
-from spyder.plugins.completion.languageserver.plugin import (
-    LanguageServerPlugin)
+from spyder.plugins.completion.api import SERVER_CAPABILITES
+from spyder.plugins.languageserver.plugin import LanguageServer
 
 
 class EditorMock(QObject):
@@ -118,7 +117,9 @@ def lsp_context(is_stdio):
 
         # Create the manager
         os.environ['SPY_TEST_USE_INTROSPECTION'] = 'True'
-        manager = LanguageServerPlugin(parent=MainWindowMock())
+        manager = LanguageServer(
+            parent=MainWindowMock(), configuration=CONF)
+
         # Wait for the client to be started
         editor = manager.main.editor
         with qtbot_module.waitSignal(

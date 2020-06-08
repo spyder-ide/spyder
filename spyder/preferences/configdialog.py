@@ -910,7 +910,13 @@ class GeneralConfigPage(SpyderConfigPage):
     ICON = None    # name of icon resource (24x24)
 
     def __init__(self, parent, main):
-        SpyderConfigPage.__init__(self, parent)
+        if isinstance(parent, QWidget):
+            # Old API
+            SpyderConfigPage.__init__(self, parent)
+        else:
+            # New API
+            SpyderConfigPage.__init__(self, main)
+
         self.main = main
 
     def get_name(self):

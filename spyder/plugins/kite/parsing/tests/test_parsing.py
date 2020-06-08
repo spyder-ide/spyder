@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 
-from spyder.plugins.completion.kite.parsing import find_returning_function_path
+from spyder.plugins.kite.parsing import find_returning_function_path
 
 
 def test_find_returning_function_path():

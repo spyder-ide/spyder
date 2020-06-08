@@ -3617,17 +3617,17 @@ class MainWindow(QMainWindow):
                 widget.initialize()
                 dlg.add_page(widget)
 
-            widget = self.completions._create_configwidget(dlg, self)
-            if widget is not None:
-                dlg.add_page(widget)
+            # widget = self.completions._create_configwidget(dlg, self)
+            # if widget is not None:
+            #     dlg.add_page(widget)
 
-            for completion_plugin in self.completions.clients.values():
-                completion_plugin = completion_plugin['plugin']
-                widget = completion_plugin._create_configwidget(dlg, self)
-                if widget is not None:
-                    dlg.add_page(widget)
+            # for completion_plugin in self.completions.clients.values():
+            #     completion_plugin = completion_plugin['plugin']
+            #     widget = completion_plugin._create_configwidget(dlg, self)
+            #     if widget is not None:
+            #         dlg.add_page(widget)
 
-            for plugin in [self.workingdirectory, self.editor,
+            for plugin in [self.languageserver, self.workingdirectory, self.editor,
                            self.projects, self.ipyconsole,
                            self.historylog, self.help, self.variableexplorer,
                            self.onlinehelp, self.explorer, self.findinfiles

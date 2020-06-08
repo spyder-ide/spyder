@@ -9,8 +9,8 @@ import os.path as osp
 
 import pytest
 from diff_match_patch import diff_match_patch
-from spyder.plugins.completion.languageserver import LSPRequestTypes
-from spyder.plugins.completion.fallback.utils import get_words
+from spyder.plugins.completion.api import LSPRequestTypes
+from spyder.plugins.fallback.utils import get_words
 
 
 DATA_PATH = osp.join(osp.dirname(osp.abspath(__file__)), "data")

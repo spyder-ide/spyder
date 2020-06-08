@@ -10,14 +10,14 @@
 import pytest
 
 # Local imports
-from spyder.plugins.completion.languageserver.plugin import LanguageServerPlugin
+from spyder.plugins.languageserver.plugin import LanguageServer
 from spyder.preferences.tests.conftest import config_dialog
 
 
 @pytest.mark.parametrize(
     'config_dialog',
     # [[MainWindowMock, [ConfigPlugins], [Plugins]]]
-    [[None, [], [LanguageServerPlugin]]],
+    [[None, [], [LanguageServer]]],
     indirect=True)
 def test_config_dialog(config_dialog):
     configpage = config_dialog.get_page()

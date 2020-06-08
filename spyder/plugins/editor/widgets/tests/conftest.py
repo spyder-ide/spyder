@@ -23,11 +23,12 @@ from qtpy.QtGui import QFont
 from spyder.config.manager import CONF
 from spyder.plugins.editor.tests.conftest import (
     editor_plugin, editor_plugin_open_files, python_files)
-from spyder.plugins.completion.languageserver.tests.conftest import (
+from spyder.plugins.languageserver.tests.conftest import (
     qtbot_module, MainWindowMock, MainWindowWidgetMock)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
-from spyder.plugins.completion.plugin import CompletionManager
+from spyder.plugins.completion.plugin import CodeCompletion
+from spyder.plugins.fallback.plugin import Fallback
 from spyder.plugins.explorer.widgets.tests.conftest import create_folders_files
 from spyder.py3compat import PY2, to_text_string
 from spyder.widgets.findreplace import FindReplace
@@ -73,11 +74,15 @@ def setup_editor(qtbot):
 def fallback_codeeditor(qtbot_module, request):
     """CodeEditor instance with Fallback enabled."""
 
-    completions = CompletionManager(None, ['fallback'])
-    completions.start()
-    completions.start_client('python')
-    completions.language_status['python']['fallback'] = True
-    qtbot_module.addWidget(completions)
+    completions = CodeCompletion(None, configuration=CONF)
+    completions.register()
+    fallback = Fallback(None, configuration=CONF)
+    fallback.register()
+    completions.start_providers()
+    completions.start_provider_clients('python')
+    # FIXME: Why?
+    # completions.language_status['python']['fallback'] = True
+    # qtbot_module.addWidget(completions)
 
     # Create a CodeEditor instance
     editor = codeeditor_factory()
@@ -92,12 +97,11 @@ def fallback_codeeditor(qtbot_module, request):
     qtbot_module.wait(2000)
 
     def teardown():
-        completions.shutdown()
+        completions.shutdown_providers()
         editor.hide()
         editor.completion_widget.hide()
 
     request.addfinalizer(teardown)
-    fallback = completions.get_client('fallback')
     return editor, fallback
 
 

@@ -11,8 +11,8 @@ import pytest
 from qtpy.QtCore import QObject, Signal, Slot
 
 from spyder.config.lsp import PYTHON_CONFIG
-from spyder.plugins.completion.languageserver.client import LSPClient
-from spyder.plugins.completion.languageserver import LSPRequestTypes
+from spyder.plugins.completion.api import LSPRequestTypes
+from spyder.plugins.languageserver.client import LSPClient
 
 
 class CompletionManager(QObject):
