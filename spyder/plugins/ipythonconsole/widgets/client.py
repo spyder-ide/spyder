@@ -557,7 +557,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 if self.infowidget.isVisible():
                     self.infowidget.hide()
 
-                if self._abort_restart():
+                if self._abort_kernel_restart():
                     return
 
                 self._show_loading_page()
@@ -598,7 +598,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def _finalise_restart(self, reset=False):
         """Finishes the restarting of the kernel."""
-        if self._abort_restart():
+        if self._abort_kernel_restart():
             return
 
         sw = self.shellwidget
@@ -816,14 +816,14 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
             self.show_kernel_error(error_message)
 
-    def _abort_restart(self):
+    def _abort_kernel_restart(self):
         """
-        Abort restart if there are errors while starting the kernel.
+        Abort kernel restart if there are errors while starting it.
 
         We also ignore errors about comms, which are irrelevant.
         """
         stderr = self.get_stderr_contents()
-        if stderr and not 'No such comm' in stderr:
+        if stderr and 'No such comm' not in stderr:
             return True
         else:
             return False
