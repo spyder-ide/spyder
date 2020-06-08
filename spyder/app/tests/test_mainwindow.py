@@ -3180,5 +3180,33 @@ def test_post_mortem(main_window, qtbot, tmpdir):
     assert "ipdb>" in control.toPlainText()
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
+    """
+    Test that the variable explorer is cleared after a kernel restart.
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = main_window.ipyconsole.get_focus_widget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
+
+    # Assert the value was created
+    nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.waitUntil(lambda: 'a' in nsb.editor.source_model._data,
+                    timeout=3000)
+
+    # Restart Kernel
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
+        shell.ipyclient.restart_kernel()
+
+    # Assert the value was removed
+    qtbot.waitUntil(lambda: 'a' not in nsb.editor.source_model._data,
+                    timeout=3000)
+
+
 if __name__ == "__main__":
     pytest.main()
