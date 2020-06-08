@@ -298,12 +298,18 @@ class IPythonConsole(SpyderPluginWidget):
         use_run_file_n = 'startup/use_run_file'
         run_file_n = 'startup/run_file'
 
+        # Graphic options
+        pylab_n = 'pylab'
+        pylab_backend_n = 'pylab/backend'
+
         # Advanced options (needs a restart)
         symbolic_math_n = 'symbolic_math'
         hide_cmd_windows_n = 'hide_cmd_windows'
 
         restart_options = [run_lines_n, use_run_file_n, run_file_n,
                            symbolic_math_n, hide_cmd_windows_n]
+        if self.get_option(pylab_n) and self.get_option(pylab_backend_n) != 0:
+            restart_options.append(pylab_backend_n)
         restart_needed = False
 
         if running_under_pytest():
