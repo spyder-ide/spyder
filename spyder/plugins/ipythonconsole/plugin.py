@@ -300,9 +300,10 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Advanced options (needs a restart)
         symbolic_math_n = 'symbolic_math'
+        hide_cmd_windows_n = 'hide_cmd_windows'
 
         restart_options = [run_lines_n, use_run_file_n, run_file_n,
-                           symbolic_math_n]
+                           symbolic_math_n, hide_cmd_windows_n]
         restart_needed = False
 
         if running_under_pytest():
