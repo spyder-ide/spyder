@@ -27,6 +27,7 @@ MPL_BACKENDS_TO_SPYDER = {
     'WX': 7,
     'TkAgg': 8}
 
+
 def is_module_installed(module_name):
     """
     Simpler version of spyder.utils.programs.is_module_installed.
