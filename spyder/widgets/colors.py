@@ -74,6 +74,8 @@ class ColorLayout(QHBoxLayout):
         QHBoxLayout.__init__(self)
         assert isinstance(color, QColor)
         self.lineedit = QLineEdit(color.name(), parent)
+        fm = self.lineedit.fontMetrics()
+        self.lineedit.setMinimumWidth(fm.width(color.name()) * 1.5)
         self.lineedit.textChanged.connect(self.update_color)
         self.addWidget(self.lineedit)
         self.colorbtn = ColorButton(parent)
