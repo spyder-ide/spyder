@@ -293,6 +293,9 @@ class IPythonConsole(SpyderPluginWidget):
 
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings."""
+        restart_needed = False
+        restart_options = []
+
         # Startup options (needs a restart)
         run_lines_n = 'startup/run_lines'
         use_run_file_n = 'startup/use_run_file'
@@ -300,17 +303,26 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Graphic options
         pylab_n = 'pylab'
+        pylab_o = self.get_option(pylab_n)
         pylab_backend_n = 'pylab/backend'
+        inline_backend = 0
+        pylab_restart = False
+        client_backend_not_inline = [False] * len(self.clients)
+        if pylab_o and pylab_backend_n in options:
+            pylab_backend_o = self.get_option(pylab_backend_n)
+            client_backend_not_inline = [
+                client.shellwidget.get_matplotlib_backend() != inline_backend
+                for client in self.clients]
+            pylab_restart = (
+                any(client_backend_not_inline) and
+                pylab_backend_o != inline_backend)
 
         # Advanced options (needs a restart)
         symbolic_math_n = 'symbolic_math'
         hide_cmd_windows_n = 'hide_cmd_windows'
 
-        restart_options = [run_lines_n, use_run_file_n, run_file_n,
-                           symbolic_math_n, hide_cmd_windows_n]
-        if self.get_option(pylab_n) and self.get_option(pylab_backend_n) != 0:
-            restart_options.append(pylab_backend_n)
-        restart_needed = False
+        restart_options += [run_lines_n, use_run_file_n, run_file_n,
+                            symbolic_math_n, hide_cmd_windows_n]
 
         if running_under_pytest():
             only_new_clients = False
@@ -333,13 +345,13 @@ class IPythonConsole(SpyderPluginWidget):
             all_button = msgbox.addButton(
                 _("All the consoles"), QMessageBox.NoRole)
 
-            if any(restart_option in options
-                   for restart_option in restart_options):
-                restart_needed = True
+            restart_needed = any([restart_option in options
+                                  for restart_option in restart_options])
+            if restart_needed or pylab_restart:
                 settings_message += _(
                     "<br><br>NOTE: Some options require a restart to apply. "
                     "Applying these changes to the running consoles "
-                    "will force a <b>kernel restart for them</b>")
+                    "will force a <b>kernel restart for some of them</b>")
             msgbox.setText(settings_message)
             msgbox.exec_()
 
@@ -351,8 +363,9 @@ class IPythonConsole(SpyderPluginWidget):
             clients = self.clients if all_clients else [
                 self.get_current_client()]
 
-            for client in clients:
-                if restart_needed:
+            for idx, client in enumerate(clients):
+                if ((pylab_restart and client_backend_not_inline[idx]) or
+                        restart_needed):
                     client.ask_before_restart = False
                     client.restart_kernel()
                 else:

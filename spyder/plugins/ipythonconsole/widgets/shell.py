@@ -294,6 +294,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Set appereance of the Out prompt."""
         self.out_prompt = out_prompt
 
+    def get_matplotlib_backend(self):
+        """Call kernel to get current backend."""
+        return self.call_kernel(
+            interrupt=True,
+            blocking=True).get_matplotlib_backend()
+
     def set_matplotlib_backend(self, backend_option, pylab=False):
         """Set matplotlib backend given a backend name."""
         self.call_kernel(
