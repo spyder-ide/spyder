@@ -19,7 +19,7 @@ import site
 
 # Local imports
 from spyder_kernels.utils.misc import (
-    MPL_BACKENDS, INLINE_FIGURE_FORMATS, is_module_installed)
+    MPL_BACKENDS_FROM_SPYDER, INLINE_FIGURE_FORMATS, is_module_installed)
 
 
 PY2 = sys.version[0] == '2'
@@ -141,7 +141,7 @@ def kernel_config():
         pylab_o = os.environ.get('SPY_PYLAB_O')
         backend_o = os.environ.get('SPY_BACKEND_O')
         if pylab_o == 'True' and backend_o is not None:
-            mpl_backend = MPL_BACKENDS[backend_o]
+            mpl_backend = MPL_BACKENDS_FROM_SPYDER[backend_o]
             # Inline backend configuration
             if mpl_backend == 'inline':
                 # Figure format

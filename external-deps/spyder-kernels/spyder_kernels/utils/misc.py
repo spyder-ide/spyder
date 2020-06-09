@@ -17,6 +17,15 @@ INLINE_FIGURE_FORMATS = {
     '1': 'svg'
     }
 
+MPL_BACKENDS_TO_SPYDER = {
+    'module://ipykernel.pylab.backend_inline': 0,
+    'Qt5Agg': 2,
+    'Qt4Agg': 3,
+    'MacOSX': 4,
+    'GTK3Agg': 5,
+    'GTKAgg': 6,
+    'WX': 7,
+    'TkAgg': 8}
 
 def is_module_installed(module_name):
     """
@@ -44,7 +53,7 @@ def automatic_backend():
 
 
 # Mapping of Spyder options to backends
-MPL_BACKENDS = {
+MPL_BACKENDS_FROM_SPYDER = {
     '0': 'inline',
     '1': automatic_backend(),
     '2': 'qt5',

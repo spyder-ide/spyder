@@ -22,7 +22,8 @@ from ipykernel.ipkernel import IPythonKernel
 # Local imports
 from spyder_kernels.py3compat import TEXT_TYPES, to_text_string
 from spyder_kernels.comms.frontendcomm import FrontendComm
-from spyder_kernels.utils.misc import MPL_BACKENDS, INLINE_FIGURE_FORMATS
+from spyder_kernels.utils.misc import (
+    MPL_BACKENDS_FROM_SPYDER, MPL_BACKENDS_TO_SPYDER, INLINE_FIGURE_FORMATS)
 
 # Excluded variables from the Variable Explorer (i.e. they are not
 # shown at all there)
@@ -64,6 +65,7 @@ class SpyderKernel(IPythonKernel):
             'set_pdb_echo_code': self.set_pdb_echo_code,
             'update_syspath': self.update_syspath,
             'is_special_kernel_valid': self.is_special_kernel_valid,
+            'get_matplotlib_backend': self.get_matplotlib_backend,
             'set_matplotlib_backend': self.set_matplotlib_backend,
             'set_mpl_inline_figure_format': self.set_mpl_inline_figure_format,
             'set_mpl_inline_resolution': self.set_mpl_inline_resolution,
@@ -373,9 +375,17 @@ class SpyderKernel(IPythonKernel):
             return getsource(obj)
 
     # -- For Matplolib
+    def get_matplotlib_backend(self):
+        """Get current matplotlib backend."""
+        try:
+            import matplotlib
+            return MPL_BACKENDS_TO_SPYDER[matplotlib.get_backend()]
+        except ImportError:
+            return None
+
     def set_matplotlib_backend(self, backend, pylab=False):
         """Set matplotlib backend given a Spyder backend option."""
-        mpl_backend = MPL_BACKENDS[to_text_string(backend)]
+        mpl_backend = MPL_BACKENDS_FROM_SPYDER[to_text_string(backend)]
         self._set_mpl_backend(mpl_backend, pylab=pylab)
 
     def set_mpl_inline_figure_format(self, figure_format):
