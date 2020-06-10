@@ -14,7 +14,7 @@
 # Standard library imports
 import os
 import os.path as osp
-
+from pathlib import Path
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Signal, Slot
@@ -30,7 +30,9 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
 from spyder.widgets.comboboxes import PathComboBox
 from spyder.plugins.workingdirectory.confpage import WorkingDirectoryConfigPage
+from spyder.plugins.workingdirectory.widgets.breadcrumb import BreadcrumbAddressBar
 
+TRANSP_ICON_SIZE = 40, 40
 
 class WorkingDirectory(SpyderPluginWidget):
     """Working directory changer plugin."""
@@ -76,32 +78,33 @@ class WorkingDirectory(SpyderPluginWidget):
         self.set_previous_enabled.connect(self.previous_action.setEnabled)
         self.set_next_enabled.connect(self.next_action.setEnabled)
         
-        # Path combo box
+        # BreadCrumbAdressBar
         adjust = self.get_option('working_dir_adjusttocontents')
-        self.pathedit = PathComboBox(self, adjust_to_contents=adjust)
+        self.pathedit =BreadcrumbAddressBar(self)
         self.pathedit.setToolTip(_("This is the working directory for newly\n"
                                "opened consoles (Python/IPython consoles and\n"
                                "terminals), for the file explorer, for the\n"
                                "find in files plugin and for new files\n"
                                "created in the editor"))
-        self.pathedit.open_dir.connect(self.chdir)
-        self.pathedit.activated[str].connect(self.chdir)
-        self.pathedit.setMaxCount(self.get_option('working_dir_history'))
+
+        #self.pathedit.open_dir.connect(self.chdir)
+        #self.pathedit.activated[str].connect(self.chdir)
+        #self.pathedit.setMaxCount(self.get_option('working_dir_history'))
         wdhistory = self.load_wdhistory(workdir)
         if workdir is None:
             workdir = self.get_workdir()
         self.chdir(workdir)
-        self.pathedit.addItems(wdhistory)
-        self.pathedit.selected_text = self.pathedit.currentText()
+        #self.pathedit.addItems(wdhistory)
+        #self.pathedit.selected_text = self.pathedit.currentText()
         self.refresh_plugin()
         self.toolbar.addWidget(self.pathedit)
         
         # Browse action
-        browse_action = create_action(self, "browse", None,
-                                      ima.icon('DirOpenIcon'),
-                                      _('Browse a working directory'),
-                                      triggered=self.select_directory)
-        self.toolbar.addAction(browse_action)
+        # browse_action = create_action(self, "browse", None,
+        #                               ima.icon('DirOpenIcon'),
+        #                               _('Browse a working directory'),
+        #                               triggered=self.select_directory)
+        # self.toolbar.addAction(browse_action)
 
         # Parent dir action
         parent_action = create_action(self, "parent", None,
@@ -144,7 +147,7 @@ class WorkingDirectory(SpyderPluginWidget):
     def refresh_plugin(self):
         """Refresh widget"""
         curdir = getcwd_or_home()
-        self.pathedit.add_text(curdir)
+        #self.pathedit.add_text(curdir)
         self.save_wdhistory()
         self.set_previous_enabled.emit(
                              self.histindex is not None and self.histindex > 0)
@@ -165,13 +168,13 @@ class WorkingDirectory(SpyderPluginWidget):
 
     def save_wdhistory(self):
         """Save history to a text file in user home directory"""
-        text = [ to_text_string( self.pathedit.itemText(index) ) \
+        """text = [ to_text_string( self.pathedit.itemText(index) ) \
                  for index in range(self.pathedit.count()) ]
         try:
             encoding.writelines(text, self.LOG_PATH)
         except EnvironmentError:
             pass
-    
+            """
     @Slot()
     def select_directory(self):
         """Select directory"""
@@ -233,3 +236,4 @@ class WorkingDirectory(SpyderPluginWidget):
         except OSError:
             self.history.pop(self.histindex)
         self.refresh_plugin()
+
