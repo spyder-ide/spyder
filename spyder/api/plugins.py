@@ -49,7 +49,6 @@ from spyder.py3compat import configparser as cp
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import create_action
 
-
 # Localization
 _ = get_translation('spyder')
 

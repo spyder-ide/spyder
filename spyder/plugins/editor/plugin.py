@@ -89,6 +89,32 @@ class Editor(SpyderPluginWidget):
     # This signal is fired for any focus change among all editor stacks
     sig_editor_focus_changed = Signal()
 
+    sig_help_requested = Signal(dict)
+    """
+    This signal is emitted to request help on a given object `name`.
+
+    Parameters
+    ----------
+    help_data: dict
+        Dictionary required by the Help pane to render a docstring.
+
+    Examples
+    --------
+    >>> help_data = {
+        'obj_text': str,
+        'name': str,
+        'argspec': str,
+        'note': str,
+        'docstring': str,
+        'force_refresh': bool,
+        'path': str,
+    }
+
+    See Also
+    --------
+    :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+    """
+
     def __init__(self, parent, ignore_last_opened_files=False):
         SpyderPluginWidget.__init__(self, parent)
 
@@ -112,7 +138,6 @@ class Editor(SpyderPluginWidget):
 
         self.projects = None
         self.outlineexplorer = None
-        self.help = None
 
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
@@ -256,11 +281,6 @@ class Editor(SpyderPluginWidget):
         self.outlineexplorer.explorer.edit.connect(
                              lambda filenames:
                              self.load(filenames=filenames, editorwindow=self))
-
-    def set_help(self, help_plugin):
-        self.help = help_plugin
-        for editorstack in self.editorstacks:
-            editorstack.set_help(self.help)
 
     #------ Private API --------------------------------------------------------
     def restore_scrollbar_position(self):
@@ -1111,12 +1131,14 @@ class Editor(SpyderPluginWidget):
         self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
         self.open_dir.connect(self.main.workingdirectory.chdir)
-        self.set_help(self.main.help)
+
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
+
         editorstack = self.get_current_editorstack()
         if not editorstack.data:
             self.__load_temp_file()
+
         self.add_dockwidget()
         self.update_pdb_state(False, {})
 
@@ -1271,7 +1293,6 @@ class Editor(SpyderPluginWidget):
             editorstack.file_saved.connect(
                 self.vcs_status.update_vcs_state)
 
-        editorstack.set_help(self.help)
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
@@ -1322,6 +1343,7 @@ class Editor(SpyderPluginWidget):
             getattr(editorstack, method)(self.get_option(setting))
 
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
+
         editorstack.set_hover_hints_enabled(CONF.get('lsp-server',
                                                      'enable_hover_hints'))
         color_scheme = self.get_color_scheme()
@@ -1394,6 +1416,7 @@ class Editor(SpyderPluginWidget):
         editorstack.sig_save_bookmark.connect(self.save_bookmark)
         editorstack.sig_load_bookmark.connect(self.load_bookmark)
         editorstack.sig_save_bookmarks.connect(self.save_bookmarks)
+        editorstack.sig_help_requested.connect(self.sig_help_requested)
 
         # Register editorstack's autosave component with plugin's autosave
         # component

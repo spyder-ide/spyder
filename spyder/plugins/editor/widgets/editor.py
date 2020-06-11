@@ -456,6 +456,32 @@ class EditorStack(QWidget):
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
 
+    sig_help_requested = Signal(dict)
+    """
+    This signal is emitted to request help on a given object `name`.
+
+    Parameters
+    ----------
+    help_data: dict
+        Dictionary required by the Help pane to render a docstring.
+
+    Examples
+    --------
+    >>> help_data = {
+        'obj_text': str,
+        'name': str,
+        'argspec': str,
+        'note': str,
+        'docstring': str,
+        'force_refresh': bool,
+        'path': str,
+    }
+
+    See Also
+    --------
+    :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+    """
+
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
 
@@ -524,7 +550,6 @@ class EditorStack(QWidget):
                                        copy_to_cb_action, None, close_right,
                                        close_all_but_this, sort_tabs]
         self.outlineexplorer = None
-        self.help = None
         self.unregister_callback = None
         self.is_closable = False
         self.new_action = None
@@ -1058,13 +1083,14 @@ class EditorStack(QWidget):
             name = editor.get_last_hover_word()
         else:
             name = editor.get_current_word(help_req=True)
+
         try:
             editor.sig_display_object_info.disconnect(self.display_help)
         except TypeError:
             # Needed to prevent an error after some time in idle.
             # See spyder-ide/spyder#11228
             pass
-        self.help.switch_to_editor_source()
+
         self.send_to_help(name, help_text, force=True)
 
     #------ Editor Widget Settings
@@ -1097,9 +1123,6 @@ class EditorStack(QWidget):
         oe_btn = create_toolbutton(editor_plugin)
         oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
         self.add_corner_widgets_to_tabbar([5, oe_btn])
-
-    def set_help(self, help_plugin):
-        self.help = help_plugin
 
     def set_tempfile_path(self, path):
         self.tempfile_path = path
@@ -2635,26 +2658,31 @@ class EditorStack(QWidget):
         """qstr1: obj_text, qstr2: argpspec, qstr3: note, qstr4: doc_text"""
         if not force and not self.help_enabled:
             return
-        if self.help is not None \
-          and (force or self.help.dockwidget.isVisible()):
-            editor = self.get_current_editor()
-            language = editor.language.lower()
-            signature = to_text_string(signature)
-            signature = unicodedata.normalize("NFKD", signature)
-            parts = signature.split('\n\n')
-            definition = parts[0]
-            documentation = '\n\n'.join(parts[1:])
-            args = ''
-            if '(' in definition and language == 'python':
-                args = definition[definition.find('('):]
-            else:
-                documentation = signature
 
-            doc = {'obj_text': '', 'name': name,
-                   'argspec': args, 'note': '',
-                   'docstring': documentation}
-            self.help.set_editor_doc(doc, force_refresh=force)
-            editor.setFocus()
+        editor = self.get_current_editor()
+        language = editor.language.lower()
+        signature = to_text_string(signature)
+        signature = unicodedata.normalize("NFKD", signature)
+        parts = signature.split('\n\n')
+        definition = parts[0]
+        documentation = '\n\n'.join(parts[1:])
+        args = ''
+
+        if '(' in definition and language == 'python':
+            args = definition[definition.find('('):]
+        else:
+            documentation = signature
+
+        doc = {
+            'obj_text': '',
+            'name': name,
+            'argspec': args,
+            'note': '',
+            'docstring': documentation,
+            'force_refresh': force,
+            'path': editor.filename
+        }
+        self.sig_help_requested.emit(doc)
 
     def new(self, filename, encoding, text, default_content=False,
             empty=False):

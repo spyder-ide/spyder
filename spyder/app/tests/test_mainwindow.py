@@ -408,7 +408,7 @@ def test_get_help_combo(main_window, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     help_plugin = main_window.help
-    webview = help_plugin.rich_text.webview._webview
+    webview = help_plugin.get_widget().rich_text.webview._webview
     if WEBENGINE:
         webpage = webview.page()
     else:
@@ -420,30 +420,31 @@ def test_get_help_combo(main_window, qtbot):
         shell.execute('import numpy as np')
 
     # Get help - numpy
-    help_plugin.combo.setFocus()
+    object_combo = help_plugin.get_widget().object_combo
+    object_combo.setFocus()
 
-    qtbot.keyClicks(help_plugin.combo, 'numpy', delay=100)
+    qtbot.keyClicks(object_combo, 'numpy', delay=100)
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
 
     # Get help - numpy.arange
-    qtbot.keyClicks(help_plugin.combo, '.arange', delay=100)
+    qtbot.keyClicks(object_combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
 
     # Get help - np
     # Clear combo
-    help_plugin.combo.set_current_text('')
+    object_combo.set_current_text('')
 
-    qtbot.keyClicks(help_plugin.combo, 'np', delay=100)
+    qtbot.keyClicks(object_combo, 'np', delay=100)
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "NumPy"), timeout=6000)
 
     # Get help - np.arange
-    qtbot.keyClicks(help_plugin.combo, '.arange', delay=100)
+    qtbot.keyClicks(object_combo, '.arange', delay=100)
 
     # Check that a expected text is part of the page
     qtbot.waitUntil(lambda: check_text(webpage, "arange"), timeout=6000)
@@ -473,7 +474,7 @@ def test_get_help_ipython_console_dot_notation(main_window, qtbot, tmpdir):
     qtbot.wait(500)
 
     help_plugin = main_window.help
-    webview = help_plugin.rich_text.webview._webview
+    webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
     # Write function name
@@ -513,7 +514,7 @@ def test_get_help_ipython_console_special_characters(
     qtbot.wait(500)
 
     help_plugin = main_window.help
-    webview = help_plugin.rich_text.webview._webview
+    webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
     # Write function name and assert in Console
@@ -543,7 +544,7 @@ def test_get_help_ipython_console(main_window, qtbot):
                     timeout=SHELL_TIMEOUT)
 
     help_plugin = main_window.help
-    webview = help_plugin.rich_text.webview._webview
+    webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
     # Write some object in the console
@@ -558,9 +559,8 @@ def test_get_help_ipython_console(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif((not sys.platform.startswith('linux') or
-                     os.environ.get('CI', None) is None),
-                    reason="Only works on Linux and CIs")
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="Does not work on Mac!")
 @pytest.mark.use_introspection
 @pytest.mark.parametrize(
     "object_info",
@@ -570,7 +570,7 @@ def test_get_help_ipython_console(main_window, qtbot):
 def test_get_help_editor(main_window, qtbot, object_info):
     """Test that Help works when called from the Editor."""
     help_plugin = main_window.help
-    webview = help_plugin.rich_text.webview._webview
+    webview = help_plugin.get_widget().rich_text.webview._webview
     webpage = webview.page() if WEBENGINE else webview.page().mainFrame()
 
     main_window.editor.new(fname="test.py", text="")
@@ -2068,7 +2068,7 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
             break
 
     # Test opening tutorial with Help plguin closed
-    main_window.help._toggle_view_action.setChecked(False)
+    main_window.help.toggle_view_action.setChecked(False)
     qtbot.wait(500)
     help_tabbar, help_index = find_desired_tab_in_window(HELP_STR, main_window)
     assert help_tabbar is None and help_index is None
@@ -2193,7 +2193,12 @@ def test_custom_layouts(main_window, qtbot):
                         if idx == 0:
                             if widget not in hidden_widgets:
                                 print(widget)  # spyder: test-skip
-                                assert widget.isVisible()
+                                try:
+                                    # Old API
+                                    assert widget.isVisible()
+                                except AttributeError:
+                                    # New API
+                                    assert widget.get_widget().isVisible()
 
 
 @pytest.mark.slow

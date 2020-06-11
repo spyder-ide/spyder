@@ -1148,14 +1148,6 @@ class MainWindow(QMainWindow):
         self.toolbarslist.append(self.workingdirectory.toolbar)
         self.add_plugin(self.workingdirectory)
 
-        # Help plugin
-        if CONF.get('help', 'enable'):
-            self.set_splash(_("Loading help..."))
-            from spyder.plugins.help.plugin import Help
-            self.help = Help(self, css_path=css_path)
-            self.help.register_plugin()
-            self.add_plugin(self.help)
-
         # Outline explorer widget
         if CONF.get('outline_explorer', 'enable'):
             self.set_splash(_("Loading outline explorer..."))
@@ -1236,6 +1228,12 @@ class MainWindow(QMainWindow):
         self.ipyconsole = IPythonConsole(self, css_path=css_path)
         self.ipyconsole.register_plugin()
         self.add_plugin(self.ipyconsole)
+
+        # Help plugin
+        if CONF.get('help', 'enable'):
+            from spyder.plugins.help.plugin import Help
+            self.help = Help(self, configuration=CONF)
+            self.register_plugin(self.help)
 
         # Explorer
         if CONF.get('explorer', 'enable'):
