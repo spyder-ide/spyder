@@ -308,6 +308,8 @@ DEFAULTS = [
             ('pylint',
              {
               'enable': True,
+              'max_entries': 30,
+              'history_filenames': [],
               }),
             ('workingdir',
              {

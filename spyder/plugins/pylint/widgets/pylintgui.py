@@ -169,10 +169,8 @@ class PylintWidget(QWidget):
         self.output = None
         self.error_output = None
         self.filename = None
-        self.curr_filenames = []
         self.text_color = text_color
         self.prevrate_color = prevrate_color
-
         self.max_entries = max_entries
         self.rdata = []
         if osp.isfile(self.DATAPATH):
@@ -244,6 +242,14 @@ class PylintWidget(QWidget):
         else:
             self.start_button.setEnabled(False)
 
+        if self.parent:
+            self.curr_filenames = self.parent.get_option('history_filenames')
+        else:
+            self.curr_filenames = []
+
+        for f in self.curr_filenames[::-1]:
+            self.set_filename(f)
+
     def check_new_file(self):
         fname = self.get_filename()
         if fname != self.filename:
@@ -257,7 +263,7 @@ class PylintWidget(QWidget):
     @Slot(str)
     def set_filename(self, filename):
         """Set filename without performing code analysis."""
-        filename = to_text_string(filename) # filename is a QString instance
+        filename = to_text_string(filename)  # filename is a QString instance
         self.kill_if_running()
         index, _data = self.get_data(filename)
         is_parent = self.parent is not None
@@ -275,10 +281,9 @@ class PylintWidget(QWidget):
             self.filecombo.setCurrentIndex(0)
 
         num_elements = self.filecombo.count()
-        if is_parent and (num_elements >
-                          self.parent.get_option('max_entries')):
-            self.filecombo.removeItem(num_elements - 1)
-            self.curr_filenames.pop(num_elements - 1)
+        if is_parent:
+            if num_elements > self.parent.get_option('max_entries'):
+                self.filecombo.removeItem(num_elements - 1)
         self.filecombo.selected()
 
     def change_history_limit(self, new_limit):
@@ -289,8 +294,28 @@ class PylintWidget(QWidget):
             for __ in range(diff):
                 num_elements = self.filecombo.count()
                 self.filecombo.removeItem(num_elements - 1)
-                self.curr_filenames.pop(num_elements - 1)
             self.filecombo.selected()
+        else:
+            num_elements = self.filecombo.count()
+            diff = new_limit - num_elements
+            for i in range(num_elements, num_elements + diff):
+                if i >= len(self.curr_filenames):
+                    break
+                act_filename = self.curr_filenames[i]
+                self.filecombo.insertItem(i, act_filename)
+
+    def save_history(self):
+        """Save the current history filenames."""
+        if self.parent:
+            max_entries = self.parent.get_option('max_entries')
+            list_save_files = []
+            for f in self.curr_filenames:
+                if _('untitled') not in f:
+                    list_save_files.append(f)
+            self.curr_filenames = list_save_files[:max_entries]
+            self.parent.set_option('history_filenames', self.curr_filenames)
+        else:
+            self.curr_filenames = []
 
     def analyze(self, filename=None):
         """

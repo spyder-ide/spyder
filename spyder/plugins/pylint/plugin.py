@@ -128,6 +128,11 @@ class Pylint(SpyderPluginWidget):
         # next Spyder startup, which is soon enough
         self.pylint.change_history_limit(self.get_option('max_entries'))
 
+    def closing_plugin(self, cancelable=False):
+        """Handle actions when the plugin is closing."""
+        self.pylint.save_history()
+        return True
+
     #------ Public API --------------------------------------------------------
     @Slot()
     def change_history_depth(self):
