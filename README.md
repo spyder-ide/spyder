@@ -105,7 +105,7 @@ https://www.spyder-ide.org/).
 
     Examine your code with the static analyzer, trace its execution with the
     interactive debugger, and unleash its performance with the profiler.
-    Keep things organized with project support and a builtin file explorer, and
+    Keep things organized with project support and a built-in file explorer, and
     use find in files to search across entire projects with full regex support.
 
 
@@ -130,7 +130,7 @@ unexpected issues we are unable to help you with; it generally has the
 least likelihood of potential pitfalls for non-experts, and we may be
 able to provide limited assistance if you do run into trouble.
 
-Other install options exist, including:
+Other installation options exist, including:
 
 * The [WinPython](https://winpython.github.io/) distribution for Windows
 * The [MacPorts](https://www.macports.org/) project for macOS
