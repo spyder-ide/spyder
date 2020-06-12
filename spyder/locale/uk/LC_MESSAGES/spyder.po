@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 19:56\n"
+"PO-Revision-Date: 2020-06-12 20:02\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -2322,19 +2322,19 @@ msgstr "Скасувати відступ для рядка чи вибору"
 
 #: spyder/plugins/editor/plugin.py:761
 msgid "Toggle Uppercase"
-msgstr "Перемкнути верхній регістр"
+msgstr "Перемкнути у верхній регістр"
 
 #: spyder/plugins/editor/plugin.py:762
 msgid "Change to uppercase current line or selection"
-msgstr ""
+msgstr "Змінити на верхній регістр поточного рядка або вибору"
 
 #: spyder/plugins/editor/plugin.py:768
 msgid "Toggle Lowercase"
-msgstr ""
+msgstr "Перемкнути в нижній регістр"
 
 #: spyder/plugins/editor/plugin.py:769
 msgid "Change to lowercase current line or selection"
-msgstr ""
+msgstr "Змінити на нижній регістр поточного рядка або вибору"
 
 #: spyder/plugins/editor/plugin.py:776
 msgid "Carriage return and line feed (Windows)"
@@ -2366,7 +2366,7 @@ msgstr ""
 
 #: spyder/plugins/editor/plugin.py:834
 msgid "Fix indentation"
-msgstr ""
+msgstr "Виправити відступи"
 
 #: spyder/plugins/editor/plugin.py:835
 msgid "Replace tab characters by space characters"
@@ -2374,7 +2374,7 @@ msgstr ""
 
 #: spyder/plugins/editor/plugin.py:838
 msgid "Go to line..."
-msgstr ""
+msgstr "Перейти до рядка..."
 
 #: spyder/plugins/editor/plugin.py:846
 msgid "Set console working directory"
@@ -2390,51 +2390,51 @@ msgstr ""
 
 #: spyder/plugins/editor/plugin.py:856
 msgid "Clear recent files list"
-msgstr ""
+msgstr "Очистити список останніх файлів"
 
 #: spyder/plugins/editor/plugin.py:856 spyder/plugins/findinfiles/widgets.py:405 spyder/plugins/projects/plugin.py:107
 msgid "Clear this list"
-msgstr ""
+msgstr "Очистити цей список"
 
 #: spyder/plugins/editor/plugin.py:865
 msgid "Go to next file"
-msgstr ""
+msgstr "Перейти до наступного файлу"
 
 #: spyder/plugins/editor/plugin.py:871
 msgid "Go to previous file"
-msgstr ""
+msgstr "Перейти до попереднього файлу"
 
 #: spyder/plugins/editor/plugin.py:892
 msgid "Open &recent"
-msgstr ""
+msgstr "Відкрити &нещодавнє"
 
 #: spyder/plugins/editor/plugin.py:1698
 msgid "Spyder Editor"
-msgstr ""
+msgstr "Редактор Spyder"
 
 #: spyder/plugins/editor/plugin.py:1699
 msgid "This is a temporary script file."
-msgstr ""
+msgstr "Це файл тимчасового сценарію."
 
 #: spyder/plugins/editor/plugin.py:1783 spyder/plugins/editor/plugin.py:1794 spyder/plugins/editor/plugin.py:1799
 msgid "untitled"
-msgstr ""
+msgstr "без назви"
 
 #: spyder/plugins/editor/plugin.py:1869
 msgid "Maximum number of recent files"
-msgstr ""
+msgstr "Максимальна кількість останніх файлів"
 
 #: spyder/plugins/editor/plugin.py:2033
 msgid "Printing..."
-msgstr ""
+msgstr "Друк..."
 
 #: spyder/plugins/editor/utils/autosave.py:308
 msgid "Error while removing autosave file {}"
-msgstr ""
+msgstr "Помилка при видаленні файлу автозбереження {}"
 
 #: spyder/plugins/editor/utils/autosave.py:336
 msgid "Error while creating autosave directory"
-msgstr ""
+msgstr "Помилка при створенні каталогу автозбереження"
 
 #: spyder/plugins/editor/utils/autosave.py:404
 msgid "Error while autosaving {} to {}"
