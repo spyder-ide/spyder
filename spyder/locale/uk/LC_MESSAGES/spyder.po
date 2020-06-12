@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 17:28\n"
+"PO-Revision-Date: 2020-06-12 17:37\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -87,15 +87,15 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:639 spyder/plugins/editor/widgets/codeeditor.py:3669
 msgid "Undo"
-msgstr ""
+msgstr "Скасувати"
 
 #: spyder/app/mainwindow.py:641 spyder/plugins/editor/widgets/codeeditor.py:3672
 msgid "Redo"
-msgstr ""
+msgstr "Повторити"
 
 #: spyder/app/mainwindow.py:643 spyder/plugins/console/widgets/shell.py:127 spyder/plugins/editor/widgets/codeeditor.py:3678 spyder/plugins/explorer/widgets/explorer.py:475 spyder/plugins/variableexplorer/widgets/arrayeditor.py:521 spyder/plugins/variableexplorer/widgets/collectionseditor.py:553 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:580
 msgid "Copy"
-msgstr ""
+msgstr "Копіювати"
 
 #: spyder/app/mainwindow.py:645 spyder/plugins/console/widgets/shell.py:123 spyder/plugins/editor/widgets/codeeditor.py:3675
 msgid "Cut"
@@ -103,11 +103,11 @@ msgstr "Вирізати"
 
 #: spyder/app/mainwindow.py:647 spyder/plugins/console/widgets/shell.py:131 spyder/plugins/editor/widgets/codeeditor.py:3681 spyder/plugins/explorer/widgets/explorer.py:482 spyder/plugins/variableexplorer/widgets/collectionseditor.py:550
 msgid "Paste"
-msgstr ""
+msgstr "Вставити"
 
 #: spyder/app/mainwindow.py:650 spyder/plugins/console/widgets/shell.py:144 spyder/plugins/editor/widgets/codeeditor.py:3685
 msgid "Select All"
-msgstr ""
+msgstr "Вибрати все"
 
 #: spyder/app/mainwindow.py:659 spyder/plugins/editor/plugin.py:1460
 msgid "&File"
@@ -143,31 +143,31 @@ msgstr "Панель інструментів джерельного коду"
 
 #: spyder/app/mainwindow.py:675 spyder/plugins/editor/plugin.py:579 spyder/plugins/editor/plugin.py:1464
 msgid "&Run"
-msgstr ""
+msgstr "&Виконати"
 
 #: spyder/app/mainwindow.py:676 spyder/plugins/editor/plugin.py:1454
 msgid "Run toolbar"
-msgstr ""
+msgstr "Панель інструментів виконання"
 
 #: spyder/app/mainwindow.py:680 spyder/plugins/editor/plugin.py:531
 msgid "&Debug"
-msgstr ""
+msgstr "&Зневадження"
 
 #: spyder/app/mainwindow.py:681 spyder/plugins/editor/plugin.py:1456
 msgid "Debug toolbar"
-msgstr ""
+msgstr "Панель інструментів зневадження"
 
 #: spyder/app/mainwindow.py:685
 msgid "C&onsoles"
-msgstr ""
+msgstr "К&омандні рядки"
 
 #: spyder/app/mainwindow.py:690
 msgid "&Projects"
-msgstr ""
+msgstr "&Проєкти"
 
 #: spyder/app/mainwindow.py:694 spyder/plugins/editor/plugin.py:1465
 msgid "&Tools"
-msgstr ""
+msgstr "&Інструменти"
 
 #: spyder/app/mainwindow.py:697 spyder/plugins/editor/plugin.py:1466
 msgid "&View"
@@ -179,11 +179,11 @@ msgstr "&Довідка"
 
 #: spyder/app/mainwindow.py:705
 msgid "Welcome to Spyder!"
-msgstr ""
+msgstr "Ласкаво просимо до Spyder!"
 
 #: spyder/app/mainwindow.py:709
 msgid "Pre&ferences"
-msgstr ""
+msgstr "На&лаштування"
 
 #: spyder/app/mainwindow.py:716 spyder/widgets/pathmanager.py:71
 msgid "PYTHONPATH manager"
@@ -215,7 +215,7 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:749 spyder/app/mainwindow.py:1199
 msgid "External Tools"
-msgstr ""
+msgstr "Зовнішні інструменти"
 
 #: spyder/app/mainwindow.py:753
 msgid "WinPython control panel"
@@ -280,23 +280,23 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:899 spyder/plugins/console/plugin.py:141 spyder/plugins/ipythonconsole/widgets/client.py:478
 msgid "&Quit"
-msgstr ""
+msgstr "&Вийти"
 
 #: spyder/app/mainwindow.py:901 spyder/plugins/console/plugin.py:143
 msgid "Quit"
-msgstr ""
+msgstr "Вийти"
 
 #: spyder/app/mainwindow.py:905
 msgid "&Restart"
-msgstr ""
+msgstr "&Перезапустити"
 
 #: spyder/app/mainwindow.py:907
 msgid "Restart"
-msgstr ""
+msgstr "Перезапустити"
 
 #: spyder/app/mainwindow.py:925
 msgid "Loading namespace browser..."
-msgstr ""
+msgstr "Завантаження переглядача простору імен..."
 
 #: spyder/app/mainwindow.py:931
 msgid "Loading figure browser..."
