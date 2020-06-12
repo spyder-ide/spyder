@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 17:37\n"
+"PO-Revision-Date: 2020-06-12 17:50\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -300,63 +300,63 @@ msgstr "Завантаження переглядача простору іме�
 
 #: spyder/app/mainwindow.py:931
 msgid "Loading figure browser..."
-msgstr ""
+msgstr "Завантаження переглядача малюнків..."
 
 #: spyder/app/mainwindow.py:938
 msgid "Loading history plugin..."
-msgstr ""
+msgstr "Завантаження додатку історії..."
 
 #: spyder/app/mainwindow.py:944
 msgid "Loading IPython console..."
-msgstr ""
+msgstr "Завантаження командного рядка IPython..."
 
 #: spyder/app/mainwindow.py:951
 msgid "Loading file explorer..."
-msgstr ""
+msgstr "Завантаження переглядача файлів..."
 
 #: spyder/app/mainwindow.py:958
 msgid "Loading online help..."
-msgstr ""
+msgstr "Завантаження онлайн-довідки..."
 
 #: spyder/app/mainwindow.py:964
 msgid "Loading project explorer..."
-msgstr ""
+msgstr "Завантаження переглядача проєкту..."
 
 #: spyder/app/mainwindow.py:992
 msgid "Loading third-party plugins..."
-msgstr ""
+msgstr "Завантаження сторонніх додатків..."
 
 #: spyder/app/mainwindow.py:1018
 msgid "Setting up main window..."
-msgstr ""
+msgstr "Налаштування головного вікна..."
 
 #: spyder/app/mainwindow.py:1022
 msgid "Troubleshooting..."
-msgstr ""
+msgstr "Вирішення проблем..."
 
 #: spyder/app/mainwindow.py:1024
 msgid "Dependencies..."
-msgstr ""
+msgstr "Залежності..."
 
 #: spyder/app/mainwindow.py:1028
 msgid "Report issue..."
-msgstr ""
+msgstr "Повідомити про проблему..."
 
 #: spyder/app/mainwindow.py:1032
 msgid "Spyder support..."
-msgstr ""
+msgstr "Підтримка Spyder..."
 
 #: spyder/app/mainwindow.py:1035
 msgid "Check for updates..."
-msgstr ""
+msgstr "Перевірити наявність оновлень..."
 
 #: spyder/app/mainwindow.py:1040
 msgid "Spyder documentation"
-msgstr ""
+msgstr "Документація Spyder"
 
 #: spyder/app/mainwindow.py:1048
 msgid "Spyder tutorial"
-msgstr ""
+msgstr "Підручник по Spyder"
 
 #: spyder/app/mainwindow.py:1053
 msgid "Shortcuts Summary"
@@ -368,19 +368,19 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:1086
 msgid "Python documentation"
-msgstr ""
+msgstr "Документація з Python"
 
 #: spyder/app/mainwindow.py:1092
 msgid "IPython documentation"
-msgstr ""
+msgstr "Документація з IPython"
 
 #: spyder/app/mainwindow.py:1093
 msgid "Intro to IPython"
-msgstr ""
+msgstr "Вступ до IPython"
 
 #: spyder/app/mainwindow.py:1095
 msgid "Quick reference"
-msgstr ""
+msgstr "Швидке посилання"
 
 #: spyder/app/mainwindow.py:1097
 msgid "Console help"
@@ -388,39 +388,39 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:1127
 msgid "Installed Python modules"
-msgstr ""
+msgstr "Встановлені модулі Python"
 
 #: spyder/app/mainwindow.py:1131
 msgid "Online documentation"
-msgstr ""
+msgstr "Документація в інтернеті"
 
 #: spyder/app/mainwindow.py:1144
 msgid "Qt documentation"
-msgstr ""
+msgstr "Документація з Qt"
 
 #: spyder/app/mainwindow.py:1151
 msgid "About %s..."
-msgstr ""
+msgstr "Про %s..."
 
 #: spyder/app/mainwindow.py:1165
 msgid "Panes"
-msgstr ""
+msgstr "Панелі"
 
 #: spyder/app/mainwindow.py:1167
 msgid "Toolbars"
-msgstr ""
+msgstr "Панелі інструментів"
 
 #: spyder/app/mainwindow.py:1168
 msgid "Window layouts"
-msgstr ""
+msgstr "Розміщення вікон"
 
 #: spyder/app/mainwindow.py:1177 spyder/app/mainwindow.py:2148 spyder/app/mainwindow.py:2149
 msgid "Show toolbars"
-msgstr ""
+msgstr "Показати панель інструментів"
 
 #: spyder/app/mainwindow.py:1192
 msgid "Attached console window (debugging)"
-msgstr ""
+msgstr "Прикріплене вікно командного рядка (зневадження)"
 
 #: spyder/app/mainwindow.py:1432
 msgid "Hide this message during the current session"
@@ -489,7 +489,7 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:2551
 msgid "Restore current pane"
-msgstr ""
+msgstr "Відновити поточну панель"
 
 #: spyder/app/mainwindow.py:2552
 msgid "Restore pane to its original size"
@@ -497,11 +497,11 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:2767
 msgid "About %s"
-msgstr ""
+msgstr "Про %s"
 
 #: spyder/app/mainwindow.py:2916 spyder/plugins/explorer/widgets/explorer.py:437 spyder/preferences/runconfig.py:364 spyder/preferences/runconfig.py:486 spyder/utils/programs.py:712
 msgid "Run"
-msgstr ""
+msgstr "Виконати"
 
 #: spyder/app/mainwindow.py:2917
 msgid "Running an external system terminal is not supported on platform %s."
