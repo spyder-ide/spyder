@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-06 20:06\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2020-06-12 17:28\n"
+"Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -11,8 +11,10 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=4; plural=((n%10==1 && n%100!=11) ? 0 : ((n%10 >= 2 && n%10 <=4 && (n%100 < 12 || n%100 > 14)) ? 1 : ((n%10 == 0 || (n%10 >= 5 && n%10 <=9)) || (n%100 >= 11 && n%100 <= 14)) ? 2 : 3));\n"
 "X-Crowdin-Project: spyder\n"
+"X-Crowdin-Project-ID: 381272\n"
 "X-Crowdin-Language: uk\n"
 "X-Crowdin-File: /4.x/spyder/locale/spyder.pot\n"
+"X-Crowdin-File-ID: 33\n"
 "Language: uk_UA\n"
 
 #: spyder/app/mainwindow.py:151
@@ -109,35 +111,35 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:659 spyder/plugins/editor/plugin.py:1460
 msgid "&File"
-msgstr ""
+msgstr "&Файл"
 
 #: spyder/app/mainwindow.py:660 spyder/plugins/editor/plugin.py:1448
 msgid "File toolbar"
-msgstr ""
+msgstr "Панель інструментів файлу"
 
 #: spyder/app/mainwindow.py:663 spyder/plugins/editor/plugin.py:1461
 msgid "&Edit"
-msgstr ""
+msgstr "&Редагування"
 
 #: spyder/app/mainwindow.py:664 spyder/plugins/editor/plugin.py:1458
 msgid "Edit toolbar"
-msgstr ""
+msgstr "Панель інструментів редагування"
 
 #: spyder/app/mainwindow.py:667 spyder/plugins/editor/plugin.py:1462
 msgid "&Search"
-msgstr ""
+msgstr "&Пошук"
 
 #: spyder/app/mainwindow.py:668 spyder/plugins/editor/plugin.py:1450
 msgid "Search toolbar"
-msgstr ""
+msgstr "Панель інструментів пошуку"
 
 #: spyder/app/mainwindow.py:671 spyder/plugins/editor/plugin.py:1463
 msgid "Sour&ce"
-msgstr ""
+msgstr "Джерельний код"
 
 #: spyder/app/mainwindow.py:672 spyder/plugins/editor/plugin.py:1452
 msgid "Source toolbar"
-msgstr ""
+msgstr "Панель інструментів джерельного коду"
 
 #: spyder/app/mainwindow.py:675 spyder/plugins/editor/plugin.py:579 spyder/plugins/editor/plugin.py:1464
 msgid "&Run"
@@ -169,11 +171,11 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:697 spyder/plugins/editor/plugin.py:1466
 msgid "&View"
-msgstr ""
+msgstr "&Вигляд"
 
 #: spyder/app/mainwindow.py:700 spyder/plugins/editor/plugin.py:1467
 msgid "&Help"
-msgstr ""
+msgstr "&Довідка"
 
 #: spyder/app/mainwindow.py:705
 msgid "Welcome to Spyder!"
