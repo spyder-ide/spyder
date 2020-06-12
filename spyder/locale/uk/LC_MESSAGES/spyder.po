@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 20:26\n"
+"PO-Revision-Date: 2020-06-12 20:46\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -3100,7 +3100,7 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:120
 msgid "Applications"
-msgstr ""
+msgstr "Програми"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:121
 msgid "Type to filter by name"
@@ -3116,15 +3116,15 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:196
 msgid "Applications (*.exe *.bat *.com)"
-msgstr ""
+msgstr "Програми (*.exe *.bat *.com)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:215
 msgid "Applications (*.desktop)"
-msgstr ""
+msgstr "Програми (*.desktop)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:252
 msgid "Choose the application for files of type "
-msgstr ""
+msgstr "Виберіть програму для файлів типу "
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:291
 msgid "Here you can associate different external applications to open specific file extensions (e.g. .txt files with Notepad++ or .csv files with Excel)."
@@ -3132,23 +3132,23 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:296
 msgid "File types:"
-msgstr ""
+msgstr "Типи файлів:"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:298 spyder/plugins/explorer/widgets/fileassociations.py:304
 msgid "Add"
-msgstr ""
+msgstr "Додати"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:299 spyder/plugins/explorer/widgets/fileassociations.py:305 spyder/plugins/ipythonconsole/widgets/client.py:425 spyder/plugins/variableexplorer/widgets/collectionseditor.py:578 spyder/plugins/variableexplorer/widgets/collectionseditor.py:875
 msgid "Remove"
-msgstr ""
+msgstr "Вилучити"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:300 spyder/plugins/variableexplorer/widgets/collectionseditor.py:556
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:302
 msgid "Associated applications:"
-msgstr ""
+msgstr "Пов'язані додатки:"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:306
 msgid "Set default"
@@ -3156,11 +3156,11 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:405
 msgid "Application not found!"
-msgstr ""
+msgstr "Програму не знайдено!"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:422
 msgid "File association"
-msgstr ""
+msgstr "Файлові асоціації"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:424
 msgid "Enter new file extension. You can add several values separated by commas.<br>Examples include:"
@@ -3172,19 +3172,19 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/plugin.py:148
 msgid "Find"
-msgstr ""
+msgstr "Знайти"
 
 #: spyder/plugins/findinfiles/plugin.py:161
 msgid "Set maximum number of results"
-msgstr ""
+msgstr "Встановіть максимальну кількість результатів"
 
 #: spyder/plugins/findinfiles/plugin.py:180
 msgid "&Find in files"
-msgstr ""
+msgstr "&Знайти у файлах"
 
 #: spyder/plugins/findinfiles/plugin.py:185
 msgid "Search text in multiple files"
-msgstr ""
+msgstr "Пошук тексту в декількох файлах"
 
 #: spyder/plugins/findinfiles/widgets.py:129
 msgid "Unexpected error: see internal console"
@@ -3208,19 +3208,19 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets.py:279
 msgid "file"
-msgstr ""
+msgstr "файл"
 
 #: spyder/plugins/findinfiles/widgets.py:376
 msgid "Search directory"
-msgstr ""
+msgstr "Тека пошуку"
 
 #: spyder/plugins/findinfiles/widgets.py:384 spyder/plugins/workingdirectory/plugin.py:130
 msgid "Current working directory"
-msgstr ""
+msgstr "Поточна робоча тека"
 
 #: spyder/plugins/findinfiles/widgets.py:389 spyder/plugins/projects/plugin.py:82
 msgid "Project"
-msgstr ""
+msgstr "Проєкт"
 
 #: spyder/plugins/findinfiles/widgets.py:390
 msgid "Search in all files and directories present on the current project path (if opened)"
@@ -3268,15 +3268,15 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets.py:598
 msgid "Search"
-msgstr ""
+msgstr "Пошук"
 
 #: spyder/plugins/findinfiles/widgets.py:601
 msgid "Start search"
-msgstr ""
+msgstr "Розпочати пошук"
 
 #: spyder/plugins/findinfiles/widgets.py:608
 msgid "Stop search"
-msgstr ""
+msgstr "Зупинити пошук"
 
 #: spyder/plugins/findinfiles/widgets.py:619
 msgid "Exclude pattern"
@@ -3288,7 +3288,7 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets.py:637
 msgid "Search in:"
-msgstr ""
+msgstr "Шукати в:"
 
 #: spyder/plugins/findinfiles/widgets.py:694
 msgid "Hide advanced options"
@@ -3316,7 +3316,7 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets.py:1124
 msgid "Find in files"
-msgstr ""
+msgstr "Знайти у файлах"
 
 #: spyder/plugins/help/confpage.py:23
 msgid "Automatic connections"
@@ -3440,7 +3440,7 @@ msgstr ""
 
 #: spyder/plugins/history/confpage.py:27 spyder/plugins/pylint/confpage.py:21
 msgid "Settings"
-msgstr ""
+msgstr "Налаштування"
 
 #: spyder/plugins/history/confpage.py:29
 msgid " entries"
@@ -3448,7 +3448,7 @@ msgstr ""
 
 #: spyder/plugins/history/confpage.py:29
 msgid "History depth: "
-msgstr ""
+msgstr "Глибина історії: "
 
 #: spyder/plugins/history/confpage.py:38
 msgid "Scroll automatically to last entry"
@@ -3456,11 +3456,11 @@ msgstr ""
 
 #: spyder/plugins/history/plugin.py:85 spyder/plugins/history/plugin.py:242 spyder/plugins/pylint/confpage.py:25 spyder/plugins/pylint/plugin.py:131
 msgid "History"
-msgstr ""
+msgstr "Історія"
 
 #: spyder/plugins/history/plugin.py:108 spyder/plugins/pylint/plugin.py:62
 msgid "History..."
-msgstr ""
+msgstr "Історія..."
 
 #: spyder/plugins/history/plugin.py:110 spyder/plugins/pylint/plugin.py:64
 msgid "Set history maximum entries"
@@ -3476,7 +3476,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:33 spyder/preferences/general.py:106 spyder/preferences/general.py:301
 msgid "Interface"
-msgstr ""
+msgstr "Інтерфейс"
 
 #: spyder/plugins/ipythonconsole/confpage.py:34
 msgid "Display initial banner"
@@ -3629,23 +3629,23 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:166
 msgid "Width:"
-msgstr ""
+msgstr "Ширина:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:166 spyder/plugins/ipythonconsole/confpage.py:170
 msgid "inches"
-msgstr ""
+msgstr "дюймів"
 
 #: spyder/plugins/ipythonconsole/confpage.py:168
 msgid "Default is 6"
-msgstr ""
+msgstr "Типово 6"
 
 #: spyder/plugins/ipythonconsole/confpage.py:170
 msgid "Height:"
-msgstr ""
+msgstr "Висота:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:172
 msgid "Default is 4"
-msgstr ""
+msgstr "Типово 4"
 
 #: spyder/plugins/ipythonconsole/confpage.py:174
 msgid "Use a tight layout for inline plots"
@@ -3665,11 +3665,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:215
 msgid "Lines:"
-msgstr ""
+msgstr "Рядки:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:224
 msgid "Run a file"
-msgstr ""
+msgstr "Виконати файл"
 
 #: spyder/plugins/ipythonconsole/confpage.py:225
 msgid "You can also run a whole file at startup instead of just some lines (This is similar to have a PYTHONSTARTUP file)."
@@ -3789,7 +3789,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:378 spyder/plugins/workingdirectory/confpage.py:31
 msgid "Startup"
-msgstr ""
+msgstr "Запуск"
 
 #: spyder/plugins/ipythonconsole/plugin.py:83
 msgid "The directory {} is not writable and it is required to create IPython consoles. Please make it writable."
@@ -3837,7 +3837,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/plugin.py:350
 msgid "Rename tab"
-msgstr ""
+msgstr "Перейменувати вкладку"
 
 #: spyder/plugins/ipythonconsole/plugin.py:492
 msgid "No IPython console is currently available to run <b>%s</b>.<br><br>Please open a new one and try again."
@@ -3984,23 +3984,23 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:64
 msgid "Hostname:"
-msgstr ""
+msgstr "Ім'я хоста:"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:70
 msgid "Username:"
-msgstr ""
+msgstr "Ім'я користувача:"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:74
 msgid "Authentication method:"
-msgstr ""
+msgstr "Метод автентифікації:"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:76
 msgid "Password:"
-msgstr ""
+msgstr "Пароль:"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:78
 msgid "SSH keyfile:"
-msgstr ""
+msgstr "Файл SSH ключа:"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:92
 msgid "Passphase:"
