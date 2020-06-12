@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 18:09\n"
+"PO-Revision-Date: 2020-06-12 18:16\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -288,11 +288,11 @@ msgstr "Вийти"
 
 #: spyder/app/mainwindow.py:905
 msgid "&Restart"
-msgstr "&Перезапустити"
+msgstr "&Перезавантажити"
 
 #: spyder/app/mainwindow.py:907
 msgid "Restart"
-msgstr "Перезапустити"
+msgstr "Перезавантажити"
 
 #: spyder/app/mainwindow.py:925
 msgid "Loading namespace browser..."
@@ -312,7 +312,7 @@ msgstr "Завантаження командного рядка IPython..."
 
 #: spyder/app/mainwindow.py:951
 msgid "Loading file explorer..."
-msgstr "Завантаження переглядача файлів..."
+msgstr "Завантаження оглядача файлів..."
 
 #: spyder/app/mainwindow.py:958
 msgid "Loading online help..."
@@ -320,7 +320,7 @@ msgstr "Завантаження онлайн-довідки..."
 
 #: spyder/app/mainwindow.py:964
 msgid "Loading project explorer..."
-msgstr "Завантаження переглядача проєкту..."
+msgstr "Завантаження оглядача проєкту..."
 
 #: spyder/app/mainwindow.py:992
 msgid "Loading third-party plugins..."
