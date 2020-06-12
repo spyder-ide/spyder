@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 18:26\n"
+"PO-Revision-Date: 2020-06-12 18:38\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -256,27 +256,30 @@ msgid "Spyder Internal Console\n\n"
 "internals with the following commands:\n"
 "  spy.app, spy.window, dir(spy)\n\n"
 "Please don't use it to run your code\n\n"
-msgstr ""
+msgstr "Внутрішній командний рядок Spyder\n\n"
+"Цей командний рядок використовується для звіту про внутрішні помилки програми та дослідження нутрощів Spyder за допомогою наступних команд:\n"
+" spy.app, spy.window, dir(spy)\n\n"
+"Будь ласка, не використовуйте його для запуску свого коду\n\n"
 
 #: spyder/app/mainwindow.py:856
 msgid "Starting code completion manager..."
-msgstr ""
+msgstr "Запуск менеджера завершення коду..."
 
 #: spyder/app/mainwindow.py:869
 msgid "Loading help..."
-msgstr ""
+msgstr "Завантаження довідки..."
 
 #: spyder/app/mainwindow.py:876
 msgid "Loading outline explorer..."
-msgstr ""
+msgstr "Завантаження оглядача обрисів..."
 
 #: spyder/app/mainwindow.py:888
 msgid "Loading editor..."
-msgstr ""
+msgstr "Завантаження редактора..."
 
 #: spyder/app/mainwindow.py:894
 msgid "Launching code completion client for Python..."
-msgstr ""
+msgstr "Запуск клієнта завершення коду для Python..."
 
 #: spyder/app/mainwindow.py:899 spyder/plugins/console/plugin.py:141 spyder/plugins/ipythonconsole/widgets/client.py:478
 msgid "&Quit"
@@ -412,7 +415,7 @@ msgstr "Панелі інструментів"
 
 #: spyder/app/mainwindow.py:1168
 msgid "Window layouts"
-msgstr "Розміщення вікон"
+msgstr "Компонування вікна"
 
 #: spyder/app/mainwindow.py:1177 spyder/app/mainwindow.py:2148 spyder/app/mainwindow.py:2149
 msgid "Show toolbars"
@@ -424,7 +427,7 @@ msgstr "Прикріплене вікно командного рядка (зн�
 
 #: spyder/app/mainwindow.py:1432
 msgid "Hide this message during the current session"
-msgstr ""
+msgstr "Приховати це повідомлення під час поточної сесії"
 
 #: spyder/app/mainwindow.py:1438
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
@@ -432,7 +435,7 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:1503 spyder/app/mainwindow.py:2223 spyder/app/mainwindow.py:2965 spyder/plugins/completion/languageserver/confpage.py:1277 spyder/plugins/completion/languageserver/confpage.py:1295 spyder/plugins/explorer/widgets/explorer.py:959 spyder/plugins/explorer/widgets/explorer.py:1258 spyder/plugins/profiler/widgets/profilergui.py:309 spyder/plugins/profiler/widgets/profilergui.py:504 spyder/plugins/projects/plugin.py:299 spyder/plugins/pylint/widgets/pylintgui.py:93 spyder/plugins/pylint/widgets/pylintgui.py:379 spyder/plugins/pylint/widgets/pylintgui.py:407 spyder/plugins/variableexplorer/widgets/arrayeditor.py:642 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:117 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:428 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1446 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:626 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1281 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1285 spyder/preferences/general.py:322 spyder/preferences/general.py:347 spyder/widgets/reporterror.py:302
 msgid "Error"
-msgstr ""
+msgstr "Помилка"
 
 #: spyder/app/mainwindow.py:1504
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
@@ -440,28 +443,29 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:1984
 msgid "Spyder Default Layout"
-msgstr ""
+msgstr "Типове компонування Spyder"
 
 #: spyder/app/mainwindow.py:2002
 msgid "Save current layout"
-msgstr ""
+msgstr "Зберегти поточне компонування"
 
 #: spyder/app/mainwindow.py:2006
 msgid "Layout preferences"
-msgstr ""
+msgstr "Налаштування компонувань"
 
 #: spyder/app/mainwindow.py:2010
 msgid "Reset to spyder default"
-msgstr ""
+msgstr "Відновити типові значення Spyder"
 
 #: spyder/app/mainwindow.py:2030 spyder/app/mainwindow.py:2052 spyder/app/mainwindow.py:2118 spyder/app/mainwindow.py:2126 spyder/app/mainwindow.py:3317 spyder/plugins/completion/languageserver/confpage.py:1245 spyder/plugins/completion/languageserver/plugin.py:308 spyder/plugins/completion/languageserver/plugin.py:345 spyder/plugins/ipythonconsole/plugin.py:491 spyder/plugins/ipythonconsole/plugin.py:539 spyder/plugins/ipythonconsole/plugin.py:1077 spyder/plugins/ipythonconsole/utils/ssh.py:68 spyder/plugins/pylint/widgets/pylintgui.py:91 spyder/plugins/variableexplorer/widgets/arrayeditor.py:564 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:105 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:412 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1052 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1064 spyder/preferences/appearance.py:403 spyder/preferences/maininterpreter.py:162 spyder/preferences/maininterpreter.py:183 spyder/preferences/maininterpreter.py:212 spyder/utils/environ.py:91 spyder/utils/environ.py:142 spyder/utils/environ.py:155
 msgid "Warning"
-msgstr ""
+msgstr "Попередження"
 
 #: spyder/app/mainwindow.py:2031
 msgid "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
-msgstr ""
+msgstr "Компонування вікна буде скинуте до типових налаштувань: це впливає на позицію вікна, розмір та віджети.\n"
+"Хочете продовжити?"
 
 #: spyder/app/mainwindow.py:2053
 msgid "Layout <b>%s</b> will be                                                overwritten. Do you want to                                                continue?"
