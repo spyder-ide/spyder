@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 19:44\n"
+"PO-Revision-Date: 2020-06-12 19:56\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -2176,24 +2176,25 @@ msgstr "Перезапустити &останній сценарій"
 
 #: spyder/plugins/editor/plugin.py:598
 msgid "Run again last file"
-msgstr ""
+msgstr "Виконати знову останній файл"
 
 #: spyder/plugins/editor/plugin.py:604 spyder/plugins/editor/widgets/codeeditor.py:3717
 msgid "Run &selection or current line"
-msgstr ""
+msgstr "Виконати &вибране або поточний файл"
 
 #: spyder/plugins/editor/plugin.py:607
 msgid "Run selection or current line"
-msgstr ""
+msgstr "Виконати вибране або поточний файл"
 
 #: spyder/plugins/editor/plugin.py:615 spyder/plugins/editor/widgets/codeeditor.py:3705
 msgid "Run cell"
-msgstr ""
+msgstr "Виконати комірку"
 
 #: spyder/plugins/editor/plugin.py:617
 msgid "Run current cell \n"
 "[Use #%% to create cells]"
-msgstr ""
+msgstr "Виконати поточну комірку \n"
+"[Використовуйте #%% для створення комірок]"
 
 #: spyder/plugins/editor/plugin.py:627 spyder/plugins/editor/widgets/codeeditor.py:3709
 msgid "Run cell and advance"
@@ -2201,27 +2202,27 @@ msgstr ""
 
 #: spyder/plugins/editor/plugin.py:629
 msgid "Run current cell and go to the next one "
-msgstr ""
+msgstr "Виконати поточну комірку і перейти до наступної "
 
 #: spyder/plugins/editor/plugin.py:639 spyder/plugins/editor/widgets/codeeditor.py:3723
 msgid "Debug cell"
-msgstr ""
+msgstr "Зневаджувати комірку"
 
 #: spyder/plugins/editor/plugin.py:641
 msgid "Debug current cell (Alt+Shift+Enter)"
-msgstr ""
+msgstr "Зневаджувати поточну комірку (Alt+Shift+Enter)"
 
 #: spyder/plugins/editor/plugin.py:651 spyder/plugins/editor/widgets/codeeditor.py:3713
 msgid "Re-run last cell"
-msgstr ""
+msgstr "Перезапустити останню комірку"
 
 #: spyder/plugins/editor/plugin.py:652
 msgid "Re run last cell "
-msgstr ""
+msgstr "Перезапустити останню комірку "
 
 #: spyder/plugins/editor/plugin.py:662
 msgid "Show todo list"
-msgstr ""
+msgstr "Показати список завдань"
 
 #: spyder/plugins/editor/plugin.py:663
 msgid "Show comments list (TODO/FIXME/XXX/HINT/TIP/@todo/HACK/BUG/OPTIMIZE/!!!/???)"
@@ -2229,23 +2230,23 @@ msgstr ""
 
 #: spyder/plugins/editor/plugin.py:672
 msgid "Show warning/error list"
-msgstr ""
+msgstr "Показати список попереджень/помилок"
 
 #: spyder/plugins/editor/plugin.py:673
 msgid "Show code analysis warnings/errors"
-msgstr ""
+msgstr "Показати попередження/помилки аналізу коду"
 
 #: spyder/plugins/editor/plugin.py:680
 msgid "Previous warning/error"
-msgstr ""
+msgstr "Попереднє попередження/помилка"
 
 #: spyder/plugins/editor/plugin.py:681
 msgid "Go to previous code analysis warning/error"
-msgstr ""
+msgstr "Перейти до попереднього попередження/помилки аналізу коду"
 
 #: spyder/plugins/editor/plugin.py:689
 msgid "Next warning/error"
-msgstr ""
+msgstr "Наступне попередження/помилка"
 
 #: spyder/plugins/editor/plugin.py:690
 msgid "Go to next code analysis warning/error"
@@ -2277,51 +2278,51 @@ msgstr ""
 
 #: spyder/plugins/editor/plugin.py:728 spyder/plugins/editor/widgets/codeeditor.py:3689
 msgid "Comment"
-msgstr ""
+msgstr "Закоментувати"
 
 #: spyder/plugins/editor/plugin.py:728 spyder/plugins/editor/widgets/codeeditor.py:3689
 msgid "Uncomment"
-msgstr ""
+msgstr "Розкоментувати"
 
 #: spyder/plugins/editor/plugin.py:729
 msgid "Comment current line or selection"
-msgstr ""
+msgstr "Закоментувати поточний рядок або вибір"
 
 #: spyder/plugins/editor/plugin.py:733
 msgid "Add &block comment"
-msgstr ""
+msgstr "Додати &блочний коментар"
 
 #: spyder/plugins/editor/plugin.py:734
 msgid "Add block comment around current line or selection"
-msgstr ""
+msgstr "Додати блочний коментар навколо рядка чи вибору"
 
 #: spyder/plugins/editor/plugin.py:740
 msgid "R&emove block comment"
-msgstr ""
+msgstr "Вил&учити блочний коментар"
 
 #: spyder/plugins/editor/plugin.py:741
 msgid "Remove comment block around current line or selection"
-msgstr ""
+msgstr "Вилучити блочний коментар навколо рядка чи вибору"
 
 #: spyder/plugins/editor/plugin.py:752
 msgid "Indent"
-msgstr ""
+msgstr "Збільшити відступ"
 
 #: spyder/plugins/editor/plugin.py:753
 msgid "Indent current line or selection"
-msgstr ""
+msgstr "Додати відступ до рядка чи вибору"
 
 #: spyder/plugins/editor/plugin.py:756
 msgid "Unindent"
-msgstr ""
+msgstr "Скасувати відступ"
 
 #: spyder/plugins/editor/plugin.py:757
 msgid "Unindent current line or selection"
-msgstr ""
+msgstr "Скасувати відступ для рядка чи вибору"
 
 #: spyder/plugins/editor/plugin.py:761
 msgid "Toggle Uppercase"
-msgstr ""
+msgstr "Перемкнути верхній регістр"
 
 #: spyder/plugins/editor/plugin.py:762
 msgid "Change to uppercase current line or selection"
