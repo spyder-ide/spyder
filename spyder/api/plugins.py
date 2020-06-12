@@ -737,6 +737,17 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         Enable/Disable standard input/output redirection.
     """
 
+    sig_update_title_requested = Signal(str)
+    """
+    This signal can be emitted to request the main application to update the
+    mainw window titler by appending the value to the default title.
+
+    Parameters
+    ----------
+    title: str
+        Text to append to base main window title.
+    """
+
     sig_exception_occurred = Signal(dict)
     """
     This signal can be emitted to report an exception from any plugin.

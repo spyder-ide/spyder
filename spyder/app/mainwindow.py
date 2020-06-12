@@ -1286,12 +1286,11 @@ class MainWindow(QMainWindow):
             self.register_plugin(self.onlinehelp)
 
         # Project explorer widget
-        self.set_splash(_("Loading project explorer..."))
         from spyder.plugins.projects.plugin import Projects
-        self.projects = Projects(self)
-        self.projects.register_plugin()
+        self.projects = Projects(self, configuration=CONF)
+        self.register_plugin(self.projects)
+        # FIXME: ??
         self.project_path = self.projects.get_pythonpath(at_start=True)
-        self.add_plugin(self.projects)
 
         # Working directory plugin
         from spyder.plugins.workingdirectory.plugin import WorkingDirectory
@@ -1459,6 +1458,7 @@ class MainWindow(QMainWindow):
                                 triggered=lambda:
                                 programs.start_file(get_python_doc_path()))
             self.help_menu_actions.append(pydoc_act)
+
         # IPython documentation
         if self.help is not None:
             ipython_menu = QMenu(_("IPython documentation"), self)
@@ -1471,6 +1471,7 @@ class MainWindow(QMainWindow):
             add_actions(ipython_menu, (intro_action, guiref_action,
                                         quickref_action))
             self.help_menu_actions.append(ipython_menu)
+
         # Windows-only: documentation located in sys.prefix/Doc
         ipm_actions = []
         def add_ipm_action(text, path):
@@ -1849,6 +1850,7 @@ class MainWindow(QMainWindow):
             self.screen.logicalDotsPerInchChanged.connect(
                 self.show_dpi_change_message)
 
+    # FIXME: Expose as signal
     def set_window_title(self):
         """Set window title."""
         if DEV is not None:
@@ -1865,6 +1867,7 @@ class MainWindow(QMainWindow):
         if self.window_title is not None:
             title += u' -- ' + to_text_string(self.window_title)
 
+        # FIXME:
         if self.projects is not None:
             path = self.projects.get_active_project_path()
             if path:
@@ -2593,6 +2596,7 @@ class MainWindow(QMainWindow):
         except AttributeError:
             return
 
+    # FIXME:
     def valid_project(self):
         """Handle an invalid active project."""
         try:
@@ -3361,6 +3365,7 @@ class MainWindow(QMainWindow):
         # connect to it on plugin registration
         self.sig_pythonpath_changed.emit(path_dict, new_path_dict_p)
 
+    # FIXME:
     @Slot()
     def show_path_manager(self):
         """Show path manager dialog."""
@@ -3373,6 +3378,7 @@ class MainWindow(QMainWindow):
         dialog.redirect_stdio.connect(self.redirect_internalshell_stdio)
         dialog.show()
 
+    # FIXME:
     def pythonpath_changed(self):
         """Project's PYTHONPATH contribution has changed."""
         self.project_path = tuple(self.projects.get_pythonpath())

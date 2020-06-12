@@ -10,17 +10,16 @@
 import logging
 
 # Third-party imports
+import watchdog
 from qtpy.QtCore import QObject, Signal
 from qtpy.QtWidgets import QMessageBox
-
-import watchdog
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 # Local imports
-from spyder.config.base import _
-from spyder.py3compat import to_text_string
+from spyder.api.translations import get_translation
 
+_ = get_translation("spyder")
 logger = logging.getLogger(__name__)
 
 
@@ -32,7 +31,7 @@ class BaseThreadWrapper(watchdog.utils.BaseThread):
     queue = None
 
     def __init__(self):
-        super(BaseThreadWrapper, self).__init__()
+        super().__init__()
         self._original_run = self.run
         self.run = self.run_wrapper
 
@@ -58,16 +57,96 @@ class WorkspaceEventHandler(QObject, FileSystemEventHandler):
     creation and deletion and emits a corresponding signal about it.
     """
 
-    sig_file_moved = Signal(str, str, bool)
-    sig_file_created = Signal(str, bool)
-    sig_file_deleted = Signal(str, bool)
-    sig_file_modified = Signal(str, bool)
+    sig_file_moved = Signal(str, str)
+    """
+    This signal is emitted to inform a file has been moved.
+
+    Parameters
+    ----------
+    old_path: str
+        Old path for moved file.
+    new_path: str
+        New path for moved file.
+    """
+
+    sig_file_created = Signal(str)
+    """
+    This signal is emitted to inform a file has been created.
+
+    Parameters
+    ----------
+    path: str
+        New file path.
+    """
+
+    sig_file_deleted = Signal(str)
+    """
+    This signal is emitted to inform a file has been deleted.
+
+    Parameters
+    ----------
+    path: str
+        Deleted file path.
+    """
+
+    sig_file_modified = Signal(str)
+    """
+    This signal is emitted to inform a file has been modified.
+
+    Parameters
+    ----------
+    path: str
+        Modified file path.
+    """
+
+    sig_folder_moved = Signal(str, str)
+    """
+    This signal is emitted to inform a folder has been moved.
+
+    Parameters
+    ----------
+    old_path: str
+        Old path for moved folder.
+    new_path: str
+        New path for moved folder.
+    """
+
+    sig_folder_created = Signal(str)
+    """
+    This signal is emitted to inform a folder has been created.
+
+    Parameters
+    ----------
+    path: str
+        New folder path.
+    """
+
+    sig_folder_deleted = Signal(str)
+    """
+    This signal is emitted to inform a folder has been deleted.
+
+    Parameters
+    ----------
+    path: str
+        Deleted folder path.
+    """
+
+    sig_folder_modified = Signal(str)
+    """
+    This signal is emitted to inform a folder has been modified.
+
+    Parameters
+    ----------
+    path: str
+        Modified folder path.
+    """
 
     def __init__(self, parent=None):
-        super(QObject, self).__init__(parent)
-        super(FileSystemEventHandler, self).__init__()
+        super().__init__()
+        self.setParent(parent)
 
-    def fmt_is_dir(self, is_dir):
+    @staticmethod
+    def _fmt(is_dir):
         return 'directory' if is_dir else 'file'
 
     def on_moved(self, event):
@@ -75,29 +154,45 @@ class WorkspaceEventHandler(QObject, FileSystemEventHandler):
         dest_path = event.dest_path
         is_dir = event.is_directory
         logger.info("Moved {0}: {1} to {2}".format(
-            self.fmt_is_dir(is_dir), src_path, dest_path))
-        self.sig_file_moved.emit(src_path, dest_path, is_dir)
+            self._fmt(is_dir), src_path, dest_path))
+
+        if is_dir:
+            self.sig_folder_moved.emit(src_path, dest_path)
+        else:
+            self.sig_file_moved.emit(src_path, dest_path)
 
     def on_created(self, event):
         src_path = event.src_path
         is_dir = event.is_directory
         logger.info("Created {0}: {1}".format(
-            self.fmt_is_dir(is_dir), src_path))
-        self.sig_file_created.emit(src_path, is_dir)
+            self._fmt(is_dir), src_path))
+
+        if is_dir:
+            self.sig_folder_created.emit(src_path)
+        else:
+            self.sig_file_created.emit(src_path)
 
     def on_deleted(self, event):
         src_path = event.src_path
         is_dir = event.is_directory
         logger.info("Deleted {0}: {1}".format(
-            self.fmt_is_dir(is_dir), src_path))
-        self.sig_file_deleted.emit(src_path, is_dir)
+            self._fmt_is_dir(is_dir), src_path))
+
+        if is_dir:
+            self.sig_folder_deleted.emit(src_path)
+        else:
+            self.sig_file_deleted.emit(src_path)
 
     def on_modified(self, event):
         src_path = event.src_path
         is_dir = event.is_directory
         logger.info("Modified {0}: {1}".format(
-            self.fmt_is_dir(is_dir), src_path))
-        self.sig_file_modified.emit(src_path, is_dir)
+            self._fmt(is_dir), src_path))
+
+        if is_dir:
+            self.sig_folder_modified.emit(src_path)
+        else:
+            self.sig_file_modified.emit(src_path)
 
 
 class WorkspaceWatcher(QObject):
@@ -107,16 +202,105 @@ class WorkspaceWatcher(QObject):
     It provides methods to start and stop watching folders.
     """
 
+    sig_file_moved = Signal(str, str)
+    """
+    This signal is emitted to inform a file has been moved.
+
+    Parameters
+    ----------
+    old_path: str
+        Old path for moved file.
+    new_path: str
+        New path for moved file.
+    """
+
+    sig_file_created = Signal(str)
+    """
+    This signal is emitted to inform a file has been created.
+
+    Parameters
+    ----------
+    path: str
+        New file path.
+    """
+
+    sig_file_deleted = Signal(str)
+    """
+    This signal is emitted to inform a file has been deleted.
+
+    Parameters
+    ----------
+    path: str
+        Deleted file path.
+    """
+
+    sig_file_modified = Signal(str)
+    """
+    This signal is emitted to inform a file has been modified.
+
+    Parameters
+    ----------
+    path: str
+        Modified file path.
+    """
+
+    sig_folder_moved = Signal(str, str)
+    """
+    This signal is emitted to inform a folder has been moved.
+
+    Parameters
+    ----------
+    old_path: str
+        Old path for moved folder.
+    new_path: str
+        New path for moved folder.
+    """
+
+    sig_folder_created = Signal(str)
+    """
+    This signal is emitted to inform a folder has been created.
+
+    Parameters
+    ----------
+    path: str
+        New folder path.
+    """
+
+    sig_folder_deleted = Signal(str)
+    """
+    This signal is emitted to inform a folder has been deleted.
+
+    Parameters
+    ----------
+    path: str
+        Deleted folder path.
+    """
+
+    sig_folder_modified = Signal(str)
+    """
+    This signal is emitted to inform a folder has been modified.
+
+    Parameters
+    ----------
+    path: str
+        Modified folder path.
+    """
+
     def __init__(self, parent=None):
-        super(QObject, self).__init__(parent)
+        super().__init__(parent)
+
         self.observer = None
         self.event_handler = WorkspaceEventHandler(self)
 
-    def connect_signals(self, project):
-        self.event_handler.sig_file_created.connect(project.file_created)
-        self.event_handler.sig_file_moved.connect(project.file_moved)
-        self.event_handler.sig_file_deleted.connect(project.file_deleted)
-        self.event_handler.sig_file_modified.connect(project.file_modified)
+        # Signals
+        self.event_handler.sig_file_created.connect(self.sig_file_created)
+        self.event_handler.sig_file_moved.connect(self.sig_file_moved)
+        self.event_handler.sig_file_deleted.connect(self.sig_file_deleted)
+        self.event_handler.sig_file_modified.connect(self.sig_file_modified)
+        self.event_handler.sig_folder_created.connect(self.sig_folder_created)
+        self.event_handler.sig_folder_moved.connect(self.sig_folder_moved)
+        self.event_handler.sig_folder_deleted.connect(self.sig_folder_deleted)
+        self.event_handler.sig_folder_modified.connect(self.sig_folder_modified)
 
     def start(self, workspace_folder):
         # Needed to handle an error caused by the inotify limit reached.
@@ -126,8 +310,8 @@ class WorkspaceWatcher(QObject):
             self.observer.schedule(
                 self.event_handler, workspace_folder, recursive=True)
             self.observer.start()
-        except OSError as e:
-            if u'inotify' in to_text_string(e):
+        except OSError as error:
+            if u'inotify' in str(error):
                 QMessageBox.warning(
                     self.parent(),
                     "Spyder",
@@ -150,7 +334,7 @@ class WorkspaceWatcher(QObject):
                       "again so those changes can take effect."))
                 self.observer = None
             else:
-                raise e
+                raise error
 
     def stop(self):
         if self.observer is not None:

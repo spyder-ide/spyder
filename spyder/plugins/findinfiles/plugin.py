@@ -65,7 +65,7 @@ class FindInFiles(SpyderDockablePlugin):
             editor.open_file_update.connect(self.set_current_opened_file)
 
         if projects:
-            projects.sig_project_loaded.connect(self.set_project_path)
+            projects.sig_project_opened.connect(self.set_project_path)
             projects.sig_project_closed.connect(self.unset_project_path)
 
         if working_directory:
