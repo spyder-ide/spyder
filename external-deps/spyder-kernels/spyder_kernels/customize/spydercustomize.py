@@ -287,13 +287,22 @@ if not PY2:
             removed before execution.
             """
             try:
-                return _old_preparation_data(name)
+                d = _old_preparation_data(name)
             except AttributeError:
                 main_module = sys.modules['__main__']
                 # Any string for __spec__ does the job
                 main_module.__spec__ = ''
-                return _old_preparation_data(name)
-
+                d = _old_preparation_data(name)
+            # On windows, there is no fork, so we need to save the main file
+            # and import it
+            if (os.name == 'nt' and 'init_main_from_path' in d
+                    and not os.path.exists(d['init_main_from_path'])):
+                _print(
+                    "Warning: multiprocessing may need the main file to exist. "
+                    "Please save {}".format(d['init_main_from_path']))
+                # Remove path as the subprocess can't do anything with it
+                del d['init_main_from_path']
+            return d
         multiprocessing.spawn.get_preparation_data = _patched_preparation_data
     except Exception:
         pass
