@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 17:50\n"
+"PO-Revision-Date: 2020-06-12 18:09\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -19,23 +19,23 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:151
 msgid "Initializing..."
-msgstr ""
+msgstr "Ініціалізація..."
 
 #: spyder/app/mainwindow.py:229
 msgid "Python2 documentation"
-msgstr ""
+msgstr "Документація з Python2"
 
 #: spyder/app/mainwindow.py:231
 msgid "Python3 documentation"
-msgstr ""
+msgstr "Документація з Python3"
 
 #: spyder/app/mainwindow.py:233
 msgid "Numpy and Scipy documentation"
-msgstr ""
+msgstr "Документація з Numpy та Scipy"
 
 #: spyder/app/mainwindow.py:235
 msgid "Matplotlib documentation"
-msgstr ""
+msgstr "Документація з Matplotlib"
 
 #: spyder/app/mainwindow.py:238
 msgid "PyQt5 Reference Guide"
@@ -55,35 +55,35 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:581
 msgid "Close current pane"
-msgstr ""
+msgstr "Закрити поточну панель"
 
 #: spyder/app/mainwindow.py:589
 msgid "Lock panes and toolbars"
-msgstr ""
+msgstr "Закріпити панелі та панелі інструментів"
 
 #: spyder/app/mainwindow.py:596
 msgid "Use next layout"
-msgstr ""
+msgstr "Використати наступне компонування"
 
 #: spyder/app/mainwindow.py:600
 msgid "Use previous layout"
-msgstr ""
+msgstr "Використати попереднє компонування"
 
 #: spyder/app/mainwindow.py:610 spyder/plugins/editor/widgets/editor.py:494
 msgid "File switcher..."
-msgstr ""
+msgstr "Перемикання файлів..."
 
 #: spyder/app/mainwindow.py:612
 msgid "Fast switch between files"
-msgstr ""
+msgstr "Швидке перемикання між файлами"
 
 #: spyder/app/mainwindow.py:618
 msgid "Symbol finder..."
-msgstr ""
+msgstr "Пошук символу..."
 
 #: spyder/app/mainwindow.py:620
 msgid "Fast symbol search in file"
-msgstr ""
+msgstr "Швидкий пошук символу у файлі"
 
 #: spyder/app/mainwindow.py:639 spyder/plugins/editor/widgets/codeeditor.py:3669
 msgid "Undo"
@@ -195,11 +195,11 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:722
 msgid "Reset Spyder to factory defaults"
-msgstr ""
+msgstr "Скинути Spyder на типові значення"
 
 #: spyder/app/mainwindow.py:727
 msgid "Current user environment variables..."
-msgstr ""
+msgstr "Поточні змінні середовища користувача..."
 
 #: spyder/app/mainwindow.py:729
 msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
@@ -477,15 +477,15 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:2145 spyder/app/mainwindow.py:2146
 msgid "Hide toolbars"
-msgstr ""
+msgstr "Приховати панелі інструментів"
 
 #: spyder/app/mainwindow.py:2224
 msgid "<b>{}</b> is no longer a valid Spyder project! Since it is the current active project, it will be closed automatically."
-msgstr ""
+msgstr "<b>{}</b> більше не є правильним проєктом Spyder! Оскільки це поточний проект, то він буде закритий автоматично."
 
 #: spyder/app/mainwindow.py:2547 spyder/app/mainwindow.py:2548
 msgid "Maximize current pane"
-msgstr ""
+msgstr "Розгорнути поточну панель"
 
 #: spyder/app/mainwindow.py:2551
 msgid "Restore current pane"
@@ -493,7 +493,7 @@ msgstr "Відновити поточну панель"
 
 #: spyder/app/mainwindow.py:2552
 msgid "Restore pane to its original size"
-msgstr ""
+msgstr "Відновити панель до початкового розміру"
 
 #: spyder/app/mainwindow.py:2767
 msgid "About %s"
@@ -517,11 +517,11 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:3449 spyder/widgets/helperwidgets.py:382
 msgid "Spyder updates"
-msgstr ""
+msgstr "Оновлення Spyder"
 
 #: spyder/app/mainwindow.py:3450 spyder/preferences/general.py:80
 msgid "Check for updates on startup"
-msgstr ""
+msgstr "Перевіряти наявність оновлень при запуску"
 
 #: spyder/app/mainwindow.py:3469
 msgid "<hr><b>IMPORTANT NOTE:</b> It seems that you are using Spyder with <b>Anaconda/Miniconda</b>. Please <b>don't</b> use <code>pip</code> to update it as that will probably break your installation.<br><br>Instead, please wait until new conda packages are available and use <code>conda</code> to perform the update.<hr>"
@@ -529,34 +529,37 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:3479
 msgid "<b>Spyder %s is available!</b> <br><br>Please use your package manager to update Spyder or go to our <a href=\"%s\">Releases</a> page to download this new version. <br><br>If you are not sure how to proceed to update Spyder please refer to our  <a href=\"%s\">Installation</a> instructions."
-msgstr ""
+msgstr "<b>Доступний Spyder %s!</b> <br><br>Будь ласка, скористайтесь менеджером пакунків, щоб оновити Spyder або завітайте на нашу сторінку <a href=\"%s\">випусків</a>, щоб завантажити нову версію. <br><br>Якщо ви не впевнені як оновити Spyder, будь ласка, загляньте до наших інструкцій із <a href=\"%s\">встановлення</a>."
 
 #: spyder/app/mainwindow.py:3492
 msgid "Spyder is up to date."
-msgstr ""
+msgstr "У вас найновіша версія Spyder."
 
 #: spyder/app/restart.py:136
 msgid "It was not possible to close the previous Spyder instance.\n"
 "Restart aborted."
-msgstr ""
+msgstr "Неможливо закрити попередній екземпляр Spyder.\n"
+"Перезапуск перервано."
 
 #: spyder/app/restart.py:138
 msgid "Spyder could not reset to factory defaults.\n"
 "Restart aborted."
-msgstr ""
+msgstr "Spyder не вдалося скинути до типових налаштувань.\n"
+"Перезапуск перервано."
 
 #: spyder/app/restart.py:140
 msgid "It was not possible to restart Spyder.\n"
 "Operation aborted."
-msgstr ""
+msgstr "Неможливо перезавантажити Spyder.\n"
+"Операцію перервано."
 
 #: spyder/app/restart.py:142
 msgid "Spyder exit error"
-msgstr ""
+msgstr "Помилка при виході із Spyder"
 
 #: spyder/app/restart.py:143
 msgid "Spyder reset error"
-msgstr ""
+msgstr "Помилка скидання Spyder"
 
 #: spyder/app/restart.py:144
 msgid "Spyder restart error"
