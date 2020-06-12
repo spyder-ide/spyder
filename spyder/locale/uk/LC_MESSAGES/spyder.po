@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 19:27\n"
+"PO-Revision-Date: 2020-06-12 19:44\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -1770,19 +1770,19 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:52
 msgid "Show vertical lines at"
-msgstr ""
+msgstr "Показувати вертикальні лінії на"
 
 #: spyder/plugins/editor/confpage.py:59
 msgid "characters"
-msgstr ""
+msgstr "символів"
 
 #: spyder/plugins/editor/confpage.py:65
 msgid "Highlight occurrences after"
-msgstr ""
+msgstr "Виділяти входження після"
 
 #: spyder/plugins/editor/confpage.py:68 spyder/preferences/general.py:190 spyder/preferences/general.py:199
 msgid " ms"
-msgstr ""
+msgstr " мс"
 
 #: spyder/plugins/editor/confpage.py:108
 msgid "Automatic insertion of parentheses, braces and brackets"
@@ -1892,19 +1892,19 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:217
 msgid "Autosave"
-msgstr ""
+msgstr "Автозбереження"
 
 #: spyder/plugins/editor/confpage.py:219
 msgid "Automatically save a copy of files with unsaved changes"
-msgstr ""
+msgstr "Автоматично зберігати копію файлів з незбереженими змінами"
 
 #: spyder/plugins/editor/confpage.py:222
 msgid "Autosave interval: "
-msgstr ""
+msgstr "Інтервал автозбережень: "
 
 #: spyder/plugins/editor/confpage.py:223
 msgid "seconds"
-msgstr ""
+msgstr "секунд"
 
 #: spyder/plugins/editor/confpage.py:234
 msgid "Docstring type"
@@ -1976,11 +1976,11 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:318 spyder/plugins/help/confpage.py:59 spyder/plugins/history/confpage.py:33 spyder/plugins/ipythonconsole/confpage.py:83
 msgid "Source code"
-msgstr ""
+msgstr "Джерельний код"
 
 #: spyder/plugins/editor/confpage.py:323 spyder/plugins/ipythonconsole/confpage.py:382 spyder/preferences/general.py:303
 msgid "Advanced settings"
-msgstr ""
+msgstr "Розширені налаштування"
 
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:47 spyder/plugins/editor/panels/classfunctiondropdown.py:48 spyder/plugins/editor/panels/classfunctiondropdown.py:138 spyder/preferences/shortcuts.py:142
 msgid "<None>"
@@ -1988,123 +1988,123 @@ msgstr ""
 
 #: spyder/plugins/editor/plugin.py:405
 msgid "&New file..."
-msgstr ""
+msgstr "&Новий файл..."
 
 #: spyder/plugins/editor/plugin.py:406 spyder/plugins/explorer/widgets/explorer.py:1024 spyder/plugins/explorer/widgets/explorer.py:1031
 msgid "New file"
-msgstr ""
+msgstr "Новий файл"
 
 #: spyder/plugins/editor/plugin.py:415
 msgid "O&pen last closed"
-msgstr ""
+msgstr "Ві&дкрити останній"
 
 #: spyder/plugins/editor/plugin.py:416
 msgid "Open last closed"
-msgstr ""
+msgstr "Відкрити останній"
 
 #: spyder/plugins/editor/plugin.py:422
 msgid "&Open..."
-msgstr ""
+msgstr "&Відкрити..."
 
 #: spyder/plugins/editor/plugin.py:423 spyder/plugins/editor/plugin.py:1926 spyder/plugins/editor/plugin.py:1932
 msgid "Open file"
-msgstr ""
+msgstr "Відкрити файл"
 
 #: spyder/plugins/editor/plugin.py:429
 msgid "&Revert"
-msgstr ""
+msgstr "&Відновити"
 
 #: spyder/plugins/editor/plugin.py:430
 msgid "Revert file from disk"
-msgstr ""
+msgstr "Відновити файл з диска"
 
 #: spyder/plugins/editor/plugin.py:433
 msgid "&Save"
-msgstr ""
+msgstr "&Зберегти"
 
 #: spyder/plugins/editor/plugin.py:434 spyder/plugins/editor/widgets/editor.py:2051
 msgid "Save file"
-msgstr ""
+msgstr "Зберегти файл"
 
 #: spyder/plugins/editor/plugin.py:440
 msgid "Sav&e all"
-msgstr ""
+msgstr "Зберегти &все"
 
 #: spyder/plugins/editor/plugin.py:441
 msgid "Save all files"
-msgstr ""
+msgstr "Зберегти всі файли"
 
 #: spyder/plugins/editor/plugin.py:447
 msgid "Save &as..."
-msgstr ""
+msgstr "Зберегти &як..."
 
 #: spyder/plugins/editor/plugin.py:448
 msgid "Save current file as..."
-msgstr ""
+msgstr "Зберегти поточний файл як..."
 
 #: spyder/plugins/editor/plugin.py:453
 msgid "Save copy as..."
-msgstr ""
+msgstr "Зберегти копію як..."
 
 #: spyder/plugins/editor/plugin.py:454
 msgid "Save copy of current file as..."
-msgstr ""
+msgstr "Зберегти копію поточного файлу як..."
 
 #: spyder/plugins/editor/plugin.py:457 spyder/plugins/editor/plugin.py:458
 msgid "Print preview..."
-msgstr ""
+msgstr "Попередній перегляд..."
 
 #: spyder/plugins/editor/plugin.py:459
 msgid "&Print..."
-msgstr ""
+msgstr "&Друкувати..."
 
 #: spyder/plugins/editor/plugin.py:460
 msgid "Print current file..."
-msgstr ""
+msgstr "Надрукувати поточний файл..."
 
 #: spyder/plugins/editor/plugin.py:463
 msgid "&Close"
-msgstr ""
+msgstr "&Закрити"
 
 #: spyder/plugins/editor/plugin.py:464
 msgid "Close current file"
-msgstr ""
+msgstr "Закрити поточний файл"
 
 #: spyder/plugins/editor/plugin.py:467
 msgid "C&lose all"
-msgstr ""
+msgstr "З&акрити все"
 
 #: spyder/plugins/editor/plugin.py:468
 msgid "Close all opened files"
-msgstr ""
+msgstr "Закрити всі відкриті файли"
 
 #: spyder/plugins/editor/plugin.py:475
 msgid "&Find text"
-msgstr ""
+msgstr "&Знайти текст"
 
 #: spyder/plugins/editor/plugin.py:481
 msgid "Find &next"
-msgstr ""
+msgstr "Знайти &наступне"
 
 #: spyder/plugins/editor/plugin.py:487
 msgid "Find &previous"
-msgstr ""
+msgstr "Знайти &попереднє"
 
 #: spyder/plugins/editor/plugin.py:493
 msgid "&Replace text"
-msgstr ""
+msgstr "&Замінити текст"
 
 #: spyder/plugins/editor/plugin.py:502
 msgid "Set/Clear breakpoint"
-msgstr ""
+msgstr "Встановити/Вилучити точку зупинки"
 
 #: spyder/plugins/editor/plugin.py:509
 msgid "Set/Edit conditional breakpoint"
-msgstr ""
+msgstr "Встановити/Редагувати умовну точку зупинки"
 
 #: spyder/plugins/editor/plugin.py:519
 msgid "Ignore Python libraries while debugging"
-msgstr ""
+msgstr "Ігнорувати бібліотеки Python під час зневадження"
 
 #: spyder/plugins/editor/plugin.py:522
 msgid "Process execute events while debugging"
@@ -2112,67 +2112,67 @@ msgstr ""
 
 #: spyder/plugins/editor/plugin.py:525
 msgid "Debug with winpdb"
-msgstr ""
+msgstr "Зневадження з winpdb"
 
 #: spyder/plugins/editor/plugin.py:533
 msgid "Debug file"
-msgstr ""
+msgstr "Зневадження файлу"
 
 #: spyder/plugins/editor/plugin.py:539
 msgid "Step"
-msgstr ""
+msgstr "Крок"
 
 #: spyder/plugins/editor/plugin.py:540
 msgid "Run current line"
-msgstr ""
+msgstr "Виконати поточний рядок"
 
 #: spyder/plugins/editor/plugin.py:546
 msgid "Continue"
-msgstr ""
+msgstr "Продовжити"
 
 #: spyder/plugins/editor/plugin.py:548
 msgid "Continue execution until next breakpoint"
-msgstr ""
+msgstr "Продовжити виконання до наступної точки зупинки"
 
 #: spyder/plugins/editor/plugin.py:555
 msgid "Step Into"
-msgstr ""
+msgstr "Крок всередину"
 
 #: spyder/plugins/editor/plugin.py:557
 msgid "Step into function or method of current line"
-msgstr ""
+msgstr "Крок всередину функції чи методу поточного рядка"
 
 #: spyder/plugins/editor/plugin.py:563
 msgid "Step Return"
-msgstr ""
+msgstr "Крок повернення"
 
 #: spyder/plugins/editor/plugin.py:565
 msgid "Run until current function or method returns"
-msgstr ""
+msgstr "Виконувати, поки поточна функція чи метод не поверне"
 
 #: spyder/plugins/editor/plugin.py:572 spyder/plugins/findinfiles/widgets.py:604 spyder/plugins/ipythonconsole/widgets/client.py:412 spyder/plugins/profiler/widgets/profilergui.py:90 spyder/plugins/pylint/widgets/pylintgui.py:179
 msgid "Stop"
-msgstr ""
+msgstr "Зупинити"
 
 #: spyder/plugins/editor/plugin.py:573
 msgid "Stop debugging"
-msgstr ""
+msgstr "Зупинити зневадження"
 
 #: spyder/plugins/editor/plugin.py:580
 msgid "Run file"
-msgstr ""
+msgstr "Виконати файл"
 
 #: spyder/plugins/editor/plugin.py:587
 msgid "&Configuration per file..."
-msgstr ""
+msgstr "&Конфігурація на файл..."
 
 #: spyder/plugins/editor/plugin.py:589
 msgid "Run settings"
-msgstr ""
+msgstr "Налаштування виконання"
 
 #: spyder/plugins/editor/plugin.py:596
 msgid "Re-run &last script"
-msgstr ""
+msgstr "Перезапустити &останній сценарій"
 
 #: spyder/plugins/editor/plugin.py:598
 msgid "Run again last file"
