@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 20:02\n"
+"PO-Revision-Date: 2020-06-12 20:18\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -2438,23 +2438,23 @@ msgstr "Помилка при створенні каталогу автозбе
 
 #: spyder/plugins/editor/utils/autosave.py:404
 msgid "Error while autosaving {} to {}"
-msgstr ""
+msgstr "Помилка при автозбереженні {} на {}"
 
 #: spyder/plugins/editor/utils/debugger.py:94
 msgid "Breakpoint"
-msgstr ""
+msgstr "Точка зупинки"
 
 #: spyder/plugins/editor/utils/debugger.py:95
 msgid "Condition:"
-msgstr ""
+msgstr "Умова:"
 
 #: spyder/plugins/editor/utils/switcher.py:124 spyder/widgets/switcher.py:972 spyder/widgets/tests/test_switcher.py:33
 msgid "Go to Line"
-msgstr ""
+msgstr "Перейти до рядка"
 
 #: spyder/plugins/editor/utils/switcher.py:125 spyder/widgets/switcher.py:973 spyder/widgets/tests/test_switcher.py:34
 msgid "Go to Symbol in File"
-msgstr ""
+msgstr "Перейти до символу у файлі"
 
 #: spyder/plugins/editor/utils/switcher.py:147
 msgid "Start typing the name of an open file"
@@ -2470,7 +2470,7 @@ msgstr ""
 
 #: spyder/plugins/editor/utils/switcher.py:189
 msgid "Go to line"
-msgstr ""
+msgstr "Перейти до рядка"
 
 #: spyder/plugins/editor/utils/switcher.py:202
 msgid "Select symbol"
@@ -2478,11 +2478,11 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/autosaveerror.py:47
 msgid "Autosave error"
-msgstr ""
+msgstr "Помилка автозбереження"
 
 #: spyder/plugins/editor/widgets/autosaveerror.py:52 spyder/plugins/editor/widgets/recover.py:276
 msgid "Error message:"
-msgstr ""
+msgstr "Повідомлення про помилку:"
 
 #: spyder/plugins/editor/widgets/autosaveerror.py:57
 msgid "Hide all future autosave-related errors during this session"
@@ -2490,31 +2490,31 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:131
 msgid "Go to line:"
-msgstr ""
+msgstr "Перейти до рядка:"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:137 spyder/utils/syntaxhighlighters.py:60
 msgid "Current line:"
-msgstr ""
+msgstr "Поточний рядок:"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:139
 msgid "Line count:"
-msgstr ""
+msgstr "Кількість рядків:"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:644
 msgid "click to open file"
-msgstr ""
+msgstr "натисніть, щоб відкрити файл"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:646
 msgid "click to send email"
-msgstr ""
+msgstr "натисніть, щоб надіслати email"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:648
 msgid "click to open url"
-msgstr ""
+msgstr "клацніть, щоб відкрити посилання"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:650
 msgid "click to open"
-msgstr ""
+msgstr "натисніть, щоб відкрити"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:1478
 msgid "One of the files in the editor or the file you are trying to open contains more than 2000 lines.<br><br>Code folding and indent guidelines will be disabled for this kind of files in order to prevent performance degradation."
@@ -2522,19 +2522,19 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:1488
 msgid "File too long"
-msgstr ""
+msgstr "Файл занадто довгий"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:2556
 msgid "Code analysis"
-msgstr ""
+msgstr "Аналіз коду"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:2686
 msgid "To do"
-msgstr ""
+msgstr "Зробити"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3171
 msgid "Removal error"
-msgstr ""
+msgstr "Помилка вилучення"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3172
 msgid "It was not possible to remove outputs from this notebook. The error is:\n\n"
@@ -2542,7 +2542,7 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3184 spyder/plugins/explorer/widgets/explorer.py:872
 msgid "Conversion error"
-msgstr ""
+msgstr "Помилка перетворення"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3185 spyder/plugins/explorer/widgets/explorer.py:873
 msgid "It was not possible to convert this notebook. The error is:\n\n"
@@ -2558,19 +2558,19 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3699
 msgid "Go to definition"
-msgstr ""
+msgstr "Перейти до визначення"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3729 spyder/plugins/plots/widgets/figurebrowser.py:226 spyder/widgets/browser.py:63
 msgid "Zoom in"
-msgstr ""
+msgstr "Збільшити масштаб"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3733 spyder/plugins/plots/widgets/figurebrowser.py:219 spyder/widgets/browser.py:60
 msgid "Zoom out"
-msgstr ""
+msgstr "Зменшити масштаб"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3737
 msgid "Zoom reset"
-msgstr ""
+msgstr "Скинути масштаб"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3743 spyder/plugins/editor/widgets/codeeditor.py:4616
 msgid "Generate docstring"
@@ -2578,7 +2578,7 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:4272 spyder/preferences/configdialog.py:891
 msgid "Information"
-msgstr ""
+msgstr "Інформація"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:4273
 msgid "This file is not part of a local repository or upstream/origin remotes are not defined!"
@@ -2586,27 +2586,27 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/editor.py:499
 msgid "Find symbols in file..."
-msgstr ""
+msgstr "Знайти символи у файлі..."
 
 #: spyder/plugins/editor/widgets/editor.py:502
 msgid "Copy path to clipboard"
-msgstr ""
+msgstr "Копіювати шлях до буфера обміну"
 
 #: spyder/plugins/editor/widgets/editor.py:506
 msgid "Close all to the right"
-msgstr ""
+msgstr "Закрити все праворуч"
 
 #: spyder/plugins/editor/widgets/editor.py:508
 msgid "Close all but this"
-msgstr ""
+msgstr "Закрити все окрім цього"
 
 #: spyder/plugins/editor/widgets/editor.py:511
 msgid "Sort tabs alphabetically"
-msgstr ""
+msgstr "Сортувати вкладки за алфавітом"
 
 #: spyder/plugins/editor/widgets/editor.py:515 spyder/plugins/explorer/widgets/explorer.py:536
 msgid "Show in Finder"
-msgstr ""
+msgstr "Показати в пошуку"
 
 #: spyder/plugins/editor/widgets/editor.py:517
 msgid "Show in external file explorer"
@@ -2614,51 +2614,51 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/editor.py:1425
 msgid "Temporary file"
-msgstr ""
+msgstr "Тимчасовий файл"
 
 #: spyder/plugins/editor/widgets/editor.py:1522
 msgid "New window"
-msgstr ""
+msgstr "Нове вікно"
 
 #: spyder/plugins/editor/widgets/editor.py:1524
 msgid "Create a new editor window"
-msgstr ""
+msgstr "Створити нове вікно редактора"
 
 #: spyder/plugins/editor/widgets/editor.py:1530
 msgid "Split vertically"
-msgstr ""
+msgstr "Розділити вертикально"
 
 #: spyder/plugins/editor/widgets/editor.py:1532
 msgid "Split vertically this editor window"
-msgstr ""
+msgstr "Розділити вертикально це вікно редактора"
 
 #: spyder/plugins/editor/widgets/editor.py:1540
 msgid "Split horizontally"
-msgstr ""
+msgstr "Розділити горизонтально"
 
 #: spyder/plugins/editor/widgets/editor.py:1542
 msgid "Split horizontally this editor window"
-msgstr ""
+msgstr "Розділити горизонтально це вікно редактора"
 
 #: spyder/plugins/editor/widgets/editor.py:1550
 msgid "Close this panel"
-msgstr ""
+msgstr "Закрити цю панель"
 
 #: spyder/plugins/editor/widgets/editor.py:1564 spyder/plugins/editor/widgets/editor.py:3268
 msgid "Close window"
-msgstr ""
+msgstr "Закрити вікно"
 
 #: spyder/plugins/editor/widgets/editor.py:1876
 msgid "<b>%s</b> has been modified.<br>Do you want to save changes?"
-msgstr ""
+msgstr "<b>%s</b> було змінено.<br>Зберегти зміни?"
 
 #: spyder/plugins/editor/widgets/editor.py:1996 spyder/plugins/editor/widgets/editor.py:2160 spyder/plugins/explorer/widgets/explorer.py:85
 msgid "Save Error"
-msgstr ""
+msgstr "Помилка збереження"
 
 #: spyder/plugins/editor/widgets/editor.py:1997 spyder/plugins/editor/widgets/editor.py:2161 spyder/plugins/explorer/widgets/explorer.py:86
 msgid "<b>Unable to save file '%s'</b><br><br>Error message:<br>%s"
-msgstr ""
+msgstr "<b>Не вдалося зберегти файл '%s'</b><br><br>Повідомлення про помилку:<br>%s"
 
 #: spyder/plugins/editor/widgets/editor.py:2372
 msgid "<b>%s</b> is unavailable (this file may have been removed, moved or renamed outside Spyder).<br>Do you want to close it?"
@@ -2674,15 +2674,15 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/editor.py:2687
 msgid "Loading %s..."
-msgstr ""
+msgstr "Завантаження %s..."
 
 #: spyder/plugins/editor/widgets/editor.py:2702
 msgid "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this automatically."
-msgstr ""
+msgstr "<b>%s</b> містить змішані символи кінця рядка.<br>Spyder виправить це автоматично."
 
 #: spyder/plugins/editor/widgets/editor.py:3270
 msgid "Close this window"
-msgstr ""
+msgstr "Закрити це вікно"
 
 #: spyder/plugins/editor/widgets/recover.py:49
 msgid "<i>File name not recorded</i>"
@@ -2690,32 +2690,33 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/recover.py:54
 msgid "Last modified"
-msgstr ""
+msgstr "Остання зміна"
 
 #: spyder/plugins/editor/widgets/recover.py:56
 msgid "bytes"
-msgstr ""
+msgstr "байт"
 
 #: spyder/plugins/editor/widgets/recover.py:56 spyder/plugins/explorer/widgets/explorer.py:223 spyder/plugins/variableexplorer/widgets/collectionseditor.py:406 spyder/preferences/configdialog.py:826
 msgid "Size"
-msgstr ""
+msgstr "Розмір"
 
 #: spyder/plugins/editor/widgets/recover.py:58
 msgid "<i>File no longer exists</i>"
-msgstr ""
+msgstr "<i>Файл більше не існує</i>"
 
 #: spyder/plugins/editor/widgets/recover.py:101
 msgid "Recover from autosave"
-msgstr ""
+msgstr "Відновити з автозбереження"
 
 #: spyder/plugins/editor/widgets/recover.py:151
 msgid "Autosave files found. What would you like to do?\n\n"
 "This dialog will be shown again on next startup if any autosave files are not restored, moved or deleted."
-msgstr ""
+msgstr "Знайдено файли автозбереження. Що ви хотіли б зробити?\n\n"
+"Це діалогове вікно буде показано знову при наступному запуску, якщо будь-які файли автозбереження не відновлені, переміщені чи видалені."
 
 #: spyder/plugins/editor/widgets/recover.py:170
 msgid "Actions"
-msgstr ""
+msgstr "Дії"
 
 #: spyder/plugins/editor/widgets/recover.py:170
 msgid "Autosave file"
@@ -2723,23 +2724,23 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/recover.py:170
 msgid "Original file"
-msgstr ""
+msgstr "Оригінальний файл"
 
 #: spyder/plugins/editor/widgets/recover.py:189
 msgid "Recover the autosave file to its original location, replacing the original if it exists."
-msgstr ""
+msgstr "Відновити файл автозбереження в своє вихідне розташування, замінивши оригінальний, якщо він існує."
 
 #: spyder/plugins/editor/widgets/recover.py:191 spyder/plugins/editor/widgets/recover.py:278 spyder/widgets/onecolumntree.py:60
 msgid "Restore"
-msgstr ""
+msgstr "Відновити"
 
 #: spyder/plugins/editor/widgets/recover.py:197
 msgid "Delete the autosave file."
-msgstr ""
+msgstr "Видалити файл автозбереження."
 
 #: spyder/plugins/editor/widgets/recover.py:198
 msgid "Discard"
-msgstr ""
+msgstr "Відкинути"
 
 #: spyder/plugins/editor/widgets/recover.py:204
 msgid "Display the autosave file (and the original, if it exists) in Spyder's Editor. You will have to move or delete it manually."
@@ -2747,7 +2748,7 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/recover.py:207
 msgid "Open"
-msgstr ""
+msgstr "Відкрити"
 
 #: spyder/plugins/editor/widgets/recover.py:240
 msgid "Restore autosave file to ..."
@@ -2767,27 +2768,27 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/status.py:31
 msgid "File permissions"
-msgstr ""
+msgstr "Права доступу до файлів"
 
 #: spyder/plugins/editor/widgets/status.py:54
 msgid "Encoding"
-msgstr ""
+msgstr "Кодування"
 
 #: spyder/plugins/editor/widgets/status.py:67
 msgid "Cursor position"
-msgstr ""
+msgstr "Позиція курсору"
 
 #: spyder/plugins/editor/widgets/status.py:127
 msgid "Git branch"
-msgstr ""
+msgstr "Гілка Git"
 
 #: spyder/plugins/explorer/confpage.py:28 spyder/plugins/explorer/widgets/explorer.py:333 spyder/plugins/outlineexplorer/widgets.py:242
 msgid "Show all files"
-msgstr ""
+msgstr "Показати всі файли"
 
 #: spyder/plugins/explorer/confpage.py:29 spyder/plugins/explorer/widgets/explorer.py:1629
 msgid "Show icons and text"
-msgstr ""
+msgstr "Показувати значки і текст"
 
 #: spyder/plugins/explorer/confpage.py:30
 msgid "Single click to open files"
@@ -2799,27 +2800,27 @@ msgstr ""
 
 #: spyder/plugins/explorer/confpage.py:65 spyder/preferences/general.py:42 spyder/preferences/general.py:49
 msgid "General"
-msgstr ""
+msgstr "Загальне"
 
 #: spyder/plugins/explorer/confpage.py:67
 msgid "File associations"
-msgstr ""
+msgstr "Файлові асоціації"
 
 #: spyder/plugins/explorer/plugin.py:64
 msgid "Files"
-msgstr ""
+msgstr "Файли"
 
 #: spyder/plugins/explorer/widgets/explorer.py:222
 msgid "Kind"
-msgstr ""
+msgstr "Вид"
 
 #: spyder/plugins/explorer/widgets/explorer.py:222 spyder/plugins/variableexplorer/widgets/collectionseditor.py:406
 msgid "Type"
-msgstr ""
+msgstr "Тип"
 
 #: spyder/plugins/explorer/widgets/explorer.py:223
 msgid "Date modified"
-msgstr ""
+msgstr "Дата зміни"
 
 #: spyder/plugins/explorer/widgets/explorer.py:339
 msgid "Single click to open"
@@ -2835,19 +2836,19 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:406
 msgid "File..."
-msgstr ""
+msgstr "Файл..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:410
 msgid "Module..."
-msgstr ""
+msgstr "Модуль..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:414
 msgid "Folder..."
-msgstr ""
+msgstr "Тека..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:418
 msgid "Package..."
-msgstr ""
+msgstr "Пакунок..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:440
 msgid "Open in Spyder"
