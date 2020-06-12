@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 18:38\n"
+"PO-Revision-Date: 2020-06-12 18:47\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -469,7 +469,7 @@ msgstr "Компонування вікна буде скинуте до тип�
 
 #: spyder/app/mainwindow.py:2053
 msgid "Layout <b>%s</b> will be                                                overwritten. Do you want to                                                continue?"
-msgstr ""
+msgstr "Компонування <b>%s</b> буде перезаписано. Хочете продовжити?"
 
 #: spyder/app/mainwindow.py:2119
 msgid "Error opening the custom layout.  Please close Spyder and try again.  If the issue persists, then you must use 'Reset to Spyder default' from the layout menu."
@@ -567,23 +567,23 @@ msgstr "Помилка скидання Spyder"
 
 #: spyder/app/restart.py:144
 msgid "Spyder restart error"
-msgstr ""
+msgstr "Помилка перезавантаження Spyder"
 
 #: spyder/app/restart.py:185
 msgid "Closing Spyder"
-msgstr ""
+msgstr "Закривання Spyder"
 
 #: spyder/app/restart.py:259
 msgid "Resetting Spyder to defaults"
-msgstr ""
+msgstr "Скидання Spyder до типових значень"
 
 #: spyder/app/restart.py:291
 msgid "Restarting"
-msgstr ""
+msgstr "Перезавантаження"
 
 #: spyder/app/tour.py:133
 msgid "Welcome to the Introduction tour"
-msgstr ""
+msgstr "Ласкаво просимо до вступного туру"
 
 #: spyder/app/tour.py:134
 msgid "<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for the Python programming language.<br><br>Here we are going to guide you through its most important features.<br><br>Please use the arrow keys or click on the buttons below to move along the tour."
@@ -599,7 +599,7 @@ msgstr ""
 
 #: spyder/app/tour.py:159
 msgid "The IPython console"
-msgstr ""
+msgstr "Командний рядок IPython"
 
 #: spyder/app/tour.py:160
 msgid "This is one of panes where you can run or execute the code you wrote on the Editor. To do it you need to press the <b>F5</b> key.<br><br>This console comes with several useful features that greatly improve your programming workflow (like syntax highlighting and inline plots). If you want to know more about them, please follow this <a href=\"{0}\">link</a>.<br><br>Please click on the button below to run some simple code in this console. This will be useful to show you other important features."
@@ -607,7 +607,7 @@ msgstr ""
 
 #: spyder/app/tour.py:176
 msgid "The Variable Explorer"
-msgstr ""
+msgstr "Оглядач змінних"
 
 #: spyder/app/tour.py:177
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in one of Spyder consoles.<br><br>As you can see, the Variable Explorer is showing the variables generated during the last step of this tour. By doing a double-click on any of them, a new window will be opened, where you can inspect and modify their contents."
@@ -615,7 +615,7 @@ msgstr ""
 
 #: spyder/app/tour.py:189 spyder/plugins/console/widgets/internalshell.py:269 spyder/plugins/help/plugin.py:191 spyder/plugins/help/plugin.py:686 spyder/widgets/switcher.py:971 spyder/widgets/tests/test_switcher.py:32
 msgid "Help"
-msgstr ""
+msgstr "Довідка"
 
 #: spyder/app/tour.py:190
 msgid "This pane displays documentation of the functions, classes, methods or modules you are currently using in the Editor or the Consoles.<br><br>To use it, you need to press <b>Ctrl+I</b> in front of an object. If that object has some documentation associated with it, it will be displayed here."
@@ -623,7 +623,7 @@ msgstr ""
 
 #: spyder/app/tour.py:200
 msgid "The File Explorer"
-msgstr ""
+msgstr "Оглядач файлів"
 
 #: spyder/app/tour.py:201
 msgid "This pane lets you navigate through the directories and files present in your computer.<br><br>You can also open any of these files with its corresponding application, by doing a double click on it.<br><br>There is one exception to this rule: plain-text files will always be opened in the Spyder Editor."
@@ -631,7 +631,7 @@ msgstr ""
 
 #: spyder/app/tour.py:211
 msgid "The History Log"
-msgstr ""
+msgstr "Журнал історії"
 
 #: spyder/app/tour.py:212
 msgid "This pane records all commands introduced in the Python and IPython consoles."
@@ -651,19 +651,19 @@ msgstr ""
 
 #: spyder/app/tour.py:270
 msgid "Introduction tour"
-msgstr ""
+msgstr "Вступний тур"
 
 #: spyder/app/tour.py:271
 msgid "New features in version 3.0"
-msgstr ""
+msgstr "Нові можливості у версії 3.0"
 
 #: spyder/app/tour.py:570 spyder/plugins/editor/confpage.py:319 spyder/plugins/ipythonconsole/confpage.py:208
 msgid "Run code"
-msgstr ""
+msgstr "Виконати код"
 
 #: spyder/app/tour.py:828
 msgid "Go to step: "
-msgstr ""
+msgstr "Перейти до кроку: "
 
 #: spyder/config/manager.py:293
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
@@ -719,7 +719,7 @@ msgstr ""
 
 #: spyder/config/utils.py:38
 msgid "Text files"
-msgstr ""
+msgstr "Текстові файли"
 
 #: spyder/config/utils.py:39
 msgid "reStructuredText files"
@@ -767,11 +767,11 @@ msgstr ""
 
 #: spyder/config/utils.py:54 spyder/plugins/explorer/widgets/explorer.py:1032
 msgid "All files"
-msgstr ""
+msgstr "Усі файли"
 
 #: spyder/config/utils.py:139
 msgid "Supported text files"
-msgstr ""
+msgstr "Підтримувані текстові файли"
 
 #: spyder/dependencies.py:82
 msgid "Notify macOS that Spyder can open Python files"
@@ -935,47 +935,47 @@ msgstr ""
 
 #: spyder/plugins/base.py:206 spyder/plugins/variableexplorer/widgets/arrayeditor.py:805 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1337 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:977 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:314 spyder/plugins/variableexplorer/widgets/texteditor.py:72 spyder/widgets/reporterror.py:219
 msgid "Close"
-msgstr ""
+msgstr "Закрити"
 
 #: spyder/plugins/base.py:208
 msgid "Close the pane"
-msgstr ""
+msgstr "Закрити панель"
 
 #: spyder/plugins/base.py:324 spyder/plugins/editor/confpage.py:26 spyder/plugins/editor/plugin.py:331 spyder/plugins/editor/plugin.py:1868 spyder/plugins/editor/utils/switcher.py:105 spyder/plugins/editor/widgets/codeeditor.py:128 spyder/plugins/editor/widgets/codeeditor.py:4686 spyder/plugins/editor/widgets/editor.py:535 spyder/plugins/help/confpage.py:31 spyder/plugins/help/plugin.py:98
 msgid "Editor"
-msgstr ""
+msgstr "Редактор"
 
 #: spyder/plugins/breakpoints/plugin.py:57
 msgid "Breakpoints"
-msgstr ""
+msgstr "Точки зупинки"
 
 #: spyder/plugins/breakpoints/plugin.py:88
 msgid "List breakpoints"
-msgstr ""
+msgstr "Показати список точок зупинки"
 
 #: spyder/plugins/breakpoints/widgets/breakpointsgui.py:44
 msgid "Condition"
-msgstr ""
+msgstr "Умова"
 
 #: spyder/plugins/breakpoints/widgets/breakpointsgui.py:44
 msgid "Line"
-msgstr ""
+msgstr "Рядок"
 
 #: spyder/plugins/breakpoints/widgets/breakpointsgui.py:44 spyder/plugins/findinfiles/widgets.py:395
 msgid "File"
-msgstr ""
+msgstr "Файл"
 
 #: spyder/plugins/breakpoints/widgets/breakpointsgui.py:188 spyder/plugins/editor/plugin.py:516
 msgid "Clear breakpoints in all files"
-msgstr ""
+msgstr "Вилучити точки зупинки у всіх файлах"
 
 #: spyder/plugins/breakpoints/widgets/breakpointsgui.py:210
 msgid "Clear this breakpoint"
-msgstr ""
+msgstr "Вилучити цю точку зупинки"
 
 #: spyder/plugins/breakpoints/widgets/breakpointsgui.py:215
 msgid "Edit this breakpoint"
-msgstr ""
+msgstr "Редагувати цю точку зупинки"
 
 #: spyder/plugins/completion/kite/client.py:116
 msgid "<code>{error}</code><br><br>Note: If you are using a VPN, please don't route requests to localhost/127.0.0.1 with it"
@@ -983,15 +983,15 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/plugin.py:152 spyder/plugins/completion/kite/widgets/install.py:329
 msgid "Kite installation error"
-msgstr ""
+msgstr "Помилка встановлення Kite"
 
 #: spyder/plugins/completion/kite/plugin.py:153 spyder/plugins/editor/widgets/codeeditor.py:1489 spyder/plugins/ipythonconsole/widgets/shell.py:316
 msgid "Don't show again."
-msgstr ""
+msgstr "Не показувати знову."
 
 #: spyder/plugins/completion/kite/utils/install.py:34
 msgid "No status"
-msgstr ""
+msgstr "Статус відсутній"
 
 #: spyder/plugins/completion/kite/utils/install.py:35
 msgid "Downloading script installer"
