@@ -200,7 +200,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except Exception:
             stderr = None
         if stderr:
-            self.shellwidget._append_plain_text(stderr,
+            self.shellwidget._append_plain_text(stderr, before_prompt=False)
 
     def __del__(self):
         """Close threads to avoid segfault"""
