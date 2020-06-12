@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 18:57\n"
+"PO-Revision-Date: 2020-06-12 19:07\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -1650,15 +1650,15 @@ msgstr "Максимальна кількість рядків"
 
 #: spyder/plugins/console/plugin.py:336
 msgid "External editor"
-msgstr ""
+msgstr "Зовнішній редактор"
 
 #: spyder/plugins/console/plugin.py:337
 msgid "External editor executable path:"
-msgstr ""
+msgstr "Шлях до виконуваного файлу зовнішнього редактора:"
 
 #: spyder/plugins/console/widgets/internalshell.py:261
 msgid "Help..."
-msgstr ""
+msgstr "Довідка..."
 
 #: spyder/plugins/console/widgets/internalshell.py:278
 msgid "Shell special commands:"
@@ -1674,19 +1674,19 @@ msgstr ""
 
 #: spyder/plugins/console/widgets/internalshell.py:281
 msgid "Run script:"
-msgstr ""
+msgstr "Виконати сценарій:"
 
 #: spyder/plugins/console/widgets/internalshell.py:282
 msgid "Remove references:"
-msgstr ""
+msgstr "Видалити посилання:"
 
 #: spyder/plugins/console/widgets/internalshell.py:283
 msgid "System commands:"
-msgstr ""
+msgstr "Команди системи:"
 
 #: spyder/plugins/console/widgets/internalshell.py:284
 msgid "Python help:"
-msgstr ""
+msgstr "Довідка Python:"
 
 #: spyder/plugins/console/widgets/internalshell.py:285
 msgid "GUI-based editor:"
