@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 18:47\n"
+"PO-Revision-Date: 2020-06-12 18:57\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -995,43 +995,43 @@ msgstr "Статус відсутній"
 
 #: spyder/plugins/completion/kite/utils/install.py:35
 msgid "Downloading script installer"
-msgstr ""
+msgstr "Завантаження встановлювача сценарію"
 
 #: spyder/plugins/completion/kite/utils/install.py:36
 msgid "Downloading installer"
-msgstr ""
+msgstr "Завантаження встановлювача"
 
 #: spyder/plugins/completion/kite/utils/install.py:37
 msgid "Installing"
-msgstr ""
+msgstr "Встановлення"
 
 #: spyder/plugins/completion/kite/utils/install.py:38
 msgid "Installation finished"
-msgstr ""
+msgstr "Встановлення завершено"
 
 #: spyder/plugins/completion/kite/utils/install.py:39
 msgid "Installation errored"
-msgstr ""
+msgstr "Помилка встановлення"
 
 #: spyder/plugins/completion/kite/utils/install.py:40
 msgid "Cancelled"
-msgstr ""
+msgstr "Скасовано"
 
 #: spyder/plugins/completion/kite/widgets/calltoaction.py:20
 msgid "No completions found. Get completions for this case and more by installing Kite."
-msgstr ""
+msgstr "Завершень не знайдено. Отримайте завершення для цього випадку і багато інших, встановивши Kite."
 
 #: spyder/plugins/completion/kite/widgets/calltoaction.py:52 spyder/plugins/completion/kite/widgets/install.py:82 spyder/plugins/completion/kite/widgets/install.py:148
 msgid "Install Kite"
-msgstr ""
+msgstr "Встановити Kite"
 
 #: spyder/plugins/completion/kite/widgets/calltoaction.py:53
 msgid "Learn More"
-msgstr ""
+msgstr "Дізнатися більше"
 
 #: spyder/plugins/completion/kite/widgets/calltoaction.py:54
 msgid "Dismiss Forever"
-msgstr ""
+msgstr "Відхилити назавжди"
 
 #: spyder/plugins/completion/kite/widgets/install.py:68
 msgid "Now Spyder can use <a href=\"{kite_url}\">Kite</a> to provide better and more accurate code completions in its editor <br>for the most important packages in the Python scientific ecosystem, such as Numpy, <br>Matplotlib and Pandas.<br><br>Would you like to install it or learn more about it?<br><br><i>Note:</i> Kite is free to use but is not an open source program."
@@ -1039,11 +1039,11 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/install.py:80
 msgid "Learn more"
-msgstr ""
+msgstr "Дізнатися більше"
 
 #: spyder/plugins/completion/kite/widgets/install.py:84 spyder/plugins/completion/kite/widgets/install.py:149
 msgid "Dismiss"
-msgstr ""
+msgstr "Відхилити"
 
 #: spyder/plugins/completion/kite/widgets/install.py:116
 msgid "<big><b>Level up your completions with Kite</b></big><br><br>Kite is a native app that runs locally on your computer <br>and uses machine learning to provide advanced <br>completions.<br><br>&#10003; Specialized support for Python data analysis packages<br><br>&#10003; 1.5x more completions than the builtin engine<br><br>&#10003; Completions ranked by code context <br><br>&#10003; Full line code completions<br><br>&#10003; 100% local - no internet connection required<br><br>&#10003; 100% free to use<br><br><a href=\"{kite_url}\">Learn more on the Kite website</a>"
@@ -1051,7 +1051,7 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/install.py:209
 msgid "Downloading"
-msgstr ""
+msgstr "Завантажується"
 
 #: spyder/plugins/completion/kite/widgets/install.py:211
 msgid "Kite comes with a native app called the Copilot <br>which provides you with real time <br>documentation as you code.<br><br>When Kite is done installing, the Copilot will <br>launch automatically and guide you throught the <br>rest of the setup process."
@@ -1059,7 +1059,7 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/install.py:219
 msgid "OK"
-msgstr ""
+msgstr "Гаразд"
 
 #: spyder/plugins/completion/kite/widgets/install.py:330
 msgid "<b>An error ocurred while installing Kite!</b><br><br>Please try to <a href=\"{kite_url}\">install it manually</a> or <a href=\"{kite_contact}\">contact Kite</a> for help"
@@ -1067,15 +1067,15 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/install.py:358
 msgid "Do you really want to cancel Kite installation?"
-msgstr ""
+msgstr "Ви дійсно хочете скасувати встановлення Kite?"
 
 #: spyder/plugins/completion/kite/widgets/status.py:26
 msgid "Kite completions status"
-msgstr ""
+msgstr "Статус завершень Kite"
 
 #: spyder/plugins/completion/kite/widgets/status.py:27
 msgid "not reachable"
-msgstr ""
+msgstr "недоступно"
 
 #: spyder/plugins/completion/kite/widgets/status.py:54
 msgid "Kite installation will continue in the background.\n"
@@ -1085,7 +1085,7 @@ msgstr ""
 #: spyder/plugins/completion/kite/widgets/status.py:59
 msgid "Click here to show the\n"
 "installation dialog again"
-msgstr ""
+msgstr "Натисніть тут, щоб знову показати діалогове вікно встановлення"
 
 #: spyder/plugins/completion/languageserver/confpage.py:111
 msgid "Valid JSON"
@@ -1133,7 +1133,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:166
 msgid "Select a language"
-msgstr ""
+msgstr "Виберіть мову"
 
 #: spyder/plugins/completion/languageserver/confpage.py:179
 msgid "TCP port number of the server"
@@ -1161,15 +1161,15 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:231 spyder/plugins/completion/languageserver/confpage.py:549
 msgid "Language"
-msgstr ""
+msgstr "Мова"
 
 #: spyder/plugins/completion/languageserver/confpage.py:237
 msgid "Language server"
-msgstr ""
+msgstr "Мовний сервер"
 
 #: spyder/plugins/completion/languageserver/confpage.py:246
 msgid "Server address"
-msgstr ""
+msgstr "Адреса сервера"
 
 #: spyder/plugins/completion/languageserver/confpage.py:261 spyder/plugins/completion/languageserver/confpage.py:784 spyder/plugins/completion/languageserver/confpage.py:1164
 msgid "Advanced"
@@ -1477,7 +1477,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:1154
 msgid "Completion"
-msgstr ""
+msgstr "Завершення"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1155
 msgid "Linting"
@@ -1489,7 +1489,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:1158
 msgid "Code style"
-msgstr ""
+msgstr "Стиль коду"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1160
 msgid "Docstring style"
@@ -1521,11 +1521,11 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:87 spyder/plugins/completion/languageserver/plugin.py:95 spyder/plugins/completion/languageserver/plugin.py:192
 msgid "restarting..."
-msgstr ""
+msgstr "перезавантажується..."
 
 #: spyder/plugins/completion/languageserver/plugin.py:139 spyder/plugins/completion/languageserver/plugin.py:166
 msgid "ready"
-msgstr ""
+msgstr "готово"
 
 #: spyder/plugins/completion/languageserver/plugin.py:295
 msgid "It appears there is no {language} language server listening at address:<br><br><tt>{host}:{port}</tt><br><br>Therefore, completion and linting for {language} will not work during this session."
@@ -1533,7 +1533,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:320 spyder/plugins/completion/languageserver/plugin.py:396
 msgid "down"
-msgstr ""
+msgstr "вниз"
 
 #: spyder/plugins/completion/languageserver/plugin.py:337
 msgid "Completion and linting in the editor for {language} files will not work during the current session, or stopped working.<br><br>"
@@ -1558,11 +1558,11 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:92
 msgid "starting..."
-msgstr ""
+msgstr "запускається..."
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:108
 msgid "Unknown"
-msgstr ""
+msgstr "Невідомо"
 
 #: spyder/plugins/completion/plugin.py:394
 msgid "Kite installation process has not finished. Do you really want to exit?"
@@ -1574,15 +1574,15 @@ msgstr ""
 
 #: spyder/plugins/console/plugin.py:146
 msgid "&Run..."
-msgstr ""
+msgstr "&Виконати..."
 
 #: spyder/plugins/console/plugin.py:148
 msgid "Run a Python script"
-msgstr ""
+msgstr "Виконати сценарій Python"
 
 #: spyder/plugins/console/plugin.py:151
 msgid "Environment variables..."
-msgstr ""
+msgstr "Змінні середовища..."
 
 #: spyder/plugins/console/plugin.py:153
 msgid "Show and edit environment variables (for current session)"
@@ -1614,11 +1614,11 @@ msgstr ""
 
 #: spyder/plugins/console/plugin.py:170 spyder/plugins/editor/confpage.py:48 spyder/plugins/help/confpage.py:60 spyder/plugins/help/plugin.py:73 spyder/plugins/history/confpage.py:34 spyder/plugins/history/plugin.py:112
 msgid "Wrap lines"
-msgstr ""
+msgstr "Переносити рядки"
 
 #: spyder/plugins/console/plugin.py:174
 msgid "Automatic code completion"
-msgstr ""
+msgstr "Автозавершення коду"
 
 #: spyder/plugins/console/plugin.py:178
 msgid "Internal console settings"
@@ -1626,7 +1626,7 @@ msgstr ""
 
 #: spyder/plugins/console/plugin.py:229
 msgid "<h3>Spyder crashed during last session</h3>"
-msgstr ""
+msgstr "<h3>Spyder зазнав краху під час останнього сеансу</h3>"
 
 #: spyder/plugins/console/plugin.py:232
 msgid "Please provide any additional information you might have about the crash."
@@ -1634,19 +1634,19 @@ msgstr ""
 
 #: spyder/plugins/console/plugin.py:280
 msgid "Run Python script"
-msgstr ""
+msgstr "Виконати сценарій Python"
 
 #: spyder/plugins/console/plugin.py:281 spyder/plugins/explorer/widgets/explorer.py:1047 spyder/plugins/profiler/widgets/profilergui.py:227
 msgid "Python scripts"
-msgstr ""
+msgstr "Сценарії Python"
 
 #: spyder/plugins/console/plugin.py:325
 msgid "Buffer"
-msgstr ""
+msgstr "Буфер"
 
 #: spyder/plugins/console/plugin.py:326
 msgid "Maximum line count"
-msgstr ""
+msgstr "Максимальна кількість рядків"
 
 #: spyder/plugins/console/plugin.py:336
 msgid "External editor"
