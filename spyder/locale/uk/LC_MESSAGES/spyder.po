@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 19:07\n"
+"PO-Revision-Date: 2020-06-12 19:27\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -1666,11 +1666,11 @@ msgstr ""
 
 #: spyder/plugins/console/widgets/internalshell.py:279
 msgid "Internal editor:"
-msgstr ""
+msgstr "Внутрішній редактор:"
 
 #: spyder/plugins/console/widgets/internalshell.py:280
 msgid "External editor:"
-msgstr ""
+msgstr "Зовнішній редактор:"
 
 #: spyder/plugins/console/widgets/internalshell.py:281
 msgid "Run script:"
@@ -1698,7 +1698,7 @@ msgstr ""
 
 #: spyder/plugins/console/widgets/shell.py:135
 msgid "Save history log..."
-msgstr ""
+msgstr "Зберегти журнал історії..."
 
 #: spyder/plugins/console/widgets/shell.py:137
 msgid "Save current history log (i.e. all inputs and outputs) in a text file"
@@ -1706,15 +1706,15 @@ msgstr ""
 
 #: spyder/plugins/console/widgets/shell.py:140 spyder/plugins/explorer/widgets/explorer.py:818 spyder/plugins/projects/plugin.py:373
 msgid "Delete"
-msgstr ""
+msgstr "Видалити"
 
 #: spyder/plugins/console/widgets/shell.py:257
 msgid "Save history log"
-msgstr ""
+msgstr "Зберегти журнал історії"
 
 #: spyder/plugins/console/widgets/shell.py:260
 msgid "History logs"
-msgstr ""
+msgstr "Журнал історії"
 
 #: spyder/plugins/console/widgets/shell.py:702
 msgid "Copy without prompts"
@@ -1722,19 +1722,19 @@ msgstr ""
 
 #: spyder/plugins/console/widgets/shell.py:708 spyder/plugins/console/widgets/shell.py:711
 msgid "Clear line"
-msgstr ""
+msgstr "Очистити рядок"
 
 #: spyder/plugins/console/widgets/shell.py:716
 msgid "Clear shell"
-msgstr ""
+msgstr "Очистити оболонку"
 
 #: spyder/plugins/console/widgets/shell.py:719
 msgid "Clear shell contents ('cls' command)"
-msgstr ""
+msgstr "Очистити вміст оболонки (команда 'cls')"
 
 #: spyder/plugins/editor/confpage.py:35
 msgid "Show tab bar"
-msgstr ""
+msgstr "Показувати панель вкладок"
 
 #: spyder/plugins/editor/confpage.py:37 spyder/plugins/editor/plugin.py:811
 msgid "Show selector for classes and functions"
@@ -1750,19 +1750,19 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:42 spyder/plugins/history/confpage.py:35 spyder/plugins/history/plugin.py:116
 msgid "Show line numbers"
-msgstr ""
+msgstr "Показувати номери рядків"
 
 #: spyder/plugins/editor/confpage.py:43 spyder/plugins/editor/plugin.py:798
 msgid "Show blank spaces"
-msgstr ""
+msgstr "Показувати порожні пробіли"
 
 #: spyder/plugins/editor/confpage.py:44
 msgid "Highlight current line"
-msgstr ""
+msgstr "Виділяти поточний рядок"
 
 #: spyder/plugins/editor/confpage.py:46
 msgid "Highlight current cell"
-msgstr ""
+msgstr "Виділяти поточну комірку"
 
 #: spyder/plugins/editor/confpage.py:49 spyder/plugins/editor/plugin.py:801
 msgid "Scroll past the end"
