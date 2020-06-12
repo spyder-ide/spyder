@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 20:18\n"
+"PO-Revision-Date: 2020-06-12 20:26\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -2852,11 +2852,11 @@ msgstr "Пакунок..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:440
 msgid "Open in Spyder"
-msgstr ""
+msgstr "Відкрити в Spyder"
 
 #: spyder/plugins/explorer/widgets/explorer.py:442
 msgid "Open with"
-msgstr ""
+msgstr "Відкрити за допомогою"
 
 #: spyder/plugins/explorer/widgets/explorer.py:446
 msgid "Open externally"
@@ -2864,35 +2864,35 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:451
 msgid "Move..."
-msgstr ""
+msgstr "Перемістити..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:457
 msgid "Delete..."
-msgstr ""
+msgstr "Вилучити..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:463
 msgid "Rename..."
-msgstr ""
+msgstr "Перейменувати..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:489
 msgid "Copy Absolute Path"
-msgstr ""
+msgstr "Копіювати абсолютний шлях"
 
 #: spyder/plugins/explorer/widgets/explorer.py:495
 msgid "Copy Relative Path"
-msgstr ""
+msgstr "Копіювати відносний шлях"
 
 #: spyder/plugins/explorer/widgets/explorer.py:517 spyder/plugins/explorer/widgets/fileassociations.py:386
 msgid " (Application not found!)"
-msgstr ""
+msgstr " (Додаток не знайдено!)"
 
 #: spyder/plugins/explorer/widgets/explorer.py:528
 msgid "Default external application"
-msgstr ""
+msgstr "Типова зовнішня програма"
 
 #: spyder/plugins/explorer/widgets/explorer.py:538
 msgid "Show in Folder"
-msgstr ""
+msgstr "Показати в теці"
 
 #: spyder/plugins/explorer/widgets/explorer.py:564
 msgid "Commit"
@@ -2916,11 +2916,11 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:595
 msgid "New"
-msgstr ""
+msgstr "Новий"
 
 #: spyder/plugins/explorer/widgets/explorer.py:603
 msgid "Import"
-msgstr ""
+msgstr "Імпортувати"
 
 #: spyder/plugins/explorer/widgets/explorer.py:725
 msgid "The following command did not launch successfully:"
@@ -2936,11 +2936,11 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:837
 msgid "delete"
-msgstr ""
+msgstr "видалити"
 
 #: spyder/plugins/explorer/widgets/explorer.py:838 spyder/plugins/projects/plugin.py:386 spyder/plugins/projects/widgets/explorer.py:148
 msgid "Project Explorer"
-msgstr ""
+msgstr "Оглядач проєкту"
 
 #: spyder/plugins/explorer/widgets/explorer.py:839 spyder/plugins/projects/widgets/explorer.py:149
 msgid "<b>Unable to %s <i>%s</i></b><br><br>Error message:<br>%s"
@@ -2948,7 +2948,7 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:854
 msgid "File Explorer"
-msgstr ""
+msgstr "Оглядач файлів"
 
 #: spyder/plugins/explorer/widgets/explorer.py:855
 msgid "The current directory contains a project.<br><br>If you want to delete the project, please go to <b>Projects</b> &raquo; <b>Delete Project</b>"
@@ -2956,59 +2956,59 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:890 spyder/plugins/explorer/widgets/explorer.py:898 spyder/plugins/explorer/widgets/explorer.py:912 spyder/plugins/variableexplorer/widgets/collectionseditor.py:585 spyder/plugins/variableexplorer/widgets/collectionseditor.py:895
 msgid "Rename"
-msgstr ""
+msgstr "Перейменувати"
 
 #: spyder/plugins/explorer/widgets/explorer.py:891
 msgid "New name:"
-msgstr ""
+msgstr "Нове ім'я:"
 
 #: spyder/plugins/explorer/widgets/explorer.py:899
 msgid "Do you really want to rename <b>%s</b> and overwrite the existing file <b>%s</b>?"
-msgstr ""
+msgstr "Ви дійсно хочете перейменувати <b>%s</b> і перезаписати існуючий файл <b>%s</b>?"
 
 #: spyder/plugins/explorer/widgets/explorer.py:913
 msgid "<b>Unable to rename file <i>%s</i></b><br><br>Error message:<br>%s"
-msgstr ""
+msgstr "<b>Неможливо перейменувати файл <i>%s</i></b><br><br>Повідомлення про помилку:<br>%s"
 
 #: spyder/plugins/explorer/widgets/explorer.py:943 spyder/plugins/findinfiles/widgets.py:497 spyder/plugins/projects/widgets/projectdialog.py:156 spyder/plugins/workingdirectory/plugin.py:179 spyder/preferences/configdialog.py:607 spyder/preferences/configdialog.py:622 spyder/preferences/runconfig.py:228 spyder/preferences/runconfig.py:276 spyder/widgets/pathmanager.py:313
 msgid "Select directory"
-msgstr ""
+msgstr "Виберіть теку"
 
 #: spyder/plugins/explorer/widgets/explorer.py:960
 msgid "<b>Unable to move <i>%s</i></b><br><br>Error message:<br>%s"
-msgstr ""
+msgstr "<b>Неможливо перемістити <i>%s</i></b><br><br>Повідомлення про помилку:<br>%s"
 
 #: spyder/plugins/explorer/widgets/explorer.py:978
 msgid "<b>Unable to create folder <i>%s</i></b><br><br>Error message:<br>%s"
-msgstr ""
+msgstr "<b>Неможливо створити теку <i>%s</i></b><br><br>Повідомлення про помилку:<br>%s"
 
 #: spyder/plugins/explorer/widgets/explorer.py:991 spyder/plugins/explorer/widgets/explorer.py:1025
 msgid "<b>Unable to create file <i>%s</i></b><br><br>Error message:<br>%s"
-msgstr ""
+msgstr "<b>Неможливо створити файл <i>%s</i></b><br><br>Повідомлення про помилку:<br>%s"
 
 #: spyder/plugins/explorer/widgets/explorer.py:999
 msgid "New folder"
-msgstr ""
+msgstr "Нова тека"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1000
 msgid "Folder name:"
-msgstr ""
+msgstr "Ім’я теки:"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1005
 msgid "New package"
-msgstr ""
+msgstr "Новий пакунок"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1006
 msgid "Package name:"
-msgstr ""
+msgstr "Ім'я пакунка:"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1046
 msgid "New module"
-msgstr ""
+msgstr "Новий модуль"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1117
 msgid "File/Folder copy error"
-msgstr ""
+msgstr "Помилка копіювання файлу/теки"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1118
 msgid "Cannot copy this type of file(s) or folder(s). The error was:\n\n"
@@ -3068,15 +3068,15 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1631 spyder/plugins/variableexplorer/widgets/importwizard.py:543
 msgid "Previous"
-msgstr ""
+msgstr "Попереднє"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1634 spyder/plugins/variableexplorer/widgets/importwizard.py:547 spyder/plugins/workingdirectory/plugin.py:71
 msgid "Next"
-msgstr ""
+msgstr "Наступне"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1637
 msgid "Parent"
-msgstr ""
+msgstr "Батьківський"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1651
 msgid "Display kind"
