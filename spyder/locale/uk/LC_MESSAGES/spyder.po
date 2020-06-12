@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 18:16\n"
+"PO-Revision-Date: 2020-06-12 18:26\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -187,11 +187,11 @@ msgstr "На&лаштування"
 
 #: spyder/app/mainwindow.py:716 spyder/widgets/pathmanager.py:71
 msgid "PYTHONPATH manager"
-msgstr ""
+msgstr "Менеджер PYTHONPATH"
 
 #: spyder/app/mainwindow.py:719
 msgid "Python Path Manager"
-msgstr ""
+msgstr "Менеджер шляхів Python"
 
 #: spyder/app/mainwindow.py:722
 msgid "Reset Spyder to factory defaults"
@@ -203,15 +203,15 @@ msgstr "Поточні змінні середовища користувача.
 
 #: spyder/app/mainwindow.py:729
 msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
-msgstr ""
+msgstr "Показати і редагувати поточні змінні середовища користувача у реєстрі Windows (тобто для всіх сеансів)"
 
 #: spyder/app/mainwindow.py:739
 msgid "Install Kite completion engine"
-msgstr ""
+msgstr "Встановити рушій завершення Kite"
 
 #: spyder/app/mainwindow.py:745
 msgid "LSP logs"
-msgstr ""
+msgstr "Журнал LSP"
 
 #: spyder/app/mainwindow.py:749 spyder/app/mainwindow.py:1199
 msgid "External Tools"
@@ -243,11 +243,11 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:822
 msgid "Fullscreen mode"
-msgstr ""
+msgstr "Повноекранний режим"
 
 #: spyder/app/mainwindow.py:834
 msgid "Main toolbar"
-msgstr ""
+msgstr "Головна панель інструментів"
 
 #: spyder/app/mainwindow.py:847
 msgid "Spyder Internal Console\n\n"
@@ -360,11 +360,11 @@ msgstr "Підручник по Spyder"
 
 #: spyder/app/mainwindow.py:1053
 msgid "Shortcuts Summary"
-msgstr ""
+msgstr "Клавіатурні скорочення"
 
 #: spyder/app/mainwindow.py:1059
 msgid "Interactive tours"
-msgstr ""
+msgstr "Інтерактивні тури"
 
 #: spyder/app/mainwindow.py:1086
 msgid "Python documentation"
@@ -384,7 +384,7 @@ msgstr "Швидке посилання"
 
 #: spyder/app/mainwindow.py:1097
 msgid "Console help"
-msgstr ""
+msgstr "Командний рядок довідки"
 
 #: spyder/app/mainwindow.py:1127
 msgid "Installed Python modules"
