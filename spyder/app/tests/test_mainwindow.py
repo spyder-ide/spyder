@@ -3209,15 +3209,16 @@ def test_run_unsaved_file_multiprocessing(main_window, qtbot):
     # Start running
     qtbot.mouseClick(run_button, Qt.LeftButton)
 
-    # There is no exception, so the exception is None
-    qtbot.waitUntil(
-        lambda: 'None' in shell._control.toPlainText())
-
     # Because multiprocessing is behaving strangly on windows, only some
     # situations will work. This is one of these situations so it shouldn't
     # be broken.
     if os.name == 'nt':
-        assert "Warning: multiprocessing" in shell._control.toPlainText()
+        qtbot.waitUntil(
+            lambda: "Warning: multiprocessing" in shell._control.toPlainText())
+    else:
+        # There is no exception, so the exception is None
+        qtbot.waitUntil(
+            lambda: 'None' in shell._control.toPlainText())
 
 
 if __name__ == "__main__":
