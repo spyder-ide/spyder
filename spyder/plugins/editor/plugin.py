@@ -81,7 +81,21 @@ class Editor(SpyderPluginWidget):
     debug_cell_in_ipyclient = Signal(str, object, str, bool)
     exec_in_extconsole = Signal(str, bool)
     redirect_stdio = Signal(bool)
-    open_dir = Signal(str)
+
+    sig_dir_opened = Signal(str)
+    """
+    This signal is emitted when the editor changes the current directory.
+
+    Parameters
+    ----------
+    new_working_directory: str
+        The new working directory path.
+
+    Notes
+    -----
+    This option is available on the options menu of the editor plugin
+    """
+
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
@@ -1130,7 +1144,6 @@ class Editor(SpyderPluginWidget):
         self.main.console.sig_edit_goto_requested.connect(self.load)
         self.exec_in_extconsole.connect(self.main.execute_in_external_console)
         self.redirect_stdio.connect(self.main.redirect_internalshell_stdio)
-        self.open_dir.connect(self.main.workingdirectory.chdir)
 
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
@@ -1738,7 +1751,7 @@ class Editor(SpyderPluginWidget):
         fname = self.get_current_filename()
         if fname is not None:
             directory = osp.dirname(osp.abspath(fname))
-            self.open_dir.emit(directory)
+            self.sig_dir_opened.emit(directory)
 
     def __add_recent_file(self, fname):
         """Add to recent file list"""

@@ -1453,7 +1453,22 @@ class ExplorerTreeWidget(DirView):
      None: enable the option and do not allow the user to disable it)"""
     set_previous_enabled = Signal(bool)
     set_next_enabled = Signal(bool)
-    sig_open_dir = Signal(str)
+
+    sig_dir_opened = Signal(str)
+    """
+    This signal is emitted when the current directory of the explorer tree
+    has changed.
+
+    Parameters
+    ----------
+    new_root_directory: str
+        The new root directory path.
+
+    Notes
+    -----
+    This happens when clicking (or double clicking depending on the option)
+    a folder, turning this folder in the new root parent of the tree.
+    """
 
     def __init__(self, parent=None, show_cd_only=None):
         DirView.__init__(self, parent)
@@ -1563,8 +1578,20 @@ class ExplorerTreeWidget(DirView):
             user_directory = get_home_dir()
             self.chdir(directory=user_directory, browsing_history=True)
 
-    def chdir(self, directory=None, browsing_history=False):
-        """Set directory as working directory"""
+    def chdir(self, directory=None, browsing_history=False, emit=True):
+        """
+        Set directory as working directory.
+
+        Parameters
+        ----------
+        directory: str
+            The new working directory.
+        browsing_history: bool, optional
+            Add the new `directory`to the browsing history. Default is False.
+        emit: bool, optional
+            Emit a signal when changing the working directpory.
+            Default is True.
+        """
         if directory is not None:
             directory = osp.abspath(to_text_string(directory))
         if browsing_history:
@@ -1592,8 +1619,9 @@ class ExplorerTreeWidget(DirView):
                 FileNotFoundError = IOError
         try:
             os.chdir(directory)
-            self.sig_open_dir.emit(directory)
             self.refresh(new_path=directory, force_current=True)
+            if emit:
+                self.sig_dir_opened.emit(directory)
         except PermissionError:
             QMessageBox.critical(self.parent_widget, "Error",
                                  _("You don't have the right permissions to "

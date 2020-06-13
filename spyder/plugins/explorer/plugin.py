@@ -15,6 +15,7 @@
 import os.path as osp
 
 # Third party imports
+from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
@@ -30,6 +31,24 @@ class Explorer(SpyderPluginWidget):
     CONF_SECTION = 'explorer'
     CONFIGWIDGET_CLASS = ExplorerConfigPage
     CONF_FILE = False
+
+    # --- Signals
+    # ------------------------------------------------------------------------
+    sig_dir_opened = Signal(str)
+    """
+    This signal is emitted when the current directory of the explorer tree
+    has changed.
+
+    Parameters
+    ----------
+    new_root_directory: str
+        The new root directory path.
+
+    Notes
+    -----
+    This happens when clicking (or double clicking depending on the option)
+    a folder, turning this folder in the new root parent of the tree.
+    """
 
     def __init__(self, parent=None):
         """Initialization."""
@@ -98,19 +117,8 @@ class Explorer(SpyderPluginWidget):
             lambda fname:
             ipyconsole.run_script(fname, osp.dirname(fname), '', False, False,
                                   False, True, False))
-        treewidget.sig_open_dir.connect(
-            lambda dirname:
-            self.main.workingdirectory.chdir(dirname,
-                                             refresh_explorer=False,
-                                             refresh_console=True))
 
-        self.main.editor.open_dir.connect(self.chdir)
-
-        # Signal "set_explorer_cwd(QString)" will refresh only the
-        # contents of path passed by the signal in explorer:
-        self.main.workingdirectory.set_explorer_cwd.connect(
-                     lambda directory: self.refresh_plugin(new_path=directory,
-                                                           force_current=True))
+        treewidget.sig_dir_opened.connect(self.sig_dir_opened)
 
     def refresh_plugin(self, new_path=None, force_current=True):
         """Refresh explorer widget"""
@@ -145,7 +153,18 @@ class Explorer(SpyderPluginWidget):
                 method(value)
         self.fileexplorer.treewidget.update_common_actions()
 
-    #------ Public API ---------------------------------------------------------
-    def chdir(self, directory):
-        """Set working directory"""
-        self.fileexplorer.treewidget.chdir(directory)
+    # --- Public API
+    # ------------------------------------------------------------------------
+    def chdir(self, directory, emit=True):
+        """
+        Set working directory.
+
+        Parameters
+        ----------
+        directory: str
+            The new working directory path.
+        emit: bool, optional
+            Emit a signal to indicate the working directory has changed.
+            Default is True.
+        """
+        self.fileexplorer.treewidget.chdir(directory, emit=emit)

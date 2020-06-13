@@ -10,6 +10,7 @@ Internal Console Plugin.
 
 # Standard library imports
 import logging
+import os
 
 # Third party imports
 from qtpy.QtCore import Signal

@@ -907,13 +907,16 @@ def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
     # Change directory in IPython console using %cd
     with qtbot.waitSignal(shell.executed):
         shell.execute(u"%cd {}".format(temp_dir))
+
     qtbot.wait(1000)
 
     # Assert that cwd changed in workingdirectory
-    assert osp.normpath(wdir.history[-1]) == osp.normpath(temp_dir)
+    assert osp.normpath(wdir.get_container().history[-1]) == osp.normpath(
+        temp_dir)
 
     # Assert that cwd changed in explorer
-    assert osp.normpath(treewidget.get_current_folder()) == osp.normpath(temp_dir)
+    assert osp.normpath(treewidget.get_current_folder()) == osp.normpath(
+        temp_dir)
 
 
 @pytest.mark.slow
@@ -940,7 +943,8 @@ def test_change_cwd_explorer(main_window, qtbot, tmpdir, test_directory):
     qtbot.wait(1000)
 
     # Assert that cwd changed in workingdirectory
-    assert osp.normpath(wdir.history[-1]) == osp.normpath(temp_dir)
+    assert osp.normpath(wdir.get_container().history[-1]) == osp.normpath(
+        temp_dir)
 
     # Assert that cwd changed in IPython console
     assert osp.normpath(temp_dir) == osp.normpath(shell._cwd)
@@ -1659,9 +1663,7 @@ def test_change_cwd_dbg(main_window, qtbot):
     qtbot.wait(1000)
 
     # Set LOCATION as cwd
-    main_window.workingdirectory.chdir(tempfile.gettempdir(),
-                                       browsing_history=False,
-                                       refresh_explorer=True)
+    main_window.workingdirectory.chdir(tempfile.gettempdir())
     qtbot.wait(1000)
     print(repr(control.toPlainText()))
     shell.clear_console()
