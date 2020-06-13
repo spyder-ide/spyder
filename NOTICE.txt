@@ -1207,6 +1207,13 @@ Most icons in the Spyder 3 theme; used via Spyder's own QtAwesome package.
 
 See spyder/utils/icon_manager.py for a complete list.
 
+In addition:
+
+spyder/images/folding.arrow_down_off.png
+spyder/images/folding.arrow_down_on.png
+spyder/images/folding.arrow_right_off.png
+spyder/images/folding.arrow_right_on.png
+
 
 -------------------------------------------------------------------------------
 
