@@ -117,7 +117,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 and self.shutdown_thread.isRunning()):
             self.shutdown_thread.wait()
 
-    #---- Public API ----------------------------------------------------------
+    # ---- Public API ---------------------------------------------------------
     def shutdown(self):
         """Shutdown kernel"""
         self.shutdown_called = True
@@ -556,7 +556,7 @@ the sympy module (e.g. plot)
             if not 'inline' in command:
                 self.silent_execute(command)
 
-    # ---- Spyder-kernels methods -------------------------------------------
+    # ---- Spyder-kernels methods ---------------------------------------------
     def get_editor(self, filename):
         """Get editor for filename and set it as the current editor."""
         editorstack = self.get_editorstack()
@@ -637,7 +637,7 @@ the sympy module (e.g. plot)
         """Reimplemented to call our own restart mechanism."""
         self.ipyclient.restart_kernel()
 
-    # ---- Private methods (overrode by us) ---------------------------------
+    # ---- Private methods (overrode by us) -----------------------------------
     def _handle_error(self, msg):
         """
         Reimplemented to reset the prompt if the error comes after the reply
