@@ -117,6 +117,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 and self.shutdown_thread.isRunning()):
             self.shutdown_thread.wait()
 
+    #---- Public API ----------------------------------------------------------
     def shutdown(self):
         """Shutdown kernel"""
         self.shutdown_called = True
@@ -189,7 +190,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Redefine the complete method to work while debugging.
         self.redefine_complete_for_dbg(self.kernel_client)
 
-    #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
         """Set exit callback for this shell."""
         self.exit_requested.connect(self.ipyclient.exit_callback)
@@ -632,8 +632,12 @@ the sympy module (e.g. plot)
         """Get the current filename."""
         return self.get_editorstack().get_current_finfo().filename
 
-    # ---- Private methods (overrode by us) ---------------------------------
+    # ---- Public methods (overrode by us) ------------------------------------
+    def request_restart_kernel(self):
+        """Reimplemented to call our own restart mechanism."""
+        self.ipyclient.restart_kernel()
 
+    # ---- Private methods (overrode by us) ---------------------------------
     def _handle_error(self, msg):
         """
         Reimplemented to reset the prompt if the error comes after the reply
