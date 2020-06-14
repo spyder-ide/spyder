@@ -595,11 +595,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def _finalise_restart(self, reset=False):
         """Finishes the restarting of the kernel."""
+        sw = self.shellwidget
+
         if self._abort_kernel_restart():
             sw.spyder_kernel_comm.close()
             return
 
-        sw = self.shellwidget
         if self.restart_thread and self.restart_thread.error is not None:
             sw._append_plain_text(
                 _('Error restarting kernel: %s\n') % self.restart_thread.error,
