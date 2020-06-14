@@ -3248,5 +3248,6 @@ def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
     qtbot.waitUntil(lambda: 'a' not in nsb.editor.source_model._data,
                     timeout=3000)
 
+
 if __name__ == "__main__":
     pytest.main()
