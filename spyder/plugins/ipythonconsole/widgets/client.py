@@ -558,6 +558,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                     self.infowidget.hide()
 
                 if self._abort_kernel_restart():
+                    sw.spyder_kernel_comm.close()
                     return
 
                 self._show_loading_page()
@@ -595,6 +596,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def _finalise_restart(self, reset=False):
         """Finishes the restarting of the kernel."""
         if self._abort_kernel_restart():
+            sw.spyder_kernel_comm.close()
             return
 
         sw = self.shellwidget
