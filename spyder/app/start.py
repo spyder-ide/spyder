@@ -27,18 +27,22 @@ try:
 except:
     pass
 
-# Start Spyder with a clean configuration directory for testing purposes
-from spyder.app.cli_options import get_options
-CLI_OPTIONS, CLI_ARGS = get_options()
-if CLI_OPTIONS.safe_mode:
-    os.environ['SPYDER_SAFE_MODE'] = 'True'
-
 # Local imports
+from spyder.app.cli_options import get_options
 from spyder.config.base import (get_conf_path, running_in_mac_app,
                                 running_under_pytest)
-from spyder.config.manager import CONF
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
+
+
+# Start Spyder with a clean configuration directory for testing purposes
+if running_under_pytest():
+    sys_argv = [sys.argv[0]]
+    CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
+else:
+    CLI_OPTIONS, CLI_ARGS = get_options()
+if CLI_OPTIONS.safe_mode:
+    os.environ['SPYDER_SAFE_MODE'] = 'True'
 
 
 def send_args_to_spyder(args):
@@ -49,6 +53,7 @@ def send_args_to_spyder(args):
     Args can be Python scripts or files with these extensions: .spydata, .mat,
     .npy, or .h5, which can be imported by the Variable Explorer.
     """
+    from spyder.config.manager import CONF
     port = CONF.get('main', 'open_files_port')
 
     # Wait ~50 secs for the server to be up
@@ -77,6 +82,8 @@ def main():
     Spyder is already running, this will just parse and send command line
     options to the application.
     """
+    from spyder.config.manager import CONF
+
     # Parse command line options
     options, args = (CLI_OPTIONS, CLI_ARGS)
 
