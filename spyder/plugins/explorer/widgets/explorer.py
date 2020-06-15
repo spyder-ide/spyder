@@ -589,6 +589,9 @@ class DirView(QTreeView):
         """Create context menu actions"""
         actions = []
         fnames = self.get_selected_filenames()
+        # Needed to create a context menu in an empty folder in Windows
+        # See spyder-ide/spyder#13004
+        fnames.append('')
         new_actions = self.create_file_new_actions(fnames)
         if len(new_actions) > 1:
             # Creating a submenu only if there is more than one entry
@@ -644,6 +647,7 @@ class DirView(QTreeView):
         try:
             self.update_menu()
             self.menu.popup(event.globalPos())
+            event.accept()
         except AttributeError:
             pass
 
