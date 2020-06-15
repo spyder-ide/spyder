@@ -42,6 +42,9 @@ DEV = os.environ.get('SPYDER_DEV')
 # Manually override whether the dev configuration directory is used.
 USE_DEV_CONFIG_DIR = os.environ.get('SPYDER_USE_DEV_CONFIG_DIR')
 
+# 
+CLEAN_DIR_ID = str(uuid.uuid4()).split('-')[-1]
+
 
 def get_safe_mode():
     """
@@ -189,9 +192,8 @@ def get_clean_conf_dir():
     """
     Return the path to a temp clean configuration dir, for tests and safe mode.
     """
-    hash_id = str(uuid.uuid4()).split('-')[-1]
     conf_dir = osp.join(str(tempfile.gettempdir()),
-                        'spyder{0!s}'.format(hash_id),
+                        'spyder{0!s}'.format(CLEAN_DIR_ID),
                         get_conf_subfolder())
     return conf_dir
 
