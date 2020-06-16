@@ -51,7 +51,7 @@ class OnlineHelp(SpyderPluginWidget):
         else:
             history = []
         return history
-    
+
     def save_history(self):
         """Save history to a text file in user home directory"""
         open(self.LOG_PATH, 'w').write("\n".join( \
@@ -62,7 +62,7 @@ class OnlineHelp(SpyderPluginWidget):
     def toggle_view(self, checked):
         """Toggle view action."""
         if checked:
-            if not self.pydocbrowser.is_server_running():
+            if self.pydocbrowser.server is None:
                 self.pydocbrowser.initialize()
             self.dockwidget.show()
             self.dockwidget.raise_()
@@ -72,7 +72,7 @@ class OnlineHelp(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         return _('Online help')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
@@ -80,12 +80,13 @@ class OnlineHelp(SpyderPluginWidget):
         """
         self.pydocbrowser.url_combo.lineEdit().selectAll()
         return self.pydocbrowser.url_combo
-        
+
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_history()
         self.set_option('zoom_factor',
                         self.pydocbrowser.webview.get_zoom_factor())
+        self.pydocbrowser.quit_server()
         return True
 
     def on_first_registration(self):

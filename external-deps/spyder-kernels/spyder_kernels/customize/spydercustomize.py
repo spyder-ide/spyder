@@ -273,8 +273,8 @@ except Exception:
 # =============================================================================
 # Multiprocessing adjustments
 # =============================================================================
-# This patch is only needed on Windows and Python 3
-if os.name == 'nt' and not PY2:
+# This patch is only needed on Python 3
+if not PY2:
     # This could fail with changes in Python itself, so we protect it
     # with a try/except
     try:
@@ -287,13 +287,22 @@ if os.name == 'nt' and not PY2:
             removed before execution.
             """
             try:
-                return _old_preparation_data(name)
+                d = _old_preparation_data(name)
             except AttributeError:
                 main_module = sys.modules['__main__']
                 # Any string for __spec__ does the job
                 main_module.__spec__ = ''
-                return _old_preparation_data(name)
-
+                d = _old_preparation_data(name)
+            # On windows, there is no fork, so we need to save the main file
+            # and import it
+            if (os.name == 'nt' and 'init_main_from_path' in d
+                    and not os.path.exists(d['init_main_from_path'])):
+                _print(
+                    "Warning: multiprocessing may need the main file to exist. "
+                    "Please save {}".format(d['init_main_from_path']))
+                # Remove path as the subprocess can't do anything with it
+                del d['init_main_from_path']
+            return d
         multiprocessing.spawn.get_preparation_data = _patched_preparation_data
     except Exception:
         pass
@@ -332,7 +341,7 @@ def post_mortem_excepthook(type, value, tb):
         #  add ability to move between frames
         p.send_initial_notification = False
         p.reset()
-        frame = tb.tb_frame
+        frame = tb.tb_next.tb_frame
         # wait for stdout to print
         time.sleep(0.1)
         p.interaction(frame, tb)
@@ -440,7 +449,7 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
             ipython_shell.kernel._pdb_obj = None
         elif post_mortem and isinstance(error, Exception):
             error_type, error, tb = sys.exc_info()
-            post_mortem_excepthook(error_type, error, tb.tb_next)
+            post_mortem_excepthook(error_type, error, tb)
         else:
             # We ignore the call to exec
             ipython_shell.showtraceback(tb_offset=1)

@@ -16,16 +16,16 @@ def func():
 GOOD_DOC = """A = ['hello', 'world']\n"""
 
 
-def test_format(config):
-    doc = Document(DOC_URI, DOC)
+def test_format(config, workspace):
+    doc = Document(DOC_URI, workspace, DOC)
     res = pyls_format_document(config, doc)
 
     assert len(res) == 1
     assert res[0]['newText'] == "a = 123\n\n\ndef func():\n    pass\n"
 
 
-def test_range_format(config):
-    doc = Document(DOC_URI, DOC)
+def test_range_format(config, workspace):
+    doc = Document(DOC_URI, workspace, DOC)
 
     def_range = {
         'start': {'line': 0, 'character': 0},
@@ -39,6 +39,6 @@ def test_range_format(config):
     assert res[0]['newText'] == "a = 123\n\n\n\n\ndef func():\n    pass\n"
 
 
-def test_no_change(config):
-    doc = Document(DOC_URI, GOOD_DOC)
+def test_no_change(config, workspace):
+    doc = Document(DOC_URI, workspace, GOOD_DOC)
     assert not pyls_format_document(config, doc)

@@ -20,8 +20,8 @@ import json
 """
 
 
-def test_pycodestyle(config):
-    doc = Document(DOC_URI, DOC)
+def test_pycodestyle(config, workspace):
+    doc = Document(DOC_URI, workspace, DOC)
     diags = pycodestyle_lint.pyls_lint(config, doc)
 
     assert all([d['source'] == 'pycodestyle' for d in diags])
