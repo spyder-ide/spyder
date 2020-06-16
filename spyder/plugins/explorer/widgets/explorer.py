@@ -401,8 +401,8 @@ class DirView(QTreeView):
 
     def create_file_new_actions(self, fnames):
         """Return actions for submenu 'New...'"""
-        if not fnames:
-            return []
+        # if not fnames:
+        #     return []
         new_file_act = create_action(self, _("File..."),
                                      icon=ima.icon('filenew'),
                                      triggered=lambda:
@@ -540,9 +540,10 @@ class DirView(QTreeView):
         external_fileexp_action = create_action(
             self, text, triggered=self.show_in_external_file_explorer)
         actions += [delete_action, rename_action]
-        basedir = fixpath(osp.dirname(fnames[0]))
-        if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
-            actions.append(move_action)
+        if fnames:
+            basedir = fixpath(osp.dirname(fnames[0]))
+            if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
+                actions.append(move_action)
         actions += [None]
         actions += [copy_file_clipboard_action, save_file_clipboard_action,
                     copy_absolute_path_action, copy_relative_path_action]
@@ -554,7 +555,9 @@ class DirView(QTreeView):
         if only_notebooks and nbexporter is not None:
             actions.append(ipynb_convert_action)
 
-        dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
+        if fnames:
+            dirname = (
+                fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0]))
         if len(fnames) == 1:
             # VCS support is quite limited for now, so we are enabling the VCS
             # related actions only when a single file/folder is selected:
@@ -569,6 +572,9 @@ class DirView(QTreeView):
                                         triggered=browse_slot)
                 actions += [None, vcs_ci, vcs_log]
 
+        if not fnames:
+            for action in actions:
+                action.setEnabled(False)
         return actions
 
     def create_folder_manage_actions(self, fnames):
@@ -591,7 +597,6 @@ class DirView(QTreeView):
         fnames = self.get_selected_filenames()
         # Needed to create a context menu in an empty folder in Windows
         # See spyder-ide/spyder#13004
-        fnames.append('')
         new_actions = self.create_file_new_actions(fnames)
         if len(new_actions) > 1:
             # Creating a submenu only if there is more than one entry
@@ -610,8 +615,8 @@ class DirView(QTreeView):
             actions += import_actions
         if actions:
             actions.append(None)
-        if fnames:
-            actions += self.create_file_manage_actions(fnames)
+        # if fnames:
+        actions += self.create_file_manage_actions(fnames)
         if actions:
             actions.append(None)
         if fnames and all([osp.isdir(_fn) for _fn in fnames]):
