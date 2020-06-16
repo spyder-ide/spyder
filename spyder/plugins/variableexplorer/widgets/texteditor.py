@@ -10,6 +10,7 @@ Text editor dialog
 
 # Standard library imports
 from __future__ import print_function
+import sys
 
 # Third party imports
 from qtpy.QtCore import Qt, Slot
@@ -78,7 +79,12 @@ class TextEditor(BaseDialog):
         self.layout.addLayout(btn_layout)
 
         # Make the dialog act as a window
-        self.setWindowFlags(Qt.Window)
+        if sys.platform == 'darwin':
+            # See spyder-ide/spyder#12825
+            self.setWindowFlags(Qt.Tool)
+        else:
+            # Make the dialog act as a window
+            self.setWindowFlags(Qt.Window)
 
         self.setWindowIcon(ima.icon('edit'))
         if title:
