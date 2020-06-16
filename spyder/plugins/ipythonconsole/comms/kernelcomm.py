@@ -80,7 +80,7 @@ class KernelComm(CommBase, QObject):
         if not self.comm_channel_connected():
             # Ask again for comm config
             self.remote_call()._send_comm_config()
-            timeout = 45
+            timeout = 25
             self._wait(self.comm_channel_connected,
                        self._sig_channel_open,
                        "Timeout while waiting for comm port.",
