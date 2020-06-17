@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-17 15:12\n"
+"PO-Revision-Date: 2020-06-17 15:31\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -3332,7 +3332,7 @@ msgstr ""
 
 #: spyder/plugins/help/confpage.py:43
 msgid "Additional features"
-msgstr ""
+msgstr "Додаткові можливості"
 
 #: spyder/plugins/help/confpage.py:44
 msgid "Render mathematical equations"
@@ -3364,7 +3364,7 @@ msgstr ""
 
 #: spyder/plugins/help/plugin.py:120
 msgid "Plain Text"
-msgstr ""
+msgstr "Звичайний текст"
 
 #: spyder/plugins/help/plugin.py:124
 msgid "Show Source"
@@ -3412,7 +3412,7 @@ msgstr ""
 
 #: spyder/plugins/help/plugin.py:438
 msgid "tutorial"
-msgstr ""
+msgstr "підручник"
 
 #: spyder/plugins/help/plugin.py:454
 msgid "Please consider installing Sphinx to get documentation rendered in rich text."
@@ -3548,7 +3548,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:85
 msgid " lines"
-msgstr ""
+msgstr " рядки"
 
 #: spyder/plugins/ipythonconsole/confpage.py:85
 msgid "Buffer:  "
@@ -3877,7 +3877,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/plugin.py:1543 spyder/plugins/ipythonconsole/plugin.py:1563
 msgid "Connection error"
-msgstr ""
+msgstr "Помилка з’єднання"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1544
 msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
@@ -4040,15 +4040,15 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:129
 msgid "Data loading"
-msgstr ""
+msgstr "Завантаження даних"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:138
 msgid "Data is too big to be loaded"
-msgstr ""
+msgstr "Дані занадто великі для завантаження"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:150
 msgid "Data is too big to be saved"
-msgstr ""
+msgstr "Дані занадто великі для збереження"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:303
 msgid "All user-defined variables will be removed. Are you sure you want to proceed?"
@@ -4089,19 +4089,19 @@ msgstr ""
 
 #: spyder/plugins/onlinehelp/widgets.py:139
 msgid "Package:"
-msgstr ""
+msgstr "Пакунок:"
 
 #: spyder/plugins/outlineexplorer/api.py:230
 msgid "Unnamed Cell"
-msgstr ""
+msgstr "Безіменна комірка"
 
 #: spyder/plugins/outlineexplorer/plugin.py:60 spyder/plugins/outlineexplorer/widgets.py:213
 msgid "Outline"
-msgstr ""
+msgstr "Контури"
 
 #: spyder/plugins/outlineexplorer/widgets.py:79 spyder/plugins/outlineexplorer/widgets.py:140
 msgid "Line %s"
-msgstr ""
+msgstr "Рядок %s"
 
 #: spyder/plugins/outlineexplorer/widgets.py:105
 msgid "Class defined at line %s"
@@ -4209,7 +4209,7 @@ msgstr ""
 
 #: spyder/plugins/profiler/confpage.py:19 spyder/plugins/pylint/confpage.py:34
 msgid "Results"
-msgstr ""
+msgstr "Результати"
 
 #: spyder/plugins/profiler/confpage.py:20
 msgid "Profiler plugin results (the output of python's profile/cProfile)\n"
@@ -4254,27 +4254,27 @@ msgstr ""
 
 #: spyder/plugins/profiler/widgets/profilergui.py:124 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:250 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:497 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:522
 msgid "Save data"
-msgstr ""
+msgstr "Зберегти дані"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:127
 msgid "Save profiling data"
-msgstr ""
+msgstr "Зберегти дані профілювання"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:129
 msgid "Load data"
-msgstr ""
+msgstr "Завантажити дані"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:132
 msgid "Load profiling data for comparison"
-msgstr ""
+msgstr "Завантажити дані профілювання для порівняння"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:134
 msgid "Clear comparison"
-msgstr ""
+msgstr "Очистити порівняння"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:176
 msgid "Please install"
-msgstr ""
+msgstr "Будь-ласка, встановіть"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:177
 msgid "the Python profiler modules"
@@ -4282,7 +4282,7 @@ msgstr ""
 
 #: spyder/plugins/profiler/widgets/profilergui.py:184
 msgid "Save profiler result"
-msgstr ""
+msgstr "Зберегти результат профілювання"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:187 spyder/plugins/profiler/widgets/profilergui.py:194
 msgid "Profiler result"
@@ -4318,11 +4318,11 @@ msgstr ""
 
 #: spyder/plugins/profiler/widgets/profilergui.py:450
 msgid "Total Time"
-msgstr ""
+msgstr "Загальний час"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:450 spyder/plugins/profiler/widgets/profilergui.py:451
 msgid "Diff"
-msgstr ""
+msgstr "Різниця"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:451
 msgid "Calls"
@@ -4330,11 +4330,11 @@ msgstr ""
 
 #: spyder/plugins/profiler/widgets/profilergui.py:451
 msgid "Local Time"
-msgstr ""
+msgstr "Місцевий час"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:452
 msgid "File:line"
-msgstr ""
+msgstr "Файл:рядок"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:505
 msgid "Error when trying to load profiler results. The error was<br><br><tt>{0}</tt>"
@@ -4366,35 +4366,35 @@ msgstr ""
 
 #: spyder/plugins/projects/plugin.py:94
 msgid "New Project..."
-msgstr ""
+msgstr "Новий проєкт..."
 
 #: spyder/plugins/projects/plugin.py:97
 msgid "Open Project..."
-msgstr ""
+msgstr "Відкрити проєкт..."
 
 #: spyder/plugins/projects/plugin.py:100
 msgid "Close Project"
-msgstr ""
+msgstr "Закрити проєкт"
 
 #: spyder/plugins/projects/plugin.py:103
 msgid "Delete Project"
-msgstr ""
+msgstr "Вилучити проєкт"
 
 #: spyder/plugins/projects/plugin.py:109
 msgid "Recent Projects"
-msgstr ""
+msgstr "Нещодавні проєкти"
 
 #: spyder/plugins/projects/plugin.py:113
 msgid "Maximum number of recent projects..."
-msgstr ""
+msgstr "Максимальна кількість нещодавніх проєктів..."
 
 #: spyder/plugins/projects/plugin.py:294
 msgid "Open project"
-msgstr ""
+msgstr "Відкрити проєкт"
 
 #: spyder/plugins/projects/plugin.py:300
 msgid "<b>%s</b> is not a Spyder project!"
-msgstr ""
+msgstr "<b>%s</b> не є проєктом Spyder!"
 
 #: spyder/plugins/projects/plugin.py:374
 msgid "Do you really want to delete <b>{filename}</b>?<br><br><b>Note:</b> This action will only delete the project. Its files are going to be preserved on disk."
@@ -4406,23 +4406,23 @@ msgstr ""
 
 #: spyder/plugins/projects/plugin.py:401
 msgid "Projects"
-msgstr ""
+msgstr "Проєкти"
 
 #: spyder/plugins/projects/plugin.py:402
 msgid "Maximum number of recent projects"
-msgstr ""
+msgstr "Максимальна кількість нещодавніх проєктів"
 
 #: spyder/plugins/projects/projecttypes/__init__.py:91
 msgid "Empty project"
-msgstr ""
+msgstr "Порожній проєкт"
 
 #: spyder/plugins/projects/projecttypes/python.py:20
 msgid "Python project"
-msgstr ""
+msgstr "Проєкт Python"
 
 #: spyder/plugins/projects/projecttypes/python.py:77
 msgid "Python package"
-msgstr ""
+msgstr "Пакунок Python"
 
 #: spyder/plugins/projects/utils/watcher.py:134
 msgid "File system changes for this project can't be tracked because it contains too many files. To fix this you need to increase the inotify limit in your system, with the following command:<br><br><code>sudo sysctl -n -w fs.inotify.max_user_watches=524288</code><br><br>For a permanent solution you need to add to<code>/etc/sysctl.conf</code>the following line:<br><br><code>fs.inotify.max_user_watches=524288</code><br><br>After doing that, you need to close and start Spyder again so those changes can take effect."
@@ -4434,15 +4434,15 @@ msgstr ""
 
 #: spyder/plugins/projects/widgets/explorer.py:112 spyder/plugins/projects/widgets/explorer.py:126
 msgid "Project explorer"
-msgstr ""
+msgstr "Оглядач проєкту"
 
 #: spyder/plugins/projects/widgets/explorer.py:113
 msgid "File <b>%s</b> already exists.<br>Do you want to overwrite it?"
-msgstr ""
+msgstr "Файл <b>%s</b> вже існує.<br>Ви хочете перезаписати його?"
 
 #: spyder/plugins/projects/widgets/explorer.py:127
 msgid "Folder <b>%s</b> already exists."
-msgstr ""
+msgstr "Тека <b>%s</b> вже існує."
 
 #: spyder/plugins/projects/widgets/explorer.py:145
 msgid "copy"
@@ -4454,39 +4454,39 @@ msgstr ""
 
 #: spyder/plugins/projects/widgets/projectdialog.py:69
 msgid "New directory"
-msgstr ""
+msgstr "Нова тека"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:70
 msgid "Existing directory"
-msgstr ""
+msgstr "Існуюча тека"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:72
 msgid "Project name"
-msgstr ""
+msgstr "Назва проєкту"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:73
 msgid "Location"
-msgstr ""
+msgstr "Розміщення"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:74
 msgid "Project type"
-msgstr ""
+msgstr "Тип проєкту"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:75
 msgid "Python version"
-msgstr ""
+msgstr "Версія Python"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:83 spyder/plugins/variableexplorer/widgets/importwizard.py:537 spyder/preferences/shortcuts.py:199
 msgid "Cancel"
-msgstr ""
+msgstr "Скасувати"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:84
 msgid "Create"
-msgstr ""
+msgstr "Створити"
 
 #: spyder/plugins/projects/widgets/projectdialog.py:102
 msgid "Create new project"
-msgstr ""
+msgstr "Створити новий проєкт"
 
 #: spyder/plugins/pylint/confpage.py:22
 msgid "Save file before analyzing it"
@@ -4498,27 +4498,27 @@ msgstr ""
 
 #: spyder/plugins/pylint/confpage.py:30
 msgid "History: "
-msgstr ""
+msgstr "Історія: "
 
 #: spyder/plugins/pylint/confpage.py:31
 msgid " results"
-msgstr ""
+msgstr " результати"
 
 #: spyder/plugins/pylint/confpage.py:35
 msgid "Results are stored here:"
-msgstr ""
+msgstr "Результати збережені тут:"
 
 #: spyder/plugins/pylint/plugin.py:78
 msgid "Code Analysis"
-msgstr ""
+msgstr "Аналіз коду"
 
 #: spyder/plugins/pylint/plugin.py:108
 msgid "Run static code analysis"
-msgstr ""
+msgstr "Запустити статичний аналіз коду"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:82
 msgid "Results for "
-msgstr ""
+msgstr "Результати для "
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:87
 msgid "Convention"
@@ -4530,19 +4530,19 @@ msgstr ""
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:173
 msgid "Analyze"
-msgstr ""
+msgstr "Аналізувати"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:174
 msgid "Run analysis"
-msgstr ""
+msgstr "Запустити аналіз"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:180
 msgid "Stop current analysis"
-msgstr ""
+msgstr "Зупинити поточний аналіз"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:186 spyder/plugins/pylint/widgets/pylintgui.py:269
 msgid "Select Python file"
-msgstr ""
+msgstr "Виберіть файл Python"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:194
 msgid "Complete output"
@@ -4610,11 +4610,11 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:606 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:953
 msgid "Resize"
-msgstr ""
+msgstr "Змінити розмір"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:609 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:957
 msgid "Background color"
-msgstr ""
+msgstr "Колір фону"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:635 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1272
 msgid "Float formatting"
@@ -4658,7 +4658,7 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:717
 msgid "read only"
-msgstr ""
+msgstr "лише для читання"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:750
 msgid "Record array fields:"
@@ -4666,11 +4666,11 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:762
 msgid "Data"
-msgstr ""
+msgstr "Дані"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:762
 msgid "Mask"
-msgstr ""
+msgstr "Маска"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:762
 msgid "Masked data"
@@ -4678,11 +4678,11 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:773
 msgid "Axis:"
-msgstr ""
+msgstr "Вісь:"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:778
 msgid "Index:"
-msgstr ""
+msgstr "Індекс:"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:791
 msgid "<u>Warning</u>: changes are applied separately"
@@ -4694,7 +4694,7 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:800 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1332 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:972 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:309 spyder/plugins/variableexplorer/widgets/texteditor.py:67
 msgid "Save and Close"
-msgstr ""
+msgstr "Зберегти та закрити"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:106 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:413
 msgid "Opening this variable can be slow\n\n"
