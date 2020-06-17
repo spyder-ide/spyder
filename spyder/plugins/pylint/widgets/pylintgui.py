@@ -34,10 +34,8 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import (is_module_or_package,
                                        PythonModulesComboBox)
 from spyder.widgets.onecolumntree import OneColumnTree
-from spyder.plugins.pylint.confpage import MAX_HISTORY_ENTRIES
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
-
 
 # This is needed for testing this module as a stand alone script
 try:
@@ -161,7 +159,7 @@ class PylintWidget(QWidget):
     start_analysis = Signal()
 
     def __init__(self, parent, max_entries=100, options_button=None,
-                 text_color=None, prevrate_color=None):
+                 text_color=None, prevrate_color=None, top_max_entries=100):
         QWidget.__init__(self, parent)
 
         self.setWindowTitle("Pylint")
@@ -173,6 +171,7 @@ class PylintWidget(QWidget):
         self.text_color = text_color
         self.prevrate_color = prevrate_color
         self.max_entries = max_entries
+        self.top_max_entries = top_max_entries
         self.rdata = []
         if osp.isfile(self.DATAPATH):
             try:
@@ -312,7 +311,7 @@ class PylintWidget(QWidget):
             for f in self.curr_filenames:
                 if _('untitled') not in f:
                     list_save_files.append(f)
-            self.curr_filenames = list_save_files[:MAX_HISTORY_ENTRIES]
+            self.curr_filenames = list_save_files[:self.top_max_entries]
             self.parent.set_option('history_filenames', self.curr_filenames)
         else:
             self.curr_filenames = []
