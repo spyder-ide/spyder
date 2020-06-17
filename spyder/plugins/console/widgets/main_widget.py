@@ -25,6 +25,8 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout
 
 # Local imports
+from spyder.api.plugins import (SpyderPlugin, SpyderPluginV2,
+                                SpyderDockablePlugin)
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.app.solver import find_internal_plugins
@@ -335,7 +337,7 @@ class ConsoleWidget(PluginMainWidget):
         self.shell.help = help_plugin
 
     @Slot(dict)
-    def handle_exception(self, error_data, sender=None):
+    def handle_exception(self, error_data, sender=None, internal_plugins=None):
         """
         Exception ocurred in the internal console.
 
@@ -379,14 +381,17 @@ class ConsoleWidget(PluginMainWidget):
         if (not is_traceback and self.error_dlg is None) or self.dismiss_error:
             return
 
-        plugins = find_internal_plugins()
-        repo = "spyder-ide/spyder"
-        for key, val in plugins.items():
-            is_internal_plugin = val, isinstance(sender, val)
-            break
-        else:
-            is_internal_plugin = False
+        if internal_plugins is None:
+            internal_plugins = find_internal_plugins()
 
+        internal_plugin_names = []
+        for __, val in internal_plugins.items():
+            name = getattr(val, 'NAME', getattr(val, 'CONF_SECTION'))
+            internal_plugin_names.append(name)
+
+        sender_name = getattr(val, 'NAME', getattr(val, 'CONF_SECTION'))
+        is_internal_plugin = sender_name in internal_plugin_names
+        repo = "spyder-ide/spyder"
         if sender is not None and not is_internal_plugin:
             repo = error_data.get("repo", None)
             try:

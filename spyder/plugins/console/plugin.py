@@ -184,7 +184,11 @@ class Console(SpyderDockablePlugin):
         The `label` and `steps` allow customizing the content of the error
         dialog.
         """
-        self.get_widget().handle_exception(error_data, sender=self.sender())
+        self.get_widget().handle_exception(
+            error_data,
+            sender=self.sender(),
+            internal_plugins=self._main._INTERNAL_PLUGINS,
+        )
 
     def quit(self):
         """

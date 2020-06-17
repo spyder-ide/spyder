@@ -294,13 +294,17 @@ class MainWindow(QMainWindow):
         messageBox.setStandardButtons(QMessageBox.Ok)
         messageBox.show()
 
-    def add_plugin(self, plugin):
+    def add_plugin(self, plugin, external=False):
         """
         Add plugin to plugins dictionary.
         """
         self._PLUGINS[plugin.CONF_SECTION] = plugin
+        if external:
+            self._EXTERNAL_PLUGINS[plugin.CONF_SECTION] = plugin
+        else:
+            self._INTERNAL_PLUGINS[plugin.CONF_SECTION] = plugin
 
-    def register_plugin(self, plugin):
+    def register_plugin(self, plugin, external=False):
         """
         Register a plugin in Spyder Main Window.
         """
@@ -345,7 +349,7 @@ class MainWindow(QMainWindow):
                 margin = CONF.get('main', 'custom_margin')
             plugin.update_margins(margin)
 
-        self.add_plugin(plugin)
+        self.add_plugin(plugin, external=external)
 
         logger.info("Registering shortcuts for {}...".format(plugin.NAME))
         for action_name, action in plugin.get_actions().items():
@@ -593,6 +597,8 @@ class MainWindow(QMainWindow):
         self._APPLICATION_TOOLBARS = OrderedDict()
         self._STATUS_WIDGETS = OrderedDict()
         self._PLUGINS = OrderedDict()
+        self._EXTERNAL_PLUGINS = OrderedDict()
+        self._INTERNAL_PLUGINS = OrderedDict()
 
         # Plugins
         self.console = None
@@ -1333,7 +1339,7 @@ class MainWindow(QMainWindow):
                         self,
                         configuration=CONF,
                     )
-                    self.register_plugin(plugin_instance)
+                    self.register_plugin(plugin_instance, external=True)
                 except Exception as error:
                     print("%s: %s" % (plugin_class, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)
