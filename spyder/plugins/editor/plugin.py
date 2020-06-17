@@ -1803,6 +1803,7 @@ class Editor(SpyderPluginWidget):
                         except ValueError:
                             # Catch the error in case the user has something
                             # different from a number after the untitled
+                            # part.
                             # Please see spyder-ide/spyder#12892
                             self.untitled_num = 0
             while True:
