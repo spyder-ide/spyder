@@ -129,6 +129,8 @@ class SpyderErrorDialog(QDialog):
         QDialog.__init__(self, parent)
         self.is_report = is_report
         self.setWindowTitle(_("Issue reporter"))
+        self._github_org = 'spyder-ide'
+        self._github_repo = 'spyder'
 
         # To save the traceback sent to the internal console
         self.error_traceback = ""
@@ -261,6 +263,12 @@ class SpyderErrorDialog(QDialog):
         else:
             self.desc_chars_label.setText('')
 
+    def set_github_repo_org(self, repo_fullname):
+        """Set the report Github organization and repository."""
+        repo, org = repo_fullname.split('/')
+        self._github_org = org
+        self._github_repo = repo
+
     def _submit_to_github(self):
         """Action to take when pressing the submit button."""
         # Get reference to the main window
@@ -290,13 +298,17 @@ class SpyderErrorDialog(QDialog):
 
         try:
             if main is None:
-                org = 'ccordoba12'
+                if self._github_org == 'spyder-ide':
+                    org = 'ccordoba12'
             else:
-                org = 'spyder-ide'
-            github_backend = GithubBackend(org, 'spyder', parent_widget=main)
+                org = self._github_org
+
+            repo = self._github_repo
+            github_backend = GithubBackend(org, repo, parent_widget=main)
             github_report = github_backend.send_report(title, issue_text)
             if github_report:
                 self.close()
+
         except Exception:
             ret = QMessageBox.question(
                       self, _('Error'),

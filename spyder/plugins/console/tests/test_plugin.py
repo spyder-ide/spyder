@@ -78,7 +78,7 @@ def test_completions(console_plugin, qtbot):
 
 
 def test_handle_exception(console_plugin, mocker):
-    """Test that error dialog is called """
+    """Test that error dialog is called."""
     widget = console_plugin.get_widget()
     shell = widget.shell
 
@@ -110,7 +110,11 @@ ZeroDivisionError: division by zero
 
     # --- Test PyLS errors
     console_plugin.handle_exception(
-        dict(text=error, is_traceback=True, is_pyls_error=True)
+        dict(
+            text=error,
+            is_traceback=True,
+            title='Internal Python Language Server error',
+        )
     )
 
     # Make sure the error dialog was generated.

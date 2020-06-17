@@ -52,8 +52,31 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     TIME_BETWEEN_RESTARTS = 10000  # ms
     TIME_HEARTBEAT = 3000  # ms
 
-    # Signal to report that an error in a server
-    sig_server_error_occurred = Signal(dict)
+    # --- Signals
+    # ------------------------------------------------------------------------
+    sig_exception_occurred = Signal(dict)
+    """
+    This Signal is emitted to report that an exception has occured.
+
+    Parameters
+    ----------
+    error_data: dict
+        The dictionary containing error data. The expected keys are:
+        >>> error_data = {
+            "text": str,
+            "is_traceback": bool,
+            "repo": str,
+            "title": str,
+        }
+
+    Notes
+    -----
+    The `is_traceback` indicates if `text` contains, plain text or a python
+    error traceback.
+
+    The `title` and `repo` indicate how the error dialog should customize the
+    report dialog and github error submission.
+    """
 
     def __init__(self, parent):
         SpyderCompletionPlugin.__init__(self, parent)
@@ -77,7 +100,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 None, statusbar, plugin=self)
 
         # TODO: Move to register in the new API
-        self.sig_server_error_occurred.connect(
+        self.sig_exception_occurred.connect(
             self.main.console.handle_exception)
 
     # --- Status bar widget handling
@@ -271,9 +294,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         error_data = dict(
             text=error,
             is_traceback=True,
-            is_pyls_error=True,
+            title="Internal Python Language Server error",
         )
-        self.sig_server_error_occurred.emit(error_data)
+        self.sig_exception_occurred.emit(error_data)
 
     def report_no_external_server(self, host, port, language):
         """
