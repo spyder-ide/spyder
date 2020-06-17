@@ -34,6 +34,7 @@ from spyder.utils.misc import getcwd_or_home
 from spyder.widgets.comboboxes import (is_module_or_package,
                                        PythonModulesComboBox)
 from spyder.widgets.onecolumntree import OneColumnTree
+from spyder.plugins.pylint.confpage import MAX_HISTORY_ENTRIES
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 
@@ -307,12 +308,11 @@ class PylintWidget(QWidget):
     def save_history(self):
         """Save the current history filenames."""
         if self.parent:
-            max_entries = self.parent.get_option('max_entries')
             list_save_files = []
             for f in self.curr_filenames:
                 if _('untitled') not in f:
                     list_save_files.append(f)
-            self.curr_filenames = list_save_files[:max_entries]
+            self.curr_filenames = list_save_files[:MAX_HISTORY_ENTRIES]
             self.parent.set_option('history_filenames', self.curr_filenames)
         else:
             self.curr_filenames = []
