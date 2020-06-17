@@ -145,7 +145,7 @@ class FindReplace(QWidget):
                                      triggered=self.replace_find,
                                      text_beside_icon=True)
         self.replace_sel_button = create_toolbutton(self,
-                                     text=_('Replace selection'),
+                                     text=_('Replace in selection'),
                                      icon=ima.icon('DialogApplyButton'),
                                      triggered=self.replace_find_selection,
                                      text_beside_icon=True)

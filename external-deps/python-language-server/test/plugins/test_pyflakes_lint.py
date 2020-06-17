@@ -24,8 +24,8 @@ import sys
 """
 
 
-def test_pyflakes():
-    doc = Document(DOC_URI, DOC)
+def test_pyflakes(workspace):
+    doc = Document(DOC_URI, workspace, DOC)
     diags = pyflakes_lint.pyls_lint(doc)
 
     # One we're expecting is:
@@ -36,8 +36,8 @@ def test_pyflakes():
     assert unused_import['severity'] == lsp.DiagnosticSeverity.Warning
 
 
-def test_syntax_error_pyflakes():
-    doc = Document(DOC_URI, DOC_SYNTAX_ERR)
+def test_syntax_error_pyflakes(workspace):
+    doc = Document(DOC_URI, workspace, DOC_SYNTAX_ERR)
     diag = pyflakes_lint.pyls_lint(doc)[0]
 
     assert diag['message'] == 'invalid syntax'
@@ -45,8 +45,8 @@ def test_syntax_error_pyflakes():
     assert diag['severity'] == lsp.DiagnosticSeverity.Error
 
 
-def test_undefined_name_pyflakes():
-    doc = Document(DOC_URI, DOC_UNDEFINED_NAME_ERR)
+def test_undefined_name_pyflakes(workspace):
+    doc = Document(DOC_URI, workspace, DOC_UNDEFINED_NAME_ERR)
     diag = pyflakes_lint.pyls_lint(doc)[0]
 
     assert diag['message'] == 'undefined name \'b\''
@@ -54,8 +54,8 @@ def test_undefined_name_pyflakes():
     assert diag['severity'] == lsp.DiagnosticSeverity.Error
 
 
-def test_unicode_encoding():
-    doc = Document(DOC_URI, DOC_ENCODING)
+def test_unicode_encoding(workspace):
+    doc = Document(DOC_URI, workspace, DOC_ENCODING)
     diags = pyflakes_lint.pyls_lint(doc)
 
     assert len(diags) == 1

@@ -72,6 +72,10 @@ To enable pydocstyle for linting docstrings add the following setting in your LS
 "pyls.plugins.pydocstyle.enabled": true
 ```
 
+See `vscode-client/package.json`_ for the full set of supported configuration options.
+
+.. _vscode-client/package.json: vscode-client/package.json
+
 Language Server Features
 ------------------------
 

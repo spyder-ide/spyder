@@ -41,9 +41,13 @@ class StdioLanguageServerClient(LanguageServerClient):
             zmq_in_port, zmq_out_port)
         self.req_status = {}
         self.process = None
-        logger.debug(server_args)
+        logger.debug(repr(server_args))
+        logger.debug('Environment variables: {0}'.format(
+            list(os.environ.keys())))
         logger.debug('Redirect stderr to {0}'.format(log_file))
-        self.process = popen_spawn.PopenSpawn(server_args)
+        log_f = open(log_file, 'wb')
+        self.process = popen_spawn.PopenSpawn(server_args, logfile=log_f)
+        logger.info('Process pid: {0}'.format(self.process.pid))
         logger.info('Connecting to language server on stdio')
         super(StdioLanguageServerClient, self).finalize_initialization()
         self.reading_thread = StdioIncomingMessageThread()

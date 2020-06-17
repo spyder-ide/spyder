@@ -54,6 +54,7 @@ class PydocServer(QThread):
         self.port = port
         self.server = None
         self.complete = False
+        self.closed = False
 
     def run(self):
         if PY3:
@@ -67,15 +68,34 @@ class PydocServer(QThread):
 
     def callback(self, server):
         self.server = server
-        self.server_started.emit()
+        if self.closed:
+            self.quit_server()
+        else:
+            self.server_started.emit()
 
     def completer(self):
         self.complete = True
 
+    def is_running(self):
+        """Check if the server is running"""
+        if PY3:
+            if self.isRunning():
+                # Startup
+                return True
+            if self.server is None:
+                return False
+            return self.server.serving
+        else:
+            # Py 2
+            return self.isRunning()
+
     def quit_server(self):
+        self.closed = True
+        if self.server is None:
+            return
         if PY3:
             # Python 3
-            if self.isRunning() and self.server.serving:
+            if self.server.serving:
                 self.server.stop()
         else:
             # Python 2
@@ -109,31 +129,33 @@ class PydocBrowser(WebBrowser):
         self.go_home()
         QApplication.restoreOverrideCursor()
 
-    def is_server_running(self):
-        """Return True if pydoc server is already running"""
-        return self.server is not None
-
     def closeEvent(self, event):
-        if self.is_server_running():
-            self.server.quit_server()
-#        while not self.server.complete: #XXX Is it really necessary?
-#            pass
+        """Handle close event"""
+        self.quit_server()
         event.accept()
 
-    #------ Public API -----------------------------------------------------
+    # ------ Public API -------------------------------------------------------
     def start_server(self):
         """Start pydoc server"""
         if self.server is None:
             self.port = select_port(default_port=self.DEFAULT_PORT)
             self.set_home_url('http://127.0.0.1:%d/' % self.port)
-        elif self.server.isRunning():
-            self.server.server_started.disconnect(self.initialize_continued)
-            self.server.quit()
+        elif self.server.is_running():
+            self.quit_server()
         self.server = PydocServer(port=self.port)
         self.server.server_started.connect(self.initialize_continued)
         self.server.start()
 
-    #------ WebBrowser API -----------------------------------------------------
+    def quit_server(self):
+        """Quit the server"""
+        if self.server is None:
+            return
+        if self.server.is_running():
+            self.server.server_started.disconnect(self.initialize_continued)
+            self.server.quit_server()
+            self.server.quit()
+
+    # ------ WebBrowser API ---------------------------------------------------
     def get_label(self):
         """Return address label text"""
         return _("Package:")

@@ -70,6 +70,19 @@ class DebuggingWidget(RichJupyterWidget):
         self._tmp_reading = False
         self._pdb_frame_loc = (None, None)
 
+    def will_close(self, externally_managed):
+        """
+        Close the save thread and database file.
+        """
+        try:
+            self._pdb_history_file.save_thread.stop()
+        except AttributeError:
+            pass
+        try:
+            self._pdb_history_file.db.close()
+        except AttributeError:
+            pass
+
     def handle_debug_state(self, in_debug_loop):
         """Update the debug state."""
         self._pdb_in_loop = in_debug_loop

@@ -4,6 +4,7 @@ import os
 import tempfile
 
 from test import py2_only, py3_only
+from test.test_utils import MockWorkspace
 from pyls import lsp, uris
 from pyls.workspace import Document
 from pyls.plugins import pylint_lint
@@ -29,7 +30,7 @@ def temp_document(doc_text):
         name = temp_file.name
         temp_file.write(doc_text)
         temp_file.close()
-        yield Document(uris.from_fs_path(name))
+        yield Document(uris.from_fs_path(name), MockWorkspace())
     finally:
         os.remove(name)
 
@@ -72,12 +73,12 @@ def test_syntax_error_pylint_py2(config):
         assert diag['severity'] == lsp.DiagnosticSeverity.Error
 
 
-def test_lint_free_pylint(config):
+def test_lint_free_pylint(config, workspace):
     # Can't use temp_document because it might give us a file that doesn't
     # match pylint's naming requirements. We should be keeping this file clean
     # though, so it works for a test of an empty lint.
     assert not pylint_lint.pyls_lint(
-        config, Document(uris.from_fs_path(__file__)), True)
+        config, Document(uris.from_fs_path(__file__), workspace), True)
 
 
 def test_lint_caching():
@@ -108,10 +109,10 @@ def test_lint_caching():
         assert not pylint_lint.PylintLinter.lint(doc, False, flags)
 
 
-def test_per_file_caching(config):
+def test_per_file_caching(config, workspace):
     # Ensure that diagnostics are cached per-file.
     with temp_document(DOC) as doc:
         assert pylint_lint.pyls_lint(config, doc, True)
 
     assert not pylint_lint.pyls_lint(
-        config, Document(uris.from_fs_path(__file__)), False)
+        config, Document(uris.from_fs_path(__file__), workspace), False)

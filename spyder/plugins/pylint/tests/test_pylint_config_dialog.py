@@ -7,9 +7,9 @@
 """Tests for plugin config dialog."""
 
 try:
-    from unittest.mock import Mock
+    from unittest.mock import Mock, MagicMock
 except ImportError:
-    from mock import Mock  # Python 2
+    from mock import Mock, MagicMock  # Python 2
 
 # Third party imports
 from qtpy.QtCore import Signal, QObject
@@ -27,6 +27,7 @@ class MainWindowMock(QObject):
         super(MainWindowMock, self).__init__(None)
         self.editor = Mock()
         self.editor.sig_editor_focus_changed = self.sig_editor_focus_changed
+        self.projects = MagicMock()
 
 
 @pytest.mark.parametrize(
