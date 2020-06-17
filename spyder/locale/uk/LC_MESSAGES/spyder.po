@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-17 14:51\n"
+"PO-Revision-Date: 2020-06-17 14:57\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -1089,7 +1089,7 @@ msgstr "Натисніть тут, щоб знову показати діало
 
 #: spyder/plugins/completion/languageserver/confpage.py:111
 msgid "Valid JSON"
-msgstr ""
+msgstr "Вірний JSON"
 
 #: spyder/plugins/completion/languageserver/confpage.py:112
 msgid "Invalid JSON"
@@ -1121,7 +1121,7 @@ msgstr "Аргументи:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:150
 msgid "<b>Server Configuration:</b>"
-msgstr ""
+msgstr "<b>Налаштування сервера:</b>"
 
 #: spyder/plugins/completion/languageserver/confpage.py:160
 msgid "LSP server editor"
@@ -1137,15 +1137,15 @@ msgstr "Виберіть мову"
 
 #: spyder/plugins/completion/languageserver/confpage.py:179
 msgid "TCP port number of the server"
-msgstr ""
+msgstr "TCP порт сервера"
 
 #: spyder/plugins/completion/languageserver/confpage.py:189
 msgid "Additional arguments required to start the server"
-msgstr ""
+msgstr "Додаткові аргументи, необхідні для запуску сервера"
 
 #: spyder/plugins/completion/languageserver/confpage.py:207
 msgid "Additional LSP server configuration set at runtime. JSON required"
-msgstr ""
+msgstr "Додаткова конфігурація LSP сервера встановлена під час роботи. JSON необхідний"
 
 #: spyder/plugins/completion/languageserver/confpage.py:216
 msgid "Check if the server runs on a remote location"
@@ -1245,15 +1245,15 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:729
 msgid "Default is 300"
-msgstr ""
+msgstr "Типово 300"
 
 #: spyder/plugins/completion/languageserver/confpage.py:730
 msgid "Enable code snippets"
-msgstr ""
+msgstr "Увімкнути фрагменти коду"
 
 #: spyder/plugins/completion/languageserver/confpage.py:757
 msgid "Basic features"
-msgstr ""
+msgstr "Основні можливості"
 
 #: spyder/plugins/completion/languageserver/confpage.py:759
 msgid "Enable Go to definition"
@@ -1353,7 +1353,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:869
 msgid "Default is 79"
-msgstr ""
+msgstr "Типово 79"
 
 #: spyder/plugins/completion/languageserver/confpage.py:909
 msgid "<a href='http://www.pydocstyle.org/en/stable/error_codes.html'>page</a>"
@@ -1373,23 +1373,23 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:934 spyder/plugins/completion/languageserver/confpage.py:1218
 msgid "Show the following errors:"
-msgstr ""
+msgstr "Показувати наступні помилки:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:936
 msgid "Example codes: D413, D414"
-msgstr ""
+msgstr "Приклад кодів: D413, D414"
 
 #: spyder/plugins/completion/languageserver/confpage.py:938 spyder/plugins/completion/languageserver/confpage.py:1220
 msgid "Ignore the following errors:"
-msgstr ""
+msgstr "Ігнорувати наступні помилки:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:940
 msgid "Example codes: D107, D402"
-msgstr ""
+msgstr "Приклад кодів: D107, D402"
 
 #: spyder/plugins/completion/languageserver/confpage.py:944
 msgid "Skip test files: (?!test_).*\\.py"
-msgstr ""
+msgstr "Пропустити тестові файли: (?!test_).*\\.py"
 
 #: spyder/plugins/completion/languageserver/confpage.py:946
 msgid "Only check in directories matching these patterns:"
@@ -1397,15 +1397,15 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:948
 msgid "Skip dot directories: [^\\.].*"
-msgstr ""
+msgstr "Пропустити теки з крапкою: [^\\.].*"
 
 #: spyder/plugins/completion/languageserver/confpage.py:997
 msgid "Providers"
-msgstr ""
+msgstr "Постачальники"
 
 #: spyder/plugins/completion/languageserver/confpage.py:998
 msgid "Enable Kite (if the Kite engine is running)"
-msgstr ""
+msgstr "Увімкнути Kite (якщо запущено рушій Kite)"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1002
 msgid "Enable fallback completions"
