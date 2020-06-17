@@ -287,8 +287,8 @@ class DirView(QTreeView):
         if self.selectionMode() == self.ExtendedSelection:
             if self.selectionModel() is None:
                 return []
-            return [self.get_filename(idx) for idx in
-                    self.selectionModel().selectedRows()]
+            rows = self.selectionModel().selectedRows()
+            return [self.get_filename(idx) for idx in rows]
         else:
             return [self.get_filename(self.currentIndex())]
 
@@ -401,8 +401,6 @@ class DirView(QTreeView):
 
     def create_file_new_actions(self, fnames):
         """Return actions for submenu 'New...'"""
-        # if not fnames:
-        #     return []
         new_file_act = create_action(self, _("File..."),
                                      icon=ima.icon('filenew'),
                                      triggered=lambda:
@@ -508,6 +506,8 @@ class DirView(QTreeView):
                 assoc = self.get_file_associations(fnames[0])
             elif len(fnames) > 1:
                 assoc = self.get_common_file_associations(fnames)
+            else:
+                assoc = []
 
             if len(assoc) >= 1:
                 actions.append(open_with_menu)
@@ -572,9 +572,17 @@ class DirView(QTreeView):
                                         triggered=browse_slot)
                 actions += [None, vcs_ci, vcs_log]
 
+        # Needed to disable actions in the context menu if there's an
+        # empty folder. See spyder-ide/spyder#13004
+        if len(fnames) == 1 and self.selectionModel():
+            rows = self.selectionModel().selectedRows()
+            if (self.fsmodel.type(rows[0]) == 'Folder' and
+                    self.fsmodel.rowCount(rows[0]) == 0):
+                fnames = []
         if not fnames:
             for action in actions:
-                action.setEnabled(False)
+                if action:
+                    action.setDisabled(True)
         return actions
 
     def create_folder_manage_actions(self, fnames):
@@ -595,8 +603,6 @@ class DirView(QTreeView):
         """Create context menu actions"""
         actions = []
         fnames = self.get_selected_filenames()
-        # Needed to create a context menu in an empty folder in Windows
-        # See spyder-ide/spyder#13004
         new_actions = self.create_file_new_actions(fnames)
         if len(new_actions) > 1:
             # Creating a submenu only if there is more than one entry
@@ -615,7 +621,6 @@ class DirView(QTreeView):
             actions += import_actions
         if actions:
             actions.append(None)
-        # if fnames:
         actions += self.create_file_manage_actions(fnames)
         if actions:
             actions.append(None)
