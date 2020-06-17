@@ -1699,6 +1699,7 @@ def test_kernel_restart_after_manual_restart_and_crash(ipyconsole, qtbot):
             'status'] == 'ready')
 
 
+@flaky(max_runs=3)
 def test_stderr_poll(ipyconsole, qtbot):
     """Test if the content of stderr is printed to the console."""
     shell = ipyconsole.get_current_shellwidget()
