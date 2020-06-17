@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-17 15:31\n"
+"PO-Revision-Date: 2020-06-17 15:52\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -4707,7 +4707,7 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:340
 msgid "Edit item"
-msgstr ""
+msgstr "Редагувати елемент"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:341
 msgid "<b>Unable to assign data to item.</b><br><br>Error message:<br>%s"
@@ -4723,79 +4723,79 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:166 spyder/preferences/shortcuts.py:579
 msgid "Name"
-msgstr ""
+msgstr "Назва"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:169
 msgid "Tuple"
-msgstr ""
+msgstr "Кортеж"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:172
 msgid "List"
-msgstr ""
+msgstr "Список"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:175
 msgid "Set"
-msgstr ""
+msgstr "Множина"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:179
 msgid "Dictionary"
-msgstr ""
+msgstr "Словник"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:181
 msgid "Key"
-msgstr ""
+msgstr "Ключ"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:186
 msgid "Attribute"
-msgstr ""
+msgstr "Атрибут"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:190
 msgid "elements"
-msgstr ""
+msgstr "елементи"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:406
 msgid "Value"
-msgstr ""
+msgstr "Значення"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:407 spyder/preferences/shortcuts.py:583
 msgid "Score"
-msgstr ""
+msgstr "Оцінка"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:544
 msgid "Resize rows to contents"
-msgstr ""
+msgstr "Змінити розмір рядків до вмісту"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:548
 msgid "Resize columns to contents"
-msgstr ""
+msgstr "Змінити розмір стовпців до вмісту"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:559 spyder/plugins/variableexplorer/widgets/collectionseditor.py:986 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1004
 msgid "Plot"
-msgstr ""
+msgstr "Діаграма"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:563
 msgid "Histogram"
-msgstr ""
+msgstr "Гістограма"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:567
 msgid "Show image"
-msgstr ""
+msgstr "Показати зображення"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:571 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1012
 msgid "Save array"
-msgstr ""
+msgstr "Зберегти масив"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:575 spyder/plugins/variableexplorer/widgets/collectionseditor.py:939 spyder/plugins/variableexplorer/widgets/collectionseditor.py:947
 msgid "Insert"
-msgstr ""
+msgstr "Вставити"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:588 spyder/plugins/variableexplorer/widgets/collectionseditor.py:898
 msgid "Duplicate"
-msgstr ""
+msgstr "Дублювати"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:593
 msgid "View with the Object Explorer"
-msgstr ""
+msgstr "Переглянути за допомогою оглядача об'єкту"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:873
 msgid "Do you want to remove the selected item?"
@@ -4807,23 +4807,23 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:896
 msgid "New variable name:"
-msgstr ""
+msgstr "Назва нової змінної:"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:899
 msgid "Variable name:"
-msgstr ""
+msgstr "Назва змінної:"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:939
 msgid "Key:"
-msgstr ""
+msgstr "Ключ:"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:947
 msgid "Value:"
-msgstr ""
+msgstr "Значення:"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:973
 msgid "Import error"
-msgstr ""
+msgstr "Помилка імпорту"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:974
 msgid "Please install <b>matplotlib</b> or <b>guiqwt</b>."
@@ -4839,15 +4839,15 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:1018
 msgid "NumPy arrays"
-msgstr ""
+msgstr "Масиви NumPy"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:1028
 msgid "<b>Unable to save array</b><br><br>Error message:<br>%s"
-msgstr ""
+msgstr "<b>Не вдалося зберегти масив</b><br><br>Повідомлення про помилку:<br>%s"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:1053
 msgid "It was not possible to copy this array"
-msgstr ""
+msgstr "Неможливо скопіювати цей масив"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:1065
 msgid "It was not possible to copy this dataframe"
@@ -4855,11 +4855,11 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:1087
 msgid "Clipboard contents"
-msgstr ""
+msgstr "Вміст буфера обміну"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:1102
 msgid "Import from clipboard"
-msgstr ""
+msgstr "Імпортувати з буфера обміну"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:1104
 msgid "Empty clipboard"
@@ -4867,7 +4867,7 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:1105
 msgid "Nothing to be imported from clipboard."
-msgstr ""
+msgstr "Немає нічого для імпортування з буфера обміну."
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:345
 msgid "It is not possible to display this value because\n"
@@ -4964,19 +4964,19 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:200
 msgid "Comments:"
-msgstr ""
+msgstr "Коментарі:"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:206
 msgid "Transpose"
-msgstr ""
+msgstr "Транспонувати"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:446
 msgid "array"
-msgstr ""
+msgstr "масив"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:454
 msgid "list"
-msgstr ""
+msgstr "список"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:459
 msgid "DataFrame"
@@ -4984,11 +4984,11 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:505 spyder/plugins/variableexplorer/widgets/importwizard.py:589
 msgid "Import wizard"
-msgstr ""
+msgstr "Майстер імпортування"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:510
 msgid "Raw text"
-msgstr ""
+msgstr "Неформатований текст"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:513
 msgid "variable_name"
@@ -5000,35 +5000,35 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:525 spyder/preferences/appearance.py:146
 msgid "Preview"
-msgstr ""
+msgstr "Попередній перегляд"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:529
 msgid "Variable Name"
-msgstr ""
+msgstr "Ім'я змінної"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:552
 msgid "Done"
-msgstr ""
+msgstr "Готово"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:590
 msgid "<b>Unable to proceed to next step</b><br><br>Please check your entries.<br><br>Error message:<br>%s"
-msgstr ""
+msgstr "<b>Неможливо перейти до наступного кроку</b><br><br>Будь ласка, перевірте ваші записи.<br><br>Повідомлення про помилку:<br>%s"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:245 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:416
 msgid "Import data"
-msgstr ""
+msgstr "Імпортувати дані"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:258
 msgid "Save data as..."
-msgstr ""
+msgstr "Зберегти дані як..."
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:269
 msgid "Search variable names and types"
-msgstr ""
+msgstr "Пошук імен змінних та типів"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:275
 msgid "Refresh variables"
-msgstr ""
+msgstr "Оновити змінні"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:291
 msgid "Exclude references which name starts with an underscore"
@@ -5056,19 +5056,19 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:446
 msgid "Open file as:"
-msgstr ""
+msgstr "Відкрити файл як:"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:478
 msgid "<b>Unable to load '%s'</b><br><br>The error message was:<br>%s"
-msgstr ""
+msgstr "<b>Не вдалося завантажити '%s'</b><br><br>Повідомлення про помилку:<br>%s"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:514
 msgid "<b>Some objects could not be saved:</b>"
-msgstr ""
+msgstr "<b>Не вдалося зберегти деякі об’єкти:</b>"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:518
 msgid "<b>Unable to save current workspace</b><br><br>The error message was:<br>"
-msgstr ""
+msgstr "<b>Не вдалося зберегти поточну робочу область</b><br><br>Повідомлення про помилку:<br>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:115
 msgid "empty {}"
@@ -5212,7 +5212,7 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:271
 msgid "Details"
-msgstr ""
+msgstr "Деталі"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/toggle_column_mixin.py:65
 msgid "Shows or hides the {} column"
@@ -5232,7 +5232,7 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/texteditor.py:92
 msgid "Text editor"
-msgstr ""
+msgstr "Текстовий редактор"
 
 #: spyder/plugins/workingdirectory/confpage.py:26
 msgid "The <b>current working directory</b> is the working directory for IPython consoles and the current directory for the File Explorer."
@@ -5248,7 +5248,7 @@ msgstr ""
 
 #: spyder/plugins/workingdirectory/confpage.py:42
 msgid "At startup,"
-msgstr ""
+msgstr "Під час запуску"
 
 #: spyder/plugins/workingdirectory/confpage.py:45 spyder/plugins/workingdirectory/confpage.py:84 spyder/preferences/runconfig.py:52
 msgid "The following directory:"
@@ -5268,7 +5268,7 @@ msgstr ""
 
 #: spyder/plugins/workingdirectory/confpage.py:78 spyder/preferences/runconfig.py:51
 msgid "The current working directory"
-msgstr ""
+msgstr "Поточна робоча тека"
 
 #: spyder/plugins/workingdirectory/confpage.py:86
 msgid "The directory when a new console is open will be the specified path"
@@ -5276,7 +5276,7 @@ msgstr ""
 
 #: spyder/plugins/workingdirectory/plugin.py:65
 msgid "Back"
-msgstr ""
+msgstr "Назад"
 
 #: spyder/plugins/workingdirectory/plugin.py:82
 msgid "This is the working directory for newly\n"
@@ -5288,123 +5288,123 @@ msgstr ""
 
 #: spyder/plugins/workingdirectory/plugin.py:102
 msgid "Browse a working directory"
-msgstr ""
+msgstr "Переглянути робочу теку"
 
 #: spyder/plugins/workingdirectory/plugin.py:109
 msgid "Change to parent directory"
-msgstr ""
+msgstr "Змінити на батьківську теку"
 
 #: spyder/preferences/appearance.py:29
 msgid "Appearance"
-msgstr ""
+msgstr "Зовнішній вигляд"
 
 #: spyder/preferences/appearance.py:42
 msgid "Main interface"
-msgstr ""
+msgstr "Головний інтерфейс"
 
 #: spyder/preferences/appearance.py:48
 msgid "Interface theme"
-msgstr ""
+msgstr "Тема інтерфейсу"
 
 #: spyder/preferences/appearance.py:60
 msgid "Qt windows style"
-msgstr ""
+msgstr "Стиль Qt вікон"
 
 #: spyder/preferences/appearance.py:67
 msgid "Icon theme"
-msgstr ""
+msgstr "Тема іконки"
 
 #: spyder/preferences/appearance.py:83
 msgid "Syntax highlighting theme"
-msgstr ""
+msgstr "Тема для підсвічування синтаксису"
 
 #: spyder/preferences/appearance.py:86
 msgid "Edit selected scheme"
-msgstr ""
+msgstr "Редагувати обрану схему"
 
 #: spyder/preferences/appearance.py:87
 msgid "Create new scheme"
-msgstr ""
+msgstr "Створити нову схему"
 
 #: spyder/preferences/appearance.py:88
 msgid "Delete scheme"
-msgstr ""
+msgstr "Видалити схему"
 
 #: spyder/preferences/appearance.py:89 spyder/preferences/configdialog.py:140
 msgid "Reset to defaults"
-msgstr ""
+msgstr "Відновити до типових"
 
 #: spyder/preferences/appearance.py:113
 msgid "Fonts"
-msgstr ""
+msgstr "Шрифти"
 
 #: spyder/preferences/appearance.py:118
 msgid "Plain text"
-msgstr ""
+msgstr "Звичайний текст"
 
 #: spyder/preferences/appearance.py:124
 msgid "Rich text"
-msgstr ""
+msgstr "Форматований текст"
 
 #: spyder/preferences/appearance.py:404
 msgid "Are you sure you want to delete this scheme?"
-msgstr ""
+msgstr "Ви дійсно хочете видалити цю схему?"
 
 #: spyder/preferences/appearance.py:522
 msgid "Text"
-msgstr ""
+msgstr "Текст"
 
 #: spyder/preferences/appearance.py:524
 msgid "Highlight"
-msgstr ""
+msgstr "Підсвічування"
 
 #: spyder/preferences/appearance.py:526
 msgid "Background"
-msgstr ""
+msgstr "Фон"
 
 #: spyder/preferences/appearance.py:530
 msgid "Scheme name:"
-msgstr ""
+msgstr "Назва схеми:"
 
 #: spyder/preferences/appearance.py:537
 msgid "Color scheme editor"
-msgstr ""
+msgstr "Редактор колірної схеми"
 
 #: spyder/preferences/configdialog.py:153
 msgid "Preferences"
-msgstr ""
+msgstr "Налаштування"
 
 #: spyder/preferences/configdialog.py:604
 msgid "Invalid directory path"
-msgstr ""
+msgstr "Недійсний шлях до теки"
 
 #: spyder/preferences/configdialog.py:634 spyder/preferences/configdialog.py:796
 msgid "Invalid file path"
-msgstr ""
+msgstr "Недійсний шлях до файлу"
 
 #: spyder/preferences/configdialog.py:637 spyder/preferences/configdialog.py:654 spyder/preferences/configdialog.py:799
 msgid "Select file"
-msgstr ""
+msgstr "Виберіть файл"
 
 #: spyder/preferences/configdialog.py:653
 msgid "All files (*)"
-msgstr ""
+msgstr "Усі файли (*)"
 
 #: spyder/preferences/configdialog.py:727
 msgid "Bold"
-msgstr ""
+msgstr "Напівжирний"
 
 #: spyder/preferences/configdialog.py:730
 msgid "Italic"
-msgstr ""
+msgstr "Курсив"
 
 #: spyder/preferences/configdialog.py:820
 msgid "Font"
-msgstr ""
+msgstr "Шрифт"
 
 #: spyder/preferences/configdialog.py:845
 msgid "Font style"
-msgstr ""
+msgstr "Стиль шрифту"
 
 #: spyder/preferences/configdialog.py:880
 msgid "Spyder needs to restart to change the following setting:"
@@ -5416,19 +5416,19 @@ msgstr ""
 
 #: spyder/preferences/configdialog.py:885
 msgid "Do you wish to restart now?"
-msgstr ""
+msgstr "Бажаєте перезавантажити зараз?"
 
 #: spyder/preferences/general.py:58
 msgid "Language:"
-msgstr ""
+msgstr "Мова:"
 
 #: spyder/preferences/general.py:66
 msgid "Rendering engine:"
-msgstr ""
+msgstr "Рушій відображення:"
 
 #: spyder/preferences/general.py:71
 msgid "Use a single instance"
-msgstr ""
+msgstr "Використовувати один екземпляр"
 
 #: spyder/preferences/general.py:73
 msgid "Set this to open external<br> Python files in an already running instance (Requires a restart)"
@@ -5444,15 +5444,15 @@ msgstr ""
 
 #: spyder/preferences/general.py:108
 msgid "Vertical title bars in panes"
-msgstr ""
+msgstr "Вертикальні заголовки в панелях"
 
 #: spyder/preferences/general.py:110
 msgid "Vertical tabs in panes"
-msgstr ""
+msgstr "Вертикальні вкладки в панелях"
 
 #: spyder/preferences/general.py:112
 msgid "Animated toolbars and panes"
-msgstr ""
+msgstr "Анімовані панелі інструментів та панелі"
 
 #: spyder/preferences/general.py:114
 msgid "Tear off menus"
@@ -5468,15 +5468,15 @@ msgstr ""
 
 #: spyder/preferences/general.py:119
 msgid "pixels"
-msgstr ""
+msgstr "пікселів"
 
 #: spyder/preferences/general.py:126
 msgid "Cursor blinking:"
-msgstr ""
+msgstr "Блимання курсора:"
 
 #: spyder/preferences/general.py:129
 msgid "ms"
-msgstr ""
+msgstr "мс"
 
 #: spyder/preferences/general.py:166
 msgid "macOS integration"
@@ -5496,11 +5496,11 @@ msgstr ""
 
 #: spyder/preferences/general.py:185
 msgid "Status bar"
-msgstr ""
+msgstr "Рядок стану"
 
 #: spyder/preferences/general.py:186
 msgid "Show status bar"
-msgstr ""
+msgstr "Показувати рядок стану"
 
 #: spyder/preferences/general.py:188
 msgid "Show memory usage every"
@@ -5512,11 +5512,11 @@ msgstr ""
 
 #: spyder/preferences/general.py:207
 msgid "Show clock"
-msgstr ""
+msgstr "Показувати годинник"
 
 #: spyder/preferences/general.py:235
 msgid "Screen resolution"
-msgstr ""
+msgstr "Роздільна здатність екрану"
 
 #: spyder/preferences/general.py:237
 msgid "Configuration for high DPI screens<br><br>Please see <a href=\"{0}\">{0}</a><> for more information about these options (in English)."
@@ -5557,11 +5557,11 @@ msgstr ""
 
 #: spyder/preferences/layoutdialog.py:178
 msgid "Move Up"
-msgstr ""
+msgstr "Перемістити вгору"
 
 #: spyder/preferences/layoutdialog.py:179
 msgid "Move Down"
-msgstr ""
+msgstr "Перемістити вниз"
 
 #: spyder/preferences/layoutdialog.py:180
 msgid "Delete Layout"
@@ -5573,7 +5573,7 @@ msgstr ""
 
 #: spyder/preferences/maininterpreter.py:31 spyder/preferences/maininterpreter.py:71
 msgid "Python interpreter"
-msgstr ""
+msgstr "Інтерпретатор Python"
 
 #: spyder/preferences/maininterpreter.py:73
 msgid "Select the Python interpreter for all Spyder consoles"
@@ -5690,11 +5690,11 @@ msgstr ""
 
 #: spyder/preferences/runconfig.py:189 spyder/preferences/runconfig.py:514
 msgid "General settings"
-msgstr ""
+msgstr "Загальні налаштування"
 
 #: spyder/preferences/runconfig.py:202 spyder/preferences/runconfig.py:244
 msgid "Command line options:"
-msgstr ""
+msgstr "Параметри командного рядка:"
 
 #: spyder/preferences/runconfig.py:210 spyder/preferences/runconfig.py:527
 msgid "Working directory settings"
@@ -5714,7 +5714,7 @@ msgstr ""
 
 #: spyder/preferences/runconfig.py:325
 msgid "Run configuration"
-msgstr ""
+msgstr "Виконати конфігурацію"
 
 #: spyder/preferences/runconfig.py:326
 msgid "The following working directory is not valid:<br><b>%s</b>"
@@ -5766,11 +5766,11 @@ msgstr ""
 
 #: spyder/preferences/shortcuts.py:196
 msgid "Ok"
-msgstr ""
+msgstr "Гаразд"
 
 #: spyder/preferences/shortcuts.py:198
 msgid "Clear"
-msgstr ""
+msgstr "Очистити"
 
 #: spyder/preferences/shortcuts.py:210
 msgid "Clear all entered key sequences"
@@ -5782,7 +5782,7 @@ msgstr ""
 
 #: spyder/preferences/shortcuts.py:224
 msgid "Shortcut: {0}"
-msgstr ""
+msgstr "Комбінація клавіш: {0}"
 
 #: spyder/preferences/shortcuts.py:391
 msgid "This key sequence conflicts with:"
@@ -5814,7 +5814,7 @@ msgstr ""
 
 #: spyder/preferences/shortcuts.py:581
 msgid "Shortcut"
-msgstr ""
+msgstr "Комбінація клавіш"
 
 #: spyder/preferences/shortcuts.py:741
 msgid "Conflicts"
@@ -5826,7 +5826,7 @@ msgstr ""
 
 #: spyder/preferences/shortcuts.py:827
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Комбінації клавіш"
 
 #: spyder/preferences/shortcuts.py:838
 msgid "Search for a shortcut in the table above"
@@ -5834,7 +5834,7 @@ msgstr ""
 
 #: spyder/preferences/shortcuts.py:839
 msgid "Search: "
-msgstr ""
+msgstr "Пошук: "
 
 #: spyder/preferences/shortcuts.py:842
 msgid "Here you can browse the list of all available shortcuts in Spyder. You can also customize them by double-clicking on any entry in this table."
@@ -5874,23 +5874,23 @@ msgstr ""
 
 #: spyder/utils/syntaxhighlighters.py:59
 msgid "Background:"
-msgstr ""
+msgstr "Фон:"
 
 #: spyder/utils/syntaxhighlighters.py:61
 msgid "Current cell:"
-msgstr ""
+msgstr "Поточна комірка:"
 
 #: spyder/utils/syntaxhighlighters.py:62
 msgid "Occurrence:"
-msgstr ""
+msgstr "Входження:"
 
 #: spyder/utils/syntaxhighlighters.py:63
 msgid "Link:"
-msgstr ""
+msgstr "Посилання:"
 
 #: spyder/utils/syntaxhighlighters.py:64
 msgid "Side areas:"
-msgstr ""
+msgstr "Бічні області:"
 
 #: spyder/utils/syntaxhighlighters.py:65
 msgid "Matched <br>parens:"
@@ -5902,35 +5902,35 @@ msgstr ""
 
 #: spyder/utils/syntaxhighlighters.py:67
 msgid "Normal text:"
-msgstr ""
+msgstr "Звичайний текст:"
 
 #: spyder/utils/syntaxhighlighters.py:68
 msgid "Keyword:"
-msgstr ""
+msgstr "Ключове слово:"
 
 #: spyder/utils/syntaxhighlighters.py:69
 msgid "Builtin:"
-msgstr ""
+msgstr "Вбудований:"
 
 #: spyder/utils/syntaxhighlighters.py:70
 msgid "Definition:"
-msgstr ""
+msgstr "Визначення:"
 
 #: spyder/utils/syntaxhighlighters.py:71
 msgid "Comment:"
-msgstr ""
+msgstr "Коментар:"
 
 #: spyder/utils/syntaxhighlighters.py:72
 msgid "String:"
-msgstr ""
+msgstr "Рядок:"
 
 #: spyder/utils/syntaxhighlighters.py:73
 msgid "Number:"
-msgstr ""
+msgstr "Номер:"
 
 #: spyder/utils/syntaxhighlighters.py:74
 msgid "Instance:"
-msgstr ""
+msgstr "Екземпляр:"
 
 #: spyder/widgets/arraybuilder.py:200
 msgid "\n"
