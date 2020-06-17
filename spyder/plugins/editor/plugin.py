@@ -1832,9 +1832,16 @@ class Editor(SpyderPluginWidget):
                         # to this number if there's other untitled file in
                         # spyder. Please see spyder-ide/spyder#7831
                         fname_data = osp.splitext(current_filename)
-                        act_num = int(fname_data[0].split(_("untitled"))[-1])
-                        self.untitled_num = act_num + 1
-
+                        try:
+                            act_num = int(
+                                fname_data[0].split(_("untitled"))[-1])
+                            self.untitled_num = act_num + 1
+                        except ValueError:
+                            # Catch the error in case the user has something
+                            # different from a number after the untitled
+                            # part.
+                            # Please see spyder-ide/spyder#12892
+                            self.untitled_num = 0
             while True:
                 fname = create_fname(self.untitled_num)
                 self.untitled_num += 1
