@@ -1189,7 +1189,6 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
     def do_completion(self, automatic=False):
         """Trigger completion."""
-        self.document_did_change('')
         cursor = self.textCursor()
         current_word = self.get_current_word(
             completion=True,
