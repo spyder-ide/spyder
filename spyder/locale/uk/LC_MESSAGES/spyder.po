@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-17 16:02\n"
+"PO-Revision-Date: 2020-06-17 16:09\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -6352,7 +6352,7 @@ msgstr "Допоможи мені 2!"
 
 #: spyder/widgets/switcher.py:948
 msgid "Help me 3!"
-msgstr ""
+msgstr "Допоможіть мені 3!"
 
 #: spyder/widgets/switcher.py:954
 msgid "Current line, type something"
@@ -6360,15 +6360,15 @@ msgstr ""
 
 #: spyder/widgets/switcher.py:960
 msgid "Some symbol"
-msgstr ""
+msgstr "Якийсь символ"
 
 #: spyder/widgets/switcher.py:961
 msgid "another symbol"
-msgstr ""
+msgstr "інший символ"
 
 #: spyder/widgets/switcher.py:970 spyder/widgets/tests/test_switcher.py:31
 msgid "Commands"
-msgstr ""
+msgstr "Команди"
 
 #: spyder/widgets/tabs.py:276
 msgid "Browse tabs"
@@ -6376,17 +6376,17 @@ msgstr ""
 
 #: spyder/widgets/tabs.py:417
 msgid "Close current tab"
-msgstr ""
+msgstr "Закрити поточну вкладку"
 
 #: spyder/workers/updates.py:129 spyder/workers/updates.py:131
 msgid "Unable to retrieve information."
-msgstr ""
+msgstr "Неможливо отримати інформацію."
 
 #: spyder/workers/updates.py:133
 msgid "Unable to connect to the internet. <br><br>Make sure the connection is working properly."
-msgstr ""
+msgstr "Не вдалося підключитися до Інтернету. <br><br>Переконайтеся, що з'єднання працює належним чином."
 
 #: spyder/workers/updates.py:136
 msgid "Unable to check for updates."
-msgstr ""
+msgstr "Не вдалось перевірити наявність оновлень."
 
