@@ -288,7 +288,7 @@ APPEARANCE = {
     'notepad++/background':  "#ffffff",
     'notepad++/currentline': "#eeeeee",
     'notepad++/currentcell': "#D9D9D9",
-    'notepad++/occurrence':  "#877e7e",
+    'notepad++/occurrence':  "#abbcd9",
     'notepad++/ctrlclick':   "#800080",
     'notepad++/sideareas':   "#eeeeee",
     'notepad++/matched_p':   "#8000ff",
