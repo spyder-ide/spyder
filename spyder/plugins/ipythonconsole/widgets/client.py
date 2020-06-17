@@ -258,13 +258,10 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if mtime == self.stderr_mtime:
             return
         self.stderr_mtime = mtime
-        try:
-            stderr = self._read_stderr()
-        except Exception:
-            stderr = None
+        stderr = self.get_stderr_contents()
         if stderr:
             self.shellwidget._append_plain_text(
-                '\n' + stderr, before_prompt=False)
+                '\n' + stderr, before_prompt=True)
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is connected."""
