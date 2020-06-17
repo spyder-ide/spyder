@@ -248,15 +248,31 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         Send a new initialize message to each LSP server when the project
         path has changed so they can update the respective server root paths.
         """
-        self.main.projects.stop_lsp_services()
         for language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
-                self.main.editor.stop_completion_services(language)
-                folder = self.get_root_path(language)
                 instance = language_client['instance']
-                instance.folder = folder
-                instance.initialize({'pid': instance.stdio_pid})
+                if (instance.supports_multiple_workspaces and
+                        instance.supports_workspace_update):
+                    logger.debug('{0}: LSP supports multiple '
+                                 'workspaces'.format(instance.language))
+                    logger.debug('Project path {0}: {1}'.format(
+                        project_path, update_kind))
+                    instance.send_workspace_folders_change({
+                        'folder': project_path,
+                        'instance': self.main.projects,
+                        'kind': update_kind
+                    })
+                else:
+                    logger.debug('{0}: LSP does not support multiple '
+                                 'workspaces, restarting'.format(
+                                     instance.language))
+                    self.main.projects.stop_lsp_services()
+                    self.main.editor.stop_completion_services(language)
+                    folder = self.get_root_path(language)
+                    instance.folder = folder
+                    self.close_client(language)
+                    self.start_client(language)
 
     @Slot(str)
     def report_server_error(self, error):
@@ -411,9 +427,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """Register signals emmited by a client instance."""
         if self.main:
             self.main.sig_pythonpath_changed.connect(
-                self.update_configuration)
+                functools.partial(self.update_configuration, python_only=True))
             self.main.sig_main_interpreter_changed.connect(
-                self.update_configuration)
+                functools.partial(self.update_configuration, python_only=True))
             instance.sig_went_down.connect(self.handle_lsp_down)
             instance.sig_initialize.connect(self.on_initialize)
 
@@ -433,8 +449,11 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         for language in self.clients:
             self.close_client(language)
 
-    def update_configuration(self):
+    def update_configuration(self, python_only=False):
         for language in self.get_languages():
+            if python_only and language != 'python':
+                continue
+
             client_config = {'status': self.STOPPED,
                              'config': self.get_language_config(language),
                              'instance': None}

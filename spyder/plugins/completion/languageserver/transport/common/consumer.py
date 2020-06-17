@@ -122,7 +122,7 @@ class IncomingMessageThread(Thread):
         logger.debug('Thread stopped.')
 
     def parse_headers(self, headers):
-        logger.debug(headers)
+        logger.debug('Headers: {0}'.format(headers))
         headers = headers.split(b'\r\n')
         header_dict = dict([x.split(b': ') for x in headers])
         return header_dict
