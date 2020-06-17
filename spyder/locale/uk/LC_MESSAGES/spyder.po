@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-17 14:57\n"
+"PO-Revision-Date: 2020-06-17 15:12\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -1409,7 +1409,7 @@ msgstr "Увімкнути Kite (якщо запущено рушій Kite)"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1002
 msgid "Enable fallback completions"
-msgstr ""
+msgstr "Увімкнути резервні завершення"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1006
 msgid "Time to wait for all providers to return (ms):"
@@ -1425,19 +1425,19 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:1025
 msgid "Kite configuration"
-msgstr ""
+msgstr "Налаштування Kite"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1030
 msgid "Python Language Server configuration"
-msgstr ""
+msgstr "Налаштування мовного сервера Python"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1033
 msgid "<b>Warning</b>: Only modify these values if you know what you're doing!"
-msgstr ""
+msgstr "<b>Попередження</b>: Змінюйте ці значення лише тоді, коли ви знаєте, що робите!"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1040
 msgid "Enable advanced settings"
-msgstr ""
+msgstr "Увімкнути розширені налаштування"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1044
 msgid "Module for the Python language server: "
@@ -1461,19 +1461,19 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:1114
 msgid "Available servers:"
-msgstr ""
+msgstr "Доступні сервери:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1122 spyder/preferences/shortcuts.py:840
 msgid "Reset to default values"
-msgstr ""
+msgstr "Відновити типові значення"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1123
 msgid "Set up a new server"
-msgstr ""
+msgstr "Налаштувати новий сервер"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1124
 msgid "Delete currently selected server"
-msgstr ""
+msgstr "Видалити вибраний сервер"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1154
 msgid "Completion"
@@ -1497,7 +1497,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:1165
 msgid "Other languages"
-msgstr ""
+msgstr "Інші мови"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1223
 msgid "Show the following errors in addition to the specified convention:"
@@ -1545,7 +1545,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:346
 msgid "Don't show again"
-msgstr ""
+msgstr "Не показувати знову"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:31
 msgid "Completions, linting, code\n"
@@ -1554,7 +1554,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:58
 msgid "Restart {} Language Server"
-msgstr ""
+msgstr "Перезапустити мовний сервер {}"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:92
 msgid "starting..."
@@ -1570,7 +1570,7 @@ msgstr ""
 
 #: spyder/plugins/console/plugin.py:119
 msgid "Internal console"
-msgstr ""
+msgstr "Внутрішній командний рядок"
 
 #: spyder/plugins/console/plugin.py:146
 msgid "&Run..."
@@ -1606,11 +1606,11 @@ msgstr ""
 
 #: spyder/plugins/console/plugin.py:166
 msgid "External editor path..."
-msgstr ""
+msgstr "Шлях до зовнішнього редактора..."
 
 #: spyder/plugins/console/plugin.py:167
 msgid "Set external editor executable path"
-msgstr ""
+msgstr "Встановити шлях виконуваного файлу зовнішнього редактора"
 
 #: spyder/plugins/console/plugin.py:170 spyder/plugins/editor/confpage.py:48 spyder/plugins/help/confpage.py:60 spyder/plugins/help/plugin.py:73 spyder/plugins/history/confpage.py:34 spyder/plugins/history/plugin.py:112
 msgid "Wrap lines"
@@ -1836,35 +1836,35 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:144
 msgid "2 spaces"
-msgstr ""
+msgstr "2 пропуски"
 
 #: spyder/plugins/editor/confpage.py:145
 msgid "3 spaces"
-msgstr ""
+msgstr "3 пропуски"
 
 #: spyder/plugins/editor/confpage.py:146
 msgid "4 spaces"
-msgstr ""
+msgstr "4 пропуски"
 
 #: spyder/plugins/editor/confpage.py:147
 msgid "5 spaces"
-msgstr ""
+msgstr "5 пропусків"
 
 #: spyder/plugins/editor/confpage.py:148
 msgid "6 spaces"
-msgstr ""
+msgstr "6 пропусків"
 
 #: spyder/plugins/editor/confpage.py:149
 msgid "7 spaces"
-msgstr ""
+msgstr "7 пропусків"
 
 #: spyder/plugins/editor/confpage.py:150
 msgid "8 spaces"
-msgstr ""
+msgstr "8 пропусків"
 
 #: spyder/plugins/editor/confpage.py:151
 msgid "Tabulations"
-msgstr ""
+msgstr "Табуляція"
 
 #: spyder/plugins/editor/confpage.py:154
 msgid "Tab stop width:"
@@ -1872,11 +1872,11 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:155
 msgid "spaces"
-msgstr ""
+msgstr "пропуски"
 
 #: spyder/plugins/editor/confpage.py:196
 msgid "Save all files before running script"
-msgstr ""
+msgstr "Зберігати всі файли перед виконання сценарію"
 
 #: spyder/plugins/editor/confpage.py:198
 msgid "Maintain focus in the Editor after running cells or selections"
@@ -1928,11 +1928,11 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:251
 msgid "Type:"
-msgstr ""
+msgstr "Тип:"
 
 #: spyder/plugins/editor/confpage.py:261
 msgid "Annotations"
-msgstr ""
+msgstr "Анотації"
 
 #: spyder/plugins/editor/confpage.py:263
 msgid "Display a marker to the left of line numbers when the following annotations appear at the beginning of a comment: <tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, !!!, ???</tt>"
@@ -2254,27 +2254,27 @@ msgstr ""
 
 #: spyder/plugins/editor/plugin.py:699
 msgid "Last edit location"
-msgstr ""
+msgstr "Місце останньої зміни"
 
 #: spyder/plugins/editor/plugin.py:700
 msgid "Go to last edit location"
-msgstr ""
+msgstr "Перейти до розташування останньої зміни"
 
 #: spyder/plugins/editor/plugin.py:708
 msgid "Previous cursor position"
-msgstr ""
+msgstr "Попередня позиція курсору"
 
 #: spyder/plugins/editor/plugin.py:709
 msgid "Go to previous cursor position"
-msgstr ""
+msgstr "Перейти до попередньої позиції курсору"
 
 #: spyder/plugins/editor/plugin.py:717
 msgid "Next cursor position"
-msgstr ""
+msgstr "Наступна позиція курсору"
 
 #: spyder/plugins/editor/plugin.py:718
 msgid "Go to next cursor position"
-msgstr ""
+msgstr "Перейти до наступної позиції курсору"
 
 #: spyder/plugins/editor/plugin.py:728 spyder/plugins/editor/widgets/codeeditor.py:3689
 msgid "Comment"
@@ -2458,15 +2458,15 @@ msgstr "Перейти до символу у файлі"
 
 #: spyder/plugins/editor/utils/switcher.py:147
 msgid "Start typing the name of an open file"
-msgstr ""
+msgstr "Почніть вводити назву відкритого файлу"
 
 #: spyder/plugins/editor/utils/switcher.py:180
 msgid "Select line"
-msgstr ""
+msgstr "Оберіть рядок"
 
 #: spyder/plugins/editor/utils/switcher.py:188
 msgid "lines"
-msgstr ""
+msgstr "рядки"
 
 #: spyder/plugins/editor/utils/switcher.py:189
 msgid "Go to line"
@@ -2474,7 +2474,7 @@ msgstr "Перейти до рядка"
 
 #: spyder/plugins/editor/utils/switcher.py:202
 msgid "Select symbol"
-msgstr ""
+msgstr "Виберіть символ"
 
 #: spyder/plugins/editor/widgets/autosaveerror.py:47
 msgid "Autosave error"
@@ -2610,7 +2610,7 @@ msgstr "Показати в пошуку"
 
 #: spyder/plugins/editor/widgets/editor.py:517
 msgid "Show in external file explorer"
-msgstr ""
+msgstr "Показати у зовнішньому оглядачі файлів"
 
 #: spyder/plugins/editor/widgets/editor.py:1425
 msgid "Temporary file"
@@ -2900,19 +2900,19 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:567
 msgid "Browse repository"
-msgstr ""
+msgstr "Переглянути сховище"
 
 #: spyder/plugins/explorer/widgets/explorer.py:578
 msgid "Open command prompt here"
-msgstr ""
+msgstr "Відкрити командний рядок тут"
 
 #: spyder/plugins/explorer/widgets/explorer.py:580
 msgid "Open terminal here"
-msgstr ""
+msgstr "Відкрити термінал тут"
 
 #: spyder/plugins/explorer/widgets/explorer.py:581
 msgid "Open IPython console here"
-msgstr ""
+msgstr "Відкрити командний рядок IPython тут"
 
 #: spyder/plugins/explorer/widgets/explorer.py:595
 msgid "New"
@@ -2932,7 +2932,7 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:819
 msgid "Do you really want to delete <b>%s</b>?"
-msgstr ""
+msgstr "Ви дійсно бажаєте видалити <b>%s</b>?"
 
 #: spyder/plugins/explorer/widgets/explorer.py:837
 msgid "delete"
@@ -3024,7 +3024,7 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1186
 msgid "Recursive copy"
-msgstr ""
+msgstr "Рекурсивна копія"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1187
 msgid "Source is an ancestor of destination folder."
@@ -3232,7 +3232,7 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets.py:401
 msgid "Select other directory"
-msgstr ""
+msgstr "Виберіть іншу теку"
 
 #: spyder/plugins/findinfiles/widgets.py:402
 msgid "Search in other folder present on the file system"
@@ -3256,15 +3256,15 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets.py:579
 msgid "Search pattern"
-msgstr ""
+msgstr "Шаблон пошуку"
 
 #: spyder/plugins/findinfiles/widgets.py:582 spyder/plugins/findinfiles/widgets.py:625 spyder/widgets/findreplace.py:104
 msgid "Regular expression"
-msgstr ""
+msgstr "Регулярний вираз"
 
 #: spyder/plugins/findinfiles/widgets.py:586 spyder/widgets/findreplace.py:111
 msgid "Case Sensitive"
-msgstr ""
+msgstr "З урахуванням регістру"
 
 #: spyder/plugins/findinfiles/widgets.py:598
 msgid "Search"
