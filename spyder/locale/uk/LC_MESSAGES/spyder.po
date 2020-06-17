@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-17 15:52\n"
+"PO-Revision-Date: 2020-06-17 16:02\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -5964,47 +5964,47 @@ msgstr ""
 
 #: spyder/widgets/browser.py:228
 msgid "Home"
-msgstr ""
+msgstr "Домівка"
 
 #: spyder/widgets/browser.py:270
 msgid "Find text"
-msgstr ""
+msgstr "Знайти текст"
 
 #: spyder/widgets/browser.py:290
 msgid "Address:"
-msgstr ""
+msgstr "Адреса:"
 
 #: spyder/widgets/browser.py:326
 msgid "Unable to load page"
-msgstr ""
+msgstr "Не вдалося завантажити сторінку"
 
 #: spyder/widgets/comboboxes.py:165
 msgid "Press enter to validate this entry"
-msgstr ""
+msgstr "Натисніть Enter, щоб перевірити цей запис"
 
 #: spyder/widgets/comboboxes.py:166
 msgid "This entry is incorrect"
-msgstr ""
+msgstr "Цей запис невірний"
 
 #: spyder/widgets/comboboxes.py:209
 msgid "Press enter to validate this path"
-msgstr ""
+msgstr "Натисніть Enter, щоб перевірити цей шлях"
 
 #: spyder/widgets/dependencies.py:30
 msgid " Required "
-msgstr ""
+msgstr " Обов’язково "
 
 #: spyder/widgets/dependencies.py:30
 msgid "Module"
-msgstr ""
+msgstr "Модуль"
 
 #: spyder/widgets/dependencies.py:30
 msgid "Package name"
-msgstr ""
+msgstr "Назва пакунка"
 
 #: spyder/widgets/dependencies.py:31
 msgid " Installed "
-msgstr ""
+msgstr " Встановлено "
 
 #: spyder/widgets/dependencies.py:31
 msgid "Provided features"
@@ -6012,7 +6012,7 @@ msgstr ""
 
 #: spyder/widgets/dependencies.py:35
 msgid "Mandatory"
-msgstr ""
+msgstr "Обов’язкове поле"
 
 #: spyder/widgets/dependencies.py:45
 msgid "Spyder plugins"
@@ -6028,71 +6028,71 @@ msgstr ""
 
 #: spyder/widgets/dependencies.py:94
 msgid "Copy to clipboard"
-msgstr ""
+msgstr "Копіювати в буфер обміну"
 
 #: spyder/widgets/dependencies.py:99
 msgid "Dependencies"
-msgstr ""
+msgstr "Залежності"
 
 #: spyder/widgets/findreplace.py:51
 msgid "No matches"
-msgstr ""
+msgstr "Немає збігів"
 
 #: spyder/widgets/findreplace.py:52 spyder/widgets/findreplace.py:53 spyder/widgets/findreplace.py:75
 msgid "Search string"
-msgstr ""
+msgstr "Знайти рядок"
 
 #: spyder/widgets/findreplace.py:95
 msgid "Find previous"
-msgstr ""
+msgstr "Знайти попереднє"
 
 #: spyder/widgets/findreplace.py:99
 msgid "Find next"
-msgstr ""
+msgstr "Знайти наступне"
 
 #: spyder/widgets/findreplace.py:117
 msgid "Whole words"
-msgstr ""
+msgstr "Слова повністю"
 
 #: spyder/widgets/findreplace.py:123
 msgid "Highlight matches"
-msgstr ""
+msgstr "Виділяти співпадіння"
 
 #: spyder/widgets/findreplace.py:137
 msgid "Replace with:"
-msgstr ""
+msgstr "Замінити на:"
 
 #: spyder/widgets/findreplace.py:139
 msgid "Replace string"
-msgstr ""
+msgstr "Замінити рядок"
 
 #: spyder/widgets/findreplace.py:143
 msgid "Replace/find next"
-msgstr ""
+msgstr "Замінити/знайти наступне"
 
 #: spyder/widgets/findreplace.py:148
 msgid "Replace selection"
-msgstr ""
+msgstr "Замінити вибір"
 
 #: spyder/widgets/findreplace.py:156
 msgid "Replace all"
-msgstr ""
+msgstr "Замінити все"
 
 #: spyder/widgets/findreplace.py:629
 msgid "of"
-msgstr ""
+msgstr "з"
 
 #: spyder/widgets/findreplace.py:633
 msgid "matches"
-msgstr ""
+msgstr "збігів"
 
 #: spyder/widgets/findreplace.py:636
 msgid "no matches"
-msgstr ""
+msgstr "немає збігів"
 
 #: spyder/widgets/github/backend.py:149
 msgid "Invalid credentials"
-msgstr ""
+msgstr "Невірні облікові дані"
 
 #: spyder/widgets/github/backend.py:150
 msgid "Failed to create Github issue, invalid credentials..."
@@ -6148,59 +6148,59 @@ msgstr ""
 
 #: spyder/widgets/github/gh_login.py:98
 msgid "Access Token"
-msgstr ""
+msgstr "Ключ доступу"
 
 #: spyder/widgets/github/gh_login.py:101
 msgid "Sign in"
-msgstr ""
+msgstr "Увійти"
 
 #: spyder/widgets/onecolumntree.py:52
 msgid "Collapse all"
-msgstr ""
+msgstr "Згорнути все"
 
 #: spyder/widgets/onecolumntree.py:56
 msgid "Expand all"
-msgstr ""
+msgstr "Розгорнути все"
 
 #: spyder/widgets/onecolumntree.py:61
 msgid "Restore original tree layout"
-msgstr ""
+msgstr "Відновити початковий вигляд дерева"
 
 #: spyder/widgets/onecolumntree.py:65
 msgid "Collapse selection"
-msgstr ""
+msgstr "Згорнути вибір"
 
 #: spyder/widgets/onecolumntree.py:69
 msgid "Expand selection"
-msgstr ""
+msgstr "Розгорнути вибір"
 
 #: spyder/widgets/pathmanager.py:113
 msgid "Move to top"
-msgstr ""
+msgstr "Перемістити до самого верху"
 
 #: spyder/widgets/pathmanager.py:119
 msgid "Move up"
-msgstr ""
+msgstr "Перемістити вгору"
 
 #: spyder/widgets/pathmanager.py:125
 msgid "Move down"
-msgstr ""
+msgstr "Перемістити вниз"
 
 #: spyder/widgets/pathmanager.py:131
 msgid "Move to bottom"
-msgstr ""
+msgstr "Перемістити до самого низу"
 
 #: spyder/widgets/pathmanager.py:145 spyder/widgets/pathmanager.py:327 spyder/widgets/pathmanager.py:343 spyder/widgets/pathmanager.py:361
 msgid "Add path"
-msgstr ""
+msgstr "Додати шлях"
 
 #: spyder/widgets/pathmanager.py:151 spyder/widgets/pathmanager.py:382
 msgid "Remove path"
-msgstr ""
+msgstr "Вилучити шлях"
 
 #: spyder/widgets/pathmanager.py:157
 msgid "Synchronize..."
-msgstr ""
+msgstr "Синхронізація..."
 
 #: spyder/widgets/pathmanager.py:160
 msgid "Synchronize Spyder's path list with PYTHONPATH environment variable"
@@ -6208,7 +6208,7 @@ msgstr ""
 
 #: spyder/widgets/pathmanager.py:212
 msgid "Synchronize"
-msgstr ""
+msgstr "Синхронізація"
 
 #: spyder/widgets/pathmanager.py:213
 msgid "This will synchronize Spyder's path list with <b>PYTHONPATH</b> environment variable for the current user, allowing you to run your Python modules outside Spyder without having to configure sys.path. <br>Do you want to clear contents of PYTHONPATH before adding Spyder's path list?"
@@ -6256,7 +6256,7 @@ msgstr ""
 
 #: spyder/widgets/reporterror.py:171
 msgid "<b>Steps to reproduce:</b> {}"
-msgstr ""
+msgstr "<b>Кроки для відтворення:</b>{}"
 
 #: spyder/widgets/reporterror.py:173
 msgid "Please enter a detailed step-by-step description (in English) of what led up to the problem below. Issue reports without a clear way to reproduce them will be closed."
@@ -6268,11 +6268,11 @@ msgstr ""
 
 #: spyder/widgets/reporterror.py:210
 msgid "Submit to Github"
-msgstr ""
+msgstr "Надіслати на Github"
 
 #: spyder/widgets/reporterror.py:214 spyder/widgets/reporterror.py:329
 msgid "Show details"
-msgstr ""
+msgstr "Показати деталі"
 
 #: spyder/widgets/reporterror.py:303
 msgid "An error occurred while trying to send the issue to Github automatically. Would you like to open it manually?<br><br>If so, please make sure to paste your clipboard into the issue report box that will appear in a new browser tab before clicking <i>Submit</i> on that page."
@@ -6280,7 +6280,7 @@ msgstr ""
 
 #: spyder/widgets/reporterror.py:337
 msgid "Hide details"
-msgstr ""
+msgstr "Приховати деталі"
 
 #: spyder/widgets/reporterror.py:348 spyder/widgets/reporterror.py:356
 msgid "more characters to go..."
@@ -6300,27 +6300,27 @@ msgstr ""
 
 #: spyder/widgets/status.py:188
 msgid "Memory usage"
-msgstr ""
+msgstr "Використання пам’яті"
 
 #: spyder/widgets/status.py:214
 msgid "CPU usage"
-msgstr ""
+msgstr "Використання ЦП"
 
 #: spyder/widgets/status.py:305
 msgid "Clock"
-msgstr ""
+msgstr "Годинник"
 
 #: spyder/widgets/switcher.py:927
 msgid "change view"
-msgstr ""
+msgstr "змінити вигляд"
 
 #: spyder/widgets/switcher.py:928
 msgid "Indent Using Spaces"
-msgstr ""
+msgstr "Відступ за допомогою пропусків"
 
 #: spyder/widgets/switcher.py:930
 msgid "Indent Using Tabs"
-msgstr ""
+msgstr "Відступ за допомогою табуляції"
 
 #: spyder/widgets/switcher.py:932
 msgid "Detect Indentation from Content"
@@ -6328,15 +6328,15 @@ msgstr ""
 
 #: spyder/widgets/switcher.py:934
 msgid "convert file"
-msgstr ""
+msgstr "перетворити файл"
 
 #: spyder/widgets/switcher.py:935
 msgid "Convert Indentation to Spaces"
-msgstr ""
+msgstr "Перетворити відступи на пропуски"
 
 #: spyder/widgets/switcher.py:937
 msgid "Convert Indentation to Tabs"
-msgstr ""
+msgstr "Перетворити відступи на табуляцію"
 
 #: spyder/widgets/switcher.py:938
 msgid "Trim Trailing Whitespace"
@@ -6344,11 +6344,11 @@ msgstr ""
 
 #: spyder/widgets/switcher.py:944
 msgid "Help me!"
-msgstr ""
+msgstr "Допоможіть мені!"
 
 #: spyder/widgets/switcher.py:946
 msgid "Help me 2!"
-msgstr ""
+msgstr "Допоможи мені 2!"
 
 #: spyder/widgets/switcher.py:948
 msgid "Help me 3!"
