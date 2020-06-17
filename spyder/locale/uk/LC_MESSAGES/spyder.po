@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-12 20:46\n"
+"PO-Revision-Date: 2020-06-17 14:51\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -1093,7 +1093,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:112
 msgid "Invalid JSON"
-msgstr ""
+msgstr "Невірний JSON"
 
 #: spyder/plugins/completion/languageserver/confpage.py:122
 msgid "To create a new server configuration, you need to select a programming language, set the command to start its associated server and enter any arguments that should be passed to it on startup. Additionally, you can set the server's hostname and port if connecting to an external server, or to a local one using TCP instead of stdio pipes.<br><br><i>Note</i>: You can use the placeholders <tt>{host}</tt> and <tt>{port}</tt> in the server arguments field to automatically fill in the respective values.<br>"
@@ -1101,23 +1101,23 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:140
 msgid "External server"
-msgstr ""
+msgstr "Зовнішній сервер"
 
 #: spyder/plugins/completion/languageserver/confpage.py:141
 msgid "Host:"
-msgstr ""
+msgstr "Вузол:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:143 spyder/plugins/ipythonconsole/widgets/kernelconnect.py:66
 msgid "Port:"
-msgstr ""
+msgstr "Порт:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:145
 msgid "Command:"
-msgstr ""
+msgstr "Команда:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:147
 msgid "Arguments:"
-msgstr ""
+msgstr "Аргументи:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:150
 msgid "<b>Server Configuration:</b>"
@@ -1185,7 +1185,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:321
 msgid "Hostname is valid"
-msgstr ""
+msgstr "Ім'я хоста є дійсним"
 
 #: spyder/plugins/completion/languageserver/confpage.py:329
 msgid "Command used to start the LSP server locally. Must be non empty"
@@ -1193,11 +1193,11 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:336
 msgid "Program was not found on your system"
-msgstr ""
+msgstr "Програму не знайдено у вашій системі"
 
 #: spyder/plugins/completion/languageserver/confpage.py:340
 msgid "Program was found on your system"
-msgstr ""
+msgstr "Програму знайдено у вашій системі"
 
 #: spyder/plugins/completion/languageserver/confpage.py:551
 msgid "Address"
@@ -1205,7 +1205,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:553
 msgid "Command to execute"
-msgstr ""
+msgstr "Команда для виконання"
 
 #: spyder/plugins/completion/languageserver/confpage.py:699
 msgid "Completion and linting"
@@ -1213,11 +1213,11 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:708
 msgid "Enable code completion"
-msgstr ""
+msgstr "Увімкнути завершення коду"
 
 #: spyder/plugins/completion/languageserver/confpage.py:711
 msgid "Show completion details"
-msgstr ""
+msgstr "Показувати деталі завершення"
 
 #: spyder/plugins/completion/languageserver/confpage.py:715
 msgid "Show completion detail after keyboard idle (ms):"
@@ -1225,7 +1225,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:717
 msgid "Default is 500"
-msgstr ""
+msgstr "Типово 500"
 
 #: spyder/plugins/completion/languageserver/confpage.py:719
 msgid "Show completions on the fly"
@@ -1237,7 +1237,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:725
 msgid "Default is 3"
-msgstr ""
+msgstr "Типово 3"
 
 #: spyder/plugins/completion/languageserver/confpage.py:727
 msgid "Show automatic completions after keyboard idle (ms):"
