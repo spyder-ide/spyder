@@ -401,22 +401,23 @@ class DirView(QTreeView):
 
     def create_file_new_actions(self, fnames):
         """Return actions for submenu 'New...'"""
+        root_path = self.fsmodel.rootPath()
         new_file_act = create_action(self, _("File..."),
                                      icon=ima.icon('filenew'),
                                      triggered=lambda:
-                                     self.new_file(fnames[-1]))
+                                     self.new_file(root_path))
         new_module_act = create_action(self, _("Module..."),
                                        icon=ima.icon('spyder'),
                                        triggered=lambda:
-                                         self.new_module(fnames[-1]))
+                                       self.new_module(root_path))
         new_folder_act = create_action(self, _("Folder..."),
                                        icon=ima.icon('folder_new'),
                                        triggered=lambda:
-                                        self.new_folder(fnames[-1]))
+                                       self.new_folder(root_path))
         new_package_act = create_action(self, _("Package..."),
                                         icon=ima.icon('package_new'),
                                         triggered=lambda:
-                                         self.new_package(fnames[-1]))
+                                        self.new_package(root_path))
         return [new_file_act, new_folder_act, None,
                 new_module_act, new_package_act]
 
