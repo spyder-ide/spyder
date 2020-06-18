@@ -89,8 +89,6 @@ class CompletionManager(SpyderCompletionPlugin):
         self.wait_for_ms = self.get_option('completions_wait_for_ms',
                                            section='editor')
 
-        # self.update_configuration()
-
         for plugin in plugins:
             if plugin in self.BASE_PLUGINS:
                 Plugin = self.BASE_PLUGINS[plugin]

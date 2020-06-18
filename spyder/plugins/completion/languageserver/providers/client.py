@@ -19,5 +19,6 @@ class ClientProvider:
     @handles(LSPRequestTypes.CLIENT_REGISTER_CAPABILITY)
     @send_response
     def handle_register_capability(self, params):
+        """TODO: Handle the glob patterns of the files to watch."""
         logger.debug('Register Capability: {0}'.format(params))
         return {}
