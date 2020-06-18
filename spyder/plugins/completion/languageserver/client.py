@@ -199,11 +199,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
             if self.language == 'python':
                 self.server_args += ['--log-file', server_log_file]
-
-        # Set server log file
-        if get_debug_level() > 0:
-            # Start server with logging options
-            if self.language == 'python':
                 if get_debug_level() == 2:
                     self.server_args.append('-v')
                 elif get_debug_level() == 3:
