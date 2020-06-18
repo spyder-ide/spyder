@@ -175,14 +175,14 @@ class Console(SpyderDockablePlugin):
 
         Notes
         -----
-        The `is_traceback` indicates if `text` contains, plain text or a
-        python error traceback.
+        The `is_traceback` key indicates if `text` contains plain text or a
+        Python error traceback.
 
-        The `title` and `repo` indicate how the error dialog should customize
-        the report dialog and github error submission.
+        The `title` and `repo` keys indicate how the error data should
+        customize the report dialog and Github error submission.
 
-        The `label` and `steps` allow customizing the content of the error
-        dialog.
+        The `label` and `steps` keys allow customizing the content of the
+        error dialog.
         """
         self.get_widget().handle_exception(
             error_data,

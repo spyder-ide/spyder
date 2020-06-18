@@ -65,17 +65,15 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         >>> error_data = {
             "text": str,
             "is_traceback": bool,
-            "repo": str,
             "title": str,
         }
 
     Notes
     -----
-    The `is_traceback` indicates if `text` contains, plain text or a python
+    The `is_traceback` key indicates if `text` contains plain text or a Python
     error traceback.
 
-    The `title` and `repo` indicate how the error dialog should customize the
-    report dialog and github error submission.
+    `title` indicates how the error data should customize the report dialog.
     """
 
     def __init__(self, parent):
