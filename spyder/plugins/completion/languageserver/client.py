@@ -155,7 +155,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.transport_args += ['--external-server']
         else:
             self.transport_args += ['--stdio-server']
-            self.external_server = True
         self.transport_unresponsive = False
 
     def create_transport_sockets(self):
@@ -179,6 +178,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         """Start server."""
         # This is not necessary if we're trying to connect to an
         # external server
+        if self.external_server:
+            return
 
         # Set server log file
         server_log_file = None
@@ -192,12 +193,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             if not osp.exists(osp.dirname(server_log_file)):
                 os.makedirs(osp.dirname(server_log_file))
 
-        if self.external_server:
             if self.stdio:
                 if self.language == 'python':
                     self.server_args += ['--log-file', server_log_file]
                 self.transport_args += ['--server-log-file', server_log_file]
-            return
+                return
 
         # Set server log file
         if get_debug_level() > 0:
