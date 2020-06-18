@@ -151,7 +151,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     # --- Signals
     # This signal emits an error text, which corresponds to a Python
     # traceback.
-    sig_exception_occurred = Signal(str, bool)
+    sig_exception_occurred = Signal(dict)
     userListActivated = Signal(int, str)
     completion_widget_activated = Signal(str)
 
@@ -259,7 +259,9 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                 else:
                     # Show error/warning messages in red
                     cursor.insertText(text, self.error_style.format)
-                self.sig_exception_occurred.emit(text, is_traceback)
+                self.sig_exception_occurred.emit(
+                    dict(text=text, is_traceback=is_traceback)
+                )
         elif prompt:
             # Show prompt in green
             insert_text_to(cursor, text, self.prompt_style.format)

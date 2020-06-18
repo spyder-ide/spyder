@@ -13,7 +13,7 @@ import logging
 import os
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import QObject, Signal, Slot
 from qtpy.QtGui import QIcon
 
 # Local imports
@@ -100,12 +100,17 @@ class Console(SpyderDockablePlugin):
             default='',
             section='main',
         )
+
         if previous_crash:
-            widget.handle_exception(
+            error_data = dict(
                 text=previous_crash,
                 is_traceback=True,
-                is_faulthandler_report=True,
+                title="Segmentation fault crash",
+                label=_("<h3>Spyder crashed during last session</h3>"),
+                steps=_("Please provide any additional information you "
+                        "might have about the crash."),
             )
+            widget.handle_exception(error_data)
 
     def update_font(self):
         font = self.get_font()
@@ -150,16 +155,39 @@ class Console(SpyderDockablePlugin):
         """
         return self.get_widget().get_sys_path()
 
-    def handle_exception(self, text, is_traceback, is_pyls_error=False,
-                         is_faulthandler_report=False):
+    @Slot(dict)
+    def handle_exception(self, error_data):
         """
         Handle any exception that occurs during Spyder usage.
+
+        Parameters
+        ----------
+        error_data: dict
+            The dictionary containing error data. The expected keys are:
+            >>> error_data= {
+                "text": str,
+                "is_traceback": bool,
+                "repo": str,
+                "title": str,
+                "label": str,
+                "steps": str,
+            }
+
+        Notes
+        -----
+        The `is_traceback` key indicates if `text` contains plain text or a
+        Python error traceback.
+
+        The `title` and `repo` keys indicate how the error data should
+        customize the report dialog and Github error submission.
+
+        The `label` and `steps` keys allow customizing the content of the
+        error dialog.
         """
         self.get_widget().handle_exception(
-            text=text,
-            is_traceback=is_traceback,
-            is_pyls_error=is_pyls_error,
-            is_faulthandler_report=is_faulthandler_report,
+            error_data,
+            sender=self.sender(),
+            internal_plugins=self._main._INTERNAL_PLUGINS,
         )
 
     def quit(self):

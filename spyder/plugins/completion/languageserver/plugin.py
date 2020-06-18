@@ -17,7 +17,7 @@ import os.path as osp
 import sys
 
 # Third-party imports
-from qtpy.QtCore import Slot, QTimer
+from qtpy.QtCore import Signal, Slot, QTimer
 from qtpy.QtWidgets import QMessageBox, QCheckBox
 
 # Local imports
@@ -52,6 +52,30 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     TIME_BETWEEN_RESTARTS = 10000  # ms
     TIME_HEARTBEAT = 3000  # ms
 
+    # --- Signals
+    # ------------------------------------------------------------------------
+    sig_exception_occurred = Signal(dict)
+    """
+    This Signal is emitted to report that an exception has occured.
+
+    Parameters
+    ----------
+    error_data: dict
+        The dictionary containing error data. The expected keys are:
+        >>> error_data = {
+            "text": str,
+            "is_traceback": bool,
+            "title": str,
+        }
+
+    Notes
+    -----
+    The `is_traceback` key indicates if `text` contains plain text or a Python
+    error traceback.
+
+    `title` indicates how the error data should customize the report dialog.
+    """
+
     def __init__(self, parent):
         SpyderCompletionPlugin.__init__(self, parent)
 
@@ -72,6 +96,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             statusbar = parent.statusBar()
             self.status_widget = LSPStatusWidget(
                 None, statusbar, plugin=self)
+
+        # TODO: Move to register in the new API
+        self.sig_exception_occurred.connect(
+            self.main.console.handle_exception)
 
     # --- Status bar widget handling
     def restart_lsp(self, language, force=False):
@@ -261,8 +289,12 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     @Slot(str)
     def report_server_error(self, error):
         """Report server errors in our error report dialog."""
-        self.main.console.exception_occurred(error, is_traceback=True,
-                                             is_pyls_error=True)
+        error_data = dict(
+            text=error,
+            is_traceback=True,
+            title="Internal Python Language Server error",
+        )
+        self.sig_exception_occurred.emit(error_data)
 
     def report_no_external_server(self, host, port, language):
         """

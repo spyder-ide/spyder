@@ -37,6 +37,7 @@ class MainWindowMock(QMainWindow):
         self.thirdparty_plugins = []
         self.shortcut_data = []
         self.prefs_dialog_instance = None
+        self.console = Mock()
 
         # Load shortcuts for tests
         for context, name, __ in CONF.iter_shortcuts():

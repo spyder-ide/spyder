@@ -280,24 +280,26 @@ extras_require = {
 spyder_plugins_entry_points = [
     'appearance = spyder.plugins.appearance.plugin:Appearance',
     'breakpoints = spyder.plugins.breakpoints.plugin:Breakpoints',
-    'code_completion = spyder.plugins.completions.plugin:CodeCompletion',
+    'code_completion = spyder.plugins.completion.plugin:CompletionManager',
     'core = spyder.plugins.core.plugin:Core',
     'editor = spyder.plugins.editor.plugin:Editor',
     'explorer = spyder.plugins.explorer.plugin:Explorer',
-    'fallback_completion = spyder.plugins.fallback.plugin:FallbackCompletion',
+    ('fallback_completion = spyder.plugins.completion.fallback.plugin:'
+     'FallbackPlugin'),
     'findinfiles = spyder.plugins.findinfiles.plugin:FindInFiles',
     'help = spyder.plugins.help.plugin:Help',
     'history = spyder.plugins.history.plugin:HistoryLog',
     'ipythonconsole = spyder.plugins.ipythonconsole.plugin:IPythonConsole',
-    'kite_completion = spyder.plugins.kite.plugin:LanguageServerCompletion',
+    ('kite_completion = spyder.plugins.completion.kite.plugin:'
+     'KiteCompletionPlugin'),
     'onlinehelp = spyder.plugins.onlinehelp.plugin:OnlineHelp',
     'outlineexplorer = spyder.plugins.outlineexplorer.plugin:OutlineExplorer',
     'plots = spyder.plugins.plots.plugin:Plots',
     'profiler = spyder.plugins.profiler.plugin:Profiler',
     'projects = spyder.plugins.projects.plugin:Projects',
     'pylint = spyder.plugins.pylint.plugin:Pylint',
-    ('lsp_completion = spyder.plugins.languageserver.plugin:'
-     'LanguageServerCompletion'),
+    ('lsp_completion = spyder.plugins.completion.languageserver.plugin:'
+     'LanguageServerPlugin'),
     'python = spyder.plugins.python.plugin:Python',
     ('variableexplorer = spyder.plugins.variableexplorer.plugin:'
      'VariableExplorer'),

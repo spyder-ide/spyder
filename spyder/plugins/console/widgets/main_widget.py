@@ -25,8 +25,11 @@ from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout
 
 # Local imports
+from spyder.api.plugins import (SpyderPlugin, SpyderPluginV2,
+                                SpyderDockablePlugin)
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
+from spyder.app.solver import find_internal_plugins
 from spyder.config.base import DEV, get_debug_level
 from spyder.plugins.console.widgets.internalshell import InternalShell
 from spyder.py3compat import to_text_string
@@ -333,16 +336,74 @@ class ConsoleWidget(PluginMainWidget):
         """
         self.shell.help = help_plugin
 
-    def handle_exception(self, text, is_traceback, is_pyls_error=False,
-                         is_faulthandler_report=False):
+    @Slot(dict)
+    def handle_exception(self, error_data, sender=None, internal_plugins=None):
         """
         Exception ocurred in the internal console.
 
         Show a QDialog or the internal console to warn the user.
+
+        Handle any exception that occurs during Spyder usage.
+
+        Parameters
+        ----------
+        error_data: dict
+            The dictionary containing error data. The expected keys are:
+            >>> error_data= {
+                "text": str,
+                "is_traceback": bool,
+                "repo": str,
+                "title": str,
+                "label": str,
+                "steps": str,
+            }
+        sender: spyder.api.plugins.SpyderPluginV2, optional
+            The sender plugin. Default is None.
+
+        Notes
+        -----
+        The `is_traceback` key indicates if `text` contains plain text or a
+        Python error traceback.
+
+        The `title` and `repo` keys indicate how the error data should
+        customize the report dialog and Github error submission.
+
+        The `label` and `steps` keys allow customizing the content of the
+        error dialog.
         """
+        text = error_data["text"]
+        is_traceback = error_data.get("is_traceback", False)
+        title = error_data.get("title", "")
+        label = error_data.get("label", "")
+        steps = error_data.get("steps", "")
+
         # Skip errors without traceback or dismiss
         if (not is_traceback and self.error_dlg is None) or self.dismiss_error:
             return
+
+        if internal_plugins is None:
+            internal_plugins = find_internal_plugins()
+
+        internal_plugin_names = []
+        for __, val in internal_plugins.items():
+            name = getattr(val, 'NAME', getattr(val, 'CONF_SECTION'))
+            internal_plugin_names.append(name)
+
+        sender_name = getattr(val, 'NAME', getattr(val, 'CONF_SECTION'))
+        is_internal_plugin = sender_name in internal_plugin_names
+        repo = "spyder-ide/spyder"
+        if sender is not None and not is_internal_plugin:
+            repo = error_data.get("repo", None)
+            try:
+                plugin_name = sender.NAME
+            except Exception:
+                plugin_name = sender.CONF_SECTION
+
+            if repo is None:
+                raise Exception(
+                    'External plugin "{}" does not define "repo" key in '
+                    'the "error_data" dictionary!'.format(plugin_name)
+                )
 
         if self.get_option('show_internal_errors'):
             if self.error_dlg is None:
@@ -352,21 +413,19 @@ class ConsoleWidget(PluginMainWidget):
                 self.error_dlg.rejected.connect(self.remove_error_dlg)
                 self.error_dlg.details.go_to_error.connect(self.go_to_error)
 
-            if is_pyls_error:
-                title = "Internal Python Language Server error"
+            # Set the report repository
+            self.error_dlg.set_github_repo_org(repo)
+
+            if title:
                 self.error_dlg.set_title(title)
                 self.error_dlg.title.setEnabled(False)
 
-            if is_faulthandler_report:
-                title = "Segmentation fault crash"
-                self.error_dlg.set_title(title)
-                self.error_dlg.title.setEnabled(False)
-                self.error_dlg.main_label.setText(
-                    _("<h3>Spyder crashed during last session</h3>"))
+            if label:
+                self.error_dlg.main_label.setText(label)
                 self.error_dlg.submit_btn.setEnabled(True)
-                self.error_dlg.steps_text.setText(
-                    _("Please provide any additional information you "
-                      "might have about the crash."))
+
+            if steps:
+                self.error_dlg.steps_text.setText(steps)
                 self.error_dlg.set_require_minimum_length(False)
 
             self.error_dlg.append_traceback(text)
