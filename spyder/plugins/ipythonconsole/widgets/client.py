@@ -176,6 +176,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # Show timer
         self.update_time_label_visibility()
 
+        # Poll for stderr changes
+        self.stderr_mtime = 0
+        self.stderr_timer = QTimer(self)
+        self.stderr_timer.timeout.connect(self.poll_stderr_file_change)
+        self.stderr_timer.setInterval(1000)
+        self.stderr_timer.start()
+
     def __del__(self):
         """Close threads to avoid segfault"""
         if (self.restart_thread is not None
@@ -238,6 +245,22 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except Exception:
             stderr = None
         return stderr
+
+    @Slot()
+    def poll_stderr_file_change(self):
+        """Check if the stderr file just changed"""
+        try:
+            mtime = os.stat(self.stderr_file).st_mtime
+        except Exception:
+            return
+
+        if mtime == self.stderr_mtime:
+            return
+        self.stderr_mtime = mtime
+        stderr = self.get_stderr_contents()
+        if stderr:
+            self.shellwidget._append_plain_text(
+                '\n' + stderr, before_prompt=True)
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is connected."""
