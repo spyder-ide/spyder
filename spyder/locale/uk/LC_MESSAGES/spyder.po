@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-17 16:09\n"
+"PO-Revision-Date: 2020-06-18 07:27\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -591,7 +591,7 @@ msgstr ""
 
 #: spyder/app/tour.py:143
 msgid "The Editor"
-msgstr ""
+msgstr "Редактор"
 
 #: spyder/app/tour.py:144
 msgid "This is the pane where you write Python code before evaluating it. You can get automatic suggestions and completions while writing, by pressing the <b>Tab</b> key next to a given text.<br><br>The Editor comes with a line number area (highlighted here in red), where Spyder shows warnings and syntax errors. They can help you to detect potential problems before running the code.<br><br>You can also set debug breakpoints in the line number area, by doing a double click next to a non-empty line."
@@ -671,43 +671,43 @@ msgstr ""
 
 #: spyder/config/utils.py:25 spyder/plugins/pylint/widgets/pylintgui.py:270
 msgid "Python files"
-msgstr ""
+msgstr "Файли Python"
 
 #: spyder/config/utils.py:26
 msgid "Cython/Pyrex files"
-msgstr ""
+msgstr "Файли Cython/Pyrex"
 
 #: spyder/config/utils.py:27
 msgid "C files"
-msgstr ""
+msgstr "Файли C"
 
 #: spyder/config/utils.py:28
 msgid "C++ files"
-msgstr ""
+msgstr "Файли C++"
 
 #: spyder/config/utils.py:29
 msgid "OpenCL files"
-msgstr ""
+msgstr "Файли OpenCL"
 
 #: spyder/config/utils.py:30
 msgid "Fortran files"
-msgstr ""
+msgstr "Файли Fortran"
 
 #: spyder/config/utils.py:32
 msgid "IDL files"
-msgstr ""
+msgstr "Файли IDL"
 
 #: spyder/config/utils.py:33
 msgid "MATLAB files"
-msgstr ""
+msgstr "Файли MATLAB"
 
 #: spyder/config/utils.py:34
 msgid "Julia files"
-msgstr ""
+msgstr "Файли Julia"
 
 #: spyder/config/utils.py:35
 msgid "Yaml files"
-msgstr ""
+msgstr "Файли Yaml"
 
 #: spyder/config/utils.py:36
 msgid "Patch and diff files"
