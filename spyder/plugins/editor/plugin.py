@@ -85,6 +85,7 @@ class Editor(SpyderPluginWidget):
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
+    sig_file_debug_message_requested = Signal()
 
     # This signal is fired for any focus change among all editor stacks
     sig_editor_focus_changed = Signal()
@@ -2092,8 +2093,10 @@ class Editor(SpyderPluginWidget):
         if debugging and 'fname' in last_pdb_step and filename:
             if osp.normcase(last_pdb_step['fname']) == osp.normcase(filename):
                 can_close = False
+                self.sig_file_debug_message_requested.emit()
         elif debugging:
             can_close = False
+            self.sig_file_debug_message_requested.emit()
         return can_close
 
     @Slot()
