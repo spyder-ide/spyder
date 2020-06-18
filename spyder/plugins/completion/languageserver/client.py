@@ -174,30 +174,31 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         """Handle errors with the transport layer or server processes."""
         self.sig_went_down.emit(self.language)
 
+    def _create_server_log_file(self):
+        server_log_fname = 'server_{0}_{1}.log'.format(
+            self.language, os.getpid())
+        server_log_file = get_conf_path(osp.join('lsp_logs',
+                                                 server_log_fname))
+
+        if not osp.exists(osp.dirname(server_log_file)):
+            os.makedirs(osp.dirname(server_log_file))
+        return server_log_file
+
     def start_server(self):
         """Start server."""
         # This is not necessary if we're trying to connect to an
         # external server
-        if self.external_server:
+        if self.external_server or self.stdio:
             return
 
         # Set server log file
         server_log_file = None
         if get_debug_level() > 0:
             # Create server log file
-            server_log_fname = 'server_{0}_{1}.log'.format(self.language,
-                                                           os.getpid())
-            server_log_file = get_conf_path(osp.join('lsp_logs',
-                                                     server_log_fname))
+            server_log_file = self._create_server_log_file()
 
-            if not osp.exists(osp.dirname(server_log_file)):
-                os.makedirs(osp.dirname(server_log_file))
-
-            if self.stdio:
-                if self.language == 'python':
-                    self.server_args += ['--log-file', server_log_file]
-                self.transport_args += ['--server-log-file', server_log_file]
-                return
+            if self.language == 'python':
+                self.server_args += ['--log-file', server_log_file]
 
         # Set server log file
         if get_debug_level() > 0:
@@ -251,6 +252,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport = QProcess(self)
         self.transport.errorOccurred.connect(self.handle_process_errors)
         env = self.transport.processEnvironment()
+
+        if self.stdio:
+            # Create server log file
+            server_log_file = self._create_server_log_file()
+            self.transport_args += ['--server-log-file', server_log_file]
 
         # Most LSP server spawn other processes other than Python, which may
         # require some environment variables
