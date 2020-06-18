@@ -202,6 +202,9 @@ class IPythonConsole(SpyderPluginWidget):
 
         self.tabwidget.set_close_function(self.close_client)
 
+        self.main.editor.sig_file_debug_message_requested.connect(
+            self.print_debug_file_msg)
+
         if sys.platform == 'darwin':
             tab_container = QWidget()
             tab_container.setObjectName('tab-container')
@@ -1676,3 +1679,12 @@ class IPythonConsole(SpyderPluginWidget):
                         os.remove(osp.join(tmpdir, fname))
                     except Exception:
                         pass
+
+    def print_debug_file_msg(self):
+        """Print message in the current console when a file can't be closed."""
+        debug_msg = _('<br><hr>'
+                      '\nThe current file cannot be closed because it is '
+                      'in debug mode. \n'
+                      '<hr><br>')
+        self.get_current_client().shellwidget._append_html(
+                    debug_msg, before_prompt=True)
