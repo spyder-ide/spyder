@@ -589,3 +589,9 @@ class TextDocumentSaveReason:
 class ClientConstants:
     """Internal LSP Client constants."""
     CANCEL = 'lsp-cancel'
+
+# ----------------------- WORKSPACE UPDATE CONSTANTS ----------------
+
+class WorkspaceUpdateKind:
+    ADDITION = 'addition'
+    DELETION = 'deletion'

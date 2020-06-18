@@ -35,7 +35,7 @@ from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.projecttypes import EmptyProject
 from spyder.plugins.completion.languageserver import (
-    LSPRequestTypes, FileChangeType)
+    LSPRequestTypes, FileChangeType, WorkspaceUpdateKind)
 from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 
@@ -161,7 +161,7 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.set_window_title())
         self.sig_project_loaded.connect(
             functools.partial(lspmgr.project_path_update,
-                              update_kind='addition'))
+                              update_kind=WorkspaceUpdateKind.ADDITION))
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
@@ -172,7 +172,7 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.set_window_title())
         self.sig_project_closed.connect(
             functools.partial(lspmgr.project_path_update,
-                              update_kind='deletion'))
+                              update_kind=WorkspaceUpdateKind.DELETION))
         self.sig_project_closed.connect(
             lambda v: self.main.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)

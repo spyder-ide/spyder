@@ -11,7 +11,7 @@ import logging
 from spyder.plugins.completion.languageserver.providers.utils import (
     path_as_uri, process_uri, match_path_to_folder)
 from spyder.plugins.completion.languageserver import (
-    LSPRequestTypes, ClientConstants)
+    LSPRequestTypes, ClientConstants, WorkspaceUpdateKind)
 from spyder.plugins.completion.languageserver.decorators import (
     handles, send_request, send_response, send_notification)
 
@@ -46,7 +46,7 @@ class WorkspaceProvider:
         folder_uri = path_as_uri(folder)
         added_folders = []
         removed_folders = []
-        if params['kind'] == 'addition':
+        if params['kind'] == WorkspaceUpdateKind.ADDITION:
             if folder not in self.watched_folders:
                 self.watched_folders[folder] = {
                     'uri': folder_uri,
@@ -56,7 +56,7 @@ class WorkspaceProvider:
                     'uri': folder_uri,
                     'name': folder
                 })
-        elif params['kind'] == 'deletion':
+        elif params['kind'] == WorkspaceUpdateKind.DELETION:
             if folder not in self.watched_folders:
                 self.watched_folders.pop(folder)
                 removed_folders.append({

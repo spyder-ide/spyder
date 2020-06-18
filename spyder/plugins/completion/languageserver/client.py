@@ -248,14 +248,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport.errorOccurred.connect(self.handle_process_errors)
         env = self.transport.processEnvironment()
 
-        if self.stdio:
-            # Create server log file
-            server_log_file = self._create_server_log_file()
-            self.transport_args += ['--server-log-file', server_log_file]
-
         # Most LSP server spawn other processes other than Python, which may
         # require some environment variables
-        if self.language != 'python':
+        if self.language != 'python' and self.stdio:
             for var in os.environ:
                 env.insert(var, os.environ[var])
             logger.info('Transport process env variables: {0}'.format(
@@ -281,6 +276,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 osp.join('lsp_logs', transport_log_fname))
             if not osp.exists(osp.dirname(transport_log_file)):
                 os.makedirs(osp.dirname(transport_log_file))
+            if self.stdio:
+                server_log_file = self._create_server_log_file()
+                self.transport_args += ['--server-log-file', server_log_file]
 
         # Set channel properties
         if self.stdio:
