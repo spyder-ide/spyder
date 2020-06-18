@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-05-05 18:42-0500\n"
-"PO-Revision-Date: 2020-06-18 07:27\n"
+"PO-Revision-Date: 2020-06-18 07:41\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -711,11 +711,11 @@ msgstr "Файли Yaml"
 
 #: spyder/config/utils.py:36
 msgid "Patch and diff files"
-msgstr ""
+msgstr "Файли патчів та різниць"
 
 #: spyder/config/utils.py:37
 msgid "Batch files"
-msgstr ""
+msgstr "Файли Batch"
 
 #: spyder/config/utils.py:38
 msgid "Text files"
@@ -723,35 +723,35 @@ msgstr "Текстові файли"
 
 #: spyder/config/utils.py:39
 msgid "reStructuredText files"
-msgstr ""
+msgstr "Файли reStructuredText"
 
 #: spyder/config/utils.py:40
 msgid "gettext files"
-msgstr ""
+msgstr "Файли gettext"
 
 #: spyder/config/utils.py:41
 msgid "NSIS files"
-msgstr ""
+msgstr "Файли NSIS"
 
 #: spyder/config/utils.py:42
 msgid "Web page files"
-msgstr ""
+msgstr "Файли веб-сторінок"
 
 #: spyder/config/utils.py:43
 msgid "XML files"
-msgstr ""
+msgstr "XML файли"
 
 #: spyder/config/utils.py:44
 msgid "Javascript files"
-msgstr ""
+msgstr "Файли JavaScript"
 
 #: spyder/config/utils.py:45
 msgid "Json files"
-msgstr ""
+msgstr "Файли Json"
 
 #: spyder/config/utils.py:46
 msgid "IPython notebooks"
-msgstr ""
+msgstr "Блокноти IPython"
 
 #: spyder/config/utils.py:47
 msgid "Enaml files"
@@ -1321,7 +1321,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:852
 msgid "Check Python files: *.py"
-msgstr ""
+msgstr "Перевірити файли Python: *.py"
 
 #: spyder/plugins/completion/languageserver/confpage.py:854
 msgid "Exclude files or directories matching these patterns:"
@@ -1329,15 +1329,15 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:856
 msgid "Exclude all test files: (?!test_).*\\.py"
-msgstr ""
+msgstr "Виключити всі тестові файли: (?!test_).*\\.py"
 
 #: spyder/plugins/completion/languageserver/confpage.py:858
 msgid "Show the following errors or warnings:"
-msgstr ""
+msgstr "Відображати наступні помилки або попередження:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:861
 msgid "Example codes: E113, W391"
-msgstr ""
+msgstr "Приклад кодів: E113, W391"
 
 #: spyder/plugins/completion/languageserver/confpage.py:863
 msgid "Ignore the following errors or warnings:"
@@ -1345,7 +1345,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:865
 msgid "Example codes: E201, E303"
-msgstr ""
+msgstr "Приклад кодів: E201, E303"
 
 #: spyder/plugins/completion/languageserver/confpage.py:867
 msgid "Maximum allowed line length:"
@@ -2554,7 +2554,7 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3696 spyder/plugins/explorer/widgets/explorer.py:469
 msgid "Convert to Python script"
-msgstr ""
+msgstr "Перетворити у сценарій Python"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3699
 msgid "Go to definition"
@@ -2720,7 +2720,7 @@ msgstr "Дії"
 
 #: spyder/plugins/editor/widgets/recover.py:170
 msgid "Autosave file"
-msgstr ""
+msgstr "Автозбереження файлу"
 
 #: spyder/plugins/editor/widgets/recover.py:170
 msgid "Original file"
@@ -3108,11 +3108,11 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:181
 msgid "Applications (*.app)"
-msgstr ""
+msgstr "Програми (*.app)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:182 spyder/plugins/explorer/widgets/fileassociations.py:197 spyder/plugins/explorer/widgets/fileassociations.py:216
 msgid "Select application"
-msgstr ""
+msgstr "Вибрати програму"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:196
 msgid "Applications (*.exe *.bat *.com)"
@@ -3284,7 +3284,7 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets.py:628
 msgid "Exclude:"
-msgstr ""
+msgstr "Виключити:"
 
 #: spyder/plugins/findinfiles/widgets.py:637
 msgid "Search in:"
@@ -3292,27 +3292,27 @@ msgstr "Шукати в:"
 
 #: spyder/plugins/findinfiles/widgets.py:694
 msgid "Hide advanced options"
-msgstr ""
+msgstr "Приховати додаткові параметри"
 
 #: spyder/plugins/findinfiles/widgets.py:697
 msgid "Show advanced options"
-msgstr ""
+msgstr "Відобразити додаткові параметри"
 
 #: spyder/plugins/findinfiles/widgets.py:1016
 msgid "Maximum number of results reached! Try narrowing the search."
-msgstr ""
+msgstr "Досягнуто максимальної кількості результатів! Спробуйте звужити пошук."
 
 #: spyder/plugins/findinfiles/widgets.py:1058
 msgid " Scanning: {0}"
-msgstr ""
+msgstr " Сканування: {0}"
 
 #: spyder/plugins/findinfiles/widgets.py:1060
 msgid " Searching for files in folder: {0}"
-msgstr ""
+msgstr " Пошук файлів в папці: {0}"
 
 #: spyder/plugins/findinfiles/widgets.py:1065
 msgid "  Searching for files..."
-msgstr ""
+msgstr "  Пошук файлів..."
 
 #: spyder/plugins/findinfiles/widgets.py:1124
 msgid "Find in files"
@@ -3320,7 +3320,7 @@ msgstr "Знайти у файлах"
 
 #: spyder/plugins/help/confpage.py:23
 msgid "Automatic connections"
-msgstr ""
+msgstr "Автоматичні з’єднання"
 
 #: spyder/plugins/help/confpage.py:24
 msgid "This pane can automatically show an object's help information after a left parenthesis is written next to it. Below you can decide to which plugin you want to connect it to turn on this feature."
@@ -3328,7 +3328,7 @@ msgstr ""
 
 #: spyder/plugins/help/confpage.py:33
 msgid "IPython Console"
-msgstr ""
+msgstr "Командний рядок IPython"
 
 #: spyder/plugins/help/confpage.py:43
 msgid "Additional features"
@@ -3348,19 +3348,19 @@ msgstr ""
 
 #: spyder/plugins/help/plugin.py:60 spyder/plugins/help/plugin.py:385 spyder/plugins/help/utils/sphinxthread.py:80
 msgid "No documentation available"
-msgstr ""
+msgstr "Документація не доступна"
 
 #: spyder/plugins/help/plugin.py:91
 msgid "Source"
-msgstr ""
+msgstr "Джерело"
 
 #: spyder/plugins/help/plugin.py:98 spyder/plugins/ipythonconsole/widgets/client.py:349 spyder/preferences/runconfig.py:175 spyder/preferences/runconfig.py:496
 msgid "Console"
-msgstr ""
+msgstr "Командний рядок"
 
 #: spyder/plugins/help/plugin.py:106
 msgid "Object"
-msgstr ""
+msgstr "Об'єкт"
 
 #: spyder/plugins/help/plugin.py:120
 msgid "Plain Text"
@@ -3368,23 +3368,23 @@ msgstr "Звичайний текст"
 
 #: spyder/plugins/help/plugin.py:124
 msgid "Show Source"
-msgstr ""
+msgstr "Показати джерельний код"
 
 #: spyder/plugins/help/plugin.py:128
 msgid "Rich Text"
-msgstr ""
+msgstr "Розширений текст"
 
 #: spyder/plugins/help/plugin.py:138
 msgid "Automatic import"
-msgstr ""
+msgstr "Автоматичний імпорт"
 
 #: spyder/plugins/help/plugin.py:383 spyder/plugins/help/utils/sphinxthread.py:77
 msgid "No further documentation available"
-msgstr ""
+msgstr "Немає жодної подальшої документації"
 
 #: spyder/plugins/help/plugin.py:403
 msgid "Retrieving documentation"
-msgstr ""
+msgstr "Отримання документації"
 
 #: spyder/plugins/help/plugin.py:413
 msgid "Here you can get help of any object by pressing %s in front of it, either on the Editor or the Console.%s"
@@ -3400,15 +3400,15 @@ msgstr ""
 
 #: spyder/plugins/help/plugin.py:425
 msgid "Preferences > Help"
-msgstr ""
+msgstr "Налаштування > Довідка"
 
 #: spyder/plugins/help/plugin.py:436
 msgid "Usage"
-msgstr ""
+msgstr "Використання"
 
 #: spyder/plugins/help/plugin.py:437
 msgid "New to Spyder? Read our"
-msgstr ""
+msgstr "Вперше в Spyder? Прочитайте наш"
 
 #: spyder/plugins/help/plugin.py:438
 msgid "tutorial"
@@ -3416,15 +3416,15 @@ msgstr "підручник"
 
 #: spyder/plugins/help/plugin.py:454
 msgid "Please consider installing Sphinx to get documentation rendered in rich text."
-msgstr ""
+msgstr "Будь ласка, розгляньте можливість встановлення Sphinx для отримання документації, відображеної як форматований текст."
 
 #: spyder/plugins/help/plugin.py:639
 msgid "Lock"
-msgstr ""
+msgstr "Заблокувати"
 
 #: spyder/plugins/help/plugin.py:639
 msgid "Unlock"
-msgstr ""
+msgstr "Розблокувати"
 
 #: spyder/plugins/help/plugin.py:687
 msgid "The following error occurred when calling <b>Sphinx %s</b>. <br>Incompatible Sphinx version or doc string decoding failed.<br><br>Error message:<br>%s"
@@ -3432,7 +3432,7 @@ msgstr ""
 
 #: spyder/plugins/help/plugin.py:731
 msgid "No source code available."
-msgstr ""
+msgstr "Джерельний код не доступний."
 
 #: spyder/plugins/help/utils/sphinxify.py:247 spyder/plugins/help/utils/sphinxify.py:257
 msgid "It was not possible to generate rich text help for this object.</br>Please see it in plain text."
