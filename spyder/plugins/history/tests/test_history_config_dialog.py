@@ -19,14 +19,10 @@ from spyder.plugins.history.plugin import HistoryLog
 from spyder.preferences.tests.conftest import config_dialog
 
 
-class MainWindowMock:
-    register_shortcut = Mock()
-
-
 @pytest.mark.parametrize(
     'config_dialog',
     # [[MainWindowMock, [ConfigPlugins], [Plugins]]]
-    [[MainWindowMock, [], [HistoryLog]]],
+    [[None, [], [HistoryLog]]],
     indirect=True)
 def test_config_dialog(config_dialog):
     configpage = config_dialog.get_page()

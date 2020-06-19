@@ -2196,11 +2196,11 @@ def test_custom_layouts(main_window, qtbot):
                             if widget not in hidden_widgets:
                                 print(widget)  # spyder: test-skip
                                 try:
-                                    # Old API
-                                    assert widget.isVisible()
-                                except AttributeError:
                                     # New API
                                     assert widget.get_widget().isVisible()
+                                except AttributeError:
+                                    # Old API
+                                    assert widget.isVisible()
 
 
 @pytest.mark.slow

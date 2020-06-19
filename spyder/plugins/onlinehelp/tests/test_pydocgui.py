@@ -32,6 +32,8 @@ def pydocbrowser(qtbot):
     return qtbot, widget
 
 
+@pytest.mark.skipif(
+    sys.platform == 'darwin', reason="Does not work on Mac")
 def test_pydocbrowser(pydocbrowser):
     """Run Pydoc Browser."""
     qtbot, browser = pydocbrowser

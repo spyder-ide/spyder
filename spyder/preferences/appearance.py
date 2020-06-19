@@ -205,10 +205,6 @@ class AppearanceConfigPage(GeneralConfigPage):
                     self.main.ipyconsole.apply_plugin_settings(
                         ['color_scheme_name'])
 
-                if self.main.historylog is not None:
-                    self.main.historylog.apply_plugin_settings(
-                        ['color_scheme_name'])
-
                 if self.main.help is not None:
                     self.main.help.apply_conf(['color_scheme_name'])
 
@@ -234,10 +230,6 @@ class AppearanceConfigPage(GeneralConfigPage):
                     self.main.ipyconsole.apply_plugin_settings(
                         ['color_scheme_name'])
 
-                if self.main.historylog is not None:
-                    self.main.historylog.apply_plugin_settings(
-                        ['color_scheme_name'])
-
                 if self.main.help is not None:
                     self.main.help.apply_plugin_settings(['color_scheme_name'])
 
@@ -253,6 +245,9 @@ class AppearanceConfigPage(GeneralConfigPage):
                 self.update_preview()
 
         self.main.apply_settings()
+
+        if self.main.historylog is not None:
+            self.main.historylog.apply_conf(['color_scheme_name'])
 
     # Helpers
     # -------------------------------------------------------------------------
