@@ -56,7 +56,8 @@ class Pylint(SpyderPluginWidget):
         self.pylint = PylintWidget(self, max_entries=max_entries,
                                    options_button=self.options_button,
                                    text_color=MAIN_TEXT_COLOR,
-                                   prevrate_color=MAIN_PREVRATE_COLOR)
+                                   prevrate_color=MAIN_PREVRATE_COLOR,
+                                   top_max_entries=MAX_HISTORY_ENTRIES)
 
         layout = QVBoxLayout()
         layout.addWidget(self.pylint)
@@ -127,6 +128,11 @@ class Pylint(SpyderPluginWidget):
         # The history depth option will be applied at
         # next Spyder startup, which is soon enough
         self.pylint.change_history_limit(self.get_option('max_entries'))
+
+    def closing_plugin(self, cancelable=False):
+        """Handle actions when the plugin is closing."""
+        self.pylint.save_history()
+        return True
 
     # ----- Public API --------------------------------------------------------
     @Slot()
