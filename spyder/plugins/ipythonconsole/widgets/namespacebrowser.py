@@ -139,7 +139,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                     filename, ext, overwrite=overwrite)
         except ImportError as msg:
             module = str(msg).split("'")[1]
-            msg = _("Spyder is unable to open the variable or object "
+            msg = _("Spyder is unable to open the file "
                     "you're trying to load because <tt>{module}</tt> is "
                     "not installed. Please install "
                     "this package in your working environment."
