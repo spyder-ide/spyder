@@ -243,7 +243,8 @@ class PylintWidget(QWidget):
             self.start_button.setEnabled(False)
 
         if self.parent:
-            self.curr_filenames = self.parent.get_option('history_filenames')
+            self.curr_filenames = self.parent.get_option(
+                'history_filenames', [])
         else:
             self.curr_filenames = []
 
