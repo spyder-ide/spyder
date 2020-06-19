@@ -308,6 +308,7 @@ DEFAULTS = [
             ('pylint',
              {
               'enable': True,
+              'max_entries': 30,
               }),
             ('workingdir',
              {
@@ -609,6 +610,10 @@ NAME_MAP = {
         ('workingdir', [
             'console/fixed_directory',
             'startup/fixed_directory',
+          ]
+         ),
+        ('pylint', [
+          'history_filenames',
           ]
          ),
     ]
