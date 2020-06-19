@@ -173,6 +173,7 @@ DEFAULTS = [
              }),
             ('plots',
              {
+              'enable': True,
               'mute_inline_plotting': True,
               'show_plot_outline': False,
               'auto_fit_plotting': True
@@ -299,15 +300,15 @@ DEFAULTS = [
               }),
             ('breakpoints',
              {
-              'enable': True,
+              'enable': False,
               }),
             ('profiler',
              {
-              'enable': True,
+              'enable': False,
               }),
             ('pylint',
              {
-              'enable': True,
+              'enable': False,
               }),
             ('workingdir',
              {
