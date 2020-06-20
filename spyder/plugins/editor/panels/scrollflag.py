@@ -9,6 +9,7 @@ This module contains the Scroll Flag panel
 
 # Standard library imports
 from __future__ import division
+import sys
 from math import ceil
 
 # Third party imports
@@ -26,7 +27,7 @@ REFRESH_RATE = 1000
 
 class ScrollFlagArea(Panel):
     """Source code editor's scroll flag area"""
-    WIDTH = 12
+    WIDTH = 24 if sys.platform == 'darwin' else 12
     FLAGS_DX = 4
     FLAGS_DY = 2
 
@@ -167,7 +168,6 @@ class ScrollFlagArea(Panel):
         # Note that we calculate the pixel metrics required to draw the flags
         # here instead of using the convenience methods of the ScrollFlagArea
         # for performance reason.
-
         rect_x = ceil(self.FLAGS_DX / 2)
         rect_w = self.WIDTH - self.FLAGS_DX
         rect_h = self.FLAGS_DY
@@ -181,41 +181,20 @@ class ScrollFlagArea(Panel):
         paint_local = not bool(self.slider)
 
         # Define compute_flag_ypos to position the flags:
-        if not paint_local:
-            # Paint flags for the entire document
-            last_line = editor.document().lastBlock().firstLineNumber()
-            # The 0.5 offset is used to align the flags with the center of
-            # their corresponding text edit block before scaling.
-            first_y_pos = self.value_to_position(
-                0.5, scale_factor, offset) - self.FLAGS_DY / 2
-            last_y_pos = self.value_to_position(
-                last_line + 0.5, scale_factor, offset) - self.FLAGS_DY / 2
+        # Paint flags for the entire document
+        last_line = editor.document().lastBlock().firstLineNumber()
+        # The 0.5 offset is used to align the flags with the center of
+        # their corresponding text edit block before scaling.
+        first_y_pos = self.value_to_position(
+            0.5, scale_factor, offset) - self.FLAGS_DY / 2
+        last_y_pos = self.value_to_position(
+            last_line + 0.5, scale_factor, offset) - self.FLAGS_DY / 2
 
-            def compute_flag_ypos(block):
-                line_number = block.firstLineNumber()
-                frac = line_number / last_line
-                pos = first_y_pos + frac * (last_y_pos - first_y_pos)
-                return ceil(pos)
-
-        else:
-            # Only paint flags for visible lines
-            visible_lines = [val[1] for val in editor.visible_blocks]
-            if not visible_lines:
-                # Nothing to do
-                return
-            min_line = min(visible_lines)
-            max_line = max(visible_lines)
-
-            def compute_flag_ypos(block):
-                # When the vertical scrollbar is not visible, the flags are
-                # vertically aligned with the center of their corresponding
-                # text block with no scaling.
-                top = editor.blockBoundingGeometry(block).translated(
-                    editor.contentOffset()).top()
-                bottom = top + editor.blockBoundingRect(block).height()
-                middle = (top + bottom)/2
-
-                return ceil(middle-self.FLAGS_DY/2)
+        def compute_flag_ypos(block):
+            line_number = block.firstLineNumber()
+            frac = line_number / last_line
+            pos = first_y_pos + frac * (last_y_pos - first_y_pos)
+            return ceil(pos)
 
         # All the lists of block numbers for flags
         dict_flag_lists = {
@@ -229,8 +208,7 @@ class ScrollFlagArea(Panel):
             painter.setPen(self._edgecolors[flag_type])
             for block_number in dict_flag_lists[flag_type]:
                 # Don't paint local flags outside of the window
-                if paint_local and not (
-                        min_line <= block_number + 1 <= max_line):
+                if paint_local:
                     continue
                 # Find the block
                 block = editor.document().findBlockByNumber(block_number)
