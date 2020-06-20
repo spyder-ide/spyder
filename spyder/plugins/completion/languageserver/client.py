@@ -157,6 +157,22 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.transport_args += ['--stdio-server']
         self.transport_unresponsive = False
 
+    @property
+    def server_log_file(self):
+        """Filename to direct server logs to in debugging mode."""
+        if get_debug_level() == 0:
+            return None
+
+        fname = 'server_{0}_{1}.log'.format(self.language, os.getpid())
+        location = get_conf_path(osp.join('lsp_logs', fname))
+
+        # Create directory that contains the file, in case it doesn't
+        # exist
+        if not osp.exists(osp.dirname(location)):
+            os.makedirs(osp.dirname(location))
+
+        return location
+
     def create_transport_sockets(self):
         """Create PyZMQ sockets for transport."""
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
@@ -174,16 +190,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         """Handle errors with the transport layer or server processes."""
         self.sig_went_down.emit(self.language)
 
-    def _create_server_log_file(self):
-        server_log_fname = 'server_{0}_{1}.log'.format(
-            self.language, os.getpid())
-        server_log_file = get_conf_path(osp.join('lsp_logs',
-                                                 server_log_fname))
-
-        if not osp.exists(osp.dirname(server_log_file)):
-            os.makedirs(osp.dirname(server_log_file))
-        return server_log_file
-
     def start_server(self):
         """Start server."""
         # This is not necessary if we're trying to connect to an
@@ -191,14 +197,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if self.external_server or self.stdio:
             return
 
-        # Set server log file
-        server_log_file = None
         if get_debug_level() > 0:
-            # Create server log file
-            server_log_file = self._create_server_log_file()
-
             if self.language == 'python':
-                self.server_args += ['--log-file', server_log_file]
+                self.server_args += ['--log-file', self.server_log_file]
                 if get_debug_level() == 2:
                     self.server_args.append('-v')
                 elif get_debug_level() == 3:
@@ -232,8 +233,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server.errorOccurred.connect(self.handle_process_errors)
         self.server.setWorkingDirectory(cwd)
         self.server.setProcessChannelMode(QProcess.MergedChannels)
-        if server_log_file is not None:
-            self.server.setStandardOutputFile(server_log_file)
+        if self.server_log_file is not None:
+            self.server.setStandardOutputFile(self.server_log_file)
 
         # Start server
         self.server.start(self.server_args[0], self.server_args[1:])
@@ -277,8 +278,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             if not osp.exists(osp.dirname(transport_log_file)):
                 os.makedirs(osp.dirname(transport_log_file))
             if self.stdio:
-                server_log_file = self._create_server_log_file()
-                self.transport_args += ['--server-log-file', server_log_file]
+                self.transport_args += [
+                    '--server-log-file', self.server_log_file]
 
         # Set channel properties
         if self.stdio:
