@@ -2422,6 +2422,57 @@ def test_preferences_change_font_regression(main_window, qtbot):
 
 
 @pytest.mark.slow
+def test_preferences_empty_shortcut_regression(main_window, qtbot):
+    """
+    Test for spyder-ide/spyder/#12992 regression.
+
+    Overwritting shortcuts results in a shortcuts conflict.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Setup shortcuts (set run cell and advance shortcut to run selection)
+    base_run_cell_advance = CONF.get_shortcut(
+        'editor', 'run cell and advance')  # Should be Shift+Return
+    base_run_selection = CONF.get_shortcut(
+        'editor', 'run selection')  # Should be F9
+    assert base_run_cell_advance == 'Shift+Return'
+    assert base_run_selection == 'F9'
+    CONF.set_shortcut(
+        'editor', 'run cell and advance', '')
+    CONF.set_shortcut(
+        'editor', 'run selection', base_run_cell_advance)
+    main_window.apply_shortcuts()
+
+    # Check execution of shortcut
+    # Create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text('print(0)\nprint(1)\nprint(2)')
+
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.waitUntil(lambda: 'print(0)' in shell._control.toPlainText())
+    assert 'print(1)' not in shell._control.toPlainText()
+
+    # Reset shortcuts
+    CONF.set_shortcut(
+        'editor', 'run selection', 'F9')
+    CONF.set_shortcut(
+        'editor', 'run cell and advance', 'Shift+Return')
+    main_window.apply_shortcuts()
+    qtbot.wait(500)  # Wait for shortcut change to actually be applied
+
+    # Check shortcut run cell and advance reset
+    code_editor.setFocus()
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.waitUntil(lambda: 'runcell(0' in shell._control.toPlainText())
+
+
+@pytest.mark.slow
 def test_preferences_shortcut_reset_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#11132 regression.
@@ -2786,6 +2837,7 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
     code_editor = main_window.editor.get_focus_widget()
+
     # call runcell
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
