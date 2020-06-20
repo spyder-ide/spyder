@@ -2335,7 +2335,6 @@ def preferences_dialog_helper(qtbot, main_window, section):
 def test_preferences_run_section_exists(main_window, qtbot):
     """
     Test for spyder-ide/spyder#13524 regression.
-
     Ensure the Run section exists.
     """
     assert preferences_dialog_helper(qtbot, main_window, 'run')
@@ -2434,7 +2433,7 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
         'editor', 'run cell and advance', '')
     CONF.set_shortcut(
         'editor', 'run selection', base_run_cell_advance)
-    main_window.apply_shortcuts()
+    main_window.shortcuts.apply_shortcuts()
 
     # Check execution of shortcut
     # Create new file
@@ -2452,7 +2451,7 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
         'editor', 'run selection', 'F9')
     CONF.set_shortcut(
         'editor', 'run cell and advance', 'Shift+Return')
-    main_window.apply_shortcuts()
+    main_window.shortcuts.apply_shortcuts()
     qtbot.wait(500)  # Wait for shortcut change to actually be applied
 
     # Check shortcut run cell and advance reset

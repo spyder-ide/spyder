@@ -212,7 +212,13 @@ class ConfigDialog(QDialog):
         for idx in range(self.pages_widget.count()):
             widget = self.pages_widget.widget(idx)
             widget = widget.widget()
-            if widget.CONF_SECTION == name:
+            try:
+                # New API
+                section = widget.plugin.NAME
+            except AttributeError:
+                section = widget.CONF_SECTION
+
+            if section == name:
                 return idx
         else:
             return None

@@ -4,32 +4,34 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Shortcut management"""
+"""Shortcut management widgets."""
 
-# Standard library imports
-from __future__ import print_function
+# Standard library importsimport re
 import re
 
 # Third party imports
-from qtpy import PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot, QEvent,
-                         QSortFilterProxyModel)
-from qtpy.QtGui import QKeySequence, QIcon
+from qtpy.QtCore import (QAbstractTableModel, QEvent, QModelIndex,
+                         QSortFilterProxyModel, Qt, Slot)
+from qtpy.QtGui import QIcon, QKeySequence
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
-                            QGridLayout, QHBoxLayout, QLabel,
-                            QLineEdit, QMessageBox, QPushButton, QSpacerItem,
-                            QTableView, QVBoxLayout, QKeySequenceEdit)
+                            QGridLayout, QHBoxLayout, QKeySequenceEdit,
+                            QLabel, QLineEdit, QMessageBox, QPushButton,
+                            QSpacerItem, QTableView, QVBoxLayout)
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import get_translation
 from spyder.config.manager import CONF
-from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
-from spyder.utils.qthelpers import get_std_icon, create_toolbutton
-from spyder.utils.stringmatching import get_search_scores, get_search_regex
-from spyder.widgets.helperwidgets import (FinderLineEdit, HelperToolButton,
-                                          HTMLDelegate, VALID_FINDER_CHARS)
+from spyder.utils.qthelpers import create_toolbutton, get_std_icon
+from spyder.utils.stringmatching import get_search_regex, get_search_scores
+from spyder.widgets.helperwidgets import (VALID_FINDER_CHARS,
+                                          CustomSortFilterProxy,
+                                          FinderLineEdit, HelperToolButton,
+                                          HTMLDelegate)
+
+# Localization
+_ = get_translation('spyder')
 
 
 # Valid shortcut keys
@@ -717,7 +719,6 @@ class ShortcutsTable(QTableView):
             if (context, name) in shortcut_data:
                 context = context.lower()
                 name = name.lower()
-
                 # Only add to table actions that are registered from the main
                 # window
                 shortcut = Shortcut(context, name, keystr)
@@ -839,77 +840,6 @@ class ShortcutsTable(QTableView):
         self.update()
 
 
-class ShortcutsConfigPage(GeneralConfigPage):
-    CONF_SECTION = "shortcuts"
-    NAME = _("Keyboard shortcuts")
-
-    def setup_page(self):
-        self.ICON = ima.icon('keyboard')
-        # Widgets
-        self.table = ShortcutsTable(self, text_color=ima.MAIN_FG_COLOR)
-        self.table.set_shortcut_data(self.main.shortcut_data)
-        self.table.load_shortcuts()
-        self.finder = ShortcutFinder(self.table, self.table.set_regex)
-        self.table.finder = self.finder
-        self.table.finder.setPlaceholderText(
-            _("Search for a shortcut in the table above"))
-        self.label_finder = QLabel(_('Search: '))
-        self.reset_btn = QPushButton(_("Reset to default values"))
-        self.top_label = QLabel(
-            _("Here you can browse the list of all available shortcuts in "
-              "Spyder. You can also customize them by double-clicking on any "
-              "entry in this table."))
-        self.top_label.setWordWrap(True)
-
-        # Layout
-        hlayout = QHBoxLayout()
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(self.top_label)
-        hlayout.addWidget(self.label_finder)
-        hlayout.addWidget(self.finder)
-        vlayout.addWidget(self.table)
-        vlayout.addLayout(hlayout)
-        vlayout.addWidget(self.reset_btn)
-        self.setLayout(vlayout)
-
-        self.setTabOrder(self.table, self.finder)
-        self.setTabOrder(self.finder, self.reset_btn)
-
-        # Signals and slots
-        if PYQT5:
-            # Qt5 'dataChanged' has 3 parameters
-            self.table.proxy_model.dataChanged.connect(
-                lambda i1, i2, roles, opt='': self.has_been_modified(opt))
-        else:
-            self.table.proxy_model.dataChanged.connect(
-                lambda i1, i2, opt='': self.has_been_modified(opt))
-        self.reset_btn.clicked.connect(self.reset_to_default)
-
-    def check_settings(self):
-        self.table.check_shortcuts()
-
-    def reset_to_default(self, force=False):
-        """Reset to default values of the shortcuts making a confirmation."""
-        if not force:
-            reset = QMessageBox.warning(
-                self,
-                _("Shortcuts reset"),
-                _("Do you want to reset to default values?"),
-                QMessageBox.Yes | QMessageBox.No)
-            if reset == QMessageBox.No:
-                return
-
-        CONF.reset_shortcuts()
-        self.main.apply_shortcuts()
-        self.table.load_shortcuts()
-        self.load_from_conf()
-        self.set_modified(False)
-
-    def apply_settings(self, options):
-        self.table.save_shortcuts()
-        self.main.apply_shortcuts()
-
-
 class ShortcutsSortFilterProxy(QSortFilterProxyModel):
     """Custom proxy for supporting shortcuts multifiltering."""
 
@@ -969,7 +899,7 @@ class ShortcutsSortFilterProxy(QSortFilterProxyModel):
         return any(results)
 
 
-def load_shortcuts(shortcut_table):
+def load_shortcuts_data():
     """
     Load shortcuts from CONF for testing.
     """
@@ -978,7 +908,14 @@ def load_shortcuts(shortcut_table):
         context = context.lower()
         name = name.lower()
         shortcut_data.append((None, context, name, None, None))
+    return shortcut_data
 
+
+def load_shortcuts(shortcut_table):
+    """
+    Load shortcuts into `shortcut_table`.
+    """
+    shortcut_data = load_shortcuts_data()
     shortcut_table.set_shortcut_data(shortcut_data)
     shortcut_table.load_shortcuts()
     return shortcut_table
@@ -986,6 +923,7 @@ def load_shortcuts(shortcut_table):
 
 def test():
     from spyder.utils.qthelpers import qapplication
+
     app = qapplication()
     table = ShortcutsTable()
     table = load_shortcuts(table)

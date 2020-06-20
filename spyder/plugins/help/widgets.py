@@ -464,7 +464,18 @@ class HelpWidget(PluginMainWidget):
             self.force_refresh()
 
     def update_actions(self):
-        pass
+        for __, action in self.get_actions().items():
+            # IMPORTANT: Since we are defining the main actions in here
+            # and the context is WidgetWithChildrenShortcut we need to
+            # assign the same actions to the children widgets in order
+            # for shortcuts to work
+            for widget in [self.plain_text,
+                           self.rich_text,
+                           self.source_combo,
+                           self.object_combo,
+                           self.object_edit]:
+                if action not in widget.actions():
+                    widget.addAction(action)
 
     def get_focus_widget(self):
         self.object_combo.lineEdit().selectAll()

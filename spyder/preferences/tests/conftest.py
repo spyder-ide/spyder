@@ -9,6 +9,8 @@
 Testing utilities to be used with pytest.
 """
 
+import traceback
+
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -21,9 +23,9 @@ import pytest
 
 # Local imports
 from spyder.config.manager import CONF
+from spyder.plugins.shortcuts.widgets.table import load_shortcuts_data
 from spyder.preferences.configdialog import ConfigDialog
 from spyder.preferences.general import MainConfigPage
-from spyder.preferences.shortcuts import ShortcutsConfigPage
 from spyder.utils import icon_manager as ima
 
 
@@ -32,7 +34,6 @@ class MainWindowMock(QMainWindow):
 
     def __init__(self):
         super().__init__(None)
-
         self.default_style = None
         self.widgetlist = []
         self.thirdparty_plugins = []
@@ -85,8 +86,13 @@ class ConfigDialogTester(ConfigDialog):
                 try:
                     # New API
                     plugin = plugin(parent=self._main, configuration=CONF)
+                    if plugin.NAME == "shortcuts":
+                        plugin.get_shortcut_data = (
+                            lambda: load_shortcuts_data())
+
                     widget = self._main.create_plugin_conf_widget(plugin)
-                except Exception:
+                except Exception as e:
+                    traceback.print_exc()
                     # Old API
                     plugin = plugin(parent=self._main)
                     widget = plugin._create_configwidget(self, self._main)
@@ -110,11 +116,11 @@ def global_config_dialog(qtbot):
     from spyder.preferences.maininterpreter import MainInterpreterConfigPage
 
     qtbot.addWidget(dlg)
-    for widget_class in [MainConfigPage,
-                         MainInterpreterConfigPage, ShortcutsConfigPage]:
+    for widget_class in [MainConfigPage, MainInterpreterConfigPage]:
         widget = widget_class(dlg, main=MainWindowMock())
         widget.initialize()
         dlg.add_page(widget)
+
     return dlg
 
 
