@@ -197,38 +197,39 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if self.external_server or self.stdio:
             return
 
-        if get_debug_level() > 0:
-            if self.language == 'python':
+        # Create server process
+        self.server = QProcess(self)
+        env = self.server.processEnvironment()
+
+        # Adjustments for the Python language server.
+        if self.language == 'python':
+            if get_debug_level() > 0:
                 self.server_args += ['--log-file', self.server_log_file]
                 if get_debug_level() == 2:
                     self.server_args.append('-v')
                 elif get_debug_level() == 3:
                     self.server_args.append('-vv')
 
-        logger.info('Starting server: {0}'.format(' '.join(self.server_args)))
-
-        # Set the PyLS current working to an empty dir inside
-        # our config one. This avoids the server to pick up user
-        # files such as random.py or string.py instead of the
-        # standard library modules named the same.
-        if self.language == 'python':
+            # Set the PyLS current working to an empty dir inside
+            # our config one. This avoids the server to pick up user
+            # files such as random.py or string.py instead of the
+            # standard library modules named the same.
             cwd = get_conf_path('empty_cwd')
             if not osp.exists(cwd):
                 os.mkdir(cwd)
         else:
+            # There's no need to define a cwd for other servers.
             cwd = None
 
-        # Setup server
-        self.server = QProcess(self)
-        env = self.server.processEnvironment()
-
-        # Most LSP server spawn other processes other than Python, which may
-        # require some environment variables
-        if self.language != 'python':
+            # Most LSP servers spawn other processes, which may require
+            # some environment variables.
             for var in os.environ:
                 env.insert(var, os.environ[var])
             logger.info('Server process env variables: {0}'.format(env.keys()))
 
+        logger.info('Starting server: {0}'.format(' '.join(self.server_args)))
+
+        # Setup server
         self.server.setProcessEnvironment(env)
         self.server.errorOccurred.connect(self.handle_process_errors)
         self.server.setWorkingDirectory(cwd)
