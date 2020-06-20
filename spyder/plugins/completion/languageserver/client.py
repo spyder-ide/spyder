@@ -157,13 +157,20 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.transport_args += ['--stdio-server']
         self.transport_unresponsive = False
 
-    @property
-    def server_log_file(self):
-        """Filename to direct server logs to in debugging mode."""
+    def _get_log_filename(self, kind):
+        """
+        Get filename to redirect server or transport logs to in
+        debugging mode.
+
+        Parameters
+        ----------
+        kind: str
+            It can be "server" or "transport".
+        """
         if get_debug_level() == 0:
             return None
 
-        fname = 'server_{0}_{1}.log'.format(self.language, os.getpid())
+        fname = '{0}_{1}_{2}.log'.format(kind, self.language, os.getpid())
         location = get_conf_path(osp.join('lsp_logs', fname))
 
         # Create directory that contains the file, in case it doesn't
@@ -172,6 +179,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             os.makedirs(osp.dirname(location))
 
         return location
+
+    @property
+    def server_log_file(self):
+        return self._get_log_filename('server')
+
+    @property
+    def transport_log_file(self):
+        return self._get_log_filename('transport')
 
     def create_transport_sockets(self):
         """Create PyZMQ sockets for transport."""
@@ -270,28 +285,19 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.transport.setProcessEnvironment(env)
 
         # Set transport log file
-        transport_log_file = None
-        if get_debug_level() > 0:
-            transport_log_fname = 'transport_{0}_{1}.log'.format(
-                self.language, os.getpid())
-            transport_log_file = get_conf_path(
-                osp.join('lsp_logs', transport_log_fname))
-            if not osp.exists(osp.dirname(transport_log_file)):
-                os.makedirs(osp.dirname(transport_log_file))
-            if self.stdio:
-                self.transport_args += [
-                    '--server-log-file', self.server_log_file]
+        if get_debug_level() > 0 and self.stdio:
+            self.transport_args += ['--server-log-file', self.server_log_file]
 
         # Set channel properties
         if self.stdio:
             self.transport_args += self.server_args
             self.transport.setProcessChannelMode(QProcess.SeparateChannels)
-            if transport_log_file is not None:
-                self.transport.setStandardErrorFile(transport_log_file)
+            if self.transport_log_file is not None:
+                self.transport.setStandardErrorFile(self.transport_log_file)
         else:
             self.transport.setProcessChannelMode(QProcess.MergedChannels)
-            if transport_log_file is not None:
-                self.transport.setStandardOutputFile(transport_log_file)
+            if self.transport_log_file is not None:
+                self.transport.setStandardOutputFile(self.transport_log_file)
 
         # Start transport
         self.transport.start(self.transport_args[0], self.transport_args[1:])
