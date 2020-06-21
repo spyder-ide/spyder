@@ -128,6 +128,9 @@ class IPythonConsole(SpyderPluginWidget):
 
         self.tabwidget.set_close_function(self.close_client)
 
+        self.main.editor.sig_file_debug_message_requested.connect(
+            self.print_debug_file_msg)
+
         if sys.platform == 'darwin':
             tab_container = QWidget()
             tab_container.setObjectName('tab-container')
@@ -967,6 +970,9 @@ class IPythonConsole(SpyderPluginWidget):
         if not self.tabwidget.count():
             return
         if client is not None:
+            if client not in self.clients:
+                # Client already closed
+                return
             index = self.tabwidget.indexOf(client)
             # if index is not found in tabwidget it's because this client was
             # already closed and the call was performed by the exit callback
@@ -1012,7 +1018,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         # if there aren't related clients we can remove stderr_file
         related_clients = self.get_related_clients(client)
-        if len(related_clients) == 0 and osp.exists(client.stderr_file):
+        if len(related_clients) == 0:
             client.remove_stderr_file()
 
         client.dialog_manager.close_all()
@@ -1223,9 +1229,9 @@ class IPythonConsole(SpyderPluginWidget):
         # Kernel client
         kernel_client = kernel_manager.client()
 
-        # Increase time to detect if a kernel is alive.
+        # Increase time (in seconds) to detect if a kernel is alive.
         # See spyder-ide/spyder#3444.
-        kernel_client.hb_channel.time_to_dead = 45.0
+        kernel_client.hb_channel.time_to_dead = 25.0
 
         return kernel_manager, kernel_client
 
@@ -1602,3 +1608,12 @@ class IPythonConsole(SpyderPluginWidget):
                         os.remove(osp.join(tmpdir, fname))
                     except Exception:
                         pass
+
+    def print_debug_file_msg(self):
+        """Print message in the current console when a file can't be closed."""
+        debug_msg = _('<br><hr>'
+                      '\nThe current file cannot be closed because it is '
+                      'in debug mode. \n'
+                      '<hr><br>')
+        self.get_current_client().shellwidget._append_html(
+                    debug_msg, before_prompt=True)

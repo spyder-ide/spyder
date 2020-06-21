@@ -107,28 +107,24 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 try:
                     self.clients_hearbeat[language].stop()
                     client['instance'].disconnect()
+                    client['instance'].stop()
                 except (TypeError, KeyError, RuntimeError):
                     pass
                 self.clients_hearbeat[language] = None
                 self.report_lsp_down(language)
 
-            # Check if the restart was successful
-            self.check_restart(client, language, kind='tcp')
-
-    def check_restart(self, client, language, kind):
+    def check_restart(self, client, language):
         """
         Check if a server restart was successful in order to stop
         further attempts.
-
-        `kind` can only be "tcp" or "stdio".
         """
         status = client['status']
-        if kind == 'tcp':
-            check = client['instance'].is_tcp_alive()
-        elif kind == 'stdio':
-            check = client['instance'].is_stdio_alive()
-        else:
-            check = False
+        instance = client['instance']
+
+        # This check is only necessary for stdio servers
+        check = True
+        if instance.stdio_pid:
+            check = instance.is_stdio_alive()
 
         if status == self.RUNNING and check:
             logger.info("Restart successful!")
@@ -146,10 +142,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         status = client['status']
         instance = client.get('instance', None)
         if instance is not None:
-            tcp_check = not instance.is_tcp_alive()
-            stdio_check = not instance.is_stdio_alive()
-            if (tcp_check or stdio_check or status != self.RUNNING):
-                instance.sig_lsp_down.emit(language)
+            if instance.is_down() or status != self.RUNNING:
+                instance.sig_went_down.emit(language)
 
     def set_status(self, language, status):
         """
@@ -162,15 +156,14 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """
         Update the status bar widget on client initilization.
         """
+        # Set status after the server was started correctly.
         if not self.clients_restarting.get(language, False):
             self.set_status(language, _('ready'))
 
-        # This is the only place where we can detect if restarting
-        # a stdio server was successful because its pid is updated
-        # on initialization.
+        # Set status after a restart.
         if self.clients_restarting.get(language):
             client = self.clients[language]
-            self.check_restart(client, language, kind='stdio')
+            self.check_restart(client, language)
 
     def handle_lsp_down(self, language):
         """
@@ -422,7 +415,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 self.update_configuration)
             self.main.sig_main_interpreter_changed.connect(
                 self.update_configuration)
-            instance.sig_lsp_down.connect(self.handle_lsp_down)
+            instance.sig_went_down.connect(self.handle_lsp_down)
             instance.sig_initialize.connect(self.on_initialize)
 
             if self.main.editor:

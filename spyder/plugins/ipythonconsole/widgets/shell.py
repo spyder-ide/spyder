@@ -15,7 +15,7 @@ import uuid
 from textwrap import dedent
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
@@ -92,8 +92,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # set in the qtconsole constructor. See spyder-ide/spyder#4806.
         self.set_bracket_matcher_color_scheme(self.syntax_style)
 
+        self.shutdown_called = False
         self.kernel_manager = None
         self.kernel_client = None
+        self.shutdown_thread = None
         handlers = {
             'pdb_state': self.set_pdb_state,
             'pdb_continue': self.pdb_continue,
@@ -108,6 +110,47 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
+
+    def __del__(self):
+        """Avoid destroying shutdown_thread."""
+        if (self.shutdown_thread is not None
+                and self.shutdown_thread.isRunning()):
+            self.shutdown_thread.wait()
+
+    # ---- Public API ---------------------------------------------------------
+    def shutdown(self):
+        """Shutdown kernel"""
+        self.shutdown_called = True
+        self.spyder_kernel_comm.close()
+        self.spyder_kernel_comm.shutdown_comm_channel()
+        self.kernel_manager.stop_restarter()
+
+        self.shutdown_thread = QThread()
+        self.shutdown_thread.run = self.kernel_manager.shutdown_kernel
+        if self.kernel_client is not None:
+            self.shutdown_thread.finished.connect(
+                self.kernel_client.stop_channels)
+        self.shutdown_thread.start()
+
+    def will_close(self, externally_managed):
+        """
+        Close communication channels with the kernel if shutdown was not
+        called. If the kernel is not externally managed, shutdown the kernel
+        as well.
+        """
+        if not self.shutdown_called and not externally_managed:
+            # Make sure the channels are stopped
+            self.spyder_kernel_comm.close()
+            self.spyder_kernel_comm.shutdown_comm_channel()
+            self.kernel_manager.stop_restarter()
+            self.kernel_manager.shutdown_kernel(now=True)
+            if self.kernel_client is not None:
+                self.kernel_client.stop_channels()
+        if externally_managed:
+            self.spyder_kernel_comm.close()
+            if self.kernel_client is not None:
+                self.kernel_client.stop_channels()
+        super(ShellWidget, self).will_close(externally_managed)
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
                     timeout=None):
@@ -147,7 +190,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Redefine the complete method to work while debugging.
         self.redefine_complete_for_dbg(self.kernel_client)
 
-    #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
         """Set exit callback for this shell."""
         self.exit_requested.connect(self.ipyclient.exit_callback)
@@ -514,7 +556,7 @@ the sympy module (e.g. plot)
             if not 'inline' in command:
                 self.silent_execute(command)
 
-    # ---- Spyder-kernels methods -------------------------------------------
+    # ---- Spyder-kernels methods ---------------------------------------------
     def get_editor(self, filename):
         """Get editor for filename and set it as the current editor."""
         editorstack = self.get_editorstack()
@@ -590,8 +632,12 @@ the sympy module (e.g. plot)
         """Get the current filename."""
         return self.get_editorstack().get_current_finfo().filename
 
-    # ---- Private methods (overrode by us) ---------------------------------
+    # ---- Public methods (overrode by us) ------------------------------------
+    def request_restart_kernel(self):
+        """Reimplemented to call our own restart mechanism."""
+        self.ipyclient.restart_kernel()
 
+    # ---- Private methods (overrode by us) -----------------------------------
     def _handle_error(self, msg):
         """
         Reimplemented to reset the prompt if the error comes after the reply

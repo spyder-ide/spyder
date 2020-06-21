@@ -1300,7 +1300,7 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
 
 
 @flaky(max_runs=3)
-def test_kernel_crash(ipyconsole, mocker, qtbot):
+def test_kernel_crash(ipyconsole, qtbot):
     """Test that we show an error message when a kernel crash occurs."""
     # Create an IPython kernel config file with a bad config
     ipy_kernel_cfg = osp.join(get_ipython_dir(), 'profile_default',
@@ -1633,6 +1633,84 @@ def test_kernel_kill(ipyconsole, qtbot):
             'status'] == 'ready')
     assert shell.spyder_kernel_comm._comms[new_open_comms[0]][
         'status'] == 'ready'
+
+
+@flaky(max_runs=3)
+def test_wrong_std_module(ipyconsole, qtbot):
+    """
+    Test that a file with the same name of a standard library module in
+    the current working directory doesn't break the console.
+    """
+    # Create an empty file called random.py in the cwd
+    wrong_random_mod = osp.join(os.getcwd(), 'random.py')
+    with open(wrong_random_mod, 'w') as f:
+        f.write('')
+
+    # Create a new client to see if its kernel starts despite the
+    # faulty module.
+    ipyconsole.create_new_client()
+
+    # A prompt should be created if the kernel didn't crash.
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Remove wrong module
+    os.remove(wrong_random_mod)
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="no SIGTERM on Windows")
+def test_kernel_restart_after_manual_restart_and_crash(ipyconsole, qtbot):
+    """
+    Test that the kernel restarts correctly after being restarted
+    manually and then it crashes.
+
+    This is a regresion for spyder-ide/spyder#12972.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Restart kernel and wait until it's up again
+    shell._prompt_html = None
+    ipyconsole.restart_kernel()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Wait for the restarter to start
+    qtbot.wait(3000)
+
+    # Generate a crash
+    crash_string = 'import os, signal; os.kill(os.getpid(), signal.SIGTERM)'
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=30000):
+        shell.execute(crash_string)
+    assert crash_string in shell._control.toPlainText()
+
+    # Evaluate an expression to be sure the restart was successful
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
+    assert shell.is_defined('a')
+
+    # Wait until the comm replies
+    open_comms = list(shell.spyder_kernel_comm._comms.keys())
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_comm._comms[open_comms[0]][
+            'status'] == 'ready')
+
+
+@flaky(max_runs=3)
+def test_stderr_poll(ipyconsole, qtbot):
+    """Test if the content of stderr is printed to the console."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    client = ipyconsole.get_current_client()
+    with open(client.stderr_file, 'w') as f:
+        f.write("test_test")
+    # Wait for the poll
+    qtbot.wait(2000)
+    assert "test_test" in ipyconsole.get_focus_widget().toPlainText()
 
 
 if __name__ == "__main__":

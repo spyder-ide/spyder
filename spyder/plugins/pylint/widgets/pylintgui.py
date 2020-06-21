@@ -37,7 +37,6 @@ from spyder.widgets.onecolumntree import OneColumnTree
 from spyder.plugins.pylint.utils import get_pylintrc_path
 from spyder.plugins.variableexplorer.widgets.texteditor import TextEditor
 
-
 # This is needed for testing this module as a stand alone script
 try:
     _ = get_translation("pylint", "spyder_pylint")
@@ -94,13 +93,19 @@ class ResultsTree(OneColumnTree):
                    ima.icon('error'), self.results['E:']))
         for title, icon, messages in results:
             title += ' (%d message%s)' % (len(messages),
-                                          's' if len(messages)>1 else '')
+                                          's' if len(messages) > 1 else '')
             title_item = QTreeWidgetItem(self, [title], QTreeWidgetItem.Type)
             title_item.setIcon(0, icon)
             if not messages:
                 title_item.setDisabled(True)
             modules = {}
-            for module, lineno, message, msg_id in messages:
+            for message_data in messages:
+                # If message data is legacy version without message_name
+                if len(message_data) == 4:
+                    message_data = tuple(list(message_data) + [None])
+
+                module, lineno, message, msg_id, message_name = message_data
+
                 basename = osp.splitext(osp.basename(self.filename))[0]
                 if not module.startswith(basename):
                     # Pylint bug
@@ -128,10 +133,18 @@ class ResultsTree(OneColumnTree):
                 else:
                     parent = title_item
                 if len(msg_id) > 1:
-                    text = "[%s] %d : %s" % (msg_id, lineno, message)
-                else:
-                    text = "%d : %s" % (lineno, message)
-                msg_item = QTreeWidgetItem(parent, [text], QTreeWidgetItem.Type)
+                    if not message_name:
+                        message_string = "{msg_id} "
+                    else:
+                        message_string = "{msg_id} ({message_name}) "
+
+                message_string += "line {lineno}: {message}"
+
+                message_string = message_string.format(
+                    msg_id=msg_id, message_name=message_name,
+                    lineno=lineno, message=message)
+                msg_item = QTreeWidgetItem(
+                    parent, [message_string], QTreeWidgetItem.Type)
                 msg_item.setIcon(0, ima.icon('arrow'))
                 self.data[id(msg_item)] = (modname, lineno)
 
@@ -146,18 +159,19 @@ class PylintWidget(QWidget):
     start_analysis = Signal()
 
     def __init__(self, parent, max_entries=100, options_button=None,
-                 text_color=None, prevrate_color=None):
+                 text_color=None, prevrate_color=None, top_max_entries=100):
         QWidget.__init__(self, parent)
 
         self.setWindowTitle("Pylint")
 
+        self.parent = parent
         self.output = None
         self.error_output = None
         self.filename = None
         self.text_color = text_color
         self.prevrate_color = prevrate_color
-
         self.max_entries = max_entries
+        self.top_max_entries = top_max_entries
         self.rdata = []
         if osp.isfile(self.DATAPATH):
             try:
@@ -168,6 +182,7 @@ class PylintWidget(QWidget):
                 pass
 
         self.filecombo = PythonModulesComboBox(self)
+        self.filecombo.setInsertPolicy(self.filecombo.InsertAtTop)
 
         self.start_button = create_toolbutton(self, icon=ima.icon('run'),
                                     text=_("Analyze"),
@@ -222,10 +237,19 @@ class PylintWidget(QWidget):
 
         if self.rdata:
             self.remove_obsolete_items()
-            self.filecombo.addItems(self.get_filenames())
+            self.filecombo.insertItems(0, self.get_filenames())
             self.start_button.setEnabled(self.filecombo.is_valid())
         else:
             self.start_button.setEnabled(False)
+
+        if self.parent:
+            self.curr_filenames = self.parent.get_option(
+                'history_filenames', [])
+        else:
+            self.curr_filenames = []
+
+        for f in self.curr_filenames[::-1]:
+            self.set_filename(f)
 
     def check_new_file(self):
         fname = self.get_filename()
@@ -240,15 +264,58 @@ class PylintWidget(QWidget):
     @Slot(str)
     def set_filename(self, filename):
         """Set filename without performing code analysis."""
-        filename = to_text_string(filename) # filename is a QString instance
+        filename = to_text_string(filename)  # filename is a QString instance
         self.kill_if_running()
         index, _data = self.get_data(filename)
-        if index is None:
-            self.filecombo.addItem(filename)
-            self.filecombo.setCurrentIndex(self.filecombo.count()-1)
+        is_parent = self.parent is not None
+
+        if filename not in self.curr_filenames:
+            self.filecombo.insertItem(0, filename)
+            self.curr_filenames.insert(0, filename)
+            self.filecombo.setCurrentIndex(0)
         else:
-            self.filecombo.setCurrentIndex(self.filecombo.findText(filename))
+            index = self.filecombo.findText(filename)
+            self.filecombo.removeItem(index)
+            self.curr_filenames.pop(index)
+            self.filecombo.insertItem(0, filename)
+            self.curr_filenames.insert(0, filename)
+            self.filecombo.setCurrentIndex(0)
+
+        num_elements = self.filecombo.count()
+        if is_parent:
+            if num_elements > self.parent.get_option('max_entries'):
+                self.filecombo.removeItem(num_elements - 1)
         self.filecombo.selected()
+
+    def change_history_limit(self, new_limit):
+        """Change the number of files listed in the history combobox."""
+        if self.filecombo.count() > new_limit:
+            num_elements = self.filecombo.count()
+            diff = num_elements - new_limit
+            for __ in range(diff):
+                num_elements = self.filecombo.count()
+                self.filecombo.removeItem(num_elements - 1)
+            self.filecombo.selected()
+        else:
+            num_elements = self.filecombo.count()
+            diff = new_limit - num_elements
+            for i in range(num_elements, num_elements + diff):
+                if i >= len(self.curr_filenames):
+                    break
+                act_filename = self.curr_filenames[i]
+                self.filecombo.insertItem(i, act_filename)
+
+    def save_history(self):
+        """Save the current history filenames."""
+        if self.parent:
+            list_save_files = []
+            for f in self.curr_filenames:
+                if _('untitled') not in f:
+                    list_save_files.append(f)
+            self.curr_filenames = list_save_files[:self.top_max_entries]
+            self.parent.set_option('history_filenames', self.curr_filenames)
+        else:
+            self.curr_filenames = []
 
     def analyze(self, filename=None):
         """
@@ -351,27 +418,22 @@ class PylintWidget(QWidget):
         self.output = ''
         self.error_output = ''
 
-        plver = PYLINT_VER
-        if plver is not None:
-            p_args = ['-m', 'pylint', '--output-format=text']
-            if plver.split('.')[0] == '0':
-                p_args += ['-i', 'yes']
-            else:
-                # Option '-i' (alias for '--include-ids') was removed in pylint
-                # 1.0
-                p_args += ["--msg-template='{msg_id}:{line:3d},"
-                           "{column}: {obj}: {msg}"]
+        if PYLINT_VER is not None:
+            pylint_args = [
+                '-m', 'pylint', '--output-format=text',
+                '--msg-template='
+                "'{msg_id}:{symbol}:{line:3d},{column}: {msg}'"]
 
         pylintrc_path = self.get_pylintrc_path(filename=filename)
         if pylintrc_path is not None:
-            p_args += ['--rcfile={}'.format(pylintrc_path)]
+            pylint_args += ['--rcfile={}'.format(pylintrc_path)]
 
-        p_args += [filename]
+        pylint_args.append(filename)
         processEnvironment = QProcessEnvironment()
         processEnvironment.insert("PYTHONIOENCODING", "utf8")
         self.process.setProcessEnvironment(processEnvironment)
 
-        self.process.start(sys.executable, p_args)
+        self.process.start(sys.executable, pylint_args)
 
         running = self.process.waitForStarted()
         self.set_running_state(running)
@@ -412,7 +474,7 @@ class PylintWidget(QWidget):
         results = {'C:': [], 'R:': [], 'W:': [], 'E:': []}
         txt_module = '************* Module '
 
-        module = '' # Should not be needed - just in case something goes wrong
+        module = ''  # Should not be needed - just in case something goes wrong
         for line in self.output.splitlines():
             if line.startswith(txt_module):
                 # New module
@@ -421,20 +483,32 @@ class PylintWidget(QWidget):
             # Supporting option include-ids: ('R3873:' instead of 'R:')
             if not re.match(r'^[CRWE]+([0-9]{4})?:', line):
                 continue
-            i1 = line.find(':')
-            if i1 == -1:
-                continue
-            msg_id = line[:i1]
-            i2 = line.find(':', i1+1)
-            if i2 == -1:
-                continue
-            line_nb = line[i1+1:i2].strip()
-            if not line_nb:
-                continue
-            line_nb = int(line_nb.split(',')[0])
-            message = line[i2+1:]
-            item = (module, line_nb, message, msg_id)
-            results[line[0]+':'].append(item)
+            items = {}
+            idx_0 = 0
+            idx_1 = 0
+            key_names = ["msg_id", "message_name", "line_nb", "message"]
+            for key_idx, key_name in enumerate(key_names):
+                if key_idx == len(key_names) - 1:
+                    idx_1 = len(line)
+                else:
+                    idx_1 = line.find(":", idx_0)
+
+                if idx_1 < 0:
+                    break
+                item = line[(idx_0):idx_1]
+
+                if not item:
+                    break
+
+                if key_name == "line_nb":
+                    item = int(item.split(',')[0])
+
+                items[key_name] = item
+                idx_0 = idx_1 + 1
+            else:
+                pylint_item = (module, items["line_nb"], items["message"],
+                               items["msg_id"], items["message_name"])
+                results[line[0] + ':'].append(pylint_item)
 
         # Rate
         rate = None

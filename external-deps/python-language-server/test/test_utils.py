@@ -17,6 +17,9 @@ class MockWorkspace(object):
         # This is to avoid pyling tests of the variable not being used
         sys.stdout.write(str(self._environments))
 
+        # This necessary for the new Jedi 0.17+ API.
+        self.root_path = ''
+
 
 def test_debounce():
     interval = 0.1

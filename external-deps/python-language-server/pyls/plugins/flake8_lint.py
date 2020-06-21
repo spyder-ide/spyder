@@ -58,11 +58,10 @@ def run_flake8(args):
         cmd = ['python', '-m', 'flake8']
         cmd.extend(args)
         p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    stderr = p.stderr.read().decode()
+    (stdout, stderr) = p.communicate()
     if stderr:
-        log.error("Error while running flake8 '%s'", stderr)
-    stdout = p.stdout
-    return stdout.read().decode()
+        log.error("Error while running flake8 '%s'", stderr.decode())
+    return stdout.decode()
 
 
 def build_args(options, doc_path):
@@ -119,10 +118,16 @@ def parse_stdout(document, stdout):
     diagnostics = []
     lines = stdout.splitlines()
     for raw_line in lines:
-        parsed_line = re.match(r'(.*):(\d*):(\d*): (\w*) (.*)', raw_line).groups()
-        if not parsed_line or len(parsed_line) != 5:
+        parsed_line = re.match(r'(.*):(\d*):(\d*): (\w*) (.*)', raw_line)
+        if not parsed_line:
             log.debug("Flake8 output parser can't parse line '%s'", raw_line)
             continue
+
+        parsed_line = parsed_line.groups()
+        if len(parsed_line) != 5:
+            log.debug("Flake8 output parser can't parse line '%s'", raw_line)
+            continue
+
         _, line, character, code, msg = parsed_line
         line = int(line) - 1
         character = int(character) - 1

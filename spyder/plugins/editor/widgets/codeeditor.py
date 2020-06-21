@@ -1471,32 +1471,6 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def request_folding(self):
         """Request folding."""
-        total_lines = self.get_line_count()
-        if total_lines > 2000 and self.code_folding:
-            warn = CONF.get('editor', 'show_code_folding_warning')
-            warn_str = _(
-                "One of the files in the editor or the file you are trying "
-                "to open contains more than 2000 lines.<br><br>"
-                "Code folding and indent guidelines will be disabled for "
-                "this kind of files in order to prevent performance "
-                "degradation."
-            )
-            if warn:
-                box = MessageCheckBox(
-                    icon=QMessageBox.Warning, parent=self)
-                box.setWindowTitle(_('File too long'))
-                box.set_checkbox_text(_("Don't show again."))
-                box.setStandardButtons(QMessageBox.Ok)
-                box.set_checked(False)
-                box.set_check_visible(True)
-                box.setText(warn_str)
-                box.exec_()
-
-                CONF.set('editor', 'show_code_folding_warning',
-                         not box.is_checked())
-            self.toggle_code_folding(False)
-            self.toggle_identation_guides(False)
-
         if not self.folding_supported or not self.code_folding:
             return
         params = {'file': self.filename}
@@ -4071,6 +4045,18 @@ class CodeEditor(TextEditBaseWidget):
                 self._last_pressed_key = None
                 return
 
+        # Correctly handle completions when Backspace key is pressed.
+        # We should not show the widget if deleting a space before a word.
+        if key == Qt.Key_Backspace:
+            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.select(QTextCursor.WordUnderCursor)
+            prev_text = to_text_string(cursor.selectedText())
+            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.setPosition(pos, QTextCursor.KeepAnchor)
+            prev_char = cursor.selectedText()
+            if prev_text == '' or prev_char in (u'\u2029', ' ', '\t'):
+                return
+
         # Text might be after a dot '.'
         if text == '':
             cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
@@ -4088,8 +4074,11 @@ class CodeEditor(TextEditBaseWidget):
 
         self.document_did_change(text)
 
+        is_backspace = (
+            self.is_completion_widget_visible() and key == Qt.Key_Backspace)
+
         if (len(text) >= self.automatic_completions_after_chars
-                and self._last_key_pressed_text) or key == Qt.Key_Backspace:
+                and self._last_key_pressed_text or is_backspace):
             # Perform completion on the fly
             if self.automatic_completions and not self.in_comment_or_string():
                 # Variables can include numbers and underscores

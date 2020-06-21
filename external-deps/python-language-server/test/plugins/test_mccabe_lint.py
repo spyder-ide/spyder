@@ -12,11 +12,11 @@ DOC_SYNTAX_ERR = """def hello()
 \tpass"""
 
 
-def test_mccabe(config):
+def test_mccabe(config, workspace):
     old_settings = config.settings
     try:
         config.update({'plugins': {'mccabe': {'threshold': 1}}})
-        doc = Document(DOC_URI, DOC)
+        doc = Document(DOC_URI, workspace, DOC)
         diags = mccabe_lint.pyls_lint(config, doc)
 
         assert all([d['source'] == 'mccabe' for d in diags])
@@ -32,6 +32,6 @@ def test_mccabe(config):
         config._settings = old_settings
 
 
-def test_mccabe_syntax_error(config):
-    doc = Document(DOC_URI, DOC_SYNTAX_ERR)
+def test_mccabe_syntax_error(config, workspace):
+    doc = Document(DOC_URI, workspace, DOC_SYNTAX_ERR)
     assert mccabe_lint.pyls_lint(config, doc) is None

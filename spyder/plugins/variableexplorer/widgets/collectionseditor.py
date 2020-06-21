@@ -41,14 +41,14 @@ from spyder_kernels.utils.nsview import (
     get_color_name, get_human_readable_type, get_size, Image,
     MaskedArray, ndarray, np_savetxt, Series, sort_against,
     try_to_eval, unsorted_unique, value_to_display, get_object_attrs,
-    get_type_string)
+    get_type_string, NUMERIC_NUMPY_TYPES)
 
 # Local imports
 from spyder.config.base import _, PICKLE_PROTOCOL
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.py3compat import (io, is_binary_string, PY3, to_text_string,
-                              is_type_text_string)
+                              is_type_text_string, NUMERIC_TYPES)
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
@@ -375,11 +375,16 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             if is_type_text_string(value):
                 display = to_text_string(value, encoding="utf-8")
-            elif not isinstance(value, int):
+            elif not isinstance(value, NUMERIC_TYPES + NUMERIC_NUMPY_TYPES):
                 display = to_text_string(value)
             else:
                 display = value
-        if role == Qt.DisplayRole:
+        if role == Qt.UserRole:
+            if isinstance(value, NUMERIC_TYPES + NUMERIC_NUMPY_TYPES):
+                return to_qvariant(value)
+            else:
+                return to_qvariant(display)
+        elif role == Qt.DisplayRole:
             return to_qvariant(display)
         elif role == Qt.EditRole:
             return to_qvariant(value_to_display(value))
@@ -1123,6 +1128,7 @@ class CollectionsEditorTableView(BaseTableView):
         self.proxy_model.setSourceModel(self.source_model)
         self.proxy_model.setDynamicSortFilter(True)
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.proxy_model.setSortRole(Qt.UserRole)
         self.setModel(self.proxy_model)
 
         self.hideColumn(4)  # Column 4 for Score
@@ -1419,6 +1425,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         self.proxy_model.setDynamicSortFilter(True)
         self.proxy_model.setFilterKeyColumn(0)  # Col 0 for Name
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.proxy_model.setSortRole(Qt.UserRole)
         self.setModel(self.proxy_model)
 
         self.hideColumn(4)  # Column 4 for Score

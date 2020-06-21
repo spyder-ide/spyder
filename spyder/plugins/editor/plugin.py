@@ -21,7 +21,7 @@ import time
 
 # Third party imports
 from qtpy.compat import from_qvariant, getopenfilenames, to_qvariant
-from qtpy.QtCore import QByteArray, Qt, Signal, Slot
+from qtpy.QtCore import QByteArray, Qt, Signal, Slot, QDir
 from qtpy.QtPrintSupport import QAbstractPrintDialog, QPrintDialog, QPrinter
 from qtpy.QtWidgets import (QAction, QActionGroup, QApplication, QDialog,
                             QFileDialog, QInputDialog, QMenu, QSplitter,
@@ -85,6 +85,7 @@ class Editor(SpyderPluginWidget):
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
+    sig_file_debug_message_requested = Signal()
 
     # This signal is fired for any focus change among all editor stacks
     sig_editor_focus_changed = Signal()
@@ -1792,9 +1793,16 @@ class Editor(SpyderPluginWidget):
                         # to this number if there's other untitled file in
                         # spyder. Please see spyder-ide/spyder#7831
                         fname_data = osp.splitext(current_filename)
-                        act_num = int(fname_data[0].split(_("untitled"))[-1])
-                        self.untitled_num = act_num + 1
-
+                        try:
+                            act_num = int(
+                                fname_data[0].split(_("untitled"))[-1])
+                            self.untitled_num = act_num + 1
+                        except ValueError:
+                            # Catch the error in case the user has something
+                            # different from a number after the untitled
+                            # part.
+                            # Please see spyder-ide/spyder#12892
+                            self.untitled_num = 0
             while True:
                 fname = create_fname(self.untitled_num)
                 self.untitled_num += 1
@@ -1912,6 +1920,7 @@ class Editor(SpyderPluginWidget):
             c_fname = self.get_current_filename()
             if c_fname is not None and c_fname != self.TEMPFILE_PATH:
                 basedir = osp.dirname(c_fname)
+
             self.redirect_stdio.emit(False)
             parent_widget = self.get_current_editorstack()
             if filename0 is not None:
@@ -1919,20 +1928,41 @@ class Editor(SpyderPluginWidget):
                                             osp.splitext(filename0)[1])
             else:
                 selectedfilter = ''
+
             if not running_under_pytest():
-                filenames, _sf = getopenfilenames(
-                                    parent_widget,
-                                    _("Open file"), basedir,
-                                    self.edit_filters,
-                                    selectedfilter=selectedfilter,
-                                    options=QFileDialog.HideNameFilterDetails)
+                # See: spyder-ide/spyder#3291
+                if sys.platform == 'darwin':
+                    dialog = QFileDialog(
+                        parent=parent_widget,
+                        caption=_("Open file"),
+                        directory=basedir,
+                    )
+                    dialog.setNameFilters(self.edit_filters.split(';;'))
+                    dialog.setOption(QFileDialog.HideNameFilterDetails, True)
+                    dialog.setFilter(QDir.AllDirs | QDir.Files | QDir.Drives
+                                     | QDir.Hidden)
+                    dialog.setFileMode(QFileDialog.ExistingFiles)
+
+                    if dialog.exec_():
+                        filenames = dialog.selectedFiles()
+                else:
+                    filenames, _sf = getopenfilenames(
+                        parent_widget,
+                        _("Open file"),
+                        basedir,
+                        self.edit_filters,
+                        selectedfilter=selectedfilter,
+                        options=QFileDialog.HideNameFilterDetails,
+                    )
             else:
                 # Use a Qt (i.e. scriptable) dialog for pytest
                 dialog = QFileDialog(parent_widget, _("Open file"),
                                      options=QFileDialog.DontUseNativeDialog)
                 if dialog.exec_():
                     filenames = dialog.selectedFiles()
+
             self.redirect_stdio.emit(True)
+
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
             else:
@@ -2059,8 +2089,10 @@ class Editor(SpyderPluginWidget):
         if debugging and 'fname' in last_pdb_step and filename:
             if osp.normcase(last_pdb_step['fname']) == osp.normcase(filename):
                 can_close = False
+                self.sig_file_debug_message_requested.emit()
         elif debugging:
             can_close = False
+            self.sig_file_debug_message_requested.emit()
         return can_close
 
     @Slot()
