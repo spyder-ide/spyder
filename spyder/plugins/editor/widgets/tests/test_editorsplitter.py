@@ -72,7 +72,7 @@ def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
             completions.send_request)
         editorstack.sig_open_file.connect(report_file_open)
         settings = completions.main.editor.lsp_editor_settings['python']
-        editorstack.update_server_configuration('python', settings)
+        editorstack.register_completion_settings(settings, 'python')
 
     def clone(editorstack, template=None):
         # editorstack.clone_from(template)

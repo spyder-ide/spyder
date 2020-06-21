@@ -1762,8 +1762,8 @@ class EditorStack(QWidget):
             if editor.language.lower() == language:
                 editor.start_completion_services()
 
-    def update_server_configuration(self, language, settings):
-        """Update language server settings across all editors."""
+    def register_completion_settings(self, settings, language):
+        """Register completion settings across all editors."""
         for index in range(self.get_stack_count()):
             editor = self.tabs.widget(index)
             if editor.language.lower() == language:

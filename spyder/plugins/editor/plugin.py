@@ -293,13 +293,14 @@ class Editor(SpyderPluginWidget):
                 codeeditor.completions_available = False
 
     @Slot(dict, str)
-    def register_completion_server_settings(self, settings, language):
-        """Register completion server settings."""
+    def register_completion_settings(self, settings, language):
+        """Register completion server settings in all editorstacks."""
         self.completion_editor_settings[language] = dict(settings)
         logger.debug('Completion server settings for {!s} are: {!r}'.format(
             language, settings))
-        self.completion_server_settings_ready(
-            language, self.completion_editor_settings[language])
+
+        for editorstack in self.editorstacks:
+            editorstack.register_completion_settings(settings, language)
 
     def stop_completion_services(self, language):
         """Notify all editorstacks about LSP server unavailability."""
@@ -309,11 +310,6 @@ class Editor(SpyderPluginWidget):
     def completion_server_ready(self, language):
         for editorstack in self.editorstacks:
             editorstack.completion_server_ready(language)
-
-    def completion_server_settings_ready(self, language, configuration):
-        """Notify all stackeditors about LSP server availability."""
-        for editorstack in self.editorstacks:
-            editorstack.update_server_configuration(language, configuration)
 
     def send_completion_request(self, language, request, params):
         logger.debug("%s completion server request: %r" % (language, request))
