@@ -257,12 +257,18 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     def start_transport(self):
         """Start transport layer."""
+        # Set transport args
+        if self.stdio:
+            if get_debug_level() > 0:
+                self.transport_args += ['--server-log-file',
+                                        self.server_log_file]
+            self.transport_args += self.server_args
         self.transport_args = list(map(str, self.transport_args))
         logger.info('Starting transport for {1}: {0}'
                     .format(' '.join(self.transport_args), self.language))
 
+        # Create transport process
         self.transport = QProcess(self)
-        self.transport.errorOccurred.connect(self.handle_process_errors)
         env = self.transport.processEnvironment()
 
         # Most LSP server spawn other processes other than Python, which may
@@ -284,13 +290,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 env.insert('PYTHONPATH', os.pathsep.join(sys.path)[1:])
             self.transport.setProcessEnvironment(env)
 
-        # Set transport log file
-        if get_debug_level() > 0 and self.stdio:
-            self.transport_args += ['--server-log-file', self.server_log_file]
-
-        # Set channel properties
+        # Set up transport
+        self.transport.errorOccurred.connect(self.handle_process_errors)
         if self.stdio:
-            self.transport_args += self.server_args
             self.transport.setProcessChannelMode(QProcess.SeparateChannels)
             if self.transport_log_file is not None:
                 self.transport.setStandardErrorFile(self.transport_log_file)

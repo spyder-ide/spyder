@@ -35,18 +35,26 @@ class StdioLanguageServerClient(LanguageServerClient):
     """Implementation of a v3.0 compilant language server stdio client."""
     MAX_TIMEOUT_TIME = 20000
 
-    def __init__(self, server_args='', log_file='',
+    def __init__(self, server_args='', log_file=None,
                  zmq_in_port=7000, zmq_out_port=7001):
         super(StdioLanguageServerClient, self).__init__(
             zmq_in_port, zmq_out_port)
         self.req_status = {}
         self.process = None
+
         logger.debug(repr(server_args))
         logger.debug('Environment variables: {0}'.format(
             list(os.environ.keys())))
-        logger.debug('Redirect stderr to {0}'.format(log_file))
-        log_f = open(log_file, 'wb')
-        self.process = popen_spawn.PopenSpawn(server_args, logfile=log_f)
+
+        if log_file:
+            logger.debug('Redirect stderr to {0}'.format(log_file))
+            log_file_handle = open(log_file, 'wb')
+        else:
+            log_file_handle = None
+
+        self.process = popen_spawn.PopenSpawn(
+            server_args, logfile=log_file_handle)
+
         logger.info('Process pid: {0}'.format(self.process.pid))
         logger.info('Connecting to language server on stdio')
         super(StdioLanguageServerClient, self).finalize_initialization()
