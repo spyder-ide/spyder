@@ -57,7 +57,7 @@ class WorkspaceProvider:
                     'name': folder
                 })
         elif params['kind'] == WorkspaceUpdateKind.DELETION:
-            if folder not in self.watched_folders:
+            if folder in self.watched_folders:
                 self.watched_folders.pop(folder)
                 removed_folders.append({
                     'uri': folder_uri,
@@ -72,6 +72,7 @@ class WorkspaceProvider:
         }
         if not workspace_settings['workspaceFolders']['supported']:
             request_params[ClientConstants.CANCEL] = True
+
         return request_params
 
     @send_response
