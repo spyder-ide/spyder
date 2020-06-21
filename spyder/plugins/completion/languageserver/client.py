@@ -113,8 +113,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.server_port = server_settings['port']
         self.server_host = server_settings['host']
 
-        self.transport_args = [sys.executable, '-u',
-                               osp.join(LOCATION, 'transport', 'main.py')]
         self.external_server = server_settings.get('external', False)
         self.stdio = server_settings.get('stdio', False)
 
@@ -135,10 +133,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         server_args = server_args_fmt.format(
             host=self.server_host,
             port=self.server_port)
-        transport_args_fmt = '--server-host {host} --server-port {port} '
-        transport_args = transport_args_fmt.format(
-            host=self.server_host,
-            port=self.server_port)
 
         self.server_args = []
         if self.language == 'python':
@@ -147,14 +141,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if len(server_args) > 0:
             self.server_args += server_args.split(' ')
         self.server_unresponsive = False
-
-        self.transport_args += transport_args.split(' ')
-        self.transport_args += ['--folder', folder]
-        self.transport_args += ['--transport-debug', str(get_debug_level())]
-        if not self.stdio:
-            self.transport_args += ['--external-server']
-        else:
-            self.transport_args += ['--stdio-server']
         self.transport_unresponsive = False
 
     def _get_log_filename(self, kind):
@@ -188,6 +174,38 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def transport_log_file(self):
         return self._get_log_filename('transport')
 
+    @property
+    def transport_args(self):
+        """Arguments for the transport process."""
+        args = [
+            sys.executable,
+            '-u',
+            osp.join(LOCATION, 'transport', 'main.py'),
+            '--folder', self.folder,
+            '--transport-debug', str(get_debug_level())
+        ]
+
+        # Replace host and port placeholders
+        host_and_port = '--server-host {host} --server-port {port} '.format(
+            host=self.server_host,
+            port=self.server_port)
+        args += host_and_port.split(' ')
+
+        # Add socket ports
+        args += ['--zmq-in-port', str(self.zmq_out_port),
+                 '--zmq-out-port', str(self.zmq_in_port)]
+
+        # Adjustments for stdio/tcp
+        if self.stdio:
+            args += ['--stdio-server']
+            if get_debug_level() > 0:
+                args += ['--server-log-file', self.server_log_file]
+            args += self.server_args
+        else:
+            args += ['--external-server']
+
+        return args
+
     def create_transport_sockets(self):
         """Create PyZMQ sockets for transport."""
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
@@ -197,8 +215,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.zmq_in_socket.set_hwm(0)
         self.zmq_in_port = self.zmq_in_socket.bind_to_random_port(
             'tcp://{}'.format(LOCALHOST))
-        self.transport_args += ['--zmq-in-port', self.zmq_out_port,
-                                '--zmq-out-port', self.zmq_in_port]
 
     @Slot(QProcess.ProcessError)
     def handle_process_errors(self, error):
@@ -257,13 +273,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     def start_transport(self):
         """Start transport layer."""
-        # Set transport args
-        if self.stdio:
-            if get_debug_level() > 0:
-                self.transport_args += ['--server-log-file',
-                                        self.server_log_file]
-            self.transport_args += self.server_args
-        self.transport_args = list(map(str, self.transport_args))
         logger.info('Starting transport for {1}: {0}'
                     .format(' '.join(self.transport_args), self.language))
 
