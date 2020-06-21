@@ -285,7 +285,7 @@ class Editor(SpyderPluginWidget):
         if status:
             codeeditor.start_completion_services()
             if language.lower() in self.completion_editor_settings:
-                codeeditor.update_completion_configuration(
+                codeeditor.register_completion_settings(
                     self.completion_editor_settings[language.lower()])
         else:
             if codeeditor.language == language.lower():

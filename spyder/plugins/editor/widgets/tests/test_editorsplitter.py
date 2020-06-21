@@ -61,7 +61,7 @@ def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
             language.lower(), filename, callback)
         settings = completions.main.editor.lsp_editor_settings['python']
         callback.start_completion_services()
-        callback.update_completion_configuration(settings)
+        callback.register_completion_settings(settings)
 
         with qtbot_module.waitSignal(
                 callback.lsp_response_signal, timeout=30000):
