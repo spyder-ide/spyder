@@ -3267,7 +3267,8 @@ class MainWindow(QMainWindow):
                     if (sys.platform == 'darwin'
                             and qobject._shown_shortcut == 'missing'):
                         qobject._shown_shortcut = keyseq
-                    qobject.setShortcut(keyseq)
+                    else:
+                        qobject.setShortcut(keyseq)
 
                     if add_shortcut_to_tip:
                         add_shortcut_to_tooltip(qobject, context, name)

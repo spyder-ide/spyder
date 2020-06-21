@@ -2422,6 +2422,9 @@ def test_preferences_change_font_regression(main_window, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(
+    sys.platform == 'darwin',
+    reason="Changes of Shitf+Return shortcut cause an ambiguos shortcut")
 def test_preferences_empty_shortcut_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#12992 regression.
@@ -2837,7 +2840,6 @@ def test_runcell_edge_cases(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
     code_editor = main_window.editor.get_focus_widget()
-
     # call runcell
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
