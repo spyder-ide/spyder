@@ -289,7 +289,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.transport = QProcess(self)
         env = self.transport.processEnvironment()
 
-        # Most LSP server spawn other processes other than Python, which may
+        # Most LSP servers spawn other processes other than Python, which may
         # require some environment variables
         if self.language != 'python' and self.stdio:
             for var in os.environ:
@@ -576,14 +576,15 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     # ------ Settings queries --------------------------------
     @property
-    def supports_multiple_workspaces(self):
+    def support_multiple_workspaces(self):
         workspace_settings = self.server_capabilites['workspace']
         return workspace_settings['workspaceFolders']['supported']
 
     @property
-    def supports_workspace_update(self):
+    def support_workspace_update(self):
         workspace_settings = self.server_capabilites['workspace']
         return workspace_settings['workspaceFolders']['changeNotifications']
+
 
 def test():
     """Test LSP client."""
