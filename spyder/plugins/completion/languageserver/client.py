@@ -99,6 +99,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.watched_files = {}
         self.watched_folders = {}
         self.req_reply = {}
+        self.server_unresponsive = False
+        self.transport_unresponsive = False
 
         # Select a free port to start the server.
         # NOTE: Don't use the new value to set server_setttings['port']!!
@@ -129,19 +131,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_capabilites = SERVER_CAPABILITES
         self.context = zmq.Context()
 
-        server_args_fmt = server_settings.get('args', '')
-        server_args = server_args_fmt.format(
-            host=self.server_host,
-            port=self.server_port)
-
-        self.server_args = []
-        if self.language == 'python':
-            self.server_args += [sys.executable, '-m']
-        self.server_args += [server_settings['cmd']]
-        if len(server_args) > 0:
-            self.server_args += server_args.split(' ')
-        self.server_unresponsive = False
-        self.transport_unresponsive = False
+        # To set server args
+        self._server_args = server_settings.get('args', '')
+        self._server_cmd = server_settings['cmd']
 
     def _get_log_filename(self, kind):
         """
@@ -173,6 +165,30 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     @property
     def transport_log_file(self):
         return self._get_log_filename('transport')
+
+    @property
+    def server_args(self):
+        """Arguments for the server process."""
+        args = []
+        if self.language == 'python':
+            args += [sys.executable, '-m']
+        args += [self._server_cmd]
+
+        # Replace host and port placeholders
+        host_and_port = self._server_args.format(
+            host=self.server_host,
+            port=self.server_port)
+        if len(host_and_port) > 0:
+            args += host_and_port.split(' ')
+
+        if self.language == 'python' and get_debug_level() > 0:
+            args += ['--log-file', self.server_log_file]
+            if get_debug_level() == 2:
+                args.append('-v')
+            elif get_debug_level() == 3:
+                args.append('-vv')
+
+        return args
 
     @property
     def transport_args(self):
@@ -228,19 +244,14 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         if self.external_server or self.stdio:
             return
 
+        logger.info('Starting server: {0}'.format(' '.join(self.server_args)))
+
         # Create server process
         self.server = QProcess(self)
         env = self.server.processEnvironment()
 
         # Adjustments for the Python language server.
         if self.language == 'python':
-            if get_debug_level() > 0:
-                self.server_args += ['--log-file', self.server_log_file]
-                if get_debug_level() == 2:
-                    self.server_args.append('-v')
-                elif get_debug_level() == 3:
-                    self.server_args.append('-vv')
-
             # Set the PyLS current working to an empty dir inside
             # our config one. This avoids the server to pick up user
             # files such as random.py or string.py instead of the
@@ -257,8 +268,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             for var in os.environ:
                 env.insert(var, os.environ[var])
             logger.info('Server process env variables: {0}'.format(env.keys()))
-
-        logger.info('Starting server: {0}'.format(' '.join(self.server_args)))
 
         # Setup server
         self.server.setProcessEnvironment(env)
