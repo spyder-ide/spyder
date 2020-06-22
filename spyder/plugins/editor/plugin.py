@@ -158,7 +158,7 @@ class Editor(SpyderPluginWidget):
         self.__ignore_cursor_position = True
 
         # Completions setup
-        self.completion_editor_settings = {}
+        self.completion_capabilities = {}
 
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
@@ -284,23 +284,36 @@ class Editor(SpyderPluginWidget):
             language.lower(), filename, codeeditor)
         if status:
             codeeditor.start_completion_services()
-            if language.lower() in self.completion_editor_settings:
-                codeeditor.register_completion_settings(
-                    self.completion_editor_settings[language.lower()])
+            if language.lower() in self.completion_capabilities:
+                codeeditor.register_completion_capabilities(
+                    self.completion_capabilities[language.lower()])
         else:
             if codeeditor.language == language.lower():
                 logger.debug('Setting {0} completions off'.format(filename))
                 codeeditor.completions_available = False
 
     @Slot(dict, str)
-    def register_completion_settings(self, settings, language):
-        """Register completion server settings in all editorstacks."""
-        self.completion_editor_settings[language] = dict(settings)
-        logger.debug('Completion server settings for {!s} are: {!r}'.format(
-            language, settings))
+    def register_completion_capabilities(self, capabilities, language):
+        """
+        Register completion server capabilities in all editorstacks.
 
+        Parameters
+        ----------
+        capabilities: dict
+            Capabilities supported by a language server.
+        language: str
+            Programming language for the language server (it has to be
+            in small caps).
+        """
+        logger.debug(
+            'Completion server capabilities for {!s} are: {!r}'.format(
+                language, capabilities)
+        )
+
+        self.completion_capabilities[language] = dict(capabilities)
         for editorstack in self.editorstacks:
-            editorstack.register_completion_settings(settings, language)
+            editorstack.register_completion_capabilities(
+                capabilities, language)
 
     def stop_completion_services(self, language):
         """Notify all editorstacks about LSP server unavailability."""

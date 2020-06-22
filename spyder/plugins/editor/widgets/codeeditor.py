@@ -1057,30 +1057,39 @@ class CodeEditor(TextEditBaseWidget):
         self.completions_available = True
         self.document_did_open()
 
-    def register_completion_settings(self, settings):
-        """Register completion server settings."""
-        sync_options = settings['textDocumentSync']
-        completion_options = settings['completionProvider']
-        signature_options = settings['signatureHelpProvider']
-        range_formatting_options = settings['documentOnTypeFormattingProvider']
+    def register_completion_capabilities(self, capabilities):
+        """
+        Register completion server capabilities.
+
+        Parameters
+        ----------
+        capabilities: dict
+            Capabilities supported by a language server.
+        """
+        sync_options = capabilities['textDocumentSync']
+        completion_options = capabilities['completionProvider']
+        signature_options = capabilities['signatureHelpProvider']
+        range_formatting_options = (
+            capabilities['documentOnTypeFormattingProvider'])
         self.open_close_notifications = sync_options.get('openClose', False)
         self.sync_mode = sync_options.get('change', TextDocumentSyncKind.NONE)
         self.will_save_notify = sync_options.get('willSave', False)
         self.will_save_until_notify = sync_options.get('willSaveWaitUntil',
                                                        False)
         self.save_include_text = sync_options['save']['includeText']
-        self.enable_hover = settings['hoverProvider']
-        self.folding_supported = settings.get('foldingRangeProvider', False)
+        self.enable_hover = capabilities['hoverProvider']
+        self.folding_supported = capabilities.get(
+            'foldingRangeProvider', False)
         self.auto_completion_characters = (
             completion_options['triggerCharacters'])
         self.signature_completion_characters = (
             signature_options['triggerCharacters'] + ['='])  # FIXME:
-        self.go_to_definition_enabled = settings['definitionProvider']
-        self.find_references_enabled = settings['referencesProvider']
-        self.highlight_enabled = settings['documentHighlightProvider']
-        self.formatting_enabled = settings['documentFormattingProvider']
+        self.go_to_definition_enabled = capabilities['definitionProvider']
+        self.find_references_enabled = capabilities['referencesProvider']
+        self.highlight_enabled = capabilities['documentHighlightProvider']
+        self.formatting_enabled = capabilities['documentFormattingProvider']
         self.range_formatting_enabled = (
-            settings['documentRangeFormattingProvider'])
+            capabilities['documentRangeFormattingProvider'])
         self.formatting_characters.append(
             range_formatting_options['firstTriggerCharacter'])
         self.formatting_characters += (

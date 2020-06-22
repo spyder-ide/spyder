@@ -423,7 +423,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
             if self.main.editor:
                 instance.sig_initialize.connect(
-                    self.main.editor.register_completion_settings)
+                    self.main.editor.register_completion_capabilities)
                 self.main.editor.sig_editor_focus_changed.connect(
                     self.status_widget.update_status)
             if self.main.console:
