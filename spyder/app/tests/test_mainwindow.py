@@ -2453,12 +2453,12 @@ def test_preferences_empty_shortcut_regression(main_window, qtbot):
     # Create new file
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
-    code_editor.set_text('print(0)\nprint(1)\nprint(2)')
+    code_editor.set_text(u'print(0)\nprint(ññ)')
 
     with qtbot.waitSignal(shell.executed):
         qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
-    qtbot.waitUntil(lambda: 'print(0)' in shell._control.toPlainText())
-    assert 'print(1)' not in shell._control.toPlainText()
+    qtbot.waitUntil(lambda: u'print(0)' in shell._control.toPlainText())
+    assert u'ññ' not in shell._control.toPlainText()
 
     # Reset shortcuts
     CONF.set_shortcut(
