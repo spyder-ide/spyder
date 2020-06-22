@@ -60,6 +60,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_kernel_restarted_message = Signal(str)
     sig_kernel_restarted = Signal()
     sig_prompt_ready = Signal()
+    sig_remote_execute = Signal()
 
     # For global working directory
     sig_change_cwd = Signal(str)
@@ -687,6 +688,11 @@ the sympy module (e.g. plot)
         if not self._reading:
             self._highlighter.highlighting_on = True
             self.sig_prompt_ready.emit()
+
+    def _handle_execute_input(self, msg):
+        """Handle an execute_input message"""
+        super(ShellWidget, self)._handle_execute_input(msg)
+        self.sig_remote_execute.emit()
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
