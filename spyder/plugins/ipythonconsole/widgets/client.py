@@ -316,6 +316,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self._show_loading_page()
         self.shellwidget.sig_prompt_ready.connect(
             self._when_prompt_is_ready)
+        # If remote execution, the loading page should be hidden as well
+        self.shellwidget.sig_remote_execute.connect(
+            self._when_prompt_is_ready)
 
     def _when_prompt_is_ready(self):
         """Configuration after the prompt is shown."""
@@ -329,6 +332,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self._check_special_console_error()
 
         self.shellwidget.sig_prompt_ready.disconnect(
+            self._when_prompt_is_ready)
+        self.shellwidget.sig_remote_execute.disconnect(
             self._when_prompt_is_ready)
 
     def enable_stop_button(self):
