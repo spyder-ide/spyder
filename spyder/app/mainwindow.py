@@ -3744,23 +3744,27 @@ class MainWindow(QMainWindow):
 
             if shortcut_sequence:
                 keyseq = QKeySequence(shortcut_sequence)
-                try:
-                    if isinstance(qobject, QAction):
-                        if (sys.platform == 'darwin'
-                                and qobject._shown_shortcut == 'missing'):
-                            qobject._shown_shortcut = keyseq
-                        else:
-                            qobject.setShortcut(keyseq)
+            else:
+                # Needed to remove old sequences that were cleared.
+                # See spyder-ide/spyder#12992
+                keyseq = QKeySequence()
+            try:
+                if isinstance(qobject, QAction):
+                    if (sys.platform == 'darwin'
+                            and qobject._shown_shortcut == 'missing'):
+                        qobject._shown_shortcut = keyseq
+                    else:
+                        qobject.setShortcut(keyseq)
 
-                        if add_shortcut_to_tip:
-                            add_shortcut_to_tooltip(qobject, context, name)
+                    if add_shortcut_to_tip:
+                        add_shortcut_to_tooltip(qobject, context, name)
 
-                    elif isinstance(qobject, QShortcut):
-                        qobject.setKey(keyseq)
+                elif isinstance(qobject, QShortcut):
+                    qobject.setKey(keyseq)
 
-                except RuntimeError:
-                    # Object has been deleted
-                    toberemoved.append(index)
+            except RuntimeError:
+                # Object has been deleted
+                toberemoved.append(index)
 
         for index in sorted(toberemoved, reverse=True):
             self.shortcut_data.pop(index)
