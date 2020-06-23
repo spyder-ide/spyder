@@ -3815,6 +3815,17 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self._handle_completions()
 
+    def _handle_keypress_event(self, event):
+        """Handle keypress events."""
+        TextEditBaseWidget.keyPressEvent(self, event)
+
+        # Trigger the following actions only if the event generates
+        # a text change.
+        text = to_text_string(event.text())
+        if text:
+            self.document_did_change()
+            self.sig_text_was_inserted.emit()
+
     def keyPressEvent(self, event):
         """Reimplement Qt method."""
         tab_pressed = False
@@ -3823,11 +3834,6 @@ class CodeEditor(TextEditBaseWidget):
             self._timer_completions_hint.start(self.completions_hint_after_ms)
         else:
             self._set_completions_hint_idle()
-
-        def insert_text(event):
-            TextEditBaseWidget.keyPressEvent(self, event)
-            self.document_did_change()
-            self.sig_text_was_inserted.emit()
 
         # Send the signal to the editor's extension.
         event.ignore()
@@ -3901,7 +3907,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.textCursor().beginEditBlock()
                     cur_indent = self.get_block_indentation(
                         self.textCursor().blockNumber())
-                    insert_text(event)
+                    self._handle_keypress_event(event)
                     # Check if we're in a comment or a string at the
                     # current position
                     cmt_or_str_cursor = self.in_comment_or_string()
@@ -3931,7 +3937,7 @@ class CodeEditor(TextEditBaseWidget):
             leading_length = len(leading_text)
             trailing_spaces = leading_length - len(leading_text.rstrip())
             if has_selection or not self.intelligent_backspace:
-                insert_text(event)
+                self._handle_keypress_event(event)
             else:
                 trailing_text = self.get_text('cursor', 'eol')
                 matches = ('()', '[]', '{}', '\'\'', '""')
@@ -3940,7 +3946,7 @@ class CodeEditor(TextEditBaseWidget):
                     if leading_length % len(self.indent_chars) == 0:
                         self.unindent()
                     else:
-                        insert_text(event)
+                        self._handle_keypress_event(event)
                 elif trailing_spaces and not trailing_text.strip():
                     self.remove_suffix(leading_text[-trailing_spaces:])
                 elif (leading_text and trailing_text and
@@ -3952,7 +3958,7 @@ class CodeEditor(TextEditBaseWidget):
                     cursor.removeSelectedText()
                     self.document_did_change()
                 else:
-                    insert_text(event)
+                    self._handle_keypress_event(event)
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
@@ -3989,7 +3995,7 @@ class CodeEditor(TextEditBaseWidget):
                     prevtxt = prevtxt.rstrip()
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
-            insert_text(event)
+            self._handle_keypress_event(event)
         elif (key == Qt.Key_Space and not shift and not ctrl and not
                 has_selection and self.auto_unindent_enabled):
             self.completion_widget.hide()
@@ -4002,7 +4008,7 @@ class CodeEditor(TextEditBaseWidget):
                     prevtxt = prevtxt.rstrip()
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
-            insert_text(event)
+            self._handle_keypress_event(event)
         elif key == Qt.Key_Tab and not ctrl:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
@@ -4023,7 +4029,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.unindent()
             event.accept()
         elif not event.isAccepted():
-            insert_text(event)
+            self._handle_keypress_event(event)
 
         self._last_key_pressed_text = text
         self._last_pressed_key = key
