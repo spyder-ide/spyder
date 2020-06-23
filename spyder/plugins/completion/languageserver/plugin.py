@@ -351,7 +351,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
     def start_client(self, language):
         """Start an LSP client for a given language."""
+        # To keep track if the client was started.
         started = False
+
         if language in self.clients:
             language_client = self.clients[language]
 
@@ -398,9 +400,11 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
                 self.register_client_instance(language_client['instance'])
 
+                # Register that a client was started.
                 logger.info("Starting LSP client for {}...".format(language))
                 language_client['instance'].start()
                 language_client['status'] = self.RUNNING
+                started = True
                 for entry in queue:
                     language_client['instance'].register_file(*entry)
                 self.register_queue[language] = []
@@ -419,7 +423,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
             if self.main.editor:
                 instance.sig_initialize.connect(
-                    self.main.editor.register_completion_server_settings)
+                    self.main.editor.register_completion_capabilities)
                 self.main.editor.sig_editor_focus_changed.connect(
                     self.status_widget.update_status)
             if self.main.console:
