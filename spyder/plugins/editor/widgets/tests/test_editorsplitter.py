@@ -59,9 +59,10 @@ def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
         callback = options['codeeditor']
         completions.register_file(
             language.lower(), filename, callback)
-        settings = completions.main.editor.lsp_editor_settings['python']
+        capabilities = (
+            completions.main.editor.completion_capabilities['python'])
         callback.start_completion_services()
-        callback.update_completion_configuration(settings)
+        callback.register_completion_capabilities(capabilities)
 
         with qtbot_module.waitSignal(
                 callback.lsp_response_signal, timeout=30000):
@@ -71,8 +72,9 @@ def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
         editorstack.sig_perform_completion_request.connect(
             completions.send_request)
         editorstack.sig_open_file.connect(report_file_open)
-        settings = completions.main.editor.lsp_editor_settings['python']
-        editorstack.update_server_configuration('python', settings)
+        capabilities = (
+            completions.main.editor.completion_capabilities['python'])
+        editorstack.register_completion_capabilities(capabilities, 'python')
 
     def clone(editorstack, template=None):
         # editorstack.clone_from(template)
