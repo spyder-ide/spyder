@@ -85,6 +85,7 @@ class Editor(SpyderPluginWidget):
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
+    sig_file_debug_message_requested = Signal()
 
     # This signal is fired for any focus change among all editor stacks
     sig_editor_focus_changed = Signal()
@@ -157,7 +158,7 @@ class Editor(SpyderPluginWidget):
         self.__ignore_cursor_position = True
 
         # Completions setup
-        self.completion_editor_settings = {}
+        self.completion_capabilities = {}
 
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
@@ -273,34 +274,46 @@ class Editor(SpyderPluginWidget):
 
     @Slot(dict)
     def report_open_file(self, options):
-        """Request to start a completion server to attend a language."""
+        """Report that a file was opened to the completion manager."""
         filename = options['filename']
         language = options['language']
-        logger.debug('Start completion server for %s [%s]' % (
-            filename, language))
         codeeditor = options['codeeditor']
+
         status = self.main.completions.start_client(language.lower())
         self.main.completions.register_file(
             language.lower(), filename, codeeditor)
         if status:
-            logger.debug('{0} completion server is ready'.format(language))
             codeeditor.start_completion_services()
-            if language.lower() in self.completion_editor_settings:
-                codeeditor.update_completion_configuration(
-                    self.completion_editor_settings[language.lower()])
+            if language.lower() in self.completion_capabilities:
+                codeeditor.register_completion_capabilities(
+                    self.completion_capabilities[language.lower()])
         else:
             if codeeditor.language == language.lower():
                 logger.debug('Setting {0} completions off'.format(filename))
                 codeeditor.completions_available = False
 
     @Slot(dict, str)
-    def register_completion_server_settings(self, settings, language):
-        """Register completion server settings."""
-        self.completion_editor_settings[language] = dict(settings)
-        logger.debug('Completion server settings for {!s} are: {!r}'.format(
-            language, settings))
-        self.completion_server_settings_ready(
-            language, self.completion_editor_settings[language])
+    def register_completion_capabilities(self, capabilities, language):
+        """
+        Register completion server capabilities in all editorstacks.
+
+        Parameters
+        ----------
+        capabilities: dict
+            Capabilities supported by a language server.
+        language: str
+            Programming language for the language server (it has to be
+            in small caps).
+        """
+        logger.debug(
+            'Completion server capabilities for {!s} are: {!r}'.format(
+                language, capabilities)
+        )
+
+        self.completion_capabilities[language] = dict(capabilities)
+        for editorstack in self.editorstacks:
+            editorstack.register_completion_capabilities(
+                capabilities, language)
 
     def stop_completion_services(self, language):
         """Notify all editorstacks about LSP server unavailability."""
@@ -310,11 +323,6 @@ class Editor(SpyderPluginWidget):
     def completion_server_ready(self, language):
         for editorstack in self.editorstacks:
             editorstack.completion_server_ready(language)
-
-    def completion_server_settings_ready(self, language, configuration):
-        """Notify all stackeditors about LSP server availability."""
-        for editorstack in self.editorstacks:
-            editorstack.update_server_configuration(language, configuration)
 
     def send_completion_request(self, language, request, params):
         logger.debug("%s completion server request: %r" % (language, request))
@@ -1115,8 +1123,6 @@ class Editor(SpyderPluginWidget):
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
         editorstack = self.get_current_editorstack()
-        if not editorstack.data:
-            self.__load_temp_file()
         self.add_dockwidget()
         self.update_pdb_state(False, {})
 
@@ -1796,9 +1802,16 @@ class Editor(SpyderPluginWidget):
                         # to this number if there's other untitled file in
                         # spyder. Please see spyder-ide/spyder#7831
                         fname_data = osp.splitext(current_filename)
-                        act_num = int(fname_data[0].split(_("untitled"))[-1])
-                        self.untitled_num = act_num + 1
-
+                        try:
+                            act_num = int(
+                                fname_data[0].split(_("untitled"))[-1])
+                            self.untitled_num = act_num + 1
+                        except ValueError:
+                            # Catch the error in case the user has something
+                            # different from a number after the untitled
+                            # part.
+                            # Please see spyder-ide/spyder#12892
+                            self.untitled_num = 0
             while True:
                 fname = create_fname(self.untitled_num)
                 self.untitled_num += 1
@@ -2085,8 +2098,10 @@ class Editor(SpyderPluginWidget):
         if debugging and 'fname' in last_pdb_step and filename:
             if osp.normcase(last_pdb_step['fname']) == osp.normcase(filename):
                 can_close = False
+                self.sig_file_debug_message_requested.emit()
         elif debugging:
             can_close = False
+            self.sig_file_debug_message_requested.emit()
         return can_close
 
     @Slot()
@@ -2913,7 +2928,7 @@ class Editor(SpyderPluginWidget):
                 filenames = self.get_open_filenames()
                 self.set_option('filenames', filenames)
 
-    def setup_open_files(self):
+    def setup_open_files(self, close_previous_files=True):
         """
         Open the list of saved files per project.
 
@@ -2928,7 +2943,9 @@ class Editor(SpyderPluginWidget):
             filenames = self.projects.get_project_filenames()
         else:
             filenames = self.get_option('filenames', default=[])
-        self.close_all_files()
+
+        if close_previous_files:
+            self.close_all_files()
 
         all_filenames = self.autosave.recover_files_to_open + filenames
         if all_filenames and any([osp.isfile(f) for f in all_filenames]):

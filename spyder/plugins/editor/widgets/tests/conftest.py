@@ -222,9 +222,9 @@ def lsp_codeeditor(lsp_plugin, qtbot_module, request, capsys):
     editor.filename = 'test.py'
     editor.language = 'Python'
     lsp_plugin.register_file('python', 'test.py', editor)
-    server_settings = lsp_plugin.main.editor.lsp_editor_settings['python']
+    capabilities = lsp_plugin.main.editor.completion_capabilities['python']
     editor.start_completion_services()
-    editor.update_completion_configuration(server_settings)
+    editor.register_completion_capabilities(capabilities)
 
     with qtbot_module.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_open()

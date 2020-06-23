@@ -137,6 +137,14 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 blocking=True,
                 timeout=CALL_KERNEL_TIMEOUT).load_data(
                     filename, ext, overwrite=overwrite)
+        except ImportError as msg:
+            module = str(msg).split("'")[1]
+            msg = _("Spyder is unable to open the file "
+                    "you're trying to load because <tt>{module}</tt> is "
+                    "not installed. Please install "
+                    "this package in your working environment."
+                    "<br>").format(module=module)
+            return msg
         except TimeoutError:
             msg = _("Data is too big to be loaded")
             return msg
@@ -172,7 +180,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         if exec_count == 0 and self._kernel_is_starting:
             if self.namespacebrowser is not None:
                 self.set_namespace_view_settings()
-                self.refresh_namespacebrowser()
+                self.refresh_namespacebrowser(interrupt=False)
             self._kernel_is_starting = False
             self.ipyclient.t0 = time.monotonic()
 
@@ -205,7 +213,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             # This handles restarts asked by the user
             if self.namespacebrowser is not None:
                 self.set_namespace_view_settings()
-                self.refresh_namespacebrowser()
+                self.refresh_namespacebrowser(interrupt=False)
             self.ipyclient.t0 = time.monotonic()
         else:
             super(NamepaceBrowserWidget, self)._handle_status(msg)

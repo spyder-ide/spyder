@@ -1361,7 +1361,7 @@ class MainWindow(QMainWindow):
 
             # If no project is active, load last session
             if self.projects.get_active_project() is None:
-                self.editor.setup_open_files()
+                self.editor.setup_open_files(close_previous_files=False)
 
         # Connect Editor to Kite completions plugin status
         self.editor.kite_completions_file_status()
@@ -3258,23 +3258,27 @@ class MainWindow(QMainWindow):
 
             if shortcut_sequence:
                 keyseq = QKeySequence(shortcut_sequence)
-                try:
-                    if isinstance(qobject, QAction):
-                        if (sys.platform == 'darwin'
-                                and qobject._shown_shortcut == 'missing'):
-                            qobject._shown_shortcut = keyseq
-                        else:
-                            qobject.setShortcut(keyseq)
+            else:
+                # Needed to remove old sequences that were cleared.
+                # See spyder-ide/spyder#12992
+                keyseq = QKeySequence()
+            try:
+                if isinstance(qobject, QAction):
+                    if (sys.platform == 'darwin'
+                            and qobject._shown_shortcut == 'missing'):
+                        qobject._shown_shortcut = keyseq
+                    else:
+                        qobject.setShortcut(keyseq)
 
-                        if add_shortcut_to_tip:
-                            add_shortcut_to_tooltip(qobject, context, name)
+                    if add_shortcut_to_tip:
+                        add_shortcut_to_tooltip(qobject, context, name)
 
-                    elif isinstance(qobject, QShortcut):
-                        qobject.setKey(keyseq)
+                elif isinstance(qobject, QShortcut):
+                    qobject.setKey(keyseq)
 
-                except RuntimeError:
-                    # Object has been deleted
-                    toberemoved.append(index)
+            except RuntimeError:
+                # Object has been deleted
+                toberemoved.append(index)
 
         for index in sorted(toberemoved, reverse=True):
             self.shortcut_data.pop(index)

@@ -1051,51 +1051,56 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Configuration and protocol start/end ----------------
     def start_completion_services(self):
-        logger.debug(u"Completions services available for: {0}".format(
+        """Start completion services for this instance."""
+        logger.debug(u"Completion services available for: {0}".format(
             self.filename))
         self.completions_available = True
         self.document_did_open()
 
-    def update_completion_configuration(self, config):
-        """Start LSP integration if it wasn't done before."""
-        logger.debug("LSP available for: %s" % self.filename)
-        self.parse_lsp_config(config)
-        self.completions_available = True
-        self.document_did_open()
+    def register_completion_capabilities(self, capabilities):
+        """
+        Register completion server capabilities.
 
-    def stop_completion_services(self):
-        logger.debug('Stopping completion services for %s' % self.filename)
-        self.completions_available = False
-        self.document_opened = False
-
-    def parse_lsp_config(self, config):
-        """Parse and load LSP server editor capabilities."""
-        sync_options = config['textDocumentSync']
-        completion_options = config['completionProvider']
-        signature_options = config['signatureHelpProvider']
-        range_formatting_options = config['documentOnTypeFormattingProvider']
+        Parameters
+        ----------
+        capabilities: dict
+            Capabilities supported by a language server.
+        """
+        sync_options = capabilities['textDocumentSync']
+        completion_options = capabilities['completionProvider']
+        signature_options = capabilities['signatureHelpProvider']
+        range_formatting_options = (
+            capabilities['documentOnTypeFormattingProvider'])
         self.open_close_notifications = sync_options.get('openClose', False)
         self.sync_mode = sync_options.get('change', TextDocumentSyncKind.NONE)
         self.will_save_notify = sync_options.get('willSave', False)
         self.will_save_until_notify = sync_options.get('willSaveWaitUntil',
                                                        False)
         self.save_include_text = sync_options['save']['includeText']
-        self.enable_hover = config['hoverProvider']
-        self.folding_supported = config.get('foldingRangeProvider', False)
+        self.enable_hover = capabilities['hoverProvider']
+        self.folding_supported = capabilities.get(
+            'foldingRangeProvider', False)
         self.auto_completion_characters = (
             completion_options['triggerCharacters'])
         self.signature_completion_characters = (
             signature_options['triggerCharacters'] + ['='])  # FIXME:
-        self.go_to_definition_enabled = config['definitionProvider']
-        self.find_references_enabled = config['referencesProvider']
-        self.highlight_enabled = config['documentHighlightProvider']
-        self.formatting_enabled = config['documentFormattingProvider']
+        self.go_to_definition_enabled = capabilities['definitionProvider']
+        self.find_references_enabled = capabilities['referencesProvider']
+        self.highlight_enabled = capabilities['documentHighlightProvider']
+        self.formatting_enabled = capabilities['documentFormattingProvider']
         self.range_formatting_enabled = (
-            config['documentRangeFormattingProvider'])
+            capabilities['documentRangeFormattingProvider'])
         self.formatting_characters.append(
             range_formatting_options['firstTriggerCharacter'])
         self.formatting_characters += (
             range_formatting_options.get('moreTriggerCharacter', []))
+
+        self.completions_available = True
+
+    def stop_completion_services(self):
+        logger.debug('Stopping completion services for %s' % self.filename)
+        self.completions_available = False
+        self.document_opened = False
 
     @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
     def document_did_open(self):
@@ -1472,32 +1477,6 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def request_folding(self):
         """Request folding."""
-        total_lines = self.get_line_count()
-        if total_lines > 2000 and self.code_folding:
-            warn = CONF.get('editor', 'show_code_folding_warning')
-            warn_str = _(
-                "One of the files in the editor or the file you are trying "
-                "to open contains more than 2000 lines.<br><br>"
-                "Code folding and indent guidelines will be disabled for "
-                "this kind of files in order to prevent performance "
-                "degradation."
-            )
-            if warn:
-                box = MessageCheckBox(
-                    icon=QMessageBox.Warning, parent=self)
-                box.setWindowTitle(_('File too long'))
-                box.set_checkbox_text(_("Don't show again."))
-                box.setStandardButtons(QMessageBox.Ok)
-                box.set_checked(False)
-                box.set_check_visible(True)
-                box.setText(warn_str)
-                box.exec_()
-
-                CONF.set('editor', 'show_code_folding_warning',
-                         not box.is_checked())
-            self.toggle_code_folding(False)
-            self.toggle_identation_guides(False)
-
         if not self.folding_supported or not self.code_folding:
             return
         params = {'file': self.filename}
