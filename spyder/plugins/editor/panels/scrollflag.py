@@ -177,8 +177,6 @@ class ScrollFlagArea(Panel):
         painter.fillRect(event.rect(), self.editor.sideareas_color)
 
         editor = self.editor
-        # Check if the slider is visible
-        paint_local = not bool(self.slider)
 
         # Define compute_flag_ypos to position the flags:
         # Paint flags for the entire document
@@ -192,7 +190,10 @@ class ScrollFlagArea(Panel):
 
         def compute_flag_ypos(block):
             line_number = block.firstLineNumber()
-            frac = line_number / last_line
+            if last_line != 0:
+                frac = line_number / last_line
+            else:
+                frac = line_number
             pos = first_y_pos + frac * (last_y_pos - first_y_pos)
             return ceil(pos)
 
@@ -207,9 +208,6 @@ class ScrollFlagArea(Panel):
             painter.setBrush(self._facecolors[flag_type])
             painter.setPen(self._edgecolors[flag_type])
             for block_number in dict_flag_lists[flag_type]:
-                # Don't paint local flags outside of the window
-                if paint_local:
-                    continue
                 # Find the block
                 block = editor.document().findBlockByNumber(block_number)
                 if not block.isValid():
