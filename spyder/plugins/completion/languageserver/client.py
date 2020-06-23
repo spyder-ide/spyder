@@ -99,6 +99,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.watched_files = {}
         self.watched_folders = {}
         self.req_reply = {}
+        self.server_unresponsive = False
+        self.transport_unresponsive = False
 
         # Select a free port to start the server.
         # NOTE: Don't use the new value to set server_setttings['port']!!
@@ -113,8 +115,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.server_port = server_settings['port']
         self.server_host = server_settings['host']
 
-        self.transport_args = [sys.executable, '-u',
-                               osp.join(LOCATION, 'transport', 'main.py')]
         self.external_server = server_settings.get('external', False)
         self.stdio = server_settings.get('stdio', False)
 
@@ -131,32 +131,103 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_capabilites = SERVER_CAPABILITES
         self.context = zmq.Context()
 
-        server_args_fmt = server_settings.get('args', '')
-        server_args = server_args_fmt.format(
-            host=self.server_host,
-            port=self.server_port)
-        transport_args_fmt = '--server-host {host} --server-port {port} '
-        transport_args = transport_args_fmt.format(
-            host=self.server_host,
-            port=self.server_port)
+        # To set server args
+        self._server_args = server_settings.get('args', '')
+        self._server_cmd = server_settings['cmd']
 
-        self.server_args = []
+    def _get_log_filename(self, kind):
+        """
+        Get filename to redirect server or transport logs to in
+        debugging mode.
+
+        Parameters
+        ----------
+        kind: str
+            It can be "server" or "transport".
+        """
+        if get_debug_level() == 0:
+            return None
+
+        fname = '{0}_{1}_{2}.log'.format(kind, self.language, os.getpid())
+        location = get_conf_path(osp.join('lsp_logs', fname))
+
+        # Create directory that contains the file, in case it doesn't
+        # exist
+        if not osp.exists(osp.dirname(location)):
+            os.makedirs(osp.dirname(location))
+
+        return location
+
+    @property
+    def server_log_file(self):
+        """
+        Filename to redirect the server process stdout/stderr output.
+        """
+        return self._get_log_filename('server')
+
+    @property
+    def transport_log_file(self):
+        """
+        Filename to redirect the transport process stdout/stderr
+        output.
+        """
+        return self._get_log_filename('transport')
+
+    @property
+    def server_args(self):
+        """Arguments for the server process."""
+        args = []
         if self.language == 'python':
-            self.server_args += [sys.executable, '-m']
-        self.server_args += [server_settings['cmd']]
-        if len(server_args) > 0:
-            self.server_args += server_args.split(' ')
-        self.server_unresponsive = False
+            args += [sys.executable, '-m']
+        args += [self._server_cmd]
 
-        self.transport_args += transport_args.split(' ')
-        self.transport_args += ['--folder', folder]
-        self.transport_args += ['--transport-debug', str(get_debug_level())]
-        if not self.stdio:
-            self.transport_args += ['--external-server']
+        # Replace host and port placeholders
+        host_and_port = self._server_args.format(
+            host=self.server_host,
+            port=self.server_port)
+        if len(host_and_port) > 0:
+            args += host_and_port.split(' ')
+
+        if self.language == 'python' and get_debug_level() > 0:
+            args += ['--log-file', self.server_log_file]
+            if get_debug_level() == 2:
+                args.append('-v')
+            elif get_debug_level() == 3:
+                args.append('-vv')
+
+        return args
+
+    @property
+    def transport_args(self):
+        """Arguments for the transport process."""
+        args = [
+            sys.executable,
+            '-u',
+            osp.join(LOCATION, 'transport', 'main.py'),
+            '--folder', self.folder,
+            '--transport-debug', str(get_debug_level())
+        ]
+
+        # Replace host and port placeholders
+        host_and_port = '--server-host {host} --server-port {port} '.format(
+            host=self.server_host,
+            port=self.server_port)
+        args += host_and_port.split(' ')
+
+        # Add socket ports
+        args += ['--zmq-in-port', str(self.zmq_out_port),
+                 '--zmq-out-port', str(self.zmq_in_port)]
+
+        # Adjustments for stdio/tcp
+        if self.stdio:
+            args += ['--stdio-server']
+            if get_debug_level() > 0:
+                args += ['--server-log-file', self.server_log_file]
+            args += self.server_args
         else:
-            self.transport_args += ['--stdio-server']
-            self.external_server = True
-        self.transport_unresponsive = False
+            args += ['--external-server']
+
+        return args
 
     def create_transport_sockets(self):
         """Create PyZMQ sockets for transport."""
@@ -167,8 +238,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.zmq_in_socket.set_hwm(0)
         self.zmq_in_port = self.zmq_in_socket.bind_to_random_port(
             'tcp://{}'.format(LOCALHOST))
-        self.transport_args += ['--zmq-in-port', self.zmq_out_port,
-                                '--zmq-out-port', self.zmq_in_port]
 
     @Slot(QProcess.ProcessError)
     def handle_process_errors(self, error):
@@ -179,96 +248,83 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         """Start server."""
         # This is not necessary if we're trying to connect to an
         # external server
-        if self.external_server:
+        if self.external_server or self.stdio:
             return
-
-        # Set server log file
-        server_log_file = None
-        if get_debug_level() > 0:
-            # Create server log file
-            server_log_fname = 'server_{0}_{1}.log'.format(self.language,
-                                                           os.getpid())
-            server_log_file = get_conf_path(osp.join('lsp_logs',
-                                                     server_log_fname))
-
-            if not osp.exists(osp.dirname(server_log_file)):
-                os.makedirs(osp.dirname(server_log_file))
-
-            if self.stdio:
-                if self.language == 'python':
-                    self.server_args += ['--log-file', server_log_file]
-                self.transport_args += ['--server-log-file', server_log_file]
-
-            # Start server with logging options
-            if self.language == 'python':
-                if get_debug_level() == 2:
-                    self.server_args.append('-v')
-                elif get_debug_level() == 3:
-                    self.server_args.append('-vv')
 
         logger.info('Starting server: {0}'.format(' '.join(self.server_args)))
 
-        # Set the PyLS current working to an empty dir inside
-        # our config one. This avoids the server to pick up user
-        # files such as random.py or string.py instead of the
-        # standard library modules named the same.
+        # Create server process
+        self.server = QProcess(self)
+        env = self.server.processEnvironment()
+
+        # Adjustments for the Python language server.
         if self.language == 'python':
+            # Set the PyLS current working to an empty dir inside
+            # our config one. This avoids the server to pick up user
+            # files such as random.py or string.py instead of the
+            # standard library modules named the same.
             cwd = get_conf_path('empty_cwd')
             if not osp.exists(cwd):
                 os.mkdir(cwd)
         else:
+            # There's no need to define a cwd for other servers.
             cwd = None
 
+            # Most LSP servers spawn other processes, which may require
+            # some environment variables.
+            for var in os.environ:
+                env.insert(var, os.environ[var])
+            logger.info('Server process env variables: {0}'.format(env.keys()))
+
         # Setup server
-        self.server = QProcess(self)
+        self.server.setProcessEnvironment(env)
         self.server.errorOccurred.connect(self.handle_process_errors)
         self.server.setWorkingDirectory(cwd)
         self.server.setProcessChannelMode(QProcess.MergedChannels)
-        if server_log_file is not None:
-            self.server.setStandardOutputFile(server_log_file)
+        if self.server_log_file is not None:
+            self.server.setStandardOutputFile(self.server_log_file)
 
         # Start server
         self.server.start(self.server_args[0], self.server_args[1:])
 
     def start_transport(self):
         """Start transport layer."""
-        self.transport_args = list(map(str, self.transport_args))
-        logger.info('Starting transport: {0}'
-                    .format(' '.join(self.transport_args)))
+        logger.info('Starting transport for {1}: {0}'
+                    .format(' '.join(self.transport_args), self.language))
 
+        # Create transport process
         self.transport = QProcess(self)
-        self.transport.errorOccurred.connect(self.handle_process_errors)
+        env = self.transport.processEnvironment()
+
+        # Most LSP servers spawn other processes other than Python, which may
+        # require some environment variables
+        if self.language != 'python' and self.stdio:
+            for var in os.environ:
+                env.insert(var, os.environ[var])
+            logger.info('Transport process env variables: {0}'.format(
+                env.keys()))
+
+        self.transport.setProcessEnvironment(env)
 
         # Modifying PYTHONPATH to run transport in development mode or
         # tests
         if DEV or running_under_pytest():
-            env = QProcessEnvironment()
             if running_under_pytest():
                 env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
             else:
                 env.insert('PYTHONPATH', os.pathsep.join(sys.path)[1:])
             self.transport.setProcessEnvironment(env)
 
-        # Set transport log file
-        transport_log_file = None
-        if get_debug_level() > 0:
-            transport_log_fname = 'transport_{0}_{1}.log'.format(
-                self.language, os.getpid())
-            transport_log_file = get_conf_path(
-                osp.join('lsp_logs', transport_log_fname))
-            if not osp.exists(osp.dirname(transport_log_file)):
-                os.makedirs(osp.dirname(transport_log_file))
-
-        # Set channel properties
+        # Set up transport
+        self.transport.errorOccurred.connect(self.handle_process_errors)
         if self.stdio:
-            self.transport_args += self.server_args
             self.transport.setProcessChannelMode(QProcess.SeparateChannels)
-            if transport_log_file is not None:
-                self.transport.setStandardErrorFile(transport_log_file)
+            if self.transport_log_file is not None:
+                self.transport.setStandardErrorFile(self.transport_log_file)
         else:
             self.transport.setProcessChannelMode(QProcess.MergedChannels)
-            if transport_log_file is not None:
-                self.transport.setStandardOutputFile(transport_log_file)
+            if self.transport_log_file is not None:
+                self.transport.setStandardOutputFile(self.transport_log_file)
 
         # Start transport
         self.transport.start(self.transport_args[0], self.transport_args[1:])
@@ -524,6 +580,17 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def initialized_call(self):
         params = {}
         return params
+
+    # ------ Settings queries --------------------------------
+    @property
+    def support_multiple_workspaces(self):
+        workspace_settings = self.server_capabilites['workspace']
+        return workspace_settings['workspaceFolders']['supported']
+
+    @property
+    def support_workspace_update(self):
+        workspace_settings = self.server_capabilites['workspace']
+        return workspace_settings['workspaceFolders']['changeNotifications']
 
 
 def test():
