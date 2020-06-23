@@ -254,19 +254,20 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 instance = language_client['instance']
                 if (instance.support_multiple_workspaces and
                         instance.support_workspace_update):
-                    logger.debug('{0}: LSP supports multiple '
-                                 'workspaces'.format(instance.language))
-                    logger.debug('Project path {0}: {1}'.format(
-                        project_path, update_kind))
+                    logger.debug(
+                        u'Workspace folders change: {0} -> {1}'.format(
+                        project_path, update_kind)
+                    )
                     instance.send_workspace_folders_change({
                         'folder': project_path,
                         'instance': self.main.projects,
                         'kind': update_kind
                     })
                 else:
-                    logger.debug('{0}: LSP does not support multiple '
-                                 'workspaces, restarting!'.format(
-                                     instance.language))
+                    logger.debug(
+                        "{0}: LSP does not support multiple workspaces, "
+                        "restarting client!".format(instance.language)
+                    )
                     self.main.projects.stop_lsp_services()
                     self.main.editor.stop_completion_services(language)
                     folder = self.get_root_path(language)

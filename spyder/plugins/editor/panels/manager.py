@@ -154,7 +154,6 @@ class PanelsManager(Manager):
 
     def refresh(self):
         """Refreshes the editor panels (resize and update margins)."""
-        logger.debug('Refresh panels')
         self.resize()
         self._update(self.editor.contentsRect(), 0,
                      force_update_margins=True)
