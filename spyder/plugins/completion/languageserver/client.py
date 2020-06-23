@@ -160,10 +160,17 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     @property
     def server_log_file(self):
+        """
+        Filename to redirect the server process stdout/stderr output.
+        """
         return self._get_log_filename('server')
 
     @property
     def transport_log_file(self):
+        """
+        Filename to redirect the transport process stdout/stderr
+        output.
+        """
         return self._get_log_filename('transport')
 
     @property

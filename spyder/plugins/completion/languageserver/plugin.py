@@ -245,8 +245,12 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     @Slot()
     def project_path_update(self, project_path, update_kind):
         """
-        Send a new initialize message to each LSP server when the project
-        path has changed so they can update the respective server root paths.
+        Send a didChangeWorkspaceFolders request to each LSP server
+        when the project path changes so they can update their
+        respective root paths.
+
+        If the server doesn't support workspace updates, restart the
+        client with the new root path.
         """
         for language in self.clients:
             language_client = self.clients[language]
@@ -455,6 +459,13 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             self.close_client(language)
 
     def update_configuration(self, python_only=False):
+        """
+        Update server configuration after changes done by the user
+        through Spyder's Preferences.
+
+        python_only: bool
+            Perform an update only for the Python language server.
+        """
         for language in self.get_languages():
             if python_only and language != 'python':
                 continue
