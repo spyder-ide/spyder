@@ -1869,7 +1869,6 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.setPosition(position + 1, QTextCursor.KeepAnchor)
             self.setTextCursor(cursor)
         self.remove_selected_text()
-        self.document_did_change()
 
     #------Find occurrences
     def __find_first(self, text):
@@ -3210,7 +3209,6 @@ class CodeEditor(TextEditBaseWidget):
                 self.insert_text(" "*(length-(len(leading_text) % length)))
             else:
                 self.insert_text(self.indent_chars)
-            self.document_did_change()
 
     def indent_or_replace(self):
         """Indent or replace by 4 spaces depending on selection and tab mode"""
@@ -3230,7 +3228,6 @@ class CodeEditor(TextEditBaseWidget):
                     self.indent()
                 else:
                     self.replace(self.indent_chars)
-                    self.document_did_change()
 
     def unindent(self, force=False):
         """
