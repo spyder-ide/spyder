@@ -1676,6 +1676,7 @@ class CodeEditor(TextEditBaseWidget):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.comment_string = ''
         self.language = 'Text'
+        self.supported_language = False
         sh_class = sh.TextSH
         language = 'None' if language is None else language
         if language is not None:
