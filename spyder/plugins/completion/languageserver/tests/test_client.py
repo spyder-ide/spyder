@@ -222,7 +222,7 @@ def test_local_signature(lsp_client_and_completion, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.third
-def test_didChangeWorkspaceFolders(lsp_client_and_completion, qtbot):
+def test_send_workspace_folders_change(lsp_client_and_completion, qtbot):
     client, completion = lsp_client_and_completion
     folder = '/tmp/'
 
