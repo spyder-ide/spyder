@@ -19,7 +19,7 @@ from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import programs, encoding
@@ -345,6 +345,11 @@ the sympy module (e.g. plot)
         reset_str = _("Remove all variables")
         warn_str = _("All user-defined variables will be removed. "
                      "Are you sure you want to proceed?")
+
+        # Don't show the warning when running our tests.
+        if running_under_pytest():
+            warning = False
+
         # This is necessary to make resetting variables work in external
         # kernels.
         # See spyder-ide/spyder#9505.
@@ -397,7 +402,11 @@ the sympy module (e.g. plot)
                     self.silent_execute(dedent(sympy_init))
                 if kernel_env.get('SPY_RUN_CYTHON') == 'True':
                     self.silent_execute("%reload_ext Cython")
-                self.refresh_namespacebrowser()
+
+                # This doesn't need to interrupt the kernel because
+                # "%reset -f" is being executed before it.
+                # Fixes spyder-ide/spyder#12689
+                self.refresh_namespacebrowser(interrupt=False)
 
                 if not self.external_kernel:
                     self.call_kernel().close_all_mpl_figures()
