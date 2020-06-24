@@ -2506,8 +2506,10 @@ class EditorStack(QWidget):
 
     #------ Load, reload
     def reload(self, index):
-        """Reload file from disk"""
+        """Reload file from disk."""
         finfo = self.data[index]
+        logger.debug("Reloading {}".format(finfo.filename))
+
         txt, finfo.encoding = encoding.read(finfo.filename)
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
         position = finfo.editor.get_position('cursor')
@@ -2526,9 +2528,11 @@ class EditorStack(QWidget):
         self._refresh_outlineexplorer(index)
 
     def revert(self):
-        """Revert file from disk"""
+        """Revert file from disk."""
         index = self.get_stack_index()
         finfo = self.data[index]
+        logger.debug("Reverting {}".format(finfo.filename))
+
         filename = finfo.filename
         if finfo.editor.document().isModified():
             self.msgbox = QMessageBox(

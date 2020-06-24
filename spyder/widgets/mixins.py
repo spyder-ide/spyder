@@ -686,7 +686,7 @@ class BaseEditMixin(object):
             self.document().setModified(True)
             if self.sig_eol_chars_changed is not None:
                 self.sig_eol_chars_changed.emit(eol_chars)
-            self.document_did_change()
+            self.document_did_change(text)
 
     def get_line_separator(self):
         """Return line separator based on current EOL mode"""
