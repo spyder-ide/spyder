@@ -19,6 +19,7 @@ except ImportError:
 import pytest
 
 # Local imports
+from spyder.plugins.editor.panels import DebuggerPanel
 from spyder.plugins.editor.widgets import editor
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 
@@ -446,6 +447,10 @@ def test_save_as_change_file_type(editor_bot, mocker, tmpdir):
     # Assert we sent notify_close and emitted sig_open_file
     assert editor.notify_close.call_count == 1
     assert editorstack.sig_open_file.emit.called == 1
+
+    # Test the debugger panel is hidden
+    debugger_panel = editor.panels.get(DebuggerPanel)
+    assert not debugger_panel.isVisible()
 
 
 if __name__ == "__main__":

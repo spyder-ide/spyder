@@ -1470,20 +1470,30 @@ class EditorStack(QWidget):
         finfo.editor.filename = new_filename
 
         # File type has changed!
-        if osp.splitext(original_filename)[1] != osp.splitext(new_filename)[1]:
-            # If the user renamed the file to a different language, we need
-            # to emit sig_open_file to see if we can start a language server
-            # for it.
+        original_ext = osp.splitext(original_filename)[1]
+        new_ext = osp.splitext(new_filename)[1]
+        if original_ext != new_ext:
+            # Set file language and re-run highlighter
             txt = to_text_string(finfo.editor.get_text_with_eol())
             language = get_file_language(new_filename, txt)
             finfo.editor.set_language(language, new_filename)
+            finfo.editor.run_pygments_highlighter()
+
+            # If the user renamed the file to a different language, we
+            # need to emit sig_open_file to see if we can start a
+            # language server for it.
             options = {
                 'language': language,
                 'filename': new_filename,
                 'codeeditor': finfo.editor
             }
-            finfo.editor.run_pygments_highlighter()
             self.sig_open_file.emit(options)
+
+            # Update panels
+            finfo.editor.set_debug_panel(
+                show_debug_panel=True, language=language)
+            finfo.editor.cleanup_code_analysis()
+            finfo.editor.cleanup_folding()
         else:
             # If there's no language change, we simply need to request a
             # document_did_open for the new file.

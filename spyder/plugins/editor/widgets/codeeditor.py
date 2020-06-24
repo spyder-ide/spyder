@@ -1478,6 +1478,11 @@ class CodeEditor(TextEditBaseWidget):
             total_whitespace = compute_whitespace(text)
             self.leading_whitespaces[i] = total_whitespace
 
+    def cleanup_folding(self):
+        """Cleanup folding pane."""
+        folding_panel = self.panels.get(FoldingPanel)
+        folding_panel.folding_regions = {}
+
     @request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def request_folding(self):
         """Request folding."""
