@@ -2894,6 +2894,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.Right,
                                 QTextCursor.KeepAnchor, len(prefix))
             cursor.removeSelectedText()
+
         self.document_did_change()
 
     def __even_number_of_spaces(self, line_text, group=0):
@@ -4538,8 +4539,11 @@ class CodeEditor(TextEditBaseWidget):
 
     #------ Drag and drop
     def dragEnterEvent(self, event):
-        """Reimplement Qt method
-        Inform Qt about the types of data that the widget accepts"""
+        """
+        Reimplemented Qt method.
+
+        Inform Qt about the types of data that the widget accepts.
+        """
         logger.debug("dragEnterEvent was received")
         all_urls = mimedata2url(event.mimeData())
         if all_urls:
@@ -4551,13 +4555,19 @@ class CodeEditor(TextEditBaseWidget):
             TextEditBaseWidget.dragEnterEvent(self, event)
 
     def dropEvent(self, event):
-        """Reimplement Qt method
-        Unpack dropped data and handle it"""
+        """
+        Reimplemented Qt method.
+
+        Unpack dropped data and handle it.
+        """
+        logger.debug("dropEvent was received")
         if mimedata2url(event.mimeData()):
-            # Let the parent widget handle this
+            logger.debug("Let the parent widget handle this")
             event.ignore()
         else:
+            logger.debug("Call TextEditBaseWidget dropEvent method")
             TextEditBaseWidget.dropEvent(self, event)
+            self.document_did_change()
 
     #------ Paint event
     def paintEvent(self, event):

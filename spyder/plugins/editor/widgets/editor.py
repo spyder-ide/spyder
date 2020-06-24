@@ -2890,8 +2890,11 @@ class EditorStack(QWidget):
 
     #------ Drag and drop
     def dragEnterEvent(self, event):
-        """Reimplement Qt method
-        Inform Qt about the types of data that the widget accepts"""
+        """
+        Reimplemented Qt method.
+
+        Inform Qt about the types of data that the widget accepts.
+        """
         logger.debug("dragEnterEvent was received")
         source = event.mimeData()
         # The second check is necessary on Windows, where source.hasUrls()
@@ -2928,8 +2931,12 @@ class EditorStack(QWidget):
             event.ignore()
 
     def dropEvent(self, event):
-        """Reimplement Qt method
-        Unpack dropped data and handle it"""
+        """
+        Reimplement Qt method.
+
+        Unpack dropped data and handle it.
+        """
+        logger.debug("dropEvent was received")
         source = event.mimeData()
         # The second check is necessary when mimedata2url(source)
         # returns None.
