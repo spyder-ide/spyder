@@ -3286,10 +3286,11 @@ def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
+    # Create a variable
     with qtbot.waitSignal(shell.executed):
         shell.execute('a = 10')
 
-    # Assert the value was created
+    # Assert the value is shown in the variable explorer
     nsb = main_window.variableexplorer.get_focus_widget()
     qtbot.waitUntil(lambda: 'a' in nsb.editor.source_model._data,
                     timeout=3000)
@@ -3297,6 +3298,51 @@ def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
     # Restart Kernel
     with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
         shell.ipyclient.restart_kernel()
+
+    # Assert the value was removed
+    qtbot.waitUntil(lambda: 'a' not in nsb.editor.source_model._data,
+                    timeout=3000)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_varexp_cleared_after_pressing_reset_button(main_window, qtbot):
+    """
+    Test that the variable explorer is cleared after triggering a
+    in the IPython console and variable explorer panes.
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = main_window.ipyconsole.get_focus_widget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Create a variable
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
+
+    # Assert the value is shown in the variable explorer
+    nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.waitUntil(lambda: 'a' in nsb.editor.source_model._data,
+                    timeout=3000)
+
+    # Trigger a reset in the variable explorer
+    nsb.reset_namespace()
+
+    # Assert the value was removed
+    qtbot.waitUntil(lambda: 'a' not in nsb.editor.source_model._data,
+                    timeout=3000)
+
+    # Create the variable again
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
+
+    # Assert the value is shown in the variable explorer
+    nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.waitUntil(lambda: 'a' in nsb.editor.source_model._data,
+                    timeout=3000)
+
+    # Trigger a reset in the console
+    shell.ipyclient.reset_namespace()
 
     # Assert the value was removed
     qtbot.waitUntil(lambda: 'a' not in nsb.editor.source_model._data,
