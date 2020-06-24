@@ -3306,10 +3306,10 @@ def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-def test_varexp_cleared_after_pressing_reset_button(main_window, qtbot):
+def test_varexp_cleared_after_reset(main_window, qtbot):
     """
     Test that the variable explorer is cleared after triggering a
-    in the IPython console and variable explorer panes.
+    reset in the IPython console and variable explorer panes.
     """
     shell = main_window.ipyconsole.get_current_shellwidget()
     control = main_window.ipyconsole.get_focus_widget()

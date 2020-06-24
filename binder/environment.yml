@@ -14,7 +14,7 @@ dependencies:
 - diff-match-patch >=20181111
 - intervaltree
 - ipython >=4.0
-- jedi =0.17.0
+- jedi =0.17.1
 - keyring
 - nbconvert >=4.0
 - numpydoc >=0.6.0
@@ -27,7 +27,9 @@ dependencies:
 - pylint >=1.0
 - pyqt <5.13
 - pyyaml
-- python-language-server >=0.31.9,<0.32.0
+# NOTE: There's no need to set constraints for python-language-server
+# here because Spyder uses the subrepo for it when started in Binder.
+- python-language-server
 - pyxdg >=0.26
 - pyzmq >=17
 - qdarkstyle >=2.8
@@ -36,9 +38,8 @@ dependencies:
 - qtpy >=1.5.0
 - rtree >=0.8.3
 - sphinx >=0.6.6
-# NOTE: There's no need to set constraints for spyder-kernels
-# here because Spyder uses the subrepo for it when started in
-# in Binder.
+# NOTE: There's no need to set constraints for spyder-kernels here
+# because Spyder uses the subrepo for it when started in Binder.
 - spyder-kernels
 - watchdog
 

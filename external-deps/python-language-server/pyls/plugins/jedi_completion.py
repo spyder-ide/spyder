@@ -181,7 +181,7 @@ def _format_completion(d, include_params=True):
 def _label(definition):
     sig = definition.get_signatures()
     if definition.type in ('function', 'method') and sig:
-        params = ', '.join([param.name for param in sig[0].params])
+        params = ', '.join(param.name for param in sig[0].params)
         return '{}({})'.format(definition.name, params)
 
     return definition.name
