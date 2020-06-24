@@ -17,10 +17,18 @@ class Test2(Test1):
     pass
 '''
 
+DOC_NAME_EXTRA = 'test2.py'
+DOC_EXTRA = '''from test1 import Test1
+x = Test1()
+'''
+
 
 @pytest.fixture
 def tmp_workspace(temp_workspace_factory):
-    return temp_workspace_factory({DOC_NAME: DOC})
+    return temp_workspace_factory({
+        DOC_NAME: DOC,
+        DOC_NAME_EXTRA: DOC_EXTRA
+    })
 
 
 @pytest.mark.skipif(LT_PY36, reason='Jedi refactoring isnt supported on Python 2.x/3.5')
@@ -34,15 +42,36 @@ def test_jedi_rename(tmp_workspace, config):  # pylint: disable=redefined-outer-
     assert len(result.keys()) == 1
 
     changes = result.get('documentChanges')
-    assert len(changes) == 1
-    changes = changes[0]
+    assert len(changes) == 2
 
-    assert changes.get('edits') == [
+    assert changes[0]['textDocument']['uri'] == doc.uri
+    assert changes[0]['textDocument']['version'] == doc.version
+    assert changes[0].get('edits') == [
         {
             'range': {
                 'start': {'line': 0, 'character': 0},
                 'end': {'line': 5, 'character': 0},
             },
             'newText': 'class ShouldBeRenamed():\n    pass\n\nclass Test2(ShouldBeRenamed):\n    pass\n',
+        }
+    ]
+    path = os.path.join(tmp_workspace.root_path, DOC_NAME_EXTRA)
+    uri_extra = uris.from_fs_path(path)
+    assert changes[1]['textDocument']['uri'] == uri_extra
+    # This also checks whether documents not yet added via textDocument/didOpen
+    # but that do need to be renamed in the project have a `null` version
+    # number.
+    assert changes[1]['textDocument']['version'] is None
+    expected = 'from test1 import ShouldBeRenamed\nx = ShouldBeRenamed()\n'
+    if os.name == 'nt':
+        # The .write method in the temp_workspace_factory functions writes
+        # Windows-style line-endings.
+        expected = expected.replace('\n', '\r\n')
+    assert changes[1].get('edits') == [
+        {
+            'range': {
+                'start': {'line': 0, 'character': 0},
+                'end': {'line': 2, 'character': 0}},
+            'newText': expected
         }
     ]

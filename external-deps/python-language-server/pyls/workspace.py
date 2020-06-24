@@ -71,6 +71,9 @@ class Workspace(object):
         """
         return self._docs.get(doc_uri) or self._create_document(doc_uri)
 
+    def get_maybe_document(self, doc_uri):
+        return self._docs.get(doc_uri)
+
     def put_document(self, doc_uri, source, version=None):
         self._docs[doc_uri] = self._create_document(doc_uri, source=source, version=version)
 
@@ -98,7 +101,7 @@ class Workspace(object):
     def source_roots(self, document_path):
         """Return the source roots for the given document."""
         files = _utils.find_parents(self._root_path, document_path, ['setup.py', 'pyproject.toml']) or []
-        return list(set((os.path.dirname(project_file) for project_file in files))) or [self._root_path]
+        return list({os.path.dirname(project_file) for project_file in files}) or [self._root_path]
 
     def _create_document(self, doc_uri, source=None, version=None):
         path = uris.to_fs_path(doc_uri)
