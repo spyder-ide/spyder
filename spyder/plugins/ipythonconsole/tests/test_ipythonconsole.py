@@ -320,7 +320,7 @@ def test_pylab_client(ipyconsole, qtbot):
     assert 'Error' not in control.toPlainText()
 
     # Reset the console namespace
-    shell.reset_namespace(warning=False)
+    shell.reset_namespace()
     qtbot.wait(1000)
 
     # See that `e` is still defined from numpy after reset
@@ -352,7 +352,7 @@ def test_sympy_client(ipyconsole, qtbot):
     assert 'NameError' not in control.toPlainText()
 
     # Reset the console namespace
-    shell.reset_namespace(warning=False)
+    shell.reset_namespace()
     qtbot.wait(1000)
 
     # See that `e` is still defined from sympy after reset
@@ -388,7 +388,7 @@ def test_cython_client(ipyconsole, qtbot):
     assert 'Error' not in control.toPlainText()
 
     # Reset the console namespace
-    shell.reset_namespace(warning=False)
+    shell.reset_namespace()
     qtbot.wait(1000)
 
     # See that cython is still enabled after reset
@@ -1086,7 +1086,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     assert shell.get_value('bb') == 10
 
-    shell.reset_namespace(warning=False)
+    shell.reset_namespace()
     qtbot.wait(1000)
 
     qtbot.keyClicks(control, '!bb')
