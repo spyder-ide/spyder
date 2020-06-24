@@ -455,7 +455,6 @@ class CodeEditor(TextEditBaseWidget):
         # functions or signals for objects not created from Python" in
         # Linux Ubuntu. See spyder-ide/spyder#5215.
         self.setVerticalScrollBar(QScrollBar())
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
         # Highlights and flag colors
         self.warning_color = "#FFAD07"
