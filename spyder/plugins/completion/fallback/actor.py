@@ -121,8 +121,7 @@ class FallbackActor(QObject):
         """Handle one message"""
         msg_type, _id, file, msg = [
             message[k] for k in ('type', 'id', 'file', 'msg')]
-        logger.debug(u'Got request id {0}: {1} for file {2}'.format(
-            _id, msg_type, file))
+        logger.debug(u'Perform request {0} with id {1}'.format(msg_type, _id))
         if msg_type == LSPRequestTypes.DOCUMENT_DID_OPEN:
             self.file_tokens[file] = {
                 'text': msg['text'],

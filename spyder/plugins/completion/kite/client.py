@@ -160,7 +160,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     def perform_request(self, req_id, method, params):
         response = None
         if method in self.sender_registry:
-            logger.debug('Perform {0} request with id {1}'.format(
+            logger.debug('Perform request {0} with id {1}'.format(
                 method, req_id))
             handler_name = self.sender_registry[method]
             handler = getattr(self, handler_name)
