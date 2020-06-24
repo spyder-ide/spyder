@@ -6,6 +6,7 @@
 
 # Standard library imports
 import os
+import sys
 
 # Third party imports
 import pytest
@@ -85,7 +86,8 @@ def test_enabled(editor_bot):
     assert not sfa.isVisible()
 
 
-@pytest.mark.skipif(not os.name == 'nt', reason="It fails on Travis")
+@pytest.mark.skipif(sys.platform.startswith('linux'),
+                    reason="Fails in Linux")
 def test_flag_painting(editor_bot, qtbot):
     """"Test that there is no error when painting all flag types on the
     scrollbar area when the editor vertical scrollbar is visible and not
@@ -123,7 +125,6 @@ def test_flag_painting(editor_bot, qtbot):
 
     # Set a long text in the editor and assert that the slider is visible.
     editor.set_text(long_code)
-    qtbot.waitUntil(lambda: sfa.slider)
 
     # Trigger the painting of all flag types.
     editor.debugger.toogle_breakpoint(line_number=2)
