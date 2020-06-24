@@ -830,7 +830,7 @@ class CodeEditor(TextEditBaseWidget):
                      show_class_func_dropdown=False,
                      indent_guides=False,
                      scroll_past_end=False,
-                     debug_panel=True,
+                     show_debug_panel=True,
                      folding=True):
         """
         Set-up configuration for the CodeEditor instance.
@@ -904,7 +904,7 @@ class CodeEditor(TextEditBaseWidget):
             Default False.
         scroll_past_end: Enable/Disable possibility to scroll file passed
             its end. Default False.
-        debug_panel: Enable/Disable debug panel. Default True.
+        show_debug_panel: Enable/Disable debug panel. Default True.
         folding: Enable/Disable code folding. Default True.
         """
 
@@ -915,7 +915,7 @@ class CodeEditor(TextEditBaseWidget):
         self.set_indent_chars(indent_chars)
 
         # Show/hide the debug panel depending on the language and parameter
-        self.set_debug_panel(debug_panel, language)
+        self.set_debug_panel(show_debug_panel, language)
 
         # Show/hide folding panel depending on parameter
         self.toggle_code_folding(folding)
@@ -1536,10 +1536,10 @@ class CodeEditor(TextEditBaseWidget):
             return params
 
     # -------------------------------------------------------------------------
-    def set_debug_panel(self, debug_panel, language):
+    def set_debug_panel(self, show_debug_panel, language):
         """Enable/disable debug panel."""
         debugger_panel = self.panels.get(DebuggerPanel)
-        if language == 'py' and debug_panel:
+        if language in ALL_LANGUAGES['Python'] and show_debug_panel:
             debugger_panel.setVisible(True)
         else:
             debugger_panel.setVisible(False)
