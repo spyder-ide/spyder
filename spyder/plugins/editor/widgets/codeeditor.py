@@ -467,7 +467,6 @@ class CodeEditor(TextEditBaseWidget):
         # Scrollbar flag area
         self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
                                                    Panel.Position.RIGHT)
-        self.scrollflagarea.hide()
         self.panels.refresh()
 
         self.document_id = id(self)
