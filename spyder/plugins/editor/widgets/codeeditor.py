@@ -571,7 +571,6 @@ class CodeEditor(TextEditBaseWidget):
 
         # Language Server
         self.lsp_requests = {}
-        self.document_opened = False
         self.filename = None
         self.completions_available = False
         self.text_version = 0
@@ -592,10 +591,10 @@ class CodeEditor(TextEditBaseWidget):
         self.rename_support = False
         self.completion_args = None
         self.folding_supported = False
+        self.is_cloned = False
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
-
         self.editor_extensions.add(CloseQuotesExtension())
         self.editor_extensions.add(SnippetsExtension())
         self.editor_extensions.add(CloseBracketsExtension())
@@ -616,6 +615,7 @@ class CodeEditor(TextEditBaseWidget):
         # such as line stripping
         self.is_undoing = False
         self.is_redoing = False
+
     # --- Helper private methods
     # ------------------------------------------------------------------------
 
@@ -949,6 +949,7 @@ class CodeEditor(TextEditBaseWidget):
             # Needed to show indent guides for splited editor panels
             # See spyder-ide/spyder#10900
             self.patch = cloned_from.patch
+            self.is_cloned = True
         self.toggle_line_numbers(linenumbers, markers)
 
         # Lexer
@@ -1052,10 +1053,16 @@ class CodeEditor(TextEditBaseWidget):
     # ------------- LSP: Configuration and protocol start/end ----------------
     def start_completion_services(self):
         """Start completion services for this instance."""
-        logger.debug(u"Completion services available for: {0}".format(
-            self.filename))
         self.completions_available = True
-        self.document_did_open()
+
+        if self.is_cloned:
+            additional_msg = " cloned editor"
+        else:
+            additional_msg = ""
+            self.document_did_open()
+
+        logger.debug(u"Completion services available for{0}: {1}".format(
+            additional_msg, self.filename))
 
     def register_completion_capabilities(self, capabilities):
         """
@@ -1100,12 +1107,10 @@ class CodeEditor(TextEditBaseWidget):
     def stop_completion_services(self):
         logger.debug('Stopping completion services for %s' % self.filename)
         self.completions_available = False
-        self.document_opened = False
 
     @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
-        self.document_opened = True
         cursor = self.textCursor()
         params = {
             'file': self.filename,

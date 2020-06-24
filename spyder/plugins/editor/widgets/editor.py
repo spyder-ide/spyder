@@ -943,7 +943,8 @@ class EditorStack(QWidget):
                 self.outlineexplorer.remove_editor(finfo.editor.oe_proxy)
 
         for finfo in self.data:
-            finfo.editor.notify_close()
+            if not finfo.editor.is_cloned:
+                finfo.editor.notify_close()
         QWidget.closeEvent(self, event)
 
     def clone_editor_from(self, other_finfo, set_current):
@@ -1484,7 +1485,7 @@ class EditorStack(QWidget):
             finfo.editor.run_pygments_highlighter()
             self.sig_open_file.emit(options)
         else:
-            # If not there's no language change, we simply need to request a
+            # If there's no language change, we simply need to request a
             # document_did_open for the new file.
             finfo.editor.document_did_open()
 
@@ -1735,7 +1736,8 @@ class EditorStack(QWidget):
 
             filename = self.data[index].filename
             self.remove_from_data(index)
-            finfo.editor.notify_close()
+            if not finfo.editor.is_cloned:
+                finfo.editor.notify_close()
 
             # We pass self object ID as a QString, because otherwise it would
             # depend on the platform: long for 64bit, int for 32bit. Replacing
@@ -2243,8 +2245,6 @@ class EditorStack(QWidget):
 #        for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
 #            btn.setEnabled(count > 1)
         editor = self.get_current_editor()
-        if editor.completions_available and not editor.document_opened:
-            editor.document_did_open()
         if index != -1:
             editor.setFocus()
             logger.debug("Set focus to: %s" % editor.filename)
