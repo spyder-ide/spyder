@@ -669,11 +669,9 @@ class MainWindow(QMainWindow):
         from spyder.preferences.appearance import AppearanceConfigPage
         from spyder.preferences.general import MainConfigPage
         from spyder.preferences.shortcuts import ShortcutsConfigPage
-        from spyder.preferences.runconfig import RunConfigPage
         from spyder.preferences.maininterpreter import MainInterpreterConfigPage
         self.general_prefs = [MainConfigPage, AppearanceConfigPage,
-                              ShortcutsConfigPage, MainInterpreterConfigPage,
-                              RunConfigPage]
+                              ShortcutsConfigPage, MainInterpreterConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
@@ -1178,6 +1176,11 @@ class MainWindow(QMainWindow):
         self.register_plugin(self.console)
 
         # TODO: Load and register the rest of the plugins using new API
+
+        # Run plugin
+        from spyder.plugins.run.plugin import Run
+        self.run = Run(self, configuration=CONF)
+        self.register_plugin(self.run)
 
         # Code completion client initialization
         self.set_splash(_("Starting code completion manager..."))
@@ -3493,7 +3496,7 @@ class MainWindow(QMainWindow):
                 if widget is not None:
                     dlg.add_page(widget)
 
-            for plugin in [self.workingdirectory, self.editor,
+            for plugin in [self.run, self.workingdirectory, self.editor,
                            self.projects, self.ipyconsole,
                            self.historylog, self.help, self.variableexplorer,
                            self.onlinehelp, self.explorer, self.findinfiles

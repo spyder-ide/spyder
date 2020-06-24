@@ -52,9 +52,9 @@ from spyder.plugins.editor.widgets.status import (CursorPositionStatus,
                                                   EncodingStatus, EOLStatus,
                                                   ReadWriteStatus, VCSStatus)
 from spyder.api.plugins import SpyderPluginWidget
-from spyder.preferences.runconfig import (ALWAYS_OPEN_FIRST_RUN_OPTION,
-                                          get_run_configuration,
-                                          RunConfigDialog, RunConfigOneDialog)
+from spyder.plugins.run.widgets import (ALWAYS_OPEN_FIRST_RUN_OPTION,
+                                        get_run_configuration,
+                                        RunConfigDialog, RunConfigOneDialog)
 
 
 logger = logging.getLogger(__name__)
