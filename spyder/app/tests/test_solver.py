@@ -119,4 +119,4 @@ def test_solve_plugin_dependencies_3():
 
 def test_find_internal_plugins():
     internal = find_internal_plugins()
-    assert len(internal) == 19
+    assert len(internal) == 20

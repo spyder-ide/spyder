@@ -176,6 +176,8 @@ from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
 from spyder.utils.misc import select_port, getcwd_or_home, get_python_executable
+# TODO: Remove circular dependency between help and ipython console and remove
+# this import. Help plugin should take care of it
 from spyder.plugins.help.utils.sphinxify import CSS_PATH, DARK_CSS_PATH
 from spyder.config.gui import is_dark_font_color
 
@@ -666,12 +668,11 @@ class MainWindow(QMainWindow):
         self.give_updates_feedback = True
 
         # Preferences
-        from spyder.preferences.appearance import AppearanceConfigPage
         from spyder.preferences.general import MainConfigPage
         from spyder.preferences.shortcuts import ShortcutsConfigPage
         from spyder.preferences.maininterpreter import MainInterpreterConfigPage
-        self.general_prefs = [MainConfigPage, AppearanceConfigPage,
-                              ShortcutsConfigPage, MainInterpreterConfigPage]
+        self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
+                              MainInterpreterConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
@@ -1182,6 +1183,11 @@ class MainWindow(QMainWindow):
         self.run = Run(self, configuration=CONF)
         self.register_plugin(self.run)
 
+        # Appearance plugin
+        from spyder.plugins.appearance.plugin import Appearance
+        self.appearance = Appearance(self, configuration=CONF)
+        self.register_plugin(self.appearance)
+
         # Code completion client initialization
         self.set_splash(_("Starting code completion manager..."))
         from spyder.plugins.completion.manager.plugin import CompletionManager
@@ -1254,7 +1260,10 @@ class MainWindow(QMainWindow):
         self.add_plugin(self.ipyconsole)
 
         # Help plugin
+        # TODO: There is a circular dependency between help and ipython since
+        # ipython console uses css_path.
         if CONF.get('help', 'enable'):
+            CONF.set('help', 'css_path', css_path)
             from spyder.plugins.help.plugin import Help
             self.help = Help(self, configuration=CONF)
             self.register_plugin(self.help)
@@ -3496,8 +3505,8 @@ class MainWindow(QMainWindow):
                 if widget is not None:
                     dlg.add_page(widget)
 
-            for plugin in [self.run, self.workingdirectory, self.editor,
-                           self.projects, self.ipyconsole,
+            for plugin in [self.appearance, self.workingdirectory,
+                           self.editor, self.projects, self.ipyconsole,
                            self.historylog, self.help, self.variableexplorer,
                            self.onlinehelp, self.explorer, self.findinfiles
                            ] + self.thirdparty_plugins:

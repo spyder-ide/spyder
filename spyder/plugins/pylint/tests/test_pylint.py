@@ -17,6 +17,7 @@ import pytest
 from qtpy.QtCore import Signal, QObject
 
 # Local imports
+from spyder.config.manager import CONF
 from spyder.plugins.pylint.plugin import Pylint
 from spyder.plugins.pylint.widgets.pylintgui import PylintWidget
 from spyder.plugins.pylint.utils import get_pylintrc_path
