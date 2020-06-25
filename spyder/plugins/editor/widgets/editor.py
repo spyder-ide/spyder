@@ -574,7 +574,7 @@ class EditorStack(QWidget):
         self.run_cell_copy = False
         self.create_new_file_if_empty = True
         self.indent_guides = False
-        ccs = 'Spyder'
+        ccs = 'spyder/dark'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
@@ -3016,7 +3016,8 @@ class EditorSplitter(QSplitter):
                      lambda: self.split(orientation=Qt.Horizontal))
         self.addWidget(self.editorstack)
 
-        self.editorstack.set_color_scheme(plugin.get_color_scheme())
+        if not running_under_pytest():
+            self.editorstack.set_color_scheme(plugin.get_color_scheme())
 
     def closeEvent(self, event):
         """Override QWidget closeEvent().
