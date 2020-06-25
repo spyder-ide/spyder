@@ -3563,6 +3563,9 @@ class EditorPluginExample(QSplitter):
         """Fake!"""
         pass
 
+    def get_color_scheme(self):
+        pass
+
 
 def test():
     from spyder.utils.qthelpers import qapplication
