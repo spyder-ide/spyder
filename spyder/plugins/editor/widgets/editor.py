@@ -3016,6 +3016,8 @@ class EditorSplitter(QSplitter):
                      lambda: self.split(orientation=Qt.Horizontal))
         self.addWidget(self.editorstack)
 
+        self.editorstack.set_color_scheme(plugin.get_color_scheme())
+
     def closeEvent(self, event):
         """Override QWidget closeEvent().
 
