@@ -976,13 +976,6 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                                           completion_text=text[q_pos+1:])
             return
 
-    def document_did_change(self, text=None):
-        """
-        This is here to be compatible with CodeEditor and be able to use
-        code completion.
-        """
-        pass
-
     #------ Drag'n Drop
     def drop_pathlist(self, pathlist):
         """Drop path list"""
