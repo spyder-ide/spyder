@@ -80,7 +80,7 @@ from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
 from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
                                                 is_cell_header)
-from spyder.py3compat import PY2, to_text_string, is_string
+from spyder.py3compat import PY2, to_text_string, is_string, is_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
@@ -1544,7 +1544,9 @@ class CodeEditor(TextEditBaseWidget):
     def set_debug_panel(self, show_debug_panel, language):
         """Enable/disable debug panel."""
         debugger_panel = self.panels.get(DebuggerPanel)
-        if language in ALL_LANGUAGES['Python'] and show_debug_panel:
+        if (is_text_string(language) and
+                language.lower() in ALL_LANGUAGES['Python'] and
+                show_debug_panel):
             debugger_panel.setVisible(True)
         else:
             debugger_panel.setVisible(False)
