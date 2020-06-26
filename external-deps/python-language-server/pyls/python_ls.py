@@ -52,12 +52,13 @@ def start_tcp_lang_server(bind_addr, port, check_parent_process, handler_class):
     if not issubclass(handler_class, PythonLanguageServer):
         raise ValueError('Handler class must be an instance of PythonLanguageServer')
 
-    def shutdown_server(*args):
+    def shutdown_server(check_parent_process, *args):
         # pylint: disable=unused-argument
-        log.debug('Shutting down server')
-        # Shutdown call must be done on a thread, to prevent deadlocks
-        stop_thread = threading.Thread(target=server.shutdown)
-        stop_thread.start()
+        if check_parent_process:
+            log.debug('Shutting down server')
+            # Shutdown call must be done on a thread, to prevent deadlocks
+            stop_thread = threading.Thread(target=server.shutdown)
+            stop_thread.start()
 
     # Construct a custom wrapper class around the user's handler_class
     wrapper_class = type(
@@ -65,7 +66,7 @@ def start_tcp_lang_server(bind_addr, port, check_parent_process, handler_class):
         (_StreamHandlerWrapper,),
         {'DELEGATE_CLASS': partial(handler_class,
                                    check_parent_process=check_parent_process),
-         'SHUTDOWN_CALL': shutdown_server}
+         'SHUTDOWN_CALL': partial(shutdown_server, check_parent_process)}
     )
 
     server = socketserver.TCPServer((bind_addr, port), wrapper_class, bind_and_activate=False)

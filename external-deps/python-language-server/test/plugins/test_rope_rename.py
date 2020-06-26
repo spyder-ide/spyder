@@ -31,6 +31,8 @@ def test_rope_rename(tmp_workspace, config):  # pylint: disable=redefined-outer-
     assert len(changes) == 1
     changes = changes[0]
 
+    # Note that this test differs from test_jedi_rename, because rope does not
+    # seem to modify files that haven't been opened with textDocument/didOpen.
     assert changes.get("edits") == [
         {
             "range": {

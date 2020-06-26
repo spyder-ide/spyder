@@ -9,7 +9,7 @@ cloudpickle >=0.5.0
 diff-match-patch >=20181111
 intervaltree
 IPython >=4.0
-jedi =0.17.0
+jedi =0.17.1
 keyring
 nbconvert >=4.0
 numpydoc >=0.6.0

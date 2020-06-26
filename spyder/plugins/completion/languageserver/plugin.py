@@ -662,13 +662,13 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         python_config['port'] = port
 
         plugins = python_config['configurations']['pyls']['plugins']
-        plugins['pycodestyle'] = pycodestyle
-        plugins['pyflakes'] = pyflakes
-        plugins['pydocstyle'] = pydocstyle
-        plugins['jedi'] = jedi
-        plugins['jedi_completion'] = jedi_completion
-        plugins['jedi_signature_help'] = jedi_signature_help
-        plugins['jedi_definition'] = jedi_definition
+        plugins['pycodestyle'].update(pycodestyle)
+        plugins['pyflakes'].update(pyflakes)
+        plugins['pydocstyle'].update(pydocstyle)
+        plugins['jedi'].update(jedi)
+        plugins['jedi_completion'].update(jedi_completion)
+        plugins['jedi_signature_help'].update(jedi_signature_help)
+        plugins['jedi_definition'].update(jedi_definition)
         plugins['preload']['modules'] = self.get_option('preload_modules')
 
         return python_config
