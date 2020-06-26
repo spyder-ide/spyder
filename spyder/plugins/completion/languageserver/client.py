@@ -437,7 +437,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 'params': params
             }
 
-        logger.debug('{} request: {}'.format(self.language, method))
+        logger.debug('Perform request {0} with id {1}'.format(method, _id))
 
         # Try sending a message. If the send queue is full, keep trying for a
         # a second before giving up.

@@ -42,6 +42,7 @@ def editor_splitter_bot(qtbot):
     """Create editor splitter."""
     es = EditorSplitter(None, Mock(), [], first=True)
     qtbot.addWidget(es)
+    es.resize(640, 480)
     es.show()
     return es
 
@@ -95,6 +96,7 @@ def editor_splitter_lsp(qtbot_module, lsp_plugin, request):
     mock_plugin.clone_editorstack.side_effect = partial(
         clone, template=editorsplitter.editorstack)
     qtbot_module.addWidget(editorsplitter)
+    editorsplitter.resize(640, 480)
     editorsplitter.show()
 
     def teardown():

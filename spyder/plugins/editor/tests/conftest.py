@@ -101,13 +101,28 @@ def editor_plugin_open_files(request, editor_plugin, python_files):
                                expected_current_filename):
         editor = editor_plugin
         expected_filenames, tmpdir = python_files
+
         if expected_current_filename is None:
             expected_current_filename = expected_filenames[0]
         expected_current_filename = osp.join(tmpdir, expected_current_filename)
+
         options_dict = {
+            # For tests
             'filenames': expected_filenames,
             'max_recent_files': 20,
-            }
+            # To make tests pass
+            'indent_chars': '*    *',
+            'show_tab_bar': True,
+            'code_folding': True,
+            'edge_line': True,
+            'indent_guides': False,
+            'scroll_past_end': False,
+            'line_numbers': True,
+            'occurrence_highlighting/timeout': 1500,
+            'tab_stop_width_spaces': 4,
+            'show_class_func_dropdown': False,
+        }
+
         if last_focused_filename is not None:
             splitsettings = [(False,
                               osp.join(tmpdir, last_focused_filename),
