@@ -264,7 +264,7 @@ class HistoryWidget(PluginMainWidget):
             linenumbers=self.get_option('line_numbers'),
             language=language,
             scrollflagarea=False,
-            debug_panel=False,
+            show_debug_panel=False,
         )
         editor.setReadOnly(True)
         editor.toggle_wrap_mode(self.get_option('wrap'))
