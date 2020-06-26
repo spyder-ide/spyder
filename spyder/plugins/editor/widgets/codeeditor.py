@@ -1132,6 +1132,9 @@ class CodeEditor(TextEditBaseWidget):
             symbols = params['params']
             if symbols:
                 self.classfuncdropdown.update_data(symbols)
+                print(f'Outline Explorer Proxy: {self.oe_proxy}')
+                if self.oe_proxy is not None:
+                    self.oe_proxy.update_outline_info(symbols)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
