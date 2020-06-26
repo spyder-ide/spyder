@@ -266,9 +266,15 @@ class Projects(SpyderPluginWidget):
         dlg.sig_project_creation_requested.connect(self._create_project)
         dlg.sig_project_creation_requested.connect(self.sig_project_created)
         if dlg.exec_():
-            if (active_project is None
-                    and self.get_option('visible_if_project_open')):
-                self.show_explorer()
+            # A project was not open before
+            if active_project is None:
+                if self.get_option('visible_if_project_open'):
+                    self.show_explorer()
+            else:
+                # We are switching projects.
+                # TODO: Don't emit sig_project_closed when we support
+                # multiple workspaces.
+                self.sig_project_closed.emit(active_project.root_path)
             self.sig_pythonpath_changed.emit()
             self.restart_consoles()
 
@@ -311,6 +317,11 @@ class Projects(SpyderPluginWidget):
             if self.main.editor is not None:
                 self.set_project_filenames(
                     self.main.editor.get_open_filenames())
+
+            # TODO: Don't emit sig_project_closed when we support
+            # multiple workspaces.
+            self.sig_project_closed.emit(
+                self.current_active_project.root_path)
 
         project = EmptyProject(path)
         self.current_active_project = project
