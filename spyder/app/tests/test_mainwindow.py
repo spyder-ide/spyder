@@ -559,8 +559,8 @@ def test_get_help_ipython_console(main_window, qtbot):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-@pytest.mark.skipif(sys.platform == 'darwin',
-                    reason="Does not work on Mac!")
+@pytest.mark.skipif(not sys.platform.startswith('linux'),
+                    reason="Does not work on Mac and Windows!")
 @pytest.mark.use_introspection
 @pytest.mark.parametrize(
     "object_info",
