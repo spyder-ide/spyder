@@ -383,13 +383,13 @@ class ConsoleWidget(PluginMainWidget):
 
         if internal_plugins is None:
             internal_plugins = find_internal_plugins()
-        
+
         if internal_plugins:
             internal_plugin_names = []
             for __, val in internal_plugins.items():
                 name = getattr(val, 'NAME', getattr(val, 'CONF_SECTION'))
                 internal_plugin_names.append(name)
-    
+
             sender_name = getattr(val, 'NAME', getattr(val, 'CONF_SECTION'))
             is_internal_plugin = sender_name in internal_plugin_names
         else:
