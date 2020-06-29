@@ -16,12 +16,12 @@ import logging
 import os
 import os.path as osp
 import signal
-import subprocess
 import sys
 import time
 
 # Third-party imports
-from qtpy.QtCore import QObject, Signal, QSocketNotifier, Slot
+from qtpy.QtCore import (QObject, QProcess, QProcessEnvironment,
+                         QSocketNotifier, Signal, Slot)
 import zmq
 import psutil
 
@@ -29,7 +29,7 @@ import psutil
 from spyder.config.base import (DEV, get_conf_path, get_debug_level,
                                 running_under_pytest)
 from spyder.plugins.completion.languageserver import (
-    CLIENT_CAPABILITES, SERVER_CAPABILITES, TRACE,
+    CLIENT_CAPABILITES, SERVER_CAPABILITES,
     TEXT_DOCUMENT_SYNC_OPTIONS, LSPRequestTypes,
     ClientConstants)
 from spyder.plugins.completion.languageserver.decorators import (
@@ -38,7 +38,6 @@ from spyder.plugins.completion.languageserver.transport import MessageKind
 from spyder.plugins.completion.languageserver.providers import (
     LSPMethodProviderMixIn)
 from spyder.py3compat import PY2
-from spyder.utils.environ import clean_env
 from spyder.utils.misc import getcwd_or_home, select_port
 
 # Conditional imports
@@ -54,6 +53,10 @@ PENDING = 'pending'
 SERVER_READY = 'server_ready'
 LOCALHOST = '127.0.0.1'
 
+# Language server communication verbosity at server logs.
+TRACE = 'messages'
+if DEV:
+    TRACE = 'verbose'
 
 logger = logging.getLogger(__name__)
 
@@ -70,8 +73,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     sig_server_error = Signal(str)
 
     #: Signal to warn the user when either the transport layer or the
-    #  server are down
-    sig_lsp_down = Signal(str)
+    #  server went down
+    sig_went_down = Signal(str)
 
     def __init__(self, parent,
                  server_settings={},
@@ -83,8 +86,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.zmq_out_socket = None
         self.zmq_in_port = None
         self.zmq_out_port = None
-        self.transport_client = None
-        self.lsp_server = None
+        self.transport = None
+        self.server = None
         self.stdio_pid = None
         self.notifier = None
         self.language = language
@@ -96,6 +99,8 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.watched_files = {}
         self.watched_folders = {}
         self.req_reply = {}
+        self.server_unresponsive = False
+        self.transport_unresponsive = False
 
         # Select a free port to start the server.
         # NOTE: Don't use the new value to set server_setttings['port']!!
@@ -110,8 +115,6 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             self.server_port = server_settings['port']
         self.server_host = server_settings['host']
 
-        self.transport_args = [sys.executable, '-u',
-                               osp.join(LOCATION, 'transport', 'main.py')]
         self.external_server = server_settings.get('external', False)
         self.stdio = server_settings.get('stdio', False)
 
@@ -128,34 +131,106 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server_capabilites = SERVER_CAPABILITES
         self.context = zmq.Context()
 
-        server_args_fmt = server_settings.get('args', '')
-        server_args = server_args_fmt.format(
-            host=self.server_host,
-            port=self.server_port)
-        transport_args_fmt = '--server-host {host} --server-port {port} '
-        transport_args = transport_args_fmt.format(
-            host=self.server_host,
-            port=self.server_port)
+        # To set server args
+        self._server_args = server_settings.get('args', '')
+        self._server_cmd = server_settings['cmd']
 
-        self.server_args = []
+    def _get_log_filename(self, kind):
+        """
+        Get filename to redirect server or transport logs to in
+        debugging mode.
+
+        Parameters
+        ----------
+        kind: str
+            It can be "server" or "transport".
+        """
+        if get_debug_level() == 0:
+            return None
+
+        fname = '{0}_{1}_{2}.log'.format(kind, self.language, os.getpid())
+        location = get_conf_path(osp.join('lsp_logs', fname))
+
+        # Create directory that contains the file, in case it doesn't
+        # exist
+        if not osp.exists(osp.dirname(location)):
+            os.makedirs(osp.dirname(location))
+
+        return location
+
+    @property
+    def server_log_file(self):
+        """
+        Filename to redirect the server process stdout/stderr output.
+        """
+        return self._get_log_filename('server')
+
+    @property
+    def transport_log_file(self):
+        """
+        Filename to redirect the transport process stdout/stderr
+        output.
+        """
+        return self._get_log_filename('transport')
+
+    @property
+    def server_args(self):
+        """Arguments for the server process."""
+        args = []
         if self.language == 'python':
-            self.server_args += [sys.executable, '-m']
-        self.server_args += [server_settings['cmd']]
-        if len(server_args) > 0:
-            self.server_args += server_args.split(' ')
-        self.server_unresponsive = False
+            args += [sys.executable, '-m']
+        args += [self._server_cmd]
 
-        self.transport_args += transport_args.split(' ')
-        self.transport_args += ['--folder', folder]
-        self.transport_args += ['--transport-debug', str(get_debug_level())]
-        if not self.stdio:
-            self.transport_args += ['--external-server']
+        # Replace host and port placeholders
+        host_and_port = self._server_args.format(
+            host=self.server_host,
+            port=self.server_port)
+        if len(host_and_port) > 0:
+            args += host_and_port.split(' ')
+
+        if self.language == 'python' and get_debug_level() > 0:
+            args += ['--log-file', self.server_log_file]
+            if get_debug_level() == 2:
+                args.append('-v')
+            elif get_debug_level() == 3:
+                args.append('-vv')
+
+        return args
+
+    @property
+    def transport_args(self):
+        """Arguments for the transport process."""
+        args = [
+            sys.executable,
+            '-u',
+            osp.join(LOCATION, 'transport', 'main.py'),
+            '--folder', self.folder,
+            '--transport-debug', str(get_debug_level())
+        ]
+
+        # Replace host and port placeholders
+        host_and_port = '--server-host {host} --server-port {port} '.format(
+            host=self.server_host,
+            port=self.server_port)
+        args += host_and_port.split(' ')
+
+        # Add socket ports
+        args += ['--zmq-in-port', str(self.zmq_out_port),
+                 '--zmq-out-port', str(self.zmq_in_port)]
+
+        # Adjustments for stdio/tcp
+        if self.stdio:
+            args += ['--stdio-server']
+            if get_debug_level() > 0:
+                args += ['--server-log-file', self.server_log_file]
+            args += self.server_args
         else:
-            self.transport_args += ['--stdio-server']
-            self.external_server = True
-        self.transport_unresponsive = False
+            args += ['--external-server']
 
-    def start(self):
+        return args
+
+    def create_transport_sockets(self):
+        """Create PyZMQ sockets for transport."""
         self.zmq_out_socket = self.context.socket(zmq.PAIR)
         self.zmq_out_port = self.zmq_out_socket.bind_to_random_port(
             'tcp://{}'.format(LOCALHOST))
@@ -163,111 +238,105 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.zmq_in_socket.set_hwm(0)
         self.zmq_in_port = self.zmq_in_socket.bind_to_random_port(
             'tcp://{}'.format(LOCALHOST))
-        self.transport_args += ['--zmq-in-port', self.zmq_out_port,
-                                '--zmq-out-port', self.zmq_in_port]
 
-        # The server stdout needs to be set to 'None' by default on Windows
-        # to correctly handle errors that come from the server.
-        # Fixes spyder-ide/spyder#11506
-        server_log = None if os.name == 'nt' else subprocess.PIPE
+    @Slot(QProcess.ProcessError)
+    def handle_process_errors(self, error):
+        """Handle errors with the transport layer or server processes."""
+        self.sig_went_down.emit(self.language)
 
-        pid = os.getpid()
-        if get_debug_level() > 0:
-            # Create server log file
-            server_log_fname = 'server_{0}_{1}.log'.format(self.language, pid)
-            server_log_file = get_conf_path(osp.join('lsp_logs',
-                                                     server_log_fname))
-            if not osp.exists(osp.dirname(server_log_file)):
-                os.makedirs(osp.dirname(server_log_file))
-            server_log = open(server_log_file, 'w')
-            if self.stdio:
-                server_log.close()
-                if self.language == 'python':
-                    self.server_args += ['--log-file', server_log_file]
-                self.transport_args += ['--server-log-file', server_log_file]
+    def start_server(self):
+        """Start server."""
+        # This is not necessary if we're trying to connect to an
+        # external server
+        if self.external_server or self.stdio:
+            return
 
-            # Start server with logging options
-            if self.language == 'python':
-                if get_debug_level() == 2:
-                    self.server_args.append('-v')
-                elif get_debug_level() == 3:
-                    self.server_args.append('-vv')
+        logger.info('Starting server: {0}'.format(' '.join(self.server_args)))
 
-        server_stdin = subprocess.PIPE
-        server_stdout = server_log
-        server_stderr = subprocess.STDOUT
+        # Create server process
+        self.server = QProcess(self)
+        env = self.server.processEnvironment()
 
-        if not self.external_server:
-            logger.info('Starting server: {0}'.format(
-                ' '.join(self.server_args)))
-            creation_flags = 0
-            if os.name == 'nt':
-                creation_flags = (subprocess.CREATE_NEW_PROCESS_GROUP
-                                  | 0x08000000)  # CREATE_NO_WINDOW
-
-            if os.environ.get('CI') and os.name == 'nt':
-                # The following patching avoids:
-                #
-                # OSError: [WinError 6] The handle is invalid
-                #
-                # while running our tests in CI services on Windows
-                # (they run fine locally).
-                # See this comment for an explanation:
-                # https://stackoverflow.com/q/43966523/
-                # 438386#comment74964124_43966523
-                def patched_cleanup():
-                    pass
-                subprocess._cleanup = patched_cleanup
-
-            self.lsp_server = subprocess.Popen(
-                self.server_args,
-                stdout=server_stdout,
-                stdin=server_stdin,
-                stderr=server_stderr,
-                creationflags=creation_flags)
-
-        client_log = subprocess.PIPE
-        if get_debug_level() > 0:
-            # Client log file
-            client_log_fname = 'client_{0}_{1}.log'.format(self.language, pid)
-            client_log_file = get_conf_path(osp.join('lsp_logs',
-                                                     client_log_fname))
-            if not osp.exists(osp.dirname(client_log_file)):
-                os.makedirs(osp.dirname(client_log_file))
-            client_log = open(client_log_file, 'w')
-
-        new_env = dict(os.environ)
-        python_path = os.pathsep.join(sys.path)[1:]
-        new_env['PYTHONPATH'] = python_path
-
-        # This allows running LSP tests directly without having to install
-        # Spyder
-        if running_under_pytest():
-            new_env['PYTHONPATH'] = os.pathsep.join(sys.path)[:]
-
-        # On some CI systems there are unicode characters inside PYTHOPATH
-        # which raise errors if not removed
-        if PY2:
-            new_env = clean_env(new_env)
-
-        self.transport_args = list(map(str, self.transport_args))
-        logger.info('Starting transport: {0}'
-                    .format(' '.join(self.transport_args)))
-        if self.stdio:
-            transport_stdin = subprocess.PIPE
-            transport_stdout = subprocess.PIPE
-            transport_stderr = client_log
-            self.transport_args += self.server_args
+        # Adjustments for the Python language server.
+        if self.language == 'python':
+            # Set the PyLS current working to an empty dir inside
+            # our config one. This avoids the server to pick up user
+            # files such as random.py or string.py instead of the
+            # standard library modules named the same.
+            cwd = get_conf_path('empty_cwd')
+            if not osp.exists(cwd):
+                os.mkdir(cwd)
         else:
-            transport_stdout = client_log
-            transport_stdin = subprocess.PIPE
-            transport_stderr = subprocess.STDOUT
-        self.transport_client = subprocess.Popen(self.transport_args,
-                                                 stdout=transport_stdout,
-                                                 stdin=transport_stdin,
-                                                 stderr=transport_stderr,
-                                                 env=new_env)
+            # There's no need to define a cwd for other servers.
+            cwd = None
 
+            # Most LSP servers spawn other processes, which may require
+            # some environment variables.
+            for var in os.environ:
+                env.insert(var, os.environ[var])
+            logger.info('Server process env variables: {0}'.format(env.keys()))
+
+        # Setup server
+        self.server.setProcessEnvironment(env)
+        self.server.errorOccurred.connect(self.handle_process_errors)
+        self.server.setWorkingDirectory(cwd)
+        self.server.setProcessChannelMode(QProcess.MergedChannels)
+        if self.server_log_file is not None:
+            self.server.setStandardOutputFile(self.server_log_file)
+
+        # Start server
+        self.server.start(self.server_args[0], self.server_args[1:])
+
+    def start_transport(self):
+        """Start transport layer."""
+        logger.info('Starting transport for {1}: {0}'
+                    .format(' '.join(self.transport_args), self.language))
+
+        # Create transport process
+        self.transport = QProcess(self)
+        env = self.transport.processEnvironment()
+
+        # Most LSP servers spawn other processes other than Python, which may
+        # require some environment variables
+        if self.language != 'python' and self.stdio:
+            for var in os.environ:
+                env.insert(var, os.environ[var])
+            logger.info('Transport process env variables: {0}'.format(
+                env.keys()))
+
+        self.transport.setProcessEnvironment(env)
+
+        # Modifying PYTHONPATH to run transport in development mode or
+        # tests
+        if DEV or running_under_pytest():
+            if running_under_pytest():
+                env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
+            else:
+                env.insert('PYTHONPATH', os.pathsep.join(sys.path)[1:])
+            self.transport.setProcessEnvironment(env)
+
+        # Set up transport
+        self.transport.errorOccurred.connect(self.handle_process_errors)
+        if self.stdio:
+            self.transport.setProcessChannelMode(QProcess.SeparateChannels)
+            if self.transport_log_file is not None:
+                self.transport.setStandardErrorFile(self.transport_log_file)
+        else:
+            self.transport.setProcessChannelMode(QProcess.MergedChannels)
+            if self.transport_log_file is not None:
+                self.transport.setStandardOutputFile(self.transport_log_file)
+
+        # Start transport
+        self.transport.start(self.transport_args[0], self.transport_args[1:])
+
+    def start(self):
+        """Start client."""
+        # NOTE: DO NOT change the order in which these methods are called.
+        self.create_transport_sockets()
+        self.start_server()
+        self.start_transport()
+
+        # Create notifier
         fid = self.zmq_in_socket.getsockopt(zmq.FD)
         self.notifier = QSocketNotifier(fid, QSocketNotifier.Read, self)
         self.notifier.activated.connect(self.on_msg_received)
@@ -276,74 +345,75 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         logger.debug('LSP {} client started!'.format(self.language))
 
     def stop(self):
+        """Stop transport and server."""
         logger.info('Stopping {} client...'.format(self.language))
         if self.notifier is not None:
             self.notifier.activated.disconnect(self.on_msg_received)
             self.notifier.setEnabled(False)
             self.notifier = None
-        if self.transport_client is not None:
-            self.transport_client.kill()
+        if self.transport is not None:
+            self.transport.kill()
         self.context.destroy()
-        if self.lsp_server is not None:
-            self.lsp_server.kill()
+        if self.server is not None:
+            self.server.kill()
 
     def is_transport_alive(self):
         """Detect if transport layer is alive."""
-        alive = True
-        if self.transport_client is not None:
-            if self.transport_client.poll() is not None:
-                alive = False
-
-        return alive
+        state = self.transport.state()
+        return state != QProcess.NotRunning
 
     def is_stdio_alive(self):
         """Check if an stdio server is alive."""
         alive = True
-        if self.stdio_pid is not None:
-            if not psutil.pid_exists(self.stdio_pid):
+        if not psutil.pid_exists(self.stdio_pid):
+            alive = False
+        else:
+            try:
+                pid_status = psutil.Process(self.stdio_pid).status()
+            except psutil.NoSuchProcess:
+                pid_status = ''
+            if pid_status == psutil.STATUS_ZOMBIE:
                 alive = False
-            else:
-                try:
-                    pid_status = psutil.Process(self.stdio_pid).status()
-                except psutil.NoSuchProcess:
-                    pid_status = ''
-                if pid_status == psutil.STATUS_ZOMBIE:
-                    alive = False
-
         return alive
 
-    def is_tcp_alive(self):
+    def is_server_alive(self):
         """Detect if a tcp server is alive."""
-        alive = True
-        if self.lsp_server is not None:
-            if self.lsp_server.poll() is not None:
-                alive = False
+        state = self.server.state()
+        return state != QProcess.NotRunning
 
-        return alive
-
-    def send(self, method, params, kind):
-        # Detect when the transport layer is down to show a message
-        # to our users about it.
-        if not self.is_transport_alive():
+    def is_down(self):
+        """
+        Detect if the transport layer or server are down to inform our
+        users about it.
+        """
+        is_down = False
+        if self.transport and not self.is_transport_alive():
             logger.debug(
                 "Transport layer for {} is down!!".format(self.language))
             if not self.transport_unresponsive:
                 self.transport_unresponsive = True
-                self.sig_lsp_down.emit(self.language)
-            return
+                self.sig_went_down.emit(self.language)
+            is_down = True
 
-        if not self.is_tcp_alive():
+        if self.server and not self.is_server_alive():
             logger.debug("LSP server for {} is down!!".format(self.language))
             if not self.server_unresponsive:
                 self.server_unresponsive = True
-                self.sig_lsp_down.emit(self.language)
-            return
+                self.sig_went_down.emit(self.language)
+            is_down = True
 
-        if not self.is_stdio_alive():
+        if self.stdio_pid and not self.is_stdio_alive():
             logger.debug("LSP server for {} is down!!".format(self.language))
             if not self.server_unresponsive:
                 self.server_unresponsive = True
-                self.sig_lsp_down.emit(self.language)
+                self.sig_went_down.emit(self.language)
+            is_down = True
+
+        return is_down
+
+    def send(self, method, params, kind):
+        """Send message to transport."""
+        if self.is_down():
             return
 
         if ClientConstants.CANCEL in params:
@@ -367,7 +437,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 'params': params
             }
 
-        logger.debug('{} request: {}'.format(self.language, method))
+        logger.debug('Perform request {0} with id {1}'.format(method, _id))
 
         # Try sending a message. If the send queue is full, keep trying for a
         # a second before giving up.
@@ -381,7 +451,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
                 return int(_id)
             except zmq.error.Again:
                 if time.time() > timeout_time:
-                    self.sig_lsp_down.emit(self.language)
+                    self.sig_went_down.emit(self.language)
                     return
                 # The send queue is full! wait 0.1 seconds before retrying.
                 if self.initialized:
@@ -390,6 +460,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     @Slot()
     def on_msg_received(self):
+        """Process received messages."""
         self.notifier.setEnabled(False)
         while True:
             try:
@@ -464,7 +535,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     @send_request(method=LSPRequestTypes.INITIALIZE)
     def initialize(self, params, *args, **kwargs):
         self.stdio_pid = params['pid']
-        pid = self.transport_client.pid if not self.external_server else None
+        pid = self.transport.processId() if not self.external_server else None
         params = {
             'processId': pid,
             'rootUri': pathlib.Path(osp.abspath(self.folder)).as_uri(),
@@ -509,6 +580,17 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
     def initialized_call(self):
         params = {}
         return params
+
+    # ------ Settings queries --------------------------------
+    @property
+    def support_multiple_workspaces(self):
+        workspace_settings = self.server_capabilites['workspace']
+        return workspace_settings['workspaceFolders']['supported']
+
+    @property
+    def support_workspace_update(self):
+        workspace_settings = self.server_capabilites['workspace']
+        return workspace_settings['workspaceFolders']['changeNotifications']
 
 
 def test():

@@ -14,7 +14,7 @@ jobs:
 
   python3-test:
     docker:
-      - image: "python:3.5-stretch"
+      - image: "python:3.6-stretch"
     steps:
       - checkout
       # To test Jedi environments
@@ -35,7 +35,7 @@ jobs:
 
   publish:
     docker:
-      - image: "python:3.5-stretch"
+      - image: "python:3.6-stretch"
     steps:
       - checkout
       - run: ./scripts/circle/pypi.sh

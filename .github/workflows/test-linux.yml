@@ -53,6 +53,9 @@ jobs:
           - INSTALL_TYPE: 'pip'
             PYTHON_VERSION: '2.7'
             TEST_TYPE: 'slow'
+          - INSTALL_TYPE: 'conda'
+            PYTHON_VERSION: '2.7'
+            TEST_TYPE: 'slow'
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
@@ -76,22 +79,30 @@ jobs:
       - name: Install dependencies
         if: env.RUN_BUILD == 'true'
         shell: bash
-        run: sudo apt-get install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev libegl1-mesa libxkbcommon-x11-0
+        run: sudo apt-get install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev libegl1-mesa libxkbcommon-x11-0 xterm
+      - name: Cache conda
+        uses: actions/cache@v1
+        env:
+          # Increase this value to reset cache if requirements/*.txt has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key: ${{ runner.os }}-cacheconda-install${{ matrix.INSTALL_TYPE }}-${{ matrix.PYTHON_VERSION }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.txt') }}
       - name: Cache pip
         if: env.RUN_BUILD == 'true'
         uses: actions/cache@v1
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/*.txt') }}
-          restore-keys: ${{ runner.os }}-pip-
+          key: ${{ runner.os }}-cachepip-install${{ matrix.INSTALL_TYPE }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('requirements/*.txt') }}
       - name: Install Conda
         if: env.RUN_BUILD == 'true'
         uses: goanpeca/setup-miniconda@v1
         with:
-           activate-environment: test
-           auto-update-conda: true
-           auto-activate-base: false
-           python-version: ${{ matrix.PYTHON_VERSION }} 
+          activate-environment: test
+          auto-update-conda: true
+          auto-activate-base: false
+          python-version: ${{ matrix.PYTHON_VERSION }}
+          use-only-tar-bz2: true
       - name: Create test environment
         if: env.RUN_BUILD == 'true'
         shell: bash -l {0}

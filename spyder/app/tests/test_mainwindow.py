@@ -839,8 +839,12 @@ def test_connection_to_external_kernel(main_window, qtbot):
     assert nsb.editor.source_model.rowCount() == 1
 
     # Shutdown the kernels
+    spykm.stop_restarter()
+    km.stop_restarter()
     spykm.shutdown_kernel(now=True)
     km.shutdown_kernel(now=True)
+    spykc.stop_channels()
+    kc.stop_channels()
 
 
 @pytest.mark.slow
@@ -2418,6 +2422,60 @@ def test_preferences_change_font_regression(main_window, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(
+    sys.platform == 'darwin',
+    reason="Changes of Shitf+Return shortcut cause an ambiguos shortcut")
+def test_preferences_empty_shortcut_regression(main_window, qtbot):
+    """
+    Test for spyder-ide/spyder/#12992 regression.
+
+    Overwritting shortcuts results in a shortcuts conflict.
+    """
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Setup shortcuts (set run cell and advance shortcut to run selection)
+    base_run_cell_advance = CONF.get_shortcut(
+        'editor', 'run cell and advance')  # Should be Shift+Return
+    base_run_selection = CONF.get_shortcut(
+        'editor', 'run selection')  # Should be F9
+    assert base_run_cell_advance == 'Shift+Return'
+    assert base_run_selection == 'F9'
+    CONF.set_shortcut(
+        'editor', 'run cell and advance', '')
+    CONF.set_shortcut(
+        'editor', 'run selection', base_run_cell_advance)
+    main_window.apply_shortcuts()
+
+    # Check execution of shortcut
+    # Create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(u'print(0)\nprint(ññ)')
+
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.waitUntil(lambda: u'print(0)' in shell._control.toPlainText())
+    assert u'ññ' not in shell._control.toPlainText()
+
+    # Reset shortcuts
+    CONF.set_shortcut(
+        'editor', 'run selection', 'F9')
+    CONF.set_shortcut(
+        'editor', 'run cell and advance', 'Shift+Return')
+    main_window.apply_shortcuts()
+    qtbot.wait(500)  # Wait for shortcut change to actually be applied
+
+    # Check shortcut run cell and advance reset
+    code_editor.setFocus()
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.waitUntil(lambda: 'runcell(0' in shell._control.toPlainText())
+
+
+@pytest.mark.slow
 def test_preferences_shortcut_reset_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#11132 regression.
@@ -3174,6 +3232,121 @@ def test_post_mortem(main_window, qtbot, tmpdir):
             "runfile(" + repr(str(test_file)) + ", post_mortem=True)")
 
     assert "ipdb>" in control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_run_unsaved_file_multiprocessing(main_window, qtbot):
+    """Test that we can run an unsaved file with multiprocessing."""
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    run_action = main_window.run_toolbar_actions[0]
+    run_button = main_window.run_toolbar.widgetForAction(run_action)
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(
+        "import multiprocessing\n"
+        "import traceback\n"
+        'if __name__ is "__main__":\n'
+        "    p = multiprocessing.Process(target=traceback.print_exc)\n"
+        "    p.start()\n"
+        "    p.join()\n"
+    )
+    # This code should run even on windows
+
+    # Start running
+    qtbot.mouseClick(run_button, Qt.LeftButton)
+
+    # Because multiprocessing is behaving strangly on windows, only some
+    # situations will work. This is one of these situations so it shouldn't
+    # be broken.
+    if os.name == 'nt':
+        qtbot.waitUntil(
+            lambda: "Warning: multiprocessing" in shell._control.toPlainText())
+    else:
+        # There is no exception, so the exception is None
+        qtbot.waitUntil(
+            lambda: 'None' in shell._control.toPlainText())
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_varexp_cleared_after_kernel_restart(main_window, qtbot):
+    """
+    Test that the variable explorer is cleared after a kernel restart.
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = main_window.ipyconsole.get_focus_widget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Create a variable
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
+
+    # Assert the value is shown in the variable explorer
+    nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.waitUntil(lambda: 'a' in nsb.editor.source_model._data,
+                    timeout=3000)
+
+    # Restart Kernel
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=10000):
+        shell.ipyclient.restart_kernel()
+
+    # Assert the value was removed
+    qtbot.waitUntil(lambda: 'a' not in nsb.editor.source_model._data,
+                    timeout=3000)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_varexp_cleared_after_reset(main_window, qtbot):
+    """
+    Test that the variable explorer is cleared after triggering a
+    reset in the IPython console and variable explorer panes.
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    control = main_window.ipyconsole.get_focus_widget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Create a variable
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
+
+    # Assert the value is shown in the variable explorer
+    nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.waitUntil(lambda: 'a' in nsb.editor.source_model._data,
+                    timeout=3000)
+
+    # Trigger a reset in the variable explorer
+    nsb.reset_namespace()
+
+    # Assert the value was removed
+    qtbot.waitUntil(lambda: 'a' not in nsb.editor.source_model._data,
+                    timeout=3000)
+
+    # Create the variable again
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
+
+    # Assert the value is shown in the variable explorer
+    nsb = main_window.variableexplorer.get_focus_widget()
+    qtbot.waitUntil(lambda: 'a' in nsb.editor.source_model._data,
+                    timeout=3000)
+
+    # Trigger a reset in the console
+    shell.ipyclient.reset_namespace()
+
+    # Assert the value was removed
+    qtbot.waitUntil(lambda: 'a' not in nsb.editor.source_model._data,
+                    timeout=3000)
 
 
 if __name__ == "__main__":

@@ -1361,7 +1361,7 @@ class MainWindow(QMainWindow):
 
             # If no project is active, load last session
             if self.projects.get_active_project() is None:
-                self.editor.setup_open_files()
+                self.editor.setup_open_files(close_previous_files=False)
 
         # Connect Editor to Kite completions plugin status
         self.editor.kite_completions_file_status()
@@ -1395,6 +1395,7 @@ class MainWindow(QMainWindow):
             window = self.window().windowHandle()
             window.screenChanged.connect(self.handle_new_screen)
             self.screen = self.window().windowHandle().screen()
+            self.current_dpi = self.screen.logicalDotsPerInch()
             self.screen.logicalDotsPerInchChanged.connect(
                 self.show_dpi_change_message)
 
@@ -1412,12 +1413,19 @@ class MainWindow(QMainWindow):
         self.screen = screen
         self.screen.logicalDotsPerInchChanged.connect(
             self.show_dpi_change_message)
+        if self.current_dpi != screen.logicalDotsPerInch():
+            self.show_dpi_change_message(screen.logicalDotsPerInch())
 
-    def show_dpi_change_message(self):
+    def show_dpi_change_message(self, dpi):
         """Show message to restart Spyder since the DPI scale changed."""
         self.screen.logicalDotsPerInchChanged.disconnect(
             self.show_dpi_change_message)
 
+        if self.current_dpi == dpi:
+            # Reconnect DPI scale changes to show a restart message
+            self.screen.logicalDotsPerInchChanged.connect(
+                self.show_dpi_change_message)
+            return
         if not self.show_dpi_message:
             return
 
@@ -1442,15 +1450,16 @@ class MainWindow(QMainWindow):
               "</tt><br><br>in <tt>Preferences > General > Interface</tt>, "
               "in case Spyder is not displayed correctly.<br><br>"
               "Do you want to restart Spyder?"))
-        yes_button = msgbox.addButton(QMessageBox.Yes)
-        msgbox.addButton(QMessageBox.No)
+        restart_button = msgbox.addButton(_('Restart now'), QMessageBox.NoRole)
+        dismiss_button = msgbox.addButton(_('Dismiss'), QMessageBox.NoRole)
         msgbox.setCheckBox(dismiss_box)
+        msgbox.setDefaultButton(dismiss_button)
         msgbox.exec_()
 
         if dismiss_box.isChecked():
             self.show_dpi_message = False
 
-        if msgbox.clickedButton() == yes_button:
+        if msgbox.clickedButton() == restart_button:
             # Activate HDPI auto-scaling option since is needed for a proper
             # display when using OS scaling
             CONF.set('main', 'normal_screen_resolution', False)
@@ -1459,6 +1468,8 @@ class MainWindow(QMainWindow):
             self.restart()
         else:
             # Reconnect DPI scale changes to show a restart message
+            # also update current dpi for future checks
+            self.current_dpi = dpi
             self.screen.logicalDotsPerInchChanged.connect(
                 self.show_dpi_change_message)
 
@@ -3247,23 +3258,27 @@ class MainWindow(QMainWindow):
 
             if shortcut_sequence:
                 keyseq = QKeySequence(shortcut_sequence)
-                try:
-                    if isinstance(qobject, QAction):
-                        if (sys.platform == 'darwin'
-                                and qobject._shown_shortcut == 'missing'):
-                            qobject._shown_shortcut = keyseq
-                        else:
-                            qobject.setShortcut(keyseq)
+            else:
+                # Needed to remove old sequences that were cleared.
+                # See spyder-ide/spyder#12992
+                keyseq = QKeySequence()
+            try:
+                if isinstance(qobject, QAction):
+                    if (sys.platform == 'darwin'
+                            and qobject._shown_shortcut == 'missing'):
+                        qobject._shown_shortcut = keyseq
+                    else:
+                        qobject.setShortcut(keyseq)
 
-                        if add_shortcut_to_tip:
-                            add_shortcut_to_tooltip(qobject, context, name)
+                    if add_shortcut_to_tip:
+                        add_shortcut_to_tooltip(qobject, context, name)
 
-                    elif isinstance(qobject, QShortcut):
-                        qobject.setKey(keyseq)
+                elif isinstance(qobject, QShortcut):
+                    qobject.setKey(keyseq)
 
-                except RuntimeError:
-                    # Object has been deleted
-                    toberemoved.append(index)
+            except RuntimeError:
+                # Object has been deleted
+                toberemoved.append(index)
 
         for index in sorted(toberemoved, reverse=True):
             self.shortcut_data.pop(index)

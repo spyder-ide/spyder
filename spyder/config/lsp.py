@@ -70,7 +70,9 @@ PYTHON_CONFIG = {
                 },
                 'jedi_completion': {
                     'enabled': True,
-                    'include_params': True
+                    'include_params': False,
+                    'include_class_objects': False,
+                    'fuzzy': False
                 },
                 'jedi_definition': {
                     'enabled': True,
@@ -103,6 +105,9 @@ PYTHON_CONFIG = {
                 'pylint': {
                     'enabled': False,
                     'args': []
+                },
+                'flake8': {
+                     'enabled': False,
                 }
             },
 

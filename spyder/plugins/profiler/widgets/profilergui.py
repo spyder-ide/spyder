@@ -393,7 +393,7 @@ def gettime_s(text):
         tmp = float(res[0])
         if res[1] == 'ns':
             tmp *= 1e-9
-        elif res[1] == 'us':
+        elif res[1] == u'\u03BCs':
             tmp *= 1e-6
         elif res[1] == 'ms':
             tmp *= 1e-3
@@ -589,11 +589,11 @@ class ProfilerDataTree(QTreeWidget):
         if 1.e-9 < measure <= 1.e-6:
             measure = u"{0:.2f} ns".format(measure / 1.e-9)
         elif 1.e-6 < measure <= 1.e-3:
-            measure = u"{0:.2f} us".format(measure / 1.e-6)
+            measure = u"{0:.2f} \u03BCs".format(measure / 1.e-6)
         elif 1.e-3 < measure <= 1:
             measure = u"{0:.2f} ms".format(measure / 1.e-3)
         elif 1 < measure <= 60:
-            measure = u"{0:.2f} sec".format(measure)
+            measure = u"{0:.2f} s".format(measure)
         elif 60 < measure <= 3600:
             m, s = divmod(measure, 3600)
             if s > 60:

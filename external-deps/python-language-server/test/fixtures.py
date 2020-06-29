@@ -1,4 +1,5 @@
 # Copyright 2017 Palantir Technologies, Inc.
+import os
 import sys
 from mock import Mock
 import pytest
@@ -48,5 +49,25 @@ def config(workspace):  # pylint: disable=redefined-outer-name
 
 
 @pytest.fixture
-def doc():
-    return Document(DOC_URI, DOC)
+def doc(workspace):  # pylint: disable=redefined-outer-name
+    return Document(DOC_URI, workspace, DOC)
+
+
+@pytest.fixture
+def temp_workspace_factory(workspace):  # pylint: disable=redefined-outer-name
+    '''
+    Returns a function that creates a temporary workspace from the files dict.
+    The dict is in the format {"file_name": "file_contents"}
+    '''
+    def fn(files):
+        def create_file(name, content):
+            fn = os.path.join(workspace.root_path, name)
+            with open(fn, 'w') as f:
+                f.write(content)
+            workspace.put_document(uris.from_fs_path(fn), content)
+
+        for name, content in files.items():
+            create_file(name, content)
+        return workspace
+
+    return fn

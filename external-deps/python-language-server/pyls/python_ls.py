@@ -52,12 +52,13 @@ def start_tcp_lang_server(bind_addr, port, check_parent_process, handler_class):
     if not issubclass(handler_class, PythonLanguageServer):
         raise ValueError('Handler class must be an instance of PythonLanguageServer')
 
-    def shutdown_server(*args):
+    def shutdown_server(check_parent_process, *args):
         # pylint: disable=unused-argument
-        log.debug('Shutting down server')
-        # Shutdown call must be done on a thread, to prevent deadlocks
-        stop_thread = threading.Thread(target=server.shutdown)
-        stop_thread.start()
+        if check_parent_process:
+            log.debug('Shutting down server')
+            # Shutdown call must be done on a thread, to prevent deadlocks
+            stop_thread = threading.Thread(target=server.shutdown)
+            stop_thread.start()
 
     # Construct a custom wrapper class around the user's handler_class
     wrapper_class = type(
@@ -65,7 +66,7 @@ def start_tcp_lang_server(bind_addr, port, check_parent_process, handler_class):
         (_StreamHandlerWrapper,),
         {'DELEGATE_CLASS': partial(handler_class,
                                    check_parent_process=check_parent_process),
-         'SHUTDOWN_CALL': shutdown_server}
+         'SHUTDOWN_CALL': partial(shutdown_server, check_parent_process)}
     )
 
     server = socketserver.TCPServer((bind_addr, port), wrapper_class, bind_and_activate=False)
@@ -361,14 +362,37 @@ class PythonLanguageServer(MethodDispatcher):
             for doc_uri in workspace.documents:
                 self.lint(doc_uri, is_saved=False)
 
-    def m_workspace__did_change_workspace_folders(self, added=None, removed=None, **_kwargs):
+    def m_workspace__did_change_workspace_folders(self, event=None, **_kwargs):  # pylint: disable=too-many-locals
+        if event is None:
+            return
+        added = event.get('added', [])
+        removed = event.get('removed', [])
+
         for removed_info in removed:
-            removed_uri = removed_info['uri']
-            self.workspaces.pop(removed_uri)
+            if 'uri' in removed_info:
+                removed_uri = removed_info['uri']
+                self.workspaces.pop(removed_uri, None)
 
         for added_info in added:
-            added_uri = added_info['uri']
-            self.workspaces[added_uri] = Workspace(added_uri, self._endpoint, self.config)
+            if 'uri' in added_info:
+                added_uri = added_info['uri']
+                self.workspaces[added_uri] = Workspace(added_uri, self._endpoint, self.config)
+
+        root_workspace_removed = any(removed_info['uri'] == self.root_uri for removed_info in removed)
+        workspace_added = len(added) > 0 and 'uri' in added[0]
+        if root_workspace_removed and workspace_added:
+            added_uri = added[0]['uri']
+            self.root_uri = added_uri
+            self.workspace = self.workspaces[added_uri]
+        elif root_workspace_removed:
+            # NOTE: Removing the root workspace can only happen when the server
+            # is closed, thus the else condition of this if can never happen.
+            if self.workspaces:
+                log.debug('Root workspace deleted!')
+                available_workspaces = sorted(self.workspaces)
+                first_workspace = available_workspaces[0]
+                self.root_uri = first_workspace
+                self.workspace = self.workspaces[first_workspace]
 
         # Migrate documents that are on the root workspace and have a better
         # match now

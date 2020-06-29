@@ -122,7 +122,12 @@ def is_prefix_valid(text, offset, language):
     # such as emojis in the editor.
     # Fixes spyder-ide/spyder#11862
     utf16_diff = qstring_length(text) - len(text)
-    current_pos_text = text[offset - utf16_diff - 1]
+
+    new_offset = offset - utf16_diff - 1
+    if new_offset >= len(text) or new_offset < 0:
+        return False
+
+    current_pos_text = text[new_offset]
 
     empty_start = empty_regex.match(current_pos_text) is not None
     max_end = -1

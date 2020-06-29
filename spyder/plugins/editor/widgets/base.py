@@ -617,6 +617,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.insertText(text)
         cursor.endEditBlock()
 
+        self.document_did_change()
+
     def duplicate_line_down(self):
         """
         Copy current line or selected text and paste the duplicated text
@@ -639,7 +641,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         last_line = False
 
         # ------ Select text
-
         # Get selection start location
         cursor.setPosition(start_pos)
         cursor.movePosition(QTextCursor.StartOfBlock)
@@ -658,7 +659,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 last_line = True
 
         # ------ Stop if at document boundary
-
         cursor.setPosition(start_pos)
         if cursor.atStart() and not after_current_line:
             # Stop if selection is already at top of the file while moving up
@@ -676,10 +676,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             return
 
         # ------ Move text
-
         sel_text = to_text_string(cursor.selectedText())
         cursor.removeSelectedText()
-
 
         if after_current_line:
             # Shift selection down
@@ -709,6 +707,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.endEditBlock()
         self.setTextCursor(cursor)
         self.__restore_selection(start_pos, end_pos)
+
+        self.document_did_change()
 
     def move_line_up(self):
         """Move up current line or selected text"""

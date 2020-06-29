@@ -86,8 +86,8 @@ class CompletionManager(SpyderCompletionPlugin):
         self.started = False
         self.req_id = 0
         self.collection_mutex = QMutex(QMutex.Recursive)
-
-        self.update_configuration()
+        self.wait_for_ms = self.get_option('completions_wait_for_ms',
+                                           section='editor')
 
         for plugin in plugins:
             if plugin in self.BASE_PLUGINS:

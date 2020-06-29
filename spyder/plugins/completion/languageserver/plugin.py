@@ -107,28 +107,24 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 try:
                     self.clients_hearbeat[language].stop()
                     client['instance'].disconnect()
+                    client['instance'].stop()
                 except (TypeError, KeyError, RuntimeError):
                     pass
                 self.clients_hearbeat[language] = None
                 self.report_lsp_down(language)
 
-            # Check if the restart was successful
-            self.check_restart(client, language, kind='tcp')
-
-    def check_restart(self, client, language, kind):
+    def check_restart(self, client, language):
         """
         Check if a server restart was successful in order to stop
         further attempts.
-
-        `kind` can only be "tcp" or "stdio".
         """
         status = client['status']
-        if kind == 'tcp':
-            check = client['instance'].is_tcp_alive()
-        elif kind == 'stdio':
-            check = client['instance'].is_stdio_alive()
-        else:
-            check = False
+        instance = client['instance']
+
+        # This check is only necessary for stdio servers
+        check = True
+        if instance.stdio_pid:
+            check = instance.is_stdio_alive()
 
         if status == self.RUNNING and check:
             logger.info("Restart successful!")
@@ -146,10 +142,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         status = client['status']
         instance = client.get('instance', None)
         if instance is not None:
-            tcp_check = not instance.is_tcp_alive()
-            stdio_check = not instance.is_stdio_alive()
-            if (tcp_check or stdio_check or status != self.RUNNING):
-                instance.sig_lsp_down.emit(language)
+            if instance.is_down() or status != self.RUNNING:
+                instance.sig_went_down.emit(language)
 
     def set_status(self, language, status):
         """
@@ -162,15 +156,14 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """
         Update the status bar widget on client initilization.
         """
+        # Set status after the server was started correctly.
         if not self.clients_restarting.get(language, False):
             self.set_status(language, _('ready'))
 
-        # This is the only place where we can detect if restarting
-        # a stdio server was successful because its pid is updated
-        # on initialization.
+        # Set status after a restart.
         if self.clients_restarting.get(language):
             client = self.clients[language]
-            self.check_restart(client, language, kind='stdio')
+            self.check_restart(client, language)
 
     def handle_lsp_down(self, language):
         """
@@ -252,18 +245,39 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     @Slot()
     def project_path_update(self, project_path, update_kind):
         """
-        Send a new initialize message to each LSP server when the project
-        path has changed so they can update the respective server root paths.
+        Send a didChangeWorkspaceFolders request to each LSP server
+        when the project path changes so they can update their
+        respective root paths.
+
+        If the server doesn't support workspace updates, restart the
+        client with the new root path.
         """
-        self.main.projects.stop_lsp_services()
         for language in self.clients:
             language_client = self.clients[language]
             if language_client['status'] == self.RUNNING:
-                self.main.editor.stop_completion_services(language)
-                folder = self.get_root_path(language)
                 instance = language_client['instance']
-                instance.folder = folder
-                instance.initialize({'pid': instance.stdio_pid})
+                if (instance.support_multiple_workspaces and
+                        instance.support_workspace_update):
+                    logger.debug(
+                        u'Workspace folders change: {0} -> {1}'.format(
+                        project_path, update_kind)
+                    )
+                    instance.send_workspace_folders_change({
+                        'folder': project_path,
+                        'instance': self.main.projects,
+                        'kind': update_kind
+                    })
+                else:
+                    logger.debug(
+                        "{0}: LSP does not support multiple workspaces, "
+                        "restarting client!".format(instance.language)
+                    )
+                    self.main.projects.stop_lsp_services()
+                    self.main.editor.stop_completion_services(language)
+                    folder = self.get_root_path(language)
+                    instance.folder = folder
+                    self.close_client(language)
+                    self.start_client(language)
 
     @Slot(str)
     def report_server_error(self, error):
@@ -358,7 +372,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
     def start_client(self, language):
         """Start an LSP client for a given language."""
+        # To keep track if the client was started.
         started = False
+
         if language in self.clients:
             language_client = self.clients[language]
 
@@ -405,9 +421,11 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
                 self.register_client_instance(language_client['instance'])
 
+                # Register that a client was started.
                 logger.info("Starting LSP client for {}...".format(language))
                 language_client['instance'].start()
                 language_client['status'] = self.RUNNING
+                started = True
                 for entry in queue:
                     language_client['instance'].register_file(*entry)
                 self.register_queue[language] = []
@@ -418,15 +436,15 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """Register signals emmited by a client instance."""
         if self.main:
             self.main.sig_pythonpath_changed.connect(
-                self.update_configuration)
+                functools.partial(self.update_configuration, python_only=True))
             self.main.sig_main_interpreter_changed.connect(
-                self.update_configuration)
-            instance.sig_lsp_down.connect(self.handle_lsp_down)
+                functools.partial(self.update_configuration, python_only=True))
+            instance.sig_went_down.connect(self.handle_lsp_down)
             instance.sig_initialize.connect(self.on_initialize)
 
             if self.main.editor:
                 instance.sig_initialize.connect(
-                    self.main.editor.register_completion_server_settings)
+                    self.main.editor.register_completion_capabilities)
                 self.main.editor.sig_editor_focus_changed.connect(
                     self.status_widget.update_status)
             if self.main.console:
@@ -440,8 +458,18 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         for language in self.clients:
             self.close_client(language)
 
-    def update_configuration(self):
+    def update_configuration(self, python_only=False):
+        """
+        Update server configuration after changes done by the user
+        through Spyder's Preferences.
+
+        python_only: bool
+            Perform an update only for the Python language server.
+        """
         for language in self.get_languages():
+            if python_only and language != 'python':
+                continue
+
             client_config = {'status': self.STOPPED,
                              'config': self.get_language_config(language),
                              'instance': None}
@@ -634,13 +662,13 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         python_config['port'] = port
 
         plugins = python_config['configurations']['pyls']['plugins']
-        plugins['pycodestyle'] = pycodestyle
-        plugins['pyflakes'] = pyflakes
-        plugins['pydocstyle'] = pydocstyle
-        plugins['jedi'] = jedi
-        plugins['jedi_completion'] = jedi_completion
-        plugins['jedi_signature_help'] = jedi_signature_help
-        plugins['jedi_definition'] = jedi_definition
+        plugins['pycodestyle'].update(pycodestyle)
+        plugins['pyflakes'].update(pyflakes)
+        plugins['pydocstyle'].update(pydocstyle)
+        plugins['jedi'].update(jedi)
+        plugins['jedi_completion'].update(jedi_completion)
+        plugins['jedi_signature_help'].update(jedi_signature_help)
+        plugins['jedi_definition'].update(jedi_definition)
         plugins['preload']['modules'] = self.get_option('preload_modules')
 
         return python_config
