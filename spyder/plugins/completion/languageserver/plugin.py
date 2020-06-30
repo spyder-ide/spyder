@@ -241,9 +241,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             # and blocks the LSP server.
             # Instead we use an empty directory inside our config one,
             # just like we did for Rope in Spyder 3.
-            path = get_conf_path('lsp_root_path')
+            path = osp.join(get_conf_path(), 'lsp_paths', 'root_path')
             if not osp.exists(path):
-                os.mkdir(path)
+                os.makedirs(path)
 
         return path
 

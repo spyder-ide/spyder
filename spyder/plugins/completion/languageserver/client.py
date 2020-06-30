@@ -263,9 +263,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             # our config one. This avoids the server to pick up user
             # files such as random.py or string.py instead of the
             # standard library modules named the same.
-            cwd = get_conf_path('empty_cwd')
+            cwd = osp.join(get_conf_path(), 'lsp_paths', 'cwd')
             if not osp.exists(cwd):
-                os.mkdir(cwd)
+                os.makedirs(cwd)
         else:
             # There's no need to define a cwd for other servers.
             cwd = None
