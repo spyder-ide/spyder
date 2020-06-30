@@ -200,23 +200,44 @@ def test_root_workspace_removed(tmpdir, pyls):
 
 
 def test_workspace_loads_pycodestyle_config(pyls, tmpdir):
-    test_uri = str(tmpdir.mkdir('Test123'))
-    pyls.root_uri = test_uri
-    pyls.workspace._root_uri = test_uri
+    workspace1_dir = tmpdir.mkdir('Test123')
+    pyls.root_uri = str(workspace1_dir)
+    pyls.workspace._root_uri = str(workspace1_dir)
 
-    new_path = tmpdir.mkdir('NewTest456')
-    cfg = new_path.join("pycodestyle.cfg")
+    # Test that project settings are loaded
+    workspace2_dir = tmpdir.mkdir('NewTest456')
+    cfg = workspace2_dir.join("pycodestyle.cfg")
     cfg.write(
         "[pycodestyle]\n"
         "max-line-length = 1000"
     )
 
-    workspace1 = {'uri': test_uri}
-    workspace2 = {'uri': str(new_path)}
+    workspace1 = {'uri': str(workspace1_dir)}
+    workspace2 = {'uri': str(workspace2_dir)}
 
     event = {'added': [workspace2], 'removed': [workspace1]}
     pyls.m_workspace__did_change_workspace_folders(event)
 
-    seetings = pyls.workspaces[str(new_path)]._config.settings()
-
+    seetings = pyls.workspaces[str(workspace2_dir)]._config.settings()
     assert seetings['plugins']['pycodestyle']['maxLineLength'] == 1000
+
+    # Test that project settings prevail over server ones.
+    server_settings = {'pyls': {'plugins': {'pycodestyle': {'maxLineLength': 10}}}}
+    pyls.m_workspace__did_change_configuration(server_settings)
+    assert seetings['plugins']['pycodestyle']['maxLineLength'] == 1000
+
+    # Test switching to another workspace with different settings
+    workspace3_dir = tmpdir.mkdir('NewTest789')
+    cfg1 = workspace3_dir.join("pycodestyle.cfg")
+    cfg1.write(
+        "[pycodestyle]\n"
+        "max-line-length = 20"
+    )
+
+    workspace3 = {'uri': str(workspace3_dir)}
+
+    event = {'added': [workspace3], 'removed': [workspace2]}
+    pyls.m_workspace__did_change_workspace_folders(event)
+
+    seetings = pyls.workspaces[str(workspace3_dir)]._config.settings()
+    assert seetings['plugins']['pycodestyle']['maxLineLength'] == 20
