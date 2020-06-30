@@ -358,7 +358,7 @@ class PythonLanguageServer(MethodDispatcher):
         self.config.update((settings or {}).get('pyls', {}))
         for workspace_uri in self.workspaces:
             workspace = self.workspaces[workspace_uri]
-            workspace.update_config(self.config)
+            workspace.update_config(settings)
             for doc_uri in workspace.documents:
                 self.lint(doc_uri, is_saved=False)
 
@@ -376,14 +376,20 @@ class PythonLanguageServer(MethodDispatcher):
         for added_info in added:
             if 'uri' in added_info:
                 added_uri = added_info['uri']
-                self.workspaces[added_uri] = Workspace(added_uri, self._endpoint, self.config)
+                workspace_config = config.Config(
+                    added_uri, self.config._init_opts,
+                    self.config._process_id, self.config._capabilities)
+                self.workspaces[added_uri] = Workspace(
+                    added_uri, self._endpoint, workspace_config)
 
         root_workspace_removed = any(removed_info['uri'] == self.root_uri for removed_info in removed)
         workspace_added = len(added) > 0 and 'uri' in added[0]
         if root_workspace_removed and workspace_added:
             added_uri = added[0]['uri']
             self.root_uri = added_uri
-            self.workspace = self.workspaces[added_uri]
+            new_root_workspace = self.workspaces[added_uri]
+            self.config = new_root_workspace._config
+            self.workspace = new_root_workspace
         elif root_workspace_removed:
             # NOTE: Removing the root workspace can only happen when the server
             # is closed, thus the else condition of this if can never happen.
@@ -391,8 +397,10 @@ class PythonLanguageServer(MethodDispatcher):
                 log.debug('Root workspace deleted!')
                 available_workspaces = sorted(self.workspaces)
                 first_workspace = available_workspaces[0]
+                new_root_workspace = self.workspaces[first_workspace]
                 self.root_uri = first_workspace
-                self.workspace = self.workspaces[first_workspace]
+                self.config = new_root_workspace._config
+                self.workspace = new_root_workspace
 
         # Migrate documents that are on the root workspace and have a better
         # match now

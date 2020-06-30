@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/palantir/python-language-server.git
-	branch = develop
-	commit = c57bf8940411676ccc82c74e8a32227289cda30f
-	parent = 69bb0c54c9d3c4d44ac0c950bfdc9e2db0d1b0d4
+	branch = fix_multiple_workspace_config
+	commit = bbf1f4722211e292fe79abe4eb81e8a907e59319
+	parent = adbf95fd1f9ae83a0f195e064daa0409eb2f1150
 	method = merge
 	cmdver = 0.4.1

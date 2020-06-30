@@ -16,7 +16,8 @@ def pyls_settings():
 
 
 @hookimpl
-def pyls_lint(config, document):
+def pyls_lint(workspace, document):
+    config = workspace._config
     settings = config.plugin_settings('flake8')
     log.debug("Got flake8 settings: %s", settings)
 

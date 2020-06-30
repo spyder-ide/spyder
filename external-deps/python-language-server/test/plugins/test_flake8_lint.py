@@ -1,7 +1,6 @@
 # Copyright 2019 Palantir Technologies, Inc.
 import tempfile
 import os
-from test.test_utils import MockWorkspace
 from mock import patch
 from pyls import lsp, uris
 from pyls.plugins import flake8_lint
@@ -19,29 +18,29 @@ def using_const():
 """
 
 
-def temp_document(doc_text):
+def temp_document(doc_text, workspace):
     temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
     name = temp_file.name
     temp_file.write(doc_text)
     temp_file.close()
-    doc = Document(uris.from_fs_path(name), MockWorkspace())
+    doc = Document(uris.from_fs_path(name), workspace)
 
     return name, doc
 
 
-def test_flake8_no_checked_file(config, workspace):
+def test_flake8_no_checked_file(workspace):
     # A bad uri or a non-saved file may cause the flake8 linter to do nothing.
     # In this situtation, the linter will return an empty list.
 
     doc = Document('', workspace, DOC)
-    diags = flake8_lint.pyls_lint(config, doc)
+    diags = flake8_lint.pyls_lint(workspace, doc)
     assert 'Error' in diags[0]['message']
 
 
-def test_flake8_lint(config):
+def test_flake8_lint(workspace):
     try:
-        name, doc = temp_document(DOC)
-        diags = flake8_lint.pyls_lint(config, doc)
+        name, doc = temp_document(DOC, workspace)
+        diags = flake8_lint.pyls_lint(workspace, doc)
         msg = 'local variable \'a\' is assigned to but never used'
         unused_var = [d for d in diags if d['message'] == msg][0]
 
@@ -55,14 +54,14 @@ def test_flake8_lint(config):
         os.remove(name)
 
 
-def test_flake8_config_param(config):
+def test_flake8_config_param(workspace):
     with patch('pyls.plugins.flake8_lint.Popen') as popen_mock:
         mock_instance = popen_mock.return_value
         mock_instance.communicate.return_value = [bytes(), bytes()]
         flake8_conf = '/tmp/some.cfg'
-        config.update({'plugins': {'flake8': {'config': flake8_conf}}})
-        _name, doc = temp_document(DOC)
-        flake8_lint.pyls_lint(config, doc)
+        workspace._config.update({'plugins': {'flake8': {'config': flake8_conf}}})
+        _name, doc = temp_document(DOC, workspace)
+        flake8_lint.pyls_lint(workspace, doc)
         call_args = popen_mock.call_args.args[0]
         assert 'flake8' in call_args
         assert '--config={}'.format(flake8_conf) in call_args
