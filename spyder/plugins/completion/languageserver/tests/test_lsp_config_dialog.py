@@ -27,6 +27,7 @@ class MainWindowMock(QObject):
     def __init__(self):
         super(MainWindowMock, self).__init__(None)
         self.statusBar = Mock()
+        self.console = Mock()
 
 
 @pytest.mark.parametrize(
