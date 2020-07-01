@@ -1384,7 +1384,6 @@ class MainWindow(QMainWindow):
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
         self.menuBar().raise_()
-        self.is_setting_up = False
 
         # Handle DPI scale and window changes to show a restart message
         # Handle DPI scale and window changes to show a restart message.
@@ -1400,6 +1399,7 @@ class MainWindow(QMainWindow):
                 self.show_dpi_change_message)
 
         # Notify that the setup of the mainwindow was finished
+        self.is_setting_up = False
         self.sig_setup_finished.emit()
 
     def handle_new_screen(self, screen):
