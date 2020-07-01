@@ -1130,7 +1130,7 @@ class CollectionsEditorTableView(BaseTableView):
         self.source_model = CollectionsModelClass(self, data, title,
                                                   names=names,
                                                   minmax=minmax)
-        self.horizontalHeader().sortIndicatorChanged.connect(
+        self.horizontalHeader().sectionClicked.connect(
             self.source_model.load_all)
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
         self.model = self.proxy_model
@@ -1415,11 +1415,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
         self.shellwidget = shellwidget
         self.var_properties = {}
-
         self.dictfilter = None
-        self.source_model = None
         self.delegate = None
         self.readonly = False
+
         self.source_model = CollectionsModel(
             self, data, names=True,
             minmax=minmax,
@@ -1428,7 +1427,7 @@ class RemoteCollectionsEditorTableView(BaseTableView):
             show_special_attributes=show_special_attributes,
             remote=True)
 
-        self.horizontalHeader().sortIndicatorChanged.connect(
+        self.horizontalHeader().sectionClicked.connect(
             self.source_model.load_all)
 
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
