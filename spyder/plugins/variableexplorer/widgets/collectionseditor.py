@@ -624,38 +624,6 @@ class BaseTableView(QTableView):
         return menu
 
     # ------ Remote/local API -------------------------------------------------
-    def set_regex(self, regex=None, reset=False):
-        """Update the regex text for the variable finder."""
-        if reset or not self.finder.text():
-            text = ''
-        else:
-            text = self.finder.text().replace(' ', '').lower()
-
-        self.proxy_model.set_filter(text)
-        self.source_model.update_search_letters(text)
-
-        if text:
-            # TODO: Use constants for column numbers
-            self.sortByColumn(4, Qt.DescendingOrder)  # Col 4 for index
-
-        self.last_regex = regex
-
-    def next_row(self):
-        """Move to next row from currently selected row."""
-        row = self.currentIndex().row()
-        rows = self.proxy_model.rowCount()
-        if row + 1 == rows:
-            row = -1
-        self.selectRow(row + 1)
-
-    def previous_row(self):
-        """Move to previous row from currently selected row."""
-        row = self.currentIndex().row()
-        rows = self.proxy_model.rowCount()
-        if row == 0:
-            row = rows
-        self.selectRow(row - 1)
-
     def remove_values(self, keys):
         """Remove values from data"""
         raise NotImplementedError
@@ -1538,12 +1506,43 @@ class RemoteCollectionsEditorTableView(BaseTableView):
         else:
             sw.execute(command)
 
-    # -------------------------------------------------------------------------
-
+    # ------ Other ------------------------------------------------------------
     def setup_menu(self, minmax):
         """Setup context menu."""
         menu = BaseTableView.setup_menu(self, minmax)
         return menu
+
+    def set_regex(self, regex=None, reset=False):
+        """Update the regex text for the variable finder."""
+        if reset or not self.finder.text():
+            text = ''
+        else:
+            text = self.finder.text().replace(' ', '').lower()
+
+        self.proxy_model.set_filter(text)
+        self.source_model.update_search_letters(text)
+
+        if text:
+            # TODO: Use constants for column numbers
+            self.sortByColumn(4, Qt.DescendingOrder)  # Col 4 for index
+
+        self.last_regex = regex
+
+    def next_row(self):
+        """Move to next row from currently selected row."""
+        row = self.currentIndex().row()
+        rows = self.proxy_model.rowCount()
+        if row + 1 == rows:
+            row = -1
+        self.selectRow(row + 1)
+
+    def previous_row(self):
+        """Move to previous row from currently selected row."""
+        row = self.currentIndex().row()
+        rows = self.proxy_model.rowCount()
+        if row == 0:
+            row = rows
+        self.selectRow(row - 1)
 
 
 class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
