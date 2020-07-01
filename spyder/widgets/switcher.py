@@ -111,7 +111,9 @@ class SwitcherBaseItem(QStandardItem):
         self._height = self._get_height()
 
         # Setup
-        self.setSizeHint(QSize(0, self._height))
+        # self._height is a float from QSizeF but
+        # QSize() expects a QSize or (int, int) as parameters
+        self.setSizeHint(QSize(0, int(self._height)))
 
     def _render_text(self):
         """Render the html template for this item."""
@@ -156,7 +158,7 @@ class SwitcherBaseItem(QStandardItem):
         self._set_rendered_text()
 
     def is_action_item(self):
-        """Return wether the item is of action type."""
+        """Return whether the item is of action type."""
         return bool(self._action_item)
 
     # --- Qt overrides
@@ -183,7 +185,7 @@ class SwitcherSeparatorItem(SwitcherBaseItem):
         'font_size': 10,
     }
     _TEMPLATE = \
-        '''<table cellpadding="{padding}" cellspacing="0" width="{width}"
+        u'''<table cellpadding="{padding}" cellspacing="0" width="{width}"
                   height="{height}" border="0">
   <tr><td valign="top" align="center"><hr></td></tr>
 </table>'''
@@ -260,7 +262,8 @@ class SwitcherItem(SwitcherBaseItem):
         'section_font_size': _FONT_SIZE,
         'shortcut_font_size': _FONT_SIZE,
     }
-    _TEMPLATE = '''<table width="{width}" max_width="{width}" height="{height}"
+    _TEMPLATE = u'''
+<table width="{width}" max_width="{width}" height="{height}"
                           cellpadding="{padding}">
   <tr>
     <td valign="middle">
@@ -331,11 +334,16 @@ class SwitcherItem(SwitcherBaseItem):
             section = ''
 
         padding = self._PADDING
-        width = self._width - self._icon_width
-        height = self.get_height()
+        width = int(self._width - self._icon_width)
+        height = int(self.get_height())
         self.setSizeHint(QSize(width, height))
 
         shortcut = '&lt;' + self._shortcut + '&gt;' if self._shortcut else ''
+
+        title = to_text_string(title, encoding='utf-8')
+        section = to_text_string(section, encoding='utf-8')
+        description = to_text_string(description, encoding='utf-8')
+        shortcut = to_text_string(shortcut, encoding='utf-8')
 
         text = self._TEMPLATE.format(width=width, height=height, title=title,
                                      section=section, description=description,
@@ -762,7 +770,7 @@ class Switcher(QDialog):
             switcher_height = max(switcher_height, self._MIN_HEIGHT)
         else:
             switcher_height = self._MIN_HEIGHT
-        self.setFixedHeight(switcher_height)
+        self.setFixedHeight(int(switcher_height))
 
     def set_position(self, top):
         """Set the position of the dialog."""
@@ -907,6 +915,7 @@ def create_vcs_example_switcher(sw):
                 icon=ima.icon('MessageBoxInformation'))
     sw.add_item(title='master', description='123123')
     sw.add_item(title='develop', description='1231232a')
+    sw.add_item(title=u'test-试', description='1231232ab')
     sw.add_separator()
     sw.add_item(title='other', description='q2211231232a')
 

@@ -154,10 +154,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
-        # We use an object name to set the right background
-        # color when changing interface theme. This seems to
-        # be a Qt bug.
-        # Fixes spyder-ide/spyder#8072.
+        # To adjust some things for the internal console
         self.setObjectName('console')
 
         self.setMaximumBlockCount(300)

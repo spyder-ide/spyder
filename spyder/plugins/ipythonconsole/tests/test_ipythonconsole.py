@@ -12,6 +12,7 @@ Tests for the IPython console plugin.
 
 # Standard library imports
 import codecs
+from distutils.version import LooseVersion
 import os
 import os.path as osp
 import shutil
@@ -25,8 +26,8 @@ except ImportError:
 
 # Third party imports
 from IPython.core import release as ipy_release
+from IPython.core.application import get_ipython_dir
 from flaky import flaky
-from jupyter_client.kernelspec import KernelSpec
 from pygments.token import Name
 import pytest
 from qtpy import PYQT5
@@ -44,6 +45,7 @@ from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.plugin import IPythonConsole
 from spyder.plugins.ipythonconsole.utils.style import create_style_class
 from spyder.utils.programs import get_temp_dir
+from spyder.utils.conda import is_conda_env
 
 
 # =============================================================================
@@ -70,11 +72,21 @@ def get_console_background_color(style_sheet):
     return background_color
 
 
-class FaultyKernelSpec(KernelSpec):
-    """Kernelspec that generates a kernel crash"""
+def get_conda_test_env(test_env_name=u'spytest-ž'):
+    """Return the full prefix path of the given `test_env_name`."""
+    if 'envs' in sys.prefix:
+        root_prefix = os.path.dirname(os.path.dirname(sys.prefix))
+    else:
+        root_prefix = sys.prefix
 
-    argv = [sys.executable, '-m', 'spyder_kernels.foo', '-f',
-            '{connection_file}']
+    test_env_prefix = os.path.join(root_prefix, 'envs', test_env_name)
+
+    if os.name == 'nt':
+        test_env_executable = os.path.join(test_env_prefix, 'python.exe')
+    else:
+        test_env_executable = os.path.join(test_env_prefix, 'bin', 'python')
+
+    return test_env_executable
 
 
 # =============================================================================
@@ -146,6 +158,18 @@ def ipyconsole(qtbot, request):
         CONF.set('main_interpreter', 'default', True)
         CONF.set('main_interpreter', 'executable', '')
 
+    # Use the test environment interpreter if requested
+    test_environment_interpreter = request.node.get_closest_marker(
+        'test_environment_interpreter')
+
+    if test_environment_interpreter:
+        CONF.set('main_interpreter', 'default', False)
+        CONF.set('main_interpreter', 'executable', get_conda_test_env())
+    else:
+        CONF.set('main_interpreter', 'default', True)
+        CONF.set('main_interpreter', 'executable', '')
+
+
     # Create the console and a new client
     window = MainWindowMock()
     console = IPythonConsole(parent=window,
@@ -180,6 +204,7 @@ def ipyconsole(qtbot, request):
     # Close
     console.closing_plugin()
     console.close()
+    window.close()
 
 
 # =============================================================================
@@ -223,7 +248,8 @@ def test_banners(ipyconsole, qtbot):
       ["x", "/", "out"],
       ["Parameters<br>", "x : array_like ..."])]
     )
-@pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
+@pytest.mark.skipif(not os.name == 'nt',
+                    reason="Times out on macOS and fails on Linux")
 def test_get_calltips(ipyconsole, qtbot, function, signature, documentation):
     """Test that calltips show the documentation."""
     shell = ipyconsole.get_current_shellwidget()
@@ -294,7 +320,7 @@ def test_pylab_client(ipyconsole, qtbot):
     assert 'Error' not in control.toPlainText()
 
     # Reset the console namespace
-    shell.reset_namespace(warning=False)
+    shell.reset_namespace()
     qtbot.wait(1000)
 
     # See that `e` is still defined from numpy after reset
@@ -326,7 +352,7 @@ def test_sympy_client(ipyconsole, qtbot):
     assert 'NameError' not in control.toPlainText()
 
     # Reset the console namespace
-    shell.reset_namespace(warning=False)
+    shell.reset_namespace()
     qtbot.wait(1000)
 
     # See that `e` is still defined from sympy after reset
@@ -340,7 +366,10 @@ def test_sympy_client(ipyconsole, qtbot):
 
 @flaky(max_runs=3)
 @pytest.mark.cython_client
-@pytest.mark.skipif(os.name == 'nt', reason="It doesn't work on Windows")
+@pytest.mark.skipif(
+    (not sys.platform.startswith('linux') or
+     LooseVersion(ipy_release.version) == LooseVersion('7.11.0')),
+    reason="It only works reliably on Linux and fails for IPython 7.11.0")
 def test_cython_client(ipyconsole, qtbot):
     """Test that the Cython console is working correctly."""
     # Wait until the window is fully up
@@ -359,7 +388,7 @@ def test_cython_client(ipyconsole, qtbot):
     assert 'Error' not in control.toPlainText()
 
     # Reset the console namespace
-    shell.reset_namespace(warning=False)
+    shell.reset_namespace()
     qtbot.wait(1000)
 
     # See that cython is still enabled after reset
@@ -1057,7 +1086,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     assert shell.get_value('bb') == 10
 
-    shell.reset_namespace(warning=False)
+    shell.reset_namespace()
     qtbot.wait(1000)
 
     qtbot.keyClicks(control, '!bb')
@@ -1168,6 +1197,7 @@ def test_sys_argv_clear(ipyconsole, qtbot):
 
 
 @flaky(max_runs=5)
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_set_elapsed_time(ipyconsole, qtbot):
     """Test that the IPython console elapsed timer is set correctly."""
     shell = ipyconsole.get_current_shellwidget()
@@ -1270,16 +1300,15 @@ def test_stderr_file_remains_two_kernels(ipyconsole, qtbot, monkeypatch):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="It only works on Linux")
-def test_kernel_crash(ipyconsole, mocker, qtbot):
-    """Test that we show kernel error messages when a kernel crash occurs."""
-    # Patch create_kernel_spec method to make it return a faulty
-    # kernel spec
-    mocker.patch.object(ipyconsole, 'create_kernel_spec')
-    ipyconsole.create_kernel_spec.return_value = FaultyKernelSpec()
+def test_kernel_crash(ipyconsole, qtbot):
+    """Test that we show an error message when a kernel crash occurs."""
+    # Create an IPython kernel config file with a bad config
+    ipy_kernel_cfg = osp.join(get_ipython_dir(), 'profile_default',
+                              'ipython_kernel_config.py')
+    with open(ipy_kernel_cfg, 'w') as f:
+        # This option must be a string, not an int
+        f.write("c.InteractiveShellApp.extra_extension = 1")
 
-    # Create a new client, which will use FaultyKernelSpec
     ipyconsole.create_new_client()
 
     # Assert that the console is showing an error
@@ -1294,7 +1323,12 @@ def test_kernel_crash(ipyconsole, mocker, qtbot):
         webpage = webview.page()
     else:
         webpage = webview.page().mainFrame()
-    qtbot.waitUntil(lambda: check_text(webpage, "foo"), timeout=6000)
+    qtbot.waitUntil(
+        lambda: check_text(webpage, "Bad config encountered"),
+        timeout=6000)
+
+    # Remove bad kernel config file
+    os.remove(ipy_kernel_cfg)
 
 
 @pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
@@ -1491,9 +1525,9 @@ def test_pdb_multiline(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason="It only works on Linux")
-def test_pdb_ignore_lib(ipyconsole, qtbot):
+@pytest.mark.parametrize(
+    "show_lib", [True, False])
+def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
     """Test that pdb can avoid closed files."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
@@ -1504,7 +1538,7 @@ def test_pdb_ignore_lib(ipyconsole, qtbot):
     control.setFocus()
 
     # Tests assume inline backend
-    CONF.set('run', 'pdb_ignore_lib', False)
+    CONF.set('run', 'pdb_ignore_lib', not show_lib)
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
         qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
@@ -1517,26 +1551,166 @@ def test_pdb_ignore_lib(ipyconsole, qtbot):
         qtbot.keyClicks(control, 'q')
         qtbot.keyClick(control, Qt.Key_Enter)
 
-    assert 'iostream.py' in control.toPlainText()
-
-    shell.clear_console()
-    qtbot.wait(500)
-
-    # Tests assume inline backend
+    if show_lib:
+        assert 'iostream.py' in control.toPlainText()
+    else:
+        assert 'iostream.py' not in control.toPlainText()
     CONF.set('run', 'pdb_ignore_lib', True)
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'darwin', reason="Times out on macOS")
+def test_calltip(ipyconsole, qtbot):
+    """
+    Test Calltip.
+
+    See spyder-ide/spyder#10842
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
     with qtbot.waitSignal(shell.executed):
-        shell.execute('%debug print()')
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+        shell.execute('a = {"a": 1}')
+    qtbot.keyClicks(control, 'a.keys(', delay=100)
+    qtbot.wait(1000)
+    assert control.calltip_widget.isVisible()
 
-        qtbot.keyClicks(control, 's')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.wait(500)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
-        qtbot.keyClicks(control, 'q')
-        qtbot.keyClick(control, Qt.Key_Enter)
+@flaky(max_runs=3)
+@pytest.mark.first
+@pytest.mark.test_environment_interpreter
+def test_conda_env_activation(ipyconsole, qtbot):
+    """
+    Test that the conda environment associated with an external interpreter
+    is activated before a kernel is created for it.
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
 
-    assert 'iostream.py' not in control.toPlainText()
+    # Get conda activation environment variable
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(
+            "import os; conda_prefix = os.environ.get('CONDA_PREFIX')")
+
+    expected_output = get_conda_test_env().replace('\\', '/')
+    if is_conda_env(expected_output):
+        output = shell.get_value('conda_prefix').replace('\\', '/')
+        assert expected_output == output
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="no SIGTERM on Windows")
+def test_kernel_kill(ipyconsole, qtbot):
+    """
+    Test that the kernel correctly restarts after a kill.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    # Wait for the restarter to start
+    qtbot.wait(3000)
+    crash_string = 'import os, signal; os.kill(os.getpid(), signal.SIGTERM)'
+    # Check only one comm is open
+    old_open_comms = list(shell.spyder_kernel_comm._comms.keys())
+    assert len(old_open_comms) == 1
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=30000):
+        shell.execute(crash_string)
+    assert crash_string in shell._control.toPlainText()
+    assert "Restarting kernel..." in shell._control.toPlainText()
+    # Check a new comm replaced the old one
+    new_open_comms = list(shell.spyder_kernel_comm._comms.keys())
+    assert len(new_open_comms) == 1
+    assert old_open_comms[0] != new_open_comms[0]
+    # Wait until the comm replies
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_comm._comms[new_open_comms[0]][
+            'status'] == 'ready')
+    assert shell.spyder_kernel_comm._comms[new_open_comms[0]][
+        'status'] == 'ready'
+
+
+@flaky(max_runs=3)
+def test_wrong_std_module(ipyconsole, qtbot):
+    """
+    Test that a file with the same name of a standard library module in
+    the current working directory doesn't break the console.
+    """
+    # Create an empty file called random.py in the cwd
+    wrong_random_mod = osp.join(os.getcwd(), 'random.py')
+    with open(wrong_random_mod, 'w') as f:
+        f.write('')
+
+    # Create a new client to see if its kernel starts despite the
+    # faulty module.
+    ipyconsole.create_new_client()
+
+    # A prompt should be created if the kernel didn't crash.
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Remove wrong module
+    os.remove(wrong_random_mod)
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="no SIGTERM on Windows")
+def test_kernel_restart_after_manual_restart_and_crash(ipyconsole, qtbot):
+    """
+    Test that the kernel restarts correctly after being restarted
+    manually and then it crashes.
+
+    This is a regresion for spyder-ide/spyder#12972.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Restart kernel and wait until it's up again
+    shell._prompt_html = None
+    ipyconsole.restart_kernel()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Wait for the restarter to start
+    qtbot.wait(3000)
+
+    # Generate a crash
+    crash_string = 'import os, signal; os.kill(os.getpid(), signal.SIGTERM)'
+    with qtbot.waitSignal(shell.sig_prompt_ready, timeout=30000):
+        shell.execute(crash_string)
+    assert crash_string in shell._control.toPlainText()
+
+    # Evaluate an expression to be sure the restart was successful
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('a = 10')
+    assert shell.is_defined('a')
+
+    # Wait until the comm replies
+    open_comms = list(shell.spyder_kernel_comm._comms.keys())
+    qtbot.waitUntil(
+        lambda: shell.spyder_kernel_comm._comms[open_comms[0]][
+            'status'] == 'ready')
+
+
+@flaky(max_runs=3)
+def test_stderr_poll(ipyconsole, qtbot):
+    """Test if the content of stderr is printed to the console."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    client = ipyconsole.get_current_client()
+    with open(client.stderr_file, 'w') as f:
+        f.write("test_test")
+    # Wait for the poll
+    qtbot.wait(2000)
+    assert "test_test" in ipyconsole.get_focus_widget().toPlainText()
 
 
 if __name__ == "__main__":

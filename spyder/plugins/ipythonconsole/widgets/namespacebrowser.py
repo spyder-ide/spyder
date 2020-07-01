@@ -16,7 +16,7 @@ try:
 except AttributeError:
     time.monotonic = time.time
 
-from pickle import UnpicklingError
+from pickle import PicklingError, UnpicklingError
 
 from qtpy.QtWidgets import QMessageBox
 
@@ -46,7 +46,6 @@ class NamepaceBrowserWidget(RichJupyterWidget):
     _kernel_methods = {}
 
     # To save values and messages returned by the kernel
-    _kernel_value = None
     _kernel_is_starting = True
 
     # --- Public API --------------------------------------------------
@@ -54,7 +53,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         """Set namespace browser widget"""
         self.namespacebrowser = namespacebrowser
 
-    def refresh_namespacebrowser(self, interrupt=False):
+    def refresh_namespacebrowser(self, interrupt=True):
         """Refresh namespace browser"""
         if self.kernel_client is None:
             return
@@ -90,6 +89,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         """Ask kernel for a value"""
         reason_big = _("The variable is too big to be retrieved")
         reason_not_picklable = _("The variable is not picklable")
+        reason_dead = _("The kernel is dead")
         msg = _("%s.<br><br>"
                 "Note: Please don't report this problem on Github, "
                 "there's nothing to do about it.")
@@ -100,8 +100,10 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                 timeout=CALL_KERNEL_TIMEOUT).get_value(name)
         except TimeoutError:
             raise ValueError(msg % reason_big)
-        except UnpicklingError:
+        except (PicklingError, UnpicklingError):
             raise ValueError(msg % reason_not_picklable)
+        except RuntimeError:
+            raise ValueError(msg % reason_dead)
 
     def set_value(self, name, value):
         """Set value for a variable"""
@@ -119,15 +121,34 @@ class NamepaceBrowserWidget(RichJupyterWidget):
                          ).copy_value(orig_name, new_name)
 
     def load_data(self, filename, ext):
+        """Load data from a file."""
+        overwrite = False
+        if self.namespacebrowser.editor.var_properties:
+            message = _('Do you want to overwrite old '
+                        'variables (if any) in the namespace '
+                        'when loading the data?')
+            buttons = QMessageBox.Yes | QMessageBox.No
+            result = QMessageBox.question(
+                self, _('Data loading'), message, buttons)
+            overwrite = result == QMessageBox.Yes
         try:
             return self.call_kernel(
                 interrupt=True,
                 blocking=True,
-                timeout=CALL_KERNEL_TIMEOUT).load_data(filename, ext)
+                timeout=CALL_KERNEL_TIMEOUT).load_data(
+                    filename, ext, overwrite=overwrite)
+        except ImportError as msg:
+            module = str(msg).split("'")[1]
+            msg = _("Spyder is unable to open the file "
+                    "you're trying to load because <tt>{module}</tt> is "
+                    "not installed. Please install "
+                    "this package in your working environment."
+                    "<br>").format(module=module)
+            return msg
         except TimeoutError:
             msg = _("Data is too big to be loaded")
             return msg
-        except UnpicklingError:
+        except (UnpicklingError, RuntimeError):
             return None
 
     def save_namespace(self, filename):
@@ -139,7 +160,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         except TimeoutError:
             msg = _("Data is too big to be saved")
             return msg
-        except UnpicklingError:
+        except (UnpicklingError, RuntimeError):
             return None
 
     # ---- Private API (overrode by us) ----------------------------
@@ -159,7 +180,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         if exec_count == 0 and self._kernel_is_starting:
             if self.namespacebrowser is not None:
                 self.set_namespace_view_settings()
-                self.refresh_namespacebrowser()
+                self.refresh_namespacebrowser(interrupt=False)
             self._kernel_is_starting = False
             self.ipyclient.t0 = time.monotonic()
 
@@ -192,7 +213,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             # This handles restarts asked by the user
             if self.namespacebrowser is not None:
                 self.set_namespace_view_settings()
-                self.refresh_namespacebrowser()
+                self.refresh_namespacebrowser(interrupt=False)
             self.ipyclient.t0 = time.monotonic()
         else:
             super(NamepaceBrowserWidget, self)._handle_status(msg)

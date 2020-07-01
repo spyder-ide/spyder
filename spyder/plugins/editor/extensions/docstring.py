@@ -262,6 +262,8 @@ class DocstringWriterExtension(object):
                     docstring = self._generate_numpy_doc(func_info)
                 elif doc_type == 'Googledoc':
                     docstring = self._generate_google_doc(func_info)
+                elif doc_type == "Sphinxdoc":
+                    docstring = self._generate_sphinx_doc(func_info)
 
         return docstring
 
@@ -429,6 +431,71 @@ class DocstringWriterExtension(object):
         google_doc += '\n\n{}{}'.format(indent1, self.quote3)
 
         return google_doc
+
+    def _generate_sphinx_doc(self, func_info):
+        """Generate a docstring of sphinx type."""
+        sphinx_doc = ''
+
+        arg_names = func_info.arg_name_list
+        arg_types = func_info.arg_type_list
+        arg_values = func_info.arg_value_list
+
+        if len(arg_names) > 0 and arg_names[0] == 'self':
+            del arg_names[0]
+            del arg_types[0]
+            del arg_values[0]
+
+        indent1 = func_info.func_indent + self.code_editor.indent_chars
+
+        sphinx_doc += '\n{}\n'.format(indent1)
+
+        arg_text = ''
+        for arg_name, arg_type, arg_value in zip(arg_names, arg_types,
+                                                 arg_values):
+            arg_text += '{}:param {}: DESCRIPTION'.format(indent1, arg_name)
+
+            if arg_value:
+                arg_value = arg_value.replace(self.quote3, self.quote3_other)
+                arg_text += ', defaults to {}\n'.format(arg_value)
+            else:
+                arg_text += '\n'
+
+            arg_text += '{}:type {}: '.format(indent1, arg_name)
+
+            if arg_type:
+                arg_text += '{}'.format(arg_type)
+            else:
+                arg_text += 'TYPE'
+
+            if arg_value:
+                arg_text += ', optional'
+            arg_text += '\n'
+
+        sphinx_doc += arg_text
+
+        if func_info.raise_list:
+            for raise_type in func_info.raise_list:
+                sphinx_doc += '{}:raises {}: DESCRIPTION\n'.format(indent1,
+                                                                   raise_type)
+
+        if func_info.has_yield:
+            header = '{}:yield:'.format(indent1)
+        else:
+            header = '{}:return:'.format(indent1)
+
+        return_type_annotated = func_info.return_type_annotated
+        if return_type_annotated:
+            return_section = '{} DESCRIPTION\n'.format(header)
+            return_section += '{}:rtype: {}'.format(indent1,
+                                                    return_type_annotated)
+        else:
+            return_section = '{} DESCRIPTION\n'.format(header)
+            return_section += '{}:rtype: TYPE'.format(indent1)
+
+        sphinx_doc += return_section
+        sphinx_doc += '\n\n{}{}'.format(indent1, self.quote3)
+
+        return sphinx_doc
 
     @staticmethod
     def find_top_level_bracket_locations(string_toparse):

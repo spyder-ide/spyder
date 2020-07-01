@@ -42,7 +42,7 @@ class LanguageServerClient(object):
         self.zmq_out_socket = None
 
     def finalize_initialization(self):
-        connected, connection_error = self.is_server_alive()
+        connected, connection_error, pid = self.is_server_alive()
 
         if not connected:
             logger.error("The client was unable to establish a connection "
@@ -61,8 +61,8 @@ class LanguageServerClient(object):
         self.zmq_out_socket.connect("tcp://{0}:{1}".format(
             LOCALHOST, self.zmq_out_port))
         logger.info('Sending server_ready...')
-        self.zmq_out_socket.send_pyobj({'id': -1, 'method': 'server_ready',
-                                        'params': {}})
+        self.zmq_out_socket.send_pyobj({'id': 0, 'method': 'server_ready',
+                                        'params': {'pid': pid}})
 
     def listen(self):
         events = self.zmq_in_socket.poll(TIMEOUT)

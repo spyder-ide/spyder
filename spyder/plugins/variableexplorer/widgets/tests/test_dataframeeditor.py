@@ -23,7 +23,7 @@ except ImportError:
 
 # Third party imports
 from pandas import (DataFrame, date_range, read_csv, concat, Index, RangeIndex,
-                    MultiIndex, CategoricalIndex)
+                    MultiIndex, CategoricalIndex, Series)
 from qtpy.QtGui import QColor
 from qtpy.QtCore import Qt, QTimer
 import numpy
@@ -80,10 +80,45 @@ def generate_pandas_indexes():
         }
 
 
-
 # =============================================================================
 # Tests
 # =============================================================================
+def test_dataframe_to_type(qtbot):
+    """Regression test for spyder-ide/spyder#12296"""
+    # Setup editor
+    d = {'col1': [1, 2], 'col2': [3, 4]}
+    df = DataFrame(data=d)
+    editor = DataFrameEditor()
+    assert editor.setup_and_check(df, 'Test DataFrame To action')
+    editor.show()
+    qtbot.waitForWindowShown(editor)
+
+    # Check editor doesn't have changes to save and select an initial element
+    assert not editor.btn_save_and_close.isEnabled()
+    view = editor.dataTable
+    view.setCurrentIndex(view.model().index(0, 0))
+
+    # Show context menu and select option `To bool`
+    view.menu.show()
+    qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Down)
+    qtbot.keyPress(view.menu, Qt.Key_Return)
+
+    # Check that changes where made from the editor
+    assert editor.btn_save_and_close.isEnabled()
+
+
+def test_dataframe_datetimeindex(qtbot):
+    """Regression test for spyder-ide/spyder#11129 ."""
+    ds = Series(
+        numpy.arange(10),
+        index=date_range('2019-01-01', periods=10))
+    editor = DataFrameEditor(None)
+    editor.setup_and_check(ds)
+    index = editor.table_index.model()
+    assert data_index(index, 0, 0) == '2019-01-01 00:00:00'
+    assert data_index(index, 9, 0) == '2019-01-10 00:00:00'
+
 
 def test_dataframe_simpleindex(qtbot):
     """Test to validate proper creation and handling of a simpleindex."""

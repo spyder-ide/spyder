@@ -31,6 +31,7 @@ from spyder.config.manager import CONF
 from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
                                     create_toolbutton, qapplication)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
+from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
     TreeItem, TreeModel, TreeProxyModel)
@@ -44,7 +45,7 @@ logger = logging.getLogger(__name__)
 EDITOR_NAME = 'Object'
 
 
-class ObjectExplorer(QDialog):
+class ObjectExplorer(BaseDialog):
     """Object explorer main widget window."""
     # TODO: Use signal to trigger update of configs
     sig_option_changed = Signal(str, object)
@@ -321,8 +322,6 @@ class ObjectExplorer(QDialog):
         self.central_splitter.setCollapsible(0, False)
         self.central_splitter.setCollapsible(1, True)
         self.central_splitter.setSizes([500, 320])
-        self.central_splitter.setStretchFactor(0, 10)
-        self.central_splitter.setStretchFactor(1, 0)
 
         # Connect signals
         # Keep a temporary reference of the selection_model to prevent

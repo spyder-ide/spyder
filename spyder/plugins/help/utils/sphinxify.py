@@ -38,8 +38,13 @@ from sphinx.application import Sphinx
 # Local imports
 from spyder.config.base import (_, get_module_data_path,
                                 get_module_source_path)
+from spyder.py3compat import PY2
 from spyder.utils import encoding
 
+if PY2:
+    import pathlib2 as pathlib
+else:
+    import pathlib
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -50,6 +55,7 @@ from spyder.utils import encoding
 CONFDIR_PATH = get_module_source_path('spyder.plugins.help.utils')
 CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'css')
 DARK_CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'dark_css')
+BASE_CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'base_css')
 JS_PATH = osp.join(CONFDIR_PATH, 'js')
 
 # To let Debian packagers redefine the MathJax and JQuery locations so they can
@@ -89,6 +95,15 @@ def usage(title, message, tutorial_message, tutorial, css_path=CSS_PATH):
     usage = env.get_template("usage.html")
     return usage.render(css_path=css_path, title=title, intro_message=message,
                         tutorial_message=tutorial_message, tutorial=tutorial)
+
+
+def loading(message, loading_img, css_path=CSS_PATH):
+    """Print loading message on the rich text view."""
+    env = Environment()
+    env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
+    loading = env.get_template("loading.html")
+    return loading.render(
+        css_path=css_path, loading_img=loading_img, message=message)
 
 
 def generate_context(name='', argspec='', note='', math=False, collapse=False,
@@ -135,11 +150,13 @@ def generate_context(name='', argspec='', note='', math=False, collapse=False,
       'collapse': collapse,
       'img_path': img_path,
       # Static variables
+      'base_css_path': BASE_CSS_PATH,
       'css_path': css_path,
       'js_path': JS_PATH,
       'jquery_path': JQUERY_PATH,
       'mathjax_path': MATHJAX_PATH,
       'right_sphinx_version': '' if sphinx.__version__ < "1.1" else 'true',
+      'sphinx_version_2': '' if sphinx.__version__ < "2.0" else 'true',
       'platform': sys.platform
     }
 
@@ -168,9 +185,24 @@ def sphinxify(docstring, context, buildername='html'):
     on the value of `buildername`
     """
 
+    confdir = osp.join(get_module_source_path('spyder.plugins.help.utils'))
     srcdir = mkdtemp()
     srcdir = encoding.to_unicode_from_fs(srcdir)
     destdir = osp.join(srcdir, '_build')
+    temp_confdir_needed = False
+
+    if os.name == 'nt':
+        # Check if confdir and srcdir are in the same drive
+        # See spyder-ide/spyder#11762
+        drive_confdir = pathlib.Path(confdir).parts[0]
+        drive_srcdir = pathlib.Path(srcdir).parts[0]
+        temp_confdir_needed = drive_confdir != drive_srcdir
+
+        if temp_confdir_needed:
+            # TODO: This may be inefficient. Find a faster way to do it.
+            confdir = mkdtemp()
+            confdir = encoding.to_unicode_from_fs(confdir)
+            generate_configuration(confdir)
 
     rst_name = osp.join(srcdir, 'docstring.rst')
     if buildername == 'html':
@@ -202,15 +234,6 @@ def sphinxify(docstring, context, buildername='html'):
     doc_file.write(docstring)
     doc_file.close()
 
-    temp_confdir = False
-    if temp_confdir:
-        # TODO: This may be inefficient. Find a faster way to do it.
-        confdir = mkdtemp()
-        confdir = encoding.to_unicode_from_fs(confdir)
-        generate_configuration(confdir)
-    else:
-        confdir = osp.join(get_module_source_path('spyder.plugins.help.utils'))
-
     confoverrides = {'html_context': context}
 
     doctreedir = osp.join(srcdir, 'doctrees')
@@ -236,7 +259,7 @@ def sphinxify(docstring, context, buildername='html'):
                     "Please see it in plain text.")
         return warning(output)
 
-    if temp_confdir:
+    if temp_confdir_needed:
         shutil.rmtree(confdir, ignore_errors=True)
     shutil.rmtree(srcdir, ignore_errors=True)
 

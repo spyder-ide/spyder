@@ -19,7 +19,7 @@ import functools
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QMenu, QMessageBox, QVBoxLayout
+from qtpy.QtWidgets import QInputDialog, QMenu, QMessageBox, QVBoxLayout
 
 # Local imports
 from spyder.config.base import _, get_home_dir
@@ -35,7 +35,7 @@ from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.projecttypes import EmptyProject
 from spyder.plugins.completion.languageserver import (
-    LSPRequestTypes, FileChangeType)
+    LSPRequestTypes, FileChangeType, WorkspaceUpdateKind)
 from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 
@@ -102,10 +102,16 @@ class Projects(SpyderPluginWidget):
         self.delete_project_action = create_action(self,
                                     _("Delete Project"),
                                     triggered=self.delete_project)
-        self.clear_recent_projects_action =\
-            create_action(self, _("Clear this list"),
-                          triggered=self.clear_recent_projects)
+        self.clear_recent_projects_action = create_action(
+            self,
+            _("Clear this list"),
+            triggered=self.clear_recent_projects)
         self.recent_project_menu = QMenu(_("Recent Projects"), self)
+
+        self.max_recent_action = create_action(
+            self,
+            _("Maximum number of recent projects..."),
+            triggered=self.change_max_recent_projects)
 
         if self.main is not None:
             self.main.projects_menu_actions += [self.new_project_action,
@@ -155,7 +161,7 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.set_window_title())
         self.sig_project_loaded.connect(
             functools.partial(lspmgr.project_path_update,
-                              update_kind='addition'))
+                              update_kind=WorkspaceUpdateKind.ADDITION))
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
@@ -166,7 +172,7 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.set_window_title())
         self.sig_project_closed.connect(
             functools.partial(lspmgr.project_path_update,
-                              update_kind='deletion'))
+                              update_kind=WorkspaceUpdateKind.DELETION))
         self.sig_project_closed.connect(
             lambda v: self.main.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
@@ -193,19 +199,12 @@ class Projects(SpyderPluginWidget):
         self.explorer.closing_widget()
         return True
 
-    def switch_to_plugin(self):
-        """Switch to plugin."""
-        # Unmaxizime currently maximized plugin
+    def unmaximize(self):
+        """Unmaximize the currently maximized plugin, if not self."""
         if (self.main.last_plugin is not None and
                 self.main.last_plugin._ismaximized and
                 self.main.last_plugin is not self):
             self.main.maximize_dockwidget()
-
-        # Show plugin only if it was already visible
-        if self.get_option('visible_if_project_open'):
-            if not self._toggle_view_action.isChecked():
-                self._toggle_view_action.setChecked(True)
-            self._visibility_changed(True)
 
     def build_opener(self, project):
         """Build function opening passed project"""
@@ -239,9 +238,11 @@ class Projects(SpyderPluginWidget):
             self.recent_projects_actions += [
                 None,
                 self.clear_recent_projects_action,
+                self.max_recent_action
             ]
         else:
-            self.recent_projects_actions = [self.clear_recent_projects_action]
+            self.recent_projects_actions = [self.clear_recent_projects_action,
+                                            self.max_recent_action]
         add_actions(self.recent_project_menu, self.recent_projects_actions)
         self.update_project_actions()
 
@@ -259,15 +260,21 @@ class Projects(SpyderPluginWidget):
     @Slot()
     def create_new_project(self):
         """Create new project"""
-        self.switch_to_plugin()
+        self.unmaximize()
         active_project = self.current_active_project
         dlg = ProjectDialog(self)
         dlg.sig_project_creation_requested.connect(self._create_project)
         dlg.sig_project_creation_requested.connect(self.sig_project_created)
         if dlg.exec_():
-            if (active_project is None
-                    and self.get_option('visible_if_project_open')):
-                self.show_explorer()
+            # A project was not open before
+            if active_project is None:
+                if self.get_option('visible_if_project_open'):
+                    self.show_explorer()
+            else:
+                # We are switching projects.
+                # TODO: Don't emit sig_project_closed when we support
+                # multiple workspaces.
+                self.sig_project_closed.emit(active_project.root_path)
             self.sig_pythonpath_changed.emit()
             self.restart_consoles()
 
@@ -279,7 +286,7 @@ class Projects(SpyderPluginWidget):
                      save_previous_files=True):
         """Open the project located in `path`"""
         self.notify_project_open(path)
-        self.switch_to_plugin()
+        self.unmaximize()
         if path is None:
             basedir = get_home_dir()
             path = getexistingdirectory(parent=self,
@@ -311,6 +318,11 @@ class Projects(SpyderPluginWidget):
                 self.set_project_filenames(
                     self.main.editor.get_open_filenames())
 
+            # TODO: Don't emit sig_project_closed when we support
+            # multiple workspaces.
+            self.sig_project_closed.emit(
+                self.current_active_project.root_path)
+
         project = EmptyProject(path)
         self.current_active_project = project
         self.latest_project = project
@@ -330,7 +342,7 @@ class Projects(SpyderPluginWidget):
         project
         """
         if self.current_active_project:
-            self.switch_to_plugin()
+            self.unmaximize()
             if self.main.editor is not None:
                 self.set_project_filenames(
                     self.main.editor.get_open_filenames())
@@ -357,7 +369,7 @@ class Projects(SpyderPluginWidget):
         Delete the current project without deleting the files in the directory.
         """
         if self.current_active_project:
-            self.switch_to_plugin()
+            self.unmaximize()
             path = self.current_active_project.root_path
             buttons = QMessageBox.Yes | QMessageBox.No
             answer = QMessageBox.warning(
@@ -384,6 +396,20 @@ class Projects(SpyderPluginWidget):
         """Clear the list of recent projects"""
         self.recent_projects = []
         self.setup_menu_actions()
+
+    def change_max_recent_projects(self):
+        """Change max recent projects entries."""
+
+        mrf, valid = QInputDialog.getInt(
+            self,
+            _('Projects'),
+            _('Maximum number of recent projects'),
+            self.get_option('max_recent_projects'),
+            1,
+            35)
+
+        if valid:
+            self.set_option('max_recent_projects', mrf)
 
     def get_active_project(self):
         """Get the active project"""
@@ -506,7 +532,8 @@ class Projects(SpyderPluginWidget):
         """
         if project not in self.recent_projects:
             self.recent_projects.insert(0, project)
-            self.recent_projects = self.recent_projects[:10]
+        if len(self.recent_projects) > self.get_option('max_recent_projects'):
+            self.recent_projects.pop(-1)
 
     def register_lsp_server_settings(self, settings):
         """Enable LSP workspace functions."""

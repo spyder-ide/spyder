@@ -8,19 +8,59 @@
 Kernel spec for Spyder kernels
 """
 
+# Standard library imports
+import logging
 import os
 import os.path as osp
+import sys
 
+# Third party imports
 from jupyter_client.kernelspec import KernelSpec
 
-from spyder.config.base import SAFE_MODE, running_under_pytest
+# Local imports
+from spyder.config.base import DEV, running_under_pytest, SAFE_MODE
 from spyder.config.manager import CONF
+from spyder.py3compat import PY2, iteritems, to_binary_string, to_text_string
+from spyder.utils.conda import (add_quotes, get_conda_activation_script,
+                                get_conda_env_path, is_conda_env)
 from spyder.utils.encoding import to_unicode_from_fs
-from spyder.utils.programs import is_python_interpreter
-from spyder.py3compat import PY2, iteritems, to_text_string, to_binary_string
 from spyder.utils.environ import clean_env
-from spyder.utils.misc import (add_pathlist_to_PYTHONPATH,
-                               get_python_executable)
+from spyder.utils.misc import add_pathlist_to_PYTHONPATH, get_python_executable
+from spyder.utils.programs import is_python_interpreter
+
+# Constants
+HERE = os.path.abspath(os.path.dirname(__file__))
+logger = logging.getLogger(__name__)
+
+
+def is_different_interpreter(pyexec):
+    """Check that pyexec is a different interpreter from sys.executable."""
+    executable_validation = osp.basename(pyexec).startswith('python')
+    directory_validation = osp.dirname(pyexec) != osp.dirname(sys.executable)
+    return directory_validation and executable_validation
+
+
+def get_activation_script(quote=False):
+    """
+    Return path for bash/batch conda activation script to run spyder-kernels.
+
+    If `quote` is True, then quotes are added if spaces are found in the path.
+    """
+    scripts_folder_path = os.path.join(os.path.dirname(HERE), 'scripts')
+    if os.name == 'nt':
+        script = 'conda-activate.bat'
+    else:
+        script = 'conda-activate.sh'
+
+    script_path = os.path.join(scripts_folder_path, script)
+
+    if quote:
+        script_path = add_quotes(script_path)
+
+    return script_path
+
+
+HERE = osp.dirname(os.path.realpath(__file__))
 
 
 class SpyderKernelSpec(KernelSpec):
@@ -54,31 +94,55 @@ class SpyderKernelSpec(KernelSpec):
                 CONF.set('main_interpreter', 'default', True)
                 CONF.set('main_interpreter', 'custom', False)
 
-        # Fixes spyder-ide/spyder#3427.
-        if os.name == 'nt':
-            dir_pyexec = osp.dirname(pyexec)
-            pyexec_w = osp.join(dir_pyexec, 'pythonw.exe')
-            if osp.isfile(pyexec_w):
-                pyexec = pyexec_w
+        # Part of spyder-ide/spyder#11819
+        is_different = is_different_interpreter(pyexec)
 
         # Command used to start kernels
-        kernel_cmd = [
-            pyexec,
-            '-m',
-            'spyder_kernels.console',
-            '-f',
-            '{connection_file}'
-        ]
+        if is_different and is_conda_env(pyexec=pyexec):
+            # If this is a conda environment we need to call an intermediate
+            # activation script to correctly activate the spyder-kernel
+
+            # If changes are needed on this section make sure you also update
+            # the activation scripts at spyder/plugins/ipythonconsole/scripts/
+            kernel_cmd = [
+                get_activation_script(),  # This is bundled with Spyder
+                get_conda_activation_script(),
+                get_conda_env_path(pyexec),  # Might be external
+                pyexec,
+                '{connection_file}',
+            ]
+        else:
+            kernel_cmd = [
+                pyexec,
+                '-m',
+                'spyder_kernels.console',
+                '-f',
+                '{connection_file}'
+            ]
+        logger.info('Kernel command: {}'.format(kernel_cmd))
 
         return kernel_cmd
 
     @property
     def env(self):
         """Env vars for kernels"""
-        # Add our PYTHONPATH to the kernel
+        default_interpreter = CONF.get('main_interpreter', 'default')
         pathlist = CONF.get('main', 'spyder_pythonpath', default=[])
 
-        default_interpreter = CONF.get('main_interpreter', 'default')
+        # Add spyder-kernels subrepo path to pathlist
+        if DEV or running_under_pytest():
+            repo_path = osp.normpath(osp.join(HERE, '..', '..', '..', '..'))
+            subrepo_path = osp.join(repo_path, 'external-deps',
+                                    'spyder-kernels')
+
+            if running_under_pytest():
+                # Oddly pathlist is not set as an empty list when running
+                # under pytest
+                pathlist = [subrepo_path]
+            else:
+                pathlist += [subrepo_path] + pathlist
+
+        # Create PYTHONPATH env entry to add it to the kernel
         pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
                                             drop_env=False)
 

@@ -24,7 +24,7 @@ from spyder.config.manager import CONF
 from spyder.plugins.editor.tests.conftest import (
     editor_plugin, editor_plugin_open_files, python_files)
 from spyder.plugins.completion.languageserver.tests.conftest import (
-    qtbot_module, MainWindowMock)
+    qtbot_module, MainWindowMock, MainWindowWidgetMock)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
 from spyder.plugins.completion.plugin import CompletionManager
@@ -76,6 +76,7 @@ def fallback_codeeditor(qtbot_module, request):
     completions = CompletionManager(None, ['fallback'])
     completions.start()
     completions.start_client('python')
+    completions.language_status['python']['fallback'] = True
     qtbot_module.addWidget(completions)
 
     # Create a CodeEditor instance
@@ -100,14 +101,52 @@ def fallback_codeeditor(qtbot_module, request):
     return editor, fallback
 
 
-# Windows tests fail if using module scope
-if os.name == 'nt':
-    LSP_PLUGIN_SCOPE = 'module'
-else:
-    LSP_PLUGIN_SCOPE = 'function'
+@pytest.fixture
+def kite_codeeditor(qtbot_module, request):
+    """
+    CodeEditor instance with Kite enabled.
+
+    NOTE: This fixture only works if used with kite installed.
+    If running in the CI, the installation of Kite could be accomplished by
+    spyder/plugins/completion/kite/utils/tests/test_install.py::test_kite_install
+
+    Any test running with this fixture should run after the installation
+    test mentioned above.
+    """
+    main = MainWindowWidgetMock()
+    completions = CompletionManager(main, ['kite'])
+    completions.start()
+    completions.start_client('python')
+    completions.language_status['python']['kite'] = True
+    qtbot_module.addWidget(completions)
+
+    # Create a CodeEditor instance
+    editor = codeeditor_factory()
+    qtbot_module.addWidget(editor)
+    editor.show()
+
+    # Redirect editor fallback requests to FallbackActor
+    editor.sig_perform_completion_request.connect(completions.send_request)
+    editor.filename = 'test.py'
+    editor.language = 'Python'
+    editor.completions_available = True
+    qtbot_module.wait(2000)
+
+    def teardown():
+        completions.shutdown()
+        editor.hide()
+        editor.completion_widget.hide()
+
+    request.addfinalizer(teardown)
+    kite = completions.get_client('kite')
+    CONF.set('kite', 'show_installation_dialog', False)
+    CONF.set('kite', 'show_onboarding', False)
+    CONF.set('kite', 'call_to_action', False)
+    kite.update_configuration()
+    return editor, kite
 
 
-@pytest.fixture(scope=LSP_PLUGIN_SCOPE)
+@pytest.fixture(scope='function')
 def lsp_plugin(qtbot_module, request):
     # Activate pycodestyle and pydocstyle
     CONF.set('lsp-server', 'pycodestyle', True)
@@ -124,6 +163,7 @@ def lsp_plugin(qtbot_module, request):
     with qtbot_module.waitSignal(
             main.editor.sig_lsp_initialized, timeout=30000):
         completions.start_client('python')
+    completions.language_status['python']['lsp'] = True
 
     def teardown():
         completions.shutdown()
@@ -182,9 +222,9 @@ def lsp_codeeditor(lsp_plugin, qtbot_module, request, capsys):
     editor.filename = 'test.py'
     editor.language = 'Python'
     lsp_plugin.register_file('python', 'test.py', editor)
-    server_settings = lsp_plugin.main.editor.lsp_editor_settings['python']
+    capabilities = lsp_plugin.main.editor.completion_capabilities['python']
     editor.start_completion_services()
-    editor.update_completion_configuration(server_settings)
+    editor.register_completion_capabilities(capabilities)
 
     with qtbot_module.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_open()

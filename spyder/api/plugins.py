@@ -149,6 +149,10 @@ class SpyderPlugin(BasePlugin):
     # Status: Optional
     CONF_SECTION = None
 
+    # One line localized description of the features this plugin implements
+    # Status: Optional
+    DESCRIPTION = None
+
     # Widget to be used as entry in Spyder Preferences dialog
     # Status: Optional
     CONFIGWIDGET_CLASS = None
@@ -523,3 +527,9 @@ class SpyderPluginWidget(SpyderPlugin, BasePluginWidget):
             self.dockwidget.raise_()
         else:
             self.dockwidget.hide()
+
+    def set_ancestor(self, ancestor):
+        """
+        Needed to update the ancestor/parent of child widgets when undocking.
+        """
+        pass

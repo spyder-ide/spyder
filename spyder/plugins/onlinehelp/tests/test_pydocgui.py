@@ -8,14 +8,14 @@
 Tests for pydocgui.py
 """
 # Standard library imports
-import sys
+import os
 
 # Test library imports
 import pytest
+from flaky import flaky
 
 # Local imports
 from spyder.plugins.onlinehelp.widgets import PydocBrowser
-from spyder.py3compat import PY3
 
 
 @pytest.fixture
@@ -32,12 +32,12 @@ def test_pydocbrowser(pydocbrowser):
     assert browser
 
 
+@flaky(max_runs=5)
 @pytest.mark.parametrize(
     "lib", [('str', 'class str', 1),
             ('numpy.compat', 'numpy.compat', 2)
             ])
-@pytest.mark.skipif(sys.platform == 'darwin' and PY3,
-                    reason="Times out on macOS with Python 3")
+@pytest.mark.skipif(not os.name == 'nt', reason="Only works on Windows")
 def test_get_pydoc(pydocbrowser, lib):
     """
     Go to the documentation by url.

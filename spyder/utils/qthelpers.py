@@ -27,16 +27,21 @@ from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
 from spyder.config.base import get_image_path, MAC_APP_NAME
 from spyder.config.manager import CONF
 from spyder.config.gui import is_dark_interface
-from spyder.py3compat import is_text_string, to_text_string
+from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
-from spyder.utils.icon_manager import get_icon, get_kite_icon, get_std_icon
+from spyder.utils.icon_manager import get_icon, get_std_icon
 from spyder.widgets.waitingspinner import QWaitingSpinner
 from spyder.config.manager import CONF
 
 # Third party imports
 if sys.platform == "darwin":
     import applaunchservices as als
+
+if PY2:
+    from urllib import unquote
+else:
+    from urllib.parse import unquote
 
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
@@ -142,13 +147,13 @@ def _process_mime_path(path, extlist):
         if os.name == 'nt':
             # On Windows platforms, a local path reads: file:///c:/...
             # and a UNC based path reads like: file://server/share
-            if path.startswith(r"file:///"): # this is a local path
-                path=path[8:]
-            else: # this is a unc path
+            if path.startswith(r"file:///"):  # this is a local path
+                path = path[8:]
+            else:  # this is a unc path
                 path = path[5:]
         else:
             path = path[7:]
-    path = path.replace('%5C' , os.sep)  # Transforming backslashes
+    path = path.replace('\\', os.sep)  # Transforming backslashes
     if osp.exists(path):
         if extlist is None or osp.splitext(path)[1] in extlist:
             return path
@@ -162,7 +167,8 @@ def mimedata2url(source, extlist=None):
     pathlist = []
     if source.hasUrls():
         for url in source.urls():
-            path = _process_mime_path(to_text_string(url.toString()), extlist)
+            path = _process_mime_path(
+                unquote(to_text_string(url.toString())), extlist)
             if path is not None:
                 pathlist.append(path)
     elif source.hasText():
@@ -248,7 +254,8 @@ def create_waitspinner(size=32, n=11, parent=None):
     return spinner
 
 
-def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
+def action2button(action, autoraise=True, text_beside_icon=False, parent=None,
+                  icon=None):
     """Create a QToolButton directly from a QAction object"""
     if parent is None:
         parent = action.parent()
@@ -257,6 +264,8 @@ def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
     button.setAutoRaise(autoraise)
     if text_beside_icon:
         button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+    if icon:
+        action.setIcon(icon)
     return button
 
 
@@ -321,8 +330,18 @@ def add_shortcut_to_tooltip(action, context, name):
         # are changed by the user over the course of the current session.
         # See spyder-ide/spyder#10726.
         action._tooltip_backup = action.toolTip()
-    action.setToolTip(action._tooltip_backup + ' (%s)' %
-                      CONF.get_shortcut(context=context, name=name))
+
+    try:
+        # Some shortcuts might not be assigned so we need to catch the error
+        shortcut = CONF.get_shortcut(context=context, name=name)
+    except (configparser.NoSectionError, configparser.NoOptionError):
+        shortcut = None
+
+    if shortcut:
+        keyseq = QKeySequence(shortcut)
+        # See: spyder-ide/spyder#12168
+        string = keyseq.toString(QKeySequence.NativeText)
+        action.setToolTip(u'{0} ({1})'.format(action._tooltip_backup, string))
 
 
 def add_actions(target, actions, insert_before=None):

@@ -219,15 +219,17 @@ table.docutils {
     border-collapse: collapse;
     border-spacing: 0;
     border: #DDDDDD;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 17px;
-    margin-bottom: 17px;
+    margin-top: 15px;
+    margin-bottom: 15px;
     width: 90%;
 }
 
 table.docutils td {
-    padding: 5px;
+    padding: 0px 0px 0px 5px;
 }
 
 table.docutils tr.row-odd {
@@ -245,8 +247,8 @@ table.docutils th {
     border-top-style: solid;
     border-top-width: 1px;
     font-weight: bold;
-    text-align: center;
-    padding: 6px 0px 6px 8px;
+    text-align: left;
+    padding: 0px 0px 0px 5px;
     color: #FFFFFF;
 }
 
@@ -278,7 +280,7 @@ table.docutils.field-list th {
 /* --- Spacing around example code --- */
 div.highlight pre {
     padding: 9px 14px;
-    background-color: #272822;
+    background-color: #222b35;
     border-radius: 4px 4px 4px 4px;
     border: 1px solid #ffffff;
 }
@@ -309,10 +311,10 @@ tt {
 div.admonition.note {
     font-size: 0.95em;
     margin: 1.3em;
-    border: 1px solid #BCE8F1;
-    background-color: #D9EDF7;
+    border: 1px solid #375a7f;
+    background-color: #375a7f;
     padding: 0px 5px 0 5px;
-    color: #3A87AD;
+    color: #FFFFFF;
 }
 
 div.admonition p.admonition-title {
@@ -431,6 +433,7 @@ div.admonition p.admonition-title {
 ::-webkit-scrollbar {
     background-color: #19232D;
     width: 14px;
+    height: 14px;
     margin: 16px 2px 16px 2px;
     border: 1px solid #32414B;
     border-radius: 4px;
@@ -452,21 +455,45 @@ div.admonition p.admonition-title {
     width: 1px;
 }
 
-::-webkit-scrollbar-button:increment {
+::-webkit-scrollbar-button:vertical:increment {
     background-repeat: no-repeat;
     background-image: url(../images/down_arrow_disabled.png);
     background-position: center center;
 }
 
-::-webkit-scrollbar-button:decrement {
+::-webkit-scrollbar-button:vertical:decrement {
     background-repeat: no-repeat;
     background-image: url(../images/up_arrow_disabled.png);
     background-position: center center;
 }
 
-::-webkit-scrollbar-button:increment:hover {
+::-webkit-scrollbar-button:vertical:increment:hover {
     background-repeat: no-repeat;
     background-image: url(../images/down_arrow.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:vertical:decrement:hover {
+    background-repeat: no-repeat;
+    background-image: url(../images/up_arrow_horizontal.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:increment {
+    background-repeat: no-repeat;
+    background-image: url(../images/down_arrow_disabled_horizontal.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:decrement {
+    background-repeat: no-repeat;
+    background-image: url(../images/up_arrow_disabled_horizontal.png);
+    background-position: center center;
+}
+
+::-webkit-scrollbar-button:horizontal:increment:hover {
+    background-repeat: no-repeat;
+    background-image: url(../images/down_arrow_horizontal.png);
     background-position: center center;
 }
 

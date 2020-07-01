@@ -21,6 +21,7 @@ from spyder.preferences.tests.conftest import config_dialog
 
 class MainWindowMock:
     register_shortcut = Mock()
+    editor = Mock()
 
 
 @pytest.mark.parametrize(

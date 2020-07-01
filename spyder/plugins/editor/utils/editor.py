@@ -52,7 +52,8 @@ def drift_color(base_color, factor=110):
 
 
 class BlockUserData(QTextBlockUserData):
-    def __init__(self, editor, cursor=None, color=None):
+    def __init__(self, editor, color=None, selection_start=None,
+                 selection_end=None):
         QTextBlockUserData.__init__(self)
         self.editor = editor
         self.breakpoint = False
@@ -60,10 +61,11 @@ class BlockUserData(QTextBlockUserData):
         self.bookmarks = []
         self.code_analysis = []
         self.todo = ''
-        self.selection = cursor
         self.color = color
         self.oedata = None
         self.import_statement = None
+        self.selection_start = selection_start
+        self.selection_end = selection_end
 
         # Add a reference to the user data in the editor as the block won't.
         # The list should /not/ be used to list BlockUserData as the blocks
@@ -77,6 +79,31 @@ class BlockUserData(QTextBlockUserData):
         if not hasattr(editor, '_user_data_reference_list'):
             editor._user_data_reference_list = []
         editor._user_data_reference_list.append(self)
+
+    def _selection(self):
+        """
+        Function to compute the selection.
+
+        This is slow to call so it is only called when needed.
+        """
+        if self.selection_start is None or self.selection_end is None:
+            return None
+        document = self.editor.document()
+        cursor = self.editor.textCursor()
+        block = document.findBlockByNumber(self.selection_start['line'])
+        cursor.setPosition(block.position())
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.movePosition(
+            QTextCursor.NextCharacter, n=self.selection_start['character'])
+        block2 = document.findBlockByNumber(
+            self.selection_end['line'])
+        cursor.setPosition(block2.position(), QTextCursor.KeepAnchor)
+        cursor.movePosition(
+            QTextCursor.StartOfBlock, mode=QTextCursor.KeepAnchor)
+        cursor.movePosition(
+            QTextCursor.NextCharacter, n=self.selection_end['character'],
+            mode=QTextCursor.KeepAnchor)
+        return QTextCursor(cursor)
 
 
 class DelayJobRunner(object):
@@ -429,6 +456,7 @@ class TextHelper(object):
 
         text_cursor.endEditBlock()
         editor._cleaning = False
+        editor.document_did_change()
 
     def select_whole_line(self, line=None, apply_selection=True):
         """
@@ -618,6 +646,7 @@ class TextHelper(object):
             text_cursor.setPosition(s)
             text_cursor.setPosition(e, text_cursor.KeepAnchor)
         self._editor.setTextCursor(text_cursor)
+        self._editor.document_did_change()
 
     def clear_selection(self):
         """Clears text cursor selection."""

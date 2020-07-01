@@ -220,7 +220,7 @@ def start_file(filename):
 
     This function is simply wrapping QDesktopServices.openUrl
 
-    Returns True if successfull, otherwise returns False.
+    Returns True if successful, otherwise returns False.
     """
     from qtpy.QtCore import QUrl
     from qtpy.QtGui import QDesktopServices
@@ -533,7 +533,7 @@ def open_files_with_application(app_path, fnames):
             return_code = 1
         return_codes[' '.join(cmd)] = return_code
     elif os.name == 'nt':
-        if not (app_path.endswith(('.exe', '.bar', '.com'))
+        if not (app_path.endswith(('.exe', '.bat', '.com', '.cmd'))
                 and os.path.isfile(app_path)):
             raise ValueError('`app_path`  must point to a valid Windows '
                              'executable!')
@@ -824,7 +824,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
     in a determined interpreter
     """
     if interpreter:
-        if osp.isfile(interpreter) and ('python' in interpreter):
+        if is_python_interpreter(interpreter):
             checkver = inspect.getsource(check_version)
             get_modver = inspect.getsource(get_module_version)
             stable_ver = inspect.getsource(is_stable_version)
@@ -863,9 +863,8 @@ def is_module_installed(module_name, version=None, installed_version=None,
                     f.close()
                 os.remove(script)
         else:
-            # Try to not take a wrong decision if there is no interpreter
-            # available (needed for the change_pystartup method of ExtConsole
-            # config page)
+            # Try to not take a wrong decision if interpreter check
+            # fails
             return True
     else:
         if installed_version is None:
@@ -897,6 +896,7 @@ def is_module_installed(module_name, version=None, installed_version=None,
 
             return check_version(actver, version, symb)
 
+
 def is_python_interpreter_valid_name(filename):
     """Check that the python interpreter file has a valid name."""
     pattern = r'.*python(\d\.?\d*)?(w)?(.exe)?$'
@@ -905,8 +905,9 @@ def is_python_interpreter_valid_name(filename):
     else:
         return True
 
+
 def is_python_interpreter(filename):
-    """Evaluate wether a file is a python interpreter or not."""
+    """Evaluate whether a file is a python interpreter or not."""
     real_filename = os.path.realpath(filename)  # To follow symlink if existent
     if (not osp.isfile(real_filename) or
         not is_python_interpreter_valid_name(filename)):
@@ -947,17 +948,22 @@ def is_pythonw(filename):
 
 
 def check_python_help(filename):
-    """Check that the python interpreter can execute help."""
+    """Check that the python interpreter can compile and provide the zen."""
     try:
-        proc = run_program(filename, ["-h"])
-        output = to_text_string(proc.communicate()[0])
-        valid = ("Options and arguments (and corresponding environment "
-                 "variables)")
-        if 'usage:' in output and valid in output:
+        proc = run_program(filename, ['-c', 'import this'])
+        stdout, _ = proc.communicate()
+        stdout = to_text_string(stdout)
+        valid_lines = [
+            'Beautiful is better than ugly.',
+            'Explicit is better than implicit.',
+            'Simple is better than complex.',
+            'Complex is better than complicated.',
+        ]
+        if all(line in stdout for line in valid_lines):
             return True
         else:
             return False
-    except:
+    except Exception:
         return False
 
 

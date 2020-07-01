@@ -14,10 +14,28 @@ NOTE: DO NOT add fixtures here. It could generate problems with
 import os
 import os.path as osp
 import shutil
+import sys
+import warnings
+
+
+if sys.version_info[0] == 2:
+    # Hide warnings on py2 due to qtawesome as it makes the results unreadable
+    warnings.filterwarnings("ignore")
+
 
 # To activate/deactivate certain things for pytest's only
 # NOTE: Please leave this before any other import here!!
 os.environ['SPYDER_PYTEST'] = 'True'
+
+# Add external dependencies subrepo paths to sys.path
+# NOTE: Please don't move this from here!
+HERE = osp.dirname(os.path.realpath(__file__))
+DEPS_PATH = osp.join(HERE, 'external-deps')
+i = 0
+for path in os.listdir(DEPS_PATH):
+    external_dep_path = osp.join(DEPS_PATH, path)
+    sys.path.insert(i, external_dep_path)
+    i += 1
 
 import pytest
 

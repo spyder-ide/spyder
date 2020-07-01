@@ -1050,6 +1050,46 @@ spyder/plugins/variableexplorer/widgets/objectexplorerr/tree_model.py
 spyder/plugins/variableexplorer/widgets/objectexplorer/utils.py
 
 
+-------------------------------------------------------------------------------
+
+
+
+Classes from mod_pydoc
+-----------------------------
+
+
+Copyright (c) 2018 André Roberge
+
+
+Author: André Roberge | andre.roberge@gmail.com | https://github.com/aroberge
+Site/Source: https://github.com/aroberge/mod_pydoc
+License: MIT (Expat) License | https://opensource.org/licenses/MIT
+
+Modifications made to pydoc module to adapt it to Spyder's needs.
+
+
+mod_pydoc is distributed under the MIT license.
+
+
+Use the core functionality of the project, mainly changing the code to set
+a font programatically and change the way handling of the errors is made as
+well as the use of a custom CSS taking into account the current theme
+(light or dark).
+
+See below for the full text of the MIT (Expat) license.
+
+The current mod_pydoc license can be viewed at:
+https://github.com/aroberge/mod_pydoc/blob/master/LICENSE
+
+The current version of the original files can be viewed at:
+https://github.com/aroberge/mod_pydoc/
+
+
+Files covered:
+
+spyder/plugins/onlinehelp/pydoc_patch.py
+
+
 ===============================================================================
 
 
@@ -1113,6 +1153,13 @@ Assets covered:
 Most icons in the Spyder 3 theme; used via Spyder's own QtAwesome package.
 
 See spyder/utils/icon_manager.py for a complete list.
+
+In addition:
+
+spyder/images/folding.arrow_down_off.png
+spyder/images/folding.arrow_down_on.png
+spyder/images/folding.arrow_right_off.png
+spyder/images/folding.arrow_right_on.png
 
 
 -------------------------------------------------------------------------------
@@ -1739,10 +1786,10 @@ https://github.com/vscode-icons/vscode-icons/blob/master/icons
 
 Files covered:
 
-spyder/images/file_type_light_tex.svg
-spyder/images/file_type_tex.svg
+spyder/images/file_type_tex_light.svg
+spyder/images/file_type_tex_dark.svg
 spyder/images/binary_light.svg
-spyder/images/binary.svg
+spyder/images/binary_dark.svg
 
 
 -------------------------------------------------------------------------------

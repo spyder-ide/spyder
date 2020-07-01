@@ -9,20 +9,12 @@
 LSP client, code introspection and linting utilities.
 """
 
-from spyder.config.base import DEV
-
-
-# Language server communication verbosity at server logs.
-TRACE = 'messages'
-if DEV:
-    TRACE = 'verbose'
-
 # Supported LSP programming languages
 LSP_LANGUAGES = [
-    'C#', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Haxe', 'HTML',
-    'Java', 'JavaScript', 'JSON', 'Julia', 'OCaml', 'PHP',
-    'Rust', 'Scala', 'Swift', 'TypeScript', 'Erlang', 'Fortran',
-    'Elixir', 'Kotlin', 'Cpp'
+    'Bash', 'C#', 'Cpp', 'CSS/LESS/SASS', 'Go', 'GraphQL', 'Groovy', 'Elixir',
+    'Erlang', 'Fortran', 'Haxe', 'HTML', 'Java', 'JavaScript', 'JSON',
+    'Julia', 'Kotlin', 'OCaml', 'PHP', 'R', 'Rust', 'Scala', 'Swift',
+    'TypeScript'
 ]
 
 # -------------------- WORKSPACE CONFIGURATION CONSTANTS ----------------------
@@ -597,3 +589,9 @@ class TextDocumentSaveReason:
 class ClientConstants:
     """Internal LSP Client constants."""
     CANCEL = 'lsp-cancel'
+
+# ----------------------- WORKSPACE UPDATE CONSTANTS ----------------
+
+class WorkspaceUpdateKind:
+    ADDITION = 'addition'
+    DELETION = 'deletion'

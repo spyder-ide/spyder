@@ -30,7 +30,7 @@ def test_dependencies(dependencies_dialog):
     dependencies.add("zmq", "zmq", "Run introspection services", ">=10.0")
     dependencies.add("foo", "foo", "Non-existent module", ">=1.0")
     dependencies.add("bar", "bar", "Non-existing optional module", ">=10.0",
-                     optional=True)
+                     kind=dependencies.OPTIONAL)
     dependencies_dialog.set_data(dependencies.DEPENDENCIES)
     dependencies_dialog.show()
     assert dependencies_dialog

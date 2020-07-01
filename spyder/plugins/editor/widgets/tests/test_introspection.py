@@ -31,6 +31,8 @@ except Exception:
 from spyder.plugins.completion.languageserver import (
     LSPRequestTypes, CompletionItemKind)
 from spyder.plugins.completion.kite.providers.document import KITE_COMPLETION
+from spyder.plugins.completion.kite.utils.status import (
+    check_if_kite_installed, check_if_kite_running)
 from spyder.py3compat import PY2
 from spyder.config.manager import CONF
 
@@ -91,9 +93,7 @@ def test_space_completion(lsp_codeeditor, qtbot):
 @pytest.mark.slow
 @pytest.mark.first
 @flaky(max_runs=5)
-@pytest.mark.skipif(
-    os.environ.get('CI') and (PY2 or os.name != 'nt'),
-    reason='Fails consistently on CI with Linux/Mac or Python 2')
+@pytest.mark.skipif(bool(os.environ.get('CI', None)), reason='Fails on CI!')
 def test_hide_widget_completion(lsp_codeeditor, qtbot):
     """Validate hiding completion widget after a delimeter or operator."""
     code_editor, _ = lsp_codeeditor
@@ -230,12 +230,70 @@ def test_automatic_completions(lsp_codeeditor, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.first
+@flaky(max_runs=5)
+def test_automatic_completions_tab_bug(lsp_codeeditor, qtbot):
+    """
+    Test on-the-fly completions.
+
+    Autocompletions should not be invoked when Tab/Backtab is pressed.
+
+    See: spyder-ide/spyder#11625
+    """
+    code_editor, _ = lsp_codeeditor
+    completion = code_editor.completion_widget
+    code_editor.toggle_code_snippets(False)
+
+    code_editor.set_text('x = 1')
+    code_editor.set_cursor_position('sol')
+
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=5000):
+            qtbot.keyPress(code_editor, Qt.Key_Tab)
+        assert False
+    except pytestqt.exceptions.TimeoutError:
+        pass
+
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=5000):
+            qtbot.keyPress(code_editor, Qt.Key_Backtab)
+        assert False
+    except pytestqt.exceptions.TimeoutError:
+        pass
+
+
+@pytest.mark.slow
+@pytest.mark.first
+@flaky(max_runs=5)
+def test_automatic_completions_space_bug(lsp_codeeditor, qtbot):
+    """Test that completions are not invoked when pressing the space key."""
+    code_editor, _ = lsp_codeeditor
+    completion = code_editor.completion_widget
+    code_editor.toggle_code_snippets(False)
+
+    code_editor.set_text('x = 1')
+    code_editor.set_cursor_position('sol')
+    qtbot.keyPress(code_editor, Qt.Key_Right)
+
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=5000):
+            qtbot.keyPress(code_editor, Qt.Key_Space)
+        assert False
+    except pytestqt.exceptions.TimeoutError:
+        pass
+
+
+@pytest.mark.slow
 @flaky(max_runs=3)
 def test_automatic_completions_parens_bug(lsp_codeeditor, qtbot):
     """
     Test on-the-fly completions.
 
     Autocompletions for variables don't work inside function calls.
+    Note: Don't mark this as first because it fails on Windows.
 
     See: spyder-ide/spyder#10448
     """
@@ -366,11 +424,6 @@ def test_completions(lsp_codeeditor, qtbot):
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    qtbot.keyPress(code_editor, Qt.Key_Escape)
-
-    with qtbot.waitSignal(completion.sig_show_completions,
-                          timeout=10000) as sig:
-        qtbot.keyPress(code_editor, Qt.Key_Tab)
     if PY2:
         assert "hypot(x, y)" in [x['label'] for x in sig.args[0]]
     else:
@@ -378,6 +431,20 @@ def test_completions(lsp_codeeditor, qtbot):
                                                         "hypot(*coordinates)"]
 
     assert code_editor.toPlainText() == 'import math\nmath.hypot'
+
+    qtbot.keyPress(code_editor, Qt.Key_Escape)
+
+    try:
+        with qtbot.waitSignal(completion.sig_show_completions,
+                              timeout=10000) as sig:
+            qtbot.keyPress(code_editor, Qt.Key_Tab)
+    except pytestqt.exceptions.TimeoutError:
+        # This should generate a timeout error because the completion
+        # prefix is the same that the completions returned by Jedi.
+        # This is a regression test for spyder-ide/spyder#11600
+        pass
+
+
 
     # enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
@@ -488,7 +555,7 @@ def test_completions(lsp_codeeditor, qtbot):
                                         'math.f\nmath.asin\n'\
                                         'math.asinangle\n'
 
-    # Check math.a <tab> <backspace> doesn't emit sig_show_completions
+    # Check math.a <tab> <backspace> <escape> do not emit sig_show_completions
     qtbot.keyClicks(code_editor, 'math.a')
     with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
         code_editor.document_did_change()
@@ -498,6 +565,7 @@ def test_completions(lsp_codeeditor, qtbot):
                               timeout=5000) as sig:
             qtbot.keyPress(code_editor, Qt.Key_Tab)
             qtbot.keyPress(code_editor, Qt.Key_Backspace)
+            qtbot.keyPress(code_editor, Qt.Key_Escape)
         raise RuntimeError("The signal should not have been received!")
     except pytestqt.exceptions.TimeoutError:
         pass
@@ -522,7 +590,7 @@ def test_completions(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
-@pytest.mark.skipif(not rtree_available or PY2,
+@pytest.mark.skipif(not rtree_available or PY2 or os.name == 'nt',
                     reason='Only works if rtree is installed')
 def test_code_snippets(lsp_codeeditor, qtbot):
     assert rtree_available
@@ -731,6 +799,92 @@ def test_code_snippets(lsp_codeeditor, qtbot):
 
 
 @pytest.mark.slow
+@pytest.mark.skipif((not rtree_available
+                     or not check_if_kite_installed()
+                     or not check_if_kite_running()),
+                    reason="Only works if rtree is installed."
+                           "It's not meant to be run without kite installed "
+                           "and runnning")
+def test_kite_code_snippets(kite_codeeditor, qtbot):
+    """
+    Test kite code snippets completions without initial placeholder.
+
+    See spyder-ide/spyder#10971
+    """
+    assert rtree_available
+    code_editor, kite = kite_codeeditor
+    completion = code_editor.completion_widget
+    snippets = code_editor.editor_extensions.get('SnippetsExtension')
+
+    CONF.set('lsp-server', 'code_snippets', True)
+    CONF.set('kite', 'enable', True)
+    code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(True)
+    kite.update_configuration()
+
+    # Set cursor to start
+    code_editor.go_to_line(1)
+    qtbot.keyClicks(code_editor, 'import numpy as np')
+    qtbot.keyPress(code_editor, Qt.Key_Return)
+    qtbot.keyClicks(code_editor, 'np.sin')
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyPress(code_editor, Qt.Key_Tab)
+
+    assert 'sin('+u'\u2026'+')' in {
+        x['label'] for x in sig.args[0]}
+
+    expected_insert = 'sin($1)$0'
+    insert = sig.args[0][0]
+    assert expected_insert == insert['insertText']
+
+    # Insert completion
+    qtbot.wait(500)
+    qtbot.keyPress(completion, Qt.Key_Tab)
+    assert snippets.is_snippet_active
+
+    # Get code selected text
+    cursor = code_editor.textCursor()
+    arg1 = cursor.selectedText()
+    assert '' == arg1
+    assert snippets.active_snippet == 1
+
+    code_editor.set_cursor_position('eol')
+    qtbot.keyPress(code_editor, Qt.Key_Left)
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig2:
+        code_editor.do_completion()
+
+    assert '<x>)' in {x['label'] for x in sig2.args[0]}
+
+    expected_insert = '${1:[x]})$0'
+    insert = sig2.args[0][0]
+    assert expected_insert == insert['textEdit']['newText']
+    qtbot.keyPress(completion, Qt.Key_Tab)
+
+    # Snippets are disabled when there are no more left
+    code_editor.set_cursor_position('eol')
+    qtbot.keyPress(code_editor, Qt.Key_Enter)
+    assert not snippets.is_snippet_active
+
+    cursor = code_editor.textCursor()
+    cursor.movePosition(QTextCursor.PreviousBlock)
+    cursor.movePosition(QTextCursor.StartOfBlock)
+    cursor.movePosition(QTextCursor.EndOfBlock, mode=QTextCursor.KeepAnchor)
+    text1 = cursor.selectedText()
+    assert text1 == 'np.sin([x])'
+
+    CONF.set('lsp-server', 'code_snippets', False)
+    CONF.set('kite', 'enable', False)
+    kite.update_configuration()
+
+    code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
+
+
+@pytest.mark.slow
 @pytest.mark.first
 @flaky(max_runs=5)
 def test_completion_order(lsp_codeeditor, qtbot):
@@ -769,8 +923,8 @@ def test_completion_order(lsp_codeeditor, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.first
-@pytest.mark.skipif(not sys.platform.startswith('linux'),
-                    reason='Only works on Linux')
+@pytest.mark.skipif(not sys.platform.startswith('linux') or PY2,
+                    reason='Only works on Linux and Python 3')
 @flaky(max_runs=5)
 def test_fallback_completions(fallback_codeeditor, qtbot):
     code_editor, _ = fallback_codeeditor
@@ -783,20 +937,22 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
     code_editor.go_to_line(1)
 
     # Add some words in comments
-    qtbot.keyClicks(code_editor, '# some comment and words')
+    qtbot.keyClicks(code_editor, '# some comment and whole words')
     code_editor.document_did_change()
 
     # Enter for new line
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=1000)
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
-        qtbot.keyClicks(code_editor, 'w')
+        qtbot.keyClicks(code_editor, 'wh')
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
 
-    assert 'words' in {x['insertText'] for x in sig.args[0]}
+    # Assert all retrieved words start with 'wh'
+    assert all({x['insertText'].startswith('wh') for x in sig.args[0]})
 
-    # Delete 'w'
-    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+    # Delete 'wh'
+    for _ in range(2):
+        qtbot.keyPress(code_editor, Qt.Key_Backspace)
 
     # Insert another word
     qtbot.keyClicks(code_editor, 'another')
@@ -812,9 +968,8 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
     # Assert that keywords are also retrieved
     assert 'assert' in word_set
 
-    qtbot.keyPress(code_editor, Qt.Key_Backspace)
-    qtbot.keyPress(code_editor, Qt.Key_Backspace)
-    qtbot.keyPress(code_editor, Qt.Key_Backspace)
+    for _ in range(3):
+        qtbot.keyPress(code_editor, Qt.Key_Backspace)
 
     qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
     with qtbot.waitSignal(completion.sig_show_completions,
@@ -823,6 +978,18 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
     word_set = {x['insertText'] for x in sig.args[0]}
     assert 'another' not in word_set
+
+    # Check that fallback doesn't give an error with utf-16 characters.
+    # This is a regression test for issue spyder-ide/spyder#11862.
+    qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        code_editor.append("'😒 foobar'")
+        qtbot.keyPress(code_editor, Qt.Key_Enter, delay=300)
+        qtbot.keyClicks(code_editor, 'foob')
+        qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
+    word_set = {x['insertText'] for x in sig.args[0]}
+    assert 'foobar' in word_set
 
     code_editor.toggle_automatic_completions(True)
     code_editor.toggle_code_snippets(True)
@@ -941,11 +1108,8 @@ def test_completions_environment(lsp_codeeditor, qtbot, tmpdir):
     code_editor.toggle_code_snippets(False)
 
     # Get jedi test env
-    if sys.platform == 'darwin':
-        conda_jedi_env = '/Users/runner/.conda/envs/jedi-test-env'
-    else:
-        conda_envs_path = os.path.dirname(sys.prefix)
-        conda_jedi_env = os.path.join(conda_envs_path, 'jedi-test-env')
+    conda_envs_path = os.path.dirname(sys.prefix)
+    conda_jedi_env = os.path.join(conda_envs_path, 'jedi-test-env')
 
     if os.name == 'nt':
         py_exe = os.path.join(conda_jedi_env, 'python.exe')
@@ -961,23 +1125,23 @@ def test_completions_environment(lsp_codeeditor, qtbot, tmpdir):
     set_executable_config_helper()
     lsp_plugin.update_configuration()
 
-    qtbot.keyClicks(code_editor, 'import logh')
+    qtbot.keyClicks(code_editor, 'import flas')
     qtbot.keyPress(code_editor, Qt.Key_Tab)
     qtbot.wait(2000)
-    assert code_editor.toPlainText() == 'import logh'
+    assert code_editor.toPlainText() == 'import flas'
 
     # Reset extra paths
     set_executable_config_helper(py_exe)
     lsp_plugin.update_configuration()
 
     code_editor.set_text('')
-    qtbot.keyClicks(code_editor, 'import logh')
+    qtbot.keyClicks(code_editor, 'import flas')
     with qtbot.waitSignal(completion.sig_show_completions,
                           timeout=10000) as sig:
         qtbot.keyPress(code_editor, Qt.Key_Tab)
 
-    assert "loghub" in [x['label'] for x in sig.args[0]]
-    assert code_editor.toPlainText() == 'import loghub'
+    assert "flask" in [x['label'] for x in sig.args[0]]
+    assert code_editor.toPlainText() == 'import flask'
 
     set_executable_config_helper()
     lsp_plugin.update_configuration()

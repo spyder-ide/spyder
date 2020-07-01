@@ -33,9 +33,9 @@ from spyder.utils import encoding
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home, remove_backslashes
 from spyder.utils.programs import is_module_installed
-from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_toolbutton, create_plugin_layout,
-                                    MENU_SEPARATOR)
+from spyder.utils.qthelpers import (
+    add_actions, create_action, create_toolbutton, create_plugin_layout,
+    create_waitspinner, MENU_SEPARATOR)
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView)
 from spyder.plugins.variableexplorer.widgets.importwizard import ImportWizard
@@ -160,6 +160,14 @@ class NamespaceBrowser(QWidget):
         for widget in toolbar:
             self.tools_layout.addWidget(widget)
         self.tools_layout.addStretch()
+
+        # Show loading widget
+        self.loading_widget = create_waitspinner(size=16, parent=self)
+        self.editor.sig_open_editor.connect(self.loading_widget.start)
+        self.editor.sig_editor_shown.connect(self.loading_widget.stop)
+        self.tools_layout.addWidget(self.loading_widget)
+
+        # Options button actions addition and addition to layout
         self.setup_options_button()
 
         # Setup layout.
@@ -187,7 +195,39 @@ class NamespaceBrowser(QWidget):
 
         self.setLayout(layout)
 
+        # Local shortcuts
+        self.shortcuts = self.create_shortcuts()
+
         self.sig_option_changed.connect(self.option_changed)
+
+    def create_shortcuts(self):
+        """Create local shortcut for the nsbrowser."""
+        search = CONF.config_shortcut(
+            lambda: self.show_finder(set_visible=True),
+            context='variable_explorer',
+            name='search',
+            parent=self)
+        refresh = CONF.config_shortcut(
+            self.refresh_table,
+            context='variable_explorer',
+            name='refresh',
+            parent=self)
+        copy = CONF.config_shortcut(
+            self.editor.copy,
+            context='variable_explorer',
+            name='copy',
+            parent=self)
+
+        return [search, refresh, copy]
+
+    def get_shortcut_data(self):
+        """
+        Returns shortcut data, a list of tuples (shortcut, text, default)
+        shortcut (QShortcut or QAction instance)
+        text (string): action/shortcut description
+        default (string): default key sequence
+        """
+        return [sc.data for sc in self.shortcuts]
 
     def set_shellwidget(self, shellwidget):
         """Bind shellwidget instance to namespace browser"""
@@ -230,23 +270,11 @@ class NamespaceBrowser(QWidget):
             icon=ima.icon('find'),
             toggled=self.show_finder)
 
-        CONF.config_shortcut(
-            lambda: self.show_finder(set_visible=True),
-            context='variable_explorer',
-            name='search',
-            parent=self)
-
         self.refresh_button = create_toolbutton(
             self,
             text=_("Refresh variables"),
             icon=ima.icon('refresh'),
-            triggered=lambda: self.refresh_table(interrupt=True))
-
-        CONF.config_shortcut(
-            self.refresh_table,
-            context='variable_explorer',
-            name='refresh',
-            parent=self)
+            triggered=self.refresh_table)
 
         return [load_button, self.save_button, save_as_button,
                 reset_namespace_button, self.search_button,
@@ -352,10 +380,10 @@ class NamespaceBrowser(QWidget):
         else:
             self.editor.setFocus()
 
-    def refresh_table(self, interrupt=False):
+    def refresh_table(self):
         """Refresh variable table"""
         if self.is_visible and self.isVisible():
-            self.shellwidget.refresh_namespacebrowser(interrupt=interrupt)
+            self.shellwidget.refresh_namespacebrowser()
             try:
                 self.editor.resizeRowToContents()
             except TypeError:

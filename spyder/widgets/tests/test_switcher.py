@@ -12,6 +12,7 @@ import pytest
 from qtpy.QtCore import Qt
 
 from spyder.config.base import _
+from spyder.py3compat import to_text_string
 
 
 @pytest.fixture
@@ -72,7 +73,7 @@ def test_switcher_filter_and_mode(dlg_switcher, qtbot):
     edit = dlg_switcher.edit
 
     # Initially cvs mode with five rows
-    assert dlg_switcher.count() == 5
+    assert dlg_switcher.count() == 6
 
     # Match one row by name
     edit.setText("master")
@@ -102,3 +103,16 @@ def test_switcher_filter_and_mode(dlg_switcher, qtbot):
     edit.setText(":")
     qtbot.wait(1000)
     assert dlg_switcher.count() == 1
+
+
+def test_switcher_filter_unicode(dlg_switcher, qtbot):
+    """Test filter with unicode."""
+    edit = dlg_switcher.edit
+
+    # Initially cvs mode with five rows
+    assert dlg_switcher.count() == 6
+    dlg_switcher.show()
+    # Match one row by name
+    edit.setText('试')
+    qtbot.wait(1000)
+    assert dlg_switcher.count() == 2

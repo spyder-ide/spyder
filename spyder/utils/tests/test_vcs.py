@@ -25,11 +25,15 @@ from spyder.utils.vcs import (ActionToolNotFound, get_git_refs,
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
+skipnogit = pytest.mark.skipif(not(get_vcs_root(HERE)),
+                               reason="Not running from a git repo")
 
+
+@skipnogit
 @pytest.mark.skipif(os.environ.get('CI', None) is None,
                     reason="Not to be run outside of CIs")
 def test_vcs_tool():
-    if sys.platform.startswith('linux'):
+    if not os.name == 'nt':
         with pytest.raises(ActionToolNotFound):
             run_vcs_tool(osp.dirname(__file__), 'browse')
     else:
@@ -37,12 +41,14 @@ def test_vcs_tool():
         assert run_vcs_tool(osp.dirname(__file__), 'commit')
 
 
+@skipnogit
 def test_vcs_root(tmpdir):
     directory = tmpdir.mkdir('foo')
     assert get_vcs_root(str(directory)) == None
     assert get_vcs_root(osp.dirname(__file__)) != None
 
 
+@skipnogit
 @pytest.mark.skipif(os.name == 'nt' and os.environ.get('AZURE') is not None,
                     reason="Fails on Windows/Azure")
 def test_git_revision():
@@ -63,17 +69,15 @@ def test_no_git(monkeypatch):
     assert len(files_modified) == 0
 
 
+@skipnogit
 def test_get_git_refs():
     branch_tags, branch, files_modified = get_git_refs(__file__)
     assert bool(branch)  # This must always return a branch_name
     assert len(files_modified) >= 0
-
-    # It seems when Travis run tests on tags, master doesn't
-    # appear among the list of git branches.
-    if not os.environ.get('TRAVIS_TAG'):
-        assert any(['master' in b for b in branch_tags])
+    assert any([('master' in b or '4.x' in b) for b in branch_tags])
 
 
+@skipnogit
 def test_get_git_remotes():
     remotes = get_git_remotes(HERE)
     assert 'origin' in remotes

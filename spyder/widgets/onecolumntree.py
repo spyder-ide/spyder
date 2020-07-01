@@ -61,16 +61,19 @@ class OneColumnTree(QTreeWidget):
                                      tip=_('Restore original tree layout'),
                                      icon=ima.icon('restore'),
                                      triggered=self.restore)
-        self.collapse_selection_action = create_action(self,
-                                     text=_('Collapse selection'),
-                                     icon=ima.icon('collapse_selection'),
-                                     triggered=self.collapse_selection)
-        self.expand_selection_action = create_action(self,
-                                     text=_('Expand selection'),
-                                     icon=ima.icon('expand_selection'),
-                                     triggered=self.expand_selection)
-        return [self.collapse_all_action, self.expand_all_action,
-                self.restore_action, None,
+        self.collapse_selection_action = create_action(
+            self,
+            text=_('Collapse section'),
+            icon=ima.icon('collapse_selection'),
+            triggered=self.collapse_selection
+        )
+        self.expand_selection_action = create_action(
+            self,
+            text=_('Expand section'),
+            icon=ima.icon('expand_selection'),
+            triggered=self.expand_selection
+        )
+        return [self.collapse_all_action, self.expand_all_action, None,
                 self.collapse_selection_action, self.expand_selection_action]
 
     def get_menu_actions(self):

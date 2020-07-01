@@ -17,13 +17,14 @@ import sys
 import pytest
 from qtpy.QtCore import QEvent, QPoint, Qt, QTimer
 from qtpy.QtGui import QMouseEvent
-from qtpy.QtWidgets import QApplication, QMenu, QMessageBox
+from qtpy.QtWidgets import QApplication, QInputDialog, QMenu, QMessageBox
 
 # Local imports
 from spyder.plugins.explorer.widgets.explorer import (FileExplorerTest,
                                                       ProjectExplorerTest)
 from spyder.plugins.projects.widgets.explorer import (
     ProjectExplorerTest as ProjectExplorerTest2)
+from spyder.py3compat import PY2
 
 
 @pytest.fixture
@@ -54,7 +55,6 @@ def file_explorer_associations(qtbot):
         ],
     }
     widget = FileExplorerTest(file_associations=associations)
-    widget.show()
     qtbot.addWidget(widget)
     return widget
 
@@ -163,6 +163,26 @@ def test_delete_file(explorer_with_files, mocker):
     assert not osp.exists(top_folder)
 
 
+def test_rename_file_with_files(explorer_with_files, mocker, qtbot):
+    """Test that rename_file renames the file and sends out right signal."""
+    project, __, file_paths, __, __ = explorer_with_files
+    for old_path in file_paths:
+        if osp.isfile(old_path):
+            old_basename = osp.basename(old_path)
+            new_basename = 'new' + old_basename
+            new_path = osp.join(osp.dirname(old_path), new_basename)
+            mocker.patch.object(QInputDialog, 'getText',
+                                return_value=(new_basename, True))
+            treewidget = project.explorer.treewidget
+            with qtbot.waitSignal(treewidget.sig_renamed) as blocker:
+                treewidget.rename_file(old_path)
+            assert blocker.args == [old_path, new_path]
+            assert not osp.exists(old_path)
+            with open(new_path, 'r') as fh:
+                text = fh.read()
+            assert text == "File Path:\n" + str(old_path).replace(os.sep, '/')
+
+
 def test_single_click_to_open(qtbot, file_explorer):
     """Test single and double click open option for the file explorer."""
     file_explorer.show()
@@ -207,6 +227,7 @@ def test_single_click_to_open(qtbot, file_explorer):
     run_test_helper(single_click=False, initial_index=initial_index)
 
 
+@pytest.mark.first
 def test_get_common_file_associations(qtbot, file_explorer_associations):
     widget = file_explorer_associations.explorer.treewidget
     associations = widget.get_common_file_associations(
@@ -224,6 +245,7 @@ def test_get_common_file_associations(qtbot, file_explorer_associations):
     assert associations[0][-1] == '/some/fake/some_app_1' + ext
 
 
+@pytest.mark.first
 def test_get_file_associations(qtbot, file_explorer_associations):
     widget = file_explorer_associations.explorer.treewidget
     associations = widget.get_file_associations('/some/path/file.txt')
@@ -236,6 +258,8 @@ def test_get_file_associations(qtbot, file_explorer_associations):
     assert associations[0][-1] == '/some/fake/some_app_1' + ext
 
 
+@pytest.mark.first
+@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
 def test_create_file_manage_actions(qtbot, file_explorer_associations,
                                     tmp_path):
     widget = widget = file_explorer_associations.explorer.treewidget
@@ -265,6 +289,8 @@ def test_create_file_manage_actions(qtbot, file_explorer_associations,
     assert not action_texts
 
 
+@pytest.mark.first
+@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
 def test_clicked(qtbot, file_explorer_associations, tmp_path):
     widget = file_explorer_associations.explorer.treewidget
     some_dir = tmp_path / 'some_dir'
@@ -297,6 +323,8 @@ def test_clicked(qtbot, file_explorer_associations, tmp_path):
     qtbot.keyClick(widget, Qt.Key_Return)
 
 
+@pytest.mark.first
+@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
 def test_check_launch_error_codes(qtbot, file_explorer_associations):
     widget = file_explorer_associations.explorer.treewidget
 
@@ -327,6 +355,8 @@ def test_check_launch_error_codes(qtbot, file_explorer_associations):
     assert not res
 
 
+@pytest.mark.first
+@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on win and py2!')
 def test_open_association(qtbot, file_explorer_associations, tmp_path):
     widget = file_explorer_associations.explorer.treewidget
     some_dir = tmp_path / 'some_dir'

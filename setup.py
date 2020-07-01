@@ -130,20 +130,21 @@ CMDCLASS = {'install_data': MyInstallData}
 # platforms due to a bug in pip installation process
 # See spyder-ide/spyder#1158.
 SCRIPTS = ['%s_win_post_install.py' % NAME]
+
 if PY3 and sys.platform.startswith('linux'):
     SCRIPTS.append('spyder3')
 else:
     SCRIPTS.append('spyder')
 
+if os.name == 'nt':
+    SCRIPTS += ['spyder.bat']
 
 #==============================================================================
 # Files added to the package
 #==============================================================================
 EXTLIST = ['.pot', '.po', '.mo', '.svg', '.png', '.css', '.html', '.js',
-           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom']
-if os.name == 'nt':
-    SCRIPTS += ['spyder.bat']
-    EXTLIST += ['.ico']
+           '.ini', '.txt', '.qss', '.ttf', '.json', '.rst', '.bloom',
+           '.ico', '.gif', '.mp3', '.ogg', '.sfd', '.bat', '.sh']
 
 
 #==============================================================================
@@ -164,7 +165,7 @@ setup_args = dict(
     long_description_content_type='text/markdown',
     download_url=__website_url__ + "#fh5co-download",
     author="The Spyder Project Contributors",
-    author_email="spyderlib@googlegroups.com",
+    author_email="spyder.python@gmail.com",
     url=__website_url__,
     license='MIT',
     keywords='PyQt5 editor console widgets IDE science data analysis IPython',
@@ -200,61 +201,64 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
     import setuptools     # analysis:ignore
 
 install_requires = [
-    'applaunchservices;platform_system=="Darwin"',
-    'atomicwrites',
+    'applaunchservices>=0.1.7;platform_system=="Darwin"',
+    'atomicwrites>=1.2.0',
     'chardet>=2.0.0',
-    'cloudpickle',
-    'diff-match-patch',
+    'cloudpickle>=0.5.0',
+    'diff-match-patch>=20181111',
     'intervaltree',
-    # This is here until Jedi 0.15+ fixes completions for
-    # Numpy and Pandas
-    'jedi==0.14.1',
+    'ipython>=4.0',
+    'jedi==0.17.1',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
-    'nbconvert',
-    'numpydoc',
+    'nbconvert>=4.0',
+    'numpydoc>=0.6.0',
     # Required to get SSH connections to remote kernels
-    'paramiko;platform_system=="Windows"',
-    'pexpect',
-    'pickleshare',
-    'psutil',
+    'paramiko>=2.4.0;platform_system=="Windows"',
+    'parso==0.7.0',
+    'pexpect>=4.4.0',
+    'pickleshare>=0.4',
+    'psutil>=5.3',
     'pygments>=2.0',
-    'pylint',
-    'pympler',
+    'pylint>=1.0',
     'pyqt5<5.13;python_version>="3"',
     'pyqtwebengine<5.13;python_version>="3"',
-    'python-language-server[all]>=0.31.1,<0.32.0',
+    'python-language-server[all]>=0.34.0,<0.35.0',
     'pyxdg>=0.26;platform_system=="Linux"',
-    'pyzmq',
-    'qdarkstyle>=2.7',
+    'pyzmq>=17',
+    'qdarkstyle>=2.8',
     'qtawesome>=0.5.7',
     'qtconsole>=4.6.0',
     'qtpy>=1.5.0',
-    'sphinx',
-    'spyder-kernels>=1.8.0,<2.0.0',
+    'sphinx>=0.6.6',
+    'spyder-kernels>=1.9.1,<1.10.0',
     'watchdog',
 ]
 
 extras_require = {
     'test:python_version == "2.7"': ['mock'],
+    'test:platform_system == "Linux"': ['pytest-xvfb'],
     'test:platform_system == "Windows"': ['pywin32'],
-    'test': ['pytest<5.0',
-             'pytest-qt',
-             'pytest-mock',
-             'pytest-cov',
-             'pytest-xvfb;platform_system=="Linux"',
-             'pytest-ordering',
-             'pytest-lazy-fixture',
-             'pytest-faulthandler',
-             'mock',
-             'flaky',
-             'pandas',
-             'scipy',
-             'sympy',
-             'pillow',
-             'matplotlib',
-             'cython'],
+    'test': [
+        'coverage<5.0',
+        'cython',
+        'flaky',
+        'matplotlib',
+        'mock',
+        'pandas',
+        'pillow',
+        'pytest<5.0',
+        'pytest-cov',
+        'pytest-faulthandler<2.0',
+        'pytest-lazy-fixture',
+        'pytest-mock',
+        'pytest-ordering',
+        'pytest-qt',
+        'pyyaml',
+        'scipy',
+        'sympy',
+    ],
 }
 
 if 'setuptools' in sys.modules:

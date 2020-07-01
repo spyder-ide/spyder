@@ -93,7 +93,6 @@ DEFAULTS = [
               'toolbars_visible': True,
               'cursor/width': 2,
               'completion/size': (300, 180),
-              'report_error/remember_me': False,
               'report_error/remember_token': False,
               }),
             ('quick_layouts',
@@ -195,6 +194,8 @@ DEFAULTS = [
               'edge_line': True,
               'edge_line_columns': '79',
               'indent_guides': False,
+              'code_folding': True,
+              'show_code_folding_warning': True,
               'scroll_past_end': False,
               'toolbox_panel': True,
               'close_parentheses': True,
@@ -270,6 +271,7 @@ DEFAULTS = [
               'name_filters': NAME_FILTERS,
               'show_all': True,
               'show_hscrollbar': True,
+              'max_recent_projects': 10,
               'visible_if_project_open': True
               }),
             ('explorer',
@@ -306,6 +308,7 @@ DEFAULTS = [
             ('pylint',
              {
               'enable': True,
+              'max_entries': 30,
               }),
             ('workingdir',
              {
@@ -366,10 +369,10 @@ DEFAULTS = [
               # ---- Editor ----
               # -- In widgets/sourcecode/codeeditor.py
               'editor/code completion': CTRL+'+Space',
-              'editor/duplicate line': "Ctrl+Alt+Up" if WIN else \
-                                       "Shift+Alt+Up",
-              'editor/copy line': "Ctrl+Alt+Down" if WIN else \
-                                  "Shift+Alt+Down",
+              'editor/duplicate line up': (
+                  "Ctrl+Alt+Up" if WIN else "Shift+Alt+Up"),
+              'editor/duplicate line down': (
+                  "Ctrl+Alt+Down" if WIN else "Shift+Alt+Down"),
               'editor/delete line': 'Ctrl+D',
               'editor/transform to uppercase': 'Ctrl+Shift+U',
               'editor/transform to lowercase': 'Ctrl+U',
@@ -423,8 +426,8 @@ DEFAULTS = [
               'editor/save as': 'Ctrl+Shift+S',
               'editor/close all': "Ctrl+Shift+W",
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
-              'editor/previous cursor position': "Ctrl+Alt+Left",
-              'editor/next cursor position': "Ctrl+Alt+Right",
+              'editor/previous cursor position': "Alt+Left",
+              'editor/next cursor position': "Alt+Right",
               'editor/previous warning': "Ctrl+Alt+Shift+,",
               'editor/next warning': "Ctrl+Alt+Shift+.",
               'editor/zoom in 1': "Ctrl++",
@@ -469,6 +472,12 @@ DEFAULTS = [
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
               'plots/next figure': 'Ctrl+PgDown',
+              'plots/save': 'Ctrl+S',
+              'plots/save all': 'Ctrl+Alt+S',
+              'plots/close': 'Ctrl+W',
+              'plots/close all': 'Ctrl+Shift+W',
+              'plots/zoom in': "Ctrl++",
+              'plots/zoom out': "Ctrl+-",
               # ---- In widgets/explorer ----
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
@@ -481,6 +490,7 @@ DEFAULTS = [
               # This option is not used with the LSP server config
               # It is used to disable hover hints in the editor
               'enable_hover_hints': True,
+              'show_lsp_down_warning': True,
               'code_completion': True,
               'code_snippets': True,
               'jedi_definition': True,
@@ -519,6 +529,7 @@ DEFAULTS = [
               # Enable the installation dialog
               'show_installation_dialog': True,
               'show_onboarding': True,
+              'show_installation_error_message': True,
              }),
             ]
 
@@ -584,6 +595,7 @@ NAME_MAP = {
             'current_project_path',
             'expanded_state',
             'recent_projects',
+            'max_recent_projects',
             'scrollbar_position',
           ]
          ),
@@ -600,6 +612,10 @@ NAME_MAP = {
             'startup/fixed_directory',
           ]
          ),
+        ('pylint', [
+          'history_filenames',
+          ]
+         ),
     ]
 }
 
@@ -614,4 +630,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '53.3.0'
+CONF_VERSION = '57.4.0'

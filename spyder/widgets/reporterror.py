@@ -138,7 +138,7 @@ class SpyderErrorDialog(QDialog):
             title = _("Please fill the following information")
         else:
             title = _("Spyder has encountered an internal problem!")
-        main_label = QLabel(
+        self.main_label = QLabel(
             _("<h3>{title}</h3>"
               "Before reporting this problem, <i>please</i> consult our "
               "comprehensive "
@@ -149,10 +149,10 @@ class SpyderErrorDialog(QDialog):
               "quicker solution."
               ).format(title=title, trouble_url=__trouble_url__,
                        project_url=__project_url__))
-        main_label.setOpenExternalLinks(True)
-        main_label.setWordWrap(True)
-        main_label.setAlignment(Qt.AlignJustify)
-        main_label.setStyleSheet('font-size: 12px;')
+        self.main_label.setOpenExternalLinks(True)
+        self.main_label.setWordWrap(True)
+        self.main_label.setAlignment(Qt.AlignJustify)
+        self.main_label.setStyleSheet('font-size: 12px;')
 
         # Issue title
         self.title = QLineEdit()
@@ -169,13 +169,15 @@ class SpyderErrorDialog(QDialog):
         # Description
         steps_header = QLabel(
             _("<b>Steps to reproduce:</b> {}").format(red_asterisk))
-        steps_text = QLabel(_("Please enter a detailed step-by-step "
-                              "description (in English) of what led up to "
-                              "the problem below. Issue reports without a "
-                              "clear way to reproduce them will be closed."))
-        steps_text.setWordWrap(True)
-        steps_text.setAlignment(Qt.AlignJustify)
-        steps_text.setStyleSheet('font-size: 12px;')
+        self.steps_text = QLabel(
+            _("Please enter a detailed step-by-step "
+              "description (in English) of what led up to "
+              "the problem below. Issue reports without a "
+              "clear way to reproduce them will be closed.")
+        )
+        self.steps_text.setWordWrap(True)
+        self.steps_text.setAlignment(Qt.AlignJustify)
+        self.steps_text.setStyleSheet('font-size: 12px;')
 
         # Field to input the description of the problem
         self.input_description = DescriptionWidget(self)
@@ -188,10 +190,14 @@ class SpyderErrorDialog(QDialog):
         self.details.set_pythonshell_font(get_font())
         self.details.hide()
 
+        self.description_minimum_length = DESC_MIN_CHARS
+        self.require_minimum_length = True
+
         # Label to show missing chars
         self.initial_chars = len(self.input_description.toPlainText())
         self.desc_chars_label = QLabel(_("{} more characters "
-                                         "to go...").format(DESC_MIN_CHARS))
+                                         "to go...").format(
+                                             self.description_minimum_length))
 
         # Checkbox to dismiss future errors
         self.dismiss_box = QCheckBox(_("Hide all future errors during this "
@@ -222,14 +228,14 @@ class SpyderErrorDialog(QDialog):
 
         # Main layout
         layout = QVBoxLayout()
-        layout.addWidget(main_label)
+        layout.addWidget(self.main_label)
         layout.addSpacing(20)
         layout.addLayout(form_layout)
         layout.addWidget(self.title_chars_label)
         layout.addSpacing(12)
         layout.addWidget(steps_header)
         layout.addSpacing(-1)
-        layout.addWidget(steps_text)
+        layout.addWidget(self.steps_text)
         layout.addSpacing(1)
         layout.addWidget(self.input_description)
         layout.addWidget(self.details)
@@ -246,6 +252,14 @@ class SpyderErrorDialog(QDialog):
 
         # Set Tab key focus order
         self.setTabOrder(self.title, self.input_description)
+
+    def set_require_minimum_length(self, state):
+        """Remove the requirement for minimum length."""
+        self.require_minimum_length = state
+        if state:
+            self._contents_changed()
+        else:
+            self.desc_chars_label.setText('')
 
     def _submit_to_github(self):
         """Action to take when pressing the submit button."""
@@ -324,11 +338,13 @@ class SpyderErrorDialog(QDialog):
 
     def _contents_changed(self):
         """Activate submit_btn."""
+        if not self.require_minimum_length:
+            return
         desc_chars = (len(self.input_description.toPlainText()) -
                       self.initial_chars)
-        if desc_chars < DESC_MIN_CHARS:
+        if desc_chars < self.description_minimum_length:
             self.desc_chars_label.setText(
-                u"{} {}".format(DESC_MIN_CHARS - desc_chars,
+                u"{} {}".format(self.description_minimum_length - desc_chars,
                                 _("more characters to go...")))
         else:
             self.desc_chars_label.setText(_("Description complete; thanks!"))
@@ -341,7 +357,7 @@ class SpyderErrorDialog(QDialog):
         else:
             self.title_chars_label.setText(_("Title complete; thanks!"))
 
-        submission_enabled = (desc_chars >= DESC_MIN_CHARS and
+        submission_enabled = (desc_chars >= self.description_minimum_length and
                               title_chars >= TITLE_MIN_CHARS)
         self.submit_btn.setEnabled(submission_enabled)
 

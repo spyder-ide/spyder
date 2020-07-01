@@ -5,15 +5,53 @@
 
 """Tests for encodings.py"""
 
-import pytest
 import os
 import stat
 
+from flaky import flaky
+import pytest
+
 from spyder.utils.encoding import is_text_file, get_coding, write
-from spyder.py3compat import to_text_string
+from spyder.py3compat import to_text_string, PY2
+
+if PY2:
+    import pathlib2 as pathlib
+else:
+    import pathlib
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(),
                                              os.path.dirname(__file__)))
+
+
+@pytest.mark.first
+@pytest.mark.skipif(os.name == 'nt' and PY2, reason='Fails on Win!')
+def test_symlinks(tmpdir):
+    """
+    Check that modifing symlinks files changes source file and keeps symlinks.
+    """
+    base_dir = tmpdir.mkdir("symlinks")
+    base_file = base_dir.join("symlinks_text.txt")
+    base_file_path = to_text_string(base_file)
+
+    # Write base file
+    write("Some text for symlink", base_file_path)
+
+    # Create symlink
+    symlink_file = pathlib.Path(base_dir.join(
+        'link-to-symlinks_text.txt'))
+    symlink_file.symlink_to(base_file_path)
+    symlink_file_path = to_text_string(symlink_file)
+
+    # Assert the symlink was created
+    assert os.path.islink(symlink_file_path)
+
+    # Write using the symlink
+    encoding = write("New text for symlink", symlink_file_path)
+
+    # Assert symlink is valid and contents of the file
+    assert os.path.islink(symlink_file_path)
+    assert base_file.read_text(encoding) == symlink_file.read_text(encoding)
+    assert symlink_file.read_text(encoding) == 'New text for symlink'
 
 
 def test_permissions(tmpdir):
@@ -34,6 +72,23 @@ def test_permissions(tmpdir):
     new_mode = os.stat(p_file).st_mode
 
     assert old_mode == new_mode
+
+
+@flaky(max_runs=10)
+def test_timestamp(tmpdir):
+    """Check that the modification timestamp is preserved."""
+    tmp_file = tmpdir.mkdir("timestamp").join('test_file.txt')
+    tmp_file = to_text_string(tmp_file)
+
+    # Write a file
+    write("Test text", tmp_file)
+    st = os.stat(tmp_file)
+    actual_creation_time = st.st_atime
+
+    # Write the file and check that creation time is preserved.
+    write('New text', tmp_file)
+    creation_time = os.stat(tmp_file).st_atime
+    assert actual_creation_time == creation_time
 
 
 def test_is_text_file(tmpdir):

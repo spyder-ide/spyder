@@ -131,7 +131,12 @@ class IconProvider(QFileIconProvider):
         else:
             qfileinfo = icontype_or_qfileinfo
             fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
-            return ima.get_icon_by_extension_or_type(fname, scale_factor=1.0)
+            if osp.isfile(fname) or osp.isdir(fname):
+                icon = ima.get_icon_by_extension_or_type(fname,
+                                                         scale_factor=1.0)
+            else:
+                icon = ima.get_icon('binary', adjust_for_interface=True)
+            return icon
 
 
 class DirView(QTreeView):
@@ -179,7 +184,8 @@ class DirView(QTreeView):
     #---- Model
     def setup_fs_model(self):
         """Setup filesystem model"""
-        filters = QDir.AllDirs | QDir.Files | QDir.Drives | QDir.NoDotAndDotDot
+        filters = (QDir.AllDirs | QDir.Files | QDir.Drives
+                   | QDir.NoDotAndDotDot | QDir.Hidden)
         self.fsmodel = QFileSystemModel(self)
         self.fsmodel.setFilter(filters)
         self.fsmodel.setNameFilterDisables(False)
@@ -281,8 +287,8 @@ class DirView(QTreeView):
         if self.selectionMode() == self.ExtendedSelection:
             if self.selectionModel() is None:
                 return []
-            return [self.get_filename(idx) for idx in
-                    self.selectionModel().selectedRows()]
+            rows = self.selectionModel().selectedRows()
+            return [self.get_filename(idx) for idx in rows]
         else:
             return [self.get_filename(self.currentIndex())]
 
@@ -395,24 +401,23 @@ class DirView(QTreeView):
 
     def create_file_new_actions(self, fnames):
         """Return actions for submenu 'New...'"""
-        if not fnames:
-            return []
+        root_path = self.fsmodel.rootPath()
         new_file_act = create_action(self, _("File..."),
                                      icon=ima.icon('filenew'),
                                      triggered=lambda:
-                                     self.new_file(fnames[-1]))
+                                     self.new_file(root_path))
         new_module_act = create_action(self, _("Module..."),
                                        icon=ima.icon('spyder'),
                                        triggered=lambda:
-                                         self.new_module(fnames[-1]))
+                                       self.new_module(root_path))
         new_folder_act = create_action(self, _("Folder..."),
                                        icon=ima.icon('folder_new'),
                                        triggered=lambda:
-                                        self.new_folder(fnames[-1]))
+                                       self.new_folder(root_path))
         new_package_act = create_action(self, _("Package..."),
                                         icon=ima.icon('package_new'),
                                         triggered=lambda:
-                                         self.new_package(fnames[-1]))
+                                        self.new_package(root_path))
         return [new_file_act, new_folder_act, None,
                 new_module_act, new_package_act]
 
@@ -502,6 +507,8 @@ class DirView(QTreeView):
                 assoc = self.get_file_associations(fnames[0])
             elif len(fnames) > 1:
                 assoc = self.get_common_file_associations(fnames)
+            else:
+                assoc = []
 
             if len(assoc) >= 1:
                 actions.append(open_with_menu)
@@ -534,9 +541,10 @@ class DirView(QTreeView):
         external_fileexp_action = create_action(
             self, text, triggered=self.show_in_external_file_explorer)
         actions += [delete_action, rename_action]
-        basedir = fixpath(osp.dirname(fnames[0]))
-        if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
-            actions.append(move_action)
+        if fnames:
+            basedir = fixpath(osp.dirname(fnames[0]))
+            if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
+                actions.append(move_action)
         actions += [None]
         actions += [copy_file_clipboard_action, save_file_clipboard_action,
                     copy_absolute_path_action, copy_relative_path_action]
@@ -548,7 +556,9 @@ class DirView(QTreeView):
         if only_notebooks and nbexporter is not None:
             actions.append(ipynb_convert_action)
 
-        dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
+        if fnames:
+            dirname = (
+                fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0]))
         if len(fnames) == 1:
             # VCS support is quite limited for now, so we are enabling the VCS
             # related actions only when a single file/folder is selected:
@@ -563,6 +573,17 @@ class DirView(QTreeView):
                                         triggered=browse_slot)
                 actions += [None, vcs_ci, vcs_log]
 
+        # Needed to disable actions in the context menu if there's an
+        # empty folder. See spyder-ide/spyder#13004
+        if len(fnames) == 1 and self.selectionModel():
+            rows = self.selectionModel().selectedRows()
+            if (self.fsmodel.type(rows[0]) == 'Folder' and
+                    self.fsmodel.rowCount(rows[0]) == 0):
+                fnames = []
+        if not fnames:
+            for action in actions:
+                if action:
+                    action.setDisabled(True)
         return actions
 
     def create_folder_manage_actions(self, fnames):
@@ -601,8 +622,7 @@ class DirView(QTreeView):
             actions += import_actions
         if actions:
             actions.append(None)
-        if fnames:
-            actions += self.create_file_manage_actions(fnames)
+        actions += self.create_file_manage_actions(fnames)
         if actions:
             actions.append(None)
         if fnames and all([osp.isdir(_fn) for _fn in fnames]):
@@ -638,6 +658,7 @@ class DirView(QTreeView):
         try:
             self.update_menu()
             self.menu.popup(event.globalPos())
+            event.accept()
         except AttributeError:
             pass
 
@@ -897,7 +918,7 @@ class DirView(QTreeView):
                     return
             try:
                 misc.rename_file(fname, path)
-                if osp.isfile(fname):
+                if osp.isfile(path):
                     self.sig_renamed.emit(fname, path)
                 else:
                     self.sig_renamed_tree.emit(fname, path)
@@ -1725,47 +1746,55 @@ class ExplorerWidget(QWidget):
 #==============================================================================
 class FileExplorerTest(QWidget):
     def __init__(self, directory=None, file_associations={}):
-        QWidget.__init__(self)
-        vlayout = QVBoxLayout()
-        self.setLayout(vlayout)
-        self.explorer = ExplorerWidget(self, show_cd_only=None,
-                                       file_associations=file_associations)
+        super(FileExplorerTest, self).__init__()
+
         if directory is not None:
             self.directory = directory
         else:
             self.directory = osp.dirname(osp.abspath(__file__))
-        self.explorer.treewidget.set_current_folder(self.directory)
-        vlayout.addWidget(self.explorer)
 
-        hlayout1 = QHBoxLayout()
-        vlayout.addLayout(hlayout1)
-        label = QLabel("<b>Open file:</b>")
-        label.setAlignment(Qt.AlignRight)
-        hlayout1.addWidget(label)
+        self.explorer = ExplorerWidget(self, show_cd_only=None,
+                                       file_associations=file_associations)
+        self.label_dir = QLabel("<b>Open dir:</b>")
+        self.label_file = QLabel("<b>Open file:</b>")
         self.label1 = QLabel()
+        self.label_dir.setAlignment(Qt.AlignRight)
+        self.label2 = QLabel()
+        self.label_option = QLabel("<b>Option changed:</b>")
+        self.label3 = QLabel()
+
+        # Setup
+        self.explorer.treewidget.set_current_folder(self.directory)
+        self.label_file.setAlignment(Qt.AlignRight)
+        self.label_option.setAlignment(Qt.AlignRight)
+
+        # Layout
+        hlayout1 = QHBoxLayout()
+        hlayout1.addWidget(self.label_file)
         hlayout1.addWidget(self.label1)
-        self.explorer.sig_open_file.connect(self.label1.setText)
 
         hlayout2 = QHBoxLayout()
-        vlayout.addLayout(hlayout2)
-        label = QLabel("<b>Open dir:</b>")
-        label.setAlignment(Qt.AlignRight)
-        hlayout2.addWidget(label)
-        self.label2 = QLabel()
+        hlayout2.addWidget(self.label_dir)
         hlayout2.addWidget(self.label2)
-        self.explorer.open_dir.connect(self.label2.setText)
 
         hlayout3 = QHBoxLayout()
-        vlayout.addLayout(hlayout3)
-        label = QLabel("<b>Option changed:</b>")
-        label.setAlignment(Qt.AlignRight)
-        hlayout3.addWidget(label)
-        self.label3 = QLabel()
+        hlayout3.addWidget(self.label_option)
         hlayout3.addWidget(self.label3)
-        self.explorer.sig_option_changed.connect(
-           lambda x, y: self.label3.setText('option_changed: %r, %r' % (x, y)))
+
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(self.explorer)
+        vlayout.addLayout(hlayout1)
+        vlayout.addLayout(hlayout2)
+        vlayout.addLayout(hlayout3)
+        self.setLayout(vlayout)
+
+        # Signals
+        self.explorer.open_dir.connect(self.label2.setText)
         self.explorer.open_dir.connect(
                                 lambda: self.explorer.treewidget.refresh('..'))
+        self.explorer.sig_open_file.connect(self.label1.setText)
+        self.explorer.sig_option_changed.connect(
+           lambda x, y: self.label3.setText('option_changed: %r, %r' % (x, y)))
 
 
 class ProjectExplorerTest(QWidget):

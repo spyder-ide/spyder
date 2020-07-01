@@ -560,8 +560,15 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin,
 
         self.__buffer = []
         self.insert_text(text, at_end=True, error=error, prompt=prompt)
-        QCoreApplication.processEvents()
-        self.repaint()
+
+        # The lines below are causing a hard crash when Qt generates
+        # internal warnings. We replaced them instead for self.update(),
+        # which prevents the crash.
+        # See spyder-ide/spyder#10893
+        # QCoreApplication.processEvents()
+        # self.repaint()
+        self.update()
+
         # Clear input buffer:
         self.new_input_line = True
 
@@ -661,8 +668,21 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             context='Console',
             name='Inspect current object',
             parent=self)
+        clear_line_sc = CONF.config_shortcut(
+            self.clear_line,
+            context='Console',
+            name="Clear line",
+            parent=self,
+        )
+        clear_shell_sc = CONF.config_shortcut(
+            self.clear_terminal,
+            context='Console',
+            name="Clear shell",
+            parent=self,
+        )
 
-        return [inspectsc, array_inline, array_table]
+        return [inspectsc, array_inline, array_table, clear_line_sc,
+                clear_shell_sc]
 
     def get_shortcut_data(self):
         """
@@ -932,13 +952,6 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                 self.show_completion_list(completions,
                                           completion_text=text[q_pos+1:])
             return
-
-    def document_did_change(self, text=None):
-        """
-        This is here to be compatible with CodeEditor and be able to use
-        code completion.
-        """
-        pass
 
     #------ Drag'n Drop
     def drop_pathlist(self, pathlist):

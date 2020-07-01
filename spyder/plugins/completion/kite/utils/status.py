@@ -38,13 +38,17 @@ def check_if_kite_installed():
 def check_if_kite_running():
     """Detect if kite is running."""
     running = False
-    for proc in psutil.process_iter(attrs=['pid', 'name', 'username',
-                                           'status']):
-        if is_proc_kite(proc):
-            logger.debug('Kite process already '
-                         'running with PID {0}'.format(proc.pid))
-            running = True
-            break
+    try:
+        for proc in psutil.process_iter(attrs=['pid', 'name', 'username',
+                                               'status']):
+            if is_proc_kite(proc):
+                logger.debug('Kite process already '
+                             'running with PID {0}'.format(proc.pid))
+                running = True
+                break
+    except OSError:
+        # Needed to handle a possible WinError 0. See spyder-ide/spyder#12510
+        pass
     return running
 
 
@@ -85,12 +89,12 @@ def is_proc_kite(proc):
     return is_kite
 
 
-def status():
+def status(extra_status=''):
     """Kite completions status: not installed, ready, not running."""
     kite_installed, _ = check_if_kite_installed()
     if not kite_installed:
-        return NOT_INSTALLED
+        return NOT_INSTALLED + extra_status
     elif check_if_kite_running():
-        return RUNNING
+        return RUNNING + extra_status
     else:
-        return NOT_RUNNING
+        return NOT_RUNNING + extra_status
