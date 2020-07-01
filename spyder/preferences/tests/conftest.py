@@ -89,12 +89,7 @@ class ConfigDialogTester(ConfigDialog):
                     widget = self._main.create_plugin_conf_widget(plugin)
                 except Exception:
                     # Old API
-                    try:
-                        # Already initialized plugins
-                        plugin = plugin(parent=self._main)
-                    except Exception:
-                        pass
-
+                    plugin = plugin(parent=self._main)
                     widget = plugin._create_configwidget(self, self._main)
 
                 if widget:
