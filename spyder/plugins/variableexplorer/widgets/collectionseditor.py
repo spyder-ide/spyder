@@ -142,11 +142,6 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self.types = []
         self.set_data(data)
 
-    def current_index(self):
-        """Get the currently selected index in the parent table view."""
-        idx = self._parent.proxy_model.mapToSource(self._parent.currentIndex())
-        return idx
-
     def get_data(self):
         """Return model data"""
         return self._data
@@ -279,7 +274,10 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
     def columnCount(self, qindex=QModelIndex()):
         """Array column number"""
-        return 5
+        if self._parent.proxy_model:
+            return 5
+        else:
+            return 4
 
     def rowCount(self, index=QModelIndex()):
         """Array row number"""
@@ -685,13 +683,16 @@ class BaseTableView(QTableView):
         """Refresh context menu"""
         index = self.currentIndex()
         condition = index.isValid()
-        self.edit_action.setEnabled( condition )
-        self.remove_action.setEnabled( condition )
+        self.edit_action.setEnabled(condition)
+        self.remove_action.setEnabled(condition)
         self.refresh_plot_entries(index)
 
     def refresh_plot_entries(self, index):
         if index.isValid():
-            key = self.proxy_model.get_key(index)
+            if self.proxy_model:
+                key = self.proxy_model.get_key(index)
+            else:
+                key = self.source_model.get_key(index)
             is_list = self.is_list(key)
             is_array = self.is_array(key) and self.get_len(key) != 0
             condition_plot = (is_array and len(self.get_array_shape(key)) <= 2)
@@ -857,8 +858,12 @@ class BaseTableView(QTableView):
                                           one if len(indexes) == 1 else more,
                                           QMessageBox.Yes | QMessageBox.No)
         if force or answer == QMessageBox.Yes:
-            idx_rows = unsorted_unique(
-                [self.proxy_model.mapToSource(idx).row() for idx in indexes])
+            if self.proxy_model:
+                idx_rows = unsorted_unique(
+                    [self.proxy_model.mapToSource(idx).row()
+                     for idx in indexes])
+            else:
+                idx_rows = unsorted_unique([idx.row() for idx in indexes])
             keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
             self.remove_values(keys)
 
@@ -867,8 +872,11 @@ class BaseTableView(QTableView):
         indexes = self.selectedIndexes()
         if not indexes:
             return
-        idx_rows = unsorted_unique(
-            [self.proxy_model.mapToSource(idx).row() for idx in indexes])
+        if self.proxy_model:
+            idx_rows = unsorted_unique(
+                [self.proxy_model.mapToSource(idx).row() for idx in indexes])
+        else:
+            idx_rows = unsorted_unique([idx.row() for idx in indexes])
         if len(idx_rows) > 1 or not indexes[0].isValid():
             return
         orig_key = self.source_model.keys[idx_rows[0]]
@@ -911,7 +919,10 @@ class BaseTableView(QTableView):
         if not index.isValid():
             row = self.source_model.rowCount()
         else:
-            row = self.proxy_model.mapToSource(index).row()
+            if self.proxy_model:
+                row = self.proxy_model.mapToSource(index).row()
+            else:
+                row = index.row()
         data = self.source_model.get_data()
         if isinstance(data, list):
             key = row
@@ -959,8 +970,11 @@ class BaseTableView(QTableView):
         """Plot item"""
         index = self.currentIndex()
         if self.__prepare_plot():
-            key = self.source_model.get_key(
-                self.proxy_model.mapToSource(index))
+            if self.proxy_model:
+                key = self.source_model.get_key(
+                    self.proxy_model.mapToSource(index))
+            else:
+                key = self.source_model.get_key(index)
             try:
                 self.plot(key, funcname)
             except (ValueError, TypeError) as error:
@@ -974,8 +988,11 @@ class BaseTableView(QTableView):
         """Imshow item"""
         index = self.currentIndex()
         if self.__prepare_plot():
-            key = self.source_model.get_key(
-                self.proxy_model.mapToSource(index))
+            if self.proxy_model:
+                key = self.source_model.get_key(
+                    self.proxy_model.mapToSource(index))
+            else:
+                key = self.source_model.get_key(index)
             try:
                 if self.is_image(key):
                     self.show_image(key)
@@ -1098,19 +1115,8 @@ class CollectionsEditorTableView(BaseTableView):
         self.source_model = CollectionsModelClass(self, data, title,
                                                   names=names,
                                                   minmax=minmax)
-        self.horizontalHeader().sectionClicked.connect(
-            self.source_model.load_all)
-        self.proxy_model = CollectionsCustomSortFilterProxy(self)
-        self.model = self.proxy_model
-
-        self.proxy_model.setSourceModel(self.source_model)
-        self.proxy_model.setDynamicSortFilter(True)
-        self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
-        self.proxy_model.setSortRole(Qt.UserRole)
-        self.setModel(self.proxy_model)
-
-        self.hideColumn(4)  # Column 4 for Score
-
+        self.model = self.source_model
+        self.setModel(self.source_model)
         self.delegate = CollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
 
