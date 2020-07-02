@@ -9,8 +9,10 @@
 # Standard library imports
 from __future__ import print_function
 import os.path as osp
+import uuid
 
 # Third party imports
+from intervaltree import IntervalTree
 from qtpy.compat import from_qvariant
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
@@ -20,12 +22,109 @@ from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
 from spyder.config.base import _, STDOUT
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
+from spyder.plugins.completion.languageserver import SymbolKind
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
                                     set_item_user_text, create_plugin_layout)
 from spyder.widgets.onecolumntree import OneColumnTree
 
 
-class FileRootItem(QTreeWidgetItem):
+SYMBOL_KIND_ICON = {
+    SymbolKind.FILE: 'file',
+    SymbolKind.MODULE: 'module',
+    SymbolKind.NAMESPACE: 'namespace',
+    SymbolKind.PACKAGE: 'package',
+    SymbolKind.CLASS: 'class',
+    SymbolKind.METHOD: 'method',
+    SymbolKind.PROPERTY: 'property',
+    SymbolKind.FIELD: 'field',
+    SymbolKind.CONSTRUCTOR: 'constructor',
+    SymbolKind.ENUM: 'enum',
+    SymbolKind.INTERFACE: 'interface',
+    SymbolKind.FUNCTION: 'function',
+    SymbolKind.VARIABLE: 'variable',
+    SymbolKind.CONSTANT: 'constant',
+    SymbolKind.STRING: 'string',
+    SymbolKind.NUMBER: 'number',
+    SymbolKind.BOOLEAN: 'boolean',
+    SymbolKind.ARRAY: 'array',
+    SymbolKind.OBJECT: 'object',
+    SymbolKind.KEY: 'key',
+    SymbolKind.NULL: 'null',
+    SymbolKind.ENUM_MEMBER: 'enum_member',
+    SymbolKind.STRUCT: 'struct',
+    SymbolKind.EVENT: 'event',
+    SymbolKind.OPERATOR: 'operator',
+    SymbolKind.TYPE_PARAMETER: 'type_parameter'
+}
+
+SYMBOL_NAME_MAP = {
+    SymbolKind.FILE: _('File'),
+    SymbolKind.MODULE: _('Module'),
+    SymbolKind.NAMESPACE: _('Namespace'),
+    SymbolKind.PACKAGE: _('Package'),
+    SymbolKind.CLASS: _('Class'),
+    SymbolKind.METHOD: _('Method'),
+    SymbolKind.PROPERTY: _('Property'),
+    SymbolKind.FIELD: _('Field'),
+    SymbolKind.CONSTRUCTOR: _('constructor'),
+    SymbolKind.ENUM: _('Enum'),
+    SymbolKind.INTERFACE: _('Interface'),
+    SymbolKind.FUNCTION: _('Function'),
+    SymbolKind.VARIABLE: _('Variable'),
+    SymbolKind.CONSTANT: _('Constant'),
+    SymbolKind.STRING: _('String'),
+    SymbolKind.NUMBER: _('Number'),
+    SymbolKind.BOOLEAN: _('Boolean'),
+    SymbolKind.ARRAY: _('Array'),
+    SymbolKind.OBJECT: _('Object'),
+    SymbolKind.KEY: _('Key'),
+    SymbolKind.NULL: _('Null'),
+    SymbolKind.ENUM_MEMBER: _('Enum member'),
+    SymbolKind.STRUCT: _('Struct'),
+    SymbolKind.EVENT: _('Event'),
+    SymbolKind.OPERATOR: _('Operator'),
+    SymbolKind.TYPE_PARAMETER: _('Type parameter')
+}
+
+ICON_CACHE = {}
+
+
+class SymbolStatus:
+    def __init__(self, name, kind, position, node=None):
+        self.name = name
+        self.position = position
+        self.kind = kind
+        self.node = node
+        self.children = []
+        self.index = 0
+        self.id = str(uuid.uuid4())
+        self.status = False
+        self.parent = None
+
+    def create_node(self):
+        self.node = SymbolItem(None, self.name, self.kind, self.position[0])
+
+    def __eq__(self, other):
+        return (self.position, self.name) == (other.position, other.name)
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return f'({self.position}, {self.name}, {self.id}, {self.status})'
+
+
+class BaseTreeItem(QTreeWidgetItem):
+    def append_children(self, index, node):
+        self.insertChild(index, node)
+        node.parent = self
+
+    def remove_children(self, node):
+        self.removeChild(node)
+        node.parent = None
+
+
+class FileRootItem(BaseTreeItem):
     def __init__(self, path, treewidget, is_python=True):
         QTreeWidgetItem.__init__(self, treewidget, QTreeWidgetItem.Type)
         self.path = path
@@ -40,6 +139,22 @@ class FileRootItem(QTreeWidgetItem):
 
     def set_text(self, fullpath):
         self.setText(0, self.path if fullpath else osp.basename(self.path))
+
+
+class SymbolItem(BaseTreeItem):
+    """Generic symbol tree item."""
+    def __init__(self, parent, name, kind, position):
+        QTreeWidgetItem.__init__(self, parent, QTreeWidgetItem.Type)
+        self.parent = parent
+        self.num_children = 0
+
+        self.setIcon(0, ima.icon(SYMBOL_KIND_ICON.get(kind, 'no_match')))
+        identifier = SYMBOL_NAME_MAP.get(kind, '')
+        identifier = identifier.replace('_', ' ').capitalize()
+        self.setToolTip(0, '{0} {1}: {2}'.format(identifier, name, position))
+        set_item_user_text(self, name)
+        self.setText(0, name)
+
 
 class TreeItem(QTreeWidgetItem):
     """Class browser item base class."""
@@ -305,7 +420,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if self.current_editor is not None:
             line = self.current_editor.get_cursor_line_number()
             editor_id = self.editor_ids[self.current_editor]
-            root_item = self.editor_items[editor_id]
+            root_item = self.editor_items[editor_id].node
             item = item_at_line(root_item, line)
             if not expand:
                 # Look for a non expanded item
@@ -359,24 +474,27 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """Bind editor instance"""
         editor_id = editor.get_id()
         if editor_id in list(self.editor_ids.values()):
-            item = self.editor_items[editor_id]
+            item = self.editor_items[editor_id].node
             if not self.freeze:
                 self.scrollToItem(item)
                 self.root_item_selected(item)
                 self.__hide_or_show_root_items(item)
             if update:
                 self.save_expanded_state()
-                tree_cache = self.editor_tree_cache[editor_id]
-                self.populate_branch(editor, item, tree_cache)
+                # tree_cache = self.editor_tree_cache[editor_id]
+                # self.populate_branch(editor, item, tree_cache)
                 self.restore_expanded_state()
         else:
+            this_root = SymbolStatus(editor.fname, None, None)
             root_item = FileRootItem(editor.fname, self, editor.is_python())
             root_item.set_text(fullpath=self.show_fullpath)
-            tree_cache = self.populate_branch(editor, root_item)
+            editor_tree = IntervalTree()
+            this_root.node = root_item
+            # tree_cache = self.populate_branch(editor, root_item)
             self.__hide_or_show_root_items(root_item)
             self.root_item_selected(root_item)
-            self.editor_items[editor_id] = root_item
-            self.editor_tree_cache[editor_id] = tree_cache
+            self.editor_items[editor_id] = this_root
+            self.editor_tree_cache[editor_id] = editor_tree
             self.resizeColumnToContents(0)
         if editor not in self.editor_ids:
             self.editor_ids[editor] = editor_id
@@ -393,7 +511,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             return
         editor_id = editor.get_id()
         if editor_id in list(self.editor_ids.values()):
-            root_item = self.editor_items[editor_id]
+            root_item = self.editor_items[editor_id].node
             root_item.set_path(new_filename, fullpath=self.show_fullpath)
             self.__sort_toplevel_items()
 
@@ -409,27 +527,116 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.restore_expanded_state()
         self.do_follow_cursor()
 
-    @Slot()
-    def update_current(self):
+    @Slot(list)
+    def update_current(self, items):
         """
         Update the outline explorer for the current editor tree preserving the
         tree state
         """
         plugin_base = self.parent().parent()
-        if getattr(plugin_base, "_isvisible", True):
+        editor = self.current_editor
+        editor_id = editor.get_id()
+        update = self.update_tree(items, editor_id)
+        if getattr(plugin_base, "_isvisible", True) and update:
             self.save_expanded_state()
-            editor = self.current_editor
-            editor_id = editor.get_id()
             self.__do_update(editor, editor_id)
             self.restore_expanded_state()
             self.do_follow_cursor()
+
+    def merge_interval(self, parent, node):
+        match = False
+        start, end = node.position
+        while parent.parent is not None and not match:
+            parent_start, parent_end = parent.position
+            if parent_end <= start:
+                parent = parent.parent
+            else:
+                match = True
+        print(f'Merging {node} in {parent}')
+        node.parent = parent
+        parent_tree_node = parent.node
+        next_index = len(parent.children)
+        node.index = next_index
+        parent_tree_node.append_children(next_index, node.node)
+        parent.children.append(node)
+        return node
+
+    def update_tree(self, items, editor_id):
+        current_tree = self.editor_tree_cache[editor_id]
+        tree_info = []
+        for symbol in items:
+            symbol_name = symbol['name']
+            symbol_kind = symbol['kind']
+            # NOTE: This could be also a DocumentSymbol
+            symbol_range = symbol['location']['range']
+            symbol_start = symbol_range['start']['line']
+            symbol_end = symbol_range['end']['line']
+            symbol_repr = SymbolStatus(symbol_name, symbol_kind,
+                                       (symbol_start, symbol_end))
+            tree_info.append((symbol_start, symbol_end + 1, symbol_repr))
+
+        tree = IntervalTree.from_tuples(tree_info)
+        changes = tree - current_tree
+        deleted = current_tree - tree
+
+        if len(changes) == 0 and len(deleted) == 0:
+            return False
+
+        adding_symbols = len(changes) > len(deleted)
+        deleted_iter = iter(sorted(deleted))
+        changes_iter = iter(sorted(changes))
+        deleted_entry = next(deleted_iter, None)
+        changed_entry = next(changes_iter, None)
+
+        while deleted_entry is not None and changed_entry is not None:
+            deleted_entry_i = deleted_entry.data
+            changed_entry_i = changed_entry.data
+
+            if deleted_entry_i.name == changed_entry_i.name:
+                # Copy symbol status
+                changed_entry_i.id = deleted_entry_i.id
+                changed_entry_i.status = deleted_entry_i.status
+                changed_entry_i.node = deleted_entry_i.node
+
+                deleted_entry = next(deleted_iter, None)
+                changed_entry = next(changes_iter, None)
+            else:
+                if adding_symbols:
+                    # New symbol added
+                    # changed_entry_i.node =
+                    changed_entry = next(changes_iter, None)
+                else:
+                    # Symbol removed
+                    deleted_entry = next(deleted_iter, None)
+
+        if deleted_entry is not None:
+            while deleted_entry is not None:
+                # Symbol removed
+                deleted_entry_i = deleted_entry.data
+                deleted_entry = next(deleted_iter, None)
+
+        root = self.editor_items[editor_id]
+        # tree_merge
+        if changed_entry is not None:
+            while changed_entry is not None:
+                # New symbol added
+                changed_entry_i = changed_entry.data
+                changed_entry_i.create_node()
+                changed_entry = next(changes_iter, None)
+
+        if len(current_tree) == 0:
+            tree.merge_overlaps(
+                data_reducer=self.merge_interval, data_initializer=root)
+
+        self.editor_tree_cache[editor_id] = tree
+        return True
 
     def __do_update(self, editor, editor_id):
         """
         Recalculate the and update the tree items in the Outliner for a
         given editor
         """
-        item = self.editor_items[editor_id]
+        item = self.editor_items[editor_id].node
         tree_cache = self.editor_tree_cache[editor_id]
         self.populate_branch(editor, item, tree_cache)
 
@@ -444,7 +651,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 root_item = self.editor_items.pop(editor_id)
                 self.editor_tree_cache.pop(editor_id)
                 try:
-                    self.takeTopLevelItem(self.indexOfTopLevelItem(root_item))
+                    self.takeTopLevelItem(self.indexOfTopLevelItem(root_item.node))
                 except RuntimeError:
                     # item has already been removed
                     pass
@@ -476,7 +683,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 key=lambda item: osp.basename(item.path.lower()))
         else:
             new_ordered_items = [
-                self.editor_items.get(e_id) for e_id in
+                self.editor_items.get(e_id).node for e_id in
                 self.ordered_editor_ids if
                 self.editor_items.get(e_id) is not None]
 
@@ -684,7 +891,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if self.current_editor is not None:
             self.collapseAll()
             editor_id = self.editor_ids[self.current_editor]
-            self.root_item_selected(self.editor_items[editor_id])
+            self.root_item_selected(self.editor_items[editor_id].node)
 
     def get_root_item(self, item):
         """Return the root item of the specified item."""
@@ -711,7 +918,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def activated(self, item):
         """Double-click event"""
         editor_item = self.editor_items.get(
-            self.editor_ids.get(self.current_editor))
+            self.editor_ids.get(self.current_editor)).node
         line = 0
         if item == editor_item:
             line = 1
@@ -728,7 +935,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         parent = self.current_editor.parent()
         for editor_id, i_item in list(self.editor_items.items()):
-            if i_item is root_item:
+            if i_item.node is root_item:
                 for editor, _id in list(self.editor_ids.items()):
                     if _id == editor_id and editor.parent() is parent:
                         self.current_editor = editor
