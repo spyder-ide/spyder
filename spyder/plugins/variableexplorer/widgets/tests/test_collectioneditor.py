@@ -48,7 +48,7 @@ LOCATION = path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
 # =============================================================================
-# Utility functions
+# Utility functions and classes
 # =============================================================================
 def data(cm, i, j):
     return cm.data(cm.index(i, j))
@@ -56,6 +56,13 @@ def data(cm, i, j):
 
 def data_table(cm, n_rows, n_cols):
     return [[data(cm, i, j) for i in range(n_rows)] for j in range(n_cols)]
+
+
+class MockParent(QWidget):
+
+    def __init__(self):
+        super(QWidget, self).__init__(None)
+        self.proxy_model = None
 
 
 # =============================================================================
@@ -213,9 +220,15 @@ def test_remove_remote_variable(qtbot, monkeypatch):
 
 def test_filter_rows(qtbot):
     """Test rows filtering."""
-
-    df = pandas.DataFrame(['foo', 'bar'])
-    editor = CollectionsEditorTableView(None, {'dfa': df, 'dfb': df})
+    data = (
+        {'dfa':
+            {'type': 'DataFrame', 'size': (2, 1), 'color': '#00ff00',
+             'view': 'Column names: 0'},
+         'dfb':
+            {'type': 'DataFrame', 'size': (2, 1), 'color': '#00ff00',
+             'view': 'Column names: 0'}}
+    )
+    editor = RemoteCollectionsEditorTableView(None, data)
     editor.finder = NamespacesBrowserFinder(editor,
                                             editor.set_regex)
     qtbot.addWidget(editor)
@@ -265,9 +278,10 @@ def test_accept_sig_option_changed_from_dataframeeditor(qtbot, monkeypatch):
 
 def test_collectionsmodel_with_two_ints():
     coll = {'x': 1, 'y': 2}
-    cm = CollectionsModel(None, coll)
+    cm = CollectionsModel(MockParent(), coll)
+
     assert cm.rowCount() == 2
-    assert cm.columnCount() == 5
+    assert cm.columnCount() == 4
     # dict is unordered, so first row might be x or y
     assert data(cm, 0, 0) in {'x',
                               'y'}
@@ -290,7 +304,7 @@ def test_collectionsmodel_with_index():
     # modified for spyder-ide/spyder#3758.
     for rng_name, rng in generate_pandas_indexes().items():
         coll = {'rng': rng}
-        cm = CollectionsModel(None, coll)
+        cm = CollectionsModel(MockParent(), coll)
         assert data(cm, 0, 0) == 'rng'
         assert data(cm, 0, 1) == rng_name
         assert data(cm, 0, 2) == '(20,)' or data(cm, 0, 2) == '(20L,)'
@@ -320,9 +334,9 @@ def test_sort_numpy_numeric_collectionsmodel():
         numpy.float64(0), numpy.float64(-1e-6), numpy.float64(-1),
         numpy.float64(-10), numpy.float64(-1e16)
         ]
-    cm = CollectionsModel(None, var_list)
+    cm = CollectionsModel(MockParent(), var_list)
     assert cm.rowCount() == 10
-    assert cm.columnCount() == 5
+    assert cm.columnCount() == 4
     cm.sort(0)  # sort by index
     assert data_table(cm, 10, 4) == [list(range(0, 10)),
                                      [u'float64']*10,
@@ -344,9 +358,9 @@ def test_sort_float_collectionsmodel():
         float(1e16), float(10), float(1), float(0.1), float(1e-6),
         float(0), float(-1e-6), float(-1), float(-10), float(-1e16)
         ]
-    cm = CollectionsModel(None, var_list)
+    cm = CollectionsModel(MockParent(), var_list)
     assert cm.rowCount() == 10
-    assert cm.columnCount() == 5
+    assert cm.columnCount() == 4
     cm.sort(0)  # sort by index
     assert data_table(cm, 10, 4) == [list(range(0, 10)),
                                      [u'float']*10,
@@ -373,9 +387,9 @@ def test_sort_collectionsmodel():
     var_series2 = pandas.Series(var_list2)
 
     coll = [1, 3, 2]
-    cm = CollectionsModel(None, coll)
+    cm = CollectionsModel(MockParent(), coll)
     assert cm.rowCount() == 3
-    assert cm.columnCount() == 5
+    assert cm.columnCount() == 4
     cm.sort(0)  # sort by index
     assert data_table(cm, 3, 4) == [[0, 1, 2],
                                     ['int', 'int', 'int'],
@@ -390,8 +404,11 @@ def test_sort_collectionsmodel():
     coll = [1, var_list1, var_list2, var_dataframe1, var_dataframe2,
             var_series1, var_series2]
     cm = CollectionsModel(None, coll)
+    cm._parent = Mock()
+    cm._parent.proxy_model = None
+
     assert cm.rowCount() == 7
-    assert cm.columnCount() == 5
+    assert cm.columnCount() == 4
 
     cm.sort(1)  # sort by type
     assert data_table(cm, 7, 4) == [
@@ -434,9 +451,9 @@ def test_sort_collectionsmodel():
 
 def test_sort_collectionsmodel_with_many_rows():
     coll = list(range(2*LARGE_NROWS))
-    cm = CollectionsModel(None, coll)
+    cm = CollectionsModel(MockParent(), coll)
     assert cm.rowCount() == cm.rows_loaded == ROWS_TO_LOAD
-    assert cm.columnCount() == 5
+    assert cm.columnCount() == 4
     cm.sort(1)  # This was causing an issue (#5232)
     cm.fetchMore()
     assert cm.rowCount() == 2 * ROWS_TO_LOAD
@@ -583,9 +600,9 @@ def test_notimplementederror_multiindex():
                    for minute in range(5, 35, 5)]
     time_delta_multiindex = pandas.MultiIndex.from_product([[0, 1, 2, 3, 4],
                                                             time_deltas])
-    col_model = CollectionsModel(None, time_delta_multiindex)
+    col_model = CollectionsModel(MockParent(), time_delta_multiindex)
     assert col_model.rowCount() == col_model.rows_loaded == ROWS_TO_LOAD
-    assert col_model.columnCount() == 5
+    assert col_model.columnCount() == 4
     col_model.fetchMore()
     assert col_model.rowCount() == 2 * ROWS_TO_LOAD
     for _ in range(3):

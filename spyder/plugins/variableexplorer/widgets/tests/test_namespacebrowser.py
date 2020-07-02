@@ -77,7 +77,8 @@ def test_sort_by_column(qtbot):
         {'a_variable':
             {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'},
          'b_variable':
-            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '2'}})
+            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '2'}}
+    )
 
     header = browser.editor.horizontalHeader()
 
