@@ -265,6 +265,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is connected."""
+        # Make sure the kernel sends the comm config over
+        self.shellwidget.call_kernel()._send_comm_config()
+
         if give_focus:
             self.get_control().setFocus()
 

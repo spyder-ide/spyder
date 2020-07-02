@@ -154,13 +154,12 @@ class FrontendComm(CommBase):
         """Wait until the frontend replies to a request."""
         if call_id in self._reply_inbox:
             return
-
+        # Send config again just in case
+        self._send_comm_config()
         t_start = time.time()
         while call_id not in self._reply_inbox:
             if time.time() > t_start + timeout:
                 if retry:
-                    # Send config again just in case
-                    self._send_comm_config()
                     self._wait_reply(call_id, call_name, timeout, False)
                     return
                 raise TimeoutError(
