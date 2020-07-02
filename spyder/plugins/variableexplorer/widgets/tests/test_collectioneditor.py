@@ -403,10 +403,7 @@ def test_sort_collectionsmodel():
 
     coll = [1, var_list1, var_list2, var_dataframe1, var_dataframe2,
             var_series1, var_series2]
-    cm = CollectionsModel(None, coll)
-    cm._parent = Mock()
-    cm._parent.proxy_model = None
-
+    cm = CollectionsModel(MockParent(), coll)
     assert cm.rowCount() == 7
     assert cm.columnCount() == 4
 
