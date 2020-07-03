@@ -871,8 +871,8 @@ def _url_handler(url, content_type="text/html"):
     # Errors outside the url handler are caught by the server.
     raise TypeError(
         _('There was an error while retrieving documentation '
-          'for the object you requested: unknown content type %r for url %s'
-          % (content_type, url)))
+          'for the object you requested: unknown content type %r for url %s')
+          % (content_type, url))
 
 
 def _start_server(urlhandler, hostname, port):
