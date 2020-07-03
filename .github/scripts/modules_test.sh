@@ -70,6 +70,9 @@ for f in spyder/*/*/*.py; do
     if [[ $f == spyder/plugins/onlinehelp/widgets.py ]]; then
         continue
     fi
+    if [[ $f == spyder/api/*/__init__.py ]]; then
+        continue
+    fi
     if [[ $f == spyder/plugins/*/__init__.py ]]; then
         continue
     fi
