@@ -92,6 +92,8 @@ class ConsoleWidget(PluginMainWidget):
         'wrap': True,
         # From appearance
         'color_theme': 'spyder/dark',
+        # Default
+        "visible": False,
     }
 
     # --- Signals

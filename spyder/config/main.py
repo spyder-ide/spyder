@@ -111,6 +111,7 @@ DEFAULTS = [
               'codecompletion/auto': False,
               'external_editor/path': 'SciTE',
               'external_editor/gotoline': '-goto:',
+              'visible': False,
               }),
             ('main_interpreter',
              {
@@ -240,6 +241,7 @@ DEFAULTS = [
               'wrap': True,
               'go_to_eof': True,
               'line_numbers': False,
+              'visible': False,
               }),
             ('help',
              {
@@ -250,12 +252,14 @@ DEFAULTS = [
               'connect/ipython_console': False,
               'math': True,
               'automatic_import': True,
+              'visible': False,
               }),
             ('onlinehelp',
              {
               'enable': True,
               'zoom_factor': .8,
               'max_history_entries': 20,
+              'visible': False,
               }),
             ('outline_explorer',
              {
@@ -300,10 +304,12 @@ DEFAULTS = [
             ('breakpoints',
              {
               'enable': True,
+              'visible': False,
               }),
             ('profiler',
              {
               'enable': True,
+              'visible': False,
               }),
             ('pylint',
              {

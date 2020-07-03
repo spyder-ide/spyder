@@ -149,7 +149,10 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
     horizontal space available for the plugin. This mean that toolbars must be
     stacked vertically and cannot be placed horizontally next to each other.
     """
-    DEFAULT_OPTIONS = {}
+    DEFAULT_OPTIONS = {
+        # Defaults
+        "visible": True,
+    }
 
     # Signals
 
@@ -778,7 +781,6 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
             pass
 
         self.is_visible = enable
-
         # TODO: Pending on plugin migration that uses this
         # if getattr(self, 'DISABLE_ACTIONS_WHEN_HIDDEN', None):
         #     for __, action in self.get_actions().items():
@@ -800,6 +802,8 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
         sig_toggle_view_changed. For an example, please see
         `spyder/plugins/ipythonconsole/plugin.py`
         """
+        self.set_option("visible", checked)
+
         if not self.dockwidget:
             return
 

@@ -310,7 +310,10 @@ class BreakpointWidget(PluginMainWidget):
     Breakpoints widget.
     """
 
-    DEFAULT_OPTIONS = {}
+    DEFAULT_OPTIONS = {
+        # Default
+        "visible": False,
+    }
 
     # --- Signals
     # ------------------------------------------------------------------------

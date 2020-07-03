@@ -330,6 +330,7 @@ class MainWindow(QMainWindow):
         plugin.sig_status_message_requested.connect(self.show_status_message)
 
         if isinstance(plugin, SpyderDockablePlugin):
+            self._DOCKABLE_WIDGETS[plugin.NAME] = plugin
             plugin.sig_switch_to_plugin_requested.connect(
                 self.switch_to_plugin)
             plugin.sig_update_ancestor_requested.connect(
@@ -597,6 +598,7 @@ class MainWindow(QMainWindow):
         self._APPLICATION_TOOLBARS = OrderedDict()
         self._STATUS_WIDGETS = OrderedDict()
         self._PLUGINS = OrderedDict()
+        self._DOCKABLE_WIDGETS = OrderedDict()
         self._EXTERNAL_PLUGINS = OrderedDict()
         self._INTERNAL_PLUGINS = OrderedDict()
 
@@ -1617,6 +1619,14 @@ class MainWindow(QMainWindow):
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
         was triggered"""
+        # Show plugins that were visible
+        for plugin_name, plugin in self._DOCKABLE_WIDGETS.items():
+            plugin.change_visibility(plugin.get_conf_option("visible"))
+            if plugin.get_conf_option("visible"):
+                plugin.dockwidget.show()
+            else:
+                plugin.dockwidget.hide()
+
         self.restore_scrollbar_position.emit()
 
         logger.info('Deleting previous Spyder instance LSP logs...')
@@ -1965,6 +1975,7 @@ class MainWindow(QMainWindow):
     # --- Layouts
     def setup_layout(self, default=False):
         """Setup window layout"""
+        print("setup_layout")
         prefix = 'window' + '/'
         settings = self.load_window_settings(prefix, default)
         hexstate = settings[0]
@@ -2003,6 +2014,7 @@ class MainWindow(QMainWindow):
 
             # Regenerate menu
             self.quick_layout_set_menu()
+
         self.set_window_settings(*settings)
 
         # Old API

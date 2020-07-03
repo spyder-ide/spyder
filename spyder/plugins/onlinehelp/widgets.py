@@ -130,6 +130,8 @@ class PydocBrowser(PluginMainWidget):
         'handle_links': False,
         'max_history_entries': 10,
         'zoom_factor': 1,
+        # Default
+        "visible": False,
     }
 
     # --- Signals

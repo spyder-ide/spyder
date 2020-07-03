@@ -896,9 +896,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                     # TODO: Remove when migration is done, move to logger.
                     # Needed to check how the options API needs to cover
                     # options from all plugins
-                    print('\nspyder.api.plugins.options_from_conf\n'
-                          'Warning: option "{}" not found in section "{}" '
-                          'of configuration!'.format(option, self.NAME))
+                    # print('\nspyder.api.plugins.options_from_conf\n'
+                    #       'Warning: option "{}" not found in section "{}" '
+                    #       'of configuration!'.format(option, self.NAME))
 
                     # Currently when the preferences dialog is used, a set of
                     # changed options is passed.

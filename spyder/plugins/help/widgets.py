@@ -265,6 +265,8 @@ class HelpWidget(PluginMainWidget):
         'editor_shortcut': 'Ctrl+I',
         # Shortcut CONF
         'console_shortcut': 'Ctrl+I',
+        # Default
+        "visible": False,
     }
 
     # Signals

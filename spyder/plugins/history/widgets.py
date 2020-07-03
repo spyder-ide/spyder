@@ -59,6 +59,8 @@ class HistoryWidget(PluginMainWidget):
         'line_numbers': True,
         'max_entries': 100,
         'wrap': True,
+        # Default
+        "visible": False,
     }
 
     # Signals

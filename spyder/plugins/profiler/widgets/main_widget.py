@@ -124,6 +124,8 @@ class ProfilerWidget(PluginMainWidget):
     """
     DEFAULT_OPTIONS = {
         'text_color': MAIN_TEXT_COLOR,
+        # Defaults
+        "visible": False,
     }
     DATAPATH = get_conf_path('profiler.results')
 
