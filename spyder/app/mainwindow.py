@@ -1975,7 +1975,6 @@ class MainWindow(QMainWindow):
     # --- Layouts
     def setup_layout(self, default=False):
         """Setup window layout"""
-        print("setup_layout")
         prefix = 'window' + '/'
         settings = self.load_window_settings(prefix, default)
         hexstate = settings[0]
