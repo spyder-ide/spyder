@@ -790,8 +790,6 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
     """
     Test that sorting works when clicking in its header and there's a
     large number of rows.
-
-    This is a regression test for issue spyder-ide/spyder#10702
     """
     li = [1] * 10000
     editor = CollectionsEditor()
@@ -801,7 +799,7 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
     # there's a very small number of rows in display.
     view = editor.widget.editor
     header = view.horizontalHeader()
-    with qtbot.waitSignal(header.sectionClicked, timeout=500):
+    with qtbot.waitSignal(header.sectionClicked, timeout=200):
         qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(1, 1))
 
     # Assert data was sorted correctly.

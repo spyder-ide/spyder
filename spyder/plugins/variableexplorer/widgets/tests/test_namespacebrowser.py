@@ -158,5 +158,63 @@ def test_scroll_and_sort_with_large_rows(qtbot):
     assert data(model, 0, 0) == 't199'
 
 
+def test_filtering_with_large_rows(qtbot):
+    """
+    Test that filtering works when there's a large number of rows.
+    """
+    browser = NamespaceBrowser(None)
+    qtbot.addWidget(browser)
+    browser.set_shellwidget(Mock())
+    browser.setup(exclude_private=True, exclude_uppercase=True,
+                  exclude_capitalized=True, exclude_unsupported=False,
+                  exclude_callables_and_modules=True,
+                  minmax=False)
+
+    # Create data
+    variables = {}
+    for i in range(200):
+        letter = string.ascii_lowercase[i // 10]
+        var = letter + str(i)
+        variables[var] = (
+            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
+        )
+
+    # Set data
+    browser.set_data(variables)
+
+    # Assert we loaded the expected amount of data and that we can fetch
+    # more data.
+    model = browser.editor.model
+    assert model.rowCount() == ROWS_TO_LOAD
+    assert model.canFetchMore(QModelIndex())
+    assert data(model, 49, 0) == 'e49'
+
+    # Assert we can filter variables not loaded yet.
+    qtbot.keyClicks(browser.finder.text_finder, "t19")
+    assert model.rowCount() == 10
+
+    # Assert all variables effectively start with 't19'.
+    for i in range(10):
+        assert data(model, i, 0) == 't19{}'.format(i)
+
+    # Hide finder widget in order to reset it.
+    browser.show_finder(set_visible=False)
+
+    # Create a new variable that starts with a different letter than
+    # the rest.
+    new_variables = variables.copy()
+    new_variables['z'] = (
+        {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
+    )
+
+    # Emulate the process of loading those variables after the
+    # namespace view is sent from the kernel.
+    browser.process_remote_view(new_variables)
+
+    # Assert that can find 'z' among the declared variables.
+    qtbot.keyClicks(browser.finder.text_finder, "z")
+    assert model.rowCount() == 1
+
+
 if __name__ == "__main__":
     pytest.main()
