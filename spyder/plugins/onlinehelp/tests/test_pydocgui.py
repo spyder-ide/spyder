@@ -24,12 +24,16 @@ def pydocbrowser(qtbot):
     widget = PydocBrowser(parent=None, name='pydoc')
     options = PydocBrowser.DEFAULT_OPTIONS.copy()
     widget._setup(options)
+    widget.setup(options)
+    widget.server_enabled = True
 
     with qtbot.waitSignal(widget.sig_load_finished, timeout=6000):
-        widget.setup(options)
+        widget.initialize()
 
     qtbot.addWidget(widget)
-    return qtbot, widget
+    yield qtbot, widget
+
+    widget.quit_server()
 
 
 @pytest.mark.skipif(

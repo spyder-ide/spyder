@@ -147,6 +147,10 @@ class PydocBrowser(PluginMainWidget):
         self.home_url = None
         self.server = None
 
+        # We set this flag from the plugin on the mainwindow_visible method.
+        # This is to defer the server running until the widget is visible
+        self.server_enabled = False
+
         # Widgets
         self.label = QLabel(_("Package:"))
         self.url_combo = UrlComboBox(self)
@@ -238,8 +242,6 @@ class PydocBrowser(PluginMainWidget):
                 # for shortcuts to work
                 self.webview.addAction(action)
 
-        self.initialize()
-
     def update_actions(self):
         stop_action = self.get_action(WebViewActions.Stop)
         refresh_action = self.get_action(WebViewActions.Refresh)
@@ -260,7 +262,6 @@ class PydocBrowser(PluginMainWidget):
 
     def _finish(self, code):
         """Webview load finished."""
-        print('code', code)  # spyder: test-skip
         self._is_running = False
         self.stop_spinner()
         self.update_actions()
@@ -316,9 +317,10 @@ class PydocBrowser(PluginMainWidget):
 
     def initialize(self):
         """Start pydoc server."""
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        QApplication.processEvents()
-        self.start_server()
+        if self.server_enabled:
+            QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+            QApplication.processEvents()
+            self.start_server()
 
     def is_server_running(self):
         """Return True if pydoc server is already running."""
@@ -326,17 +328,18 @@ class PydocBrowser(PluginMainWidget):
 
     def start_server(self):
         """Start pydoc server."""
-        if self.server is None:
-            self.set_home_url('http://127.0.0.1:{}/'.format(PORT))
-        elif self.server.isRunning():
-            self.server.sig_server_started.disconnect(
-                self._continue_initialization)
-            self.server.quit()
+        if self.server_enabled:
+            if self.server is None:
+                self.set_home_url('http://127.0.0.1:{}/'.format(PORT))
+            elif self.server.isRunning():
+                self.server.sig_server_started.disconnect(
+                    self._continue_initialization)
+                self.server.quit()
 
-        self.server = PydocServer(port=PORT)
-        self.server.sig_server_started.connect(
-            self._continue_initialization)
-        self.server.start()
+            self.server = PydocServer(port=PORT)
+            self.server.sig_server_started.connect(
+                self._continue_initialization)
+            self.server.start()
 
     def quit_server(self):
         """Quit the server."""

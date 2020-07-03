@@ -66,6 +66,13 @@ class OnlineHelp(SpyderDockablePlugin):
         widget.load_history(self.load_history())
         widget.sig_load_finished.connect(self.sig_load_finished)
 
+    def on_mainwindow_visible(self):
+        # Only initialize the server if the dockwidget is activated
+        widget = self.get_widget()
+        widget.server = None
+        widget.server_enabled = True
+        widget.sig_toggle_view_changed.connect(lambda v: widget.initialize())
+
     def update_font(self):
         self.get_widget().reload()
 

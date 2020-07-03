@@ -330,6 +330,7 @@ class MainWindow(QMainWindow):
         plugin.sig_status_message_requested.connect(self.show_status_message)
 
         if isinstance(plugin, SpyderDockablePlugin):
+            self._DOCKABLE_PLUGINS[plugin.NAME] = plugin
             plugin.sig_switch_to_plugin_requested.connect(
                 self.switch_to_plugin)
             plugin.sig_update_ancestor_requested.connect(
@@ -599,6 +600,7 @@ class MainWindow(QMainWindow):
         self._PLUGINS = OrderedDict()
         self._EXTERNAL_PLUGINS = OrderedDict()
         self._INTERNAL_PLUGINS = OrderedDict()
+        self._DOCKABLE_PLUGINS = OrderedDict()
 
         # Plugins
         self.console = None
@@ -1727,6 +1729,10 @@ class MainWindow(QMainWindow):
 
         # Notify that the setup of the mainwindow was finished
         self.is_setting_up = False
+
+        for plugin_name, plugin in self._DOCKABLE_PLUGINS.items():
+            plugin.on_mainwindow_visible()
+
         self.sig_setup_finished.emit()
 
     def handle_new_screen(self, screen):
