@@ -26,7 +26,7 @@ import numpy
 import pandas
 import pytest
 from flaky import flaky
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QPoint
 from qtpy.QtWidgets import QWidget
 
 # Local imports
@@ -252,6 +252,7 @@ def test_filter_rows(qtbot):
     editor.finder.setText("dfbc")
     assert editor.model.rowCount() == 0
 
+
 def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
     MockDataFrameEditor = Mock()
     mockDataFrameEditor_instance = MockDataFrameEditor()
@@ -446,7 +447,7 @@ def test_sort_collectionsmodel():
          ]]
 
 
-def test_sort_collectionsmodel_with_many_rows():
+def test_sort_and_fetch_collectionsmodel_with_many_rows():
     coll = list(range(2*LARGE_NROWS))
     cm = CollectionsModel(MockParent(), coll)
     assert cm.rowCount() == cm.rows_loaded == ROWS_TO_LOAD
@@ -783,6 +784,28 @@ def test_collectionseditor_with_class_having_correct_copy(qtbot):
     editor = CollectionsEditor()
     editor.setup(md)
     assert not editor.widget.editor.readonly
+
+
+def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
+    """
+    Test that sorting works when clicking in its header and there's a
+    large number of rows.
+
+    This is a regression test for issue spyder-ide/spyder#10702
+    """
+    li = [1] * 10000
+    editor = CollectionsEditor()
+    editor.setup(li)
+
+    # Perform the sorting. It should be done quite quickly because
+    # there's a very small number of rows in display.
+    view = editor.widget.editor
+    header = view.horizontalHeader()
+    with qtbot.waitSignal(header.sectionClicked, timeout=500):
+        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(1, 1))
+
+    # Assert data was sorted correctly.
+    assert data(view.model, 0, 0) == 9999
 
 
 if __name__ == "__main__":

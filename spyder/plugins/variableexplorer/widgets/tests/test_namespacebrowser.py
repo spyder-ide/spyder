@@ -7,7 +7,10 @@
 Tests for namespacebrowser.py
 """
 
+from __future__ import division
+
 # Standard library imports
+import string
 import sys
 try:
     from unittest.mock import Mock
@@ -17,11 +20,15 @@ except ImportError:
 # Third party imports
 from flaky import flaky
 import pytest
-from qtpy.QtCore import Qt, QPoint
+from qtpy.QtCore import Qt, QPoint, QModelIndex
 
 # Local imports
-from spyder.plugins.variableexplorer.widgets.namespacebrowser import NamespaceBrowser
-from spyder.plugins.variableexplorer.widgets.tests.test_collectioneditor import data_table
+from spyder.plugins.variableexplorer.widgets.collectionseditor import (
+    ROWS_TO_LOAD)
+from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
+    NamespaceBrowser)
+from spyder.plugins.variableexplorer.widgets.tests.test_collectioneditor import (
+    data, data_table)
 from spyder.py3compat import PY2
 
 
@@ -104,6 +111,51 @@ def test_sort_by_column(qtbot):
                                        ['int', 'int'],
                                        [1, 1],
                                        ['2', '1']]
+
+
+def test_scroll_and_sort_with_large_rows(qtbot):
+    """
+    Test that scrolling and sorting works as expected.
+
+    This is a regression test for issue spyder-ide/spyder#10702
+    """
+    browser = NamespaceBrowser(None)
+    qtbot.addWidget(browser)
+    browser.set_shellwidget(Mock())
+    browser.setup(exclude_private=True, exclude_uppercase=True,
+                  exclude_capitalized=True, exclude_unsupported=False,
+                  exclude_callables_and_modules=True,
+                  minmax=False)
+
+    # Create data
+    variables = {}
+    for i in range(200):
+        letter = string.ascii_lowercase[i // 10]
+        var = letter + str(i)
+        variables[var] = (
+            {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
+        )
+
+    # Set data
+    browser.set_data(variables)
+
+    # Assert we loaded the expected amount of data and that we can fetch
+    # more data.
+    model = browser.editor.model
+    assert model.rowCount() == ROWS_TO_LOAD
+    assert model.canFetchMore(QModelIndex())
+
+    # Fetch more data and assert we loaded it in the right order.
+    model.fetchMore(QModelIndex())
+    assert data(model, 50, 0) == 'f50'
+
+    # Sort
+    header = browser.editor.horizontalHeader()
+    with qtbot.waitSignal(header.sectionClicked):
+        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(1, 1))
+
+    # Assert we loaded all data before performing the sort.
+    assert data(model, 0, 0) == 't199'
 
 
 if __name__ == "__main__":
