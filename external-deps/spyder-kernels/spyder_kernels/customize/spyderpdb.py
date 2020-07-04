@@ -139,8 +139,6 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             self.onecmd('exit')
         else:
             self.setup(frame, traceback)
-            if self.send_initial_notification:
-                self.notify_spyder(frame)
             if get_ipython().kernel._pdb_print_code:
                 self.print_stack_entry(self.stack[self.curindex])
             self._cmdloop()
@@ -276,6 +274,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             self.pdb_execute_events = pdb_settings['pdb_execute_events']
             if self.starting:
                 self.set_spyder_breakpoints(pdb_settings['breakpoints'])
+            if self.send_initial_notification:
+                self.notify_spyder()
         except (CommError, TimeoutError):
             logger.debug("Could not get breakpoints from the frontend.")
 
@@ -337,8 +337,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         Is that good or too lazy? i.e. is more specific behaviour desired?
         """
-        if '!get_ipython().kernel' not in line:
-            self.notify_spyder(self.curframe)
+        self.notify_spyder(self.curframe)
         return super(SpyderPdb, self).postcmd(stop, line)
 
     if PY2:
