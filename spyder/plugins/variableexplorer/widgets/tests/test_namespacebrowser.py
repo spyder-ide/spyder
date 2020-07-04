@@ -113,9 +113,10 @@ def test_sort_by_column(qtbot):
                                        ['2', '1']]
 
 
-def test_scroll_and_sort_with_large_rows(qtbot):
+def test_keys_sorted_and_sort_with_large_rows(qtbot):
     """
-    Test that scrolling and sorting works as expected.
+    Test that keys are sorted and sorting works as expected when
+    there's a large number of rows.
 
     This is a regression test for issue spyder-ide/spyder#10702
     """
@@ -127,11 +128,18 @@ def test_scroll_and_sort_with_large_rows(qtbot):
                   exclude_callables_and_modules=True,
                   minmax=False)
 
-    # Create data
     variables = {}
-    for i in range(200):
-        letter = string.ascii_lowercase[i // 10]
-        var = letter + str(i)
+
+    # Create variables.
+    variables['i'] = (
+        {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
+    )
+
+    for i in range(100):
+        if i < 10:
+            var = 'd_0' + str(i)
+        else:
+            var = 'd_' + str(i)
         variables[var] = (
             {'type': 'int', 'size': 1, 'color': '#0000ff', 'view': '1'}
         )
@@ -140,14 +148,13 @@ def test_scroll_and_sort_with_large_rows(qtbot):
     browser.set_data(variables)
 
     # Assert we loaded the expected amount of data and that we can fetch
-    # more data.
+    # more.
     model = browser.editor.model
     assert model.rowCount() == ROWS_TO_LOAD
     assert model.canFetchMore(QModelIndex())
 
-    # Fetch more data and assert we loaded it in the right order.
-    model.fetchMore(QModelIndex())
-    assert data(model, 50, 0) == 'f50'
+    # Assert keys are sorted
+    assert data(model, 49, 0) == 'd_49'
 
     # Sort
     header = browser.editor.horizontalHeader()
@@ -155,7 +162,7 @@ def test_scroll_and_sort_with_large_rows(qtbot):
         qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(1, 1))
 
     # Assert we loaded all data before performing the sort.
-    assert data(model, 0, 0) == 't199'
+    assert data(model, 0, 0) == 'i'
 
 
 def test_filtering_with_large_rows(qtbot):
