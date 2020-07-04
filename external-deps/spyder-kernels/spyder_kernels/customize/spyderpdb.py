@@ -170,6 +170,9 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         super(SpyderPdb, self).do_where(arg)
         frontend_request().do_where()
 
+    do_w = do_where
+
+    do_bt = do_where
 
     # --- Method defined by us to respond to ipython complete protocol
     def do_complete(self, code, cursor_pos):
