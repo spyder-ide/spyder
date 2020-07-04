@@ -3010,7 +3010,7 @@ def test_pdb_key_leak(main_window, qtbot, tmpdir):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-# @pytest.mark.skipif(sys.platform == 'darwin', reason="It times out on macOS")
+@pytest.mark.skipif(sys.platform == 'darwin', reason="It times out on macOS")
 @pytest.mark.parametrize(
     "where", [True, False])
 def test_pdb_step(main_window, qtbot, tmpdir, where):
@@ -3051,9 +3051,8 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
 
     # Move to another file
     main_window.editor.new()
-    assert not osp.samefile(
-            main_window.editor.get_current_editor().filename,
-            str(test_file))
+    qtbot.wait(100)
+    assert main_window.editor.get_current_editor().filename != str(test_file)
     current_filename = main_window.editor.get_current_editor().filename
 
     # Run a random command, make sure we don't move
@@ -3061,9 +3060,7 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     qtbot.wait(1000)
-    assert osp.samefile(
-            main_window.editor.get_current_editor().filename,
-            current_filename)
+    assert current_filename == main_window.editor.get_current_editor().filename
 
     # Go up and enter second file
     qtbot.keyClick(control, 'u')
