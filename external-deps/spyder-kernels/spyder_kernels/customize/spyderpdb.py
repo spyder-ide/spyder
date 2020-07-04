@@ -159,6 +159,18 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             return False
         return True
 
+    def do_where(self, arg):
+        """w(here)
+        Print a stack trace, with the most recent frame at the bottom.
+        An arrow indicates the "current frame", which determines the
+        context of most commands. 'bt' is an alias for this command.
+
+        Take a number as argument as an (optional) number of context line to
+        print"""
+        super(SpyderPdb, self).do_where(arg)
+        frontend_request().do_where()
+
+
     # --- Method defined by us to respond to ipython complete protocol
     def do_complete(self, code, cursor_pos):
         """
