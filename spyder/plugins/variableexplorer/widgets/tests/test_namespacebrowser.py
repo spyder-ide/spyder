@@ -23,8 +23,7 @@ import pytest
 from qtpy.QtCore import Qt, QPoint, QModelIndex
 
 # Local imports
-from spyder.plugins.variableexplorer.widgets.collectionseditor import (
-    ROWS_TO_LOAD)
+from spyder.widgets.collectionseditor import ROWS_TO_LOAD
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespaceBrowser)
 from spyder.plugins.variableexplorer.widgets.tests.test_collectioneditor import (
