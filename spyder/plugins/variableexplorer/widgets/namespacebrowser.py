@@ -390,6 +390,10 @@ class NamespaceBrowser(QWidget):
 
     def process_remote_view(self, remote_view):
         """Process remote view"""
+        # To load all variables when a new filtering search is
+        # started.
+        self.finder.text_finder.load_all = False
+
         if remote_view is not None:
             self.set_data(remote_view)
 
@@ -524,13 +528,23 @@ class NamespaceBrowser(QWidget):
 
 class NamespacesBrowserFinder(FinderLineEdit):
     """Textbox for filtering listed variables in the table."""
+    # To load all variables when filtering.
+    load_all = False
+
+    def load_all_variables(self):
+        """Load all variables to correctly filter them."""
+        if not self.load_all:
+            self._parent.parent().editor.source_model.load_all()
+        self.load_all = True
 
     def keyPressEvent(self, event):
         """Qt and FilterLineEdit Override."""
         key = event.key()
         if key in [Qt.Key_Up]:
+            self.load_all_variables()
             self._parent.previous_row()
         elif key in [Qt.Key_Down]:
+            self.load_all_variables()
             self._parent.next_row()
         elif key in [Qt.Key_Escape]:
             self._parent.parent().show_finder(set_visible=False)
@@ -538,4 +552,5 @@ class NamespacesBrowserFinder(FinderLineEdit):
             # TODO: Check if an editor needs to be shown
             pass
         else:
+            self.load_all_variables()
             super(NamespacesBrowserFinder, self).keyPressEvent(event)
