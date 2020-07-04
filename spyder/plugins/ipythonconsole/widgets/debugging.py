@@ -173,6 +173,12 @@ class DebuggingWidget(RichJupyterWidget):
                     magic, args)
         self.pdb_execute(code, hidden=True)
 
+    def do_where(self):
+        """Where was called, go to the cirrent location"""
+        fname, lineno = self._pdb_frame_loc
+        if fname:
+            self.sig_pdb_step.emit(fname, lineno)
+
     def refresh_from_pdb(self, pdb_state):
         """
         Refresh Variable Explorer and Editor from a Pdb session,
