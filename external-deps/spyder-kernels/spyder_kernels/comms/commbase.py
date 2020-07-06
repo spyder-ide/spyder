@@ -335,6 +335,7 @@ class CommBase(object):
     def _handle_remote_call(self, msg, buffer):
         """Handle a remote call."""
         msg_dict = msg['content']
+        self.on_incoming_call(msg_dict)
         try:
             return_value = self._remote_callback(
                     msg_dict['call_name'],
@@ -385,6 +386,16 @@ class CommBase(object):
         if blocking or callback is not None:
             self._reply_waitlist[call_id] = blocking, callback
 
+    def on_outgoing_call(self, call_dict):
+        """A message is about to be sent"""
+        call_dict["pickle_highest_protocol"] = pickle.HIGHEST_PROTOCOL
+        return call_dict
+
+    def on_incoming_call(self, call_dict):
+        """A call was received"""
+        if "pickle_highest_protocol" in call_dict:
+            self._set_pickle_protocol(call_dict["pickle_highest_protocol"])
+
     def _get_call_return_value(self, call_dict, call_data, comm_id):
         """
         Send a remote call and return the reply.
@@ -392,6 +403,7 @@ class CommBase(object):
         If settings['blocking'] == True, this will wait for a reply and return
         the replied value.
         """
+        call_dict = self.on_outgoing_call(call_dict)
         self._send_message(
             'remote_call', content=call_dict, data=call_data,
             comm_id=comm_id)
