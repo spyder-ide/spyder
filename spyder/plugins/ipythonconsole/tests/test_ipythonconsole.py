@@ -733,7 +733,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Press Up arrow button and assert we get the last
-    # introduced command
+    # introduced command 
     qtbot.keyClick(control, Qt.Key_Up)
     assert '!aa = 10' in control.toPlainText()
 
