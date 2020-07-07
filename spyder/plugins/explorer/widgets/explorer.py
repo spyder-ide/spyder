@@ -1630,7 +1630,7 @@ class ExplorerWidget(QWidget):
     open_dir = Signal(str)
 
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
-                 show_all=False, show_cd_only=None, show_icontext=True,
+                 show_all=False, show_cd_only=None,
                  single_click_to_open=False, file_associations={},
                  options_button=None, visible_columns=[0, 3]):
         QWidget.__init__(self, parent)
@@ -1645,17 +1645,18 @@ class ExplorerWidget(QWidget):
                                self.button_menu]
 
         # Actions
-        icontext_action = create_action(self, _("Show icons and text"),
-                                        toggled=self.toggle_icontext)
-        previous_action = create_action(self, text=_("Previous"),
-                            icon=ima.icon('ArrowBack'),
-                            triggered=self.treewidget.go_to_previous_directory)
-        next_action = create_action(self, text=_("Next"),
-                            icon=ima.icon('ArrowForward'),
-                            triggered=self.treewidget.go_to_next_directory)
-        parent_action = create_action(self, text=_("Parent"),
-                            icon=ima.icon('ArrowUp'),
-                            triggered=self.treewidget.go_to_parent_directory)
+        previous_action = create_action(
+            self, text=_("Previous"),
+            icon=ima.icon('ArrowBack'),
+            triggered=self.treewidget.go_to_previous_directory)
+        next_action = create_action(
+            self, text=_("Next"),
+            icon=ima.icon('ArrowForward'),
+            triggered=self.treewidget.go_to_next_directory)
+        parent_action = create_action(
+            self, text=_("Parent"),
+            icon=ima.icon('ArrowUp'),
+            triggered=self.treewidget.go_to_parent_directory)
 
         # Setup widgets
         self.treewidget.setup(
@@ -1688,7 +1689,6 @@ class ExplorerWidget(QWidget):
             self.display_column_actions.append(action)
 
         self.treewidget.chdir(getcwd_or_home())
-        self.treewidget.common_actions += [None, icontext_action, None]
         self.treewidget.common_actions += self.display_column_actions
 
         button_previous.setDefaultAction(previous_action)
@@ -1698,9 +1698,6 @@ class ExplorerWidget(QWidget):
         next_action.setEnabled(False)
 
         button_parent.setDefaultAction(parent_action)
-
-        self.toggle_icontext(show_icontext)
-        icontext_action.setChecked(show_icontext)
 
         for widget in self.action_widgets:
             widget.setAutoRaise(True)
@@ -1732,17 +1729,6 @@ class ExplorerWidget(QWidget):
                 action.blockSignals(True)
                 action.setChecked(not is_hidden)
                 action.blockSignals(False)
-
-    @Slot(bool)
-    def toggle_icontext(self, state):
-        """Toggle icon text"""
-        self.sig_option_changed.emit('show_icontext', state)
-        for widget in self.action_widgets:
-            if widget is not self.button_menu:
-                if state:
-                    widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-                else:
-                    widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
 
 
 #==============================================================================

@@ -41,7 +41,6 @@ class Explorer(SpyderPluginWidget):
             self,
             name_filters=self.get_option('name_filters'),
             show_all=self.get_option('show_all'),
-            show_icontext=self.get_option('show_icontext'),
             options_button=self.options_button,
             single_click_to_open=self.get_option('single_click_to_open'),
             file_associations=self.get_option('file_associations',
@@ -135,8 +134,6 @@ class Explorer(SpyderPluginWidget):
                 self.fileexplorer.treewidget.set_name_filters,
             'show_all':
                 self.fileexplorer.treewidget.toggle_all,
-            'show_icontext':
-                self.fileexplorer.toggle_icontext,
         }
         for option in options:
             if option in method_map:
