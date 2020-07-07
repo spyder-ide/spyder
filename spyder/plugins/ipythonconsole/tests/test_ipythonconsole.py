@@ -186,6 +186,7 @@ def ipyconsole(qtbot, request):
     # This segfaults on macOS
     if not sys.platform == "darwin":
         qtbot.addWidget(window)
+    window.resize(640, 480)
     window.show()
 
     yield console
