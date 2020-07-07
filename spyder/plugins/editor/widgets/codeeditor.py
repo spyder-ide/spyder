@@ -1558,7 +1558,8 @@ class CodeEditor(TextEditBaseWidget):
             return
         elif state and 'fname' in last_step:
             fname = last_step['fname']
-            if osp.normcase(fname) == osp.normcase(self.filename):
+            if (fname and self.filename
+                    and osp.normcase(fname) == osp.normcase(self.filename)):
                 debugger_panel.start_clean()
                 return
         debugger_panel.stop_clean()

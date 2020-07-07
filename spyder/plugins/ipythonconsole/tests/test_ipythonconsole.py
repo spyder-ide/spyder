@@ -733,6 +733,9 @@ def test_save_history_dbg(ipyconsole, qtbot):
     shell.reset(clear=True)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
+    # Make sure we are debugging
+    assert shell.is_waiting_pdb_input()
+
     # Press Up arrow button and assert we get the last
     # introduced command
     qtbot.keyClick(control, Qt.Key_Up)
