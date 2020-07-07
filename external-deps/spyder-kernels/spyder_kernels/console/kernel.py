@@ -75,6 +75,7 @@ class SpyderKernel(IPythonKernel):
         self._mpl_backend_error = None
         self._running_namespace = None
 
+    # -- Public API -----------------------------------------------------------
     def frontend_call(self, blocking=False, broadcast=True, timeout=None):
         """Call the frontend."""
         # If not broadcast, send only to the calling comm
@@ -88,75 +89,6 @@ class SpyderKernel(IPythonKernel):
             comm_id=comm_id,
             timeout=timeout)
 
-    @property
-    def _pdb_frame(self):
-        """Return current Pdb frame if there is any"""
-        if self._pdb_obj is not None and self._pdb_obj.curframe is not None:
-            return self._pdb_obj.curframe
-
-    @property
-    def _pdb_locals(self):
-        """
-        Return current Pdb frame locals if available. Otherwise
-        return an empty dictionary
-        """
-        if self._pdb_frame:
-            return self._pdb_obj.curframe_locals
-        else:
-            return {}
-
-    def set_spyder_breakpoints(self, breakpoints):
-        """
-        Handle a message from the frontend
-        """
-        if self._pdb_obj:
-            self._pdb_obj.set_spyder_breakpoints(breakpoints)
-
-    def set_pdb_echo_code(self, state):
-        """Set if pdb should echo the code.
-
-        This might change for each pdb statment and is therefore not included
-        in pdb settings.
-        """
-        self._pdb_print_code = state
-
-    def set_pdb_ignore_lib(self, state):
-        """
-        Change the "Ignore libraries while stepping" debugger setting.
-        """
-        if self._pdb_obj:
-            self._pdb_obj.pdb_ignore_lib = state
-
-    def set_pdb_execute_events(self, state):
-        """
-        Handle a message from the frontend
-        """
-        if self._pdb_obj:
-            self._pdb_obj.pdb_execute_events = state
-
-    def update_syspath(self, path_dict, new_path_dict):
-        """
-        Update the PYTHONPATH of the kernel.
-
-        `path_dict` and `new_path_dict` have the paths as keys and the state
-        as values. The state is `True` for active and `False` for inactive.
-
-        `path_dict` corresponds to the previous state of the PYTHONPATH.
-        `new_path_dict` corresponds to the new state of the PYTHONPATH.
-        """
-        # Remove old paths
-        for path in path_dict:
-            while path in sys.path:
-                sys.path.remove(path)
-
-        # Add new paths
-        # We do this in reverse order as we use `sys.path.insert(1, path)`.
-        # This ensures the end result has the correct path order.
-        for path, active in reversed(new_path_dict.items()):
-            if active:
-                sys.path.insert(1, path)
-
-    # -- Public API ---------------------------------------------------
     # --- For the Variable Explorer
     def set_namespace_view_settings(self, settings):
         """Set namespace_view_settings."""
@@ -332,6 +264,35 @@ class SpyderKernel(IPythonKernel):
         if self._pdb_obj:
             self.frontend_call(blocking=False).pdb_continue()
 
+    def set_spyder_breakpoints(self, breakpoints):
+        """
+        Handle a message from the frontend
+        """
+        if self._pdb_obj:
+            self._pdb_obj.set_spyder_breakpoints(breakpoints)
+
+    def set_pdb_echo_code(self, state):
+        """Set if pdb should echo the code.
+
+        This might change for each pdb statment and is therefore not included
+        in pdb settings.
+        """
+        self._pdb_print_code = state
+
+    def set_pdb_ignore_lib(self, state):
+        """
+        Change the "Ignore libraries while stepping" debugger setting.
+        """
+        if self._pdb_obj:
+            self._pdb_obj.pdb_ignore_lib = state
+
+    def set_pdb_execute_events(self, state):
+        """
+        Handle a message from the frontend
+        """
+        if self._pdb_obj:
+            self._pdb_obj.pdb_execute_events = state
+
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):
         """Return True if object is defined in current namespace"""
@@ -408,6 +369,28 @@ class SpyderKernel(IPythonKernel):
             elif os.environ.get('SPY_RUN_CYTHON') == 'True':
                 return u'cython'
         return None
+
+    def update_syspath(self, path_dict, new_path_dict):
+        """
+        Update the PYTHONPATH of the kernel.
+
+        `path_dict` and `new_path_dict` have the paths as keys and the state
+        as values. The state is `True` for active and `False` for inactive.
+
+        `path_dict` corresponds to the previous state of the PYTHONPATH.
+        `new_path_dict` corresponds to the new state of the PYTHONPATH.
+        """
+        # Remove old paths
+        for path in path_dict:
+            while path in sys.path:
+                sys.path.remove(path)
+
+        # Add new paths
+        # We do this in reverse order as we use `sys.path.insert(1, path)`.
+        # This ensures the end result has the correct path order.
+        for path, active in reversed(new_path_dict.items()):
+            if active:
+                sys.path.insert(1, path)
 
     # -- Private API ---------------------------------------------------
     # --- For the Variable Explorer
@@ -526,6 +509,23 @@ class SpyderKernel(IPythonKernel):
     def _register_pdb_session(self, pdb_obj):
         """Register Pdb session to use it later"""
         self._pdb_obj = pdb_obj
+
+    @property
+    def _pdb_frame(self):
+        """Return current Pdb frame if there is any"""
+        if self._pdb_obj is not None and self._pdb_obj.curframe is not None:
+            return self._pdb_obj.curframe
+
+    @property
+    def _pdb_locals(self):
+        """
+        Return current Pdb frame locals if available. Otherwise
+        return an empty dictionary
+        """
+        if self._pdb_frame:
+            return self._pdb_obj.curframe_locals
+        else:
+            return {}
 
     # --- For the Help plugin
     def _eval(self, text):
