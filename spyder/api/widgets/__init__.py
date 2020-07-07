@@ -314,7 +314,6 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
             context=Qt.WidgetShortcut,
             shortcut_context='_',
         )
-        self.toggle_view_action.setChecked(True)
 
         bottom_section = OptionsMenuSections.Bottom
         for item in [self.undock_action, self.close_action, self.dock_action]:
@@ -723,6 +722,7 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
 
         self.set_ancestor(window)
         self._update_actions()
+        window.sig_closed.connect(self.close_window)
         window.show()
 
     @Slot()
@@ -741,12 +741,12 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
             self.undock_action.setDisabled(False)
             self.close_action.setDisabled(False)
 
-        if self.dockwidget is not None:
-            self.sig_update_ancestor_requested.emit()
-            self.dockwidget.setWidget(self)
-            self.dockwidget.setVisible(True)
-            self.dockwidget.raise_()
-            self._update_actions()
+            if self.dockwidget is not None:
+                self.sig_update_ancestor_requested.emit()
+                self.dockwidget.setWidget(self)
+                self.dockwidget.setVisible(True)
+                self.dockwidget.raise_()
+                self._update_actions()
 
     def change_visibility(self, enable, force_focus=None):
         """

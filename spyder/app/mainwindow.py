@@ -2003,6 +2003,7 @@ class MainWindow(QMainWindow):
 
             # Regenerate menu
             self.quick_layout_set_menu()
+
         self.set_window_settings(*settings)
 
         # Old API
@@ -2014,11 +2015,6 @@ class MainWindow(QMainWindow):
             except Exception as error:
                 print("%s: %s" % (plugin, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
-
-        # New API: Tabify at the end
-        for plugin in (self.widgetlist + self.thirdparty_plugins):
-            if isinstance(plugin, SpyderDockablePlugin):
-                self.tabify_plugin(plugin)
 
     def setup_default_layouts(self, index, settings):
         """Setup default layouts when run for the first time."""
@@ -2201,18 +2197,6 @@ class MainWindow(QMainWindow):
             for row in column:
                 for widget in row:
                     widgets.append(widget)
-
-        # Make every widget visible
-        for widget in widgets:
-            widget.toggle_view(True)
-            try:
-                # New API
-                if widget.toggle_view_action:
-                    widget.toggle_view_action.setChecked(True)
-            except AttributeError:
-                # Old API
-                if widget._toggle_view_action:
-                    widget._toggle_view_action.setChecked(True)
 
         # We use both directions to ensure proper update when moving from
         # 'Horizontal Split' to 'Spyder Default'
