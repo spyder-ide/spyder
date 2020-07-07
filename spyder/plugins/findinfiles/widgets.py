@@ -669,6 +669,9 @@ class FindOptions(QWidget):
             self.stop.emit()
         else:
             self.find.emit()
+            # Update comboboxes when the user searchs using any button or
+            # action. For further information see spyder-ide/spyder#13178
+            self.update_combos()
 
     def refresh_buttons(self, start=False):
         """Refresh start/stop of buttons."""
@@ -957,6 +960,10 @@ class ResultsBrowser(OneColumnTree):
         self.setItemDelegate(ItemDelegate(self))
         self.setUniformRowHeights(True)  # Needed for performance
         self.sortByColumn(0, Qt.AscendingOrder)
+
+        # Only show the actions for collaps/expand all entries in the widget
+        # For further information see spyder-ide/spyder#13178
+        self.common_actions = self.common_actions[:2]
 
         # Signals
         self.header().sectionClicked.connect(self.sort_section)
