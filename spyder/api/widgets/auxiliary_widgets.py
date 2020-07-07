@@ -9,6 +9,7 @@ Spyder API auxiliary widgets.
 """
 
 # Third party imports
+from qtpy.QtCore import Signal
 from qtpy.QtWidgets import QHBoxLayout, QMainWindow, QWidget
 import qdarkstyle
 
@@ -21,6 +22,10 @@ class SpyderWindowWidget(QMainWindow):
     """
     MainWindow subclass that contains a Spyder Plugin.
     """
+    sig_closed = Signal()
+    """
+    This signal is emitted when this widget is closed.
+    """
 
     def __init__(self, widget):
         super().__init__()
@@ -29,6 +34,11 @@ class SpyderWindowWidget(QMainWindow):
         # Setting interface theme
         if is_dark_interface():
             self.setStyleSheet(qdarkstyle.load_stylesheet())
+
+    def closeEvent(self, event):
+        """Override Qt method to emit a custom `sig_close` signal."""
+        super().closeEvent(event)
+        self.sig_closed.emit()
 
 
 class MainCornerWidget(QWidget):

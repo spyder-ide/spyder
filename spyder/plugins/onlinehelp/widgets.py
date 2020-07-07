@@ -238,7 +238,7 @@ class PydocBrowser(PluginMainWidget):
                 # for shortcuts to work
                 self.webview.addAction(action)
 
-        self.initialize()
+        self.sig_toggle_view_changed.connect(self.initialize)
 
     def update_actions(self):
         stop_action = self.get_action(WebViewActions.Stop)
@@ -260,7 +260,6 @@ class PydocBrowser(PluginMainWidget):
 
     def _finish(self, code):
         """Webview load finished."""
-        print('code', code)  # spyder: test-skip
         self._is_running = False
         self.stop_spinner()
         self.update_actions()
@@ -314,11 +313,23 @@ class PydocBrowser(PluginMainWidget):
         """
         self.url_combo.addItems(history)
 
-    def initialize(self):
-        """Start pydoc server."""
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        QApplication.processEvents()
-        self.start_server()
+    @Slot(bool)
+    def initialize(self, checked=True):
+        """
+        Start pydoc server.
+
+        Parameters
+        ----------
+        checked: bool, optional
+            This method is connected to the `sig_toggle_view_changed` signal,
+            so that the first time the widget is made visible it will start
+            the server. Default is True.
+        """
+        if checked and self.server is None:
+            self.sig_toggle_view_changed.disconnect(self.initialize)
+            QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+            QApplication.processEvents()
+            self.start_server()
 
     def is_server_running(self):
         """Return True if pydoc server is already running."""
@@ -355,8 +366,8 @@ class PydocBrowser(PluginMainWidget):
 
     def reload(self):
         """Reload page."""
-        self.start_server()
-        self.webview.reload()
+        if self.server:
+            self.webview.reload()
 
     def text_to_url(self, text):
         """
