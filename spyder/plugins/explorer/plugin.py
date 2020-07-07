@@ -30,6 +30,7 @@ class Explorer(SpyderPluginWidget):
     CONF_SECTION = 'explorer'
     CONFIGWIDGET_CLASS = ExplorerConfigPage
     CONF_FILE = False
+    DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     def __init__(self, parent=None):
         """Initialization."""

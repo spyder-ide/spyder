@@ -268,6 +268,7 @@ class DirView(QTreeView):
 
     def set_show_all(self, state):
         """Toggle 'show all files' state"""
+        self.filters_action.setDisabled(state)
         if state:
             self.fsmodel.setNameFilters([])
         else:
@@ -323,23 +324,23 @@ class DirView(QTreeView):
 
     #---- Context menu
     def setup_common_actions(self):
-        """Setup context menu common actions"""
-        # Filters
-        self.filters_action = create_action(
-            self, _("Edit filename filters..."), None, ima.icon('filter'),
-            triggered=self.edit_filter,
-        )
+        """Set-up context menu common actions."""
         # Show all files
         self.all_action = create_action(self, _("Show all files"),
                                         toggled=self.toggle_all)
-
+        # Filters
+        self.filters_action = create_action(
+            self, _("Display files with these extensions..."), None,
+            ima.icon('filter'),
+            triggered=self.edit_filter,
+        )
         # Show all files
         self.single_click_to_open_action = create_action(
             self,
             _("Single click to open"),
             toggled=self.set_single_click_to_open,
         )
-        actions = [self.filters_action, self.all_action,
+        actions = [self.all_action, self.filters_action,
                    self.single_click_to_open_action]
         self.update_common_actions()
         return actions
@@ -383,10 +384,10 @@ class DirView(QTreeView):
     @Slot()
     def edit_filter(self):
         """Edit name filters"""
-        filters, valid = QInputDialog.getText(self, _('Edit filename filters'),
-                                              _('Name filters:'),
-                                              QLineEdit.Normal,
-                                              ", ".join(self.name_filters))
+        filters, valid = QInputDialog.getMultiLineText(
+            self, _('Edit filename filters'),
+            _('Name filters:'),
+            ", ".join(self.name_filters))
         if valid:
             filters = [f.strip() for f in to_text_string(filters).split(',')]
             self.parent_widget.sig_option_changed.emit('name_filters', filters)
@@ -406,16 +407,15 @@ class DirView(QTreeView):
                                      icon=ima.icon('filenew'),
                                      triggered=lambda:
                                      self.new_file(root_path))
-        new_module_act = create_action(self, _("Module..."),
-                                       icon=ima.icon('spyder'),
+        new_module_act = create_action(self, _("Python script..."),
+                                       icon=ima.icon('python'),
                                        triggered=lambda:
                                        self.new_module(root_path))
         new_folder_act = create_action(self, _("Folder..."),
                                        icon=ima.icon('folder_new'),
                                        triggered=lambda:
                                        self.new_folder(root_path))
-        new_package_act = create_action(self, _("Package..."),
-                                        icon=ima.icon('package_new'),
+        new_package_act = create_action(self, _("Python Package..."),
                                         triggered=lambda:
                                         self.new_package(root_path))
         return [new_file_act, new_folder_act, None,
