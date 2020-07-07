@@ -161,6 +161,16 @@ class MainInterpreterConfigPage(GeneralConfigPage):
                       "console so the previous interpreter will stay. Please "
                       "make sure to select a valid one."), QMessageBox.Ok)
             self.def_exec_radio.setChecked(True)
+
+            # Set options after validation fails. This is necessary for them
+            # to be picked up correctly by other plugins.
+            # Fixes spyder-ide/spyder#13205
+            self.set_option('default', True)
+            self.set_option('custom', False)
+
+            # Clear the line edit because there's no need to display a wrong
+            # interpreter
+            self.pyexec_edit.clear()
             return False
         return True
 
