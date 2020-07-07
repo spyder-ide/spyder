@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/spyder-ide/spyder-kernels.git
-	branch = fix-ipykernel-update
-	commit = 20530f26cb7c008b53d9e2f3612ec8fc885cc8e6
-	parent = 3df4cb6e0323d592d187c72d88aa701fa7b78540
+	branch = 1.x
+	commit = 1a9d44950edb462188f52cec51c975b80f5f0f6f
+	parent = adbc02315db0e49bbaa2cd6dae94526264398fc1
 	method = merge
 	cmdver = 0.4.1
