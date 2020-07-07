@@ -577,8 +577,8 @@ class DirView(QTreeView):
         # empty folder. See spyder-ide/spyder#13004
         if len(fnames) == 1 and self.selectionModel():
             rows = self.selectionModel().selectedRows()
-            if (self.fsmodel.type(rows[0]) == 'Folder' and
-                    self.fsmodel.rowCount(rows[0]) == 0):
+            if (self.fsmodel.rowCount(rows[0]) == 0 and
+                    self.fsmodel.type(rows[0]) == 'Folder'):
                 fnames = []
         if not fnames:
             for action in actions:
