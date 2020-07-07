@@ -32,7 +32,7 @@ class KernelComm(CommBase, QObject):
     """
 
     _sig_got_reply = Signal()
-    _sig_channel_open = Signal()
+    _sig_comm_port_changed = Signal()
     sig_exception_occurred = Signal(dict)
 
     def __init__(self):
@@ -46,6 +46,8 @@ class KernelComm(CommBase, QObject):
 
     def _set_comm_port(self, port):
         """Set comm port."""
+        if port is None:
+            return
         client = self.kernel_client
         if not (hasattr(client, 'comm_port') and client.comm_port == port):
             client.comm_port = port
@@ -54,8 +56,8 @@ class KernelComm(CommBase, QObject):
                 'comm', identity=identity)
             client.comm_channel = client.shell_channel_class(
                 socket, client.session, client.ioloop)
-        # We emit in case we are waiting on this
-        self._sig_channel_open.emit()
+            # We emit in case we are waiting on this
+            self._sig_comm_port_changed.emit()
 
     def shutdown_comm_channel(self):
         """Shutdown the comm channel."""
@@ -82,7 +84,7 @@ class KernelComm(CommBase, QObject):
             self.remote_call()._send_comm_config()
             timeout = 25
             self._wait(self.comm_channel_connected,
-                       self._sig_channel_open,
+                       self._sig_comm_port_changed,
                        "Timeout while waiting for comm port.",
                        timeout)
 
@@ -120,6 +122,12 @@ class KernelComm(CommBase, QObject):
             comm_id=comm_id, timeout=timeout)
 
     # ---- Private -----
+    def on_incoming_call(self, call_dict):
+        """A call was received"""
+        if "comm_port" in call_dict:
+            self._set_comm_port(call_dict["comm_port"])
+        return super(KernelComm, self).on_incoming_call(call_dict)
+
     def _get_call_return_value(self, call_dict, call_data, comm_id):
         """
         Interupt the kernel if needed.
