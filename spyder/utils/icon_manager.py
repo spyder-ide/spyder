@@ -293,7 +293,7 @@ _qtaargs = {
     'color':                   [('mdi.alpha-c-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
     'enum':                    [('mdi.alpha-e-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
     'value':                   [('mdi.alpha-v-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
-    'constant':                [('mdi.alpha-v-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
+    'constant':                [('mdi.alpha-c-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
     'unit':                    [('mdi.alpha-u-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
     'text':                    [('mdi.alpha-t-box',), {'color': 'gray', 'scale_factor': BIG_ATTR_FACTOR}],
     'file':                    [('mdi.alpha-f-box',), {'color': 'gray', 'scale_factor': BIG_ATTR_FACTOR}],

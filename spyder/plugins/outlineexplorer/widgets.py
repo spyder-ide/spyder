@@ -8,6 +8,7 @@
 
 # Standard library imports
 from __future__ import print_function
+import bisect
 import os.path as osp
 import uuid
 
@@ -95,17 +96,68 @@ class SymbolStatus:
         self.position = position
         self.kind = kind
         self.node = node
-        self.children = []
-        self.index = 0
         self.id = str(uuid.uuid4())
+        self.index = None
+        self.children = []
         self.status = False
         self.parent = None
 
-    def create_node(self):
-        self.node = SymbolItem(None, self.name, self.kind, self.position[0])
+    def delete(self):
+        for child in self.children:
+            child.parent = None
 
-    def __eq__(self, other):
-        return (self.position, self.name) == (other.position, other.name)
+        self.children = []
+        self.node.takeChildren()
+
+        if self.parent is not None:
+            self.parent.remove_node(self)
+            self.parent = None
+
+        if self.node.parent is not None:
+            self.node.parent.remove_children(self.node)
+
+    def add_node(self, node):
+        node.parent = self
+        this_node = self.node
+        children_ranges = [c.position[0] for c in self.children]
+        node_range = node.position[0]
+        new_index = bisect.bisect_left(children_ranges, node_range)
+        node.index = new_index
+        for child in self.children[new_index:]:
+            child.index += 1
+        this_node.append_children(new_index, node.node)
+        self.children.insert(new_index, node)
+        for idx, next_idx in zip(self.children, self.children[1:]):
+            assert idx.index < next_idx.index
+
+    def remove_node(self, node):
+        for child in self.children[node.index + 1:]:
+            child.index -= 1
+        self.children.pop(node.index)
+        for idx, next_idx in zip(self.children, self.children[1:]):
+            assert idx.index < next_idx.index
+
+    def clone_node(self, node):
+        self.id = node.id
+        self.index = node.index
+        self.children = node.children
+        self.status = node.status
+        self.node = node.node
+        self.parent = node.parent
+        self.node.update_info(self.name, self.kind, self.position[0] + 1)
+
+        for child in self.children:
+            child.parent = self
+
+        if self.parent is not None:
+            self.parent.replace_node(self.index, self)
+
+    def replace_node(self, index, node):
+        self.children[index] = node
+
+    def create_node(self):
+        self.node = SymbolItem(None, self.name, self.kind,
+                               self.position[0] + 1)
 
     def __repr__(self):
         return str(self)
@@ -115,6 +167,9 @@ class SymbolStatus:
 
 
 class BaseTreeItem(QTreeWidgetItem):
+    def clear(self):
+        self.takeChildren()
+
     def append_children(self, index, node):
         self.insertChild(index, node)
         node.parent = self
@@ -148,6 +203,14 @@ class SymbolItem(BaseTreeItem):
         self.parent = parent
         self.num_children = 0
 
+        self.setIcon(0, ima.icon(SYMBOL_KIND_ICON.get(kind, 'no_match')))
+        identifier = SYMBOL_NAME_MAP.get(kind, '')
+        identifier = identifier.replace('_', ' ').capitalize()
+        self.setToolTip(0, '{0} {1}: {2}'.format(identifier, name, position))
+        set_item_user_text(self, name)
+        self.setText(0, name)
+
+    def update_info(self, name, kind, position):
         self.setIcon(0, ima.icon(SYMBOL_KIND_ICON.get(kind, 'no_match')))
         identifier = SYMBOL_NAME_MAP.get(kind, '')
         identifier = identifier.replace('_', ' ').capitalize()
@@ -421,16 +484,18 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             line = self.current_editor.get_cursor_line_number()
             editor_id = self.editor_ids[self.current_editor]
             root_item = self.editor_items[editor_id].node
-            item = item_at_line(root_item, line)
-            if not expand:
-                # Look for a non expanded item
-                tree_iter = item
-                while tree_iter:
-                    if not tree_iter.isExpanded():
-                        item = tree_iter
-                    tree_iter = tree_iter.parent()
-            self.setCurrentItem(item)
-            self.scrollToItem(item)
+            # print(f'--------------------------------------\n{root_item}'
+            #       '--------------------------------------')
+            # item = item_at_line(root_item, line)
+            # if not expand:
+            #     # Look for a non expanded item
+            #     tree_iter = item
+            #     while tree_iter:
+            #         if not tree_iter.isExpanded():
+            #             item = tree_iter
+            #         tree_iter = tree_iter.parent()
+            # self.setCurrentItem(item)
+            # self.scrollToItem(item)
 
     @Slot()
     def do_follow_cursor(self):
@@ -544,6 +609,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.do_follow_cursor()
 
     def merge_interval(self, parent, node):
+        if node.parent is not None:
+            return node
+
         match = False
         start, end = node.position
         while parent.parent is not None and not match:
@@ -552,13 +620,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 parent = parent.parent
             else:
                 match = True
-        print(f'Merging {node} in {parent}')
-        node.parent = parent
-        parent_tree_node = parent.node
-        next_index = len(parent.children)
-        node.index = next_index
-        parent_tree_node.append_children(next_index, node.node)
-        parent.children.append(node)
+
+        parent.add_node(node)
         return node
 
     def update_tree(self, items, editor_id):
@@ -585,8 +648,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         adding_symbols = len(changes) > len(deleted)
         deleted_iter = iter(sorted(deleted))
         changes_iter = iter(sorted(changes))
+
         deleted_entry = next(deleted_iter, None)
         changed_entry = next(changes_iter, None)
+        non_merged = 0
 
         while deleted_entry is not None and changed_entry is not None:
             deleted_entry_i = deleted_entry.data
@@ -594,25 +659,28 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
             if deleted_entry_i.name == changed_entry_i.name:
                 # Copy symbol status
-                changed_entry_i.id = deleted_entry_i.id
-                changed_entry_i.status = deleted_entry_i.status
-                changed_entry_i.node = deleted_entry_i.node
+                changed_entry_i.clone_node(deleted_entry_i)
 
                 deleted_entry = next(deleted_iter, None)
                 changed_entry = next(changes_iter, None)
             else:
                 if adding_symbols:
                     # New symbol added
-                    # changed_entry_i.node =
+                    changed_entry_i.create_node()
+                    non_merged += 1
                     changed_entry = next(changes_iter, None)
                 else:
                     # Symbol removed
+                    deleted_entry_i.delete()
+                    non_merged += 1
                     deleted_entry = next(deleted_iter, None)
 
         if deleted_entry is not None:
             while deleted_entry is not None:
                 # Symbol removed
                 deleted_entry_i = deleted_entry.data
+                deleted_entry_i.delete()
+                non_merged += 1
                 deleted_entry = next(deleted_iter, None)
 
         root = self.editor_items[editor_id]
@@ -622,10 +690,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 # New symbol added
                 changed_entry_i = changed_entry.data
                 changed_entry_i.create_node()
+                non_merged += 1
                 changed_entry = next(changes_iter, None)
 
-        if len(current_tree) == 0:
-            tree.merge_overlaps(
+        if non_merged > 0:
+            tree_copy = IntervalTree(tree)
+            tree_copy.merge_overlaps(
                 data_reducer=self.merge_interval, data_initializer=root)
 
         self.editor_tree_cache[editor_id] = tree
@@ -638,7 +708,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """
         item = self.editor_items[editor_id].node
         tree_cache = self.editor_tree_cache[editor_id]
-        self.populate_branch(editor, item, tree_cache)
+        # self.populate_branch(editor, item, tree_cache)
 
     def remove_editor(self, editor):
         if editor in self.editor_ids:
