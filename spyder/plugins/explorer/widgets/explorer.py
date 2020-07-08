@@ -576,9 +576,9 @@ class DirView(QTreeView):
         # Needed to disable actions in the context menu if there's an
         # empty folder. See spyder-ide/spyder#13004
         if len(fnames) == 1 and self.selectionModel():
-            rows = self.selectionModel().selectedRows()
-            if (self.fsmodel.type(rows[0]) == 'Folder' and
-                    self.fsmodel.rowCount(rows[0]) == 0):
+            current_index = self.selectionModel().currentIndex()
+            if (self.model().type(current_index) == 'Folder' and
+                    self.model().rowCount(current_index) == 0):
                 fnames = []
         if not fnames:
             for action in actions:
