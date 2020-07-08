@@ -145,6 +145,7 @@ class SymbolStatus:
         self.node = node.node
         self.parent = node.parent
         self.node.update_info(self.name, self.kind, self.position[0] + 1)
+        self.node.ref = self
 
         for child in self.children:
             child.parent = self
@@ -156,7 +157,7 @@ class SymbolStatus:
         self.children[index] = node
 
     def create_node(self):
-        self.node = SymbolItem(None, self.name, self.kind,
+        self.node = SymbolItem(None, self, self.name, self.kind,
                                self.position[0] + 1)
 
     def __repr__(self):
@@ -198,15 +199,17 @@ class FileRootItem(BaseTreeItem):
 
 class SymbolItem(BaseTreeItem):
     """Generic symbol tree item."""
-    def __init__(self, parent, name, kind, position):
+    def __init__(self, parent, ref, name, kind, position):
         QTreeWidgetItem.__init__(self, parent, QTreeWidgetItem.Type)
         self.parent = parent
+        self.ref = ref
         self.num_children = 0
 
         self.setIcon(0, ima.icon(SYMBOL_KIND_ICON.get(kind, 'no_match')))
         identifier = SYMBOL_NAME_MAP.get(kind, '')
         identifier = identifier.replace('_', ' ').capitalize()
-        self.setToolTip(0, '{0} {1}: {2}'.format(identifier, name, position))
+        self.setToolTip(0, '{3} {2}: {0} {1}'.format(
+            identifier, name, position, _('Line')))
         set_item_user_text(self, name)
         self.setText(0, name)
 
@@ -214,7 +217,8 @@ class SymbolItem(BaseTreeItem):
         self.setIcon(0, ima.icon(SYMBOL_KIND_ICON.get(kind, 'no_match')))
         identifier = SYMBOL_NAME_MAP.get(kind, '')
         identifier = identifier.replace('_', ' ').capitalize()
-        self.setToolTip(0, '{0} {1}: {2}'.format(identifier, name, position))
+        self.setToolTip(0, '{3} {2}: {0} {1}'.format(
+            identifier, name, position, _('Line')))
         set_item_user_text(self, name)
         self.setText(0, name)
 
@@ -481,21 +485,21 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     @Slot()
     def go_to_cursor_position(self, expand=True):
         if self.current_editor is not None:
-            line = self.current_editor.get_cursor_line_number()
             editor_id = self.editor_ids[self.current_editor]
-            root_item = self.editor_items[editor_id].node
-            # print(f'--------------------------------------\n{root_item}'
-            #       '--------------------------------------')
-            # item = item_at_line(root_item, line)
-            # if not expand:
-            #     # Look for a non expanded item
-            #     tree_iter = item
-            #     while tree_iter:
-            #         if not tree_iter.isExpanded():
-            #             item = tree_iter
-            #         tree_iter = tree_iter.parent()
-            # self.setCurrentItem(item)
-            # self.scrollToItem(item)
+            line = self.current_editor.get_cursor_line_number()
+            tree = self.editor_tree_cache[editor_id]
+            overlap = tree[line - 1]
+            if len(overlap) == 0:
+                return
+
+            sorted_nodes = sorted(overlap)
+            # The last item of the sorted elements correspond to the current
+            # node
+            item_interval = sorted_nodes[-1]
+            item_ref = item_interval.data
+            item = item_ref.node
+            self.setCurrentItem(item)
+            self.scrollToItem(item)
 
     @Slot()
     def do_follow_cursor(self):
@@ -769,183 +773,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if selected_items:
                 selected_items[-1].setSelected(True)
 
-    def populate_branch(self, editor, root_item, tree_cache=None):
-        """
-        Generates an outline of the editor's content and stores the result
-        in a cache.
-        """
-        if tree_cache is None:
-            tree_cache = {}
-
-        for _l in list(tree_cache.keys()):
-            # Checking if key is still in tree cache in case one of its
-            # ancestors was deleted in the meantime (deleting all children):
-            if _l not in tree_cache:
-                continue
-
-            # Removing deleted items
-            if not tree_cache[_l][0].oedata.is_valid():
-                remove_from_tree_cache(tree_cache, line=_l)
-                continue
-
-            # Moving cached items whose line changed
-            block_line = tree_cache[_l][0].line
-            if _l != block_line:
-                if block_line in tree_cache:
-                    remove_from_tree_cache(tree_cache, line=block_line)
-                if _l in tree_cache:
-                    if block_line is not None:
-                        tree_cache[block_line] = tree_cache[_l]
-                    tree_cache.pop(_l)
-
-        ancestors = [(root_item, 0)]
-        cell_ancestors = [(root_item, 0)]
-        previous_item = None
-        previous_level = None
-        prev_cell_level = None
-        prev_cell_item = None
-
-        for data in editor.outlineexplorer_data_list():
-            try:
-                line_nb = data.get_block_number()
-                if line_nb is None:
-                    continue
-                line_nb += 1
-            except AttributeError:
-                continue
-            level = None if data is None else data.fold_level
-            citem, _d = tree_cache.get(line_nb, (None, ""))
-            if citem is not None:
-                # Check if underlying C++ object has been deleted
-                try:
-                    citem.text(0)
-                except RuntimeError:
-                    tree_cache.pop(line_nb)
-                    citem, _d = (None, "")
-
-            # Skip iteration if line is not the first line of a foldable block
-            if level is None:
-                if citem is not None:
-                    remove_from_tree_cache(tree_cache, line=line_nb)
-                continue
-
-            # Searching for class/function statements
-            not_class_nor_function = data.is_not_class_nor_function()
-            if not not_class_nor_function:
-                class_name = data.get_class_name()
-                if class_name is None:
-                    func_name = data.get_function_name()
-                    if func_name is None:
-                        if citem is not None:
-                            remove_from_tree_cache(tree_cache, line=line_nb)
-                        continue
-
-            # Skip iteration for if/else/try/for/etc foldable blocks.
-            if not_class_nor_function and not data.is_comment():
-                if citem is not None:
-                    remove_from_tree_cache(tree_cache, line=line_nb)
-                continue
-
-            if citem is not None:
-                cname = to_text_string(citem.text(0))
-                cparent = citem.parent()
-                clevel = citem.level()
-
-            # Blocks for Cell Groups.
-            if (data is not None and data.def_type == data.CELL and
-                    self.group_cells):
-                preceding = (root_item if previous_item is None
-                             else previous_item)
-                cell_level = data.cell_level
-                if prev_cell_level is not None:
-                    if cell_level == prev_cell_level:
-                        pass
-                    elif cell_level > prev_cell_level:
-                        cell_ancestors.append((prev_cell_item,
-                                               prev_cell_level))
-                    else:
-                        while (len(cell_ancestors) > 1 and
-                               cell_level <= prev_cell_level):
-                            cell_ancestors.pop(-1)
-                            _item, prev_cell_level = cell_ancestors[-1]
-                parent, _level = cell_ancestors[-1]
-                if citem is not None:
-                    if data.text == cname and level == clevel:
-                        previous_level = clevel
-                        previous_item = citem
-                        continue
-                    else:
-                        remove_from_tree_cache(tree_cache, line=line_nb)
-                item = CellItem(data, parent, preceding)
-                debug = "%s -- %s/%s" % (str(item.line).rjust(6),
-                                         to_text_string(item.parent().text(0)),
-                                         to_text_string(item.text(0)))
-                tree_cache[line_nb] = (item, debug)
-                ancestors = [(item, 0)]
-                prev_cell_level = cell_level
-                prev_cell_item = item
-                previous_item = item
-                continue
-
-            # Blocks for Code Groups.
-            if previous_level is not None:
-                if level == previous_level:
-                    pass
-                elif level > previous_level:
-                    ancestors.append((previous_item, previous_level))
-                else:
-                    while len(ancestors) > 1 and level <= previous_level:
-                        ancestors.pop(-1)
-                        _item, previous_level = ancestors[-1]
-            parent, _level = ancestors[-1]
-
-            preceding = root_item if previous_item is None else previous_item
-            if not_class_nor_function and data.is_comment():
-                if not self.show_comments:
-                    if citem is not None:
-                        remove_from_tree_cache(tree_cache, line=line_nb)
-                    continue
-                if citem is not None:
-                    if data.text == cname and level == clevel:
-                        previous_level = clevel
-                        previous_item = citem
-                        continue
-                    else:
-                        remove_from_tree_cache(tree_cache, line=line_nb)
-                if data.def_type == data.CELL:
-                    item = CellItem(data, parent, preceding)
-                else:
-                    item = CommentItem(data, parent, preceding)
-            elif class_name is not None:
-                if citem is not None:
-                    if (class_name == cname and level == clevel and
-                            parent is cparent):
-                        previous_level = clevel
-                        previous_item = citem
-                        continue
-                    else:
-                        remove_from_tree_cache(tree_cache, line=line_nb)
-                item = ClassItem(data, parent, preceding)
-            else:
-                if citem is not None:
-                    if (func_name == cname and level == clevel and
-                            parent is cparent):
-                        previous_level = clevel
-                        previous_item = citem
-                        continue
-                    else:
-                        remove_from_tree_cache(tree_cache, line=line_nb)
-                item = FunctionItem(data, parent, preceding)
-
-            debug = "%s -- %s/%s" % (str(item.line).rjust(6),
-                                     to_text_string(item.parent().text(0)),
-                                     to_text_string(item.text(0)))
-            tree_cache[line_nb] = (item, debug)
-            previous_level = level
-            previous_item = item
-
-        return tree_cache
-
     def root_item_selected(self, item):
         """Root item has been selected: expanding it and collapsing others"""
         if self.show_all_files:
@@ -987,18 +814,21 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def activated(self, item):
         """Double-click event"""
-        editor_item = self.editor_items.get(
-            self.editor_ids.get(self.current_editor)).node
-        line = 0
-        if item == editor_item:
+        editor_root = self.editor_items.get(
+            self.editor_ids.get(self.current_editor))
+        root_item = editor_root.node
+        text = ''
+        if isinstance(item, FileRootItem):
             line = 1
-        elif isinstance(item, TreeItem):
-            line = item.line
+            if id(root_item) != id(item):
+                root_item = item
+        else:
+            line = item.ref.position[0] + 1
+            text = item.ref.name
 
         self.freeze = True
-        root_item = self.get_root_item(item)
         if line:
-            self.parent().edit_goto.emit(root_item.path, line, item.text(0))
+            self.parent().edit_goto.emit(root_item.path, line, text)
         else:
             self.parent().edit.emit(root_item.path)
         self.freeze = False
