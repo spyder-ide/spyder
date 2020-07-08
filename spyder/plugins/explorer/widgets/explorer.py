@@ -1405,6 +1405,10 @@ class ProxyModel(QSortFilterProxyModel):
                 return osp.join(self.root_path, root_dir)
         return QSortFilterProxyModel.data(self, index, role)
 
+    def type(self, index):
+        """Returns the type of file for the given index."""
+        return self.sourceModel().type(self.mapToSource(index))
+
 
 class FilteredDirView(DirView):
     """Filtered file/directory tree view"""
