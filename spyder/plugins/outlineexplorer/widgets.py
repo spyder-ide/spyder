@@ -164,7 +164,8 @@ class SymbolStatus:
         return str(self)
 
     def __str__(self):
-        return f'({self.position}, {self.name}, {self.id}, {self.status})'
+        return '({0}, {1}, {2}, {3})'.format(
+            self.position, self.name, self.id, self.status)
 
 
 class BaseTreeItem(QTreeWidgetItem):
