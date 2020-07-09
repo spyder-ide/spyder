@@ -91,11 +91,12 @@ ICON_CACHE = {}
 
 
 class SymbolStatus:
-    def __init__(self, name, kind, position, node=None):
+    def __init__(self, name, kind, position, path, node=None):
         self.name = name
         self.position = position
         self.kind = kind
         self.node = node
+        self.path = path
         self.id = str(uuid.uuid4())
         self.index = None
         self.children = []
@@ -118,6 +119,7 @@ class SymbolStatus:
 
     def add_node(self, node):
         node.parent = self
+        node.path = self.path
         this_node = self.node
         children_ranges = [c.position[0] for c in self.children]
         node_range = node.position[0]
@@ -140,6 +142,7 @@ class SymbolStatus:
     def clone_node(self, node):
         self.id = node.id
         self.index = node.index
+        self.path = node.path
         self.children = node.children
         self.status = node.status
         self.node = node.node
@@ -182,9 +185,10 @@ class BaseTreeItem(QTreeWidgetItem):
 
 
 class FileRootItem(BaseTreeItem):
-    def __init__(self, path, treewidget, is_python=True):
+    def __init__(self, path, ref, treewidget, is_python=True):
         QTreeWidgetItem.__init__(self, treewidget, QTreeWidgetItem.Type)
         self.path = path
+        self.ref = ref
         self.setIcon(
             0, ima.icon('python') if is_python else ima.icon('TextFileIcon'))
         self.setToolTip(0, path)
@@ -205,14 +209,7 @@ class SymbolItem(BaseTreeItem):
         self.parent = parent
         self.ref = ref
         self.num_children = 0
-
-        self.setIcon(0, ima.icon(SYMBOL_KIND_ICON.get(kind, 'no_match')))
-        identifier = SYMBOL_NAME_MAP.get(kind, '')
-        identifier = identifier.replace('_', ' ').capitalize()
-        self.setToolTip(0, '{3} {2}: {0} {1}'.format(
-            identifier, name, position, _('Line')))
-        set_item_user_text(self, name)
-        self.setText(0, name)
+        self.update_info(name, kind, position)
 
     def update_info(self, name, kind, position):
         self.setIcon(0, ima.icon(SYMBOL_KIND_ICON.get(kind, 'no_match')))
@@ -277,103 +274,6 @@ class TreeItem(QTreeWidgetItem):
                                     to_text_string)
         set_item_user_text(self, parent_text + '/' + name)
         self.setup()
-
-class ClassItem(TreeItem):
-    def get_name(self):
-        """Get name."""
-        return self.oedata.get_class_name()
-
-    def setup(self):
-        self.set_icon(ima.icon('class'))
-        self.setToolTip(0, _("Class defined at line %s") % str(self.line))
-
-class FunctionItem(TreeItem):
-    def get_name(self):
-        """Get name."""
-        return self.oedata.get_function_name()
-
-    def is_method(self):
-        return isinstance(self.parent(), ClassItem)
-
-    def setup(self):
-        if self.is_method():
-            self.setToolTip(0, _("Method defined at line %s") % str(self.line))
-            name = to_text_string(self.text(0))
-            if name.startswith('__'):
-                self.set_icon(ima.icon('private2'))
-            elif name.startswith('_'):
-                self.set_icon(ima.icon('private1'))
-            else:
-                self.set_icon(ima.icon('method'))
-        else:
-            self.set_icon(ima.icon('function'))
-            self.setToolTip(0, _("Function defined at line %s"
-                                 ) % str(self.line))
-
-class CommentItem(TreeItem):
-    def get_name(self):
-        """Get name."""
-        return self.oedata.def_name.lstrip("# ")
-
-    def setup(self):
-        self.set_icon(ima.icon('blockcomment'))
-        font = self.font(0)
-        font.setItalic(True)
-        self.setFont(0, font)
-        self.setToolTip(0, _("Line %s") % str(self.line))
-
-class CellItem(TreeItem):
-    def setup(self):
-        self.set_icon(ima.icon('cell'))
-        font = self.font(0)
-        font.setItalic(True)
-        self.setFont(0, font)
-        self.setToolTip(0, _("Cell starts at line %s") % str(self.line))
-
-def get_item_children(item):
-    """Return a sorted list of all the children items of 'item'."""
-    children = [item.child(index) for index in range(item.childCount())]
-    for child in children[:]:
-        others = get_item_children(child)
-        if others is not None:
-            children += others
-    # Remove any child without line number
-    children = [child for child in children if child.line is not None]
-    return sorted(children, key=lambda child: child.line)
-
-
-def item_at_line(root_item, line):
-    """
-    Find and return the item of the outline explorer under which is located
-    the specified 'line' of the editor.
-    """
-    previous_item = root_item
-    item = root_item
-    for item in get_item_children(root_item):
-        if item.line > line:
-            return previous_item
-        previous_item = item
-    else:
-        return item
-
-
-def remove_from_tree_cache(tree_cache, line=None, item=None):
-    if line is None:
-        for line, (_it, _debug) in list(tree_cache.items()):
-            if _it is item:
-                break
-    if line is None:
-        # Could not find the item
-        return
-    item, debug = tree_cache.pop(line)
-    try:
-        for child in [item.child(_i) for _i in range(item.childCount())]:
-            remove_from_tree_cache(tree_cache, item=child)
-        item.parent().removeChild(item)
-    except RuntimeError:
-        # Item has already been deleted
-        #XXX: remove this debug-related fragment of code
-        print("unable to remove tree item: ", debug, file=STDOUT)
 
 
 class OutlineExplorerTreeWidget(OneColumnTree):
@@ -555,8 +455,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 # self.populate_branch(editor, item, tree_cache)
                 self.restore_expanded_state()
         else:
-            this_root = SymbolStatus(editor.fname, None, None)
-            root_item = FileRootItem(editor.fname, self, editor.is_python())
+            this_root = SymbolStatus(editor.fname, None, None, editor.fname)
+            root_item = FileRootItem(editor.fname, this_root,
+                                     self, editor.is_python())
             root_item.set_text(fullpath=self.show_fullpath)
             editor_tree = IntervalTree()
             this_root.node = root_item
@@ -640,7 +541,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             symbol_start = symbol_range['start']['line']
             symbol_end = symbol_range['end']['line']
             symbol_repr = SymbolStatus(symbol_name, symbol_kind,
-                                       (symbol_start, symbol_end))
+                                       (symbol_start, symbol_end), None)
             tree_info.append((symbol_start, symbol_end + 1, symbol_repr))
 
         tree = IntervalTree.from_tuples(tree_info)
@@ -828,21 +729,21 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             line = item.ref.position[0] + 1
             text = item.ref.name
 
+        path = item.ref.path
         self.freeze = True
         if line:
-            self.parent().edit_goto.emit(root_item.path, line, text)
+            self.parent().edit_goto.emit(path, line, text)
         else:
-            self.parent().edit.emit(root_item.path)
+            self.parent().edit.emit(path)
         self.freeze = False
 
         parent = self.current_editor.parent()
         for editor_id, i_item in list(self.editor_items.items()):
-            if i_item.node is root_item:
+            if i_item.path == path:
                 for editor, _id in list(self.editor_ids.items()):
-                    if _id == editor_id and editor.parent() is parent:
-                        self.current_editor = editor
-                        break
-                break
+                    self.current_editor = editor
+                    break
+            break
 
     def clicked(self, item):
         """Click event"""
