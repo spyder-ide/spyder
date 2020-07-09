@@ -725,7 +725,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 root_item = self.editor_items.pop(editor_id)
                 self.editor_tree_cache.pop(editor_id)
                 try:
-                    self.takeTopLevelItem(self.indexOfTopLevelItem(root_item.node))
+                    self.takeTopLevelItem(
+                        self.indexOfTopLevelItem(root_item.node))
                 except RuntimeError:
                     # item has already been removed
                     pass
