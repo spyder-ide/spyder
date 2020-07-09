@@ -89,13 +89,14 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         pyexec_layout.addWidget(self.cus_exec_radio)
         self.validate_custom_interpreters_list()
         self.cus_exec_combo = self.create_file_combobox(
-                                  _('Recent custom interpreters'),
-                                  self.get_option('custom_interpreters_list'),
-                                  'custom_interpreter',
-                                  filters=filters,
-                                  default_line_edit=True,
-                                  adjust_to_contents=True
-                                  )
+            _('Recent custom interpreters'),
+            self.get_option('custom_interpreters_list'),
+            'custom_interpreter',
+            filters=filters,
+            default_line_edit=True,
+            adjust_to_contents=True,
+            validate_callback=programs.is_python_interpreter,
+        )
         self.def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
         self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
         pyexec_layout.addWidget(self.cus_exec_combo)
@@ -147,32 +148,6 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         vlayout.addWidget(umr_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
-
-    def python_executable_changed(self, pyexec):
-        """Custom Python executable value has been changed"""
-        if not self.cus_exec_radio.isChecked():
-            return False
-        if not is_text_string(pyexec):
-            pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
-        if (not programs.is_python_interpreter(pyexec) or
-                not self.warn_python_compatibility(pyexec)):
-            QMessageBox.warning(self, _('Warning'),
-                    _("You selected an invalid Python interpreter for the "
-                      "console so the previous interpreter will stay. Please "
-                      "make sure to select a valid one."), QMessageBox.Ok)
-            self.def_exec_radio.setChecked(True)
-
-            # Set options after validation fails. This is necessary for them
-            # to be picked up correctly by other plugins.
-            # Fixes spyder-ide/spyder#13205
-            self.set_option('default', True)
-            self.set_option('custom', False)
-
-            # Clear the line edit because there's no need to display a wrong
-            # interpreter
-            self.pyexec_edit.clear()
-            return False
-        return True
 
     def warn_python_compatibility(self, pyexec):
         if not osp.isfile(pyexec):
@@ -260,11 +235,9 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             executable = osp.normpath(executable)
             if executable.endswith('pythonw.exe'):
                 executable = executable.replace("pythonw.exe", "python.exe")
-            change = self.python_executable_changed(executable)
-            if change:
-                self.set_custom_interpreters_list(executable)
-                self.set_option('executable', executable)
-                self.set_option('custom_interpreter', executable)
+            self.set_custom_interpreters_list(executable)
+            self.set_option('executable', executable)
+            self.set_option('custom_interpreter', executable)
         if not self.pyexec_edit.text():
             self.set_option('custom_interpreter', '')
         if 'default' in options or 'custom' in options:
