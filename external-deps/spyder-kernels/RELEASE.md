@@ -4,9 +4,9 @@ To release a new version of spyder-kernels on PyPI:
 
 * Close the respective milestone on Zenhub
 
-* git checkout master
+* git checkout 1.x
 
-* git fetch upstream && get merge upstream/master
+* git fetch upstream && get merge upstream/1.x
 
 * git clean -xfdi
 
@@ -19,6 +19,8 @@ To release a new version of spyder-kernels on PyPI:
 * python setup.py sdist
 
 * python setup.py bdist_wheel
+
+* twine check dist/*
 
 * twine upload dist/*
 
