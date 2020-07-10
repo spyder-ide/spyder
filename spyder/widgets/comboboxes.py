@@ -328,6 +328,20 @@ class FileComboBox(PathComboBox):
                  osp.isdir(to_text_string(qstr)))
         return valid
 
+    def tab_complete(self):
+        """
+        If there is a single option available one tab completes the option.
+        """
+        opts = self._complete_options()
+        if len(opts) == 1:
+            text = opts[0]
+            if osp.isdir(text):
+                text = text + os.sep
+            self.set_current_text(text)
+            self.hide_completer()
+        else:
+            self.completer().complete()
+
     def _complete_options(self):
         """Find available completion options."""
         text = to_text_string(self.currentText())

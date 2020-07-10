@@ -778,7 +778,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_file_combobox(self, text, choices, option, default=NoDefault,
                              tip=None, restart=False, filters=None,
                              adjust_to_contents=False,
-                             default_line_edit=False, section=None):
+                             default_line_edit=False, section=None,
+                             validate_callback=None):
         """choices: couples (name, key)"""
         combobox = FileComboBox(self, adjust_to_contents=adjust_to_contents,
                                 default_line_edit=default_line_edit)
@@ -794,7 +795,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         combobox.addItems(choices)
 
         msg = _('Invalid file path')
-        self.validate_data[edit] = (osp.isfile, msg)
+        self.validate_data[edit] = (
+            validate_callback if validate_callback else osp.isfile,
+            msg)
         browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
         browse_btn.setToolTip(_("Select file"))
         browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
