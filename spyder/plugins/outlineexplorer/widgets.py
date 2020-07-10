@@ -389,16 +389,17 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             editor_id = self.editor_ids[self.current_editor]
             line = self.current_editor.get_cursor_line_number()
             tree = self.editor_tree_cache[editor_id]
+            root = self.editor_items[editor_id]
             overlap = tree[line - 1]
             if len(overlap) == 0:
-                return
-
-            sorted_nodes = sorted(overlap)
-            # The last item of the sorted elements correspond to the current
-            # node
-            item_interval = sorted_nodes[-1]
-            item_ref = item_interval.data
-            item = item_ref.node
+                item = root.node
+            else:
+                sorted_nodes = sorted(overlap)
+                # The last item of the sorted elements correspond to the current
+                # node
+                item_interval = sorted_nodes[-1]
+                item_ref = item_interval.data
+                item = item_ref.node
             self.setCurrentItem(item)
             self.scrollToItem(item)
 
