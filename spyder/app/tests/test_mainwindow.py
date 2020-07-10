@@ -648,28 +648,32 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
         # Debug the cell
         qtbot.keyClick(code_editor, Qt.Key_Return,
                        modifier=Qt.AltModifier | Qt.ShiftModifier)
-        try:
-            qtbot.waitUntil(
-                lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
-            # We need to press continue as we don't test yet if a breakpoint
-            # is in the cell
-            qtbot.keyClick(shell._control, 'c')
-            qtbot.keyClick(shell._control, Qt.Key_Enter)
-            qtbot.waitUntil(
-                lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
-        except Exception:
-            print('Shell content: ', shell._control.toPlainText(), '\n\n')
-            raise
+
+        qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+        # Make sure everything is ready
+        assert shell.spyder_kernel_comm.is_open()
+        assert shell.is_waiting_pdb_input()
+
+        with qtbot.waitSignal(shell.executed):
+            shell.pdb_execute('b')
+        assert 'script.py:10' in shell._control.toPlainText()
+        # We need to press continue as we don't test yet if a breakpoint
+        # is in the cell
+        with qtbot.waitSignal(shell.executed):
+            shell.pdb_execute('c')
+
     else:
         # Click the debug button
-        qtbot.mouseClick(debug_button, Qt.LeftButton)
-        qtbot.wait(1000)
+        with qtbot.waitSignal(shell.executed):
+            qtbot.mouseClick(debug_button, Qt.LeftButton)
 
     # Verify that we are at first breakpoint
     shell.clear_console()
     qtbot.wait(500)
-    shell.pdb_execute("list")
-    qtbot.wait(500)
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("list")
     assert "1--> 10 arr = np.array(li)" in control.toPlainText()
 
     # Exit debugging
@@ -3375,6 +3379,17 @@ def test_varexp_cleared_after_reset(main_window, qtbot):
     # Assert the value was removed
     qtbot.waitUntil(lambda: 'a' not in nsb.editor.source_model._data,
                     timeout=3000)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_immediate_debug(main_window, qtbot):
+    """
+    Check if we can enter debugging immediately
+    """
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
+        shell.execute("%debug print()")
 
 
 if __name__ == "__main__":
