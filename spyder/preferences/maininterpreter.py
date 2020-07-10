@@ -244,9 +244,20 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             executable = osp.normpath(executable)
             if executable.endswith('pythonw.exe'):
                 executable = executable.replace("pythonw.exe", "python.exe")
+
+            # Set new interpreter
             self.set_custom_interpreters_list(executable)
             self.set_option('executable', executable)
             self.set_option('custom_interpreter', executable)
+
+            # Update combobox items.
+            custom_list = self.get_option('custom_interpreters_list')
+            self.cus_exec_combo.combobox.clear()
+            self.cus_exec_combo.combobox.addItems(custom_list)
+            self.pyexec_edit.setText(executable)
+
+            # Show warning compatibility message.
+            self.warn_python_compatibility(executable)
         if not self.pyexec_edit.text():
             self.set_option('custom_interpreter', '')
         if 'default' in options or 'custom' in options:
