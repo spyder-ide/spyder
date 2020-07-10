@@ -13,7 +13,8 @@
   editor.
 * Fix errors when running Dask code in the IPython console.
 * Show scrollflag in macOS with the dark theme.
-* Only show folding arrows when the user hovers over them.
+* Only show folding arrows when the user hovers over them, which improves
+  responsiveness in the editor
 * Fix several problems with the integration between our projects and the
   Python language server.
 * Handle NaT values in the Variable Explorer.
