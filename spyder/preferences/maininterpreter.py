@@ -95,7 +95,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             filters=filters,
             default_line_edit=True,
             adjust_to_contents=True,
-            validate_callback=self.validate_python_interpreter,
+            validate_callback=programs.is_python_interpreter,
         )
         self.def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
         self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
@@ -148,15 +148,6 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         vlayout.addWidget(umr_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
-
-    def validate_python_interpreter(self, pyexec):
-        if not programs.is_python_interpreter(pyexec):
-            # This prevents showing wrong file names in this line
-            # edit.
-            self.pyexec_edit.clear()
-            return False
-        else:
-            return True
 
     def warn_python_compatibility(self, pyexec):
         if not osp.isfile(pyexec):
@@ -260,6 +251,12 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             self.warn_python_compatibility(executable)
         if not self.pyexec_edit.text():
             self.set_option('custom_interpreter', '')
+        else:
+            # This prevents showing an incorrect file name in the custom
+            # line edit.
+            if not programs.is_python_interpreter(self.pyexec_edit.text()):
+                self.pyexec_edit.clear()
+                self.set_option('custom_interpreter', '')
         if ('default' in options or 'custom' in options
                 or 'custom_interpreter' in options):
             self.main.sig_main_interpreter_changed.emit()
