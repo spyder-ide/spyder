@@ -3371,6 +3371,8 @@ def test_varexp_cleared_after_reset(main_window, qtbot):
                     timeout=3000)
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_immediate_debug(main_window, qtbot):
     """
     Check if we can enter debugging immediately
