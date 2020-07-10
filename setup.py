@@ -236,7 +236,7 @@ install_requires = [
     'pylint>=1.0',
     'pyqt5<5.13;python_version>="3"',
     'pyqtwebengine<5.13;python_version>="3"',
-    'python-language-server[all]>=0.34.0,<0.35.0',
+    'python-language-server[all]>=0.34.0,<1.0.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8',
@@ -245,7 +245,7 @@ install_requires = [
     'qtpy>=1.5.0',
     'sphinx>=0.6.6',
     # Don't forget to update this to >=2.0 for Spyder 5!
-    'spyder-kernels>=1.9.1,<1.10.0',
+    'spyder-kernels>=1.9.2,<1.10.0',
     'watchdog',
 ]
 
