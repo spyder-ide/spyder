@@ -260,6 +260,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             self.warn_python_compatibility(executable)
         if not self.pyexec_edit.text():
             self.set_option('custom_interpreter', '')
-        if 'default' in options or 'custom' in options:
+        if ('default' in options or 'custom' in options
+                or 'custom_interpreter' in options):
             self.main.sig_main_interpreter_changed.emit()
         self.main.apply_settings()
