@@ -17,6 +17,7 @@ Original file:
 """
 
 # Third party imports
+from qtpy.QtCore import QPoint
 from qtpy.QtGui import QTextCharFormat
 
 # Local imports
@@ -94,14 +95,29 @@ class TextDecorationsManager(Manager):
         font family and point size could cause unwanted behaviors.
         """
         font = self.editor.font()
+
+        # Get the current visible block numbers
+        first_visible_block_nb = (
+            self.editor.firstVisibleBlock().blockNumber())
+        bottom_right = QPoint(self.editor.viewport().width() - 1,
+                              self.editor.viewport().height() - 1)
+        last_visible_block_nb = (
+            self.editor.cursorForPosition(bottom_right).blockNumber())
+
+        # Update visible decorations
+        visible_decorations = []
         for decoration in self._decorations:
-            try:
-                decoration.format.setFont(
-                        font, QTextCharFormat.FontPropertiesSpecifiedOnly)
-            except (TypeError, AttributeError):  # Qt < 5.3
-                decoration.format.setFontFamily(font.family())
-                decoration.format.setFontPointSize(font.pointSize())
-        self.editor.setExtraSelections(self._decorations)
+            block_nb = decoration.cursor.block().blockNumber()
+            if first_visible_block_nb < block_nb < last_visible_block_nb:
+                visible_decorations.append(decoration)
+                try:
+                    decoration.format.setFont(
+                            font, QTextCharFormat.FontPropertiesSpecifiedOnly)
+                except (TypeError, AttributeError):  # Qt < 5.3
+                    decoration.format.setFontFamily(font.family())
+                    decoration.format.setFontPointSize(font.pointSize())
+
+        self.editor.setExtraSelections(visible_decorations)
 
     def __iter__(self):
         return iter(self._decorations)
