@@ -554,7 +554,9 @@ class CodeEditor(TextEditBaseWidget):
         self.painted.connect(self._draw_editor_cell_divider)
 
         self.verticalScrollBar().valueChanged.connect(
-                                       lambda value: self.rehighlight_cells())
+            lambda value: self.rehighlight_cells())
+        self.verticalScrollBar().valueChanged.connect(
+            lambda value: self.decorations.update())
 
         self.oe_proxy = None
 
