@@ -40,6 +40,7 @@ from spyder.py3compat import (qbytearray_to_str, to_text_string,
                               MutableSequence)
 from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
                                     mimedata2url, set_menu_icons)
@@ -499,10 +500,15 @@ class EditorStack(QWidget):
             _("Find symbols in file..."),
             icon=ima.icon('symbol_find'),
             triggered=self.open_symbolfinder_dlg)
-        copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
-                icon=ima.icon('editcopy'),
-                triggered=lambda:
-                QApplication.clipboard().setText(self.get_current_filename()))
+        copy_absolute_path_action = create_action(self, _("Copy abosolute path"),
+            icon=ima.icon('editcopy'),
+            triggered=lambda:
+            QApplication.clipboard().setText(self.get_current_filename())) 
+        copy_relative_path_action = create_action(self, _("Copy relative path"),
+            icon=ima.icon('editcopy'),
+            triggered=lambda:
+            QApplication.clipboard().setText((osp.relpath(self.get_current_filename(),
+                                   getcwd_or_home()).replace(os.sep, "/"))))
         close_right = create_action(self, _("Close all to the right"),
                                     triggered=self.close_all_right)
         close_all_but_this = create_action(self, _("Close all but this"),
@@ -525,7 +531,8 @@ class EditorStack(QWidget):
         self.menu_actions = actions + [external_fileexp_action,
                                        None, switcher_action,
                                        symbolfinder_action,
-                                       copy_to_cb_action, None, close_right,
+                                       copy_absolute_path_action,
+                                       copy_relative_path_action, None, close_right,
                                        close_all_but_this, sort_tabs]
         self.outlineexplorer = None
         self.help = None
