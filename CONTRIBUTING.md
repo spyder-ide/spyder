@@ -35,7 +35,7 @@ $ git clone <LINK-TO-YOUR-REPO>
 Finally, set the upstream remote to the official Spyder repo with:
 
 ```bash
-git remote add upstream https://github.com/spyder-ide/spyder.git
+$ git remote add upstream https://github.com/spyder-ide/spyder.git
 ```
 
 ### Creating a conda environment or virtualenv
@@ -88,7 +88,7 @@ $ python bootstrap.py --debug
 **Important Note**: To test any changes you've made to the Spyder source code, you need to restart Spyder or start a fresh instance (you can run multiple copies simultaneously by unchecking the Preferences option <kbd>Use a single instance</kbd> under <kbd>General</kbd> > <kbd>Advanced Settings</kbd> .
 
 
-###  Running Tests
+###  Running tests
 
 To install our test dependencies under Anaconda:
 
@@ -109,7 +109,7 @@ $ python runtests.py
 ```
 
 
-## Spyder branches
+## Spyder Branches
 
 When you start to work on a new pull request (PR), you need to be sure that your work is done on top of the correct Spyder branch, and that you base your PR on Github against it.
 
@@ -198,9 +198,6 @@ As an example, let's assume that (i) your Github user name is `myuser`; (ii) you
     ```
 
 where `<branch>` needs to be `1.x` if your `fix_in_spyder` branch was done against Spyder's `4.x` branch; and `master`, if you did it against our `master` branch here.
-
-
-## Submi
 
 
 ## Making contributions that depend on pull requests in python-language-server
