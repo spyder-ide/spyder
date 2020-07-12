@@ -500,15 +500,21 @@ class EditorStack(QWidget):
             _("Find symbols in file..."),
             icon=ima.icon('symbol_find'),
             triggered=self.open_symbolfinder_dlg)
-        copy_absolute_path_action = create_action(self, _("Copy abosolute path"),
+        copy_absolute_path_action = create_action(
+            self,
+            _("Copy abosolute path"),
             icon=ima.icon('editcopy'),
             triggered=lambda:
-            QApplication.clipboard().setText(self.get_current_filename())) 
-        copy_relative_path_action = create_action(self, _("Copy relative path"),
+            QApplication.clipboard().setText(
+                self.get_current_filename()))
+        copy_relative_path_action = create_action(
+            self,
+            _("Copy relative path"),
             icon=ima.icon('editcopy'),
             triggered=lambda:
-            QApplication.clipboard().setText((osp.relpath(self.get_current_filename(),
-                                   getcwd_or_home()).replace(os.sep, "/"))))
+            QApplication.clipboard().setText(
+                (osp.relpath(self.get_current_filename(),
+                             getcwd_or_home()).replace(os.sep, "/"))))
         close_right = create_action(self, _("Close all to the right"),
                                     triggered=self.close_all_right)
         close_all_but_this = create_action(self, _("Close all but this"),
