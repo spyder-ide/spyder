@@ -48,6 +48,7 @@ from spyder.plugins.outlineexplorer.api import cell_name
 from spyder.py3compat import to_text_string
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.icon_manager import ima
+from spyder.utils.misc import getcwd_or_home
 from spyder.utils.palette import QStylePalette
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
@@ -204,13 +205,15 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
         self.data = []
 
-        copy_to_cb_action = create_action(
-            self,
-            _("Copy path to clipboard"),
+        copy_absolute_path_action = create_action(self, _("Copy abosolute path"),
             icon=ima.icon('editcopy'),
             triggered=lambda:
-                QApplication.clipboard().setText(self.get_current_filename())
-        )
+            QApplication.clipboard().setText(self.get_current_filename())) 
+        copy_relative_path_action = create_action(self, _("Copy relative path"),
+            icon=ima.icon('editcopy'),
+            triggered=lambda:
+            QApplication.clipboard().setText((osp.relpath(self.get_current_filename(),
+                                   getcwd_or_home()).replace(os.sep, "/"))))
         close_right = create_action(self, _("Close all to the right"),
                                     triggered=self.close_all_right)
         close_all_but_this = create_action(self, _("Close all but this"),
@@ -233,7 +236,8 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
         self.menu_actions = actions + [external_fileexp_action,
                                        None, switcher_action,
                                        symbolfinder_action,
-                                       copy_to_cb_action, None, close_right,
+                                       copy_absolute_path_action,
+                                       copy_relative_path_action, None, close_right,
                                        close_all_but_this, sort_tabs]
         self.outlineexplorer = None
         self.is_closable = False
