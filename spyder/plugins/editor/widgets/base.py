@@ -199,6 +199,14 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Emit changed signal"""
         self.modificationChanged.emit(self.document().isModified())
 
+    def get_visible_block_numbers(self):
+        """Get the first and last visible block numbers."""
+        first = self.firstVisibleBlock().blockNumber()
+        bottom_right = QPoint(self.viewport().width() - 1,
+                              self.viewport().height() - 1)
+        last = self.cursorForPosition(bottom_right).blockNumber()
+        return (first, last)
+
     #------Highlight current line
     def highlight_current_line(self):
         """Highlight current line"""

@@ -97,18 +97,13 @@ class TextDecorationsManager(Manager):
         font = self.editor.font()
 
         # Get the current visible block numbers
-        first_visible_block_nb = (
-            self.editor.firstVisibleBlock().blockNumber())
-        bottom_right = QPoint(self.editor.viewport().width() - 1,
-                              self.editor.viewport().height() - 1)
-        last_visible_block_nb = (
-            self.editor.cursorForPosition(bottom_right).blockNumber())
+        first, last = self.editor.get_visible_block_numbers()
 
         # Update visible decorations
         visible_decorations = []
         for decoration in self._decorations:
             block_nb = decoration.cursor.block().blockNumber()
-            if first_visible_block_nb < block_nb < last_visible_block_nb:
+            if first <= block_nb <= last:
                 visible_decorations.append(decoration)
                 try:
                     decoration.format.setFont(
