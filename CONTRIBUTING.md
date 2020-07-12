@@ -6,6 +6,7 @@
 ## General Guidelines
 
 This page documents at a very high level how to contribute to Spyder. Please check the [Spyder IDE Contributor Documentation](https://github.com/spyder-ide/spyder/wiki/Contributing-to-Spyder) for a more detailed guide on how to do so.
+Also, make sure you're familiar with our [Github workflow](https://github.com/spyder-ide/spyder/wiki/Dev:-Github-Workflow).
 
 
 ## Troubleshooting
@@ -22,10 +23,19 @@ Most importantly, aside from the error message/traceback and the requested envir
 
 ## Setting Up a Development Environment
 
-### Cloning the repo
+### Forking and cloning the repo
+
+First, navigate to the [Spyder repo](https://github.com/spyder-ide/spyder) in your web browser and press the ``Fork`` button to make a personal copy of the repository on your own Github account.
+Then, click the ``Clone or Download`` button on your repository, copy the link and run the following on the command line to clone the repo:
 
 ```bash
-$ git clone https://github.com/spyder-ide/spyder.git
+$ git clone <LINK-TO-YOUR-REPO>
+```
+
+Finally, set the upstream remote to the official Spyder repo with:
+
+```bash
+$ git remote add upstream https://github.com/spyder-ide/spyder.git
 ```
 
 ### Creating a conda environment or virtualenv
@@ -33,7 +43,7 @@ $ git clone https://github.com/spyder-ide/spyder.git
 If you use Anaconda you can create a conda environment with the following commands:
 
 ```bash
-$ conda create -n spyder-dev python=3.7
+$ conda create -n spyder-dev python=3
 $ conda activate spyder-dev
 ```
 
@@ -43,6 +53,7 @@ You can also use `virtualenv` on Linux, but `conda` is **strongly** recommended:
 $ mkvirtualenv spyder-dev
 $ workon spyder-dev
 ```
+
 
 ### Installing dependencies
 
@@ -77,7 +88,7 @@ $ python bootstrap.py --debug
 **Important Note**: To test any changes you've made to the Spyder source code, you need to restart Spyder or start a fresh instance (you can run multiple copies simultaneously by unchecking the Preferences option <kbd>Use a single instance</kbd> under <kbd>General</kbd> > <kbd>Advanced Settings</kbd> .
 
 
-##  Running Tests
+###  Running tests
 
 To install our test dependencies under Anaconda:
 
@@ -116,6 +127,7 @@ $ git checkout <SPYDER-BASE-BRANCH>
 $ git pull upstream <SPYDER-BASE-BRANC>
 $ git checkout -b NAME-NEW-BRANCH
 ```
+
 
 ### Changing the base branch
 
