@@ -504,6 +504,13 @@ class CodeEditor(TextEditBaseWidget):
         self.occurrence_timer.timeout.connect(self.__mark_occurrences)
         self.occurrences = []
 
+        # Update decorations timer
+        self.update_decorations_timer = QTimer(self)
+        self.update_decorations_timer.setSingleShot(True)
+        self.update_decorations_timer.setInterval(500)
+        self.update_decorations_timer.timeout.connect(
+            self.update_decorations)
+
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
         self.found_results = []
@@ -557,7 +564,7 @@ class CodeEditor(TextEditBaseWidget):
         self.verticalScrollBar().valueChanged.connect(
             lambda value: self.rehighlight_cells())
         self.verticalScrollBar().valueChanged.connect(
-            lambda value: self.decorations.update())
+            lambda value: self.update_decorations_timer.start())
 
         self.oe_proxy = None
 
@@ -594,6 +601,7 @@ class CodeEditor(TextEditBaseWidget):
         self.completion_args = None
         self.folding_supported = False
         self.is_cloned = False
+        self._diagnostics = []
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
@@ -2438,7 +2446,11 @@ class CodeEditor(TextEditBaseWidget):
                 data = BlockUserData(self)
 
             if underline:
-                if self.underline_errors_enabled:
+                block_nb = block.blockNumber()
+                first, last = self.get_visible_block_numbers()
+
+                if (self.underline_errors_enabled and
+                        first <= block_nb <= last):
                     error = severity == DiagnosticSeverity.ERROR
                     color = self.error_color if error else self.warning_color
                     color = QColor(color)
@@ -2466,13 +2478,8 @@ class CodeEditor(TextEditBaseWidget):
     def finish_code_analysis(self):
         """Finish processing code analysis results."""
         self.linenumberarea.update()
-
-        # Underline errors and update extra selections.
-        self.setUpdatesEnabled(False)
         self.underline_errors()
         self.update_extra_selections()
-        self.setUpdatesEnabled(True)
-
         self.sig_process_code_analysis.emit()
         self.sig_flags_changed.emit()
 
@@ -2525,6 +2532,14 @@ class CodeEditor(TextEditBaseWidget):
                 self.tooltip_widget.move(at_point)
                 return
         self.hide_tooltip()
+
+    def update_decorations(self):
+        """Update decorations on the visible portion of the screen."""
+        if self.underline_errors_enabled:
+            self.underline_errors()
+            self.update_extra_selections()
+        else:
+            self.decorations.update()
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
