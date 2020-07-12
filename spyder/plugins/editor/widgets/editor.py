@@ -538,7 +538,8 @@ class EditorStack(QWidget):
                                        None, switcher_action,
                                        symbolfinder_action,
                                        copy_absolute_path_action,
-                                       copy_relative_path_action, None, close_right,
+                                       copy_relative_path_action, None,
+                                       close_right,
                                        close_all_but_this, sort_tabs]
         self.outlineexplorer = None
         self.help = None
