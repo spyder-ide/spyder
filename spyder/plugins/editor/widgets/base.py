@@ -191,7 +191,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             key (str) name of the extra selections group.
         """
         for decoration in self.extra_selections_dict.get(key, []):
-            self.decorations.remove(decoration, update=False)
+            self.decorations.remove(decoration)
         self.extra_selections_dict[key] = []
         self.update()
 

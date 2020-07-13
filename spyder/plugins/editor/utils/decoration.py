@@ -17,21 +17,32 @@ Original file:
 """
 
 # Third party imports
-from qtpy.QtCore import QPoint
+from qtpy.QtCore import QObject, QPoint, QTimer
 from qtpy.QtGui import QTextCharFormat
 
 # Local imports
 from spyder.api.manager import Manager
 
 
-class TextDecorationsManager(Manager):
+UPDATE_TIMEOUT = 15 # miliseconds
+
+
+class TextDecorationsManager(Manager, QObject):
     """
     Manages the collection of TextDecoration that have been set on the editor
     widget.
     """
     def __init__(self, editor):
         super(TextDecorationsManager, self).__init__(editor)
+        QObject.__init__(self, None)
         self._decorations = []
+
+        # Timer to not constantly update decorations.
+        self.update_timer = QTimer(self)
+        self.update_timer.setSingleShot(True)
+        self.update_timer.setInterval(UPDATE_TIMEOUT)
+        self.update_timer.timeout.connect(
+            self._update)
 
     def add(self, decorations):
         """
@@ -59,7 +70,7 @@ class TextDecorationsManager(Manager):
             self.update()
         return added
 
-    def remove(self, decoration, update=True):
+    def remove(self, decoration):
         """
         Removes a text decoration from the editor.
 
@@ -71,8 +82,7 @@ class TextDecorationsManager(Manager):
         """
         try:
             self._decorations.remove(decoration)
-            if update:
-                self.update()
+            self.update()
             return True
         except ValueError:
             return False
@@ -89,6 +99,16 @@ class TextDecorationsManager(Manager):
             pass
 
     def update(self):
+        """
+        Update decorations.
+
+        This starts a timer to update decorations only after
+        UPDATE_TIMEOUT has passed. That avoids multiple calls to
+        _update in a very short amount of time.
+        """
+        self.update_timer.start()
+
+    def _update(self):
         """Update editor extra selections with added decorations.
 
         NOTE: Update TextDecorations to use editor font, using a different
