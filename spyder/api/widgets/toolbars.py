@@ -53,6 +53,8 @@ class SpyderToolBar(QToolBar):
         self._section_items = OrderedDict()
         self._title = title
 
+        self.setWindowTitle(title)
+
     def add_item(self, action_or_widget, section=None, before=None):
         """
         Add action or widget item to given toolbar `section`. 
