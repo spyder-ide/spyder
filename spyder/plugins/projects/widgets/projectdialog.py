@@ -29,7 +29,6 @@ from qtpy.QtWidgets import (QVBoxLayout, QLabel, QLineEdit, QPushButton,
 from spyder.config.base import _, get_home_dir
 from spyder.utils.qthelpers import get_std_icon
 from spyder.py3compat import to_text_string
-from spyder.plugins.projects.widgets import get_available_project_types
 
 
 def is_writable(path):
@@ -46,12 +45,26 @@ def is_writable(path):
 class ProjectDialog(QDialog):
     """Project creation dialog."""
 
-    # path, type, packages
-    sig_project_creation_requested = Signal(object, object, object)
+    sig_project_creation_requested = Signal(str, str, object)
+    """
+    This signal is emitted to request the Projects plugin the creation of a
+    project.
 
-    def __init__(self, parent):
+    Parameters
+    ----------
+    project_path: str
+        Location of project.
+    project_type: str
+        Type of project as defined by project types.
+    project_packages: object
+        Package to install. Currently not in use.
+    """
+
+    def __init__(self, parent, project_types):
         """Project creation dialog."""
         super(ProjectDialog, self).__init__(parent=parent)
+        self.plugin = parent
+        self._project_types = project_types
 
         # Variables
         current_python_version = '.'.join([to_text_string(sys.version_info[0]),
@@ -96,7 +109,9 @@ class ProjectDialog(QDialog):
         self.button_cancel.setDefault(True)
         self.button_cancel.setAutoDefault(True)
         self.button_create.setEnabled(False)
-        self.combo_project_type.addItems(self._get_project_types())
+        for (id_, name) in project_types:
+            self.combo_project_type.addItem(name, id_)
+
         self.combo_python_version.setCurrentIndex(
             python_versions.index(current_python_version))
         self.setWindowTitle(_('Create new project'))
@@ -140,16 +155,6 @@ class ProjectDialog(QDialog):
         self.radio_new_dir.clicked.connect(self.update_location)
         self.text_project_name.textChanged.connect(self.update_location)
 
-    def _get_project_types(self):
-        """Get all available project types."""
-        project_types = get_available_project_types()
-        projects = []
-
-        for project in project_types:
-            projects.append(project.PROJECT_TYPE_NAME)
-
-        return projects
-
     def select_location(self):
         """Select directory."""
         location = osp.normpath(getexistingdirectory(self,
@@ -183,8 +188,9 @@ class ProjectDialog(QDialog):
         packages = ['python={0}'.format(self.combo_python_version.currentText())]
         self.sig_project_creation_requested.emit(
             self.text_location.text(),
-            self.combo_project_type.currentText(),
+            self.combo_project_type.currentData(),
             packages)
+
         self.accept()
 
 
@@ -192,7 +198,7 @@ def test():
     """Local test."""
     from spyder.utils.qthelpers import qapplication
     app = qapplication()
-    dlg = ProjectDialog(None)
+    dlg = ProjectDialog(None, [("Empty", "empty")])
     dlg.show()
     sys.exit(app.exec_())
 
