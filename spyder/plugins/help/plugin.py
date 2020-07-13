@@ -225,7 +225,7 @@ class Help(SpyderDockablePlugin):
 
         See Also
         --------
-        :py:meth:spyder.widgets.mixins.GetHelpMixin.show_object_info
+        :py:meth:`spyder.widgets.mixins.GetHelpMixin.show_object_info`
         """
         self.switch_to_plugin()
         self.get_widget().set_object_text(
@@ -256,7 +256,7 @@ class Help(SpyderDockablePlugin):
 
         See Also
         --------
-        :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+        :py:meth:`spyder.plugins.editor.widgets.editor.EditorStack.send_to_help`
         """
         force_refresh = help_data.pop('force_refresh', False)
         self.switch_to_plugin()

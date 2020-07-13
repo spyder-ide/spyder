@@ -810,7 +810,7 @@ class HelpWidget(PluginMainWidget):
 
         See Also
         --------
-        :py:meth:spyder.widgets.mixins.GetHelpMixin.show_object_info
+        :py:meth:`spyder.widgets.mixins.GetHelpMixin.show_object_info`
         """
         if self.get_option('locked') and not force_refresh:
             return

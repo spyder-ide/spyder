@@ -55,7 +55,7 @@ class SpyderToolBar(QToolBar):
 
     def add_item(self, action_or_widget, section=None, before=None):
         """
-        Add action or widget item to given toolbar `section`. 
+        Add action or widget item to given toolbar `section`.
         """
         if section is not None:
             action_or_widget._section = section

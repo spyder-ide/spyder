@@ -358,7 +358,6 @@ class SpyderMenuMixin:
             Unique str identifier.
         text: str
             Localized text string.
-
         Return: QMenu
             Return the created menu.
         """

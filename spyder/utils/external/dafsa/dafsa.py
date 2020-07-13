@@ -221,7 +221,7 @@ class DAFSANode:
         Please note that this method checks for *equivalence* (in particular,
         disregarding edge weight), and not for *equality*.
 
-        Paremeters
+        Parameters
         ----------
         other : DAFSANode
             The DAFSANode to be compared with the current one.
@@ -268,7 +268,7 @@ class DAFSANode:
         "information amount", only providing a convenient complementary
         method to ``.__eq__()``.
 
-        Paremeters
+        Parameters
         ----------
         other : DAFSANode
             The DAFSANode to be compared with the current one.
