@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-14 01:00\n"
+"PO-Revision-Date: 2020-07-14 16:57\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1003,7 +1003,7 @@ msgstr "Не показывать снова."
 
 #: spyder/plugins/completion/kite/plugin.py:160
 msgid "It seems that your Kite installation is faulty. If you want to use Kite, please remove the directory that appears bellow, and try a reinstallation:<br><br><code>{kite_dir}</code>"
-msgstr ""
+msgstr "Похоже, что ваша установка Kite неисправна. Если вы хотите использовать Kite, пожалуйста, удалите каталог, который отображается ниже и попробуйте переустановить:<br><br><code>{kite_dir}</code>"
 
 #: spyder/plugins/completion/kite/utils/install.py:34
 msgid "No status"
@@ -1011,7 +1011,7 @@ msgstr "Нет статуса"
 
 #: spyder/plugins/completion/kite/utils/install.py:35
 msgid "Downloading script installer"
-msgstr ""
+msgstr "Загрузка инсталлятора скриптов"
 
 #: spyder/plugins/completion/kite/utils/install.py:36
 msgid "Downloading installer"
@@ -1101,7 +1101,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:111
 msgid "Valid JSON"
-msgstr ""
+msgstr "Корректный JSON"
 
 #: spyder/plugins/completion/languageserver/confpage.py:112
 msgid "Invalid JSON"
@@ -1149,7 +1149,7 @@ msgstr "Выберите язык"
 
 #: spyder/plugins/completion/languageserver/confpage.py:179
 msgid "TCP port number of the server"
-msgstr ""
+msgstr "Номер порта TCP сервера"
 
 #: spyder/plugins/completion/languageserver/confpage.py:189
 msgid "Additional arguments required to start the server"
@@ -1213,7 +1213,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:551
 msgid "Address"
-msgstr ""
+msgstr "Адрес"
 
 #: spyder/plugins/completion/languageserver/confpage.py:553
 msgid "Command to execute"
@@ -1237,7 +1237,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:717
 msgid "Default is 500"
-msgstr ""
+msgstr "500 по-умолчанию"
 
 #: spyder/plugins/completion/languageserver/confpage.py:719
 msgid "Show completions on the fly"
@@ -1257,11 +1257,11 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:729
 msgid "Default is 300"
-msgstr ""
+msgstr "300 по-умолчанию"
 
 #: spyder/plugins/completion/languageserver/confpage.py:730
 msgid "Enable code snippets"
-msgstr ""
+msgstr "Включить фрагмент кода"
 
 #: spyder/plugins/completion/languageserver/confpage.py:757
 msgid "Basic features"
@@ -1325,7 +1325,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:845
 msgid "Enable code style linting"
-msgstr ""
+msgstr "Включить проверку стиля кода"
 
 #: spyder/plugins/completion/languageserver/confpage.py:850 spyder/plugins/completion/languageserver/confpage.py:942
 msgid "Only check filenames matching these patterns:"
@@ -1365,11 +1365,11 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:869
 msgid "Default is 79"
-msgstr ""
+msgstr "79 по-умолчанию"
 
 #: spyder/plugins/completion/languageserver/confpage.py:909
 msgid "<a href='http://www.pydocstyle.org/en/stable/error_codes.html'>page</a>"
-msgstr ""
+msgstr "<a href='http://www.pydocstyle.org/en/stable/error_codes.html'>страница</a>"
 
 #: spyder/plugins/completion/languageserver/confpage.py:913
 msgid "Here you can decide if you want to perform style analysis on your docstrings according to the {} or {} conventions. You can also decide if you want to show or ignore specific errors, according to the codes found on this {}."
@@ -6080,7 +6080,7 @@ msgstr "Модуль"
 
 #: spyder/widgets/dependencies.py:30
 msgid "Package name"
-msgstr ""
+msgstr "Имя пакета"
 
 #: spyder/widgets/dependencies.py:31
 msgid " Installed "
@@ -6092,7 +6092,7 @@ msgstr "Предоставляемые возможности"
 
 #: spyder/widgets/dependencies.py:35
 msgid "Mandatory"
-msgstr ""
+msgstr "Обязательно"
 
 #: spyder/widgets/dependencies.py:45
 msgid "Spyder plugins"
@@ -6124,11 +6124,11 @@ msgstr "Найти строку"
 
 #: spyder/widgets/findreplace.py:95
 msgid "Find previous"
-msgstr ""
+msgstr "Найти предыдущее"
 
 #: spyder/widgets/findreplace.py:99
 msgid "Find next"
-msgstr ""
+msgstr "Найти далее"
 
 #: spyder/widgets/findreplace.py:117
 msgid "Whole words"
@@ -6152,7 +6152,7 @@ msgstr "Заменить/найти далее"
 
 #: spyder/widgets/findreplace.py:148
 msgid "Replace in selection"
-msgstr ""
+msgstr "Заменить в выделении"
 
 #: spyder/widgets/findreplace.py:156
 msgid "Replace all"
@@ -6380,19 +6380,19 @@ msgstr "Комбинации клавиш Spyder"
 
 #: spyder/widgets/status.py:188
 msgid "Memory usage"
-msgstr ""
+msgstr "Использование памяти"
 
 #: spyder/widgets/status.py:214
 msgid "CPU usage"
-msgstr ""
+msgstr "Использование ЦП"
 
 #: spyder/widgets/status.py:305
 msgid "Clock"
-msgstr ""
+msgstr "Часы"
 
 #: spyder/widgets/switcher.py:927
 msgid "change view"
-msgstr ""
+msgstr "изменить вид"
 
 #: spyder/widgets/switcher.py:928
 msgid "Indent Using Spaces"
