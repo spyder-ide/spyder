@@ -363,7 +363,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.show_all_files = state
         if self.current_editor is not None:
             editor_id = self.editor_ids[self.current_editor]
-            item = self.editor_items[editor_id]
+            item = self.editor_items[editor_id].node
             self.__hide_or_show_root_items(item)
             self.__sort_toplevel_items()
             if self.show_all_files is False:

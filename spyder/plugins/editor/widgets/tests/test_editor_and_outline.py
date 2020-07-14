@@ -222,7 +222,7 @@ def test_toggle_off_show_all_files(editorstack, outlineexplorer, test_files):
     # Untoggle show all files option.
     treewidget.toggle_show_all_files(False)
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo1.py', 'foo']
+    assert results == ['foo1.py']
 
 
 @pytest.mark.skipif(sys.platform.startswith('linux'), reason="Fails on Linux")
@@ -258,7 +258,7 @@ def test_toggle_on_show_all_files(editorstack, outlineexplorer, test_files):
     editorstack.tabs.tabBar().moveTab(0, 1)
     treewidget.toggle_show_all_files(True)
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['text1.txt', 'foo1.py', 'foo', 'foo2.py']
+    assert results == ['text1.txt', 'foo1.py', 'foo2.py']
 
 
 @pytest.mark.slow
