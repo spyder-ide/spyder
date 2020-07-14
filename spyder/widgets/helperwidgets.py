@@ -375,6 +375,60 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
             return True
 
 
+class MultipleSortFilterProxy(QSortFilterProxyModel):
+    """Custom proxy for supporting filter in multiple columns."""
+
+    def __init__(self, parent=None):
+        """Initialize the multiple sort filter proxy."""
+        super().__init__(parent)
+        self._parent = parent
+        self.pattern = re.compile(r'')
+        self.filters = {}
+
+    def setFilterByColumn(self, column):
+        """Set regular expression in the column given."""
+        self.filters[column] = self.pattern
+        self.invalidateFilter()
+
+    def set_filter(self, text):
+        """Set regular expression for filter."""
+        for key, __ in self.filters.items():
+            self.pattern = get_search_regex(text)
+            if self.pattern and text:
+                self._parent.setSortingEnabled(False)
+            else:
+                self._parent.setSortingEnabled(True)
+            self.filters[key] = self.pattern
+            self.invalidateFilter()
+
+    def clearFilter(self, column):
+        """Clear the filter of given column."""
+        self.filters.pop(column)
+        self.invalidateFilter()
+
+    def clearFilters(self):
+        """Clear all the filters."""
+        self.filters = {}
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, row_num, parent):
+        """Qt override.
+
+        Reimplemented from base class to allow the use of multiple filtering.
+        """
+        results = []
+        for key, regex in self.filters.items():
+            model = self.sourceModel()
+            idx = model.index(row_num, key, parent)
+            if idx.isValid():
+                name = model.row(row_num).name
+                r = re.search(regex, name)
+                if r is None:
+                    r = ''
+            results.append(r)
+        return any(results)
+
+
 def test_msgcheckbox():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()

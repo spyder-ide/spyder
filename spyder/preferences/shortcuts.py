@@ -27,7 +27,7 @@ from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import get_std_icon, create_toolbutton
 from spyder.utils.stringmatching import get_search_scores
-from spyder.widgets.helperwidgets import (CustomSortFilterProxy,
+from spyder.widgets.helperwidgets import (MultipleSortFilterProxy,
                                           FinderLineEdit, HelperToolButton,
                                           HTMLDelegate, VALID_FINDER_CHARS)
 
@@ -494,6 +494,7 @@ class ShortcutsModel(QAbstractTableModel):
         self.scores = []
         self.rich_text = []
         self.normal_text = []
+        self.cntxt_rich_text = []
         self.letters = ''
         self.label = QLabel()
         self.widths = []
@@ -538,16 +539,21 @@ class ShortcutsModel(QAbstractTableModel):
         key = shortcut.key
         column = index.column()
 
+        color = self.text_color
+        if self._parent == QApplication.focusWidget():
+            if self.current_index().row() == row:
+                color = self.text_color_highlight
+            else:
+                color = self.text_color
         if role == Qt.DisplayRole:
             if column == CONTEXT:
-                return to_qvariant(shortcut.context)
+                if len(self.cntxt_rich_text) > 0:
+                    text = self.cntxt_rich_text[row]
+                    text = '<p style="color:{0}">{1}</p>'.format(color, text)
+                    return to_qvariant(text)
+                else:
+                    return to_qvariant(shortcut.context)
             elif column == NAME:
-                color = self.text_color
-                if self._parent == QApplication.focusWidget():
-                    if self.current_index().row() == row:
-                        color = self.text_color_highlight
-                    else:
-                        color = self.text_color
                 text = self.rich_text[row]
                 text = '<p style="color:{0}">{1}</p>'.format(color, text)
                 return to_qvariant(text)
@@ -606,9 +612,14 @@ class ShortcutsModel(QAbstractTableModel):
     def update_search_letters(self, text):
         """Update search letters with text input in search box."""
         self.letters = text
+        contexts = [shortcut.context for shortcut in self.shortcuts]
         names = [shortcut.name for shortcut in self.shortcuts]
+        context_res = get_search_scores(text, contexts, template='<b>{0}</b>')
         results = get_search_scores(text, names, template='<b>{0}</b>')
+        __, self.cntxt_rich_text, cntxt_scores = (
+            zip(*context_res))
         self.normal_text, self.rich_text, self.scores = zip(*results)
+        self.scores = [x + y for x, y in zip(self.scores, cntxt_scores)]
         self.reset()
 
     def update_active_row(self):
@@ -636,17 +647,20 @@ class ShortcutsTable(QTableView):
                                     self,
                                     text_color=text_color,
                                     text_color_highlight=text_color_highlight)
-        self.proxy_model = CustomSortFilterProxy(self)
+        # self.proxy_model = CustomSortFilterProxy(self)
+        self.proxy_model = MultipleSortFilterProxy(self)
         self.last_regex = ''
 
         self.proxy_model.setSourceModel(self.source_model)
         self.proxy_model.setDynamicSortFilter(True)
-        self.proxy_model.setFilterKeyColumn(NAME)
+        self.proxy_model.setFilterByColumn(CONTEXT)
+        self.proxy_model.setFilterByColumn(NAME)
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setModel(self.proxy_model)
 
         self.hideColumn(SEARCH_SCORE)
         self.setItemDelegateForColumn(NAME, HTMLDelegate(self, margin=9))
+        self.setItemDelegateForColumn(CONTEXT, HTMLDelegate(self, margin=9))
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setSortingEnabled(True)
