@@ -56,9 +56,15 @@ def findinfiles(qtbot, request):
         param = None
 
     if param:
-        widget = FindInFilesWidget(None, **param)
+        options = FindInFilesWidget.DEFAULT_OPTIONS.copy()
+        options.update(param)
+        widget = FindInFilesWidget('find_in_files', options=options)
+        widget._setup(options=options)
+        widget.setup(options=options)
     else:
-        widget = FindInFilesWidget(None)
+        widget = FindInFilesWidget('find_in_files')
+        widget._setup()
+        widget.setup()
 
     widget.resize(640, 480)
     qtbot.addWidget(widget)
@@ -118,7 +124,7 @@ def test_find_in_files_search(findinfiles, qtbot):
     values.
     """
     findinfiles.set_search_text("spam")
-    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
     blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
@@ -131,7 +137,7 @@ def test_find_in_files_search(findinfiles, qtbot):
                          indirect=True)
 def test_exclude_extension_regex(findinfiles, qtbot):
     findinfiles.set_search_text("spam")
-    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
     blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
@@ -150,7 +156,7 @@ def test_exclude_extension_regex(findinfiles, qtbot):
                          indirect=True)
 def test_exclude_extension_string(findinfiles, qtbot):
     findinfiles.set_search_text("spam")
-    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
     blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
@@ -169,7 +175,7 @@ def test_exclude_extension_string(findinfiles, qtbot):
                          indirect=True)
 def test_exclude_extension_empty_regex(findinfiles, qtbot):
     findinfiles.set_search_text("spam")
-    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
     blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
@@ -182,7 +188,7 @@ def test_exclude_extension_empty_regex(findinfiles, qtbot):
                          indirect=True)
 def test_exclude_extension_string_no_regexp(findinfiles, qtbot):
     findinfiles.set_search_text("spam")
-    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
     blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
@@ -195,7 +201,7 @@ def test_exclude_extension_string_no_regexp(findinfiles, qtbot):
                          indirect=True)
 def test_exclude_extension_multiple_string(findinfiles, qtbot):
     findinfiles.set_search_text("spam")
-    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
     blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
@@ -239,7 +245,7 @@ def test_truncate_result_with_different_input(findinfiles, qtbot, line_input):
                          indirect=True)
 def test_case_unsensitive_search(findinfiles, qtbot):
     findinfiles.set_search_text('ham')
-    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
     blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
@@ -253,7 +259,7 @@ def test_case_unsensitive_search(findinfiles, qtbot):
                          indirect=True)
 def test_case_sensitive_search(findinfiles, qtbot):
     findinfiles.set_search_text('HaM')
-    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
     blocker = qtbot.waitSignal(findinfiles.sig_finished)
     blocker.wait()
@@ -267,10 +273,10 @@ def test_case_sensitive_search(findinfiles, qtbot):
                          indirect=True)
 def test_search_regexp_error(findinfiles, qtbot):
     findinfiles.set_search_text("\\")
-    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
-    tooltip = findinfiles.find_options.search_text.toolTip()
-    assert findinfiles.find_options.REGEX_ERROR in tooltip
+    tooltip = findinfiles.search_text_edit.toolTip()
+    assert findinfiles.REGEX_ERROR in tooltip
 
 
 @pytest.mark.parametrize('findinfiles',
@@ -278,10 +284,10 @@ def test_search_regexp_error(findinfiles, qtbot):
                          indirect=True)
 def test_exclude_regexp_error(findinfiles, qtbot):
     findinfiles.set_search_text("foo")
-    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.set_directory(osp.join(LOCATION, "data"))
     findinfiles.find()
-    tooltip = findinfiles.find_options.exclude_pattern.toolTip()
-    assert findinfiles.find_options.REGEX_ERROR in tooltip
+    tooltip = findinfiles.exclude_pattern_edit.toolTip()
+    assert findinfiles.REGEX_ERROR in tooltip
 
 
 # ---- Tests for SearchInComboBox
@@ -453,33 +459,32 @@ def test_set_project_path(findinfiles, qtbot):
     Test setting the project path of the SearchInComboBox from the
     FindInFilesWidget.
     """
-    find_options = findinfiles.find_options
-    path_selection_combo = find_options.path_selection_combo
+    path_selection_combo = findinfiles.path_selection_combo
     findinfiles.show()
 
     assert path_selection_combo.model().item(PROJECT, 0).isEnabled() is False
-    assert find_options.project_path is None
+    assert findinfiles.project_path is None
     assert path_selection_combo.project_path is None
 
     # Set the project path to an existing directory. For the purpose of this
     # test, it doesn't need to be a valid Spyder project path.
     project_path = NONASCII_DIR
-    find_options.set_project_path(project_path)
+    findinfiles.set_project_path(project_path)
     assert path_selection_combo.model().item(PROJECT, 0).isEnabled() is True
-    assert find_options.project_path == project_path
+    assert findinfiles.project_path == project_path
     assert path_selection_combo.project_path == project_path
 
     # Disable the project path search in the widget.
     path_selection_combo.setCurrentIndex(PROJECT)
-    find_options.disable_project_search()
+    findinfiles.disable_project_search()
     assert path_selection_combo.model().item(PROJECT, 0).isEnabled() is False
-    assert find_options.project_path is None
+    assert findinfiles.project_path is None
     assert path_selection_combo.project_path is None
     assert path_selection_combo.currentIndex() == CWD
 
 
 @pytest.mark.parametrize('findinfiles',
-                         [{'external_path_history': [
+                         [{'path_history': [
                              LOCATION,
                              osp.dirname(LOCATION),
                              osp.dirname(osp.dirname(LOCATION)),
@@ -498,8 +503,7 @@ def test_current_search_path(findinfiles, qtbot):
         NONASCII_DIR
     ]
 
-    find_options = findinfiles.find_options
-    path_selection_combo = find_options.path_selection_combo
+    path_selection_combo = findinfiles.path_selection_combo
     findinfiles.show()
 
     # Set the project, file, and spyder path of the SearchInComboBox.
@@ -510,16 +514,16 @@ def test_current_search_path(findinfiles, qtbot):
     project_path = NONASCII_DIR
     file_path = osp.join(directory, "spam.py")
 
-    find_options.set_directory(directory)
-    assert find_options.path == directory
+    findinfiles.set_directory(directory)
+    assert findinfiles.path == directory
     assert path_selection_combo.path == directory
 
-    find_options.set_project_path(project_path)
-    assert find_options.project_path == project_path
+    findinfiles.set_project_path(project_path)
+    assert findinfiles.project_path == project_path
     assert path_selection_combo.project_path == project_path
 
-    find_options.set_file_path(file_path)
-    assert find_options.file_path == file_path
+    findinfiles.set_file_path(file_path)
+    assert findinfiles.file_path == file_path
     assert path_selection_combo.file_path == file_path
 
     # Assert that the good path is returned for each option selected.
@@ -568,7 +572,7 @@ def test_max_results(findinfiles, qtbot):
     value = 2
     findinfiles.set_max_results(value)
     findinfiles.set_search_text("spam")
-    findinfiles.find_options.set_directory(osp.join(LOCATION, "data"))
+    findinfiles.set_directory(osp.join(LOCATION, "data"))
 
     findinfiles.find()
     blocker = qtbot.waitSignal(findinfiles.sig_max_results_reached)
