@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-14 16:57\n"
+"PO-Revision-Date: 2020-07-14 17:06\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1083,7 +1083,7 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/status.py:26
 msgid "Kite completions status"
-msgstr ""
+msgstr "Статус дополнений Kite"
 
 #: spyder/plugins/completion/kite/widgets/status.py:27
 msgid "not reachable"
