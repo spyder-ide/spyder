@@ -15,7 +15,7 @@ import os.path as osp
 import pytest
 
 # Local imports
-from spyder.plugins.projects.projecttypes import EmptyProject
+from spyder.plugins.projects.api import EmptyProject
 from spyder.plugins.projects.utils.config import (CODESTYLE, ENCODING,
                                                   VCS, WORKSPACE)
 
@@ -30,7 +30,7 @@ def project_test(tmpdir_factory):
         project: EmptyProject object.
     """
     project_dir = tmpdir_factory.mktemp("test_project")
-    project = EmptyProject(str(project_dir))
+    project = EmptyProject(str(project_dir), None)
     return project_dir, project
 
 
