@@ -422,10 +422,15 @@ class MultipleSortFilterProxy(QSortFilterProxyModel):
             idx = model.index(row_num, key, parent)
             if idx.isValid():
                 name = model.row(row_num).name
-                r = re.search(regex, name)
-                if r is None:
-                    r = ''
-            results.append(r)
+                r_name = re.search(regex, name)
+                if r_name is None:
+                    r_name = ''
+                context = model.row(row_num).context
+                r_context = re.search(regex, context)
+                if r_context is None:
+                    r_context = ''
+                results.append(r_name)
+                results.append(r_context)
         return any(results)
 
 

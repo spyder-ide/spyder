@@ -539,20 +539,20 @@ class ShortcutsModel(QAbstractTableModel):
         key = shortcut.key
         column = index.column()
 
-        color = self.text_color
-        if self._parent == QApplication.focusWidget():
-            if self.current_index().row() == row:
-                color = self.text_color_highlight
-            else:
-                color = self.text_color
         if role == Qt.DisplayRole:
+            color = self.text_color
+            if self._parent == QApplication.focusWidget():
+                if self.current_index().row() == row:
+                    color = self.text_color_highlight
+                else:
+                    color = self.text_color
             if column == CONTEXT:
                 if len(self.cntxt_rich_text) > 0:
                     text = self.cntxt_rich_text[row]
-                    text = '<p style="color:{0}">{1}</p>'.format(color, text)
-                    return to_qvariant(text)
                 else:
-                    return to_qvariant(shortcut.context)
+                    text = shortcut.context
+                text = '<p style="color:{0}">{1}</p>'.format(color, text)
+                return to_qvariant(text)
             elif column == NAME:
                 text = self.rich_text[row]
                 text = '<p style="color:{0}">{1}</p>'.format(color, text)
@@ -647,7 +647,6 @@ class ShortcutsTable(QTableView):
                                     self,
                                     text_color=text_color,
                                     text_color_highlight=text_color_highlight)
-        # self.proxy_model = CustomSortFilterProxy(self)
         self.proxy_model = MultipleSortFilterProxy(self)
         self.last_regex = ''
 
