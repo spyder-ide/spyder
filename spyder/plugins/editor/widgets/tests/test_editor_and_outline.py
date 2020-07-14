@@ -240,7 +240,7 @@ def test_single_file_sync(editorstack, outlineexplorer, test_files, qtbot):
     with qtbot.waitSignal(editorstack.editor_focus_changed):
         editorstack.tabs.setCurrentIndex(2)
     results = [item.text(0) for item in treewidget.get_visible_items()]
-    assert results == ['foo2.py', '---- a comment']
+    assert results == ['foo2.py']
 
 
 def test_toggle_on_show_all_files(editorstack, outlineexplorer, test_files):
