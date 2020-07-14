@@ -1338,6 +1338,14 @@ class MainWindow(QMainWindow):
                         configuration=CONF,
                     )
                     self.register_plugin(plugin_instance, external=True)
+
+                    # These attributes come from spyder.app.solver
+                    module = plugin_class._spyder_module_name
+                    package_name = plugin_class._spyder_package_name
+                    version = plugin_class._spyder_version
+                    description = plugin_instance.get_description()
+                    dependencies.add(module, package_name, description,
+                                     version, None, kind=dependencies.PLUGIN)
                 except Exception as error:
                     print("%s: %s" % (plugin_class, str(error)), file=STDERR)
                     traceback.print_exc(file=STDERR)

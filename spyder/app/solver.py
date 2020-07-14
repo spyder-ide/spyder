@@ -108,6 +108,13 @@ def find_external_plugins():
                 class_name = entry_point.attrs[0]
                 mod = importlib.import_module(entry_point.module_name)
                 plugin_class = getattr(mod, class_name, None)
+
+                # To display in dependencies dialog
+                plugin_class._spyder_module_name = entry_point.module_name
+                plugin_class._spyder_package_name = (
+                    entry_point.dist.project_name)
+                plugin_class._spyder_version = entry_point.dist.version
+
                 external_plugins[name] = plugin_class
                 if name != plugin_class.NAME:
                     raise SpyderAPIError(
