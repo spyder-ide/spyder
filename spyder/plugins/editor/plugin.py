@@ -325,7 +325,8 @@ class Editor(SpyderPluginWidget):
             editorstack.completion_server_ready(language)
 
     def send_completion_request(self, language, request, params):
-        logger.debug("%s completion server request: %r" % (language, request))
+        logger.debug("Perform request {0} for: {1}".format(
+            request, params['file']))
         self.main.completions.send_request(language, request, params)
 
     def kite_completions_file_status(self):

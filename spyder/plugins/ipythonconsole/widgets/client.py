@@ -265,6 +265,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is connected."""
+        # Make sure the kernel sends the comm config over
+        self.shellwidget.call_kernel()._send_comm_config()
+
         if give_focus:
             self.get_control().setFocus()
 
@@ -837,8 +840,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 "<tt>{missing_dependency}</tt> module installed or it "
                 "occurred a problem importing it. Due to that, it is not "
                 "possible for Spyder to create this special console for "
-                "you.".format(missing_dependency=missing_dependency)
-            )
+                "you."
+            ).format(missing_dependency=missing_dependency)
 
             self.show_kernel_error(error_message)
 

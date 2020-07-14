@@ -456,6 +456,7 @@ class TextHelper(object):
 
         text_cursor.endEditBlock()
         editor._cleaning = False
+        editor.document_did_change()
 
     def select_whole_line(self, line=None, apply_selection=True):
         """
@@ -645,6 +646,7 @@ class TextHelper(object):
             text_cursor.setPosition(s)
             text_cursor.setPosition(e, text_cursor.KeepAnchor)
         self._editor.setTextCursor(text_cursor)
+        self._editor.document_did_change()
 
     def clear_selection(self):
         """Clears text cursor selection."""

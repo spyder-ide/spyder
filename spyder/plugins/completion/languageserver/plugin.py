@@ -18,7 +18,7 @@ import sys
 
 # Third-party imports
 from qtpy.QtCore import Slot, QTimer
-from qtpy.QtWidgets import QMessageBox, QCheckBox
+from qtpy.QtWidgets import QMessageBox
 
 # Local imports
 from spyder.config.base import _, get_conf_path, running_under_pytest
@@ -66,6 +66,11 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         self.update_configuration()
 
         self.show_no_external_server_warning = True
+        self._mainwindow_setup_finished = False
+
+        # Signals
+        self.main.sig_setup_finished.connect(
+            self.on_mainwindow_setup_finished)
 
         # Status bar widget
         if parent is not None:
@@ -236,9 +241,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             # and blocks the LSP server.
             # Instead we use an empty directory inside our config one,
             # just like we did for Rope in Spyder 3.
-            path = get_conf_path('lsp_root_path')
+            path = osp.join(get_conf_path(), 'lsp_paths', 'root_path')
             if not osp.exists(path):
-                os.mkdir(path)
+                os.makedirs(path)
 
         return path
 
@@ -435,8 +440,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     def register_client_instance(self, instance):
         """Register signals emmited by a client instance."""
         if self.main:
-            self.main.sig_pythonpath_changed.connect(
-                functools.partial(self.update_configuration, python_only=True))
+            self.main.sig_pythonpath_changed.connect(self.update_python_path)
             self.main.sig_main_interpreter_changed.connect(
                 functools.partial(self.update_configuration, python_only=True))
             instance.sig_went_down.connect(self.handle_lsp_down)
@@ -457,6 +461,19 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         logger.info("Shutting down LSP manager...")
         for language in self.clients:
             self.close_client(language)
+
+    @Slot()
+    def on_mainwindow_setup_finished(self):
+        """Some adjustments after the main window setup finishes."""
+        self._mainwindow_setup_finished = True
+
+    def update_python_path(self):
+        """Update configuration after a change in Spyder's Python path."""
+        # Call update_configuration only after the main window has
+        # finished to be setup. That avoids calling that method twice
+        # when a project is loaded at startup.
+        if self._mainwindow_setup_finished:
+            self.update_configuration(python_only=True)
 
     def update_configuration(self, python_only=False):
         """

@@ -2,7 +2,6 @@
 import os
 import sys
 
-from test.test_utils import MockWorkspace
 import pytest
 
 from pyls import uris, lsp
@@ -278,7 +277,7 @@ def test_multistatement_snippet(config, workspace):
     assert completions[0]['insertText'] == 'date(${1:year}, ${2:month}, ${3:day})$0'
 
 
-def test_jedi_completion_extra_paths(config, tmpdir, workspace):
+def test_jedi_completion_extra_paths(tmpdir, workspace):
     # Create a tempfile with some content and pass to extra_paths
     temp_doc_content = '''
 def spam():
@@ -296,42 +295,42 @@ foo.s"""
 
     # After 'foo.s' without extra paths
     com_position = {'line': 1, 'character': 5}
-    completions = pyls_jedi_completions(config, doc, com_position)
+    completions = pyls_jedi_completions(doc._config, doc, com_position)
     assert completions is None
 
     # Update config extra paths
-    config.update({'plugins': {'jedi': {'extra_paths': extra_paths}}})
-    doc.update_config(config)
+    settings = {'pyls': {'plugins': {'jedi': {'extra_paths': extra_paths}}}}
+    doc.update_config(settings)
 
     # After 'foo.s' with extra paths
     com_position = {'line': 1, 'character': 5}
-    completions = pyls_jedi_completions(config, doc, com_position)
+    completions = pyls_jedi_completions(doc._config, doc, com_position)
     assert completions[0]['label'] == 'spam()'
 
 
 @pytest.mark.skipif(PY2 or not LINUX or not CI, reason="tested on linux and python 3 only")
-def test_jedi_completion_environment(config):
+def test_jedi_completion_environment(workspace):
     # Content of doc to test completion
     doc_content = '''import logh
 '''
-    doc = Document(DOC_URI, MockWorkspace(), doc_content)
+    doc = Document(DOC_URI, workspace, doc_content)
 
     # After 'import logh' with default environment
     com_position = {'line': 0, 'character': 11}
 
     assert os.path.isdir('/tmp/pyenv/')
 
-    config.update({'plugins': {'jedi': {'environment': None}}})
-    doc.update_config(config)
-    completions = pyls_jedi_completions(config, doc, com_position)
+    settings = {'pyls': {'plugins': {'jedi': {'environment': None}}}}
+    doc.update_config(settings)
+    completions = pyls_jedi_completions(doc._config, doc, com_position)
     assert completions is None
 
     # Update config extra environment
     env_path = '/tmp/pyenv/bin/python'
-    config.update({'plugins': {'jedi': {'environment': env_path}}})
-    doc.update_config(config)
+    settings = {'pyls': {'plugins': {'jedi': {'environment': env_path}}}}
+    doc.update_config(settings)
 
     # After 'import logh' with new environment
-    completions = pyls_jedi_completions(config, doc, com_position)
+    completions = pyls_jedi_completions(doc._config, doc, com_position)
     assert completions[0]['label'] == 'loghub'
     assert 'changelog generator' in completions[0]['documentation'].lower()
