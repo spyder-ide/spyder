@@ -747,7 +747,7 @@ class Projects(SpyderPluginWidget):
         if osp.isfile(fpath):
             config = configparser.ConfigParser()
             config.read(fpath)
-            project_type = config[WORKSPACE]["project_type"]
+            project_type = config[WORKSPACE].get("project_type", EmptyProject.ID)
 
         return project_type
 
