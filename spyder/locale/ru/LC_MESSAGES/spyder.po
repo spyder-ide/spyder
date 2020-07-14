@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-14 00:22\n"
+"PO-Revision-Date: 2020-07-14 00:35\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -443,7 +443,7 @@ msgstr "Перезапустить сейчас"
 
 #: spyder/app/mainwindow.py:1454 spyder/plugins/completion/kite/widgets/install.py:84 spyder/plugins/completion/kite/widgets/install.py:149
 msgid "Dismiss"
-msgstr ""
+msgstr "Скрыть"
 
 #: spyder/app/mainwindow.py:1514 spyder/app/mainwindow.py:2234 spyder/app/mainwindow.py:2976 spyder/plugins/completion/languageserver/confpage.py:1277 spyder/plugins/completion/languageserver/confpage.py:1295 spyder/plugins/explorer/widgets/explorer.py:974 spyder/plugins/explorer/widgets/explorer.py:1273 spyder/plugins/profiler/widgets/profilergui.py:309 spyder/plugins/profiler/widgets/profilergui.py:504 spyder/plugins/projects/plugin.py:298 spyder/plugins/pylint/widgets/pylintgui.py:92 spyder/plugins/pylint/widgets/pylintgui.py:441 spyder/plugins/pylint/widgets/pylintgui.py:469 spyder/plugins/variableexplorer/widgets/arrayeditor.py:642 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:125 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:134 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:144 spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:464 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1453 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:646 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1301 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:1305 spyder/preferences/general.py:322 spyder/preferences/general.py:347 spyder/widgets/reporterror.py:302
 msgid "Error"
@@ -787,7 +787,7 @@ msgstr "Поддерживаемые текстовые файлы"
 
 #: spyder/dependencies.py:82
 msgid "Notify macOS that Spyder can open Python files"
-msgstr ""
+msgstr "Сообщить macOS, что Spyder может открывать файлы Python"
 
 #: spyder/dependencies.py:87
 msgid "Atomic file writes in the Editor"
@@ -795,7 +795,7 @@ msgstr ""
 
 #: spyder/dependencies.py:91
 msgid "Character encoding auto-detection for the Editor"
-msgstr ""
+msgstr "Автоопределение кодировки для редактора"
 
 #: spyder/dependencies.py:95
 msgid "Handle communications between kernel and frontend"
@@ -819,19 +819,19 @@ msgstr ""
 
 #: spyder/dependencies.py:115
 msgid "Save Github credentials to report internal errors securely"
-msgstr ""
+msgstr "Сохраните учетные данные Github, чтобы безопасно сообщать об ошибках"
 
 #: spyder/dependencies.py:121
 msgid "Manipulate Jupyter notebooks in the Editor"
-msgstr ""
+msgstr "Манипулировать ноутбуками Jupyter в редакторе"
 
 #: spyder/dependencies.py:125
 msgid "Improve code completion for objects that use Numpy docstrings"
-msgstr ""
+msgstr "Улучшить дополнение кода для объектов, которые используют докстроки Numpy"
 
 #: spyder/dependencies.py:129
 msgid "Connect to remote kernels through SSH"
-msgstr ""
+msgstr "Подключение к удалённым ядрам через SSH"
 
 #: spyder/dependencies.py:134
 msgid "Python parser that supports error recovery and round-trip parsing"
@@ -839,11 +839,11 @@ msgstr ""
 
 #: spyder/dependencies.py:139
 msgid "Stdio support for our language server client"
-msgstr ""
+msgstr "Поддержка Stdio для нашего клиента языкового сервера"
 
 #: spyder/dependencies.py:143
 msgid "Cache the list of installed Python modules"
-msgstr ""
+msgstr "Кэшировать список установленных модулей Python"
 
 #: spyder/dependencies.py:147
 msgid "CPU and memory usage info in the status bar"
@@ -851,7 +851,7 @@ msgstr "Информация об использовании ЦП и памят�
 
 #: spyder/dependencies.py:151
 msgid "Syntax highlighting for a lot of file types in the Editor"
-msgstr ""
+msgstr "Подсветка синтаксиса для множества типов файлов в редакторе"
 
 #: spyder/dependencies.py:155
 msgid "Static code analysis"
@@ -859,31 +859,31 @@ msgstr "Статический анализ кода"
 
 #: spyder/dependencies.py:159
 msgid "Code completion and linting for the Editor"
-msgstr ""
+msgstr "Автодополнение и проверка кода в редакторе"
 
 #: spyder/dependencies.py:163
 msgid "Parse desktop files on Linux"
-msgstr ""
+msgstr "Разбор файлов рабочего стола в Linux"
 
 #: spyder/dependencies.py:168
 msgid "Client for the language server protocol (LSP)"
-msgstr ""
+msgstr "Клиент для протокола сервера языков (LSP)"
 
 #: spyder/dependencies.py:172
 msgid "Dark style for the entire interface"
-msgstr ""
+msgstr "Темная тема для всего интерфейса"
 
 #: spyder/dependencies.py:176
 msgid "Icon theme based on FontAwesome and Material Design icons"
-msgstr ""
+msgstr "Тема значков, основанная на значках FontAwesome и Material Design"
 
 #: spyder/dependencies.py:180
 msgid "Main package for the IPython console"
-msgstr ""
+msgstr "Основной пакет для консоли IPython"
 
 #: spyder/dependencies.py:184
 msgid "Abstraction layer for Python Qt bindings."
-msgstr ""
+msgstr "Слой абстракции для привязок Python Qt."
 
 #: spyder/dependencies.py:188
 msgid "Fast access to code snippets regions"
@@ -995,7 +995,7 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/plugin.py:152 spyder/plugins/completion/kite/widgets/install.py:329
 msgid "Kite installation error"
-msgstr ""
+msgstr "Ошибка установки Kite"
 
 #: spyder/plugins/completion/kite/plugin.py:153 spyder/plugins/ipythonconsole/widgets/shell.py:364
 msgid "Don't show again."
@@ -1007,7 +1007,7 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/utils/install.py:34
 msgid "No status"
-msgstr ""
+msgstr "Нет статуса"
 
 #: spyder/plugins/completion/kite/utils/install.py:35
 msgid "Downloading script installer"
@@ -1015,23 +1015,23 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/utils/install.py:36
 msgid "Downloading installer"
-msgstr ""
+msgstr "Загрузка установщика"
 
 #: spyder/plugins/completion/kite/utils/install.py:37
 msgid "Installing"
-msgstr ""
+msgstr "Установка"
 
 #: spyder/plugins/completion/kite/utils/install.py:38
 msgid "Installation finished"
-msgstr ""
+msgstr "Установка завершена"
 
 #: spyder/plugins/completion/kite/utils/install.py:39
 msgid "Installation errored"
-msgstr ""
+msgstr "Ошибка установки"
 
 #: spyder/plugins/completion/kite/utils/install.py:40
 msgid "Cancelled"
-msgstr ""
+msgstr "Отменено"
 
 #: spyder/plugins/completion/kite/widgets/calltoaction.py:20
 msgid "No completions found. Get completions for this case and more by installing Kite."
@@ -1039,15 +1039,15 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/calltoaction.py:52 spyder/plugins/completion/kite/widgets/install.py:82 spyder/plugins/completion/kite/widgets/install.py:148
 msgid "Install Kite"
-msgstr ""
+msgstr "Установить Kite"
 
 #: spyder/plugins/completion/kite/widgets/calltoaction.py:53
 msgid "Learn More"
-msgstr ""
+msgstr "Узнать больше"
 
 #: spyder/plugins/completion/kite/widgets/calltoaction.py:54
 msgid "Dismiss Forever"
-msgstr ""
+msgstr "Скрыть навсегда"
 
 #: spyder/plugins/completion/kite/widgets/install.py:68
 msgid "Now Spyder can use <a href=\"{kite_url}\">Kite</a> to provide better and more accurate code completions in its editor <br>for the most important packages in the Python scientific ecosystem, such as Numpy, <br>Matplotlib and Pandas.<br><br>Would you like to install it or learn more about it?<br><br><i>Note:</i> Kite is free to use but is not an open source program."
@@ -1055,7 +1055,7 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/install.py:80
 msgid "Learn more"
-msgstr ""
+msgstr "Узнать больше"
 
 #: spyder/plugins/completion/kite/widgets/install.py:116
 msgid "<big><b>Level up your completions with Kite</b></big><br><br>Kite is a native app that runs locally on your computer <br>and uses machine learning to provide advanced <br>completions.<br><br>&#10003; Specialized support for Python data analysis packages<br><br>&#10003; 1.5x more completions than the builtin engine<br><br>&#10003; Completions ranked by code context <br><br>&#10003; Full line code completions<br><br>&#10003; 100% local - no internet connection required<br><br>&#10003; 100% free to use<br><br><a href=\"{kite_url}\">Learn more on the Kite website</a>"
@@ -1063,7 +1063,7 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/install.py:209
 msgid "Downloading"
-msgstr ""
+msgstr "Загрузка"
 
 #: spyder/plugins/completion/kite/widgets/install.py:211
 msgid "Kite comes with a native app called the Copilot <br>which provides you with real time <br>documentation as you code.<br><br>When Kite is done installing, the Copilot will <br>launch automatically and guide you throught the <br>rest of the setup process."
@@ -1071,7 +1071,7 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/install.py:219
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: spyder/plugins/completion/kite/widgets/install.py:330
 msgid "<b>An error ocurred while installing Kite!</b><br><br>Please try to <a href=\"{kite_url}\">install it manually</a> or <a href=\"{kite_contact}\">contact Kite</a> for help"
@@ -1087,7 +1087,7 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/status.py:27
 msgid "not reachable"
-msgstr ""
+msgstr "не достижимо"
 
 #: spyder/plugins/completion/kite/widgets/status.py:54
 msgid "Kite installation will continue in the background.\n"
@@ -1105,7 +1105,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:112
 msgid "Invalid JSON"
-msgstr ""
+msgstr "Недопустимый JSON"
 
 #: spyder/plugins/completion/languageserver/confpage.py:122
 msgid "To create a new server configuration, you need to select a programming language, set the command to start its associated server and enter any arguments that should be passed to it on startup. Additionally, you can set the server's hostname and port if connecting to an external server, or to a local one using TCP instead of stdio pipes.<br><br><i>Note</i>: You can use the placeholders <tt>{host}</tt> and <tt>{port}</tt> in the server arguments field to automatically fill in the respective values.<br>"
@@ -1113,31 +1113,31 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:140
 msgid "External server"
-msgstr ""
+msgstr "Внешний сервер"
 
 #: spyder/plugins/completion/languageserver/confpage.py:141
 msgid "Host:"
-msgstr ""
+msgstr "Хост:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:143 spyder/plugins/ipythonconsole/widgets/kernelconnect.py:66
 msgid "Port:"
-msgstr ""
+msgstr "Порт:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:145
 msgid "Command:"
-msgstr ""
+msgstr "Команда:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:147
 msgid "Arguments:"
-msgstr ""
+msgstr "Аргументы:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:150
 msgid "<b>Server Configuration:</b>"
-msgstr ""
+msgstr "<b>Конфигурация сервера:</b>"
 
 #: spyder/plugins/completion/languageserver/confpage.py:160
 msgid "LSP server editor"
-msgstr ""
+msgstr "Редактор сервера LSP"
 
 #: spyder/plugins/completion/languageserver/confpage.py:165
 msgid "Programming language provided by the LSP server"
@@ -1145,7 +1145,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:166
 msgid "Select a language"
-msgstr ""
+msgstr "Выберите язык"
 
 #: spyder/plugins/completion/languageserver/confpage.py:179
 msgid "TCP port number of the server"
@@ -1173,23 +1173,23 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:231 spyder/plugins/completion/languageserver/confpage.py:549
 msgid "Language"
-msgstr ""
+msgstr "Язык"
 
 #: spyder/plugins/completion/languageserver/confpage.py:237
 msgid "Language server"
-msgstr ""
+msgstr "Сервер языков"
 
 #: spyder/plugins/completion/languageserver/confpage.py:246
 msgid "Server address"
-msgstr ""
+msgstr "Адрес сервера"
 
 #: spyder/plugins/completion/languageserver/confpage.py:261 spyder/plugins/completion/languageserver/confpage.py:784 spyder/plugins/completion/languageserver/confpage.py:1164
 msgid "Advanced"
-msgstr ""
+msgstr "Дополнительно"
 
 #: spyder/plugins/completion/languageserver/confpage.py:314
 msgid "Hostname must be valid"
-msgstr ""
+msgstr "Имя хоста должно быть действительным"
 
 #: spyder/plugins/completion/languageserver/confpage.py:317
 msgid "Hostname or IP address of the host on which the server is running. Must be non empty."
@@ -1197,7 +1197,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:321
 msgid "Hostname is valid"
-msgstr ""
+msgstr "Имя хоста верно"
 
 #: spyder/plugins/completion/languageserver/confpage.py:329
 msgid "Command used to start the LSP server locally. Must be non empty"
@@ -6396,11 +6396,11 @@ msgstr ""
 
 #: spyder/widgets/switcher.py:928
 msgid "Indent Using Spaces"
-msgstr ""
+msgstr "Отступы пробелами"
 
 #: spyder/widgets/switcher.py:930
 msgid "Indent Using Tabs"
-msgstr ""
+msgstr "Отступы табами"
 
 #: spyder/widgets/switcher.py:932
 msgid "Detect Indentation from Content"
