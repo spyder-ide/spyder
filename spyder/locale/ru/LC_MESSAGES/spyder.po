@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-14 00:35\n"
+"PO-Revision-Date: 2020-07-14 01:00\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1249,7 +1249,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:725
 msgid "Default is 3"
-msgstr ""
+msgstr "3 по умолчанию"
 
 #: spyder/plugins/completion/languageserver/confpage.py:727
 msgid "Show automatic completions after keyboard idle (ms):"
@@ -5400,11 +5400,11 @@ msgstr "Шрифты"
 
 #: spyder/preferences/appearance.py:118
 msgid "Plain text"
-msgstr ""
+msgstr "Обычный текст"
 
 #: spyder/preferences/appearance.py:124
 msgid "Rich text"
-msgstr ""
+msgstr "Расширенный текст"
 
 #: spyder/preferences/appearance.py:404
 msgid "Are you sure you want to delete this scheme?"
@@ -5460,7 +5460,7 @@ msgstr "Курсив"
 
 #: spyder/preferences/configdialog.py:820
 msgid "Font"
-msgstr ""
+msgstr "Шрифт"
 
 #: spyder/preferences/configdialog.py:845
 msgid "Font style"
@@ -5540,11 +5540,11 @@ msgstr "мс"
 
 #: spyder/preferences/general.py:166
 msgid "macOS integration"
-msgstr ""
+msgstr "Интеграция с macOS"
 
 #: spyder/preferences/general.py:168
 msgid "Open files from Finder with Spyder"
-msgstr ""
+msgstr "Открывать файлы из Finder с помощью Spyder"
 
 #: spyder/preferences/general.py:170
 msgid "Register Spyder with the Launch Services"
@@ -5824,15 +5824,15 @@ msgstr ""
 
 #: spyder/preferences/shortcuts.py:195
 msgid "Default"
-msgstr ""
+msgstr "По-умолчанию"
 
 #: spyder/preferences/shortcuts.py:196
 msgid "Ok"
-msgstr ""
+msgstr "Ок"
 
 #: spyder/preferences/shortcuts.py:198
 msgid "Clear"
-msgstr ""
+msgstr "Очистить"
 
 #: spyder/preferences/shortcuts.py:210
 msgid "Clear all entered key sequences"
@@ -6404,51 +6404,51 @@ msgstr "Отступы табами"
 
 #: spyder/widgets/switcher.py:932
 msgid "Detect Indentation from Content"
-msgstr ""
+msgstr "Определить вид оступов по содержимому"
 
 #: spyder/widgets/switcher.py:934
 msgid "convert file"
-msgstr ""
+msgstr "преобразовать файл"
 
 #: spyder/widgets/switcher.py:935
 msgid "Convert Indentation to Spaces"
-msgstr ""
+msgstr "Преобразовать отступ в пробелы"
 
 #: spyder/widgets/switcher.py:937
 msgid "Convert Indentation to Tabs"
-msgstr ""
+msgstr "Преобразовать отступы в табы"
 
 #: spyder/widgets/switcher.py:938
 msgid "Trim Trailing Whitespace"
-msgstr ""
+msgstr "Убрать пробелы в концах строк"
 
 #: spyder/widgets/switcher.py:944
 msgid "Help me!"
-msgstr ""
+msgstr "Помогите мне!"
 
 #: spyder/widgets/switcher.py:946
 msgid "Help me 2!"
-msgstr ""
+msgstr "Помогите мне 2!"
 
 #: spyder/widgets/switcher.py:948
 msgid "Help me 3!"
-msgstr ""
+msgstr "Помогите мне 3!"
 
 #: spyder/widgets/switcher.py:954
 msgid "Current line, type something"
-msgstr ""
+msgstr "Текущая линия, наберите что-нибудь"
 
 #: spyder/widgets/switcher.py:960
 msgid "Some symbol"
-msgstr ""
+msgstr "Какой-то символ"
 
 #: spyder/widgets/switcher.py:961
 msgid "another symbol"
-msgstr ""
+msgstr "другой символ"
 
 #: spyder/widgets/switcher.py:970 spyder/widgets/tests/test_switcher.py:31
 msgid "Commands"
-msgstr ""
+msgstr "Команды"
 
 #: spyder/widgets/tabs.py:276
 msgid "Browse tabs"
