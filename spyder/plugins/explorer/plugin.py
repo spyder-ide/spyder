@@ -162,27 +162,7 @@ class Explorer(SpyderDockablePlugin):
         editor = self.get_plugin(Plugins.Editor)
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
 
-        if editor:
-            editor.sig_dir_opened.connect(self.chdir)
-            widget.sig_open_file_requested.connect(editor.load)
-            widget.sig_edited.connect(editor.load)
-            widget.sig_new_file_requested.connect(
-                lambda t: editor.new(text=t))
-            widget.sig_removed.connect(editor.removed)
-            widget.sig_renamed.connect(editor.renamed)
-            widget.sig_tree_removed.connect(editor.removed_tree)
-            widget.sig_tree_renamed.connect(editor.renamed_tree)
-
-        if ipyconsole:
-            widget.sig_open_interpreter_requested.connect(
-                ipyconsole.create_client_from_path)
-            # TODO: use name arguments to clarify what is going on with the
-            # booleans
-            widget.sig_run_requested.connect(
-                lambda f: ipyconsole.run_script(  # f -> filename
-                    f, osp.dirname(f), '', False, False, False, True, False))
-
-        # Signals
+        # Expose widget signals on the plugin
         widget.sig_dir_opened.connect(self.sig_folder_opened)
         widget.sig_edited.connect(self.sig_file_externally_opened)
         widget.sig_removed.connect(self.sig_file_removed)
@@ -194,6 +174,27 @@ class Explorer(SpyderDockablePlugin):
         widget.sig_open_file_requested.connect(self.sig_open_file_requested)
         widget.sig_open_interpreter_requested.connect(
             self.sig_open_interpreter_requested)
+
+        # Connect plugin signals with plugins slots
+        if editor:
+            editor.sig_dir_opened.connect(self.chdir)
+            self.sig_open_file_requested.connect(editor.load)
+            self.sig_file_externally_opened.connect(editor.load)
+            self.sig_new_file_requested.connect(
+                lambda t: editor.new(text=t))
+            self.sig_file_removed.connect(editor.removed)
+            self.sig_file_renamed.connect(editor.renamed)
+            self.sig_folder_removed.connect(editor.removed_tree)
+            self.sig_folder_renamed.connect(editor.renamed_tree)
+
+        if ipyconsole:
+            self.sig_open_interpreter_requested.connect(
+                ipyconsole.create_client_from_path)
+            # TODO: use name arguments to clarify what is going on with the
+            # booleans
+            self.sig_run_requested.connect(
+                lambda f: ipyconsole.run_script(  # f -> filename
+                    f, osp.dirname(f), '', False, False, False, True, False))
 
     # --- API
     # ------------------------------------------------------------------------
