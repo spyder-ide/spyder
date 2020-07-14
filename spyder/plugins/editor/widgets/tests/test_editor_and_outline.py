@@ -409,8 +409,6 @@ def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
 
     tree = trees[5]
     root_tree = get_tree_elements(treewidget)
-    print(root_tree)
-    print(tree)
     assert root_tree == tree
 
 
