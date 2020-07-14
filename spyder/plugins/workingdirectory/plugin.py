@@ -93,7 +93,7 @@ class WorkingDirectory(SpyderPluginV2):
         if explorer:
             self.sig_current_directory_changed.connect(
                 lambda path: explorer.chdir(path, emit=False))
-            explorer.sig_dir_opened.connect(
+            explorer.sig_folder_opened.connect(
                 lambda path, plugin=explorer: self.chdir(path, plugin))
 
     # --- Public API
@@ -114,7 +114,7 @@ class WorkingDirectory(SpyderPluginV2):
 
         if explorer and sender_plugin != explorer:
             explorer.chdir(directory, emit=False)
-            explorer.refresh_plugin(directory, force_current=True)
+            explorer.refresh(directory, force_current=True)
 
         if ipyconsole and sender_plugin != ipyconsole:
             ipyconsole.set_current_client_working_directory(directory)

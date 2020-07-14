@@ -182,11 +182,12 @@ class ProjectExplorerWidget(QWidget):
         self.show_hscrollbar = show_hscrollbar
 
         self.treewidget = ExplorerTreeWidget(self, self.show_hscrollbar)
-        self.treewidget.setup(
-            name_filters=self.name_filters,
-            show_all=self.show_all,
-            single_click_to_open=False,
-        )
+        options = {
+            'name_filters': name_filters,
+            'show_all': show_all,
+            'single_click_to_open': single_click_to_open,
+        }
+        self.treewidget.setup(options)
         self.treewidget.setup_view()
         self.treewidget.hide()
 

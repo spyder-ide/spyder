@@ -11,10 +11,13 @@ from qtpy.QtWidgets import QTabWidget, QVBoxLayout, QWidget
 
 # Local imports
 from spyder.api.preferences import PluginConfigPage
-from spyder.config.base import _
-from spyder.py3compat import to_text_string
+from spyder.api.translations import get_translation
 from spyder.plugins.explorer.widgets.fileassociations import (
     FileAssociationsWidget)
+
+
+# Localization
+_ = get_translation("spyder")
 
 
 class ExplorerConfigPage(PluginConfigPage):
@@ -79,4 +82,4 @@ class ExplorerConfigPage(PluginConfigPage):
         Update the content of the text edit used to store the config data.
         """
         textedit = self.edit_file_associations.textbox
-        textedit.setPlainText(to_text_string(data))
+        textedit.setPlainText(str(data))

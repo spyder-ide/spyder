@@ -161,22 +161,21 @@ class Projects(SpyderPluginWidget):
 
         self.add_dockwidget()
         self.explorer.sig_open_file.connect(self.main.open_file)
-        self.register_widget_shortcuts(treewidget)
-
         treewidget.sig_delete_project.connect(self.delete_project)
-        treewidget.sig_edit.connect(self.main.editor.load)
+        treewidget.sig_open_file_requested.connect(self.main.editor.load)
+        treewidget.sig_edited.connect(self.main.editor.load)
         treewidget.sig_removed.connect(self.main.editor.removed)
-        treewidget.sig_removed_tree.connect(self.main.editor.removed_tree)
+        treewidget.sig_tree_removed.connect(self.main.editor.removed_tree)
         treewidget.sig_renamed.connect(self.main.editor.renamed)
-        treewidget.sig_renamed_tree.connect(self.main.editor.renamed_tree)
-        treewidget.sig_create_module.connect(self.main.editor.new)
-        treewidget.sig_new_file.connect(
+        treewidget.sig_tree_renamed.connect(self.main.editor.renamed_tree)
+        treewidget.sig_module_created.connect(self.main.editor.new)
+        treewidget.sig_new_file_requested.connect(
             lambda t: self.main.editor.new(text=t))
-        treewidget.sig_open_interpreter.connect(
+        treewidget.sig_open_interpreter_requested.connect(
             ipyconsole.create_client_from_path)
-        treewidget.redirect_stdio.connect(
+        treewidget.sig_redirect_stdio_requested.connect(
             self.main.redirect_internalshell_stdio)
-        treewidget.sig_run.connect(
+        treewidget.sig_run_requested.connect(
             lambda fname:
             ipyconsole.run_script(fname, osp.dirname(fname), '', False, False,
                                   False, True, False))
@@ -211,7 +210,7 @@ class Projects(SpyderPluginWidget):
         self.main.editor.set_projects(self)
 
         # Connect to file explorer to keep single click to open files in sync
-        self.main.explorer.fileexplorer.sig_option_changed.connect(
+        self.main.explorer.sig_option_changed.connect(
             self.set_single_click_to_open
         )
 

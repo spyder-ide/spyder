@@ -87,7 +87,7 @@ class ConfigDialogTester(ConfigDialog):
                     # New API
                     plugin = plugin(parent=self._main, configuration=CONF)
                     widget = self._main.create_plugin_conf_widget(plugin)
-                except Exception:
+                except Exception as error:
                     # Old API
                     plugin = plugin(parent=self._main)
                     widget = plugin._create_configwidget(self, self._main)

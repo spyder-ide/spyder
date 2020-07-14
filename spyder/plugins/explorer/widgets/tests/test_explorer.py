@@ -271,21 +271,21 @@ def test_create_file_manage_actions(qtbot, file_explorer_associations,
     fpath_3.write_text(u'hello!')
 
     # Single file with valid association
-    actions = widget.create_file_manage_actions([str(fpath)])
-    action_texts = [action.title().lower() for action in actions
-                    if isinstance(action, QMenu)]
-    assert 'open with' in action_texts
+    actions = widget._create_file_associations_actions([str(fpath)])
+    action_texts = [action.text().lower() for action in actions]
+    assert any('app 1' in text for text in action_texts)
+    assert any('default external application' in text for text in action_texts)
 
     # Two files with valid association
-    actions = widget.create_file_manage_actions([str(fpath), str(fpath_2)])
-    action_texts = [action.title().lower() for action in actions
-                    if isinstance(action, QMenu)]
-    assert 'open with' in action_texts
+    actions = widget._create_file_associations_actions(
+        [str(fpath), str(fpath_2)])
+    action_texts = [action.text().lower() for action in actions]
+    assert any('app 1' in text for text in action_texts)
+    assert any('default external application' in text for text in action_texts)
 
     # Single file with no association
-    actions = widget.create_file_manage_actions([str(fpath_3)])
-    action_texts = [action.title().lower() for action in actions
-                    if isinstance(action, QMenu)]
+    actions = widget._create_file_associations_actions([str(fpath_3)])
+    action_texts = [action.text().lower() for action in actions]
     assert not action_texts
 
 

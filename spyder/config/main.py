@@ -283,6 +283,7 @@ DEFAULTS = [
               'show_all': True,
               'show_icontext': False,
               'single_click_to_open': False,
+              'file_associations': {},
               }),
             ('find_in_files',
              {

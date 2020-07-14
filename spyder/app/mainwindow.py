@@ -1273,11 +1273,9 @@ class MainWindow(QMainWindow):
 
         # Explorer
         if CONF.get('explorer', 'enable'):
-            self.set_splash(_("Loading file explorer..."))
             from spyder.plugins.explorer.plugin import Explorer
-            self.explorer = Explorer(self)
-            self.explorer.register_plugin()
-            self.add_plugin(self.explorer)
+            self.explorer = Explorer(self, configuration=CONF)
+            self.register_plugin(self.explorer)
 
         # Online help widget
         if CONF.get('onlinehelp', 'enable'):

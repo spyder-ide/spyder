@@ -11,19 +11,18 @@ Tests for the main window.
 """
 
 # Standard library imports
-from distutils.version import LooseVersion
 import os
 import os.path as osp
 import re
 import shutil
-import tempfile
-from textwrap import dedent
-try:
-    from unittest.mock import Mock, MagicMock
-except ImportError:
-    from mock import Mock, MagicMock  # Python 2
 import sys
+import tempfile
 import uuid
+from distutils.version import LooseVersion
+from textwrap import dedent
+from unittest.mock import Mock, MagicMock
+from urllib.error import URLError
+from urllib.request import urlopen
 
 # Third party imports
 from flaky import flaky
@@ -45,12 +44,12 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 
 # Local imports
 from spyder import __trouble_url__, __project_url__
+from spyder.api.widgets.auxiliary_widgets import SpyderWindowWidget
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.config.base import get_home_dir, get_module_path
 from spyder.config.manager import CONF
 from spyder.widgets.dock import TabFilter
-from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
@@ -59,13 +58,6 @@ from spyder.py3compat import PY2, to_text_string
 from spyder.utils.programs import is_module_installed
 from spyder.widgets.dock import DockTitleBar
 from spyder.utils.misc import remove_backslashes
-
-# For testing various Spyder urls
-if not PY2:
-    from urllib.request import urlopen
-    from urllib.error import URLError
-else:
-    from urllib2 import urlopen, URLError
 
 
 # =============================================================================
@@ -322,29 +314,30 @@ def test_default_plugin_actions(main_window, qtbot):
     """Test the effect of dock, undock, close and toggle view actions."""
     # Use a particular plugin
     file_explorer = main_window.explorer
+    main_widget = file_explorer.get_widget()
 
     # Undock action
-    file_explorer._undock_action.triggered.emit(True)
+    main_widget.undock_action.triggered.emit(True)
     qtbot.wait(500)
     assert not file_explorer.dockwidget.isVisible()
-    assert file_explorer._undocked_window is not None
-    assert isinstance(file_explorer._undocked_window, PluginWindow)
-    assert file_explorer._undocked_window.centralWidget() == file_explorer
+    assert main_widget.undock_action is not None
+    assert isinstance(main_widget.windowwidget, SpyderWindowWidget)
+    assert main_widget.windowwidget.centralWidget() == main_widget
 
     # Dock action
-    file_explorer._dock_action.triggered.emit(True)
+    main_widget.dock_action.triggered.emit(True)
     qtbot.wait(500)
     assert file_explorer.dockwidget.isVisible()
-    assert file_explorer._undocked_window is None
+    assert main_widget.windowwidget is None
 
     # Close action
-    file_explorer._close_plugin_action.triggered.emit(True)
+    main_widget.close_action.triggered.emit(True)
     qtbot.wait(500)
     assert not file_explorer.dockwidget.isVisible()
-    assert not file_explorer._toggle_view_action.isChecked()
+    assert not file_explorer.toggle_view_action.isChecked()
 
     # Toggle view action
-    file_explorer._toggle_view_action.setChecked(True)
+    file_explorer.toggle_view_action.setChecked(True)
     assert file_explorer.dockwidget.isVisible()
 
 
@@ -899,7 +892,7 @@ def test_change_cwd_ipython_console(main_window, qtbot, tmpdir, test_directory):
     changing cwd in the IPython console.
     """
     wdir = main_window.workingdirectory
-    treewidget = main_window.explorer.fileexplorer.treewidget
+    treewidget = main_window.explorer.get_widget().treewidget
     shell = main_window.ipyconsole.get_current_shellwidget()
 
     # Wait until the window is fully up
