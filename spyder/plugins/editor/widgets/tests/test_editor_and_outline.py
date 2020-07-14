@@ -262,7 +262,7 @@ def test_toggle_on_show_all_files(editorstack, outlineexplorer, test_files):
 
 
 @pytest.mark.slow
-@pytest.mark.first
+@pytest.mark.second
 def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
     def get_tree_elements(treewidget):
         root_item = treewidget.get_top_level_items()[0]
