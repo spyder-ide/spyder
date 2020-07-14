@@ -277,6 +277,9 @@ class TreeItem(QTreeWidgetItem):
 
 
 class OutlineExplorerTreeWidget(OneColumnTree):
+    # Used only for debug purposes
+    sig_tree_updated = Signal()
+
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
                  group_cells=True, show_comments=True,
                  sort_files_alphabetically=False, follow_cursor=True):
@@ -606,6 +609,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 data_reducer=self.merge_interval, data_initializer=root)
 
         self.editor_tree_cache[editor_id] = tree
+        self.sig_tree_updated.emit()
         return True
 
     def __do_update(self, editor, editor_id):
