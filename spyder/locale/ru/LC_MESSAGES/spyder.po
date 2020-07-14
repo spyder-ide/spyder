@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-03 04:46\n"
+"PO-Revision-Date: 2020-07-14 00:22\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -47,7 +47,7 @@ msgstr "Справка по API PyQt5"
 
 #: spyder/app/mainwindow.py:243
 msgid "WinPython"
-msgstr ""
+msgstr "WinPython"
 
 #: spyder/app/mainwindow.py:513
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
@@ -60,7 +60,7 @@ msgstr "Закрыть текущую панель"
 
 #: spyder/app/mainwindow.py:589
 msgid "Lock panes and toolbars"
-msgstr ""
+msgstr "Зафиксировать панели"
 
 #: spyder/app/mainwindow.py:596
 msgid "Use next layout"
@@ -208,11 +208,11 @@ msgstr "Показывать и редактировать переменные 
 
 #: spyder/app/mainwindow.py:739
 msgid "Install Kite completion engine"
-msgstr ""
+msgstr "Установить движок автодополнения Kite"
 
 #: spyder/app/mainwindow.py:745
 msgid "LSP logs"
-msgstr ""
+msgstr "Журналы LSP"
 
 #: spyder/app/mainwindow.py:749 spyder/app/mainwindow.py:1199
 msgid "External Tools"
@@ -228,7 +228,7 @@ msgstr "Qt дизайнер"
 
 #: spyder/app/mainwindow.py:767
 msgid "Qt Linguist"
-msgstr ""
+msgstr "Qt Linguist"
 
 #: spyder/app/mainwindow.py:788
 msgid "guidata examples"
@@ -240,7 +240,7 @@ msgstr "примеры guiqwt"
 
 #: spyder/app/mainwindow.py:804
 msgid "Sift"
-msgstr ""
+msgstr "Sift"
 
 #: spyder/app/mainwindow.py:822
 msgid "Fullscreen mode"
@@ -267,7 +267,7 @@ msgstr "Встроенная консоль Spyder\n\n"
 
 #: spyder/app/mainwindow.py:856
 msgid "Starting code completion manager..."
-msgstr ""
+msgstr "Запуск менеджера автодополнения кода..."
 
 #: spyder/app/mainwindow.py:869
 msgid "Loading help..."
@@ -283,7 +283,7 @@ msgstr "Загрузка редактора..."
 
 #: spyder/app/mainwindow.py:894
 msgid "Launching code completion client for Python..."
-msgstr ""
+msgstr "Запуск клиента автодополнения кода для Python..."
 
 #: spyder/app/mainwindow.py:899 spyder/plugins/console/plugin.py:141 spyder/plugins/ipythonconsole/widgets/client.py:523
 msgid "&Quit"
@@ -307,7 +307,7 @@ msgstr "Загрузка менеджера пространств имён..."
 
 #: spyder/app/mainwindow.py:931
 msgid "Loading figure browser..."
-msgstr ""
+msgstr "Загрузка просмотрщика фигур..."
 
 #: spyder/app/mainwindow.py:938
 msgid "Loading history plugin..."
@@ -331,7 +331,7 @@ msgstr "Загрузка менеджера проектов..."
 
 #: spyder/app/mainwindow.py:992
 msgid "Loading third-party plugins..."
-msgstr ""
+msgstr "Загрузка сторонних плагинов..."
 
 #: spyder/app/mainwindow.py:1018
 msgid "Setting up main window..."
@@ -431,7 +431,7 @@ msgstr "Прикреплённая консоль (отладка)"
 
 #: spyder/app/mainwindow.py:1440
 msgid "Hide this message during the current session"
-msgstr ""
+msgstr "Скрыть это сообщение в данной сессии"
 
 #: spyder/app/mainwindow.py:1446
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
@@ -439,7 +439,7 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:1453
 msgid "Restart now"
-msgstr ""
+msgstr "Перезапустить сейчас"
 
 #: spyder/app/mainwindow.py:1454 spyder/plugins/completion/kite/widgets/install.py:84 spyder/plugins/completion/kite/widgets/install.py:149
 msgid "Dismiss"
@@ -451,7 +451,7 @@ msgstr "Ошибка"
 
 #: spyder/app/mainwindow.py:1515
 msgid "<b>You have missing dependencies!</b><br><br><tt>%s</tt><br><b>Please install them to avoid this message.</b><br><br><i>Note</i>: Spyder could work without some of these dependencies, however to have a smooth experience when using Spyder we <i>strongly</i> recommend you to install all the listed missing dependencies.<br><br>Failing to install these dependencies might result in bugs. Please be sure that any found bugs are not the direct result of missing dependencies, prior to reporting a new issue."
-msgstr ""
+msgstr "<b>У Вас есть недостающие зависимости!</b><br><br><tt>%s</tt><br><b>Пожалуйста, установите их, чтобы это сообщение исчезло.</b><br><br><i>Примечание</i>: Возможно, Spyder сможет работать без некоторых из них, однако для беспроблемного использования Spyder мы <i>настоятельно</i> рекомендуем установить все приведённые недостающие зависимости.<br><br>Неудачная установка этих зависимостей могла привести к ошибкам. Пожалуйста, прежде чем сообщать о новой проблеме, убедитесь, что любые найденные ошибки не являются прямым результатот отсутствия некоторых зависимостей."
 
 #: spyder/app/mainwindow.py:1995
 msgid "Spyder Default Layout"
@@ -525,7 +525,7 @@ msgstr "Запуск внешнего системного терминала н
 
 #: spyder/app/mainwindow.py:2977
 msgid "To open <code>{fpath}</code> as a project with Spyder, please use <code>spyder -p \"{fname}\"</code>."
-msgstr ""
+msgstr "Чтобы открыть <code>{fpath}</code> в качестве проекта с Spyder, пожалуйста, используйте <code>spyder -p \"{fname}\"</code>."
 
 #: spyder/app/mainwindow.py:3333
 msgid "Spyder will restart and reset to default settings: <br><br>Do you want to continue?"
@@ -931,19 +931,19 @@ msgstr "Опции"
 
 #: spyder/plugins/base.py:192
 msgid "Dock"
-msgstr ""
+msgstr "Прикрепить"
 
 #: spyder/plugins/base.py:194
 msgid "Dock the pane"
-msgstr ""
+msgstr "Прикрепить панель"
 
 #: spyder/plugins/base.py:199
 msgid "Undock"
-msgstr ""
+msgstr "Открепить"
 
 #: spyder/plugins/base.py:201
 msgid "Undock the pane"
-msgstr ""
+msgstr "Открепить панель"
 
 #: spyder/plugins/base.py:206 spyder/plugins/variableexplorer/widgets/arrayeditor.py:805 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1343 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:997 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:314 spyder/plugins/variableexplorer/widgets/texteditor.py:73 spyder/widgets/reporterror.py:219
 msgid "Close"
@@ -951,7 +951,7 @@ msgstr "Закрыть"
 
 #: spyder/plugins/base.py:208
 msgid "Close the pane"
-msgstr ""
+msgstr "Закрыть эту панель"
 
 #: spyder/plugins/base.py:324 spyder/plugins/editor/confpage.py:26 spyder/plugins/editor/plugin.py:340 spyder/plugins/editor/plugin.py:1885 spyder/plugins/editor/utils/switcher.py:105 spyder/plugins/editor/widgets/codeeditor.py:128 spyder/plugins/editor/widgets/codeeditor.py:4725 spyder/plugins/editor/widgets/editor.py:535 spyder/plugins/help/confpage.py:31 spyder/plugins/help/plugin.py:98
 msgid "Editor"
