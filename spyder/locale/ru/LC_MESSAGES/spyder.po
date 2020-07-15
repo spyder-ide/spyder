@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-14 17:06\n"
+"PO-Revision-Date: 2020-07-15 23:29\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -435,7 +435,7 @@ msgstr "Скрыть это сообщение в данной сессии"
 
 #: spyder/app/mainwindow.py:1446
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
-msgstr ""
+msgstr "Обнаружено изменение масштаба монитора. <br><br>Мы рекомендуем перезапустить Spyder, чтобы убедиться, что он правильно отображается. Если вы не хотите это сделать, пожалуйста, убедитесь, что активирована опция <br><br><tt>Включить автоматическое масштабирование высокого DPI</tt><br><br> в <tt>Настройки > Общие > Интерфейс</tt>, в случае, если Spyder не отображается правильно. <br><br>Перезапустить Spyder?"
 
 #: spyder/app/mainwindow.py:1453
 msgid "Restart now"
@@ -791,7 +791,7 @@ msgstr "Сообщить macOS, что Spyder может открывать фа
 
 #: spyder/dependencies.py:87
 msgid "Atomic file writes in the Editor"
-msgstr ""
+msgstr "Атомарная запись в файл в редакторе"
 
 #: spyder/dependencies.py:91
 msgid "Character encoding auto-detection for the Editor"
@@ -799,15 +799,15 @@ msgstr "Автоопределение кодировки для редакто�
 
 #: spyder/dependencies.py:95
 msgid "Handle communications between kernel and frontend"
-msgstr ""
+msgstr "Обработка взаимодействия между ядром и фронтендом"
 
 #: spyder/dependencies.py:99
 msgid "Compute text file diff changes during edition"
-msgstr ""
+msgstr "Вычислять diff изменений текста во время редактирования"
 
 #: spyder/dependencies.py:103
 msgid "Compute folding range nesting levels"
-msgstr ""
+msgstr "Вычислять уровень вложенности"
 
 #: spyder/dependencies.py:107
 msgid "IPython interactive python environment"
@@ -815,7 +815,7 @@ msgstr "IPython, интерактивная оболочка для python"
 
 #: spyder/dependencies.py:111
 msgid "Main backend for the Python Language Server"
-msgstr ""
+msgstr "Главный бэкенд для сервера языков для Python"
 
 #: spyder/dependencies.py:115
 msgid "Save Github credentials to report internal errors securely"
@@ -887,7 +887,7 @@ msgstr "Слой абстракции для привязок Python Qt."
 
 #: spyder/dependencies.py:188
 msgid "Fast access to code snippets regions"
-msgstr ""
+msgstr "Быстрый доступ к областям фрагментов кода"
 
 #: spyder/dependencies.py:193
 msgid "Show help for objects in the Editor and Consoles in a dedicated pane"
@@ -907,7 +907,7 @@ msgstr "Запустить файлы Cython в консоли IPython"
 
 #: spyder/dependencies.py:215
 msgid "2D/3D plotting in the IPython console"
-msgstr ""
+msgstr "Рисование 2D/3D диаграм в консоли IPython"
 
 #: spyder/dependencies.py:220
 msgid "View and edit two and three dimensional arrays in the Variable Explorer"
