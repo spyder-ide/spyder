@@ -501,6 +501,7 @@ DEFAULTS = [
               'preload_modules': PRELOAD_MDOULES,
               'pyflakes': True,
               'mccabe': False,
+              'formatting': 'autopep8',
               'pycodestyle': False,
               'pycodestyle/filename': '',
               'pycodestyle/exclude': '',

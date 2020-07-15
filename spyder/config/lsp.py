@@ -44,6 +44,12 @@ PYTHON_CONFIG = {
                 'pyflakes': {
                     'enabled': True
                 },
+                'autopep8': {
+                    'enabled': True
+                },
+                'black': {
+                    'enabled': False
+                },
                 'yapf': {
                     'enabled': False
                 },

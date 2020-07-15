@@ -899,6 +899,30 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_style_widget = QWidget()
         code_style_widget.setLayout(code_style_layout)
 
+        # --- Code formatting tab ---
+        # Code formatting label
+        code_fmt_label = QLabel(
+            _("Spyder can use autopep8, yapf or black to format your code for "
+              "conformance to the {} convention.").format(pep_url))
+        code_fmt_label.setOpenExternalLinks(True)
+        code_fmt_label.setWordWrap(True)
+
+        # Code formatting providers
+        code_fmt_provider = self.create_combobox(
+            _("Choose the code formatting provider: "),
+            (("autopep8", 'autopep8'),
+             ("yapf", 'yapf'),
+             ("black", 'black')),
+            'formatting')
+
+        # Code formatting layout
+        code_fmt_layout = QVBoxLayout()
+        code_fmt_layout.addWidget(code_fmt_label)
+        code_fmt_layout.addWidget(code_fmt_provider)
+
+        code_fmt_widget = QWidget()
+        code_fmt_widget.setLayout(code_fmt_layout)
+
         # --- Docstring tab ---
         # Docstring style label
         numpy_url = (
@@ -1156,6 +1180,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.tabs.addTab(self.create_tab(introspection_group, advanced_group),
                          _('Introspection'))
         self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
+        self.tabs.addTab(self.create_tab(code_fmt_widget),
+                         _('Code formatting'))
         self.tabs.addTab(self.create_tab(docstring_style_widget),
                          _('Docstring style'))
         self.tabs.addTab(self.create_tab(clients_group,
