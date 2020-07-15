@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-15 23:29\n"
+"PO-Revision-Date: 2020-07-15 23:38\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -835,7 +835,7 @@ msgstr "Подключение к удалённым ядрам через SSH"
 
 #: spyder/dependencies.py:134
 msgid "Python parser that supports error recovery and round-trip parsing"
-msgstr ""
+msgstr "Парсер Python, поддерживающий восстановление при ошибках и обходный пути разбора"
 
 #: spyder/dependencies.py:139
 msgid "Stdio support for our language server client"
@@ -895,11 +895,11 @@ msgstr "Показывать справку об объектах в Редак�
 
 #: spyder/dependencies.py:197
 msgid "Jupyter kernels for the Spyder console"
-msgstr ""
+msgstr "Ядра Jupyter для консоли Spyder"
 
 #: spyder/dependencies.py:201
 msgid "Watch file changes on project directories"
-msgstr ""
+msgstr "Следить за изменениями файлов в директории проекта"
 
 #: spyder/dependencies.py:210
 msgid "Run Cython files in the IPython Console"
@@ -919,7 +919,7 @@ msgstr "Показ и редактирование структур DataFrame и
 
 #: spyder/dependencies.py:230
 msgid "Import Matlab workspace files in the Variable Explorer"
-msgstr ""
+msgstr "Импортировать файлы рабочего окружения Matlab в просмотре переменных"
 
 #: spyder/dependencies.py:235
 msgid "Symbolic mathematics in the IPython Console"
@@ -991,7 +991,7 @@ msgstr "Редактировать эту точку останова"
 
 #: spyder/plugins/completion/kite/client.py:116
 msgid "<code>{error}</code><br><br>Note: If you are using a VPN, please don't route requests to localhost/127.0.0.1 with it"
-msgstr ""
+msgstr "<code>{error}</code><br><br>Примечание: Если вы используете VPN, не перенаправляйте запросы на localhost/127.0.0.1"
 
 #: spyder/plugins/completion/kite/plugin.py:152 spyder/plugins/completion/kite/widgets/install.py:329
 msgid "Kite installation error"
@@ -1079,7 +1079,7 @@ msgstr ""
 
 #: spyder/plugins/completion/kite/widgets/install.py:358
 msgid "Do you really want to cancel Kite installation?"
-msgstr ""
+msgstr "Вы действительно хотите отменить установку Kite?"
 
 #: spyder/plugins/completion/kite/widgets/status.py:26
 msgid "Kite completions status"
@@ -1092,7 +1092,8 @@ msgstr "не достижимо"
 #: spyder/plugins/completion/kite/widgets/status.py:54
 msgid "Kite installation will continue in the background.\n"
 "Click here to show the installation dialog again"
-msgstr ""
+msgstr "Установка Kite продолжится в фоновом режиме.\n"
+"Нажмите здесь, чтобы увидеть диалог установки снова"
 
 #: spyder/plugins/completion/kite/widgets/status.py:59
 msgid "Click here to show the\n"
@@ -1161,11 +1162,11 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:216
 msgid "Check if the server runs on a remote location"
-msgstr ""
+msgstr "Проверять, запущен ли сервер не на этом компьютере"
 
 #: spyder/plugins/completion/languageserver/confpage.py:219
 msgid "Use stdio pipes for communication"
-msgstr ""
+msgstr "Использовать каналы стандартного ввода/вывода для взаимодействия"
 
 #: spyder/plugins/completion/languageserver/confpage.py:220
 msgid "Check if the server communicates using stdin/out pipes"
@@ -1205,11 +1206,11 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:336
 msgid "Program was not found on your system"
-msgstr ""
+msgstr "Программа не найдена в вашей системе"
 
 #: spyder/plugins/completion/languageserver/confpage.py:340
 msgid "Program was found on your system"
-msgstr ""
+msgstr "Программа была найдена в вашей системе"
 
 #: spyder/plugins/completion/languageserver/confpage.py:551
 msgid "Address"
@@ -1217,19 +1218,19 @@ msgstr "Адрес"
 
 #: spyder/plugins/completion/languageserver/confpage.py:553
 msgid "Command to execute"
-msgstr ""
+msgstr "Команда"
 
 #: spyder/plugins/completion/languageserver/confpage.py:699
 msgid "Completion and linting"
-msgstr ""
+msgstr "Автодополнение и проверка кода"
 
 #: spyder/plugins/completion/languageserver/confpage.py:708
 msgid "Enable code completion"
-msgstr ""
+msgstr "Включить автодополнение кода"
 
 #: spyder/plugins/completion/languageserver/confpage.py:711
 msgid "Show completion details"
-msgstr ""
+msgstr "Показывать детали автодополнения"
 
 #: spyder/plugins/completion/languageserver/confpage.py:715
 msgid "Show completion detail after keyboard idle (ms):"
@@ -1265,11 +1266,11 @@ msgstr "Включить фрагмент кода"
 
 #: spyder/plugins/completion/languageserver/confpage.py:757
 msgid "Basic features"
-msgstr ""
+msgstr "Основные возможности"
 
 #: spyder/plugins/completion/languageserver/confpage.py:759
 msgid "Enable Go to definition"
-msgstr ""
+msgstr "Включить переход к определению"
 
 #: spyder/plugins/completion/languageserver/confpage.py:761
 msgid "If enabled, left-clicking on an object name while \n"
@@ -1283,17 +1284,19 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:767 spyder/plugins/ipythonconsole/confpage.py:45
 msgid "Show calltips"
-msgstr ""
+msgstr "Показывать подсказки вызова"
 
 #: spyder/plugins/completion/languageserver/confpage.py:769
 msgid "Enable hover hints"
-msgstr ""
+msgstr "Включить подсказки при наведении"
 
 #: spyder/plugins/completion/languageserver/confpage.py:771
 msgid "If enabled, hovering the mouse pointer over an object\n"
 "name will display that object's signature and/or\n"
 "docstring (if present)."
-msgstr ""
+msgstr "Если включено, при наведении мыши на имя объекта\n"
+"будет показана сигнатура объекта и/или\n"
+"его docstring (если есть)."
 
 #: spyder/plugins/completion/languageserver/confpage.py:786
 msgid "Preload the following modules to make completion faster and more accurate:"
