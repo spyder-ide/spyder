@@ -830,7 +830,8 @@ class CodeEditor(TextEditBaseWidget):
                      indent_guides=False,
                      scroll_past_end=False,
                      show_debug_panel=True,
-                     folding=True):
+                     folding=True,
+                     remove_trailling_spaces=False):
         """
         Set-up configuration for the CodeEditor instance.
 
@@ -938,6 +939,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Blanks
         self.set_blanks_enabled(show_blanks)
+
+        # Remove trailling whitespaces
+        self.set_remove_trailling_spaces(remove_trailling_spaces)
 
         # Scrolling past the end
         self.set_scrollpastend_enabled(scroll_past_end)
@@ -1456,6 +1460,27 @@ class CodeEditor(TextEditBaseWidget):
         except Exception:
             self.log_lsp_handle_errors(
                 "Error when processing go to definition")
+
+    # ------------- LSP: Document/Selection formatting --------------------
+    @request(method=LSPRequestTypes.DOCUMENT_FORMATTING)
+    def format_document(self):
+        if not self.formatting_enabled:
+            return
+
+        using_spaces = self.indent_chars != '\t'
+        tab_size = (len(self.indent_chars) if using_spaces else
+                    self.tab_stop_width_spaces)
+        params = {
+            'file': self.filename,
+            'options': {
+                'tab_size': tab_size,
+                'insert_spaces': using_spaces,
+                'trim_trailling_whitespace': self.remove_trailling_spaces,
+                'insert_final_new_line': self.add_newline,
+                'trim_final_new_lines': self.remove_trailling_newlines
+            }
+        }
+        return params
 
     # ------------- LSP: Code folding ranges -------------------------------
     def update_whitespace_count(self, line, column):

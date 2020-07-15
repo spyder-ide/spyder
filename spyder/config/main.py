@@ -221,6 +221,8 @@ DEFAULTS = [
               'occurrence_highlighting': True,
               'occurrence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
+              'add_newline': False,
+              'always_remove_trailing_newlines': False,
               'show_tab_bar': True,
               'show_class_func_dropdown': False,
               'max_recent_files': 20,

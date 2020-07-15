@@ -138,6 +138,16 @@ class EditorConfigPage(PluginConfigPage):
             _("Automatically remove trailing spaces when saving files"),
             'always_remove_trailing_spaces',
             default=False)
+        add_newline_box = newcb(
+            _("When saving a file, insert a newline character at the end "
+              "if one does not exist"),
+            'add_newline',
+            default=False)
+        remove_trail_newline_box = newcb(
+            _("When saving a file, trim all newlines after the final newline "
+              "at the end"),
+            'always_remove_trailing_newlines',
+            default=False)
 
         indent_chars_box = self.create_combobox(
             _("Indentation characters: "),
@@ -186,6 +196,8 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_layout.addWidget(ibackspace_box)
         sourcecode_layout.addWidget(removetrail_box)
+        sourcecode_layout.addWidget(add_newline_box)
+        sourcecode_layout.addWidget(remove_trail_newline_box)
         sourcecode_layout.addWidget(strip_mode_box)
         sourcecode_layout.addLayout(indent_tab_layout)
 

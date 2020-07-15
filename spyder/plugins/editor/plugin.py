@@ -2799,6 +2799,10 @@ class Editor(SpyderPluginWidget):
             completionshint_o = self.get_option(completionshint_n)
             removetrail_n = 'always_remove_trailing_spaces'
             removetrail_o = self.get_option(removetrail_n)
+            add_newline_n = 'add_newline'
+            add_newline_o = self.get_option(add_newline_n)
+            removetrail_newlines_n = 'always_remove_trailing_newlines'
+            removetrail_newlines_o = self.get_option(removetrail_newline_o)
             converteol_n = 'convert_eol_on_save'
             converteol_o = self.get_option(converteol_n)
             converteolto_n = 'convert_eol_on_save_to'
@@ -2863,6 +2867,11 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
                 if removetrail_n in options:
                     editorstack.set_always_remove_trailing_spaces(removetrail_o)
+                if add_newline_n in options:
+                    editorstack.set_add_newline(add_newline_o)
+                if removetrail_newlines_n in options:
+                    editorstack.set_remove_trailling_newlines(
+                        removetrail_newlines_o)
                 if converteol_n in options:
                     editorstack.set_convert_eol_on_save(converteol_o)
                 if converteolto_n in options:

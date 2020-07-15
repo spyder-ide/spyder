@@ -568,6 +568,8 @@ class EditorStack(QWidget):
         self.occurrence_highlighting_timeout = 1500
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
+        self.add_newline = False
+        self.remove_trailling_newlines = False
         self.convert_eol_on_save = False
         self.convert_eol_on_save_to = 'LF'
         self.focus_to_editor = True
@@ -1355,6 +1357,21 @@ class EditorStack(QWidget):
     def set_always_remove_trailing_spaces(self, state):
         # CONF.get(self.CONF_SECTION, 'always_remove_trailing_spaces')
         self.always_remove_trailing_spaces = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_remove_trailing_spaces(state)
+
+    def set_add_newline(self, state):
+        self.add_newline = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_add_newline(state)
+
+    def set_remove_trailling_newlines(self, state):
+        self.remove_trailling_newlines = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_remove_trailling_newlines(state)
 
     def set_convert_eol_on_save(self, state):
         """If `state` is `True`, saving files will convert line endings."""
@@ -2626,6 +2643,7 @@ class EditorStack(QWidget):
             show_class_func_dropdown=self.show_class_func_dropdown,
             indent_guides=self.indent_guides,
             folding=self.code_folding_enabled,
+            remove_trailling_spaces=self.always_remove_trailing_spaces
         )
         if cloned_from is None:
             editor.set_text(txt)
