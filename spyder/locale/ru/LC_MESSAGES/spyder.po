@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-15 23:38\n"
+"PO-Revision-Date: 2020-07-15 23:46\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1234,7 +1234,7 @@ msgstr "Показывать детали автодополнения"
 
 #: spyder/plugins/completion/languageserver/confpage.py:715
 msgid "Show completion detail after keyboard idle (ms):"
-msgstr ""
+msgstr "Показывать детали автодополнения после паузы при вводе (мс):"
 
 #: spyder/plugins/completion/languageserver/confpage.py:717
 msgid "Default is 500"
@@ -1242,11 +1242,11 @@ msgstr "500 по-умолчанию"
 
 #: spyder/plugins/completion/languageserver/confpage.py:719
 msgid "Show completions on the fly"
-msgstr ""
+msgstr "Показывать автодополнение на лету"
 
 #: spyder/plugins/completion/languageserver/confpage.py:723
 msgid "Show automatic completions after characters entered:"
-msgstr ""
+msgstr "Показывать автодополнение после ввода следующих символов:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:725
 msgid "Default is 3"
@@ -1254,7 +1254,7 @@ msgstr "3 по умолчанию"
 
 #: spyder/plugins/completion/languageserver/confpage.py:727
 msgid "Show automatic completions after keyboard idle (ms):"
-msgstr ""
+msgstr "Показывать автодополнение после паузы при наборе (мс):"
 
 #: spyder/plugins/completion/languageserver/confpage.py:729
 msgid "Default is 300"
@@ -1276,11 +1276,13 @@ msgstr "Включить переход к определению"
 msgid "If enabled, left-clicking on an object name while \n"
 "pressing the {} key will go to that object's definition\n"
 "(if resolved)."
-msgstr ""
+msgstr "Если включено, при левом клике на имени объекта при\n"
+"нажатой кнопке {} произойдет переход на определение объекта\n"
+"(если доступно)."
 
 #: spyder/plugins/completion/languageserver/confpage.py:764
 msgid "Follow imports when going to a definition"
-msgstr ""
+msgstr "Следовать по импортам при переходе к определению"
 
 #: spyder/plugins/completion/languageserver/confpage.py:767 spyder/plugins/ipythonconsole/confpage.py:45
 msgid "Show calltips"
@@ -1300,23 +1302,23 @@ msgstr "Если включено, при наведении мыши на им�
 
 #: spyder/plugins/completion/languageserver/confpage.py:786
 msgid "Preload the following modules to make completion faster and more accurate:"
-msgstr ""
+msgstr "Предварительная загрузка следующих модулей сделает автодополнение более быстрым и точным:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:801
 msgid "Spyder can optionally highlight syntax errors and possible problems with your code in the editor."
-msgstr ""
+msgstr "Spyder может подсвечивать в редакторе синтаксические ошибки и возможные проблемы в вашем коде."
 
 #: spyder/plugins/completion/languageserver/confpage.py:807
 msgid "Enable basic linting"
-msgstr ""
+msgstr "Включить базовую проверку кода"
 
 #: spyder/plugins/completion/languageserver/confpage.py:810 spyder/plugins/editor/plugin.py:830
 msgid "Underline errors and warnings"
-msgstr ""
+msgstr "Подчеркивать ошибки и предупреждения"
 
 #: spyder/plugins/completion/languageserver/confpage.py:814
 msgid "Enable complexity linting with the Mccabe package"
-msgstr ""
+msgstr "Включить проверку сложности кода с помощью пакета Mccabe"
 
 #: spyder/plugins/completion/languageserver/confpage.py:832
 msgid "<a href='http://pycodestyle.pycqa.org/en/stable/intro.html#error-codes'>pycodestyle error codes</a>"
@@ -1388,23 +1390,23 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:934 spyder/plugins/completion/languageserver/confpage.py:1218
 msgid "Show the following errors:"
-msgstr ""
+msgstr "Показывать следующие ошибки:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:936
 msgid "Example codes: D413, D414"
-msgstr ""
+msgstr "Примеры кодов: D413, D414"
 
 #: spyder/plugins/completion/languageserver/confpage.py:938 spyder/plugins/completion/languageserver/confpage.py:1220
 msgid "Ignore the following errors:"
-msgstr ""
+msgstr "Игнорировать следующие ошибки:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:940
 msgid "Example codes: D107, D402"
-msgstr ""
+msgstr "Примеры кодов: D107, D402"
 
 #: spyder/plugins/completion/languageserver/confpage.py:944
 msgid "Skip test files: (?!test_).*\\.py"
-msgstr ""
+msgstr "Пропускать тестовые файлы: (?!test_).*\\.py"
 
 #: spyder/plugins/completion/languageserver/confpage.py:946
 msgid "Only check in directories matching these patterns:"
@@ -1412,7 +1414,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:948
 msgid "Skip dot directories: [^\\.].*"
-msgstr ""
+msgstr "Пропускать директории, начинающиеся с точки: [^\\.].*"
 
 #: spyder/plugins/completion/languageserver/confpage.py:997
 msgid "Providers"
