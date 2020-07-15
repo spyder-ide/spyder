@@ -26,7 +26,8 @@ from qtpy.QtWidgets import QInputDialog, QMenu, QMessageBox, QVBoxLayout
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
-from spyder.config.base import get_home_dir, get_project_config_folder
+from spyder.config.base import (get_home_dir, get_project_config_folder,
+                                running_under_pytest)
 from spyder.config.manager import CONF
 from spyder.api.plugins import SpyderPluginWidget
 from spyder.py3compat import is_text_string, to_text_string
@@ -66,10 +67,10 @@ class Projects(SpyderPluginWidget):
     ----------
     project_path: str
         Location of project.
-    project_type: str
-        Type of project as defined by project types.
-    project_packages: object
-        Package to install. Currently not in use.
+    project_type: str	
+        Type of project as defined by project types.	
+    project_packages: object	
+        Package to install. Currently not in use.	
     """
 
     sig_project_loaded = Signal(object)
@@ -294,10 +295,12 @@ class Projects(SpyderPluginWidget):
                          in self.get_project_types().items()]
 
         dlg = ProjectDialog(self, project_types=project_types)
-        dlg.sig_project_creation_requested.connect(self._create_project)
-        dlg.sig_project_creation_requested.connect(self.sig_project_created)
+        result = dlg.exec_()
+        data = dlg.project_data
+        root_path = data.get("root_path", None)
+        project_type = data.get("project_type", EmptyProject.ID)
 
-        if dlg.exec_():
+        if result:
             # A project was not open before
             if active_project is None:
                 if self.get_option('visible_if_project_open'):
@@ -308,25 +311,30 @@ class Projects(SpyderPluginWidget):
                 # multiple workspaces.
                 self.sig_project_closed.emit(active_project.root_path)
 
+            self._create_project(root_path, project_type=project_type)
             self.sig_pythonpath_changed.emit()
             self.restart_consoles()
+            dlg.close()
 
-    def _create_project(self, path, project_type=EmptyProject.ID,
+    def _create_project(self, root_path, project_type=EmptyProject.ID,
                         packages=None):
         """Create a new project."""
         project_types = self.get_project_types()
         if project_type in project_types:
-            project = project_types[project_type](path, self)
+            project = project_types[project_type](root_path, self)
             project.create_project()
-            self.open_project(path=path, project=project)
+
+            # TODO: In a subsequent PR return a value and emit based on that
+            self.sig_project_created.emit(root_path, project_type, packages)
+            self.open_project(path=root_path, project=project)
         else:
-            QMessageBox.critical(
-                self,
-                _('Error'),
-                _("<b>{}</b> is not a registered Spyder project "
-                  "type!").format(project_type)
-            )
-            return
+            if not running_under_pytest():
+                QMessageBox.critical(
+                    self,
+                    _('Error'),
+                    _("<b>{}</b> is not a registered Spyder project "
+                      "type!").format(project_type)
+                )
 
     def open_project(self, path=None, project=None, restart_consoles=True,
                      save_previous_files=True):

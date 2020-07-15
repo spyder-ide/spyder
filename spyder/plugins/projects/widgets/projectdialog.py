@@ -54,10 +54,10 @@ class ProjectDialog(QDialog):
     ----------
     project_path: str
         Location of project.
-    project_type: str
-        Type of project as defined by project types.
-    project_packages: object
-        Package to install. Currently not in use.
+    project_type: str	
+        Type of project as defined by project types.	
+    project_packages: object	
+        Package to install. Currently not in use.	
     """
 
     def __init__(self, parent, project_types):
@@ -65,6 +65,7 @@ class ProjectDialog(QDialog):
         super(ProjectDialog, self).__init__(parent=parent)
         self.plugin = parent
         self._project_types = project_types
+        self.project_data = {}
 
         # Variables
         current_python_version = '.'.join([to_text_string(sys.version_info[0]),
@@ -157,9 +158,13 @@ class ProjectDialog(QDialog):
 
     def select_location(self):
         """Select directory."""
-        location = osp.normpath(getexistingdirectory(self,
-                                                     _("Select directory"),
-                                                     self.location))
+        location = osp.normpath(
+            getexistingdirectory(
+                self,
+                _("Select directory"),
+                self.location,
+            )
+        )
 
         if location:
             if is_writable(location):
@@ -185,12 +190,15 @@ class ProjectDialog(QDialog):
 
     def create_project(self):
         """Create project."""
-        packages = ['python={0}'.format(self.combo_python_version.currentText())]
+        self.project_data = {
+            "root_path": self.text_location.text(),
+            "project_type": self.combo_project_type.currentData(),
+        }
         self.sig_project_creation_requested.emit(
             self.text_location.text(),
             self.combo_project_type.currentData(),
-            packages)
-
+            [],
+        )
         self.accept()
 
 

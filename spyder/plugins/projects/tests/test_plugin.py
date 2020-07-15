@@ -91,6 +91,7 @@ def create_projects(projects, mocker):
             projects.main.editor, 'get_open_filenames', return_value=files)
 
         return projects
+
     return _create_projects
 
 
