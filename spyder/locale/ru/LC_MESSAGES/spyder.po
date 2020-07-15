@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-15 23:46\n"
+"PO-Revision-Date: 2020-07-15 23:57\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1051,7 +1051,7 @@ msgstr "Скрыть навсегда"
 
 #: spyder/plugins/completion/kite/widgets/install.py:68
 msgid "Now Spyder can use <a href=\"{kite_url}\">Kite</a> to provide better and more accurate code completions in its editor <br>for the most important packages in the Python scientific ecosystem, such as Numpy, <br>Matplotlib and Pandas.<br><br>Would you like to install it or learn more about it?<br><br><i>Note:</i> Kite is free to use but is not an open source program."
-msgstr ""
+msgstr "Теперь Spyder может использовать <a href=\"{kite_url}\">Kite</a> для более качественного и точного дополнения кода в редакторе <br>для наиболее важных пакетов научной экосистемы Python, такие как Numpy, <br>Matplotlib и Pandas.<br><br>Хотите установить или узнать больше об этом?<br><br><i>Примечание:</i> Kite является бесплатным, но не является программой с открытым исходным кодом."
 
 #: spyder/plugins/completion/kite/widgets/install.py:80
 msgid "Learn more"
@@ -1098,7 +1098,8 @@ msgstr "Установка Kite продолжится в фоновом реж�
 #: spyder/plugins/completion/kite/widgets/status.py:59
 msgid "Click here to show the\n"
 "installation dialog again"
-msgstr ""
+msgstr "Нажмите здесь, чтобы\n"
+"снова показать диалог установки"
 
 #: spyder/plugins/completion/languageserver/confpage.py:111
 msgid "Valid JSON"
@@ -1338,15 +1339,15 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:852
 msgid "Check Python files: *.py"
-msgstr ""
+msgstr "Проверять файлы Python: *.py"
 
 #: spyder/plugins/completion/languageserver/confpage.py:854
 msgid "Exclude files or directories matching these patterns:"
-msgstr ""
+msgstr "Исключить файлы или директории, соответствующие этим шаблонам:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:856
 msgid "Exclude all test files: (?!test_).*\\.py"
-msgstr ""
+msgstr "Исключить все файлы тестов: (?!test_).*\\.py"
 
 #: spyder/plugins/completion/languageserver/confpage.py:858
 msgid "Show the following errors or warnings:"
@@ -1406,7 +1407,7 @@ msgstr "Примеры кодов: D107, D402"
 
 #: spyder/plugins/completion/languageserver/confpage.py:944
 msgid "Skip test files: (?!test_).*\\.py"
-msgstr "Пропускать тестовые файлы: (?!test_).*\\.py"
+msgstr "Пропускать файлы тестов: (?!test_).*\\.py"
 
 #: spyder/plugins/completion/languageserver/confpage.py:946
 msgid "Only check in directories matching these patterns:"
@@ -5853,27 +5854,27 @@ msgstr "Комбинация клавиш: {0}"
 
 #: spyder/preferences/shortcuts.py:391
 msgid "This key sequence conflicts with:"
-msgstr ""
+msgstr "Эта последовательность нажатий конфликтует с:"
 
 #: spyder/preferences/shortcuts.py:398
 msgid "Press 'Ok' to unbind it and assign it to"
-msgstr ""
+msgstr "Нажмите 'Ок', чтобы отвязать его и назначить на"
 
 #: spyder/preferences/shortcuts.py:400
 msgid "Press 'Ok' to unbind them and assign it to"
-msgstr ""
+msgstr "Нажмите 'Ок', чтобы отвязать их и назначить на"
 
 #: spyder/preferences/shortcuts.py:406
 msgid "This key sequence is forbidden."
-msgstr ""
+msgstr "Эта последовательность нажатий запрещена."
 
 #: spyder/preferences/shortcuts.py:410
 msgid "This key sequence is invalid."
-msgstr ""
+msgstr "Эта последовательность нажатий некорректна."
 
 #: spyder/preferences/shortcuts.py:414
 msgid "This key sequence is valid."
-msgstr ""
+msgstr "Эта последовательность нажатий корректна."
 
 #: spyder/preferences/shortcuts.py:577
 msgid "Context"
@@ -5897,7 +5898,7 @@ msgstr "Комбинации клавиш"
 
 #: spyder/preferences/shortcuts.py:838
 msgid "Search for a shortcut in the table above"
-msgstr ""
+msgstr "Искать сочетание клавиш в таблице выше"
 
 #: spyder/preferences/shortcuts.py:839
 msgid "Search: "
@@ -5905,7 +5906,7 @@ msgstr "Поиск: "
 
 #: spyder/preferences/shortcuts.py:842
 msgid "Here you can browse the list of all available shortcuts in Spyder. You can also customize them by double-clicking on any entry in this table."
-msgstr ""
+msgstr "Здесь вы можете просмотреть список всех доступных сочетаний клавиш Spyder. Также вы можете изменить их с помощью двойного клика на любой записи в таблице."
 
 #: spyder/preferences/shortcuts.py:879
 msgid "Shortcuts reset"
@@ -6101,15 +6102,15 @@ msgstr "Обязательно"
 
 #: spyder/widgets/dependencies.py:45
 msgid "Spyder plugins"
-msgstr ""
+msgstr "Плагины Spyder"
 
 #: spyder/widgets/dependencies.py:88
 msgid "Optional modules are not required to run Spyder but enhance its functions."
-msgstr ""
+msgstr "Необязательные модули не требуются для запуска Spyder, но улучшают его работу."
 
 #: spyder/widgets/dependencies.py:90
 msgid "<b>Note:</b> New dependencies or changed ones will be correctly detected only after Spyder is restarted."
-msgstr ""
+msgstr "<b>Примечание:</b> Новые или измененные зависимости будут правильно определены только после перезапуска Spyder."
 
 #: spyder/widgets/dependencies.py:94
 msgid "Copy to clipboard"
@@ -6205,7 +6206,7 @@ msgstr "Не удалось сохранить токен"
 
 #: spyder/widgets/github/backend.py:188
 msgid "It was not possible to securely save your token. You will be prompted for your Github token next time you want to report an issue."
-msgstr ""
+msgstr "Не удалось безопасно сохранить ваш токен. В следующий раз, когда вы захотите сообщить о проблеме, у вас будет запрошен токен Github."
 
 #: spyder/widgets/github/backend.py:210
 msgid "Failed to retrieve token"
@@ -6253,11 +6254,11 @@ msgstr "Восстановить оригинальную структуру д�
 
 #: spyder/widgets/onecolumntree.py:66
 msgid "Collapse section"
-msgstr ""
+msgstr "Свернуть раздел"
 
 #: spyder/widgets/onecolumntree.py:72
 msgid "Expand section"
-msgstr ""
+msgstr "Развернуть раздел"
 
 #: spyder/widgets/pathmanager.py:113
 msgid "Move to top"
@@ -6313,7 +6314,7 @@ msgstr ""
 
 #: spyder/widgets/pathmanager.py:383
 msgid "Do you really want to remove the selected path?"
-msgstr ""
+msgstr "Вы действительно хотите удалить выбранный путь?"
 
 #: spyder/widgets/reporterror.py:131
 msgid "Issue reporter"
