@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-16 18:37\n"
+"PO-Revision-Date: 2020-07-16 18:47\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -5742,7 +5742,7 @@ msgstr "Удалить все переменные перед запуском"
 
 #: spyder/preferences/runconfig.py:46
 msgid "Run in console's namespace instead of an empty one"
-msgstr ""
+msgstr "Запускать в пространстве имен консоли вместо пустого пространства"
 
 #: spyder/preferences/runconfig.py:47
 msgid "Directly enter debugging when errors appear"
@@ -5814,7 +5814,7 @@ msgstr "Диалог Настроек Запуска"
 
 #: spyder/preferences/shortcuts.py:171
 msgid "Press the new shortcut and select 'Ok' to confirm, click 'Cancel' to revert to the previous state, or use 'Clear' to unbind the command from a shortcut."
-msgstr ""
+msgstr "Введите новое сочетание клавиш и выберите \"Ок\" для подтверждения, нажмите \"Отмена\" для возвращения в предыдущее состояние или используйте \"Очистить\", чтобы отвязать команду от сочетания клавиш."
 
 #: spyder/preferences/shortcuts.py:182
 msgid "Current shortcut:"
