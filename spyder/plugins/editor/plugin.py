@@ -1321,6 +1321,8 @@ class Editor(SpyderPluginWidget):
             ('set_tabbar_visible',                  'show_tab_bar'),
             ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
+            ('set_remove_trailling_newlines',        'always_remove_trailing_newlines'),
+            ('set_add_newline',                     'add_newline'),
             ('set_convert_eol_on_save',             'convert_eol_on_save'),
             ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
                     )
@@ -2802,7 +2804,7 @@ class Editor(SpyderPluginWidget):
             add_newline_n = 'add_newline'
             add_newline_o = self.get_option(add_newline_n)
             removetrail_newlines_n = 'always_remove_trailing_newlines'
-            removetrail_newlines_o = self.get_option(removetrail_newline_o)
+            removetrail_newlines_o = self.get_option(removetrail_newlines_n)
             converteol_n = 'convert_eol_on_save'
             converteol_o = self.get_option(converteol_n)
             converteolto_n = 'convert_eol_on_save_to'

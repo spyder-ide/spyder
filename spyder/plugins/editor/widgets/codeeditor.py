@@ -831,7 +831,9 @@ class CodeEditor(TextEditBaseWidget):
                      scroll_past_end=False,
                      show_debug_panel=True,
                      folding=True,
-                     remove_trailling_spaces=False):
+                     remove_trailling_spaces=False,
+                     remove_trailling_newlines=False,
+                     add_newline=False):
         """
         Set-up configuration for the CodeEditor instance.
 
@@ -906,6 +908,12 @@ class CodeEditor(TextEditBaseWidget):
             its end. Default False.
         show_debug_panel: Enable/Disable debug panel. Default True.
         folding: Enable/Disable code folding. Default True.
+        remove_trailling_spaces: Remove trailling whitespaces on lines.
+            Default False.
+        remove_trailling_newlines: Remove extra lines at the end of the file.
+            Default False.
+        add_newline: Add a newline at the end of the file if there is not one.
+            Default False.
         """
 
         self.set_close_parentheses_enabled(close_parentheses)
@@ -942,6 +950,12 @@ class CodeEditor(TextEditBaseWidget):
 
         # Remove trailling whitespaces
         self.set_remove_trailling_spaces(remove_trailling_spaces)
+
+        # Remove trailling newlines
+        self.set_remove_trailling_newlines(remove_trailling_newlines)
+
+        # Add newline at the end
+        self.set_add_newline(add_newline)
 
         # Scrolling past the end
         self.set_scrollpastend_enabled(scroll_past_end)
@@ -1877,6 +1891,50 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.NextBlock)
         cursor.endEditBlock()
         self.document_did_change()
+
+    def trim_trailling_newlines(self):
+        cursor = self.textCursor()
+        cursor.beginEditBlock()
+        cursor.movePosition(QTextCursor.End)
+        line = cursor.blockNumber()
+        this_line = self.get_text_line(line)
+        previous_line = self.get_text_line(line - 1)
+
+        while this_line == '':
+            cursor.movePosition(QTextCursor.PreviousBlock,
+                                QTextCursor.KeepAnchor)
+
+            if self.add_newline:
+                if this_line == '' and previous_line != '':
+                    cursor.movePosition(QTextCursor.NextBlock,
+                                        QTextCursor.KeepAnchor)
+
+            line -= 1
+            if line == 0:
+                break
+
+            this_line = self.get_text_line(line)
+            previous_line = self.get_text_line(line - 1)
+
+        if not self.add_newline:
+            cursor.movePosition(QTextCursor.EndOfBlock,
+                                QTextCursor.KeepAnchor)
+
+        cursor.removeSelectedText()
+        cursor.endEditBlock()
+        self.document_did_change()
+
+    def add_newline_to_file(self):
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        line = cursor.blockNumber()
+        this_line = self.get_text_line(line)
+        if this_line != '':
+            cursor.beginEditBlock()
+            cursor.movePosition(QTextCursor.EndOfBlock)
+            cursor.insertText(self.get_line_separator())
+            cursor.endEditBlock()
+            self.document_did_change()
 
     def fix_indentation(self):
         """Replace tabs by spaces."""

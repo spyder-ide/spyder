@@ -2017,6 +2017,10 @@ class EditorStack(QWidget):
             return True
         if self.always_remove_trailing_spaces:
             self.remove_trailing_spaces(index)
+        if self.remove_trailling_newlines:
+            self.trim_trailling_newlines(index)
+        if self.add_newline:
+            self.add_newline_to_file(index)
         if self.convert_eol_on_save:
             # hack to account for the fact that the config file saves
             # CR/LF/CRLF while set_os_eol_chars wants the os.name value.
@@ -2643,7 +2647,9 @@ class EditorStack(QWidget):
             show_class_func_dropdown=self.show_class_func_dropdown,
             indent_guides=self.indent_guides,
             folding=self.code_folding_enabled,
-            remove_trailling_spaces=self.always_remove_trailing_spaces
+            remove_trailling_spaces=self.always_remove_trailing_spaces,
+            remove_trailling_newlines=self.remove_trailling_newlines,
+            add_newline=self.add_newline
         )
         if cloned_from is None:
             editor.set_text(txt)
@@ -2797,6 +2803,18 @@ class EditorStack(QWidget):
             index = self.get_stack_index()
         finfo = self.data[index]
         finfo.editor.remove_trailing_spaces()
+
+    def trim_trailling_newlines(self, index=None):
+        if index is None:
+            index = self.get_stack_index()
+        finfo = self.data[index]
+        finfo.editor.trim_trailling_newlines()
+
+    def add_newline_to_file(self, index=None):
+        if index is None:
+            index = self.get_stack_index()
+        finfo = self.data[index]
+        finfo.editor.add_newline_to_file()
 
     def fix_indentation(self, index=None):
         """Replace tab characters by spaces"""

@@ -752,9 +752,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                                 QTextCursor.KeepAnchor)
         self.setTextCursor(cursor)
 
-    def delete_line(self):
+    def delete_line(self, cursor=None):
         """Delete current line."""
-        cursor = self.textCursor()
+        if cursor is None:
+            cursor = self.textCursor()
         if self.has_selected_text():
             self.extend_selection_to_complete_lines()
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
