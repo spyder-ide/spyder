@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: false 
       matrix:
-        PYTHON_VERSION: ['3.7', '3.6', '2.7']
+        PYTHON_VERSION: ['3.7', '3.6']
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
