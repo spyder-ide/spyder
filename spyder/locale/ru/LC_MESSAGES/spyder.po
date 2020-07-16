@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-16 18:08\n"
+"PO-Revision-Date: 2020-07-16 18:37\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -5554,11 +5554,11 @@ msgstr "Открывать файлы из Finder с помощью Spyder"
 
 #: spyder/preferences/general.py:170
 msgid "Register Spyder with the Launch Services"
-msgstr ""
+msgstr "Зарегистрировать Spyder с помощью Launch Services"
 
 #: spyder/preferences/general.py:178
 msgid "Launch Spyder with <code>python.app</code> to enable Apple event integrations."
-msgstr ""
+msgstr "Запустите Spyder с помощью <code>python.app</code>, чтобы включить интеграцию с событиями Apple."
 
 #: spyder/preferences/general.py:185
 msgid "Status bar"
@@ -5578,7 +5578,7 @@ msgstr "Показывать загрузку ЦП каждые"
 
 #: spyder/preferences/general.py:207
 msgid "Show clock"
-msgstr ""
+msgstr "Показать часы"
 
 #: spyder/preferences/general.py:235
 msgid "Screen resolution"
@@ -5660,7 +5660,7 @@ msgstr "Исполняемые файлы"
 
 #: spyder/preferences/maininterpreter.py:92
 msgid "Recent custom interpreters"
-msgstr ""
+msgstr "Недавние пользовательские интерпретаторы"
 
 #: spyder/preferences/maininterpreter.py:107
 msgid "User Module Reloader (UMR)"
@@ -5700,7 +5700,7 @@ msgstr "Вы выбрали интерпретатор <b>Python %d</b> для �
 
 #: spyder/preferences/maininterpreter.py:192 spyder/preferences/maininterpreter.py:219 spyder/preferences/maininterpreter.py:223
 msgid "UMR"
-msgstr ""
+msgstr "UMR"
 
 #: spyder/preferences/maininterpreter.py:193
 msgid "Set the list of excluded modules as this: <i>numpy, scipy</i>"
@@ -5766,7 +5766,7 @@ msgstr "Опции командной строки:"
 
 #: spyder/preferences/runconfig.py:210 spyder/preferences/runconfig.py:527
 msgid "Working directory settings"
-msgstr ""
+msgstr "Настройки рабочей папки"
 
 #: spyder/preferences/runconfig.py:234 spyder/preferences/runconfig.py:561
 msgid "External system terminal"
@@ -5846,7 +5846,7 @@ msgstr "Очистить все последовательности нажат�
 
 #: spyder/preferences/shortcuts.py:214
 msgid "Remove last key sequence entered"
-msgstr ""
+msgstr "Удалить последнюю введенную последовательность клавиш"
 
 #: spyder/preferences/shortcuts.py:224
 msgid "Shortcut: {0}"
