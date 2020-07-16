@@ -852,6 +852,8 @@ class FindInFilesWidget(PluginMainWidget):
         self.supported_encodings = self.get_option('supported_encodings')
         self.search_thread = None
         self.running = False
+        self.more_options_action = None
+        self.extras_toolbar = None
 
         search_text = self.get_option('search_text')
         path_history = self.get_option('path_history')
@@ -1039,7 +1041,9 @@ class FindInFilesWidget(PluginMainWidget):
 
         self.find_action.setIconText(icon_text)
         self.find_action.setIcon(icon)
-        self.extras_toolbar.setVisible(self.more_options_action.isChecked())
+        if self.extras_toolbar and self.more_options_action:
+            self.extras_toolbar.setVisible(
+                self.more_options_action.isChecked())
 
     def on_option_update(self, option, value):
         if option == 'more_options':
@@ -1050,9 +1054,13 @@ class FindInFilesWidget(PluginMainWidget):
                 icon = self.create_icon('options_more')
                 tip = _('Show advanced options')
 
-            self.extras_toolbar.setVisible(value)
-            self.more_options_action.setIcon(icon)
-            self.more_options_action.setToolTip(tip)
+            if self.extras_toolbar:
+                self.extras_toolbar.setVisible(value)
+
+            if self.more_options_action:
+                self.more_options_action.setIcon(icon)
+                self.more_options_action.setToolTip(tip)
+
         elif option == 'max_results':
             self.result_browser.set_max_results(value)
 
