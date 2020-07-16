@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-16 18:47\n"
+"PO-Revision-Date: 2020-07-16 18:57\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -5266,11 +5266,11 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:172 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:194
 msgid "Show __special__ attributes"
-msgstr ""
+msgstr "Показывать __специальные__ атрибуты"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:174
 msgid "Shows or hides __special__ attributes"
-msgstr ""
+msgstr "Показывает или скрывает __специальные__ атрибуты"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:271
 msgid "Details"
@@ -5278,7 +5278,7 @@ msgstr "Подробности"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/toggle_column_mixin.py:65
 msgid "Shows or hides the {} column"
-msgstr ""
+msgstr "Показывает или скрывает колонку {}"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:52
 msgid "<TreeItem(0x{:x}): {} = {}>"
@@ -5611,11 +5611,12 @@ msgstr "Установить для экранов с высоким DPI, есл
 #: spyder/preferences/general.py:269
 msgid "Enter values for different screens separated by semicolons ';'.\n"
 "Float values are supported"
-msgstr ""
+msgstr "Введите значения для разных экранов, разделённые точкой с запятой \";\".\n"
+"Значения с плавающей точкой поддерживаются"
 
 #: spyder/preferences/general.py:323
 msgid "We're sorry but setting a scale factor bellow 1.0 isn't possible. Any scale factor bellow 1.0 will be set to 1.0"
-msgstr ""
+msgstr "Извините, но коэффициент масштабирования меньше 1.0 не возможен. Любой коэффициент меньше 1.0 будет установлен в 1.0"
 
 #: spyder/preferences/general.py:348
 msgid "We're sorry but the following error occurred while trying to set your selected language:<br><br><tt>{}</tt>"
