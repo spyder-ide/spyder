@@ -107,7 +107,7 @@ jobs:
           conda info
           conda list
       - name: Run manifest checks
-        if: env.RUN_BUILD == 'true' && matrix.PYTHON_VERSION != '2.7'
+        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: check-manifest
       - name: Run tests
