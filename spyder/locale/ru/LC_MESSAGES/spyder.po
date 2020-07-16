@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-16 19:35\n"
+"PO-Revision-Date: 2020-07-16 19:52\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -3896,7 +3896,7 @@ msgstr "Ошибка:<br><br><tt>{}</tt>"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1481
 msgid "IPython"
-msgstr ""
+msgstr "IPython"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1482
 msgid "Unable to connect to <b>%s</b>"
@@ -3908,7 +3908,7 @@ msgstr "Ошибка соединения"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1550
 msgid "An error occurred while trying to load the kernel connection file. The error was:\n\n"
-msgstr ""
+msgstr "Произошла ошибка при попытке загрузить файл подключения к ядру. Ошибка:\n\n"
 
 #: spyder/plugins/ipythonconsole/plugin.py:1570
 msgid "Could not open ssh tunnel. The error was:\n\n"
@@ -4006,11 +4006,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:48
 msgid "Connection file:"
-msgstr ""
+msgstr "Файл подключения:"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:50
 msgid "Kernel connection file path"
-msgstr ""
+msgstr "Путь к файлу подключения ядра"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:52 spyder/plugins/ipythonconsole/widgets/kernelconnect.py:86
 msgid "Browse"
@@ -4022,7 +4022,7 @@ msgstr "Это удалённо-управляемое ядро (через SSH)
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:64
 msgid "Hostname:"
-msgstr ""
+msgstr "Имя хоста:"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:70
 msgid "Username:"
@@ -4030,7 +4030,7 @@ msgstr "Имя пользователя:"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:74
 msgid "Authentication method:"
-msgstr ""
+msgstr "Метод проверки подлинности:"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:76
 msgid "Password:"
@@ -4046,11 +4046,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:94 spyder/widgets/dependencies.py:41
 msgid "Optional"
-msgstr ""
+msgstr "Необязательный"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:147
 msgid "Save connection settings"
-msgstr ""
+msgstr "Сохранить настройки подключения"
 
 #: spyder/plugins/ipythonconsole/widgets/kernelconnect.py:235
 msgid "Select kernel connection file"
@@ -4062,15 +4062,15 @@ msgstr "Выберите файл ключа SSH"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:90
 msgid "The variable is too big to be retrieved"
-msgstr ""
+msgstr "Переменная слишком велика для получения"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:91
 msgid "The variable is not picklable"
-msgstr ""
+msgstr "Не удалось выгрузить значение переменной с помощью pickle"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:92
 msgid "The kernel is dead"
-msgstr ""
+msgstr "Ядро не работает"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:93
 msgid "%s.<br><br>Note: Please don't report this problem on Github, there's nothing to do about it."
@@ -4090,11 +4090,11 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:149
 msgid "Data is too big to be loaded"
-msgstr ""
+msgstr "Данные слишком велики для загрузки"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:161
 msgid "Data is too big to be saved"
-msgstr ""
+msgstr "Данные слишком велики для сохранения"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:346
 msgid "All user-defined variables will be removed. Are you sure you want to proceed?"
@@ -4108,7 +4108,7 @@ msgstr "<br><br>Удаление всех переменных...\n"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:552
 msgid "Changing backend to Qt for Mayavi"
-msgstr ""
+msgstr "Изменение бэкэнда на Qt для Mayavi"
 
 #: spyder/plugins/ipythonconsole/widgets/shell.py:677
 msgid "Kernel died, restarting"
@@ -4140,11 +4140,11 @@ msgstr ""
 
 #: spyder/plugins/onlinehelp/widgets.py:161
 msgid "Package:"
-msgstr ""
+msgstr "Пакет:"
 
 #: spyder/plugins/outlineexplorer/api.py:230
 msgid "Unnamed Cell"
-msgstr ""
+msgstr "Безымянная ячейка"
 
 #: spyder/plugins/outlineexplorer/plugin.py:60 spyder/plugins/outlineexplorer/widgets.py:213
 msgid "Outline"
@@ -4184,11 +4184,11 @@ msgstr "Показать специальные комментарии"
 
 #: spyder/plugins/outlineexplorer/widgets.py:248
 msgid "Group code cells"
-msgstr ""
+msgstr "Сгруппировать ячейки кода"
 
 #: spyder/plugins/outlineexplorer/widgets.py:252
 msgid "Sort files alphabetically"
-msgstr ""
+msgstr "Сортировать файлы по алфавиту"
 
 #: spyder/plugins/outlineexplorer/widgets.py:769
 msgid "Show/hide outline explorer"
@@ -4196,35 +4196,35 @@ msgstr "Показать/скрыть менеджер структуры"
 
 #: spyder/plugins/plots/plugin.py:133
 msgid "Plots"
-msgstr ""
+msgstr "Графики"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:164 spyder/plugins/plots/widgets/figurebrowser.py:1108
 msgid "Save plot as..."
-msgstr ""
+msgstr "Сохранить график как..."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:171
 msgid "Save all plots..."
-msgstr ""
+msgstr "Сохранить все графики..."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:178
 msgid "Copy plot to clipboard as image"
-msgstr ""
+msgstr "Копировать график как изображение"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:185 spyder/plugins/plots/widgets/figurebrowser.py:1118
 msgid "Remove plot"
-msgstr ""
+msgstr "Удалить график"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:192
 msgid "Remove all plots"
-msgstr ""
+msgstr "Удалить все графики"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:202
 msgid "Previous plot"
-msgstr ""
+msgstr "Предыдущий график"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:209
 msgid "Next plot"
-msgstr ""
+msgstr "Следующий график"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:257
 msgid "Mute inline plotting"
@@ -4462,7 +4462,7 @@ msgstr "Проекты"
 
 #: spyder/plugins/projects/plugin.py:406
 msgid "Maximum number of recent projects"
-msgstr ""
+msgstr "Максимальное количество недавних проектов"
 
 #: spyder/plugins/projects/projecttypes/__init__.py:91
 msgid "Empty project"
@@ -4764,7 +4764,7 @@ msgstr "Spyder не может показать переменную или об
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:145
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The error message was:<br>%s"
-msgstr ""
+msgstr "Spyder не может получить значение переменной из консоли.<br><br>Сообщение об ошибке:<br>%s"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:376
 msgid "Edit item"
@@ -4776,7 +4776,7 @@ msgstr "<b>Невозможно назначить данные элементу
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:465
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The error message was:<br><i>%s</i>"
-msgstr ""
+msgstr "Spyder не может получить значение переменной из консоли.<br><br>Сообщение об ошибке:<br><i>%s</i>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:164 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:853 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:858
 msgid "Index"
