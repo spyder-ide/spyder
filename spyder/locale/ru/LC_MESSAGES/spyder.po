@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-16 18:57\n"
+"PO-Revision-Date: 2020-07-16 19:35\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -4458,7 +4458,7 @@ msgstr "<b>Невозможно удалить <i>{varpath}</i></b><br><br>Со�
 
 #: spyder/plugins/projects/plugin.py:405
 msgid "Projects"
-msgstr ""
+msgstr "Проекты"
 
 #: spyder/plugins/projects/plugin.py:406
 msgid "Maximum number of recent projects"
@@ -4562,11 +4562,11 @@ msgstr "Результаты хранятся здесь:"
 
 #: spyder/plugins/pylint/plugin.py:83
 msgid "Code Analysis"
-msgstr ""
+msgstr "Анализ кода"
 
 #: spyder/plugins/pylint/plugin.py:113
 msgid "Run code analysis"
-msgstr ""
+msgstr "Запустить анализ кода"
 
 #: spyder/plugins/pylint/widgets/pylintgui.py:81
 msgid "Results for "
@@ -4642,7 +4642,7 @@ msgstr "Исключить неподдерживаемые типы данны�
 
 #: spyder/plugins/variableexplorer/confpage.py:26 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:321
 msgid "Exclude callables and modules"
-msgstr ""
+msgstr "Исключить вызываемые объекты и модули"
 
 #: spyder/plugins/variableexplorer/confpage.py:32 spyder/plugins/variableexplorer/widgets/collectionseditor.py:586
 msgid "Show arrays min/max"
@@ -4690,7 +4690,7 @@ msgstr "Длина аргумента 'ylabels' не соответствует 
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:697
 msgid "Object arrays without shape are not supported"
-msgstr ""
+msgstr "Массивы объектов без формы не поддерживаются"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:705
 msgid "%s arrays"
@@ -4702,7 +4702,7 @@ msgstr "%s на данный момент не поддерживается"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:713
 msgid "NumPy object array"
-msgstr ""
+msgstr "Массив объектов NumPy"
 
 #: spyder/plugins/variableexplorer/widgets/arrayeditor.py:715 spyder/plugins/variableexplorer/widgets/arrayeditor.py:898
 msgid "Array editor"
@@ -4756,11 +4756,11 @@ msgstr "Открытие этой переменной может занять �
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:126
 msgid "Spyder is unable to show the {val_type} or object you're trying to view because <tt>{module}</tt> was not installed alongside Spyder. Please install this package in your Spyder environment.<br>"
-msgstr ""
+msgstr "Spyder не может показать {val_type} или объект, который вы пытаетесь просмотреть, потому что <tt>{module}</tt> не был установлен вместе с Spyder. Пожалуйста, установите этот пакет в вашу среду Spyder.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:135
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> was not found in your  Spyder environment. Please install this package in your Spyder environment.<br>"
-msgstr ""
+msgstr "Spyder не может показать переменную или объект, который вы пытаетесь просмотреть, потому что <tt>{module}</tt> не был установлен вместе с Spyder. Пожалуйста, установите этот пакет в вашу среду Spyder.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:145
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The error message was:<br>%s"
@@ -4828,7 +4828,7 @@ msgstr "Размер строк по содержимому"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:553
 msgid "Resize columns to contents"
-msgstr ""
+msgstr "Изменять ширину столбцов по содержимому"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:564 spyder/plugins/variableexplorer/widgets/collectionseditor.py:991 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1009
 msgid "Plot"
@@ -4856,7 +4856,7 @@ msgstr "Создать копию"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:598
 msgid "View with the Object Explorer"
-msgstr ""
+msgstr "Просмотр в Обозревателе объектов"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:878
 msgid "Do you want to remove the selected item?"
@@ -4958,7 +4958,7 @@ msgstr "В строку"
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:647
 msgid "Text can't be copied."
-msgstr ""
+msgstr "Текст не может быть скопирован."
 
 #: spyder/plugins/variableexplorer/widgets/dataframeeditor.py:924
 msgid "%s editor"
@@ -5042,7 +5042,7 @@ msgstr "список"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:459
 msgid "DataFrame"
-msgstr ""
+msgstr "DataFrame"
 
 #: spyder/plugins/variableexplorer/widgets/importwizard.py:505 spyder/plugins/variableexplorer/widgets/importwizard.py:589
 msgid "Import wizard"
@@ -5086,11 +5086,11 @@ msgstr "Сохранить данные как..."
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:269
 msgid "Search variable names and types"
-msgstr ""
+msgstr "Поиск имен и типов переменных"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:275
 msgid "Refresh variables"
-msgstr ""
+msgstr "Обновить переменные"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:291
 msgid "Exclude references which name starts with an underscore"
@@ -5122,55 +5122,55 @@ msgstr "Открыть файл как:"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:478
 msgid "<b>Unable to load '%s'</b><br><br>The error message was:<br>%s"
-msgstr ""
+msgstr "<b>Невозможно загрузить '%s'</b><br><br>Сообщение об ошибке:<br>%s"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:514
 msgid "<b>Some objects could not be saved:</b>"
-msgstr ""
+msgstr "<b>Некоторые объекты не могут быть сохранены:</b>"
 
 #: spyder/plugins/variableexplorer/widgets/namespacebrowser.py:518
 msgid "<b>Unable to save current workspace</b><br><br>The error message was:<br>"
-msgstr ""
+msgstr "<b>Не удалось сохранить текущую рабочее окружение</b><br><br>Сообщение об ошибке:<br>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:115
 msgid "empty {}"
-msgstr ""
+msgstr "пустой {}"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:117
 msgid "{} of {} item"
-msgstr ""
+msgstr "{} из {} элемента"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:119
 msgid "{} of {} items"
-msgstr ""
+msgstr "{} из {} элементов"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:121
 msgid "array of {}, shape: {}"
-msgstr ""
+msgstr "массив из {}, форма: {}"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:151
 msgid "<no doc string found>"
-msgstr ""
+msgstr "<docstring не найдена>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:162
 msgid "<no help available>"
-msgstr ""
+msgstr "<справка недоступна>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:201
 msgid "<AttributeModel for {!r}>"
-msgstr ""
+msgstr "<AttributeModel для {!r}>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:217
 msgid "The value of the object."
-msgstr ""
+msgstr "Значение объекта."
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:224
 msgid "The name of the object."
-msgstr ""
+msgstr "Имя объекта."
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:226 spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:235
 msgid "<root>"
-msgstr ""
+msgstr "<корень>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:233
 msgid "A path to the data: e.g. var[1]['a'].item"
@@ -5226,43 +5226,43 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:366
 msgid "The object's doc string"
-msgstr ""
+msgstr "Строка документации объекта"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:374
 msgid "The object's doc string, leaned up by inspect.getdoc()"
-msgstr ""
+msgstr "Строка документации объекта, полученная с помощью inspect.getdoc()"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:382
 msgid "Comments above the object's definition. Retrieved using inspect.getcomments()"
-msgstr ""
+msgstr "Комментарии выше определения объекта. Получены с помощью inspect.getcomments()"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:391
 msgid "The object's module. Retrieved using inspect.module"
-msgstr ""
+msgstr "Модуль объекта. Получен с помощью inspect.module"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:399
 msgid "The object's file. Retrieved using inspect.getfile"
-msgstr ""
+msgstr "Файл объекта. Получен с помощью inspect.getfile"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:407
 msgid "The object's file. Retrieved using inspect.getsourcefile"
-msgstr ""
+msgstr "Файл объекта. Получен с помощью inspect.getsourcefile"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:415
 msgid "Uses inspect.getsourcelines() to get a list of source lines for the object"
-msgstr ""
+msgstr "Использует inspect.getsourcelines() для получения списка исходных строк объекта"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/attribute_model.py:424
 msgid "The source code of an object retrieved using inspect.getsource"
-msgstr ""
+msgstr "Исходный код объекта получен с помощью inspect.getsource"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:161 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:186
 msgid "Show callable attributes"
-msgstr ""
+msgstr "Показывать вызываемые атрибуты"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:163
 msgid "Shows/hides attributes that are callable (functions, methods, etc)"
-msgstr ""
+msgstr "Скрывает/показывает вызываемые атрибуты (функции, методы и т.д.)"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:172 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:194
 msgid "Show __special__ attributes"
@@ -5286,11 +5286,11 @@ msgstr "<TreeItem(0x{:x}): {} = {}>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:57 spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:64
 msgid "<TreeItem(0x{:x}): {} ({:d} children)>"
-msgstr "<TreeItem(0x{:x}): {} ({:d} children)>"
+msgstr "<TreeItem(0x{:x}): {} ({:d} детей)>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_model.py:319 spyder/plugins/variableexplorer/widgets/objectexplorer/tree_model.py:320
 msgid "<invisible_root>"
-msgstr "<invisible_root>"
+msgstr "<невидимый корень>"
 
 #: spyder/plugins/variableexplorer/widgets/texteditor.py:98
 msgid "Text editor"
