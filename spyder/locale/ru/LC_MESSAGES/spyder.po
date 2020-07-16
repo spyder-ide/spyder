@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-16 19:52\n"
+"PO-Revision-Date: 2020-07-16 20:07\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -4228,35 +4228,35 @@ msgstr "Следующий график"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:257
 msgid "Mute inline plotting"
-msgstr ""
+msgstr "Отключить рисование встроенного графика"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:258
 msgid "Mute inline plotting in the ipython console."
-msgstr ""
+msgstr "Отключает рисование графика внутри консоли ipython."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:265
 msgid "Show plot outline"
-msgstr ""
+msgstr "Показывать рамку графика"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:266
 msgid "Show the plot outline."
-msgstr ""
+msgstr "Показывать рамку вокруг графика."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:272
 msgid "Fit plots to window"
-msgstr ""
+msgstr "Подгонять графики под окно"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:273
 msgid "Automatically fit plots to Plot pane size."
-msgstr ""
+msgstr "Автоматически подстраивать размер графика под размер панели."
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:623
 msgid "The image is broken, please try to generate it again"
-msgstr ""
+msgstr "Изображение испорчено, попробуйте сгенерировать его заново"
 
 #: spyder/plugins/plots/widgets/figurebrowser.py:1113
 msgid "Copy Image"
-msgstr ""
+msgstr "Копировать изображение"
 
 #: spyder/plugins/profiler/confpage.py:19 spyder/plugins/pylint/confpage.py:39
 msgid "Results"
@@ -4358,7 +4358,7 @@ msgstr "Процесс не удалось запустить"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:363
 msgid "Run stopped by user."
-msgstr ""
+msgstr "Выполнение прервано пользователем."
 
 #: spyder/plugins/profiler/widgets/profilergui.py:367
 msgid "Sorting data, please wait..."
@@ -4390,7 +4390,7 @@ msgstr "Файл:строка"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:505
 msgid "Error when trying to load profiler results. The error was<br><br><tt>{0}</tt>"
-msgstr ""
+msgstr "Ошибка при попытке загрузить результаты профилирования. Ошибка: <br><br><tt>{0}</tt>"
 
 #: spyder/plugins/profiler/widgets/profilergui.py:662
 msgid "Function or module name"
@@ -4438,7 +4438,7 @@ msgstr "Недавние проекты"
 
 #: spyder/plugins/projects/plugin.py:113
 msgid "Maximum number of recent projects..."
-msgstr ""
+msgstr "Максимальное количество недавних проектов..."
 
 #: spyder/plugins/projects/plugin.py:293
 msgid "Open project"
