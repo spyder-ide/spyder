@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-16 11:10\n"
+"PO-Revision-Date: 2020-07-16 18:08\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -5274,7 +5274,7 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:271
 msgid "Details"
-msgstr ""
+msgstr "Подробности"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/toggle_column_mixin.py:65
 msgid "Shows or hides the {} column"
@@ -5282,15 +5282,15 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:52
 msgid "<TreeItem(0x{:x}): {} = {}>"
-msgstr ""
+msgstr "<TreeItem(0x{:x}): {} = {}>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:57 spyder/plugins/variableexplorer/widgets/objectexplorer/tree_item.py:64
 msgid "<TreeItem(0x{:x}): {} ({:d} children)>"
-msgstr ""
+msgstr "<TreeItem(0x{:x}): {} ({:d} children)>"
 
 #: spyder/plugins/variableexplorer/widgets/objectexplorer/tree_model.py:319 spyder/plugins/variableexplorer/widgets/objectexplorer/tree_model.py:320
 msgid "<invisible_root>"
-msgstr ""
+msgstr "<invisible_root>"
 
 #: spyder/plugins/variableexplorer/widgets/texteditor.py:98
 msgid "Text editor"
@@ -5310,7 +5310,7 @@ msgstr "Текущий каталог проекта или домашний к�
 
 #: spyder/plugins/workingdirectory/confpage.py:42
 msgid "At startup,"
-msgstr ""
+msgstr "При запуске"
 
 #: spyder/plugins/workingdirectory/confpage.py:45 spyder/plugins/workingdirectory/confpage.py:84 spyder/preferences/runconfig.py:52
 msgid "The following directory:"
@@ -5366,11 +5366,11 @@ msgstr "Внешний вид"
 
 #: spyder/preferences/appearance.py:42
 msgid "Main interface"
-msgstr ""
+msgstr "Основной интерфейс"
 
 #: spyder/preferences/appearance.py:48
 msgid "Interface theme"
-msgstr ""
+msgstr "Тема интерфейса"
 
 #: spyder/preferences/appearance.py:60
 msgid "Qt windows style"
@@ -5382,11 +5382,11 @@ msgstr "Тема значков"
 
 #: spyder/preferences/appearance.py:83
 msgid "Syntax highlighting theme"
-msgstr ""
+msgstr "Тема подсветки синтаксиса"
 
 #: spyder/preferences/appearance.py:86
 msgid "Edit selected scheme"
-msgstr ""
+msgstr "Изменить выбранную схему"
 
 #: spyder/preferences/appearance.py:87
 msgid "Create new scheme"
@@ -5394,7 +5394,7 @@ msgstr "Создать новую схему"
 
 #: spyder/preferences/appearance.py:88
 msgid "Delete scheme"
-msgstr ""
+msgstr "Удалить схему"
 
 #: spyder/preferences/appearance.py:89 spyder/preferences/configdialog.py:140
 msgid "Reset to defaults"
@@ -5826,7 +5826,7 @@ msgstr "Новая комбинация клавиш:"
 
 #: spyder/preferences/shortcuts.py:187
 msgid "Press shortcut."
-msgstr ""
+msgstr "Нажмите сочетание клавиш."
 
 #: spyder/preferences/shortcuts.py:195
 msgid "Default"
@@ -5842,7 +5842,7 @@ msgstr "Очистить"
 
 #: spyder/preferences/shortcuts.py:210
 msgid "Clear all entered key sequences"
-msgstr ""
+msgstr "Очистить все последовательности нажатий"
 
 #: spyder/preferences/shortcuts.py:214
 msgid "Remove last key sequence entered"
