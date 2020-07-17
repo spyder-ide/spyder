@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-16 20:59\n"
+"PO-Revision-Date: 2020-07-17 14:45\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1938,23 +1938,23 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:247
 msgid "Numpy"
-msgstr ""
+msgstr "Numpy"
 
 #: spyder/plugins/editor/confpage.py:248
 msgid "Google"
-msgstr ""
+msgstr "Google"
 
 #: spyder/plugins/editor/confpage.py:249
 msgid "Sphinx"
-msgstr ""
+msgstr "Sphinx"
 
 #: spyder/plugins/editor/confpage.py:251
 msgid "Type:"
-msgstr ""
+msgstr "Тип:"
 
 #: spyder/plugins/editor/confpage.py:261
 msgid "Annotations"
-msgstr ""
+msgstr "Аннотации"
 
 #: spyder/plugins/editor/confpage.py:263
 msgid "Display a marker to the left of line numbers when the following annotations appear at the beginning of a comment: <tt>TODO, FIXME, XXX, HINT, TIP, @todo, HACK, BUG, OPTIMIZE, !!!, ???</tt>"
@@ -1982,15 +1982,15 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:291
 msgid "LF (UNIX)"
-msgstr ""
+msgstr "LF (UNIX)"
 
 #: spyder/plugins/editor/confpage.py:292
 msgid "CRLF (Windows)"
-msgstr ""
+msgstr "CRLF (Windows)"
 
 #: spyder/plugins/editor/confpage.py:293
 msgid "CR (Mac)"
-msgstr ""
+msgstr "CR (Mac)"
 
 #: spyder/plugins/editor/confpage.py:317 spyder/plugins/ipythonconsole/confpage.py:374 spyder/plugins/variableexplorer/confpage.py:31
 msgid "Display"
@@ -2006,7 +2006,7 @@ msgstr "Дополнительные настройки"
 
 #: spyder/plugins/editor/panels/classfunctiondropdown.py:47 spyder/plugins/editor/panels/classfunctiondropdown.py:48 spyder/plugins/editor/panels/classfunctiondropdown.py:138 spyder/preferences/shortcuts.py:142
 msgid "<None>"
-msgstr ""
+msgstr "<None>"
 
 #: spyder/plugins/editor/plugin.py:414
 msgid "&New file..."
@@ -2126,7 +2126,7 @@ msgstr "Поставить/Редактировать условную точк�
 
 #: spyder/plugins/editor/plugin.py:528
 msgid "Ignore Python libraries while debugging"
-msgstr ""
+msgstr "Игнорировать библиотеки Python при отладке"
 
 #: spyder/plugins/editor/plugin.py:531
 msgid "Process execute events while debugging"
@@ -2215,7 +2215,8 @@ msgstr "Выполнить &блок"
 #: spyder/plugins/editor/plugin.py:626
 msgid "Run current cell \n"
 "[Use #%% to create cells]"
-msgstr ""
+msgstr "Запустить текущую ячейку \n"
+"[Используйте #%%, чтобы создать ячейку]"
 
 #: spyder/plugins/editor/plugin.py:636 spyder/plugins/editor/widgets/codeeditor.py:3718
 msgid "Run cell and advance"
@@ -2223,15 +2224,15 @@ msgstr "Выполнить блок и перейти далее"
 
 #: spyder/plugins/editor/plugin.py:638
 msgid "Run current cell and go to the next one "
-msgstr ""
+msgstr "Запустить ячейку и перейти на следующую "
 
 #: spyder/plugins/editor/plugin.py:648 spyder/plugins/editor/widgets/codeeditor.py:3732
 msgid "Debug cell"
-msgstr ""
+msgstr "Отладка ячейки"
 
 #: spyder/plugins/editor/plugin.py:650
 msgid "Debug current cell (Alt+Shift+Enter)"
-msgstr ""
+msgstr "Отладка текущей ячейки (Alt+Shift+Enter)"
 
 #: spyder/plugins/editor/plugin.py:660 spyder/plugins/editor/widgets/codeeditor.py:3722
 msgid "Re-run last cell"
@@ -2379,11 +2380,11 @@ msgstr "Удалить лишние пробелы в конце строк"
 
 #: spyder/plugins/editor/plugin.py:824
 msgid "Show code style warnings"
-msgstr ""
+msgstr "Показывать предупреждения о стиле кода"
 
 #: spyder/plugins/editor/plugin.py:827
 msgid "Show docstring style warnings"
-msgstr ""
+msgstr "Показывать предупреждения о стиле docstring"
 
 #: spyder/plugins/editor/plugin.py:843
 msgid "Fix indentation"
@@ -2419,11 +2420,11 @@ msgstr "Очистить этот список"
 
 #: spyder/plugins/editor/plugin.py:874
 msgid "Go to next file"
-msgstr ""
+msgstr "Перейти к следующему файлу"
 
 #: spyder/plugins/editor/plugin.py:880
 msgid "Go to previous file"
-msgstr ""
+msgstr "Перейти к предыдущему файлу"
 
 #: spyder/plugins/editor/plugin.py:901
 msgid "Open &recent"
@@ -2439,7 +2440,7 @@ msgstr "Это временный скриптовый файл."
 
 #: spyder/plugins/editor/plugin.py:1790 spyder/plugins/editor/plugin.py:1801 spyder/plugins/editor/plugin.py:1808 spyder/plugins/pylint/widgets/pylintgui.py:313
 msgid "untitled"
-msgstr ""
+msgstr "безымянный"
 
 #: spyder/plugins/editor/plugin.py:1886
 msgid "Maximum number of recent files"
@@ -2471,7 +2472,7 @@ msgstr "Условие:"
 
 #: spyder/plugins/editor/utils/switcher.py:124 spyder/widgets/switcher.py:972 spyder/widgets/tests/test_switcher.py:33
 msgid "Go to Line"
-msgstr ""
+msgstr "Перейти к строке"
 
 #: spyder/plugins/editor/utils/switcher.py:125 spyder/widgets/switcher.py:973 spyder/widgets/tests/test_switcher.py:34
 msgid "Go to Symbol in File"
