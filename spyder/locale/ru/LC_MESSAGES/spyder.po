@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-17 14:45\n"
+"PO-Revision-Date: 2020-07-17 14:51\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -2224,7 +2224,7 @@ msgstr "Выполнить блок и перейти далее"
 
 #: spyder/plugins/editor/plugin.py:638
 msgid "Run current cell and go to the next one "
-msgstr "Запустить ячейку и перейти на следующую "
+msgstr "Запустить текущую ячейку и перейти к следующей "
 
 #: spyder/plugins/editor/plugin.py:648 spyder/plugins/editor/widgets/codeeditor.py:3732
 msgid "Debug cell"
@@ -2452,15 +2452,15 @@ msgstr "Печать..."
 
 #: spyder/plugins/editor/utils/autosave.py:313
 msgid "Error while removing autosave file {}"
-msgstr ""
+msgstr "Ошибка при удалении файла автосохранения {}"
 
 #: spyder/plugins/editor/utils/autosave.py:341
 msgid "Error while creating autosave directory"
-msgstr ""
+msgstr "Ошибка при создании директории автосохранений"
 
 #: spyder/plugins/editor/utils/autosave.py:409
 msgid "Error while autosaving {} to {}"
-msgstr ""
+msgstr "Ошибка при автосохранении {} в {}"
 
 #: spyder/plugins/editor/utils/debugger.py:94
 msgid "Breakpoint"
@@ -2909,7 +2909,7 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:539
 msgid "Show in Folder"
-msgstr ""
+msgstr "Показать в папке"
 
 #: spyder/plugins/explorer/widgets/explorer.py:568
 msgid "Commit"
@@ -3033,15 +3033,15 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:1181
 msgid "Error pasting file"
-msgstr ""
+msgstr "Ошибка при вставке файла"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1182 spyder/plugins/explorer/widgets/explorer.py:1210
 msgid "Unsupported copy operation. The error was:\n\n"
-msgstr ""
+msgstr "Неподдерживаемая операция копирования. Ошибка:\n\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1201
 msgid "Recursive copy"
-msgstr ""
+msgstr "Рекурсивное копирование"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1202
 msgid "Source is an ancestor of destination folder."
@@ -3113,31 +3113,31 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:113
 msgid "Browse..."
-msgstr ""
+msgstr "Обзор..."
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:120
 msgid "Applications"
-msgstr ""
+msgstr "Приложения"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:121
 msgid "Type to filter by name"
-msgstr ""
+msgstr "Начните вводить текст, чтобы отфильтровать по названию"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:181
 msgid "Applications (*.app)"
-msgstr ""
+msgstr "Приложения (*.app)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:182 spyder/plugins/explorer/widgets/fileassociations.py:197 spyder/plugins/explorer/widgets/fileassociations.py:216
 msgid "Select application"
-msgstr ""
+msgstr "Выберите приложение"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:196
 msgid "Applications (*.exe *.bat *.com)"
-msgstr ""
+msgstr "Приложения (*.exe *.bat *.com)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:215
 msgid "Applications (*.desktop)"
-msgstr ""
+msgstr "Приложения (*.desktop)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:252
 msgid "Choose the application for files of type "
