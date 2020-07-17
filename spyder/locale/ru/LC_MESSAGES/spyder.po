@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-17 16:02\n"
+"PO-Revision-Date: 2020-07-17 16:13\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -2841,7 +2841,7 @@ msgstr "Дата изменения"
 
 #: spyder/plugins/explorer/widgets/explorer.py:339
 msgid "Single click to open"
-msgstr ""
+msgstr "Откройте один клик для открытия"
 
 #: spyder/plugins/explorer/widgets/explorer.py:386
 msgid "Edit filename filters"
@@ -2869,15 +2869,15 @@ msgstr "Пакет..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:439
 msgid "Open in Spyder"
-msgstr ""
+msgstr "Открыть в Spyder"
 
 #: spyder/plugins/explorer/widgets/explorer.py:441
 msgid "Open with"
-msgstr ""
+msgstr "Открыть с помощью"
 
 #: spyder/plugins/explorer/widgets/explorer.py:445
 msgid "Open externally"
-msgstr ""
+msgstr "Открыть во внешнем приложении"
 
 #: spyder/plugins/explorer/widgets/explorer.py:450
 msgid "Move..."
@@ -2893,15 +2893,15 @@ msgstr "Переименовать..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:488
 msgid "Copy Absolute Path"
-msgstr ""
+msgstr "Копировать абсолютный путь"
 
 #: spyder/plugins/explorer/widgets/explorer.py:494
 msgid "Copy Relative Path"
-msgstr ""
+msgstr "Копировать относительный путь"
 
 #: spyder/plugins/explorer/widgets/explorer.py:518 spyder/plugins/explorer/widgets/fileassociations.py:386
 msgid " (Application not found!)"
-msgstr ""
+msgstr " (Приложение не найдено!)"
 
 #: spyder/plugins/explorer/widgets/explorer.py:529
 msgid "Default external application"
@@ -2941,11 +2941,11 @@ msgstr "Импортировать"
 
 #: spyder/plugins/explorer/widgets/explorer.py:740
 msgid "The following command did not launch successfully:"
-msgstr ""
+msgstr "Следующая команда не была успешно запущена:"
 
 #: spyder/plugins/explorer/widgets/explorer.py:742
 msgid "The following commands did not launch successfully:"
-msgstr ""
+msgstr "Следующие команды не были успешно запущены:"
 
 #: spyder/plugins/explorer/widgets/explorer.py:834
 msgid "Do you really want to delete <b>%s</b>?"
@@ -3053,19 +3053,19 @@ msgstr "Ошибка при вставке папки"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1214
 msgid "No file in clipboard"
-msgstr ""
+msgstr "Нет файла в буфере обмена"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1215
 msgid "No file in the clipboard. Please copy a file to the clipboard first."
-msgstr ""
+msgstr "Нет файла в буфере обмена. Сначала скопируйте файл."
 
 #: spyder/plugins/explorer/widgets/explorer.py:1219
 msgid "Blank area"
-msgstr ""
+msgstr "Пустая область"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1220
 msgid "Cannot paste in the blank area."
-msgstr ""
+msgstr "Невозможно вставить в пустую область."
 
 #: spyder/plugins/explorer/widgets/explorer.py:1270
 msgid "For %s support, please install one of the<br/> following tools:<br/><br/>  %s"
@@ -3101,15 +3101,15 @@ msgstr "Показать вид"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1666
 msgid "Display type"
-msgstr ""
+msgstr "Показать тип"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1668
 msgid "Display size"
-msgstr ""
+msgstr "Показать размер"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1669
 msgid "Display date modified"
-msgstr ""
+msgstr "Показать дату изменения"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:113
 msgid "Browse..."
