@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-17 15:25\n"
+"PO-Revision-Date: 2020-07-17 16:02\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1584,7 +1584,7 @@ msgstr "Неизвестно"
 
 #: spyder/plugins/completion/plugin.py:394
 msgid "Kite installation process has not finished. Do you really want to exit?"
-msgstr ""
+msgstr "Процесс установки Kite не завершен. Вы действительно хотите выйти?"
 
 #: spyder/plugins/console/plugin.py:119
 msgid "Internal console"
@@ -1644,11 +1644,11 @@ msgstr "Настройки встроенной консоли"
 
 #: spyder/plugins/console/plugin.py:229
 msgid "<h3>Spyder crashed during last session</h3>"
-msgstr ""
+msgstr "<h3>Во время прошлой сессии Spyder произошел сбой</h3>"
 
 #: spyder/plugins/console/plugin.py:232
 msgid "Please provide any additional information you might have about the crash."
-msgstr ""
+msgstr "Пожалуйста, предоставьте любую дополнительную информацию о сбое."
 
 #: spyder/plugins/console/plugin.py:280
 msgid "Run Python script"
@@ -1712,7 +1712,7 @@ msgstr "Визуальный редактор:"
 
 #: spyder/plugins/console/widgets/internalshell.py:416
 msgid "In order to use commands like \"raw_input\" or \"input\" run Spyder with the multithread option (--multithread) from a system terminal"
-msgstr ""
+msgstr "Для использования команд типа \"raw_input\" или \"input\" запустите Spyder с опцией многопоточности (--multithread) из системного терминала"
 
 #: spyder/plugins/console/widgets/shell.py:135
 msgid "Save history log..."
@@ -1836,7 +1836,7 @@ msgstr "Если активно, нажатие Tab будет делать от
 
 #: spyder/plugins/editor/confpage.py:128
 msgid "Automatically strip trailing spaces on changed lines"
-msgstr ""
+msgstr "Автоматически удалять конечные пробелы в изменённых строках"
 
 #: spyder/plugins/editor/confpage.py:130
 msgid "If enabled, modified lines of code (excluding strings)\n"
@@ -2476,15 +2476,15 @@ msgstr "Перейти к строке"
 
 #: spyder/plugins/editor/utils/switcher.py:125 spyder/widgets/switcher.py:973 spyder/widgets/tests/test_switcher.py:34
 msgid "Go to Symbol in File"
-msgstr ""
+msgstr "Перейти к символу в файле"
 
 #: spyder/plugins/editor/utils/switcher.py:147
 msgid "Start typing the name of an open file"
-msgstr ""
+msgstr "Начните вводить название открытого файла"
 
 #: spyder/plugins/editor/utils/switcher.py:180
 msgid "Select line"
-msgstr ""
+msgstr "Выберите строку"
 
 #: spyder/plugins/editor/utils/switcher.py:188
 msgid "lines"
@@ -2492,19 +2492,19 @@ msgstr "строк"
 
 #: spyder/plugins/editor/utils/switcher.py:189
 msgid "Go to line"
-msgstr ""
+msgstr "Перейти к строке"
 
 #: spyder/plugins/editor/utils/switcher.py:202
 msgid "Select symbol"
-msgstr ""
+msgstr "Выберите символ"
 
 #: spyder/plugins/editor/widgets/autosaveerror.py:47
 msgid "Autosave error"
-msgstr ""
+msgstr "Ошибка автосохранения"
 
 #: spyder/plugins/editor/widgets/autosaveerror.py:52 spyder/plugins/editor/widgets/recover.py:276
 msgid "Error message:"
-msgstr ""
+msgstr "Сообщение об ошибке:"
 
 #: spyder/plugins/editor/widgets/autosaveerror.py:57
 msgid "Hide all future autosave-related errors during this session"
@@ -2733,15 +2733,15 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/recover.py:170
 msgid "Autosave file"
-msgstr ""
+msgstr "Файл автосохранения"
 
 #: spyder/plugins/editor/widgets/recover.py:170
 msgid "Original file"
-msgstr ""
+msgstr "Исходный файл"
 
 #: spyder/plugins/editor/widgets/recover.py:189
 msgid "Recover the autosave file to its original location, replacing the original if it exists."
-msgstr ""
+msgstr "Восстановить файл из автосохранения, заменив его оригинал."
 
 #: spyder/plugins/editor/widgets/recover.py:191 spyder/plugins/editor/widgets/recover.py:278 spyder/widgets/onecolumntree.py:60
 msgid "Restore"
@@ -2749,15 +2749,15 @@ msgstr "Восстановить"
 
 #: spyder/plugins/editor/widgets/recover.py:197
 msgid "Delete the autosave file."
-msgstr ""
+msgstr "Удалить файл автосохранения."
 
 #: spyder/plugins/editor/widgets/recover.py:198
 msgid "Discard"
-msgstr ""
+msgstr "Отклонить"
 
 #: spyder/plugins/editor/widgets/recover.py:204
 msgid "Display the autosave file (and the original, if it exists) in Spyder's Editor. You will have to move or delete it manually."
-msgstr ""
+msgstr "Отобразить файл автосохранения (и оригинал, если он существует) в редакторе Spyder'а. Вам придется переместить или удалить его вручную."
 
 #: spyder/plugins/editor/widgets/recover.py:207
 msgid "Open"
@@ -2765,39 +2765,39 @@ msgstr "Открыть"
 
 #: spyder/plugins/editor/widgets/recover.py:240
 msgid "Restore autosave file to ..."
-msgstr ""
+msgstr "Восстановить файл автосохранения в ..."
 
 #: spyder/plugins/editor/widgets/recover.py:255
 msgid "Unable to restore {} using {}"
-msgstr ""
+msgstr "Невозможно восстановить {} с помощью {}"
 
 #: spyder/plugins/editor/widgets/recover.py:265
 msgid "Unable to discard {}"
-msgstr ""
+msgstr "Не удалось отклонить {}"
 
 #: spyder/plugins/editor/widgets/recover.py:279
 msgid "<b>{}</b><br><br>{}<br>{}"
-msgstr ""
+msgstr "<b>{}</b><br><br>{}<br>{}"
 
 #: spyder/plugins/editor/widgets/status.py:31
 msgid "File permissions"
-msgstr ""
+msgstr "Разрешения на файл"
 
 #: spyder/plugins/editor/widgets/status.py:45
 msgid "File EOL Status"
-msgstr ""
+msgstr "Статус концов строк файла"
 
 #: spyder/plugins/editor/widgets/status.py:58
 msgid "Encoding"
-msgstr ""
+msgstr "Кодировка"
 
 #: spyder/plugins/editor/widgets/status.py:71
 msgid "Cursor position"
-msgstr ""
+msgstr "Позиция курсора"
 
 #: spyder/plugins/editor/widgets/status.py:131
 msgid "Git branch"
-msgstr ""
+msgstr "Ветка Git"
 
 #: spyder/plugins/explorer/confpage.py:28 spyder/plugins/explorer/widgets/explorer.py:333 spyder/plugins/outlineexplorer/widgets.py:242
 msgid "Show all files"
@@ -2809,7 +2809,7 @@ msgstr "Показывать иконки и текст"
 
 #: spyder/plugins/explorer/confpage.py:30
 msgid "Single click to open files"
-msgstr ""
+msgstr "Одиночное нажатие для открытия файлов"
 
 #: spyder/plugins/explorer/confpage.py:33 spyder/plugins/explorer/widgets/explorer.py:329
 msgid "Edit filename filters..."
@@ -2821,15 +2821,15 @@ msgstr "Основные"
 
 #: spyder/plugins/explorer/confpage.py:67
 msgid "File associations"
-msgstr ""
+msgstr "Ассоциации файлов"
 
 #: spyder/plugins/explorer/plugin.py:64
 msgid "Files"
-msgstr ""
+msgstr "Файлы"
 
 #: spyder/plugins/explorer/widgets/explorer.py:222
 msgid "Kind"
-msgstr ""
+msgstr "Вид"
 
 #: spyder/plugins/explorer/widgets/explorer.py:222 spyder/plugins/variableexplorer/widgets/collectionseditor.py:411
 msgid "Type"
@@ -2837,7 +2837,7 @@ msgstr "Тип"
 
 #: spyder/plugins/explorer/widgets/explorer.py:223
 msgid "Date modified"
-msgstr ""
+msgstr "Дата изменения"
 
 #: spyder/plugins/explorer/widgets/explorer.py:339
 msgid "Single click to open"
@@ -3097,7 +3097,7 @@ msgstr "Родительская"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1666
 msgid "Display kind"
-msgstr ""
+msgstr "Показать вид"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1666
 msgid "Display type"
