@@ -349,10 +349,10 @@ class IPythonConsole(SpyderPluginWidget):
             widgets = []
         self.find_widget.set_editor(control)
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
+
         if client:
             sw = client.shellwidget
             self.main.variableexplorer.set_shellwidget_from_id(id(sw))
-            self.main.plots.set_shellwidget_from_id(id(sw))
             self.sig_pdb_state.emit(sw.in_debug_loop(), sw.get_pdb_last_step())
             self.sig_shellwidget_changed.emit(sw)
 
@@ -1527,15 +1527,15 @@ class IPythonConsole(SpyderPluginWidget):
 
         if self.main.variableexplorer is not None:
             self.main.variableexplorer.add_shellwidget(client.shellwidget)
-        if self.main.plots is not None:
-            self.main.plots.add_shellwidget(client.shellwidget)
+
+        self.sig_shellwidget_process_started.emit(client.shellwidget)
 
     def process_finished(self, client):
         if self.main.variableexplorer is not None:
             self.main.variableexplorer.remove_shellwidget(
                 id(client.shellwidget))
-        if self.main.plots is not None:
-            self.main.plots.remove_shellwidget(id(client.shellwidget))
+
+        self.sig_shellwidget_process_finished.emit(client.shellwidget)
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):

@@ -36,8 +36,12 @@ def figbrowser(qtbot):
     """An empty figure browser widget fixture."""
     figbrowser = FigureBrowser()
     figbrowser.set_shellwidget(Mock())
-    figbrowser.setup(mute_inline_plotting=True, show_plot_outline=False,
-                     auto_fit_plotting=False)
+    options = {
+        'mute_inline_plotting': True,
+        'show_plot_outline': False,
+        'auto_fit_plotting': False,
+    }
+    figbrowser.setup(options)
     qtbot.addWidget(figbrowser)
     figbrowser.show()
     figbrowser.setMinimumSize(700, 500)
@@ -332,7 +336,7 @@ def test_save_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
     mocker.patch('spyder.plugins.plots.widgets.figurebrowser.getsavefilename',
                  return_value=(figname, fext))
     figbrowser.thumbnails_sb.set_current_index(1)
-    qtbot.mouseClick(figbrowser.savefig_btn, Qt.LeftButton)
+    figbrowser.save_figure()
 
     expected_qpix = QPixmap()
     expected_qpix.loadFromData(figs[1], fmt.upper())
@@ -352,7 +356,7 @@ def test_close_thumbnails(figbrowser, tmpdir, qtbot, mocker, fmt):
 
     # Select and close the second thumbnail of the scrollbar.
     figbrowser.thumbnails_sb.set_current_index(1)
-    qtbot.mouseClick(figbrowser.closefig_btn, Qt.LeftButton)
+    figbrowser.close_figure()
     del figs[1]
 
     assert len(figbrowser.thumbnails_sb._thumbnails) == len(figs)
@@ -410,7 +414,7 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
     qpix.loadFromData(fig, fmt.upper())
     fwidth, fheight = qpix.width(), qpix.height()
 
-    assert figbrowser.zoom_disp.value() == 100
+    assert figbrowser.zoom_disp_value == 100
     assert figcanvas.width() == fwidth
     assert figcanvas.height() == fheight
 
@@ -425,7 +429,7 @@ def test_zoom_figure_viewer(figbrowser, tmpdir, fmt):
         scaling_factor += zoom_step
         scale = scaling_step**scaling_factor
 
-        assert (figbrowser.zoom_disp.value() ==
+        assert (figbrowser.zoom_disp_value ==
                 np.round(int(fwidth * scale) / fwidth * 100))
         assert figcanvas.width() == int(fwidth * scale)
         assert figcanvas.height() == int(fheight * scale)
@@ -466,7 +470,7 @@ def test_autofit_figure_viewer(figbrowser, tmpdir, fmt):
 
     assert figcanvas.width() == new_width
     assert figcanvas.height() == new_height
-    assert (figbrowser.zoom_disp.value() ==
+    assert (figbrowser.zoom_disp_value ==
             round(figcanvas.width() / fwidth * 100))
 
 

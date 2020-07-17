@@ -437,7 +437,7 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
                     # make things simpler, but avoid creating specific
                     # variables for this
                     if filter_actions:
-                        if key not in actions_blacklist:
+                        if action not in actions_blacklist:
                             if key in actions:
                                 raise SpyderAPIError(
                                     '{} or a child widget has already '
@@ -708,6 +708,9 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
         """
         # Wigdets
         self.windowwidget = window = SpyderWindowWidget(self)
+
+        # If the close corner button is used
+        self.windowwidget.sig_closed.connect(self.close_window)
 
         # Wigdet setup
         window.setAttribute(Qt.WA_DeleteOnClose)
