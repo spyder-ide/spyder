@@ -115,7 +115,7 @@ def test_shortcuts_filtering(shortcut_table):
 
 
 def test_shortcut_filtering_context(shortcut_table):
-    """Test the multifiltering by context and name in the table."""
+    """Test multifiltering by context and name in the table."""
     # Verify that the model is filtering by two columns
     assert len(shortcut_table.model().filters) == 2
     # Filter by "console"

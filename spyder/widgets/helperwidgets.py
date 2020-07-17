@@ -376,7 +376,7 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
 
 
 class MultipleSortFilterProxy(QSortFilterProxyModel):
-    """Custom proxy for supporting filter in multiple columns."""
+    """Custom proxy for supporting filtering in multiple columns."""
 
     def __init__(self, parent=None):
         """Initialize the multiple sort filter proxy."""
@@ -386,7 +386,7 @@ class MultipleSortFilterProxy(QSortFilterProxyModel):
         self.filters = {}
 
     def setFilterByColumn(self, column):
-        """Set regular expression in the column given."""
+        """Set regular expression in the given column."""
         self.filters[column] = self.pattern
         self.invalidateFilter()
 
@@ -402,7 +402,7 @@ class MultipleSortFilterProxy(QSortFilterProxyModel):
             self.invalidateFilter()
 
     def clearFilter(self, column):
-        """Clear the filter of given column."""
+        """Clear the filter of the given column."""
         self.filters.pop(column)
         self.invalidateFilter()
 
@@ -414,7 +414,7 @@ class MultipleSortFilterProxy(QSortFilterProxyModel):
     def filterAcceptsRow(self, row_num, parent):
         """Qt override.
 
-        Reimplemented from base class to allow the use of multiple filtering.
+        Reimplemented to allow filtering in multiple columns.
         """
         results = []
         for key, regex in self.filters.items():

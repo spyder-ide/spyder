@@ -494,7 +494,7 @@ class ShortcutsModel(QAbstractTableModel):
         self.scores = []
         self.rich_text = []
         self.normal_text = []
-        self.cntxt_rich_text = []
+        self.context_rich_text = []
         self.letters = ''
         self.label = QLabel()
         self.widths = []
@@ -547,8 +547,8 @@ class ShortcutsModel(QAbstractTableModel):
                 else:
                     color = self.text_color
             if column == CONTEXT:
-                if len(self.cntxt_rich_text) > 0:
-                    text = self.cntxt_rich_text[row]
+                if len(self.context_rich_text) > 0:
+                    text = self.context_rich_text[row]
                 else:
                     text = shortcut.context
                 text = '<p style="color:{0}">{1}</p>'.format(color, text)
@@ -614,12 +614,12 @@ class ShortcutsModel(QAbstractTableModel):
         self.letters = text
         contexts = [shortcut.context for shortcut in self.shortcuts]
         names = [shortcut.name for shortcut in self.shortcuts]
-        context_res = get_search_scores(text, contexts, template='<b>{0}</b>')
+        context_results = get_search_scores(text, contexts, template='<b>{0}</b>')
         results = get_search_scores(text, names, template='<b>{0}</b>')
-        __, self.cntxt_rich_text, cntxt_scores = (
-            zip(*context_res))
+        __, self.context_rich_text, context_scores = (
+            zip(*context_results))
         self.normal_text, self.rich_text, self.scores = zip(*results)
-        self.scores = [x + y for x, y in zip(self.scores, cntxt_scores)]
+        self.scores = [x + y for x, y in zip(self.scores, context_scores)]
         self.reset()
 
     def update_active_row(self):
