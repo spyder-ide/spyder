@@ -614,7 +614,8 @@ class ShortcutsModel(QAbstractTableModel):
         self.letters = text
         contexts = [shortcut.context for shortcut in self.shortcuts]
         names = [shortcut.name for shortcut in self.shortcuts]
-        context_results = get_search_scores(text, contexts, template='<b>{0}</b>')
+        context_results = get_search_scores(
+            text, contexts, template='<b>{0}</b>')
         results = get_search_scores(text, names, template='<b>{0}</b>')
         __, self.context_rich_text, context_scores = (
             zip(*context_results))
