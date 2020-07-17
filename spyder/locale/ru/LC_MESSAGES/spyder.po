@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-17 14:51\n"
+"PO-Revision-Date: 2020-07-17 15:25\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1764,7 +1764,7 @@ msgstr "Показывать линии отступа"
 
 #: spyder/plugins/editor/confpage.py:41 spyder/plugins/editor/plugin.py:817
 msgid "Show code folding"
-msgstr ""
+msgstr "Показывать поле сворачивания кода"
 
 #: spyder/plugins/editor/confpage.py:42 spyder/plugins/history/confpage.py:35 spyder/plugins/history/plugin.py:116
 msgid "Show line numbers"
@@ -1784,11 +1784,11 @@ msgstr "Подсвечивать текущий блок"
 
 #: spyder/plugins/editor/confpage.py:49 spyder/plugins/editor/plugin.py:810
 msgid "Scroll past the end"
-msgstr ""
+msgstr "Прокручивать ниже конца файла"
 
 #: spyder/plugins/editor/confpage.py:52
 msgid "Show vertical lines at"
-msgstr ""
+msgstr "Показывать вертикальные линии на"
 
 #: spyder/plugins/editor/confpage.py:59
 msgid "characters"
@@ -1910,27 +1910,27 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:213
 msgid "Edit template for new files"
-msgstr ""
+msgstr "Редактировать шаблон для новых файлов"
 
 #: spyder/plugins/editor/confpage.py:217
 msgid "Autosave"
-msgstr ""
+msgstr "Автосохранение"
 
 #: spyder/plugins/editor/confpage.py:219
 msgid "Automatically save a copy of files with unsaved changes"
-msgstr ""
+msgstr "Автоматически сохранять копию файлов с несохраненными изменениями"
 
 #: spyder/plugins/editor/confpage.py:222
 msgid "Autosave interval: "
-msgstr ""
+msgstr "Интервал автосохранения: "
 
 #: spyder/plugins/editor/confpage.py:223
 msgid "seconds"
-msgstr ""
+msgstr "секунд"
 
 #: spyder/plugins/editor/confpage.py:234
 msgid "Docstring type"
-msgstr ""
+msgstr "Стиль docstring"
 
 #: spyder/plugins/editor/confpage.py:239
 msgid "Here you can select the type of docstrings ({} or {}) you want the editor to automatically introduce when pressing <tt>{}</tt> after a function/method/class declaration."
@@ -1962,7 +1962,7 @@ msgstr ""
 
 #: spyder/plugins/editor/confpage.py:269
 msgid "Display code annotations"
-msgstr ""
+msgstr "Показывать аннотации кода"
 
 #: spyder/plugins/editor/confpage.py:278
 msgid "End-of-line characters"
@@ -1978,7 +1978,7 @@ msgstr "Автоматически исправлять и показывать 
 
 #: spyder/plugins/editor/confpage.py:288
 msgid "On Save: convert EOL characters to"
-msgstr ""
+msgstr "При сохранении: конвертировать символы конца файла в"
 
 #: spyder/plugins/editor/confpage.py:291
 msgid "LF (UNIX)"
@@ -2905,7 +2905,7 @@ msgstr ""
 
 #: spyder/plugins/explorer/widgets/explorer.py:529
 msgid "Default external application"
-msgstr ""
+msgstr "Внешнее приложение по-умолчанию"
 
 #: spyder/plugins/explorer/widgets/explorer.py:539
 msgid "Show in Folder"
@@ -3025,11 +3025,11 @@ msgstr "Новый модуль"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1132
 msgid "File/Folder copy error"
-msgstr ""
+msgstr "Ошибка копирования файла/папки"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1133
 msgid "Cannot copy this type of file(s) or folder(s). The error was:\n\n"
-msgstr ""
+msgstr "Не удалось скопировать этот тип файл (файлов) или папки (папок). Ошибка:\n\n"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1181
 msgid "Error pasting file"
@@ -3045,11 +3045,11 @@ msgstr "Рекурсивное копирование"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1202
 msgid "Source is an ancestor of destination folder."
-msgstr ""
+msgstr "Папка-источник является одним из родителей целевой папки."
 
 #: spyder/plugins/explorer/widgets/explorer.py:1209
 msgid "Error pasting folder"
-msgstr ""
+msgstr "Ошибка при вставке папки"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1214
 msgid "No file in clipboard"
