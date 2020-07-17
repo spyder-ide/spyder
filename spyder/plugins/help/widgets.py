@@ -848,13 +848,13 @@ class HelpWidget(PluginMainWidget):
         Examples
         --------
         >>> help_data = {
-            'obj_text': str,
-            'name': str,
-            'argspec': str,
-            'note': str,
-            'docstring': str,
-            'path': str,
-        }
+        ...     'obj_text': str,
+        ...     'name': str,
+        ...     'argspec': str,
+        ...     'note': str,
+        ...     'docstring': str,
+        ...     'path': str,
+        ... }
         """
         if self.get_option('locked') and not force_refresh:
             return

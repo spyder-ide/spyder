@@ -468,14 +468,14 @@ class EditorStack(QWidget):
     Examples
     --------
     >>> help_data = {
-        'obj_text': str,
-        'name': str,
-        'argspec': str,
-        'note': str,
-        'docstring': str,
-        'force_refresh': bool,
-        'path': str,
-    }
+    ...     'obj_text': str,
+    ...     'name': str,
+    ...     'argspec': str,
+    ...     'note': str,
+    ...     'docstring': str,
+    ...     'force_refresh': bool,
+    ...     'path': str,
+    ... }
 
     See Also
     --------
