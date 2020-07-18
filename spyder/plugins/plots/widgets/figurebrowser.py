@@ -60,8 +60,8 @@ def get_unique_figname(dirname, root, ext):
     Append a number to "root" to form a filename that does not already exist
     in "dirname".
     """
-    i = 1
-    figname = '{}{}'.format(root, ext)
+    i = 0
+    figname = '{} ({}){}'.format(root, i, ext)
     while True:
         if osp.exists(osp.join(dirname, figname)):
             figname = '{} ({}){}'.format(root, i, ext)
