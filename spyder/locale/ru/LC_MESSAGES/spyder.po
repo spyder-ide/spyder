@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-18 12:09\n"
+"PO-Revision-Date: 2020-07-18 12:32\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1155,11 +1155,11 @@ msgstr "Номер порта TCP сервера"
 
 #: spyder/plugins/completion/languageserver/confpage.py:189
 msgid "Additional arguments required to start the server"
-msgstr ""
+msgstr "Для запуска сервера требуются дополнительные аргументы"
 
 #: spyder/plugins/completion/languageserver/confpage.py:207
 msgid "Additional LSP server configuration set at runtime. JSON required"
-msgstr ""
+msgstr "Дополнительные настройки LSP сервера, установленные во время выполнения. Требуется JSON"
 
 #: spyder/plugins/completion/languageserver/confpage.py:216
 msgid "Check if the server runs on a remote location"
@@ -2524,7 +2524,7 @@ msgstr "Количество строк:"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:643
 msgid "click to open file"
-msgstr ""
+msgstr "нажмите, чтобы открыть файл"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:645
 msgid "click to send email"
@@ -4083,7 +4083,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:132
 msgid "Data loading"
-msgstr ""
+msgstr "Загрузка данных"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:142
 msgid "Spyder is unable to open the file you're trying to load because <tt>{module}</tt> is not installed. Please install this package in your working environment.<br>"
