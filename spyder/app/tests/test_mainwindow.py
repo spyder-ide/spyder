@@ -3210,7 +3210,7 @@ def test_running_namespace(main_window, qtbot, tmpdir):
     assert nsb.editor.source_model._data['a']['view'] == '5'
     qtbot.waitUntil(shell.is_waiting_pdb_input)
     with qtbot.waitSignal(shell.executed):
-        shell.execute('c')
+        shell.pdb_execute('c')
 
     # At the end, b should be back and a should be 10
     qtbot.waitUntil(lambda: 'b' in nsb.editor.source_model._data)
