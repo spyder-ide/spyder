@@ -158,7 +158,7 @@ class GoToLineDialog(QDialog):
         ok_button = bbox.button(QDialogButtonBox.Ok)
         ok_button.setEnabled(False)
         self.lineedit.textChanged.connect(
-                     lambda text: ok_button.setEnabled(len(text) > 0))
+            lambda text: ok_button.setEnabled(self.validate_text(text)))
 
         layout = QHBoxLayout()
         layout.addLayout(glayout)
@@ -167,11 +167,19 @@ class GoToLineDialog(QDialog):
 
         self.lineedit.setFocus()
 
+    def validate_text(self, text):
+        """Validate the text."""
+        return len(text) > 0 and text != '+'
+
     def text_has_changed(self, text):
         """Line edit's text has changed"""
         text = to_text_string(text)
         if text:
-            self.lineno = int(text)
+            try:
+                self.lineno = int(text)
+            except ValueError:
+                self.lineno = None
+                self.lineedit.clear()
         else:
             self.lineno = None
 

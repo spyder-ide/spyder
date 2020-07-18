@@ -195,7 +195,10 @@ class TextHelper(object):
         :return: The new text cursor
         :rtype: QtGui.QTextCursor
         """
-        line = min(line, self.line_count())
+        try:
+            line = min(line, self.line_count())
+        except TypeError:
+            line = self.line_count()
         text_cursor = self._move_cursor_to(line)
         if column:
             text_cursor.movePosition(text_cursor.Right, text_cursor.MoveAnchor,
