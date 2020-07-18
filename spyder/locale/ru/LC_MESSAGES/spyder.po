@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-18 22:46\n"
+"PO-Revision-Date: 2020-07-18 22:56\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1568,7 +1568,8 @@ msgstr "Не показывать снова"
 #: spyder/plugins/completion/languageserver/widgets/status.py:31
 msgid "Completions, linting, code\n"
 "folding and symbols status."
-msgstr ""
+msgstr "Статус автозавершения, проверки\n"
+"кода, сворачивания кода и символов."
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:58
 msgid "Restart {} Language Server"
@@ -1842,7 +1843,10 @@ msgstr "Автоматически удалять конечные пробел�
 msgid "If enabled, modified lines of code (excluding strings)\n"
 "will have their trailing whitespace stripped when leaving them.\n"
 "If disabled, only whitespace added by Spyder will be stripped."
-msgstr ""
+msgstr "Если включено, в измененных строках кода (исключая текстовые константы)\n"
+"будут обрезаться конечные пробельные символы.\n"
+"Если выключено, будут обрезаться только пробельные символы,\n"
+"которые добавил Spyder."
 
 #: spyder/plugins/editor/confpage.py:134
 msgid "Intelligent backspace"
