@@ -2922,7 +2922,7 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
     dlg.add_path(folder)
     qtbot.waitUntil(lambda: dlg.button_ok.isEnabled(), timeout=EVAL_TIMEOUT)
 
-    with qtbot.waitSignal(dlg.sig_path_changed):
+    with qtbot.waitSignal(dlg.sig_path_changed, timeout=EVAL_TIMEOUT):
         dlg.button_ok.animateClick()
 
     cmd = 'import sys;print(sys.path)'
@@ -3208,7 +3208,7 @@ def test_running_namespace(main_window, qtbot, tmpdir):
                     timeout=3000)
     assert 'b' not in nsb.editor.source_model._data
     assert nsb.editor.source_model._data['a']['view'] == '5'
-
+    qtbot.waitUntil(shell.is_waiting_pdb_input)
     with qtbot.waitSignal(shell.executed):
         shell.execute('c')
 

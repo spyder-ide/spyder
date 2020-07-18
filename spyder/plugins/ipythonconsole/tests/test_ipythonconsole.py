@@ -873,8 +873,8 @@ def test_values_dbg(ipyconsole, qtbot):
     # Generate a traceback and enter debugging mode
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
-    shell.execute('%debug')
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug')
 
     # Get value
     qtbot.keyClicks(control, '!aa = 10')
@@ -1715,6 +1715,53 @@ def test_stderr_poll(ipyconsole, qtbot):
     # Wait for the poll
     qtbot.wait(2000)
     assert "test_test" in ipyconsole.get_focus_widget().toPlainText()
+
+
+@flaky(max_runs=3)
+@pytest.mark.parametrize(
+    "backend",
+    ['inline', 'qt5', 'tk', 'osx', ]
+    )
+def test_pdb_eventloop(ipyconsole, qtbot, backend):
+    """Check if pdb works with every backend. (only testing 3)."""
+    # Skip failing tests
+    if backend == 'tk' and (os.name == 'nt' or PY2):
+        return
+    if backend == 'osx' and (sys.platform != "darwin" or PY2):
+        return
+
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_focus_widget()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%matplotlib " + backend)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug print()")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("print('Two: ' + str(1+1))")
+
+    assert "Two: 2" in control.toPlainText()
+
+
+@flaky(max_runs=3)
+def test_pdb_without_comm(ipyconsole, qtbot):
+    """Check if pdb works withhout comm."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_focus_widget()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("get_ipython().kernel.frontend_comm.close()")
+    shell.execute("%debug print()")
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.keyClicks(control, "print('Two: ' + str(1+1))")
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    assert "Two: 2" in control.toPlainText()
 
 
 if __name__ == "__main__":

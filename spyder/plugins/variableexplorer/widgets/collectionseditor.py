@@ -1490,27 +1490,18 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def plot(self, name, funcname):
         """Plot item"""
         sw = self.shellwidget
-        if sw.is_waiting_pdb_input():
-            sw.dbg_exec_magic('varexp', '--%s %s' % (funcname, name))
-        else:
-            sw.execute("%%varexp --%s %s" % (funcname, name))
+        sw.execute("%%varexp --%s %s" % (funcname, name))
 
     def imshow(self, name):
         """Show item's image"""
         sw = self.shellwidget
-        if sw.is_waiting_pdb_input():
-            sw.dbg_exec_magic('varexp', '--imshow %s' % name)
-        else:
-            sw.execute("%%varexp --imshow %s" % name)
+        sw.execute("%%varexp --imshow %s" % name)
 
     def show_image(self, name):
         """Show image (item is a PIL image)"""
         command = "%s.show()" % name
         sw = self.shellwidget
-        if sw.is_waiting_pdb_input():
-            sw.pdb_execute(command)
-        else:
-            sw.execute(command)
+        sw.execute(command)
 
     # ------ Other ------------------------------------------------------------
     def setup_menu(self, minmax):

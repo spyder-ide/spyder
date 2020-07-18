@@ -99,14 +99,16 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.shutdown_thread = None
         handlers = {
             'pdb_state': self.set_pdb_state,
-            'pdb_continue': self.pdb_continue,
-            'get_pdb_settings': self.handle_get_pdb_settings,
+            'pdb_execute': self.pdb_execute,
+            'get_pdb_settings': self.get_pdb_settings,
             'run_cell': self.handle_run_cell,
             'cell_count': self.handle_cell_count,
             'current_filename': self.handle_current_filename,
             'get_file_code': self.handle_get_file_code,
-            'set_debug_state': self.handle_debug_state,
+            'set_debug_state': self.set_debug_state,
             'update_syspath': self.update_syspath,
+            'pdb_input': self.pdb_input,
+            'request_interrupt_eventloop': self.request_interrupt_eventloop,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
@@ -132,6 +134,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.shutdown_thread.finished.connect(
                 self.kernel_client.stop_channels)
         self.shutdown_thread.start()
+        super(ShellWidget, self).shutdown()
 
     def will_close(self, externally_managed):
         """
@@ -189,7 +192,12 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.spyder_kernel_comm.open_comm(kernel_client)
 
         # Redefine the complete method to work while debugging.
-        self.redefine_complete_for_dbg(self.kernel_client)
+        self._redefine_complete_for_dbg(self.kernel_client)
+
+    # ---- Public API ---------------------------------------------------------
+    def request_interrupt_eventloop(self):
+        """Send a message to the kernel to interrupt the eventloop."""
+        self.call_kernel()._interrupt_eventloop()
 
     def set_exit_callback(self):
         """Set exit callback for this shell."""
@@ -218,7 +226,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             dirname = osp.normpath(dirname)
 
         if self.ipyclient.hostname is None:
-            self.call_kernel(interrupt=True).set_cwd(dirname)
+            self.call_kernel(interrupt=self.is_debugging()).set_cwd(dirname)
             self._cwd = dirname
 
     def update_cwd(self):
@@ -329,10 +337,7 @@ the sympy module (e.g. plot)
 
     # --- To define additional shortcuts
     def clear_console(self):
-        if self.is_waiting_pdb_input():
-            self.dbg_exec_magic('clear')
-        else:
-            self.execute("%clear")
+        self.execute("%clear")
         # Stop reading as any input has been removed.
         self._reading = False
 
@@ -381,7 +386,7 @@ the sympy module (e.g. plot)
 
         try:
             if self.is_waiting_pdb_input():
-                self.dbg_exec_magic('reset', '-f')
+                self.execute('%reset -f')
             else:
                 if message:
                     self.reset()
@@ -628,7 +633,6 @@ the sympy module (e.g. plot)
 
     def handle_cell_count(self, filename):
         """Get number of cells in file to loop."""
-        editorstack = self.get_editorstack()
         editor = self.get_editor(filename)
 
         if editor is None:
