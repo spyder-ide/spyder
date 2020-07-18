@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-18 14:06\n"
+"PO-Revision-Date: 2020-07-18 22:46\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -2720,7 +2720,7 @@ msgstr "<i>Файл больше не существует</i>"
 
 #: spyder/plugins/editor/widgets/recover.py:101
 msgid "Recover from autosave"
-msgstr ""
+msgstr "Восстановить из автосохранения"
 
 #: spyder/plugins/editor/widgets/recover.py:151
 msgid "Autosave files found. What would you like to do?\n\n"
