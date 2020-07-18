@@ -147,12 +147,12 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
     def print_stack_entry(self, frame_lineno, prompt_prefix='\n-> ',
                           context=None):
-       """Disable printing stack entry if requested"""
-       if self._disable_next_stack_entry:
-           self._disable_next_stack_entry = False
-           return
-       return super(SpyderPdb, self).print_stack_entry(
-           frame_lineno, prompt_prefix, context)
+        """Disable printing stack entry if requested."""
+        if self._disable_next_stack_entry:
+            self._disable_next_stack_entry = False
+            return
+        return super(SpyderPdb, self).print_stack_entry(
+            frame_lineno, prompt_prefix, context)
 
     # --- Methods overriden for skipping libraries
     def stop_here(self, frame):
