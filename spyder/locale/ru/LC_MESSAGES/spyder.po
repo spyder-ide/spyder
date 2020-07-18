@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-18 12:32\n"
+"PO-Revision-Date: 2020-07-18 14:06\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -2528,15 +2528,15 @@ msgstr "нажмите, чтобы открыть файл"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:645
 msgid "click to send email"
-msgstr ""
+msgstr "нажмите, чтобы отправить email"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:647
 msgid "click to open url"
-msgstr ""
+msgstr "нажмите, чтобы открыть url"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:649
 msgid "click to open"
-msgstr ""
+msgstr "нажмите, чтобы открыть"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:2567
 msgid "Code analysis"
@@ -2700,15 +2700,15 @@ msgstr "Закрыть это окно"
 
 #: spyder/plugins/editor/widgets/recover.py:49
 msgid "<i>File name not recorded</i>"
-msgstr ""
+msgstr "<i>Имя файла не записано</i>"
 
 #: spyder/plugins/editor/widgets/recover.py:54
 msgid "Last modified"
-msgstr ""
+msgstr "Последнее изменение"
 
 #: spyder/plugins/editor/widgets/recover.py:56
 msgid "bytes"
-msgstr ""
+msgstr "байт"
 
 #: spyder/plugins/editor/widgets/recover.py:56 spyder/plugins/explorer/widgets/explorer.py:223 spyder/plugins/variableexplorer/widgets/collectionseditor.py:411 spyder/preferences/configdialog.py:826
 msgid "Size"
@@ -2716,7 +2716,7 @@ msgstr "Размер"
 
 #: spyder/plugins/editor/widgets/recover.py:58
 msgid "<i>File no longer exists</i>"
-msgstr ""
+msgstr "<i>Файл больше не существует</i>"
 
 #: spyder/plugins/editor/widgets/recover.py:101
 msgid "Recover from autosave"
