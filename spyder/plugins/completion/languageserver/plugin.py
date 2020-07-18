@@ -541,6 +541,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 # language_client['instance'].exit()
                 language_client['instance'].stop()
             language_client['status'] = self.STOPPED
+            try:
+                self.clients_hearbeat[language].stop()
+            except (TypeError, KeyError, RuntimeError):
+                pass
 
     def receive_response(self, response_type, response, language, req_id):
         if req_id in self.requests:
