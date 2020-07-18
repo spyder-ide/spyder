@@ -38,8 +38,8 @@ class BaseProjectType:
     """
     ID = None
 
-    def __init__(self, root_path, projects_plugin):
-        self.projects_plugin = projects_plugin
+    def __init__(self, root_path, parent_plugin=None):
+        self.plugin = parent_plugin
         self.root_path = root_path
         self.open_project_files = []
         self.open_non_project_files = []
@@ -94,38 +94,67 @@ class BaseProjectType:
 
         return list(OrderedDict.fromkeys(recent_files))
 
-    def get_plugin(self, plugin_name):
-        """
-        Return a plugin by unique `plugin_name`.
-        """
-        return self.projects_plugin.get_plugin(plugin_name)
-
     # --- API
     # ------------------------------------------------------------------------
     @staticmethod
-    def get_name(self):
+    def get_name():
         """
         Provide a human readable version of NAME.
         """
         raise NotImplementedError("Must implement a `get_name` method!")
 
+    @staticmethod
+    def validate_name(path, name):
+        """
+        Validate the project's name.
+
+        Returns
+        -------
+        tuple
+            The first item (bool) indicates if the name was validated
+            successfully, and the second item (str) indicates the error
+            message, if any.
+        """
+        return True, ""
+
     def create_project(self):
         """
         Create a project and do any additional setup for this project type.
+
+        Returns
+        -------
+        tuple
+            The first item (bool) indicates if the project was created
+            successfully, and the second item (str) indicates the error
+            message, if any.
         """
-        raise NotImplementedError("Must implement a `create_project` method!")
+        return False, "A ProjectType must define a `create_project` method!"
 
     def open_project(self):
         """
         Open a project and do any additional setup for this project type.
+
+        Returns
+        -------
+        tuple
+            The first item (bool) indicates if the project was opened
+            successfully, and the second item (str) indicates the error
+            message, if any.
         """
-        raise NotImplementedError("Must implement a `open_project` method!")
+        return False, "A ProjectType must define an `open_project` method!"
 
     def close_project(self):
         """
         Close a project and do any additional setup for this project type.
+
+        Returns
+        -------
+        tuple
+            The first item (bool) indicates if the project was closed
+            successfully, and the second item (str) indicates the error
+            message, if any.
         """
-        raise NotImplementedError("Must implement a `close_project` method!")
+        return False, "A ProjectType must define a `close_project` method!"
 
 
 class EmptyProject(BaseProjectType):
@@ -136,10 +165,10 @@ class EmptyProject(BaseProjectType):
         return _("Empty project")
 
     def create_project(self):
-        pass
+        return True, ""
 
     def open_project(self):
-        pass
+        return True, ""
 
     def close_project(self):
-        pass
+        return True, ""

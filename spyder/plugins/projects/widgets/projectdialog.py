@@ -93,6 +93,8 @@ class ProjectDialog(QDialog):
         self.combo_project_type = QComboBox()
         self.combo_python_version = QComboBox()
 
+        self.label_information = QLabel("")
+
         self.button_select_location = QToolButton()
         self.button_cancel = QPushButton(_('Cancel'))
         self.button_create = QPushButton(_('Create'))
@@ -110,7 +112,8 @@ class ProjectDialog(QDialog):
         self.button_cancel.setDefault(True)
         self.button_cancel.setAutoDefault(True)
         self.button_create.setEnabled(False)
-        for (id_, name) in project_types:
+        for (id_, name) in [(pt_id, pt.get_name()) for pt_id, pt
+                            in project_types.items()]:
             self.combo_project_type.addItem(name, id_)
 
         self.combo_python_version.setCurrentIndex(
@@ -137,6 +140,7 @@ class ProjectDialog(QDialog):
         layout_grid.addWidget(self.combo_project_type, 2, 1, 1, 2)
         layout_grid.addWidget(self.label_python_version, 3, 0)
         layout_grid.addWidget(self.combo_python_version, 3, 1, 1, 2)
+        layout_grid.addWidget(self.label_information, 4, 0, 1, 3)
 
         layout = QVBoxLayout()
         layout.addWidget(self.groupbox)
@@ -188,6 +192,14 @@ class ProjectDialog(QDialog):
 
         self.text_location.setText(path)
 
+        # Validate name with the method from the currently selected project
+        project_type_id = self.combo_project_type.currentData()
+        validate_func = self._project_types[project_type_id].validate_name
+        validated, msg = validate_func(path, name)
+        msg = "" if validated else msg
+        self.label_information.setText(msg)
+        self.button_create.setEnabled(validated)
+
     def create_project(self):
         """Create project."""
         self.project_data = {
@@ -205,8 +217,21 @@ class ProjectDialog(QDialog):
 def test():
     """Local test."""
     from spyder.utils.qthelpers import qapplication
+    from spyder.plugins.projects.api import BaseProjectType
+
+    class MockProjectType(BaseProjectType):
+
+        @staticmethod
+        def get_name():
+            return "Boo"
+
+        @staticmethod
+        def validate_name(path, name):
+            return False, "BOOM!"
+
+
     app = qapplication()
-    dlg = ProjectDialog(None, [("Empty", "empty")])
+    dlg = ProjectDialog(None, {"empty": MockProjectType})
     dlg.show()
     sys.exit(app.exec_())
 

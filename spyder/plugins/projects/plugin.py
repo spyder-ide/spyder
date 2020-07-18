@@ -215,7 +215,7 @@ class Projects(SpyderPluginWidget):
             self.set_single_click_to_open
         )
 
-        self.register_project_type(EmptyProject)
+        self.register_project_type(self, EmptyProject)
 
     def set_single_click_to_open(self, option, value):
         """Set single click to open files and directories."""
@@ -291,10 +291,7 @@ class Projects(SpyderPluginWidget):
         """Create new project."""
         self.unmaximize()
         active_project = self.current_active_project
-        project_types = [(pt_id, pt.get_name()) for pt_id, pt
-                         in self.get_project_types().items()]
-
-        dlg = ProjectDialog(self, project_types=project_types)
+        dlg = ProjectDialog(self, project_types=self.get_project_types())
         result = dlg.exec_()
         data = dlg.project_data
         root_path = data.get("root_path", None)
@@ -321,8 +318,15 @@ class Projects(SpyderPluginWidget):
         """Create a new project."""
         project_types = self.get_project_types()
         if project_type in project_types:
-            project = project_types[project_type](root_path, self)
-            project.create_project()
+            project_type_class = project_types[project_type]
+            project = project_type_class(
+                root_path, project_type_class._PARENT_PLUGIN)
+
+            created_succesfully, message = project.create_project()
+            if not created_succesfully:
+                QMessageBox.warning(self, "Project creation", message)
+                shutil.rmtree(root_path, ignore_errors=True)
+                return
 
             # TODO: In a subsequent PR return a value and emit based on that
             self.sig_project_created.emit(root_path, project_type, packages)
@@ -402,7 +406,9 @@ class Projects(SpyderPluginWidget):
         if restart_consoles:
             self.restart_consoles()
 
-        project.open_project()
+        open_successfully, message = project.open_project()
+        if not open_successfully:
+            QMessageBox.warning(self, "Project open", message)
 
     def close_project(self):
         """
@@ -415,7 +421,11 @@ class Projects(SpyderPluginWidget):
                 self.set_project_filenames(
                     self.main.editor.get_open_filenames())
             path = self.current_active_project.root_path
-            self.current_active_project.close_project()
+            closed_sucessfully, message = (
+                self.current_active_project.close_project())
+            if not closed_sucessfully:
+                QMessageBox.warning(self, "Project close", message)
+
             self.current_active_project = None
             self.set_option('current_project_path', None)
             self.setup_menu_actions()
@@ -759,14 +769,16 @@ class Projects(SpyderPluginWidget):
 
         return project_type
 
-    def register_project_type(self, project_type):
+    def register_project_type(self, parent_plugin, project_type):
         """
         Register a new project type.
 
         Parameters
         ----------
+        parent_plugin: spyder.plugins.api.plugins.SpyderPluginV2
+            The parent plugin instance making the project type registration.
         project_type: spyder.plugins.projects.api.BaseProjectType
-            Project type to register
+            Project type to register.
         """
         if not issubclass(project_type, BaseProjectType):
             raise SpyderAPIError("A project type must subclass "
@@ -777,6 +789,7 @@ class Projects(SpyderPluginWidget):
             raise SpyderAPIError("A project type id '{}' has already been "
                                  "registered!".format(project_id))
 
+        project_type._PARENT_PLUGIN = parent_plugin
         self._project_types[project_id] = project_type
 
     def get_project_types(self):
