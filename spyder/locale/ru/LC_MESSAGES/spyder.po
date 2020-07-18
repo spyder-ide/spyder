@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-17 16:13\n"
+"PO-Revision-Date: 2020-07-18 12:09\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -1335,7 +1335,7 @@ msgstr "Включить проверку стиля кода"
 
 #: spyder/plugins/completion/languageserver/confpage.py:850 spyder/plugins/completion/languageserver/confpage.py:942
 msgid "Only check filenames matching these patterns:"
-msgstr ""
+msgstr "Проверять только имена файлов, соответствующих этим шаблонам:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:852
 msgid "Check Python files: *.py"
@@ -1351,7 +1351,7 @@ msgstr "Исключить все файлы тестов: (?!test_).*\\.py"
 
 #: spyder/plugins/completion/languageserver/confpage.py:858
 msgid "Show the following errors or warnings:"
-msgstr ""
+msgstr "Показать следующие ошибки или предупреждения:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:861
 msgid "Example codes: E113, W391"
@@ -1359,7 +1359,7 @@ msgstr "Примеры кодов: E113, W391"
 
 #: spyder/plugins/completion/languageserver/confpage.py:863
 msgid "Ignore the following errors or warnings:"
-msgstr ""
+msgstr "Игнорировать следующие ошибки или предупреждения:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:865
 msgid "Example codes: E201, E303"
