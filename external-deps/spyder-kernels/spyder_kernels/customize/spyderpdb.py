@@ -7,7 +7,6 @@
 """Spyder debugger."""
 
 import bdb
-import pdb
 import sys
 import logging
 import traceback
@@ -52,6 +51,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         self.continue_if_has_breakpoints = False
         self.pdb_ignore_lib = False
         self.pdb_execute_events = False
+        self._disable_next_stack_entry = False
         super(SpyderPdb, self).__init__()
         self._pdb_breaking = False
 
@@ -139,12 +139,20 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             self.onecmd('exit')
         else:
             self.setup(frame, traceback)
+            self.print_stack_entry(self.stack[self.curindex])
             if self.send_initial_notification:
                 self.notify_spyder(frame)
-            if get_ipython().kernel._pdb_print_code:
-                self.print_stack_entry(self.stack[self.curindex])
             self._cmdloop()
             self.forget()
+
+    def print_stack_entry(self, frame_lineno, prompt_prefix='\n-> ',
+                          context=None):
+       """Disable printing stack entry if requested"""
+       if self._disable_next_stack_entry:
+           self._disable_next_stack_entry = False
+           return
+       return super(SpyderPdb, self).print_stack_entry(
+           frame_lineno, prompt_prefix, context)
 
     # --- Methods overriden for skipping libraries
     def stop_here(self, frame):
@@ -263,6 +271,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 self.set_spyder_breakpoints(pdb_settings['breakpoints'])
         except (CommError, TimeoutError):
             logger.debug("Could not get breakpoints from the frontend.")
+        super(SpyderPdb, self).preloop()
 
     def postloop(self):
         """Notifies spyder that the loop has ended."""
@@ -319,8 +328,6 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
     def postcmd(self, stop, line):
         """
         Notify spyder on any pdb command.
-
-        Is that good or too lazy? i.e. is more specific behaviour desired?
         """
         if '!get_ipython().kernel' not in line:
             self.notify_spyder(self.curframe)
@@ -399,7 +406,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                     breaks and
                     lineno < breaks[0]):
                 try:
-                    get_ipython().kernel.pdb_continue()
+                    frontend_request(blocking=False).pdb_execute('continue')
                 except (CommError, TimeoutError):
                     logger.debug(
                         "Could not send a Pdb continue call to the frontend.")

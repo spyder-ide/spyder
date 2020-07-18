@@ -149,26 +149,35 @@ class FrontendComm(CommBase):
             callback=callback,
             timeout=timeout)
 
-    # --- Private --------
-    def _wait_reply(self, call_id, call_name, timeout, retry=True):
-        """Wait until the frontend replies to a request."""
-        if call_id in self._reply_inbox:
-            return
+    def wait_until(self, condition, timeout=None):
+        """Wait until condition is met. Returns False if timeout."""
+        if condition():
+            return True
         t_start = time.time()
-        while call_id not in self._reply_inbox:
-            if time.time() > t_start + timeout:
-                if retry:
-                    self._wait_reply(call_id, call_name, timeout, False)
-                    return
-                raise TimeoutError(
-                    "Timeout while waiting for '{}' reply.".format(
-                        call_name))
+        while not condition():
+            if timeout is not None and time.time() > t_start + timeout:
+                return False
             if threading.current_thread() is self.comm_socket_thread:
                 # Wait for a reply on the comm channel.
                 self.poll_one()
             else:
                 # Wait 10ms for a reply
                 time.sleep(0.01)
+        return True
+
+    # --- Private --------
+    def _wait_reply(self, call_id, call_name, timeout, retry=True):
+        """Wait until the frontend replies to a request."""
+        def reply_recieved():
+            """The reply is there!"""
+            return call_id in self._reply_inbox
+        if not self.wait_until(reply_recieved):
+            if retry:
+                self._wait_reply(call_id, call_name, timeout, False)
+                return
+            raise TimeoutError(
+                "Timeout while waiting for '{}' reply.".format(
+                    call_name))
 
     def _comm_open(self, comm, msg):
         """
