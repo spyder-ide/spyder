@@ -1,7 +1,6 @@
 # Copyright 2017 Palantir Technologies, Inc.
 import os
 from pyls import lsp, uris
-from pyls.config.config import Config
 from pyls.workspace import Document
 from pyls.plugins import pycodestyle_lint
 
@@ -20,9 +19,9 @@ import json
 """
 
 
-def test_pycodestyle(config):
-    doc = Document(DOC_URI, DOC)
-    diags = pycodestyle_lint.pyls_lint(config, doc)
+def test_pycodestyle(workspace):
+    doc = Document(DOC_URI, workspace, DOC)
+    diags = pycodestyle_lint.pyls_lint(workspace, doc)
 
     assert all([d['source'] == 'pycodestyle' for d in diags])
 
@@ -78,10 +77,9 @@ def test_pycodestyle_config(workspace):
     doc_uri = uris.from_fs_path(os.path.join(workspace.root_path, 'test.py'))
     workspace.put_document(doc_uri, DOC)
     doc = workspace.get_document(doc_uri)
-    config = Config(workspace.root_uri, {}, 1234, {})
 
     # Make sure we get a warning for 'indentation contains tabs'
-    diags = pycodestyle_lint.pyls_lint(config, doc)
+    diags = pycodestyle_lint.pyls_lint(workspace, doc)
     assert [d for d in diags if d['code'] == 'W191']
 
     content = {
@@ -93,10 +91,10 @@ def test_pycodestyle_config(workspace):
         # Now we'll add config file to ignore it
         with open(os.path.join(workspace.root_path, conf_file), 'w+') as f:
             f.write(content)
-        config.settings.cache_clear()
+        workspace._config.settings.cache_clear()
 
         # And make sure we don't get any warnings
-        diags = pycodestyle_lint.pyls_lint(config, doc)
+        diags = pycodestyle_lint.pyls_lint(workspace, doc)
         assert len([d for d in diags if d['code'] == 'W191']) == (0 if working else 1)
         assert len([d for d in diags if d['code'] == 'E201']) == (0 if working else 1)
         assert [d for d in diags if d['code'] == 'W391']
@@ -104,9 +102,9 @@ def test_pycodestyle_config(workspace):
         os.unlink(os.path.join(workspace.root_path, conf_file))
 
     # Make sure we can ignore via the PYLS config as well
-    config.update({'plugins': {'pycodestyle': {'ignore': ['W191', 'E201']}}})
+    workspace._config.update({'plugins': {'pycodestyle': {'ignore': ['W191', 'E201']}}})
     # And make sure we only get one warning
-    diags = pycodestyle_lint.pyls_lint(config, doc)
+    diags = pycodestyle_lint.pyls_lint(workspace, doc)
     assert not [d for d in diags if d['code'] == 'W191']
     assert not [d for d in diags if d['code'] == 'E201']
     assert [d for d in diags if d['code'] == 'W391']

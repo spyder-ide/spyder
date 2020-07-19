@@ -287,8 +287,8 @@ class DirView(QTreeView):
         if self.selectionMode() == self.ExtendedSelection:
             if self.selectionModel() is None:
                 return []
-            return [self.get_filename(idx) for idx in
-                    self.selectionModel().selectedRows()]
+            rows = self.selectionModel().selectedRows()
+            return [self.get_filename(idx) for idx in rows]
         else:
             return [self.get_filename(self.currentIndex())]
 
@@ -401,24 +401,23 @@ class DirView(QTreeView):
 
     def create_file_new_actions(self, fnames):
         """Return actions for submenu 'New...'"""
-        if not fnames:
-            return []
+        root_path = self.fsmodel.rootPath()
         new_file_act = create_action(self, _("File..."),
                                      icon=ima.icon('filenew'),
                                      triggered=lambda:
-                                     self.new_file(fnames[-1]))
+                                     self.new_file(root_path))
         new_module_act = create_action(self, _("Module..."),
                                        icon=ima.icon('spyder'),
                                        triggered=lambda:
-                                         self.new_module(fnames[-1]))
+                                       self.new_module(root_path))
         new_folder_act = create_action(self, _("Folder..."),
                                        icon=ima.icon('folder_new'),
                                        triggered=lambda:
-                                        self.new_folder(fnames[-1]))
+                                       self.new_folder(root_path))
         new_package_act = create_action(self, _("Package..."),
                                         icon=ima.icon('package_new'),
                                         triggered=lambda:
-                                         self.new_package(fnames[-1]))
+                                        self.new_package(root_path))
         return [new_file_act, new_folder_act, None,
                 new_module_act, new_package_act]
 
@@ -508,6 +507,8 @@ class DirView(QTreeView):
                 assoc = self.get_file_associations(fnames[0])
             elif len(fnames) > 1:
                 assoc = self.get_common_file_associations(fnames)
+            else:
+                assoc = []
 
             if len(assoc) >= 1:
                 actions.append(open_with_menu)
@@ -540,9 +541,10 @@ class DirView(QTreeView):
         external_fileexp_action = create_action(
             self, text, triggered=self.show_in_external_file_explorer)
         actions += [delete_action, rename_action]
-        basedir = fixpath(osp.dirname(fnames[0]))
-        if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
-            actions.append(move_action)
+        if fnames:
+            basedir = fixpath(osp.dirname(fnames[0]))
+            if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
+                actions.append(move_action)
         actions += [None]
         actions += [copy_file_clipboard_action, save_file_clipboard_action,
                     copy_absolute_path_action, copy_relative_path_action]
@@ -554,7 +556,9 @@ class DirView(QTreeView):
         if only_notebooks and nbexporter is not None:
             actions.append(ipynb_convert_action)
 
-        dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
+        if fnames:
+            dirname = (
+                fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0]))
         if len(fnames) == 1:
             # VCS support is quite limited for now, so we are enabling the VCS
             # related actions only when a single file/folder is selected:
@@ -569,6 +573,17 @@ class DirView(QTreeView):
                                         triggered=browse_slot)
                 actions += [None, vcs_ci, vcs_log]
 
+        # Needed to disable actions in the context menu if there's an
+        # empty folder. See spyder-ide/spyder#13004
+        if len(fnames) == 1 and self.selectionModel():
+            current_index = self.selectionModel().currentIndex()
+            if (self.model().type(current_index) == 'Folder' and
+                    self.model().rowCount(current_index) == 0):
+                fnames = []
+        if not fnames:
+            for action in actions:
+                if action:
+                    action.setDisabled(True)
         return actions
 
     def create_folder_manage_actions(self, fnames):
@@ -607,8 +622,7 @@ class DirView(QTreeView):
             actions += import_actions
         if actions:
             actions.append(None)
-        if fnames:
-            actions += self.create_file_manage_actions(fnames)
+        actions += self.create_file_manage_actions(fnames)
         if actions:
             actions.append(None)
         if fnames and all([osp.isdir(_fn) for _fn in fnames]):
@@ -644,6 +658,7 @@ class DirView(QTreeView):
         try:
             self.update_menu()
             self.menu.popup(event.globalPos())
+            event.accept()
         except AttributeError:
             pass
 
@@ -1389,6 +1404,10 @@ class ProxyModel(QSortFilterProxyModel):
             if index.data() == root_dir:
                 return osp.join(self.root_path, root_dir)
         return QSortFilterProxyModel.data(self, index, role)
+
+    def type(self, index):
+        """Returns the type of file for the given index."""
+        return self.sourceModel().type(self.mapToSource(index))
 
 
 class FilteredDirView(DirView):

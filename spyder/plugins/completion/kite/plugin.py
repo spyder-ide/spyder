@@ -161,8 +161,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
                       "If you want to use Kite, please remove the "
                       "directory that appears bellow, "
                       "and try a reinstallation:<br><br>"
-                      "<code>{kite_dir}</code>".format(
-                          kite_dir=osp.dirname(path))))
+                      "<code>{kite_dir}</code>").format(
+                          kite_dir=osp.dirname(path)))
 
                 box.exec_()
 

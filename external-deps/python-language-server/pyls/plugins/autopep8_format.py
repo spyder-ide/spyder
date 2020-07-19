@@ -57,6 +57,7 @@ def _autopep8_config(config):
         'ignore': settings.get('ignore'),
         'max_line_length': settings.get('maxLineLength'),
         'select': settings.get('select'),
+        'aggressive': settings.get('aggressive'),
     }
 
     # Filter out null options

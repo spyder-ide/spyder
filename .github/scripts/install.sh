@@ -19,11 +19,6 @@ if [ "$USE_CONDA" = "true" ]; then
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
 
-    # Install Pylint 2.4 untill version 2.5 is fixed in Anaconda
-    if [ "$PYTHON_VERSION" != "2.7" ]; then
-        conda install python=$PYTHON_VERSION pylint=2.4*
-    fi
-
     # Remove packages we have subrepos for
     conda remove spyder-kernels --force -q -y
     conda remove python-language-server --force -q -y
@@ -45,7 +40,6 @@ else
 
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y
-    pip uninstall python-language-server -q -y
 fi
 
 # Install python-language-server from our subrepo

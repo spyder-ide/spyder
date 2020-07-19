@@ -128,6 +128,9 @@ class IPythonConsole(SpyderPluginWidget):
 
         self.tabwidget.set_close_function(self.close_client)
 
+        self.main.editor.sig_file_debug_message_requested.connect(
+            self.print_debug_file_msg)
+
         if sys.platform == 'darwin':
             tab_container = QWidget()
             tab_container.setObjectName('tab-container')
@@ -687,12 +690,12 @@ class IPythonConsole(SpyderPluginWidget):
             has_spyder_kernels = programs.is_module_installed(
                 'spyder_kernels',
                 interpreter=pyexec,
-                version='>=1.9.1;<1.10.0')
+                version='>=1.9.2;<1.10.0')
             if not has_spyder_kernels and not running_under_pytest():
                 client.show_kernel_error(
                     _("Your Python environment or installation doesn't have "
                       "the <tt>spyder-kernels</tt> module or the right "
-                      "version of it installed (>= 1.9.1 and < 1.10.0). "
+                      "version of it installed (>= 1.9.2 and < 1.10.0). "
                       "Without this module is not possible for Spyder to "
                       "create a console for you.<br><br>"
                       "You can install it by running in a system terminal:"
@@ -1226,9 +1229,9 @@ class IPythonConsole(SpyderPluginWidget):
         # Kernel client
         kernel_client = kernel_manager.client()
 
-        # Increase time to detect if a kernel is alive.
+        # Increase time (in seconds) to detect if a kernel is alive.
         # See spyder-ide/spyder#3444.
-        kernel_client.hb_channel.time_to_dead = 45.0
+        kernel_client.hb_channel.time_to_dead = 25.0
 
         return kernel_manager, kernel_client
 
@@ -1605,3 +1608,12 @@ class IPythonConsole(SpyderPluginWidget):
                         os.remove(osp.join(tmpdir, fname))
                     except Exception:
                         pass
+
+    def print_debug_file_msg(self):
+        """Print message in the current console when a file can't be closed."""
+        debug_msg = _('<br><hr>'
+                      '\nThe current file cannot be closed because it is '
+                      'in debug mode. \n'
+                      '<hr><br>')
+        self.get_current_client().shellwidget._append_html(
+                    debug_msg, before_prompt=True)

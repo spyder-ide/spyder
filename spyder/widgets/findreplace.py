@@ -568,6 +568,9 @@ class FindReplace(QWidget):
         else:
             self.editor.setFocus()
 
+        if getattr(self.editor, 'document_did_change', False):
+            self.editor.document_did_change()
+
     @Slot()
     def replace_find_all(self, focus_replace_text=False):
         """Replace and find all matching occurrences"""
@@ -620,6 +623,9 @@ class FindReplace(QWidget):
                 self.replace_text.setFocus()
             else:
                 self.editor.setFocus()
+
+            if getattr(self.editor, 'document_did_change', False):
+                self.editor.document_did_change()
 
     def change_number_matches(self, current_match=0, total_matches=0):
         """Change number of match and total matches."""

@@ -177,6 +177,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # Show timer
         self.update_time_label_visibility()
 
+        # Poll for stderr changes
+        self.stderr_mtime = 0
+        self.stderr_timer = QTimer(self)
+        self.stderr_timer.timeout.connect(self.poll_stderr_file_change)
+        self.stderr_timer.setInterval(1000)
+        self.stderr_timer.start()
+
     def __del__(self):
         """Close threads to avoid segfault"""
         if (self.restart_thread is not None
@@ -232,8 +239,35 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         except Exception:
             pass
 
+    def get_stderr_contents(self):
+        """Get the contents of the stderr kernel file."""
+        try:
+            stderr = self._read_stderr()
+        except Exception:
+            stderr = None
+        return stderr
+
+    @Slot()
+    def poll_stderr_file_change(self):
+        """Check if the stderr file just changed"""
+        try:
+            mtime = os.stat(self.stderr_file).st_mtime
+        except Exception:
+            return
+
+        if mtime == self.stderr_mtime:
+            return
+        self.stderr_mtime = mtime
+        stderr = self.get_stderr_contents()
+        if stderr:
+            self.shellwidget._append_plain_text(
+                '\n' + stderr, before_prompt=True)
+
     def configure_shellwidget(self, give_focus=True):
         """Configure shellwidget after kernel is connected."""
+        # Make sure the kernel sends the comm config over
+        self.shellwidget.call_kernel()._send_comm_config()
+
         if give_focus:
             self.get_control().setFocus()
 
@@ -285,6 +319,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self._show_loading_page()
         self.shellwidget.sig_prompt_ready.connect(
             self._when_prompt_is_ready)
+        # If remote execution, the loading page should be hidden as well
+        self.shellwidget.sig_remote_execute.connect(
+            self._when_prompt_is_ready)
 
     def _when_prompt_is_ready(self):
         """Configuration after the prompt is shown."""
@@ -298,6 +335,8 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         self._check_special_console_error()
 
         self.shellwidget.sig_prompt_ready.disconnect(
+            self._when_prompt_is_ready)
+        self.shellwidget.sig_remote_execute.disconnect(
             self._when_prompt_is_ready)
 
     def enable_stop_button(self):
@@ -548,10 +587,21 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             if sw.kernel_manager:
                 if self.infowidget.isVisible():
                     self.infowidget.hide()
+
+                if self._abort_kernel_restart():
+                    sw.spyder_kernel_comm.close()
+                    return
+
                 self._show_loading_page()
 
                 # Close comm
                 sw.spyder_kernel_comm.close()
+
+                # Stop autorestart mechanism
+                sw.kernel_manager.stop_restarter()
+                sw.kernel_manager.autorestart = False
+
+                # Create and run restarting thread
                 self.restart_thread = QThread()
                 self.restart_thread.run = self._restart_thread_main
                 self.restart_thread.error = None
@@ -577,16 +627,25 @@ class ClientWidget(QWidget, SaveHistoryMixin):
     def _finalise_restart(self, reset=False):
         """Finishes the restarting of the kernel."""
         sw = self.shellwidget
+
+        if self._abort_kernel_restart():
+            sw.spyder_kernel_comm.close()
+            return
+
         if self.restart_thread and self.restart_thread.error is not None:
             sw._append_plain_text(
                 _('Error restarting kernel: %s\n') % self.restart_thread.error,
                 before_prompt=True
             )
         else:
-            # Reopen comm
+            # Reset Pdb state and reopen comm
             sw._pdb_in_loop = False
             sw.spyder_kernel_comm.close()
             sw.spyder_kernel_comm.open_comm(sw.kernel_client)
+
+            # Start autorestart mechanism
+            sw.kernel_manager.autorestart = True
+            sw.kernel_manager.start_restarter()
 
             # For spyder-ide/spyder#6235, IPython was changing the
             # setting of %colors on windows by assuming it was using a
@@ -594,8 +653,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             self.set_color_scheme(sw.syntax_style, reset=reset)
             sw._append_html(_("<br>Restarting kernel...\n<hr><br>"),
                             before_prompt=True)
-        if reset:
-            self._hide_loading_page()
+
+        self._hide_loading_page()
+        self.stop_button.setDisabled(True)
         self.restart_thread = None
 
     @Slot(str)
@@ -608,10 +668,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
             # So we read the kernel's stderr_file and display its
             # contents in the client instead of the usual message shown
             # by qtconsole.
-            try:
-                stderr = self._read_stderr()
-            except Exception:
-                stderr = None
+            stderr = self.get_stderr_contents()
             if stderr:
                 self.show_kernel_error('<tt>%s</tt>' % stderr)
         else:
@@ -783,7 +840,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
                 "<tt>{missing_dependency}</tt> module installed or it "
                 "occurred a problem importing it. Due to that, it is not "
                 "possible for Spyder to create this special console for "
-                "you.".format(missing_dependency=missing_dependency)
-            )
+                "you."
+            ).format(missing_dependency=missing_dependency)
 
             self.show_kernel_error(error_message)
+
+    def _abort_kernel_restart(self):
+        """
+        Abort kernel restart if there are errors while starting it.
+
+        We also ignore errors about comms, which are irrelevant.
+        """
+        stderr = self.get_stderr_contents()
+        if stderr and 'No such comm' not in stderr:
+            return True
+        else:
+            return False

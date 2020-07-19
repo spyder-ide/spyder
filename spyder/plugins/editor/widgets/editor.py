@@ -574,7 +574,7 @@ class EditorStack(QWidget):
         self.run_cell_copy = False
         self.create_new_file_if_empty = True
         self.indent_guides = False
-        ccs = 'Spyder'
+        ccs = 'spyder/dark'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
@@ -943,7 +943,8 @@ class EditorStack(QWidget):
                 self.outlineexplorer.remove_editor(finfo.editor.oe_proxy)
 
         for finfo in self.data:
-            finfo.editor.notify_close()
+            if not finfo.editor.is_cloned:
+                finfo.editor.notify_close()
         QWidget.closeEvent(self, event)
 
     def clone_editor_from(self, other_finfo, set_current):
@@ -1460,14 +1461,46 @@ class EditorStack(QWidget):
         if index is None:
             return
         finfo = self.data[index]
-        if osp.splitext(finfo.filename)[1] != osp.splitext(new_filename)[1]:
-            # File type has changed!
+
+        # Send close request to LSP
+        finfo.editor.notify_close()
+
+        # Set new filename
+        finfo.filename = new_filename
+        finfo.editor.filename = new_filename
+
+        # File type has changed!
+        original_ext = osp.splitext(original_filename)[1]
+        new_ext = osp.splitext(new_filename)[1]
+        if original_ext != new_ext:
+            # Set file language and re-run highlighter
             txt = to_text_string(finfo.editor.get_text_with_eol())
             language = get_file_language(new_filename, txt)
-            finfo.editor.set_language(language)
+            finfo.editor.set_language(language, new_filename)
+            finfo.editor.run_pygments_highlighter()
+
+            # If the user renamed the file to a different language, we
+            # need to emit sig_open_file to see if we can start a
+            # language server for it.
+            options = {
+                'language': language,
+                'filename': new_filename,
+                'codeeditor': finfo.editor
+            }
+            self.sig_open_file.emit(options)
+
+            # Update panels
+            finfo.editor.set_debug_panel(
+                show_debug_panel=True, language=language)
+            finfo.editor.cleanup_code_analysis()
+            finfo.editor.cleanup_folding()
+        else:
+            # If there's no language change, we simply need to request a
+            # document_did_open for the new file.
+            finfo.editor.document_did_open()
+
         set_new_index = index == self.get_stack_index()
         current_fname = self.get_current_filename()
-        finfo.filename = new_filename
         new_index = self.data.index(finfo)
         self.__repopulate_stack()
         if set_new_index:
@@ -1762,12 +1795,22 @@ class EditorStack(QWidget):
             if editor.language.lower() == language:
                 editor.start_completion_services()
 
-    def update_server_configuration(self, language, config):
-        """Update language server settings across all editors."""
+    def register_completion_capabilities(self, capabilities, language):
+        """
+        Register completion server capabilities across all editors.
+
+        Parameters
+        ----------
+        capabilities: dict
+            Capabilities supported by a language server.
+        language: str
+            Programming language for the language server (it has to be
+            in small caps).
+        """
         for index in range(self.get_stack_count()):
             editor = self.tabs.widget(index)
             if editor.language.lower() == language:
-                editor.update_completion_configuration(config)
+                editor.register_completion_capabilities(capabilities)
 
     def notify_server_down(self, language):
         """Notify language server unavailability to code editors."""
@@ -2211,8 +2254,6 @@ class EditorStack(QWidget):
 #        for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
 #            btn.setEnabled(count > 1)
         editor = self.get_current_editor()
-        if editor.completions_available and not editor.document_opened:
-            editor.document_did_open()
         if index != -1:
             editor.setFocus()
             logger.debug("Set focus to: %s" % editor.filename)
@@ -2474,8 +2515,10 @@ class EditorStack(QWidget):
 
     #------ Load, reload
     def reload(self, index):
-        """Reload file from disk"""
+        """Reload file from disk."""
         finfo = self.data[index]
+        logger.debug("Reloading {}".format(finfo.filename))
+
         txt, finfo.encoding = encoding.read(finfo.filename)
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
         position = finfo.editor.get_position('cursor')
@@ -2494,9 +2537,11 @@ class EditorStack(QWidget):
         self._refresh_outlineexplorer(index)
 
     def revert(self):
-        """Revert file from disk"""
+        """Revert file from disk."""
         index = self.get_stack_index()
         finfo = self.data[index]
+        logger.debug("Reverting {}".format(finfo.filename))
+
         filename = finfo.filename
         if finfo.editor.document().isModified():
             self.msgbox = QMessageBox(
@@ -2854,8 +2899,11 @@ class EditorStack(QWidget):
 
     #------ Drag and drop
     def dragEnterEvent(self, event):
-        """Reimplement Qt method
-        Inform Qt about the types of data that the widget accepts"""
+        """
+        Reimplemented Qt method.
+
+        Inform Qt about the types of data that the widget accepts.
+        """
         logger.debug("dragEnterEvent was received")
         source = event.mimeData()
         # The second check is necessary on Windows, where source.hasUrls()
@@ -2892,8 +2940,12 @@ class EditorStack(QWidget):
             event.ignore()
 
     def dropEvent(self, event):
-        """Reimplement Qt method
-        Unpack dropped data and handle it"""
+        """
+        Reimplement Qt method.
+
+        Unpack dropped data and handle it.
+        """
+        logger.debug("dropEvent was received")
         source = event.mimeData()
         # The second check is necessary when mimedata2url(source)
         # returns None.
@@ -2963,6 +3015,9 @@ class EditorSplitter(QSplitter):
         self.editorstack.sig_split_horizontally.connect(
                      lambda: self.split(orientation=Qt.Horizontal))
         self.addWidget(self.editorstack)
+
+        if not running_under_pytest():
+            self.editorstack.set_color_scheme(plugin.get_color_scheme())
 
     def closeEvent(self, event):
         """Override QWidget closeEvent().
@@ -3506,6 +3561,9 @@ class EditorPluginExample(QSplitter):
 
     def register_widget_shortcuts(self, widget):
         """Fake!"""
+        pass
+
+    def get_color_scheme(self):
         pass
 
 

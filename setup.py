@@ -165,7 +165,7 @@ setup_args = dict(
     long_description_content_type='text/markdown',
     download_url=__website_url__ + "#fh5co-download",
     author="The Spyder Project Contributors",
-    author_email="spyderlib@googlegroups.com",
+    author_email="spyder.python@gmail.com",
     url=__website_url__,
     license='MIT',
     keywords='PyQt5 editor console widgets IDE science data analysis IPython',
@@ -208,9 +208,7 @@ install_requires = [
     'diff-match-patch>=20181111',
     'intervaltree',
     'ipython>=4.0',
-    # This is here until Jedi 0.15+ fixes completions for
-    # Numpy and Pandas
-    'jedi==0.15.2',
+    'jedi==0.17.1',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
@@ -218,15 +216,15 @@ install_requires = [
     'numpydoc>=0.6.0',
     # Required to get SSH connections to remote kernels
     'paramiko>=2.4.0;platform_system=="Windows"',
-    'parso==0.5.2',
+    'parso==0.7.0',
     'pexpect>=4.4.0',
     'pickleshare>=0.4',
     'psutil>=5.3',
     'pygments>=2.0',
-    'pylint>=0.25',
+    'pylint>=1.0',
     'pyqt5<5.13;python_version>="3"',
     'pyqtwebengine<5.13;python_version>="3"',
-    'python-language-server[all]>=0.31.9,<0.32.0',
+    'python-language-server[all]>=0.34.0,<1.0.0',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8',
@@ -234,7 +232,7 @@ install_requires = [
     'qtconsole>=4.6.0',
     'qtpy>=1.5.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=1.9.1,<1.10.0',
+    'spyder-kernels>=1.9.2,<1.10.0',
     'watchdog',
 ]
 

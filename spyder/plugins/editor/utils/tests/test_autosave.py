@@ -7,6 +7,7 @@
 
 # Standard library imports
 import ast
+import os.path as osp
 
 # Third party imports
 import pytest
@@ -146,6 +147,34 @@ def test_try_recover(mocker, tmpdir, error_on_remove):
         assert not pidfile.check()
 
 
+@pytest.mark.parametrize('in_mapping,on_disk',
+                         [(False, False), (True, False), (False, True)])
+def test_create_unique_autosave_filename(mocker, in_mapping, on_disk):
+    """Test that AutosaveForStack.create_unique_autosave_filename() returns
+    a file name in the autosave directory with the same base name as the
+    original file name, unless that already exists in the autosave mapping
+    or on disk."""
+    def new_exists(path):
+        if path == osp.join('autosave', 'ham.py'):
+            return on_disk
+        else:
+            return False
+
+    mocker.patch('os.path.exists', side_effect=new_exists)
+    addon = AutosaveForStack(mocker.Mock())
+    if in_mapping:
+        addon.name_mapping = {osp.join('somedir', 'ham.py'):
+                              osp.join('autosave', 'ham.py')}
+
+    autosave_filename = addon.create_unique_autosave_filename(
+        osp.join('orig', 'ham.py'), 'autosave')
+
+    if in_mapping or on_disk:
+        assert autosave_filename == osp.join('autosave', 'ham-1.py')
+    else:
+        assert autosave_filename == osp.join('autosave', 'ham.py')
+
+
 @pytest.mark.parametrize('have_hash', [True, False])
 def test_autosave(mocker, have_hash):
     """Test that AutosaveForStack.maybe_autosave writes the contents to the
@@ -235,6 +264,21 @@ def test_autosave_remove_autosave_file(mocker, exception):
     assert addon.file_hashes == {}
     mock_remove.assert_any_call('autosave')
     assert mock_dialog.called == exception
+
+
+def test_get_autosave_filename(mocker, tmpdir):
+    """Test that AutosaveForStack.get_autosave_filename returns a consistent
+    and unique name for the autosave file is returned."""
+    addon = AutosaveForStack(mocker.Mock())
+    mocker.patch('spyder.plugins.editor.utils.autosave.get_conf_path',
+                 return_value=str(tmpdir))
+
+    expected = str(tmpdir.join('foo.py'))
+    assert addon.get_autosave_filename('foo.py') == expected
+
+    expected2 = str(tmpdir.join('foo-1.py'))
+    assert addon.get_autosave_filename('foo.py') == expected
+    assert addon.get_autosave_filename('ham/foo.py') == expected2
 
 
 @pytest.mark.parametrize('have_hash', [True, False])

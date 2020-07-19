@@ -19,7 +19,7 @@ from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import programs, encoding
@@ -60,6 +60,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
     sig_kernel_restarted_message = Signal(str)
     sig_kernel_restarted = Signal()
     sig_prompt_ready = Signal()
+    sig_remote_execute = Signal()
 
     # For global working directory
     sig_change_cwd = Signal(str)
@@ -117,6 +118,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                 and self.shutdown_thread.isRunning()):
             self.shutdown_thread.wait()
 
+    # ---- Public API ---------------------------------------------------------
     def shutdown(self):
         """Shutdown kernel"""
         self.shutdown_called = True
@@ -189,7 +191,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Redefine the complete method to work while debugging.
         self.redefine_complete_for_dbg(self.kernel_client)
 
-    #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
         """Set exit callback for this shell."""
         self.exit_requested.connect(self.ipyclient.exit_callback)
@@ -344,6 +345,11 @@ the sympy module (e.g. plot)
         reset_str = _("Remove all variables")
         warn_str = _("All user-defined variables will be removed. "
                      "Are you sure you want to proceed?")
+
+        # Don't show the warning when running our tests.
+        if running_under_pytest():
+            warning = False
+
         # This is necessary to make resetting variables work in external
         # kernels.
         # See spyder-ide/spyder#9505.
@@ -396,7 +402,11 @@ the sympy module (e.g. plot)
                     self.silent_execute(dedent(sympy_init))
                 if kernel_env.get('SPY_RUN_CYTHON') == 'True':
                     self.silent_execute("%reload_ext Cython")
-                self.refresh_namespacebrowser()
+
+                # This doesn't need to interrupt the kernel because
+                # "%reset -f" is being executed before it.
+                # Fixes spyder-ide/spyder#12689
+                self.refresh_namespacebrowser(interrupt=False)
 
                 if not self.external_kernel:
                     self.call_kernel().close_all_mpl_figures()
@@ -556,7 +566,7 @@ the sympy module (e.g. plot)
             if not 'inline' in command:
                 self.silent_execute(command)
 
-    # ---- Spyder-kernels methods -------------------------------------------
+    # ---- Spyder-kernels methods ---------------------------------------------
     def get_editor(self, filename):
         """Get editor for filename and set it as the current editor."""
         editorstack = self.get_editorstack()
@@ -632,8 +642,12 @@ the sympy module (e.g. plot)
         """Get the current filename."""
         return self.get_editorstack().get_current_finfo().filename
 
-    # ---- Private methods (overrode by us) ---------------------------------
+    # ---- Public methods (overrode by us) ------------------------------------
+    def request_restart_kernel(self):
+        """Reimplemented to call our own restart mechanism."""
+        self.ipyclient.restart_kernel()
 
+    # ---- Private methods (overrode by us) -----------------------------------
     def _handle_error(self, msg):
         """
         Reimplemented to reset the prompt if the error comes after the reply
@@ -683,6 +697,11 @@ the sympy module (e.g. plot)
         if not self._reading:
             self._highlighter.highlighting_on = True
             self.sig_prompt_ready.emit()
+
+    def _handle_execute_input(self, msg):
+        """Handle an execute_input message"""
+        super(ShellWidget, self)._handle_execute_input(msg)
+        self.sig_remote_execute.emit()
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):

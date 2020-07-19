@@ -35,7 +35,7 @@ from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.projecttypes import EmptyProject
 from spyder.plugins.completion.languageserver import (
-    LSPRequestTypes, FileChangeType)
+    LSPRequestTypes, FileChangeType, WorkspaceUpdateKind)
 from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 
@@ -161,7 +161,7 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.set_window_title())
         self.sig_project_loaded.connect(
             functools.partial(lspmgr.project_path_update,
-                              update_kind='addition'))
+                              update_kind=WorkspaceUpdateKind.ADDITION))
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
@@ -172,7 +172,7 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.set_window_title())
         self.sig_project_closed.connect(
             functools.partial(lspmgr.project_path_update,
-                              update_kind='deletion'))
+                              update_kind=WorkspaceUpdateKind.DELETION))
         self.sig_project_closed.connect(
             lambda v: self.main.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
@@ -199,19 +199,12 @@ class Projects(SpyderPluginWidget):
         self.explorer.closing_widget()
         return True
 
-    def switch_to_plugin(self):
-        """Switch to plugin."""
-        # Unmaxizime currently maximized plugin
+    def unmaximize(self):
+        """Unmaximize the currently maximized plugin, if not self."""
         if (self.main.last_plugin is not None and
                 self.main.last_plugin._ismaximized and
                 self.main.last_plugin is not self):
             self.main.maximize_dockwidget()
-
-        # Show plugin only if it was already visible
-        if self.get_option('visible_if_project_open'):
-            if not self._toggle_view_action.isChecked():
-                self._toggle_view_action.setChecked(True)
-            self._visibility_changed(True)
 
     def build_opener(self, project):
         """Build function opening passed project"""
@@ -267,15 +260,21 @@ class Projects(SpyderPluginWidget):
     @Slot()
     def create_new_project(self):
         """Create new project"""
-        self.switch_to_plugin()
+        self.unmaximize()
         active_project = self.current_active_project
         dlg = ProjectDialog(self)
         dlg.sig_project_creation_requested.connect(self._create_project)
         dlg.sig_project_creation_requested.connect(self.sig_project_created)
         if dlg.exec_():
-            if (active_project is None
-                    and self.get_option('visible_if_project_open')):
-                self.show_explorer()
+            # A project was not open before
+            if active_project is None:
+                if self.get_option('visible_if_project_open'):
+                    self.show_explorer()
+            else:
+                # We are switching projects.
+                # TODO: Don't emit sig_project_closed when we support
+                # multiple workspaces.
+                self.sig_project_closed.emit(active_project.root_path)
             self.sig_pythonpath_changed.emit()
             self.restart_consoles()
 
@@ -287,7 +286,7 @@ class Projects(SpyderPluginWidget):
                      save_previous_files=True):
         """Open the project located in `path`"""
         self.notify_project_open(path)
-        self.switch_to_plugin()
+        self.unmaximize()
         if path is None:
             basedir = get_home_dir()
             path = getexistingdirectory(parent=self,
@@ -319,6 +318,11 @@ class Projects(SpyderPluginWidget):
                 self.set_project_filenames(
                     self.main.editor.get_open_filenames())
 
+            # TODO: Don't emit sig_project_closed when we support
+            # multiple workspaces.
+            self.sig_project_closed.emit(
+                self.current_active_project.root_path)
+
         project = EmptyProject(path)
         self.current_active_project = project
         self.latest_project = project
@@ -338,7 +342,7 @@ class Projects(SpyderPluginWidget):
         project
         """
         if self.current_active_project:
-            self.switch_to_plugin()
+            self.unmaximize()
             if self.main.editor is not None:
                 self.set_project_filenames(
                     self.main.editor.get_open_filenames())
@@ -365,7 +369,7 @@ class Projects(SpyderPluginWidget):
         Delete the current project without deleting the files in the directory.
         """
         if self.current_active_project:
-            self.switch_to_plugin()
+            self.unmaximize()
             path = self.current_active_project.root_path
             buttons = QMessageBox.Yes | QMessageBox.No
             answer = QMessageBox.warning(

@@ -23,13 +23,13 @@ DOC_SYNTAX_ERR = """def hello()
 
 
 @contextlib.contextmanager
-def temp_document(doc_text):
+def temp_document(doc_text, workspace):
     try:
         temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
         name = temp_file.name
         temp_file.write(doc_text)
         temp_file.close()
-        yield Document(uris.from_fs_path(name))
+        yield Document(uris.from_fs_path(name), workspace)
     finally:
         os.remove(name)
 
@@ -39,8 +39,8 @@ def write_temp_doc(document, contents):
         temp_file.write(contents)
 
 
-def test_pylint(config):
-    with temp_document(DOC) as doc:
+def test_pylint(config, workspace):
+    with temp_document(DOC, workspace) as doc:
         diags = pylint_lint.pyls_lint(config, doc, True)
 
         msg = '[unused-import] Unused import sys'
@@ -51,8 +51,8 @@ def test_pylint(config):
 
 
 @py3_only
-def test_syntax_error_pylint_py3(config):
-    with temp_document(DOC_SYNTAX_ERR) as doc:
+def test_syntax_error_pylint_py3(config, workspace):
+    with temp_document(DOC_SYNTAX_ERR, workspace) as doc:
         diag = pylint_lint.pyls_lint(config, doc, True)[0]
 
         assert diag['message'].startswith('[syntax-error] invalid syntax')
@@ -62,8 +62,8 @@ def test_syntax_error_pylint_py3(config):
 
 
 @py2_only
-def test_syntax_error_pylint_py2(config):
-    with temp_document(DOC_SYNTAX_ERR) as doc:
+def test_syntax_error_pylint_py2(config, workspace):
+    with temp_document(DOC_SYNTAX_ERR, workspace) as doc:
         diag = pylint_lint.pyls_lint(config, doc, True)[0]
 
         assert diag['message'].startswith('[syntax-error] invalid syntax')
@@ -72,15 +72,15 @@ def test_syntax_error_pylint_py2(config):
         assert diag['severity'] == lsp.DiagnosticSeverity.Error
 
 
-def test_lint_free_pylint(config):
+def test_lint_free_pylint(config, workspace):
     # Can't use temp_document because it might give us a file that doesn't
     # match pylint's naming requirements. We should be keeping this file clean
     # though, so it works for a test of an empty lint.
     assert not pylint_lint.pyls_lint(
-        config, Document(uris.from_fs_path(__file__)), True)
+        config, Document(uris.from_fs_path(__file__), workspace), True)
 
 
-def test_lint_caching():
+def test_lint_caching(workspace):
     # Pylint can only operate on files, not in-memory contents. We cache the
     # diagnostics after a run so we can continue displaying them until the file
     # is saved again.
@@ -91,7 +91,7 @@ def test_lint_caching():
     # file has capital letters in its name.
 
     flags = '--disable=invalid-name'
-    with temp_document(DOC) as doc:
+    with temp_document(DOC, workspace) as doc:
         # Start with a file with errors.
         diags = pylint_lint.PylintLinter.lint(doc, True, flags)
         assert diags
@@ -108,10 +108,10 @@ def test_lint_caching():
         assert not pylint_lint.PylintLinter.lint(doc, False, flags)
 
 
-def test_per_file_caching(config):
+def test_per_file_caching(config, workspace):
     # Ensure that diagnostics are cached per-file.
-    with temp_document(DOC) as doc:
+    with temp_document(DOC, workspace) as doc:
         assert pylint_lint.pyls_lint(config, doc, True)
 
     assert not pylint_lint.pyls_lint(
-        config, Document(uris.from_fs_path(__file__)), False)
+        config, Document(uris.from_fs_path(__file__), workspace), False)

@@ -17,6 +17,7 @@ import pytest
 
 # Local imports
 from spyder.plugins.editor.utils.autosave import AutosaveForPlugin
+from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 
 
 # =============================================================================
@@ -282,6 +283,49 @@ def test_go_to_prev_next_cursor_position(editor_plugin, python_files):
     expected_cursor_pos_history = expected_cursor_pos_history[:1]
     expected_cursor_pos_history.append((filenames[3], 0, 0, 0))
     assert editor_plugin.cursor_pos_history == expected_cursor_pos_history
+
+
+def test_open_and_close_lsp_requests(editor_plugin_open_files, mocker):
+    """
+    Test that we send the right LSP requests when opening and closing
+    files.
+    """
+    # Patch methods whose calls we want to check
+    mocker.patch.object(CodeEditor, "document_did_open")
+    mocker.patch.object(CodeEditor, "notify_close")
+
+    # Create files
+    editor_factory = editor_plugin_open_files
+    editor, expected_filenames, expected_current_filename = (
+        editor_factory(None, None))
+
+    # Assert that we called document_did_open once per file
+    assert CodeEditor.document_did_open.call_count == 5
+
+    # Generate a vertical split
+    editorstack = editor.get_current_editorstack()
+    editorstack.sig_split_vertically.emit()
+
+    # Assert the current codeeditor has is_cloned as True
+    codeeditor = editor.get_current_editor()
+    assert codeeditor.is_cloned
+
+    # Assert the number of calls to document_did_open is exactly the
+    # same as before
+    assert CodeEditor.document_did_open.call_count == 5
+
+    # Close cloned editor to verify that notify_close is called from it.
+    assert CodeEditor.notify_close.call_count == 0
+    editorstack = editor.get_current_editorstack()
+    editorstack.close_file()
+    assert CodeEditor.notify_close.call_count == 2
+
+    # Assert focus is left in the cloned editorstack
+    assert editorstack.get_current_editor().is_cloned
+
+    # Close cloned editorstack to verify that notify_close is not called
+    editorstack.close_split()
+    assert CodeEditor.notify_close.call_count == 2
 
 
 if __name__ == "__main__":
