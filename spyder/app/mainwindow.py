@@ -75,8 +75,7 @@ from qtpy.QtCore import (QByteArray, QCoreApplication, QPoint, QSize, Qt,
 from qtpy.QtGui import QColor, QDesktopServices, QIcon, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QDesktopWidget, QDockWidget,
                             QMainWindow, QMenu, QMessageBox, QShortcut,
-                            QSplashScreen, QStyleFactory, QWidget, QCheckBox,
-                            QPushButton)
+                            QSplashScreen, QStyleFactory, QWidget, QCheckBox)
 
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms
 from qtpy import QtSvg  # analysis:ignore
@@ -199,6 +198,7 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     MENU_SEPARATOR, set_menu_icons)
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
+from spyder.widgets.about import AboutDialog
 
 #==============================================================================
 # Third-party library imports
@@ -2675,7 +2675,6 @@ class MainWindow(QMainWindow):
     @Slot()
     def show_about(self):
         """Show About Spyder dialog box"""
-        from spyder.widgets.about import AboutDialog
         abt = AboutDialog(self)
         abt.exec_()
 

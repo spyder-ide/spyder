@@ -20,6 +20,7 @@ from spyder import (__project_url__, __forum_url__,
                     __trouble_url__, __website_url__, get_versions)
 from spyder.config.base import _
 from spyder.config.base import get_image_path
+from spyder.config.gui import is_dark_interface
 from spyder.utils import icon_manager as ima
 
 
@@ -133,7 +134,6 @@ class AboutDialog(QDialog):
         self.label.setAlignment(Qt.AlignTop)
         self.label.setOpenExternalLinks(True)
 
-        from spyder.config.gui import is_dark_interface
         if is_dark_interface():
             icon_filename = "spyder.svg"
         else:
@@ -174,20 +174,21 @@ class AboutDialog(QDialog):
 
     def copy_to_clipboard(self):
         versions = get_versions()
-        QApplication.clipboard().setText("""* Spyder version: {spyder_ver} {revision}
-* Python version: {python_ver} {bitness}-bit
-* Qt version: {qt_ver}
-* {qt_api} version: {qt_api_ver}
-* Operating System: {os_name} {os_ver}""".format(
-            spyder_ver=versions['spyder'],
-            revision=versions['revision'],
-            python_ver=versions['python'],
-            bitness=versions['bitness'],
-            qt_ver=versions['qt'],
-            qt_api=versions['qt_api'],
-            qt_api_ver=versions['qt_api_ver'],
-            os_name=versions['system'],
-            os_ver=versions['release']))
+        QApplication.clipboard().setText(
+            "* Spyder version: {spyder_ver} {revision}\n"
+            "* Python version: {python_ver} {bitness}-bit\n"
+            "* Qt version: {qt_ver}\n"
+            "* {qt_api} version: {qt_api_ver}\n"
+            "* Operating System: {os_name} {os_ver}".format(
+                spyder_ver=versions['spyder'],
+                revision=versions['revision'],
+                python_ver=versions['python'],
+                bitness=versions['bitness'],
+                qt_ver=versions['qt'],
+                qt_api=versions['qt_api'],
+                qt_api_ver=versions['qt_api_ver'],
+                os_name=versions['system'],
+                os_ver=versions['release']))
 
 
 def test():
