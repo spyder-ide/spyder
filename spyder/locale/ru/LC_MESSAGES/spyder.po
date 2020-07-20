@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-18 22:56\n"
+"PO-Revision-Date: 2020-07-20 18:38\n"
 "Last-Translator: \n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -2620,7 +2620,7 @@ msgstr "Закрыть все кроме этой"
 
 #: spyder/plugins/editor/widgets/editor.py:511
 msgid "Sort tabs alphabetically"
-msgstr ""
+msgstr "Сортировать вкладки по алфавиту"
 
 #: spyder/plugins/editor/widgets/editor.py:515 spyder/plugins/explorer/widgets/explorer.py:537
 msgid "Show in Finder"
@@ -2729,7 +2729,8 @@ msgstr "Восстановить из автосохранения"
 #: spyder/plugins/editor/widgets/recover.py:151
 msgid "Autosave files found. What would you like to do?\n\n"
 "This dialog will be shown again on next startup if any autosave files are not restored, moved or deleted."
-msgstr ""
+msgstr "Найдены файлы автосохранения. Что бы Вы хотели сделать?\n\n"
+"Этот диалог будет показан снова при следующем запуске, если все файлы автосохранения не будут восстановлены, перемещены или удалены."
 
 #: spyder/plugins/editor/widgets/recover.py:170
 msgid "Actions"
