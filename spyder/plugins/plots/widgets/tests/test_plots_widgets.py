@@ -178,6 +178,10 @@ def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
         assert expected_qpix.toImage() == saved_qpix.toImage()
 
 def test_get_unique_figname(tmpdir):
+    """
+    Test that the unique fig names work when saving only one and when
+    saving multiple figures.
+    """
     fext = '.png'
     # Saving only one figure
     figname_root = ('Figure ' +
@@ -188,11 +192,11 @@ def test_get_unique_figname(tmpdir):
 
     # Saving multiple figures
     figname_root = ('Figure ' +
-                datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
+        datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
     for i in range(5):
         figname = get_unique_figname(tmpdir, figname_root, fext,
                                      start_at_zero=True)
-        #Create empty file with figname
+        # Create empty file with figname
         with open(figname, 'w') as _:
             pass
 
