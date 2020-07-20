@@ -27,9 +27,9 @@ from spyder.utils import icon_manager as ima
 class AboutDialog(QDialog):
 
     def __init__(self, parent):
-        QDialog.__init__(self, parent)
-
         """Create About Spyder dialog with general information."""
+
+        QDialog.__init__(self, parent)
         versions = get_versions()
         # Show Git revision for development version
         revlink = ''
