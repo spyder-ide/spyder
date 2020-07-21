@@ -12,6 +12,7 @@ Tests for the widgets used in the Plots plugin.
 
 # Standard library imports
 import os.path as osp
+import datetime
 from unittest.mock import Mock
 
 # Third party imports
@@ -26,6 +27,7 @@ from qtpy.QtCore import Qt
 # Local imports
 from spyder.plugins.plots.widgets.figurebrowser import (FigureBrowser,
                                                         FigureThumbnail)
+from spyder.plugins.plots.widgets.figurebrowser import get_unique_figname
 
 
 # =============================================================================
@@ -173,6 +175,33 @@ def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
 
         assert osp.exists(figname)
         assert expected_qpix.toImage() == saved_qpix.toImage()
+
+
+def test_get_unique_figname(tmpdir):
+    """
+    Test that the unique fig names work when saving only one and when
+    saving multiple figures.
+    """
+    fext = '.png'
+    # Saving only one figure
+    figname_root = ('Figure ' +
+                    datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
+    figname = get_unique_figname(tmpdir, figname_root, fext)
+    expected = osp.join(tmpdir, '{}{}'.format(figname_root, fext))
+    assert figname == expected
+
+    # Saving multiple figures
+    figname_root = ('Figure ' +
+                    datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
+    for i in range(5):
+        figname = get_unique_figname(tmpdir, figname_root, fext,
+                                     start_at_zero=True)
+        # Create empty file with figname
+        with open(figname, 'w') as _:
+            pass
+
+        expected = osp.join(tmpdir, '{} ({}){}'.format(figname_root, i, fext))
+        assert figname == expected
 
 
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
