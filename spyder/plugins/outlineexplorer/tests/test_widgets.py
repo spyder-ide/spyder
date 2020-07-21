@@ -62,7 +62,7 @@ TEXT = ("# -*- coding: utf-8 -*-\n"
         "        except AssertionError:\n"
         "            pass")
 
-CODE = """# -*- coding: utf-8 -*-
+CELL_CODE = """# -*- coding: utf-8 -*-
 
     def function0(x):
         return x
@@ -149,6 +149,91 @@ CODE = """# -*- coding: utf-8 -*-
 
     def b():
         pass
+"""
+
+COMMENT_CODE = """#!/usr/bin/env python3
+    # -*- coding: utf-8 -*-
+
+    # << Section 1
+    class demo1(object):
+        def __init__(self):
+            pass
+
+        def foo(self):
+            pass
+
+        # << bars 1
+        def bar10(self):
+            pass
+
+        def bar11(self):
+            pass
+
+        def bar12(self):
+            # >> comm 0
+            pass
+
+        # << bars 2
+        def bar20(self):
+            # << comm 1
+            # ## comm 10
+            pass
+
+        def bar21(self):
+            # ## comm 1
+            pass
+
+        def bar22(self):
+            pass
+    # >>
+
+    class demo2(object):
+        # ## init
+        def __init__(self):
+            pass
+
+        def foo(self):
+            pass
+
+        # >>> bars 1
+
+        def bar10(self):
+            pass
+
+        if True:
+            def bar11(self):
+                pass
+
+        def bar12(self):
+            pass
+
+
+    # region Section 3
+    class demo3(object):
+        # #### bars 001
+        def __init__(self):
+            pass
+
+        def foo(self):
+            pass
+    # endregion
+
+    # ## Main
+    x = 3
+    # << Main 1
+    y = 4
+        # << Sub 1
+    message = "Hello"
+    mess = "World"
+    ex = "!"
+    # endregion
+
+    class demo4(object):
+        def __init__(self):
+            pass
+
+        def foo(self):
+            pass
 """
 
 
@@ -323,7 +408,7 @@ def test_code_cell_grouping(create_outlineexplorer):
     the expected text for each item. In addition this tests ancestry, code
     cells comments, code cell grouping and disabling this feature.
     """
-    outlineexplorer = create_outlineexplorer(dedent(CODE), 'test_file.py')
+    outlineexplorer = create_outlineexplorer(dedent(CELL_CODE), 'test_file.py')
     assert outlineexplorer
 
     expected_results = [
@@ -418,6 +503,143 @@ def test_code_cell_grouping(create_outlineexplorer):
 # Code used to create expected_results
 # =============================================================================
 #     for item in cell_items2:
+#         if type(item) == FunctionItem:
+#             print(f"('{item.text(0)}', {type(item).__name__}, "
+#                   f"'{item.parent().text(0)}', {item.is_method()}),")
+#         elif type(item) == FileRootItem:
+#             print(f"('{item.text(0)}', {type(item).__name__}),")
+#         else:
+#             print(f"('{item.text(0)}', {type(item).__name__}, "
+#                   f"'{item.parent().text(0)}'),")
+# =============================================================================
+
+
+def test_comment_cell_grouping(create_outlineexplorer):
+    """
+    Test to assert the outline explorer is initializing correctly and
+    is showing the expected number of items, the expected type of items, and
+    the expected text for each item. In addition this tests proper class method
+    labelling, code comment regions and disabling of this feature.
+    """
+    outlineexplorer = create_outlineexplorer(dedent(COMMENT_CODE),
+                                             'test_file.py')
+    assert outlineexplorer
+
+    expected_results_comments = [
+        ('test_file.py', FileRootItem),
+        ('Section 1', CommentItem, 'test_file.py'),
+        ('demo1', ClassItem, 'Section 1'),
+        ('__init__', FunctionItem, 'demo1', True),
+        ('foo', FunctionItem, 'demo1', True),
+        ('bars 1', CommentItem, 'demo1'),
+        ('bar10', FunctionItem, 'bars 1', True),
+        ('bar11', FunctionItem, 'bars 1', True),
+        ('bar12', FunctionItem, 'bars 1', True),
+        ('bars 2', CommentItem, 'demo1'),
+        ('bar20', FunctionItem, 'bars 2', True),
+        ('comm 1', CommentItem, 'bar20'),
+        ('comm 10', CommentItem, 'comm 1'),
+        ('bar21', FunctionItem, 'bars 2', True),
+        ('comm 1', CommentItem, 'bar21'),
+        ('bar22', FunctionItem, 'bars 2', True),
+        ('demo2', ClassItem, 'test_file.py'),
+        ('init', CommentItem, 'demo2'),
+        ('__init__', FunctionItem, 'demo2', True),
+        ('foo', FunctionItem, 'demo2', True),
+        ('bar10', FunctionItem, 'demo2', True),
+        ('bar11', FunctionItem, 'bar10', False),
+        ('bar12', FunctionItem, 'demo2', True),
+        ('Section 3', CommentItem, 'test_file.py'),
+        ('demo3', ClassItem, 'Section 3'),
+        ('bars 001', CommentItem, 'demo3'),
+        ('__init__', FunctionItem, 'demo3', True),
+        ('foo', FunctionItem, 'demo3', True),
+        ('Main', CommentItem, 'test_file.py'),
+        ('Main 1', CommentItem, 'test_file.py'),
+        ('Sub 1', CommentItem, 'Main 1'),
+        ('demo4', ClassItem, 'test_file.py'),
+        ('__init__', FunctionItem, 'demo4', True),
+        ('foo', FunctionItem, 'demo4', True),
+        ]
+
+    expected_results_nocomments = [
+        ('test_file.py', FileRootItem),
+        ('demo1', ClassItem, 'test_file.py'),
+        ('__init__', FunctionItem, 'demo1', True),
+        ('foo', FunctionItem, 'demo1', True),
+        ('bar10', FunctionItem, 'demo1', True),
+        ('bar11', FunctionItem, 'demo1', True),
+        ('bar12', FunctionItem, 'demo1', True),
+        ('bar20', FunctionItem, 'demo1', True),
+        ('bar21', FunctionItem, 'demo1', True),
+        ('bar22', FunctionItem, 'demo1', True),
+        ('demo2', ClassItem, 'test_file.py'),
+        ('__init__', FunctionItem, 'demo2', True),
+        ('foo', FunctionItem, 'demo2', True),
+        ('bar10', FunctionItem, 'demo2', True),
+        ('bar11', FunctionItem, 'bar10', False),
+        ('bar12', FunctionItem, 'demo2', True),
+        ('demo3', ClassItem, 'test_file.py'),
+        ('__init__', FunctionItem, 'demo3', True),
+        ('foo', FunctionItem, 'demo3', True),
+        ('demo4', ClassItem, 'test_file.py'),
+        ('__init__', FunctionItem, 'demo4', True),
+        ('foo', FunctionItem, 'demo4', True),
+        ]
+
+    outlineexplorer.treewidget.expandAll()
+    tree_widget = outlineexplorer.treewidget
+    cell_items = tree_widget.get_top_level_items() + tree_widget.get_items()
+
+    # Assert that the expected number, text, ancestry and type of cell items is
+    # displayed in the tree.
+    expected_results = expected_results_comments
+    assert len(cell_items) == len(expected_results)
+    for item, expected_result in zip(cell_items, expected_results):
+        assert item.text(0) == expected_result[0]
+        assert type(item) == expected_result[1]
+        if type(item) != FileRootItem:
+            assert item.parent().text(0) == expected_result[2]
+        if type(item) == FunctionItem:
+            assert item.is_method() == expected_result[3]
+
+    # Disable cell groups
+    tree_widget.toggle_show_comments(False)
+    expected_results = expected_results_nocomments
+    tree_widget.expandAll()
+    flat_items = tree_widget.get_top_level_items() + tree_widget.get_items()
+
+    # Assert that the expected number, text, ancestry and type of flat items is
+    # displayed in the tree.
+    assert len(flat_items) == len(expected_results)
+    for item, expected_result in zip(flat_items, expected_results):
+        assert item.text(0) == expected_result[0]
+        assert type(item) == expected_result[1]
+        if type(item) != FileRootItem:
+            assert item.parent().text(0) == expected_result[2]
+        if type(item) == FunctionItem:
+            assert item.is_method() == expected_result[3]
+
+    # Change back to cell groups
+    tree_widget.toggle_show_comments(True)
+    expected_results = expected_results_comments
+    tree_widget.expandAll()
+    cell_items2 = tree_widget.get_top_level_items() + tree_widget.get_items()
+
+    # Assert that the expected number, text, ancestry and type of flat items is
+    # displayed in the tree.
+    assert len(cell_items2) == len(expected_results)
+    for item, expected_result in zip(cell_items2, expected_results):
+        assert item.text(0) == expected_result[0]
+        assert type(item) == expected_result[1]
+        if type(item) != FileRootItem:
+            assert item.parent().text(0) == expected_result[2]
+        if type(item) == FunctionItem:
+            assert item.is_method() == expected_result[3]
+
+# Code used to create expected_results
+# =============================================================================
+#     for item in nocomment_items:
 #         if type(item) == FunctionItem:
 #             print(f"('{item.text(0)}', {type(item).__name__}, "
 #                   f"'{item.parent().text(0)}', {item.is_method()}),")
