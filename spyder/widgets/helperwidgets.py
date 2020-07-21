@@ -375,65 +375,6 @@ class CustomSortFilterProxy(QSortFilterProxyModel):
             return True
 
 
-class MultipleSortFilterProxy(QSortFilterProxyModel):
-    """Custom proxy for supporting filtering in multiple columns."""
-
-    def __init__(self, parent=None):
-        """Initialize the multiple sort filter proxy."""
-        super().__init__(parent)
-        self._parent = parent
-        self.pattern = re.compile(r'')
-        self.filters = {}
-
-    def setFilterByColumn(self, column):
-        """Set regular expression in the given column."""
-        self.filters[column] = self.pattern
-        self.invalidateFilter()
-
-    def set_filter(self, text):
-        """Set regular expression for filter."""
-        for key, __ in self.filters.items():
-            self.pattern = get_search_regex(text)
-            if self.pattern and text:
-                self._parent.setSortingEnabled(False)
-            else:
-                self._parent.setSortingEnabled(True)
-            self.filters[key] = self.pattern
-            self.invalidateFilter()
-
-    def clearFilter(self, column):
-        """Clear the filter of the given column."""
-        self.filters.pop(column)
-        self.invalidateFilter()
-
-    def clearFilters(self):
-        """Clear all the filters."""
-        self.filters = {}
-        self.invalidateFilter()
-
-    def filterAcceptsRow(self, row_num, parent):
-        """Qt override.
-
-        Reimplemented to allow filtering in multiple columns.
-        """
-        results = []
-        for key, regex in self.filters.items():
-            model = self.sourceModel()
-            idx = model.index(row_num, key, parent)
-            if idx.isValid():
-                name = model.row(row_num).name
-                r_name = re.search(regex, name)
-                if r_name is None:
-                    r_name = ''
-                context = model.row(row_num).context
-                r_context = re.search(regex, context)
-                if r_context is None:
-                    r_context = ''
-                results.append(r_name)
-                results.append(r_context)
-        return any(results)
-
-
 def test_msgcheckbox():
     from spyder.utils.qthelpers import qapplication
     app = qapplication()

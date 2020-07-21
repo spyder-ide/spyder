@@ -13,7 +13,8 @@ import re
 # Third party imports
 from qtpy import PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Slot, QEvent
+from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot, QEvent,
+                         QSortFilterProxyModel)
 from qtpy.QtGui import QKeySequence, QIcon
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QGridLayout, QHBoxLayout, QLabel,
@@ -26,9 +27,8 @@ from spyder.config.manager import CONF
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import get_std_icon, create_toolbutton
-from spyder.utils.stringmatching import get_search_scores
-from spyder.widgets.helperwidgets import (MultipleSortFilterProxy,
-                                          FinderLineEdit, HelperToolButton,
+from spyder.utils.stringmatching import get_search_scores, get_search_regex
+from spyder.widgets.helperwidgets import (FinderLineEdit, HelperToolButton,
                                           HTMLDelegate, VALID_FINDER_CHARS)
 
 
@@ -648,7 +648,7 @@ class ShortcutsTable(QTableView):
                                     self,
                                     text_color=text_color,
                                     text_color_highlight=text_color_highlight)
-        self.proxy_model = MultipleSortFilterProxy(self)
+        self.proxy_model = ShortcutsSortFilterProxy(self)
         self.last_regex = ''
 
         self.proxy_model.setSourceModel(self.source_model)
@@ -905,6 +905,65 @@ class ShortcutsConfigPage(GeneralConfigPage):
     def apply_settings(self, options):
         self.table.save_shortcuts()
         self.main.apply_shortcuts()
+
+
+class ShortcutsSortFilterProxy(QSortFilterProxyModel):
+    """Custom proxy for supporting shortcuts multifiltering."""
+
+    def __init__(self, parent=None):
+        """Initialize the multiple sort filter proxy."""
+        super().__init__(parent)
+        self._parent = parent
+        self.pattern = re.compile(r'')
+        self.filters = {}
+
+    def setFilterByColumn(self, column):
+        """Set regular expression in the given column."""
+        self.filters[column] = self.pattern
+        self.invalidateFilter()
+
+    def set_filter(self, text):
+        """Set regular expression for filter."""
+        for key, __ in self.filters.items():
+            self.pattern = get_search_regex(text)
+            if self.pattern and text:
+                self._parent.setSortingEnabled(False)
+            else:
+                self._parent.setSortingEnabled(True)
+            self.filters[key] = self.pattern
+            self.invalidateFilter()
+
+    def clearFilter(self, column):
+        """Clear the filter of the given column."""
+        self.filters.pop(column)
+        self.invalidateFilter()
+
+    def clearFilters(self):
+        """Clear all the filters."""
+        self.filters = {}
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, row_num, parent):
+        """Qt override.
+
+        Reimplemented to allow filtering in multiple columns.
+        """
+        results = []
+        for key, regex in self.filters.items():
+            model = self.sourceModel()
+            idx = model.index(row_num, key, parent)
+            if idx.isValid():
+                name = model.row(row_num).name
+                r_name = re.search(regex, name)
+                if r_name is None:
+                    r_name = ''
+                context = model.row(row_num).context
+                r_context = re.search(regex, context)
+                if r_context is None:
+                    r_context = ''
+                results.append(r_name)
+                results.append(r_context)
+        return any(results)
 
 
 def load_shortcuts(shortcut_table):
