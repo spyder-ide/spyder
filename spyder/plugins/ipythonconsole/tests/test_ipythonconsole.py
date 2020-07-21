@@ -1715,8 +1715,8 @@ def test_stderr_poll(ipyconsole, qtbot):
 
 @pytest.mark.slow
 @pytest.mark.use_startup_wdir
-def test_startup_code(ipyconsole, qtbot):
-    """Test entering a multiline statment into pdb"""
+def test_startup_code_pdb(ipyconsole, qtbot):
+    """Test that startup code for pdb works."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
