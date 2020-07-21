@@ -177,6 +177,7 @@ def test_save_all_figures(figbrowser, tmpdir, mocker, fmt):
         assert osp.exists(figname)
         assert expected_qpix.toImage() == saved_qpix.toImage()
 
+
 def test_get_unique_figname(tmpdir):
     """
     Test that the unique fig names work when saving only one and when
@@ -192,7 +193,7 @@ def test_get_unique_figname(tmpdir):
 
     # Saving multiple figures
     figname_root = ('Figure ' +
-        datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
+                    datetime.datetime.now().strftime('%Y-%m-%d %H%M%S'))
     for i in range(5):
         figname = get_unique_figname(tmpdir, figname_root, fext,
                                      start_at_zero=True)
@@ -202,6 +203,7 @@ def test_get_unique_figname(tmpdir):
 
         expected = osp.join(tmpdir, '{} ({}){}'.format(figname_root, i, fext))
         assert figname == expected
+
 
 @pytest.mark.parametrize("fmt", ['image/png', 'image/svg+xml'])
 def test_close_current_figure(figbrowser, tmpdir, fmt):
