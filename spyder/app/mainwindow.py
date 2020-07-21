@@ -198,7 +198,6 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     MENU_SEPARATOR, set_menu_icons)
 from spyder.otherplugins import get_spyderplugins_mods
 from spyder.app import tour
-from spyder.widgets.about import AboutDialog
 
 #==============================================================================
 # Third-party library imports
@@ -2675,6 +2674,7 @@ class MainWindow(QMainWindow):
     @Slot()
     def show_about(self):
         """Show About Spyder dialog box"""
+        from spyder.widgets.about import AboutDialog
         abt = AboutDialog(self)
         abt.exec_()
 
