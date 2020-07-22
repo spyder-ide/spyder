@@ -521,7 +521,9 @@ class EditorStack(QWidget):
                                         name="show in external file explorer"),
                                 context=Qt.WidgetShortcut)
         
-        parent.plugin.register_shortcut(external_fileexp_action, 
+        if self.parent() is not None: #fix? shortcut cannot be registered with dummy parent during testing
+            plugin = self.parent().plugin
+            plugin.register_shortcut(external_fileexp_action, 
                                         context="Editor",
                                         name="show in external file explorer", 
                                         add_shortcut_to_tip=True)
@@ -3572,6 +3574,11 @@ class EditorPluginExample(QSplitter):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
+                
+    def register_shortcut(self, qaction_or_qshortcut, context, name,
+                          add_shortcut_to_tip=False):
+        """Fake"""
+        pass
 
     def register_widget_shortcuts(self, widget):
         """Fake!"""
