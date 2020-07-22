@@ -30,6 +30,7 @@ import textwrap
 import time
 
 # Third party imports
+from three_merge import merge
 from diff_match_patch import diff_match_patch
 from qtpy.compat import to_qvariant
 from qtpy.QtCore import QPoint, QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
@@ -1495,6 +1496,42 @@ class CodeEditor(TextEditBaseWidget):
             }
         }
         return params
+
+    @handles(LSPRequestTypes.DOCUMENT_FORMATTING)
+    def handle_document_formatting(self, edits):
+        edits = edits['params']
+        texts = []
+        diffs = []
+        text = self.toPlainText()
+        text_tokens = list(text)
+        merged_text = None
+        for edit in edits:
+            edit_range = edit['range']
+            repl_text = edit['newText']
+            start, end = edit_range['start'], edit_range['end']
+            start_line, start_col = start['line'], start['character']
+            end_line, end_col = end['line'], end['character']
+            start_pos = self.get_position_line_number(start_line, start_col)
+            end_pos = self.get_position_line_number(end_line, end_col)
+            text_tokens = list(text_tokens)
+            this_edit = list(repl_text)
+            this_edition = (text_tokens[:max(start_pos - 1, 0)] +
+                            this_edit +
+                            text_tokens[end_pos - 1:])
+            text_edit = ''.join(this_edition)
+            if merged_text is None:
+                merged_text = text_edit
+            else:
+                merged_text = merge(text_edit, merged_text, text)
+
+        cursor = self.textCursor()
+        cursor.beginEditBlock()
+        cursor.movePosition(QTextCursor.Start)
+        cursor.movePosition(QTextCursor.End,
+                            QTextCursor.KeepAnchor)
+        cursor.insertText(merged_text)
+        cursor.endEditBlock()
+        self.document_did_change()
 
     # ------------- LSP: Code folding ranges -------------------------------
     def update_whitespace_count(self, line, column):

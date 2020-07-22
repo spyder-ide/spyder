@@ -233,6 +233,7 @@ install_requires = [
     'qtpy>=1.5.0',
     'sphinx>=0.6.6',
     'spyder-kernels>=1.9.2,<1.10.0',
+    'three-merge>=0.1.1',
     'watchdog',
 ]
 

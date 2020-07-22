@@ -20,6 +20,9 @@ if [ "$USE_CONDA" = "true" ]; then
         conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y
     fi
 
+    # Install three-merge temporarily while conda packages are available
+    pip install three-merge
+
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
 

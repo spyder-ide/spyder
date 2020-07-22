@@ -57,6 +57,7 @@ QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.8.3'
 SPHINX_REQVER = '>=0.6.6'
 SPYDER_KERNELS_REQVER = '>=1.9.2;<1.10.0'
+THREE_MERGE_REQVER = '>=0.1.1'
 WATCHDOG_REQVER = None
 
 
@@ -196,6 +197,10 @@ DESCRIPTIONS = [
      'package_name': "spyder-kernels",
      'features': _("Jupyter kernels for the Spyder console"),
      'required_version': SPYDER_KERNELS_REQVER},
+    {'modname': "three_merge",
+     'package_name': "three-merge",
+     'features': _("3-way merge algorithm to merge document changes"),
+     'required_version': THREE_MERGE_REQVER},
     {'modname': "watchdog",
      'package_name': "watchdog",
      'features': _("Watch file changes on project directories"),

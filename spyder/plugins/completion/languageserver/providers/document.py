@@ -308,3 +308,7 @@ class DocumentProvider:
     @handles(LSPRequestTypes.DOCUMENT_FORMATTING)
     def process_document_formatting(self, result, req_id):
         logger.debug(result)
+        if req_id in self.req_reply:
+            self.req_reply[req_id](
+                LSPRequestTypes.DOCUMENT_FORMATTING,
+                {'params': result})
