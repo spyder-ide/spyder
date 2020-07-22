@@ -186,6 +186,7 @@ def ipyconsole(qtbot, request):
     # This segfaults on macOS
     if not sys.platform == "darwin":
         qtbot.addWidget(window)
+    window.resize(640, 480)
     window.show()
 
     yield console
@@ -731,6 +732,9 @@ def test_save_history_dbg(ipyconsole, qtbot):
     # doesn't work here)
     shell.reset(clear=True)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    # Make sure we are debugging
+    assert shell.is_waiting_pdb_input()
 
     # Press Up arrow button and assert we get the last
     # introduced command

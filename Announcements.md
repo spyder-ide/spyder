@@ -1,34 +1,34 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 4.1.3 is released!
+**Subject**: [ANN] Spyder 4.1.4 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **4.1.3** has been released and is available for
+I'm pleased to announce that Spyder **4.1.4** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes five weeks after version 4.1.2 and it contains the
-following new features and important fixes:
+This release comes two months after version 4.1.3 and it contains the
+following important fixes:
 
-- New features
-  * New files are saved now as Utf-8 (instead of as Ascii).
-  * Make functionality to go to the previous/next cursor more intuitive.
-  * New dark and light themes for the Online Help pane.
+* Fix linter not being updated after changes on Windows.
+* Correctly restart kernels after a crash while running code.
+* Clear variable explorer after a kernel restart.
+* Fix several errors when sorting variables in the variable explorer.
+* Fix selection color in several syntax highlighting themes.
+* Support Jedi 0.17.1, which fixes several issues with code completion in the
+  editor.
+* Fix errors when running Dask code in the IPython console.
+* Show scrollflag in macOS with the dark theme.
+* Only show folding arrows when the user hovers over them, which improves
+  responsiveness in the editor.
+* Fix several problems with the integration between our projects and the
+  Python language server.
+* Handle NaT values in the Variable Explorer.
 
-- Important fixes
-  * Make Spyder work on Python 3.8 and Windows.
-  * Fix several startup crashes related to problems with Kite.
-  * Fix contrast issues present in several syntax highlighting themes.
-  * Fix "Directly enter debugging when errors appear" run option.
-  * Fix startup crash when Spyder is using the Brazilian Portuguese translation.
-  * Fix segfault on Unix systems when removing plots.
-  * Correctly position linting markers when code is folded in the editor.
-  * Correctly show variables while debugging in the Variable Explorer.
-
-In this release we fixed 46 issues and merged 65 pull requests that amount
-to more than 230 commits. For a full list of fixes, please see our
+In this release we fixed 62 issues and merged 79 pull requests that amount
+to more than 400 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/4.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

@@ -52,6 +52,9 @@ QTabWidget::pane#plugin-tab {
 QTabWidget::tab-bar#plugin-tab {
     left: 5px;
     margin-right: 20px;
+
+    margin-right: 30px;
+    left: 0px;
 }
 
 QTabBar::tab#plugin-tab {
@@ -63,6 +66,8 @@ QTabBar::tab#plugin-tab {
     padding: 5px 10px;
     margin-left: -1px;
     margin-right: -1px;
+
+    padding: 4px 10px;
 }
 
 QTabBar::tab:selected#plugin-tab, QTabBar::tab:selected:hover#plugin-tab {
@@ -80,11 +85,11 @@ QTabBar::tab:hover#plugin-tab {
 }
 
 QTabBar::tab:first#plugin-tab {
-    margin-left: 0;
+    margin-left: 0px;
 }
 
 QTabBar::tab:last#plugin-tab {
-    margin-right: 10;
+    margin-right: 10px;
 }
 
 QTabBar::tab:only-one#plugin-tab {
@@ -100,45 +105,31 @@ QTabBar::close-button:hover{
     background-color: #b4b5b4;
 }
 
-
 QTabBar#plugin-tab QToolButton {
     background: #b7b9b7;
 }
 
 /* Scroll arrow buttons in tabbar */
 
-QTabBar#plugin-tab QToolButton::left-arrow {
-    background: #b7b9b7;
-    background: #d2d3d2;
-    image: url($IMAGE_PATH/chevron-left.png);
-    border: 1px solid #a8a9a8;
-    border-bottom: 0px solid #a8a9a8;
-    margin-right: 8px;
-}
-
-QTabBar#plugin-tab QToolButton::right-arrow {
-    background: #b7b9b7;
-    background: #d2d3d2;
-    image: url($IMAGE_PATH/chevron-right.png);
-    border: 1px solid #a8a9a8;
-    border-bottom: 0px solid #a8a9a8;
-    margin-right: 8px;
-}
-
-QTabBar::scroller { /* the width of the scroll buttons */
-    width: 20px;
+QTabBar::scroller#plugin-tab { /* the width of the scroll buttons */
+    width: 16px;
 }
 
 /* Corner buttons in tabbar */
 
 QTabWidget::left-corner#plugin-tab {
-    bottom: 2.5px;
-    left: 2px;
+    bottom: 0px;
+    left: 0px;
 }
 
 QTabWidget::right-corner#plugin-tab {
-    bottom: 2.5px;
-    right: 2px;
+    bottom: 0px;
+    right: 0px;
+}
+
+QTabBar#plugin-tab::tear {
+    border: none;
+    width: 0px;
 }
 
 /* ------------------ Dock widgets ------------------- */

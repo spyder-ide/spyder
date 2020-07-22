@@ -39,7 +39,9 @@ def pyls(tmpdir):
 @pytest.fixture
 def workspace(tmpdir):
     """Return a workspace."""
-    return Workspace(uris.from_fs_path(str(tmpdir)), Mock())
+    ws = Workspace(uris.from_fs_path(str(tmpdir)), Mock())
+    ws._config = Config(ws.root_uri, {}, 0, {})
+    return ws
 
 
 @pytest.fixture

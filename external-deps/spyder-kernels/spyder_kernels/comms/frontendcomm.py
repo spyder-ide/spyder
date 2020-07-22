@@ -154,13 +154,10 @@ class FrontendComm(CommBase):
         """Wait until the frontend replies to a request."""
         if call_id in self._reply_inbox:
             return
-
         t_start = time.time()
         while call_id not in self._reply_inbox:
             if time.time() > t_start + timeout:
                 if retry:
-                    # Send config again just in case
-                    self._send_comm_config()
                     self._wait_reply(call_id, call_name, timeout, False)
                     return
                 raise TimeoutError(
@@ -181,6 +178,11 @@ class FrontendComm(CommBase):
         self._register_comm(comm)
         self._set_pickle_protocol(msg['content']['data']['pickle_protocol'])
         self._send_comm_config()
+
+    def on_outgoing_call(self, call_dict):
+        """A message is about to be sent"""
+        call_dict["comm_port"] = self.comm_port
+        return super(FrontendComm, self).on_outgoing_call(call_dict)
 
     def _send_comm_config(self):
         """Send the comm config to the frontend."""
