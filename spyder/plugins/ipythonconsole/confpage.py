@@ -220,6 +220,23 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_lines_layout.addWidget(run_lines_edit)
         run_lines_group.setLayout(run_lines_layout)
 
+        # Pdb run lines Group
+        pdb_run_lines_group = QGroupBox(_("Run code while debugging"))
+        pdb_run_lines_label = QLabel(_(
+            "You can run several lines of code on each "
+            "new prompt while debugging. Please "
+            "introduce each one separated by semicolons "
+            "and a space, for example:<br>"
+            "<i>import matplotlib.pyplot as plt</i>"))
+        pdb_run_lines_label.setWordWrap(True)
+        pdb_run_lines_edit = self.create_lineedit(
+            _("Lines:"), 'startup/pdb_run_lines', '', alignment=Qt.Horizontal)
+
+        pdb_run_lines_layout = QVBoxLayout()
+        pdb_run_lines_layout.addWidget(pdb_run_lines_label)
+        pdb_run_lines_layout.addWidget(pdb_run_lines_edit)
+        pdb_run_lines_group.setLayout(pdb_run_lines_layout)
+
         # Run file Group
         run_file_group = QGroupBox(_("Run a file"))
         run_file_label = QLabel(_("You can also run a whole file at startup "
@@ -374,7 +391,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                     _("Graphics"))
-        tabs.addTab(self.create_tab(run_lines_group, run_file_group),
+        tabs.addTab(self.create_tab(run_lines_group, pdb_run_lines_group,
+                                    run_file_group),
                     _("Startup"))
         tabs.addTab(self.create_tab(jedi_group, greedy_group, autocall_group,
                                     sympy_group, prompts_group,
