@@ -108,7 +108,12 @@ PYTHON_CONFIG = {
                 },
                 'flake8': {
                      'enabled': False,
-                }
+                },
+                'pyls_mypy':
+                {
+                    "enabled": False,
+                    "live_mode": False
+                },
             },
 
         }

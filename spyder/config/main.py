@@ -498,6 +498,8 @@ DEFAULTS = [
               'jedi_signature_help': True,
               'preload_modules': PRELOAD_MDOULES,
               'pyflakes': True,
+              'mypy': False,
+              'mypy/live_mode': False,
               'mccabe': False,
               'pycodestyle': False,
               'pycodestyle/filename': '',

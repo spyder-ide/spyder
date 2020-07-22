@@ -615,6 +615,12 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         # Pydocstyle
         convention = self.get_option('pydocstyle/convention')
 
+        # Mypy
+        mypy = {
+            'enabled': self.get_option('mypy'),
+            'live_mode': self.get_option('mypy/live_mode')
+        }
+
         if convention == 'Custom':
             ds_ignore = self.get_option('pydocstyle/ignore').split(',')
             ds_select = self.get_option('pydocstyle/select').split(',')
@@ -686,6 +692,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         plugins['jedi_completion'].update(jedi_completion)
         plugins['jedi_signature_help'].update(jedi_signature_help)
         plugins['jedi_definition'].update(jedi_definition)
+        plugins['pyls_mypy'].update(mypy)
         plugins['preload']['modules'] = self.get_option('preload_modules')
 
         return python_config
