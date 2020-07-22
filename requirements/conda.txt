@@ -20,7 +20,6 @@ pickleshare >=0.4
 psutil >=5.3
 pygments >=2.0
 pylint >=1.0
-pyls-mypy >= 0.1.8
 pyqt <5.13
 # There's no need to set a version for python-language-server
 # because we install it from master for our tests.

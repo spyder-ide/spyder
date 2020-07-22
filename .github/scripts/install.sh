@@ -20,6 +20,9 @@ if [ "$USE_CONDA" = "true" ]; then
         conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y
     fi
 
+    # Install pyls-mypy from spyder-ide channel until it is available on defaults
+    conda install python=$PYTHON_VERSION pyls-mypy -c spyder-ide -q -y
+
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
 
