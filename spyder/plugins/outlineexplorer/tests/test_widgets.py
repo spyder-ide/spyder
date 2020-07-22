@@ -426,7 +426,7 @@ def test_code_cell_grouping(create_outlineexplorer):
         ('medthod1', FunctionItem, 'Class2', 'Class2', True),
         ('Cell level 4', CellItem, 'Cell Level 2', 'test_file.py'),
         ('function4', FunctionItem, 'Cell level 4', 'test_file.py', False),
-        ('Cell Level 3', CellItem, 'Cell Level 1-2', 'test_file.py'),
+        ('Cell Level 3', CellItem, 'Cell Level 2', 'test_file.py'),
         ('function5', FunctionItem, 'Cell Level 3', 'test_file.py', False),
         ('Cell Level 6', CellItem, 'Cell Level 3', 'test_file.py'),
         ('Class3', ClassItem, 'Cell Level 6', 'test_file.py'),
