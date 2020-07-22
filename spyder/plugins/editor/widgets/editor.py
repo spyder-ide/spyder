@@ -515,18 +515,19 @@ class EditorStack(QWidget):
            text=_("Show in Finder")
         else:
            text= _("Show in external file explorer")
-        external_fileexp_action = create_action(self, text,
-                                triggered=self.show_in_external_file_explorer,
-                                shortcut=CONF.get_shortcut(context="Editor",
-                                        name="show in external file explorer"),
-                                context=Qt.WidgetShortcut)
-        
-        if self.parent() is not None: #fix? shortcut cannot be registered with dummy parent during testing
+        external_fileexp_action = create_action(
+            self, text,
+            triggered=self.show_in_external_file_explorer,
+            shortcut=CONF.get_shortcut(context="Editor",
+                                       name="show in external file explorer"),
+            context=Qt.WidgetShortcut)
+
+        if self.parent() is not None:
             plugin = self.parent().plugin
-            plugin.register_shortcut(external_fileexp_action, 
-                                        context="Editor",
-                                        name="show in external file explorer", 
-                                        add_shortcut_to_tip=True)
+            plugin.register_shortcut(external_fileexp_action,
+                                     context="Editor",
+                                     name="show in external file explorer",
+                                     add_shortcut_to_tip=True)
 
         self.menu_actions = actions + [external_fileexp_action,
                                        None, switcher_action,
@@ -846,12 +847,12 @@ class EditorStack(QWidget):
             name="close split panel",
             parent=self)
 
-        external_fileexp = CONF.config_shortcut( #XXX here
+        external_fileexp = CONF.config_shortcut(
             self.show_in_external_file_explorer,
             context="Editor",
             name="show in external file explorer",
             parent=self)
-            
+
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
                 tabshift, run_selection, new_file, open_file, save_file,
@@ -3574,7 +3575,7 @@ class EditorPluginExample(QSplitter):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.rename_in_data(original_filename, filename)
-                
+
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           add_shortcut_to_tip=False):
         """Fake"""
