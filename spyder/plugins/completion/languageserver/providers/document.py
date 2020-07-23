@@ -307,8 +307,30 @@ class DocumentProvider:
 
     @handles(LSPRequestTypes.DOCUMENT_FORMATTING)
     def process_document_formatting(self, result, req_id):
-        logger.debug(result)
         if req_id in self.req_reply:
             self.req_reply[req_id](
                 LSPRequestTypes.DOCUMENT_FORMATTING,
+                {'params': result})
+
+    @send_request(method=LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    def document_range_formatting_request(self, params):
+        options = params['options']
+        options = {
+            snake_to_camel(opt): options[opt]
+            for opt in options
+        }
+        params = {
+            'textDocument': {
+                'uri': path_as_uri(params['file'])
+            },
+            'options': options,
+            'range': params['range']
+        }
+        return params
+
+    @handles(LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    def process_document_range_formatting(self, result, req_id):
+        if req_id in self.req_reply:
+            self.req_reply[req_id](
+                LSPRequestTypes.DOCUMENT_RANGE_FORMATTING,
                 {'params': result})
