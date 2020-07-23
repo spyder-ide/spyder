@@ -28,6 +28,15 @@ TEXT = ("def some_function():\n"  # D100, D103: Missing docstring
         "undefined_function()")  # Undefined name 'undefined_function'
 
 
+MYPY_TEXT = (
+    "def fib(n: int) -> Iterator[int]:\n"  # Did you forget to import it?
+    "    a, b = 0, 1\n"
+    "    while a < n:\n"
+    "        yield a\n"
+    "        a, b = b, a + b\n\n"
+    "fib('holi')")  # Argument has incompatible type "str"
+
+
 @pytest.mark.slow
 @pytest.mark.second
 @flaky(max_runs=5)
@@ -281,3 +290,35 @@ def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
     # Assert that the error is gone.
     expected = [['D100: Missing docstring in public module', 1]]
     assert editor.get_current_warnings() == expected
+
+
+@pytest.mark.slow
+@pytest.mark.second
+@flaky(max_runs=5)
+def test_mypy_linting(qtbot, lsp_codeeditor):
+    """Test type linting using mypy extension."""
+    editor, manager = lsp_codeeditor
+    editor.set_text(MYPY_TEXT)
+    CONF.set('lsp-server', 'mypy', True)
+    CONF.set('lsp-server', 'mypy/live_mode', True)
+
+    # After this call the manager needs to be reinitialized
+    manager.update_configuration()
+    qtbot.wait(2000)
+
+    # Notify changes.
+    with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
+        editor.document_did_change()
+
+    # Wait for linting info to arrive
+    qtbot.wait(2000)
+
+    print(editor.get_current_warnings())
+    mypy_expected_import = [('Did you forget to import it from "typing"? '
+                             '(Suggestion: "from typing import Iterator")'), 1]
+    mypy_expected_function = [
+        'Argument 1 to "fib" has incompatible type "str"; expected "int"', 7]
+
+    current_warnings = editor.get_current_warnings()
+    assert mypy_expected_import in current_warnings
+    assert mypy_expected_function in current_warnings
