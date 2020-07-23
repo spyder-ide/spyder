@@ -802,6 +802,11 @@ class Editor(SpyderPluginWidget):
             _("Remove trailing spaces"),
             triggered=self.remove_trailing_spaces)
 
+        formatting_action = create_action(
+            self,
+            _("Format document/selection"),
+            triggered=self.format_document_or_selection)
+
         # Checkable actions
         showblanks_action = self._create_checkable_action(
             _("Show blank spaces"), 'blank_spaces', 'set_blanks_enabled')
@@ -1021,7 +1026,8 @@ class Editor(SpyderPluginWidget):
             MENU_SEPARATOR,
             eol_menu,
             trailingspaces_action,
-            fixindentation_action
+            fixindentation_action,
+            formatting_action
         ]
         self.main.source_menu_actions += source_menu_actions
 
@@ -2337,6 +2343,12 @@ class Editor(SpyderPluginWidget):
         self.switch_to_plugin()
         editorstack = self.get_current_editorstack()
         editorstack.remove_trailing_spaces()
+
+    @Slot()
+    def format_document_or_selection(self):
+        self.switch_to_plugin()
+        editorstack = self.get_current_editorstack()
+        editorstack.format_document_or_selection()
 
     @Slot()
     def fix_indentation(self):

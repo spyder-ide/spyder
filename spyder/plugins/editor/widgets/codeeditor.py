@@ -741,6 +741,7 @@ class CodeEditor(TextEditBaseWidget):
             ('editor', 'select all', self.selectAll),
             ('editor', 'docstring',
              self.writer_docstring.write_docstring_for_shortcut),
+            ('editor', 'autoformatting', self.format_document_or_range),
             ('array_builder', 'enter array inline', self.enter_array_inline),
             ('array_builder', 'enter array table', self.enter_array_table)
             )
@@ -1477,6 +1478,12 @@ class CodeEditor(TextEditBaseWidget):
                 "Error when processing go to definition")
 
     # ------------- LSP: Document/Selection formatting --------------------
+    def format_document_or_range(self):
+        if self.has_selected_text():
+            self.format_document_range()
+        else:
+            self.format_document()
+
     @request(method=LSPRequestTypes.DOCUMENT_FORMATTING)
     def format_document(self):
         if not self.formatting_enabled:
@@ -1497,8 +1504,50 @@ class CodeEditor(TextEditBaseWidget):
         }
         return params
 
+    @request(method=LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    def format_document_range(self):
+        if not self.range_formatting_enabled or not self.has_selected_text():
+            return
+
+        start, end = self.get_selection_start_end()
+        start_line, start_col = start
+        end_line, end_col = end
+        using_spaces = self.indent_chars != '\t'
+        tab_size = (len(self.indent_chars) if using_spaces else
+                    self.tab_stop_width_spaces)
+
+        fmt_range = {
+            'start': {
+                'line': start_line,
+                'character': start_col
+            },
+            'end': {
+                'line': end_line,
+                'character': end_col
+            }
+        }
+        params = {
+            'file': self.filename,
+            'range': fmt_range,
+            'options': {
+                'tab_size': tab_size,
+                'insert_spaces': using_spaces,
+                'trim_trailling_whitespace': self.remove_trailling_spaces,
+                'insert_final_new_line': self.add_newline,
+                'trim_final_new_lines': self.remove_trailling_newlines
+            }
+        }
+        return params
+
     @handles(LSPRequestTypes.DOCUMENT_FORMATTING)
     def handle_document_formatting(self, edits):
+        self._apply_document_edits(edits)
+
+    @handles(LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
+    def handle_document_range_formatting(self, edits):
+        self._apply_document_edits(edits)
+
+    def _apply_document_edits(self, edits):
         edits = edits['params']
         texts = []
         diffs = []
@@ -1524,14 +1573,15 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 merged_text = merge(text_edit, merged_text, text)
 
-        cursor = self.textCursor()
-        cursor.beginEditBlock()
-        cursor.movePosition(QTextCursor.Start)
-        cursor.movePosition(QTextCursor.End,
-                            QTextCursor.KeepAnchor)
-        cursor.insertText(merged_text)
-        cursor.endEditBlock()
-        self.document_did_change()
+        if merged_text is not None:
+            cursor = self.textCursor()
+            cursor.beginEditBlock()
+            cursor.movePosition(QTextCursor.Start)
+            cursor.movePosition(QTextCursor.End,
+                                QTextCursor.KeepAnchor)
+            cursor.insertText(merged_text)
+            cursor.endEditBlock()
+            self.document_did_change()
 
     # ------------- LSP: Code folding ranges -------------------------------
     def update_whitespace_count(self, line, column):
@@ -3874,6 +3924,12 @@ class CodeEditor(TextEditBaseWidget):
             shortcut=CONF.get_shortcut('editor', 'docstring'),
             triggered=writer.write_docstring_at_first_line_of_function)
 
+        # Document formatting
+        self.format_action = create_action(
+            self, _('Format document/selection'),
+            shortcut=CONF.get_shortcut('editor', 'autoformatting'),
+            triggered=self.format_document_or_range)
+
         # Build menu
         self.menu = QMenu(self)
         actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
@@ -3882,7 +3938,8 @@ class CodeEditor(TextEditBaseWidget):
                      self.redo_action, None, self.cut_action,
                      self.copy_action, self.paste_action, selectall_action]
         actions_2 = [None, zoom_in_action, zoom_out_action, zoom_reset_action,
-                     None, toggle_comment_action, self.docstring_action]
+                     None, toggle_comment_action, self.docstring_action,
+                     self.format_action]
         if nbformat is not None:
             nb_actions = [self.clear_all_output_action,
                           self.ipynb_convert_action, None]

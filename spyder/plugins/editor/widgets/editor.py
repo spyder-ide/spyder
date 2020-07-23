@@ -2823,6 +2823,12 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         finfo.editor.fix_indentation()
 
+    def format_document_or_selection(self, index=None):
+        if index is None:
+            index = self.get_stack_index()
+        finfo = self.data[index]
+        finfo.editor.format_document_or_range()
+
     #------ Run
     def run_selection(self):
         """
