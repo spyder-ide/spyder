@@ -322,3 +322,6 @@ def test_mypy_linting(qtbot, lsp_codeeditor):
     current_warnings = editor.get_current_warnings()
     assert mypy_expected_import in current_warnings
     assert mypy_expected_function in current_warnings
+
+    CONF.set('lsp-server', 'mypy', False)
+    CONF.set('lsp-server', 'mypy/live_mode', False)
