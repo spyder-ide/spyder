@@ -312,6 +312,17 @@ class CodeEditor(TextEditBaseWidget):
     # the mouse left button is pressed, this signal is emmited
     sig_go_to_uri = Signal(str)
 
+    sig_file_uri_preprocessed = Signal(str)
+    """
+    This signal is emitted when the go to uri for a file has been
+    preprocessed.
+
+    Parameters
+    ----------
+    fpath: str
+        The preprocessed file path.
+    """
+
     # Signal with the info about the current completion item documentation
     # str: object name
     # str: object signature/documentation
@@ -340,6 +351,9 @@ class CodeEditor(TextEditBaseWidget):
         TextEditBaseWidget.__init__(self, parent)
 
         self.setFocusPolicy(Qt.StrongFocus)
+
+        # Projects
+        self.current_project_path = None
 
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('main', 'cursor/width') )
@@ -4191,11 +4205,25 @@ class CodeEditor(TextEditBaseWidget):
         fname = uri.replace('file://', '')
         if fname[-1] == '/':
             fname = fname[:-1]
+
+        # ^/ is used to denote the current project root
+        if fname.startswith("^/"):
+            if self.current_project_path is not None:
+                fname = osp.join(self.current_project_path, fname[2:])
+            else:
+                fname = fname.replace("^/", "~/")
+
+        if fname.startswith("~/"):
+            fname = osp.expanduser(fname)
+
         dirname = osp.dirname(osp.abspath(self.filename))
         if osp.isdir(dirname):
             if not osp.isfile(fname):
                 # Maybe relative
                 fname = osp.join(dirname, fname)
+
+        self.sig_file_uri_preprocessed.emit(fname)
+
         return fname
 
     def _handle_goto_definition_event(self, pos):
@@ -4671,6 +4699,16 @@ class CodeEditor(TextEditBaseWidget):
         timer = QTimer()
         timer.singleShot(300, lambda: self.popup_docstring(line_text, pos))
 
+    def set_current_project_path(self, root_path=None):
+        """
+        Set the current active project root path.
+
+        Parameters
+        ----------
+        root_path: str or None, optional
+            Path to current project root path. Default is None.
+        """
+        self.current_project_path = root_path
 
 #===============================================================================
 # CodeEditor's Printer
