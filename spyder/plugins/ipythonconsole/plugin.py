@@ -600,7 +600,24 @@ class IPythonConsole(SpyderPluginWidget):
 
     def pdb_execute(self, line, hidden=False, echo_stack_entry=False,
                     add_history=False):
-        """Call pdb_execute on the current whellwidget"""
+        """
+        Send line to the pdb kernel if possible.
+
+        Parameters
+        ----------
+        line: str
+            the line to execute
+
+        hidden: bool
+            If the line should be hidden
+
+        echo_stack_entry: bool
+            If not hidden, if the stack entry should be printed
+
+        add_history: bool
+            If not hidden, wether the line should be added to history
+        """
+
         sw = self.get_current_shellwidget()
         if sw is not None:
             # Needed to handle an error when kernel_client is None.

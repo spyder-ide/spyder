@@ -1721,7 +1721,7 @@ def test_stderr_poll(ipyconsole, qtbot):
 @pytest.mark.parametrize(
     "backend",
     ['inline', 'qt5', 'tk', 'osx', ]
-    )
+)
 def test_pdb_eventloop(ipyconsole, qtbot, backend):
     """Check if pdb works with every backend. (only testing 3)."""
     # Skip failing tests
@@ -1747,7 +1747,7 @@ def test_pdb_eventloop(ipyconsole, qtbot, backend):
 
 @flaky(max_runs=3)
 def test_pdb_without_comm(ipyconsole, qtbot):
-    """Check if pdb works withhout comm."""
+    """Check if pdb works without comm."""
     shell = ipyconsole.get_current_shellwidget()
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)

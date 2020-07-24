@@ -3368,9 +3368,17 @@ def test_immediate_debug(main_window, qtbot):
 @flaky(max_runs=3)
 def test_local_namespace(main_window, qtbot, tmpdir):
     """
-    Test that the local namespace is not reset
+    Test that the local namespace is not reset.
+
+    This can happen if `frame.f_locals` is called on the current frame, as this
+    has the side effect of discarding the pdb locals.
     """
-    code = ("def hello():\n    test = 1\n    print('test ==', test)\nhello()")
+    code = ("""
+def hello():
+    test = 1
+    print('test ==', test)
+hello()
+""")
 
     # Wait until the window is fully up
     shell = main_window.ipyconsole.get_current_shellwidget()
@@ -3388,7 +3396,7 @@ def test_local_namespace(main_window, qtbot, tmpdir):
     main_window.editor.new()
     code_editor = main_window.editor.get_focus_widget()
     code_editor.set_text(code)
-    code_editor.debugger.toogle_breakpoint(line_number=3)
+    code_editor.debugger.toogle_breakpoint(line_number=4)
 
     nsb = main_window.variableexplorer.get_focus_widget()
 
@@ -3396,7 +3404,9 @@ def test_local_namespace(main_window, qtbot, tmpdir):
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
 
-    # b should not be there (running namespace) and the local a should be 5
+    # Check `test` has a value of 
+    # Here we use "waitUntil" because `shell.executed` is emitted twice
+    # One at the beginning of the file, and once at the breakpoint
     qtbot.waitUntil(lambda: 'test' in nsb.editor.source_model._data and
                     nsb.editor.source_model._data['test']['view'] == '1',
                     timeout=3000)
@@ -3422,6 +3432,10 @@ def test_local_namespace(main_window, qtbot, tmpdir):
         shell.pdb_execute("next")
 
     assert "test == 3" in shell._control.toPlainText()
+
+    # Check the namespace browser is updated
+    assert ('test' in nsb.editor.source_model._data and
+            nsb.editor.source_model._data['test']['view'] == '3')
 
 
 if __name__ == "__main__":
