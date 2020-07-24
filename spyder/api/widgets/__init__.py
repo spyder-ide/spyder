@@ -82,14 +82,75 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
     """
     DEFAULT_OPTIONS = {}
 
-    # Signals
+    # --- Signals
+    # ------------------------------------------------------------------------
+    sig_free_memory_requested = Signal()
+    """
+    This signal can be emitted to request the main application to garbage
+    collect deleted objects.
+    """
 
-    # Emit when an option has been set
+    sig_quit_requested = Signal()
+    """
+    This signal can be emitted to request the main application to quit.
+    """
+
+    sig_restart_requested = Signal()
+    """
+    This signal can be emitted to request the main application to restart.
+    """
+
     sig_option_changed = Signal(str, object)
+    """
+    This signal is emitted when an option has been set.
 
-    # Request the main application to redirect standard output/error when
-    # using Open/Save/Browse dialogs within widgets.
+    Parameters
+    ----------
+    option: str
+        Option name.
+    value: object
+        New value of the changed option.
+    """
+
     sig_redirect_stdio_requested = Signal(bool)
+    """
+    This signal can be emitted to request the main application to redirect
+    standard output/error when using Open/Save/Browse dialogs within widgets.
+
+    Parameters
+    ----------
+    enable: bool
+        Enable/Disable standard input/output redirection.
+    """
+
+    sig_exception_occurred = Signal(dict)
+    """
+    This signal can be emitted to report an exception handled by this widget.
+
+    Parameters
+    ----------
+    error_data: dict
+        The dictionary containing error data. The expected keys are:
+        >>> error_data= {
+            "text": str,
+            "is_traceback": bool,
+            "repo": str,
+            "title": str,
+            "label": str,
+            "steps": str,
+        }
+
+    Notes
+    -----
+    The `is_traceback` key indicates if `text` contains plain text or a
+    Python error traceback.
+
+    The `title` and `repo` keys indicate how the error data should
+    customize the report dialog and Github error submission.
+
+    The `label` and `steps` keys allow customizing the content of the
+    error dialog.
+    """
 
     def __init__(self, name, plugin, parent=None, options=DEFAULT_OPTIONS):
         super().__init__(parent=parent)
@@ -151,23 +212,95 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
     """
     DEFAULT_OPTIONS = {}
 
-    # Signals
+    # --- Signals
+    # ------------------------------------------------------------------------
+    sig_free_memory_requested = Signal()
+    """
+    This signal can be emitted to request the main application to garbage
+    collect deleted objects.
+    """
 
-    # Emit when an option has been set
+    sig_quit_requested = Signal()
+    """
+    This signal can be emitted to request the main application to quit.
+    """
+
+    sig_restart_requested = Signal()
+    """
+    This signal can be emitted to request the main application to restart.
+    """
+
     sig_option_changed = Signal(str, object)
+    """
+    This signal is emitted when an option has been set.
 
-    # Request the main application to redirect standard output/error when
-    # using Open/Save/Browse dialogs within widgets.
+    Parameters
+    ----------
+    option: str
+        Option name.
+    value: object
+        New value of the changed option.
+    """
+
     sig_redirect_stdio_requested = Signal(bool)
+    """
+    This signal can be emitted to request the main application to redirect
+    standard output/error when using Open/Save/Browse dialogs within widgets.
 
-    # The action that toggles the visibility of a dockable plugin fires
-    # this signal. This is triggered by checking/unchecking the option for
-    # a pane in the `View > Panes` menu.
+    Parameters
+    ----------
+    enable: bool
+        Enable/Disable standard input/output redirection.
+    """
+
+    sig_exception_occurred = Signal(dict)
+    """
+    This signal can be emitted to report an exception handled by this widget.
+
+    Parameters
+    ----------
+    error_data: dict
+        The dictionary containing error data. The expected keys are:
+        >>> error_data= {
+            "text": str,
+            "is_traceback": bool,
+            "repo": str,
+            "title": str,
+            "label": str,
+            "steps": str,
+        }
+
+    Notes
+    -----
+    The `is_traceback` key indicates if `text` contains plain text or a
+    Python error traceback.
+
+    The `title` and `repo` keys indicate how the error data should
+    customize the report dialog and Github error submission.
+
+    The `label` and `steps` keys allow customizing the content of the
+    error dialog.
+    """
+
     sig_toggle_view_changed = Signal(bool)
+    """
+    This action is emitted to inform  the visibility of a dockable plugin
+    has changed.
 
-    # Inform the main window that a child widget needs its ancestor to be
-    # updated
+    This is triggered by checking/unchecking the option for a pane in the
+    `View > Panes` menu.
+
+    Parameters
+    ----------
+    visible: bool
+        New visibility of the dockwidget.
+    """
+
     sig_update_ancestor_requested = Signal()
+    """
+    This signal is emitted to inform the main window that a child widget
+    needs its ancestor to be updated.
+    """
 
     def __init__(self, name, plugin, parent=None, options=DEFAULT_OPTIONS):
         super().__init__(parent=parent)
