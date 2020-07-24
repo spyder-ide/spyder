@@ -12,6 +12,7 @@ mode and Spyder
 import re
 import pdb
 
+from spyder.py3compat import PY2
 if not PY2:
     from IPython.core.inputtransformer2 import TransformerManager
 else:
@@ -20,7 +21,6 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from IPython.core.history import HistoryManager
 
 from spyder.config.manager import CONF
-from spyder.py3compat import PY2
 from spyder.config.base import get_conf_path
 
 
