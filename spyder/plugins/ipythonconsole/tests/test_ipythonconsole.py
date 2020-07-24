@@ -1717,6 +1717,32 @@ def test_stderr_poll(ipyconsole, qtbot):
     assert "test_test" in ipyconsole.get_focus_widget().toPlainText()
 
 
+@pytest.mark.slow
+@pytest.mark.use_startup_wdir
+def test_startup_code_pdb(ipyconsole, qtbot):
+    """Test that startup code for pdb works."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Run a line on startup
+    CONF.set('ipython_console', 'startup/pdb_run_lines',
+             'abba = 12; print("Hello")')
+
+    shell.execute('%debug print()')
+    qtbot.waitUntil(lambda: 'Hello' in control.toPlainText())
+
+    # Verify that the line was executed
+    assert shell.get_value('abba') == 12
+
+    # Reset setting
+    CONF.set('ipython_console', 'startup/pdb_run_lines', '')
+
+
 @flaky(max_runs=3)
 @pytest.mark.parametrize(
     "backend",
