@@ -35,7 +35,7 @@ from spyder.config.base import get_conf_path, get_translation
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (create_toolbutton, get_item_user_text,
-                                    set_item_user_text)
+                                    set_item_user_text, create_waitspinner)
 from spyder.utils.programs import shell_split
 from spyder.widgets.comboboxes import PythonModulesComboBox
 from spyder.utils.misc import add_pathlist_to_PYTHONPATH, getcwd_or_home
@@ -99,8 +99,6 @@ class ProfilerWidget(QWidget):
                                           tip=_('Select Python script'),
                                           triggered=self.select_file)
 
-        self.datelabel = QLabel()
-
         self.log_button = create_toolbutton(self, icon=ima.icon('log'),
                                             text=_("Output"),
                                             text_beside_icon=True,
@@ -135,6 +133,9 @@ class ProfilerWidget(QWidget):
                                               icon=ima.icon('editdelete'),
                                               triggered=self.clear)
 
+        self.spinning_widget = ProfilerProgressBar(self)
+        self.spinning_widget.hide()
+
         hlayout1 = QHBoxLayout()
         hlayout1.addWidget(self.filecombo)
         hlayout1.addWidget(browse_button)
@@ -147,8 +148,6 @@ class ProfilerWidget(QWidget):
         hlayout2.addWidget(self.collapse_button)
         hlayout2.addWidget(self.expand_button)
         hlayout2.addStretch()
-        hlayout2.addWidget(self.datelabel)
-        hlayout2.addStretch()
         hlayout2.addWidget(self.log_button)
         hlayout2.addWidget(self.save_button)
         hlayout2.addWidget(self.load_button)
@@ -158,7 +157,7 @@ class ProfilerWidget(QWidget):
         layout.addLayout(hlayout1)
         layout.addLayout(hlayout2)
         layout.addWidget(self.datatree)
-        self.setLayout(layout)
+        layout.addWidget(self.spinning_widget)
 
         self.process = None
         self.set_running_state(False)
@@ -175,9 +174,13 @@ class ProfilerWidget(QWidget):
             url = 'https://docs.python.org/3/library/profile.html'
             text = '%s <a href=%s>%s</a>' % (_('Please install'), url,
                                              _("the Python profiler modules"))
-            self.datelabel.setText(text)
+            error_label = QLabel()
+            error_label.setText(text)
+            error_label.setAlignment(Qt.AlignCenter)
+            layout.addWidget(error_label)
         else:
-            pass # self.show_data()
+            pass  # self.show_data()
+        self.setLayout(layout)
 
     def save_data(self):
         """Save data"""
@@ -260,7 +263,8 @@ class ProfilerWidget(QWidget):
         self._last_args = args
         self._last_pythonpath = pythonpath
 
-        self.datelabel.setText(_('Profiling, please wait...'))
+        self.spinning_widget.set_scanning()
+        self.spinning_widget.show()
 
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
@@ -342,6 +346,7 @@ class ProfilerWidget(QWidget):
         # FIXME: figure out if show_data should be called here or
         #        as a signal from the combobox
         self.show_data(justanalyzed=True)
+        self.spinning_widget.hide()
 
     def kill_if_running(self):
         if self.process is not None:
@@ -360,21 +365,15 @@ class ProfilerWidget(QWidget):
             return
 
         if self.stopped:
-            self.datelabel.setText(_('Run stopped by user.'))
             self.datatree.initialize_view()
+            self.spinning_widget.set_stop()
             return
 
-        self.datelabel.setText(_('Sorting data, please wait...'))
+        self.spinning_widget.set_sort()
         QApplication.processEvents()
 
         self.datatree.load_data(self.DATAPATH)
         self.datatree.show_tree()
-
-        text_style = "<span style=\'color: %s\'><b>%s </b></span>"
-        date_text = text_style % (self.text_color,
-                                  time.strftime("%Y-%m-%d %H:%M:%S",
-                                                time.localtime()))
-        self.datelabel.setText(date_text)
 
 
 def gettime_s(text):
@@ -760,6 +759,45 @@ class ProfilerDataTree(QTreeWidget):
         if self.current_view_depth > 0:
             for item in self.get_items(maxlevel=self.current_view_depth-1):
                 item.setExpanded(True)
+
+
+class ProfilerProgressBar(QWidget):
+    """Simple progress spinner with a label."""
+
+    def __init__(self, parent):
+        QWidget.__init__(self, parent)
+
+        self.status_text = QLabel(self)
+        self.spinner = create_waitspinner(parent=self)
+        layout = QHBoxLayout()
+        layout.addWidget(self.spinner)
+        layout.addWidget(self.status_text)
+        self.setLayout(layout)
+
+    def set_scanning(self):
+        status_str = _('Profiling, please wait...')
+        self.status_text.setText(status_str)
+        self.spinner.start()
+
+    def set_stop(self):
+        status_str = _('Run stopped by user.')
+        self.status_text.setText(status_str)
+        self.spinner.stop()
+
+    def set_sort(self):
+        status_str = _('Sorting data, please wait...')
+        self.status_text.setText(status_str)
+        self.spinner.start()
+
+    def showEvent(self, event):
+        """Override show event to start waiting spinner."""
+        QWidget.showEvent(self, event)
+        self.spinner.start()
+
+    def hideEvent(self, event):
+        """Override hide event to stop waiting spinner."""
+        QWidget.hideEvent(self, event)
+        self.spinner.stop()
 
 
 #==============================================================================
