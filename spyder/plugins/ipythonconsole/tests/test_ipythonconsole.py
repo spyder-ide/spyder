@@ -1791,6 +1791,7 @@ def test_pdb_without_comm(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on windows")
 def test_stop_pdb(ipyconsole, qtbot):
     """Test if we can stop pdb"""
     shell = ipyconsole.get_current_shellwidget()
