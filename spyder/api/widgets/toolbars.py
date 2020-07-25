@@ -9,13 +9,14 @@ Spyder API toolbar widgets.
 """
 
 # Standard library imports
-from collections import OrderedDict
 import textwrap
 import uuid
+from collections import OrderedDict
 
 # Third part imports
-from qtpy.QtCore import QSize, Qt
-from qtpy.QtWidgets import QAction, QSizePolicy, QToolBar, QWidget
+from qtpy.QtCore import QEvent, QObject, QSize, Qt
+from qtpy.QtWidgets import (QAction, QSizePolicy, QToolBar, QToolButton,
+                            QWidget)
 
 # Local imports
 from spyder.config.gui import is_dark_interface
@@ -37,6 +38,22 @@ class ApplicationToolBars:
 class ToolBarLocation:
     Top = Qt.TopToolBarArea
     Bottom = Qt.BottomToolBarArea
+
+
+# --- Event filters
+# ----------------------------------------------------------------------------
+class ToolTipFilter(QObject):
+    """
+    Filter tool tip events on toolbuttons.
+    """
+
+    def eventFilter(self, obj, event):
+        event_type = event.type()
+        action = obj.defaultAction() if isinstance(obj, QToolButton) else None
+        if event_type == QEvent.ToolTip and action is not None:
+            return action.text_beside_icon
+
+        return QObject.eventFilter(self, obj, event)
 
 
 # --- Widgets
@@ -99,12 +116,12 @@ class SpyderToolBar(QToolBar):
 
             if isinstance(item, QAction):
                 text_beside_icon = getattr(item, 'text_beside_icon', False)
+                widget = self.widgetForAction(item)
+
                 if text_beside_icon:
-                    widget = self.widgetForAction(item)
                     widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
                 if item.isCheckable():
-                    widget = self.widgetForAction(item)
                     widget.setCheckable(True)
 
 
@@ -137,6 +154,7 @@ class MainWidgetToolbar(SpyderToolBar):
         self.setContextMenuPolicy(Qt.PreventContextMenu)
         self.setIconSize(self._icon_size)
         self._setup_style()
+        self._filter = ToolTipFilter()
 
     def set_icon_size(self, icon_size):
         self._icon_size = icon_size
@@ -210,13 +228,14 @@ class MainWidgetToolbar(SpyderToolBar):
                 add_method(item)
 
             if isinstance(item, QAction):
+                widget = self.widgetForAction(item)
+                widget.installEventFilter(self._filter)
+
                 text_beside_icon = getattr(item, 'text_beside_icon', False)
                 if text_beside_icon:
-                    widget = self.widgetForAction(item)
                     widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
                 if item.isCheckable():
-                    widget = self.widgetForAction(item)
                     widget.setCheckable(True)
 
     def _setup_style(self):

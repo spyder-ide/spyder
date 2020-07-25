@@ -78,6 +78,8 @@ class FindInFiles(SpyderDockablePlugin):
             findinfiles_action,
             menu=menu,
         )
+        findinfiles_action.triggered.connect(lambda: self.switch_to_plugin())
+
         search_toolbar = self.get_application_toolbar(
             ApplicationToolBars.Search)
         self.add_item_to_application_toolbar(

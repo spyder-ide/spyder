@@ -443,7 +443,8 @@ class SpyderActionMixin:
         icon: QIcon,
             Icon for the action when applied to menu or toolbutton.
         icon_text: str
-            Icon for text in toolbars.
+            Icon for text in toolbars. If True, this will also disable
+            the tooltip on this toolbutton if part of a toolbar.
         tip: str
             Tooltip to define for action on menu or toolbar.
         toggled: callable
@@ -468,6 +469,8 @@ class SpyderActionMixin:
         with this (and similar methods) and these are then exposed as possible
         shortcuts on plugin registration in the main window with the
         register_shortcut argument.
+
+        If icon_text is True, this will also disable the tooltip.
 
         If a shortcut is found in the default config then it is assigned,
         otherwise it's left blank for the user to define one for it.
