@@ -314,6 +314,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
+    def add_to_history(self, command):
+        """Add command to history"""
+        if self.shellwidget.is_debugging():
+            return
+        return super(ClientWidget, self).add_to_history(command)
+
     def _before_prompt_is_ready(self):
         """Configure shellwidget before kernel is connected."""
         self._show_loading_page()
