@@ -1790,5 +1790,30 @@ def test_pdb_without_comm(ipyconsole, qtbot):
     assert "Two: 2" in control.toPlainText()
 
 
+@flaky(max_runs=3)
+def test_stop_pdb(ipyconsole, qtbot):
+    """Test if we can stop pdb"""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_focus_widget()
+    stop_button = ipyconsole.get_current_client().stop_button
+    # Enter pdb
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug print()")
+    # Start and interrupt a long execution
+    shell.execute("import time; time.sleep(10)")
+    qtbot.wait(500)
+    with qtbot.waitSignal(shell.executed, timeout=1000):
+        qtbot.mouseClick(stop_button, Qt.LeftButton)
+    assert "KeyboardInterrupt" in control.toPlainText()
+    # We are still in the debugger
+    assert control.toPlainText().split()[-1] == 'ipdb>'
+    # Leave the debugger
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(stop_button, Qt.LeftButton)
+    assert control.toPlainText().split()[-1] != 'ipdb>'
+
+
 if __name__ == "__main__":
     pytest.main()

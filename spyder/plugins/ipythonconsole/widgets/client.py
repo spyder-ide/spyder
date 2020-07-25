@@ -353,7 +353,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # re-running files on dedicated consoles.
         # See spyder-ide/spyder#5958.
         if not self.shellwidget._executing:
-            self.stop_button.setDisabled(True)
+            # This avoids disabling the button while debugging
+            # see spyder-ide/spyder#13283
+            if not self.shellwidget.is_waiting_pdb_input():
+                self.stop_button.setDisabled(True)
+            else:
+                self.stop_button.setEnabled(True)
 
     @Slot()
     def stop_button_click_handler(self):
