@@ -598,14 +598,14 @@ class FindOptions(QWidget):
         self.ok_button = create_toolbutton(self, text=_("Search"),
                                            icon=ima.icon('find'),
                                            triggered=lambda: self.find.emit(),
-                                           tip=_("Start search"),
+                                           tip="",
                                            text_beside_icon=True)
         self.ok_button.clicked.connect(self.update_combos)
         self.stop_button = create_toolbutton(self, text=_("Stop"),
                                              icon=ima.icon('stop'),
                                              triggered=lambda:
                                              self.stop.emit(),
-                                             tip=_("Stop search"),
+                                             tip="",
                                              text_beside_icon=True)
         for widget in [self.search_text, self.edit_regexp, self.case_button,
                        self.ok_button, self.stop_button, self.more_options]:
