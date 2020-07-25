@@ -541,7 +541,8 @@ class BaseTableView(QTableView):
         self.hist_action = None
         self.imshow_action = None
         self.save_array_action = None
-        self.insert_action = None
+        self.insert_action_above = None
+        self.insert_action_bellow = None
         self.remove_action = None
         self.minmax_action = None
         self.rename_action = None
@@ -602,9 +603,12 @@ class BaseTableView(QTableView):
                                                icon=ima.icon('filesave'),
                                                triggered=self.save_array)
         self.save_array_action.setVisible(False)
-        self.insert_action = create_action(self, _("Insert"),
+        self.insert_action_above = create_action(self, _("Insert above"),
                                            icon=ima.icon('insert'),
-                                           triggered=self.insert_item)
+                                           triggered=lambda:self.insert_item(bellow=False))
+        self.insert_action_bellow = create_action(self, _("Insert bellow"),
+                                           icon=ima.icon('insert'),
+                                           triggered=lambda:self.insert_item(bellow=True))
         self.remove_action = create_action(self, _("Remove"),
                                            icon=ima.icon('editdelete'),
                                            triggered=self.remove_item)
@@ -626,7 +630,7 @@ class BaseTableView(QTableView):
         menu = QMenu(self)
         menu_actions = [self.edit_action, self.plot_action, self.hist_action,
                         self.imshow_action, self.save_array_action,
-                        self.insert_action, self.remove_action,
+                        self.insert_action_above, self.insert_action_bellow, self.remove_action,
                         self.copy_action, self.paste_action,
                         self.view_action,
                         None, self.rename_action, self.duplicate_action,
@@ -636,7 +640,7 @@ class BaseTableView(QTableView):
         add_actions(menu, menu_actions)
         self.empty_ws_menu = QMenu(self)
         add_actions(self.empty_ws_menu,
-                    [self.insert_action, self.paste_action,
+                    [self.insert_action_above, self.insert_action_bellow, self.paste_action,
                      None, resize_action, resize_columns_action])
         return menu
 
@@ -932,16 +936,22 @@ class BaseTableView(QTableView):
         self.copy_item(erase_original=True, new_name=new_name)
 
     @Slot()
-    def insert_item(self):
+    def insert_item(self, bellow=True):
         """Insert item"""
         index = self.currentIndex()
         if not index.isValid():
             row = self.source_model.rowCount()
         else:
             if self.proxy_model:
-                row = self.proxy_model.mapToSource(index).row()
+                if bellow:
+                    row = self.proxy_model.mapToSource(index).row()+1
+                else:
+                    row = self.proxy_model.mapToSource(index).row()
             else:
-                row = index.row()
+                if bellow:
+                    row = index.row()+1
+                else:
+                    row = index.row()
         data = self.source_model.get_data()
         if isinstance(data, list):
             key = row
@@ -1247,7 +1257,8 @@ class CollectionsEditorTableView(BaseTableView):
                     and not self.readonly
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
-        self.insert_action.setEnabled( not self.readonly )
+        self.insert_action_above.setEnabled( not self.readonly )
+        self.insert_action_bellow.setEnabled( not self.readonly )
         self.duplicate_action.setEnabled(condition)
         condition_rename = not isinstance(data, (tuple, list, set))
         self.rename_action.setEnabled(condition_rename)
