@@ -604,10 +604,10 @@ class BaseTableView(QTableView):
                                                triggered=self.save_array)
         self.save_array_action.setVisible(False)
         self.insert_action_above = create_action(self, _("Insert above"),
-                            icon=ima.icon('insert'),
+                                                 icon=ima.icon('insert'),
                             triggered=lambda: self.insert_item(bellow=False))
         self.insert_action_bellow = create_action(self, _("Insert bellow"),
-                             icon=ima.icon('insert'),
+                                                  icon=ima.icon('insert'),
                              triggered=lambda: self.insert_item(bellow=True))
         self.remove_action = create_action(self, _("Remove"),
                                            icon=ima.icon('editdelete'),
@@ -630,8 +630,8 @@ class BaseTableView(QTableView):
         menu = QMenu(self)
         menu_actions = [self.edit_action, self.plot_action, self.hist_action,
                         self.imshow_action, self.save_array_action,
-                        self.insert_action_above, self.insert_action_bellow, 
-                        self.remove_action, self.copy_action, 
+                        self.insert_action_above, self.insert_action_bellow,
+                        self.remove_action, self.copy_action,
                         self.paste_action, self.view_action,
                         None, self.rename_action, self.duplicate_action,
                         None, resize_action, resize_columns_action]
@@ -640,8 +640,9 @@ class BaseTableView(QTableView):
         add_actions(menu, menu_actions)
         self.empty_ws_menu = QMenu(self)
         add_actions(self.empty_ws_menu,
-                    [self.insert_action_above, self.insert_action_bellow, self.paste_action,
-                     None, resize_action, resize_columns_action])
+                    [self.insert_action_above, self.insert_action_bellow,
+                     self.paste_action, None, resize_action,
+                     resize_columns_action])
         return menu
 
     # ------ Remote/local API -------------------------------------------------
