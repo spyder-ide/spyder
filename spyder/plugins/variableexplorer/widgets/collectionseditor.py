@@ -603,11 +603,13 @@ class BaseTableView(QTableView):
                                                icon=ima.icon('filesave'),
                                                triggered=self.save_array)
         self.save_array_action.setVisible(False)
-        self.insert_action_above = create_action(self, _("Insert above"),
-                                                 icon=ima.icon('insert'),
+        self.insert_action_above = \
+              create_action(self, _("Insert above"),
+                            icon=ima.icon('insert'),
                             triggered=lambda: self.insert_item(bellow=False))
-        self.insert_action_bellow = create_action(self, _("Insert bellow"),
-                                                  icon=ima.icon('insert'),
+        self.insert_action_bellow = \
+               create_action(self, _("Insert bellow"),
+                             icon=ima.icon('insert'),
                              triggered=lambda: self.insert_item(bellow=True))
         self.remove_action = create_action(self, _("Remove"),
                                            icon=ima.icon('editdelete'),
