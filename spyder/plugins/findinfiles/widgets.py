@@ -1329,18 +1329,24 @@ class FindInFilesWidget(PluginMainWidget):
             Default is None.
         """
         if value is None:
-            value, valid = QInputDialog.getInt(
-                self,
-                self.get_name(),
-                _('Set maximum number of results: '),
-                value=self.get_option('max_results'),
-                min=1,
-                step=1,
-            )
-        else:
-            valid = True
+            # Create dialog
+            dialog = QInputDialog(self)
 
-        if valid:
+            # Set dialog properties
+            dialog.setModal(False)
+            dialog.setWindowTitle(self.get_name())
+            dialog.setLabelText(_('Set maximum number of results: '))
+            dialog.setInputMode(QInputDialog.IntInput)
+            dialog.setIntRange(1, 10000)
+            dialog.setIntStep(1)
+            dialog.setIntValue(self.get_option('max_results'))
+
+            # Connect slot
+            dialog.intValueSelected.connect(
+                lambda value: self.set_option('max_results', value))
+
+            dialog.show()
+        else:
             self.set_option('max_results', value)
 
 
