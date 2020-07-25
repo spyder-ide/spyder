@@ -604,11 +604,11 @@ class BaseTableView(QTableView):
                                                triggered=self.save_array)
         self.save_array_action.setVisible(False)
         self.insert_action_above = create_action(self, _("Insert above"),
-                                           icon=ima.icon('insert'),
-                                           triggered=lambda:self.insert_item(bellow=False))
+                            icon=ima.icon('insert'),
+                            triggered=lambda: self.insert_item(bellow=False))
         self.insert_action_bellow = create_action(self, _("Insert bellow"),
-                                           icon=ima.icon('insert'),
-                                           triggered=lambda:self.insert_item(bellow=True))
+                             icon=ima.icon('insert'),
+                             triggered=lambda: self.insert_item(bellow=True))
         self.remove_action = create_action(self, _("Remove"),
                                            icon=ima.icon('editdelete'),
                                            triggered=self.remove_item)
@@ -630,9 +630,9 @@ class BaseTableView(QTableView):
         menu = QMenu(self)
         menu_actions = [self.edit_action, self.plot_action, self.hist_action,
                         self.imshow_action, self.save_array_action,
-                        self.insert_action_above, self.insert_action_bellow, self.remove_action,
-                        self.copy_action, self.paste_action,
-                        self.view_action,
+                        self.insert_action_above, self.insert_action_bellow, 
+                        self.remove_action, self.copy_action, 
+                        self.paste_action, self.view_action,
                         None, self.rename_action, self.duplicate_action,
                         None, resize_action, resize_columns_action]
         if ndarray is not FakeObject:
@@ -1257,8 +1257,8 @@ class CollectionsEditorTableView(BaseTableView):
                     and not self.readonly
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
-        self.insert_action_above.setEnabled( not self.readonly )
-        self.insert_action_bellow.setEnabled( not self.readonly )
+        self.insert_action_above.setEnabled(not self.readonly)
+        self.insert_action_bellow.setEnabled(not self.readonly)
         self.duplicate_action.setEnabled(condition)
         condition_rename = not isinstance(data, (tuple, list, set))
         self.rename_action.setEnabled(condition_rename)
