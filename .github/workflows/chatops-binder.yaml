@@ -37,6 +37,6 @@ jobs:
               issue_number: context.payload.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/${USER_NAME}/${context.repo.repo}/${BRANCH_NAME}?urlpath=%2Fdesktop) :point_left: Launch a binder instance on this branch`
+              body: `[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/${USER_NAME}/${context.repo.repo}/${BRANCH_NAME}?urlpath=%2Fdesktop) :point_left: Launch a Binder instance on this branch`
             })
           })
