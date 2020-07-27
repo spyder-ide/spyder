@@ -4648,7 +4648,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def focusInEvent(self, event):
         self.sig_refresh_formatting.emit(self.formatting_enabled)
-        super(CodeEditor, self).focusOutEvent(event)
+        super(CodeEditor, self).focusInEvent(event)
 
     def leaveEvent(self, event):
         """Extend Qt method"""
