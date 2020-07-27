@@ -414,6 +414,7 @@ class EditorStack(QWidget):
     encoding_changed = Signal(str)
     sig_editor_cursor_position_changed = Signal(int, int)
     sig_refresh_eol_chars = Signal(str)
+    sig_refresh_formatting = Signal(bool)
     starting_long_process = Signal(str)
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
@@ -2609,6 +2610,7 @@ class EditorStack(QWidget):
         editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
         editor.sig_process_code_analysis.connect(
             lambda: self.update_code_analysis_actions.emit())
+        editor.sig_refresh_formatting.connect(self.sig_refresh_formatting)
         language = get_file_language(fname, txt)
         editor.setup_editor(
             linenumbers=self.linenumbers_enabled,

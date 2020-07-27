@@ -256,6 +256,7 @@ class CodeEditor(TextEditBaseWidget):
     go_to_definition_regex = Signal(str, int, int)
     sig_cursor_position_changed = Signal(int, int)
     sig_new_file = Signal(str)
+    sig_refresh_formatting = Signal(bool)
 
     #: Signal emitted when the editor loses focus
     sig_focus_changed = Signal()
@@ -1120,6 +1121,10 @@ class CodeEditor(TextEditBaseWidget):
             range_formatting_options['firstTriggerCharacter'])
         self.formatting_characters += (
             range_formatting_options.get('moreTriggerCharacter', []))
+
+        if self.formatting_enabled:
+            self.format_action.setEnabled(True)
+            self.sig_refresh_formatting.emit(True)
 
         self.completions_available = True
 
@@ -3933,6 +3938,8 @@ class CodeEditor(TextEditBaseWidget):
             shortcut=CONF.get_shortcut('editor', 'autoformatting'),
             triggered=self.format_document_or_range)
 
+        self.format_action.setEnabled(False)
+
         # Build menu
         self.menu = QMenu(self)
         actions_1 = [self.run_cell_action, self.run_cell_and_advance_action,
@@ -4637,6 +4644,10 @@ class CodeEditor(TextEditBaseWidget):
         """Extend Qt method"""
         self.sig_focus_changed.emit()
         self._restore_editor_cursor_and_selections()
+        super(CodeEditor, self).focusOutEvent(event)
+
+    def focusInEvent(self, event):
+        self.sig_refresh_formatting.emit(self.formatting_enabled)
         super(CodeEditor, self).focusOutEvent(event)
 
     def leaveEvent(self, event):

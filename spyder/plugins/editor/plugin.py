@@ -802,10 +802,11 @@ class Editor(SpyderPluginWidget):
             _("Remove trailing spaces"),
             triggered=self.remove_trailing_spaces)
 
-        formatting_action = create_action(
+        self.formatting_action = create_action(
             self,
             _("Format document/selection"),
             triggered=self.format_document_or_selection)
+        self.formatting_action.setEnabled(False)
 
         # Checkable actions
         showblanks_action = self._create_checkable_action(
@@ -1027,7 +1028,7 @@ class Editor(SpyderPluginWidget):
             eol_menu,
             trailingspaces_action,
             fixindentation_action,
-            formatting_action
+            self.formatting_action
         ]
         self.main.source_menu_actions += source_menu_actions
 
@@ -1394,6 +1395,7 @@ class Editor(SpyderPluginWidget):
                                            self.refresh_file_dependent_actions)
         editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
         editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
+        editorstack.sig_refresh_formatting.connect(self.refresh_formatting)
         editorstack.sig_breakpoints_saved.connect(self.breakpoints_saved)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
@@ -1636,6 +1638,9 @@ class Editor(SpyderPluginWidget):
         else:
             self.mac_eol_action.setChecked(True)
         self.__set_eol_chars = True
+
+    def refresh_formatting(self, status):
+        self.formatting_action.setEnabled(status)
 
     #------ Slots
     def opened_files_list_changed(self):
