@@ -33,10 +33,11 @@ def find_internal_plugins():
     internal_plugins = {}
     # If DEV, look for entry points in setup.py file for internal plugins
     # and then look on the system for the rest
-    if DEV is not None or running_under_pytest():
-        HERE = os.path.abspath(os.path.dirname(__file__))
-        base_path = os.path.dirname(os.path.dirname(HERE))
-        setup_path = os.path.join(base_path, "setup.py")
+    HERE = os.path.abspath(os.path.dirname(__file__))
+    base_path = os.path.dirname(os.path.dirname(HERE))
+    setup_path = os.path.join(base_path, "setup.py")
+    if (DEV is not None or running_under_pytest()
+            and os.path.isfile(setup_path)):
         if not os.path.isfile(setup_path):
             raise Exception(
                 'No "setup.py" file found and running in DEV mode!')
@@ -76,6 +77,34 @@ def find_internal_plugins():
                 internal_plugins[name] = getattr(mod, class_name, None)
             except (ModuleNotFoundError, ImportError):
                 pass
+    else:
+        import spyder.plugins as plugin_mod
+
+        plugins_path = os.path.dirname(plugin_mod.__file__)
+        for folder in os.listdir(plugins_path):
+            plugin_path = os.path.join(plugins_path, folder)
+            init_path = os.path.join(plugin_path, "__init__.py")
+            if (os.path.isdir(plugin_path) and os.path.isfile(init_path)
+                    and not folder.startswith("io_")):
+                spec = importlib.util.spec_from_file_location(folder,
+                                                              init_path)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                for plugin_class in getattr(module, "PLUGIN_CLASSES", []):
+                    internal_plugins[plugin_class.NAME] = plugin_class
+
+        # TODO: Remove after migration is finished
+        internal_plugins["editor"] = None
+        internal_plugins["explorer"] = None
+        internal_plugins["project_explorer"] = None
+        internal_plugins["code_completion"] = None
+        internal_plugins["kite"] = None
+        internal_plugins["fallback"] = None
+        internal_plugins["ipython_console"] = None
+        internal_plugins["lsp"] = None
+        internal_plugins["pylint"] = None
+        internal_plugins["variable_explorer"] = None
+        internal_plugins["outline_explorer"] = None
 
     return internal_plugins
 
@@ -118,7 +147,8 @@ def find_external_plugins():
                 external_plugins[name] = plugin_class
                 if name != plugin_class.NAME:
                     raise SpyderAPIError(
-                        "Entry point name and plugin.NAME do not match!"
+                        "Entry point name '{0}' and plugin.NAME '{1}' "
+                        "do not match!".format(name, plugin_class.NAME)
                     )
             except (ModuleNotFoundError, ImportError) as error:
                 print("%s: %s" % (name, str(error)), file=STDERR)

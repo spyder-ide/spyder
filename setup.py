@@ -284,24 +284,24 @@ spyder_plugins_entry_points = [
     'explorer = spyder.plugins.explorer.plugin:Explorer',
     ('fallback_completion = spyder.plugins.completion.fallback.plugin:'
      'FallbackPlugin'),
-    'findinfiles = spyder.plugins.findinfiles.plugin:FindInFiles',
+    'find_in_files = spyder.plugins.findinfiles.plugin:FindInFiles',
     'help = spyder.plugins.help.plugin:Help',
-    'history = spyder.plugins.history.plugin:HistoryLog',
-    'ipythonconsole = spyder.plugins.ipythonconsole.plugin:IPythonConsole',
+    'historylog = spyder.plugins.history.plugin:HistoryLog',
+    'ipython_console = spyder.plugins.ipythonconsole.plugin:IPythonConsole',
     ('kite_completion = spyder.plugins.completion.kite.plugin:'
      'KiteCompletionPlugin'),
     'onlinehelp = spyder.plugins.onlinehelp.plugin:OnlineHelp',
-    'outlineexplorer = spyder.plugins.outlineexplorer.plugin:OutlineExplorer',
+    'outline_explorer = spyder.plugins.outlineexplorer.plugin:OutlineExplorer',
     'plots = spyder.plugins.plots.plugin:Plots',
     'profiler = spyder.plugins.profiler.plugin:Profiler',
-    'projects = spyder.plugins.projects.plugin:Projects',
+    'project_explorer = spyder.plugins.projects.plugin:Projects',
     'pylint = spyder.plugins.pylint.plugin:Pylint',
     ('lsp_completion = spyder.plugins.completion.languageserver.plugin:'
      'LanguageServerPlugin'),
     'python = spyder.plugins.python.plugin:Python',
-    ('variableexplorer = spyder.plugins.variableexplorer.plugin:'
+    ('variable_explorer = spyder.plugins.variableexplorer.plugin:'
      'VariableExplorer'),
-    ('workingdirectory = spyder.plugins.workingdirectory.plugin:'
+    ('workingdir = spyder.plugins.workingdirectory.plugin:'
      'WorkingDirectory'),
 ]
 
