@@ -20,7 +20,7 @@ from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, Signal, Slot)
 from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
 from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
-                            QLineEdit, QMenu, QProxyStyle, QStyle, QToolBar,
+                            QLineEdit, QMenu, QProxyStyle, QSizePolicy, QStyle,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
@@ -228,6 +228,13 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
     if shortcut is not None:
         button.setShortcut(shortcut)
     return button
+
+
+def create_toolbar_stretcher():
+    """Create a stretcher widget to be used in a Qt toolbar."""
+    stretcher = QWidget()
+    stretcher.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+    return stretcher
 
 
 def create_waitspinner(size=32, n=11, parent=None):
