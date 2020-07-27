@@ -371,6 +371,13 @@ class DebuggingWidget(RichJupyterWidget):
         if self.is_waiting_pdb_input():
             self._pdb_input_ready = True
 
+        start_line = CONF.get('ipython_console', 'startup/pdb_run_lines', '')
+        # Only run these lines when printing a new prompt
+        if start_line and print_prompt and self.is_waiting_pdb_input():
+            # Send a few commands
+            self.pdb_execute(start_line, hidden=True)
+            return
+
         # While the widget thinks only one input is going on,
         # other functions can be sending messages to the kernel.
         # This must be properly processed to avoid dropping messages.
