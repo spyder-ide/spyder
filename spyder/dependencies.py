@@ -31,6 +31,7 @@ PLUGIN = 'spyder plugins'
 # Hard dependencies
 APPLAUNCHSERVICES_REQVER = '>=0.1.7'
 ATOMICWRITES_REQVER = '>=1.2.0'
+AUTOPEP8_REQVER = '>=1.5.3'
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
@@ -48,6 +49,7 @@ PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=1.0'
 PYLS_REQVER = '>=0.34.0;<1.0.0'
+PYLS_BLACK_REQVER = '>=0.4.6'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
 QDARKSTYLE_REQVER = '>=2.8'
@@ -59,6 +61,7 @@ SPHINX_REQVER = '>=0.6.6'
 SPYDER_KERNELS_REQVER = '>=1.9.2;<1.10.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 WATCHDOG_REQVER = None
+YAPF_REQVER = '>=0.30.0'
 
 
 # Optional dependencies
@@ -87,6 +90,10 @@ DESCRIPTIONS = [
      'package_name': "atomicwrites",
      'features': _("Atomic file writes in the Editor"),
      'required_version': ATOMICWRITES_REQVER},
+    {'modname': 'autopep8',
+     'package_name': 'autopep8',
+     'features': _("Autoformat Python files in the Editor"),
+     'required_version': AUTOPEP8_REQVER},
     {'modname': "chardet",
      'package_name': "chardet",
      'features': _("Character encoding auto-detection for the Editor"),
@@ -159,6 +166,10 @@ DESCRIPTIONS = [
      'package_name': 'python-language-server',
      'features': _("Code completion and linting for the Editor"),
      'required_version': PYLS_REQVER},
+    {'modname': 'pyls_black',
+     'package_name': 'pyls-black',
+     'features': _("Autoformat Python files in the Editor"),
+     'required_version': PYLS_BLACK_REQVER},
     {'modname': "xdg",
      'package_name': "pyxdg",
      'features': _("Parse desktop files on Linux"),
@@ -204,7 +215,11 @@ DESCRIPTIONS = [
     {'modname': "watchdog",
      'package_name': "watchdog",
      'features': _("Watch file changes on project directories"),
-     'required_version': WATCHDOG_REQVER}
+     'required_version': WATCHDOG_REQVER},
+    {'modname': 'yapf',
+     'package_name': 'yapf',
+     'features': _("Autoformat Python files in the Editor"),
+     'required_version': YAPF_REQVER}
 ]
 
 

@@ -203,6 +203,7 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 install_requires = [
     'applaunchservices>=0.1.7;platform_system=="Darwin"',
     'atomicwrites>=1.2.0',
+    'autopep8>=1.5.3',
     'chardet>=2.0.0',
     'cloudpickle>=0.5.0',
     'diff-match-patch>=20181111',
@@ -225,6 +226,7 @@ install_requires = [
     'pyqt5<5.13;python_version>="3"',
     'pyqtwebengine<5.13;python_version>="3"',
     'python-language-server[all]>=0.34.0,<1.0.0',
+    'pyls-black>=0.4.6'
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8',
@@ -235,6 +237,7 @@ install_requires = [
     'spyder-kernels>=1.9.2,<1.10.0',
     'three-merge>=0.1.1',
     'watchdog',
+    'yapf>=0.30.0'
 ]
 
 extras_require = {
