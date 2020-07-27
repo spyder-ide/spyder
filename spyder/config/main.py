@@ -449,6 +449,7 @@ DEFAULTS = [
               'editor/close split panel': "Alt+Shift+W",
               'editor/docstring': "Ctrl+Alt+D",
               'editor/autoformatting': "Ctrl+Shift+K",
+              'editor/show in external file explorer': '',
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----

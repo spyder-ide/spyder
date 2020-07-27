@@ -114,6 +114,25 @@ def test_shortcuts_filtering(shortcut_table):
     assert shortcut_table.model().rowCount() == row_count
 
 
+def test_shortcut_filtering_context(shortcut_table):
+    """Test multifiltering by context and name in the table."""
+    # Verify that the model is filtering by two columns
+    assert len(shortcut_table.model().filters) == 2
+    # Filter by "console"
+    shortcut_table.finder = FilterTextMock('console')
+    shortcut_table.set_regex()
+    # Verify the number of entries after the regex are 7
+    # If a new shortcut is added to console, this needs to be changed
+    assert shortcut_table.model().rowCount() == 7
+
+    # Filter by "pylint"
+    shortcut_table.finder = FilterTextMock('pylint')
+    shortcut_table.set_regex()
+    # Verify the number of entries after the regex is 1
+    # If a new shortcut is added to pylint, this needs to be changed
+    assert shortcut_table.model().rowCount() == 1
+
+
 # ---- Tests ShortcutEditor
 def test_clear_shortcut(create_shortcut_editor, qtbot):
     """
