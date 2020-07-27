@@ -1479,7 +1479,7 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Document/Selection formatting --------------------
     def format_document_or_range(self):
-        if self.has_selected_text():
+        if self.has_selected_text() and self.range_formatting_enabled:
             self.format_document_range()
         else:
             self.format_document()
@@ -1549,6 +1549,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def _apply_document_edits(self, edits):
         edits = edits['params']
+        if edits is None:
+            return
+
         texts = []
         diffs = []
         text = self.toPlainText()
