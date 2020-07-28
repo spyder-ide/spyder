@@ -2118,7 +2118,7 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 def test_report_issue(main_window, qtbot):
-    """Test that the report error opens correctly."""
+    """Test that the report error dialog opens correctly."""
     main_window.report_issue()
     qtbot.wait(300)
     assert main_window._report_dlg is not None

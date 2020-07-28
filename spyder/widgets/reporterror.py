@@ -368,7 +368,7 @@ class SpyderErrorDialog(QDialog):
         traceback = self.error_traceback[:-1]  # Remove last EOL
 
         # Render issue
-        if self.is_report:
+        if traceback:
             issue_text = self.render_issue(description=description,
                                            traceback=traceback)
         else:
@@ -386,6 +386,7 @@ class SpyderErrorDialog(QDialog):
 
             if github_report:
                 self.close()
+
         except Exception:
             ret = QMessageBox.question(
                 self,
@@ -405,8 +406,7 @@ class SpyderErrorDialog(QDialog):
                     " \n<!---   *** BEFORE SUBMITTING: PASTE CLIPBOARD HERE "
                     "TO COMPLETE YOUR REPORT ***   ---!>\n")
 
-                if self.is_report:
-                    self.open_web_report(body=issue_body, title=title)
+                self.open_web_report(body=issue_body, title=title)
 
     def append_traceback(self, text):
         """Append text to the traceback, to be displayed in details."""

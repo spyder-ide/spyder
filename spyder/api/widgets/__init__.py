@@ -284,10 +284,10 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
 
     sig_toggle_view_changed = Signal(bool)
     """
-    This action is emitted to inform  the visibility of a dockable plugin
+    This action is emitted to inform the visibility of a dockable plugin
     has changed.
 
-    This is triggered by checking/unchecking the option for a pane in the
+    This is triggered by checking/unchecking the entry for a pane in the
     `View > Panes` menu.
 
     Parameters
