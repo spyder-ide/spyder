@@ -4647,7 +4647,8 @@ class CodeEditor(TextEditBaseWidget):
         super(CodeEditor, self).focusOutEvent(event)
 
     def focusInEvent(self, event):
-        self.sig_refresh_formatting.emit(self.formatting_enabled)
+        formatting_enabled = getattr(self, 'formatting_enabled', False)
+        self.sig_refresh_formatting.emit(formatting_enabled)
         super(CodeEditor, self).focusInEvent(event)
 
     def leaveEvent(self, event):
