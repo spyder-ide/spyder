@@ -321,15 +321,17 @@ class MainWindow(QMainWindow):
             return
 
         # Signals
-        plugin.sig_focus_changed.connect(self.plugin_focus_changed)
+        plugin.sig_exception_occurred.connect(self.handle_exception)
         plugin.sig_free_memory_requested.connect(self.free_memory)
         plugin.sig_quit_requested.connect(self.close)
+        plugin.sig_restart_requested.connect(self.restart)
         plugin.sig_restart_requested.connect(self.restart)
         plugin.sig_redirect_stdio_requested.connect(
             self.redirect_internalshell_stdio)
         plugin.sig_status_message_requested.connect(self.show_status_message)
 
         if isinstance(plugin, SpyderDockablePlugin):
+            plugin.sig_focus_changed.connect(self.plugin_focus_changed)
             plugin.sig_switch_to_plugin_requested.connect(
                 self.switch_to_plugin)
             plugin.sig_update_ancestor_requested.connect(
@@ -528,6 +530,39 @@ class MainWindow(QMainWindow):
             if not bool(self.tabifiedDockWidgets(plugin.dockwidget)):
                 tabify_helper(plugin, next_to_plugins)
 
+    def handle_exception(self, error_data):
+        """
+        This method will call the handle exception method of the Console
+        plugin. It is provided as a signal on the Plugin API for convenience,
+        so that plugin do not need to explicitely call the Console plugin.
+
+        Parameters
+        ----------
+        error_data: dict
+            The dictionary containing error data. The expected keys are:
+            >>> error_data= {
+                "text": str,
+                "is_traceback": bool,
+                "repo": str,
+                "title": str,
+                "label": str,
+                "steps": str,
+            }
+
+        Notes
+        -----
+        The `is_traceback` key indicates if `text` contains plain text or a
+        Python error traceback.
+
+        The `title` and `repo` keys indicate how the error data should
+        customize the report dialog and Github error submission.
+
+        The `label` and `steps` keys allow customizing the content of the
+        error dialog.
+        """
+        if self.console:
+            self.console.handle_exception(error_data)
+
     def __init__(self, options=None):
         QMainWindow.__init__(self)
         qapp = QApplication.instance()
@@ -642,6 +677,7 @@ class MainWindow(QMainWindow):
         self.prefs_index = None
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
+        self._report_dlg = None
 
         # Quick Layouts and Dialogs
         from spyder.preferences.layoutdialog import (LayoutSaveDialog,
@@ -3127,85 +3163,13 @@ class MainWindow(QMainWindow):
         dlg.set_data(dependencies.DEPENDENCIES)
         dlg.exec_()
 
-    def render_issue(self, description='', traceback=''):
-        """Render issue before sending it to Github"""
-        # Get component versions
-        versions = get_versions()
-
-        # Get git revision for development version
-        revision = ''
-        if versions['revision']:
-            revision = versions['revision']
-
-        # Make a description header in case no description is supplied
-        if not description:
-            description = "### What steps reproduce the problem?"
-
-        # Make error section from traceback and add appropriate reminder header
-        if traceback:
-            error_section = ("### Traceback\n"
-                             "```python-traceback\n"
-                             "{}\n"
-                             "```".format(traceback))
-        else:
-            error_section = ''
-        issue_template = """\
-## Description
-
-{description}
-
-{error_section}
-
-## Versions
-
-* Spyder version: {spyder_version} {commit}
-* Python version: {python_version}
-* Qt version: {qt_version}
-* {qt_api_name} version: {qt_api_version}
-* Operating System: {os_name} {os_version}
-
-### Dependencies
-
-```
-{dependencies}
-```
-""".format(description=description,
-           error_section=error_section,
-           spyder_version=versions['spyder'],
-           commit=revision,
-           python_version=versions['python'],
-           qt_version=versions['qt'],
-           qt_api_name=versions['qt_api'],
-           qt_api_version=versions['qt_api_ver'],
-           os_name=versions['system'],
-           os_version=versions['release'],
-           dependencies=dependencies.status())
-
-        return issue_template
-
     @Slot()
-    def report_issue(self, body=None, title=None, open_webpage=False):
-        """Report a Spyder issue to github, generating body text if needed."""
-        if body is None:
-            from spyder.widgets.reporterror import SpyderErrorDialog
-            report_dlg = SpyderErrorDialog(self, is_report=True)
-            report_dlg.set_color_scheme(CONF.get('appearance', 'selected'))
-            report_dlg.show()
-        else:
-            if open_webpage:
-                if PY3:
-                    from urllib.parse import quote
-                else:
-                    from urllib import quote     # analysis:ignore
-                from qtpy.QtCore import QUrlQuery
-
-                url = QUrl(__project_url__ + '/issues/new')
-                query = QUrlQuery()
-                query.addQueryItem("body", quote(body))
-                if title:
-                    query.addQueryItem("title", quote(title))
-                url.setQuery(query)
-                QDesktopServices.openUrl(url)
+    def report_issue(self):
+        """Report a Spyder issue to github."""
+        from spyder.widgets.reporterror import SpyderErrorDialog
+        self._report_dlg = SpyderErrorDialog(self, is_report=True)
+        self._report_dlg.set_color_scheme(CONF.get('appearance', 'selected'))
+        self._report_dlg.show()
 
     @Slot()
     def trouble_guide(self):

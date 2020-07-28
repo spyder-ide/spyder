@@ -10,16 +10,19 @@
 
 # Standard library imports
 import sys
+from urllib.parse import quote
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Qt, QUrl, QUrlQuery, Signal
+from qtpy.QtGui import QDesktopServices
 from qtpy.QtWidgets import (QApplication, QCheckBox, QDialog, QFormLayout,
                             QHBoxLayout, QLabel, QLineEdit, QMessageBox,
                             QPlainTextEdit, QPushButton, QVBoxLayout)
 
 # Local imports
-from spyder import __project_url__, __trouble_url__
-from spyder.config.base import _
+from spyder import (__project_url__, __trouble_url__, dependencies,
+                    get_versions)
+from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import get_font
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
@@ -255,6 +258,94 @@ class SpyderErrorDialog(QDialog):
         # Set Tab key focus order
         self.setTabOrder(self.title, self.input_description)
 
+    @staticmethod
+    def render_issue(description='', traceback=''):
+        """
+        Render issue content.
+
+        Parameters
+        ----------
+        description: str
+            Description to include in issue message.
+        traceback: str
+            Traceback text.
+        """
+        # Get component versions
+        versions = get_versions()
+
+        # Get git revision for development version
+        revision = ''
+        if versions['revision']:
+            revision = versions['revision']
+
+        # Make a description header in case no description is supplied
+        if not description:
+            description = "### What steps reproduce the problem?"
+
+        # Make error section from traceback and add appropriate reminder header
+        if traceback:
+            error_section = ("### Traceback\n"
+                             "```python-traceback\n"
+                             "{}\n"
+                             "```".format(traceback))
+        else:
+            error_section = ''
+        issue_template = """\
+## Description
+
+{description}
+
+{error_section}
+
+## Versions
+
+* Spyder version: {spyder_version} {commit}
+* Python version: {python_version}
+* Qt version: {qt_version}
+* {qt_api_name} version: {qt_api_version}
+* Operating System: {os_name} {os_version}
+
+### Dependencies
+
+```
+{dependencies}
+```
+""".format(description=description,
+           error_section=error_section,
+           spyder_version=versions['spyder'],
+           commit=revision,
+           python_version=versions['python'],
+           qt_version=versions['qt'],
+           qt_api_name=versions['qt_api'],
+           qt_api_version=versions['qt_api_ver'],
+           os_name=versions['system'],
+           os_version=versions['release'],
+           dependencies=dependencies.status())
+
+        return issue_template
+
+    @staticmethod
+    def open_web_report(body, title=None):
+        """
+        Open a new issue on Github with prefilled information.
+
+        Parameters
+        ----------
+        body: str
+            The body content of the report.
+        title: str or None, optional
+            The title of the report. Default is None.
+        """
+        url = QUrl(__project_url__ + '/issues/new')
+        query = QUrlQuery()
+        query.addQueryItem("body", quote(body))
+
+        if title:
+            query.addQueryItem("title", quote(title))
+
+        url.setQuery(query)
+        QDesktopServices.openUrl(url)
+
     def set_require_minimum_length(self, state):
         """Remove the requirement for minimum length."""
         self.require_minimum_length = state
@@ -265,70 +356,57 @@ class SpyderErrorDialog(QDialog):
 
     def set_github_repo_org(self, repo_fullname):
         """Set the report Github organization and repository."""
-        repo, org = repo_fullname.split('/')
+        org, repo = repo_fullname.split('/')
         self._github_org = org
         self._github_repo = repo
 
     def _submit_to_github(self):
         """Action to take when pressing the submit button."""
-        # Get reference to the main window
-        if self.parent() is not None:
-            if getattr(self.parent(), 'main', False):
-                # This covers the case when the dialog is attached
-                # to the internal console
-                main = self.parent().main
-            else:
-                # Else the dialog is attached to the main window
-                # directly
-                main = self.parent()
-        else:
-            main = None
-
         # Getting description and traceback
         title = self.title.text()
         description = self.input_description.toPlainText()
         traceback = self.error_traceback[:-1]  # Remove last EOL
 
         # Render issue
-        if main is not None:
-            issue_text = main.render_issue(description=description,
+        if traceback:
+            issue_text = self.render_issue(description=description,
                                            traceback=traceback)
         else:
             issue_text = description
 
         try:
-            if main is None:
-                if self._github_org == 'spyder-ide':
-                    org = 'ccordoba12'
+            if running_under_pytest():
+                org = 'ccordoba12'
             else:
                 org = self._github_org
 
             repo = self._github_repo
-            github_backend = GithubBackend(org, repo, parent_widget=main)
+            github_backend = GithubBackend(org, repo, parent_widget=self)
             github_report = github_backend.send_report(title, issue_text)
+
             if github_report:
                 self.close()
 
         except Exception:
             ret = QMessageBox.question(
-                      self, _('Error'),
-                      _("An error occurred while trying to send the issue to "
-                        "Github automatically. Would you like to open it "
-                        "manually?<br><br>"
-                        "If so, please make sure to paste your clipboard "
-                        "into the issue report box that will appear in a new "
-                        "browser tab before clicking <i>Submit</i> on that "
-                        "page."))
+                self,
+                _('Error'),
+                _("An error occurred while trying to send the issue to "
+                  "Github automatically. Would you like to open it "
+                  "manually?<br><br>"
+                  "If so, please make sure to paste your clipboard "
+                  "into the issue report box that will appear in a new "
+                  "browser tab before clicking <i>Submit</i> on that "
+                  "page."),
+            )
+
             if ret in [QMessageBox.Yes, QMessageBox.Ok]:
                 QApplication.clipboard().setText(issue_text)
                 issue_body = (
                     " \n<!---   *** BEFORE SUBMITTING: PASTE CLIPBOARD HERE "
                     "TO COMPLETE YOUR REPORT ***   ---!>\n")
-                if main is not None:
-                    main.report_issue(body=issue_body, title=title,
-                                      open_webpage=True)
-                else:
-                    pass
+
+                self.open_web_report(body=issue_body, title=title)
 
     def append_traceback(self, text):
         """Append text to the traceback, to be displayed in details."""

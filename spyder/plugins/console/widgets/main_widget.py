@@ -371,14 +371,15 @@ class ConsoleWidget(PluginMainWidget):
         The `label` and `steps` keys allow customizing the content of the
         error dialog.
         """
-        text = error_data["text"]
+        text = error_data.get("text", None)
         is_traceback = error_data.get("is_traceback", False)
         title = error_data.get("title", "")
         label = error_data.get("label", "")
         steps = error_data.get("steps", "")
 
-        # Skip errors without traceback or dismiss
-        if (not is_traceback and self.error_dlg is None) or self.dismiss_error:
+        # Skip errors without traceback (and no text) or dismiss
+        if ((not text and not is_traceback and self.error_dlg is None)
+                or self.dismiss_error):
             return
 
         if internal_plugins is None:
@@ -394,6 +395,7 @@ class ConsoleWidget(PluginMainWidget):
             is_internal_plugin = sender_name in internal_plugin_names
         else:
             is_internal_plugin = False
+
         repo = "spyder-ide/spyder"
         if sender is not None and not is_internal_plugin:
             repo = error_data.get("repo", None)

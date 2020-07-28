@@ -697,29 +697,89 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
     # ------------------------------------------------------------------------
     # Signals here are automatically connected by the Spyder main window and
     # connected to the the respective global actions defined on it.
-
-    # Request garbage collection of deleted objects
     sig_free_memory_requested = Signal()
+    """
+    This signal can be emitted to request the main application to garbage
+    collect deleted objects.
+    """
 
-    # Request the main application to quit.
     sig_quit_requested = Signal()
+    """
+    This signal can be emitted to request the main application to quit.
+    """
 
-    # Request the main application to restart.
     sig_restart_requested = Signal()
+    """
+    This signal can be emitted to request the main application to restart.
+    """
 
-    # Request the main application to display a message in the status bar.
     sig_status_message_requested = Signal(str, int)
+    """
+    This signal can be emitted to request the main application to display a
+    message in the status bar.
 
-    # Request the main application to redirect standard output/error when
-    # using Open/Save/Browse dialogs within widgets.
+    Parameters
+    ----------
+    message: str
+        The actual message to display.
+    timeout: int
+        The timeout before the message dissapears.
+    """
+
     sig_redirect_stdio_requested = Signal(bool)
+    """
+    This signal can be emitted to request the main application to redirect
+    standard output/error when using Open/Save/Browse dialogs within widgets.
 
-    # Signals below are not automatically connected by the Spyder main window
-    # Emit this signal when the plugin focus has changed.
-    sig_focus_changed = Signal()
+    Parameters
+    ----------
+    enable: bool
+        Enable/Disable standard input/output redirection.
+    """
 
-    # This signal is fired when any option in the child widgets is modified.
+    sig_exception_occurred = Signal(dict)
+    """
+    This signal can be emitted to report an exception from any plugin.
+
+    Parameters
+    ----------
+    error_data: dict
+        The dictionary containing error data. The expected keys are:
+        >>> error_data= {
+            "text": str,
+            "is_traceback": bool,
+            "repo": str,
+            "title": str,
+            "label": str,
+            "steps": str,
+        }
+
+    Notes
+    -----
+    The `is_traceback` key indicates if `text` contains plain text or a
+    Python error traceback.
+
+    The `title` and `repo` keys indicate how the error data should
+    customize the report dialog and Github error submission.
+
+    The `label` and `steps` keys allow customizing the content of the
+    error dialog.
+
+    This signal is automatically connected to the main container/widget.
+    """
+
     sig_option_changed = Signal(str, object)
+    """
+    This signal is emitted when an option has been set on the main container
+    or the main widget.
+
+    Parameters
+    ----------
+    option: str
+        Option name.
+    value: object
+        New value of the changed option.
+    """
 
     # --- Private attributes -------------------------------------------------
     # ------------------------------------------------------------------------
@@ -767,8 +827,17 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
                 container.sig_option_changed.connect(self.sig_option_changed)
 
             if isinstance(container, PluginMainContainer):
+                # Default signals to connect in main container or main widget.
+                container.sig_exception_occurred.connect(
+                    self.sig_exception_occurred)
+                container.sig_free_memory_requested.connect(
+                    self.sig_free_memory_requested)
+                container.sig_quit_requested.connect(
+                    self.sig_quit_requested)
                 container.sig_redirect_stdio_requested.connect(
                     self.sig_redirect_stdio_requested)
+                container.sig_restart_requested.connect(
+                    self.sig_restart_requested)
 
     # --- Private methods ----------------------------------------------------
     # ------------------------------------------------------------------------
@@ -1464,19 +1533,41 @@ class SpyderDockablePlugin(SpyderPluginV2):
 
     # --- API: Available signals ---------------------------------------------
     # ------------------------------------------------------------------------
-    # The action that toggles the visibility of a dockable plugin fires
-    # this signal. This is triggered by checking/unchecking the option for
-    # a pane in the View menu.
+    sig_focus_changed = Signal()
+    """
+    This signal is emitted to inform the focus of this plugin has changed.
+    """
+
     sig_toggle_view_changed = Signal(bool)
+    """
+    This action is emitted to inform the visibility of a dockable plugin
+    has changed.
 
-    # Emit this signal to inform the main window that this plugin requested
-    # to be displayed. This is automatically connected on plugin
-    # registration.
+    This is triggered by checking/unchecking the entry for a pane in the
+    `View > Panes` menu.
+
+    Parameters
+    ----------
+    visible: bool
+        New visibility of the dockwidget.
+    """
+
     sig_switch_to_plugin_requested = Signal(object, bool)
+    """
+    This signal can be emitted to inform the main window that this plugin
+    requested to be displayed.
 
-    # Inform the main window that a child widget needs its ancestor to be
-    # updated.
+    Notes
+    -----
+    This is automatically connected to main container/widget at plugin's
+    registration.
+    """
+
     sig_update_ancestor_requested = Signal()
+    """
+    This signal is emitted to inform the main window that a child widget
+    needs its ancestor to be updated.
+    """
 
     # --- Private methods ----------------------------------------------------
     # ------------------------------------------------------------------------
