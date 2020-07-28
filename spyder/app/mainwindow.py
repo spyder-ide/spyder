@@ -1181,7 +1181,7 @@ class MainWindow(QMainWindow):
 
         # Code completion client initialization
         self.set_splash(_("Starting code completion manager..."))
-        from spyder.plugins.completion.plugin import CompletionManager
+        from spyder.plugins.completion.manager.plugin import CompletionManager
         self.completions = CompletionManager(self)
 
         # Outline explorer widget

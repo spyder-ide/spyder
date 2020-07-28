@@ -278,7 +278,8 @@ extras_require = {
 spyder_plugins_entry_points = [
     'appearance = spyder.plugins.appearance.plugin:Appearance',
     'breakpoints = spyder.plugins.breakpoints.plugin:Breakpoints',
-    'code_completion = spyder.plugins.completion.plugin:CompletionManager',
+    ('code_completion = spyder.plugins.completion.manager.plugin:'
+     'CompletionManager'),
     'core = spyder.plugins.core.plugin:Core',
     'editor = spyder.plugins.editor.plugin:Editor',
     'explorer = spyder.plugins.explorer.plugin:Explorer',

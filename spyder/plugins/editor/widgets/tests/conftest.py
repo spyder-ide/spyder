@@ -27,7 +27,7 @@ from spyder.plugins.completion.languageserver.tests.conftest import (
     qtbot_module, MainWindowMock, MainWindowWidgetMock)
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.editor.widgets.editor import EditorStack
-from spyder.plugins.completion.plugin import CompletionManager
+from spyder.plugins.completion.manager.plugin import CompletionManager
 from spyder.plugins.explorer.widgets.tests.conftest import create_folders_files
 from spyder.py3compat import PY2, to_text_string
 from spyder.widgets.findreplace import FindReplace
