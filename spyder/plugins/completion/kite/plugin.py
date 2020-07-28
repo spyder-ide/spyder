@@ -19,7 +19,7 @@ from qtpy.QtWidgets import QMessageBox
 from spyder.config.base import _, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.utils.programs import run_program
-from spyder.api.completion import SpyderCompletionPlugin
+from spyder.plugins.completion.manager.api import SpyderCompletionPlugin
 from spyder.plugins.completion.kite.client import KiteClient
 from spyder.plugins.completion.kite.utils.status import (
     check_if_kite_running, check_if_kite_installed)

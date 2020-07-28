@@ -24,8 +24,8 @@ from pygments.lexers import get_lexer_by_name
 from diff_match_patch import diff_match_patch
 
 # Local imports
-from spyder.plugins.completion.languageserver import CompletionItemKind
-from spyder.plugins.completion.languageserver import LSPRequestTypes
+from spyder.plugins.completion.manager.api import CompletionItemKind
+from spyder.plugins.completion.manager.api import LSPRequestTypes
 from spyder.plugins.completion.fallback.utils import (
     get_keywords, get_words, is_prefix_valid)
 

@@ -14,7 +14,7 @@ Wraps FallbackActor to provide compatibility with SpyderCompletionPlugin API.
 import logging
 
 # Local imports
-from spyder.api.completion import SpyderCompletionPlugin
+from spyder.plugins.completion.manager.api import SpyderCompletionPlugin
 from spyder.plugins.completion.fallback.actor import FallbackActor
 
 

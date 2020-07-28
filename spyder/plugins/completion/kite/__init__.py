@@ -6,7 +6,7 @@
 
 """Kite client requests and constants."""
 
-from spyder.plugins.completion.languageserver import LSPRequestTypes
+from spyder.plugins.completion.manager.api import LSPRequestTypes
 
 
 LOCALHOST = '127.0.0.1'

@@ -61,9 +61,9 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               SnippetsExtension)
 from spyder.plugins.completion.kite.widgets.calltoaction import (
     KiteCallToAction)
-from spyder.plugins.completion.languageserver import (LSPRequestTypes,
-                                                      TextDocumentSyncKind,
-                                                      DiagnosticSeverity)
+from spyder.plugins.completion.manager.api import (LSPRequestTypes,
+                                                   TextDocumentSyncKind,
+                                                   DiagnosticSeverity)
 from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           DebuggerPanel, EdgeLine,
                                           FoldingPanel, IndentationGuide,

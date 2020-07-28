@@ -9,7 +9,7 @@ import os.path as osp
 
 import pytest
 from diff_match_patch import diff_match_patch
-from spyder.plugins.completion.languageserver import LSPRequestTypes
+from spyder.plugins.completion.manager.api import LSPRequestTypes
 from spyder.plugins.completion.fallback.utils import get_words
 
 
