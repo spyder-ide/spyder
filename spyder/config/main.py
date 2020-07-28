@@ -279,7 +279,7 @@ DEFAULTS = [
               'enable': True,
               'wrap': True,
               'name_filters': NAME_FILTERS,
-              'show_hidden': True,
+              'show_hidden': False,
               'show_all': True,
               'single_click_to_open': False,
               }),

@@ -40,7 +40,8 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_plugin_layout, file_uri)
+                                    create_plugin_layout, file_uri,
+                                    MENU_SEPARATOR)
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -159,6 +160,7 @@ class DirView(QTreeView):
         # Options
         self.name_filters = ['*.py']
         self.show_all = None
+        self.show_hidden = None
         self.single_click_to_open = False
         self.file_associations = {}
         self._last_column = 0
@@ -184,10 +186,7 @@ class DirView(QTreeView):
     #---- Model
     def setup_fs_model(self):
         """Setup filesystem model"""
-        filters = (QDir.AllDirs | QDir.Files | QDir.Drives
-                   | QDir.NoDotAndDotDot | QDir.Hidden)
         self.fsmodel = QFileSystemModel(self)
-        self.fsmodel.setFilter(filters)
         self.fsmodel.setNameFilterDisables(False)
 
     def install_model(self):
@@ -274,6 +273,15 @@ class DirView(QTreeView):
         else:
             self.fsmodel.setNameFilters(self.name_filters)
 
+    def set_show_hidden(self, state):
+        """Toggle 'show hidden files' state"""
+        filters = (QDir.AllDirs | QDir.Files | QDir.Drives |
+                   QDir.NoDotAndDotDot)
+        if state:
+            filters = (QDir.AllDirs | QDir.Files | QDir.Drives |
+                       QDir.NoDotAndDotDot | QDir.Hidden)
+        self.fsmodel.setFilter(filters)
+
     def get_filename(self, index):
         """Return filename associated with *index*"""
         if index:
@@ -304,12 +312,14 @@ class DirView(QTreeView):
 
     #---- Tree view widget
     def setup(self, name_filters=['*.py', '*.pyw'], show_all=False,
-              single_click_to_open=False, file_associations={}):
+              show_hidden=False, single_click_to_open=False,
+              file_associations={}):
         """Setup tree widget"""
         self.setup_view()
 
         self.set_name_filters(name_filters)
         self.show_all = show_all
+        self.show_hidden = show_hidden
         self.single_click_to_open = single_click_to_open
         self.set_file_associations(file_associations)
 
@@ -328,27 +338,36 @@ class DirView(QTreeView):
         # Show all files
         self.all_action = create_action(self, _("Show all files"),
                                         toggled=self.toggle_all)
+        # Show hidden files
+        self.hidden_action = create_action(
+            self,
+            _("Show hidden files"),
+            toggled=self.toggle_hidden,
+        )
         # Filters
         self.filters_action = create_action(
             self, _("Display files with these extensions..."), None,
             ima.icon('filter'),
             triggered=self.edit_filter,
         )
-        # Show all files
+        # Single click
         self.single_click_to_open_action = create_action(
             self,
             _("Single click to open"),
             toggled=self.set_single_click_to_open,
         )
-        actions = [self.all_action, self.filters_action,
-                   self.single_click_to_open_action]
+
+        actions = [self.all_action, self.hidden_action, self.filters_action,
+                   MENU_SEPARATOR, self.single_click_to_open_action]
         self.update_common_actions()
         return actions
 
     def update_common_actions(self):
         """Update the status of widget actions based on stored state."""
         self.set_show_all(self.show_all)
+        self.set_show_hidden(self.show_hidden)
         self.all_action.setChecked(self.show_all)
+        self.hidden_action.setChecked(self.show_hidden)
         self.single_click_to_open_action.setChecked(self.single_click_to_open)
 
     def get_common_file_associations(self, fnames):
@@ -399,6 +418,13 @@ class DirView(QTreeView):
         self.parent_widget.sig_option_changed.emit('show_all', checked)
         self.show_all = checked
         self.set_show_all(checked)
+
+    @Slot(bool)
+    def toggle_hidden(self, checked):
+        """Toggle hidden files."""
+        self.parent_widget.sig_option_changed.emit('show_hidden', checked)
+        self.show_hidden = checked
+        self.set_show_hidden(checked)
 
     def create_file_new_actions(self, fnames):
         """Return actions for submenu 'New...'"""
@@ -1630,7 +1656,7 @@ class ExplorerWidget(QWidget):
     open_dir = Signal(str)
 
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
-                 show_all=False, show_cd_only=None,
+                 show_all=False, show_hidden=False, show_cd_only=None,
                  single_click_to_open=False, file_associations={},
                  options_button=None, visible_columns=[0, 3]):
         QWidget.__init__(self, parent)
@@ -1662,6 +1688,7 @@ class ExplorerWidget(QWidget):
         self.treewidget.setup(
             name_filters=name_filters,
             show_all=show_all,
+            show_hidden=show_hidden,
             single_click_to_open=single_click_to_open,
             file_associations=file_associations,
         )
