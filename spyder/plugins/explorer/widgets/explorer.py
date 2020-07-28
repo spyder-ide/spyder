@@ -430,7 +430,7 @@ class DirView(QTreeView):
         """Return actions for submenu 'New...'"""
         root_path = self.fsmodel.rootPath()
         new_file_act = create_action(self, _("File..."),
-                                     icon=ima.icon('filenew'),
+                                     icon=ima.icon('TextFileIcon'),
                                      triggered=lambda:
                                      self.new_file(root_path))
         new_module_act = create_action(self, _("Python script..."),
@@ -438,7 +438,7 @@ class DirView(QTreeView):
                                        triggered=lambda:
                                        self.new_module(root_path))
         new_folder_act = create_action(self, _("Folder..."),
-                                       icon=ima.icon('folder_new'),
+                                       icon=ima.icon('DirOpenIcon'),
                                        triggered=lambda:
                                        self.new_folder(root_path))
         new_package_act = create_action(self, _("Python Package..."),
