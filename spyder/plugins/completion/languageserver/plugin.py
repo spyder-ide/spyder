@@ -641,7 +641,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
         # Autoformatting configuration
         formatter = self.get_option('formatting')
-        formatters = ['autopep8', 'yapf', 'black']
+        formatter = 'pyls_black' if formatter == 'black' else formatter
+        formatters = ['autopep8', 'yapf', 'pyls_black']
         formatter_options = {
             fmt: {
                 'enabled': fmt == formatter
