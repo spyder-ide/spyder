@@ -41,7 +41,7 @@ from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_plugin_layout, file_uri,
-                                    MENU_SEPARATOR)
+                                    MENU_SEPARATOR, QInputDialogMultiline)
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -336,8 +336,10 @@ class DirView(QTreeView):
     def setup_common_actions(self):
         """Set-up context menu common actions."""
         # Show all files
-        self.all_action = create_action(self, _("Show all files"),
-                                        toggled=self.toggle_all)
+        self.all_action = create_action(
+            self,
+            _("Show all files"),
+            toggled=self.toggle_all)
         # Show hidden files
         self.hidden_action = create_action(
             self,
@@ -402,12 +404,15 @@ class DirView(QTreeView):
 
     @Slot()
     def edit_filter(self):
-        """Edit name filters"""
-        filters, valid = QInputDialog.getMultiLineText(
+        """Edit name filters."""
+        dialog = QInputDialogMultiline(
             self, _('Edit filename filters'),
             _('Name filters:'),
             ", ".join(self.name_filters))
-        if valid:
+        dialog.resize(500, 300)
+        result = dialog.exec_()
+        if result:
+            filters = dialog.text_edit.toPlainText()
             filters = [f.strip() for f in to_text_string(filters).split(',')]
             self.parent_widget.sig_option_changed.emit('name_filters', filters)
             self.set_name_filters(filters)

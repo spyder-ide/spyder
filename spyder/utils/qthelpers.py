@@ -19,8 +19,9 @@ from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, Signal, Slot)
 from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
-from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
-                            QLineEdit, QMenu, QProxyStyle, QStyle, QToolBar,
+from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
+                            QLabel, QLineEdit, QMenu, QPlainTextEdit,
+                            QProxyStyle, QPushButton, QStyle, QToolBar,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
@@ -621,6 +622,36 @@ class SpyderProxyStyle(QProxyStyle):
             return 0
 
         return QProxyStyle.styleHint(self, hint, option, widget, returnData)
+
+
+class QInputDialogMultiline(QDialog):
+    """
+    Build a replica interface of QInputDialog.getMultilineText.
+
+    Based on: https://stackoverflow.com/a/58823967
+    """
+
+    def __init__(self, parent, title, label, text='', **kwargs):
+        super(QInputDialogMultiline, self).__init__(parent, **kwargs)
+        if title is not None:
+            self.setWindowTitle(title)
+
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(QLabel(label))
+        self.text_edit = QPlainTextEdit()
+        self.layout().addWidget(self.text_edit)
+
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        ok_button = QPushButton('OK')
+        button_layout.addWidget(ok_button)
+        cancel_button = QPushButton('Cancel')
+        button_layout.addWidget(cancel_button)
+        self.layout().addLayout(button_layout)
+
+        self.text_edit.setPlainText(text)
+        ok_button.clicked.connect(self.accept)
+        cancel_button.clicked.connect(self.reject)
 
 
 # =============================================================================
