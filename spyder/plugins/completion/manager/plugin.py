@@ -22,14 +22,13 @@ from qtpy.QtWidgets import QMessageBox
 # Local imports
 from spyder.config.base import _, get_conf_path
 from spyder.config.lsp import PYTHON_CONFIG
-from spyder.api.completion import SpyderCompletionPlugin
 from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.completion.languageserver.plugin import (
     LanguageServerPlugin)
 from spyder.plugins.completion.kite.plugin import KiteCompletionPlugin
 from spyder.plugins.completion.fallback.plugin import FallbackPlugin
-from spyder.plugins.completion.languageserver import LSPRequestTypes
-
+from spyder.plugins.completion.manager.api import (LSPRequestTypes,
+                                                   SpyderCompletionPlugin)
 
 logger = logging.getLogger(__name__)
 

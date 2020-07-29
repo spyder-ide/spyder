@@ -40,9 +40,9 @@ from spyder.plugins.projects.api import (BaseProjectType, EmptyProject,
 from spyder.plugins.projects.utils.watcher import WorkspaceWatcher
 from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
-from spyder.plugins.completion.languageserver import (
+from spyder.plugins.completion.manager.api import (
     LSPRequestTypes, FileChangeType, WorkspaceUpdateKind)
-from spyder.plugins.completion.decorators import (
+from spyder.plugins.completion.manager.decorators import (
     request, handles, class_register)
 
 

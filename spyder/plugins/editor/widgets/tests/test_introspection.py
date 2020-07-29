@@ -28,7 +28,7 @@ except Exception:
     rtree_available = False
 
 # Local imports
-from spyder.plugins.completion.languageserver import (
+from spyder.plugins.completion.manager.api import (
     LSPRequestTypes, CompletionItemKind)
 from spyder.plugins.completion.kite.providers.document import KITE_COMPLETION
 from spyder.plugins.completion.kite.utils.status import (
