@@ -915,6 +915,9 @@ def _start_server(urlhandler, hostname, port):
                 # requested page. See spyder-ide/spyder#10755
                 pass
             except BrokenPipeError:
+                # Needed to handle permission error when trying to open a port
+                # for the web server of the online help.
+                # See spyder-ide/spyder#13388
                 pass
 
         def log_message(self, *args):
