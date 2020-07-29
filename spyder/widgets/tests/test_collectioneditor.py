@@ -744,15 +744,21 @@ def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
             last_row = row
 
         qtbot.wait(100)
+
         # Due to numpy's deliberate breakage of __eq__ comparison
         assert all([key == "_typ" or (getattr(col_editor.get_value(), key)
                     == getattr(expected_obj, key)) for key in keys])
 
         col_editor.accept()
         qtbot.wait(200)
+
         # Same reason as above
         assert all([key == "_typ" or (getattr(col_editor.get_value(), key)
                     == getattr(expected_obj, key)) for key in keys])
+
+        if getattr(test_obj, "_typ", None) is None:
+            keys.remove("_typ")
+
         assert all([getattr(test_obj, key)
                     == getattr(expected_obj, key) for key in keys])
 
