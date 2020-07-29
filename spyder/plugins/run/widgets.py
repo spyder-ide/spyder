@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Run configurations related dialogs and widgets and data models"""
+"""Run dialogs and widgets and data models."""
 
 # Standard library imports
 import os.path as osp
@@ -12,19 +12,21 @@ import os.path as osp
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import QSize, Qt, Signal, Slot
-from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
-                            QDialogButtonBox, QFrame, QGridLayout, QGroupBox,
-                            QHBoxLayout, QLabel, QLineEdit, QMessageBox,
-                            QPushButton, QRadioButton, QSizePolicy,
-                            QStackedWidget, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
+                            QFrame, QGridLayout, QGroupBox, QHBoxLayout,
+                            QLabel, QLineEdit, QMessageBox, QPushButton,
+                            QRadioButton, QSizePolicy, QStackedWidget,
+                            QVBoxLayout, QWidget)
 
 # Local imports
-from spyder.config.base import _
+from spyder.api.translations import get_translation
 from spyder.config.manager import CONF
 from spyder.preferences.configdialog import GeneralConfigPage
-from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home
+
+# Localization
+_ = get_translation("spyder")
 
 CURRENT_INTERPRETER = _("Execute in current console")
 DEDICATED_INTERPRETER = _("Execute in a dedicated console")
@@ -270,7 +272,7 @@ class RunConfigOptions(QWidget):
 
     def select_directory(self):
         """Select directory"""
-        basedir = to_text_string(self.wd_edit.text())
+        basedir = str(self.wd_edit.text())
         if not osp.isdir(basedir):
             basedir = getcwd_or_home()
         directory = getexistingdirectory(self, _("Select directory"), basedir)
@@ -302,13 +304,13 @@ class RunConfigOptions(QWidget):
 
     def get(self):
         self.runconf.args_enabled = self.clo_cb.isChecked()
-        self.runconf.args = to_text_string(self.clo_edit.text())
+        self.runconf.args = str(self.clo_edit.text())
         self.runconf.current = self.current_radio.isChecked()
         self.runconf.systerm = self.systerm_radio.isChecked()
         self.runconf.interact = self.interact_cb.isChecked()
         self.runconf.post_mortem = self.post_mortem_cb.isChecked()
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
-        self.runconf.python_args = to_text_string(self.pclo_edit.text())
+        self.runconf.python_args = str(self.pclo_edit.text())
         self.runconf.clear_namespace = self.clear_var_cb.isChecked()
         self.runconf.console_namespace = self.console_ns_cb.isChecked()
         self.runconf.file_dir = self.file_dir_radio.isChecked()
@@ -318,7 +320,7 @@ class RunConfigOptions(QWidget):
         return self.runconf.get()
 
     def is_valid(self):
-        wdir = to_text_string(self.wd_edit.text())
+        wdir = str(self.wd_edit.text())
         if not self.fixed_dir_radio.isChecked() or osp.isdir(wdir):
             return True
         else:
@@ -429,7 +431,7 @@ class RunConfigDialog(BaseRunConfigDialog):
 
     def run_btn_clicked(self):
         """Run button was just clicked"""
-        self.file_to_run = to_text_string(self.combo.currentText())
+        self.file_to_run = str(self.combo.currentText())
 
     def setup(self, fname):
         """Setup Run Configuration dialog with filename *fname*"""
@@ -468,7 +470,7 @@ class RunConfigDialog(BaseRunConfigDialog):
         """Reimplement Qt method"""
         configurations = []
         for index in range(self.stack.count()):
-            filename = to_text_string(self.combo.itemText(index))
+            filename = str(self.combo.itemText(index))
             runconfigoptions = self.stack.widget(index)
             if index == self.stack.currentIndex() and\
                not runconfigoptions.is_valid():
@@ -477,108 +479,3 @@ class RunConfigDialog(BaseRunConfigDialog):
             configurations.append( (filename, options) )
         _set_run_configurations(configurations)
         QDialog.accept(self)
-
-
-class RunConfigPage(GeneralConfigPage):
-    """Default Run Settings configuration page"""
-    CONF_SECTION = "run"
-
-    NAME = _("Run")
-    ICON = ima.icon('run')
-
-    def setup_page(self):
-        about_label = QLabel(_("The following are the default options for "
-                               "running files.These options may be overriden "
-                               "using the <b>Configuration per file</b> entry "
-                               "of the <b>Run</b> menu."))
-        about_label.setWordWrap(True)
-
-        interpreter_group = QGroupBox(_("Console"))
-        interpreter_bg = QButtonGroup(interpreter_group)
-        self.current_radio = self.create_radiobutton(CURRENT_INTERPRETER,
-                                CURRENT_INTERPRETER_OPTION, True,
-                                button_group=interpreter_bg)
-        self.dedicated_radio = self.create_radiobutton(DEDICATED_INTERPRETER,
-                                DEDICATED_INTERPRETER_OPTION, False,
-                                button_group=interpreter_bg)
-        self.systerm_radio = self.create_radiobutton(SYSTERM_INTERPRETER,
-                                SYSTERM_INTERPRETER_OPTION, False,
-                                button_group=interpreter_bg)
-
-        interpreter_layout = QVBoxLayout()
-        interpreter_group.setLayout(interpreter_layout)
-        interpreter_layout.addWidget(self.current_radio)
-        interpreter_layout.addWidget(self.dedicated_radio)
-        interpreter_layout.addWidget(self.systerm_radio)
-
-        general_group = QGroupBox(_("General settings"))
-        post_mortem = self.create_checkbox(POST_MORTEM, 'post_mortem', False)
-        clear_variables = self.create_checkbox(CLEAR_ALL_VARIABLES,
-                                               'clear_namespace', False)
-        console_namespace = self.create_checkbox(CONSOLE_NAMESPACE,
-                                                 'console_namespace', False)
-
-        general_layout = QVBoxLayout()
-        general_layout.addWidget(clear_variables)
-        general_layout.addWidget(console_namespace)
-        general_layout.addWidget(post_mortem)
-        general_group.setLayout(general_layout)
-
-        wdir_group = QGroupBox(_("Working directory settings"))
-        wdir_bg = QButtonGroup(wdir_group)
-        wdir_label = QLabel(_("Default working directory is:"))
-        wdir_label.setWordWrap(True)
-        dirname_radio = self.create_radiobutton(
-                    FILE_DIR,
-                    WDIR_USE_SCRIPT_DIR_OPTION, True,
-                    button_group=wdir_bg)
-        cwd_radio = self.create_radiobutton(
-                    CW_DIR,
-                    WDIR_USE_CWD_DIR_OPTION, False,
-                    button_group=wdir_bg)
-
-        thisdir_radio = self.create_radiobutton(
-                FIXED_DIR,
-                WDIR_USE_FIXED_DIR_OPTION, False,
-                button_group=wdir_bg)
-        thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION,
-                                           getcwd_or_home())
-        thisdir_radio.toggled.connect(thisdir_bd.setEnabled)
-        dirname_radio.toggled.connect(thisdir_bd.setDisabled)
-        cwd_radio.toggled.connect(thisdir_bd.setDisabled)
-        thisdir_layout = QHBoxLayout()
-        thisdir_layout.addWidget(thisdir_radio)
-        thisdir_layout.addWidget(thisdir_bd)
-
-        wdir_layout = QVBoxLayout()
-        wdir_layout.addWidget(wdir_label)
-        wdir_layout.addWidget(dirname_radio)
-        wdir_layout.addWidget(cwd_radio)
-        wdir_layout.addLayout(thisdir_layout)
-        wdir_group.setLayout(wdir_layout)
-
-
-        external_group = QGroupBox(_("External system terminal"))
-        interact_after = self.create_checkbox(INTERACT, 'interact', False)
-
-        external_layout = QVBoxLayout()
-        external_layout.addWidget(interact_after)
-        external_group.setLayout(external_layout)
-
-        firstrun_cb = self.create_checkbox(
-                            ALWAYS_OPEN_FIRST_RUN % _("Run Settings dialog"),
-                            ALWAYS_OPEN_FIRST_RUN_OPTION, False)
-
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(about_label)
-        vlayout.addSpacing(10)
-        vlayout.addWidget(interpreter_group)
-        vlayout.addWidget(general_group)
-        vlayout.addWidget(wdir_group)
-        vlayout.addWidget(external_group)
-        vlayout.addWidget(firstrun_cb)
-        vlayout.addStretch(1)
-        self.setLayout(vlayout)
-
-    def apply_settings(self, options):
-        pass

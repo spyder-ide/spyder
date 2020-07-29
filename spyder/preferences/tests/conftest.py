@@ -109,12 +109,10 @@ def global_config_dialog(qtbot):
     dlg.show()
 
     from spyder.preferences.maininterpreter import MainInterpreterConfigPage
-    from spyder.preferences.runconfig import RunConfigPage
 
     qtbot.addWidget(dlg)
     for widget_class in [AppearanceConfigPage, MainConfigPage,
-                         MainInterpreterConfigPage, ShortcutsConfigPage,
-                         RunConfigPage]:
+                         MainInterpreterConfigPage, ShortcutsConfigPage]:
         widget = widget_class(dlg, main=MainWindowMock())
         widget.initialize()
         dlg.add_page(widget)

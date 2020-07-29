@@ -50,11 +50,11 @@ from spyder.app.mainwindow import MainWindow  # Tests fail without this import
 from spyder.config.base import get_home_dir, get_module_path
 from spyder.config.manager import CONF
 from spyder.widgets.dock import TabFilter
-from spyder.preferences.runconfig import RunConfiguration
 from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
+from spyder.plugins.run.widgets import RunConfiguration
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.programs import is_module_installed
 from spyder.widgets.dock import DockTitleBar

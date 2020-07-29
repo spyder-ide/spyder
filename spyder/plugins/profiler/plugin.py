@@ -21,7 +21,7 @@ from spyder.plugins.profiler.confpage import ProfilerConfigPage
 from spyder.plugins.profiler.widgets.main_widget import (ProfilerWidget,
                                                          ProfilerWidgetActions,
                                                          is_profiler_installed)
-from spyder.preferences.runconfig import get_run_configuration
+from spyder.plugins.run.widgets import get_run_configuration
 
 # Localization
 _ = get_translation('spyder')
