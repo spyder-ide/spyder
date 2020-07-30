@@ -1721,7 +1721,9 @@ class ExplorerWidget(QWidget):
             self.display_column_actions.append(action)
 
         self.treewidget.chdir(getcwd_or_home())
-        self.treewidget.common_actions += self.display_column_actions
+        self.treewidget.common_actions = (
+            self.treewidget.common_actions[:-1] + self.display_column_actions
+            + [MENU_SEPARATOR] + self.treewidget.common_actions[-1:])
 
         button_previous.setDefaultAction(previous_action)
         previous_action.setEnabled(False)
