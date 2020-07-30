@@ -61,19 +61,19 @@ jobs:
              },
              {
                "pattern": "current_pos_text = text[offset - utf16_diff - 1]",
-               "reply": "This issue is a duplicate of #12266. Please keep track of that issue as it will be fixed in a future release.",
+               "reply": "This issue is a duplicate of #12266. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=4.1.*`",
                "labels": ["resolution:Duplicate"],
                "close": true
              },
              {
                "pattern": "TimeoutError: Timeout while waiting for comm port.",
-               "reply": "This issue is a duplicate of #11889. Please keep track of that issue as it will be fixed in a future release.",
+               "reply": "This issue is a duplicate of #13288. Please keep track of that issue as it will be fixed in a future release.",
                "labels": ["resolution:Duplicate"],
                "close": true
              },
              {
                "pattern": "TypeError: __init__() got an unexpected keyword argument 'size'",
-               "reply": "This issue is a duplicate of #11875 and has been fixed in the latest Spyder version. Please update to the latest version.",
+               "reply": "This issue is a duplicate of #11875 and has been fixed in the latest Spyder version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=4.1.*`",
                "labels": ["resolution:Duplicate"],
                "close": true
              }
