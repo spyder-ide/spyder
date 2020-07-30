@@ -21,7 +21,6 @@ import pytest
 
 # Local imports
 from spyder.config.manager import CONF
-from spyder.preferences.appearance import AppearanceConfigPage
 from spyder.preferences.configdialog import ConfigDialog
 from spyder.preferences.general import MainConfigPage
 from spyder.preferences.shortcuts import ShortcutsConfigPage
@@ -111,7 +110,7 @@ def global_config_dialog(qtbot):
     from spyder.preferences.maininterpreter import MainInterpreterConfigPage
 
     qtbot.addWidget(dlg)
-    for widget_class in [AppearanceConfigPage, MainConfigPage,
+    for widget_class in [MainConfigPage,
                          MainInterpreterConfigPage, ShortcutsConfigPage]:
         widget = widget_class(dlg, main=MainWindowMock())
         widget.initialize()

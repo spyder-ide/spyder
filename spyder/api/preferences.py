@@ -18,21 +18,28 @@ class PluginConfigPage(SpyderConfigPage):
     an entry in Spyder's Preferences dialog.
     """
 
+    # TODO: Temporal attribute to handle which appy_settings method to use
+    # the one of the conf page or the one in the plugin, while the config
+    # dialog system is updated.
+    APPLY_CONF_PAGE_SETTINGS = False
+
     def __init__(self, plugin, parent):
+        self.CONF_SECTION = plugin.CONF_SECTION
         self.plugin = plugin
         self.main = parent.main
         self.get_font = plugin.get_font
 
-        try:
-            # New API
-            self.apply_settings = plugin.apply_conf
-            self.get_option = plugin.get_conf_option
-            self.set_option = plugin.set_conf_option
-        except AttributeError:
-            # Old API
-            self.apply_settings = plugin.apply_plugin_settings
-            self.get_option = plugin.get_option
-            self.set_option = plugin.set_option
+        if not self.APPLY_CONF_PAGE_SETTINGS:
+            try:
+                # New API
+                self.apply_settings = plugin.apply_conf
+                self.get_option = plugin.get_conf_option
+                self.set_option = plugin.set_conf_option
+            except AttributeError:
+                # Old API
+                self.apply_settings = plugin.apply_plugin_settings
+                self.get_option = plugin.get_option
+                self.set_option = plugin.set_option
 
         SpyderConfigPage.__init__(self, parent)
 

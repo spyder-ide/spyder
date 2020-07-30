@@ -43,7 +43,7 @@ class Help(SpyderDockablePlugin):
     DISABLE_ACTIONS_WHEN_HIDDEN = False
     CONF_FROM_OPTIONS = {
         'editor_shortcut': ('shortcuts', 'editor/inspect current object'),
-        'console_shortcut': ('shortcuts', 'cosnole/inspect current object'),
+        'console_shortcut': ('shortcuts', 'console/inspect current object'),
     }
 
     # Signals
