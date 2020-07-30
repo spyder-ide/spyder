@@ -26,7 +26,7 @@ from qtpy.QtGui import QBrush, QColor, QPen, QPainter
 from qtpy.QtCore import Qt, QRect
 
 # Local imports
-from spyder.api.editorextension import EditorExtension
+from spyder.plugins.editor.api.editorextension import EditorExtension
 
 logger = logging.getLogger(__name__)
 

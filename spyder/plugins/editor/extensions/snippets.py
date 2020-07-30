@@ -24,7 +24,7 @@ except Exception:
 
 # Local imports
 from spyder.py3compat import to_text_string
-from spyder.api.editorextension import EditorExtension
+from spyder.plugins.editor.api.editorextension import EditorExtension
 from spyder.utils.snippets.ast import build_snippet_ast, nodes, tokenize
 
 

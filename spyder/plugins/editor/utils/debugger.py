@@ -14,7 +14,7 @@ from qtpy.QtWidgets import QInputDialog, QLineEdit
 from spyder.config.manager import CONF
 from spyder.config.base import _
 from spyder.py3compat import to_text_string
-from spyder.api.manager import Manager
+from spyder.plugins.editor.api.manager import Manager
 from spyder.plugins.editor.utils.editor import BlockUserData
 
 

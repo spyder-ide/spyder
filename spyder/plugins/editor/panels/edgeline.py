@@ -14,7 +14,7 @@ from qtpy.QtGui import QPainter, QColor
 
 # Local imports
 from spyder.py3compat import is_text_string
-from spyder.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel
 
 
 class EdgeLine(Panel):

@@ -18,7 +18,7 @@ from qtpy.QtGui import QPainter, QColor, QCursor
 from qtpy.QtWidgets import (QStyle, QStyleOptionSlider, QApplication)
 
 # Local imports
-from spyder.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel
 from spyder.config.gui import is_dark_interface
 from spyder.plugins.completion.manager.api import DiagnosticSeverity
 

@@ -6,7 +6,7 @@
 """This module contains the close quotes editor extension."""
 
 from qtpy.QtGui import QTextCursor
-from spyder.api.editorextension import EditorExtension
+from spyder.plugins.editor.api.editorextension import EditorExtension
 
 
 class CloseBracketsExtension(EditorExtension):

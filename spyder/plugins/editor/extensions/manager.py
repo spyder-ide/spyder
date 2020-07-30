@@ -20,7 +20,7 @@ Original file:
 import logging
 
 # Local imports
-from spyder.api.manager import Manager
+from spyder.plugins.editor.api.manager import Manager
 
 
 logger = logging.getLogger(__name__)

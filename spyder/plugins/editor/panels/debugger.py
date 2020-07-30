@@ -12,7 +12,7 @@ from qtpy.QtGui import QPainter, QFontMetrics
 
 # Local imports
 from spyder.utils import icon_manager as ima
-from spyder.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel
 from spyder.config.base import debug_print
 
 

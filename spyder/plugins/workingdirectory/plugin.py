@@ -33,7 +33,7 @@ class WorkingDirectory(SpyderPluginV2):
     """
 
     NAME = 'workingdir'
-    REQUIRES = [Plugins.Console]
+    REQUIRES = []
     OPTIONAL = [Plugins.Editor, Plugins.Explorer, Plugins.IPythonConsole,
                 Plugins.Projects]
     CONTAINER_CLASS = WorkingDirectoryContainer

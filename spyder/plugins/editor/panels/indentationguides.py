@@ -14,7 +14,7 @@ from intervaltree import IntervalTree
 
 # Local imports
 from spyder.plugins.editor.utils.editor import TextBlockHelper
-from spyder.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel
 
 
 class IndentationGuide(Panel):

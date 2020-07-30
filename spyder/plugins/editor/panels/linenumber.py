@@ -20,7 +20,7 @@ from qtpy.QtGui import QPainter, QColor
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import check_version
-from spyder.api.panel import Panel
+from spyder.plugins.editor.api.panel import Panel
 from spyder.plugins.completion.manager.api import DiagnosticSeverity
 
 

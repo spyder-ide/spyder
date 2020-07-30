@@ -9,7 +9,7 @@
 from qtpy.QtGui import QTextCursor
 
 # Local imports
-from spyder.api.editorextension import EditorExtension
+from spyder.plugins.editor.api.editorextension import EditorExtension
 
 
 def unmatched_quotes_in_line(text):

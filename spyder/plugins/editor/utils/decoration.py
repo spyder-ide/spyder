@@ -20,7 +20,7 @@ Original file:
 from qtpy.QtGui import QTextCharFormat
 
 # Local imports
-from spyder.api.manager import Manager
+from spyder.plugins.editor.api.manager import Manager
 
 
 class TextDecorationsManager(Manager):
