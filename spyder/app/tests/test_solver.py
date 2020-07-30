@@ -8,6 +8,8 @@
 Tests for solver.py
 """
 
+import os
+
 # Third party imports
 import pytest
 
@@ -120,3 +122,69 @@ def test_solve_plugin_dependencies_3():
 def test_find_internal_plugins():
     internal = find_internal_plugins()
     assert len(internal) == 20
+
+
+@pytest.mark.parametrize(
+    "plugin",
+    [
+        # "spyder.plugins.appearance",
+        # "spyder.plugins.breakpoints",
+        # "spyder.plugins.completion.manager",
+        # "spyder.plugins.completion.fallback",
+        # "spyder.plugins.completion.languageserver",
+        # "spyder.plugins.completion.kite",
+        # "spyder.plugins.console",
+        # "spyder.plugins.editor",
+        # "spyder.plugins.explorer",
+        # "spyder.plugins.findinfiles",
+        # "spyder.plugins.help",
+        # "spyder.plugins.history",
+        # "spyder.plugins.ipythonconsole",
+        # "spyder.plugins.maininterpreter",
+        # "spyder.plugins.onlinehelp",
+        # "spyder.plugins.outlineexplorer",
+        "spyder.plugins.plots",
+        # "spyder.plugins.profiler",
+        # "spyder.plugins.projects",
+        # "spyder.plugins.pylint",
+        # "spyder.plugins.run",
+        # "spyder.plugins.shortcuts",
+        # "spyder.plugins.variableexplorer",
+        # "spyder.plugins.workingdirectory",
+    ]
+)
+def test_plugin_dependencies(plugin):
+    import importlib.util
+    from modulefinder import ModuleFinder
+
+    mod = importlib.import_module(plugin)
+    requires = getattr(mod.PLUGIN_CLASSES[0], "REQUIRES", [])
+    print("requires", requires)
+    test_folder = os.sep + "tests" + os.sep
+
+    files_found = []
+    root_plugin = os.path.dirname(mod.__file__)
+    if os.path.isdir(root_plugin):
+        # Walk and check modules!
+        for root, _dirs, files in os.walk(root_plugin, topdown=False):
+            for name in files:
+                fpath = os.path.join(root, name)
+                if fpath.endswith(".py") and test_folder not in fpath:
+                    files_found.append(fpath)
+
+    finder = ModuleFinder()
+    imported_modules = set()
+    print("\n\n\n" + plugin)
+    for fpath in sorted(files_found):
+        print("\n" + fpath)
+        try:
+            finder.run_script(fpath)
+            for name, _mod in finder.modules.items():
+                if name.startswith("spyder.plugins."):
+                    imported_modules.add(name)
+        except Exception:
+            pass
+    
+    print("\n".join(sorted(imported_modules)))
+
+    assert False
