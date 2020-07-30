@@ -123,7 +123,6 @@ def test_find_internal_plugins():
     internal = find_internal_plugins()
     assert len(internal) == 20
 
-
 @pytest.mark.parametrize(
     "plugin",
     [
