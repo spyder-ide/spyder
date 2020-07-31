@@ -19,11 +19,11 @@ from qtpy.QtWidgets import QInputDialog, QVBoxLayout, QWidget
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
-from spyder.plugins.editor.widgets import codeeditor
 from spyder.py3compat import is_text_string, to_text_string
 from spyder.utils import encoding
 from spyder.utils.sourcecode import normalize_eols
 from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 from spyder.widgets.tabs import Tabs
 
 # Localization
@@ -159,13 +159,10 @@ class HistoryWidget(PluginMainWidget):
                     editor.toggle_wrap_mode(value)
             elif option == 'line_numbers':
                 for editor in self.editors:
-                    editor.toggle_line_numbers(
-                        linenumbers=value,
-                        markers=False,
-                    )
+                    editor.toggle_line_numbers(value)
             elif option == 'color_scheme_name':
                 for editor in self.editors:
-                    editor.set_font(self.get_option('font'), value)
+                    editor.set_font(self.get_option('font'))
 
     # --- Public API
     # ------------------------------------------------------------------------
@@ -183,7 +180,8 @@ class HistoryWidget(PluginMainWidget):
         self.font = font
         self.color_scheme = color_scheme
         for editor in self.editors:
-            editor.set_font(font, color_scheme)
+            editor.set_font(font)
+            editor.set_color_scheme(color_scheme)
 
     def move_tab(self, index_from, index_to):
         """
@@ -256,24 +254,20 @@ class HistoryWidget(PluginMainWidget):
             return
 
         # Widgets
-        editor = codeeditor.CodeEditor(self)
+        editor = SimpleCodeEditor(self)
 
         # Setup
         language = 'py' if osp.splitext(filename)[1] == '.py' else 'bat'
         editor.setup_editor(
             linenumbers=self.get_option('line_numbers'),
             language=language,
-            scrollflagarea=False,
-            show_debug_panel=False,
+            color_scheme=self.get_option('color_scheme_name'),
+            font=self.get_option('font'),
+            wrap=self.get_option('wrap'),
         )
         editor.setReadOnly(True)
-        editor.toggle_wrap_mode(self.get_option('wrap'))
         editor.set_text(self.get_filename_text(filename))
         editor.set_cursor_position('eof')
-        editor.set_font(
-            self.get_option('font'),
-            self.get_option('color_scheme_name'),
-        )
         self.find_widget.set_editor(editor)
 
         index = self.tabwidget.addTab(editor, osp.basename(filename))
@@ -283,7 +277,7 @@ class HistoryWidget(PluginMainWidget):
         self.tabwidget.setTabToolTip(index, filename)
 
         # Signals
-        editor.focus_changed.connect(lambda: self.sig_focus_changed.emit())
+        editor.sig_focus_changed.connect(lambda: self.sig_focus_changed.emit())
 
     @Slot(str, str)
     def append_to_history(self, filename, command):

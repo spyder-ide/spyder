@@ -25,11 +25,11 @@ from spyder import (__project_url__, __trouble_url__, dependencies,
 from spyder.config.base import _, running_under_pytest
 from spyder.config.gui import get_font
 from spyder.plugins.console.widgets.console import ConsoleBaseWidget
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import restore_keyevent
 from spyder.widgets.github.backend import GithubBackend
 from spyder.widgets.mixins import BaseEditMixin, TracebackLinksMixin
+from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 # Minimum number of characters to introduce in the title and
 # description fields before being able to send the report to
@@ -38,32 +38,26 @@ TITLE_MIN_CHARS = 15
 DESC_MIN_CHARS = 50
 
 
-class DescriptionWidget(CodeEditor):
+class DescriptionWidget(SimpleCodeEditor):
     """Widget to enter error description."""
 
     def __init__(self, parent=None):
-        CodeEditor.__init__(self, parent)
+        super().__init__(parent)
+
         # Editor options
         self.setup_editor(
             language='md',
-            color_scheme=None,
-            linenumbers=False,
-            scrollflagarea=False,
+            font=get_font(),
             wrap=True,
-            edge_line=False,
-            highlight_current_line=False,
-            highlight_current_cell=False,
-            occurrence_highlighting=False,
-            auto_unindent=False)
-
-        # Set font
-        self.set_font(get_font())
+            linenumbers=False,
+        )
 
         # Header
         self.header = (
             "### What steps will reproduce the problem?\n\n"
             "<!--- You can use Markdown here --->\n\n")
         self.set_text(self.header)
+
         self.move_cursor(len(self.header))
         self.header_end_pos = self.get_position('eof')
 
@@ -76,7 +70,7 @@ class DescriptionWidget(CodeEditor):
         """Cut text"""
         self.truncate_selection(self.header_end_pos)
         if self.has_selected_text():
-            CodeEditor.cut(self)
+            super().cut()
 
     def keyPressEvent(self, event):
         """Reimplemented Qt Method to avoid removing the header."""
@@ -95,7 +89,7 @@ class DescriptionWidget(CodeEditor):
         elif key == Qt.Key_X and ctrl:
             self.cut()
         else:
-            CodeEditor.keyPressEvent(self, event)
+            super().keyPressEvent(event)
 
     def delete(self):
         """Reimplemented to avoid removing the header."""

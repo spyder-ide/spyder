@@ -18,10 +18,8 @@ from spyder.config.gui import (get_font, is_dark_font_color, is_dark_interface,
 from spyder.config.manager import CONF
 from spyder.config.utils import is_gtk_desktop
 from spyder.plugins.appearance.widgets import SchemeEditor
-# TODO: This should load befor the editor, but depends on the editor
-# the code editor, needs to be moved to core.
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.utils import syntaxhighlighters
+from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 # Localization
 _ = get_translation('spyder')
@@ -88,7 +86,7 @@ class AppearanceConfigPage(PluginConfigPage):
         self.delete_button = QPushButton(_("Delete scheme"))
         self.reset_button = QPushButton(_("Reset to defaults"))
 
-        self.preview_editor = CodeEditor(self)
+        self.preview_editor = SimpleCodeEditor(self)
         self.stacked_widget = QStackedWidget(self)
         self.scheme_editor_dialog = SchemeEditor(parent=self,
                                                  stack=self.stacked_widget)
@@ -321,27 +319,23 @@ class AppearanceConfigPage(PluginConfigPage):
         """
         text = ('"""A string"""\n\n'
                 '# A comment\n\n'
-                '# %% A cell\n\n'
                 'class Foo(object):\n'
                 '    def __init__(self):\n'
                 '        bar = 42\n'
                 '        print(bar)\n'
                 )
-        show_blanks = CONF.get('editor', 'blank_spaces')
-        update_scrollbar = CONF.get('editor', 'scroll_past_end')
-        underline_errors = CONF.get('editor', 'underline_errors')
+
         if scheme_name is None:
             scheme_name = self.current_scheme
-        self.preview_editor.setup_editor(linenumbers=True,
-                                         markers=True,
-                                         tab_mode=False,
-                                         font=get_font(),
-                                         show_blanks=show_blanks,
-                                         underline_errors=underline_errors,
-                                         color_scheme=scheme_name,
-                                         scroll_past_end=update_scrollbar)
-        self.preview_editor.set_text(text)
+
+        self.preview_editor.setup_editor(
+            font=get_font(),
+            color_scheme=scheme_name,
+            show_blanks=False,
+            scroll_past_end=False,
+        )
         self.preview_editor.set_language('Python')
+        self.preview_editor.set_text(text)
 
     # Actions
     # -------------------------------------------------------------------------

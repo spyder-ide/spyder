@@ -147,13 +147,11 @@ def test_add_history(historylog):
 
     # Check differences between tabs based on setup.
     assert hw.editors[0].supported_language
-    assert hw.editors[0].is_python()
     assert hw.editors[0].isReadOnly()
     assert not hw.editors[0].isVisible()
     assert hw.editors[0].toPlainText() == text1
 
     assert not hw.editors[1].supported_language
-    assert not hw.editors[1].is_python()
     assert hw.editors[1].isReadOnly()
     assert hw.editors[1].isVisible()
     assert hw.editors[1].toPlainText() == text2
