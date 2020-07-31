@@ -1406,6 +1406,18 @@ class EditorStack(QWidget):
         """If `state` is ``True``, code cells will be copied to the console."""
         self.run_cell_copy = state
 
+    def set_current_project_path(self, root_path=None):
+        """
+        Set the current active project root path.
+
+        Parameters
+        ----------
+        root_path: str or None, optional
+            Path to current project root path. Default is None.
+        """
+        for finfo in self.data:
+            finfo.editor.set_current_project_path(root_path)
+
     #------ Stacked widget management
     def get_stack_index(self):
         return self.tabs.currentIndex()

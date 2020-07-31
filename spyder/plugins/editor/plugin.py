@@ -3063,3 +3063,15 @@ class Editor(SpyderPluginWidget):
         """Switch to previous file tab on the current editor stack."""
         editorstack = self.get_current_editorstack()
         editorstack.tabs.tab_navigate(-1)
+
+    def set_current_project_path(self, root_path=None):
+        """
+        Set the current active project root path.
+
+        Parameters
+        ----------
+        root_path: str or None, optional
+            Path to current project root path. Default is None.
+        """
+        for editorstack in self.editorstacks:
+            editorstack.set_current_project_path(root_path)
