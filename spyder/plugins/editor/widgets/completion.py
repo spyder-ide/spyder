@@ -11,8 +11,9 @@ import html
 import sys
 
 # Third psrty imports
+from qtconsole.styles import dark_color
 from qtpy.QtCore import QPoint, Qt, Signal, Slot
-from qtpy.QtGui import QFontMetrics
+from qtpy.QtGui import QFontMetrics, QPalette
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
                             QListWidgetItem, QToolTip)
 
@@ -26,7 +27,11 @@ from spyder.widgets.helperwidgets import HTMLDelegate
 
 DEFAULT_COMPLETION_ITEM_HEIGHT = 15
 DEFAULT_COMPLETION_ITEM_WIDTH = 250
-
+OS_COLOR = QApplication.palette().color(QPalette.Highlight)
+if dark_color(OS_COLOR.name()):
+    SELECTION_COLOR = 'white'
+else:
+    SELECTION_COLOR = 'black'
 
 class CompletionWidget(QListWidget):
     """Completion list widget."""
@@ -86,6 +91,12 @@ class CompletionWidget(QListWidget):
 
     def setup_appearance(self, size, font):
         """Setup size and font of the completion widget."""
+        os_color = OS_COLOR.name()
+        text_color = ima.MAIN_FG_COLOR
+        self.setStyleSheet("QListWidget::item{color:%s !important;} \n "
+                           "QListWidget::item:selected{background-color:%s;"
+                           "color:%s !important;}"
+                           % (text_color, os_color, SELECTION_COLOR))
         self.resize(*size)
         self.setFont(font)
 
@@ -261,7 +272,7 @@ class CompletionWidget(QListWidget):
 
         """Change color for selected items"""
         if selected:
-            text_color = ima.MAIN_FG_COLOR_SELECTED
+            text_color = SELECTION_COLOR
         else:
             text_color = ima.MAIN_FG_COLOR
 
