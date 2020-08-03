@@ -17,6 +17,7 @@ from qtpy.QtGui import QFontMetrics, QPalette
 from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
 
 # Local imports
+from spyder.config.gui import is_dark_interface
 from spyder.utils import icon_manager as ima
 from spyder.plugins.completion.kite.providers.document import KITE_COMPLETION
 from spyder.plugins.completion.languageserver import CompletionItemKind
@@ -92,12 +93,13 @@ class CompletionWidget(QListWidget):
         """Setup size and font of the completion widget."""
         background_color = self.background_color.name()
         text_color = ima.MAIN_FG_COLOR
-        self.setStyleSheet(
-            "QListWidget::item{color:%s !important;} \n "
-            "QListWidget::item:selected{background-color:%s;"
-            "color:%s !important;}" %
-            (text_color, background_color, self.selection_color)
-        )
+        if not is_dark_interface():
+            self.setStyleSheet(
+                "QListWidget::item{color:%s !important;} \n "
+                "QListWidget::item:selected{background-color:%s;"
+                "color:%s !important;}" %
+                (text_color, background_color, self.selection_color)
+            )
         self.resize(*size)
         self.setFont(font)
 
@@ -272,7 +274,7 @@ class CompletionWidget(QListWidget):
         # compatible with old versions of Python, we manually join strings.
 
         """Change color for selected items"""
-        if selected:
+        if not is_dark_interface() and selected:
             text_color = self.selection_color
         else:
             text_color = ima.MAIN_FG_COLOR
