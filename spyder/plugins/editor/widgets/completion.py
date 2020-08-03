@@ -14,8 +14,7 @@ import sys
 from qtconsole.styles import dark_color
 from qtpy.QtCore import QPoint, Qt, Signal, Slot
 from qtpy.QtGui import QFontMetrics, QPalette
-from qtpy.QtWidgets import (QAbstractItemView, QApplication, QListWidget,
-                            QListWidgetItem, QToolTip)
+from qtpy.QtWidgets import QListWidget, QListWidgetItem, QToolTip
 
 # Local imports
 from spyder.utils import icon_manager as ima
@@ -27,11 +26,6 @@ from spyder.widgets.helperwidgets import HTMLDelegate
 
 DEFAULT_COMPLETION_ITEM_HEIGHT = 15
 DEFAULT_COMPLETION_ITEM_WIDTH = 250
-BACKGROUND_COLOR = QApplication.palette().color(QPalette.Highlight)
-if dark_color(BACKGROUND_COLOR.name()):
-    SELECTION_COLOR = 'white'
-else:
-    SELECTION_COLOR = 'black'
 
 class CompletionWidget(QListWidget):
     """Completion list widget."""
@@ -88,16 +82,21 @@ class CompletionWidget(QListWidget):
         fm = QFontMetrics(self.textedit.font())
         self.item_height = fm.height()
         self.item_width = self.width()
+        self.background_color = self.palette().color(QPalette.Highlight)
+        if dark_color(self.background_color.name()):
+            self.selection_color = 'white'
+        else:
+            self.selection_color = 'black'
 
     def setup_appearance(self, size, font):
         """Setup size and font of the completion widget."""
-        background_color = BACKGROUND_COLOR.name()
+        background_color = self.background_color.name()
         text_color = ima.MAIN_FG_COLOR
         self.setStyleSheet(
             "QListWidget::item{color:%s !important;} \n "
             "QListWidget::item:selected{background-color:%s;"
             "color:%s !important;}" %
-            (text_color, background_color, SELECTION_COLOR)
+            (text_color, background_color, self.selection_color)
         )
         self.resize(*size)
         self.setFont(font)
@@ -274,7 +273,7 @@ class CompletionWidget(QListWidget):
 
         """Change color for selected items"""
         if selected:
-            text_color = SELECTION_COLOR
+            text_color = self.selection_color
         else:
             text_color = ima.MAIN_FG_COLOR
 
