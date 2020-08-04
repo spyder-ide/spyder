@@ -82,5 +82,11 @@ jobs:
                "reply": "Thanks for reporting. This issue is a duplicate of #13297. You can solve it now by uninstalling Kite until we properly fix it.",
                "labels": ["resolution:Duplicate"],
                "close": true
+             },
+             {
+               "pattern": "triggered=lambda v: self.open_project()",
+               "reply": "Thanks for reporting. This issue is a duplicate of #13346. We are working on fix for our next version in a couple of months. Sorry for the inconvenience.",
+               "labels": ["resolution:Duplicate"],
+               "close": true
              }
              ]
