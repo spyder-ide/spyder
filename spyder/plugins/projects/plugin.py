@@ -313,19 +313,21 @@ class Projects(SpyderPluginWidget):
                 # multiple workspaces.
                 self.sig_project_closed.emit(active_project.root_path)
 
-            self._create_project(root_path, project_type=project_type)
+            self._create_project(root_path, project_type_id=project_type)
             self.sig_pythonpath_changed.emit()
             self.restart_consoles()
             dlg.close()
 
-    def _create_project(self, root_path, project_type=EmptyProject.ID,
+    def _create_project(self, root_path, project_type_id=EmptyProject.ID,
                         packages=None):
         """Create a new project."""
         project_types = self.get_project_types()
-        if project_type in project_types:
-            project_type_class = project_types[project_type]
+        if project_type_id in project_types:
+            project_type_class = project_types[project_type_id]
             project = project_type_class(
-                root_path, project_type_class._PARENT_PLUGIN)
+                root_path=root_path,
+                parent_plugin=project_type_class._PARENT_PLUGIN,
+            )
 
             created_succesfully, message = project.create_project()
             if not created_succesfully:
@@ -334,7 +336,7 @@ class Projects(SpyderPluginWidget):
                 return
 
             # TODO: In a subsequent PR return a value and emit based on that
-            self.sig_project_created.emit(root_path, project_type, packages)
+            self.sig_project_created.emit(root_path, project_type_id, packages)
             self.open_project(path=root_path, project=project)
         else:
             if not running_under_pytest():
@@ -367,12 +369,11 @@ class Projects(SpyderPluginWidget):
             path = encoding.to_unicode_from_fs(path)
 
         if project is None:
-            project_type = self._load_project_type(path)
-            project_types = self.get_project_types()
-            if project_type in project_types:
-                project = project_types[project_type](path, self)
-            else:
-                project = EmptyProject(path, self)
+            project_type_class = self._load_project_type_class(path)
+            project = project_type_class(
+                root_path=path,
+                parent_plugin=project_type_class._PARENT_PLUGIN,
+            )
 
         # A project was not open before
         if self.current_active_project is None:
@@ -754,25 +755,36 @@ class Projects(SpyderPluginWidget):
 
     # --- New API:
     # ------------------------------------------------------------------------
-    def _load_project_type(self, path):
+    def _load_project_type_class(self, path):
         """
-        Load a project type from the config project folder directly.
+        Load a project type class from the config project folder directly.
 
         Notes
         -----
         This is done directly, since using the EmptyProject would rewrite the
-        value in the constructor.
+        value in the constructor. If the project found has not been registered
+        as a valid project type, the EmptyProject type will be returned.
+
+        Returns
+        -------
+        spyder.plugins.projects.api.BaseProjectType
+            Loaded project type class.
         """
         fpath = osp.join(
             path, get_project_config_folder(), 'config', WORKSPACE + ".ini")
 
-        project_type = EmptyProject.ID
+        project_type_id = EmptyProject.ID
         if osp.isfile(fpath):
             config = configparser.ConfigParser()
             config.read(fpath)
-            project_type = config[WORKSPACE].get("project_type", EmptyProject.ID)
+            project_type_id = config[WORKSPACE].get(
+                "project_type", EmptyProject.ID)
 
-        return project_type
+
+        EmptyProject._PARENT_PLUGIN = self
+        project_types = self.get_project_types()
+        project_type_class = project_types.get(project_type_id, EmptyProject)
+        return project_type_class
 
     def register_project_type(self, parent_plugin, project_type):
         """
@@ -804,7 +816,8 @@ class Projects(SpyderPluginWidget):
         Returns
         -------
         dict
-            Project types dictionary.
+            Project types dictionary. Keys are project type IDs and values
+            are project type classes.
         """
         return self._project_types
 
