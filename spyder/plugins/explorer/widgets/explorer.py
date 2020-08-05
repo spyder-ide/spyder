@@ -433,7 +433,24 @@ class DirView(QTreeView):
 
     def create_file_new_actions(self, fnames):
         """Return actions for submenu 'New...'"""
-        root_path = self.fsmodel.rootPath()
+        if not fnames:
+            root_path = self.fsmodel.rootPath()
+        else:
+            # Verify if the user is trying to add something new inside a folder
+            # so it can be added in that folder and not in the rootpath
+            # See spyder-ide/spyder#13444
+            level_list = []
+            current_index = self.currentIndex()
+            if current_index.isValid():
+                level_list.append(current_index.data())
+
+            while current_index.isValid():
+                current_index = current_index.parent()
+                if current_index.data() is not None:
+                    level_list.insert(0, current_index.data())
+
+            root_path = osp.join(*level_list)
+
         new_file_act = create_action(self, _("File..."),
                                      icon=ima.icon('TextFileIcon'),
                                      triggered=lambda:
