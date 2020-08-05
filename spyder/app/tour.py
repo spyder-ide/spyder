@@ -1253,7 +1253,8 @@ class AnimatedTour(QWidget):
         self.is_tour_set = True
 
     def _handle_fullscreen(self):
-        if self.spy_window.isFullScreen() or self.spy_window.fullscreen_flag:
+        if (self.spy_window.isFullScreen() or
+                self.spy_window.layouts._fullscreen_flag):
             if sys.platform == 'darwin':
                 self.spy_window.setUpdatesEnabled(True)
                 msg_title = _("Request")
@@ -1263,8 +1264,8 @@ class AnimatedTour(QWidget):
                 QMessageBox.information(self, msg_title, msg,
                                         QMessageBox.Ok)
                 return True
-            if self.spy_window.fullscreen_flag:
-                self.spy_window.toggle_fullscreen()
+            if self.spy_window.layouts._fullscreen_flag:
+                self.spy_window.layouts.toggle_fullscreen()
             else:
                 self.spy_window.setWindowState(
                     self.spy_window.windowState()
@@ -1276,11 +1277,11 @@ class AnimatedTour(QWidget):
         self.spy_window.setUpdatesEnabled(False)
         if self._handle_fullscreen():
             return
-        self.spy_window.save_current_window_settings(
+        self.spy_window.layouts.save_current_window_settings(
             'layout_current_temp/',
             section="quick_layouts",
         )
-        self.spy_window.quick_layout_switch('default')
+        self.spy_window.layouts.quick_layout_switch('default')
         geo = self.parent.geometry()
         x, y, width, height = geo.x(), geo.y(), geo.width(), geo.height()
 #        self.parent_x = x
@@ -1318,7 +1319,7 @@ class AnimatedTour(QWidget):
             pass
 
         self.is_running = False
-        self.spy_window.quick_layout_switch('current_temp')
+        self.spy_window.layouts.quick_layout_switch('current_temp')
         self.spy_window.setUpdatesEnabled(True)
 
     def hide_tips(self):

@@ -6,4 +6,4 @@
 # (see LICENSE.txt for details)
 # -----------------------------------------------------------------------------
 
-"""Preferences Tests."""
+"""Layout widgets tests."""

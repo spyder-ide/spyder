@@ -5,14 +5,15 @@
 #
 
 """
-Tests for layoutdialog.py
+Tests for dialog.py
 """
 
 # Test library imports
 import pytest
 
 # Local imports
-from spyder.preferences.layoutdialog import LayoutSettingsDialog, LayoutSaveDialog
+from spyder.plugins.layout.widgets.dialog import (
+    LayoutSettingsDialog, LayoutSaveDialog)
 
 
 @pytest.fixture

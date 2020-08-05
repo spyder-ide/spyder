@@ -10,8 +10,9 @@ Toolbar Plugin.
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
-from spyder.api.plugins import SpyderPluginV2
+from spyder.api.plugins import SpyderPluginV2, Plugins
 from spyder.api.translations import get_translation
+from spyder.plugins.mainmenu.api import ApplicationMenus, ViewMenuSections
 from spyder.plugins.toolbar.api import ApplicationToolbars
 from spyder.plugins.toolbar.container import ToolbarContainer
 
@@ -24,6 +25,7 @@ class Toolbar(SpyderPluginV2):
     Docstrings viewer widget.
     """
     NAME = 'toolbar'
+    OPTIONAL = [Plugins.MainMenu]
     CONF_SECTION = NAME
     CONF_FILE = False
     CONTAINER_CLASS = ToolbarContainer
@@ -45,6 +47,18 @@ class Toolbar(SpyderPluginV2):
         create_app_toolbar(ApplicationToolbars.Run, _("Run toolbar"))
         create_app_toolbar(ApplicationToolbars.Debug, _("Debug toolbar"))
         create_app_toolbar(ApplicationToolbars.Main, _("Main toolbar"))
+
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        if mainmenu:
+            # View menu Toolbar section
+            mainmenu.add_item_to_application_menu(
+                    self.toolbars_menu,
+                    menu_id=ApplicationMenus.View,
+                    section=ViewMenuSections.Toolbar)
+            mainmenu.add_item_to_application_menu(
+                    self.show_toolbars_action,
+                    menu_id=ApplicationMenus.View,
+                    section=ViewMenuSections.Toolbar)
 
     def on_mainwindow_visible(self):
         container = self.get_container()
@@ -167,6 +181,11 @@ class Toolbar(SpyderPluginV2):
             The application toolbar.
         """
         return self.get_container().get_application_toolbar(toolbar_id)
+
+    def toggle_lock(self, value=None):
+        """Lock/Unlock toolbars."""
+        for toolbar in self.toolbarslist:
+            toolbar.setMovable(not value)
 
     # --- Convenience properties, while all plugins migrate.
     @property
