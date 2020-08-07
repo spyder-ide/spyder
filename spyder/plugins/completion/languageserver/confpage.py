@@ -31,19 +31,34 @@ from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import check_connection_port
+from spyder.utils.snippets.ast import build_snippet_ast
 from spyder.utils.programs import find_program
 from spyder.widgets.helperwidgets import ItemDelegate
 
 LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
 LSP_URL = "https://microsoft.github.io/language-server-protocol"
+LANGUAGE_SET = {l.lower() for l in LSP_LANGUAGES}
 
 
 def iter_servers():
     for option in CONF.options('lsp-server'):
-        if option in [l.lower() for l in LSP_LANGUAGES]:
+        if option in LANGUAGE_SET:
             server = LSPServer(language=option)
             server.load()
             yield server
+
+
+def iter_snippets():
+    for option in CONF.options('snippet-completions'):
+        if option in LANGUAGE_SET:
+            language_snippets = CONF.get('snippet-completions', option)
+            for trigger in language_snippets:
+                descriptions = language_snippets[trigger]
+                for description in descriptions:
+                    snippet = Snippet(language=option, trigger_text=trigger,
+                                      description=description)
+                    snippet.load()
+                    yield snippet
 
 
 class LSPServer(object):
@@ -96,6 +111,70 @@ class LSPServer(object):
         if self.language is not None:
             language = self.language.lower()
             CONF.remove_option('lsp-server', language)
+
+
+class Snippet:
+    """Convenience class to store user snippets."""
+
+    def __init__(self, language=None, trigger_text="", snippet_text="",
+                 description="", remove_trigger=False):
+        self.index = 0
+        self.language = language
+        if self.language in LSP_LANGUAGE_NAME:
+            self.language = LSP_LANGUAGE_NAME[self.language]
+
+        self.trigger_text = trigger_text
+        self.snippet_text = snippet_text
+        self.description = description
+        self.remove_trigger = remove_trigger
+        self.initial_trigger_text = trigger_text
+        self.initial_description = description
+
+    def __repr__(self):
+        return '[{0}] {1} ({2}): {3}'.format(
+            self.language, self.trigger_text, self.description,
+            repr(self.snippet_text))
+
+    def __str__(self):
+        return self.__repr__()
+
+    def load(self):
+        if self.language is not None and self.trigger_text != '':
+            state = CONF.get('snippet-completions', self.language.lower())
+            trigger_info = state[self.trigger_text]
+            snippet_info = trigger_info[self.description]
+            self.snippet_text = snippet_info['text']
+            self.remove_trigger = snippet_info['remove_trigger']
+
+    def save(self):
+        if self.language is not None:
+            language = self.language.lower()
+            current_state = CONF.get('snippet-completions', language, {})
+            new_state = {
+                'text': self.snippet_text,
+                'remove_trigger': self.remove_trigger
+            }
+            if (self.initial_trigger_text != self.trigger_text or
+                    self.initial_description != self.description):
+                # Delete previous entry
+                trigger = current_state[self.initial_trigger_text]
+                trigger.pop(self.initial_description)
+                if len(trigger) == 0:
+                    current_state.pop(self.initial_trigger_text)
+            trigger_info = current_state.get(self.trigger_text, {})
+            trigger_info[self.description] = new_state
+            current_state[self.trigger_text] = trigger_info
+            CONF.set('snippet-completions', language, current_state)
+
+    def delete(self):
+        if self.language is not None:
+            language = self.language.lower()
+            current_state = CONF.get('snippet-completions', language, {})
+            trigger = current_state[self.trigger_text]
+            trigger.pop(self.description)
+            if len(trigger) == 0:
+                current_state.pop(self.trigger_text)
+            CONF.set('snippet-completions', language, current_state)
 
 
 class LSPServerEditor(QDialog):
@@ -693,6 +772,170 @@ class LSPServerTable(QTableView):
         self.show_editor()
 
 
+class SnippetEditor(QDialog):
+    SNIPPET_VALID = _('Valid snippet')
+    SNIPPET_INVALID = _('Invalid snippet')
+    INVALID_CB_CSS = "QComboBox {border: 1px solid red;}"
+    VALID_CB_CSS = "QComboBox {border: 1px solid green;}"
+    INVALID_LINE_CSS = "QLineEdit {border: 1px solid red;}"
+    VALID_LINE_CSS = "QLineEdit {border: 1px solid green;}"
+    MIN_SIZE = QSize(850, 600)
+
+    def __init__(self, parent, language=None, trigger_text='', description='',
+                 snippet_text='', remove_trigger=False, trigger_texts=[],
+                 descriptions=[]):
+        super(SnippetEditor, self).__init__(parent)
+
+        description = _(
+            "To add a new text snippet, you need to define the text "
+            "that triggers it, a short description (two words maximum) "
+            "of the snippet and if it should delete the trigger text when "
+            "inserted. Finally, you need to define the snippet body to insert."
+        )
+
+        self.parent = parent
+        self.trigger_text = trigger_text
+        self.description = description
+        self.remove_trigger = remove_trigger
+        self.snippet_text = snippet_text
+        self.descriptions = descriptions
+
+        # Widgets
+        self.snippet_settings_description = QLabel(description)
+
+        # Trigger text
+        self.trigger_text_label = QLabel(_('Trigger text:'))
+        self.trigger_text_cb = QComboBox(self)
+        self.trigger_text_cb.setEditable(True)
+
+        # Description
+        self.description_label = QLabel(_('Description:'))
+        self.description_input = QLineEdit(self)
+
+        # Remove trigger
+        self.remove_trigger_cb = QCheckBox(
+            _('Remove trigger text on insertion'), self)
+        self.remove_trigger_cb.setToolTip(_('Check if the text that triggers '
+                                            'this snippet should be removed '
+                                            'when inserting it'))
+        self.remove_trigger_cb.setChecked(self.remove_trigger)
+
+        # Snippet body input
+        self.snippet_label = QLabel(_('<b>Snippet text:</b>'))
+        self.snippet_valid_label = QLabel(SNIPPET_INVALID, self)
+        self.snippet_input = CodeEditor(None)
+
+        # Dialog buttons
+        self.bbox = QDialogButtonBox(QDialogButtonBox.Ok |
+                                     QDialogButtonBox.Cancel)
+        self.button_ok = self.bbox.button(QDialogButtonBox.Ok)
+        self.button_cancel = self.bbox.button(QDialogButtonBox.Cancel)
+
+        # Widget setup
+        self.setMinimumSize(self.MIN_SIZE)
+        self.setWindowTitle(_('Snippet editor'))
+
+        self.snippet_settings_description.setWordWrap(True)
+        self.trigger_text_cb.setToolTip(
+            _('Trigger text for the current snippet'))
+        self.trigger_text_cb.addItems(trigger_texts)
+        # self.trigger_text_cb.addItem(trigger_text)
+
+        if self.trigger_text != '':
+            idx = trigger_texts.index(self.trigger_text)
+            self.trigger_text_cb.setCurrentIndex(idx + 1)
+
+        self.description_input.setText(self.description)
+        self.description_input.textChanged.connect(lambda _: self.validate())
+
+        text_inputs = (self.trigger_text, self.description, self.snippet_text)
+        non_empty_text = all([x != '' for x in text_inputs])
+        if non_empty_text:
+            self.button_ok.setEnabled(True)
+
+        self.snippet_input.setup_editor(
+            language=language,
+            color_scheme=CONF.get('appearance', 'selected'),
+            wrap=False,
+            edge_line=True,
+            highlight_current_line=True,
+            highlight_current_cell=True,
+            occurrence_highlighting=True,
+            auto_unindent=True,
+            font=get_font(),
+            filename='snippet',
+            folding=False
+        )
+        self.snippet_input.set_language(language, 'snippet')
+        self.snippet_input.setToolTip(_('Snippet text completion to insert'))
+
+        # Layout setup
+        general_layout = QVBoxLayout()
+        general_layout.addWidget(self.snippet_settings_description)
+
+        snippet_settings_group = QGroupBox(_('Trigger information'))
+        settings_layout = QGridLayout()
+        settings_layout.addWidget(self.trigger_text_label, 0, 0)
+        settings_layout.addWidget(self.trigger_text_cb, 0, 1)
+        settings_layout.addWidget(self.description_label, 0, 2)
+        settings_layout.addWidget(self.description_input, 0, 3)
+        settings_layout.addWidget(self.remove_trigger_cb, 0, 4)
+        snippet_settings_group.setLayout(settings_layout)
+        general_layout.addWidget(snippet_settings_group)
+
+        text_layout = QVBoxLayout()
+        text_layout.addWidget(self.snippet_label)
+        text_layout.addWidget(self.snippet_input)
+        text_layout.addWidget(self.snippet_valid_label)
+        general_layout.addWidget(text_layout)
+
+        general_layout.addWidget(self.bbox)
+        self.setLayout(general_layout)
+
+        # Signals
+        self.trigger_text_cb.editTextChanged.connect(self.trigger_changed)
+        self.description_input.textChanged.connect(self.validate)
+        self.snippet_input.textChanged.connect(self.validate)
+        self.bbox.accepted.connect(self.accept)
+        self.bbox.rejected.connect(self.reject)
+
+        # Final setup
+        if trigger_text != '' or snippet_text != '':
+            self.validate()
+
+    @Slot()
+    def validate(self):
+        trigger_text = self.trigger_text_cb.currentText
+        description_text = self.description_input.text()
+        snippet_text = self.snippet_input.toPlainText()
+
+        invalid = False
+        if trigger_text == '':
+            invalid = True
+            self.trigger_text_cb.setStyleSheet(self.INVALID_CB_CSS)
+        else:
+            self.trigger_text_cb.setStyleSheet(self.VALID_CB_CSS)
+
+        if description_text != '' and description_text != self.description:
+            if description_text in self.descriptions:
+                invalid = True
+                self.description_input.setStyleSheet(self.INVALID_LINE_CSS)
+            else:
+                self.description_input.setStyleSheet(self.VALID_LINE_CSS)
+        else:
+            self.description_input.setStyleSheet(self.VALID_LINE_CSS)
+
+        try:
+            build_snippet_ast(snippet_text)
+            self.snippet_valid_label.setText(self.SNIPPET_VALID)
+        except SyntaxError:
+            invalid = True
+            self.snippet_valid_label.setText(self.SNIPPET_VALID)
+
+        if not invalid:
+            self.button_ok.setEnabled(False)
+
+
 class LanguageServerConfigPage(GeneralConfigPage):
     """Language Server Protocol manager preferences."""
     CONF_SECTION = 'lsp-server'
@@ -992,6 +1235,26 @@ class LanguageServerConfigPage(GeneralConfigPage):
         docstring_style_widget = QWidget()
         docstring_style_widget.setLayout(docstring_style_layout)
 
+        # --- Snippets tab ---
+        grammar_url = (
+            "<a href=\"{0}/specifications/specification-current#snippet_syntax\">"
+            "{1}</a>".format(LSP_URL, _('the LSP grammar')))
+        snippets_info_label = QLabel(
+            _("Spyder allows to define custom completion snippets to use "
+              "in addition to the ones offered by the LSP. Each snippet "
+              "should follow {}. <b>Note:</b> All changes will be effective "
+              "only when applying the settings").format(grammar_url))
+        snippets_info_label.setOpenExternalLinks(True)
+        snippets_info_label.setWordWrap(True)
+        snippets_info_label.setAlignment(Qt.AlignJustify)
+
+        # Snippets layout
+        snippets_layout = QVBoxLayout()
+        snippets_layout.addWidget(snippets_info_label)
+
+        snippets_widget = QWidget()
+        snippets_widget.setLayout(snippets_layout)
+
         # --- Advanced tab ---
         # Clients group
         clients_group = QGroupBox(_("Providers"))
@@ -1152,6 +1415,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.tabs = QTabWidget()
         self.tabs.addTab(self.create_tab(completion_widget),
                          _('Completion'))
+        self.tabs.addTab(self.create_tab(snippets_widget), _('Snippets'))
         self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
         self.tabs.addTab(self.create_tab(introspection_group, advanced_group),
                          _('Introspection'))
