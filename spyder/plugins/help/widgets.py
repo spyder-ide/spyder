@@ -143,6 +143,8 @@ class RichText(QWidget):
         QWidget.__init__(self, parent)
 
         self.webview = FrameWebView(self)
+        self.webview.setup()
+
         if WEBENGINE:
             self.webview.web_widget.page().setBackgroundColor(
                 QColor(MAIN_BG_COLOR))
