@@ -2332,6 +2332,16 @@ def preferences_dialog_helper(qtbot, main_window, section):
 
 
 @pytest.mark.slow
+def test_preferences_run_section_exists(main_window, qtbot):
+    """
+    Test for spyder-ide/spyder#13524 regression.
+
+    Ensure the Run section exists.
+    """
+    assert preferences_dialog_helper(qtbot, main_window, 'run')
+
+
+@pytest.mark.slow
 def test_preferences_checkboxes_not_checked_regression(main_window, qtbot):
     """
     Test for spyder-ide/spyder/#10139 regression.
