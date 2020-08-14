@@ -179,12 +179,18 @@ class Editor(SpyderPluginWidget):
 
         statusbar = parent.statusBar()  # Create a status bar
         # Remove separator line
-        statusbar.setStyleSheet('QStatusBar::item {border: None;}')
-        self.vcs_status = VCSStatus(self, statusbar)
-        self.cursorpos_status = CursorPositionStatus(self, statusbar)
-        self.encoding_status = EncodingStatus(self, statusbar)
-        self.eol_status = EOLStatus(self, statusbar)
-        self.readwrite_status = ReadWriteStatus(self, statusbar)
+        self.vcs_status = VCSStatus(self)
+        self.cursorpos_status = CursorPositionStatus(self)
+        self.encoding_status = EncodingStatus(self)
+        self.eol_status = EOLStatus(self)
+        self.readwrite_status = ReadWriteStatus(self)
+
+        # TODO: temporal fix while editor uses new API
+        statusbar.insertPermanentWidget(2, self.readwrite_status)
+        statusbar.insertPermanentWidget(2, self.eol_status)
+        statusbar.insertPermanentWidget(2, self.encoding_status)
+        statusbar.insertPermanentWidget(2, self.cursorpos_status)
+        statusbar.insertPermanentWidget(2, self.vcs_status)
 
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)

@@ -37,7 +37,7 @@ def test_status_bar(status_bar, qtbot):
     swidgets = []
     for klass in (ReadWriteStatus, EOLStatus, EncodingStatus,
                   CursorPositionStatus, VCSStatus):
-        swidget = klass(win, statusbar)
+        swidget = klass(win)
         swidgets.append(swidget)
     assert win
     assert len(swidgets) == 5

@@ -631,6 +631,7 @@ class MainWindow(QMainWindow):
         self.project_path = ()
 
         # New API
+        self._APPLICATION_MENUS = OrderedDict()
         self._APPLICATION_TOOLBARS = OrderedDict()
         self._STATUS_WIDGETS = OrderedDict()
         self._PLUGINS = OrderedDict()
@@ -668,11 +669,9 @@ class MainWindow(QMainWindow):
         self.give_updates_feedback = True
 
         # Preferences
-        from spyder.preferences.general import MainConfigPage
         from spyder.preferences.shortcuts import ShortcutsConfigPage
         from spyder.preferences.maininterpreter import MainInterpreterConfigPage
-        self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
-                              MainInterpreterConfigPage]
+        self.general_prefs = [ShortcutsConfigPage, MainInterpreterConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
@@ -1178,6 +1177,11 @@ class MainWindow(QMainWindow):
 
         # TODO: Load and register the rest of the plugins using new API
 
+        # Core plugin
+        from spyder.plugins.core.plugin import Core
+        self.core = Core(self, configuration=CONF)
+        self.register_plugin(self.core)
+
         # Run plugin
         from spyder.plugins.run.plugin import Run
         self.run = Run(self, configuration=CONF)
@@ -1200,12 +1204,6 @@ class MainWindow(QMainWindow):
             self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
             self.add_plugin(self.outlineexplorer)
-
-        if is_anaconda():
-            from spyder.widgets.status import CondaStatus
-            self.conda_status = CondaStatus(self, status,
-                                            icon=ima.icon('environment'))
-            self.conda_status.update_interpreter(self.get_main_interpreter())
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
@@ -1534,13 +1532,6 @@ class MainWindow(QMainWindow):
                                 triggered=self.show_about)
         self.help_menu_actions += [MENU_SEPARATOR, about_action]
 
-        # Status bar widgets
-        from spyder.widgets.status import MemoryStatus, CPUStatus, ClockStatus
-        self.mem_status = MemoryStatus(self, status)
-        self.cpu_status = CPUStatus(self, status)
-        self.clock_status = ClockStatus(self, status)
-        self.apply_statusbar_settings()
-
         # ----- View
         # View menu
         self.plugins_menu = QMenu(_("Panes"), self)
@@ -1714,7 +1705,7 @@ class MainWindow(QMainWindow):
 
         # Update toolbar visibility status
         self.toolbars_visible = CONF.get('main', 'toolbars_visible')
-        self.load_last_visible_toolbars()
+        # self.load_last_visible_toolbars()
 
         # Update lock status
         self.toggle_lock(self.interface_locked)
@@ -2796,6 +2787,7 @@ class MainWindow(QMainWindow):
                  'main_toolbar', 'Global working directory', None,
                  'search_toolbar', 'edit_toolbar', 'source_toolbar']
         for toolbar in self.toolbarslist:
+            break
             action = toolbar.toggleViewAction()
             name = toolbar.objectName()
             try:
@@ -2996,6 +2988,7 @@ class MainWindow(QMainWindow):
 
         # Apply lock to toolbars
         for toolbar in self.toolbarslist:
+            break
             if self.interface_locked:
                 toolbar.setMovable(False)
             else:
@@ -3451,25 +3444,11 @@ class MainWindow(QMainWindow):
                 # Old API
                 plugin._update_margins()
 
+    # FIXME: Remove method?
     def apply_statusbar_settings(self):
         """Update status bar widgets settings"""
         show_status_bar = CONF.get('main', 'show_status_bar')
         self.statusBar().setVisible(show_status_bar)
-
-        if show_status_bar:
-            for widget, name in ((self.mem_status, 'memory_usage'),
-                                 (self.cpu_status, 'cpu_usage'),
-                                 (self.clock_status, 'clock')):
-                if widget is not None:
-                    widget.setVisible(CONF.get('main', '%s/enable' % name))
-                    widget.set_interval(CONF.get('main', '%s/timeout' % name))
-
-            # Update conda status widget
-            if is_anaconda() and self.conda_status:
-                interpreter = self.get_main_interpreter()
-                self.conda_status.update_interpreter(interpreter)
-        else:
-            return
 
     @Slot()
     def show_preferences(self):
@@ -3489,6 +3468,26 @@ class MainWindow(QMainWindow):
             # Setup
             if self.prefs_dialog_size is not None:
                 dlg.resize(self.prefs_dialog_size)
+
+            # New API
+            try:
+                self.create_plugin_conf_widget(self.core)
+            except AttributeError:
+                pass
+            except Exception:
+                # Avoid a crash at startup if a plugin's config
+                # page fails to load.
+                traceback.print_exc(file=sys.stderr)
+
+            if getattr(self.core, 'CONF_WIDGET_CLASS', None):
+                try:
+                    widget = self.create_plugin_conf_widget(self.core)
+                    if widget is not None:
+                        dlg.add_page(widget)
+                except Exception:
+                    # Avoid a crash at startup if a plugin's config
+                    # page fails to load.
+                    traceback.print_exc(file=sys.stderr)
 
             for PrefPageClass in self.general_prefs:
                 widget = PrefPageClass(dlg, main=self)

@@ -54,7 +54,9 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         # Status widget
         statusbar = parent.statusBar()  # MainWindow status bar
         self.open_file_updated = False
-        self.status_widget = KiteStatusWidget(None, statusbar, self)
+        self.status_widget = KiteStatusWidget(None, self)
+        statusbar = parent.statusBar()
+        statusbar.insertPermanentWidget(0, self.status_widget)
 
         # Signals
         self.client.sig_client_started.connect(self.http_client_ready)
