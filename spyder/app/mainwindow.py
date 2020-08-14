@@ -3505,7 +3505,7 @@ class MainWindow(QMainWindow):
                 if widget is not None:
                     dlg.add_page(widget)
 
-            for plugin in [self.appearance, self.workingdirectory,
+            for plugin in [self.appearance, self.run, self.workingdirectory,
                            self.editor, self.projects, self.ipyconsole,
                            self.historylog, self.help, self.variableexplorer,
                            self.onlinehelp, self.explorer, self.findinfiles
