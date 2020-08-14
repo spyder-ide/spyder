@@ -103,7 +103,7 @@ PYTHON_SNIPPETS = {
             """).strip(),
             'remove_trigger': False
         }
-    }
+    },
     'from': {
         'import': {
             'text': dedent("""
@@ -159,7 +159,7 @@ PYTHON_SNIPPETS = {
                     ${4:pass}$0
             """).strip(),
             'remove_trigger': False
-        }
+        },
         'except/finally': {
             'text': dedent("""
                 try:

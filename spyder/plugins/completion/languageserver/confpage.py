@@ -9,23 +9,30 @@ Language server preferences
 """
 
 # Standard library imports
+import bisect
+import os.path as osp
 import json
 import re
 import sys
 
 # Third party imports
-from qtpy.compat import to_qvariant
-from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize
+from jsonschema.exceptions import ValidationError
+from jsonschema import validate as json_validate
+from qtpy.compat import to_qvariant, getsavefilename
+from qtpy.QtCore import (Qt, Slot, QAbstractTableModel, QModelIndex,
+                         QSize, QObject)
 from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
                             QComboBox, QDialog, QDialogButtonBox, QGroupBox,
                             QGridLayout, QHBoxLayout, QLabel, QLineEdit,
                             QMessageBox, QPushButton, QSpinBox, QTableView,
-                            QTabWidget, QVBoxLayout, QWidget)
+                            QTabWidget, QVBoxLayout, QWidget, QSpacerItem,
+                            QSizePolicy, QFileDialog)
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.config.gui import get_font, is_dark_interface
+from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.preferences.configdialog import GeneralConfigPage
@@ -39,6 +46,78 @@ LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
 LSP_URL = "https://microsoft.github.io/language-server-protocol"
 LANGUAGE_SET = {l.lower() for l in LSP_LANGUAGES}
 
+PYTHON_POS = bisect.bisect_left(LSP_LANGUAGES, 'Python')
+LSP_LANGUAGES_PY = list(LSP_LANGUAGES)
+LSP_LANGUAGES_PY.insert(PYTHON_POS, 'Python')
+
+
+SNIPPETS_SCHEMA = {
+    'type': 'array',
+    'title': 'Snippets',
+    'items': {
+        'type': 'object',
+        'required': ['language', 'triggers'],
+        'properties': {
+            'language': {
+                'type': 'string',
+                'description': 'Programming language',
+                'enum': [l.lower() for l in LSP_LANGUAGES_PY]
+            },
+            'triggers': {
+                'type': 'array',
+                'description': (
+                    'List of snippet triggers defined for this language'),
+                'items': {
+                    'type': 'object',
+                    'description': '',
+                    'required': ['trigger', 'descriptions'],
+                    'properties': {
+                        'trigger': {
+                            'type': 'string',
+                            'description': (
+                                'Text that triggers a snippet family'),
+                        },
+                        'descriptions': {
+                            'type': 'array',
+                            'items': {
+                                'type': 'object',
+                                'description': 'Snippet information',
+                                'required': ['description', 'snippet'],
+                                'properties': {
+                                    'description': {
+                                        'type': 'string',
+                                        'description': (
+                                            'Description of the snippet')
+                                    },
+                                    'snippet': {
+                                        'type': 'object',
+                                        'description': 'Snippet information',
+                                        'required': ['text', 'remove_trigger'],
+                                        'properties': {
+                                            'text': {
+                                                'type': 'string',
+                                                'description': (
+                                                    'Snippet to insert')
+                                            },
+                                            'remove_trigger': {
+                                                'type': 'boolean',
+                                                'description': (
+                                                    'If true, the snippet '
+                                                    'should remove the text '
+                                                    'that triggers it')
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 def iter_servers():
     for option in CONF.options('lsp-server'):
@@ -48,17 +127,18 @@ def iter_servers():
             yield server
 
 
-def iter_snippets():
-    for option in CONF.options('snippet-completions'):
-        if option in LANGUAGE_SET:
-            language_snippets = CONF.get('snippet-completions', option)
-            for trigger in language_snippets:
-                descriptions = language_snippets[trigger]
-                for description in descriptions:
-                    snippet = Snippet(language=option, trigger_text=trigger,
-                                      description=description)
-                    snippet.load()
-                    yield snippet
+def iter_snippets(language, snippets=None):
+    language_snippets = []
+    if snippets is None:
+        snippets = CONF.get('snippet-completions', language.lower(), {})
+    for trigger in snippets:
+        trigger_descriptions = snippets[trigger]
+        for description in trigger_descriptions:
+            this_snippet = Snippet(language=language, trigger_text=trigger,
+                                   description=description)
+            this_snippet.load()
+            language_snippets.append(this_snippet)
+    return language_snippets
 
 
 class LSPServer(object):
@@ -116,8 +196,8 @@ class LSPServer(object):
 class Snippet:
     """Convenience class to store user snippets."""
 
-    def __init__(self, language=None, trigger_text="", snippet_text="",
-                 description="", remove_trigger=False):
+    def __init__(self, language=None, trigger_text="", description="",
+                 snippet_text="", remove_trigger=False):
         self.index = 0
         self.language = language
         if self.language in LSP_LANGUAGE_NAME:
@@ -137,6 +217,11 @@ class Snippet:
 
     def __str__(self):
         return self.__repr__()
+
+    def update(self, trigger_text, description_text, snippet_text):
+        self.trigger_text = trigger_text
+        self.description_text = description_text
+        self.snippet_text = snippet_text
 
     def load(self):
         if self.language is not None and self.trigger_text != '':
@@ -786,7 +871,7 @@ class SnippetEditor(QDialog):
                  descriptions=[]):
         super(SnippetEditor, self).__init__(parent)
 
-        description = _(
+        snippet_description = _(
             "To add a new text snippet, you need to define the text "
             "that triggers it, a short description (two words maximum) "
             "of the snippet and if it should delete the trigger text when "
@@ -799,9 +884,13 @@ class SnippetEditor(QDialog):
         self.remove_trigger = remove_trigger
         self.snippet_text = snippet_text
         self.descriptions = descriptions
+        self.base_snippet = Snippet(
+            language=language, trigger_text=trigger_text,
+            snippet_text=snippet_text, description=description,
+            remove_trigger=remove_trigger)
 
         # Widgets
-        self.snippet_settings_description = QLabel(description)
+        self.snippet_settings_description = QLabel(snippet_description)
 
         # Trigger text
         self.trigger_text_label = QLabel(_('Trigger text:'))
@@ -822,7 +911,7 @@ class SnippetEditor(QDialog):
 
         # Snippet body input
         self.snippet_label = QLabel(_('<b>Snippet text:</b>'))
-        self.snippet_valid_label = QLabel(SNIPPET_INVALID, self)
+        self.snippet_valid_label = QLabel(self.SNIPPET_INVALID, self)
         self.snippet_input = CodeEditor(None)
 
         # Dialog buttons
@@ -832,18 +921,16 @@ class SnippetEditor(QDialog):
         self.button_cancel = self.bbox.button(QDialogButtonBox.Cancel)
 
         # Widget setup
-        self.setMinimumSize(self.MIN_SIZE)
         self.setWindowTitle(_('Snippet editor'))
 
         self.snippet_settings_description.setWordWrap(True)
         self.trigger_text_cb.setToolTip(
             _('Trigger text for the current snippet'))
         self.trigger_text_cb.addItems(trigger_texts)
-        # self.trigger_text_cb.addItem(trigger_text)
 
         if self.trigger_text != '':
             idx = trigger_texts.index(self.trigger_text)
-            self.trigger_text_cb.setCurrentIndex(idx + 1)
+            self.trigger_text_cb.setCurrentIndex(idx)
 
         self.description_input.setText(self.description)
         self.description_input.textChanged.connect(lambda _: self.validate())
@@ -868,6 +955,7 @@ class SnippetEditor(QDialog):
         )
         self.snippet_input.set_language(language, 'snippet')
         self.snippet_input.setToolTip(_('Snippet text completion to insert'))
+        self.snippet_input.set_text(snippet_text)
 
         # Layout setup
         general_layout = QVBoxLayout()
@@ -877,23 +965,26 @@ class SnippetEditor(QDialog):
         settings_layout = QGridLayout()
         settings_layout.addWidget(self.trigger_text_label, 0, 0)
         settings_layout.addWidget(self.trigger_text_cb, 0, 1)
-        settings_layout.addWidget(self.description_label, 0, 2)
-        settings_layout.addWidget(self.description_input, 0, 3)
-        settings_layout.addWidget(self.remove_trigger_cb, 0, 4)
-        snippet_settings_group.setLayout(settings_layout)
+        settings_layout.addWidget(self.description_label, 1, 0)
+        settings_layout.addWidget(self.description_input, 1, 1)
+
+        all_settings_layout = QVBoxLayout()
+        all_settings_layout.addLayout(settings_layout)
+        all_settings_layout.addWidget(self.remove_trigger_cb)
+        snippet_settings_group.setLayout(all_settings_layout)
         general_layout.addWidget(snippet_settings_group)
 
         text_layout = QVBoxLayout()
         text_layout.addWidget(self.snippet_label)
         text_layout.addWidget(self.snippet_input)
         text_layout.addWidget(self.snippet_valid_label)
-        general_layout.addWidget(text_layout)
+        general_layout.addLayout(text_layout)
 
         general_layout.addWidget(self.bbox)
         self.setLayout(general_layout)
 
         # Signals
-        self.trigger_text_cb.editTextChanged.connect(self.trigger_changed)
+        self.trigger_text_cb.editTextChanged.connect(self.validate)
         self.description_input.textChanged.connect(self.validate)
         self.snippet_input.textChanged.connect(self.validate)
         self.bbox.accepted.connect(self.accept)
@@ -905,35 +996,403 @@ class SnippetEditor(QDialog):
 
     @Slot()
     def validate(self):
-        trigger_text = self.trigger_text_cb.currentText
+        trigger_text = self.trigger_text_cb.currentText()
         description_text = self.description_input.text()
         snippet_text = self.snippet_input.toPlainText()
 
         invalid = False
+        try:
+            build_snippet_ast(snippet_text)
+            self.snippet_valid_label.setText(self.SNIPPET_VALID)
+        except SyntaxError:
+            invalid = True
+            self.snippet_valid_label.setText(self.SNIPPET_INVALID)
+
         if trigger_text == '':
             invalid = True
             self.trigger_text_cb.setStyleSheet(self.INVALID_CB_CSS)
         else:
             self.trigger_text_cb.setStyleSheet(self.VALID_CB_CSS)
 
-        if description_text != '' and description_text != self.description:
-            if description_text in self.descriptions:
+        if self.trigger_text != trigger_text:
+            if description_text in self.descriptions[trigger_text]:
                 invalid = True
                 self.description_input.setStyleSheet(self.INVALID_LINE_CSS)
             else:
                 self.description_input.setStyleSheet(self.VALID_LINE_CSS)
         else:
-            self.description_input.setStyleSheet(self.VALID_LINE_CSS)
+            if description_text != self.description:
+                if description_text in self.descriptions[trigger_text]:
+                    invalid = True
+                    self.description_input.setStyleSheet(self.INVALID_LINE_CSS)
+                else:
+                    self.description_input.setStyleSheet(self.VALID_LINE_CSS)
+            else:
+                self.description_input.setStyleSheet(self.VALID_LINE_CSS)
 
-        try:
-            build_snippet_ast(snippet_text)
-            self.snippet_valid_label.setText(self.SNIPPET_VALID)
-        except SyntaxError:
-            invalid = True
-            self.snippet_valid_label.setText(self.SNIPPET_VALID)
+        self.button_ok.setEnabled(not invalid)
 
-        if not invalid:
-            self.button_ok.setEnabled(False)
+    def get_options(self):
+        trigger_text = self.trigger_text_cb.currentText()
+        description_text = self.description_input.text()
+        snippet_text = self.snippet_input.toPlainText()
+        self.base_snippet.update(trigger_text, description_text, snippet_text)
+        return self.base_snippet
+
+
+class SnippetsModel(QAbstractTableModel):
+    TRIGGER = 0
+    DESCRIPTION = 1
+
+    def __init__(self, parent, text_color=None, text_color_highlight=None):
+        super(QAbstractTableModel, self).__init__()
+        self.parent = parent
+
+        self.snippets = []
+        self.delete_queue = []
+        self.snippet_map = {}
+        self.rich_text = []
+        self.normal_text = []
+        self.letters = ''
+        self.label = QLabel()
+        self.widths = []
+
+        # Needed to compensate for the HTMLDelegate color selection unawarness
+        palette = parent.palette()
+        if text_color is None:
+            self.text_color = palette.text().color().name()
+        else:
+            self.text_color = text_color
+
+        if text_color_highlight is None:
+            self.text_color_highlight = \
+                palette.highlightedText().color().name()
+        else:
+            self.text_color_highlight = text_color_highlight
+
+    def sortByName(self):
+        self.snippets = sorted(self.snippets, key=lambda x: x.trigger_text)
+        self.reset()
+
+    def flags(self, index):
+        if not index.isValid():
+            return Qt.ItemIsEnabled
+        return Qt.ItemFlags(QAbstractTableModel.flags(self, index))
+
+    def data(self, index, role=Qt.DisplayRole):
+        row = index.row()
+        if not index.isValid() or not (0 <= row < len(self.snippets)):
+            return to_qvariant()
+
+        snippet = self.snippets[row]
+        column = index.column()
+
+        if role == Qt.DisplayRole:
+            if column == self.TRIGGER:
+                return to_qvariant(snippet.trigger_text)
+            elif column == self.DESCRIPTION:
+                return to_qvariant(snippet.description)
+        elif role == Qt.TextAlignmentRole:
+            return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
+        return to_qvariant()
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        if role == Qt.TextAlignmentRole:
+            if orientation == Qt.Horizontal:
+                return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
+            return to_qvariant(int(Qt.AlignRight | Qt.AlignVCenter))
+        if role != Qt.DisplayRole:
+            return to_qvariant()
+        if orientation == Qt.Horizontal:
+            if section == self.TRIGGER:
+                return to_qvariant(_('Trigger text'))
+            elif section == self.DESCRIPTION:
+                return to_qvariant(_('Description'))
+        return to_qvariant()
+
+    def rowCount(self, index=QModelIndex()):
+        return len(self.snippets)
+
+    def columnCount(self, index=QModelIndex()):
+        return 2
+
+    def row(self, row_num):
+        return self.snippets[row_num]
+
+    def reset(self):
+        self.beginResetModel()
+        self.endResetModel()
+
+
+class SnippetModelsProxy:
+    def __init__(self):
+        self.models = {}
+        self.awaiting_queue = {}
+
+    def get_model(self, table, language, text_color=None):
+        if language not in self.models:
+            language_model = SnippetsModel(table, text_color=text_color)
+            to_add = self.awaiting_queue.pop(language, [])
+            self.load_snippets(language, language_model, to_add=to_add)
+            self.models[language] = language_model
+        language_model = self.models[language]
+        return language_model
+
+    def reload_model(self, language, defaults):
+        if language in self.models:
+            model = self.models[language]
+            self.load_snippets(language, model, defaults)
+
+    def load_snippets(self, language, model, snippets=None, to_add=[]):
+        snippets = iter_snippets(language, snippets=snippets)
+        for i, snippet in enumerate(snippets):
+            snippet.index = i
+
+        snippet_map = {(x.trigger_text, x.description): x
+                       for x in snippets}
+
+        # Merge loaded snippets
+        for snippet in to_add:
+            key = (snippet.trigger_text, snippet.description)
+            if key in snippet_map:
+                to_replace = snippet_map[key]
+                snippet.index = to_replace.index
+                snippet_map[key] = snippet
+            else:
+                snippet.index = len(snippet_map)
+                snippet_map[key] = snippet
+
+        model.snippets = list(snippet_map.values())
+        model.snippet_map = snippet_map
+
+    def save_snippets(self):
+        for language in self.models:
+            language_model = self.models[language]
+            for snippet in language_model.snippets:
+                snippet.save()
+            while len(language_model.delete_queue) > 0:
+                snippet = language_model.delete_queue.pop(0)
+                snippet.delete()
+
+        for language in list(self.awaiting_queue.keys()):
+            language_queue = self.awaiting_queue.pop(language)
+            for snippet in language_queue:
+                snippet.save()
+
+    def update_or_enqueue(self, language, trigger, description, snippet):
+        new_snippet = Snippet(
+            language=language, trigger_text=trigger, description=description,
+            snippet_text=snippet['text'],
+            remove_trigger=snippet['remove_trigger'])
+
+        if language in self.models:
+            language_model = self.models[language]
+            snippet_map = language_model.snippet_map
+            key = (trigger, description)
+            if key in snippet_map:
+                old_snippet = snippet_map[key]
+                new_snippet.index = old_snippet.index
+                snippet_map[key] = new_snippet
+            else:
+                new_snippet.index = len(snippet_map)
+                snippet_map[key] = new_snippet
+
+            language_model.snippets = list(snippet_map.values())
+            language_model.snippet_map = snippet_map
+            language_model.reset()
+        else:
+            language_queue = self.awaiting_queue.get(language, [])
+            language_queue.append(new_snippet)
+
+    def export_snippets(self, filename):
+        snippets = []
+        for language in self.models:
+            language_model = self.models[language]
+            language_snippets = {
+                'language': language,
+                'triggers': []
+            }
+            triggers = {}
+            for snippet in language_model.snippets:
+                default_trigger = {
+                    'trigger': snippet.trigger_text,
+                    'descriptions': []
+                }
+                snippet_info = triggers.get(
+                    snippet.trigger_text, default_trigger)
+                snippet_info['descriptions'].append({
+                    'description': snippet.description,
+                    'snippet': {
+                        'text': snippet.snippet_text,
+                        'remove_trigger': snippet.remove_trigger
+                    }
+                })
+                triggers[snippet.trigger_text] = snippet_info
+            language_snippets['triggers'] = list(triggers.values())
+            snippets.append(language_snippets)
+
+        with open(filename, 'w') as f:
+            json.dump(snippets, f)
+
+    def import_snippets(self, filename):
+        errors = {}
+        total_snippets = 0
+        valid_snippets = 0
+        with open(filename, 'r') as f:
+            try:
+                snippets = json.load(f)
+            except ValueError as e:
+                errors['loading'] = e.msg
+
+        if len(errors) == 0:
+            try:
+                json_validate(instance=snippets, schema=SNIPPETS_SCHEMA)
+            except ValidationError as e:
+                errors['validation']: e.message
+
+        if len(errors) == 0:
+            for language_info in snippets:
+                language = language_info['language']
+                triggers = language_info['triggers']
+                for trigger_info in triggers:
+                    trigger = trigger_info['trigger']
+                    descriptions = trigger_info['descriptions']
+                    for description_info in descriptions:
+                        description = description_info['description']
+                        snippet = description_info['snippet']
+                        snippet_text = snippet['text']
+                        total_snippets += 1
+                        try:
+                            build_snippet_ast(snippet_text)
+                            self.update_or_enqueue(
+                                language, trigger, description, snippet)
+                            valid_snippets += 1
+                        except SyntaxError as e:
+                            syntax_errors = errors.get('syntax', {})
+                            key = '{0}/{1}/{2}'
+                            syntax_errors[key] = e.msg
+
+        return valid_snippets, total_snippets, errors
+
+
+class SnippetTable(QTableView):
+    def __init__(self, parent, proxy, language=None, text_color=None):
+        super(SnippetTable, self).__init__()
+        self._parent = parent
+        self.language = language
+        self.source_model = proxy.get_model(
+            self, language.lower(), text_color=text_color)
+        self.setModel(self.source_model)
+        self.setItemDelegateForColumn(CMD, ItemDelegate(self))
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.setSortingEnabled(True)
+        self.setEditTriggers(QAbstractItemView.AllEditTriggers)
+        self.selectionModel().selectionChanged.connect(self.selection)
+        self.verticalHeader().hide()
+
+        self.reset_plain()
+
+    def focusOutEvent(self, e):
+        """Qt Override."""
+        # self.source_model.update_active_row()
+        # self._parent.delete_btn.setEnabled(False)
+        super(SnippetTable, self).focusOutEvent(e)
+
+    def focusInEvent(self, e):
+        """Qt Override."""
+        super(SnippetTable, self).focusInEvent(e)
+        self.selectRow(self.currentIndex().row())
+
+    def selection(self, index):
+        self.update()
+        self.isActiveWindow()
+        self._parent.delete_snippet_btn.setEnabled(True)
+
+    def adjust_cells(self):
+        """Adjust column size based on contents."""
+        self.resizeColumnsToContents()
+        fm = self.horizontalHeader().fontMetrics()
+        names = [fm.width(s.description) for s in self.source_model.snippets]
+        if names:
+            self.setColumnWidth(CMD, max(names))
+        self.horizontalHeader().setStretchLastSection(True)
+
+    def reset_plain(self):
+        self.source_model.reset()
+        self.adjust_cells()
+        self.sortByColumn(self.source_model.TRIGGER, Qt.AscendingOrder)
+
+    def delete_snippet(self, idx):
+        snippet = self.source_model.snippets.pop(idx)
+        self.source_model.delete_queue.append(snippet)
+        self.source_model.snippet_map.pop(
+            (snippet.trigger_text, snippet.description))
+        self.source_model.reset()
+        self.adjust_cells()
+        self.sortByColumn(self.source_model.TRIGGER, Qt.AscendingOrder)
+
+    def show_editor(self, new_snippet=False):
+        snippet = Snippet()
+        if not new_snippet:
+            idx = self.currentIndex().row()
+            snippet = self.source_model.row(idx)
+        language_snippets = CONF.get(
+            'snippet-completions', self.language.lower(), {})
+        trigger_texts = list(language_snippets.keys())
+        descriptions = {x: set(language_snippets[x].keys())
+                        for x in trigger_texts}
+        dialog = SnippetEditor(self, language=self.language.lower(),
+                               trigger_text=snippet.trigger_text,
+                               description=snippet.description,
+                               remove_trigger=snippet.remove_trigger,
+                               snippet_text=snippet.snippet_text,
+                               trigger_texts=trigger_texts,
+                               descriptions=descriptions)
+        if dialog.exec_():
+            snippet = dialog.get_options()
+            key = (snippet.trigger_text, snippet.description)
+            self.source_model.snippet_map[key] = snippet
+            snippet_list = list(
+                self.source_model.snippet_map.values())
+            self.source_model.snippets = list(
+                self.source_model.snippet_map.values())
+            self.source_model.reset()
+            self.adjust_cells()
+            self.sortByColumn(LANGUAGE, Qt.AscendingOrder)
+            self._parent.set_modified(True)
+
+    def next_row(self):
+        """Move to next row from currently selected row."""
+        row = self.currentIndex().row()
+        rows = self.source_model.rowCount()
+        if row + 1 == rows:
+            row = -1
+        self.selectRow(row + 1)
+
+    def previous_row(self):
+        """Move to previous row from currently selected row."""
+        row = self.currentIndex().row()
+        rows = self.source_model.rowCount()
+        if row == 0:
+            row = rows
+        self.selectRow(row - 1)
+
+    def keyPressEvent(self, event):
+        """Qt Override."""
+        key = event.key()
+        if key in [Qt.Key_Enter, Qt.Key_Return]:
+            self.show_editor()
+        elif key in [Qt.Key_Backtab]:
+            self.parent().reset_btn.setFocus()
+        elif key in [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right]:
+            super(SnippetTable, self).keyPressEvent(event)
+        else:
+            super(SnippetTable, self).keyPressEvent(event)
+
+    def mouseDoubleClickEvent(self, event):
+        """Qt Override."""
+        self.show_editor()
 
 
 class LanguageServerConfigPage(GeneralConfigPage):
@@ -1236,6 +1695,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         docstring_style_widget.setLayout(docstring_style_layout)
 
         # --- Snippets tab ---
+        self.snippets_language = 'python'
         grammar_url = (
             "<a href=\"{0}/specifications/specification-current#snippet_syntax\">"
             "{1}</a>".format(LSP_URL, _('the LSP grammar')))
@@ -1248,9 +1708,62 @@ class LanguageServerConfigPage(GeneralConfigPage):
         snippets_info_label.setWordWrap(True)
         snippets_info_label.setAlignment(Qt.AlignJustify)
 
+        self.snippets_language_cb = QComboBox(self)
+        self.snippets_language_cb.setToolTip(
+            _('Programming language provided by the LSP server'))
+        self.snippets_language_cb.addItems(LSP_LANGUAGES_PY)
+        self.snippets_language_cb.setCurrentIndex(PYTHON_POS)
+
+        snippet_lang_group = QGroupBox(_('Language'))
+        snippet_lang_layout = QVBoxLayout()
+        snippet_lang_layout.addWidget(self.snippets_language_cb)
+        snippet_lang_group.setLayout(snippet_lang_layout)
+
+        self.snippets_proxy = SnippetModelsProxy()
+        self.snippets_table = SnippetTable(
+            self, self.snippets_proxy, language=self.snippets_language)
+        self.snippets_table.setMaximumHeight(120)
+
+        snippet_table_group = QGroupBox(_('Available snippets'))
+        snippet_table_layout = QVBoxLayout()
+        snippet_table_layout.addWidget(self.snippets_table)
+        snippet_table_group.setLayout(snippet_table_layout)
+
+        # Buttons
+        self.reset_snippets_btn = QPushButton(_("Reset to default values"))
+        self.new_snippet_btn = QPushButton(_("Create a new snippet"))
+        self.delete_snippet_btn = QPushButton(
+            _("Delete currently selected snippet"))
+        self.delete_snippet_btn.setEnabled(False)
+        self.export_snippets_btn = QPushButton(_("Export snippets to JSON"))
+        self.import_snippets_btn = QPushButton(_("Import snippets from JSON"))
+
+        # Slots connected to buttons
+        self.new_snippet_btn.clicked.connect(self.create_new_snippet)
+        self.reset_snippets_btn.clicked.connect(self.reset_default_snippets)
+        self.delete_snippet_btn.clicked.connect(self.delete_snippet)
+        self.export_snippets_btn.clicked.connect(self.export_snippets)
+        self.import_snippets_btn.clicked.connect(self.import_snippets)
+
+        # Buttons layout
+        btns = [self.new_snippet_btn,
+                self.delete_snippet_btn,
+                self.reset_snippets_btn,
+                self.export_snippets_btn,
+                self.import_snippets_btn]
+        sn_buttons_layout = QGridLayout()
+        for i, btn in enumerate(btns):
+            sn_buttons_layout.addWidget(btn, i, 1)
+        sn_buttons_layout.setColumnStretch(0, 1)
+        sn_buttons_layout.setColumnStretch(1, 2)
+        sn_buttons_layout.setColumnStretch(2, 1)
+
         # Snippets layout
         snippets_layout = QVBoxLayout()
         snippets_layout.addWidget(snippets_info_label)
+        snippets_layout.addWidget(snippet_lang_group)
+        snippets_layout.addWidget(snippet_table_group)
+        snippets_layout.addLayout(sn_buttons_layout)
 
         snippets_widget = QWidget()
         snippets_widget.setLayout(snippets_layout)
@@ -1530,6 +2043,55 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.table.delete_server(idx)
         self.set_modified(True)
         self.delete_btn.setEnabled(False)
+
+    def create_new_snippet(self):
+        self.snippets_table.show_editor(new_snippet=True)
+
+    def delete_snippet(self):
+        idx = self.snippets_table.currentIndex().row()
+        self.snippets_table.delete_snippet(idx)
+        self.set_modified(True)
+        self.delete_snippet_btn.setEnabled(False)
+
+    def reset_default_snippets(self):
+        language = self.snippets_language_cb.currentText()
+        default_snippets_lang = SNIPPETS[language.lower()]
+        self.snippets_proxy.reload_model(language, default_snippets_lang)
+        self.snippets_table.reset_plain()
+        self.set_modified(True)
+
+    def export_snippets(self):
+        filename, _selfilter = getsavefilename(
+            self, _("Save snippets"),
+            'spyder_snippets.json',
+            filters='JSON (*.json)',
+            selectedfilter='',
+            options=QFileDialog.HideNameFilterDetails)
+
+        if filename:
+            filename = osp.normpath(filename)
+            self.snippets_proxy.export_snippets(filename)
+
+    def import_snippets(self):
+        filename, _sf = getopenfilename(
+            self,
+            _("Load snippets"),
+            filters='JSON (*.json)',
+            selectedfilter='',
+            options=QFileDialog.HideNameFilterDetails,
+        )
+
+        if filename:
+            filename = osp.normpath(filename)
+            valid, total, errors = self.snippets_proxy.import_snippets(
+                filename)
+            if len(errors) == 0:
+                QMessageBox.information(self, _('All snippets imported'),
+                    _('{0} snippets were loaded successfully').format(valid),
+                    QMessageBox.Ok)
+            else:
+                pass
+            self.set_modified(True)
 
     def report_no_external_server(self, host, port, language):
         """

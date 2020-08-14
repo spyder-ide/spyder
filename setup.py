@@ -209,6 +209,7 @@ install_requires = [
     'intervaltree',
     'ipython>=4.0',
     'jedi==0.17.1',
+    'jsonschema>=3.2.0',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
