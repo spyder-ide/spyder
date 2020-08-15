@@ -39,10 +39,10 @@ from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
 from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
                                       PluginMainWidgetMenus, SpyderMenu)
 from spyder.api.widgets.toolbars import MainWidgetToolbar
+from spyder.api.widgets.dock import SpyderDockWidget
 from spyder.config.gui import is_dark_interface
 from spyder.utils.qthelpers import (add_actions, create_waitspinner,
                                     set_menu_icons)
-from spyder.widgets.dock import SpyderDockWidget
 from spyder.widgets.tabs import Tabs
 
 

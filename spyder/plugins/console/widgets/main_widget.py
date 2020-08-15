@@ -21,10 +21,11 @@ import sys
 
 # Third party imports
 from qtpy.compat import getopenfilename
-from qtpy.QtCore import Qt, Signal, Slot
-from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout
+from qtpy.QtCore import Qt, Signal, Slot, QThread
+from qtpy.QtWidgets import QInputDialog, QLineEdit, QMenu, QVBoxLayout, QMessageBox
 
 # Local imports
+from spyder import dependencies
 from spyder.api.plugins import (SpyderPlugin, SpyderPluginV2,
                                 SpyderDockablePlugin)
 from spyder.api.translations import get_translation
@@ -39,7 +40,7 @@ from spyder.utils.misc import (get_error_match, getcwd_or_home,
 from spyder.utils.qthelpers import DialogManager, mimedata2url
 from spyder.widgets.collectionseditor import CollectionsEditor
 from spyder.widgets.findreplace import FindReplace
-from spyder.widgets.reporterror import SpyderErrorDialog
+from spyder.plugins.console.widgets.reporterror import SpyderErrorDialog
 
 # Localization
 _ = get_translation('spyder')
@@ -615,3 +616,82 @@ class ConsoleWidget(PluginMainWidget):
         This is equivalent to requesting the main application to quit.
         """
         self.shell.exit_interpreter()
+
+    # FIXME: New things
+    @Slot()
+    def report_issue(self):
+        """Report a Spyder issue to github."""
+        from spyder.plugins.console.widgets.reporterror import (
+            SpyderErrorDialog)
+
+        self._report_dlg = SpyderErrorDialog(self.main, is_report=True)
+        self._report_dlg.set_color_scheme(
+            self.get_conf_option('selected', section='appearance',))
+        self._report_dlg.show()
+
+    @Slot()
+    def show_dependencies(self):
+        """Show Spyder's Dependencies dialog box"""
+        from spyder.plugins.console.widgets.dependencies import (
+            DependenciesDialog)
+
+        dlg = DependenciesDialog(self.main)
+        dlg.set_data(dependencies.DEPENDENCIES)
+        dlg.exec_()
+
+    @Slot()
+    def show_about(self):
+        """Show About Spyder dialog box"""
+        from spyder.plugins.console.widgets.about import AboutDialog
+
+        abt = AboutDialog(self.main)
+        abt.exec_()
+
+    def report_missing_dependencies(self):
+        """Show a QMessageBox with a list of missing hard dependencies"""
+        # Declare dependencies before trying to detect the missing ones
+        dependencies.declare_dependencies()
+        missing_deps = dependencies.missing_dependencies()
+
+        if missing_deps:
+            # We change '<br>' by '\n', in order to replace the '<'
+            # that appear in our deps by '&lt' (to not break html
+            # formatting) and finally we restore '<br>' again.
+            missing_deps = (missing_deps.replace('<br>', '\n').
+                            replace('<', '&lt;').replace('\n', '<br>'))
+
+            QMessageBox.critical(self, _('Error'),
+                _("<b>You have missing dependencies!</b>"
+                  "<br><br><tt>%s</tt><br>"
+                  "<b>Please install them to avoid this message.</b>"
+                  "<br><br>"
+                  "<i>Note</i>: Spyder could work without some of these "
+                  "dependencies, however to have a smooth experience when "
+                  "using Spyder we <i>strongly</i> recommend you to install "
+                  "all the listed missing dependencies.<br><br>"
+                  "Failing to install these dependencies might result in bugs. "
+                  "Please be sure that any found bugs are not the direct "
+                  "result of missing dependencies, prior to reporting a new "
+                  "issue."
+                  ) % missing_deps, QMessageBox.Ok)
+
+
+    def check_updates(self, startup=False):
+        """
+        Check for spyder updates on github releases using a QThread.
+        """
+        from spyder.workers.updates import WorkerUpdates
+
+        # Disable check_updates_action while the thread is working
+        self.check_updates_action.setDisabled(True)
+
+        if self.thread_updates is not None:
+            self.thread_updates.terminate()
+
+        self.thread_updates = QThread(self)
+        self.worker_updates = WorkerUpdates(self, startup=startup)
+        self.worker_updates.sig_ready.connect(self._check_updates_ready)
+        self.worker_updates.sig_ready.connect(self.thread_updates.quit)
+        self.worker_updates.moveToThread(self.thread_updates)
+        self.thread_updates.started.connect(self.worker_updates.start)
+        self.thread_updates.start()

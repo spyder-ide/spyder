@@ -13,10 +13,11 @@ import logging
 import os
 
 # Third party imports
-from qtpy.QtCore import QObject, Signal, Slot
-from qtpy.QtGui import QIcon
+from qtpy.QtCore import QObject, QUrl, Signal, Slot
+from qtpy.QtGui import QDesktopServices, QIcon
 
 # Local imports
+from spyder import __forum_url__, __trouble_url__, dependencies
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import get_translation
 from spyder.plugins.console.widgets.main_widget import ConsoleWidget
@@ -112,6 +113,113 @@ class Console(SpyderDockablePlugin):
             )
             widget.handle_exception(error_data)
 
+        # # Help menu
+        # trouble_action = create_action(self,
+        #                                 _("Troubleshooting..."),
+        #                                 triggered=self.trouble_guide)
+        # dep_action = create_action(self, _("Dependencies..."),
+        #                             triggered=self.show_dependencies,
+        #                             icon=ima.icon('advanced'))
+        # report_action = create_action(self,
+        #                                 _("Report issue..."),
+        #                                 icon=ima.icon('bug'),
+        #                                 triggered=self.report_issue)
+        # support_action = create_action(self,
+        #                                 _("Spyder support..."),
+        #                                 triggered=self.google_group)
+        # self.check_updates_action = create_action(self,
+        #                                         _("Check for updates..."),
+        #                                         triggered=self.check_updates)
+
+        # self.help_menu_actions = [doc_action, tut_action, shortcuts_action,
+        #                           self.tours_menu,
+        #                           MENU_SEPARATOR, trouble_action,
+        #                           report_action, dep_action,
+        #                           self.check_updates_action, support_action,
+        #                           MENU_SEPARATOR]
+        # # Python documentation
+        # if get_python_doc_path() is not None:
+        #     pydoc_act = create_action(self, _("Python documentation"),
+        #                         triggered=lambda:
+        #                         programs.start_file(get_python_doc_path()))
+        #     self.help_menu_actions.append(pydoc_act)
+
+
+
+        # # Spyder documentation
+        # spyder_doc = 'https://docs.spyder-ide.org/'
+        # doc_action = create_action(self, _("Spyder documentation"),
+        #                            icon=ima.icon('DialogHelpButton'),
+        #                            triggered=lambda:
+        #                            programs.start_file(spyder_doc))
+        # self.register_shortcut(doc_action, "_",
+        #                        "spyder documentation")
+
+        # if self.help is not None:
+        #     tut_action = create_action(self, _("Spyder tutorial"),
+        #                                triggered=self.help.show_tutorial)
+        # else:
+        #     tut_action = None
+
+        # shortcuts_action = create_action(self, _("Shortcuts Summary"),
+        #                                  shortcut="Meta+F1",
+        #                                  triggered=self.show_shortcuts_dialog)
+
+        # # FIXME:
+        # # Windows-only: documentation located in sys.prefix/Doc
+        # ipm_actions = []
+        # def add_ipm_action(text, path):
+        #     """Add installed Python module doc action to help submenu"""
+        #     # QAction.triggered works differently for PySide and PyQt
+        #     path = file_uri(path)
+        #     if not API == 'pyside':
+        #         slot=lambda _checked, path=path: programs.start_file(path)
+        #     else:
+        #         slot=lambda path=path: programs.start_file(path)
+        #     action = create_action(self, text,
+        #             icon='%s.png' % osp.splitext(path)[1][1:],
+        #             triggered=slot)
+        #     ipm_actions.append(action)
+        # sysdocpth = osp.join(sys.prefix, 'Doc')
+        # if osp.isdir(sysdocpth): # exists on Windows, except frozen dist.
+        #     for docfn in os.listdir(sysdocpth):
+        #         pt = r'([a-zA-Z\_]*)(doc)?(-dev)?(-ref)?(-user)?.(chm|pdf)'
+        #         match = re.match(pt, docfn)
+        #         if match is not None:
+        #             pname = match.groups()[0]
+        #             if pname not in ('Python', ):
+        #                 add_ipm_action(pname, osp.join(sysdocpth, docfn))
+        # # Installed Python modules submenu (Windows only)
+        # if ipm_actions:
+        #     pymods_menu = QMenu(_("Installed Python modules"), self)
+        #     add_actions(pymods_menu, ipm_actions)
+        #     self.help_menu_actions.append(pymods_menu)
+        # # Online documentation
+        # web_resources = QMenu(_("Online documentation"), self)
+        # webres_actions = create_module_bookmark_actions(self,
+        #                                                 self.BOOKMARKS)
+        # webres_actions.insert(2, None)
+        # webres_actions.insert(5, None)
+        # webres_actions.insert(8, None)
+        # add_actions(web_resources, webres_actions)
+        # self.help_menu_actions.append(web_resources)
+        # # Qt assistant link
+        # if sys.platform.startswith('linux') and not PYQT5:
+        #     qta_exe = "assistant-qt4"
+        # else:
+        #     qta_exe = "assistant"
+        # qta_act = create_program_action(self, _("Qt documentation"),
+        #                                 qta_exe)
+        # if qta_act:
+        #     self.help_menu_actions += [qta_act, None]
+
+        # # About Spyder
+        # about_action = create_action(self,
+        #                         _("About %s...") % "Spyder",
+        #                         icon=ima.icon('MessageBoxInformation'),
+        #                         triggered=self.show_about)
+        # self.help_menu_actions += [MENU_SEPARATOR, about_action]
+
     def update_font(self):
         font = self.get_font()
         self.get_widget().set_font(font)
@@ -119,6 +227,15 @@ class Console(SpyderDockablePlugin):
     def on_close(self, cancelable=False):
         self.get_widget().dialog_manager.close_all()
         return True
+
+    def on_mainwindow_visible(self):
+        self.set_exit_function(self.main.closing)
+
+        self.check_updates(startup=True)
+
+        # Show dialog with missing dependencies
+        if not running_under_pytest():
+            self.report_missing_dependencies()
 
     # --- API
     # ------------------------------------------------------------------------
@@ -230,3 +347,53 @@ class Console(SpyderDockablePlugin):
         Add an object to the namespace dictionary of the internal console.
         """
         self.get_widget().set_namespace_item(name, value)
+
+    @Slot()
+    def show_about(self):
+        """
+        Show About Spyder dialog box.
+        """
+        self.get_widget().show_about()
+
+    @Slot()
+    def show_dependencies(self):
+        """
+        Show Spyder's Dependencies dialog box.
+        """
+        self.get_widget().show_dependencies()
+
+    @Slot()
+    def report_issue(self):
+        """
+        Report a general Spyder issue to Github.
+        """
+        self.get_widget().report_issue()
+
+    @Slot()
+    def trouble_guide(self):
+        """
+        Open Spyder troubleshooting guide in a web browser.
+        """
+        url = QUrl(__trouble_url__)
+        QDesktopServices.openUrl(url)
+
+    @Slot()
+    def google_group(self):
+        """
+        Open Spyder Google Group in a web browser.
+        """
+        url = QUrl(__forum_url__)
+        QDesktopServices.openUrl(url)
+
+    @Slot()
+    def check_updates(self, startup=False):
+        """
+        Check for spyder updates on github releases.
+        """
+        self.get_widget().check_updates(startup=startup)
+
+    def report_missing_dependencies(self):
+        """
+        Show a QMessageBox with a list of missing hard dependencies.
+        """
+        self.get_widget().report_missing_dependencies()
