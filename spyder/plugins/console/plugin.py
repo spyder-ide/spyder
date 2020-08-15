@@ -20,6 +20,7 @@ from qtpy.QtGui import QIcon
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import get_translation
 from spyder.plugins.console.widgets.main_widget import ConsoleWidget
+from spyder.plugins.mainmenu.api import ApplicationMenus, HelpMenuSections
 
 # Localization
 _ = get_translation('spyder')
@@ -28,12 +29,17 @@ _ = get_translation('spyder')
 logger = logging.getLogger(__name__)
 
 
+class ConsoleActions:
+    SpyderReportAction = "spyder_report_action"
+
+
 class Console(SpyderDockablePlugin):
     """
     Console widget
     """
     NAME = 'internal_console'
     WIDGET_CLASS = ConsoleWidget
+    OPTIONAL = [Plugins.MainMenu]
     CONF_SECTION = NAME
     CONF_FILE = False
     CONF_FROM_OPTIONS = {
@@ -86,6 +92,7 @@ class Console(SpyderDockablePlugin):
 
     def register(self):
         widget = self.get_widget()
+        mainmenu = self.get_plugin(Plugins.MainMenu)
 
         # Signals
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
@@ -111,6 +118,17 @@ class Console(SpyderDockablePlugin):
                         "might have about the crash."),
             )
             widget.handle_exception(error_data)
+        if mainmenu:
+            report_action = self.create_action(
+                ConsoleActions.SpyderReportAction,
+                _("Report issue..."),
+                icon=self.create_icon('bug'),
+                triggered=self.report_issue)
+            mainmenu.add_item_to_application_menu(
+                report_action,
+                menu_id=ApplicationMenus.Help,
+                section=HelpMenuSections.Support,
+                before_section=HelpMenuSections.ExternalDocumentation)
 
     def update_font(self):
         font = self.get_font()
@@ -120,8 +138,16 @@ class Console(SpyderDockablePlugin):
         self.get_widget().dialog_manager.close_all()
         return True
 
+    def on_mainwindow_visible(self):
+        self.set_exit_function(self.main.closing)
+
     # --- API
     # ------------------------------------------------------------------------
+    @Slot()
+    def report_issue(self):
+        """Report an issue with the SpyderErrorDialog."""
+        self.get_widget().report_issue()
+
     @property
     def error_dialog(self):
         """

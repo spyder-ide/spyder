@@ -88,7 +88,7 @@ from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
 from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
-                                    mimedata2url)
+                                    mimedata2url, start_file)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
 from spyder.utils.qstringhelpers import qstring_length
 from spyder.widgets.helperwidgets import MessageCheckBox
@@ -4707,7 +4707,7 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 # Use external program
                 fname = file_uri(fname)
-                programs.start_file(fname)
+                start_file(fname)
         elif key in ['mail', 'url']:
             if '@' in uri and not uri.startswith('mailto:'):
                 full_uri = 'mailto:' + uri

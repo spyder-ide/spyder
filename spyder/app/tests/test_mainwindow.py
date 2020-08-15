@@ -256,7 +256,11 @@ def cleanup(request):
     """Cleanup a testing directory once we are finished."""
     def remove_test_dir():
         if hasattr(main_window, 'window'):
-            main_window.window.close()
+            try:
+                main_window.window.close()
+            except AttributeError:
+                pass
+
     request.addfinalizer(remove_test_dir)
 
 
@@ -2088,18 +2092,17 @@ def test_run_static_code_analysis(main_window, qtbot):
 
 
 @flaky(max_runs=3)
-def test_troubleshooting_menu_item_and_url(monkeypatch):
+@pytest.mark.slow
+def test_troubleshooting_menu_item_and_url(main_window, qtbot, monkeypatch):
     """Test that the troubleshooting menu item calls the valid URL."""
-    MockMainWindow = MagicMock(spec=MainWindow)
-    mockMainWindow_instance = MockMainWindow()
-    mockMainWindow_instance.__class__ = MainWindow
+    help_plugin = main_window.help
     MockQDesktopServices = Mock()
     mockQDesktopServices_instance = MockQDesktopServices()
-    attr_to_patch = ('spyder.app.mainwindow.QDesktopServices')
+    attr_to_patch = ('spyder.utils.qthelpers.QDesktopServices')
     monkeypatch.setattr(attr_to_patch, MockQDesktopServices)
 
     # Unit test of help menu item: Make sure the correct URL is called.
-    MainWindow.trouble_guide(mockMainWindow_instance)
+    help_plugin.trouble_action.trigger()
     assert MockQDesktopServices.openUrl.call_count == 1
     mockQDesktopServices_instance.openUrl.called_once_with(__trouble_url__)
 
@@ -2167,11 +2170,11 @@ def test_help_opens_when_show_tutorial_full(main_window, qtbot):
 @flaky(max_runs=3)
 def test_report_issue(main_window, qtbot):
     """Test that the report error dialog opens correctly."""
-    main_window.report_issue()
+    main_window.console.report_issue()
     qtbot.wait(300)
-    assert main_window._report_dlg is not None
-    assert main_window._report_dlg.isVisible()
-    assert main_window._report_dlg.close()
+    assert main_window.console.get_widget()._report_dlg is not None
+    assert main_window.console.get_widget()._report_dlg.isVisible()
+    assert main_window.console.get_widget()._report_dlg.close()
 
 
 @pytest.mark.slow

@@ -335,6 +335,12 @@ class ConsoleWidget(PluginMainWidget):
         """
         self.shell.help = help_plugin
 
+    def report_issue(self):
+        """Report an issue with the SpyderErrorDialog."""
+        self._report_dlg = SpyderErrorDialog(self, is_report=True)
+        self._report_dlg.set_color_scheme(self.get_option('color_theme'))
+        self._report_dlg.show()
+
     @Slot(dict)
     def handle_exception(self, error_data, sender=None, internal_plugins=None):
         """

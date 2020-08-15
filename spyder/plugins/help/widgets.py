@@ -32,6 +32,7 @@ from spyder.plugins.help.utils.sphinxify import (CSS_PATH, DARK_CSS_PATH,
 from spyder.plugins.help.utils.sphinxthread import SphinxThread
 from spyder.py3compat import get_meth_class_inst, to_text_string
 from spyder.utils import programs
+from spyder.utils.qthelpers import start_file
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
@@ -840,7 +841,7 @@ class HelpWidget(PluginMainWidget):
         if url == "spy://tutorial":
             self.show_tutorial()
         elif url.startswith('http'):
-            programs.start_file(url)
+            start_file(url)
         else:
             self.rich_text.load_url(url)
 

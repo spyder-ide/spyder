@@ -15,8 +15,9 @@ import os.path as osp
 from qtpy.QtCore import Signal
 
 # Local imports
-from spyder.api.plugins import ApplicationMenus, Plugins, SpyderDockablePlugin
+from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import get_translation
+from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.plugins.profiler.confpage import ProfilerConfigPage
 from spyder.plugins.profiler.widgets.main_widget import (ProfilerWidget,
                                                          ProfilerWidgetActions,
@@ -42,6 +43,7 @@ class Profiler(SpyderDockablePlugin):
 
     NAME = 'profiler'
     REQUIRES = [Plugins.Editor, Plugins.VariableExplorer]
+    OPTIONAL = [Plugins.MainMenu]
     TABIFY = Plugins.Help
     WIDGET_CLASS = ProfilerWidget
     CONF_SECTION = NAME
@@ -71,6 +73,7 @@ class Profiler(SpyderDockablePlugin):
     def register(self):
         widget = self.get_widget()
         editor = self.get_plugin(Plugins.Editor)
+        mainmenu = self.get_plugin(Plugins.MainMenu)
 
         widget.sig_edit_goto_requested.connect(editor.load)
         widget.sig_started.connect(self.sig_started)
@@ -86,8 +89,9 @@ class Profiler(SpyderDockablePlugin):
         )
         run_action.setEnabled(is_profiler_installed())
 
-        run_menu = self.get_application_menu(ApplicationMenus.Run)
-        self.add_item_to_application_menu(run_action, menu=run_menu)
+        if mainmenu:
+            run_menu = mainmenu.get_application_menu(ApplicationMenus.Run)
+            mainmenu.add_item_to_application_menu(run_action, menu=run_menu)
 
         # TODO: On a separate PR when core plugin is merged
         # self.main.editor.pythonfile_dependent_actions += [profiler_act]

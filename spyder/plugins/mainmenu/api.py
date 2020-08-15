@@ -7,6 +7,13 @@
 """
 Spyder application menu constants.
 """
+# Local imports
+from spyder.api.widgets.menus import SpyderMenu
+
+
+class ApplicationContextMenu:
+    Documentation = 'context_documentation_section'
+    About = 'context_about_section'
 
 
 class ApplicationMenus:
@@ -90,3 +97,13 @@ class HelpMenuSections:
     Documentation = 'documentation_section'
     Support = 'support_section'
     ExternalDocumentation = 'external_documentation_section'
+    About = 'about_section'
+
+
+class ApplicationMenu(SpyderMenu):
+    """
+    Spyder Main Window application Menu.
+
+    This class provides application menus with some predefined functionality
+    and section definition.
+    """

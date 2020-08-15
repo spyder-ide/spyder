@@ -12,12 +12,12 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QApplication
 
 # Local imports
-from spyder.api.menus import ApplicationMenus
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.toolbars import ApplicationToolBars
 from spyder.api.translations import get_translation
 from spyder.plugins.findinfiles.widgets import (FindInFilesWidget,
                                                 FindInFilesWidgetActions)
+from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.utils.misc import getcwd_or_home
 
 # Localization
@@ -37,7 +37,9 @@ class FindInFiles(SpyderDockablePlugin):
     Find in files DockWidget.
     """
     NAME = 'find_in_files'
-    OPTIONAL = [Plugins.Editor, Plugins.Projects, Plugins.WorkingDirectory]
+    REQUIRES = []
+    OPTIONAL = [Plugins.Editor, Plugins.Projects, Plugins.WorkingDirectory,
+                Plugins.MainMenu]
     TABIFY = [Plugins.VariableExplorer]
     WIDGET_CLASS = FindInFilesWidget
     CONF_SECTION = NAME
@@ -56,6 +58,7 @@ class FindInFiles(SpyderDockablePlugin):
 
     def register(self):
         widget = self.get_widget()
+        mainmenu = self.get_plugin(Plugins.MainMenu)
         editor = self.get_plugin(Plugins.Editor)
         projects = self.get_plugin(Plugins.Projects)
         working_directory = self.get_plugin(Plugins.WorkingDirectory)
@@ -81,11 +84,12 @@ class FindInFiles(SpyderDockablePlugin):
             register_shortcut=True,
             context=Qt.WindowShortcut
         )
-        menu = self.get_application_menu(ApplicationMenus.Search)
-        self.add_item_to_application_menu(
-            findinfiles_action,
-            menu=menu,
-        )
+        if mainmenu:
+            menu = mainmenu.get_application_menu(ApplicationMenus.Search)
+            mainmenu.add_item_to_application_menu(
+                findinfiles_action,
+                menu=menu,
+            )
 
         search_toolbar = self.get_application_toolbar(
             ApplicationToolBars.Search)

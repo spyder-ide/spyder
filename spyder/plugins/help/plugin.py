@@ -12,18 +12,33 @@ Help Plugin.
 import os
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Qt, Signal
 
 # Local imports
+from spyder import __docs_url__, __forum_url__, __trouble_url__
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import get_translation
 from spyder.config.base import get_conf_path
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
+from spyder.plugins.console.plugin import ConsoleActions
 from spyder.plugins.help.confpage import HelpConfigPage
 from spyder.plugins.help.widgets import HelpWidget
+from spyder.utils.qthelpers import start_file
 
 # Localization
 _ = get_translation('spyder')
+
+
+class HelpActions:
+    # Documentation related
+    SpyderDocumentationAction = "spyder documentation"
+    SpyderDocumentationVideoAction = "spyder_documentation_video_action"
+    ShowSpyderTutorialAction = "spyder_tutorial_action"
+
+    # Support related
+    SpyderTroubleshootingAction = "spyder_troubleshooting_action"
+    SpyderSupportAction = "spyder_support_action"
+
 
 
 class Help(SpyderDockablePlugin):
@@ -32,7 +47,7 @@ class Help(SpyderDockablePlugin):
     """
     NAME = 'help'
     REQUIRES = [Plugins.Console, Plugins.Editor]
-    OPTIONAL = [Plugins.IPythonConsole, Plugins.Shortcuts]
+    OPTIONAL = [Plugins.IPythonConsole, Plugins.Shortcuts, Plugins.MainMenu]
     TABIFY = Plugins.VariableExplorer
     WIDGET_CLASS = HelpWidget
     CONF_SECTION = NAME
@@ -102,6 +117,44 @@ class Help(SpyderDockablePlugin):
             shortcuts.sig_shortcuts_updated.connect(
                 lambda: self.show_intro_message())
 
+        # Documentation actions
+        self.doc_action = self.create_action(
+            HelpActions.SpyderDocumentationAction,
+            text=_("Spyder documentation"),
+            icon=self.create_icon("DialogHelpButton"),
+            triggered=lambda: start_file(__docs_url__),
+            context=Qt.ApplicationShortcut,
+            register_shortcut=shortcuts is not None,
+            shortcut_context="_")
+
+        spyder_video_url = ("https://www.youtube.com/playlist"
+                            "?list=PLPonohdiDqg9epClEcXoAPUiK0pN5eRoc")
+        self.video_action = self.create_action(
+            HelpActions.SpyderDocumentationVideoAction,
+            text=_("Tutorial videos"),
+            icon=self.create_icon("VideoIcon"),
+            triggered=lambda: start_file(spyder_video_url))
+
+        self.tutorial_action = self.create_action(
+            HelpActions.ShowSpyderTutorialAction,
+            text=_("Spyder tutorial"),
+            triggered=self.show_tutorial,
+            register_shortcut=False,
+        )
+
+        # Support actions
+        self.trouble_action = self.create_action(
+            HelpActions.SpyderTroubleshootingAction,
+            _("Troubleshooting..."),
+            triggered=lambda: start_file(__trouble_url__))
+        self.support_group_action = self.create_action(
+            HelpActions.SpyderSupportAction,
+            _("Spyder support..."),
+            triggered=lambda: start_file(__forum_url__))
+
+        # Add actions in menus
+        self._setup_menus()
+
     def update_font(self):
         color_scheme = self.get_color_scheme()
         font = self.get_font()
@@ -131,7 +184,45 @@ class Help(SpyderDockablePlugin):
         if ipyconsole:
             ipyconsole.apply_plugin_settings({'connect_to_oi'})
 
-    # --- API
+    # --- Private API
+    # ------------------------------------------------------------------------
+    def _setup_menus(self):
+        internal_console = self.get_plugin(Plugins.Console)
+        mainmenu = self.get_plugin(Plugins.MainMenu)
+        shortcuts = self.get_plugin(Plugins.Shortcuts)
+        shortcuts_summary_action = None
+        if shortcuts:
+            from spyder.plugins.shortcuts.plugin import ShortcutActions
+            shortcuts_summary_action = shortcuts.get_action(
+                ShortcutActions.ShortcutSummaryAction)
+        if mainmenu:
+            from spyder.plugins.mainmenu.api import (
+                ApplicationMenus, HelpMenuSections)
+            # Documentation actions
+            for documentation_action in [
+                    self.doc_action, self.video_action, self.tutorial_action]:
+                mainmenu.add_item_to_application_menu(
+                    documentation_action,
+                    menu_id=ApplicationMenus.Help,
+                    section=HelpMenuSections.Documentation,
+                    before=shortcuts_summary_action,
+                    before_section=HelpMenuSections.Support)
+            # Support actions
+            report_action = internal_console.get_action(
+                ConsoleActions.SpyderReportAction)
+            mainmenu.add_item_to_application_menu(
+                self.trouble_action,
+                menu_id=ApplicationMenus.Help,
+                section=HelpMenuSections.Support,
+                before=report_action,
+                before_section=HelpMenuSections.ExternalDocumentation)
+            mainmenu.add_item_to_application_menu(
+                self.support_group_action,
+                menu_id=ApplicationMenus.Help,
+                section=HelpMenuSections.Support,
+                before_section=HelpMenuSections.ExternalDocumentation)
+
+    # --- Public API
     # ------------------------------------------------------------------------
     def set_shellwidget(self, shellwidget):
         """

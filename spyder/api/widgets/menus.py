@@ -54,7 +54,8 @@ class SpyderMenu(QMenu):
         self.MENUS.append((parent, title, self))
         self.aboutToShow.connect(self._render)
 
-    def add_action(self, action, section=None, before=None):
+    def add_action(self, action, section=None, before=None,
+                   before_section=None):
         """
         Add action to a given menu section.
         """
@@ -70,7 +71,15 @@ class SpyderMenu(QMenu):
 
             self._actions = new_actions
 
-        if section not in self._sections:
+        if before_section is not None and before_section in self._sections:
+            new_sections = []
+            for sec in self._sections:
+                if sec == before_section:
+                    new_sections.append(section)
+                if sec != section:
+                    new_sections.append(sec)
+            self._sections = new_sections
+        elif section not in self._sections:
             self._sections.append(section)
 
         # Track state of menu to avoid re-rendering if menu has not changed
@@ -82,6 +91,21 @@ class SpyderMenu(QMenu):
         Return the title for menu.
         """
         return self._title
+
+    def get_actions(self):
+        """
+        Return a parsed list of menu actions.
+
+        Includes MENU_SEPARATOR taking into account the sections defined.
+        """
+        actions = []
+        for section in self._sections:
+            for (sec, action) in self._actions:
+                if sec == section:
+                    actions.append(action)
+
+            actions.append(MENU_SEPARATOR)
+        return actions
 
     def get_sections(self):
         """
@@ -96,16 +120,8 @@ class SpyderMenu(QMenu):
         """
         if self._dirty:
             self.clear()
-            actions = []
-            for section in self._sections:
-                for (sec, action) in self._actions:
-                    if sec == section:
-                        actions.append(action)
-
-                actions.append(MENU_SEPARATOR)
-
+            actions = self.get_actions()
             add_actions(self, actions)
-
             self._ordered_actions = actions
             self._dirty = False
 
@@ -140,12 +156,3 @@ class MainWidgetMenu(SpyderMenu):
 
             self._ordered_actions = actions
             self._dirty = False
-
-
-class ApplicationMenu(SpyderMenu):
-    """
-    Spyder Main Window application Menu.
-
-    This class provides application menus with some predefined functionality
-    and section definition.
-    """

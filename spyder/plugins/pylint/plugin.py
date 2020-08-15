@@ -15,7 +15,7 @@ import os.path as osp
 from qtpy.QtCore import Signal, Slot
 
 # Local imports
-from spyder.api.menus import ApplicationMenus
+from spyder.plugins.mainmenu.api import ApplicationMenus
 from spyder.api.translations import get_translation
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.utils.programs import is_module_installed
@@ -35,7 +35,7 @@ class Pylint(SpyderDockablePlugin):
     CONF_SECTION = NAME
     CONF_WIDGET_CLASS = PylintConfigPage
     REQUIRES = [Plugins.Editor]
-    OPTIONAL = [Plugins.Projects]
+    OPTIONAL = [Plugins.MainMenu, Plugins.Projects]
     CONF_FILE = False
     DISABLE_ACTIONS_WHEN_HIDDEN = False
 
@@ -68,6 +68,7 @@ class Pylint(SpyderDockablePlugin):
     def register(self):
         widget = self.get_widget()
         editor = self.get_plugin(Plugins.Editor)
+        mainmenu = self.get_plugin(Plugins.MainMenu)
 
         # Expose widget signals at the plugin level
         widget.sig_edit_goto_requested.connect(self.sig_edit_goto_requested)
@@ -92,8 +93,10 @@ class Pylint(SpyderDockablePlugin):
         pylint_act = self.get_action(PylintWidgetActions.RunCodeAnalysis)
         pylint_act.setEnabled(is_module_installed("pylint"))
 
-        source_menu = self.get_application_menu(ApplicationMenus.Source)
-        self.add_item_to_application_menu(pylint_act, menu=source_menu)
+        if mainmenu:
+            source_menu = mainmenu.get_application_menu(
+                ApplicationMenus.Source)
+            mainmenu.add_item_to_application_menu(pylint_act, menu=source_menu)
 
         # TODO: use new API when editor has migrated
         self.main.editor.pythonfile_dependent_actions += [pylint_act]
