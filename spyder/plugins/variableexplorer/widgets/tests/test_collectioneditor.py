@@ -812,5 +812,17 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
     assert data(view.model, 0, 0) == 9999
 
 
+def test_dicts_with_mixed_types_as_key(qtbot):
+    """
+    Test that we can show dictionaries with mixed data types as keys.
+
+    This is a regression for spyder-ide/spyder#13481.
+    """
+    colors = {1: 'red', 'Y': 'yellow'}
+    editor = CollectionsEditor()
+    editor.setup(colors)
+    assert editor.widget.editor.source_model.keys == [1, 'Y']
+
+
 if __name__ == "__main__":
     pytest.main()
