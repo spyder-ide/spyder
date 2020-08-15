@@ -1395,7 +1395,7 @@ class MainWindow(QMainWindow):
 
         self.set_splash(_("Setting up main window..."))
 
-        #----- Tours
+        # ---- Tours
         self.tour = tour.AnimatedTour(self)
         self.tours_menu = QMenu(_("Interactive tours"), self)
         self.tour_menu_actions = []
@@ -1410,21 +1410,43 @@ class MainWindow(QMainWindow):
             def trigger(i=i, self=self):  # closure needed!
                 return lambda: self.show_tour(i)
 
-            temp_action = create_action(self, tour_name, tip="",
-                                        triggered=trigger())
+            temp_action = create_action(
+                self,
+                tour_name,
+                tip="",
+                triggered=trigger(),
+            )
             self.tour_menu_actions += [temp_action]
 
         self.tours_menu.addActions(self.tour_menu_actions)
+        self.help_menu_actions.append(self.tours_menu)
+
+        shortcuts_action = create_action(
+            self,
+            _("Shortcuts Summary"),
+            shortcut="Meta+F1",
+            triggered=self.show_shortcuts_dialog,
+        )
+        self.help_menu_actions.append(shortcuts_action)
 
         # IPython documentation
         if self.help is not None:
             ipython_menu = QMenu(_("IPython documentation"), self)
-            intro_action = create_action(self, _("Intro to IPython"),
-                                        triggered=self.ipyconsole.show_intro)
-            quickref_action = create_action(self, _("Quick reference"),
-                                    triggered=self.ipyconsole.show_quickref)
-            guiref_action = create_action(self, _("Console help"),
-                                        triggered=self.ipyconsole.show_guiref)
+            intro_action = create_action(
+                self,
+                _("Intro to IPython"),
+                triggered=self.ipyconsole.show_intro,
+            )
+            quickref_action = create_action(
+                self,
+                _("Quick reference"),
+                triggered=self.ipyconsole.show_quickref,
+            )
+            guiref_action = create_action(
+                self,
+                _("Console help"),
+                triggered=self.ipyconsole.show_guiref,
+            )
             add_actions(ipython_menu, (intro_action, guiref_action,
                                         quickref_action))
             self.help_menu_actions.append(ipython_menu)

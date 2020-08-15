@@ -16,8 +16,8 @@ from qtpy.QtCore import Qt, QUrl
 
 # Local imports
 from spyder import __project_url__
-from spyder.widgets.reporterror import (DESC_MIN_CHARS, TITLE_MIN_CHARS,
-                                        SpyderErrorDialog)
+from spyder.plugins.console.widgets.reporterror import (
+    DESC_MIN_CHARS, TITLE_MIN_CHARS, SpyderErrorDialog)
 
 # =============================================================================
 # Fixtures
