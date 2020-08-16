@@ -171,7 +171,11 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self._data = list(data)
         elif isinstance(data, dict):
             try:
-                self.keys = sorted(list(data.keys()))
+                # natural sorting, e.g. test3 comes before test100
+                # taken from https://stackoverflow.com/a/16090640/3110740
+                natsort = lambda s: [int(t) if t.isdigit() else t.lower()
+                                     for t in re.split('(\d+)', s)]
+                self.keys = sorted(list(data.keys()), key=natsort)
             except TypeError:
                 # This is necessary to display dictionaries with mixed
                 # types as keys.
