@@ -72,7 +72,7 @@ def natsort(s):
     natural sorting, e.g. test3 comes before test100
     taken from https://stackoverflow.com/a/16090640/3110740
     """
-    return [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)]
+    return [int(t) if t.isdigit() else t.lower() for t in re.split('([0-9]+)', s)]
 
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
