@@ -836,7 +836,7 @@ def test_dicts_natural_sorting(qtbot):
     numberedlist = {'test{}'.format(i): None for i in numbers}
     # numbers should be as a human would sort, e.g. test3 before test100
     # regular sort would sort test1, test10, test11,..., test2, test20,...
-    expected = ['test{}'.format(i) for i in numbers]
+    expected = ['test{}'.format(i) for i in list(range(100))]
     editor = CollectionsEditor()
     editor.setup(numberedlist)
     assert editor.widget.editor.source_model.keys == expected
