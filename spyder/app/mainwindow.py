@@ -159,8 +159,7 @@ else:
 #==============================================================================
 # Local utility imports
 #==============================================================================
-from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, __website_url__, get_versions)
+from spyder import __version__, get_versions
 from spyder.app.utils import (get_python_doc_path, delete_lsp_log_files,
                               qt_message_handler, setup_logging)
 from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
@@ -169,7 +168,6 @@ from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
                                 reset_config_files)
 from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_anaconda, is_gtk_desktop
-from spyder import dependencies
 from spyder.py3compat import (is_text_string, to_text_string,
                               PY3, qbytearray_to_str, configparser as cp)
 from spyder.utils import encoding, programs
@@ -1173,7 +1171,6 @@ class MainWindow(QMainWindow):
 
         from spyder.plugins.console.plugin import Console
         self.console = Console(self, configuration=CONF)
-        self.console.set_exit_function(self.closing)
         self.register_plugin(self.console)
 
         # TODO: Load and register the rest of the plugins using new API
@@ -1398,44 +1395,7 @@ class MainWindow(QMainWindow):
 
         self.set_splash(_("Setting up main window..."))
 
-        # Help menu
-        trouble_action = create_action(self,
-                                        _("Troubleshooting..."),
-                                        triggered=self.trouble_guide)
-        dep_action = create_action(self, _("Dependencies..."),
-                                    triggered=self.show_dependencies,
-                                    icon=ima.icon('advanced'))
-        report_action = create_action(self,
-                                        _("Report issue..."),
-                                        icon=ima.icon('bug'),
-                                        triggered=self.report_issue)
-        support_action = create_action(self,
-                                        _("Spyder support..."),
-                                        triggered=self.google_group)
-        self.check_updates_action = create_action(self,
-                                                _("Check for updates..."),
-                                                triggered=self.check_updates)
-
-        # Spyder documentation
-        spyder_doc = 'https://docs.spyder-ide.org/'
-        doc_action = create_action(self, _("Spyder documentation"),
-                                   icon=ima.icon('DialogHelpButton'),
-                                   triggered=lambda:
-                                   programs.start_file(spyder_doc))
-        self.register_shortcut(doc_action, "_",
-                               "spyder documentation")
-
-        if self.help is not None:
-            tut_action = create_action(self, _("Spyder tutorial"),
-                                       triggered=self.help.show_tutorial)
-        else:
-            tut_action = None
-
-        shortcuts_action = create_action(self, _("Shortcuts Summary"),
-                                         shortcut="Meta+F1",
-                                         triggered=self.show_shortcuts_dialog)
-
-        #----- Tours
+        # ---- Tours
         self.tour = tour.AnimatedTour(self)
         self.tours_menu = QMenu(_("Interactive tours"), self)
         self.tour_menu_actions = []
@@ -1450,89 +1410,46 @@ class MainWindow(QMainWindow):
             def trigger(i=i, self=self):  # closure needed!
                 return lambda: self.show_tour(i)
 
-            temp_action = create_action(self, tour_name, tip="",
-                                        triggered=trigger())
+            temp_action = create_action(
+                self,
+                tour_name,
+                tip="",
+                triggered=trigger(),
+            )
             self.tour_menu_actions += [temp_action]
 
         self.tours_menu.addActions(self.tour_menu_actions)
+        self.help_menu_actions.append(self.tours_menu)
 
-        self.help_menu_actions = [doc_action, tut_action, shortcuts_action,
-                                  self.tours_menu,
-                                  MENU_SEPARATOR, trouble_action,
-                                  report_action, dep_action,
-                                  self.check_updates_action, support_action,
-                                  MENU_SEPARATOR]
-        # Python documentation
-        if get_python_doc_path() is not None:
-            pydoc_act = create_action(self, _("Python documentation"),
-                                triggered=lambda:
-                                programs.start_file(get_python_doc_path()))
-            self.help_menu_actions.append(pydoc_act)
+        shortcuts_action = create_action(
+            self,
+            _("Shortcuts Summary"),
+            shortcut="Meta+F1",
+            triggered=self.show_shortcuts_dialog,
+        )
+        self.help_menu_actions.append(shortcuts_action)
+
         # IPython documentation
         if self.help is not None:
             ipython_menu = QMenu(_("IPython documentation"), self)
-            intro_action = create_action(self, _("Intro to IPython"),
-                                        triggered=self.ipyconsole.show_intro)
-            quickref_action = create_action(self, _("Quick reference"),
-                                    triggered=self.ipyconsole.show_quickref)
-            guiref_action = create_action(self, _("Console help"),
-                                        triggered=self.ipyconsole.show_guiref)
+            intro_action = create_action(
+                self,
+                _("Intro to IPython"),
+                triggered=self.ipyconsole.show_intro,
+            )
+            quickref_action = create_action(
+                self,
+                _("Quick reference"),
+                triggered=self.ipyconsole.show_quickref,
+            )
+            guiref_action = create_action(
+                self,
+                _("Console help"),
+                triggered=self.ipyconsole.show_guiref,
+            )
             add_actions(ipython_menu, (intro_action, guiref_action,
                                         quickref_action))
             self.help_menu_actions.append(ipython_menu)
-        # Windows-only: documentation located in sys.prefix/Doc
-        ipm_actions = []
-        def add_ipm_action(text, path):
-            """Add installed Python module doc action to help submenu"""
-            # QAction.triggered works differently for PySide and PyQt
-            path = file_uri(path)
-            if not API == 'pyside':
-                slot=lambda _checked, path=path: programs.start_file(path)
-            else:
-                slot=lambda path=path: programs.start_file(path)
-            action = create_action(self, text,
-                    icon='%s.png' % osp.splitext(path)[1][1:],
-                    triggered=slot)
-            ipm_actions.append(action)
-        sysdocpth = osp.join(sys.prefix, 'Doc')
-        if osp.isdir(sysdocpth): # exists on Windows, except frozen dist.
-            for docfn in os.listdir(sysdocpth):
-                pt = r'([a-zA-Z\_]*)(doc)?(-dev)?(-ref)?(-user)?.(chm|pdf)'
-                match = re.match(pt, docfn)
-                if match is not None:
-                    pname = match.groups()[0]
-                    if pname not in ('Python', ):
-                        add_ipm_action(pname, osp.join(sysdocpth, docfn))
-        # Installed Python modules submenu (Windows only)
-        if ipm_actions:
-            pymods_menu = QMenu(_("Installed Python modules"), self)
-            add_actions(pymods_menu, ipm_actions)
-            self.help_menu_actions.append(pymods_menu)
-        # Online documentation
-        web_resources = QMenu(_("Online documentation"), self)
-        webres_actions = create_module_bookmark_actions(self,
-                                                        self.BOOKMARKS)
-        webres_actions.insert(2, None)
-        webres_actions.insert(5, None)
-        webres_actions.insert(8, None)
-        add_actions(web_resources, webres_actions)
-        self.help_menu_actions.append(web_resources)
-        # Qt assistant link
-        if sys.platform.startswith('linux') and not PYQT5:
-            qta_exe = "assistant-qt4"
-        else:
-            qta_exe = "assistant"
-        qta_act = create_program_action(self, _("Qt documentation"),
-                                        qta_exe)
-        if qta_act:
-            self.help_menu_actions += [qta_act, None]
-
-        # About Spyder
-        about_action = create_action(self,
-                                _("About %s...") % "Spyder",
-                                icon=ima.icon('MessageBoxInformation'),
-                                triggered=self.show_about)
-        self.help_menu_actions += [MENU_SEPARATOR, about_action]
 
         # Status bar widgets
         from spyder.widgets.status import MemoryStatus, CPUStatus, ClockStatus
@@ -1673,8 +1590,16 @@ class MainWindow(QMainWindow):
         add_actions(self.menu_lsp_logs, lsp_logs)
 
     def post_visible_setup(self):
-        """Actions to be performed only after the main window's `show` method
-        was triggered"""
+        """
+        Actions to be performed only after the main window's `show` method was
+        triggered.
+        """
+        for _plugin_id, plugin in self._PLUGINS.items():
+            try:
+                plugin.on_mainwindow_visible()
+            except AttributeError:
+                pass
+
         self.restore_scrollbar_position.emit()
 
         logger.info('Deleting previous Spyder instance LSP logs...')
@@ -1761,10 +1686,6 @@ class MainWindow(QMainWindow):
         if DEV is None and CONF.get('main', 'check_updates_on_startup'):
             self.give_updates_feedback = False
             self.check_updates(startup=True)
-
-        # Show dialog with missing dependencies
-        if not running_under_pytest():
-            self.report_missing_dependencies()
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
@@ -1882,34 +1803,6 @@ class MainWindow(QMainWindow):
 
         self.base_title = title
         self.setWindowTitle(self.base_title)
-
-    def report_missing_dependencies(self):
-        """Show a QMessageBox with a list of missing hard dependencies"""
-        # Declare dependencies before trying to detect the missing ones
-        dependencies.declare_dependencies()
-        missing_deps = dependencies.missing_dependencies()
-
-        if missing_deps:
-            # We change '<br>' by '\n', in order to replace the '<'
-            # that appear in our deps by '&lt' (to not break html
-            # formatting) and finally we restore '<br>' again.
-            missing_deps = (missing_deps.replace('<br>', '\n').
-                            replace('<', '&lt;').replace('\n', '<br>'))
-
-            QMessageBox.critical(self, _('Error'),
-                _("<b>You have missing dependencies!</b>"
-                  "<br><br><tt>%s</tt><br>"
-                  "<b>Please install them to avoid this message.</b>"
-                  "<br><br>"
-                  "<i>Note</i>: Spyder could work without some of these "
-                  "dependencies, however to have a smooth experience when "
-                  "using Spyder we <i>strongly</i> recommend you to install "
-                  "all the listed missing dependencies.<br><br>"
-                  "Failing to install these dependencies might result in bugs. "
-                  "Please be sure that any found bugs are not the direct "
-                  "result of missing dependencies, prior to reporting a new "
-                  "issue."
-                  ) % missing_deps, QMessageBox.Ok)
 
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
@@ -3161,41 +3054,6 @@ class MainWindow(QMainWindow):
             add_actions(toolbar, actions)
 
     @Slot()
-    def show_about(self):
-        """Show About Spyder dialog box"""
-        from spyder.widgets.about import AboutDialog
-        abt = AboutDialog(self)
-        abt.exec_()
-
-    @Slot()
-    def show_dependencies(self):
-        """Show Spyder's Dependencies dialog box"""
-        from spyder.widgets.dependencies import DependenciesDialog
-        dlg = DependenciesDialog(self)
-        dlg.set_data(dependencies.DEPENDENCIES)
-        dlg.exec_()
-
-    @Slot()
-    def report_issue(self):
-        """Report a Spyder issue to github."""
-        from spyder.widgets.reporterror import SpyderErrorDialog
-        self._report_dlg = SpyderErrorDialog(self, is_report=True)
-        self._report_dlg.set_color_scheme(CONF.get('appearance', 'selected'))
-        self._report_dlg.show()
-
-    @Slot()
-    def trouble_guide(self):
-        """Open Spyder troubleshooting guide in a web browser."""
-        url = QUrl(__trouble_url__)
-        QDesktopServices.openUrl(url)
-
-    @Slot()
-    def google_group(self):
-        """Open Spyder Google Group in a web browser."""
-        url = QUrl(__forum_url__)
-        QDesktopServices.openUrl(url)
-
-    @Slot()
     def global_callback(self):
         """Global callback"""
         widget = QApplication.focusWidget()
@@ -3783,106 +3641,6 @@ class MainWindow(QMainWindow):
 
         return self.switcher
 
-    # ---- Check for Spyder Updates
-    def _check_updates_ready(self):
-        """Called by WorkerUpdates when ready"""
-        from spyder.widgets.helperwidgets import MessageCheckBox
-
-        # feedback` = False is used on startup, so only positive feedback is
-        # given. `feedback` = True is used when after startup (when using the
-        # menu action, and gives feeback if updates are, or are not found.
-        feedback = self.give_updates_feedback
-
-        # Get results from worker
-        update_available = self.worker_updates.update_available
-        latest_release = self.worker_updates.latest_release
-        error_msg = self.worker_updates.error
-
-        url_r = __project_url__ + '/releases'
-        url_i = 'https://docs.spyder-ide.org/installation.html'
-
-        # Define the custom QMessageBox
-        box = MessageCheckBox(icon=QMessageBox.Information,
-                              parent=self)
-        box.setWindowTitle(_("Spyder updates"))
-        box.set_checkbox_text(_("Check for updates on startup"))
-        box.setStandardButtons(QMessageBox.Ok)
-        box.setDefaultButton(QMessageBox.Ok)
-
-        # Adjust the checkbox depending on the stored configuration
-        section, option = 'main', 'check_updates_on_startup'
-        check_updates = CONF.get(section, option)
-        box.set_checked(check_updates)
-
-        if error_msg is not None:
-            msg = error_msg
-            box.setText(msg)
-            box.set_check_visible(False)
-            box.exec_()
-            check_updates = box.is_checked()
-        else:
-            if update_available:
-                anaconda_msg = ''
-                if 'Anaconda' in sys.version or 'conda-forge' in sys.version:
-                    anaconda_msg = _("<hr><b>IMPORTANT NOTE:</b> It seems "
-                                     "that you are using Spyder with "
-                                     "<b>Anaconda/Miniconda</b>. Please "
-                                     "<b>don't</b> use <code>pip</code> to "
-                                     "update it as that will probably break "
-                                     "your installation.<br><br>"
-                                     "Instead, please wait until new conda "
-                                     "packages are available and use "
-                                     "<code>conda</code> to perform the "
-                                     "update.<hr>")
-                msg = _("<b>Spyder %s is available!</b> <br><br>Please use "
-                        "your package manager to update Spyder or go to our "
-                        "<a href=\"%s\">Releases</a> page to download this "
-                        "new version. <br><br>If you are not sure how to "
-                        "proceed to update Spyder please refer to our "
-                        " <a href=\"%s\">Installation</a> instructions."
-                        "") % (latest_release, url_r, url_i)
-                msg += '<br>' + anaconda_msg
-                box.setText(msg)
-                box.set_check_visible(True)
-                box.exec_()
-                check_updates = box.is_checked()
-            elif feedback:
-                msg = _("Spyder is up to date.")
-                box.setText(msg)
-                box.set_check_visible(False)
-                box.exec_()
-                check_updates = box.is_checked()
-
-        # Update checkbox based on user interaction
-        CONF.set(section, option, check_updates)
-
-        # Enable check_updates_action after the thread has finished
-        self.check_updates_action.setDisabled(False)
-
-        # Provide feeback when clicking menu if check on startup is on
-        self.give_updates_feedback = True
-
-    @Slot()
-    def check_updates(self, startup=False):
-        """
-        Check for spyder updates on github releases using a QThread.
-        """
-        from spyder.workers.updates import WorkerUpdates
-
-        # Disable check_updates_action while the thread is working
-        self.check_updates_action.setDisabled(True)
-
-        if self.thread_updates is not None:
-            self.thread_updates.terminate()
-
-        self.thread_updates = QThread(self)
-        self.worker_updates = WorkerUpdates(self, startup=startup)
-        self.worker_updates.sig_ready.connect(self._check_updates_ready)
-        self.worker_updates.sig_ready.connect(self.thread_updates.quit)
-        self.worker_updates.moveToThread(self.thread_updates)
-        self.thread_updates.started.connect(self.worker_updates.start)
-        self.thread_updates.start()
-
     # --- Main interpreter
     # ------------------------------------------------------------------------
     def get_main_interpreter(self):
@@ -4112,6 +3870,7 @@ def main():
                 "theme used in Spyder 2.<br><br>"
                 "For that, please close this window and start Spyder again.")
         CONF.set('appearance', 'icon_theme', 'spyder 2')
+
     if mainwindow is None:
         # An exception occurred
         if SPLASH is not None:

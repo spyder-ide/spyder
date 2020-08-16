@@ -12,8 +12,8 @@ Tests for dependencies.py
 import pytest
 
 # Local imports
-from spyder.widgets.dependencies import DependenciesDialog
 from spyder import dependencies
+from spyder.plugins.console.widgets.dependencies import DependenciesDialog
 
 
 @pytest.fixture

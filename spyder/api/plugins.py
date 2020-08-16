@@ -1372,7 +1372,6 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
             ApplicationMenus.Help: self._main.help_menu_actions,
         }
         actions = app_menu_actions[menu.name]
-        actions.append(None)
         actions.append(item)
 
     def get_application_menu(self, name):

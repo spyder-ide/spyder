@@ -30,7 +30,7 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import (
     add_actions, create_action, create_toolbutton, MENU_SEPARATOR,
     toggle_actions, set_menu_icons)
-from spyder.widgets.dock import SpyderDockWidget
+from spyder.api.widgets.dock import SpyderDockWidget
 
 
 class BasePluginMixin(object):
