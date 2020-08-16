@@ -824,5 +824,23 @@ def test_dicts_with_mixed_types_as_key(qtbot):
     assert editor.widget.editor.source_model.keys == [1, 'Y']
 
 
+def test_dicts_natural_sorting(qtbot):
+    """
+    Test that we can show dictionaries with mixed data types as keys.
+
+    This is a regression for spyder-ide/spyder#13481.
+    """
+    import random
+    numbers = list(range(100))
+    random.shuffle(numbers)
+    numberedlist = {'test{}'.format(i):None for i in numbers}
+    # numbers should be as a human would sort, e.g. test3 before test100
+    # regular sort would sort test1, test10, test11,..., test2, test20,...
+    expected = ['test{}'.format(i) for i in numbers]
+    editor = CollectionsEditor()
+    editor.setup(numberedlist)
+    assert editor.widget.editor.source_model.keys == expected
+
+
 if __name__ == "__main__":
     pytest.main()
