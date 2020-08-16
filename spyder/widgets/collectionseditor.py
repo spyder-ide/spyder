@@ -67,6 +67,13 @@ LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
 
 
+def natsort(s):
+    """
+    natural sorting, e.g. test3 comes before test100
+    taken from https://stackoverflow.com/a/16090640/3110740
+    """
+    return [int(t) if t.isdigit() else t.lower() for t in re.split('(\d+)', s)]
+
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
 
@@ -171,10 +178,6 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self._data = list(data)
         elif isinstance(data, dict):
             try:
-                # natural sorting, e.g. test3 comes before test100
-                # taken from https://stackoverflow.com/a/16090640/3110740
-                natsort = lambda s: [int(t) if t.isdigit() else t.lower()
-                                     for t in re.split('(\d+)', s)]
                 self.keys = sorted(list(data.keys()), key=natsort)
             except TypeError:
                 # This is necessary to display dictionaries with mixed

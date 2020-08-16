@@ -833,7 +833,7 @@ def test_dicts_natural_sorting(qtbot):
     import random
     numbers = list(range(100))
     random.shuffle(numbers)
-    numberedlist = {'test{}'.format(i):None for i in numbers}
+    numberedlist = {'test{}'.format(i): None for i in numbers}
     # numbers should be as a human would sort, e.g. test3 before test100
     # regular sort would sort test1, test10, test11,..., test2, test20,...
     expected = ['test{}'.format(i) for i in numbers]
