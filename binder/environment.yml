@@ -71,4 +71,6 @@ dependencies:
 - sympy
 
 # Required for desktop view on mybinder.org
-- jupyter-desktop-server
+- websockify
+- pip:
+  - jupyter-desktop-server
