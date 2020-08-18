@@ -350,7 +350,7 @@ div.admonition p.admonition-title {
 
 .panel-body {
     padding: 15px;
-    background-color: #3498DB;
+    background-color: #3e6691;
 }
 
 .panel-usage {
@@ -364,24 +364,31 @@ div.admonition p.admonition-title {
 .panel-usage > .panel-heading {
     color: #19232D;
     background-color: #444;
-    border-color: #3498DB;
+    border-color: #3e6691;
 }
 
 .panel-usage > .panel-body > center > a {
-    color: white;
+    color: #00bc8d;
+    text-decoration: none;
+
+}
+
+.panel-usage > .panel-body > center > a:hover {
+    text-decoration: underline;
 }
 
 .panel-usage > .panel-body > br {
     display: block;
     margin: 12px 0;
     content: "";
-    background-color: #3498DB;
+    background-color: #3e6691;
 }
 
 .hr {
     background-color: rgb(200, 200, 200);
     height: 1px;
 }
+
 
 
 /* ----------- IPython console styles ----------- */
