@@ -1,0 +1,220 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------------------------
+# Copyright (c) 2009- Spyder Project Contributors
+#
+# Distributed under the terms of the MIT License
+# (see spyder/__init__.py for details)
+# -----------------------------------------------------------------------------
+"""Version Control Support Plugin."""
+
+# Standard library imports
+import typing
+
+# Third party imports
+import qtawesome as qta
+from qtpy.QtCore import Signal, Slot
+
+# Local imports
+from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.api.translations import get_translation
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import toggle_actions
+
+from .utils.api import VCSBackendManager
+from .utils.backend import GitBackend, MercurialBackend
+from .utils.errors import VCSError
+from .widgets.vcsgui import VCSWidget
+
+# Localization
+_ = get_translation('spyder')
+
+
+class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
+    """VCS plugin."""
+
+    NAME = 'VCS'
+    REQUIRES = [Plugins.Projects]
+    TABIFY = [Plugins.Help]
+    WIDGET_CLASS = VCSWidget
+    CONF_SECTION = NAME
+
+    sig_repository_changed = Signal(str, str)
+    """
+    This signal is emitted when the current managed repository change.
+
+    Parameters
+    ----------
+    repository_path: str
+        The path where repository files are stored.
+        This path never indicate VCS-specific directory,
+        such as .git, .hg, .svn, etc.
+
+        Can be None which means no repository is loaded.
+
+    vcs_type: str
+        The canonical name for the VCS. Common names are: git, mercurial.
+
+    Notes
+    -----
+    Emit this signal does not change the repository
+    as it is changed before normal emission.
+    To change the repository itself use
+    :py:meth:`VCS.set_repository_root` instead.
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.vcs_manager = VCSBackendManager(None)
+        super().__init__(
+            *args,
+            **kwargs,
+        )
+
+    # Reimplemented APIs
+    def get_name(self):
+        return _("VCS")
+
+    def get_description(self):
+        return _("Manage project VCS repository in a unified pane.")
+
+    def get_icon(self):
+        # return self.create_icon("code_fork")
+        return qta.icon("mdi.source-branch")
+
+    def register(self):
+        # register backends
+        self.vcs_manager.register_backend(GitBackend)
+        self.vcs_manager.register_backend(MercurialBackend)
+
+        # Create actions
+        self._create_actions()
+        self.get_widget().setup_slots()
+
+        # connect external signals
+        project = self.get_plugin(Plugins.Projects)
+        project.sig_project_loaded.connect(self.set_repository)
+
+    # Public API
+    def get_repository(self) -> typing.Optional[str]:
+        """
+        Get the current managed VCS repository.
+
+        Returns
+        -------
+        str or None
+            The current VCS repository or None if no repository is managed.
+        """
+        return self.vcs_manager.repodir
+
+    # compatibility with sig_project_loaded
+    @Slot(object)
+    @Slot(str)
+    def set_repository(self, repository_dir: str) -> str:
+        """
+        Set the current VCS repository.
+
+        Parameters
+        ----------
+        repository_dir: str
+            The path where repository files are stored.
+            Subdirectories are also accepted.
+
+            This path should not indicate VCS-specific directory,
+            such as .git, .hg, .svn, etc.
+
+        Returns
+        -------
+        str or None
+            The repository root path.
+            This path is different compared to the repository_dir parameter
+            only if that refers to a subdirectory of the repository.
+            None is returned when no valid repository was found.
+        """
+        try:
+            self.vcs_manager.repodir = repository_dir
+        except VCSError:
+            self.vcs_manager.repodir = None
+            toggle_actions(
+                (self.commit_action, self.fetch_action, self.pull_action,
+                 self.push_action, self.refresh_action), False)
+            self.sig_repository_changed.emit(None, None)
+        else:
+            for (action, feature) in (
+                (self.commit_action, "commit"),
+                (self.fetch_action, "pull"),
+                (self.pull_action, "pull"),
+                (self.push_action, "push"),
+            ):
+                action.setEnabled(
+                    self.vcs_manager.check_features(
+                        feature,
+                        suppress_raise=True,
+                    ))
+            self.refresh_action.setEnabled(True)
+            self.sig_repository_changed.emit(self.vcs_manager.repodir,
+                                             self.vcs_manager.VCSNAME)
+
+        return self.get_repository()
+
+    repository_path = property(
+        get_repository,
+        set_repository,
+        doc="A property shorthand for get_repository and set_repository")
+
+    def _create_actions(self):
+        # TODO: Add tips
+        create_action = self.create_action
+        self.commit_action = create_action(
+            "vcs_commit_action",
+            _("commit"),
+            icon=qta.icon("mdi.source-commit", color=ima.MAIN_FG_COLOR),
+            icon_text=_("commit"),
+            # tip=_("ADD TIP HERE"),
+            shortcut_context=self.NAME,
+            # Workaround for prevent create_action to raise an error
+            triggered=lambda: None,
+        )
+
+        self.fetch_action = create_action(
+            "vcs_fetch_action",
+            _("fetch"),
+            icon=qta.icon("fa5s.sync", color=ima.MAIN_FG_COLOR),
+            icon_text=_("fetch"),
+            # tip=_("ADD TIP HERE"),
+            shortcut_context=self.NAME,
+            # Workaround for prevent create_action to raise an error
+            triggered=lambda: None,
+        )
+
+        self.pull_action = create_action(
+            "vcs_pull_action",
+            _("pull"),
+            icon=qta.icon("fa.long-arrow-down", color=ima.MAIN_FG_COLOR),
+            icon_text=_("pull"),
+            # tip=_("ADD TIP HERE"),
+            shortcut_context=self.NAME,
+            # Workaround for prevent create_action to raise an error
+            triggered=lambda: None,
+        )
+
+        self.push_action = create_action(
+            "vcs_push_action",
+            _("push"),
+            icon=qta.icon("fa.long-arrow-up", color=ima.MAIN_FG_COLOR),
+            icon_text=_("push"),
+            # tip=_("ADD TIP HERE"),
+            shortcut_context=self.NAME,
+            # Workaround for prevent create_action to raise an error
+            triggered=lambda: None,
+        )
+
+        self.refresh_action = create_action(
+            "vcs_refresh_action",
+            _("refresh"),
+            icon=qta.icon("mdi.refresh", color=ima.MAIN_FG_COLOR),
+            icon_text=_("refresh"),
+            # tip=_("ADD TIP HERE"),
+            shortcut_context=self.NAME,
+            # Workaround for prevent create_action to raise an error
+            triggered=lambda: None,
+        )
