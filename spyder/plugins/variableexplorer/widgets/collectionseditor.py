@@ -253,8 +253,12 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
     def sort(self, column, order=Qt.AscendingOrder):
         """Overriding sort method"""
-        reverse = (order == Qt.DescendingOrder)
-        all_string = lambda string: all([isinstance(x, str) for x in string])
+
+        def all_string(l):
+            return all([isinstance(x, str) for x in l])
+
+        reverse = (order == Qt.DescendingOrder)\
+            
         sort_key = natsort if all_string(self.keys) else None
 
         if column == 0:

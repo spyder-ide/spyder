@@ -840,7 +840,7 @@ def test_dicts_natural_sorting(qtbot):
     editor.setup(dictionary)
     editor.widget.editor.source_model.sort(0)
 
-    assert data_sorted==expected, 'Function failed'
+    assert data_sorted == expected, 'Function failed'
     assert editor.widget.editor.source_model.keys == expected, \
         'GUI sorting fail'
 
