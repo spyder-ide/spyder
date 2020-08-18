@@ -505,16 +505,13 @@ class EditorStack(QWidget):
             _("Copy abosolute path"),
             icon=ima.icon('editcopy'),
             triggered=lambda:
-            QApplication.clipboard().setText(
-                self.get_current_filename()))
+            self.copy_absolute_path())
         copy_relative_path_action = create_action(
             self,
             _("Copy relative path"),
             icon=ima.icon('editcopy'),
             triggered=lambda:
-            QApplication.clipboard().setText(
-                (osp.relpath(self.get_current_filename(),
-                             getcwd_or_home()).replace(os.sep, "/"))))
+            self.copy_relative_path())
         close_right = create_action(self, _("Close all to the right"),
                                     triggered=self.close_all_right)
         close_all_but_this = create_action(self, _("Close all but this"),
@@ -637,6 +634,21 @@ class EditorStack(QWidget):
         if fnames is None:
             fnames = self.get_current_filename()
         show_in_external_file_explorer(fnames)
+
+    def copy_absolute_path(self):
+        QApplication.clipboard().setText(
+            self.get_current_filename())
+
+    def copy_relative_path(self):
+        if os.name == 'nt':
+            file_path = os.path.splitdrive(self.get_current_filename())
+            if os.path.splitdrive(getcwd_or_home()) != file_path:
+                QApplication.clipboard().setText(
+                    self.get_current_filename())
+            else:
+                QApplication.clipboard().setText(
+                        (osp.relpath(self.get_current_filename(),
+                                     getcwd_or_home()).replace(os.sep, "/")))
 
     def create_shortcuts(self):
         """Create local shortcuts"""
