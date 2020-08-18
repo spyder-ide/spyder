@@ -66,6 +66,13 @@ MAX_SERIALIZED_LENGHT = 1e6
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
 
+def natsort(s):
+    """
+    natural sorting, e.g. test3 comes before test100
+    taken from https://stackoverflow.com/a/16090640/3110740
+    """
+    return [int(t) if t.isdigit() else t.lower() for t in re.split('([0-9]+)', s)]
+
 
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
@@ -171,7 +178,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self._data = list(data)
         elif isinstance(data, dict):
             try:
-                self.keys = sorted(list(data.keys()))
+                self.keys = sorted(list(data.keys()), key=natsort)
             except TypeError:
                 # This is necessary to display dictionaries with mixed
                 # types as keys.
@@ -185,13 +192,11 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self._data = data = self.showndata = ProxyObject(data)
             if not self.names:
                 self.header0 = _("Attribute")
-
         if not isinstance(self._data, ProxyObject):
             self.title += (' (' + str(len(self.keys)) + ' ' +
                           _("elements") + ')')
         else:
             self.title += data_type
-
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
             self.rows_loaded = ROWS_TO_LOAD
@@ -251,7 +256,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self.sizes = sort_against(self.sizes, self.keys, reverse)
             self.types = sort_against(self.types, self.keys, reverse)
             try:
-                self.keys.sort(reverse=reverse)
+                self.keys.sort(reverse=reverse, key=natsort)
             except:
                 pass
         elif column == 1:
@@ -259,7 +264,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                                                         reverse)
             self.sizes = sort_against(self.sizes, self.types, reverse)
             try:
-                self.types.sort(reverse=reverse)
+                self.types.sort(reverse=reverse, key=natsort)
             except:
                 pass
         elif column == 2:
@@ -267,7 +272,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                                                         reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
             try:
-                self.sizes.sort(reverse=reverse)
+                self.sizes.sort(reverse=reverse, key=natsort)
             except:
                 pass
         elif column in [3, 4]:

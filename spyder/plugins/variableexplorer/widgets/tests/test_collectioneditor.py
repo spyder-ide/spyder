@@ -35,8 +35,8 @@ from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD)
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespacesBrowserFinder)
-from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
-    generate_pandas_indexes
+# from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
+#     generate_pandas_indexes
 from spyder.py3compat import PY2, to_text_string
 
 
@@ -826,19 +826,18 @@ def test_dicts_with_mixed_types_as_key(qtbot):
 
 def test_dicts_natural_sorting(qtbot):
     """
-    Test that we can show dictionaries with mixed data types as keys.
-
-    This is a regression for spyder-ide/spyder#13481.
+    Test that natural sorting actually does what it should do
     """
     import random
     numbers = list(range(100))
     random.shuffle(numbers)
-    numberedlist = {'test{}'.format(i): None for i in numbers}
+    data = {'test{}'.format(i): None for i in numbers}
     # numbers should be as a human would sort, e.g. test3 before test100
     # regular sort would sort test1, test10, test11,..., test2, test20,...
     expected = ['test{}'.format(i) for i in list(range(100))]
     editor = CollectionsEditor()
-    editor.setup(numberedlist)
+    editor.setup(data)
+
     assert editor.widget.editor.source_model.keys == expected
 
 
