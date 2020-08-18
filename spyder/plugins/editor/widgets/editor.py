@@ -640,15 +640,21 @@ class EditorStack(QWidget):
             self.get_current_filename())
 
     def copy_relative_path(self):
-        if os.name == 'nt':
-            file_path = os.path.splitdrive(self.get_current_filename())[0]
-            if os.path.splitdrive(getcwd_or_home())[0] != file_path:
-                QApplication.clipboard().setText(
-                    self.get_current_filename())
-            else:
-                QApplication.clipboard().setText(
-                        (osp.relpath(self.get_current_filename(),
-                                     getcwd_or_home()).replace(os.sep, "/")))
+        file_path = os.path.splitdrive(self.get_current_filename())[0]
+        if (os.name == 'nt'
+                and os.path.splitdrive(getcwd_or_home())[0] != file_path):
+            QMessageBox.warning(
+               self,
+               _("No available relative path"),
+               _("It is not possible to copy a relative path "
+                 "for this file because it is placed in a "
+                 "different drive than your current working "
+                 "directory. Please copy its absolute path.")
+            )
+        else:
+            QApplication.clipboard().setText(
+                    (osp.relpath(self.get_current_filename(),
+                                 getcwd_or_home()).replace(os.sep, "/")))
 
     def create_shortcuts(self):
         """Create local shortcuts"""
