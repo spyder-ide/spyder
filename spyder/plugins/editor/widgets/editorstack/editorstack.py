@@ -357,8 +357,8 @@ class EditorStack(QWidget, SpyderConfigurationAccessor):
 
     def copy_relative_path(self):
         if os.name == 'nt':
-            file_path = os.path.splitdrive(self.get_current_filename())
-            if os.path.splitdrive(getcwd_or_home()) != file_path:
+            file_path = os.path.splitdrive(self.get_current_filename())[0]
+            if os.path.splitdrive(getcwd_or_home())[0] != file_path:
                 QApplication.clipboard().setText(
                     self.get_current_filename())
             else:
