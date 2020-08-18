@@ -2676,7 +2676,7 @@ class MainWindow(QMainWindow):
         """Show About Spyder dialog box"""
         from spyder.widgets.about import AboutDialog
         abt = AboutDialog(self)
-        abt.exec_()
+        abt.show()
 
     @Slot()
     def show_dependencies(self):
@@ -2684,7 +2684,7 @@ class MainWindow(QMainWindow):
         from spyder.widgets.dependencies import DependenciesDialog
         dlg = DependenciesDialog(self)
         dlg.set_data(dependencies.DEPENDENCIES)
-        dlg.exec_()
+        dlg.show()
 
     def render_issue(self, description='', traceback=''):
         """Render issue before sending it to Github"""
