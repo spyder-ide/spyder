@@ -35,8 +35,8 @@ from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD)
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespacesBrowserFinder)
-# from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
-#     generate_pandas_indexes
+from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
+    generate_pandas_indexes
 from spyder.py3compat import PY2, to_text_string
 
 
