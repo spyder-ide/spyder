@@ -72,6 +72,7 @@ def natsort(s):
     natural sorting, e.g. test3 comes before test100
     taken from https://stackoverflow.com/a/16090640/3110740
     """
+    # if not isinstance(s, (str, bytes)): return s
     x = [int(t) if t.isdigit() else t.lower() for t in re.split('([0-9]+)', s)]
     return x
 
@@ -253,12 +254,14 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
     def sort(self, column, order=Qt.AscendingOrder):
         """Overriding sort method"""
         reverse = (order == Qt.DescendingOrder)
+        all_string = lambda string: all([isinstance(x, str) for x in string])
+        sort_key = natsort if all_string(self.keys) else None
 
         if column == 0:
             self.sizes = sort_against(self.sizes, self.keys, reverse)
             self.types = sort_against(self.types, self.keys, reverse)
             try:
-                self.keys.sort(reverse=reverse, key=natsort)
+                self.keys.sort(reverse=reverse, key=sort_key)
             except:
                 pass
         elif column == 1:
@@ -266,7 +269,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                                                         reverse)
             self.sizes = sort_against(self.sizes, self.types, reverse)
             try:
-                self.types.sort(reverse=reverse, key=natsort)
+                self.types.sort(reverse=reverse, key=sort_key)
             except:
                 pass
         elif column == 2:
@@ -274,7 +277,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                                                         reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
             try:
-                self.sizes.sort(reverse=reverse, key=natsort)
+                self.sizes.sort(reverse=reverse, key=sort_key)
             except:
                 pass
         elif column in [3, 4]:
