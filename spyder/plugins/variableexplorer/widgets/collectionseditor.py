@@ -69,7 +69,7 @@ ROWS_TO_LOAD = 50
 
 def natsort(s):
     """
-    Natural sorting, e.g. test3 comes before test100
+    Natural sorting, e.g. test3 comes before test100.
     Taken from https://stackoverflow.com/a/16090640/3110740
     """
     # if not isinstance(s, (str, bytes)): return s
