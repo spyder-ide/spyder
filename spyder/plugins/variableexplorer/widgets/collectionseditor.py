@@ -256,9 +256,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
         def all_string(listlike):
             return all([isinstance(x, str) for x in listlike])
-
-        reverse = (order == Qt.DescendingOrder)\
-
+          
+        reverse = (order == Qt.DescendingOrder)
         sort_key = natsort if all_string(self.keys) else None
 
         if column == 0:
