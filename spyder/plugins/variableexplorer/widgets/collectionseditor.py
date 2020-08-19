@@ -197,7 +197,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                 self.header0 = _("Attribute")
         if not isinstance(self._data, ProxyObject):
             self.title += (' (' + str(len(self.keys)) + ' ' +
-                          _("elements") + ')')
+                          _("element" + "s"*(len(self.keys)!=1)) + ')')
         else:
             self.title += data_type
         self.total_rows = len(self.keys)
@@ -744,6 +744,7 @@ class BaseTableView(QTableView):
 
     def set_data(self, data):
         """Set table data"""
+        print("setting", data)
         if data is not None:
             self.source_model.set_data(data, self.dictfilter)
             self.source_model.reset()
@@ -1666,6 +1667,11 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
         else:
             return True
 
+    def lessThan(self, left, right):
+        """Implements ordering in a natural way, as a human would sort"""
+        leftData = self.sourceModel().data(left)
+        rightData = self.sourceModel().data(right)
+        return natsort(leftData) < natsort(rightData)
 
 # =============================================================================
 # Tests
