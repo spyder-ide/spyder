@@ -1666,7 +1666,7 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
             return True
 
     def lessThan(self, left, right):
-        """Implements ordering in a natural way, as a human would sort"""
+        """Implements ordering in a natural way, as a human would sort."""
         leftData = self.sourceModel().data(left)
         rightData = self.sourceModel().data(right)
         if isinstance(leftData, str) and isinstance(rightData, str):
