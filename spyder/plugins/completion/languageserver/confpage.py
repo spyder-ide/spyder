@@ -18,7 +18,7 @@ import sys
 # Third party imports
 from jsonschema.exceptions import ValidationError
 from jsonschema import validate as json_validate
-from qtpy.compat import to_qvariant, getsavefilename
+from qtpy.compat import to_qvariant, getsavefilename, getopenfilename
 from qtpy.QtCore import (Qt, Slot, QAbstractTableModel, QModelIndex,
                          QSize, QObject)
 from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
@@ -1248,7 +1248,13 @@ class SnippetModelsProxy:
             try:
                 json_validate(instance=snippets, schema=SNIPPETS_SCHEMA)
             except ValidationError as e:
-                errors['validation']: e.message
+                index_path = ['snippets']
+                for part in e.absolute_path:
+                    index_path.append('[{0}]'.format(part))
+                full_message = '{0} on instance {1}:<br>{2}'.format(
+                    e.message, ''.join(index_path), e.instance
+                )
+                errors['validation'] = full_message
 
         if len(errors) == 0:
             for language_info in snippets:
@@ -1269,8 +1275,10 @@ class SnippetModelsProxy:
                             valid_snippets += 1
                         except SyntaxError as e:
                             syntax_errors = errors.get('syntax', {})
-                            key = '{0}/{1}/{2}'
+                            key = '{0}/{1}/{2}'.format(
+                                language, trigger, description)
                             syntax_errors[key] = e.msg
+                            errors['syntax'] = syntax_errors
 
         return valid_snippets, total_snippets, errors
 
@@ -1337,11 +1345,15 @@ class SnippetTable(QTableView):
         if not new_snippet:
             idx = self.currentIndex().row()
             snippet = self.source_model.row(idx)
-        language_snippets = CONF.get(
-            'snippet-completions', self.language.lower(), {})
-        trigger_texts = list(language_snippets.keys())
-        descriptions = {x: set(language_snippets[x].keys())
-                        for x in trigger_texts}
+
+        snippets_keys = list(self.source_model.snippet_map.keys())
+        trigger_texts = [x[0] for x in snippets_keys]
+        descriptions = {}
+        for trigger, description in snippets_keys:
+            trigger_descriptions = descriptions.get(trigger, set({}))
+            trigger_descriptions |= {description}
+            descriptions[trigger] = trigger_descriptions
+
         dialog = SnippetEditor(self, language=self.language.lower(),
                                trigger_text=snippet.trigger_text,
                                description=snippet.description,
@@ -2085,13 +2097,46 @@ class LanguageServerConfigPage(GeneralConfigPage):
             filename = osp.normpath(filename)
             valid, total, errors = self.snippets_proxy.import_snippets(
                 filename)
+            modified = True
             if len(errors) == 0:
                 QMessageBox.information(self, _('All snippets imported'),
                     _('{0} snippets were loaded successfully').format(valid),
                     QMessageBox.Ok)
             else:
-                pass
-            self.set_modified(True)
+                if 'loading' in errors:
+                    modified = False
+                    QMessageBox.critical(self, _('JSON malformed'),
+                        _('There was an error when trying to load the '
+                          'provided JSON file: <tt>{0}</tt>').format(
+                              errors['loading']),
+                        QMessageBox.Ok
+                    )
+                elif 'validation' in errors:
+                    modified = False
+                    QMessageBox.critical(self, _('Invalid snippet file'),
+                        _('The provided snippet file does not comply with '
+                          'the Spyder JSON snippets spec and therefore it '
+                          'cannot be loaded.<br><br><tt>{}</tt>').format(
+                              errors['validation']),
+                        QMessageBox.Ok
+                    )
+                elif 'syntax' in errors:
+                    syntax_errors = errors['syntax']
+                    msg = []
+                    for syntax_key in syntax_errors:
+                        syntax_err = syntax_errors[syntax_key]
+                        msg.append('<b>{0}</b>: {1}'.format(
+                            syntax_key, syntax_err))
+                    err_msg = '<br>'.join(msg)
+
+                    QMessageBox.warning(self, _('Incorrect snippet format'),
+                        _('Spyder was able to load {0}/{1} snippets '
+                          'correctly, please check the following snippets '
+                          'for any syntax errors: '
+                          '<br><br>{2}').format(valid, total, err_msg),
+                        QMessageBox.Ok
+                    )
+            self.set_modified(modified)
 
     def report_no_external_server(self, host, port, language):
         """
