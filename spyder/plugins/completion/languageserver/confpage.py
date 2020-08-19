@@ -1288,6 +1288,7 @@ class SnippetTable(QTableView):
         super(SnippetTable, self).__init__()
         self._parent = parent
         self.language = language
+        self.proxy = proxy
         self.source_model = proxy.get_model(
             self, language.lower(), text_color=text_color)
         self.setModel(self.source_model)
@@ -1330,6 +1331,11 @@ class SnippetTable(QTableView):
         self.source_model.reset()
         self.adjust_cells()
         self.sortByColumn(self.source_model.TRIGGER, Qt.AscendingOrder)
+
+    def update_language_model(self, language):
+        self.source_model = self.proxy.get_model(self, language.lower())
+        self.setModel(self.source_model)
+        self.reset_plain()
 
     def delete_snippet(self, idx):
         snippet = self.source_model.snippets.pop(idx)
@@ -1725,6 +1731,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
             _('Programming language provided by the LSP server'))
         self.snippets_language_cb.addItems(LSP_LANGUAGES_PY)
         self.snippets_language_cb.setCurrentIndex(PYTHON_POS)
+        self.snippets_language_cb.currentTextChanged.connect(
+            self.change_language_snippets)
 
         snippet_lang_group = QGroupBox(_('Language'))
         snippet_lang_layout = QVBoxLayout()
@@ -2072,6 +2080,9 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.snippets_table.reset_plain()
         self.set_modified(True)
 
+    def change_language_snippets(self, language):
+        self.snippets_table.update_language_model(language)
+
     def export_snippets(self):
         filename, _selfilter = getsavefilename(
             self, _("Save snippets"),
@@ -2241,6 +2252,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
             self.set_option('pydocstyle/match_dir', '')
 
         self.table.save_servers()
+        self.snippets_proxy.save_snippets()
 
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
