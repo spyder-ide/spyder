@@ -197,7 +197,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                 self.header0 = _("Attribute")
         if not isinstance(self._data, ProxyObject):
             self.title += (' (' + str(len(self.keys)) + ' ' +
-                          _("element" + "s"*(len(self.keys)!=1)) + ')')
+                              _("element" + "s" * (len(self.keys) != 1)) + ')')
         else:
             self.title += data_type
         self.total_rows = len(self.keys)
@@ -256,7 +256,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
         def all_string(listlike):
             return all([isinstance(x, str) for x in listlike])
-          
+
         reverse = (order == Qt.DescendingOrder)
         sort_key = natsort if all_string(self.keys) else None
 
@@ -1673,7 +1673,7 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
         if isinstance(leftData, str) and isinstance(rightData, str):
             return natsort(leftData) < natsort(rightData)
         else:
-            return leftData<rightData
+            return leftData < rightData
 
 # =============================================================================
 # Tests
