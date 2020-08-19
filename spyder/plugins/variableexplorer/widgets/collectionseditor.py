@@ -69,8 +69,8 @@ ROWS_TO_LOAD = 50
 
 def natsort(s):
     """
-    natural sorting, e.g. test3 comes before test100
-    taken from https://stackoverflow.com/a/16090640/3110740
+    Natural sorting, e.g. test3 comes before test100.
+    Taken from https://stackoverflow.com/a/16090640/3110740
     """
     # if not isinstance(s, (str, bytes)): return s
     x = [int(t) if t.isdigit() else t.lower() for t in re.split('([0-9]+)', s)]
@@ -256,9 +256,8 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
         def all_string(listlike):
             return all([isinstance(x, str) for x in listlike])
-
-        reverse = (order == Qt.DescendingOrder)\
-
+          
+        reverse = (order == Qt.DescendingOrder)
         sort_key = natsort if all_string(self.keys) else None
 
         if column == 0:
