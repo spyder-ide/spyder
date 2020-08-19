@@ -1670,7 +1670,10 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
         """Implements ordering in a natural way, as a human would sort"""
         leftData = self.sourceModel().data(left)
         rightData = self.sourceModel().data(right)
-        return natsort(leftData) < natsort(rightData)
+        if isinstance(leftData, str) and isinstance(rightData, str):
+            return natsort(leftData) < natsort(rightData)
+        else:
+            return leftData<rightData
 
 # =============================================================================
 # Tests
