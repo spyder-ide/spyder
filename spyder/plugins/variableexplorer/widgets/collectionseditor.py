@@ -607,15 +607,18 @@ class BaseTableView(QTableView):
         self.insert_action = create_action(
                       self, _("Insert"),
                       icon=ima.icon('insert'),
-                      triggered=lambda: self.insert_item(below=False))
+                      triggered=lambda: self.insert_item(below=False)
+        )
         self.insert_action_above = create_action(
                       self, _("Insert above"),
                       icon=ima.icon('insert'),
-                      triggered=lambda: self.insert_item(below=False))
+                      triggered=lambda: self.insert_item(below=False)
+        )
         self.insert_action_below = create_action(
                       self, _("Insert below"),
                       icon=ima.icon('insert'),
-                      triggered=lambda: self.insert_item(below=True))
+                      triggered=lambda: self.insert_item(below=True)
+        )
         self.remove_action = create_action(self, _("Remove"),
                                            icon=ima.icon('editdelete'),
                                            triggered=self.remove_item)
