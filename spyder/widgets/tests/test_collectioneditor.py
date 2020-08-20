@@ -32,7 +32,7 @@ from qtpy.QtWidgets import QWidget
 # Local imports
 from spyder.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView, CollectionsEditorTableView,
-    CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD)
+    CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD, natsort)
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespacesBrowserFinder)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
@@ -822,6 +822,27 @@ def test_dicts_with_mixed_types_as_key(qtbot):
     editor = CollectionsEditor()
     editor.setup(colors)
     assert editor.widget.editor.source_model.keys == [1, 'Y']
+
+
+def test_dicts_natural_sorting(qtbot):
+    """
+    Test that natural sorting actually does what it should do
+    """
+    import random
+    numbers = list(range(100))
+    random.shuffle(numbers)
+    dictionary = {'test{}'.format(i): None for i in numbers}
+    data_sorted = sorted(list(dictionary.keys()), key=natsort)
+    # numbers should be as a human would sort, e.g. test3 before test100
+    # regular sort would sort test1, test10, test11,..., test2, test20,...
+    expected = ['test{}'.format(i) for i in list(range(100))]
+    editor = CollectionsEditor()
+    editor.setup(dictionary)
+    editor.widget.editor.source_model.sort(0)
+
+    assert data_sorted == expected, 'Function failed'
+    assert editor.widget.editor.source_model.keys == expected, \
+        'GUI sorting fail'
 
 
 if __name__ == "__main__":
