@@ -15,8 +15,8 @@ from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QDialogButtonBox, QFrame, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QLineEdit, QMessageBox,
-                            QPushButton, QRadioButton, QSizePolicy,
-                            QStackedWidget, QVBoxLayout, QWidget)
+                            QPushButton, QRadioButton, QScrollArea,
+                            QSizePolicy, QStackedWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -357,6 +357,7 @@ class BaseRunConfigDialog(QDialog):
                 layout.addSpacing(widget_or_spacing)
             else:
                 layout.addWidget(widget_or_spacing)
+        return layout
 
     def add_button_box(self, stdbtns):
         """Create dialog button box and add it to the dialog layout"""
@@ -399,7 +400,10 @@ class RunConfigOneDialog(BaseRunConfigDialog):
         self.filename = fname
         self.runconfigoptions = RunConfigOptions(self)
         self.runconfigoptions.set(RunConfiguration(fname).get())
-        self.add_widgets(self.runconfigoptions)
+        scrollarea = QScrollArea(self)
+        scrollarea.setWidget(self.runconfigoptions)
+        scrollarea.setMinimumWidth(560)
+        self.add_widgets(scrollarea)
         self.add_button_box(QDialogButtonBox.Cancel)
         self.setWindowTitle(_("Run settings for %s") % osp.basename(fname))
 
