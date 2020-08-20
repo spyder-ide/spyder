@@ -58,7 +58,7 @@ class HelpWidgetActions:
     ToggleRichMode = 'toggle_rich_mode_action'
     ToggleShowSource = 'toggle_show_source_action'
     ToggleWrap = 'toggle_wrap_action'
-    CopyAction = "copy_action"
+    CopyAction = "help_widget_copy_action"
     SelectAll = "select_all_action",
 
 
@@ -205,7 +205,11 @@ class PlainText(QWidget):
 
         # Read-only simple code editor
         self.editor = SimpleCodeEditor(self)
-        self.editor.setup_editor(language='py')
+        self.editor.setup_editor(
+            language='py',
+            highlight_current_line=False,
+            linenumbers=False,
+        )
         self.editor.sig_focus_changed.connect(self.focus_changed)
         self.editor.setReadOnly(True)
         self.editor.setContextMenuPolicy(Qt.CustomContextMenu)

@@ -36,6 +36,7 @@ class HistoryLog(SpyderDockablePlugin):
     CONF_FROM_OPTIONS = {
         'color_scheme_name': ('appearance', 'selected'),
     }
+
     # --- Signals
     # ------------------------------------------------------------------------
     sig_focus_changed = Signal()

@@ -109,6 +109,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         self._blanks_enabled = None
         self._scrollpastend_enabled = None
         self._wrap_mode = None
+        self._highlight_current_line = None
         self.supported_language = False
 
         # Widgets
@@ -118,20 +119,24 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         # Widget setup
         self.setObjectName(self.__class__.__name__ + str(id(self)))
         self.update_linenumberarea_width(0)
-        self._highlight_current_line()
+        self._apply_current_line_highlight()
 
         # Signals
         self.blockCountChanged.connect(self.update_linenumberarea_width)
         self.updateRequest.connect(self.update_linenumberarea)
-        self.cursorPositionChanged.connect(self._highlight_current_line)
+        self.cursorPositionChanged.connect(self._apply_current_line_highlight)
 
     # --- Private API
     # ------------------------------------------------------------------------
     def _apply_color_scheme(self):
         hl = self._highlighter
-        hl.set_color_scheme(self._color_scheme)
-        self._set_palette(background=hl.get_background_color(),
-                          foreground=hl.get_foreground_color())
+        if hl is not None:
+            hl.setup_formats(self.font())
+            if self._color_scheme is not None:
+                hl.set_color_scheme(self._color_scheme)
+
+            self._set_palette(background=hl.get_background_color(),
+                              foreground=hl.get_foreground_color())
 
     def _set_palette(self, background, foreground):
         style = ("QPlainTextEdit#%s {background: %s; color: %s;}" %
@@ -139,8 +144,8 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         self.setStyleSheet(style)
         self.rehighlight()
 
-    def _highlight_current_line(self):
-        if self._highlighter:
+    def _apply_current_line_highlight(self):
+        if self._highlighter and self._highlight_current_line:
             extra_selections = []
             selection = QTextEdit.ExtraSelection()
             line_color = self._highlighter.get_currentline_color()
@@ -151,6 +156,8 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
             extra_selections.append(selection)
 
             self.setExtraSelections(extra_selections)
+        else:
+            self.setExtraSelections([])
 
     # --- Qt Overrides
     # ------------------------------------------------------------------------
@@ -184,6 +191,7 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
                      font=None,
                      show_blanks=False,
                      wrap=False,
+                     highlight_current_line=True,
                      scroll_past_end=False):
         """
         Setup editor options.
@@ -200,20 +208,20 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
             Default is False/
         wrap: bool, optional
             Default is False.
+        highlight_current_line: bool, optional
+            Default is True.
         scroll_past_end: bool, optional
             Default is False
         """
-        if font is None:
-            font = self.font()
-            font.setFamily("Courier New")
-            font.setFixedPitch(True)
-            font.setPointSize(10)
+        if font:
+            self.set_font(font)
 
-        self.set_font(font)
+        self.set_highlight_current_line(highlight_current_line)
         self.set_blanks_enabled(show_blanks)
         self.toggle_line_numbers(linenumbers)
         self.set_scrollpastend_enabled(scroll_past_end)
         self.set_language(language)
+        self.set_color_scheme(color_scheme)
         self.toggle_wrap_mode(wrap)
 
     def set_font(self, font):
@@ -225,7 +233,9 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
         font: QFont
             Font to use.
         """
-        self.setFont(font)
+        if font:
+            self.setFont(font)
+            self._apply_color_scheme()
 
     def set_color_scheme(self, color_scheme):
         """
@@ -316,6 +326,18 @@ class SimpleCodeEditor(QPlainTextEdit, BaseEditMixin):
             wrap_mode = QTextOption.NoWrap
 
         self.setWordWrapMode(wrap_mode)
+
+    def set_highlight_current_line(self, value):
+        """
+        Set if the current line is highlighted.
+
+        Parameters
+        ----------
+        value: bool
+            The value of the current line highlight option.
+        """
+        self._highlight_current_line = value
+        self._apply_current_line_highlight()
 
     def set_blanks_enabled(self, state):
         """

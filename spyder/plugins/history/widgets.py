@@ -54,7 +54,6 @@ class HistoryWidget(PluginMainWidget):
 
     DEFAULT_OPTIONS = {
         'color_scheme_name': 'spyder/dark',
-        'font': QFont(),
         'go_to_eof': True,
         'line_numbers': True,
         'max_entries': 100,
@@ -80,6 +79,7 @@ class HistoryWidget(PluginMainWidget):
         self.linenumbers_action = None
         self.editors = []
         self.filenames = []
+        self.font = None
 
         # Widgets
         self.tabwidget = Tabs(self)
@@ -162,7 +162,7 @@ class HistoryWidget(PluginMainWidget):
                     editor.toggle_line_numbers(value)
             elif option == 'color_scheme_name':
                 for editor in self.editors:
-                    editor.set_font(self.get_option('font'))
+                    editor.set_font(self.font)
 
     # --- Public API
     # ------------------------------------------------------------------------
@@ -177,8 +177,9 @@ class HistoryWidget(PluginMainWidget):
         color_scheme: str
             Name of the color scheme to use.
         """
-        self.font = font
         self.color_scheme = color_scheme
+        self.font = font
+
         for editor in self.editors:
             editor.set_font(font)
             editor.set_color_scheme(color_scheme)
@@ -262,7 +263,7 @@ class HistoryWidget(PluginMainWidget):
             linenumbers=self.get_option('line_numbers'),
             language=language,
             color_scheme=self.get_option('color_scheme_name'),
-            font=self.get_option('font'),
+            font=self.font,
             wrap=self.get_option('wrap'),
         )
         editor.setReadOnly(True)

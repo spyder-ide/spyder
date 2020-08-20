@@ -50,6 +50,7 @@ class DescriptionWidget(SimpleCodeEditor):
             font=get_font(),
             wrap=True,
             linenumbers=False,
+            highlight_current_line=False,
         )
 
         # Header

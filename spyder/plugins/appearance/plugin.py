@@ -47,6 +47,3 @@ class Appearance(SpyderPluginV2):
 
     def register(self):
         pass
-
-    # --- Public API
-    # ------------------------------------------------------------------------
