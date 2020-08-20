@@ -434,7 +434,7 @@ class SpyderActionMixin:
     def create_action(self, name, text, icon=None, icon_text='', tip=None,
                       toggled=None, triggered=None, shortcut_context=None,
                       context=Qt.WidgetWithChildrenShortcut, initial=None,
-                      register_shortcut=True, parent=None):
+                      register_shortcut=False, parent=None):
         """
         name: str
             unique identifiable name for the action
@@ -458,8 +458,9 @@ class SpyderActionMixin:
         initial: object
             Sets the initial state of a togglable action. This does not emit
             the toggled signal.
-        register_shortcut: bool (True)
+        register_shortcut: bool, optional
             If True, main window will expose the shortcut in Preferences.
+            The default value is `False`.
         parent: QWidget (None)
             Define the parent of the widget. Use `self` if not provided.
 

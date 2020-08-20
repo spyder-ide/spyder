@@ -493,6 +493,12 @@ class SpyderAction(QAction):
         if sys.platform == "darwin":
             self.setIconVisibleInMenu(False)
 
+    def __str__(self):
+        return "SpyderAction('{0}')".format(self.text())
+
+    def __repr__(self):
+        return "SpyderAction('{0}')".format(self.text())
+
 
 class ShowStdIcons(QWidget):
     """

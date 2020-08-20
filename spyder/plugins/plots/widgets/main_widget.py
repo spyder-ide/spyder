@@ -227,18 +227,21 @@ class PlotsWidget(PluginMainWidget):
             text=_("Save plot as..."),
             icon=self.create_icon('filesave'),
             triggered=self.save_plot,
+            register_shortcut=True,
         )
         save_all_action = self.create_action(
             name=PlotsWidgetActions.SaveAll,
             text=_("Save all plots..."),
             icon=self.create_icon('save_all'),
             triggered=self.save_all_plots,
+            register_shortcut=True,
         )
         copy_action = self.create_action(
             name=PlotsWidgetActions.Copy,
             text=_("Copy Image"),
             icon=self.create_icon('editcopy'),
             triggered=self.copy_image,
+            register_shortcut=True,
         )
         remove_action = self.create_action(
             name=PlotsWidgetActions.Close,
@@ -252,6 +255,7 @@ class PlotsWidget(PluginMainWidget):
             tip=_("Remove all plots"),
             icon=self.create_icon('filecloseall'),
             triggered=self.remove_all_plots,
+            register_shortcut=True,
         )
         previous_action = self.create_action(
             name=PlotsWidgetActions.MoveToPreviousFigure,
@@ -259,6 +263,7 @@ class PlotsWidget(PluginMainWidget):
             tip=_("Previous plot"),
             icon=self.create_icon('ArrowBack'),
             triggered=self.previous_plot,
+            register_shortcut=True,
         )
         next_action = self.create_action(
             name=PlotsWidgetActions.MoveToNextFigure,
@@ -266,6 +271,7 @@ class PlotsWidget(PluginMainWidget):
             tip=_("Next plot"),
             icon=self.create_icon('ArrowForward'),
             triggered=self.next_plot,
+            register_shortcut=True,
         )
         zoom_in_action = self.create_action(
             name=PlotsWidgetActions.ZoomIn,
@@ -273,6 +279,7 @@ class PlotsWidget(PluginMainWidget):
             tip=_("Zoom in"),
             icon=self.create_icon('zoom_in'),
             triggered=self.zoom_in,
+            register_shortcut=True,
         )
         zoom_out_action = self.create_action(
             name=PlotsWidgetActions.ZoomOut,
@@ -280,6 +287,7 @@ class PlotsWidget(PluginMainWidget):
             tip=_("Zoom out"),
             icon=self.create_icon('zoom_out'),
             triggered=self.zoom_out,
+            register_shortcut=True,
         )
 
         # Options menu

@@ -13,7 +13,7 @@ from random import sample
 import pytest
 from qtpy.QtCore import Qt
 
-from spyder.widgets.shortcutssummary import ShortcutsSummaryDialog
+from spyder.plugins.shortcuts.widgets.summary import ShortcutsSummaryDialog
 
 
 @pytest.fixture

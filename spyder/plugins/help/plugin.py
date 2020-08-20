@@ -32,7 +32,7 @@ class Help(SpyderDockablePlugin):
     """
     NAME = 'help'
     REQUIRES = [Plugins.Console, Plugins.Editor]
-    OPTIONAL = [Plugins.IPythonConsole]
+    OPTIONAL = [Plugins.IPythonConsole, Plugins.Shortcuts]
     TABIFY = Plugins.VariableExplorer
     WIDGET_CLASS = HelpWidget
     CONF_SECTION = NAME
@@ -74,6 +74,7 @@ class Help(SpyderDockablePlugin):
         internal_console = self.get_plugin(Plugins.Console)
         editor = self.get_plugin(Plugins.Editor)
         ipyconsole = self.get_plugin(Plugins.IPythonConsole)
+        shortcuts = self.get_plugin(Plugins.Shortcuts)
 
         # self.sig_focus_changed.connect(self.main.plugin_focus_changed)
         widget.set_history(self.load_history())
@@ -95,6 +96,11 @@ class Help(SpyderDockablePlugin):
                 self.show_rich_text)
 
             ipyconsole.sig_help_requested.connect(self.set_object_text)
+
+        if shortcuts:
+            # See: spyder-ide/spyder#6992
+            shortcuts.sig_shortcuts_updated.connect(
+                lambda: self.show_intro_message())
 
     def update_font(self):
         color_scheme = self.get_color_scheme()

@@ -13,15 +13,14 @@ import os
 import sys
 
 # Third party imports
-from qtpy.QtCore import Qt
 import pytest
 
+from qtpy.QtCore import Qt
 # Local imports
 from spyder.config.manager import CONF
-from spyder.preferences.shortcuts import (INVALID_KEY, NO_WARNING,
-                                          SEQUENCE_CONFLICT, SEQUENCE_EMPTY,
-                                          ShortcutEditor, ShortcutsTable,
-                                          load_shortcuts)
+from spyder.plugins.shortcuts.widgets.table import (
+    INVALID_KEY, NO_WARNING, SEQUENCE_CONFLICT, SEQUENCE_EMPTY,
+    ShortcutEditor, ShortcutsTable, load_shortcuts)
 
 
 # ---- Qt Test Fixtures

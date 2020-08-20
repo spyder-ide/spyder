@@ -444,7 +444,7 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
             name='switch to ' + self._name,
             text=self.get_title(),
             toggled=lambda checked: self.toggle_view(checked),
-            context=Qt.WidgetShortcut,
+            context=Qt.WidgetWithChildrenShortcut,
             shortcut_context='_',
         )
 
@@ -553,7 +553,7 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
         """
         all_children = self._find_children(self, [self])
         actions = OrderedDict()
-        actions_blacklist = [
+        actions_excludelist = [
             self.dock_action,
             self.undock_action,
             self.close_action,
@@ -570,7 +570,7 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
                     # make things simpler, but avoid creating specific
                     # variables for this
                     if filter_actions:
-                        if action not in actions_blacklist:
+                        if action not in actions_excludelist:
                             if key in actions:
                                 raise SpyderAPIError(
                                     '{} or a child widget has already '

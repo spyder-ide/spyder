@@ -594,6 +594,7 @@ class Plugins:
     Profiler = 'profiler'
     Projects = 'project_explorer'
     Pylint = 'pylint'
+    Shortcuts = 'shortcuts'
     VariableExplorer = 'variable_explorer'
     WorkingDirectory = 'workingdir'
 

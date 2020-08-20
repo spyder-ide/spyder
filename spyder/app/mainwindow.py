@@ -375,12 +375,13 @@ class MainWindow(QMainWindow):
             except (cp.NoSectionError, cp.NoOptionError):
                 shortcut = None
 
+            sc = QShortcut(QKeySequence(), self,
+                           lambda: self.switch_to_plugin(plugin))
+            sc.setContext(Qt.ApplicationShortcut)
+            plugin._shortcut = sc
+
+            self.register_shortcut(sc, context, name)
             self.register_shortcut(plugin.toggle_view_action, context, name)
-            if shortcut is not None:
-                sc = QShortcut(QKeySequence(shortcut), self,
-                               lambda: self.switch_to_plugin(plugin))
-                plugin._shortcut = sc
-                self.register_shortcut(sc, context, name)
 
         toolbars = plugin.get_registered_application_toolbars()
         for __, toolbar in toolbars.items():
@@ -669,10 +670,8 @@ class MainWindow(QMainWindow):
 
         # Preferences
         from spyder.preferences.general import MainConfigPage
-        from spyder.preferences.shortcuts import ShortcutsConfigPage
         from spyder.preferences.maininterpreter import MainInterpreterConfigPage
-        self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
-                              MainInterpreterConfigPage]
+        self.general_prefs = [MainConfigPage, MainInterpreterConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
         self.prefs_dialog_instance = None
@@ -853,9 +852,100 @@ class MainWindow(QMainWindow):
         self.toolbarslist.append(toolbar)
         return toolbar
 
+    def _update_shortcuts_in_panes_menu(self, show=True):
+        """
+        Display the shortcut for the "Switch to plugin..." on the toggle view
+        action of the plugins displayed in the Help/Panes menu.
+
+        Notes
+        -----
+        SpyderDockablePlugins provide two actions that function as a single
+        action. The `Switch to Plugin...` action has an assignable shortcut
+        via the shortcut preferences. The `Plugin toggle View` in the `View`
+        application menu, uses a custom `Toggle view action` that displays the
+        shortcut assigned to the `Switch to Plugin...` action, but is not
+        triggered by that shortcut.
+        """
+        for plugin_id, plugin in self._PLUGINS.items():
+            if isinstance(plugin, SpyderDockablePlugin):
+                try:
+                    # New API
+                    action = plugin.toggle_view_action
+                except AttributeError:
+                    # Old API
+                    action = plugin._toggle_view_action
+
+                if show:
+                    section = plugin.CONF_SECTION
+                    try:
+                        context = '_'
+                        name = 'switch to {}'.format(section)
+                        shortcut = CONF.get_shortcut(
+                            context, name, plugin_name=section)
+                    except (cp.NoSectionError, cp.NoOptionError):
+                        shortcut = QKeySequence()
+                else:
+                    shortcut = QKeySequence()
+
+                action.setShortcut(shortcut)
+
     def setup(self):
         """Setup main window"""
         logger.info("*** Start of MainWindow setup ***")
+
+        logger.info("Creating toolbars...")
+        # File menu/toolbar
+        self.file_menu = self.menuBar().addMenu(_("&File"))
+        self.file_toolbar = self.create_toolbar(_("File toolbar"),
+                                                "file_toolbar")
+        # Edit menu/toolbar
+        self.edit_menu = self.menuBar().addMenu(_("&Edit"))
+        self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
+                                                "edit_toolbar")
+        # Search menu/toolbar
+        self.search_menu = self.menuBar().addMenu(_("&Search"))
+        self.search_toolbar = self.create_toolbar(_("Search toolbar"),
+                                                  "search_toolbar")
+        # Source menu/toolbar
+        self.source_menu = self.menuBar().addMenu(_("Sour&ce"))
+        self.source_toolbar = self.create_toolbar(_("Source toolbar"),
+                                                  "source_toolbar")
+        # Run menu/toolbar
+        self.run_menu = self.menuBar().addMenu(_("&Run"))
+        self.run_toolbar = self.create_toolbar(_("Run toolbar"),
+                                               "run_toolbar")
+
+        # Debug menu/toolbar
+        self.debug_menu = self.menuBar().addMenu(_("&Debug"))
+        self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
+                                                 "debug_toolbar")
+
+        # Consoles menu/toolbar
+        self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
+        self.consoles_menu.aboutToShow.connect(
+                self.update_execution_state_kernel)
+
+        # Projects menu
+        self.projects_menu = self.menuBar().addMenu(_("&Projects"))
+        self.projects_menu.aboutToShow.connect(self.valid_project)
+
+        # Tools menu
+        self.tools_menu = self.menuBar().addMenu(_("&Tools"))
+
+        # View menu
+        self.view_menu = self.menuBar().addMenu(_("&View"))
+        self.view_menu.aboutToShow.connect(
+            lambda: self._update_shortcuts_in_panes_menu(True))
+        self.view_menu.aboutToHide.connect(
+            lambda: self._update_shortcuts_in_panes_menu(False))
+
+        # Help menu
+        self.help_menu = self.menuBar().addMenu(_("&Help"))
+
+        # Status bar
+        status = self.statusBar()
+        status.setObjectName("StatusBar")
+        status.showMessage(_("Welcome to Spyder!"), 5000)
 
         logger.info("Updating PYTHONPATH")
         path_dict = self.get_spyder_pythonpath_dict()
@@ -888,6 +978,11 @@ class MainWindow(QMainWindow):
                 css_path = CSS_PATH
         else:
             css_path = CSS_PATH
+
+        # Shortcuts plugin
+        from spyder.plugins.shortcuts.plugin import Shortcuts
+        self.shortcuts = Shortcuts(self, configuration=CONF)
+        self.register_plugin(self.shortcuts)
 
         logger.info("Creating core actions...")
         self.close_dockwidget_action = create_action(
@@ -970,56 +1065,6 @@ class MainWindow(QMainWindow):
         self.edit_menu_actions = [self.undo_action, self.redo_action,
                                   None, self.cut_action, self.copy_action,
                                   self.paste_action, self.selectall_action]
-
-        logger.info("Creating toolbars...")
-        # File menu/toolbar
-        self.file_menu = self.menuBar().addMenu(_("&File"))
-        self.file_toolbar = self.create_toolbar(_("File toolbar"),
-                                                "file_toolbar")
-        # Edit menu/toolbar
-        self.edit_menu = self.menuBar().addMenu(_("&Edit"))
-        self.edit_toolbar = self.create_toolbar(_("Edit toolbar"),
-                                                "edit_toolbar")
-        # Search menu/toolbar
-        self.search_menu = self.menuBar().addMenu(_("&Search"))
-        self.search_toolbar = self.create_toolbar(_("Search toolbar"),
-                                                   "search_toolbar")
-        # Source menu/toolbar
-        self.source_menu = self.menuBar().addMenu(_("Sour&ce"))
-        self.source_toolbar = self.create_toolbar(_("Source toolbar"),
-                                                    "source_toolbar")
-        # Run menu/toolbar
-        self.run_menu = self.menuBar().addMenu(_("&Run"))
-        self.run_toolbar = self.create_toolbar(_("Run toolbar"),
-                                                "run_toolbar")
-
-        # Debug menu/toolbar
-        self.debug_menu = self.menuBar().addMenu(_("&Debug"))
-        self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
-                                                    "debug_toolbar")
-
-        # Consoles menu/toolbar
-        self.consoles_menu = self.menuBar().addMenu(_("C&onsoles"))
-        self.consoles_menu.aboutToShow.connect(
-                self.update_execution_state_kernel)
-
-        # Projects menu
-        self.projects_menu = self.menuBar().addMenu(_("&Projects"))
-        self.projects_menu.aboutToShow.connect(self.valid_project)
-
-        # Tools menu
-        self.tools_menu = self.menuBar().addMenu(_("&Tools"))
-
-        # View menu
-        self.view_menu = self.menuBar().addMenu(_("&View"))
-
-        # Help menu
-        self.help_menu = self.menuBar().addMenu(_("&Help"))
-
-        # Status bar
-        status = self.statusBar()
-        status.setObjectName("StatusBar")
-        status.showMessage(_("Welcome to Spyder!"), 5000)
 
         logger.info("Creating Tools menu...")
         # Tools + External Tools
@@ -1431,10 +1476,6 @@ class MainWindow(QMainWindow):
         else:
             tut_action = None
 
-        shortcuts_action = create_action(self, _("Shortcuts Summary"),
-                                         shortcut="Meta+F1",
-                                         triggered=self.show_shortcuts_dialog)
-
         #----- Tours
         self.tour = tour.AnimatedTour(self)
         self.tours_menu = QMenu(_("Interactive tours"), self)
@@ -1456,12 +1497,18 @@ class MainWindow(QMainWindow):
 
         self.tours_menu.addActions(self.tour_menu_actions)
 
-        self.help_menu_actions = [doc_action, tut_action, shortcuts_action,
-                                  self.tours_menu,
-                                  MENU_SEPARATOR, trouble_action,
-                                  report_action, dep_action,
-                                  self.check_updates_action, support_action,
-                                  MENU_SEPARATOR]
+        self.help_menu_actions = [
+            doc_action,
+            tut_action,
+            # shortcuts_action,
+            self.tours_menu,
+            MENU_SEPARATOR,
+            trouble_action,
+            report_action, dep_action,
+            self.check_updates_action,
+            support_action,
+            MENU_SEPARATOR,
+        ]
         # Python documentation
         if get_python_doc_path() is not None:
             pydoc_act = create_action(self, _("Python documentation"),
@@ -1603,9 +1650,6 @@ class MainWindow(QMainWindow):
         add_actions(self.debug_toolbar, self.debug_toolbar_actions)
         add_actions(self.run_toolbar, self.run_toolbar_actions)
 
-        # Apply all defined shortcuts (plugins + 3rd-party plugins)
-        self.apply_shortcuts()
-
         # Emitting the signal notifying plugins that main window menu and
         # toolbar actions are all defined:
         self.all_actions_defined.emit()
@@ -1675,6 +1719,12 @@ class MainWindow(QMainWindow):
     def post_visible_setup(self):
         """Actions to be performed only after the main window's `show` method
         was triggered"""
+        for plugin_id, plugin in self._PLUGINS.items():
+            try:
+                plugin.on_mainwindow_visible()
+            except AttributeError:
+                pass
+
         self.restore_scrollbar_position.emit()
 
         logger.info('Deleting previous Spyder instance LSP logs...')
@@ -2531,6 +2581,18 @@ class MainWindow(QMainWindow):
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             action = plugin._toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
+
+    # TODO: To be removed after all actions are moved to their corresponding
+    # plugins
+    def register_shortcut(self, qaction_or_qshortcut, context, name,
+                          add_shortcut_to_tip=True, plugin_name=None):
+        self.shortcuts.register_shortcut(
+            qaction_or_qshortcut,
+            context,
+            name,
+            add_shortcut_to_tip=add_shortcut_to_tip,
+            plugin_name=plugin_name,
+        )
 
     # --- Show/Hide toolbars
     def _update_show_toolbars_action(self):
@@ -3505,11 +3567,19 @@ class MainWindow(QMainWindow):
                 if widget is not None:
                     dlg.add_page(widget)
 
-            for plugin in [self.appearance, self.run, self.workingdirectory,
-                           self.editor, self.projects, self.ipyconsole,
-                           self.historylog, self.help, self.variableexplorer,
-                           self.onlinehelp, self.explorer, self.findinfiles
-                           ] + self.thirdparty_plugins:
+            for plugin in [self.appearance,
+                           self.run,
+                           self.shortcuts,
+                           self.workingdirectory,
+                           self.editor,
+                           self.projects,
+                           self.ipyconsole,
+                           self.historylog,
+                           self.help,
+                           self.variableexplorer,
+                           self.onlinehelp,
+                           self.explorer,
+                           self.findinfiles] + self.thirdparty_plugins:
                 if plugin is not None:
                     # New API
                     if getattr(plugin, 'CONF_WIDGET_CLASS', None):
@@ -3559,83 +3629,6 @@ class MainWindow(QMainWindow):
     def set_prefs_size(self, size):
         """Save preferences dialog size"""
         self.prefs_dialog_size = size
-
-    #---- Shortcuts
-    def register_shortcut(self, qaction_or_qshortcut, context, name,
-                          add_shortcut_to_tip=True, plugin_name=None):
-        """
-        Register QAction or QShortcut to Spyder main application,
-        with shortcut (context, name, default)
-        """
-        self.shortcut_data.append((qaction_or_qshortcut, context,
-                                   name, add_shortcut_to_tip, plugin_name))
-
-    def unregister_shortcut(self, qaction_or_qshortcut, context, name,
-                            add_shortcut_to_tip=True, plugin_name=None):
-        """
-        Unregister QAction or QShortcut from Spyder main application.
-        """
-        data = (qaction_or_qshortcut, context, name, add_shortcut_to_tip,
-                plugin_name)
-
-        if data in self.shortcut_data:
-            self.shortcut_data.remove(data)
-
-    def apply_shortcuts(self):
-        """Apply shortcuts settings to all widgets/plugins."""
-        toberemoved = []
-        # TODO: Check shortcut existence based on action existence, so that we
-        # can update shortcut names without showing the old ones on the
-        # preferences
-        for index, (qobject, context, name, add_shortcut_to_tip,
-                    plugin_name) in enumerate(self.shortcut_data):
-            try:
-                shortcut_sequence = CONF.get_shortcut(context, name,
-                                                      plugin_name)
-            except (cp.NoSectionError, cp.NoOptionError):
-                # If shortcut does not exist, save it to CONF. This is an
-                # action for which there is no shortcut assigned (yet) in
-                # the configuration
-                CONF.set_shortcut(context, name, '', plugin_name)
-                shortcut_sequence = ''
-
-            if shortcut_sequence:
-                keyseq = QKeySequence(shortcut_sequence)
-            else:
-                # Needed to remove old sequences that were cleared.
-                # See spyder-ide/spyder#12992
-                keyseq = QKeySequence()
-            try:
-                if isinstance(qobject, QAction):
-                    if (sys.platform == 'darwin'
-                            and qobject._shown_shortcut == 'missing'):
-                        qobject._shown_shortcut = keyseq
-                    else:
-                        qobject.setShortcut(keyseq)
-
-                    if add_shortcut_to_tip:
-                        add_shortcut_to_tooltip(qobject, context, name)
-
-                elif isinstance(qobject, QShortcut):
-                    qobject.setKey(keyseq)
-
-            except RuntimeError:
-                # Object has been deleted
-                toberemoved.append(index)
-
-        for index in sorted(toberemoved, reverse=True):
-            self.shortcut_data.pop(index)
-
-        # TODO: Update plugin API to include an update shortcuts method
-        # See: spyder-ide/spyder#6992
-        if self.help:
-            self.help.show_intro_message()
-
-    @Slot()
-    def show_shortcuts_dialog(self):
-        from spyder.widgets.shortcutssummary import ShortcutsSummaryDialog
-        dlg = ShortcutsSummaryDialog(None)
-        dlg.exec_()
 
     # -- Open files server
     def start_open_files_server(self):
