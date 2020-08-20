@@ -1384,10 +1384,9 @@ class CodeEditor(TextEditBaseWidget):
         try:
             content = contents['params']
 
-            if running_under_pytest():
-                # On some tests this is returning a list
-                if isinstance(content, list):
-                    return
+            if isinstance(content, list):
+                # Prevent sporious errors when a client return a list
+                return
 
             self.sig_display_object_info.emit(content,
                                               self._request_hover_clicked)
