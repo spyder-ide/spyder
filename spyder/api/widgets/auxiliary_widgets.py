@@ -67,22 +67,23 @@ class MainCornerWidget(QWidget):
         self._layout.setContentsMargins(spacing, 0, spacing, spacing)
         self.setContentsMargins(0, 0, 0, 0)
 
-    def add_widget(self, name, widget):
+    def add_widget(self, widget_id, widget):
         """
         Add a widget to the left of the last widget added to the corner.
         """
-        if name in self._widgets:
+        if widget_id in self._widgets:
             raise SpyderAPIError(
                 'Wigdet with name "{}" already added. Current names are: {}'
-                ''.format(name, list(self._widgets.keys()))
+                ''.format(widget_id, list(self._widgets.keys()))
             )
 
-        self._widgets[name] = widget
+        widget.ID = widget_id
+        self._widgets[widget_id] = widget
         self._layout.insertWidget(0, widget)
 
-    def get_widget(self, name):
+    def get_widget(self, widget_id):
         """
-        Return a widget by name.
+        Return a widget by unique id..
         """
-        if name in self._widgets:
-            return self._widgets[name]
+        if widget_id in self._widgets:
+            return self._widgets[widget_id]

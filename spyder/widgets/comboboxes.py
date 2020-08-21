@@ -19,7 +19,7 @@ import os.path as osp
 
 # Third party imports
 import qdarkstyle
-from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal
+from qtpy.QtCore import QEvent, Qt, QTimer, QUrl, Signal, QSize
 from qtpy.QtGui import QFont
 from qtpy.QtWidgets import (QComboBox, QCompleter, QLineEdit,
                             QSizePolicy, QToolTip)
@@ -35,6 +35,18 @@ class BaseComboBox(QComboBox):
     """Editable combo box base class"""
     valid = Signal(bool, bool)
     sig_tab_pressed = Signal(bool)
+
+    sig_resized = Signal(QSize, QSize)
+    """
+    This signal is emitted to inform the widget has been resized.
+
+    Parameters
+    ----------
+    size: QSize
+        The new size of the widget.
+    old_size: QSize
+        The previous size of the widget.
+    """
 
     def __init__(self, parent):
         QComboBox.__init__(self, parent)
@@ -67,6 +79,13 @@ class BaseComboBox(QComboBox):
             self.hide_completer()
         else:
             QComboBox.keyPressEvent(self, event)
+
+    def resizeEvent(self, event):
+        """
+        Emit a resize signal for widgets that need to adapt its size.
+        """
+        super().resizeEvent(event)
+        self.sig_resized.emit(event.size(), event.oldSize())
 
     # --- Own methods
     def is_valid(self, qstr):
@@ -124,6 +143,7 @@ class BaseComboBox(QComboBox):
 
 class PatternComboBox(BaseComboBox):
     """Search pattern combo box"""
+
     def __init__(self, parent, items=None, tip=None,
                  adjust_to_minimum=True):
         BaseComboBox.__init__(self, parent)

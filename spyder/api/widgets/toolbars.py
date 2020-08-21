@@ -139,10 +139,13 @@ class MainWidgetToolbar(SpyderToolBar):
     to their interface.
     """
 
-    def __init__(self, parent=None, title=None, location=ToolBarLocation.Top,
-                 corner_widget=None):
+    ID = None
+    """
+    Unique string toolbar identifier.
+    """
+
+    def __init__(self, parent=None, title=None):
         super().__init__(parent, title=title or '')
-        self._set_corner_widget(corner_widget)
         self._icon_size = QSize(16, 16)
 
         # Setup
@@ -150,51 +153,15 @@ class MainWidgetToolbar(SpyderToolBar):
             str(uuid.uuid4())[:8]))
         self.setFloatable(False)
         self.setMovable(False)
-        self.setAllowedAreas(location)
         self.setContextMenuPolicy(Qt.PreventContextMenu)
         self.setIconSize(self._icon_size)
+
         self._setup_style()
         self._filter = ToolTipFilter()
 
     def set_icon_size(self, icon_size):
         self._icon_size = icon_size
         self.setIconSize(icon_size)
-
-    def addWidget(self, widget):
-        """
-        Override Qt method.
-
-        Take into account the existence of a corner widget when adding a new
-        widget to this toolbar.
-        """
-        if self._corner_widget is not None:
-            super().insertWidget(self._corner_separator_action, widget)
-        else:
-            super().addWidget(widget)
-
-    def create_toolbar_stretcher(self):
-        """
-        Create a stretcher widget to be used in a Qt toolbar.
-        """
-        stretcher = QWidget()
-        stretcher.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        return stretcher
-
-    def _set_corner_widget(self, corner_widget):
-        """
-        Add the given corner widget to this toolbar.
-
-        A stretcher widget is added before the corner widget so that
-        its position is forced to the right side of the toolbar when the
-        toolbar is resized.
-        """
-        self._corner_widget = corner_widget
-        if corner_widget is not None:
-            stretcher = self.create_toolbar_stretcher()
-            self._corner_separator = super().addWidget(stretcher)
-            super().addWidget(self._corner_widget)
-        else:
-            self._corner_separator = None
 
     def _render(self):
         """
@@ -217,15 +184,10 @@ class MainWidgetToolbar(SpyderToolBar):
         for (sec, item) in sec_items:
             if isinstance(item, QAction):
                 add_method = super().addAction
-                insert_method = super().insertAction
             else:
                 add_method = super().addWidget
-                insert_method = super().insertWidget
 
-            if self._corner_widget is not None:
-                insert_method(self._corner_separator, item)
-            else:
-                add_method(item)
+            add_method(item)
 
             if isinstance(item, QAction):
                 widget = self.widgetForAction(item)
