@@ -294,9 +294,9 @@ class Help(SpyderPluginWidget):
             cb = self._last_editor_cb
         if cb is None:
             if self.is_plain_text_mode():
-                self.plain_text.clear()
+                self.switch_to_plain_text()
             else:
-                self.rich_text.clear()
+                self.switch_to_rich_text()
         else:
             func = cb[0]
             args = cb[1:]
