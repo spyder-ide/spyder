@@ -78,7 +78,6 @@ from spyder import (__version__, __project_url__, __forum_url__,
                     __trouble_url__, __website_url__, get_versions,
                     __docs_url__)
 from spyder import dependencies
-from spyder.app import tour
 from spyder.app.utils import (create_splash_screen, delete_lsp_log_files,
                               get_python_doc_path, qt_message_handler,
                               setup_logging, set_opengl_implementation, Spy)
@@ -107,7 +106,6 @@ from spyder.utils.qthelpers import (create_action, add_actions, get_icon,
                                     MENU_SEPARATOR, qapplication,
                                     set_menu_icons)
 from spyder.otherplugins import get_spyderplugins_mods
-from spyder.app import tour
 from spyder.app.solver import find_external_plugins, solve_plugin_dependencies
 
 # Spyder API Imports
@@ -139,9 +137,6 @@ ORIGINAL_SYS_EXIT = sys.exit
 # Get the cwd before initializing WorkingDirectory, which sets it to the one
 # used in the last session
 CWD = getcwd_or_home()
-
-# Set the index for the default tour
-DEFAULT_TOUR = 0
 
 #==============================================================================
 # Install Qt messaage handler
@@ -187,8 +182,35 @@ class MainWindow(QMainWindow):
     sig_pythonpath_changed = Signal(object, object)
     sig_main_interpreter_changed = Signal()
     sig_open_external_file = Signal(str)
-    sig_resized = Signal("QResizeEvent")     # Related to interactive tour
-    sig_moved = Signal("QMoveEvent")         # Related to interactive tour
+
+    sig_resized = Signal("QResizeEvent")
+    """
+    This signal is emitted when the main window is resized.
+
+    Parameters
+    ----------
+    resize_event: QResizeEvent
+        The event triggered on main window resize.
+
+    Notes
+    -----
+    To be used by plugins tracking main window size changes.
+    """
+
+    sig_moved = Signal("QMoveEvent")
+    """
+    This signal is emitted when the main window is moved.
+
+    Parameters
+    ----------
+    move_event: QMoveEvent
+        The event triggered on main window move.
+
+    Notes
+    -----
+    To be used by plugins tracking main window position changes.
+    """
+
     sig_layout_setup_ready = Signal(object)  # Related to default layouts
 
     # --- Plugin handling methods
@@ -249,7 +271,7 @@ class MainWindow(QMainWindow):
             self.show_compatibility_message(message)
             return
 
-        # Signals
+        # Connect Plugin Signals to main window methods
         plugin.sig_exception_occurred.connect(self.handle_exception)
         plugin.sig_free_memory_requested.connect(self.free_memory)
         plugin.sig_quit_requested.connect(self.close)
@@ -258,6 +280,10 @@ class MainWindow(QMainWindow):
         plugin.sig_redirect_stdio_requested.connect(
             self.redirect_internalshell_stdio)
         plugin.sig_status_message_requested.connect(self.show_status_message)
+
+        # Connect Main window Signals to plugin signals
+        self.sig_moved.connect(plugin.sig_mainwindow_moved)
+        self.sig_resized.connect(plugin.sig_mainwindow_resized)
 
         if isinstance(plugin, SpyderDockablePlugin):
             plugin.sig_focus_changed.connect(self.plugin_focus_changed)
@@ -582,11 +608,6 @@ class MainWindow(QMainWindow):
         self.findinfiles = None
         self.thirdparty_plugins = []
 
-        # Tour  # TODO: Should I consider it a plugin?? or?
-        self.tour = None
-        self.tours_available = None
-        self.tour_dialog = None
-
         # File switcher
         self.switcher = None
 
@@ -764,9 +785,6 @@ class MainWindow(QMainWindow):
             self.open_files_server = socket.socket(socket.AF_INET,
                                                    socket.SOCK_STREAM,
                                                    socket.IPPROTO_TCP)
-
-        # To show the message about starting the tour
-        self.sig_setup_finished.connect(self.show_tour_message)
 
         # Apply main window settings
         self.apply_settings()
@@ -1176,6 +1194,11 @@ class MainWindow(QMainWindow):
         self.run = Run(self, configuration=CONF)
         self.register_plugin(self.run)
 
+        # Tours plugin
+        from spyder.plugins.tours.plugin import Tours
+        self.tours_plugin = Tours(self, configuration=CONF)
+        self.register_plugin(self.tours_plugin)
+
         # Appearance plugin
         from spyder.plugins.appearance.plugin import Appearance
         self.appearance = Appearance(self, configuration=CONF)
@@ -1414,41 +1437,19 @@ class MainWindow(QMainWindow):
 
         spyder_vid = ("https://www.youtube.com/playlist"
                       "?list=PLPonohdiDqg9epClEcXoAPUiK0pN5eRoc")
-        vid_action = create_action(self, _("Tutorial videos"),
-                                   icon=ima.icon('VideoIcon'),
-                                   triggered=lambda:
-                                   programs.start_file(spyder_vid))
+        vid_action = create_action(
+            self,
+            _("Tutorial videos"),
+            icon=ima.icon('VideoIcon'),
+            triggered=lambda:
+            programs.start_file(spyder_vid),
+        )
 
-        #----- Tours
-        self.tour = tour.AnimatedTour(self)
-        # self.tours_menu = QMenu(_("Interactive tours"), self)
-        # self.tour_menu_actions = []
-        # # TODO: Only show intro tour for now. When we are close to finish
-        # # 3.0, we will finish and show the other tour
-        self.tours_available = tour.get_tours(DEFAULT_TOUR)
-
-        for i, tour_available in enumerate(self.tours_available):
-            self.tours_available[i]['last'] = 0
-            tour_name = tour_available['name']
-
-        #     def trigger(i=i, self=self):  # closure needed!
-        #         return lambda: self.show_tour(i)
-
-        #     temp_action = create_action(self, tour_name, tip="",
-        #                                 triggered=trigger())
-        #     self.tour_menu_actions += [temp_action]
-
-        # self.tours_menu.addActions(self.tour_menu_actions)
-        self.tour_action = create_action(
-            self, self.tours_available[DEFAULT_TOUR]['name'],
-            tip=_("Interactive tour introducing Spyder's panes and features"),
-            triggered=lambda: self.show_tour(DEFAULT_TOUR))
-
-        self.help_menu_actions = [
+        self.help_menu_actions += [
             doc_action,
             vid_action,
-            # shortcuts_action,
-            self.tour_action,
+            # shortcuts_action,  # TODO: Add when MainMenu Plugin avaliable
+            # self.tours_menu,  # TODO: Add when MainMenu Plugin avaliable
             MENU_SEPARATOR,
             trouble_action,
             report_action, dep_action,
@@ -1456,6 +1457,7 @@ class MainWindow(QMainWindow):
             support_action,
             MENU_SEPARATOR,
         ]
+
         # Python documentation
         if get_python_doc_path() is not None:
             pydoc_act = create_action(self, _("Python documentation"),
@@ -1474,6 +1476,7 @@ class MainWindow(QMainWindow):
             add_actions(ipython_menu, (intro_action, guiref_action,
                                         quickref_action))
             self.help_menu_actions.append(ipython_menu)
+
         # Windows-only: documentation located in sys.prefix/Doc
         ipm_actions = []
         def add_ipm_action(text, path):
@@ -2858,21 +2861,22 @@ class MainWindow(QMainWindow):
             event.ignore()
 
     def resizeEvent(self, event):
-        """Reimplement Qt method"""
+        """Reimplement Qt method."""
         if not self.isMaximized() and not self.fullscreen_flag:
             self.window_size = self.size()
         QMainWindow.resizeEvent(self, event)
 
-        # To be used by the tour to be able to resize
+        # To be used by plugins tracking main window size changes.
         self.sig_resized.emit(event)
 
     def moveEvent(self, event):
-        """Reimplement Qt method"""
+        """Reimplement Qt method."""
         if not self.isMaximized() and not self.fullscreen_flag:
             self.window_position = self.pos()
+
         QMainWindow.moveEvent(self, event)
 
-        # To be used by the tour to be able to move
+        # To be used by plugins tracking main window size changes.
         self.sig_moved.emit(event)
 
     def hideEvent(self, event):
@@ -3700,14 +3704,6 @@ class MainWindow(QMainWindow):
             print(error)  # spyder: test-skip
             print(command)  # spyder: test-skip
 
-    # ---- Interactive Tours
-    def show_tour(self, index):
-        """Show interactive tour."""
-        self.maximize_dockwidget(restore=True)
-        frames = self.tours_available[index]
-        self.tour.set_tour(index, frames, self)
-        self.tour.start_tour()
-
     # ---- Global Switcher
     def open_switcher(self, symbol=False):
         """Open switcher dialog box."""
@@ -3821,19 +3817,6 @@ class MainWindow(QMainWindow):
 
         # Provide feeback when clicking menu if check on startup is on
         self.give_updates_feedback = True
-
-    @Slot()
-    def show_tour_message(self, force=False):
-        """
-        Show message about starting the tour the first time Spyder starts.
-        """
-        should_show_tour = CONF.get('main', 'show_tour_message')
-        if force or (should_show_tour and not running_under_pytest()
-                     and not get_safe_mode()):
-            CONF.set('main', 'show_tour_message', False)
-            self.tour_dialog = tour.OpenTourDialog(
-                self, lambda: self.show_tour(DEFAULT_TOUR))
-            self.tour_dialog.show()
 
     @Slot()
     def check_updates(self, startup=False):

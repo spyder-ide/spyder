@@ -784,6 +784,34 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
         New value of the changed option.
     """
 
+    sig_mainwindow_resized = Signal("QResizeEvent")
+    """
+    This signal is emitted when the main window is resized.
+
+    Parameters
+    ----------
+    resize_event: QResizeEvent
+        The event triggered on main window resize.
+
+    Notes
+    -----
+    To be used by plugins tracking main window size changes.
+    """
+
+    sig_mainwindow_moved = Signal("QMoveEvent")
+    """
+    This signal is emitted when the main window is moved.
+
+    Parameters
+    ----------
+    move_event: QMoveEvent
+        The event triggered on main window move.
+
+    Notes
+    -----
+    To be used by plugins tracking main window position changes.
+    """
+
     # --- Private attributes -------------------------------------------------
     # ------------------------------------------------------------------------
     # Define configuration name map for plugin to split configuration

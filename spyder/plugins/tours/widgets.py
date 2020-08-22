@@ -4,18 +4,11 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Spyder interactive tours"""
-
-# pylint: disable=C0103
-# pylint: disable=R0903
-# pylint: disable=R0911
-# pylint: disable=R0201
+"""Spyder interactive tour widgets."""
 
 # Standard library imports
-from __future__ import division
-
-import sys
 from math import ceil
+import sys
 
 # Third party imports
 from qtpy.QtCore import (QEasingCurve, QPoint, QPropertyAnimation, QRectF, Qt,
@@ -29,14 +22,12 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
                             QWidget)
 
 # Local imports
-from spyder import __docs_url__
-from spyder.api.panel import Panel
-from spyder.config.base import _, get_image_path
+from spyder.api.translations import get_translation
+from spyder.plugins.tours.tours import TEST_TOUR
+from spyder.config.base import get_image_path
 from spyder.config.gui import is_dark_interface
-from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils import icon_manager as ima
-
 
 if is_dark_interface():
     MAIN_TOP_COLOR = MAIN_BG_COLOR = QColor.fromRgb(25, 35, 45)
@@ -44,304 +35,11 @@ else:
     MAIN_TOP_COLOR = QColor.fromRgb(230, 230, 230)
     MAIN_BG_COLOR = QColor.fromRgb(255, 255, 255)
 
+# Localization
+_ = get_translation('spyder')
+
+
 MAC = sys.platform == 'darwin'
-
-# FIXME: Known issues
-# How to handle if an specific dockwidget does not exists/load, like ipython
-# on python3.3, should that frame be removed? should it display a warning?
-
-class SpyderWidgets(object):
-    """List of supported widgets to highlight/decorate"""
-    # Panes
-    ipython_console = 'ipyconsole'
-    editor = 'editor'
-    panel = Panel.Position.LEFT
-    editor_line_number_area = (
-        f'editor.get_current_editor().panels._panels[{panel}].values()')
-    editor_scroll_flag_area = 'editor.get_current_editor().scrollflagarea'
-    file_explorer = 'explorer'
-    help_plugin = 'help'
-    variable_explorer = 'variableexplorer'
-    history_log = "historylog"
-    plots_plugin = "plots"
-    find_plugin = "findinfiles"
-    profiler = "Profiler"
-    code_analysis = "Pylint"
-
-    # Toolbars
-    toolbars = ''
-    toolbars_active = ''
-    toolbar_file = ''
-    toolbar_edit = ''
-    toolbar_run = ''
-    toolbar_debug = ''
-    toolbar_main = ''
-
-    status_bar = ''
-    menu_bar = ''
-    menu_file = ''
-    menu_edit = ''
-
-
-def get_tours(index=None):
-    """
-    Get the list of available tours (if index=None), or the your given by
-    index
-    """
-    return get_tour(index)
-
-
-def get_tour(index):
-    """
-    This function generates a list of tours.
-
-    The index argument is used to retrieve a particular tour. If None is
-    passed, it will return the full list of tours. If instead -1 is given,
-    this function will return a test tour
-
-    To add more tours a new variable needs to be created to hold the list of
-    dicts and the tours variable at the bottom of this function needs to be
-    updated accordingly
-    """
-    sw = SpyderWidgets
-    qtconsole_link = "https://qtconsole.readthedocs.io/en/stable/index.html"
-    button_text = ""
-    if sys.platform != "darwin":
-        button_text = ("Please click on the button below to run some simple "
-                       "code in this console. This will be useful to show "
-                       "you other important features.")
-
-    # This test should serve as example of keys to use in the tour frame dics
-    test = [{'title': "Welcome to Spyder introduction tour",
-             'content': "<b>Spyder</b> is an interactive development \
-                         environment. This tip panel supports rich text. <br>\
-                         <br> it also supports image insertion to the right so\
-                         far",
-             'image': 'tour-spyder-logo.png'},
-
-            {'title': "Widget display",
-             'content': ("This show how a widget is displayed. The tip panel "
-                         "is adjusted based on the first widget in the list"),
-             'widgets': ['button1'],
-             'decoration': ['button2'],
-             'interact': True},
-
-            {'title': "Widget display",
-             'content': ("This show how a widget is displayed. The tip panel "
-                         "is adjusted based on the first widget in the list"),
-             'widgets': ['button1'],
-             'decoration': ['button1'],
-             'interact': True},
-
-            {'title': "Widget display",
-             'content': ("This show how a widget is displayed. The tip panel "
-                         "is adjusted based on the first widget in the list"),
-             'widgets': ['button1'],
-             'interact': True},
-
-            {'title': "Widget display and highlight",
-             'content': "This shows how a highlighted widget looks",
-             'widgets': ['button'],
-             'decoration': ['button'],
-             'interact': False},
-            ]
-
-    intro = [{'title': _("Welcome to the introduction tour!"),
-              'content': _("<b>Spyder</b> is a powerful Interactive "
-                           "Development Environment (or IDE) for the Python "
-                           "programming language.<br><br>"
-                           "Here, we are going to guide you through its most "
-                           "important features.<br><br>"
-                           "Please use the arrow keys or click on the buttons "
-                           "below to move along the tour."),
-              'image': 'tour-spyder-logo.png'},
-
-             {'title': _("Editor"),
-              'content': _("This is where you write Python code before "
-                           "evaluating it. You can get automatic "
-                           "completions while typing, along with calltips "
-                           "when calling a function and help when hovering "
-                           "over an object."
-                           "<br><br>The Editor comes "
-                           "with a line number area (highlighted here in red) "
-                           "where Spyder shows warnings and syntax errors. "
-                           "They can help you to detect potential problems "
-                           "before running your code.<br><br>"
-                           "You can also set debug breakpoints in the line "
-                           "number area by clicking next to "
-
-                           "any non-empty line."),
-              'widgets': [sw.editor],
-              'decoration': [sw.editor_line_number_area]},
-
-             {'title': _("IPython Console"),
-              'content': _("This is where you can run Python code, either "
-                           "from the Editor or interactively. To run the "
-                           "current file, press <b>F5</b> by default, "
-                           "or press <b>F9</b> to execute the current "
-                           "line or selection.<br><br>"
-                           "The IPython Console comes with many "
-                           "useful features that greatly improve your "
-                           "programming workflow, like syntax highlighting, "
-                           "autocompletion, plotting and 'magic' commands. "
-                           "To learn more, check out the "
-                           "<a href=\"{0}\">documentation</a>."
-                           "<br><br>{1}").format(qtconsole_link, button_text),
-              'widgets': [sw.ipython_console],
-              'run': [
-                  "test_list_tour = [1, 2, 3, 4, 5]",
-                  "test_dict_tour = {'a': 1, 'b': 2}",
-                  ]
-              },
-
-             {'title': _("Variable Explorer"),
-              'content': _("In this pane you can view and edit the variables "
-                           "generated during the execution of a program, or "
-                           "those entered directly in the "
-                           "IPython Console.<br><br>"
-                           "If you ran the code in the previous step, "
-                           "the Variable Explorer will show "
-                           "the list and dictionary objects it generated. "
-                           "By double-clicking any variable, "
-                           "a new window will be opened where you "
-                           "can inspect and modify their contents."),
-              'widgets': [sw.variable_explorer],
-              'interact': True},
-
-             {'title': _("Help"),
-              'content': _("This pane displays documentation of the "
-                           "functions, classes, methods or modules you are "
-                           "currently using in the Editor or the "
-                           "IPython Console."
-                           "<br><br>To use it, press <b>Ctrl+I</b> "
-                           "(<b>Cmd-I</b> on macOS) with the text cursor "
-                           "in or next to the object you want help on."),
-              'widgets': [sw.help_plugin],
-              'interact': True},
-
-             {'title': _("Plots"),
-              'content': _("This pane shows the figures and images created "
-                           "during your code execution. It allows you to browse, "
-                           "zoom, copy, and save the generated plots."),
-              'widgets': [sw.plots_plugin],
-              'interact': True},
-
-             {'title': _("Files"),
-              'content': _("This pane lets you browse the files and "
-                           "directories on your computer.<br><br>"
-                           "You can open any file in its "
-                           "corresponding application by double-clicking it, "
-                           "and supported file types will be opened right "
-                           "inside of Spyder.<br><br>"
-                           "The Files pane also allows you to copy one or "
-                           "many absolute or relative paths, automatically "
-                           "formatted as Python strings or lists, and perform "
-                           "a variety of other file operations."),
-              'widgets': [sw.file_explorer],
-              'interact': True},
-
-             {'title': _("History Log"),
-              'content': _("This pane records all the commands and code run "
-                           "in any IPython console, allowing you to easily "
-                           "retrace your steps for reproducible research."),
-
-              'widgets': [sw.history_log],
-              'interact': True},
-
-             {'title': _("Find"),
-              'content': _("The Find pane allows you to search for text in a "
-                           "given directory and navigate through all the found "
-                           "occurrences."),
-              'widgets': [sw.find_plugin],
-              'interact': True},
-
-             {'title': _("Profiler"),
-              'content': _("The Profiler helps you optimize your code by determining "
-                           "the run time and number of calls for every function and "
-                           "method used in a file. It also allows you to save and "
-                           "compare your results between runs."),
-              'widgets': [sw.profiler],
-              'interact': True},
-
-             {'title': _("Code Analysis"),
-              'content': _("The Code Analysis helps you improve the quality of "
-                           "your programs by detecting style issues, bad practices "
-                           "and potential bugs."),
-              'widgets': [sw.code_analysis],
-              'interact': True},
-
-             {'title': _("The end"),
-              'content': _('You have reached the end of our tour and are '
-                           'ready to start using Spyder! For more '
-                           'information, check out our '
-                           '<a href="{}">documentation</a>.'
-                           '<br><br>').format(__docs_url__),
-              'image': 'tour-spyder-logo.png'
-              },
-
-             ]
-
-#                   ['The run toolbar',
-#                       'Should be short',
-#                       ['self.run_toolbar'], None],
-#                   ['The debug toolbar',
-#                       '',
-#                       ['self.debug_toolbar'], None],
-#                   ['The main toolbar',
-#                       '',
-#                       ['self.main_toolbar'], None],
-#                   ['The editor',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.editor.dockwidget'], None],
-#                   ['The editor',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.outlineexplorer.dockwidget'], None],
-#
-#                   ['The menu bar',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.menuBar()'], None],
-#
-#                   ['The menu bar',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.statusBar()'], None],
-#
-#
-#                   ['The toolbars!',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.variableexplorer.dockwidget'], None],
-#                   ['The toolbars MO!',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.extconsole.dockwidget'], None],
-#                   ['The whole window?!',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self'], None],
-#                   ['Lets try something!',
-#                       'Spyder has differnet bla bla bla',
-#                       ['self.extconsole.dockwidget',
-#                        'self.variableexplorer.dockwidget'], None]
-#
-#                      ]
-
-    feat30 = [{'title': "New features in Spyder 3.0",
-               'content': _("<b>Spyder</b> is an interactive development "
-                            "environment based on bla"),
-               'image': 'spyder.png'},
-
-              {'title': _("Welcome to Spyder introduction tour"),
-               'content': _("Spyder is an interactive development environment "
-                            "based on bla"),
-               'widgets': ['variableexplorer']},
-              ]
-
-    tours = [{'name': _('Introduction tour'), 'tour': intro},
-             {'name': _('New features in version 3.0'), 'tour': feat30}]
-
-    if index is None:
-        return tours
-    elif index == -1:
-        return [test]
-    else:
-        return [tours[index]]
 
 
 class FadingDialog(QDialog):
@@ -399,7 +97,7 @@ class FadingDialog(QDialog):
         self._fade_running = True
         self.effect = QGraphicsOpacityEffect(self)
         self.setGraphicsEffect(self.effect)
-        self.anim = QPropertyAnimation(self.effect, to_binary_string("opacity"))
+        self.anim = QPropertyAnimation(self.effect, b"opacity")
 
     # --- public api
     def fade_in(self, on_finished_connect):
@@ -1400,8 +1098,13 @@ class OpenTourDialog(QDialog):
 
     def __init__(self, parent, tour_function):
         super().__init__(parent)
-        self.setWindowFlags(
-            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        if MAC:
+            flags = (self.windowFlags() | Qt.WindowStaysOnTopHint
+                     & ~Qt.WindowContextHelpButtonHint)
+        else:
+            flags = self.windowFlags() & ~Qt.WindowContextHelpButtonHint
+        self.setWindowFlags(flags)
+
         self.tour_function = tour_function
 
         # Image
@@ -1540,7 +1243,7 @@ class TourTestWindow(QMainWindow):
 
         effect = QGraphicsOpacityEffect(self.button2)
         self.button2.setGraphicsEffect(effect)
-        self.anim = QPropertyAnimation(effect, to_binary_string("opacity"))
+        self.anim = QPropertyAnimation(effect, b"opacity")
         self.anim.setStartValue(0.01)
         self.anim.setEndValue(1.0)
         self.anim.setDuration(500)
@@ -1582,13 +1285,14 @@ class TourTestWindow(QMainWindow):
         self.sig_moved.emit(event)
 
 
-def test():
-    """ """
-    app = QApplication([])
+def local_test():
+    from spyder.utils.qthelpers import qapplication
+
+    app = qapplication()
     win = TourTestWindow()
     win.show()
     app.exec_()
 
 
 if __name__ == '__main__':
-    test()
+    local_test()

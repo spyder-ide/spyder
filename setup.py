@@ -287,6 +287,7 @@ spyder_plugins_entry_points = [
     ('lsp_completion = spyder.plugins.completion.languageserver.plugin:'
      'LanguageServerPlugin'),
     'python = spyder.plugins.python.plugin:Python',
+    'tours = spyder.plugins.tours.plugin:Tours',
     ('variable_explorer = spyder.plugins.variableexplorer.plugin:'
      'VariableExplorer'),
     ('workingdir = spyder.plugins.workingdirectory.plugin:'
