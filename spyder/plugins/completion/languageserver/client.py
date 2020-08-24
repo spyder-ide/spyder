@@ -49,6 +49,7 @@ else:
 # Main constants
 LOCATION = osp.realpath(osp.join(os.getcwd(),
                                  osp.dirname(__file__)))
+SPYDER_ROOT = os.path.dirname(sys.modules['__main__'].__file__)
 PENDING = 'pending'
 SERVER_READY = 'server_ready'
 LOCALHOST = '127.0.0.1'
@@ -256,6 +257,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # Create server process
         self.server = QProcess(self)
         env = self.server.processEnvironment()
+
+        if DEV:
+            # Use local pyls instead of site-packages one
+            env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
 
         # Adjustments for the Python language server.
         if self.language == 'python':
