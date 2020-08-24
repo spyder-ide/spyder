@@ -115,16 +115,23 @@ class FindInFiles(SpyderPluginWidget):
 
     def show_max_results_input(self):
         """Show input dialog to set maximum amount of results."""
-        value, valid = QInputDialog.getInt(
-            self,
-            self.get_plugin_title(),
-            _('Set maximum number of results: '),
-            value=self.get_option('max_results'),
-            min=1,
-            step=1,
-        )
-        if valid:
-            self.set_max_results(value)
+        # Create dialog
+        dialog = QInputDialog(self)
+
+        # Set dialog properties
+        dialog.setModal(False)
+        dialog.setWindowTitle(self.get_plugin_title())
+        dialog.setLabelText(_('Set maximum number of results: '))
+        dialog.setInputMode(QInputDialog.IntInput)
+        dialog.setIntRange(1, 10000)
+        dialog.setIntStep(1)
+        dialog.setIntValue(self.get_option('max_results'))
+
+        # Connect slot
+        dialog.intValueSelected.connect(
+            lambda value: self.set_max_results(value))
+
+        dialog.show()
 
     def set_max_results(self, value):
         """Set maximum amount of results to add to result browser."""

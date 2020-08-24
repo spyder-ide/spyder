@@ -1,5 +1,4 @@
 channels:
-- spyder-ide
 - manics # Used by jupyter-desktop-server
 dependencies:
 # We can not refer to an environment.yml file from another

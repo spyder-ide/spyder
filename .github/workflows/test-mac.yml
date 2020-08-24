@@ -44,12 +44,8 @@ jobs:
       fail-fast: false
       matrix:
         INSTALL_TYPE: ['conda']
-        PYTHON_VERSION: ['3.7', '2.7']
+        PYTHON_VERSION: ['3.7']
         TEST_TYPE: ['fast', 'slow']
-        exclude:
-          - INSTALL_TYPE: 'conda'
-            PYTHON_VERSION: '2.7'
-            TEST_TYPE: 'slow'
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
@@ -104,7 +100,7 @@ jobs:
           conda info
           conda list
       - name: Run manifest checks
-        if: env.RUN_BUILD == 'true' && matrix.PYTHON_VERSION != '2.7'
+        if: env.RUN_BUILD == 'true'
         shell: bash -l {0}
         run: check-manifest
       - name: Run tests
