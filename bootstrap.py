@@ -20,6 +20,7 @@ See spyder-ide/spyder#741.
 # pylint: disable=C0413
 
 # Standard library imports
+import atexit
 import argparse
 import os
 import os.path as osp
@@ -27,10 +28,6 @@ import shutil
 import subprocess
 import sys
 import time
-
-# Third-party imports
-import pkg_resources
-
 
 time_start = time.time()
 
@@ -147,70 +144,39 @@ for path in os.listdir(DEPS_PATH):
     print("*. Patched sys.path with %s" % external_dep_path)
     i += 1
 
-# Install our PyLS subrepo in development mode. Else the server is unable
-# to load its plugins with setuptools.
-install_pyls_subrepo = False
-try:
-    pkg = pkg_resources.get_distribution('python-language-server')
+# Create an egg-info folder to declare the PyLS subrepo entry points.
+pyls_submodule = osp.join(DEPS_PATH, 'python-language-server')
+pyls_installation_dir = osp.join(pyls_submodule, '.installation-dir')
+pyls_installation_egg = osp.join(
+    pyls_submodule, 'python_language_server.egg-info')
 
-    # Remove the PyLS stable version first (in case it's present)
-    if ('external-deps' not in pkg.module_path and
-            'site-packages' in pkg.module_path):
-        print("*. Removing stable version of the PyLS.")
-        uninstall_with_pip = False
-        is_conda = osp.exists(osp.join(sys.prefix, 'conda-meta'))
 
-        if is_conda:
-            output = subprocess.check_output(
-                ['conda',
-                 'list',
-                 'python-language-server',
-                 '--json'],
-                shell=True if os.name == 'nt' else False
-            )
+def remove_pyls_installation():
+    shutil.rmtree(pyls_installation_dir, ignore_errors=True)
+    shutil.rmtree(pyls_installation_egg, ignore_errors=True)
 
-            # Remove with conda if the package was installed by conda
-            if b'pypi' not in output:
-                subprocess.check_output(
-                    ['conda',
-                     'remove',
-                     '-q',
-                     '-y',
-                     '--force',
-                     'python-language-server'],
-                    shell=True if os.name == 'nt' else False
-                )
-            else:
-                uninstall_with_pip = True
-        else:
-            uninstall_with_pip = True
 
-        if uninstall_with_pip:
-            subprocess.check_output(
-                ['pip',
-                 'uninstall',
-                 '-q',
-                 '-y',
-                 'python-language-server']
-            )
-        install_pyls_subrepo = True
-except pkg_resources.DistributionNotFound:
-    # This could only happen if the PyLS was not previously installed
-    install_pyls_subrepo = True
+if osp.exists(pyls_installation_dir) or osp.exists(pyls_installation_egg):
+    # Remove any leftover installation from previous execution
+    print("*. Removing previous PyLS local installation.")
+    remove_pyls_installation()
 
-if install_pyls_subrepo:
-    print("*. Installing the PyLS in development mode")
-    PYLS_PATH = osp.join(DEPS_PATH, 'python-language-server')
-    subprocess.check_output(
-        [sys.executable,
-         '-m',
-         'pip',
-         'install',
-         '--no-deps',
-         '-e',
-         '.'],
-        cwd=PYLS_PATH
-    )
+# Install PyLS locally
+print("*. Installing PyLS locally")
+subprocess.check_output(
+    [sys.executable,
+     '-W',
+     'ignore',
+     'setup.py',
+     'develop',
+     '--no-deps',
+     '--install-dir',
+     pyls_installation_dir],
+    env={'PYTHONPATH': pyls_installation_dir},
+    cwd=pyls_submodule
+)
+
+atexit.register(remove_pyls_installation)
 
 # Selecting the GUI toolkit: PyQt5 if installed
 if args.gui is None:
