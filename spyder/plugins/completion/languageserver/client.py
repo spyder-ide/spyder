@@ -49,7 +49,6 @@ else:
 # Main constants
 LOCATION = osp.realpath(osp.join(os.getcwd(),
                                  osp.dirname(__file__)))
-SPYDER_ROOT = os.path.dirname(sys.modules['__main__'].__file__)
 PENDING = 'pending'
 SERVER_READY = 'server_ready'
 LOCALHOST = '127.0.0.1'

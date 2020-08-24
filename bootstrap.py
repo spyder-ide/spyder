@@ -156,7 +156,7 @@ def remove_pyls_installation():
     shutil.rmtree(pyls_installation_egg, ignore_errors=True)
 
 
-if osp.exists(pyls_installation_dir):
+if osp.exists(pyls_installation_dir) or osp.exists(pyls_installation_egg):
     # Remove any leftover installation from previous execution
     print("*. Removing previous PyLS local installation.")
     remove_pyls_installation()
