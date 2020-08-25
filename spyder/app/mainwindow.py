@@ -1221,6 +1221,13 @@ class MainWindow(QMainWindow):
             self.register_plugin(self.pylint)
             self.thirdparty_plugins.append(self.pylint)
 
+        # VCS plugin
+        if CONF.get('vcs', 'enable'):
+            from spyder.plugins.vcs.plugin import VCS
+            self.vcs = VCS(self, configuration=CONF)
+            self.register_plugin(self.vcs)
+            self.thirdparty_plugins.append(self.vcs)
+
         # Third-party plugins
         from spyder import dependencies
 

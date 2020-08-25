@@ -187,12 +187,13 @@ class BranchesComboBox(QComboBox):
         """Clear and re-add branches."""
         def _task():
             """Task executed in another thread."""
-            if manager.check_features("current-branch", suppress_raise=True):
+
+            if manager.type_().branch.fget.enabled:
                 current_branch = manager.branch
             else:
                 current_branch = None
 
-            if manager.check_features("branches", suppress_raise=True):
+            if manager.type_().branches.fget.enabled:
                 self._branches.extend(manager.editable_branches)
             elif current_branch is not None:
                 self._branches.append(manager.branch)

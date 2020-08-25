@@ -12,36 +12,102 @@
 #       (consistency, abbreviations and style)
 
 # Standard library imports
-import functools
 import typing
 
 # Local imports
 from .errors import VCSError, VCSBackendFail
 
-_decorated = typing.Callable[..., object]
+_generic_func = typing.Callable[..., object]
 
 
-def checker(*features: str) -> _decorated:
+def feature(
+    name: str = None,
+    enabled: bool = True,
+    extra: typing.Optional[typing.Dict[object,
+                                       object]] = None) -> _generic_func:
     """
-    Check features before running.
+    Decorate a function to become a feature.
+
+    A feature is a function (or any callable)
+    that implement a particular prototype of API specification.
+
+    The main purpose of a feature is introspection.
+    In fact, a feature hold several informations
+    about the wrapped function.
+    These informations are set to the decorared function
+    to be getted easily.
 
     Parameters
     ----------
-    *features : str
-        A list of features to the checker.
+    name : str, optional
+        The feature unique name.
+        The default is None, that allows to use the function name.
+
+        .. note::
+            The feature name can be getted using the standard `__name__`
+            attribute.
+
+    enabled : bool, optional
+        True if the feature can be used,
+        False otherwise and calling it raise a :class:`NotImplementedError`.
+        The default is True.
+
+    extra : Dict[str, object], optional
+        Extra arguments which define the feature behaviour.
+        Should be defined by the API specification.
+
+    .. warning::
+        If you want to decorate a property getter,
+        don't decorate the property object.
 
     See Also
     --------
-    check_features
-    """
-    def _decorator(func: _decorated) -> _decorated:
-        @functools.wraps(func)
-        def wrapper(self, *args: object,
-                    **kwargs: object) -> object:  # type: ignore
-            self.check_features(*features)
-            return func(self, *args, **kwargs)
+    feature
+        A decorator for wrapping functions as feature.
 
-        return wrapper
+    Examples
+    --------
+    Here is some examples of feature definitions.
+
+    Define a feature with its name
+
+    >>> @feature(name="feature")
+    ... def my_feature_implementation(arg1, ..., argn):
+    ...     # Feature code
+    <function my_feature_implementation at 0xnnnnnnnnnnnn>
+
+    Define a feature using the function name as feature name
+
+    >>> @feature()
+    ... def feature(arg1, ..., argn):
+    ...     # Feature code
+    <function feature at 0xnnnnnnnnnnnn>
+
+    Define a disabled feature
+
+    >>> @feature(enabled=False)
+    ... def feature(arg1, ..., argn):
+    ...     pass
+    <function feature at 0xnnnnnnnnnnnn>
+
+    Define a feature with some extras
+
+    >>> @feature(extra={"my_extra": "value"})
+    ... def feature(arg1, ..., argn):
+    ...     # Feature code
+    <function feature at 0xnnnnnnnnnnnn>
+    """
+    if extra is None:
+        extra = {}
+
+    def _decorator(func: _generic_func) -> _generic_func:
+        if name is not None:
+            # Set the new function name
+            func.__name__ = name
+        func.enabled = enabled
+        func.extra = extra
+        func._is_feature = True
+        return func
 
     return _decorator
 
@@ -124,7 +190,6 @@ class VCSBackendBase(object):
     """
     Uniforms VCS fundamental operations across different VCSs.
 
-
     **Error handling**
 
     By default, if a generic error occurred,
@@ -143,56 +208,141 @@ class VCSBackendBase(object):
     VCSBackendManager
     """
 
-    FEATURES: typing.Dict[str, bool] = {
-        "file-state": False,
-        "file-diff": False,
-        "current-branch": False,
-        "change-branch": False,
-        "branches": False,
-        "manage-branches": False,
-        "stage-unstage": False,
-        "commit": False,
-        "pull": False,
-        "push": False,
-        "undo": False,
-        "history": False,
-        "merge": False,
-    }
-    # ???: list properties and methods associated to each feature here
+    # Defined groups with associated members
+    GROUPS_MAPPING: typing.Dict[str, typing.Sequence[typing.Union[typing.Tuple[
+        str, str], str]]] = {
+            "create": ("create", ),
+            "status": (
+                ("branch", "fget"),
+                "change",
+                ("changes", "fget"),
+            ),
+            "branches": (
+                ("branch", "fget"),
+                ("branch", "fset"),
+                ("remote_branch", "fget"),
+                ("branches", "fget"),
+                ("editable_branches", "fget"),
+                "create_branch",
+                "delete_branch",
+            ),
+            "diff": (),
+            "stage-unstage": (
+                "stage",
+                "unstage",
+                "stage_all",
+                "unstage_all",
+                "undo_stage",
+            ),
+            "commit": ("commit", "undo_commit"),
+            "remote": ("fetch", "push", "pull"),
+            "undo":
+            ("undo_commit", "undo_stage", "undo_change", "undo_change_all"),
+            "history": (),
+            "merge": (),
+        }
     """
-    Supported VCS features.
+    VCS features groups mapping.
 
-    - file-state: Allows to get the current state of files in the repo.
+    **Groups descrtiption**
+    Here are listed all the supported groups.
 
-    - file-diff: Allows to get the difference between the current revision
-                 and the the old one (upstream).
+    Each group name has a short description and a list of members
+    that belong to the group.
+    Each member has a short description and,
+    for properties, each operation is specified by the classifier
+    and has its own section.
 
-    - current-branch: Allows to get the current branch where the local repo is.
+    - create: Allows to create a new local repository or get it from an URI.
 
-    - change-branch: Allows to change the current branch.
+        :func:`~VCSBackendBase.create`
+            Create a repository and initialize the backend.
 
-    - branches: Allows to get all the branches (local and remote if supported).
+    - status: Allows to get the current repository status.
 
-    - manage-branches: Allows to create, edit, and delete branches.
+        :attr:`~VCSBackendBase.branch` : getter
+            Current local branch (provided by branches)
+
+        :func:`~VCSBackendBase.change`
+            File state (staged status provided by stage-unstage).
+
+        :attr:`~VCSBackendBase.changes` : getter
+            All files states (staged status provided by stage-unstage)
+
+    - branches: Allows to manage the branches
+        :attr:`~VCSBackendBase.branch` : getter
+            Current local branch.
+
+        :attr:`~VCSBackendBase.branch` : setter
+            Change the current local branch.
+
+        .. Maybe?
+        .. :attr:`~VCSBackendBase.remote_branch` : getter
+        ..     Current remote branch.
+
+        :attr:`~VCSBackendBase.branches` : getter
+            A list of branches.
+
+        :attr:`~VCSBackendBase.editable_branches` : getter
+            A subset of branches that contains only editable branches.
+
+        :func:`~VCSBackendBase.create_branch`
+            Create a new branch.
+
+        :func:`~VCSBackendBase.delete_branch`
+            Delete the branch.
+
+    - diff: WIP specification.
 
     - stage-unstage: Allows to change a file state
-                     from staged to unstaged and viceversa.
-                     This feature can be implemented by doing nothing
-                     if the VCS does not have a staging area.
+      from staged to unstaged and viceversa.
 
-    - commit: Allows to create a revision from staged file.
+        :func:`~VCSBackendBase.stage`
+            Stage a file.
 
-    - fetch: Allows to download the remote repository state.
+        :func:`~VCSBackendBase.unstage`
+            Unstage a file.
 
-    - pull: Allows to update the current branch to the latest revision.
+        :func:`~VCSBackendBase.stage_all`
+            Stage all the files.
 
-    - push: Allows to upload a revision to the remote repository.
+        :func:`~VCSBackendBase.unstage_all`
+            Unstage al the files.
 
-    - undo: Allows to undo operations. This feature usually complete another.
+    - commit: Allows to create a revision.
+        :func:`~VCSBackendBase.commit`
+            Do a commit.
 
-    - history: Allows to see previous commits.
+    - remote: Allows to do operations on remote repository.
+        :func:`~VCSBackendBase.fetch` (sync=False)
+            Compare the local branch with the remote one.
 
-    - merge: Allows to join 2 revision.
+        :func:`~VCSBackendBase.fetch` (sync=True)
+            Download the remote repository state.
+
+        :func:`~VCSBackendBase.pull`
+            Update the current branch to the latest revision.
+
+        :func:`~VCSBackendBase.push`
+            Upload the local revision to the remote repository.
+
+    - undo: Allows to undo an operation in the repository
+        :func:`~VCSBackendBase.undo_commit`
+            Undo the last commit.
+
+        :func:`~VCSBackendBase.undo_stage`
+            Unstage a file (same as unstage)
+
+        :func:`~VCSBackendBase.undo_change`
+            Remove all the changes in a file.
+            This operation can't be recovered.
+
+        :func:`~VCSBackendBase.undo_change_all`
+            Remove all the changes in any changed file.
+            This operation can't be recovered.
+
+    - history: WIP specification.
+    - merge: WIP specification.
     """
 
     REQUIRED_CREDENTIALS: typing.Sequence[str] = None
@@ -212,51 +362,40 @@ class VCSBackendBase(object):
 
     # --- Non-features ---
     @classmethod
-    def check_features(cls,
-                       *features: str,
-                       suppress_raise: bool = False) -> bool:
-        """
-        Check if given features are supported.
-
-        Parameters
-        ----------
-        *features : str
-            The feature to check for.
-         suppress_raise : bool, optional
-            If True, a NotImplementedError will not be raised
-            when a feature is not supported. The default is False.
-
-        Raises
-        ------
-        NotImplementedError
-            If one of the feature is not supported
-        ValueError
-            If one of the feature is invalid
-
-        Returns
-        -------
-        bool
-            True that means that all the features are supported.
-            False if suppress_raise is True
-            and one of the feature is not supported.
-        """
-        for feature in features:
-            enabled = cls.FEATURES.get(feature)
-            if enabled is None:
-                raise ValueError("Invalid feature {}".format(feature))
-
-            if not enabled:
-                if suppress_raise:
-                    return False
-                raise NotImplementedError(
-                    "Feature {} is not implemented for {}".format(
-                        feature, cls.VCSNAME))
-
-        return True
+    def check(group: str, all: bool = True) -> bool:
+        raise NotImplementedError()
 
     def __init__(self, repodir: str):
         super().__init__()
         self.repodir = repodir
+
+    def __init_subclass__(cls, **kwargs):
+        """Adjust subclass attributes to match the feature name."""
+        super().__init_subclass__(**kwargs)
+        attrs = {
+            key: getattr(cls, key)
+            for key in dir(cls) if not key.startswith("_")
+        }
+
+        for key, attr in attrs.items():
+            # check if attr is a feature.
+            if getattr(attr, "_is_feature", False):
+                if attr.__name__ != key:
+                    # This approach can broke the backend
+                    # if the attribute already exists.
+
+                    # if getattr(cls, attr.__name__, None):
+                    #     print("Attribute", attr.__name__, "overriden")
+                    setattr(cls, attr.__name__, attr)
+
+    def type_(self) -> type:
+        """
+        Get the backend type.
+
+        Useful when the backend object is hidden by the manager
+        and you need to access to properties features.
+        """
+        return type(self)
 
     @property
     def credentials(self) -> typing.Dict[str, object]:
@@ -302,49 +441,158 @@ class VCSBackendBase(object):
     def credentials(self) -> None:
         raise NotImplementedError("Credential property is not implemented")
 
-    # features
+    # --- Features ---
+
+    # Create group
+    @classmethod
+    @feature(enabled=False)
+    def create(
+            cls,
+            path: str,
+            from_: str = None,
+            credentials: typing.Dict[str, object] = None) -> "VCSBackendBase":
+        """
+        Create a new repository in the given path.
+
+        Parameters
+        ----------
+        path : str
+            The path where the repository directory will be created.
+            The directory must not exists as it will be created by this method,
+            or by a call to the VCS.
+
+        from_ : str, optional
+            An URL to an existing repository.
+            That repository will be cloned into the given path.
+            The default is None.
+
+        credentials : Dict[str, object]
+            A :attr:`~VCSBackendBase.credentials` like dict.
+            Used only if from_ is provided and
+            the VCS requires remote authentication.
+
+        Returns
+        -------
+        VCSBackendBase
+            The instance for the given repository path.
+
+        Raises
+        ------
+        OSError
+            If the directory creation fails for any reason
+            (see :func:`os.makedirs` for more information).
+
+        NotImplementedError
+            If `from_` is specified and
+            there is at least one missing feature.
+
+        VCSAuthError
+            If the credentials are wrong or missing.
+            The directory will be deleted before raising the exception.
+        """
+
+    # Status group
     @property
-    @checker("current-branch")
+    @feature(enabled=False, extra={"states": ()})
+    def changes(self) -> typing.Sequence[typing.Dict[str, object]]:
+        """
+        A list of changed files and its states.
+
+        **Get** (requires file-state)
+
+        Get a list of all the changes in the repository.
+        Each element is a dict that represents the file state.
+
+        .. warning::
+            If VCS supports the staging area and
+            a path in both the staged and unstaged area,
+            that path will have a state for the unstaged area
+            and another stage for the staged area.
+
+        .. important::
+            Implementations must list the supported state keys
+            in the feature extra, under the states key.
+
+        See Also
+        --------
+        change
+            For a detailed description of states.
+        """
+
+    @feature(enabled=False, extra={"states": ()})
+    def change(self,
+               path: str,
+               prefer_unstaged: bool = False) -> typing.Dict[str, object]:
+        """
+        Get the state dict associated of path.
+
+        The state dict can have several optional fields (all of them optional):
+
+        path : :class:`str`
+            The path to the file.
+
+        kind : :class:`int`
+            What change is occurred to the file.
+            Possible values are listed in :class:`~ChangedStatus`.
+
+        staged : :class:`bool`
+            Indicate if the file is staged or not.
+
+        comment : :class:`str`
+            Describe the changes.
+            Do not confuse it with the commit description.
+
+        .. important::
+            Implementations must list the supported state keys
+            in the feature extra, under the states key.
+
+            There you can add VCS-dependent keys.
+
+        Parameters
+        ----------
+        path : str
+            The relative path.
+
+        prefer_unstaged : bool
+            If True, if the path has both the staged status
+            and the unstaged one, the latter will be returned.
+            Otherwise the first will be returned.
+            The default is False.
+
+        Returns
+        -------
+        Dict[str, object]
+            The file state.
+        """
+
+    # Branch group
+    @property
+    @feature(enabled=False)
     def branch(self) -> str:
         """
         Handle the current repository branch.
 
-        This property support get, set and del.
-
-        **Get** (Requires current-branch)
+        **Get**
 
         Return the current branch/tag/revision where the local repo is
 
-        **Set** (Requires change-branch)
+        **Set**
 
         Set the current branch to the given one.
 
         The given branch must exist in the repository.
         Implementations must raises an error if the given branch
         does not exists.
-
-        **Del** (Requires manage-branches)
-
-        Delete the current branch.
-
-        .. warning::
-            This deleter can fail even if the manage-branches is enabled.
-            It's the caller reponsibility to handle the exception.
         """
 
     @branch.setter
-    @checker("change-branch")
+    @feature(enabled=False)
     def branch(self, branchname: str) -> None:  # pylint: disable=W0613
         pass
 
-    @branch.deleter
-    @checker("manage-branches")
-    def branch(self) -> None:
-        pass
-
     @property
-    @checker("branches")
-    def branches(self) -> typing.List[str]:
+    @feature(enabled=False)
+    def branches(self) -> typing.Sequence[str]:
         """
         A list of branch names.
 
@@ -353,127 +601,135 @@ class VCSBackendBase(object):
         Get a list of branches.
         The list may not include tags or other revisions that are VCS-specific.
 
-        .. warning::
-            The implementation can return an observable list
-            that reflect its changes to the VCS.
-            It is encouraged to make a shallow copy before editing it.
-
         See Also
         --------
         editable_branches
         """
 
     @property
-    @checker("branches")
+    @feature(enabled=False)
     def editable_branches(self) -> typing.List[str]:
         """
         A list of editable branch names.
 
         An editable branch is a branch where committing is allowed.
 
-        If VCS do not support this difference,
-        all the branches will be returned.
+        If the VCS do not support this difference,
+        :attr:`~VCSBackendBase.branches` is returned instead.
 
-        **Get** (requires branches)
-
-
-        Get a list of editable branches.
+        **Get**
+            Get a list of editable branches.
 
         See Also
         --------
         branches
         """
-        return self.branches.copy()
+        return self.branches
 
-    @property
-    @checker("file-state")
-    def changes(self) -> typing.List[typing.Dict[str, object]]:
+    @feature(enabled=False)
+    def create_branch(self,
+                      branchname: str,
+                      from_current: bool = False) -> bool:
         """
-        A list of changed files and its states.
+        Create a new branch.
 
-        **Get** (requires file-state)
+        Branch creation is possible only if another branch
+        with the same name does not exists.
 
-        Get a list of changed paths,
-        associated with a dict containing file state.
+        Parameters
+        ----------
+        branchname : str
+            The branch name.
 
-        Warnings
+        from_current : bool, optional
+            Allow to clone the current branch into the new one.
+            The default is False, that create an empty branch
+
+        Returns
         -------
-        If VCS supports the staging area and
-        a path has both an unstaged and staged status,
-        each status is
-
-        See Also
-        --------
-        change
-            The change method for a detailed description of states.
+        bool
+            True if the current branch is the given one, False otherwise.
         """
 
-    @checker("file-state")
-    def change(self, path: str) -> typing.Dict[str, object]:
+    @feature(enabled=False)
+    def delete_branch(self, branchname: str) -> bool:
         """
-        Get the state dict associated of path (requires file-state).
+        Delete an existing branch.
 
-        The state dict can have several fields (all of them optional):
+        Branch deletion is possible only if
+        the following conditions are satisfied:
 
-        - path: the path to the file (mostly used by the changes property)
+        - The current branch must be different compared to the current one.
+        - Should be a local branch (removing a remote branch
+          or a non-editable branch depends on both the VCS
+          and the implementation and can cause weird behaviours
+          or unwanted exceptions).
 
-        - kind: what change is occurred to the file.
-                Possible values are listed in ChangedStatus.
+        Parameters
+        ----------
+        branchname : str
+            The branch name.
 
-        - staged: a flag indicated if the file is staged or not
-
-        - comment: a comment describing the changes.
-                   Do not confuse it with the commit description.
-
-        .. note::
-            The backend can add extra VCS-dependent fields.
-
-        .. note::
-            The usage of the UNCHANGED state is VCS-dependent.
+        Returns
+        -------
+        bool
+            True if the given branch was existed, False otherwise.
+        """
+    # Stage-unstage group
+    @feature(enabled=False)
+    def stage(self, path: str) -> bool:
+        """
+        Set the given path state to staged.
 
         Parameters
         ----------
         path : str
-            The relative path.
+            The path to add to the stage area.
 
         Returns
         -------
-        dict
-            The file state.
-
-        Warnings
-        --------
-        Implementations can use an immutable mapping instead of dict
-        to improve performance/saving memory.
-        If you need to change it, cast it into a dict.
-
-        Implementation specific:
-        Even if all the fields are optional,
-        the ideal goal is to implement all of them,
-        unless the underlying VCS has no support for some of them.
+        True if the path is staged (or the file is already staged),
+        False otherwise.
         """
 
-    @checker("stage-unstage")
-    def stage(self, path: str) -> bool:
-        """
-        Set the given path state to staged (requires stage-unstage).
-
-        Returns
-        -------
-        True if the path is now staged, False otherwise.
-        """
-
-    @checker("stage-unstage")
+    @feature(enabled=False)
     def unstage(self, path: str) -> bool:
         """
-        Clear the given path state to be staged (requires stage-unstage).
+        Clear the given path state to be staged.
+
+        Parameters
+        ----------
+        path : str
+            The path to add to the unstage area.
 
         Returns
         -------
-        True if the path is now unstaged, False otherwise.
+        True if the path is unstaged (or the file is already unstaged),
+        False otherwise.
         """
 
-    @checker("commit")
+    @feature(enabled=False)
+    def stage_all(self) -> bool:
+        """
+        Set all the unstaged paths to staged.
+
+        Returns
+        -------
+        True if there are no unstaged file left, False otherwise.
+        """
+
+    @feature(enabled=False)
+    def unstage_all(self) -> bool:
+        """
+        Set all the staged paths to unstaged.
+
+        Returns
+        -------
+        True if there are no staged file left, False otherwise.
+        """
+
+    # Remote group
+    @feature(enabled=False)
     def commit(self,
                message: str,
                is_path: typing.Optional[bool] = None) -> bool:
@@ -482,10 +738,10 @@ class VCSBackendBase(object):
 
         Parameters
         ----------
-        message
+        message : str
             The commit message or the path to that.
 
-        is_path
+        is_path : bool
             Specify if the given message parameter is a path or not.
             By default is None, that let this to decide.
 
@@ -500,7 +756,7 @@ class VCSBackendBase(object):
             wrong credentials were given.
         """
 
-    @checker("pull")
+    @feature(enabled=False)
     def fetch(self, sync: bool = False) -> typing.Tuple[int, int]:
         """
         Scan the current local branch to get commit status.
@@ -534,7 +790,7 @@ class VCSBackendBase(object):
             However, the return value should be processed in object case.
         """
 
-    @checker("pull")
+    @feature(enabled=False)
     def pull(self, fetch: bool = True) -> bool:  # pylint: disable=W0613
         """
         Get latest revision from remote.
@@ -557,7 +813,7 @@ class VCSBackendBase(object):
             wrong credentials were given.
         """
 
-    @checker("push")
+    @feature(enabled=False)
     def push(self) -> bool:
         """
         Get latest revision from remote.

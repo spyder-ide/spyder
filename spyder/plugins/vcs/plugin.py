@@ -14,10 +14,12 @@ import typing
 # Third party imports
 import qtawesome as qta
 from qtpy.QtCore import Signal, Slot
+from qtpy.QtWidgets import QAction
 
 # Local imports
 from spyder.api.plugins import Plugins, SpyderDockablePlugin
 from spyder.api.translations import get_translation
+from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import toggle_actions
 
@@ -31,7 +33,9 @@ _ = get_translation('spyder')
 
 
 class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
-    """VCS plugin."""
+    """
+    VCS plugin.
+    """
 
     NAME = 'VCS'
     REQUIRES = [Plugins.Projects]
@@ -39,6 +43,7 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
     WIDGET_CLASS = VCSWidget
     CONF_SECTION = NAME
 
+    # Signals definition
     sig_repository_changed = Signal(str, str)
     """
     This signal is emitted when the current managed repository change.
@@ -63,8 +68,75 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
     :py:meth:`VCS.set_repository_root` instead.
     """
 
+    # Actions defintion
+    stage_all_action: QAction
+    """
+    Action for stage all the unstaged changes.
+
+    When triggered,
+    the :py:meth:`~VCSBackendBase.stage_all` method is called.
+    """
+
+    unstage_all_action: QAction
+    """
+    Action for unstage all the staged changes.
+
+    When triggered,
+    the :py:meth:`~VCSBackendBase.unstage_all` method is called.
+    """
+
+    commit_action: QAction
+    """
+    Action for commit.
+
+    When triggered and there is a commit message,
+    the :py:meth:`~VCSBackendBase.commit` method is called.
+    """
+
+    fetch_action: QAction
+    """
+    Action for fetch.
+
+    When triggered, the :py:meth:`~VCSBackendBase.fetch` method is called.
+    """
+
+    pull_action: QAction
+    """
+    Action for pull.
+
+    When triggered, the :py:meth:`~VCSBackendBase.pull` method is called.
+    """
+
+    push_action: QAction
+    """
+    Action for push.
+
+    When triggered, the :py:meth:`~VCSBackendBase.push` method is called.
+    """
+
+    # Other attributes definition
+
+    vcs_manager: VCSBackendManager
+    """
+    The manager for the current VCS.
+
+    This can be used to get information about the repository.
+
+    .. warning::
+        Any call to the manager blocks the current thread and
+        may invoke subprocess or other long-running operation.
+        Is preferrable to run them in a separate thread and
+        wait the result asynchronously.
+
+    .. danger::
+        Do any operation that changes the repository state
+        will break the VCS pane UI.
+        Use actions where possible.
+    """
     def __init__(self, *args, **kwargs):
         self.vcs_manager = VCSBackendManager(None)
+        # workaround when imported as 3rd party plugin
+        kwargs.setdefault("configuration", CONF)
         super().__init__(
             *args,
             **kwargs,
@@ -139,17 +211,15 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
                  self.push_action, self.refresh_action), False)
             self.sig_repository_changed.emit(None, None)
         else:
-            for (action, feature) in (
+            for (action, featurename) in (
                 (self.commit_action, "commit"),
-                (self.fetch_action, "pull"),
+                (self.fetch_action, "fetch"),
                 (self.pull_action, "pull"),
                 (self.push_action, "push"),
             ):
-                action.setEnabled(
-                    self.vcs_manager.check_features(
-                        feature,
-                        suppress_raise=True,
-                    ))
+                feature = getattr(self.vcs_manager, featurename, None)
+                if feature is not None:
+                    action.setEnabled(feature.enabled)
             self.refresh_action.setEnabled(True)
             self.sig_repository_changed.emit(self.vcs_manager.repodir,
                                              self.vcs_manager.VCSNAME)
@@ -164,6 +234,24 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
     def _create_actions(self):
         # TODO: Add tips
         create_action = self.create_action
+        self.stage_all_action = create_action(
+            "vcs_stage_all_action",
+            _("stage all"),
+            icon=qta.icon("fa.long-arrow-down", color=ima.MAIN_FG_COLOR),
+            icon_text=_("stage all"),
+            # tip=_("ADD TIP HERE"),
+            shortcut_context=self.NAME,
+            triggered=lambda: None,
+        )
+        self.unstage_all_action = create_action(
+            "vcs_unstage_all_action",
+            _("unstage all"),
+            icon=qta.icon("fa.long-arrow-up", color=ima.MAIN_FG_COLOR),
+            icon_text=_("unstage all"),
+            # tip=_("ADD TIP HERE"),
+            shortcut_context=self.NAME,
+            triggered=lambda: None,
+        )
         self.commit_action = create_action(
             "vcs_commit_action",
             _("commit"),
@@ -171,7 +259,6 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
             icon_text=_("commit"),
             # tip=_("ADD TIP HERE"),
             shortcut_context=self.NAME,
-            # Workaround for prevent create_action to raise an error
             triggered=lambda: None,
         )
 
@@ -182,7 +269,6 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
             icon_text=_("fetch"),
             # tip=_("ADD TIP HERE"),
             shortcut_context=self.NAME,
-            # Workaround for prevent create_action to raise an error
             triggered=lambda: None,
         )
 
@@ -193,7 +279,6 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
             icon_text=_("pull"),
             # tip=_("ADD TIP HERE"),
             shortcut_context=self.NAME,
-            # Workaround for prevent create_action to raise an error
             triggered=lambda: None,
         )
 
@@ -204,7 +289,6 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
             icon_text=_("push"),
             # tip=_("ADD TIP HERE"),
             shortcut_context=self.NAME,
-            # Workaround for prevent create_action to raise an error
             triggered=lambda: None,
         )
 
@@ -215,6 +299,5 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
             icon_text=_("refresh"),
             # tip=_("ADD TIP HERE"),
             shortcut_context=self.NAME,
-            # Workaround for prevent create_action to raise an error
             triggered=lambda: None,
         )

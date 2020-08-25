@@ -11,6 +11,7 @@
 # pylint: disable = W0201
 
 # Standard library imports
+from collections.abc import Sequence
 import functools
 import typing
 
@@ -39,8 +40,7 @@ class VCSWidget(PluginMainWidget):
 
     DEFAULT_OPTIONS = {}
 
-    sig_auth_operation = Signal((str, ), (str, tuple, dict),
-                                (str, tuple, dict, str))
+    sig_auth_operation = Signal((str, ), (str, tuple, dict))
     """
     This signal is emitted when an auth operation is requested
 
@@ -98,8 +98,8 @@ class VCSWidget(PluginMainWidget):
             toolbar = QHBoxLayout()
 
             self.branch_select = BranchesComboBox(plugin.vcs_manager, None)
-            self.branch_select.setDisabled(not manager.check_features(
-                "change-branch", suppress_raise=True))
+            self.branch_select.setDisabled(
+                not manager.type_().branch.fset.enabled)
             self.branch_select.setSizePolicy(
                 QSizePolicy(
                     QSizePolicy.Expanding,
@@ -115,9 +115,9 @@ class VCSWidget(PluginMainWidget):
             rootlayout.addLayout(toolbar)
 
             # --- Changes ---
-            if manager.check_features("file-state", suppress_raise=True):
-                is_stage_supported = manager.check_features(
-                    "stage-unstage", suppress_raise=True)
+            if manager.type_().changes.fget.enabled:
+                is_stage_supported = (manager.stage.enabled
+                                      and manager.unstage.enabled)
 
                 # header
                 header_layout = QHBoxLayout()
@@ -135,12 +135,28 @@ class VCSWidget(PluginMainWidget):
                 rootlayout.addWidget(self.unstaged_files)
 
                 if is_stage_supported:
+                    if manager.stage_all.enabled:
+                        header_layout.addWidget(
+                            action2button(
+                                plugin.stage_all_action,
+                                parent=self,
+                                text_beside_icon=True,
+                            ))
                     # --- Staged changes ---
 
                     # header
                     header_layout = QHBoxLayout()
                     header_layout.addWidget(QLabel("<h3>Staged changes</h3>"))
                     header_layout.addStretch(1)
+
+                    if manager.unstage_all.enabled:
+                        header_layout.addWidget(
+                            action2button(
+                                plugin.unstage_all_action,
+                                parent=self,
+                                text_beside_icon=True,
+                            ))
+
                     rootlayout.addLayout(header_layout)
 
                     # staged list
@@ -150,7 +166,7 @@ class VCSWidget(PluginMainWidget):
                     rootlayout.addWidget(self.staged_files)
 
             # --- Commit ---
-            if manager.check_features("commit", suppress_raise=True):
+            if manager.commit.enabled:
                 # commit message
                 self.commit_message = QPlainTextEdit()
                 self.commit_message.setPlaceholderText(_("Commit message ..."))
@@ -176,28 +192,30 @@ class VCSWidget(PluginMainWidget):
             QCoreApplication.processEvents()
 
             # --- History ---
-            if manager.check_features("history", suppress_raise=True):
+            # if manager.history.enabled:
 
-                self.history = QTreeWidget()
-                self.history.setHeaderHidden(True)
-                self.history.setRootIsDecorated(False)
-                rootlayout.addWidget(self.history)
-            else:
-                rootlayout.addStretch(1)
+            #     self.history = QTreeWidget()
+            #     self.history.setHeaderHidden(True)
+            #     self.history.setRootIsDecorated(False)
+            #     rootlayout.addWidget(self.history)
+            # else:
+            #     rootlayout.addStretch(1)
+            rootlayout.addStretch(1)
 
             # --- Commands ---
             commandslayout = QHBoxLayout()
-            if manager.check_features("pull", suppress_raise=True):
+            if manager.fetch.enabled:
                 commandslayout.addWidget(
                     action2button(plugin.fetch_action,
                                   text_beside_icon=True,
                                   parent=self))
+            if manager.pull.enabled:
                 commandslayout.addWidget(
                     action2button(plugin.pull_action,
                                   text_beside_icon=True,
                                   parent=self))
 
-            if manager.check_features("push", suppress_raise=True):
+            if manager.push.enabled:
                 commandslayout.addWidget(
                     action2button(plugin.push_action,
                                   text_beside_icon=True,
@@ -207,8 +225,7 @@ class VCSWidget(PluginMainWidget):
 
             # --- Slots ---
             if (getattr(self, "branch_select", None)
-                    and manager.check_features("change-branch",
-                                               suppress_raise=True)):
+                    and manager.type_().branch.fset.enabled):
                 self.branch_select.currentIndexChanged.connect(
                     self.branch_selector)
 
@@ -233,26 +250,28 @@ class VCSWidget(PluginMainWidget):
         plugin.sig_repository_changed.connect(self.refresh_all)
 
         # Plugin actions
-        plugin.refresh_action.triggered.connect(self.refresh_all)
+        plugin.stage_all_action.triggered.connect(self.toggle_stage_all)
+        plugin.unstage_all_action.triggered.connect(
+            functools.partial(self.toggle_stage_all, True))
+
         plugin.commit_action.triggered.connect(self.commit)
         plugin.fetch_action.triggered.connect(
             functools.partial(
-                self.sig_auth_operation[str, tuple, dict, str].emit,
+                self.sig_auth_operation[str, tuple, dict].emit,
                 "fetch",
                 (),
                 dict(sync=True),
-                "pull",
             ))
         plugin.pull_action.triggered.connect(
             functools.partial(self.sig_auth_operation.emit, "pull"))
         plugin.push_action.triggered.connect(
             functools.partial(self.sig_auth_operation.emit, "push"))
 
+        plugin.refresh_action.triggered.connect(self.refresh_all)
+
         # Auth actions
         self.sig_auth_operation.connect(self.auth_operation)
         self.sig_auth_operation[str, tuple, dict].connect(self.auth_operation)
-        self.sig_auth_operation[str, tuple, dict,
-                                str].connect(self.auth_operation)
 
         # Post auth slots
         self.sig_auth_operation_success.connect(self.post_commit)
@@ -267,14 +286,14 @@ class VCSWidget(PluginMainWidget):
         """Clear and re-add items in unstaged and staged changes."""
         @Slot(object)
         def _handle_result(result):
-            if result:
+            if isinstance(result, Sequence):
                 # Prevent sorting when inserting items
                 unstaged = self.unstaged_files
                 unstaged.clear()
                 unstaged.setSortingEnabled(False)
 
-                is_staged_enabled = manager.check_features("stage-unstage",
-                                                           suppress_raise=True)
+                is_staged_enabled = (manager.stage.enabled
+                                     and manager.unstage.enabled)
                 if is_staged_enabled:
                     staged = self.staged_files
                     staged.clear()
@@ -302,7 +321,7 @@ class VCSWidget(PluginMainWidget):
 
         manager = self.get_plugin().vcs_manager
 
-        if manager.check_features("file-state", suppress_raise=True):
+        if manager.type_().changes.fget.enabled:
             if THREAD_ENABLED:
                 ThreadWrapper(
                     self,
@@ -378,7 +397,7 @@ class VCSWidget(PluginMainWidget):
         # ... is used when this slot invoked by plugin.refresh_action
         if path:
             self.refresh_changes()
-            if hasattr(self, "branch_select"):
+            if getattr(self, "branch_select", None) is not None:
                 self.branch_select.refresh()
             self.refresh_commit_difference()
             # self.refresh_commit()
@@ -398,7 +417,6 @@ class VCSWidget(PluginMainWidget):
             from the branch_select combobox.
 
         """
-        print("select branch", branchname)
         if self.branch_select.isEnabled():
             # Ignore the event when the widget is disabled
             if isinstance(branchname, int):
@@ -409,11 +427,8 @@ class VCSWidget(PluginMainWidget):
 
             if branchname:
                 manager = self.get_plugin().vcs_manager
-                if manager.check_features(
-                        "change-branch",
-                        "current-branch",
-                        suppress_raise=True,
-                ):
+                branch_prop = manager.type_().branch
+                if branch_prop.fget.enabled and branch_prop.fset.enabled:
                     if THREAD_ENABLED:
                         ThreadWrapper(
                             self,
@@ -454,7 +469,7 @@ class VCSWidget(PluginMainWidget):
         newtreewidget = None
         operation = None
         manager = self.get_plugin().vcs_manager
-        if manager.check_features("stage-unstage", suppress_raise=True):
+        if (manager.stage.enabled and manager.unstage.enabled):
             if oldtreewidget == self.unstaged_files:
                 # stage item
                 newtreewidget = self.staged_files
@@ -462,8 +477,6 @@ class VCSWidget(PluginMainWidget):
 
             elif oldtreewidget == self.staged_files:
                 # unstage item
-                # FIXME: unstage always works
-                #        because the return state is always True
                 newtreewidget = self.unstaged_files
                 operation = manager.unstage
 
@@ -477,6 +490,34 @@ class VCSWidget(PluginMainWidget):
 
             else:
                 _handle_result(operation(item.text(0)))
+
+    @Slot()
+    def toggle_stage_all(self, unstage: bool = False) -> None:
+        """
+        Move all the unstaged changes to the staged area or vice versa
+
+        Parameters
+        ----------
+        unstage : bool
+            If True, staged changes are moved in the unstaged area.
+            The defaults is False, which does the opposite.
+        """
+        @Slot(object)
+        def _handle_result(result):
+            if result:
+                self.refresh_changes()
+
+        manager = self.get_plugin().vcs_manager
+        operation = manager.unstage_all if unstage else manager.stage_all
+        if THREAD_ENABLED:
+            ThreadWrapper(
+                self,
+                operation,
+                result_slots=(_handle_result, ),
+                error_slots=(_raise_if, ),
+            ).start()
+        else:
+            _handle_result(operation())
 
     @Slot()
     def commit(self) -> None:
@@ -502,20 +543,21 @@ class VCSWidget(PluginMainWidget):
 
             # FIXME: Preserve undo history
             self.commit_message.clear()
-            if manager.check_features("stage-unstage", suppress_raise=True):
-                self.staged_files.clear()
-            elif manager.check_features("file-state", suppress_raise=True):
-                self.unstaged_files.clear()
+
+            if manager.type_().changes.fget.enabled:
+                if (manager.stage.enabled and manager.unstage.enabled):
+                    self.staged_files.clear()
+                else:
+                    self.unstaged_files.clear()
 
     @Slot(str)
     @Slot(str, tuple, dict)
-    @Slot(str, tuple, dict, str)
     def auth_operation(
             self,
             operation: str,
             args: tuple = (),
             kwargs: dict = {},  # pylint: disable=W0102
-            feature: str = None):
+    ):
         """
         A helper to do operations that can requires authentication.
 
@@ -528,22 +570,16 @@ class VCSWidget(PluginMainWidget):
             Extra positional parameters to pass to the method.
         kwargs : dict, optional
             Extra keyword parameters to pass to the method.
-        feature : str, optional
-            Use this only if the operation has a different name
-            than the feature.
         """
         @Slot(object)
         def _handle_result(result):
             if result:
                 self.sig_auth_operation_success.emit(operation, result)
 
-        if feature is None:
-            feature = operation
-
         manager = self.get_plugin().vcs_manager
-        if manager.check_features(feature, suppress_raise=True):
-            func = functools.partial(getattr(manager, operation), *args,
-                                     **kwargs)
+        func = getattr(manager, operation, None)
+        if func is not None and func.enabled:
+            func = functools.partial(func, *args, **kwargs)
             if THREAD_ENABLED:
                 ThreadWrapper(
                     self,
@@ -572,11 +608,10 @@ class VCSWidget(PluginMainWidget):
         """Handle authentication errors by showing an input dialog."""
         def _accepted():
             manager.credentials = dialog.to_credentials()
-            self.sig_auth_operation[str, tuple, dict, str].emit(
+            self.sig_auth_operation[str, tuple, dict].emit(
                 operation,
                 args,
                 kwargs,
-                operation,
             )
 
         def _rejected():

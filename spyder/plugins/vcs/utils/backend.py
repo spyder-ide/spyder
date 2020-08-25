@@ -15,6 +15,7 @@ import os
 import os.path as osp
 import re
 import subprocess
+import typing
 
 # Third party imports
 import pexpect
@@ -23,7 +24,7 @@ import pexpect
 from spyder.utils import programs
 from spyder.utils.vcs import (get_git_refs, is_hg_installed, get_hg_revision)
 
-from .api import VCSBackendBase, ChangedStatus, checker
+from .api import VCSBackendBase, ChangedStatus, feature
 from .errors import (VCSAuthError, VCSPropertyError, VCSBackendFail,
                      VCSUnexpectedError)
 from .mixins import CredentialsKeyringMixin
@@ -38,22 +39,6 @@ class GitBackend(
     """An implementation of VCSBackendBase for Git."""
 
     VCSNAME = "git"
-
-    FEATURES = {
-        "file-state": True,
-        "file-diff": False,
-        "current-branch": True,
-        "change-branch": True,
-        "branches": True,
-        "manage-branches": False,
-        "stage-unstage": True,
-        "commit": True,
-        "pull": True,
-        "push": True,
-        "undo": False,
-        "history": False,
-        "merge": False,
-    }
 
     # credentials implementation
     REQUIRED_CREDENTIALS = ("username", "password")
@@ -90,7 +75,7 @@ class GitBackend(
 
     # VCSBackendBase implementation
     @property
-    @checker("current-branch")
+    @feature()
     def branch(self) -> str:
         revision = get_git_status(self.repodir)
         if revision and revision[0][0]:
@@ -98,7 +83,7 @@ class GitBackend(
         raise VCSPropertyError("branch", "get")
 
     @branch.setter
-    @checker("change-branch")
+    @feature()
     def branch(self, branchname: str):
         # Checks:
         # - if the "branches" feature is available and given branch exists,
@@ -112,7 +97,7 @@ class GitBackend(
             raise VCSPropertyError("branch", "set")
 
     @property
-    @checker("branches")
+    @feature()
     def branches(self) -> list:
         branches = get_git_refs(self.repodir)[0]
         if branches:
@@ -120,13 +105,13 @@ class GitBackend(
         raise VCSPropertyError("branches", "get")
 
     @property
-    # @checker("branches")
+    @feature()
     def editable_branches(self) -> list:
         return [x for x in self.branches if not x.startswith("remotes/")]
 
     @property
-    @checker("file-state")
-    def changes(self) -> list:
+    @feature(extra={"states": ("path", "kind", "staged")})
+    def changes(self) -> typing.Sequence[typing.Dict[str, object]]:
         filestates = get_git_status(self.repodir)[2]
         if filestates is None:
             raise VCSPropertyError(
@@ -136,42 +121,30 @@ class GitBackend(
             )
         changes = []
         for record in filestates:
-            if len(record) == 3:
-                path, staged, unstaged = record
-                staged, unstaged = (ChangedStatus.from_string(staged),
-                                    ChangedStatus.from_string(unstaged))
-                # remove git quote from file
-                if len(path) > 3 and path[0] == path[-1] in ("'", '"'):
-                    path = path[1:-1]
-
-                unescaped_path = path
-                path = []
-
-                # As stated here:
-                # https://docs.python.org/3/library/ast.html#ast.literal_eval
-                # ast.literal_eval can crash the interpreter
-                # if the given input is too big,
-                # therefore the path is break down into chunks.
-                try:
-                    for i in range(0, len(unescaped_path), 16384):
-                        path.append(
-                            ast.literal_eval("'" +
-                                             unescaped_path[i:i + 16384] +
-                                             "'"))
-                except (ValueError, SyntaxError):
-                    # ???: may this error should be raised
-                    continue
-                else:
-                    path = "".join(path)
-
-                if unstaged != ChangedStatus.UNCHANGED:
-                    changes.append(dict(path=path, kind=unstaged,
-                                        staged=False))
-                if staged != ChangedStatus.UNCHANGED:
-                    changes.append(dict(path=path, kind=staged, staged=True))
+            changes.extend(self._parse_record(record))
         return changes
 
-    @checker("stage-unstage")
+    @property
+    @feature(extra={"states": ("path", "kind", "staged")})
+    def change(self,
+               path: str,
+               prefer_unstaged: bool = False) -> typing.Dict[str, object]:
+        filestates = get_git_status(self.repodir, path)[2]
+        if filestates is None:
+            raise VCSUnexpectedError(
+                "change",
+                error_message="Failed to get git changes",
+            )
+        for record in filestates:
+            changes = self._parse_record(record)
+
+            if len(changes) == 2:
+                return changes[not prefer_unstaged]
+            elif len(changes) == 1:
+                return changes[0]
+        return changes
+
+    @feature()
     def stage(self, path: str) -> bool:
         status = git_stage_file(self.repodir, path)
         if isinstance(status, bool):
@@ -181,7 +154,7 @@ class GitBackend(
             error_message="Failed to stage file {}".format(path),
         )
 
-    @checker("stage-unstage")
+    @feature()
     def unstage(self, path: str) -> bool:
         status = git_unstage_file(self.repodir, path)
         if isinstance(status, bool):
@@ -192,7 +165,23 @@ class GitBackend(
             error_message="Failed to unstage file {}".format(path),
         )
 
-    @checker("commit")
+    @feature()
+    def stage_all(self) -> bool:
+        try:
+            return self.stage(".")
+        except VCSUnexpectedError as ex:
+            ex.method = "stage_all"
+            raise ex
+
+    @feature()
+    def unstage_all(self) -> bool:
+        try:
+            return self.unstage(".")
+        except VCSUnexpectedError as ex:
+            ex.method = "unstage_all"
+            raise ex
+
+    @feature()
     def commit(self, message: str, is_path: bool = None):
         if is_path is None:
             # Check if message is a valid path
@@ -211,17 +200,17 @@ class GitBackend(
             error_message="Failed to commit",
         )
 
-    @checker("pull")
+    @feature()
     def fetch(self, sync: bool = False) -> (int, int):
         if sync:
             self._remote_operation("fetch")
         return get_git_status(self.repodir)[1]
 
-    @checker("pull")
+    @feature()
     def pull(self) -> bool:
         return self._remote_operation("pull")
 
-    @checker("push")
+    @feature()
     def push(self) -> bool:
         return self._remote_operation("push")
 
@@ -269,26 +258,47 @@ class GitBackend(
             error_message="Failed to {} from remote".format(operation),
         )
 
+    def _parse_record(self, record):
+        changes = []
+        if len(record) == 3:
+            path, staged, unstaged = record
+            staged, unstaged = (ChangedStatus.from_string(staged),
+                                ChangedStatus.from_string(unstaged))
+            # remove git quote from file
+            if len(path) > 3 and path[0] == path[-1] in ("'", '"'):
+                path = path[1:-1]
+
+            unescaped_path = path
+            path = []
+
+            # As stated here:
+            # https://docs.python.org/3/library/ast.html#ast.literal_eval
+            # ast.literal_eval can crash the interpreter
+            # if the given input is too big,
+            # therefore the path is break down into chunks.
+            try:
+                for i in range(0, len(unescaped_path), 16384):
+                    path.append(
+                        ast.literal_eval("'" + unescaped_path[i:i + 16384] +
+                                         "'"))
+            except (ValueError, SyntaxError):
+                # ???: may this error should be raised
+                return []
+            else:
+                path = "".join(path)
+
+            if unstaged != ChangedStatus.UNCHANGED:
+                changes.append(dict(path=path, kind=unstaged, staged=False))
+            if staged != ChangedStatus.UNCHANGED:
+                changes.append(dict(path=path, kind=staged, staged=True))
+
+        return changes
+
 
 class MercurialBackend(VCSBackendBase):  # pylint: disable=W0223
     """An implementation of VCSBackendBase for mercurial (hg)."""
 
     VCSNAME = "mercurial"
-    FEATURES = {
-        "file-state": False,
-        "file-diff": False,
-        "current-branch": True,
-        "change-branch": False,
-        "branches": False,
-        "manage-branches": False,
-        "stage-unstage": False,
-        "commit": False,
-        "pull": False,
-        "push": False,
-        "undo": False,
-        "history": False,
-        "merge": False,
-    }
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -296,7 +306,7 @@ class MercurialBackend(VCSBackendBase):  # pylint: disable=W0223
             raise VCSBackendFail(self.repodir, type(self), programs=("hg", ))
 
     @property
-    @checker("current-branch")
+    @feature()
     def branch(self) -> str:
         revision = get_hg_revision(self.repodir)
         if revision:
@@ -413,11 +423,14 @@ def get_git_status(repopath, pathspec="."):
     git = programs.find_program('git')
     if git:
         try:
-            proc = programs.run_program(git, [
-                'status', "-b", "--porcelain=v1", "--ignore-submodule=all",
-                pathspec
-            ],
-                                        cwd=repopath)
+            proc = programs.run_program(
+                git,
+                [
+                    'status', "-b", "-uall", "--porcelain=v1",
+                    "--ignore-submodule=all", pathspec
+                ],
+                cwd=repopath,
+            )
             output, _err = proc.communicate()
             if proc.returncode != 0:
                 return None, None, None
@@ -466,7 +479,7 @@ def get_git_status(repopath, pathspec="."):
                             _GIT_STATUS_MAP["??"],
                         ))
                     elif "R" in line[:2] or "C" in line[:2]:
-                        # FIXME: skipped unless i know how to manage it
+                        # FIXME: skipped unless I know how to manage it
                         pass
                     else:
                         changes.append((
@@ -475,6 +488,17 @@ def get_git_status(repopath, pathspec="."):
                             _GIT_STATUS_MAP.get(line[1], "UNKNOWN"),
                         ))
 
+                if pathspec != "." and len(changes) > 1:
+                    # Sum up changes in pathspec
+                    final_change = (pathspec, changes[0][1], changes[0][2])
+                    for change in changes:
+                        # check unstaged
+                        if "MODIFIED" != final_change[1] != change[1]:
+                            final_change[1] = "MODIFIED"
+                        # check staged
+                        if "MODIFIED" != final_change[2] != change[2]:
+                            final_change[2] = "MODIFIED"
+                    changes = [final_change]
                 return (local, remote), (behind, ahead), changes
 
     return None, None, None

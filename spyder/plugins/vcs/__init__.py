@@ -10,8 +10,7 @@
 
 try:
     from .plugin import VCS as PLUGIN_CLASS
-except ImportError as ex:
-    import traceback
-    traceback.print_exc()
+except ImportError:
+    pass
 else:
     PLUGIN_CLASSES = [PLUGIN_CLASS]
