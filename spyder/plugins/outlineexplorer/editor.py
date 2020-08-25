@@ -35,6 +35,9 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
     def get_id(self):
         return self._editor.get_document_id()
 
+    def get_language(self):
+        return self._editor.language
+
     def give_focus(self):
         self._editor.clearFocus()
         self._editor.setFocus()

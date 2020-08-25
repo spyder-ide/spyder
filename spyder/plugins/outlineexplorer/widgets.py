@@ -511,7 +511,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         plugin_base = self.parent().parent()
         editor = self.current_editor
         editor_id = editor.get_id()
-        update = self.update_tree(items, editor_id)
+        language = editor.get_language()
+        update = self.update_tree(items, editor_id, language)
         if getattr(plugin_base, "_isvisible", True) and update:
             self.save_expanded_state()
             self.__do_update(editor, editor_id)
@@ -534,12 +535,15 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         parent.add_node(node)
         return node
 
-    def update_tree(self, items, editor_id):
+    def update_tree(self, items, editor_id, language):
         current_tree = self.editor_tree_cache[editor_id]
         tree_info = []
         for symbol in items:
             symbol_name = symbol['name']
             symbol_kind = symbol['kind']
+            if (symbol_kind == SymbolKind.MODULE and
+                    language.lower() == 'python'):
+                continue
             # NOTE: This could be also a DocumentSymbol
             symbol_range = symbol['location']['range']
             symbol_start = symbol_range['start']['line']
