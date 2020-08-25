@@ -257,9 +257,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server = QProcess(self)
         env = self.server.processEnvironment()
 
-        if DEV:
-            # Use local pyls instead of site-packages one
-            env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
+        # Use local PyLS instead of site-packages one.
+        if DEV or running_under_pytest():
+            running_in_ci = bool(os.environ.get('CI'))
+            if os.name != 'nt' or os.name == 'nt' and not running_in_ci:
+                env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
 
         # Adjustments for the Python language server.
         if self.language == 'python':
