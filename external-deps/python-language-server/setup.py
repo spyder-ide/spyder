@@ -68,7 +68,7 @@ setup(
         'yapf': ['yapf'],
         'test': ['versioneer', 'pylint', 'pytest', 'mock', 'pytest-cov',
                  'coverage', 'numpy', 'pandas', 'matplotlib',
-                 'pyqt5;python_version>="3"'],
+                 'pyqt5;python_version>="3"', 'flaky'],
     },
 
     # To provide executable scripts, use entry points in preference to the
