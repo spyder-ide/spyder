@@ -90,6 +90,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_big = _("The variable is too big to be retrieved")
         reason_not_picklable = _("The variable is not picklable")
         reason_dead = _("The kernel is dead")
+        reason_other = _("An error occured, see console.")
         msg = _("%s.<br><br>"
                 "Note: Please don't report this problem on Github, "
                 "there's nothing to do about it.")
@@ -97,6 +98,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             return self.call_kernel(
                 interrupt=True,
                 blocking=True,
+                display_error=True,
                 timeout=CALL_KERNEL_TIMEOUT).get_value(name)
         except TimeoutError:
             raise ValueError(msg % reason_big)
@@ -104,21 +106,32 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             raise ValueError(msg % reason_not_picklable)
         except RuntimeError:
             raise ValueError(msg % reason_dead)
+        except Exception:
+            raise ValueError(msg % reason_other)
 
     def set_value(self, name, value):
         """Set value for a variable"""
-        self.call_kernel(interrupt=True, blocking=False
-                         ).set_value(name, value)
+        self.call_kernel(
+            interrupt=True,
+            blocking=False,
+            display_error=True,
+            ).set_value(name, value)
 
     def remove_value(self, name):
         """Remove a variable"""
-        self.call_kernel(interrupt=True, blocking=False
-                         ).remove_value(name)
+        self.call_kernel(
+            interrupt=True,
+            blocking=False,
+            display_error=True,
+            ).remove_value(name)
 
     def copy_value(self, orig_name, new_name):
         """Copy a variable"""
-        self.call_kernel(interrupt=True, blocking=False
-                         ).copy_value(orig_name, new_name)
+        self.call_kernel(
+            interrupt=True,
+            blocking=False,
+            display_error=True,
+            ).copy_value(orig_name, new_name)
 
     def load_data(self, filename, ext):
         """Load data from a file."""
@@ -135,6 +148,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             return self.call_kernel(
                 interrupt=True,
                 blocking=True,
+                display_error=True,
                 timeout=CALL_KERNEL_TIMEOUT).load_data(
                     filename, ext, overwrite=overwrite)
         except ImportError as msg:
@@ -156,6 +170,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             return self.call_kernel(
                 interrupt=True,
                 blocking=True,
+                display_error=True,
                 timeout=CALL_KERNEL_TIMEOUT).save_namespace(filename)
         except TimeoutError:
             msg = _("Data is too big to be saved")
