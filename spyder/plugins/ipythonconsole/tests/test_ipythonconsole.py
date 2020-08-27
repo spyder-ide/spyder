@@ -25,6 +25,7 @@ except ImportError:
     from mock import Mock  # Python 2
 
 # Third party imports
+import IPython
 from IPython.core import release as ipy_release
 from IPython.core.application import get_ipython_dir
 from flaky import flaky
@@ -780,7 +781,8 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2, reason="insert is not the same in py2")
+@pytest.mark.skipif(PY2 or IPython.version_info < (7, 17),
+                    reason="insert is not the same in py2")
 def test_dbg_input(ipyconsole, qtbot):
     """Test that spyder doesn't send pdb commands to unrelated input calls."""
     shell = ipyconsole.get_current_shellwidget()
@@ -796,9 +798,6 @@ def test_dbg_input(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Reach the 'name' input
-    shell.pdb_execute('n')
-    qtbot.wait(100)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     shell.pdb_execute('n')
     qtbot.wait(100)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'name')
@@ -1789,6 +1788,51 @@ def test_pdb_without_comm(ipyconsole, qtbot):
 
     assert "Two: 2" in control.toPlainText()
 
+
+@flaky(max_runs=3)
+def test_recursive_pdb(ipyconsole, qtbot):
+    """Check commands and code are separted."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_focus_widget()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug print()")
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("abab = 10")
+    # Check that we can't use magic twice
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("%debug print()")
+    assert "Please don't use '%debug'" in control.toPlainText()
+    # Check we can enter the recursive debugger twice
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("debug print()")
+    assert "(ipdb>)" in control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("debug print()")
+    assert "((ipdb>))" in control.toPlainText()
+    # quit one layer
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("quit")
+    assert control.toPlainText().split()[-1] == "(ipdb>)"
+    # Check completion works
+    qtbot.keyClicks(control, 'aba')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab')
+    # quit one layer
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("quit")
+    assert control.toPlainText().split()[-1] == "ipdb>"
+    # Check completion works
+    qtbot.keyClicks(control, 'aba')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab')
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("quit")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("1 + 1")
+    assert control.toPlainText().split()[-1] == "[3]:"
 
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on windows")

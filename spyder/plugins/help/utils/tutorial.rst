@@ -310,7 +310,7 @@ Warn if PEP 8 code style guidelines are violated
 
 .. _pep8-enable-ref:
 
-Go to :menuselection:`Preferences --> Editor --> Code Introspection/Analysis` and tick the checkbox next to ``Real-time code style analysis``.
+Go to :menuselection:`Tools --> Preferences --> Completion and Linting --> Cody Style` and tick the checkbox next to ``Real-time code style analysis``.
 
 
 Automatic Symbolic Python
