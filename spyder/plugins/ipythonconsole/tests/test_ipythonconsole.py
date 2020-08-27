@@ -1834,6 +1834,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
         shell.execute("1 + 1")
     assert control.toPlainText().split()[-1] == "[3]:"
 
+
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on windows")
 def test_stop_pdb(ipyconsole, qtbot):
