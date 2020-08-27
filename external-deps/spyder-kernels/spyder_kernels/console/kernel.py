@@ -83,7 +83,8 @@ class SpyderKernel(IPythonKernel):
         """Get local scope at given frame depth."""
         frame = sys._getframe(stack_depth + 1)
         if self._pdb_frame is frame:
-            # we also give the globals because they might not be in self.shell.user_ns
+            # we also give the globals because they might not be in
+            # self.shell.user_ns
             namespace = frame.f_globals.copy()
             namespace.update(self._pdb_locals)
             return namespace

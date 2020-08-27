@@ -344,7 +344,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 try:
                     frontend_request(blocking=True).set_debug_state(False)
                 except (CommError, TimeoutError):
-                    logger.debug("Could not send debugging state to the frontend.")
+                    logger.debug(
+                        "Could not send debugging state to the frontend.")
                 raise
 
     def postcmd(self, stop, line):
