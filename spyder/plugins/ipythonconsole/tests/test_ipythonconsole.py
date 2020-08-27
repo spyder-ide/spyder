@@ -1807,14 +1807,14 @@ def test_recursive_pdb(ipyconsole, qtbot):
     assert "Please don't use '%debug'" in control.toPlainText()
     # Check we can enter the recursive debugger twice
     with qtbot.waitSignal(shell.executed):
-        shell.pdb_execute("!debug print()")
+        shell.pdb_execute("debug print()")
     assert "(ipdb>)" in control.toPlainText()
     with qtbot.waitSignal(shell.executed):
-        shell.pdb_execute("!debug print()")
+        shell.pdb_execute("debug print()")
     assert "((ipdb>))" in control.toPlainText()
     # quit one layer
     with qtbot.waitSignal(shell.executed):
-        shell.pdb_execute("!quit")
+        shell.pdb_execute("quit")
     assert control.toPlainText().split()[-1] == "(ipdb>)"
     # Check completion works
     qtbot.keyClicks(control, 'aba')
@@ -1822,19 +1822,17 @@ def test_recursive_pdb(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab')
     # quit one layer
     with qtbot.waitSignal(shell.executed):
-        shell.pdb_execute("!quit")
+        shell.pdb_execute("quit")
     assert control.toPlainText().split()[-1] == "ipdb>"
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab')
     with qtbot.waitSignal(shell.executed):
-        shell.pdb_execute("!quit")
-    # Check completion works
-    qtbot.keyClicks(control, 'aba')
-    qtbot.keyClick(control, Qt.Key_Tab)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abs')
-
+        shell.pdb_execute("quit")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("1 + 1")
+    assert control.toPlainText().split()[-1] == "[3]:"
 
 if __name__ == "__main__":
     pytest.main()
