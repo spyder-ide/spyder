@@ -1819,7 +1819,8 @@ def test_recursive_pdb(ipyconsole, qtbot):
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab')
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab',
+                    timeout=SHELL_TIMEOUT)
     # quit one layer
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("quit")
@@ -1827,7 +1828,8 @@ def test_recursive_pdb(ipyconsole, qtbot):
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab')
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab',
+                    timeout=SHELL_TIMEOUT)
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("quit")
     with qtbot.waitSignal(shell.executed):
