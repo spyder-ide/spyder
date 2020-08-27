@@ -149,7 +149,7 @@ class AboutDialog(QDialog):
 
         # Widget setup
         self.setWindowIcon(ima.icon('tooloptions'))
-        self.setModal(True)
+        self.setModal(False)
 
         # Layout
         tophlayout = QHBoxLayout()
