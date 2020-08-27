@@ -1789,5 +1789,52 @@ def test_pdb_without_comm(ipyconsole, qtbot):
     assert "Two: 2" in control.toPlainText()
 
 
+@flaky(max_runs=3)
+def test_recursive_pdb(ipyconsole, qtbot):
+    """Check commands and code are separted."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_focus_widget()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug print()")
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("abab = 10")
+    # Check that we can't use magic twice
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("%debug print()")
+    assert "Please don't use '%debug'" in control.toPlainText()
+    # Check we can enter the recursive debugger twice
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("!debug print()")
+    assert "(ipdb>)" in control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("!debug print()")
+    assert "((ipdb>))" in control.toPlainText()
+    # quit one layer
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("!quit")
+    assert control.toPlainText().split()[-1] == "(ipdb>)"
+    # Check completion works
+    qtbot.keyClicks(control, 'aba')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab')
+    # quit one layer
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("!quit")
+    assert control.toPlainText().split()[-1] == "ipdb>"
+    # Check completion works
+    qtbot.keyClicks(control, 'aba')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab')
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("!quit")
+    # Check completion works
+    qtbot.keyClicks(control, 'aba')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abs')
+
+
 if __name__ == "__main__":
     pytest.main()
