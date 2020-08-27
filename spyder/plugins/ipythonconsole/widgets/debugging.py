@@ -192,19 +192,19 @@ class DebuggingWidget(DebuggingHistoryWidget):
         """Update the debug state."""
         if is_debugging:
             self._pdb_in_loop += 1
-        elif self._pdb_in_loop > 0:
+        elif self.is_debugging():
             self._pdb_in_loop -= 1
         # If debugging starts or stops, clear the input queue.
         self._pdb_input_queue = []
         self._pdb_frame_loc = (None, None)
 
         # start/stop pdb history session
-        if self._pdb_in_loop > 0:
+        if self.is_debugging():
             self.new_history_session()
         else:
             self.end_history_session()
 
-        self.sig_pdb_state.emit(self._pdb_in_loop > 0, self.get_pdb_last_step())
+        self.sig_pdb_state.emit(self.is_debugging(), self.get_pdb_last_step())
 
     def pdb_execute(self, line, hidden=False, echo_stack_entry=True,
                     add_history=True):
@@ -345,7 +345,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
     def is_waiting_pdb_input(self):
         """Check if we are waiting a pdb input."""
         # If the comm is not open, self._pdb_in_loop can not be set
-        return self._pdb_in_loop > 0 and self._waiting_pdb_input
+        return self.is_debugging() and self._waiting_pdb_input
 
     # ---- Public API (overrode by us) ----------------------------
     def reset(self, clear=False):
