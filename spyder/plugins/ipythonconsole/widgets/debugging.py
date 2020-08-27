@@ -157,7 +157,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
 
     def __init__(self, *args, **kwargs):
         # Communication state
-        self._pdb_in_loop = False  # Are we in a debugging loop
+        self._pdb_in_loop = 0  # NUmber of debbuging loop we are in
         self._pdb_input_ready = False  # Can we send a command now
         self._waiting_pdb_input = False  # Are we waiting on the user
         # Other state
@@ -190,18 +190,21 @@ class DebuggingWidget(DebuggingHistoryWidget):
 
     def set_debug_state(self, is_debugging):
         """Update the debug state."""
-        self._pdb_in_loop = is_debugging
+        if is_debugging:
+            self._pdb_in_loop += 1
+        elif self._pdb_in_loop > 0:
+            self._pdb_in_loop -= 1
         # If debugging starts or stops, clear the input queue.
         self._pdb_input_queue = []
         self._pdb_frame_loc = (None, None)
 
         # start/stop pdb history session
-        if is_debugging:
+        if self._pdb_in_loop > 0:
             self.new_history_session()
         else:
             self.end_history_session()
 
-        self.sig_pdb_state.emit(self._pdb_in_loop, self.get_pdb_last_step())
+        self.sig_pdb_state.emit(self._pdb_in_loop > 0, self.get_pdb_last_step())
 
     def pdb_execute(self, line, hidden=False, echo_stack_entry=True,
                     add_history=True):
@@ -334,12 +337,12 @@ class DebuggingWidget(DebuggingHistoryWidget):
 
     def is_debugging(self):
         """Check if we are debugging."""
-        return self._pdb_in_loop
+        return self._pdb_in_loop > 0
 
     def is_waiting_pdb_input(self):
         """Check if we are waiting a pdb input."""
         # If the comm is not open, self._pdb_in_loop can not be set
-        return self._pdb_in_loop and self._waiting_pdb_input
+        return self._pdb_in_loop > 0 and self._waiting_pdb_input
 
     # ---- Public API (overrode by us) ----------------------------
     def reset(self, clear=False):
