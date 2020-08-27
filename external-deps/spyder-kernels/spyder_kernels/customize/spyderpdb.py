@@ -67,6 +67,12 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         execute_events = self.pdb_execute_events
         if line[:1] == '!':
             line = line[1:]
+        # Disallow the use of %debug magic in the debugger
+        if line.startswith("%debug"):
+            self.error("Please don't use '%debug' in the debugger.\n"
+                       "For a recursive debugger, use the pdb 'debug'"
+                       " command instead")
+            return
         locals = self.curframe_locals
         globals = self.curframe.f_globals
         try:
