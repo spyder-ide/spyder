@@ -67,6 +67,9 @@ PYTHON_CONFIG = {
                 'jedi': {
                     'environment': None,
                     'extra_paths': None,
+                    # jedi should have clean environment to work properly with
+                    # external interpreters
+                    'env_vars': {},
                 },
                 'jedi_completion': {
                     'enabled': True,

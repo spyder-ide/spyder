@@ -661,6 +661,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             'environment': environment,
             'extra_paths': self.get_option('spyder_pythonpath',
                                            section='main', default=[]),
+            # jedi should have clean environment to work properly with external
+            # interpreters
+            'env_vars': {},
         }
         jedi_completion = {
             'enabled': self.get_option('code_completion'),
