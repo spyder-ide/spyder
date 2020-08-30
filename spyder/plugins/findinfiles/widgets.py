@@ -59,6 +59,9 @@ EXTERNAL_PATHS = 7
 MAX_PATH_LENGTH = 60
 MAX_PATH_HISTORY = 15
 
+# These additional pixels account for operating system spacing differences
+EXTRA_BUTTON_PADDING = 10
+
 
 class FindInFilesWidgetActions:
     # Triggers
@@ -813,6 +816,7 @@ class FindInFilesWidget(PluginMainWidget):
         'supported_encodings': ("utf-8", "iso-8859-1", "cp1252"),
         'text_color': MAIN_TEXT_COLOR,
     }
+    ENABLE_SPINNER = True
     REGEX_INVALID = "background-color:rgb(255, 80, 80);"
     REGEX_ERROR = _("Regular expression error")
 
@@ -1045,9 +1049,11 @@ class FindInFilesWidget(PluginMainWidget):
         if widget:
             w1 = widget.fontMetrics().width(stop_text)
             w2 = widget.fontMetrics().width(search_text)
+
             # Ensure the search/stop button has the same size independent on
             # the length of the words.
-            width = self.get_options_menu_button().width() + max([w1, w2]) + 2
+            width = (self.get_options_menu_button().width() + max([w1, w2])
+                     + EXTRA_BUTTON_PADDING)
             widget.setMinimumWidth(width)
 
         if self.extras_toolbar and self.more_options_action:

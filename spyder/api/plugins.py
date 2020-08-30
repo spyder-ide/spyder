@@ -817,10 +817,8 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
             # Widget setup
             # ----------------------------------------------------------------
             try:
-                _setup = getattr(container, "_setup", None)
-                if _setup:
-                    _setup(options=options)
-            except AttributeError as error:
+                container._setup(options=options)
+            except Exception as error:
                 logger.debug(
                     "Running `_setup` on {0}: {1}".format(self, error))
 
@@ -1607,14 +1605,10 @@ class SpyderDockablePlugin(SpyderPluginV2):
         widget.set_icon(self.get_icon())
         widget.set_name(self.NAME)
 
-        # TODO: Streamline this by moving to postvisible setup
         # Render all toolbars as a final separate step on the main window
         # in case some plugins want to extend a toolbar. Since the rendering
         # can only be done once!
-        widget._main_toolbar._render()
-        widget._corner_toolbar._render()
-        for __, toolbar in widget._auxiliary_toolbars.items():
-            toolbar._render()
+        widget.render_toolbars()
 
         # Default Signals
         # --------------------------------------------------------------------

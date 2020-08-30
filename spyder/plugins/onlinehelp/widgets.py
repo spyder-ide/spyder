@@ -131,6 +131,7 @@ class PydocBrowser(PluginMainWidget):
         'max_history_entries': 10,
         'zoom_factor': 1,
     }
+    ENABLE_SPINNER = True
 
     # --- Signals
     # ------------------------------------------------------------------------

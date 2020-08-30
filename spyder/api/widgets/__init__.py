@@ -20,6 +20,7 @@ example it is just providing a new completion client.
 
 # Standard library imports
 from collections import OrderedDict
+import os
 import sys
 import textwrap
 import uuid
@@ -212,6 +213,27 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
     """
     DEFAULT_OPTIONS = {}
 
+    # --- Attributes
+    # ------------------------------------------------------------------------
+    ENABLE_SPINNER = False
+    """
+    This attribute enables/disables showing a spinner on the top right to the
+    left of the corner menu widget (Hamburguer menu).
+
+    Plugins that provide actions that take time should make this `True` and
+    use accoringly with the `start_spinner`/`stop_spinner` methods.
+
+    The Find in files plugin is an example of a core plugin that uses it.
+
+    Parameters
+    ----------
+    ENABLE_SPINNER: bool
+        If `True` an extra space will be added to the toolbar (even if the
+        spinner is not moving) to avoid items jumping to the left/right when
+        the spinner appears. If `False` no extra space will be added. Default
+        is False.
+    """
+
     # --- Signals
     # ------------------------------------------------------------------------
     sig_free_memory_requested = Signal()
@@ -318,6 +340,7 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
         self.dock_action = None
         self.undock_action = None
         self.close_action = None
+        self._toolbars_already_rendered = False
 
         # We create our toggle action instead of using the one that comes with
         # dockwidget because it was not possible to raise and focus the plugin
@@ -330,7 +353,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
         self.windowwidget = None
         self.dockwidget = None
         self._icon = QIcon()
-        self._spinner = create_waitspinner(size=16, parent=self)
+        self._spinner = None
+
+        if self.ENABLE_SPINNER:
+            self._spinner = create_waitspinner(size=16, parent=self)
+
         self._corner_widget = MainCornerWidget(
             parent=self,
             name=PluginMainWidgetWidgets.CornerWidget,
@@ -405,6 +432,17 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
                 # For widgets that use tabs, we add the corner widget using
                 # the setCornerWidget method.
                 child.setCornerWidget(self._corner_widget)
+
+                # This is needed to ensure the corner ToolButton (hamburguer
+                # menu) is aligned with plugins that use ToolBars vs
+                # CornerWidgets
+                # See: spyder-ide/spyder#13600
+                # left, top, right, bottom
+                if os.name == "nt":
+                    self._corner_widget.setContentsMargins(0, 0, 2, 0)
+                else:
+                    self._corner_widget.setContentsMargins(0, 2, 2, 0)
+
                 break
 
         self._options_button = self.create_toolbutton(
@@ -417,10 +455,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
             PluginMainWidgetWidgets.OptionsToolButton,
             self._options_button,
         )
-        self.add_corner_widget(
-            PluginMainWidgetWidgets.Spinner,
-            self._spinner,
-        )
+        if self.ENABLE_SPINNER:
+            self.add_corner_widget(
+                PluginMainWidgetWidgets.Spinner,
+                self._spinner,
+            )
 
         # Widget setup
         # --------------------------------------------------------------------
@@ -639,13 +678,15 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
         """
         Start default status spinner.
         """
-        self._spinner.start()
+        if self.ENABLE_SPINNER:
+            self._spinner.start()
 
     def stop_spinner(self):
         """
         Stop default status spinner.
         """
-        self._spinner.stop()
+        if self.ENABLE_SPINNER:
+            self._spinner.stop()
 
     def create_toolbar(self, toolbar_id):
         """
@@ -740,6 +781,18 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
         """
         return self._main_toolbar
 
+    def get_auxiliary_toolbars(self):
+        """
+        Return the auxiliary toolbars of the plugin.
+
+        Returns
+        -------
+        OrderedDict
+            A dictionary of wirh toolbar IDs as keys and auxiliary toolbars as
+            values.
+        """
+        return self._auxiliary_toolbars
+
     def set_icon_size(self, icon_size):
         """
         Set the icon size of the plugin's toolbars.
@@ -825,6 +878,22 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
         Return widget icon.
         """
         return self._icon
+
+    def render_toolbars(self):
+        """
+        Render all the toolbars of the widget.
+
+        Notes
+        -----
+        This action can only be performed once.
+        """
+        # if not self._toolbars_already_rendered:
+        self._main_toolbar._render()
+        self._corner_toolbar._render()
+        for __, toolbar in self._auxiliary_toolbars.items():
+            toolbar._render()
+
+            # self._toolbars_already_rendered = True
 
     # --- SpyderDockwidget handling ------------------------------------------
     # ------------------------------------------------------------------------
