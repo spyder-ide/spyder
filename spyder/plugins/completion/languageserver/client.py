@@ -257,6 +257,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server = QProcess(self)
         env = self.server.processEnvironment()
 
+        if DEV:
+            # Use local pyls instead of site-packages one
+            env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
+
         # Adjustments for the Python language server.
         if self.language == 'python':
             # Set the PyLS current working to an empty dir inside
