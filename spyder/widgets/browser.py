@@ -128,17 +128,15 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         select_all_action = self.create_action(
             name=WebViewActions.SelectAll,
             text=_("Select all"),
-            # icon=self.create_icon(''),
             triggered=lambda: original_select_action.trigger(),
             context=Qt.WidgetWithChildrenShortcut,
         )
 
-        copy_action = self.pageAction(QWebEnginePage.Copy)
+        original_copy_action = self.pageAction(QWebEnginePage.Copy)
         copy_action = self.create_action(
             name=WebViewActions.Copy,
             text=_("Copy"),
-            # icon=self.create_icon(''),
-            triggered=lambda: copy_action.trigger(),
+            triggered=lambda: original_copy_action.trigger(),
             context=Qt.WidgetWithChildrenShortcut,
         )
 
@@ -163,7 +161,6 @@ class WebView(QWebEngineView, SpyderWidgetMixin):
         inspect_action = self.create_action(
             name=WebViewActions.Inspect,
             text=_("Inspect"),
-            # icon=self.create_icon(''),
             triggered=lambda: original_inspect_action.trigger(),
             context=Qt.WidgetWithChildrenShortcut,
         )
