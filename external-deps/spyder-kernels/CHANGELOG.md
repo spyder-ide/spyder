@@ -1,5 +1,21 @@
 # History of changes
 
+## Version 1.9.3 (2020-07-24)
+
+### Issues Closed
+
+* [Issue 236](https://github.com/spyder-ide/spyder-kernels/issues/236) - test_dask_multiprocessing fails with pip packages ([PR 237](https://github.com/spyder-ide/spyder-kernels/pull/237) by [@bnavigator](https://github.com/bnavigator))
+
+In this release 1 issue was closed.
+
+### Pull Requests Merged
+
+* [PR 237](https://github.com/spyder-ide/spyder-kernels/pull/237) - PR: Require dask[distributed] for tests, by [@bnavigator](https://github.com/bnavigator) ([236](https://github.com/spyder-ide/spyder-kernels/issues/236))
+
+In this release 1 pull request was closed.
+
+----
+
 ## Version 1.9.2 (2020-07-10)
 
 ### Pull Requests Merged
