@@ -14,7 +14,7 @@ import socket
 import sys
 
 # Third party imports
-from qtpy.QtCore import QUrl, Signal, Slot
+from qtpy.QtCore import Qt, QUrl, Signal, Slot, QPoint
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE, QWebEnginePage
 from qtpy.QtWidgets import (QActionGroup, QComboBox, QLabel, QLineEdit,
@@ -26,7 +26,6 @@ from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 from spyder.config.base import get_image_path, get_module_source_path
 from spyder.config.gui import is_dark_interface
-from spyder.plugins.editor.widgets import codeeditor
 from spyder.plugins.help.utils.sphinxify import (CSS_PATH, DARK_CSS_PATH,
                                                  generate_context, loading,
                                                  usage, warning)
@@ -36,6 +35,7 @@ from spyder.utils import programs
 from spyder.widgets.browser import FrameWebView
 from spyder.widgets.comboboxes import EditableComboBox
 from spyder.widgets.findreplace import FindReplace
+from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
 # Localization
@@ -58,6 +58,8 @@ class HelpWidgetActions:
     ToggleRichMode = 'toggle_rich_mode_action'
     ToggleShowSource = 'toggle_show_source_action'
     ToggleWrap = 'toggle_wrap_action'
+    CopyAction = "help_widget_copy_action"
+    SelectAll = "select_all_action",
 
 
 class HelpWidgetOptionsMenuSections:
@@ -195,16 +197,22 @@ class PlainText(QWidget):
     # Signals
     focus_changed = Signal()
 
+    sig_custom_context_menu_requested = Signal(QPoint)
+
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         self.editor = None
 
-        # Read-only editor
-        self.editor = codeeditor.CodeEditor(self)
-        self.editor.setup_editor(linenumbers=False, language='py',
-                                 scrollflagarea=False, edge_line=False)
-        self.editor.focus_changed.connect(lambda: self.focus_changed.emit())
+        # Read-only simple code editor
+        self.editor = SimpleCodeEditor(self)
+        self.editor.setup_editor(
+            language='py',
+            highlight_current_line=False,
+            linenumbers=False,
+        )
+        self.editor.sig_focus_changed.connect(self.focus_changed)
         self.editor.setReadOnly(True)
+        self.editor.setContextMenuPolicy(Qt.CustomContextMenu)
 
         # Find/replace widget
         self.find_widget = FindReplace(self)
@@ -217,21 +225,24 @@ class PlainText(QWidget):
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
 
+        self.editor.customContextMenuRequested.connect(
+            self.sig_custom_context_menu_requested)
+
     def set_font(self, font, color_scheme=None):
         """Set font"""
-        self.editor.set_font(font, color_scheme=color_scheme)
+        self.editor.set_color_scheme(color_scheme)
+        self.editor.set_font(font)
 
     def set_color_scheme(self, color_scheme):
         """Set color scheme"""
         self.editor.set_color_scheme(color_scheme)
 
     def set_text(self, text, is_code):
-        self.editor.set_highlight_current_line(is_code)
-        self.editor.set_occurrence_highlighting(is_code)
         if is_code:
             self.editor.set_language('py')
         else:
             self.editor.set_language(None)
+
         self.editor.set_text(text)
         self.editor.set_cursor_position('sof')
 
@@ -241,12 +252,11 @@ class PlainText(QWidget):
     def set_wrap_mode(self, value):
         self.editor.toggle_wrap_mode(value)
 
-    def set_wrap_action(self, action):
-        """
-        Add wrap action on editor.
-        """
-        self.editor.readonly_menu.addSeparator()
-        self.editor.readonly_menu.addAction(action)
+    def copy(self):
+        self.editor.copy()
+
+    def select_all(self):
+        self.editor.selectAll()
 
 
 class HelpWidget(PluginMainWidget):
@@ -351,6 +361,18 @@ class HelpWidget(PluginMainWidget):
             toggled=lambda value: self.set_option('wrap', value),
             initial=self.get_option('wrap'),
         )
+        self.copy_action = self.create_action(
+            name=HelpWidgetActions.CopyAction,
+            text=_("Copy"),
+            triggered=lambda value: self.plain_text.copy(),
+            register_shortcut=False,
+        )
+        self.select_all_action = self.create_action(
+            name=HelpWidgetActions.SelectAll,
+            text=_("Select All"),
+            triggered=lambda value: self.plain_text.select_all(),
+            register_shortcut=False,
+        )
         self.auto_import_action = self.create_action(
             name=HelpWidgetActions.ToggleAutomaticImport,
             text=_("Automatic import"),
@@ -382,9 +404,6 @@ class HelpWidget(PluginMainWidget):
             initial=self.get_option('locked'),
         )
 
-        # TODO: Temporal while code editor migrates to SpyderMixin
-        self.plain_text.set_wrap_action(self.wrap_action)
-
         # Add the help actions to an exclusive QActionGroup
         help_actions = QActionGroup(self)
         help_actions.setExclusive(True)
@@ -407,6 +426,25 @@ class HelpWidget(PluginMainWidget):
             section=HelpWidgetOptionsMenuSections.Other,
         )
 
+        # Plain text menu
+        self._plain_text_context_menu = self.create_menu(
+            "plain_text_context_menu")
+        self.add_item_to_menu(
+            self.copy_action,
+            self._plain_text_context_menu,
+            section="copy_section",
+        )
+        self.add_item_to_menu(
+            self.select_all_action,
+            self._plain_text_context_menu,
+            section="select_section",
+        )
+        self.add_item_to_menu(
+            self.wrap_action,
+            self._plain_text_context_menu,
+            section="wrap_section",
+        )
+
         # Toolbar
         toolbar = self.get_main_toolbar()
         for item in [self.source_label, self.source_combo, self.object_label,
@@ -420,6 +458,10 @@ class HelpWidget(PluginMainWidget):
         self.source_changed()
         self.switch_to_rich_text()
         self.show_intro_message()
+
+        # Signals
+        self.plain_text.sig_custom_context_menu_requested.connect(
+            self._show_plain_text_context_menu)
 
     def on_option_update(self, option, value):
         if option == 'wrap':
@@ -483,6 +525,11 @@ class HelpWidget(PluginMainWidget):
 
     # --- Private API
     # ------------------------------------------------------------------------
+    @Slot(QPoint)
+    def _show_plain_text_context_menu(self, point):
+        point = self.plain_text.mapToGlobal(point)
+        self._plain_text_context_menu.popup(point)
+
     def _on_sphinx_thread_html_ready(self, html_text):
         """
         Set our sphinx documentation based on thread result.

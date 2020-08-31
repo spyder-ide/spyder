@@ -260,6 +260,7 @@ class BaseSH(QSyntaxHighlighter):
             self.color_scheme = get_color_scheme(color_scheme)
         else:
             self.color_scheme = color_scheme
+
         self.setup_formats()
         self.rehighlight()
 
