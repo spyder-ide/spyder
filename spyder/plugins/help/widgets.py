@@ -321,6 +321,7 @@ class HelpWidget(PluginMainWidget):
         self.object_edit = QLineEdit(self)
 
         # Setup
+        self.setMinimumWidth(400)
         self.object_edit.setReadOnly(True)
         self.object_combo.setMaxCount(self.get_option('max_history_entries'))
         self.object_combo.setItemText(0, '')
