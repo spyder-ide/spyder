@@ -299,7 +299,6 @@ class Projects(SpyderPluginWidget):
                 return
         else:
             path = encoding.to_unicode_from_fs(path)
-        self.notify_project_open(path)
         self.add_to_recent(path)
 
         # A project was not open before
@@ -325,6 +324,7 @@ class Projects(SpyderPluginWidget):
         project = EmptyProject(path)
         self.current_active_project = project
         self.latest_project = project
+        self.notify_project_open(path)
         self.set_option('current_project_path', self.get_active_project_path())
 
         self.setup_menu_actions()
