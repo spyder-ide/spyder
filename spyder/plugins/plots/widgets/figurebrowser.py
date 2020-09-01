@@ -202,6 +202,18 @@ class FigureBrowser(QWidget):
             elif option == 'save_dir':
                 self.thumbnails_sb.save_dir = value
 
+    def update_splitter_widths(self, base_width):
+        """
+        Update the widths to provide the scrollbar with a fixed minimumwidth.
+
+        Parameters
+        ----------
+        base_width: int
+            The available splitter width.
+        """
+        min_sb_width = self.thumbnails_sb._min_scrollbar_width
+        self.splitter.setSizes([base_width - min_sb_width, min_sb_width])
+
     def show_fig_outline_in_viewer(self, state):
         """Draw a frame around the figure viewer if state is True."""
         if state is True:

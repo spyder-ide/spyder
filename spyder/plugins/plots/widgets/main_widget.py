@@ -35,14 +35,14 @@ else:
 class PlotsWidgetActions:
     # Triggers
     Save = 'save'
-    SaveAll = 'save_all'
+    SaveAll = 'save all'
     Copy = 'copy'
     Close = 'close'
-    CloseAll = 'close_all'
-    MoveToPreviousFigure = 'previous_figure'
-    MoveToNextFigure = 'next_figure'
-    ZoomIn = 'zoom_in'
-    ZoomOut = 'zoom_out'
+    CloseAll = 'close all'
+    MoveToPreviousFigure = 'previous figure'
+    MoveToNextFigure = 'next figure'
+    ZoomIn = 'zoom in'
+    ZoomOut = 'zoom out'
 
     # Toggles
     ToggleMuteInlinePlotting = 'toggle_mute_inline_plotting_action'
@@ -225,6 +225,7 @@ class PlotsWidget(PluginMainWidget):
         save_action = self.create_action(
             name=PlotsWidgetActions.Save,
             text=_("Save plot as..."),
+            tip=_("Save plot as..."),
             icon=self.create_icon('filesave'),
             triggered=self.save_plot,
             register_shortcut=True,
@@ -232,13 +233,15 @@ class PlotsWidget(PluginMainWidget):
         save_all_action = self.create_action(
             name=PlotsWidgetActions.SaveAll,
             text=_("Save all plots..."),
+            tip=_("Save all plots..."),
             icon=self.create_icon('save_all'),
             triggered=self.save_all_plots,
             register_shortcut=True,
         )
         copy_action = self.create_action(
             name=PlotsWidgetActions.Copy,
-            text=_("Copy Image"),
+            text=_("Copy image"),
+            tip=_("Copy plot to clipboard as image"),
             icon=self.create_icon('editcopy'),
             triggered=self.copy_image,
             register_shortcut=True,
@@ -248,6 +251,7 @@ class PlotsWidget(PluginMainWidget):
             text=_("Remove plot"),
             icon=self.create_icon('editclear'),
             triggered=self.remove_plot,
+            register_shortcut=True,
         )
         remove_all_action = self.create_action(
             name=PlotsWidgetActions.CloseAll,
@@ -430,6 +434,7 @@ class PlotsWidget(PluginMainWidget):
         if shellwidget_id not in self._shellwidgets:
             fig_browser = FigureBrowser(parent=self._stack,
                                         background_color=MAIN_BG_COLOR)
+            fig_browser.update_splitter_widths(self.width())
             fig_browser.set_shellwidget(shellwidget)
             fig_browser.sig_redirect_stdio_requested.connect(
                 self.sig_redirect_stdio_requested)
