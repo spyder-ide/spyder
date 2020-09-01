@@ -20,6 +20,7 @@ example it is just providing a new completion client.
 
 # Standard library imports
 from collections import OrderedDict
+import os
 import sys
 import textwrap
 import uuid
@@ -27,24 +28,24 @@ import uuid
 # Third party imports
 from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtGui import QIcon
-from qtpy.QtWidgets import QMainWindow, QSizePolicy, QToolButton, QWidget
+from qtpy.QtWidgets import (QHBoxLayout, QSizePolicy, QToolButton, QVBoxLayout,
+                            QWidget)
 import qdarkstyle
 
 # Local imports
 from spyder.api.exceptions import SpyderAPIError
 from spyder.api.translations import get_translation
-from spyder.api.widgets.mixins import SpyderToolBarMixin, SpyderWidgetMixin
 from spyder.api.widgets.auxiliary_widgets import (MainCornerWidget,
                                                   SpyderWindowWidget)
 from spyder.api.widgets.menus import (MainWidgetMenu, OptionsMenuSections,
                                       PluginMainWidgetMenus, SpyderMenu)
+from spyder.api.widgets.mixins import SpyderToolBarMixin, SpyderWidgetMixin
 from spyder.api.widgets.toolbars import MainWidgetToolbar
 from spyder.config.gui import is_dark_interface
 from spyder.utils.qthelpers import (add_actions, create_waitspinner,
                                     set_menu_icons)
 from spyder.widgets.dock import SpyderDockWidget
 from spyder.widgets.tabs import Tabs
-
 
 # Localization
 _ = get_translation('spyder')
@@ -191,7 +192,7 @@ class PluginMainContainer(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
             'method!')
 
 
-class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
+class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
     """
     Spyder plugin main widget class.
 
@@ -211,6 +212,27 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
     stacked vertically and cannot be placed horizontally next to each other.
     """
     DEFAULT_OPTIONS = {}
+
+    # --- Attributes
+    # ------------------------------------------------------------------------
+    ENABLE_SPINNER = False
+    """
+    This attribute enables/disables showing a spinner on the top right to the
+    left of the corner menu widget (Hamburguer menu).
+
+    Plugins that provide actions that take time should make this `True` and
+    use accoringly with the `start_spinner`/`stop_spinner` methods.
+
+    The Find in files plugin is an example of a core plugin that uses it.
+
+    Parameters
+    ----------
+    ENABLE_SPINNER: bool
+        If `True` an extra space will be added to the toolbar (even if the
+        spinner is not moving) to avoid items jumping to the left/right when
+        the spinner appears. If `False` no extra space will be added. Default
+        is False.
+    """
 
     # --- Signals
     # ------------------------------------------------------------------------
@@ -318,27 +340,67 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
         self.dock_action = None
         self.undock_action = None
         self.close_action = None
+        self._toolbars_already_rendered = False
 
         # We create our toggle action instead of using the one that comes with
         # dockwidget because it was not possible to raise and focus the plugin
         self.toggle_view_action = None
-        self._widgets = {}
-        self._toolbars = {}
+        self._toolbars = OrderedDict()
+        self._auxiliary_toolbars = OrderedDict()
 
         # Widgets
         # --------------------------------------------------------------------
         self.windowwidget = None
         self.dockwidget = None
-        self._central_widget = QWidget(self)
         self._icon = QIcon()
-        self._spinner = create_waitspinner(size=16, parent=self)
+        self._spinner = None
+
+        if self.ENABLE_SPINNER:
+            self._spinner = create_waitspinner(size=16, parent=self)
+
         self._corner_widget = MainCornerWidget(
             parent=self,
             name=PluginMainWidgetWidgets.CornerWidget,
         )
 
-    # --- Private Methods ---------------------------------------------
-    # -----------------------------------------------------------------
+        self._main_toolbar = MainWidgetToolbar(
+            parent=self,
+            title=_("Main widget toolbar"),
+        )
+        self._main_toolbar.ID = 'main_toolbar'
+        self._corner_toolbar = MainWidgetToolbar(
+            parent=self,
+            title=_("Main widget corner toolbar"),
+        )
+        self._corner_toolbar.ID = 'corner_toolbar',
+        self._corner_toolbar.setSizePolicy(QSizePolicy.Minimum,
+                                           QSizePolicy.Expanding)
+        self._options_menu = self.create_menu(
+            PluginMainWidgetMenus.Options,
+            title=_('Options menu'),
+        )
+
+        # Layout
+        # --------------------------------------------------------------------
+        self._main_layout = QVBoxLayout()
+        self._toolbars_layout = QVBoxLayout()
+        self._main_toolbar_layout = QHBoxLayout()
+
+        self._toolbars_layout.setContentsMargins(0, 0, 0, 0)
+        self._toolbars_layout.setSpacing(0)
+        self._main_toolbar_layout.setContentsMargins(0, 0, 0, 0)
+        self._main_toolbar_layout.setSpacing(0)
+        self._main_layout.setContentsMargins(0, 0, 0, 0)
+        self._main_layout.setSpacing(0)
+
+        # Add inititals layouts
+        self._main_toolbar_layout.addWidget(self._main_toolbar, stretch=10000)
+        self._main_toolbar_layout.addWidget(self._corner_toolbar, stretch=1)
+        self._toolbars_layout.addLayout(self._main_toolbar_layout)
+        self._main_layout.addLayout(self._toolbars_layout, stretch=1)
+
+    # --- Private Methods
+    # ------------------------------------------------------------------------
     @staticmethod
     def _find_children(obj, all_children):
         """
@@ -367,28 +429,22 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
         if children:
             for child in children:
                 self._is_tab = True
+                # For widgets that use tabs, we add the corner widget using
+                # the setCornerWidget method.
                 child.setCornerWidget(self._corner_widget)
+
+                # This is needed to ensure the corner ToolButton (hamburguer
+                # menu) is aligned with plugins that use ToolBars vs
+                # CornerWidgets
+                # See: spyder-ide/spyder#13600
+                # left, top, right, bottom
+                if os.name == "nt":
+                    self._corner_widget.setContentsMargins(0, 0, 2, 0)
+                else:
+                    self._corner_widget.setContentsMargins(0, 2, 2, 0)
+
                 break
 
-        if self._is_tab:
-            corner_widget = None
-        else:
-            corner_widget = self._corner_widget
-
-        self._main_toolbar = MainWidgetToolbar(
-            parent=self,
-            title='widget_toolbar',
-            corner_widget=corner_widget,
-        )
-
-        if self._is_tab:
-            # This disables the toolbar on all tabbed plugins
-            self.get_main_toolbar().setVisible(not self._is_tab)
-
-        self._options_menu = self.create_menu(
-            PluginMainWidgetMenus.Options,
-            text='',
-        )
         self._options_button = self.create_toolbutton(
             PluginMainWidgetWidgets.OptionsToolButton,
             text=_('Options'),
@@ -399,23 +455,17 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
             PluginMainWidgetWidgets.OptionsToolButton,
             self._options_button,
         )
-        self.add_corner_widget(
-            PluginMainWidgetWidgets.Spinner,
-            self._spinner,
-        )
-
-        self._toolbars['main'] = self._main_toolbar
-
-        # Setup the a dictionary in which pointers to additional toolbars
-        # added to the plugin interface are going to be saved.
-        self._aux_toolbars = {Qt.TopToolBarArea: [], Qt.BottomToolBarArea: []}
+        if self.ENABLE_SPINNER:
+            self.add_corner_widget(
+                PluginMainWidgetWidgets.Spinner,
+                self._spinner,
+            )
 
         # Widget setup
         # --------------------------------------------------------------------
+        self._main_toolbar.setVisible(not self._is_tab)
+        self._corner_toolbar.setVisible(not self._is_tab)
         self._options_button.setPopupMode(QToolButton.InstantPopup)
-        self.setWindowFlags(Qt.Widget)
-        self.addToolBar(self._main_toolbar)
-        self.addToolBarBreak(Qt.TopToolBarArea)
 
         # Create default widget actions
         self.dock_action = self.create_action(
@@ -447,7 +497,6 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
             context=Qt.WidgetWithChildrenShortcut,
             shortcut_context='_',
         )
-
         bottom_section = OptionsMenuSections.Bottom
         for item in [self.undock_action, self.close_action, self.dock_action]:
             self.add_item_to_menu(
@@ -456,13 +505,22 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
                 section=bottom_section,
             )
 
-        self._options_button.setMenu(self._options_menu,)
+        self._options_button.setMenu(self._options_menu)
         self._options_menu.aboutToShow.connect(self._update_actions)
 
         # Hide icons in Mac plugin menus
         if sys.platform == 'darwin':
             self._options_menu.aboutToHide.connect(
                 lambda menu=self._options_menu: set_menu_icons(menu, False))
+
+        # For widgets that do not use tabs, we add the corner widget to the
+        # corner toolbar
+        if not self._is_tab:
+            self.add_item_to_toolbar(
+                self._corner_widget,
+                toolbar=self._corner_toolbar,
+                section="corner",
+            )
 
         # Update title
         self.setWindowTitle(self.get_title())
@@ -494,6 +552,8 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
         if sys.platform == 'darwin':
             set_menu_icons(self.get_menu(PluginMainWidgetMenus.Options), True)
 
+        # Widget setup
+        # --------------------------------------------------------------------
         self.update_actions()
         self._update_style()
 
@@ -508,22 +568,12 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
     # ------------------------------------------------------------------------
     def setLayout(self, layout):
         """
-        Set layout of the central widget.
-
-        Notes
-        -----
-        Convenience to use this widget as a normal QWidget.
+        Set layout of the main widget of this plugin.
         """
-        self._central_widget.setLayout(layout)
-        self.setCentralWidget(self._central_widget)
+        self._main_layout.addLayout(layout, stretch=1000000)
+        super().setLayout(self._main_layout)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
-
-    def layout(self):
-        """
-        Return the central widget's layout.
-        """
-        return self._central_widget.layout()
 
     # --- Public methods to use
     # ------------------------------------------------------------------------
@@ -590,13 +640,13 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
 
         return actions
 
-    def add_corner_widget(self, name, widget, before=None):
+    def add_corner_widget(self, widget_id, widget, before=None):
         """
         Add widget to corner, that is to the left of the last added widget.
 
         Parameters
         ----------
-        name: str
+        widget_id: str
             Unique name of the widget.
         widget: QWidget
             Any QWidget to add in the corner widget.
@@ -611,8 +661,7 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
         additional widgets will be placed to the left of the spinner,
         if visible.
         """
-        if self._corner_widget is not None:
-            self._corner_widget.add_widget(name, widget)
+        self._corner_widget.add_widget(widget_id, widget)
 
     def get_corner_widget(self, name):
         """
@@ -629,27 +678,24 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
         """
         Start default status spinner.
         """
-        self._spinner.setVisible(True)
-        self._spinner.start()
+        if self.ENABLE_SPINNER:
+            self._spinner.start()
 
     def stop_spinner(self):
         """
         Stop default status spinner.
         """
-        self._spinner.stop()
-        self._spinner.setVisible(False)
+        if self.ENABLE_SPINNER:
+            self._spinner.stop()
 
-    def create_toolbar(self, name, location='top'):
+    def create_toolbar(self, toolbar_id):
         """
-        Create and add an auxiliary toolbar to the top or the bottom of
-        the plugin.
+        Create and add an auxiliary toolbar to the top of the plugin.
 
         Parameters
         ----------
-        location: str
-            A string whose value is used to determine where to add the
-            toolbar in the plugin interface. The toolbar can be added either
-            at the 'top' or at the 'bottom' of the plugin.
+        toolbar_id: str
+            Unique toolbar string identifier.
 
         Returns
         -------
@@ -657,63 +703,46 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
             The auxiliary toolbar that was created and added to the plugin
             interface.
         """
-        if name in self._toolbars:
+        if toolbar_id in self._toolbars:
             raise SpyderAPIError('Toolbar "{}" already exists!'.format(name))
 
-        if location not in ['top', 'bottom']:
-            raise SpyderAPIError('Invalid location "{}" for toolbar!'.format(
-                location))
-
         toolbar = MainWidgetToolbar(parent=self)
-        self._toolbars[name] = toolbar
-        self._add_auxiliary_toolbar(toolbar, location)
+        toolbar.ID = toolbar_id
+        self._toolbars[toolbar_id] = toolbar
+        self._auxiliary_toolbars[toolbar_id] = toolbar
+        self._toolbars_layout.addWidget(toolbar)
 
         return toolbar
 
-    def create_menu(self, name, text=''):
+    def create_menu(self, menu_id, title=''):
         """
         Override SpyderMenuMixin method to use a different menu class.
+
+        Parameters
+        ----------
+        toolbar_id: str
+            Unique toolbar string identifier.
+        title: str
+            Toolbar localized title.
+
+        Returns
+        -------
+        MainWidgetMenu
+            The main widget menu.
         """
         menus = getattr(self, '_menus', None)
         if menus is None:
             self._menus = OrderedDict()
 
-        if name in self._menus:
+        if menu_id in self._menus:
             raise SpyderAPIError(
-                'Menu name "{}" already in use!'.format(name)
+                'Menu name "{}" already in use!'.format(menu_id)
             )
 
-        menu = MainWidgetMenu(parent=self, title=text)
-        self._menus[name] = menu
+        menu = MainWidgetMenu(parent=self, title=title)
+        menu.ID = menu_id
+        self._menus[menu_id] = menu
         return menu
-
-    def _add_auxiliary_toolbar(self, toolbar, location):
-        """
-        Add the given toolbar to the top or the bottom of the plugin.
-
-        Parameters
-        ----------
-        toolbar: QToolBar
-            The SpyderPluginToolbar that needs to be added to the plugin
-            interface.
-        location: str
-            A string whose value is used to determine where to add the given
-            toolbar in the plugin interface. The toolbar can be added either
-            to the 'top' or the 'bottom' of the plugin.
-        """
-        if location == 'top':
-            area = Qt.TopToolBarArea
-        elif location == 'bottom':
-            area = Qt.BottomToolBarArea
-        else:
-            raise SpyderAPIError('Invalid location "{}"!'.format(location))
-
-        if self._aux_toolbars[area]:
-            self.addToolBarBreak(area)
-
-        toolbar.setAllowedAreas(area)
-        self.addToolBar(toolbar)
-        self._aux_toolbars[area].append(toolbar)
 
     def get_toolbar(self, name):
         """
@@ -735,6 +764,12 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
         """
         return self._options_menu
 
+    def get_options_menu_button(self):
+        """
+        Return the main options button of the widget.
+        """
+        return self._options_button
+
     def get_main_toolbar(self):
         """
         Return the main toolbar of the plugin.
@@ -745,6 +780,18 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
             The main toolbar of the widget that contains the options button.
         """
         return self._main_toolbar
+
+    def get_auxiliary_toolbars(self):
+        """
+        Return the auxiliary toolbars of the plugin.
+
+        Returns
+        -------
+        OrderedDict
+            A dictionary of wirh toolbar IDs as keys and auxiliary toolbars as
+            values.
+        """
+        return self._auxiliary_toolbars
 
     def set_icon_size(self, icon_size):
         """
@@ -786,7 +833,7 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
         """
         Update central widget margins.
         """
-        layout = self._central_widget.layout()
+        layout = self.layout()
         if self._default_margins is None:
             self._default_margins = layout.getContentsMargins()
 
@@ -831,6 +878,22 @@ class PluginMainWidget(QMainWindow, SpyderWidgetMixin, SpyderToolBarMixin):
         Return widget icon.
         """
         return self._icon
+
+    def render_toolbars(self):
+        """
+        Render all the toolbars of the widget.
+
+        Notes
+        -----
+        This action can only be performed once.
+        """
+        # if not self._toolbars_already_rendered:
+        self._main_toolbar._render()
+        self._corner_toolbar._render()
+        for __, toolbar in self._auxiliary_toolbars.items():
+            toolbar._render()
+
+            # self._toolbars_already_rendered = True
 
     # --- SpyderDockwidget handling ------------------------------------------
     # ------------------------------------------------------------------------

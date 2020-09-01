@@ -12,6 +12,7 @@
 # pylint: disable=R0201
 
 # Standard library imports
+import os
 import os.path as osp
 import sys
 
@@ -256,15 +257,27 @@ class BaseTabs(QTabWidget):
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips
 
-        self.setStyleSheet("QTabWidget::tab-bar {"
-                           "alignment: left;}")
-
         if menu is None:
             self.menu = QMenu(self)
             if actions:
                 add_actions(self.menu, actions)
         else:
             self.menu = menu
+
+        # QTabBar forces the corner widgets to be smaller than they should on
+        # some plugins, like History. The top margin added allows the
+        # toolbuttons to expand to their normal size.
+        # See: spyder-ide/spyder#13600
+        top_margin = 9 if os.name == "nt" else 5
+        self.setStyleSheet(
+            f"""
+            QTabBar::tab {{
+                margin-top: {top_margin}px;
+            }}
+            QTabWidget::tab-bar {{
+                alignment: left;
+            }}
+            """)
 
         # Corner widgets
         if corner_widgets is None:

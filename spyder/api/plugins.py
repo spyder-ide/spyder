@@ -24,6 +24,7 @@ There are two types of plugins available:
 # Standard library imports
 from collections import OrderedDict
 import inspect
+import logging
 import os
 
 # Third party imports
@@ -51,6 +52,7 @@ from spyder.utils.qthelpers import create_action
 
 # Localization
 _ = get_translation('spyder')
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -816,8 +818,9 @@ class SpyderPluginV2(QObject, SpyderActionMixin, SpyderOptionMixin):
             # ----------------------------------------------------------------
             try:
                 container._setup(options=options)
-            except AttributeError:
-                pass
+            except Exception as error:
+                logger.debug(
+                    "Running `_setup` on {0}: {1}".format(self, error))
 
             if isinstance(container, SpyderWidgetMixin):
                 container.setup(options=options)
@@ -1602,14 +1605,10 @@ class SpyderDockablePlugin(SpyderPluginV2):
         widget.set_icon(self.get_icon())
         widget.set_name(self.NAME)
 
-        # TODO: Streamline this by moving to postvisible setup
         # Render all toolbars as a final separate step on the main window
         # in case some plugins want to extend a toolbar. Since the rendering
         # can only be done once!
-        widget.get_main_toolbar()._render()
-        for __, toolbars in widget._aux_toolbars.items():
-            for toolbar in toolbars:
-                toolbar._render()
+        widget.render_toolbars()
 
         # Default Signals
         # --------------------------------------------------------------------

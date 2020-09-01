@@ -59,6 +59,9 @@ EXTERNAL_PATHS = 7
 MAX_PATH_LENGTH = 60
 MAX_PATH_HISTORY = 15
 
+# These additional pixels account for operating system spacing differences
+EXTRA_BUTTON_PADDING = 10
+
 
 class FindInFilesWidgetActions:
     # Triggers
@@ -813,6 +816,7 @@ class FindInFilesWidget(PluginMainWidget):
         'supported_encodings': ("utf-8", "iso-8859-1", "cp1252"),
         'text_color': MAIN_TEXT_COLOR,
     }
+    ENABLE_SPINNER = True
     REGEX_INVALID = "background-color:rgb(255, 80, 80);"
     REGEX_ERROR = _("Regular expression error")
 
@@ -895,9 +899,6 @@ class FindInFilesWidget(PluginMainWidget):
 
         fm = self.search_label.fontMetrics()
         base_size = int(fm.width(_('Location:')) * 1.2)
-        self.search_text_edit.setMinimumWidth(base_size * 6)
-        self.exclude_pattern_edit.setMinimumWidth(base_size * 6)
-        self.path_selection_combo.setMinimumWidth(base_size * 6)
         self.search_label.setMinimumWidth(base_size)
         self.search_in_label.setMinimumWidth(base_size)
         self.exclude_label.setMinimumWidth(base_size)
@@ -927,6 +928,7 @@ class FindInFilesWidget(PluginMainWidget):
             self.sig_max_results_reached)
         self.result_browser.sig_max_results_reached.connect(
             self._stop_and_reset_thread)
+        self.search_text_edit.sig_resized.connect(self._update_size)
 
     # --- PluginMainWidget API
     # ------------------------------------------------------------------------
@@ -1032,21 +1034,37 @@ class FindInFilesWidget(PluginMainWidget):
         )
 
     def update_actions(self):
+        stop_text = _('Stop')
+        search_text = _('Search')
         if self.running:
-            icon_text = _('Stop')
+            icon_text = stop_text
             icon = self.create_icon('stop')
         else:
-            icon_text = _('Search')
+            icon_text = search_text
             icon = self.create_icon('find')
 
         self.find_action.setIconText(icon_text)
         self.find_action.setIcon(icon)
+        widget = self.get_main_toolbar().widgetForAction(self.find_action)
+        if widget:
+            w1 = widget.fontMetrics().width(stop_text)
+            w2 = widget.fontMetrics().width(search_text)
+
+            # Ensure the search/stop button has the same size independent on
+            # the length of the words.
+            width = (self.get_options_menu_button().width() + max([w1, w2])
+                     + EXTRA_BUTTON_PADDING)
+            widget.setMinimumWidth(width)
+
         if self.extras_toolbar and self.more_options_action:
             self.extras_toolbar.setVisible(
                 self.more_options_action.isChecked())
 
     def on_option_update(self, option, value):
         if option == 'more_options':
+            self.exclude_pattern_edit.setMinimumWidth(
+                self.search_text_edit.width())
+
             if value:
                 icon = self.create_icon('options_less')
                 tip = _('Hide advanced options')
@@ -1066,6 +1084,9 @@ class FindInFilesWidget(PluginMainWidget):
 
     # --- Private API
     # ------------------------------------------------------------------------
+    def _update_size(self, size, old_size):
+        self.exclude_pattern_edit.setMinimumWidth(size.width())
+
     def _get_options(self):
         """
         Get search options.

@@ -2832,7 +2832,8 @@ class MainWindow(QMainWindow):
                 # Old API
                 action = plugin._toggle_view_action
 
-            action.setChecked(plugin.dockwidget.isVisible())
+            if action:
+                action.setChecked(plugin.dockwidget.isVisible())
 
             try:
                 name = plugin.CONF_SECTION

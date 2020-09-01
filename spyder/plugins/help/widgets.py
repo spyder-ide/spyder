@@ -278,6 +278,7 @@ class HelpWidget(PluginMainWidget):
         # Shortcut CONF
         'console_shortcut': 'Ctrl+I',
     }
+    ENABLE_SPINNER = True
 
     # Signals
     sig_item_found = Signal()
