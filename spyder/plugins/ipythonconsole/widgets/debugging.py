@@ -174,7 +174,7 @@ class DebuggingWidget(RichJupyterWidget):
         self.pdb_execute(code, hidden=True)
 
     def do_where(self):
-        """Where was called, go to the cirrent location"""
+        """Where was called, go to the current location."""
         fname, lineno = self._pdb_frame_loc
         if fname:
             self.sig_pdb_step.emit(fname, lineno)
