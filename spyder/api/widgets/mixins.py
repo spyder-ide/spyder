@@ -356,9 +356,9 @@ class SpyderMenuMixin:
         ----------
         name: str
             Unique str identifier.
-        text: str
+        text: str or None
             Localized text string.
-        icon: QIcon,
+        icon: QIcon or None
             Icon to use for the menu.
 
         Return: QMenu

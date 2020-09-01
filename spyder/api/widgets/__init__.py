@@ -714,16 +714,18 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
 
         return toolbar
 
-    def create_menu(self, menu_id, title=''):
+    def create_menu(self, menu_id, title='', icon=None):
         """
         Override SpyderMenuMixin method to use a different menu class.
 
         Parameters
         ----------
-        toolbar_id: str
+        menu_id: str
             Unique toolbar string identifier.
         title: str
             Toolbar localized title.
+        icon: QIcon or None
+            Icon to use for the menu.
 
         Returns
         -------
@@ -741,6 +743,11 @@ class PluginMainWidget(QWidget, SpyderWidgetMixin, SpyderToolBarMixin):
 
         menu = MainWidgetMenu(parent=self, title=title)
         menu.ID = menu_id
+
+        if icon is not None:
+            menu.menuAction().setIconVisibleInMenu(True)
+            menu.setIcon(icon)
+
         self._menus[menu_id] = menu
         return menu
 
