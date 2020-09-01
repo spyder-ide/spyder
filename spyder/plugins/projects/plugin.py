@@ -367,7 +367,6 @@ class Projects(SpyderPluginWidget):
                 return
         else:
             path = encoding.to_unicode_from_fs(path)
-
         if project is None:
             project_type_class = self._load_project_type_class(path)
             project = project_type_class(
