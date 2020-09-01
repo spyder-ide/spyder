@@ -67,6 +67,16 @@ LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
 
 
+def natsort(s):
+    """
+    Natural sorting, e.g. test3 comes before test100.
+    Taken from https://stackoverflow.com/a/16090640/3110740
+    """
+    # if not isinstance(s, (str, bytes)): return s
+    x = [int(t) if t.isdigit() else t.lower() for t in re.split('([0-9]+)', s)]
+    return x
+
+
 class ProxyObject(object):
     """Dictionary proxy to an unknown object."""
 
@@ -170,7 +180,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self.title += _("Set")
             self._data = list(data)
         elif isinstance(data, dict):
-            self.keys = sorted(list(data.keys()))
+            try:
+                self.keys = sorted(list(data.keys()), key=natsort)
+            except TypeError:
+                # This is necessary to display dictionaries with mixed
+                # types as keys.
+                # Fixes spyder-ide/spyder#13481
+                self.keys = list(data.keys())
             self.title += _("Dictionary")
             if not self.names:
                 self.header0 = _("Key")
@@ -179,13 +195,11 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self._data = data = self.showndata = ProxyObject(data)
             if not self.names:
                 self.header0 = _("Attribute")
-
         if not isinstance(self._data, ProxyObject):
             self.title += (' (' + str(len(self.keys)) + ' ' +
-                          _("elements") + ')')
+                           _("element" + "s" * (len(self.keys) != 1)) + ')')
         else:
             self.title += data_type
-
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
             self.rows_loaded = ROWS_TO_LOAD
@@ -239,13 +253,18 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
 
     def sort(self, column, order=Qt.AscendingOrder):
         """Overriding sort method"""
+
+        def all_string(listlike):
+            return all([isinstance(x, str) for x in listlike])
+
         reverse = (order == Qt.DescendingOrder)
+        sort_key = natsort if all_string(self.keys) else None
 
         if column == 0:
             self.sizes = sort_against(self.sizes, self.keys, reverse)
             self.types = sort_against(self.types, self.keys, reverse)
             try:
-                self.keys.sort(reverse=reverse)
+                self.keys.sort(reverse=reverse, key=sort_key)
             except:
                 pass
         elif column == 1:
@@ -253,7 +272,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                                                         reverse)
             self.sizes = sort_against(self.sizes, self.types, reverse)
             try:
-                self.types.sort(reverse=reverse)
+                self.types.sort(reverse=reverse, key=sort_key)
             except:
                 pass
         elif column == 2:
@@ -261,7 +280,7 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
                                                         reverse)
             self.types = sort_against(self.types, self.sizes, reverse)
             try:
-                self.sizes.sort(reverse=reverse)
+                self.sizes.sort(reverse=reverse, key=sort_key)
             except:
                 pass
         elif column in [3, 4]:
@@ -1646,6 +1665,14 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
         else:
             return True
 
+    def lessThan(self, left, right):
+        """Implements ordering in a natural way, as a human would sort."""
+        leftData = self.sourceModel().data(left)
+        rightData = self.sourceModel().data(right)
+        if isinstance(leftData, str) and isinstance(rightData, str):
+            return natsort(leftData) < natsort(rightData)
+        else:
+            return leftData < rightData
 
 # =============================================================================
 # Tests

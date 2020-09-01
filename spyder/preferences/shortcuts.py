@@ -434,8 +434,11 @@ class ShortcutEditor(QDialog):
         """Set the new sequence to the default value defined in the config."""
         sequence = CONF.get_default(
             'shortcuts', "{}/{}".format(self.context, self.name))
-        self._qsequences = sequence.split(', ')
-        self.update_warning()
+        if sequence:
+            self._qsequences = sequence.split(', ')
+            self.update_warning()
+        else:
+            self.unbind_shortcut()
 
     def back_new_sequence(self):
         """Remove the last subsequence from the sequence compound."""
