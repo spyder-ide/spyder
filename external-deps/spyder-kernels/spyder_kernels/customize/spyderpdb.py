@@ -315,6 +315,12 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 _print("--KeyboardInterrupt--\n"
                        "For copying text while debugging, use Ctrl+Shift+C",
                        file=self.stdout)
+            except Exception:
+                try:
+                    frontend_request(blocking=True).set_debug_state(False)
+                except (CommError, TimeoutError):
+                    logger.debug("Could not send debugging state to the frontend.")
+                raise
 
     def postcmd(self, stop, line):
         """

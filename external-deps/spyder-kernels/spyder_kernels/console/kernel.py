@@ -74,6 +74,18 @@ class SpyderKernel(IPythonKernel):
         self._do_publish_pdb_state = True
         self._mpl_backend_error = None
         self._running_namespace = None
+        self.shell.get_local_scope = self.get_local_scope
+
+    def get_local_scope(self, stack_depth):
+        """Get local scope at given frame depth."""
+        frame = sys._getframe(stack_depth + 1)
+        if self._pdb_frame is frame:
+            # we also give the globals because they might not be in self.shell.user_ns
+            namespace = frame.f_globals.copy()
+            namespace.update(self._pdb_locals)
+            return namespace
+        else:
+            return frame.f_locals
 
     # -- Public API -----------------------------------------------------------
     def frontend_call(self, blocking=False, broadcast=True, timeout=None):
