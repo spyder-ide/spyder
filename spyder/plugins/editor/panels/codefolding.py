@@ -188,7 +188,7 @@ class FoldingPanel(Panel):
             offset += len(line)
         return line_start_offset
 
-    def update_folding(self, ranges):
+    def update_folding(self, ranges, text):
         """Update folding panel folding ranges."""
         if ranges is None:
             return
