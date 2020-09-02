@@ -159,7 +159,7 @@ class PydocBrowser(PluginMainWidget):
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
         self.url_combo.setMaxCount(self.get_option('max_history_entries'))
-        tip = _('Write a package name here')
+        tip = _('Write a package name here, e.g. pandas')
         self.url_combo.lineEdit().setPlaceholderText(tip)
         self.url_combo.lineEdit().setToolTip(tip)
         self.webview.setup()
