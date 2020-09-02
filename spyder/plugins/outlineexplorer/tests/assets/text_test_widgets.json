@@ -1,41 +1,5 @@
 [
     {
-        "name": "os",
-        "containerName": null,
-        "location": {
-            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
-            "range": {
-                "start": {
-                    "line": 8,
-                    "character": 0
-                },
-                "end": {
-                    "line": 8,
-                    "character": 9
-                }
-            }
-        },
-        "kind": 2
-    },
-    {
-        "name": "sys",
-        "containerName": null,
-        "location": {
-            "uri": "file:///home/andfoy/.config/spyder-py3-dev/temp.py",
-            "range": {
-                "start": {
-                    "line": 9,
-                    "character": 0
-                },
-                "end": {
-                    "line": 9,
-                    "character": 10
-                }
-            }
-        },
-        "kind": 2
-    },
-    {
         "name": "d",
         "containerName": null,
         "location": {
