@@ -163,6 +163,8 @@ if osp.exists(pyls_installation_dir) or osp.exists(pyls_installation_egg):
 
 # Install PyLS locally
 print("*. Installing PyLS locally")
+pyls_env = os.environ.copy()
+pyls_env['PYTHONPATH'] = pyls_installation_dir
 subprocess.check_output(
     [sys.executable,
      '-W',
@@ -172,7 +174,7 @@ subprocess.check_output(
      '--no-deps',
      '--install-dir',
      pyls_installation_dir],
-    env={'PYTHONPATH': pyls_installation_dir},
+    env=pyls_env,
     cwd=pyls_submodule
 )
 

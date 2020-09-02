@@ -270,6 +270,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             cwd = osp.join(get_conf_path(), 'lsp_paths', 'cwd')
             if not osp.exists(cwd):
                 os.makedirs(cwd)
+
+            # On Windows, some modules (notably matplotlib)
+            # causes exception if they cannot get the user home.
+            # So, the USERPROFILE env variable is passed to PyLS.
+            # See https://docs.python.org/3/library/os.path.html#os.path.expanduser
+            if os.name == "nt" and "USERPROFILE" in os.environ:
+                env.insert("USERPROFILE", os.environ["USERPROFILE"])
         else:
             # There's no need to define a cwd for other servers.
             cwd = None
