@@ -384,17 +384,6 @@ class BreakpointWidget(PluginMainWidget):
     def setup(self, options):
         self.breakpoints_table.setup()
 
-        clear_all_action = self.get_action(
-            BreakpointTableViewActions.ClearAllBreakpoints)
-        clear_action = self.get_action(
-            BreakpointTableViewActions.ClearBreakpoint)
-        edit_action = self.get_action(
-            BreakpointTableViewActions.EditBreakpoint)
-
-        options_menu = self.get_options_menu()
-        for item in [clear_all_action, clear_action, edit_action]:
-            self.add_item_to_menu(item, menu=options_menu)
-
     def on_option_update(self, option, value):
         pass
 
