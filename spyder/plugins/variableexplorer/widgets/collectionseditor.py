@@ -542,6 +542,8 @@ class BaseTableView(QTableView):
         self.imshow_action = None
         self.save_array_action = None
         self.insert_action = None
+        self.insert_action_above = None
+        self.insert_action_below = None
         self.remove_action = None
         self.minmax_action = None
         self.rename_action = None
@@ -602,9 +604,21 @@ class BaseTableView(QTableView):
                                                icon=ima.icon('filesave'),
                                                triggered=self.save_array)
         self.save_array_action.setVisible(False)
-        self.insert_action = create_action(self, _("Insert"),
-                                           icon=ima.icon('insert'),
-                                           triggered=self.insert_item)
+        self.insert_action = create_action(
+            self, _("Insert"),
+            icon=ima.icon('insert'),
+            triggered=lambda: self.insert_item(below=False)
+        )
+        self.insert_action_above = create_action(
+            self, _("Insert above"),
+            icon=ima.icon('insert'),
+            triggered=lambda: self.insert_item(below=False)
+        )
+        self.insert_action_below = create_action(
+            self, _("Insert below"),
+            icon=ima.icon('insert'),
+            triggered=lambda: self.insert_item(below=True)
+        )
         self.remove_action = create_action(self, _("Remove"),
                                            icon=ima.icon('editdelete'),
                                            triggered=self.remove_item)
@@ -626,9 +640,10 @@ class BaseTableView(QTableView):
         menu = QMenu(self)
         menu_actions = [self.edit_action, self.plot_action, self.hist_action,
                         self.imshow_action, self.save_array_action,
-                        self.insert_action, self.remove_action,
-                        self.copy_action, self.paste_action,
-                        self.view_action,
+                        self.insert_action,
+                        self.insert_action_above, self.insert_action_below,
+                        self.remove_action, self.copy_action,
+                        self.paste_action, self.view_action,
                         None, self.rename_action, self.duplicate_action,
                         None, resize_action, resize_columns_action]
         if ndarray is not FakeObject:
@@ -636,8 +651,9 @@ class BaseTableView(QTableView):
         add_actions(menu, menu_actions)
         self.empty_ws_menu = QMenu(self)
         add_actions(self.empty_ws_menu,
-                    [self.insert_action, self.paste_action,
-                     None, resize_action, resize_columns_action])
+                    [self.insert_action_above, self.insert_action_below,
+                    self.insert_action, self.paste_action, None, 
+                    resize_action, resize_columns_action])
         return menu
 
     # ------ Remote/local API -------------------------------------------------
@@ -721,8 +737,12 @@ class BaseTableView(QTableView):
         else:
             is_array = condition_plot = condition_imshow = is_list \
                      = condition_hist = False
+        is_list_instance = isinstance(self.source_model.get_data(), list)
         self.plot_action.setVisible(condition_plot or is_list)
         self.hist_action.setVisible(condition_hist or is_list)
+        self.insert_action.setVisible(not is_list_instance)
+        self.insert_action_above.setVisible(is_list_instance)
+        self.insert_action_below.setVisible(is_list_instance)
         self.imshow_action.setVisible(condition_imshow)
         self.save_array_action.setVisible(is_array)
 
@@ -932,16 +952,22 @@ class BaseTableView(QTableView):
         self.copy_item(erase_original=True, new_name=new_name)
 
     @Slot()
-    def insert_item(self):
+    def insert_item(self, below=True):
         """Insert item"""
         index = self.currentIndex()
         if not index.isValid():
             row = self.source_model.rowCount()
         else:
             if self.proxy_model:
-                row = self.proxy_model.mapToSource(index).row()
+                if below:
+                    row = self.proxy_model.mapToSource(index).row() + 1
+                else:
+                    row = self.proxy_model.mapToSource(index).row()
             else:
-                row = index.row()
+                if below:
+                    row = index.row() + 1
+                else:
+                    row = index.row()
         data = self.source_model.get_data()
         if isinstance(data, list):
             key = row
@@ -1247,7 +1273,9 @@ class CollectionsEditorTableView(BaseTableView):
                     and not self.readonly
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
-        self.insert_action.setEnabled( not self.readonly )
+        self.insert_action.setEnabled(not self.readonly)
+        self.insert_action_above.setEnabled(not self.readonly)
+        self.insert_action_below.setEnabled(not self.readonly)
         self.duplicate_action.setEnabled(condition)
         condition_rename = not isinstance(data, (tuple, list, set))
         self.rename_action.setEnabled(condition_rename)
