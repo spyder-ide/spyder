@@ -59,7 +59,7 @@ if os.name != 'nt' or os.name == 'nt' and not bool(os.environ.get('CI')):
          'develop',
          '--no-deps',
          '--install-dir',
-        pyls_installation_dir],
+         pyls_installation_dir],
         env={**os.environ, **{'PYTHONPATH': pyls_installation_dir}},
         cwd=pyls_submodule
     )
