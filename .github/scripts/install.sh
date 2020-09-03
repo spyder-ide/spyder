@@ -43,10 +43,13 @@ else
     pip uninstall python-language-server -q -y
 fi
 
-# Install python-language-server from our subrepo
-pushd external-deps/python-language-server
-pip install --no-deps -q -e .
-popd
+# This is necessary only for Windows (don't know why).
+if [ "$OS" = "win" ]; then
+    # Install python-language-server from our subrepo
+    pushd external-deps/python-language-server
+    pip install --no-deps -q -e .
+    popd
+fi
 
 # To check our manifest
 pip install check-manifest
