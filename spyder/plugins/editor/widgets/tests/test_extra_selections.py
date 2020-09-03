@@ -7,7 +7,7 @@
 
 # Third party imports
 import pytest
-from qtpy.QtGui import QTextCursor, QTextFormat
+from qtpy.QtGui import QFont, QTextCursor, QTextFormat
 
 # Local imports
 from spyder.utils.qthelpers import qapplication
@@ -20,8 +20,11 @@ def construct_editor(*args, **kwargs):
     """Construct editor with some text for testing extra selections."""
     app = qapplication()
     editor = CodeEditor(parent=None)
-    kwargs['language'] = 'Python'
-    editor.setup_editor(*args, **kwargs)
+    editor.setup_editor(
+        language='Python',
+        color_scheme='spyder/dark',
+        font=QFont("Monospace", 10),
+    )
 
     text = ("def some_function():\n"
             "    some_variable = 1\n"
@@ -29,6 +32,8 @@ def construct_editor(*args, **kwargs):
             "    return some_variable\n"
             "# %%")
     editor.set_text(text)
+    editor.resize(640, 480)
+    editor.show()
     return editor
 
 
@@ -42,7 +47,10 @@ def test_extra_selections(qtbot):
     cursor.movePosition(QTextCursor.Right, n=5)
     editor.setTextCursor(cursor)
 
-    qtbot.waitUntil(lambda: len(editor.extraSelections()) >= 6, timeout=2000)
+    # Assert number of extra selections is the one we expect
+    qtbot.wait(3000)
+    assert len(editor.extraSelections()) == 5
+
     selections = editor.extraSelections()
     selected_texts = [sel.cursor.selectedText() for sel in selections]
 
