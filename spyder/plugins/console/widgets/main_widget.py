@@ -233,6 +233,7 @@ class ConsoleWidget(PluginMainWidget):
         internal_settings_menu = self.create_menu(
             ConsoleWidgetMenus.InternalSettings,
             _('Internal console settings'),
+            icon=self.create_icon('tooloptions'),
         )
         for item in [buffer_action, wrap_action, codecompletion_action,
                      exteditor_action]:
@@ -272,8 +273,6 @@ class ConsoleWidget(PluginMainWidget):
             self.shell.set_external_editor(value, '')
 
     def update_actions(self):
-        # This method is a required part of the PluginMainWidget API. On this
-        # widget it is not currently used.
         pass
 
     def get_focus_widget(self):
