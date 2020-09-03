@@ -32,7 +32,7 @@ from qtpy.QtWidgets import QWidget
 # Local imports
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView, CollectionsEditorTableView,
-    CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD)
+    CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD, natsort)
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespacesBrowserFinder)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
@@ -744,15 +744,21 @@ def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
             last_row = row
 
         qtbot.wait(100)
+
         # Due to numpy's deliberate breakage of __eq__ comparison
         assert all([key == "_typ" or (getattr(col_editor.get_value(), key)
                     == getattr(expected_obj, key)) for key in keys])
 
         col_editor.accept()
         qtbot.wait(200)
+
         # Same reason as above
         assert all([key == "_typ" or (getattr(col_editor.get_value(), key)
                     == getattr(expected_obj, key)) for key in keys])
+
+        if getattr(test_obj, "_typ", None) is None:
+            keys.remove("_typ")
+
         assert all([getattr(test_obj, key)
                     == getattr(expected_obj, key) for key in keys])
 
@@ -804,6 +810,39 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
 
     # Assert data was sorted correctly.
     assert data(view.model, 0, 0) == 9999
+
+
+def test_dicts_with_mixed_types_as_key(qtbot):
+    """
+    Test that we can show dictionaries with mixed data types as keys.
+
+    This is a regression for spyder-ide/spyder#13481.
+    """
+    colors = {1: 'red', 'Y': 'yellow'}
+    editor = CollectionsEditor()
+    editor.setup(colors)
+    assert editor.widget.editor.source_model.keys == [1, 'Y']
+
+
+def test_dicts_natural_sorting(qtbot):
+    """
+    Test that natural sorting actually does what it should do
+    """
+    import random
+    numbers = list(range(100))
+    random.shuffle(numbers)
+    dictionary = {'test{}'.format(i): None for i in numbers}
+    data_sorted = sorted(list(dictionary.keys()), key=natsort)
+    # numbers should be as a human would sort, e.g. test3 before test100
+    # regular sort would sort test1, test10, test11,..., test2, test20,...
+    expected = ['test{}'.format(i) for i in list(range(100))]
+    editor = CollectionsEditor()
+    editor.setup(dictionary)
+    editor.widget.editor.source_model.sort(0)
+
+    assert data_sorted == expected, 'Function failed'
+    assert editor.widget.editor.source_model.keys == expected, \
+        'GUI sorting fail'
 
 
 if __name__ == "__main__":

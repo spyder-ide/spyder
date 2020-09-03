@@ -25,6 +25,7 @@ except ImportError:
     from mock import Mock  # Python 2
 
 # Third party imports
+import IPython
 from IPython.core import release as ipy_release
 from IPython.core.application import get_ipython_dir
 from flaky import flaky
@@ -780,7 +781,8 @@ def test_save_history_dbg(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-@pytest.mark.skipif(PY2, reason="insert is not the same in py2")
+@pytest.mark.skipif(PY2 or IPython.version_info < (7, 17),
+                    reason="insert is not the same in py2")
 def test_dbg_input(ipyconsole, qtbot):
     """Test that spyder doesn't send pdb commands to unrelated input calls."""
     shell = ipyconsole.get_current_shellwidget()
@@ -796,9 +798,6 @@ def test_dbg_input(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
     # Reach the 'name' input
-    shell.pdb_execute('n')
-    qtbot.wait(100)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     shell.pdb_execute('n')
     qtbot.wait(100)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'name')
@@ -1715,6 +1714,32 @@ def test_stderr_poll(ipyconsole, qtbot):
     # Wait for the poll
     qtbot.wait(2000)
     assert "test_test" in ipyconsole.get_focus_widget().toPlainText()
+
+
+@pytest.mark.slow
+@pytest.mark.use_startup_wdir
+def test_startup_code_pdb(ipyconsole, qtbot):
+    """Test that startup code for pdb works."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    # Run a line on startup
+    CONF.set('ipython_console', 'startup/pdb_run_lines',
+             'abba = 12; print("Hello")')
+
+    shell.execute('%debug print()')
+    qtbot.waitUntil(lambda: 'Hello' in control.toPlainText())
+
+    # Verify that the line was executed
+    assert shell.get_value('abba') == 12
+
+    # Reset setting
+    CONF.set('ipython_console', 'startup/pdb_run_lines', '')
 
 
 if __name__ == "__main__":

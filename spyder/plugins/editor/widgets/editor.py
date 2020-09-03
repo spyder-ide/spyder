@@ -515,8 +515,12 @@ class EditorStack(QWidget):
            text=_("Show in Finder")
         else:
            text= _("Show in external file explorer")
-        external_fileexp_action = create_action(self, text,
-                                triggered=self.show_in_external_file_explorer)
+        external_fileexp_action = create_action(
+            self, text,
+            triggered=self.show_in_external_file_explorer,
+            shortcut=CONF.get_shortcut(context="Editor",
+                                       name="show in external file explorer"),
+            context=Qt.WidgetShortcut)
 
         self.menu_actions = actions + [external_fileexp_action,
                                        None, switcher_action,
@@ -836,6 +840,12 @@ class EditorStack(QWidget):
             name="close split panel",
             parent=self)
 
+        external_fileexp = CONF.config_shortcut(
+            self.show_in_external_file_explorer,
+            context="Editor",
+            name="show in external file explorer",
+            parent=self)
+
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
                 tabshift, run_selection, new_file, open_file, save_file,
@@ -846,7 +856,7 @@ class EditorStack(QWidget):
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
-                prevtab, nexttab]
+                prevtab, nexttab, external_fileexp]
 
     def get_shortcut_data(self):
         """

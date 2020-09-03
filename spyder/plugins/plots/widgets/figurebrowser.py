@@ -55,13 +55,17 @@ def save_figure_tofile(fig, fmt, fname):
             f.write(fig)
 
 
-def get_unique_figname(dirname, root, ext):
+def get_unique_figname(dirname, root, ext, start_at_zero=False):
     """
     Append a number to "root" to form a filename that does not already exist
     in "dirname".
     """
     i = 1
     figname = '{}{}'.format(root, ext)
+    if start_at_zero:
+        i = 0
+        figname = '{} ({}){}'.format(root, i, ext)
+
     while True:
         if osp.exists(osp.join(dirname, figname)):
             figname = '{} ({}){}'.format(root, i, ext)
@@ -762,7 +766,8 @@ class ThumbnailScrollBar(QFrame):
                     'image/jpeg': '.jpg',
                     'image/svg+xml': '.svg'}[fmt]
 
-            figname = get_unique_figname(dirname, figname_root, fext)
+            figname = get_unique_figname(dirname, figname_root, fext,
+                                         start_at_zero=True)
             save_figure_tofile(fig, fmt, figname)
             fignames.append(figname)
         return fignames
