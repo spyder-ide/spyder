@@ -137,15 +137,29 @@ class Pylint(SpyderPluginWidget):
     #------ Public API --------------------------------------------------------
     @Slot()
     def change_history_depth(self):
-        "Change history max entries"""
-        depth, valid = QInputDialog.getInt(self, _('History'),
-                                       _('Maximum entries'),
-                                       self.get_option('max_entries'),
-                                       MIN_HISTORY_ENTRIES,
-                                       MAX_HISTORY_ENTRIES)
-        if valid:
-            self.set_option('max_entries', depth)
-            self.pylint.change_history_limit(depth)
+        """Change history max entries."""
+        # Create dialog
+        dialog = QInputDialog(self)
+
+        # Set dialog properties
+        dialog.setModal(False)
+        dialog.setWindowTitle(_('History'))
+        dialog.setLabelText(_('Maximum entries'))
+        dialog.setInputMode(QInputDialog.IntInput)
+        dialog.setIntRange(MIN_HISTORY_ENTRIES, MAX_HISTORY_ENTRIES)
+        dialog.setIntStep(1)
+        dialog.setIntValue(self.get_option('max_entries'))
+
+        # Connect slot
+        dialog.intValueSelected.connect(
+            lambda value: self.set_history_limit(value))
+
+        dialog.show()
+
+    def set_history_limit(self, value):
+        """Set history limit."""
+        self.set_option('max_entries', value)
+        self.pylint.change_history_limit(value)
 
     def get_filename(self):
         """Get current filename in combobox."""

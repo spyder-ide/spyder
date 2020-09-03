@@ -13,7 +13,8 @@ import re
 # Third party imports
 from qtpy import PYQT5
 from qtpy.compat import from_qvariant, to_qvariant
-from qtpy.QtCore import QAbstractTableModel, QModelIndex, Qt, Slot, QEvent
+from qtpy.QtCore import (QAbstractTableModel, QModelIndex, Qt, Slot, QEvent,
+                         QSortFilterProxyModel)
 from qtpy.QtGui import QKeySequence, QIcon
 from qtpy.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                             QGridLayout, QHBoxLayout, QLabel,
@@ -26,9 +27,8 @@ from spyder.config.manager import CONF
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima
 from spyder.utils.qthelpers import get_std_icon, create_toolbutton
-from spyder.utils.stringmatching import get_search_scores
-from spyder.widgets.helperwidgets import (CustomSortFilterProxy,
-                                          FinderLineEdit, HelperToolButton,
+from spyder.utils.stringmatching import get_search_scores, get_search_regex
+from spyder.widgets.helperwidgets import (FinderLineEdit, HelperToolButton,
                                           HTMLDelegate, VALID_FINDER_CHARS)
 
 
@@ -434,8 +434,11 @@ class ShortcutEditor(QDialog):
         """Set the new sequence to the default value defined in the config."""
         sequence = CONF.get_default(
             'shortcuts', "{}/{}".format(self.context, self.name))
-        self._qsequences = sequence.split(', ')
-        self.update_warning()
+        if sequence:
+            self._qsequences = sequence.split(', ')
+            self.update_warning()
+        else:
+            self.unbind_shortcut()
 
     def back_new_sequence(self):
         """Remove the last subsequence from the sequence compound."""
@@ -494,6 +497,7 @@ class ShortcutsModel(QAbstractTableModel):
         self.scores = []
         self.rich_text = []
         self.normal_text = []
+        self.context_rich_text = []
         self.letters = ''
         self.label = QLabel()
         self.widths = []
@@ -539,15 +543,20 @@ class ShortcutsModel(QAbstractTableModel):
         column = index.column()
 
         if role == Qt.DisplayRole:
+            color = self.text_color
+            if self._parent == QApplication.focusWidget():
+                if self.current_index().row() == row:
+                    color = self.text_color_highlight
+                else:
+                    color = self.text_color
             if column == CONTEXT:
-                return to_qvariant(shortcut.context)
+                if len(self.context_rich_text) > 0:
+                    text = self.context_rich_text[row]
+                else:
+                    text = shortcut.context
+                text = '<p style="color:{0}">{1}</p>'.format(color, text)
+                return to_qvariant(text)
             elif column == NAME:
-                color = self.text_color
-                if self._parent == QApplication.focusWidget():
-                    if self.current_index().row() == row:
-                        color = self.text_color_highlight
-                    else:
-                        color = self.text_color
                 text = self.rich_text[row]
                 text = '<p style="color:{0}">{1}</p>'.format(color, text)
                 return to_qvariant(text)
@@ -606,9 +615,15 @@ class ShortcutsModel(QAbstractTableModel):
     def update_search_letters(self, text):
         """Update search letters with text input in search box."""
         self.letters = text
+        contexts = [shortcut.context for shortcut in self.shortcuts]
         names = [shortcut.name for shortcut in self.shortcuts]
+        context_results = get_search_scores(
+            text, contexts, template='<b>{0}</b>')
         results = get_search_scores(text, names, template='<b>{0}</b>')
+        __, self.context_rich_text, context_scores = (
+            zip(*context_results))
         self.normal_text, self.rich_text, self.scores = zip(*results)
+        self.scores = [x + y for x, y in zip(self.scores, context_scores)]
         self.reset()
 
     def update_active_row(self):
@@ -636,17 +651,19 @@ class ShortcutsTable(QTableView):
                                     self,
                                     text_color=text_color,
                                     text_color_highlight=text_color_highlight)
-        self.proxy_model = CustomSortFilterProxy(self)
+        self.proxy_model = ShortcutsSortFilterProxy(self)
         self.last_regex = ''
 
         self.proxy_model.setSourceModel(self.source_model)
         self.proxy_model.setDynamicSortFilter(True)
-        self.proxy_model.setFilterKeyColumn(NAME)
+        self.proxy_model.setFilterByColumn(CONTEXT)
+        self.proxy_model.setFilterByColumn(NAME)
         self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
         self.setModel(self.proxy_model)
 
         self.hideColumn(SEARCH_SCORE)
         self.setItemDelegateForColumn(NAME, HTMLDelegate(self, margin=9))
+        self.setItemDelegateForColumn(CONTEXT, HTMLDelegate(self, margin=9))
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
         self.setSortingEnabled(True)
@@ -891,6 +908,65 @@ class ShortcutsConfigPage(GeneralConfigPage):
     def apply_settings(self, options):
         self.table.save_shortcuts()
         self.main.apply_shortcuts()
+
+
+class ShortcutsSortFilterProxy(QSortFilterProxyModel):
+    """Custom proxy for supporting shortcuts multifiltering."""
+
+    def __init__(self, parent=None):
+        """Initialize the multiple sort filter proxy."""
+        super().__init__(parent)
+        self._parent = parent
+        self.pattern = re.compile(r'')
+        self.filters = {}
+
+    def setFilterByColumn(self, column):
+        """Set regular expression in the given column."""
+        self.filters[column] = self.pattern
+        self.invalidateFilter()
+
+    def set_filter(self, text):
+        """Set regular expression for filter."""
+        for key, __ in self.filters.items():
+            self.pattern = get_search_regex(text)
+            if self.pattern and text:
+                self._parent.setSortingEnabled(False)
+            else:
+                self._parent.setSortingEnabled(True)
+            self.filters[key] = self.pattern
+            self.invalidateFilter()
+
+    def clearFilter(self, column):
+        """Clear the filter of the given column."""
+        self.filters.pop(column)
+        self.invalidateFilter()
+
+    def clearFilters(self):
+        """Clear all the filters."""
+        self.filters = {}
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, row_num, parent):
+        """Qt override.
+
+        Reimplemented to allow filtering in multiple columns.
+        """
+        results = []
+        for key, regex in self.filters.items():
+            model = self.sourceModel()
+            idx = model.index(row_num, key, parent)
+            if idx.isValid():
+                name = model.row(row_num).name
+                r_name = re.search(regex, name)
+                if r_name is None:
+                    r_name = ''
+                context = model.row(row_num).context
+                r_context = re.search(regex, context)
+                if r_context is None:
+                    r_context = ''
+                results.append(r_name)
+                results.append(r_context)
+        return any(results)
 
 
 def load_shortcuts(shortcut_table):

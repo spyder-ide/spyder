@@ -41,7 +41,7 @@ jobs:
     strategy:
       fail-fast: false 
       matrix:
-        PYTHON_VERSION: ['3.7', '3.6', '2.7']
+        PYTHON_VERSION: ['3.7', '3.6']
     steps:
       - name: Checkout Pull Requests
         if: github.event_name == 'pull_request'
@@ -65,7 +65,9 @@ jobs:
       - name: Install dependencies
         if: env.RUN_BUILD == 'true'
         shell: bash
-        run: sudo apt-get install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev libegl1-mesa libxkbcommon-x11-0
+        run: |
+          sudo apt-get update --fix-missing
+          sudo apt-get install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev libegl1-mesa libxkbcommon-x11-0 xterm --fix-missing
       - name: Cache conda
         uses: actions/cache@v1
         env:

@@ -19,11 +19,13 @@ To release a new version of Spyder you need to follow these steps:
 
 ## Release updates
 
+* Close the current milestone Github
+
 * Close the current release on Zenhub
 
 * git pull or git fetch/merge
 
-* Update CHANGELOG.md with `loghub spyder-ide/spyder -zr "spyder vX.X.X"`
+* Update CHANGELOG.md with `loghub spyder-ide/spyder -m vX.X.X`
 
 * Update Announcements.md
 
@@ -38,6 +40,8 @@ To release a new version of Spyder you need to follow these steps:
 * activate py2env-with-latest-setuptools && python2 setup.py bdist_wheel
 
 * activate py3env-with-latest-setuptools && python3 setup.py bdist_wheel
+
+* twine check dist/*
 
 * twine upload dist/*
 

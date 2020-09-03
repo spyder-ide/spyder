@@ -504,7 +504,12 @@ class FoldingPanel(Panel):
                     # fold scope changed, a previous block was highlighter so
                     # we quickly update our highlighting
                     self._mouse_over_line = block.blockNumber()
-                    self._highlight_block(block)
+                    try:
+                        self._highlight_block(block)
+                    except KeyError:
+                        # Catching the KeyError above is necessary to avoid
+                        # issue spyder-ide/spyder#13230.
+                        pass
                 else:
                     # same fold scope, request highlight
                     self._mouse_over_line = block.blockNumber()
@@ -802,7 +807,12 @@ class FoldingPanel(Panel):
             line_number = block.blockNumber()
             if line_number in self.folding_regions:
                 self._mouse_over_line = block.blockNumber()
-                self._highlight_block(block)
+                try:
+                    self._highlight_block(block)
+                except KeyError:
+                    # Catching the KeyError above is necessary to avoid
+                    # issue spyder-ide/spyder#13230.
+                    pass
             else:
                 self._clear_scope_decos()
         self._block_nbr = block_nbr

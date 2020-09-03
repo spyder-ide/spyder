@@ -257,6 +257,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server = QProcess(self)
         env = self.server.processEnvironment()
 
+        # Use local PyLS instead of site-packages one.
+        if DEV or running_under_pytest():
+            running_in_ci = bool(os.environ.get('CI'))
+            if os.name != 'nt' or os.name == 'nt' and not running_in_ci:
+                env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
+
         # Adjustments for the Python language server.
         if self.language == 'python':
             # Set the PyLS current working to an empty dir inside
@@ -266,6 +272,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             cwd = osp.join(get_conf_path(), 'lsp_paths', 'cwd')
             if not osp.exists(cwd):
                 os.makedirs(cwd)
+
+            # On Windows, some modules (notably Matplotlib)
+            # cause exceptions if they cannot get the user home.
+            # So, we need to pass the USERPROFILE env variable to
+            # the PyLS.
+            if os.name == "nt" and "USERPROFILE" in os.environ:
+                env.insert("USERPROFILE", os.environ["USERPROFILE"])
         else:
             # There's no need to define a cwd for other servers.
             cwd = None

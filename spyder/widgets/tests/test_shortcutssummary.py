@@ -57,6 +57,9 @@ def test_shortcutssummary_texts(dlg_shortcuts, qtbot):
                 except AttributeError:  # Since some items are not present
                     continue
 
+                if not shortcut_keystr:
+                    continue
+
                 if sys.platform.startswith('darwin'):
                     keywords = [u'⇧', u'⌃', u'⌘', u'⌥', u'⌦',  u'⎋', 'F']
                 else:

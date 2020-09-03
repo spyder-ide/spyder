@@ -111,25 +111,6 @@ QTabBar#plugin-tab QToolButton {
 
 /* Scroll arrow buttons in tabbar */
 
-QTabBar#plugin-tab QToolButton::left-arrow {
-    background: #b7b9b7;
-    background: #d2d3d2;
-    image: url($IMAGE_PATH/chevron-left.png);
-    border: 1px solid #a8a9a8;
-    border-bottom: 0px solid #a8a9a8;
-    margin-right: 0px;
-    padding: 0px 3px;
-}
-
-QTabBar#plugin-tab QToolButton::right-arrow {
-    background: #b7b9b7;
-    background: #d2d3d2;
-    image: url($IMAGE_PATH/chevron-right.png);
-    border: 1px solid #a8a9a8;
-    border-bottom: 0px solid #a8a9a8;
-    padding: 0px 3px;
-}
-
 QTabBar::scroller#plugin-tab { /* the width of the scroll buttons */
     width: 16px;
 }
