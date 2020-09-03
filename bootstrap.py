@@ -172,7 +172,7 @@ subprocess.check_output(
      '--no-deps',
      '--install-dir',
      pyls_installation_dir],
-    env={'PYTHONPATH': pyls_installation_dir},
+    env={**os.environ, **{'PYTHONPATH': pyls_installation_dir}},
     cwd=pyls_submodule
 )
 
