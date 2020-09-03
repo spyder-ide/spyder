@@ -348,7 +348,7 @@ class SpyderMenuMixin:
 
         menu.add_action(action_or_menu, section=section, before=before)
 
-    def create_menu(self, name, text=None):
+    def create_menu(self, name, text=None, icon=None):
         """
         Create a menu.
 
@@ -358,6 +358,8 @@ class SpyderMenuMixin:
             Unique str identifier.
         text: str
             Localized text string.
+        icon: QIcon,
+            Icon to use for the menu.
 
         Return: QMenu
             Return the created menu.
@@ -374,6 +376,10 @@ class SpyderMenuMixin:
             )
 
         menu = SpyderMenu(parent=self, title=text)
+        if icon is not None:
+            menu.menuAction().setIconVisibleInMenu(True)
+            menu.setIcon(icon)
+
         self._menus[name] = menu
         return menu
 
