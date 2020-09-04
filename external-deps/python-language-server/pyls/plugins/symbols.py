@@ -6,7 +6,6 @@ from pyls.lsp import SymbolKind
 log = logging.getLogger(__name__)
 
 
-@hookimpl
 def pyls_document_symbols(config, document):
     all_scopes = config.plugin_settings('jedi_symbols').get('all_scopes', True)
     definitions = document.jedi_names(all_scopes=all_scopes)
@@ -15,7 +14,7 @@ def pyls_document_symbols(config, document):
     redefinitions = {}
     while definitions != []:
         d = definitions.pop(0)
-        if _include_def(d):
+        if _include_def(d) and document.path == d.module_path:
             tuple_range = _tuple_range(d)
             if tuple_range in exclude:
                 continue
@@ -40,10 +39,18 @@ def pyls_document_symbols(config, document):
             symbols.append(symbol)
 
             if d.type == 'class':
-                for method in d.defined_names():
-                    redefinitions[_tuple_range(method)] = 'method'
-                definitions = list(d.defined_names()) + definitions
-
+                try:
+                    defined_names = list(d.defined_names())
+                    for method in defined_names:
+                        if method.type == 'function':
+                            redefinitions[_tuple_range(method)] = 'method'
+                        elif method.type == 'statement':
+                            redefinitions[_tuple_range(method)] = 'field'
+                        else:
+                            redefinitions[_tuple_range(method)] = method.type
+                    definitions = list(defined_names) + definitions
+                except Exception:
+                    pass
     return symbols
 
 
