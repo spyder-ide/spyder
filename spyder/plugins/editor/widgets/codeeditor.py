@@ -1127,6 +1127,8 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_SYMBOL)
     def request_symbols(self):
         """Request document symbols."""
+        if self.oe_proxy is not None:
+            self.oe_proxy.emit_request_in_progress()
         params = {'file': self.filename}
         return params
 

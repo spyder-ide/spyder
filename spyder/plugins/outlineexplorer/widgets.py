@@ -25,7 +25,8 @@ from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.plugins.completion.languageserver import SymbolKind
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
-                                    set_item_user_text, create_plugin_layout)
+                                    set_item_user_text, create_plugin_layout,
+                                    create_waitspinner)
 from spyder.widgets.onecolumntree import OneColumnTree
 
 
@@ -66,7 +67,7 @@ SYMBOL_NAME_MAP = {
     SymbolKind.CLASS: _('Class'),
     SymbolKind.METHOD: _('Method'),
     SymbolKind.PROPERTY: _('Property'),
-    SymbolKind.FIELD: _('Field'),
+    SymbolKind.FIELD: _('Attribute'),
     SymbolKind.CONSTRUCTOR: _('constructor'),
     SymbolKind.ENUM: _('Enum'),
     SymbolKind.INTERFACE: _('Interface'),
@@ -118,19 +119,23 @@ class SymbolStatus:
             self.node.parent.remove_children(self.node)
 
     def add_node(self, node):
-        node.parent = self
-        node.path = self.path
-        this_node = self.node
-        children_ranges = [c.position[0] for c in self.children]
-        node_range = node.position[0]
-        new_index = bisect.bisect_left(children_ranges, node_range)
-        node.index = new_index
-        for child in self.children[new_index:]:
-            child.index += 1
-        this_node.append_children(new_index, node.node)
-        self.children.insert(new_index, node)
-        for idx, next_idx in zip(self.children, self.children[1:]):
-            assert idx.index < next_idx.index
+        if node.position == self.position:
+            # The nodes should be at the same level
+            self.parent.add_node(node)
+        else:
+            node.parent = self
+            node.path = self.path
+            this_node = self.node
+            children_ranges = [c.position[0] for c in self.children]
+            node_range = node.position[0]
+            new_index = bisect.bisect_left(children_ranges, node_range)
+            node.index = new_index
+            for child in self.children[new_index:]:
+                child.index += 1
+            this_node.append_children(new_index, node.node)
+            self.children.insert(new_index, node)
+            for idx, next_idx in zip(self.children, self.children[1:]):
+                assert idx.index < next_idx.index
 
     def remove_node(self, node):
         for child in self.children[node.index + 1:]:
@@ -279,6 +284,8 @@ class TreeItem(QTreeWidgetItem):
 class OutlineExplorerTreeWidget(OneColumnTree):
     # Used only for debug purposes
     sig_tree_updated = Signal()
+    sig_display_spinner = Signal()
+    sig_hide_spinner = Signal()
 
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
                  group_cells=True, show_comments=True,
@@ -426,14 +433,17 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         # Connect syntax highlighter
         sig_update = editor.sig_outline_explorer_data_changed
         sig_move = editor.sig_cursor_position_changed
+        sig_display_spinner = editor.sig_start_outline_spinner
         if state:
             sig_update.connect(self.update_current)
             sig_move.connect(self.do_follow_cursor)
+            sig_display_spinner.connect(self.sig_display_spinner)
             self.do_follow_cursor()
         else:
             try:
                 sig_update.disconnect(self.update_current)
                 sig_move.disconnect(self.do_follow_cursor)
+                sig_display_spinner.disconnect(self.sig_display_spinner)
             except TypeError:
                 # This catches an error while performing
                 # teardown in one of our tests.
@@ -614,6 +624,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         self.editor_tree_cache[editor_id] = tree
         self.sig_tree_updated.emit()
+        self.sig_hide_spinner.emit()
         return True
 
     def __do_update(self, editor, editor_id):
@@ -783,6 +794,9 @@ class OutlineExplorerWidget(QWidget):
             sort_files_alphabetically=sort_files_alphabetically,
             follow_cursor=follow_cursor,
             )
+        self.loading_widget = create_waitspinner(size=16, parent=self)
+        self.treewidget.sig_display_spinner.connect(self.loading_widget.start)
+        self.treewidget.sig_hide_spinner.connect(self.loading_widget.stop)
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),
@@ -797,6 +811,7 @@ class OutlineExplorerWidget(QWidget):
             btn_layout.addWidget(btn)
         if options_button:
             btn_layout.addStretch()
+            btn_layout.addWidget(self.loading_widget, Qt.AlignRight)
             btn_layout.addWidget(options_button, Qt.AlignRight)
 
         layout = create_plugin_layout(btn_layout, self.treewidget)

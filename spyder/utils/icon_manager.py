@@ -301,7 +301,7 @@ _qtaargs = {
     'attribute':               [('mdi.alpha-a-box',), {'color': 'magenta', 'scale_factor': BIG_ATTR_FACTOR}],
     'reference':               [('mdi.alpha-r-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
     'variable':                [('mdi.alpha-v-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
-    'field':                   [('mdi.alpha-f-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
+    'field':                   [('mdi.alpha-a-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
     'property':                [('mdi.alpha-p-box',), {'color': 'yellow', 'scale_factor': BIG_ATTR_FACTOR}],
     'module':                  [('mdi.alpha-m-box',), {'color': '#daa520', 'scale_factor': BIG_ATTR_FACTOR}],
     'namespace':               [('mdi.alpha-n-box',), {'color': '#daa520', 'scale_factor': BIG_ATTR_FACTOR}],

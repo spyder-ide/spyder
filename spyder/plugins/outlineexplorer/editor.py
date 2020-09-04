@@ -29,6 +29,9 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
     def update_outline_info(self, info):
         self.sig_outline_explorer_data_changed.emit(info)
 
+    def emit_request_in_progress(self):
+        self.sig_start_outline_spinner.emit()
+
     def is_python(self):
         return self._editor.is_python()
 

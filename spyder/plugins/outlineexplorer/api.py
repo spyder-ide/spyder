@@ -126,6 +126,7 @@ class OutlineExplorerProxy(QObject):
 
     sig_cursor_position_changed = Signal(int, int)
     sig_outline_explorer_data_changed = Signal(list)
+    sig_start_outline_spinner = Signal()
 
     def __init__(self):
         super(OutlineExplorerProxy, self).__init__()
