@@ -1,5 +1,17 @@
 # History of changes
 
+## Version 1.9.4 (2020-09-01)
+
+### Pull Requests Merged
+
+* [PR 238](https://github.com/spyder-ide/spyder-kernels/pull/238) - PR: Set get_local_scope correctly while debugging, by [@impact27](https://github.com/impact27)
+* [PR 235](https://github.com/spyder-ide/spyder-kernels/pull/235) - PR: Set debug state correctly on exception, by [@impact27](https://github.com/impact27)
+* [PR 233](https://github.com/spyder-ide/spyder-kernels/pull/233) - PR: Don't save file in runcell, by [@impact27](https://github.com/impact27)
+
+In this release 3 pull requests were closed.
+
+----
+
 ## Version 1.9.3 (2020-07-24)
 
 ### Issues Closed
