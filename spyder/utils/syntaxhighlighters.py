@@ -504,8 +504,6 @@ class PythonSH(BaseSH):
         # Avoid updating the outline explorer with every single letter typed
         self.outline_explorer_data_update_timer = QTimer()
         self.outline_explorer_data_update_timer.setSingleShot(True)
-        # self.outline_explorer_data_update_timer.timeout.connect(
-        #     self.sig_outline_explorer_data_changed)
 
     def highlight_match(self, text, match, key, value, offset,
                         state, import_stmt, oedata):

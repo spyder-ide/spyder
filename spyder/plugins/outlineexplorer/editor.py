@@ -6,9 +6,6 @@
 
 """Outline explorer editor server"""
 
-# Standard library imports
-import uuid
-
 # Third-party imports
 from intervaltree import IntervalTree
 
@@ -21,8 +18,6 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
         super(OutlineExplorerProxyEditor, self).__init__()
         self._editor = editor
         self.fname = fname
-        self.symbol_info = {}
-        self.current_tree = IntervalTree()
         editor.sig_cursor_position_changed.connect(
             self.sig_cursor_position_changed)
 

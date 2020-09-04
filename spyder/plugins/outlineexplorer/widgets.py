@@ -465,8 +465,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 self.__hide_or_show_root_items(item)
             if update:
                 self.save_expanded_state()
-                # tree_cache = self.editor_tree_cache[editor_id]
-                # self.populate_branch(editor, item, tree_cache)
                 self.restore_expanded_state()
         else:
             this_root = SymbolStatus(editor.fname, None, None, editor.fname)
@@ -475,7 +473,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             root_item.set_text(fullpath=self.show_fullpath)
             editor_tree = IntervalTree()
             this_root.node = root_item
-            # tree_cache = self.populate_branch(editor, root_item)
             self.__hide_or_show_root_items(root_item)
             self.root_item_selected(root_item)
             self.editor_items[editor_id] = this_root
@@ -530,6 +527,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.do_follow_cursor()
 
     def merge_interval(self, parent, node):
+        """Add node into an existing tree structure."""
         if node.parent is not None:
             return node
 
@@ -634,7 +632,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """
         item = self.editor_items[editor_id].node
         tree_cache = self.editor_tree_cache[editor_id]
-        # self.populate_branch(editor, item, tree_cache)
 
     def remove_editor(self, editor):
         if editor in self.editor_ids:

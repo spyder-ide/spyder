@@ -264,6 +264,7 @@ def test_toggle_on_show_all_files(editorstack, outlineexplorer, test_files):
 @pytest.mark.slow
 @pytest.mark.second
 def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
+    """Tests that the outline explorer reacts to editor changes."""
     def get_tree_elements(treewidget):
         root_item = treewidget.get_top_level_items()[0]
         root_ref = root_item.ref
