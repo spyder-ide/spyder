@@ -18,17 +18,28 @@ class VCSError(Exception):
 
     Parameters
     ----------
-    error_message : str, optional
+    error : str, optional
+        The formatted error. Should respect the spec guidelines if any.
+        The default is None.
+    raw_error : str, optional
         The raw error message returned by the VCS. The default is None.
     """
+    # HINT: No specification define the message format.
 
-    __slots__ = ("error_message", )
+    __slots__ = ("error", "raw_error")
 
     def __init__(self,
-                 *args: object,
-                 error_message: typing.Optional[str] = None):
+                 error: typing.Optional[str] = None,
+                 raw_error: typing.Optional[str] = None):
+        args = []
+        if error:
+            args.append(error)
+        if raw_error:
+            args.append(raw_error)
+
         super().__init__(*args)
-        self.error_message = error_message
+        self.error = error
+        self.raw_error = raw_error
 
 
 class VCSUnexpectedError(VCSError):

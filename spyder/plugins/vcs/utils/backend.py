@@ -10,6 +10,7 @@
 
 # Standard library imports
 import ast
+from datetime import datetime, timezone
 import platform
 import os
 import os.path as osp
@@ -22,7 +23,7 @@ import pexpect
 
 # Local imports
 from spyder.utils import programs
-from spyder.utils.vcs import (get_git_refs, is_hg_installed, get_hg_revision)
+from spyder.utils.vcs import (is_hg_installed, get_hg_revision)
 
 from .api import VCSBackendBase, ChangedStatus, feature
 from .errors import (VCSAuthError, VCSPropertyError, VCSBackendFail,
@@ -31,11 +32,13 @@ from .mixins import CredentialsKeyringMixin
 
 __all__ = ("GitBackend", "MercurialBackend")
 
+_git_bases = [VCSBackendBase]
+if platform.system() != "Windows":
+    # Git for Windows uses its own credentials manager
+    _git_bases.insert(0, CredentialsKeyringMixin)
 
-class GitBackend(
-        # Git for Windows uses its own credentials manager
-        CredentialsKeyringMixin if platform.system() != "Windows" else object,
-        VCSBackendBase):
+
+class GitBackend(*_git_bases):
     """An implementation of VCSBackendBase for Git."""
 
     VCSNAME = "git"
@@ -46,68 +49,97 @@ class GitBackend(
 
     def __init__(self, *args):
         super().__init__(*args)
-        if not is_git_installed():
+        git = programs.find_program("git")
+        if git is None:
             raise VCSBackendFail(self.repodir, type(self), programs=("git", ))
 
         repodir = self.repodir
-        self.repodir = get_git_root(self.repodir)
-        if not self.repodir:
+        retcode, self.repodir, _ = self._run(["rev-parse", "--show-toplevel"],
+                                             git=git)
+        if retcode or not self.repodir:
             # use the original dir
             raise VCSBackendFail(repodir,
                                  type(self),
                                  is_valid_repository=False)
 
-        username = get_git_username(self.repodir)
-        if username:
-            try:
-                self.get_user_credentials(username=username)
-            except VCSAuthError:
-                # No saved credentials found
-                pass
+        self.repodir = self.repodir.decode().strip("\n")
+
+        if platform.system() != "Windows":
+            retcode, username, _ = self.run(['config', "--get", "user.name"],
+                                            git=git)
+            if not retcode and username.strip():
+                try:
+                    self.get_user_credentials(
+                        username=username.strip().decode())
+                except VCSAuthError:
+                    # No saved credentials found
+                    pass
 
     # CredentialsKeyringMixin implementation
     @property
     def credential_context(self):
-        remote = git_get_remote(self.repodir)
-        if remote:
-            return remote
+        # Use current remote as credential context
+        retcode, remote, err = self._run(
+            ["config", "--get", "remote.origin.url"])
+
+        if retcode and remote and not err:
+            return remote.decode().strip("\n")
         raise ValueError("Failed to get git remote")
 
     # VCSBackendBase implementation
     @property
     @feature()
     def branch(self) -> str:
-        revision = get_git_status(self.repodir)
-        if revision and revision[0][0]:
-            return revision[0][0]
-        raise VCSPropertyError("branch", "get")
+        revision = get_git_status(self.repodir)[0]
+        if revision and revision[0]:
+            return revision[0]
+        raise VCSPropertyError(name="branch", operation="get")
 
     @branch.setter
     @feature()
     def branch(self, branchname: str):
-        # Checks:
-        # - if the "branches" feature is available and given branch exists,
-        #   without "branches" feature this check is skipped
-        # - check change_git_branch result
-        # - check if branch is really changed
-        if not ((not self.check_features("branches", suppress_raise=True)
-                 or branchname in self.branches) and change_git_branch(
-                     self.repodir, branchname) and self.branch != branchname):
+        retcode, _, err = self._run(["checkout", branchname])
 
-            raise VCSPropertyError("branch", "set")
+        if retcode or self.branch != branchname:
+            raise VCSPropertyError(
+                name="branch",
+                operation="set",
+                raw_error=err.decode(),
+            )
 
     @property
     @feature()
     def branches(self) -> list:
-        branches = get_git_refs(self.repodir)[0]
+        branches = git_get_branches(self.repodir, tag=True, remote=True)
         if branches:
-            return branches
-        raise VCSPropertyError("branches", "get")
+            return [item for sublist in branches.values() for item in sublist]
+        raise VCSPropertyError(name="branches", operation="get")
 
     @property
     @feature()
     def editable_branches(self) -> list:
-        return [x for x in self.branches if not x.startswith("remotes/")]
+        branches = git_get_branches(self.repodir)
+        if branches:
+            return branches["branch"]
+        raise VCSPropertyError(name="editable_branches", operation="get")
+
+    @feature()
+    def create_branch(self,
+                      branchname: str,
+                      from_current: bool = False) -> bool:
+        args = ["checkout"]
+        if from_current:
+            args.extend(("-b", branchname))
+        else:
+            args.extend(("--orphan", branchname))
+
+        return not self._run(args)[0] and (from_current or
+                                           not self._run(["rm", "-r", "."])[0])
+
+    @feature()
+    def delete_branch(self, branchname: str) -> bool:
+        retcode = self._run(["branch", "-d", branchname])[0]
+        return retcode == 0
 
     @property
     @feature(extra={"states": ("path", "kind", "staged")})
@@ -117,14 +149,13 @@ class GitBackend(
             raise VCSPropertyError(
                 "changes",
                 "get",
-                error_message="Failed to get git changes",
+                error="Failed to get git changes",
             )
         changes = []
         for record in filestates:
-            changes.extend(self._parse_record(record))
+            changes.extend(self._parse_change_record(record))
         return changes
 
-    @property
     @feature(extra={"states": ("path", "kind", "staged")})
     def change(self,
                path: str,
@@ -133,53 +164,43 @@ class GitBackend(
         if filestates is None:
             raise VCSUnexpectedError(
                 "change",
-                error_message="Failed to get git changes",
+                error="Failed to get git changes",
             )
+
         for record in filestates:
-            changes = self._parse_record(record)
+            changes = self._parse_change_record(record)
 
             if len(changes) == 2:
                 return changes[not prefer_unstaged]
-            elif len(changes) == 1:
+            if len(changes) == 1:
                 return changes[0]
-        return changes
+        return None
 
     @feature()
     def stage(self, path: str) -> bool:
-        status = git_stage_file(self.repodir, path)
-        if isinstance(status, bool):
-            return status
-        raise VCSUnexpectedError(
-            method="stage",
-            error_message="Failed to stage file {}".format(path),
-        )
+        retcode = self._run(["add", path])[0]
+        if retcode == 0:
+            change = self.change(path, prefer_unstaged=True)
+            if change and change["staged"]:
+                return True
+        return False
 
     @feature()
     def unstage(self, path: str) -> bool:
-        status = git_unstage_file(self.repodir, path)
-        if isinstance(status, bool):
-            return status
-
-        raise VCSUnexpectedError(
-            method="unstage",
-            error_message="Failed to unstage file {}".format(path),
-        )
+        retcode = self._run(["reset", "--", path])[0]
+        if retcode == 0:
+            change = self.change(path, prefer_unstaged=False)
+            if change and not change["staged"]:
+                return True
+        return False
 
     @feature()
     def stage_all(self) -> bool:
-        try:
-            return self.stage(".")
-        except VCSUnexpectedError as ex:
-            ex.method = "stage_all"
-            raise ex
+        return self.stage(".")
 
     @feature()
     def unstage_all(self) -> bool:
-        try:
-            return self.unstage(".")
-        except VCSUnexpectedError as ex:
-            ex.method = "unstage_all"
-            raise ex
+        return self.unstage(".")
 
     @feature()
     def commit(self, message: str, is_path: bool = None):
@@ -187,18 +208,20 @@ class GitBackend(
             # Check if message is a valid path
             is_path = osp.isfile(message)
 
-        status = None
         if is_path:
-            status = git_commit_file_message(self.repodir, message)
+            retcode = self._run(["commit", "-F"], message)[0]
         else:
-            status = git_commit_message(self.repodir, message)
-        if isinstance(status, bool):
-            return status
+            args = []
+            for paragraph in message.split("\n\n"):
+                args.extend(("-m", paragraph))
 
-        raise VCSUnexpectedError(
-            method="commit",
-            error_message="Failed to commit",
-        )
+            if not args:
+                return False
+
+            args.insert(0, "commit")
+            retcode = self._run(args)[0]
+
+        return not retcode
 
     @feature()
     def fetch(self, sync: bool = False) -> (int, int):
@@ -214,51 +237,143 @@ class GitBackend(
     def push(self) -> bool:
         return self._remote_operation("push")
 
-    def _remote_operation(self, operation: str, *args):
-        """Helper for remote operations."""
-        if platform.system() == "Windows":
-            # Windows uses its own credentials manager by default
-            status = git_remote_operation_windows(self.repodir, operation,
-                                                  *args)
-            if isinstance(status, bool):
-                return status
-        else:
-            credentials = self.credentials
-            username = (credentials.get("username", "")
-                        or get_git_username(self.repodir) or "")
-            status = git_remote_operation_posix(
-                self.repodir,
-                operation,
-                username,
-                credentials.get("password", ""),
-                *args,
-            )
-            if status is True:
-                # auth success
+    @feature()
+    def undo_stage(self, path: str) -> bool:
+        return self.unstage(path)
 
-                # Check if current git username is changed
-                # compared to the credentials username.
-                cred_username = credentials.get("username", "")
-                if cred_username and not credentials.get("password", ""):
-                    username = get_git_username(self.repodir)
-                    if username != cred_username:
-                        set_git_username(self.repodir, cred_username)
-                return True
+    @feature()
+    def undo_commit(
+        self,
+        commits: int = 1,
+    ) -> typing.Optional[typing.Dict[str, object]]:
 
-            if status is False:
-                # Auth failed
-                raise VCSAuthError(
-                    username=username,
-                    password=credentials.get("password"),
-                    error_message="Wrong credentials",
-                )
+        commit = None
 
-        raise VCSUnexpectedError(
-            method=operation,
-            error_message="Failed to {} from remote".format(operation),
+        # prevent any float
+        commits = int(commits)
+        if commits < 1:
+            raise ValueError(
+                "Only numbers greater or equal than 1 are allowed")
+
+        git = programs.find_program("git")
+
+        # Get commit number
+        retcode, out, err = self._run(
+            ["rev-list", "HEAD", "--count", "--first-parent"],
+            git=git,
         )
 
-    def _parse_record(self, record):
+        if retcode:
+            raise VCSUnexpectedError(
+                "undo_commit",
+                error="Failed get the number of commits in branch {}".format(
+                    self.branch),
+                raw_error=err.decode(),
+            )
+
+        out = out.strip(b" \n")
+        if out.isdigit() and commits > int(out):
+            commits = int(out) - 1
+
+        if self.get_last_commits.enabled:
+            retcode, out, err = self._run(
+                [
+                    "log",
+                    "-1",
+                    "--date=unix",
+                    "--pretty=id:%h%n"
+                    "author_username:%an%n"
+                    "author_email:%ae%n"
+                    "commit_date:%ad%n"
+                    "title:%s%n"
+                    "description:%n%b%x00",
+                    "HEAD~" + str(commits - 1),
+                ],
+                git=git,
+            )
+
+            if retcode:
+                # raise VCSUnexpectedError(
+                #     "get_last_commits",
+                #     error="Failed to get git history",
+                #     raw_error=err.decode(),
+                # )
+                pass
+            else:
+                commit = self._parse_history_record(out.rstrip(b"\x00"))
+
+        retcode, _, err = self._run(
+            ["reset", "--soft", "HEAD~" + str(commits)], git=git)
+
+        if retcode:
+            raise VCSUnexpectedError(
+                "get_last_commits",
+                error="Failed to undo {} commits".format(commits),
+                raw_error=err.decode(),
+            )
+
+        return commit
+
+    @feature()
+    def undo_change(self, path: str) -> bool:
+        retcode = self._run(["checkout", "--", path])[0]
+        if retcode == 0:
+            change = self.change(path, prefer_unstaged=True)
+            if change and change["staged"]:
+                return True
+        return False
+
+    @feature()
+    def undo_change_all(self) -> bool:
+        return self.undo_change(".")
+
+    @feature(
+        extra={
+            "attrs": ("id", "title", "description", "content",
+                      "author_username", "author_email", "commit_date")
+        })
+    def get_last_commits(
+        self,
+        commits: int = 1,
+    ) -> typing.Sequence[typing.Dict[str, object]]:
+        commits = int(commits)
+        if commits < 1:
+            raise ValueError(
+                "Only numbers greater or equal than 1 are allowed")
+
+        retcode, output, err = self._run([
+            "log",
+            "-" + str(commits),
+            "--date=unix",
+            "--pretty=id:%h%n"
+            "author_username:%an%n"
+            "author_email:%ae%n"
+            "commit_date:%ad%n"
+            "title:%s%n"
+            "description:%n%b%x00",
+        ])
+        if retcode != 0:
+            raise VCSUnexpectedError(
+                method="get_last_commits",
+                error="Failed to get git history",
+                raw_error=err.decode(),
+            )
+
+        return tuple(
+            filter(None, (self._parse_history_record(record)
+                          for record in output.split(b"\x00"))))
+
+    @feature(extra={"branch": True})
+    def tags(self) -> typing.Sequence[str]:
+        tags = git_get_branches(self.repodir, tag=True, branch=False)
+        if tags:
+            return tags["tag"]
+        raise VCSPropertyError("tags", "get")
+
+    # Private methods
+
+    @staticmethod
+    def _parse_change_record(record):
         changes = []
         if len(record) == 3:
             path, staged, unstaged = record
@@ -294,6 +409,107 @@ class GitBackend(
 
         return changes
 
+    def _parse_history_record(self, record: bytes):
+        record = record.lstrip()
+        if record:
+            keys = list(self.get_last_commits.extra["attrs"])
+            keys.remove("description")
+            history = {"description": ""}
+            i = record.find(b"\ndescription:\n")
+
+            if i != -1:
+                # description parsing
+                # (the description must be always in the end)
+                i += 14  # len(b"\ndescription:\n")
+                history["description"] = record[i:].strip(b"\x00").decode()
+                record = record[:i - 14]
+
+            for line in record.splitlines():
+                if line:
+                    key_to_remove = None
+                    for key in keys:
+                        if line.startswith(key.encode() + b":"):
+                            history[key] = line[len(key) + 1:].decode()
+                            key_to_remove = key
+                            break
+                    if key_to_remove:
+                        keys.remove(key_to_remove)
+
+            history["content"] = (history.get("title", "") + "\n" +
+                                  history.get("description", ""))
+
+            if history.get("commit_date", "").isdigit():
+                history["commit_date"] = datetime.fromtimestamp(
+                    int(history["commit_date"])).astimezone(timezone.utc)
+            elif "commit_date" in history:
+                del history["commit_date"]
+
+            return history
+
+        return {}
+
+    def _remote_operation(self, operation: str, *args):
+        """Helper for remote operations."""
+        if platform.system() == "Windows":
+            # Windows uses its own credentials manager by default
+            # BUG: If the credentials manager is not the default
+            #      (or it requires git prompt), the operation always fail.
+            env = os.environ.copy()
+            env["GIT_TERMINAL_PROMPT"] = "0"
+            env["GIT_ASKPASS"] = ""
+
+            return self._run([operation], env=env)[0] == 0
+
+        credentials = self.credentials
+        username = (credentials.get("username", "")
+                    or get_git_username(self.repodir) or "")
+        status = git_remote_operation_posix(
+            self.repodir,
+            operation,
+            username,
+            credentials.get("password", ""),
+            *args,
+        )
+        if status is True:
+            # auth success
+
+            # Check if current git username is changed
+            # compared to the credentials username.
+            cred_username = credentials.get("username", "")
+            if cred_username and not credentials.get("password", ""):
+                username = get_git_username(self.repodir)
+                if username != cred_username:
+                    return self._run(
+                        ['config', "--local", "user.name", cred_username])[0]
+            return True
+
+        if status is False:
+            # Auth failed
+            raise VCSAuthError(
+                username=username,
+                password=credentials.get("password"),
+                error="Wrong credentials",
+            )
+
+        raise VCSUnexpectedError(
+            method=operation,
+            error="Failed to {} from remote".format(operation),
+        )
+
+    def _run(self,
+             args,
+             env=None,
+             git=None) -> typing.Tuple[int, bytes, bytes]:
+        if git is None:
+            git = programs.find_program("git")
+        retcode, out, err = run_helper(git, args, cwd=self.repodir, env=env)
+
+        # Integrity check
+        if retcode is None:
+            raise VCSBackendFail(self.repodir, type(self), programs=("git", ))
+
+        return retcode, out, err
+
 
 class MercurialBackend(VCSBackendBase):  # pylint: disable=W0223
     """An implementation of VCSBackendBase for mercurial (hg)."""
@@ -327,23 +543,19 @@ _GIT_STATUS_MAP = {
 }
 
 
-def is_git_installed():
-    return programs.find_program('git') is not None
-
-
-def get_git_root(path):
-    git = programs.find_program('git')
-    if git:
+def run_helper(program,
+               args,
+               cwd=None,
+               env=None) -> typing.Tuple[int, bytes, bytes]:
+    if program:
         try:
-            proc = programs.run_program(git, ["rev-parse", "--show-toplevel"],
-                                        cwd=path)
-            output, _err = proc.communicate()
-            if proc.returncode == 0:
-                return output.decode().rstrip(os.linesep)
+            proc = programs.run_program(program, args, cwd=cwd, env=env)
+            output, err = proc.communicate()
+            return proc.returncode, output, err
 
         except (subprocess.CalledProcessError, AttributeError, OSError):
             pass
-    return None
+    return None, None, None
 
 
 def get_git_username(repopath):
@@ -355,64 +567,6 @@ def get_git_username(repopath):
             output, _err = proc.communicate()
             if proc.returncode == 0:
                 return output.decode().strip("\n")
-
-        except (subprocess.CalledProcessError, AttributeError, OSError):
-            pass
-    return None
-
-
-def set_git_username(repopath, username):
-    git = programs.find_program('git')
-    if git:
-        try:
-            proc = programs.run_program(
-                git,
-                ['config', "--local", "user.name", username],
-                cwd=repopath,
-            )
-            output, _err = proc.communicate()
-            if proc.returncode == 0:
-                return output.decode().strip("\n")
-        except (subprocess.CalledProcessError, AttributeError, OSError):
-            pass
-    return None
-
-
-def get_git_unstaged_diff(filepath, repopath):
-    git = programs.find_program('git')
-    if git:
-        try:
-            proc = programs.run_program(git, ['diff', "HEAD", filepath],
-                                        cwd=repopath)
-            output, _err = proc.communicate()
-            if proc.returncode == 0:
-                return output.decode().strip()
-        except (subprocess.CalledProcessError, AttributeError, OSError):
-            pass
-    return None
-
-
-def get_git_staged_diff(filepath, repopath):
-    git = programs.find_program('git')
-    if git:
-        try:
-            proc = programs.run_program(git, ['diff', "--staged", filepath],
-                                        cwd=repopath)
-            output, _err = proc.communicate()
-
-            return output.decode().strip()
-        except (subprocess.CalledProcessError, AttributeError, OSError):
-            pass
-    return None
-
-
-def change_git_branch(repopath, branchname):
-    git = programs.find_program('git')
-    if git:
-        try:
-            proc = programs.run_program(git, ['checkout', branchname],
-                                        cwd=repopath)
-            return not proc.returncode
 
         except (subprocess.CalledProcessError, AttributeError, OSError):
             pass
@@ -432,14 +586,14 @@ def get_git_status(repopath, pathspec="."):
                 cwd=repopath,
             )
             output, _err = proc.communicate()
-            if proc.returncode != 0:
+            if proc.returncode:
                 return None, None, None
 
         except (subprocess.CalledProcessError, AttributeError, OSError):
             pass
         else:
             changes = []
-            lines = output.decode().strip(" \n").splitlines()
+            lines = output.decode().strip().splitlines()
             behind = ahead = 0
             local = remote = None
             if lines:
@@ -458,11 +612,9 @@ def get_git_status(repopath, pathspec="."):
                 if match:
                     # local remote match
                     del lines[0]
-                    local = match.group(1)
-                    remote = match.group(2)
-
+                    local, remote = match.group(1, 2)
                     # behind ahead match
-                    for group in (match.group(3), match.group(4)):
+                    for group in match.group(3, 4):
                         if group is None:
                             pass
                         elif group.startswith("behind"):
@@ -490,7 +642,7 @@ def get_git_status(repopath, pathspec="."):
 
                 if pathspec != "." and len(changes) > 1:
                     # Sum up changes in pathspec
-                    final_change = (pathspec, changes[0][1], changes[0][2])
+                    final_change = [pathspec, changes[0][1], changes[0][2]]
                     for change in changes:
                         # check unstaged
                         if "MODIFIED" != final_change[1] != change[1]:
@@ -504,77 +656,54 @@ def get_git_status(repopath, pathspec="."):
     return None, None, None
 
 
-def git_stage_file(repopath, filepath):
+def git_get_branches(repopath, branch=True, tag=False, remote=False) -> list:
     git = programs.find_program('git')
     if git:
-        try:
-            proc = programs.run_program(git, ['add', filepath], cwd=repopath)
-            proc.communicate()
-            return proc.returncode == 0
-        except (subprocess.CalledProcessError, AttributeError, OSError):
-            pass
-    return None
+        branches = {}
 
-
-def git_unstage_file(repopath, filepath):
-    git = programs.find_program('git')
-    if git:
-        try:
-            proc = programs.run_program(git, ['reset', '--', filepath],
-                                        cwd=repopath)
-            proc.communicate()
-            return proc.returncode == 0
-        except (subprocess.CalledProcessError, AttributeError, OSError):
-            pass
-    return None
-
-
-def git_commit_message(repopath, message):
-    git = programs.find_program('git')
-    if git:
-        paragraphs = []
-        for paragraph in message.split("\n\n"):
-            paragraphs.extend(("-m", paragraph))
-
-        if paragraphs:
+        # normal branches
+        if branch:
+            branches["branch"] = None
             try:
-                proc = programs.run_program(git, ['commit'] + paragraphs,
-                                            cwd=repopath)
-                print(proc.communicate(), proc.returncode)
-                return proc.returncode == 0
+                proc = programs.run_program(
+                    git, ["branch", "--format", "%(refname:lstrip=2)"],
+                    cwd=repopath)
+                output, _ = proc.communicate()
+                if proc.returncode == 0 and output:
+                    branches["branch"] = output.decode().splitlines()
+
             except (subprocess.CalledProcessError, AttributeError, OSError):
                 pass
-    return None
 
+        # tags
+        if tag:
+            branches["tags"] = None
+            try:
+                proc = programs.run_program(
+                    git, ['tag', "-l", "--format", "%(refname:lstrip=2)"],
+                    cwd=repopath)
+                output, _ = proc.communicate()
+                if proc.returncode == 0 and output:
+                    branches["tags"] = output.splitlines()
 
-def git_commit_file_message(repopath, path):
-    git = programs.find_program('git')
-    if git:
-        try:
-            proc = programs.run_program(git, ['commit', '-F', path],
-                                        cwd=repopath)
-            return proc.returncode == 0
-        except (subprocess.CalledProcessError, AttributeError, OSError):
-            pass
-    return None
+            except (subprocess.CalledProcessError, AttributeError, OSError):
+                pass
 
+        # remotes
+        if remote:
+            branches["remotes"] = None
+            try:
+                proc = programs.run_program(
+                    git,
+                    ['branch', "-r", "-l", "--format", "%(refname:lstrip=2)"],
+                    cwd=repopath)
+                output, _ = proc.communicate()
+                if proc.returncode == 0 and output:
+                    branches["remotes"] = output.splitlines()
 
-def git_remote_operation_windows(repopath, command_name):
-    # Windows has it's own credentials manager
-    # so it's an user problem
-    git = programs.find_program('git')
-    if git and command_name in ("fetch", "pull", "push"):
-        try:
-            env = os.environ.copy()
-
-            env["GIT_TERMINAL_PROMPT"] = "0"
-            env["GIT_ASKPASS"] = ""
-            proc = programs.run_program(git, [command_name],
-                                        cwd=repopath,
-                                        env=env)
-            return proc.returncode == 0
-        except (subprocess.CalledProcessError, AttributeError, OSError):
-            pass
+            except (subprocess.CalledProcessError, AttributeError, OSError):
+                pass
+        return branches
     return None
 
 
@@ -640,19 +769,4 @@ def git_remote_operation_posix(repopath, command_name, username, password):
 
         return message
 
-    return None
-
-
-def git_get_remote(repopath):
-    git = programs.find_program('git')
-    if git:
-        try:
-            proc = programs.run_program(
-                git, ["config", "--get", "remote.origin.url"], cwd=repopath)
-            output, _err = proc.communicate()
-            if proc.returncode == 0 and not _err:
-                return output.decode()
-
-        except (subprocess.CalledProcessError, AttributeError, OSError):
-            pass
     return None

@@ -10,19 +10,22 @@
 
 # Standard library imports
 import typing
+from functools import partial
 
 # Third party imports
 import qtawesome as qta
 from qtpy.QtCore import Slot, Signal, QThread, QObject
 from qtpy.QtWidgets import (QTreeWidgetItem, QDialog, QWidget, QLineEdit,
                             QVBoxLayout, QLabel, QLayout, QDialogButtonBox,
-                            QAbstractButton, QComboBox, QCompleter)
+                            QAbstractButton, QComboBox, QCompleter,
+                            QMessageBox)
 
 # Local imports
 from spyder.api.translations import get_translation
 from spyder.config.gui import is_dark_interface
 
 from ..utils.api import ChangedStatus, VCSBackendManager
+from ..utils.errors import VCSPropertyError
 
 _ = get_translation('spyder')
 
@@ -174,6 +177,22 @@ class BranchesComboBox(QComboBox):
         The VCS manager.
     """
 
+    sig_branch_changed = Signal(str)
+    """
+    This signal is emitted when the current branch change
+
+    Parameters
+    ----------
+    branchname: str
+        The current branch name in the VCS.
+
+    Notes
+    -----
+    Emit this signal does not change the branch
+    as it is changed before normal emission.
+    To change the branch use
+    :py:meth:`BranchesComboBox.select` instead.
+    """
     def __init__(self, manager: VCSBackendManager, *args: object,
                  **kwargs: object):
         super().__init__(*args, **kwargs)
@@ -182,18 +201,19 @@ class BranchesComboBox(QComboBox):
         # branches cache
         self._branches: typing.List[str] = []
 
+        self.sig_branch_changed.connect(self.refresh)
+
     @Slot()
     def refresh(self) -> None:
         """Clear and re-add branches."""
         def _task():
             """Task executed in another thread."""
-
-            if manager.type_().branch.fget.enabled:
+            if manager.type.branch.fget.enabled:
                 current_branch = manager.branch
             else:
                 current_branch = None
 
-            if manager.type_().branches.fget.enabled:
+            if manager.type.editable_branches.fget.enabled:
                 self._branches.extend(manager.editable_branches)
             elif current_branch is not None:
                 self._branches.append(manager.branch)
@@ -240,6 +260,141 @@ class BranchesComboBox(QComboBox):
             ).start()
         else:
             _handle_result(_task())
+
+    @Slot()
+    @Slot(str)
+    @Slot(int)
+    def select(self, branchname: typing.Union[str, int] = None) -> None:
+        """
+        Select a branch given its name.
+
+        Parameters
+        ----------
+        branchname : str or int, optional
+            The branch name.
+            Can be also an integer that will be used
+            to get the corresponding value.
+        """
+        if self.isEnabled():
+            # Ignore the event when the widget is disabled
+
+            if branchname is None:
+                branchname = self.currentText()
+
+            elif isinstance(branchname, int):
+                if branchname == -1:
+                    branchname = ""
+                else:
+                    branchname = self.currentText()
+
+            if branchname:
+                branch_prop = self._manager.type.branch
+                if branch_prop.fget.enabled and branch_prop.fset.enabled:
+                    if THREAD_ENABLED:
+                        ThreadWrapper(
+                            self,
+                            partial(setattr, self._manager, "branch",
+                                    branchname),
+                            result_slots=(partial(
+                                self.sig_branch_changed.emit,
+                                branchname,
+                            ), ),
+                            error_slots=(partial(
+                                self._handle_select_error,
+                                branchname,
+                            ), ),
+                        ).start()
+
+                    else:
+                        try:
+                            self._manager.branch = branchname
+                        except VCSPropertyError as ex:
+                            self._handle_select_error(branchname, ex)
+                        except Exception:
+                            self.refresh()
+                            raise
+                        else:
+                            self.sig_branch_changed.emit(branchname)
+
+    @Slot(Exception)
+    def _handle_select_error(self, branchname: str, ex: Exception) -> None:
+        @Slot()
+        def _show_error():
+            reason = "" if ex.error is None else ex.error
+            QMessageBox.critical(
+                self,
+                _("Failed to change branch"),
+                _("Cannot switch to branch {}." +
+                  ("\nReason: {}" if reason else "")).format(
+                      branchname, reason),
+            )
+
+        @Slot(QAbstractButton)
+        def _handle_buttons(widget):
+            create = from_current = False
+            if widget == empty_button:
+                create = True
+            else:
+                role = buttonbox.buttonRole(widget)
+                if role == QDialogButtonBox.YesRole:
+                    create = from_current = True
+
+            if create:
+                if THREAD_ENABLED:
+                    ThreadWrapper(
+                        self,
+                        partial(self._manager.create_branch,
+                                branchname,
+                                from_current=from_current),
+                        result_slots=(
+                            self.refresh,
+                            lambda result:
+                            (self.sig_branch_changed.emit(branchname)
+                             if result else _show_error()),
+                        ),
+                        error_slots=(self.refresh, _show_error),
+                    ).start()
+
+                else:
+                    try:
+                        result = self._manager.create_branch(
+                            branchname, from_current=from_current)
+                    except Exception:
+                        self.refresh()
+                        _show_error()
+                    else:
+                        (self.sig_branch_changed.emit(branchname)
+                         if result else _show_error())
+
+        if not isinstance(ex, VCSPropertyError):
+            self.refresh()
+            raise ex
+
+        if (self._manager.create_branch.enabled
+                and branchname not in self._branches):
+            dialog = QDialog(self)
+            dialog.setModal(True)
+
+            rootlayout = QVBoxLayout(dialog)
+            rootlayout.addWidget(
+                QLabel(
+                    _("The branch {} does not exist.\n"
+                      "Would you like to create it?").format(branchname)))
+
+            buttonbox = QDialogButtonBox()
+            buttonbox.addButton(QDialogButtonBox.Yes)
+            empty_button = buttonbox.addButton(
+                _("Yes, create empty branch"),
+                QDialogButtonBox.YesRole,
+            )
+            buttonbox.addButton(QDialogButtonBox.No)
+            buttonbox.clicked.connect(_handle_buttons)
+
+            rootlayout.addWidget(buttonbox)
+            dialog.show()
+        else:
+            self.refresh()
+            _show_error()
 
 
 class LoginDialog(QDialog):
@@ -373,7 +528,6 @@ class ThreadWrapper(QThread):
     ex: Exception
         The exception raised.
     """
-
     def __init__(self,
                  parent: QObject,
                  func: typing.Callable[..., None],

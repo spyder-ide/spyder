@@ -12,6 +12,7 @@
 #       (consistency, abbreviations and style)
 
 # Standard library imports
+import builtins
 import typing
 
 # Local imports
@@ -23,8 +24,8 @@ _generic_func = typing.Callable[..., object]
 def feature(
     name: str = None,
     enabled: bool = True,
-    extra: typing.Optional[typing.Dict[object,
-                                       object]] = None) -> _generic_func:
+    extra: typing.Optional[typing.Dict[object, object]] = None,
+) -> _generic_func:
     """
     Decorate a function to become a feature.
 
@@ -41,29 +42,22 @@ def feature(
     ----------
     name : str, optional
         The feature unique name.
-        The default is None, that allows to use the function name.
-
-        .. note::
-            The feature name can be getted using the standard `__name__`
-            attribute.
+        The default is None, that allows to use the decorated
+        function name through his `__name__` attribute.
 
     enabled : bool, optional
-        True if the feature can be used,
-        False otherwise and calling it raise a :class:`NotImplementedError`.
+        A flag indicating if the feature can be used. THe default is True.
         The default is True.
 
     extra : Dict[str, object], optional
         Extra arguments which define the feature behaviour.
         Should be defined by the API specification.
 
-    .. warning::
-        If you want to decorate a property getter,
-        don't decorate the property object.
-
-    See Also
+    Warnings
     --------
-    feature
-        A decorator for wrapping functions as feature.
+    If you want to decorate a property getter,
+    don't decorate the property object.
+
 
     Examples
     --------
@@ -150,7 +144,6 @@ class ChangedStatus(object):
         -------
         int
             The corresponding int value.
-
         """
         intstate = getattr(cls, state.upper(), None)
         if isinstance(intstate, int):
@@ -193,8 +186,12 @@ class VCSBackendBase(object):
     **Error handling**
 
     By default, if a generic error occurred,
-    all the method for VCS operations raises a VCSUnexpectedError
-    and all the properties raises VCSPropertyError.
+    all the method for VCS operations raises a :class:`~VCSUnexpectedError`
+    and all the properties raises :class:`~VCSPropertyError`.
+
+    If any requisite stopped working
+    (e.g. executable removed or module unrecoverable failure),
+    a :class:`~VCSBackendFail` exception will be raised.
     """
 
     VCSNAME: str = None  # type: ignore
@@ -238,13 +235,17 @@ class VCSBackendBase(object):
             "remote": ("fetch", "push", "pull"),
             "undo":
             ("undo_commit", "undo_stage", "undo_change", "undo_change_all"),
-            "history": (),
+            "history": (
+                ("tags", "fget"),
+                "get_last_commits",
+            ),
             "merge": (),
         }
     """
     VCS features groups mapping.
 
     **Groups descrtiption**
+
     Here are listed all the supported groups.
 
     Each group name has a short description and a list of members
@@ -255,7 +256,7 @@ class VCSBackendBase(object):
 
     - create: Allows to create a new local repository or get it from an URI.
 
-        :func:`~VCSBackendBase.create`
+        :meth:`~VCSBackendBase.create`
             Create a repository and initialize the backend.
 
     - status: Allows to get the current repository status.
@@ -263,7 +264,7 @@ class VCSBackendBase(object):
         :attr:`~VCSBackendBase.branch` : getter
             Current local branch (provided by branches)
 
-        :func:`~VCSBackendBase.change`
+        :meth:`~VCSBackendBase.change`
             File state (staged status provided by stage-unstage).
 
         :attr:`~VCSBackendBase.changes` : getter
@@ -286,10 +287,10 @@ class VCSBackendBase(object):
         :attr:`~VCSBackendBase.editable_branches` : getter
             A subset of branches that contains only editable branches.
 
-        :func:`~VCSBackendBase.create_branch`
+        :meth:`~VCSBackendBase.create_branch`
             Create a new branch.
 
-        :func:`~VCSBackendBase.delete_branch`
+        :meth:`~VCSBackendBase.delete_branch`
             Delete the branch.
 
     - diff: WIP specification.
@@ -297,51 +298,59 @@ class VCSBackendBase(object):
     - stage-unstage: Allows to change a file state
       from staged to unstaged and viceversa.
 
-        :func:`~VCSBackendBase.stage`
+        :meth:`~VCSBackendBase.stage`
             Stage a file.
 
-        :func:`~VCSBackendBase.unstage`
+        :meth:`~VCSBackendBase.unstage`
             Unstage a file.
 
-        :func:`~VCSBackendBase.stage_all`
+        :meth:`~VCSBackendBase.stage_all`
             Stage all the files.
 
-        :func:`~VCSBackendBase.unstage_all`
+        :meth:`~VCSBackendBase.unstage_all`
             Unstage al the files.
 
     - commit: Allows to create a revision.
-        :func:`~VCSBackendBase.commit`
+        :meth:`~VCSBackendBase.commit`
             Do a commit.
 
     - remote: Allows to do operations on remote repository.
-        :func:`~VCSBackendBase.fetch` (sync=False)
+        :meth:`~VCSBackendBase.fetch` (sync=False)
             Compare the local branch with the remote one.
 
-        :func:`~VCSBackendBase.fetch` (sync=True)
+        :meth:`~VCSBackendBase.fetch` (sync=True)
             Download the remote repository state.
 
-        :func:`~VCSBackendBase.pull`
+        :meth:`~VCSBackendBase.pull`
             Update the current branch to the latest revision.
 
-        :func:`~VCSBackendBase.push`
+        :meth:`~VCSBackendBase.push`
             Upload the local revision to the remote repository.
 
     - undo: Allows to undo an operation in the repository
-        :func:`~VCSBackendBase.undo_commit`
+        :meth:`~VCSBackendBase.undo_stage`
+            Unstage a file (same as :meth:`~VCSBackendBase.unstage`)
+
+        :meth:`~VCSBackendBase.undo_commit`
             Undo the last commit.
 
-        :func:`~VCSBackendBase.undo_stage`
-            Unstage a file (same as unstage)
-
-        :func:`~VCSBackendBase.undo_change`
+        :meth:`~VCSBackendBase.undo_change`
             Remove all the changes in a file.
             This operation can't be recovered.
 
-        :func:`~VCSBackendBase.undo_change_all`
+        :meth:`~VCSBackendBase.undo_change_all`
             Remove all the changes in any changed file.
             This operation can't be recovered.
 
-    - history: WIP specification.
+    - history: Allows to get the VCS history
+        :meth:`~VCSBackendBase.get_last_commits`
+            Get the last commits in the current branch.
+            (provided by commit)
+
+        :attr:`~VCSBackendBase.tags` : getter
+            A list of revision labels.
+
+
     - merge: WIP specification.
     """
 
@@ -351,19 +360,69 @@ class VCSBackendBase(object):
 
     If this value is non-zero, credentials are suppored.
 
-    Warnings
-    -------
-    Since some VCS does not have a simple way to check
-    if credentials are necessary for the current repository (notably git),
-    the only way to know that is trying to do the operation
-    and catch the VCSAuthError,
-    then ask/get the credentials and retry the operation.
+    .. warning::
+        Since some VCS does not have a simple way to check
+        if credentials are necessary for the current repository (notably git),
+        the only way to know that is trying to do the operation
+        and catch the VCSAuthError,
+        then ask/get the credentials and retry the operation.
     """
 
     # --- Non-features ---
     @classmethod
-    def check(group: str, all: bool = True) -> bool:
-        raise NotImplementedError()
+    def check(cls, group: str, all: bool = False) -> typing.Union[int, bool]:
+        """
+        Check if features in the group are enabled.
+
+        Parameters
+        ----------
+        group : str
+            The group to check.
+        all : bool, optional
+            If True, all the feature are checked to be enabled
+            and this method stops if at least one feature is disabled.
+            Otherwise all the features are checked. For that reason,
+            the return value type differs if this parameter is True or False,
+            see below. The default is False.
+
+        Returns
+        -------
+        int
+            Only if all is False.
+            The number of enabled features.
+
+        bool
+            Only if all is True.
+            True if all the features are enabled, False otherwise.
+        """
+        def _name_to_feature(
+                featurename: typing.Union[typing.Tuple[str, str],
+                                          str]) -> object:
+            if isinstance(featurename, str):
+                feature = getattr(cls, featurename, None)
+            elif len(featurename) > 1:
+                # Only the first and the second element are considered
+                feature = getattr(getattr(cls, featurename[0], None),
+                                  featurename[1], None)
+            else:
+                feature = None
+
+            if (feature is None or getattr(feature, "_is_feature", False)):
+                raise TypeError("Invalid feature name {}".format(featurename))
+
+            return feature
+
+        group = cls.GROUPS_MAPPING.get(group)
+        if group is None:
+            raise KeyError("Group {} does not exists".format(group))
+
+        if all:
+            return builtins.all(
+                _name_to_feature(featurename).enabled for featurename in group)
+
+        return sum(
+            bool(_name_to_feature(featurename).enabled)
+            for featurename in group)
 
     def __init__(self, repodir: str):
         super().__init__()
@@ -384,13 +443,14 @@ class VCSBackendBase(object):
                     # This approach can broke the backend
                     # if the attribute already exists.
 
-                    # if getattr(cls, attr.__name__, None):
+                    # if getattr(cls, attr.__name__, None) is not None:
                     #     print("Attribute", attr.__name__, "overriden")
                     setattr(cls, attr.__name__, attr)
 
-    def type_(self) -> type:
+    @property
+    def type(self) -> type:
         """
-        Get the backend type.
+        The backend (self) type.
 
         Useful when the backend object is hidden by the manager
         and you need to access to properties features.
@@ -429,7 +489,7 @@ class VCSBackendBase(object):
         username, password, email, token.
 
         .. note::
-            This property does not refer to a particular feature.
+            This property is not a feature.
         """
         raise NotImplementedError("Credential property is not implemented")
 
@@ -498,7 +558,7 @@ class VCSBackendBase(object):
         """
         A list of changed files and its states.
 
-        **Get** (requires file-state)
+        **Get**
 
         Get a list of all the changes in the repository.
         Each element is a dict that represents the file state.
@@ -520,9 +580,11 @@ class VCSBackendBase(object):
         """
 
     @feature(enabled=False, extra={"states": ()})
-    def change(self,
-               path: str,
-               prefer_unstaged: bool = False) -> typing.Dict[str, object]:
+    def change(
+        self,
+        path: str,
+        prefer_unstaged: bool = False,
+    ) -> typing.Optional[typing.Dict[str, object]]:
         """
         Get the state dict associated of path.
 
@@ -539,14 +601,14 @@ class VCSBackendBase(object):
             Indicate if the file is staged or not.
 
         comment : :class:`str`
-            Describe the changes.
+            Describe the change.
             Do not confuse it with the commit description.
 
         .. important::
             Implementations must list the supported state keys
             in the feature extra, under the states key.
 
-            There you can add VCS-dependent keys.
+            There they can add VCS-dependent keys.
 
         Parameters
         ----------
@@ -555,14 +617,15 @@ class VCSBackendBase(object):
 
         prefer_unstaged : bool
             If True, if the path has both the staged status
-            and the unstaged one, the latter will be returned.
-            Otherwise the first will be returned.
+            and the unstaged one, the latter will be returned,
+            otherwise the first will be returned.
             The default is False.
 
         Returns
         -------
-        Dict[str, object]
-            The file state.
+        Dict[str, object], optional
+            The file state or None
+            if there is no changes for the given path.
         """
 
     # Branch group
@@ -596,14 +659,21 @@ class VCSBackendBase(object):
         """
         A list of branch names.
 
-        **Get** (requires branches)
+        **Get**
 
         Get a list of branches.
-        The list may not include tags or other revisions that are VCS-specific.
+        The list may include tags or other revisions that are VCS-specific.
+        Also, some of them cannot be used to set
+        :attr:`~VCSBackendBase.branch`.
 
         See Also
         --------
         editable_branches
+            For a list of editable and :attr:`~VCSBackendBase.branch`
+            allowed branches.
+
+        tags
+            For a list of tags.
         """
 
     @property
@@ -642,8 +712,9 @@ class VCSBackendBase(object):
             The branch name.
 
         from_current : bool, optional
-            Allow to clone the current branch into the new one.
-            The default is False, that create an empty branch
+            If True, the new branch is created as clone of the current one,
+            otherwise a new empty branch is created.
+            The default is False.
 
         Returns
         -------
@@ -675,6 +746,7 @@ class VCSBackendBase(object):
         bool
             True if the given branch was existed, False otherwise.
         """
+
     # Stage-unstage group
     @feature(enabled=False)
     def stage(self, path: str) -> bool:
@@ -734,7 +806,10 @@ class VCSBackendBase(object):
                message: str,
                is_path: typing.Optional[bool] = None) -> bool:
         """
-        Commit changes (requires commit).
+        Commit current changes.
+
+        If the VCS supports the staging area,
+        only the staged changes are included in the commit,
 
         Parameters
         ----------
@@ -743,7 +818,7 @@ class VCSBackendBase(object):
 
         is_path : bool
             Specify if the given message parameter is a path or not.
-            By default is None, that let this to decide.
+            By default is None, that let this method to decide.
 
         Returns
         -------
@@ -761,14 +836,15 @@ class VCSBackendBase(object):
         """
         Scan the current local branch to get commit status.
 
-        The method main purpuse (unlike git fetch) is not to syncronize
-        to the server, but give a comparison between local revision and
+        The method main purpose (unlike, for example, git fetch)
+        is not to syncronize to the server,
+        but give a comparison between local revision and
         the remote one.
 
         Parameters
         ----------
         sync : bool, optional
-            If True and the VCS support it, syncronize the local
+            If True and the VCS supports it, syncronize the local
             repository with the remote one. The default is False.
 
         Returns
@@ -787,7 +863,7 @@ class VCSBackendBase(object):
 
         .. note::
             Implementations can do no operation on the VCS.
-            However, the return value should be processed in object case.
+            However, the return value should be processed in any case.
         """
 
     @feature(enabled=False)
@@ -798,7 +874,8 @@ class VCSBackendBase(object):
         Parameters
         ----------
         fetch : bool, optional
-            If True (default), do a fetch before pulling.
+            If True, do a fetch with sync=True before pulling,
+            otherwise do nothing. The default is True.
 
         Returns
         -------
@@ -820,7 +897,7 @@ class VCSBackendBase(object):
 
         Returns
         -------
-        True if the push was done correcly and there is no commits to pull,
+        True if the push was done correctly and there is no commits to pull,
         False otherwise.
 
         Raises
@@ -830,6 +907,186 @@ class VCSBackendBase(object):
             wrong credentials were given.
         """
 
+    # Undo group
+    @feature(enabled=False)
+    def undo_stage(self, path: str) -> bool:
+        """
+        Unstage a file.
+
+        Parameters
+        ----------
+        path : str
+            The path to remove from the stage area.
+
+        Returns
+        -------
+        True if the path is unstaged (or the file is already unstaged),
+        False otherwise.
+
+        See Also
+        --------
+        unstage
+        """
+
+    @feature(enabled=False)
+    def undo_commit(
+        self,
+        commits: int = 1,
+    ) -> typing.Optional[typing.Dict[str, object]]:
+        """
+        Undo a commit or some of them.
+
+        Parameters
+        ----------
+        commits : int, optional
+            The number of commit to undo. The default is 1.
+
+        Returns
+        -------
+        Dict[str, object]
+            Only if history is supported.
+            The commit attributes.
+            If commits > 1, the returned commit is the last one.
+
+        Raises
+        ------
+        ValueError
+            If the commit parameter is less than 1
+
+        None
+            If there are no commits in the branch or the undo fails.
+        """
+
+    @feature(enabled=False)
+    def undo_change(self, path: str) -> bool:
+        """
+        Undo a change in the given path.
+
+        If the VCS provides a staging area,
+        only the unstaged changes are touched.
+
+        Parameters
+        ----------
+        path : str
+            The path to undo.
+            Can be a directory, but the real effectiveness of
+            it depends on the underlying VCS.
+
+        Returns
+        -------
+        True if there are no changes for the specified path, False otherwise.
+
+        See Also
+        --------
+        undo_change_all
+
+        undo_stage
+        """
+
+    @feature(enabled=False)
+    def undo_change_all(self) -> bool:
+        """
+        Undo all the changes.
+
+        If the VCS provides a staging area,
+        only the unstaged changes are touched.
+
+        Returns
+        -------
+        True if there are no changes for the specified path, False otherwise.
+
+        See Also
+        --------
+        undo_change
+
+        undo_stage
+        """
+
+    # history group
+    @feature(enabled=False, extra={"attrs": ()})
+    def get_last_commits(
+        self,
+        commits: int = 1,
+    ) -> typing.Sequence[typing.Dict[str, object]]:
+        """
+        Get a list of old commits and its attributes.
+
+        The attributes dict can have several optional fields
+        (all of them optional):
+
+        id : :class:`str`
+            An unique identifier of the commit.
+
+        title : :class:`str`
+            The commit title. Used only if the VCS make a dinstiction
+            between the title and the description body.
+
+        description : :class:`str`
+            The commit description.
+
+        content : :class:`str`
+            The commit message with bot title and description.
+            Specified only if title is defined.
+
+        author_name : :class:`str`
+            The author's name. Used only if the VCS track
+            both name and username or the VCS do not support
+            usernames as identifier.
+
+        author_username : :class:`str`
+            The author's username.
+            Implementation should remove any prefix or suffix
+            (`@` for example).
+
+        author_email : :class:`str`
+            The author's email.
+
+        commit_date : :class:`datetime.datetime`
+            The date when the commit is done.
+            Must be UTC.
+
+        .. important::
+            Implementations must list the supported attributes keys
+            in the feature extra, under the attrs key.
+
+            There they can add VCS-dependent keys.
+
+        If :attr:`~VCSBackendBase.branch` is supported,
+        then the commits returned are related
+        to the current branch.
+
+        Parameters
+        ----------
+        commits : int, optional
+            The number of commits to get. The default is 1.
+
+        Raises
+        ------
+        ValueError
+            If the commits parameter is less than 1
+
+        Returns
+        -------
+        list of Dict[str, object]
+            The commits.
+        """
+
+    @property
+    @feature(enabled=False, extra={"branch": False})
+    def tags(self) -> typing.Sequence[str]:
+        """
+        A list of revision labels.
+
+        If the VCS allows to view a tag as a pseudo branch,
+        so you can set it as current through
+        the :attr:`VCSBackendBase.branch` attribute.
+        That support is specified by the `branch` extra key.
+
+        **Get**
+
+        Get a list of labels.
+        """
+
 
 class VCSBackendManager(object):
     """Automatic backend selector and repository manager."""
@@ -837,16 +1094,23 @@ class VCSBackendManager(object):
     __slots__ = (
         "_backends",
         "_backend",
+        "_sorted",
     )
 
     def __init__(self, repodir: str, *backends: type):
         super().__init__()
         self._backends = list(backends)
         self._backend = None
+        self._sorted = True
         self.repodir = repodir
 
     def __getattr__(self, name: str) -> object:
         """Get attributes from the backend."""
+        if name == "_backend":
+            # Prevent stack overflow on Windows
+            raise AttributeError("'{}' object has no attribute '{}'".format(
+                type(self).__name__, name))
+
         return getattr(self._backend, name)
 
     def __setattr__(self, name: str, value: object) -> None:
@@ -877,10 +1141,15 @@ class VCSBackendManager(object):
         self._backend = selected_backend = None
         if path:
             errors = []
+            self.sort_backends()
             for backend in self._backends:
                 try:
                     selected_backend = backend(path)
                 except VCSBackendFail as ex:
+                    # TODO: complete error formatting
+                    import traceback
+                    traceback.print_exception(VCSBackendFail, ex,
+                                              ex.__traceback__)
                     errors.append(ex)
                 except VCSError:
                     # Ignore weird errors.
@@ -905,4 +1174,48 @@ class VCSBackendManager(object):
         backend : type
             The VCSBackendBase subclass.
         """
-        self._backends.append(backend)
+        if backend not in self._backends:
+            self._backends.append(backend)
+            self._sorted = False
+
+    # Debug API
+    def force_use(self, backend: type, path: str) -> None:
+        """
+        Force the usage of the given backend.
+
+        This method bypass the backends priority system and
+        the internal error handling,
+        so it should be used for debugging purposes only.
+        Also, this method never registers the backend.
+        """
+        self._backend = backend(path)
+
+    def sort_backends(self) -> None:
+        """Sort backends by feature implemented."""
+        if not self._sorted:
+            new_backends = []
+            names = {}
+            for backend in self._backends:
+                if backend.VCSNAME not in names:
+                    names[backend.VCSNAME] = [backend]
+                else:
+                    names[backend.VCSNAME].append(backend)
+
+            for name, backends in names.copy().items():
+                if len(backends) == 1:
+                    new_backends.append(backends[0])
+                    del names[name]
+
+            if names:
+                for backends in names.values():
+                    backend.sort(
+                        key=lambda backend: sum(
+                            backend.check(group, all=False)
+                            for group in backend.GROUP_MAPPING),
+                        reverse=True,
+                    )
+
+                for name in sorted(names):
+                    new_backends.extend(names[name])
+
+            self._sorted = True

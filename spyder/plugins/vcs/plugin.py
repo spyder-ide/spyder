@@ -59,13 +59,16 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
 
     vcs_type: str
         The canonical name for the VCS. Common names are: git, mercurial.
+    """
 
-    Notes
-    -----
-    Emit this signal does not change the repository
-    as it is changed before normal emission.
-    To change the repository itself use
-    :py:meth:`VCS.set_repository_root` instead.
+    sig_branch_changed = Signal(str)
+    """
+    This signal is emitted when the current branch change
+
+    Parameters
+    ----------
+    branchname: str
+        The current branch name in the VCS.
     """
 
     # Actions defintion
@@ -231,6 +234,23 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
         set_repository,
         doc="A property shorthand for get_repository and set_repository")
 
+    def select_branch(self, branchname: str) -> None:
+        """
+        Select a branch given its name.
+
+        Parameters
+        ----------
+        branchname : str, optional
+            The branch name.
+
+        Raises
+        ------
+        AttributeError
+            If changing branch is not supported.
+        """
+        self.get_widget().select_branch(branchname)
+
+    # Private methods
     def _create_actions(self):
         # TODO: Add tips
         create_action = self.create_action
