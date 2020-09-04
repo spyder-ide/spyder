@@ -56,6 +56,10 @@ class SpyderWidgets(object):
     help_plugin = 'help'
     variable_explorer = 'variableexplorer'
     history_log = "historylog"
+    plots_plugin = "plots"
+    find_plugin = "findinfiles"
+    profiler = "profiler"
+    code_analysis = "pylint"
 
     # Toolbars
     toolbars = ''
@@ -94,6 +98,7 @@ def get_tour(index):
     """
     sw = SpyderWidgets
     qtconsole_link = "https://qtconsole.readthedocs.io/en/stable/index.html"
+    ending_link = "https://docs.spyder-ide.org/current/index.html"
 
     # This test should serve as example of keys to use in the tour frame dics
     test = [{'title': "Welcome to Spyder introduction tour",
@@ -197,7 +202,14 @@ def get_tour(index):
               'widgets': [sw.help_plugin],
               'interact': True},
 
-             {'title': _("The File Explorer"),
+              {'title': _("Plots"),
+              'content': _("This pane shows the figures and images created "
+                           "during your code execution. It allows you to browse, "
+                           "zoom, copy, and save the generated plots."),
+              'widgets': [sw.plots_plugin],
+              'interact': True},
+
+             {'title': _("Files"),
               'content': _("This pane lets you navigate through the directories "
                            "and files present in your computer.<br><br>"
                            "You can also open any of these files with its "
@@ -208,11 +220,42 @@ def get_tour(index):
               'widgets': [sw.file_explorer],
               'interact': True},
 
-             {'title': _("The History Log"),
+              {'title': _("The History Log"),
               'content': _("This pane records all commands introduced in "
                            "the Python and IPython consoles."),
               'widgets': [sw.history_log],
               'interact': True},
+
+              {'title': _("Find"),
+              'content': _("The Find pane allows you to search for text in a "
+                           "given directory and navigate through all the found "
+                           "occurrences."),
+              'widgets': [sw.find_plugin],
+              'interact': True},
+
+              {'title': _("Profiler"),
+              'content': _("The Profiler helps you optimize your code by determining "
+                           "the run time and number of calls for every function and "
+                           "method used in a file. It also allows you to save and "
+                           "compare your results between runs."),
+              'widgets': [sw.profiler],
+              'interact': True},
+
+              {'title': _("Code Analysis"),
+              'content': _("The Code Analysis helps you improve the quality of "
+                           "your programs by detecting style issues, bad practices "
+                           "and potential bugs."),
+              'widgets': [sw.code_analysis],
+              'interact': True},
+
+              {'title': _("The end"),
+              'content': _("You have reached the end of our tour, you are ready to "
+                           "start using Spyder! If you want more information go to "
+                           "our  <a href=\"{0}\">documentation</a>.<br><br>"
+                           ).format(ending_link),
+              'image': 'tour-spyder-logo.png'
+              },
+
              ]
 
 #                   ['The run toolbar',
@@ -1085,23 +1128,13 @@ class AnimatedTour(QWidget):
                 point = dockwidgets[0].mapToGlobal(QPoint(0, 0))
                 x_glob, y_glob = point.x(), point.y()
 
-                # Check if is too tall and put to the side
-                y_fac = (height / self.height_main) * 100
-
-                if y_fac > 60:  # FIXME:
-                    if x < self.tips.width():
-                        x = x_glob + width + delta
-                        y = y_glob + height/2 - self.tips.height()/2
-                    else:
-                        x = x_glob - self.tips.width() - delta
-                        y = y_glob + height/2 - self.tips.height()/2
+        # Put tip to the opposite side of the pane
+                if x < self.tips.width():
+                    x = x_glob + width + delta
+                    y = y_glob + height/2 - self.tips.height()/2
                 else:
-                    if y < self.tips.height():
-                        x = x_glob + width/2 - self.tips.width()/2
-                        y = y_glob + height + delta
-                    else:
-                        x = x_glob + width/2 - self.tips.width()/2
-                        y = y_glob - delta - self.tips.height()
+                    x = x_glob - self.tips.width() - delta
+                    y = y_glob + height/2 - self.tips.height()/2
         else:
             # Center on parent
             x = self.x_main + self.width_main/2 - self.tips.width()/2
