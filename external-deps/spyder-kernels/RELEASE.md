@@ -1,8 +1,6 @@
 To release a new version of spyder-kernels on PyPI:
 
-* Close the respective project on Github
-
-* Close the respective milestone on Zenhub
+* Close the respective milestone on Github
 
 * git checkout 1.x
 
@@ -10,7 +8,7 @@ To release a new version of spyder-kernels on PyPI:
 
 * git clean -xfdi
 
-* Update CHANGELOG.md with `loghub spyder-ide/spyder-kernels -zr "spyder-kernels vX.X.X"`
+* Update CHANGELOG.md with `loghub spyder-ide/spyder-kernels -m vX.X.X`
 
 * Update `_version.py` (set release version, remove 'dev0')
 
