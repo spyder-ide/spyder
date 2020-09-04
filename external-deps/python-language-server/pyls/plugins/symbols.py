@@ -6,6 +6,7 @@ from pyls.lsp import SymbolKind
 log = logging.getLogger(__name__)
 
 
+@hookimpl
 def pyls_document_symbols(config, document):
     all_scopes = config.plugin_settings('jedi_symbols').get('all_scopes', True)
     definitions = document.jedi_names(all_scopes=all_scopes)
