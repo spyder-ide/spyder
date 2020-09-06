@@ -978,7 +978,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Reimplemented to handle focus"""
         self.focus_changed.emit()
         self.focus_in.emit()
-        self.highlight_current_cell()
         QPlainTextEdit.focusInEvent(self, event)
 
     def focusOutEvent(self, event):
@@ -1002,12 +1001,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                     elif event.delta() > 0:
                         self.zoom_in.emit()
                 return
+
         QPlainTextEdit.wheelEvent(self, event)
+
         # Needed to prevent stealing focus to the find widget when scrolling
         # See spyder-ide/spyder#11502
         current_widget = QApplication.focusWidget()
         self.hide_completion_widget()
-        self.highlight_current_cell()
         if current_widget is not None:
             current_widget.setFocus()
 
