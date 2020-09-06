@@ -155,7 +155,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         Also assign draw orders to leave current_cell and current_line
         in the backgrund (and avoid them to cover other decorations)
 
-        NOTE: This will remove previous decorations added to  the same key.
+        NOTE: This will remove previous decorations added to the same key.
 
         Args:
             key (str) name of the extra selections group.
@@ -225,15 +225,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     #------Highlight current cell
     def highlight_current_cell(self):
         """Highlight current cell"""
-        if not self.has_cell_separators or \
-          not self.highlight_current_cell_enabled:
+        if (not self.has_cell_separators or
+                not self.highlight_current_cell_enabled):
             return
-        cursor, whole_file_selected =\
-            self.select_current_cell()
+        cursor, whole_file_selected = self.select_current_cell()
         selection = TextDecoration(cursor)
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
         selection.format.setBackground(self.currentcell_color)
+        selection.kind = 'current_cell'
 
         if whole_file_selected:
             self.clear_extra_selections('current_cell')

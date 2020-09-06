@@ -118,7 +118,8 @@ class TextDecorationsManager(Manager, QObject):
             visible_decorations = []
             for decoration in self._decorations:
                 block_nb = decoration.cursor.block().blockNumber()
-                if first <= block_nb <= last:
+                if (first <= block_nb <= last or
+                        decoration.kind == 'current_cell'):
                     visible_decorations.append(decoration)
                     try:
                         decoration.format.setFont(

@@ -510,6 +510,8 @@ class CodeEditor(TextEditBaseWidget):
         self.update_decorations_timer.setInterval(500)
         self.update_decorations_timer.timeout.connect(
             self.update_decorations)
+        self.verticalScrollBar().valueChanged.connect(
+            lambda value: self.update_decorations_timer.start())
 
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
@@ -557,15 +559,11 @@ class CodeEditor(TextEditBaseWidget):
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
 
-        # Code editor
+        # Paint event
         self.__visible_blocks = []  # Visible blocks, update with repaint
         self.painted.connect(self._draw_editor_cell_divider)
 
-        self.verticalScrollBar().valueChanged.connect(
-            lambda value: self.rehighlight_cells())
-        self.verticalScrollBar().valueChanged.connect(
-            lambda value: self.update_decorations_timer.start())
-
+        # Ooutline explorer
         self.oe_proxy = None
 
         # Line stripping
@@ -1838,11 +1836,6 @@ class CodeEditor(TextEditBaseWidget):
             self.highlight_current_line()
         else:
             self.unhighlight_current_line()
-
-    def rehighlight_cells(self):
-        """Rehighlight cells when moving the scrollbar"""
-        if self.highlight_current_cell_enabled:
-            self.highlight_current_cell()
 
     def remove_trailing_spaces(self):
         """Remove trailing spaces"""
