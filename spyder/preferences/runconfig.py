@@ -463,7 +463,15 @@ class RunConfigDialog(BaseRunConfigDialog):
         self.combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
         self.combo.setCurrentIndex(index)
 
-        self.add_widgets(combo_label, self.combo, 10, self.stack)
+        layout = self.add_widgets(combo_label, self.combo, 10, self.stack)
+        widget_dialog = QWidget()
+        widget_dialog.setLayout(layout)
+        scrollarea = QScrollArea(self)
+        scrollarea.setWidget(widget_dialog)
+        scrollarea.setMinimumWidth(600)
+        scroll_layout = QVBoxLayout()
+        scroll_layout.addWidget(scrollarea)
+        self.setLayout(scroll_layout)
         self.add_button_box(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
 
         self.setWindowTitle(_("Run configuration per file"))
