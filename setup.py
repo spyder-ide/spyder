@@ -222,6 +222,7 @@ install_requires = [
     'psutil>=5.3',
     'pygments>=2.0',
     'pylint>=1.0',
+    'pyls-mypy>=0.1.8',
     'pyqt5<5.13;python_version>="3"',
     'pyqtwebengine<5.13;python_version>="3"',
     'python-language-server[all]>=0.34.0,<1.0.0',

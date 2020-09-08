@@ -47,6 +47,7 @@ PICKLESHARE_REQVER = '>=0.4'
 PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=1.0'
+PYLS_MYPY = '>=0.1.8'
 PYLS_REQVER = '>=0.34.0;<1.0.0'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
@@ -154,6 +155,10 @@ DESCRIPTIONS = [
      'package_name': "pylint",
      'features': _("Static code analysis"),
      'required_version': PYLINT_REQVER},
+    {'modname': "pyls_mypy",
+     'package_name': "pyls-mypy",
+     'features': _("Type code completion and linting for the editor"),
+     'required_version': PYLS_MYPY},
     {'modname': 'pyls',
      'package_name': 'python-language-server',
      'features': _("Code completion and linting for the Editor"),

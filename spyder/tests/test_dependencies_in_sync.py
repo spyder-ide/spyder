@@ -230,6 +230,8 @@ def test_dependencies_for_spyder_dialog_in_sync():
     for req in [spyder_deps, spyder_reqs]:
         req.pop('spyder-kernels')
         req.pop('python-language-server')
+        # Pop pyls-mypy while the package is available in defaults
+        req.pop('pyls-mypy', None)
 
     if 'pyqt' in spyder_reqs:
         spyder_reqs.pop('pyqt')
@@ -256,6 +258,8 @@ def test_dependencies_for_spyder_setup_install_requires_in_sync():
     for req in [spyder_reqs, spyder_setup]:
         req.pop('spyder-kernels')
         req.pop('python-language-server')
+        # Pop pyls-mypy while the package is available in defaults
+        req.pop('pyls-mypy', None)
 
     # rtree is only available through conda
     if 'rtree' in spyder_reqs:

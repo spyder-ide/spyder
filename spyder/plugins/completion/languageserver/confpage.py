@@ -814,16 +814,31 @@ class LanguageServerConfigPage(GeneralConfigPage):
             _("Enable complexity linting with the Mccabe package"),
             'mccabe')
 
+        mypy_linting_check = self.create_checkbox(
+            _("Enable type linting with mypy"),
+            'mypy')
+        mypy_live_check = self.create_checkbox(
+            _("Enable live mode type linting with mypy"),
+            'mypy/live_mode')
+        mypy_live_check.setEnabled(self.get_option('mypy'))
+
         # Linting layout
-        linting_layout = QVBoxLayout()
-        linting_layout.addWidget(linting_label)
-        linting_layout.addWidget(linting_check)
-        linting_layout.addWidget(underline_errors_box)
-        linting_layout.addWidget(linting_complexity_box)
-        linting_widget = QWidget()
-        linting_widget.setLayout(linting_layout)
+        linting_group = QGroupBox(_("Basic linting"))
+        linting_g_layout = QVBoxLayout()
+        linting_g_layout.addWidget(linting_label)
+        linting_g_layout.addWidget(linting_check)
+        linting_g_layout.addWidget(underline_errors_box)
+        linting_g_layout.addWidget(linting_complexity_box)
+        linting_group.setLayout(linting_g_layout)
+
+        mypy_group = QGroupBox(_("Type linting"))
+        mypy_g_layout = QVBoxLayout()
+        mypy_g_layout.addWidget(mypy_linting_check)
+        mypy_g_layout.addWidget(mypy_live_check)
+        mypy_group.setLayout(mypy_g_layout)
 
         linting_check.toggled.connect(underline_errors_box.setEnabled)
+        mypy_linting_check.toggled.connect(mypy_live_check.setEnabled)
 
         # --- Code style tab ---
         # Code style label
@@ -1152,7 +1167,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.tabs = QTabWidget()
         self.tabs.addTab(self.create_tab(completion_widget),
                          _('Completion'))
-        self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
+        self.tabs.addTab(self.create_tab(linting_group, mypy_group),
+                         _('Linting'))
         self.tabs.addTab(self.create_tab(introspection_group, advanced_group),
                          _('Introspection'))
         self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
