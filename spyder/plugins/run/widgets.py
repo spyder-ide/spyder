@@ -15,8 +15,8 @@ from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                             QFrame, QGridLayout, QGroupBox, QHBoxLayout,
                             QLabel, QLineEdit, QMessageBox, QPushButton,
-                            QRadioButton, QSizePolicy, QStackedWidget,
-                            QVBoxLayout, QWidget)
+                            QRadioButton, QSizePolicy, QScrollArea,
+                            QStackedWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.api.translations import get_translation
@@ -359,6 +359,7 @@ class BaseRunConfigDialog(QDialog):
                 layout.addSpacing(widget_or_spacing)
             else:
                 layout.addWidget(widget_or_spacing)
+        return layout
 
     def add_button_box(self, stdbtns):
         """Create dialog button box and add it to the dialog layout"""
@@ -401,7 +402,10 @@ class RunConfigOneDialog(BaseRunConfigDialog):
         self.filename = fname
         self.runconfigoptions = RunConfigOptions(self)
         self.runconfigoptions.set(RunConfiguration(fname).get())
-        self.add_widgets(self.runconfigoptions)
+        scrollarea = QScrollArea(self)
+        scrollarea.setWidget(self.runconfigoptions)
+        scrollarea.setMinimumWidth(560)
+        self.add_widgets(scrollarea)
         self.add_button_box(QDialogButtonBox.Cancel)
         self.setWindowTitle(_("Run settings for %s") % osp.basename(fname))
 
@@ -461,7 +465,15 @@ class RunConfigDialog(BaseRunConfigDialog):
         self.combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
         self.combo.setCurrentIndex(index)
 
-        self.add_widgets(combo_label, self.combo, 10, self.stack)
+        layout = self.add_widgets(combo_label, self.combo, 10, self.stack)
+        widget_dialog = QWidget()
+        widget_dialog.setLayout(layout)
+        scrollarea = QScrollArea(self)
+        scrollarea.setWidget(widget_dialog)
+        scrollarea.setMinimumWidth(600)
+        scroll_layout = QVBoxLayout()
+        scroll_layout.addWidget(scrollarea)
+        self.setLayout(scroll_layout)
         self.add_button_box(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
 
         self.setWindowTitle(_("Run configuration per file"))
