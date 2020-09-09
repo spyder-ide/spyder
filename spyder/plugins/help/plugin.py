@@ -146,6 +146,13 @@ class Help(SpyderPluginWidget):
         layout_edit.addWidget(self.locked_button)
         self._update_lock_icon()
 
+        # Home Button
+        self.home_button = create_toolbutton(self,
+                                             triggered=self.show_intro_message,
+                                             icon=ima.icon('home'),
+                                             tip=_("Home"))
+        layout_edit.addWidget(self.home_button)
+
         # Option menu
         layout_edit.addWidget(self.options_button)
 
