@@ -440,7 +440,7 @@ class DirView(QTreeView):
             # so it can be added in that folder and not in the rootpath
             # See spyder-ide/spyder#13444
             # See spyder-ide/spyder#13722
-            
+
             current_index = self.currentIndex()
             root_path = self.get_dirname(current_index)
 
