@@ -60,6 +60,7 @@ class HelpWidgetActions:
     ToggleWrap = 'toggle_wrap_action'
     CopyAction = "help_widget_copy_action"
     SelectAll = "select_all_action",
+    Home = 'home_action'
 
 
 class HelpWidgetOptionsMenuSections:
@@ -404,6 +405,12 @@ class HelpWidget(PluginMainWidget):
             icon=self.create_icon('lock_open'),
             initial=self.get_option('locked'),
         )
+        self.home_action = self.create_action(
+            name=HelpWidgetActions.Home,
+            text=_("Home"),
+            triggered=self.show_intro_message,
+            icon=self.create_icon('home'),
+        )
 
         # Add the help actions to an exclusive QActionGroup
         help_actions = QActionGroup(self)
@@ -449,7 +456,8 @@ class HelpWidget(PluginMainWidget):
         # Toolbar
         toolbar = self.get_main_toolbar()
         for item in [self.source_label, self.source_combo, self.object_label,
-                     self.object_combo, self.object_edit, self.locked_action]:
+                     self.object_combo, self.object_edit, self.home_action,
+                     self.locked_action]:
             self.add_item_to_toolbar(
                 item,
                 toolbar=toolbar,
