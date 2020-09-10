@@ -140,18 +140,18 @@ class Help(SpyderPluginWidget):
         auto_import_state = self.get_option('automatic_import')
         self.auto_import_action.setChecked(auto_import_state)
 
-        # Lock checkbox
-        self.locked_button = create_toolbutton(self,
-                                               triggered=self.toggle_locked)
-        layout_edit.addWidget(self.locked_button)
-        self._update_lock_icon()
-
         # Home Button
         self.home_button = create_toolbutton(self,
                                              triggered=self.show_intro_message,
                                              icon=ima.icon('home'),
                                              tip=_("Home"))
         layout_edit.addWidget(self.home_button)
+        
+        # Lock checkbox
+        self.locked_button = create_toolbutton(self,
+                                               triggered=self.toggle_locked)
+        layout_edit.addWidget(self.locked_button)
+        self._update_lock_icon()
 
         # Option menu
         layout_edit.addWidget(self.options_button)
