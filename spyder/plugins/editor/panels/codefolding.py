@@ -18,10 +18,13 @@ Original file:
 
 # Standard library imports
 import sys
+import uuid
+import bisect
 from math import ceil
 from intervaltree import IntervalTree
 
 # Third party imports
+from diff_match_patch import diff_match_patch
 from qtpy.QtCore import Signal, QSize, QPointF, QRectF, QRect, Qt
 from qtpy.QtWidgets import QApplication, QStyleOptionViewItem, QStyle
 from qtpy.QtGui import (QTextBlock, QColor, QFontMetricsF, QPainter,
@@ -34,6 +37,61 @@ from spyder.api.panel import Panel
 from spyder.plugins.editor.utils.editor import (TextHelper, DelayJobRunner,
                                                 drift_color)
 import spyder.utils.icon_manager as ima
+
+
+class FoldingStatus:
+    def __init__(self, text, fold_range):
+        self.text = text
+        self.fold_range = fold_range
+        self.id = str(uuid.uuid4())
+        self.index = None
+        self.nesting = 0
+        self.children = []
+        self.status = False
+        self.parent = None
+
+    def add_node(self, node):
+        node.parent = self
+        node.nesting = self.nesting + 1
+        children_ranges = [c.fold_range[0] for c in self.children]
+        node_range = node.fold_range[0]
+        new_index = bisect.bisect_left(children_ranges, node_range)
+        node.index = new_index
+
+        for child in self.children[new_index:]:
+            child.index += 1
+
+        self.children.insert(new_index, node)
+
+    def remove_node(self, node):
+        for child in self.children[node.index + 1:]:
+            child.index -= 1
+        self.children.pop(node.index)
+        for idx, next_idx in zip(self.children, self.children[1:]):
+            assert idx.index < next_idx.index
+
+    def clone_node(self, node):
+        self.id = node.id
+        self.index = node.index
+        self.nesting = node.nesting
+        self.parent = node.parent
+        self.children = node.children
+
+        for child in self.children:
+            child.parent = self
+
+        if self.parent is not None:
+            self.parent.replace_node(self.index, self)
+
+    def replace_node(self, index, node):
+        self.children[index] = node
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return '({0}, {1}, {2}, {3})'.format(
+            self.fold_range, self.text, self.id, self.status)
 
 
 class FoldingPanel(Panel):
@@ -171,6 +229,8 @@ class FoldingPanel(Panel):
         self._display_folding = False
         self._key_pressed = False
         self._highlight_runner = DelayJobRunner(delay=250)
+        self.current_tree = IntervalTree()
+        self.differ = diff_match_patch()
         self.folding_regions = {}
         self.folding_status = {}
         self.folding_levels = {}
@@ -188,12 +248,15 @@ class FoldingPanel(Panel):
             offset += len(line)
         return line_start_offset
 
-    def update_folding(self, ranges, text):
+    def update_folding(self, ranges):
         """Update folding panel folding ranges."""
         if ranges is None:
             return
+
+        print(ranges)
+
         new_folding_ranges = {}
-        for starting_line, ending_line in ranges:
+        for starting_line, ending_line, _ in ranges:
             if ending_line > starting_line:
                 new_folding_ranges[starting_line + 1] = ending_line + 1
 

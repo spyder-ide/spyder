@@ -1500,7 +1500,12 @@ class CodeEditor(TextEditBaseWidget):
             text = self.toPlainText()
             self.text_diff = (self.differ.diff_main(self.previous_text, text),
                               self.previous_text)
-            folding_panel.update_folding(ranges, text)
+            extended_ranges = []
+            for start, end in ranges:
+                text_region = self.get_text_region(start, end)
+                extended_ranges.append((start, end, text_region))
+
+            folding_panel.update_folding(extended_ranges)
 
             # Update indent guides, which depend on folding
             if self.indent_guides._enabled and len(self.patch) > 0:
