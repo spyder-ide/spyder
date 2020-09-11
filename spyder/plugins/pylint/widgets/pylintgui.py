@@ -282,9 +282,12 @@ class PylintWidget(QWidget):
             self.curr_filenames.insert(0, filename)
             self.filecombo.setCurrentIndex(0)
         else:
-            index = self.filecombo.findText(filename)
-            self.filecombo.removeItem(index)
-            self.curr_filenames.pop(index)
+            try:
+                index = self.filecombo.findText(filename)
+                self.filecombo.removeItem(index)
+                self.curr_filenames.pop(index)
+            except IndexError:
+                self.curr_filenames.remove(filename)
             self.filecombo.insertItem(0, filename)
             self.curr_filenames.insert(0, filename)
             self.filecombo.setCurrentIndex(0)
