@@ -3,7 +3,6 @@ Script to create a windows installer using pynsist.
 
 Based on the Mu's win_installer.py script
 https://github.com/mu-editor/mu/blob/master/win_installer.py
-
 """
 
 import os
@@ -15,6 +14,11 @@ import tempfile
 
 import yarg
 
+
+# Packages to skip checking for wheels and instead add them directly in the
+# 'packages' section
+
+SKIP_PACKAGES = ['bcrypt']
 
 # The pynsist requirement spec that will be used to install pynsist in
 # the temporary packaging virtual environment.
@@ -121,6 +125,8 @@ def pypi_wheels_in(requirements, skip):
     wheels = []
     for requirement in requirements:
         name, _, version = requirement.partition("==")
+        # Needed to detect the package being installed from source
+        # <package> @ <path to package>==<version>
         name = name.split('@')[0].strip()
         if name in skip:
             print("-", requirement, "skipped")
@@ -148,7 +154,7 @@ def package_name(requirement):
     """
     Return the name component of a `name==version` formated requirement.
     """
-    requirement_name = requirement.partition("==")[0].split("@")[0]
+    requirement_name = requirement.partition("==")[0].split("@")[0].strip()
     return requirement_name
 
 
@@ -183,9 +189,9 @@ def create_pynsist_cfg(
         # Those from pip freeze except the package itself.
         line
         for line in pip_freeze(python, encoding=encoding)
-        if package_name(line) != repo_package_name
+        if package_name(line) != package
     ]
-    skip_wheels = [package, 'setuptools', 'bcrypt']
+    skip_wheels = [package] + SKIP_PACKAGES
     wheels = pypi_wheels_in(requirements, skip_wheels)
     skip_packages = [package]
     packages = packages_from(requirements, wheels, skip_packages)
@@ -230,10 +236,15 @@ def run(conda_path, python_version, bitness, repo_root, entrypoint,
         print("Creating the package virtual environment.")
         env_python = create_packaging_env(conda_path, work_dir, python_version)
 
-        # print("Updating pip in the virtual environment", env_python)
-        # subprocess_run(
-        #     [env_python, "-m", "pip", "install", "--upgrade", "pip"]
-        # )
+        print("Updating pip in the virtual environment", env_python)
+        subprocess_run(
+            [env_python, "-m", "pip", "install", "--upgrade", "pip"]
+        )
+
+        print("Updating setuptools in the virtual environment", env_python)
+        subprocess_run(
+            [env_python, "-m", "pip", "install", "--upgrade", "setuptools"]
+        )
 
         print("Installing package with", env_python)
         subprocess_run([env_python, "-m",
@@ -247,11 +258,11 @@ def run(conda_path, python_version, bitness, repo_root, entrypoint,
             icon_path, license_path, pynsist_cfg)
 
         print("Installing pynsist.")
-        subprocess_run([env_python, "-m", "pip", "install", PYNSIST_REQ])
+        subprocess_run([env_python, "-m", "pip", "install", PYNSIST_REQ,
+                        "--no-warn-script-location"])
 
         print("Running pynsist.")
-        subprocess_run([env_python, "-m", "nsist", pynsist_cfg,
-                        "--no-warn-script-location"])
+        subprocess_run([env_python, "-m", "nsist", pynsist_cfg])
 
         destination_dir = os.path.join(repo_root, "dist")
         print("Copying installer file to", destination_dir)
