@@ -1,11 +1,14 @@
 Python Language Server
 ======================
 
-.. image:: https://circleci.com/gh/palantir/python-language-server.svg?style=shield
-    :target: https://circleci.com/gh/palantir/python-language-server
+.. image:: https://github.com/palantir/python-language-server/workflows/Linux%20tests/badge.svg
+    :target: https://github.com/palantir/python-language-server/actions?query=workflow%3A%22Linux+tests%22
 
-.. image:: https://ci.appveyor.com/api/projects/status/mdacv6fnif7wonl0?svg=true
-    :target: https://ci.appveyor.com/project/gatesn/python-language-server
+.. image:: https://github.com/palantir/python-language-server/workflows/Mac%20tests/badge.svg
+    :target: https://github.com/palantir/python-language-server/actions?query=workflow%3A%22Mac+tests%22
+
+.. image:: https://github.com/palantir/python-language-server/workflows/Windows%20tests/badge.svg
+    :target: https://github.com/palantir/python-language-server/actions?query=workflow%3A%22Windows+tests%22
 
 .. image:: https://img.shields.io/github/license/palantir/python-language-server.svg
      :target: https://github.com/palantir/python-language-server/blob/master/LICENSE
