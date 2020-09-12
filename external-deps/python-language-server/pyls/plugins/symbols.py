@@ -12,7 +12,7 @@ def pyls_document_symbols(config, document):
     # pylint: disable=too-many-nested-blocks
     symbols_settings = config.plugin_settings('jedi_symbols')
     all_scopes = symbols_settings.get('all_scopes', True)
-    add_import_symbols = symbols_settings.get('include_import_symbols', False)
+    add_import_symbols = symbols_settings.get('include_import_symbols', True)
     definitions = document.jedi_names(all_scopes=all_scopes)
     module_name = document.dot_path
     symbols = []
