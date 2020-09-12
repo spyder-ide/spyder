@@ -38,9 +38,6 @@ else
     # Install qtconsole from Github
     pip install git+https://github.com/jupyter/qtconsole.git
 
-    # Pin python-jsonrpc-server to a working version (for now)
-    pip install python-jsonrpc-server==0.3.4
-
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y
     pip uninstall python-language-server -q -y
