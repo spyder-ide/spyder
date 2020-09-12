@@ -8,13 +8,25 @@ log = logging.getLogger(__name__)
 
 @hookimpl
 def pyls_document_symbols(config, document):
-    all_scopes = config.plugin_settings('jedi_symbols').get('all_scopes', True)
+    # pylint: disable=broad-except
+    # pylint: disable=too-many-nested-blocks
+    symbols_settings = config.plugin_settings('jedi_symbols')
+    all_scopes = symbols_settings.get('all_scopes', True)
+    add_import_symbols = symbols_settings.get('include_import_symbols', False)
     definitions = document.jedi_names(all_scopes=all_scopes)
+    module_name = document.dot_path
     symbols = []
     exclude = set({})
     redefinitions = {}
     while definitions != []:
         d = definitions.pop(0)
+        if not add_import_symbols:
+            sym_full_name = d.full_name
+            if sym_full_name is not None:
+                if (not sym_full_name.startswith(module_name) and
+                        not sym_full_name.startswith('__main__')):
+                    continue
+
         if _include_def(d) and document.path == d.module_path:
             tuple_range = _tuple_range(d)
             if tuple_range in exclude:
