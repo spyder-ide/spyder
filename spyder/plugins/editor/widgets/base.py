@@ -168,6 +168,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         for selection in extra_selections:
             selection.draw_order = draw_order
+            selection.kind = key
 
         self.clear_extra_selections(key)
         self.extra_selections_dict[key] = extra_selections
@@ -233,7 +234,6 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         selection.format.setProperty(QTextFormat.FullWidthSelection,
                                      to_qvariant(True))
         selection.format.setBackground(self.currentcell_color)
-        selection.kind = 'current_cell'
 
         if whole_file_selected:
             self.clear_extra_selections('current_cell')
