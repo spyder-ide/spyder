@@ -1988,15 +1988,16 @@ class CodeEditor(TextEditBaseWidget):
                 self.get_selected_text().strip() != text):
             return
 
-        if (self.is_python_like()) and \
-           (sourcecode.is_keyword(to_text_string(text)) or \
-           to_text_string(text) == 'self'):
+        if (self.is_python_like() and
+                (sourcecode.is_keyword(to_text_string(text)) or
+                 to_text_string(text) == 'self')):
             return
 
         # Highlighting all occurrences of word *text*
         cursor = self.__find_first(text)
         self.occurrences = []
         extra_selections = self.get_extra_selections('occurrences')
+
         while cursor:
             self.occurrences.append(cursor.blockNumber())
             selection = self.get_selection(
@@ -2006,6 +2007,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor = self.__find_next(text, cursor)
         self.set_extra_selections('occurrences', extra_selections)
         self.update_extra_selections()
+
         if len(self.occurrences) > 1 and self.occurrences[-1] == 0:
             # XXX: this is never happening with PySide but it's necessary
             # for PyQt4... this must be related to a different behavior for
