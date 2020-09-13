@@ -100,6 +100,7 @@ except Exception:
 
 
 logger = logging.getLogger(__name__)
+UPDATE_DECORATIONS_TIMEOUT = 500  # miliseconds
 
 
 # %% This line is for cell execution testing
@@ -507,7 +508,7 @@ class CodeEditor(TextEditBaseWidget):
         # Update decorations timer
         self.update_decorations_timer = QTimer(self)
         self.update_decorations_timer.setSingleShot(True)
-        self.update_decorations_timer.setInterval(500)
+        self.update_decorations_timer.setInterval(UPDATE_DECORATIONS_TIMEOUT)
         self.update_decorations_timer.timeout.connect(
             self.update_decorations)
         self.verticalScrollBar().valueChanged.connect(
