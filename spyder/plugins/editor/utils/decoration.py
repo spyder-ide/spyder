@@ -17,7 +17,7 @@ Original file:
 """
 
 # Third party imports
-from qtpy.QtCore import QObject, QPoint, QTimer
+from qtpy.QtCore import QObject, QPoint, QTimer, Slot
 from qtpy.QtGui import QTextCharFormat
 
 # Local imports
@@ -102,6 +102,7 @@ class TextDecorationsManager(Manager, QObject):
         """
         self.update_timer.start()
 
+    @Slot()
     def _update(self):
         """Update editor extra selections with added decorations.
 
