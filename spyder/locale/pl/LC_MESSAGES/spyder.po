@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-03 04:46\n"
+"PO-Revision-Date: 2020-09-13 23:56\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -432,11 +432,11 @@ msgstr "Nie pokazuj tej wiadomości podczas bieżącej sesji"
 
 #: spyder/app/mainwindow.py:1446
 msgid "A monitor scale change was detected. <br><br>We recommend restarting Spyder to ensure that it's properly displayed. If you don't want to do that, please be sure to activate the option<br><br><tt>Enable auto high DPI scaling</tt><br><br>in <tt>Preferences > General > Interface</tt>, in case Spyder is not displayed correctly.<br><br>Do you want to restart Spyder?"
-msgstr ""
+msgstr "Wykryto zmianę skalowania monitora. <br><br>Zalecamy ponowne uruchomienie Spydera, aby upewnić się, że jest poprawnie wyświetlany. Jeśli nie chcesz tego robić, aktywuj opcję<br><br><tt>Włącz automatyczne skalowanie w wysokiej rozdzielczości DPI</tt><br><br>w <tt>Preferencje > Ogólne > Interfejs</tt>, w przypadku, gdy Spyder nie wyświetla się poprawnie.<br><br>Czy chcesz ponownie uruchomić Spydera?"
 
 #: spyder/app/mainwindow.py:1453
 msgid "Restart now"
-msgstr ""
+msgstr "Uruchom ponownie"
 
 #: spyder/app/mainwindow.py:1454 spyder/plugins/completion/kite/widgets/install.py:84 spyder/plugins/completion/kite/widgets/install.py:149
 msgid "Dismiss"
