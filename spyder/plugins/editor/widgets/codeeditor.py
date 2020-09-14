@@ -564,7 +564,7 @@ class CodeEditor(TextEditBaseWidget):
         self.__visible_blocks = []  # Visible blocks, update with repaint
         self.painted.connect(self._draw_editor_cell_divider)
 
-        # Ooutline explorer
+        # Outline explorer
         self.oe_proxy = None
 
         # Line stripping
@@ -2442,7 +2442,7 @@ class CodeEditor(TextEditBaseWidget):
 
             if underline:
                 block_nb = block.blockNumber()
-                first, last = self.get_visible_block_numbers()
+                first, last = self.get_buffer_block_numbers()
 
                 if (self.underline_errors_enabled and
                         first <= block_nb <= last):

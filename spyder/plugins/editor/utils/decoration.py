@@ -113,7 +113,7 @@ class TextDecorationsManager(Manager, QObject):
             font = self.editor.font()
 
             # Get the current visible block numbers
-            first, last = self.editor.get_visible_block_numbers()
+            first, last = self.editor.get_buffer_block_numbers()
 
             # Update visible decorations
             visible_decorations = []

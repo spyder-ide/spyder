@@ -208,6 +208,23 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         last = self.cursorForPosition(bottom_right).blockNumber()
         return (first, last)
 
+    def get_buffer_block_numbers(self):
+        """
+        Get the first and last block numbers of a region that covers
+        the visible one plus a buffer of half that region above and
+        below to make more fluid certain operations.
+        """
+        first_visible, last_visible = self.get_visible_block_numbers()
+        buffer_height = round((last_visible - first_visible) / 2)
+
+        first = first_visible - buffer_height
+        first = 0 if first < 0 else first
+
+        last = last_visible + buffer_height
+        last = self.blockCount() if last > self.blockCount() else last
+
+        return (first, last)
+
     #------Highlight current line
     def highlight_current_line(self):
         """Highlight current line"""
