@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-09-13 23:56\n"
+"PO-Revision-Date: 2020-09-14 00:21\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -43,7 +43,7 @@ msgstr "Przewodnik referencyjny PyQt5"
 
 #: spyder/app/mainwindow.py:241
 msgid "PyQt5 API Reference"
-msgstr "PyQt5 API"
+msgstr "Dokumentacja interfejsu API PyQt5"
 
 #: spyder/app/mainwindow.py:243
 msgid "WinPython"
@@ -51,7 +51,7 @@ msgstr "WinPython"
 
 #: spyder/app/mainwindow.py:513
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
-msgstr "Wystąpił błąd podczas tworzenia gniazda potrzebnego przez Spyder. Spróbuj uruchomić jako Administrator z poziomu cmd.exe następujące polecenie, a następnie zrestartuj kompuer: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
+msgstr "Wystąpił błąd podczas tworzenia gniazda potrzebnego dla Spyder. Spróbuj uruchomić jako Administrator z poziomu cmd.exe następujące polecenie, a następnie zrestartuj komputer: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
 
 #: spyder/app/mainwindow.py:581
 msgid "Close current pane"
@@ -592,7 +592,7 @@ msgstr "Ponownie uruchamianie"
 
 #: spyder/app/tour.py:133
 msgid "Welcome to the Introduction tour"
-msgstr ""
+msgstr "Witamy w Prezentacji wprowadzającej"
 
 #: spyder/app/tour.py:134
 msgid "<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for the Python programming language.<br><br>Here we are going to guide you through its most important features.<br><br>Please use the arrow keys or click on the buttons below to move along the tour."
@@ -936,7 +936,7 @@ msgstr "Dodaj okno do doku"
 
 #: spyder/plugins/base.py:199
 msgid "Undock"
-msgstr ""
+msgstr "Odłącz"
 
 #: spyder/plugins/base.py:201
 msgid "Undock the pane"
@@ -1024,7 +1024,7 @@ msgstr "Ukończono wgrywanie"
 
 #: spyder/plugins/completion/kite/utils/install.py:39
 msgid "Installation errored"
-msgstr ""
+msgstr "Błąd instalacji"
 
 #: spyder/plugins/completion/kite/utils/install.py:40
 msgid "Cancelled"
