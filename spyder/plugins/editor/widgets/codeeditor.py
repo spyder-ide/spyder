@@ -2626,8 +2626,8 @@ class CodeEditor(TextEditBaseWidget):
         self.clear_extra_selections('code_analysis_highlight')
         self.highlight_selection('code_analysis_highlight',
                                  block_data._selection(),
-                                 background_color=block_data.color)
-        self.update_extra_selections()
+                                 background_color=block_data.color,
+                                 update=True)
         self.linenumberarea.update()
 
     def get_current_warnings(self):
