@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-09-14 00:21\n"
+"PO-Revision-Date: 2020-09-14 09:30\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -207,7 +207,7 @@ msgstr "Pokaż i edytuj bieżące zmienne środowiskowe użytkownika w rejestrze
 
 #: spyder/app/mainwindow.py:739
 msgid "Install Kite completion engine"
-msgstr "Zainstaluj silnik uzupelniania składni Kite"
+msgstr "Zainstaluj silnik uzupełniania składni Kite"
 
 #: spyder/app/mainwindow.py:745
 msgid "LSP logs"
