@@ -900,9 +900,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         """Return True is completion list widget is visible"""
         return self.completion_widget.isVisible()
 
-    def hide_completion_widget(self):
+    def hide_completion_widget(self, focus_to_parent=True):
         """Hide completion widget and tooltip."""
-        self.completion_widget.hide()
+        self.completion_widget.hide(focus_to_parent=focus_to_parent)
         QToolTip.hideText()
 
     #------Standard keys
@@ -1021,12 +1021,17 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
 
         QPlainTextEdit.wheelEvent(self, event)
 
-        # Needed to prevent stealing focus to the find widget when scrolling
+        # Needed to prevent stealing focus when scrolling.
+        # If the current widget with focus is the CompletionWidget, it means
+        # it's being displayed in the editor, so we need to hide it and give
+        # focus back to the editor. If not, we need to leave the focus in
+        # the widget that currently has it.
         # See spyder-ide/spyder#11502
         current_widget = QApplication.focusWidget()
-        self.hide_completion_widget()
-        if current_widget is not None:
-            current_widget.setFocus()
+        if isinstance(current_widget, CompletionWidget):
+            self.hide_completion_widget(focus_to_parent=True)
+        else:
+            self.hide_completion_widget(focus_to_parent=False)
 
     def position_widget_at_cursor(self, widget):
         # Retrieve current screen height
