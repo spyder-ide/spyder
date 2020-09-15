@@ -2002,7 +2002,7 @@ class CodeEditor(TextEditBaseWidget):
             self.occurrences.append(cursor.blockNumber())
             selection = self.get_selection(
                 cursor, background_color=self.occurrence_color)
-            if selection:
+            if selection and selection.cursor.selectedText():
                 extra_selections.append(selection)
             cursor = self.__find_next(text, cursor)
         self.set_extra_selections('occurrences', extra_selections)

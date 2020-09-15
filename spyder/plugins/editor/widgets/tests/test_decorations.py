@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 #
 
-"""Tests for editor extra selections (decorations)."""
+"""Tests for editor decorations."""
 
 # Third party imports
 from unittest.mock import patch
@@ -27,7 +27,7 @@ PARENT = osp.dirname(HERE)
 # -----------------------------------------------------------------------------
 @pytest.fixture
 def construct_editor(qtbot):
-    """Construct editor for testing extra selections."""
+    """Construct editor for testing decorations."""
     editor = CodeEditor(parent=None)
     editor.setup_editor(
         language='Python',
@@ -40,8 +40,8 @@ def construct_editor(qtbot):
     return editor
 
 
-def test_extra_selections(construct_editor, qtbot):
-    """Test extra selections."""
+def test_decorations(construct_editor, qtbot):
+    """Test decorations."""
     editor = construct_editor
 
     text = ("def some_function():\n"
@@ -57,21 +57,22 @@ def test_extra_selections(construct_editor, qtbot):
     cursor.movePosition(QTextCursor.Right, n=5)
     editor.setTextCursor(cursor)
 
-    # Assert number of extra selections is the one we expect
+    # Assert number of decorations is the one we expect.
     qtbot.wait(3000)
-    assert len(editor.extraSelections()) == 5
-
-    selections = editor.extraSelections()
-    selected_texts = [sel.cursor.selectedText() for sel in selections]
+    decorations = editor.decorations._decorations
+    assert len(decorations) == 5
 
     # Assert that selection 0 is current cell
-    assert selections[0].format.background() == editor.currentcell_color
+    assert decorations[0].kind == 'current_cell'
 
     # Assert that selection 1 is current_line
-    assert selections[1].format.property(QTextFormat.FullWidthSelection)
-    assert selections[1].format.background() == editor.currentline_color
+    assert decorations[1].kind == 'current_line'
 
-    # Assert that selections 2, 3, 4 are some_variable
+    # Assert the other decorations are occurrences
+    assert all([d.kind == 'occurrences' for d in decorations[2:5]])
+
+    # Assert that decorations 2, 3, 4 are some_variable
+    selected_texts = [d.cursor.selectedText() for d in decorations]
     assert set(selected_texts[2:5]) == set(['some_variable'])
 
 
