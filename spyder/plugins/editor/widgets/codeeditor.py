@@ -505,7 +505,7 @@ class CodeEditor(TextEditBaseWidget):
         self.occurrence_timer.timeout.connect(self.__mark_occurrences)
         self.occurrences = []
 
-        # Update decorations timer
+        # Update decorations
         self.update_decorations_timer = QTimer(self)
         self.update_decorations_timer.setSingleShot(True)
         self.update_decorations_timer.setInterval(UPDATE_DECORATIONS_TIMEOUT)
@@ -3833,6 +3833,13 @@ class CodeEditor(TextEditBaseWidget):
         direction_keys = {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}
         if key in direction_keys:
             self.request_cursor_event()
+
+        # Update decorations after releasing these keys because they don't
+        # trigger the emission of the valueChanged signal in
+        # verticalScrollBar.
+        # See https://bugreportts.qt.io/browse/QTBUG-25365
+        if key in {Qt.Key_Up,  Qt.Key_Down}:
+            self.update_decorations()
 
         # This necessary to run our Pygments highlighter again after the
         # user generated text changes

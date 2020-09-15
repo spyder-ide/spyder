@@ -11,6 +11,7 @@ from unittest.mock import patch
 import os.path as osp
 
 import pytest
+from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QTextCursor, QTextFormat
 
 # Local imports
@@ -131,7 +132,7 @@ def test_update_decorations_when_scrolling(qtbot):
         # Simulate grabbing and moving the scrollbar with the mouse
         scrollbar = editor.verticalScrollBar()
         value = scrollbar.value()
-        for i in range(400):
+        for _ in range(400):
             scrollbar.setValue(value + 1)
             value = scrollbar.value()
 
@@ -143,6 +144,28 @@ def test_update_decorations_when_scrolling(qtbot):
 
         # Assert a new call to _update was done
         assert _update.call_count == 3
+
+        # Move to the last visible line
+        _, last = editor.get_visible_block_numbers()
+        editor.go_to_line(last)
+
+        # Simulate continuously pressing the down arrow key.
+        for _ in range(200):
+            qtbot.keyPress(editor, Qt.Key_Down)
+            qtbot.wait(5)
+
+        # Only one call to _update should be done, after releasing the key.
+        qtbot.wait(UPDATE_DECORATIONS_TIMEOUT + 100)
+        assert _update.call_count == 4
+
+        # Simulate continuously pressing the up arrow key.
+        for _ in range(200):
+            qtbot.keyPress(editor, Qt.Key_Up)
+            qtbot.wait(5)
+
+        # Only one call to _update should be done, after releasing the key.
+        qtbot.wait(UPDATE_DECORATIONS_TIMEOUT + 100)
+        assert _update.call_count == 5
 
 
 if __name__ == "__main__":
