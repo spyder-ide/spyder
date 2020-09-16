@@ -252,7 +252,7 @@ def is_editable_type(value):
 #==============================================================================
 # Sorting
 #==============================================================================
-def sort_against(list1, list2, reverse=False):
+def sort_against(list1, list2, reverse=False, sort_key=lambda x: x[0]):
     """
     Arrange items of list1 in the same order as sorted(list2).
 
@@ -261,7 +261,7 @@ def sort_against(list1, list2, reverse=False):
     """
     try:
         return [item for _, item in 
-                sorted(zip(list2, list1), key=lambda x: x[0], reverse=reverse)]
+                sorted(zip(list2, list1), key=sort_key, reverse=reverse)]
     except:
         return list1
 
