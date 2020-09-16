@@ -19,7 +19,7 @@ def pyls_rename(config, workspace, document, position, new_name):  # pylint: dis
     log.debug('Finished rename: %s', refactoring.get_diff())
     changes = []
     for file_path, changed_file in refactoring.get_changed_files().items():
-        uri = uris.from_fs_path(file_path)
+        uri = uris.from_fs_path(str(file_path))
         doc = workspace.get_maybe_document(uri)
         changes.append({
             'textDocument': {

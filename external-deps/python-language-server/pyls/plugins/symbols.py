@@ -10,6 +10,8 @@ log = logging.getLogger(__name__)
 def pyls_document_symbols(config, document):
     # pylint: disable=broad-except
     # pylint: disable=too-many-nested-blocks
+    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-branches
     symbols_settings = config.plugin_settings('jedi_symbols')
     all_scopes = symbols_settings.get('all_scopes', True)
     add_import_symbols = symbols_settings.get('include_import_symbols', True)

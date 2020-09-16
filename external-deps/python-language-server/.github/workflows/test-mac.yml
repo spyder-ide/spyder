@@ -18,7 +18,7 @@ jobs:
       OS: 'macos'
       PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
     strategy:
-      fail-fast: false 
+      fail-fast: false
       matrix:
         PYTHON_VERSION: ['3.8', '3.7', '3.6', '2.7']
     timeout-minutes: 10
@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.PYTHON_VERSION }} 
+          python-version: ${{ matrix.PYTHON_VERSION }}
           architecture: 'x64'
       - name: Create Jedi environment for testing
         if: matrix.PYTHON_VERSION != '2.7'

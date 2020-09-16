@@ -259,6 +259,11 @@
                     "uniqueItems": false,
                     "description": "Arguments to pass to pylint."
                 },
+                "pyls.plugins.pylint.executable": {
+                  "type": "string",
+                  "default": null,
+                  "description": "Executable to run pylint with. Enabling this will run pylint on unsaved files via stdin. Can slow down workflow. Only works with python3."
+                },
                 "pyls.plugins.rope_completion.enabled": {
                     "type": "boolean",
                     "default": true,
