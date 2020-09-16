@@ -7,8 +7,9 @@
 """Tests for editor decorations."""
 
 # Third party imports
-from unittest.mock import patch
 import os.path as osp
+import random
+from unittest.mock import patch
 
 import pytest
 from qtpy.QtCore import Qt
@@ -44,11 +45,22 @@ def test_decorations(construct_editor, qtbot):
     """Test decorations."""
     editor = construct_editor
 
-    text = ("def some_function():\n"
-            "    some_variable = 1\n"
-            "    some_variable += 2\n"
-            "    return some_variable\n"
-            "# %%")
+    # Set random size
+    editor.resize(640, random.randint(200, 500))
+
+    # Set cell of different length.
+    base_function = (
+        "def some_function():\n"
+        "    some_variable = 1\n"
+        "    some_variable += 2\n"
+        "    return some_variable\n\n"
+    )
+
+    text = ''
+    for _ in range(100):
+        base_text = base_function * random.randint(2, 8) + "# %%\n"
+        text = text + base_text
+
     editor.set_text(text)
 
     # Move cursor over 'some_variable'
@@ -60,7 +72,7 @@ def test_decorations(construct_editor, qtbot):
     # Assert number of decorations is the one we expect.
     qtbot.wait(3000)
     decorations = editor.decorations._decorations
-    assert len(decorations) == 5
+    assert len(decorations) == 2 + text.count('some_variable')
 
     # Assert that selection 0 is current cell
     assert decorations[0].kind == 'current_cell'
@@ -71,9 +83,29 @@ def test_decorations(construct_editor, qtbot):
     # Assert the other decorations are occurrences
     assert all([d.kind == 'occurrences' for d in decorations[2:5]])
 
-    # Assert that decorations 2, 3, 4 are some_variable
+    # Assert all other decorations are some_variable
     selected_texts = [d.cursor.selectedText() for d in decorations]
-    assert set(selected_texts[2:5]) == set(['some_variable'])
+    assert set(selected_texts[2:]) == set(['some_variable'])
+
+    # Assert painted extra selections are much smaller.
+    first, last = editor.get_buffer_block_numbers()
+    max_decorations = last - first
+    assert len(editor.extraSelections()) < max_decorations
+
+    # Clear decorations to be sure they are painted again below.
+    editor.decorations.clear()
+    editor.decorations._update()
+    assert editor.decorations._decorations == []
+
+    # Move to a random place in the file and wait until decorations are
+    # updated.
+    line_number = random.randint(100, editor.blockCount())
+    editor.go_to_line(line_number)
+    qtbot.wait(UPDATE_DECORATIONS_TIMEOUT + 100)
+
+    # Assert a new cell is painted
+    decorations = editor.decorations._decorations
+    assert decorations[0].kind == 'current_cell'
 
 
 def test_update_decorations_when_scrolling(qtbot):
