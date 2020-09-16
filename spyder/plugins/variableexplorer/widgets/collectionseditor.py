@@ -261,16 +261,21 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         sort_key = natsort if all_string(self.keys) else None
 
         if column == 0:
-            self.sizes = sort_against(self.sizes, self.keys, 
+            print(1, self.keys, self.types, self.sizes)
+            self.sizes = sort_against(self.sizes, self.keys,
                                       reverse=reverse,
                                       sort_key=natsort)
+            print(2, self.keys, self.types, self.sizes)
             self.types = sort_against(self.types, self.keys, 
                                       reverse=reverse,
                                       sort_key=natsort)
+            print(3, self.keys, self.types, self.sizes)
             try:
                 self.keys.sort(reverse=reverse, key=sort_key)
-            except:
+            except Exception as e:
+                print(e)
                 pass
+            print(4, self.keys, self.types, self.sizes)
         elif column == 1:
             self.keys[:self.rows_loaded] = sort_against(self.keys,
                                                         self.types,
@@ -1825,6 +1830,6 @@ def remote_editor_test():
     app.exec_()
 
 
-if __name__ == "__main__":
-    editor_test()
-    remote_editor_test()
+# if __name__ == "__main__":
+#     editor_test()
+#     remote_editor_test()
