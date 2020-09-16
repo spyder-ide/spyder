@@ -12,13 +12,9 @@ install_requires = [
         'backports.functools_lru_cache; python_version<"3.2"',
         'jedi>=0.17.0,<0.18.0',
         'python-jsonrpc-server>=0.4.0',
-        'pluggy']
-
-if sys.version_info[0] == 2:
-    install_requires.append('ujson<=2.0.3; platform_system!="Windows"')
-else:
-    install_requires.append('ujson>=3.0.0')
-
+        'pluggy',
+        'ujson<=2.0.3 ; platform_system!="Windows" and python_version<"3.0"',
+        'ujson>=3.0.0 ; python_version>"3"']
 
 setup(
     name='python-language-server',
