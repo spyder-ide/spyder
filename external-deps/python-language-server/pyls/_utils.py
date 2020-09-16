@@ -82,6 +82,18 @@ def find_parents(root, path, names):
     return []
 
 
+def path_to_dot_name(path):
+    """Given a path to a module, derive its dot-separated full name."""
+    directory = os.path.dirname(path)
+    module_name, _ = os.path.splitext(os.path.basename(path))
+    full_name = [module_name]
+    while os.path.exists(os.path.join(directory, '__init__.py')):
+        this_directory = os.path.basename(directory)
+        directory = os.path.dirname(directory)
+        full_name = [this_directory] + full_name
+    return '.'.join(full_name)
+
+
 def match_uri_to_workspace(uri, workspaces):
     if uri is None:
         return None
