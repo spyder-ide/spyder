@@ -129,6 +129,7 @@ else:
 #==============================================================================
 from spyder.utils.qthelpers import qapplication
 from spyder.config.base import get_image_path
+from spyder.py3compat import PY3
 MAIN_APP = qapplication()
 
 if PYQT5:
@@ -137,6 +138,10 @@ else:
     APP_ICON = QIcon(get_image_path("spyder.png"))
 
 MAIN_APP.setWindowIcon(APP_ICON)
+
+# Required for correct icon on GNOME/Wayland:
+if hasattr(MAIN_APP, 'setDesktopFileName'):
+    MAIN_APP.setDesktopFileName('spyder3' if PY3 else 'spyder')
 
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time.
@@ -171,7 +176,7 @@ from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_anaconda, is_gtk_desktop
 from spyder import dependencies
 from spyder.py3compat import (is_text_string, to_text_string,
-                              PY3, qbytearray_to_str, configparser as cp)
+                              qbytearray_to_str, configparser as cp)
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
