@@ -139,8 +139,6 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             self.onecmd('exit')
         else:
             self.setup(frame, traceback)
-            if self.send_initial_notification:
-                self.notify_spyder(frame)
             if get_ipython().kernel._pdb_print_code:
                 self.print_stack_entry(self.stack[self.curindex])
             self._cmdloop()
@@ -158,6 +156,21 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         if self.pdb_ignore_lib and path_is_library(filename):
             return False
         return True
+
+    def do_where(self, arg):
+        """w(here)
+        Print a stack trace, with the most recent frame at the bottom.
+        An arrow indicates the "current frame", which determines the
+        context of most commands. 'bt' is an alias for this command.
+
+        Take a number as argument as an (optional) number of context line to
+        print"""
+        super(SpyderPdb, self).do_where(arg)
+        frontend_request().do_where()
+
+    do_w = do_where
+
+    do_bt = do_where
 
     # --- Method defined by us to respond to ipython complete protocol
     def do_complete(self, code, cursor_pos):
@@ -261,6 +274,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             self.pdb_execute_events = pdb_settings['pdb_execute_events']
             if self.starting:
                 self.set_spyder_breakpoints(pdb_settings['breakpoints'])
+            if self.send_initial_notification:
+                self.notify_spyder()
         except (CommError, TimeoutError):
             logger.debug("Could not get breakpoints from the frontend.")
 
@@ -328,8 +343,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         Is that good or too lazy? i.e. is more specific behaviour desired?
         """
-        if '!get_ipython().kernel' not in line:
-            self.notify_spyder(self.curframe)
+        self.notify_spyder(self.curframe)
         return super(SpyderPdb, self).postcmd(stop, line)
 
     if PY2:
