@@ -14,7 +14,7 @@ if [ "$USE_CONDA" = "true" ]; then
     fi
 
     # Install main dependencies
-    conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y
+    conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y -c spyder-ide/label/dev
 
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
