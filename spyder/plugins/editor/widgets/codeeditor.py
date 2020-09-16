@@ -47,6 +47,7 @@ from spyder_kernels.utils.dochelpers import getobj
 
 # %% This line is for cell execution testing
 
+
 # Local imports
 from spyder.api.panel import Panel
 from spyder.config.base import _, get_debug_level, running_under_pytest
@@ -60,9 +61,9 @@ from spyder.plugins.editor.extensions import (CloseBracketsExtension,
                                               SnippetsExtension)
 from spyder.plugins.completion.kite.widgets.calltoaction import (
     KiteCallToAction)
-from spyder.plugins.completion.languageserver import (LSPRequestTypes,
-                                                      TextDocumentSyncKind,
-                                                      DiagnosticSeverity)
+from spyder.plugins.completion.manager.api import (LSPRequestTypes,
+                                                   TextDocumentSyncKind,
+                                                   DiagnosticSeverity)
 from spyder.plugins.editor.panels import (ClassFunctionDropdown,
                                           DebuggerPanel, EdgeLine,
                                           FoldingPanel, IndentationGuide,
@@ -73,12 +74,13 @@ from spyder.plugins.editor.utils.debugger import DebuggerManager
 # from spyder.plugins.editor.utils.folding import IndentFoldDetector, FoldScope
 from spyder.plugins.editor.utils.kill_ring import QtKillRing
 from spyder.plugins.editor.utils.languages import ALL_LANGUAGES, CELL_LANGUAGES
-from spyder.plugins.completion.decorators import (
+from spyder.plugins.completion.manager.decorators import (
     request, handles, class_register)
 from spyder.plugins.editor.widgets.base import TextEditBaseWidget
 from spyder.plugins.outlineexplorer.languages import PythonCFM
-from spyder.plugins.outlineexplorer.api import OutlineExplorerData as OED
-from spyder.py3compat import PY2, to_text_string, is_string
+from spyder.plugins.outlineexplorer.api import (OutlineExplorerData as OED,
+                                                is_cell_header)
+from spyder.py3compat import PY2, to_text_string, is_string, is_text_string
 from spyder.utils import encoding, programs, sourcecode
 from spyder.utils import icon_manager as ima
 from spyder.utils import syntaxhighlighters as sh
@@ -86,6 +88,7 @@ from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
 from spyder.utils.qstringhelpers import qstring_length
+from spyder.widgets.helperwidgets import MessageCheckBox
 
 
 try:
@@ -309,6 +312,17 @@ class CodeEditor(TextEditBaseWidget):
     # the mouse left button is pressed, this signal is emmited
     sig_go_to_uri = Signal(str)
 
+    sig_file_uri_preprocessed = Signal(str)
+    """
+    This signal is emitted when the go to uri for a file has been
+    preprocessed.
+
+    Parameters
+    ----------
+    fpath: str
+        The preprocessed file path.
+    """
+
     # Signal with the info about the current completion item documentation
     # str: object name
     # str: object signature/documentation
@@ -337,6 +351,9 @@ class CodeEditor(TextEditBaseWidget):
         TextEditBaseWidget.__init__(self, parent)
 
         self.setFocusPolicy(Qt.StrongFocus)
+
+        # Projects
+        self.current_project_path = None
 
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('main', 'cursor/width') )
@@ -464,7 +481,6 @@ class CodeEditor(TextEditBaseWidget):
         # Scrollbar flag area
         self.scrollflagarea = self.panels.register(ScrollFlagArea(self),
                                                    Panel.Position.RIGHT)
-        self.scrollflagarea.hide()
         self.panels.refresh()
 
         self.document_id = id(self)
@@ -490,9 +506,6 @@ class CodeEditor(TextEditBaseWidget):
         # the highlighter in order to generate the correct coloring.
         self.timer_syntax_highlight = QTimer(self)
         self.timer_syntax_highlight.setSingleShot(True)
-        # We wait 300 ms to trigger a new coloring as this value is a good
-        # proxy for estimating when an user has stopped typing
-        self.timer_syntax_highlight.setInterval(300)
         self.timer_syntax_highlight.timeout.connect(
             self.run_pygments_highlighter)
 
@@ -571,7 +584,6 @@ class CodeEditor(TextEditBaseWidget):
 
         # Language Server
         self.lsp_requests = {}
-        self.document_opened = False
         self.filename = None
         self.completions_available = False
         self.text_version = 0
@@ -592,10 +604,10 @@ class CodeEditor(TextEditBaseWidget):
         self.rename_support = False
         self.completion_args = None
         self.folding_supported = False
+        self.is_cloned = False
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
-
         self.editor_extensions.add(CloseQuotesExtension())
         self.editor_extensions.add(SnippetsExtension())
         self.editor_extensions.add(CloseBracketsExtension())
@@ -611,6 +623,11 @@ class CodeEditor(TextEditBaseWidget):
         # re-use parent of completion_widget (usually the main window)
         completion_parent = self.completion_widget.parent()
         self.kite_call_to_action = KiteCallToAction(self, completion_parent)
+
+        # Some events should not be triggered during undo/redo
+        # such as line stripping
+        self.is_undoing = False
+        self.is_redoing = False
 
     # --- Helper private methods
     # ------------------------------------------------------------------------
@@ -826,8 +843,83 @@ class CodeEditor(TextEditBaseWidget):
                      show_class_func_dropdown=False,
                      indent_guides=False,
                      scroll_past_end=False,
-                     debug_panel=True,
+                     show_debug_panel=True,
                      folding=True):
+        """
+        Set-up configuration for the CodeEditor instance.
+
+        Usually the parameters here are related with a configurable preference
+        in the Preference Dialog and Editor configurations:
+
+        linenumbers: Enable/Disable line number panel. Default True.
+        language: Set editor language for example python. Default None.
+        markers: Enable/Disable markers panel. Used to show elements like
+            Code Analysis. Default False.
+        font: Base font for the Editor to use. Default None.
+        color_scheme: Initial color scheme for the Editor to use. Default None.
+        wrap: Enable/Disable line wrap. Default False.
+        tab_mode: Enable/Disable using Tab as delimiter between word,
+            Default True.
+        strip_mode: strip_mode: Enable/Disable striping trailing spaces when
+            modifying the file. Default False.
+        intelligent_backspace: Enable/Disable automatically unindenting
+            inserted text (unindenting happens if the leading text length of
+            the line isn't module of the length of indentation chars being use)
+            Default True.
+        automatic_completions: Enable/Disable automatic completions.
+            The behavior of the trigger of this the completions can be
+            established with the two following kwargs. Default True.
+        automatic_completions_after_chars: Number of charts to type to trigger
+            an automatic completion. Default 3.
+        automatic_completions_after_ms: Number of milliseconds to pass before
+            an autocompletion is triggered. Default 300.
+        completions_hint: Enable/Disable documentation hints for completions.
+            Default True.
+        completions_hint_after_ms: Number of milliseconds over a completion
+            item to show the documentation hint. Default 500.
+        hover_hints: Enable/Disable documentation hover hints. Default True.
+        code_snippets: Enable/Disable code snippets completions. Default True.
+        highlight_current_line: Enable/Disable current line highlighting.
+            Default True.
+        highlight_current_cell: Enable/Disable current cell highlighting.
+            Default True.
+        occurrence_highlighting: Enable/Disable highlighting of current word
+            occurrence in the file. Default True.
+        scrollflagarea : Enable/Disable flag area that shows at the left of
+            the scroll bar. Default True.
+        edge_line: Enable/Disable vertical line to show max number of
+            characters per line. Customizable number of columns in the
+            following kwarg. Default True.
+        edge_line_columns: Number of columns/characters where the editor
+            horizontal edge line will show. Default (79,).
+        show_blanks: Enable/Disable blanks highlighting. Default False.
+        underline_errors: Enable/Disable showing and underline to highlight
+            errors. Default False.
+        close_parentheses: Enable/Disable automatic parentheses closing
+            insertion. Default True.
+        close_quotes: Enable/Disable automatic closing of quotes.
+            Default False.
+        add_colons: Enable/Disable automatic addition of colons. Default True.
+        auto_unindent: Enable/Disable automatically unindentation before else,
+            elif, finally or except statements. Default True.
+        indent_chars: Characters to use for indentation. Default " "*4.
+        tab_stop_width_spaces: Enable/Disable using tabs for indentation.
+            Default 4.
+        cloned_from: Editor instance used as template to instantiate this
+            CodeEditor instance. Default None.
+        filename: Initial filename to show. Default None.
+        occurrence_timeout : Timeout in milliseconds to start highlighting
+            matches/occurrences for the current word under the cursor.
+            Default 1500 ms.
+        show_class_func_dropdown: Enable/Disable a Matlab like widget to show
+            classes and functions available in the current file. Default False.
+        indent_guides: Enable/Disable highlighting of code indentation.
+            Default False.
+        scroll_past_end: Enable/Disable possibility to scroll file passed
+            its end. Default False.
+        show_debug_panel: Enable/Disable debug panel. Default True.
+        folding: Enable/Disable code folding. Default True.
+        """
 
         self.set_close_parentheses_enabled(close_parentheses)
         self.set_close_quotes_enabled(close_quotes)
@@ -836,7 +928,7 @@ class CodeEditor(TextEditBaseWidget):
         self.set_indent_chars(indent_chars)
 
         # Show/hide the debug panel depending on the language and parameter
-        self.set_debug_panel(debug_panel, language)
+        self.set_debug_panel(show_debug_panel, language)
 
         # Show/hide folding panel depending on parameter
         self.toggle_code_folding(folding)
@@ -852,7 +944,7 @@ class CodeEditor(TextEditBaseWidget):
         self.edge_line.set_columns(edge_line_columns)
 
         # Indent guides
-        self.indent_guides.set_enabled(indent_guides)
+        self.toggle_identation_guides(indent_guides)
         if self.indent_chars == '\t':
             self.indent_guides.set_indentation_width(self.tab_stop_width_spaces)
         else:
@@ -870,6 +962,7 @@ class CodeEditor(TextEditBaseWidget):
             # Needed to show indent guides for splited editor panels
             # See spyder-ide/spyder#10900
             self.patch = cloned_from.patch
+            self.is_cloned = True
         self.toggle_line_numbers(linenumbers, markers)
 
         # Lexer
@@ -972,56 +1065,65 @@ class CodeEditor(TextEditBaseWidget):
 
     # ------------- LSP: Configuration and protocol start/end ----------------
     def start_completion_services(self):
-        logger.debug(u"Completions services available for: {0}".format(
-            self.filename))
+        """Start completion services for this instance."""
         self.completions_available = True
-        self.document_did_open()
 
-    def update_completion_configuration(self, config):
-        """Start LSP integration if it wasn't done before."""
-        logger.debug("LSP available for: %s" % self.filename)
-        self.parse_lsp_config(config)
-        self.completions_available = True
-        self.document_did_open()
+        if self.is_cloned:
+            additional_msg = " cloned editor"
+        else:
+            additional_msg = ""
+            self.document_did_open()
 
-    def stop_completion_services(self):
-        logger.debug('Stopping completion services for %s' % self.filename)
-        self.completions_available = False
-        self.document_opened = False
+        logger.debug(u"Completion services available for{0}: {1}".format(
+            additional_msg, self.filename))
 
-    def parse_lsp_config(self, config):
-        """Parse and load LSP server editor capabilities."""
-        sync_options = config['textDocumentSync']
-        completion_options = config['completionProvider']
-        signature_options = config['signatureHelpProvider']
-        range_formatting_options = config['documentOnTypeFormattingProvider']
+    def register_completion_capabilities(self, capabilities):
+        """
+        Register completion server capabilities.
+
+        Parameters
+        ----------
+        capabilities: dict
+            Capabilities supported by a language server.
+        """
+        sync_options = capabilities['textDocumentSync']
+        completion_options = capabilities['completionProvider']
+        signature_options = capabilities['signatureHelpProvider']
+        range_formatting_options = (
+            capabilities['documentOnTypeFormattingProvider'])
         self.open_close_notifications = sync_options.get('openClose', False)
         self.sync_mode = sync_options.get('change', TextDocumentSyncKind.NONE)
         self.will_save_notify = sync_options.get('willSave', False)
         self.will_save_until_notify = sync_options.get('willSaveWaitUntil',
                                                        False)
         self.save_include_text = sync_options['save']['includeText']
-        self.enable_hover = config['hoverProvider']
-        self.folding_supported = config.get('foldingRangeProvider', False)
+        self.enable_hover = capabilities['hoverProvider']
+        self.folding_supported = capabilities.get(
+            'foldingRangeProvider', False)
         self.auto_completion_characters = (
             completion_options['triggerCharacters'])
         self.signature_completion_characters = (
             signature_options['triggerCharacters'] + ['='])  # FIXME:
-        self.go_to_definition_enabled = config['definitionProvider']
-        self.find_references_enabled = config['referencesProvider']
-        self.highlight_enabled = config['documentHighlightProvider']
-        self.formatting_enabled = config['documentFormattingProvider']
+        self.go_to_definition_enabled = capabilities['definitionProvider']
+        self.find_references_enabled = capabilities['referencesProvider']
+        self.highlight_enabled = capabilities['documentHighlightProvider']
+        self.formatting_enabled = capabilities['documentFormattingProvider']
         self.range_formatting_enabled = (
-            config['documentRangeFormattingProvider'])
+            capabilities['documentRangeFormattingProvider'])
         self.formatting_characters.append(
             range_formatting_options['firstTriggerCharacter'])
         self.formatting_characters += (
             range_formatting_options.get('moreTriggerCharacter', []))
 
+        self.completions_available = True
+
+    def stop_completion_services(self):
+        logger.debug('Stopping completion services for %s' % self.filename)
+        self.completions_available = False
+
     @request(method=LSPRequestTypes.DOCUMENT_DID_OPEN, requires_response=False)
     def document_did_open(self):
         """Send textDocument/didOpen request to the server."""
-        self.document_opened = True
         cursor = self.textCursor()
         params = {
             'file': self.filename,
@@ -1105,8 +1207,12 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_COMPLETION)
     def do_completion(self, automatic=False):
         """Trigger completion."""
-        self.document_did_change('')
         cursor = self.textCursor()
+        current_word = self.get_current_word(
+            completion=True,
+            valid_python_variable=False
+        )
+
         params = {
             'file': self.filename,
             'line': cursor.blockNumber(),
@@ -1114,6 +1220,7 @@ class CodeEditor(TextEditBaseWidget):
             'offset': cursor.position(),
             'selection_start': cursor.selectionStart(),
             'selection_end': cursor.selectionEnd(),
+            'current_word': current_word
         }
         self.completion_args = (self.textCursor().position(), automatic)
         return params
@@ -1133,6 +1240,12 @@ class CodeEditor(TextEditBaseWidget):
                            [completion for completion in completions
                             if completion.get('insertText')
                             or completion.get('textEdit', {}).get('newText')])
+            prefix = self.get_current_word(completion=True,
+                                           valid_python_variable=False)
+            if (len(completions) == 1
+                    and completions[0].get('insertText') == prefix
+                    and not completions[0].get('textEdit', {}).get('newText')):
+                completions.pop()
 
             replace_end = self.textCursor().position()
             under_cursor = self.get_current_word_and_position(completion=True)
@@ -1175,9 +1288,8 @@ class CodeEditor(TextEditBaseWidget):
                         completion['insertText'] = insert_text
                         del completion['textEdit']
 
-            if len(completion_list) > 0:
-                self.completion_widget.show_list(
-                        completion_list, position, automatic)
+            self.completion_widget.show_list(
+                completion_list, position, automatic)
 
             self.kite_call_to_action.handle_processed_completions(completions)
         except RuntimeError:
@@ -1286,10 +1398,9 @@ class CodeEditor(TextEditBaseWidget):
         try:
             content = contents['params']
 
-            if running_under_pytest():
-                # On some tests this is returning a list
-                if isinstance(content, list):
-                    return
+            if isinstance(content, list):
+                # Prevent sporious errors when a client return a list
+                return
 
             self.sig_display_object_info.emit(content,
                                               self._request_hover_clicked)
@@ -1379,6 +1490,11 @@ class CodeEditor(TextEditBaseWidget):
             total_whitespace = compute_whitespace(text)
             self.leading_whitespaces[i] = total_whitespace
 
+    def cleanup_folding(self):
+        """Cleanup folding pane."""
+        folding_panel = self.panels.get(FoldingPanel)
+        folding_panel.folding_regions = {}
+
     @request(method=LSPRequestTypes.DOCUMENT_FOLDING_RANGE)
     def request_folding(self):
         """Request folding."""
@@ -1420,7 +1536,6 @@ class CodeEditor(TextEditBaseWidget):
              requires_response=False)
     def notify_save(self):
         """Send save request."""
-        # self.document_did_change()
         params = {'file': self.filename}
         if self.save_include_text:
             params['text'] = self.toPlainText()
@@ -1438,13 +1553,29 @@ class CodeEditor(TextEditBaseWidget):
             return params
 
     # -------------------------------------------------------------------------
-    def set_debug_panel(self, debug_panel, language):
+    def set_debug_panel(self, show_debug_panel, language):
         """Enable/disable debug panel."""
         debugger_panel = self.panels.get(DebuggerPanel)
-        if language == 'py' and debug_panel:
+        if (is_text_string(language) and
+                language.lower() in ALL_LANGUAGES['Python'] and
+                show_debug_panel):
             debugger_panel.setVisible(True)
         else:
             debugger_panel.setVisible(False)
+
+    def update_debugger_panel_state(self, state, last_step, force=False):
+        """Update debugger panel state."""
+        debugger_panel = self.panels.get(DebuggerPanel)
+        if force:
+            debugger_panel.start_clean()
+            return
+        elif state and 'fname' in last_step:
+            fname = last_step['fname']
+            if (fname and self.filename
+                    and osp.normcase(fname) == osp.normcase(self.filename)):
+                debugger_panel.start_clean()
+                return
+        debugger_panel.stop_clean()
 
     def set_folding_panel(self, folding):
         """Enable/disable folding panel."""
@@ -1479,6 +1610,13 @@ class CodeEditor(TextEditBaseWidget):
     def toggle_code_folding(self, state):
         self.code_folding = state
         self.set_folding_panel(state)
+        if not state and self.indent_guides._enabled:
+            self.code_folding = True
+
+    def toggle_identation_guides(self, state):
+        if state and not self.code_folding:
+            self.code_folding = True
+        self.indent_guides.set_enabled(state)
 
     def toggle_completions_hint(self, state):
         """Enable/disable completion hint."""
@@ -1563,6 +1701,7 @@ class CodeEditor(TextEditBaseWidget):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.comment_string = ''
         self.language = 'Text'
+        self.supported_language = False
         sh_class = sh.TextSH
         language = 'None' if language is None else language
         if language is not None:
@@ -1574,7 +1713,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.comment_string = comment_string
                     if key in CELL_LANGUAGES:
                         self.supported_cell_language = True
-                        self.cell_separators = CELL_LANGUAGES[key]
+                        self.has_cell_separators = True
                     if CFMatch is None:
                         self.classfunc_match = None
                     else:
@@ -1585,7 +1724,11 @@ class CodeEditor(TextEditBaseWidget):
             sh_class = sh.guess_pygments_highlighter(filename)
             self.support_language = sh_class is not sh.TextSH
             if self.support_language:
-                self.language = sh_class._lexer.name
+                # Pygments report S for the lexer name of R files
+                if sh_class._lexer.name == 'S':
+                    self.language = 'R'
+                else:
+                    self.language = sh_class._lexer.name
 
         self._set_highlighter(sh_class)
         self.completion_widget.set_language(self.language)
@@ -1600,9 +1743,32 @@ class CodeEditor(TextEditBaseWidget):
         self.highlighter = self.highlighter_class(self.document(),
                                                   self.font(),
                                                   self.color_scheme)
+        self.highlighter._cell_list = []
+        self.highlighter.sig_new_cell.connect(self.add_to_cell_list)
         self._apply_highlighter_color_scheme()
 
         self.highlighter.editor = self
+
+    def add_to_cell_list(self, oedata):
+        """Add new cell to cell list."""
+        if self.highlighter is None:
+            return
+        self.highlighter._cell_list.append(oedata)
+
+    def get_cell_list(self):
+        """Get all cells."""
+        if self.highlighter is None:
+            return []
+        # Filter out old cells
+        def good(oedata):
+            return oedata.is_valid() and oedata.def_type == oedata.CELL
+
+        self.highlighter._cell_list = [
+            oedata for oedata in self.highlighter._cell_list if good(oedata)]
+
+        return sorted(
+            {oedata.get_block_number(): oedata
+             for oedata in self.highlighter._cell_list}.items())
 
     def is_json(self):
         return (isinstance(self.highlighter, sh.PygmentsSH) and
@@ -1621,7 +1787,7 @@ class CodeEditor(TextEditBaseWidget):
         return self.is_python() or self.is_cython() or self.is_enaml()
 
     def intelligent_tab(self):
-        """Provide intelligent behavoir for Tab key press"""
+        """Provide intelligent behavior for Tab key press."""
         leading_text = self.get_text('sol', 'cursor')
         if not leading_text.strip() or leading_text.endswith('#'):
             # blank line or start of comment
@@ -1729,7 +1895,6 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.setPosition(position + 1, QTextCursor.KeepAnchor)
             self.setTextCursor(cursor)
         self.remove_selected_text()
-        self.document_did_change()
 
     #------Find occurrences
     def __find_first(self, text):
@@ -1927,13 +2092,12 @@ class CodeEditor(TextEditBaseWidget):
                                                     self.contentOffset()).top()
         bottom = top + self.blockBoundingRect(block).height()
         folding_panel = self.panels.get(FoldingPanel)
-
         while block.isValid() and top < event.pos().y():
             block = block.next()
             if block.isVisible():  # skip collapsed blocks
                 top = bottom
                 bottom = top + self.blockBoundingRect(block).height()
-                line_number += 1
+            line_number += 1
         return line_number
 
     def select_lines(self, linenumber_pressed, linenumber_released):
@@ -2196,10 +2360,12 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isUndoAvailable():
             self.text_version -= 1
             self.skip_rstrip = True
+            self.is_undoing = True
             TextEditBaseWidget.undo(self)
             self.document_did_change('')
             self.sig_undo.emit()
             self.sig_text_was_inserted.emit()
+            self.is_undoing = False
             self.skip_rstrip = False
 
     @Slot()
@@ -2208,22 +2374,13 @@ class CodeEditor(TextEditBaseWidget):
         if self.document().isRedoAvailable():
             self.text_version += 1
             self.skip_rstrip = True
+            self.is_redoing = True
             TextEditBaseWidget.redo(self)
             self.document_did_change('text')
             self.sig_redo.emit()
             self.sig_text_was_inserted.emit()
+            self.is_redoing = False
             self.skip_rstrip = False
-
-    def get_block_data(self, block):
-        """Return block data (from syntax highlighter)"""
-        return self.highlighter.block_data.get(block)
-
-    def get_fold_level(self, block_nb):
-        """Is it a fold header line?
-        If so, return fold level
-        If not, return None"""
-        block = self.document().findBlockByNumber(block_nb)
-        return self.get_block_data(block).fold_level
 
 # =============================================================================
 #    High-level editor features
@@ -2300,6 +2457,7 @@ class CodeEditor(TextEditBaseWidget):
                                          underline_color=block.color)
 
         self.sig_process_code_analysis.emit()
+        self.sig_flags_changed.emit()
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
@@ -2368,8 +2526,8 @@ class CodeEditor(TextEditBaseWidget):
         max_lines_msglist = 25
         sorted_code_analysis = sorted(code_analysis, key=lambda i: i[2])
         for src, code, sev, msg in sorted_code_analysis:
-            if '[' in msg and ']' in msg:
-                # Remove extra redundant info from pyling messages
+            if src == 'pylint' and '[' in msg and ']' in msg:
+                # Remove extra redundant info from pylint messages
                 msg = msg.split(']')[-1]
 
             msg = msg.strip()
@@ -2678,6 +2836,7 @@ class CodeEditor(TextEditBaseWidget):
                            QTextCursor.KeepAnchor)
         if to_text_string(cursor.selectedText()) == suffix:
             cursor.removeSelectedText()
+            self.document_did_change()
 
     def remove_prefix(self, prefix):
         """Remove prefix from current line or selected line(s)"""
@@ -2716,7 +2875,6 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.StartOfBlock)
             line_text = to_text_string(cursor.block().text())
             self.__remove_prefix(prefix, cursor, line_text)
-        self.document_did_change()
 
     def __remove_prefix(self, prefix, cursor, line_text):
         """Handle the removal of the prefix for a single line."""
@@ -2757,6 +2915,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.Right,
                                 QTextCursor.KeepAnchor, len(prefix))
             cursor.removeSelectedText()
+
         self.document_did_change()
 
     def __even_number_of_spaces(self, line_text, group=0):
@@ -3063,8 +3222,8 @@ class CodeEditor(TextEditBaseWidget):
         leading_text = self.get_text('sol', 'cursor')
         if self.has_selected_text():
             self.add_prefix(self.indent_chars)
-        elif force or not leading_text.strip() \
-             or (self.tab_indents and self.tab_mode):
+        elif (force or not leading_text.strip() or
+                (self.tab_indents and self.tab_mode)):
             if self.is_python_like():
                 if not self.fix_indent(forward=True):
                     self.add_prefix(self.indent_chars)
@@ -3076,7 +3235,6 @@ class CodeEditor(TextEditBaseWidget):
                 self.insert_text(" "*(length-(len(leading_text) % length)))
             else:
                 self.insert_text(self.indent_chars)
-        self.document_did_change()
 
     def indent_or_replace(self):
         """Indent or replace by 4 spaces depending on selection and tab mode"""
@@ -3084,8 +3242,8 @@ class CodeEditor(TextEditBaseWidget):
             self.indent()
         else:
             cursor = self.textCursor()
-            if self.get_selected_text() == \
-               to_text_string(cursor.block().text()):
+            if (self.get_selected_text() ==
+                    to_text_string(cursor.block().text())):
                 self.indent()
             else:
                 cursor1 = self.textCursor()
@@ -3121,8 +3279,8 @@ class CodeEditor(TextEditBaseWidget):
                     self.remove_prefix(self.indent_chars)
         else:
             leading_text = self.get_text('sol', 'cursor')
-            if force or not leading_text.strip() \
-               or (self.tab_indents and self.tab_mode):
+            if (force or not leading_text.strip() or
+                    (self.tab_indents and self.tab_mode)):
                 if self.is_python_like():
                     if not self.fix_indent(forward=False):
                         self.remove_prefix(self.indent_chars)
@@ -3640,7 +3798,26 @@ class CodeEditor(TextEditBaseWidget):
         direction_keys = {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}
         if key in direction_keys:
             self.request_cursor_event()
-        self.timer_syntax_highlight.start()
+
+        # This necessary to run our Pygments highlighter again after the
+        # user generated text changes
+        if event.text():
+            # Stop the active timer and start it again to not run it on
+            # every event
+            if self.timer_syntax_highlight.isActive():
+                self.timer_syntax_highlight.stop()
+
+            # Adjust interval to rehighlight according to the lines
+            # present in the file
+            total_lines = self.get_line_count()
+            if total_lines < 1000:
+                self.timer_syntax_highlight.setInterval(600)
+            elif total_lines < 2000:
+                self.timer_syntax_highlight.setInterval(800)
+            else:
+                self.timer_syntax_highlight.setInterval(1000)
+            self.timer_syntax_highlight.start()
+
         self._restore_editor_cursor_and_selections()
         super(CodeEditor, self).keyReleaseEvent(event)
         event.ignore()
@@ -3661,20 +3838,25 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self._handle_completions()
 
+    def _handle_keypress_event(self, event):
+        """Handle keypress events."""
+        TextEditBaseWidget.keyPressEvent(self, event)
+
+        # Trigger the following actions only if the event generates
+        # a text change.
+        text = to_text_string(event.text())
+        if text:
+            self.document_did_change()
+            self.sig_text_was_inserted.emit()
+
     def keyPressEvent(self, event):
         """Reimplement Qt method."""
-        self._start_completion_timer()
-
+        tab_pressed = False
         if self.completions_hint_after_ms > 0:
             self._completions_hint_idle = False
             self._timer_completions_hint.start(self.completions_hint_after_ms)
         else:
             self._set_completions_hint_idle()
-
-        def insert_text(event):
-            TextEditBaseWidget.keyPressEvent(self, event)
-            self.document_did_change()
-            self.sig_text_was_inserted.emit()
 
         # Send the signal to the editor's extension.
         event.ignore()
@@ -3690,6 +3872,12 @@ class CodeEditor(TextEditBaseWidget):
 
         if text:
             self.__clear_occurrences()
+
+            # Only ask for completions if there's some text generated
+            # as part of the event. Events such as pressing Crtl,
+            # Shift or Alt don't generate any text.
+            # Fixes spyder-ide/spyder#11021
+            self._start_completion_timer()
 
         if key in {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}:
             self.hide_tooltip()
@@ -3727,8 +3915,8 @@ class CodeEditor(TextEditBaseWidget):
                 self.completion_widget.hide()
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
-                if self.add_colons_enabled and self.is_python_like() and \
-                  self.autoinsert_colons():
+                if (self.add_colons_enabled and self.is_python_like() and
+                        self.autoinsert_colons()):
                     self.textCursor().beginEditBlock()
                     self.insert_text(':' + self.get_line_separator())
                     if self.strip_trailing_spaces_on_modify:
@@ -3742,7 +3930,7 @@ class CodeEditor(TextEditBaseWidget):
                     self.textCursor().beginEditBlock()
                     cur_indent = self.get_block_indentation(
                         self.textCursor().blockNumber())
-                    insert_text(event)
+                    self._handle_keypress_event(event)
                     # Check if we're in a comment or a string at the
                     # current position
                     cmt_or_str_cursor = self.in_comment_or_string()
@@ -3752,7 +3940,7 @@ class CodeEditor(TextEditBaseWidget):
                     cursor.setPosition(cursor.block().position(),
                                        QTextCursor.KeepAnchor)
                     cmt_or_str_line_begin = self.in_comment_or_string(
-                                                cursor=cursor)
+                        cursor=cursor)
 
                     # Check if we are in a comment or a string
                     cmt_or_str = cmt_or_str_cursor and cmt_or_str_line_begin
@@ -3770,29 +3958,30 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Backspace and not shift and not ctrl:
             leading_text = self.get_text('sol', 'cursor')
             leading_length = len(leading_text)
-            trailing_spaces = leading_length-len(leading_text.rstrip())
+            trailing_spaces = leading_length - len(leading_text.rstrip())
             if has_selection or not self.intelligent_backspace:
-                insert_text(event)
+                self._handle_keypress_event(event)
             else:
                 trailing_text = self.get_text('cursor', 'eol')
-                if not leading_text.strip() \
-                   and leading_length > len(self.indent_chars):
+                matches = ('()', '[]', '{}', '\'\'', '""')
+                if (not leading_text.strip() and
+                        (leading_length > len(self.indent_chars))):
                     if leading_length % len(self.indent_chars) == 0:
                         self.unindent()
                     else:
-                        insert_text(event)
+                        self._handle_keypress_event(event)
                 elif trailing_spaces and not trailing_text.strip():
                     self.remove_suffix(leading_text[-trailing_spaces:])
-                elif leading_text and trailing_text and \
-                     leading_text[-1]+trailing_text[0] in ('()', '[]', '{}',
-                                                           '\'\'', '""'):
+                elif (leading_text and trailing_text and
+                        (leading_text[-1] + trailing_text[0] in matches)):
                     cursor = self.textCursor()
                     cursor.movePosition(QTextCursor.PreviousCharacter)
                     cursor.movePosition(QTextCursor.NextCharacter,
                                         QTextCursor.KeepAnchor, 2)
                     cursor.removeSelectedText()
+                    self.document_did_change()
                 else:
-                    insert_text(event)
+                    self._handle_keypress_event(event)
         elif key == Qt.Key_Home:
             self.stdkey_home(shift, ctrl)
         elif key == Qt.Key_End:
@@ -3807,38 +3996,46 @@ class CodeEditor(TextEditBaseWidget):
                     text = self.get_text('sol', 'cursor')
                     last_obj = getobj(text)
                     prev_char = text[-2] if len(text) > 1 else ''
-                    if prev_char in {')', ']', '}'} or (last_obj and not last_obj.isdigit()):
-                        self._start_completion_timer()
+                    if (prev_char in {')', ']', '}'} or
+                            (last_obj and not last_obj.isdigit())):
+                        # Completions should be triggered immediately when
+                        # an autocompletion character is introduced.
+                        self.do_completion(automatic=True)
             else:
                 self.do_completion(automatic=True)
-        elif (text != '(' and text in self.signature_completion_characters and
+        elif (text in self.signature_completion_characters and
                 not self.has_selected_text()):
             self.insert_text(text)
             self.request_signature()
-        elif key == Qt.Key_Colon and not has_selection \
-             and self.auto_unindent_enabled:
+        elif (key == Qt.Key_Colon and not has_selection and
+                self.auto_unindent_enabled):
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('else', 'finally'):
-                ind = lambda txt: len(txt)-len(txt.lstrip())
-                prevtxt = to_text_string(self.textCursor(
-                                                ).block().previous().text())
+                ind = lambda txt: len(txt) - len(txt.lstrip())
+                prevtxt = (to_text_string(self.textCursor().block().
+                           previous().text()))
+                if self.language == 'Python':
+                    prevtxt = prevtxt.rstrip()
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
-            insert_text(event)
-        elif key == Qt.Key_Space and not shift and not ctrl \
-             and not has_selection and self.auto_unindent_enabled:
+            self._handle_keypress_event(event)
+        elif (key == Qt.Key_Space and not shift and not ctrl and not
+                has_selection and self.auto_unindent_enabled):
             self.completion_widget.hide()
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('elif', 'except'):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
-                prevtxt = to_text_string(self.textCursor(
-                                                ).block().previous().text())
+                prevtxt = (to_text_string(self.textCursor().block().
+                           previous().text()))
+                if self.language == 'Python':
+                    prevtxt = prevtxt.rstrip()
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
-            insert_text(event)
+            self._handle_keypress_event(event)
         elif key == Qt.Key_Tab and not ctrl:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
+            tab_pressed = True
             if not has_selection and not self.tab_mode:
                 self.intelligent_tab()
             else:
@@ -3847,6 +4044,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Backtab and not ctrl:
             # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
             # there is no point since <TAB> can't (see above)
+            tab_pressed = True
             if not has_selection and not self.tab_mode:
                 self.intelligent_backtab()
             else:
@@ -3854,15 +4052,15 @@ class CodeEditor(TextEditBaseWidget):
                 self.unindent()
             event.accept()
         elif not event.isAccepted():
-            insert_text(event)
+            self._handle_keypress_event(event)
 
         self._last_key_pressed_text = text
         self._last_pressed_key = key
-        if self.automatic_completions_after_ms == 0:
+        if self.automatic_completions_after_ms == 0 and not tab_pressed:
             self._handle_completions()
 
         if not event.modifiers():
-            # Accept event to avoid it being handled by the parent
+            # Accept event to avoid it being handled by the parent.
             # Modifiers should be passed to the parent because they
             # could be shortcuts
             event.accept()
@@ -3876,8 +4074,21 @@ class CodeEditor(TextEditBaseWidget):
 
         key = self._last_pressed_key
         if key is not None:
-            if key in [Qt.Key_Backspace, Qt.Key_Return, Qt.Key_Escape]:
+            if key in [Qt.Key_Return, Qt.Key_Escape,
+                       Qt.Key_Tab, Qt.Key_Backtab, Qt.Key_Space]:
                 self._last_pressed_key = None
+                return
+
+        # Correctly handle completions when Backspace key is pressed.
+        # We should not show the widget if deleting a space before a word.
+        if key == Qt.Key_Backspace:
+            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.select(QTextCursor.WordUnderCursor)
+            prev_text = to_text_string(cursor.selectedText())
+            cursor.setPosition(pos - 1, QTextCursor.MoveAnchor)
+            cursor.setPosition(pos, QTextCursor.KeepAnchor)
+            prev_char = cursor.selectedText()
+            if prev_text == '' or prev_char in (u'\u2029', ' ', '\t'):
                 return
 
         # Text might be after a dot '.'
@@ -3895,10 +4106,13 @@ class CodeEditor(TextEditBaseWidget):
             cursor.select(QTextCursor.WordUnderCursor)
             text = to_text_string(cursor.selectedText())
 
-        if (len(text) >= self.automatic_completions_after_chars
-                and self._last_key_pressed_text):
-            self.document_did_change(text)
+        self.document_did_change(text)
 
+        is_backspace = (
+            self.is_completion_widget_visible() and key == Qt.Key_Backspace)
+
+        if (len(text) >= self.automatic_completions_after_chars
+                and self._last_key_pressed_text or is_backspace):
             # Perform completion on the fly
             if self.automatic_completions and not self.in_comment_or_string():
                 # Variables can include numbers and underscores
@@ -3916,7 +4130,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         # Fix indent
         cursor_before = self.textCursor().position()
-        # A change just occured on the last line (return was pressed)
+        # A change just occurred on the last line (return was pressed)
         if cursor_before > 0:
             self.last_change_position = cursor_before - 1
         self.fix_indent(*args, **kwargs)
@@ -3990,11 +4204,25 @@ class CodeEditor(TextEditBaseWidget):
         fname = uri.replace('file://', '')
         if fname[-1] == '/':
             fname = fname[:-1]
+
+        # ^/ is used to denote the current project root
+        if fname.startswith("^/"):
+            if self.current_project_path is not None:
+                fname = osp.join(self.current_project_path, fname[2:])
+            else:
+                fname = fname.replace("^/", "~/")
+
+        if fname.startswith("~/"):
+            fname = osp.expanduser(fname)
+
         dirname = osp.dirname(osp.abspath(self.filename))
         if osp.isdir(dirname):
             if not osp.isfile(fname):
                 # Maybe relative
                 fname = osp.join(dirname, fname)
+
+        self.sig_file_uri_preprocessed.emit(fname)
+
         return fname
 
     def _handle_goto_definition_event(self, pos):
@@ -4346,22 +4574,35 @@ class CodeEditor(TextEditBaseWidget):
 
     #------ Drag and drop
     def dragEnterEvent(self, event):
-        """Reimplement Qt method
-        Inform Qt about the types of data that the widget accepts"""
-        if mimedata2url(event.mimeData()):
+        """
+        Reimplemented Qt method.
+
+        Inform Qt about the types of data that the widget accepts.
+        """
+        logger.debug("dragEnterEvent was received")
+        all_urls = mimedata2url(event.mimeData())
+        if all_urls:
             # Let the parent widget handle this
+            logger.debug("Let the parent widget handle this dragEnterEvent")
             event.ignore()
         else:
+            logger.debug("Call TextEditBaseWidget dragEnterEvent method")
             TextEditBaseWidget.dragEnterEvent(self, event)
 
     def dropEvent(self, event):
-        """Reimplement Qt method
-        Unpack dropped data and handle it"""
+        """
+        Reimplemented Qt method.
+
+        Unpack dropped data and handle it.
+        """
+        logger.debug("dropEvent was received")
         if mimedata2url(event.mimeData()):
-            # Let the parent widget handle this
+            logger.debug("Let the parent widget handle this")
             event.ignore()
         else:
+            logger.debug("Call TextEditBaseWidget dropEvent method")
             TextEditBaseWidget.dropEvent(self, event)
+            self.document_did_change()
 
     #------ Paint event
     def paintEvent(self, event):
@@ -4403,7 +4644,7 @@ class CodeEditor(TextEditBaseWidget):
             painter.setPen(pen)
 
             for top, line_number, block in self.visible_blocks:
-                if self.is_cell_separator(block=block):
+                if is_cell_header(block):
                     painter.drawLine(4, top, self.width(), top)
 
     @property
@@ -4457,6 +4698,16 @@ class CodeEditor(TextEditBaseWidget):
         timer = QTimer()
         timer.singleShot(300, lambda: self.popup_docstring(line_text, pos))
 
+    def set_current_project_path(self, root_path=None):
+        """
+        Set the current active project root path.
+
+        Parameters
+        ----------
+        root_path: str or None, optional
+            Path to current project root path. Default is None.
+        """
+        self.current_project_path = root_path
 
 #===============================================================================
 # CodeEditor's Printer

@@ -105,8 +105,8 @@ startup/run_lines =
         manager.get_shortcut('foo', 'bar', plugin_name='internal_console')
 
     # Change an option in the console
-    console = Console()
-    console.set_option('max_line_count', 600)
+    console = Console(None, configuration=manager)
+    console.set_conf_option('max_line_count', 600)
 
     # Read config filew directly
     user_path = manager.get_user_config_path()

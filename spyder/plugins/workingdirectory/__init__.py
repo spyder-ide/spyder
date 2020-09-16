@@ -7,3 +7,8 @@
 """
 Spyder Working Directory plugin.
 """
+
+from spyder.plugins.workingdirectory.plugin import WorkingDirectory
+
+# The following statement is required to be able to grab internal plugins.
+PLUGIN_CLASSES = [WorkingDirectory]

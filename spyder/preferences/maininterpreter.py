@@ -89,13 +89,14 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         pyexec_layout.addWidget(self.cus_exec_radio)
         self.validate_custom_interpreters_list()
         self.cus_exec_combo = self.create_file_combobox(
-                                  _('Recent custom interpreters'),
-                                  self.get_option('custom_interpreters_list'),
-                                  'custom_interpreter',
-                                  filters=filters,
-                                  default_line_edit=True,
-                                  adjust_to_contents=True
-                                  )
+            _('Recent custom interpreters'),
+            self.get_option('custom_interpreters_list'),
+            'custom_interpreter',
+            filters=filters,
+            default_line_edit=True,
+            adjust_to_contents=True,
+            validate_callback=programs.is_python_interpreter,
+        )
         self.def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
         self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
         pyexec_layout.addWidget(self.cus_exec_combo)
@@ -147,25 +148,6 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         vlayout.addWidget(umr_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
-
-    def python_executable_changed(self, pyexec):
-        """Custom Python executable value has been changed"""
-        if not self.cus_exec_radio.isChecked():
-            return False
-        def_pyexec = get_python_executable()
-        if not is_text_string(pyexec):
-            pyexec = to_text_string(pyexec.toUtf8(), 'utf-8')
-        if pyexec == def_pyexec:
-            return False
-        if (not programs.is_python_interpreter(pyexec) or
-                not self.warn_python_compatibility(pyexec)):
-            QMessageBox.warning(self, _('Warning'),
-                    _("You selected an invalid Python interpreter for the "
-                      "console so the previous interpreter will stay. Please "
-                      "make sure to select a valid one."), QMessageBox.Ok)
-            self.def_exec_radio.setChecked(True)
-            return False
-        return True
 
     def warn_python_compatibility(self, pyexec):
         if not osp.isfile(pyexec):
@@ -234,7 +216,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
     def set_custom_interpreters_list(self, value):
         """Update the list of interpreters used and the current one."""
         custom_list = self.get_option('custom_interpreters_list')
-        if value not in custom_list and value != get_python_executable():
+        if value not in custom_list:
             custom_list.append(value)
             self.set_option('custom_interpreters_list', custom_list)
 
@@ -243,8 +225,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         custom_list = self.get_option('custom_interpreters_list')
         valid_custom_list = []
         for value in custom_list:
-            if (osp.isfile(value) and programs.is_python_interpreter(value)
-                    and value != get_python_executable()):
+            if osp.isfile(value) and programs.is_python_interpreter(value):
                 valid_custom_list.append(value)
         self.set_option('custom_interpreters_list', valid_custom_list)
 
@@ -254,13 +235,29 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             executable = osp.normpath(executable)
             if executable.endswith('pythonw.exe'):
                 executable = executable.replace("pythonw.exe", "python.exe")
-            change = self.python_executable_changed(executable)
-            if change:
-                self.set_custom_interpreters_list(executable)
-                self.set_option('executable', executable)
-                self.set_option('custom_interpreter', executable)
+
+            # Set new interpreter
+            self.set_custom_interpreters_list(executable)
+            self.set_option('executable', executable)
+            self.set_option('custom_interpreter', executable)
+
+            # Update combobox items.
+            custom_list = self.get_option('custom_interpreters_list')
+            self.cus_exec_combo.combobox.clear()
+            self.cus_exec_combo.combobox.addItems(custom_list)
+            self.pyexec_edit.setText(executable)
+
+            # Show warning compatibility message.
+            self.warn_python_compatibility(executable)
         if not self.pyexec_edit.text():
             self.set_option('custom_interpreter', '')
-        if 'default' in options or 'custom' in options:
+        else:
+            # This prevents showing an incorrect file name in the custom
+            # line edit.
+            if not programs.is_python_interpreter(self.pyexec_edit.text()):
+                self.pyexec_edit.clear()
+                self.set_option('custom_interpreter', '')
+        if ('default' in options or 'custom' in options
+                or 'custom_interpreter' in options):
             self.main.sig_main_interpreter_changed.emit()
-        self.main.apply_settings()
+        self.main.apply_statusbar_settings()

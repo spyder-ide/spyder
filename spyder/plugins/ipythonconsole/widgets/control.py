@@ -25,6 +25,14 @@ class ControlWidget(TracebackLinksMixin, GetHelpMixin,
     go_to_error = Signal(str)
     focus_changed = Signal()
 
+    sig_help_requested = Signal(dict)
+    """
+    This signal is emitted to request help on a given object's `name`.
+
+    help_data: dict
+        Example `{'name': str, 'ignore_unknown': bool}`.
+    """
+
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
         BaseEditMixin.__init__(self)

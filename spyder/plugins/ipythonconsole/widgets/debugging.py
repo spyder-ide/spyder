@@ -9,19 +9,21 @@ Widget that handles communications between a console in debugging
 mode and Spyder
 """
 
+from distutils.version import LooseVersion
 import re
 import pdb
 
+from IPython import __version__ as ipy_version
 from IPython.core.history import HistoryManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import get_conf_path
 from spyder.config.manager import CONF
-from spyder.py3compat import PY2
-if not PY2:
-    from IPython.core.inputtransformer2 import TransformerManager
-else:
+
+if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
     from IPython.core.inputsplitter import IPythonInputSplitter
+else:
+    from IPython.core.inputtransformer2 import TransformerManager
 
 
 class PdbHistory(HistoryManager):
@@ -59,6 +61,7 @@ class DebuggingWidget(RichJupyterWidget):
         self._pdb_last_cmd = ''
         self._pdb_line_num = 0
         self._pdb_history_file = PdbHistory()
+        self._pdb_last_step = {}
 
         self._pdb_history = [
             line[-1] for line in self._pdb_history_file.get_tail(
@@ -68,6 +71,19 @@ class DebuggingWidget(RichJupyterWidget):
 
         self._tmp_reading = False
         self._pdb_frame_loc = (None, None)
+
+    def will_close(self, externally_managed):
+        """
+        Close the save thread and database file.
+        """
+        try:
+            self._pdb_history_file.save_thread.stop()
+        except AttributeError:
+            pass
+        try:
+            self._pdb_history_file.db.close()
+        except AttributeError:
+            pass
 
     def handle_debug_state(self, in_debug_loop):
         """Update the debug state."""
@@ -82,6 +98,8 @@ class DebuggingWidget(RichJupyterWidget):
             self._pdb_history_file.new_session()
         else:
             self._pdb_history_file.end_session()
+
+        self.sig_pdb_state.emit(self._pdb_in_loop, self._pdb_last_step)
 
     # --- Public API --------------------------------------------------
     def pdb_execute(self, line, hidden=False):
@@ -157,6 +175,12 @@ class DebuggingWidget(RichJupyterWidget):
                     magic, args)
         self.pdb_execute(code, hidden=True)
 
+    def do_where(self):
+        """Where was called, go to the current location."""
+        fname, lineno = self._pdb_frame_loc
+        if fname:
+            self.sig_pdb_step.emit(fname, lineno)
+
     def refresh_from_pdb(self, pdb_state):
         """
         Refresh Variable Explorer and Editor from a Pdb session,
@@ -167,6 +191,11 @@ class DebuggingWidget(RichJupyterWidget):
         if 'step' in pdb_state and 'fname' in pdb_state['step']:
             fname = pdb_state['step']['fname']
             lineno = pdb_state['step']['lineno']
+
+            # Save last step
+            self._pdb_last_step = {'fname': fname,
+                                   'lineno': lineno}
+
             # Only step if the location changed
             if (fname, lineno) != self._pdb_frame_loc:
                 self._pdb_frame_loc = (fname, lineno)
@@ -182,6 +211,10 @@ class DebuggingWidget(RichJupyterWidget):
         """Set current pdb state."""
         if pdb_state is not None and isinstance(pdb_state, dict):
             self.refresh_from_pdb(pdb_state)
+
+    def get_pdb_last_step(self):
+        """Get last pdb step retrieved from a Pdb session."""
+        return self._pdb_last_step
 
     def pdb_continue(self):
         """Continue debugging."""
@@ -246,7 +279,7 @@ class DebuggingWidget(RichJupyterWidget):
         """
         if source and source[0] == '!':
             source = source[1:]
-        if PY2:
+        if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
             tm = IPythonInputSplitter()
         else:
             tm = TransformerManager()
@@ -341,9 +374,17 @@ class DebuggingWidget(RichJupyterWidget):
             if self.is_waiting_pdb_input():
                 self._executing = False
                 self._highlighter.highlighting_on = True
+                self.executed.emit(msg)
 
         if self.is_waiting_pdb_input():
             self._pdb_input_ready = True
+
+        start_line = CONF.get('ipython_console', 'startup/pdb_run_lines', '')
+        # Only run these lines when printing a new prompt
+        if start_line and print_prompt and self.is_waiting_pdb_input():
+            # Send a few commands
+            self.pdb_execute(start_line, hidden=True)
+            return
 
         # While the widget thinks only one input is going on,
         # other functions can be sending messages to the kernel.

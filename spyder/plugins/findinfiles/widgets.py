@@ -4,60 +4,97 @@
 # Licensed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 
-"""Find in files widget"""
-
-# pylint: disable=C0103
-# pylint: disable=R0903
-# pylint: disable=R0911
-# pylint: disable=R0201
+"""
+Find in files widget.
+"""
 
 # Standard library imports
-from __future__ import with_statement, print_function
 import fnmatch
+import math
 import os
 import os.path as osp
 import re
-import sys
-import math
 import traceback
 
 # Third party imports
 from qtpy.compat import getexistingdirectory
-from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
 from qtpy.QtCore import (QEvent, QMutex, QMutexLocker, QSize, Qt, QThread,
                          Signal, Slot)
-from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout, QLabel,
-                            QMessageBox, QSizePolicy, QStyle,
-                            QStyledItemDelegate, QStyleOptionViewItem,
-                            QTreeWidgetItem, QVBoxLayout, QWidget)
+from qtpy.QtGui import QAbstractTextDocumentLayout, QTextDocument
+from qtpy.QtWidgets import (QApplication, QComboBox, QHBoxLayout,
+                            QInputDialog, QLabel, QMessageBox, QSizePolicy,
+                            QStyle, QStyledItemDelegate, QStyleOptionViewItem,
+                            QTreeWidgetItem)
 
 # Local imports
-from spyder.config.base import _
-from spyder.config.main import EXCLUDE_PATTERNS
-from spyder.py3compat import to_text_string, PY2
-from spyder.utils import icon_manager as ima
+from spyder.api.translations import get_translation
+from spyder.api.widgets import PluginMainWidget
+from spyder.config.gui import get_font, is_dark_interface
+from spyder.config.main import EXCLUDE_PATTERNS  # This could be more general?
 from spyder.utils.encoding import is_text_file, to_unicode_from_fs
-from spyder.widgets.comboboxes import PatternComboBox
-from spyder.widgets.onecolumntree import OneColumnTree
 from spyder.utils.misc import regexp_error_msg
-from spyder.utils.qthelpers import create_toolbutton, create_waitspinner
-from spyder.config.gui import get_font
+from spyder.widgets.comboboxes import PatternComboBox
+# TODO: Use SpyderWidgetMixin on OneColumnTree
+from spyder.widgets.onecolumntree import OneColumnTree
 
+# Localization
+_ = get_translation('spyder')
+
+
+# --- Constants
+# ----------------------------------------------------------------------------
+if is_dark_interface():
+    MAIN_TEXT_COLOR = 'white'
+else:
+    MAIN_TEXT_COLOR = '#444444'
 
 ON = 'on'
 OFF = 'off'
-
 CWD = 0
 PROJECT = 1
 FILE_PATH = 2
 SELECT_OTHER = 4
 CLEAR_LIST = 5
 EXTERNAL_PATHS = 7
-
 MAX_PATH_LENGTH = 60
 MAX_PATH_HISTORY = 15
 
+# These additional pixels account for operating system spacing differences
+EXTRA_BUTTON_PADDING = 10
 
+
+class FindInFilesWidgetActions:
+    # Triggers
+    Find = 'find_action'
+    MaxResults = 'max_results_action'
+
+    # Toggles
+    ToggleCase = 'toggle_case_action'
+    ToggleExcludeCase = 'toggle_exclude_case_action'
+    ToggleExcludeRegex = 'togle_use_regex_on_exlude_action'
+    ToggleMoreOptions = 'toggle_more_options_action'
+    ToggleSearchRegex = 'toggle_use_regex_on_search_action'
+
+
+class FindInFilesWidgetToolBars:
+    Exclude = 'exclude_toolbar'
+    Location = 'location_toolbar'
+
+
+class FindInFilesWidgetMainToolBarSections:
+    Main = 'main_section'
+
+
+class FindInFilesWidgetExcludeToolBarSections:
+    Main = 'main_section'
+
+
+class FindInFilesWidgetLocationToolBarSections:
+    Main = 'main_section'
+
+
+# --- Utils
+# ----------------------------------------------------------------------------
 def truncate_path(text):
     ellipsis = '...'
     part_len = (MAX_PATH_LENGTH - len(ellipsis)) / 2.0
@@ -80,7 +117,7 @@ class SearchThread(QThread):
     max_power = 9   # 2**9 = 512
 
     def __init__(self, parent, search_text, text_color=None):
-        QThread.__init__(self, parent)
+        super().__init__(parent)
         self.mutex = QMutex()
         self.stopped = None
         self.search_text = search_text
@@ -290,32 +327,29 @@ class SearchThread(QThread):
         """
         Shorten text on line to display the match within `max_line_length`.
         """
-        ellipsis = u'...'
+        ellipsis = '...'
         max_line_length = 80
         max_num_char_fragment = 40
 
         html_escape_table = {
-            u"&": u"&amp;",
-            u'"': u"&quot;",
-            u"'": u"&apos;",
-            u">": u"&gt;",
-            u"<": u"&lt;",
+            "&": "&amp;",
+            '"': "&quot;",
+            "'": "&apos;",
+            ">": "&gt;",
+            "<": "&lt;",
         }
 
         def html_escape(text):
             """Produce entities within text."""
-            return u"".join(html_escape_table.get(c, c) for c in text)
+            return "".join(html_escape_table.get(c, c) for c in text)
 
-        if PY2:
-            line = to_text_string(line, encoding='utf8')
-        else:
-            line = to_text_string(line)
+        line = str(line)
         left, match, right = line[:start], line[start:end], line[end:]
 
         if len(line) > max_line_length:
             offset = (len(line) - len(match)) // 2
 
-            left = left.split(u' ')
+            left = left.split(' ')
             num_left_words = len(left)
 
             if num_left_words == 1:
@@ -324,7 +358,7 @@ class SearchThread(QThread):
                     left = ellipsis + left[-offset:]
                 left = [left]
 
-            right = right.split(u' ')
+            right = right.split(' ')
             num_right_words = len(right)
 
             if num_right_words == 1:
@@ -342,8 +376,8 @@ class SearchThread(QThread):
             if len(right) < num_right_words:
                 right = right + [ellipsis]
 
-            left = u' '.join(left)
-            right = u' '.join(right)
+            left = ' '.join(left)
+            right = ' '.join(right)
 
             if len(left) > max_num_char_fragment:
                 left = ellipsis + left[-30:]
@@ -351,7 +385,7 @@ class SearchThread(QThread):
             if len(right) > max_num_char_fragment:
                 right = right[:30] + ellipsis
 
-        line_match_format = (u'<span style="color:{0}">{{0}}'
+        line_match_format = ('<span style="color:{0}">{{0}}'
                              '<b>{{1}}</b>{{2}}</span>')
         line_match_format = line_match_format.format(self.text_color)
 
@@ -365,13 +399,19 @@ class SearchThread(QThread):
         return self.results, self.pathlist, self.total_matches, self.error_flag
 
 
+# --- Widgets
+# ----------------------------------------------------------------------------
 class SearchInComboBox(QComboBox):
     """
     Non editable combo box handling the path locations of the FindOptions
     widget.
     """
+
+    # Signals
+    sig_redirect_stdio_requested = Signal(bool)
+
     def __init__(self, external_path_history=[], parent=None):
-        super(SearchInComboBox, self).__init__(parent)
+        super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setToolTip(_('Search directory'))
         self.setEditable(False)
@@ -431,7 +471,7 @@ class SearchInComboBox(QComboBox):
 
     def get_external_paths(self):
         """Returns a list of the external paths listed in the combobox."""
-        return [to_text_string(self.itemText(i))
+        return [str(self.itemText(i))
                 for i in range(EXTERNAL_PATHS, self.count())]
 
     def clear_external_paths(self):
@@ -456,8 +496,12 @@ class SearchInComboBox(QComboBox):
 
     def set_current_searchpath_index(self, index):
         """Set the current index of this combo box."""
-        index = min(index, self.count() - 1)
-        index = CWD if index in [CLEAR_LIST, SELECT_OTHER] else index
+        if index is not None:
+            index = min(index, self.count() - 1)
+            index = CWD if index in [CLEAR_LIST, SELECT_OTHER] else index
+        else:
+            index = CWD
+
         self.setCurrentIndex(index)
 
     def is_file_search(self):
@@ -487,17 +531,21 @@ class SearchInComboBox(QComboBox):
                 self.clear_external_paths()
             self.setCurrentIndex(CWD)
         elif idx >= EXTERNAL_PATHS:
-            self.external_path = to_text_string(self.itemText(idx))
+            self.external_path = str(self.itemText(idx))
 
     @Slot()
     def select_directory(self):
         """Select directory"""
-        self.__redirect_stdio_emit(False)
+        self.sig_redirect_stdio_requested.emit(False)
         directory = getexistingdirectory(
-                self, _("Select directory"), self.path)
+            self,
+            _("Select directory"),
+            self.path,
+        )
         if directory:
             directory = to_unicode_from_fs(osp.abspath(directory))
-        self.__redirect_stdio_emit(True)
+
+        self.sig_redirect_stdio_requested.emit(True)
         return directory
 
     def set_project_path(self, path):
@@ -531,301 +579,6 @@ class SearchInComboBox(QComboBox):
             return True
         return QComboBox.eventFilter(self, widget, event)
 
-    def __redirect_stdio_emit(self, value):
-        """
-        Searches through the parent tree to see if it is possible to emit the
-        redirect_stdio signal.
-        This logic allows to test the SearchInComboBox select_directory method
-        outside of the FindInFiles plugin.
-        """
-        parent = self.parent()
-        while parent is not None:
-            try:
-                parent.redirect_stdio.emit(value)
-            except AttributeError:
-                parent = parent.parent()
-            else:
-                break
-
-
-class FindOptions(QWidget):
-    """Find widget with options"""
-    REGEX_INVALID = "background-color:rgb(255, 80, 80);"
-    REGEX_ERROR = _("Regular expression error")
-
-    find = Signal()
-    stop = Signal()
-    redirect_stdio = Signal(bool)
-
-    def __init__(self, parent, search_text, search_text_regexp,
-                 exclude, exclude_idx, exclude_regexp,
-                 supported_encodings, more_options,
-                 case_sensitive, external_path_history, search_in_index,
-                 options_button=None):
-        QWidget.__init__(self, parent)
-        self._running = False
-        if not isinstance(search_text, (list, tuple)):
-            search_text = [search_text]
-        if not isinstance(exclude, (list, tuple)):
-            exclude = [exclude]
-        if not isinstance(external_path_history, (list, tuple)):
-            external_path_history = [external_path_history]
-
-        self.supported_encodings = supported_encodings
-
-        # Layout 1
-        hlayout1 = QHBoxLayout()
-        self.search_text = PatternComboBox(self, search_text,
-                                           _("Search pattern"))
-        self.edit_regexp = create_toolbutton(self,
-                                             icon=ima.icon('regex'),
-                                             tip=_('Regular expression'))
-        self.case_button = create_toolbutton(self,
-                                             icon=ima.icon(
-                                                     "format_letter_case"),
-                                             tip=_("Case Sensitive"))
-        self.case_button.setCheckable(True)
-        self.case_button.setChecked(case_sensitive)
-        self.edit_regexp.setCheckable(True)
-        self.edit_regexp.setChecked(search_text_regexp)
-        self.more_widgets = ()
-        self.more_options = create_toolbutton(
-            self,
-            toggled=self.toggle_more_options)
-        self.more_options.setCheckable(True)
-        self.more_options.setChecked(more_options)
-
-        self.ok_button = create_toolbutton(self, text=_("Search"),
-                                           icon=ima.icon('find'),
-                                           triggered=lambda: self.find.emit(),
-                                           tip=_("Start search"),
-                                           text_beside_icon=True)
-        self.ok_button.clicked.connect(self.update_combos)
-        self.stop_button = create_toolbutton(self, text=_("Stop"),
-                                             icon=ima.icon('stop'),
-                                             triggered=lambda:
-                                             self.stop.emit(),
-                                             tip=_("Stop search"),
-                                             text_beside_icon=True)
-        for widget in [self.search_text, self.edit_regexp, self.case_button,
-                       self.ok_button, self.stop_button, self.more_options]:
-            hlayout1.addWidget(widget)
-        if options_button:
-            hlayout1.addWidget(options_button)
-
-        # Layout 2
-        hlayout2 = QHBoxLayout()
-        self.exclude_pattern = PatternComboBox(self, exclude,
-                                               _("Exclude pattern"))
-        if exclude_idx is not None and exclude_idx >= 0 \
-           and exclude_idx < self.exclude_pattern.count():
-            self.exclude_pattern.setCurrentIndex(exclude_idx)
-        self.exclude_regexp = create_toolbutton(self,
-                                                icon=ima.icon('regex'),
-                                                tip=_('Regular expression'))
-        self.exclude_regexp.setCheckable(True)
-        self.exclude_regexp.setChecked(exclude_regexp)
-        exclude_label = QLabel(_("Exclude:"))
-        exclude_label.setBuddy(self.exclude_pattern)
-        for widget in [exclude_label, self.exclude_pattern,
-                       self.exclude_regexp]:
-            hlayout2.addWidget(widget)
-
-        # Layout 3
-        hlayout3 = QHBoxLayout()
-
-        search_on_label = QLabel(_("Search in:"))
-        self.path_selection_combo = SearchInComboBox(
-                external_path_history, parent)
-        self.path_selection_combo.set_current_searchpath_index(
-            search_in_index)
-
-        hlayout3.addWidget(search_on_label)
-        hlayout3.addWidget(self.path_selection_combo)
-
-        self.search_text.valid.connect(lambda valid: self._check_find())
-        self.exclude_pattern.valid.connect(lambda valid: self._check_find())
-
-        vlayout = QVBoxLayout()
-        vlayout.setContentsMargins(0, 0, 0, 0)
-        vlayout.addLayout(hlayout1)
-        vlayout.addLayout(hlayout2)
-        vlayout.addLayout(hlayout3)
-        self.more_widgets = (hlayout2,)
-        self.toggle_more_options(more_options)
-        self.setLayout(vlayout)
-
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        fm = self.ok_button.fontMetrics()
-        width = fm.width('Search') * 1.8
-        self.ok_button.setMinimumWidth(width)
-        self.stop_button.setMinimumWidth(width)
-        self.refresh_buttons(start=False)
-
-    def _check_find(self):
-        """
-        Check if find signal should be emitted.
-
-        This allows the Enter to function as starting and stopping action
-        depending on the state.
-        """
-        if self._running:
-            self.stop.emit()
-        else:
-            self.find.emit()
-
-    def refresh_buttons(self, start=False):
-        """Refresh start/stop of buttons."""
-        self._running = start
-        self.setUpdatesEnabled(False)
-        self.ok_button.setVisible(not start)
-        self.stop_button.setVisible(start)
-        self.setUpdatesEnabled(True)
-
-    @Slot(bool)
-    def toggle_more_options(self, state):
-        for layout in self.more_widgets:
-            for index in range(layout.count()):
-                if state and self.isVisible() or not state:
-                    layout.itemAt(index).widget().setVisible(state)
-        if state:
-            icon = ima.icon('options_less')
-            tip = _('Hide advanced options')
-        else:
-            icon = ima.icon('options_more')
-            tip = _('Show advanced options')
-        self.more_options.setIcon(icon)
-        self.more_options.setToolTip(tip)
-
-    def update_combos(self):
-        self.search_text.lineEdit().returnPressed.emit()
-        self.exclude_pattern.lineEdit().returnPressed.emit()
-
-    def set_search_text(self, text):
-        if text:
-            self.search_text.add_text(text)
-            self.search_text.lineEdit().selectAll()
-        self.search_text.setFocus()
-
-    def get_options(self, to_save=False):
-        """Get options"""
-        text_re = self.edit_regexp.isChecked()
-        exclude_re = self.exclude_regexp.isChecked()
-        case_sensitive = self.case_button.isChecked()
-
-        # Return current options for them to be saved when closing
-        # Spyder.
-        if to_save:
-            search_text = [to_text_string(self.search_text.itemText(index))
-                           for index in range(self.search_text.count())]
-            exclude = [to_text_string(self.exclude_pattern.itemText(index))
-                       for index in range(self.exclude_pattern.count())]
-            exclude_idx = self.exclude_pattern.currentIndex()
-            path_history = self.path_selection_combo.get_external_paths()
-            more_options = self.more_options.isChecked()
-            search_in_index = self.path_selection_combo.currentIndex()
-            return (search_text, text_re,
-                    exclude, exclude_idx,
-                    exclude_re, more_options,
-                    case_sensitive, path_history,
-                    search_in_index)
-
-        # Clear fields
-        self.search_text.lineEdit().setStyleSheet("")
-        self.exclude_pattern.lineEdit().setStyleSheet("")
-        self.search_text.setToolTip("")
-        self.exclude_pattern.setToolTip("")
-
-        utext = to_text_string(self.search_text.currentText())
-        if not utext:
-            return
-
-        try:
-            texts = [(utext.encode('utf-8'), 'utf-8')]
-        except UnicodeEncodeError:
-            texts = []
-            for enc in self.supported_encodings:
-                try:
-                    texts.append((utext.encode(enc), enc))
-                except UnicodeDecodeError:
-                    pass
-
-        exclude = to_text_string(self.exclude_pattern.currentText())
-
-        if not case_sensitive:
-            texts = [(text[0].lower(), text[1]) for text in texts]
-
-        file_search = self.path_selection_combo.is_file_search()
-        path = self.path_selection_combo.get_current_searchpath()
-
-        if not exclude_re:
-            items = [fnmatch.translate(item.strip())
-                     for item in exclude.split(",")
-                     if item.strip() != '']
-            exclude = '|'.join(items)
-
-        # Validate exclude regular expression
-        if exclude:
-            error_msg = regexp_error_msg(exclude)
-            if error_msg:
-                exclude_edit = self.exclude_pattern.lineEdit()
-                exclude_edit.setStyleSheet(self.REGEX_INVALID)
-                tooltip = self.REGEX_ERROR + u': ' + to_text_string(error_msg)
-                self.exclude_pattern.setToolTip(tooltip)
-                return None
-            else:
-                exclude = re.compile(exclude)
-
-        # Validate text regular expression
-        if text_re:
-            error_msg = regexp_error_msg(texts[0][0])
-            if error_msg:
-                self.search_text.lineEdit().setStyleSheet(self.REGEX_INVALID)
-                tooltip = self.REGEX_ERROR + u': ' + to_text_string(error_msg)
-                self.search_text.setToolTip(tooltip)
-                return None
-            else:
-                texts = [(re.compile(x[0]), x[1]) for x in texts]
-
-        return (path, file_search, exclude, texts, text_re, case_sensitive)
-
-    @property
-    def path(self):
-        return self.path_selection_combo.path
-
-    def set_directory(self, directory):
-        self.path_selection_combo.path = osp.abspath(directory)
-
-    @property
-    def project_path(self):
-        return self.path_selection_combo.project_path
-
-    def set_project_path(self, path):
-        self.path_selection_combo.set_project_path(path)
-
-    def disable_project_search(self):
-        self.path_selection_combo.set_project_path(None)
-
-    @property
-    def file_path(self):
-        return self.path_selection_combo.file_path
-
-    def set_file_path(self, path):
-        self.path_selection_combo.file_path = path
-
-    def keyPressEvent(self, event):
-        """Reimplemented to handle key events"""
-        ctrl = event.modifiers() & Qt.ControlModifier
-        shift = event.modifiers() & Qt.ShiftModifier
-        if event.key() in (Qt.Key_Enter, Qt.Key_Return):
-            self.find.emit()
-        elif event.key() == Qt.Key_F and ctrl and shift:
-            # Toggle find widgets
-            self.parent().toggle_visibility.emit(not self.isVisible())
-        else:
-            QWidget.keyPressEvent(self, event)
-
 
 class LineMatchItem(QTreeWidgetItem):
 
@@ -836,15 +589,14 @@ class LineMatchItem(QTreeWidgetItem):
         self.match = match
         self.text_color = text_color
         self.font = font
-        QTreeWidgetItem.__init__(self, parent, [self.__repr__()],
-                                 QTreeWidgetItem.Type)
+        super().__init__(parent, [self.__repr__()], QTreeWidgetItem.Type)
 
     def __repr__(self):
-        match = to_text_string(self.match).rstrip()
-        _str = to_text_string("<!-- LineMatchItem -->"
-                              "<p style=\"color:'{4}';\"><b>{1}</b> ({2}): "
-                              "<span style='font-family:{0};"
-                              "font-size:75%;'>{3}</span></p>")
+        match = str(self.match).rstrip()
+        _str = ("<!-- LineMatchItem -->"
+                "<p style=\"color:'{4}';\"><b>{1}</b> ({2}): "
+                "<span style='font-family:{0};"
+                "font-size:75%;'>{3}</span></p>")
         return _str.format(self.font.family(), self.lineno, self.colno, match,
                            self.text_color)
 
@@ -868,15 +620,15 @@ class FileMatchItem(QTreeWidgetItem):
         self.sorting = sorting
         self.filename = osp.basename(filename)
 
-        title_format = to_text_string('<!-- FileMatchItem -->'
-                                      '<b style="color:{2}">{0}</b>'
-                                      '&nbsp;&nbsp;&nbsp;'
-                                      '<small style="color:{2}"><em>{1}</em>'
-                                      '</small>')
+        title_format = ('<!-- FileMatchItem -->'
+                        '<b style="color:{2}">{0}</b>'
+                        '&nbsp;&nbsp;&nbsp;'
+                        '<small style="color:{2}"><em>{1}</em>'
+                        '</small>')
         title = (title_format.format(osp.basename(filename),
                                      osp.dirname(filename),
                                      text_color))
-        QTreeWidgetItem.__init__(self, parent, [title], QTreeWidgetItem.Type)
+        super().__init__(parent, [title], QTreeWidgetItem.Type)
 
         self.setToolTip(0, filename)
 
@@ -896,7 +648,7 @@ class FileMatchItem(QTreeWidgetItem):
 class ItemDelegate(QStyledItemDelegate):
 
     def __init__(self, parent):
-        QStyledItemDelegate.__init__(self, parent)
+        super().__init__(parent)
         self._margin = None
 
     def paint(self, painter, option, index):
@@ -938,11 +690,11 @@ class ItemDelegate(QStyledItemDelegate):
 
 
 class ResultsBrowser(OneColumnTree):
-    sig_edit_goto = Signal(str, int, str)
+    sig_edit_goto_requested = Signal(str, int, str)
     sig_max_results_reached = Signal()
 
     def __init__(self, parent, text_color=None, max_results=1000):
-        OneColumnTree.__init__(self, parent)
+        super().__init__(parent)
         self.search_text = None
         self.results = None
         self.max_results = max_results
@@ -964,6 +716,10 @@ class ResultsBrowser(OneColumnTree):
         self.setUniformRowHeights(True)  # Needed for performance
         self.sortByColumn(0, Qt.AscendingOrder)
 
+        # Only show the actions for collaps/expand all entries in the widget
+        # For further information see spyder-ide/spyder#13178
+        self.common_actions = self.common_actions[:2]
+
         # Signals
         self.header().sectionClicked.connect(self.sort_section)
 
@@ -972,7 +728,8 @@ class ResultsBrowser(OneColumnTree):
         itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
             filename, lineno, colno = itemdata
-            self.sig_edit_goto.emit(filename, lineno, self.search_text)
+            self.sig_edit_goto_requested.emit(filename, lineno,
+                                              self.search_text)
 
     def set_sorting(self, flag):
         """Enable result sorting after search is complete."""
@@ -1038,152 +795,406 @@ class ResultsBrowser(OneColumnTree):
         self.max_results = value
 
 
-class FileProgressBar(QWidget):
-    """Simple progress spinner with a label."""
-
-    def __init__(self, parent):
-        QWidget.__init__(self, parent)
-
-        self.status_text = QLabel(self)
-        self.spinner = create_waitspinner(parent=self)
-        layout = QHBoxLayout()
-        layout.addWidget(self.spinner)
-        layout.addWidget(self.status_text)
-        self.setLayout(layout)
-
-    @Slot(str)
-    def set_label_path(self, path, folder=False):
-        text = truncate_path(path)
-        if not folder:
-            status_str = _(u' Scanning: {0}').format(text)
-        else:
-            status_str = _(u' Searching for files in folder:'
-                           ' {0}').format(text)
-        self.status_text.setText(status_str)
-
-    def reset(self):
-        self.status_text.setText(_("  Searching for files..."))
-
-    def showEvent(self, event):
-        """Override show event to start waiting spinner."""
-        QWidget.showEvent(self, event)
-        self.spinner.start()
-
-    def hideEvent(self, event):
-        """Override hide event to stop waiting spinner."""
-        QWidget.hideEvent(self, event)
-        self.spinner.stop()
-
-
-class FindInFilesWidget(QWidget):
+class FindInFilesWidget(PluginMainWidget):
     """
-    Find in files widget
+    Find in files widget.
     """
+
+    DEFAULT_OPTIONS = {
+        'case_sensitive': False,
+        'exclude_case_sensitive': False,
+        'exclude': EXCLUDE_PATTERNS[0],
+        'exclude_index': None,
+        'exclude_regexp': False,
+        'path_history': [],
+        'max_results': 1000,
+        'hist_limit': MAX_PATH_HISTORY,
+        'more_options': False,
+        'search_in_index': None,
+        'search_text': '',
+        'search_text_regexp': False,
+        'supported_encodings': ("utf-8", "iso-8859-1", "cp1252"),
+        'text_color': MAIN_TEXT_COLOR,
+    }
+    ENABLE_SPINNER = True
+    REGEX_INVALID = "background-color:rgb(255, 80, 80);"
+    REGEX_ERROR = _("Regular expression error")
+
+    # Signals
+    sig_edit_goto_requested = Signal(str, int, str)
+    """
+    This signal will request to open a file in a given row and column
+    using a code editor.
+
+    Parameters
+    ----------
+    path: str
+        Path to file.
+    row: int
+        Cursor starting row position.
+    word: str
+        Word to select on given row.
+    """
+
     sig_finished = Signal()
+    """
+    This signal is emitted to inform the search process has finished.
+    """
+
     sig_max_results_reached = Signal()
+    """
+    This signal is emitted to inform the search process has finished due
+    to reaching the maximum number of results.
+    """
 
-    def __init__(self,
-                 parent,
-                 search_text="",
-                 search_text_regexp=False,
-                 exclude=EXCLUDE_PATTERNS[0],
-                 exclude_idx=None,
-                 exclude_regexp=False,
-                 supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
-                 more_options=False,
-                 case_sensitive=False,
-                 external_path_history=[],
-                 search_in_index=0,
-                 options_button=None,
-                 text_color=None,
-                 max_results=1000):
-        QWidget.__init__(self, parent)
+    def __init__(self, name=None, plugin=None, parent=None,
+                 options=DEFAULT_OPTIONS):
+        super().__init__(name, plugin, parent=parent, options=options)
 
+        # Attributes
+        self.text_color = self.get_option('text_color')
+        self.supported_encodings = self.get_option('supported_encodings')
         self.search_thread = None
-        self.text_color = text_color
+        self.running = False
+        self.more_options_action = None
+        self.extras_toolbar = None
+
+        search_text = self.get_option('search_text')
+        path_history = self.get_option('path_history')
+        exclude = self.get_option('exclude')
+
+        if not isinstance(search_text, (list, tuple)):
+            search_text = [search_text]
+
+        if not isinstance(exclude, (list, tuple)):
+            exclude = [exclude]
+
+        if not isinstance(path_history, (list, tuple)):
+            path_history = [path_history]
 
         # Widgets
-        self.status_bar = FileProgressBar(self)
-        self.find_options = FindOptions(
+        self.search_text_edit = PatternComboBox(
             self,
             search_text,
-            search_text_regexp,
+            _("Search pattern"),
+        )
+        self.search_label = QLabel(_('Search:'))
+        self.search_in_label = QLabel(_('Location:'))
+        self.exclude_label = QLabel(_('Exclude:'))
+        self.path_selection_combo = SearchInComboBox(path_history, self)
+        self.exclude_pattern_edit = PatternComboBox(
+            self,
             exclude,
-            exclude_idx,
-            exclude_regexp,
-            supported_encodings,
-            more_options,
-            case_sensitive,
-            external_path_history,
-            search_in_index,
-            options_button=options_button)
+            _("Exclude pattern"),
+        )
+        self.result_browser = ResultsBrowser(
+            self,
+            text_color=self.text_color,
+            max_results=self.get_option('max_results'),
+        )
 
-        self.result_browser = ResultsBrowser(self, text_color=text_color,
-                                             max_results=max_results)
-        # Widget setup
-        self.setWindowTitle(_('Find in files'))
-        self.status_bar.hide()
+        # Setup
+        self.search_label.setBuddy(self.search_text_edit)
+        self.exclude_label.setBuddy(self.exclude_pattern_edit)
+
+        fm = self.search_label.fontMetrics()
+        base_size = int(fm.width(_('Location:')) * 1.2)
+        self.search_label.setMinimumWidth(base_size)
+        self.search_in_label.setMinimumWidth(base_size)
+        self.exclude_label.setMinimumWidth(base_size)
+
+        exclude_idx = self.get_option('exclude_index')
+        if (exclude_idx is not None and exclude_idx >= 0
+                and exclude_idx < self.exclude_pattern_edit.count()):
+            self.exclude_pattern_edit.setCurrentIndex(exclude_idx)
+
+        search_in_index = self.get_option('search_in_index')
+        self.path_selection_combo.set_current_searchpath_index(
+            search_in_index)
 
         # Layout
-        hlayout = QHBoxLayout()
-        hlayout.addWidget(self.result_browser)
-
-        layout = QVBoxLayout()
-        left, _x, right, bottom = layout.getContentsMargins()
-        layout.setContentsMargins(left, 0, right, bottom)
-        layout.addWidget(self.find_options)
-        layout.addLayout(hlayout)
-        layout.addWidget(self.status_bar)
+        layout = QHBoxLayout()
+        layout.addWidget(self.result_browser)
         self.setLayout(layout)
 
         # Signals
-        self.find_options.find.connect(self.find)
-        self.find_options.stop.connect(self.stop_and_reset_thread)
-        self.result_browser.sig_max_results_reached.connect(
-            self.stop_and_reset_thread)
+        self.path_selection_combo.sig_redirect_stdio_requested.connect(
+            self.sig_redirect_stdio_requested)
+        self.search_text_edit.valid.connect(lambda valid: self.find())
+        self.exclude_pattern_edit.valid.connect(lambda valid: self.find())
+        self.result_browser.sig_edit_goto_requested.connect(
+            self.sig_edit_goto_requested)
         self.result_browser.sig_max_results_reached.connect(
             self.sig_max_results_reached)
+        self.result_browser.sig_max_results_reached.connect(
+            self._stop_and_reset_thread)
+        self.search_text_edit.sig_resized.connect(self._update_size)
 
-    def set_search_text(self, text):
-        """Set search pattern"""
-        self.find_options.set_search_text(text)
+    # --- PluginMainWidget API
+    # ------------------------------------------------------------------------
+    def get_title(self):
+        return _("Find")
 
-    def find(self):
-        """Call the find function"""
-        search_text = self.find_options.search_text.currentText()
-        options = self.find_options.get_options()
-        if options is None:
+    def get_focus_widget(self):
+        return self.search_text_edit
+
+    def setup(self, options=DEFAULT_OPTIONS):
+        self.search_regexp_action = self.create_action(
+            FindInFilesWidgetActions.ToggleSearchRegex,
+            text=_('Regular expression'),
+            tip=_('Regular expression'),
+            icon=self.create_icon('regex'),
+            toggled=lambda val: self.set_option('search_text_regexp', val),
+            initial=self.get_option('search_text_regexp'),
+        )
+        self.case_action = self.create_action(
+            FindInFilesWidgetActions.ToggleExcludeCase,
+            text=_("Case sensitive"),
+            tip=_("Case sensitive"),
+            icon=self.create_icon("format_letter_case"),
+            toggled=lambda val: self.set_option('case_sensitive', val),
+            initial=self.get_option('case_sensitive'),
+        )
+        self.find_action = self.create_action(
+            FindInFilesWidgetActions.Find,
+            icon_text=_('Search'),
+            text=_("&Find in files"),
+            tip=_("Search text in multiple files"),
+            icon=self.create_icon('find'),
+            triggered=self.find,
+            register_shortcut=False,
+        )
+        self.exclude_regexp_action = self.create_action(
+            FindInFilesWidgetActions.ToggleExcludeRegex,
+            text=_('Regular expression'),
+            tip=_('Regular expression'),
+            icon=self.create_icon('regex'),
+            toggled=lambda val: self.set_option('exclude_regexp', val),
+            initial=self.get_option('exclude_regexp'),
+        )
+        self.exclude_case_action = self.create_action(
+            FindInFilesWidgetActions.ToggleCase,
+            text=_("Exclude case sensitive"),
+            tip=_("Exclude case sensitive"),
+            icon=self.create_icon("format_letter_case"),
+            toggled=lambda val: self.set_option('exclude_case_sensitive', val),
+            initial=self.get_option('exclude_case_sensitive'),
+        )
+        self.more_options_action = self.create_action(
+            FindInFilesWidgetActions.ToggleMoreOptions,
+            text=_('Show advanced options'),
+            tip=_('Show advanced options'),
+            icon=self.create_icon("options_more"),
+            toggled=lambda val: self.set_option('more_options', val),
+            initial=self.get_option('more_options'),
+        )
+        self.set_max_results_action = self.create_action(
+            FindInFilesWidgetActions.MaxResults,
+            text=_('Set maximum number of results'),
+            tip=_('Set maximum number of results'),
+            triggered=lambda x=None: self.set_max_results(),
+        )
+
+        # Toolbar
+        toolbar = self.get_main_toolbar()
+        for item in [self.search_label, self.search_text_edit,
+                     self.search_regexp_action, self.case_action,
+                     self.more_options_action, self.find_action]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar=toolbar,
+                section=FindInFilesWidgetMainToolBarSections.Main,
+            )
+
+        # Exclude Toolbar
+        self.extras_toolbar = self.create_toolbar(
+            FindInFilesWidgetToolBars.Exclude)
+        for item in [self.exclude_label, self.exclude_pattern_edit,
+                     self.exclude_regexp_action, self.create_stretcher()]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar=self.extras_toolbar,
+                section=FindInFilesWidgetExcludeToolBarSections.Main,
+            )
+
+        # Location toolbar
+        location_toolbar = self.create_toolbar(
+            FindInFilesWidgetToolBars.Location)
+        for item in [self.search_in_label, self.path_selection_combo]:
+            self.add_item_to_toolbar(
+                item,
+                toolbar=location_toolbar,
+                section=FindInFilesWidgetLocationToolBarSections.Main,
+            )
+
+        menu = self.get_options_menu()
+        self.add_item_to_menu(
+            self.set_max_results_action,
+            menu=menu,
+        )
+
+    def update_actions(self):
+        stop_text = _('Stop')
+        search_text = _('Search')
+        if self.running:
+            icon_text = stop_text
+            icon = self.create_icon('stop')
+        else:
+            icon_text = search_text
+            icon = self.create_icon('find')
+
+        self.find_action.setIconText(icon_text)
+        self.find_action.setIcon(icon)
+        widget = self.get_main_toolbar().widgetForAction(self.find_action)
+        if widget:
+            w1 = widget.fontMetrics().width(stop_text)
+            w2 = widget.fontMetrics().width(search_text)
+
+            # Ensure the search/stop button has the same size independent on
+            # the length of the words.
+            width = (self.get_options_menu_button().width() + max([w1, w2])
+                     + EXTRA_BUTTON_PADDING)
+            widget.setMinimumWidth(width)
+
+        if self.extras_toolbar and self.more_options_action:
+            self.extras_toolbar.setVisible(
+                self.more_options_action.isChecked())
+
+    def on_option_update(self, option, value):
+        if option == 'more_options':
+            self.exclude_pattern_edit.setMinimumWidth(
+                self.search_text_edit.width())
+
+            if value:
+                icon = self.create_icon('options_less')
+                tip = _('Hide advanced options')
+            else:
+                icon = self.create_icon('options_more')
+                tip = _('Show advanced options')
+
+            if self.extras_toolbar:
+                self.extras_toolbar.setVisible(value)
+
+            if self.more_options_action:
+                self.more_options_action.setIcon(icon)
+                self.more_options_action.setToolTip(tip)
+
+        elif option == 'max_results':
+            self.result_browser.set_max_results(value)
+
+    # --- Private API
+    # ------------------------------------------------------------------------
+    def _update_size(self, size, old_size):
+        self.exclude_pattern_edit.setMinimumWidth(size.width())
+
+    def _get_options(self):
+        """
+        Get search options.
+        """
+        text_re = self.search_regexp_action.isChecked()
+        exclude_re = self.exclude_regexp_action.isChecked()
+        case_sensitive = self.case_action.isChecked()
+
+        # Clear fields
+        self.search_text_edit.lineEdit().setStyleSheet("")
+        self.exclude_pattern_edit.lineEdit().setStyleSheet("")
+        self.exclude_pattern_edit.setToolTip("")
+        self.search_text_edit.setToolTip("")
+
+        utext = str(self.search_text_edit.currentText())
+        if not utext:
             return
-        self.stop_and_reset_thread(ignore_results=True)
-        self.search_thread = SearchThread(self, search_text, self.text_color)
-        self.search_thread.sig_finished.connect(self.search_complete)
-        self.search_thread.sig_current_file.connect(
-            lambda x: self.status_bar.set_label_path(x, folder=False)
-        )
-        self.search_thread.sig_current_folder.connect(
-            lambda x: self.status_bar.set_label_path(x, folder=True)
-        )
-        self.search_thread.sig_file_match.connect(
-            self.result_browser.append_file_result
-        )
-        self.search_thread.sig_line_match.connect(
-            self.result_browser.append_result
-        )
-        self.search_thread.sig_out_print.connect(
-            lambda x: sys.stdout.write(str(x) + "\n")
-        )
-        self.status_bar.reset()
-        self.result_browser.clear_title(search_text)
-        self.search_thread.initialize(*options)
 
-        self.find_options.refresh_buttons(start=True)
-        self.search_thread.start()
+        try:
+            texts = [(utext.encode('utf-8'), 'utf-8')]
+        except UnicodeEncodeError:
+            texts = []
+            for enc in self.supported_encodings:
+                try:
+                    texts.append((utext.encode(enc), enc))
+                except UnicodeDecodeError:
+                    pass
 
-        self.status_bar.show()
+        exclude = str(self.exclude_pattern_edit.currentText())
 
-    def stop_and_reset_thread(self, ignore_results=False):
-        """Stop current search thread and clean-up"""
-        self.find_options.refresh_buttons(start=False)
+        if not case_sensitive:
+            texts = [(text[0].lower(), text[1]) for text in texts]
+
+        file_search = self.path_selection_combo.is_file_search()
+        path = self.path_selection_combo.get_current_searchpath()
+
+        if not exclude_re:
+            items = [fnmatch.translate(item.strip())
+                     for item in exclude.split(",")
+                     if item.strip() != '']
+            exclude = '|'.join(items)
+
+        # Validate exclude regular expression
+        if exclude:
+            error_msg = regexp_error_msg(exclude)
+            if error_msg:
+                exclude_edit = self.exclude_pattern_edit.lineEdit()
+                exclude_edit.setStyleSheet(self.REGEX_INVALID)
+                tooltip = self.REGEX_ERROR + ': ' + str(error_msg)
+                self.exclude_pattern_edit.setToolTip(tooltip)
+                return None
+            else:
+                exclude = re.compile(exclude)
+
+        # Validate text regular expression
+        if text_re:
+            error_msg = regexp_error_msg(texts[0][0])
+            if error_msg:
+                self.search_text_edit.lineEdit().setStyleSheet(
+                    self.REGEX_INVALID)
+                tooltip = self.REGEX_ERROR + ': ' + str(error_msg)
+                self.search_text_edit.setToolTip(tooltip)
+                return None
+            else:
+                texts = [(re.compile(x[0]), x[1]) for x in texts]
+
+        return (path, file_search, exclude, texts, text_re, case_sensitive)
+
+    def _update_options(self):
+        """
+        Extract search options from widgets and set the corresponding option.
+        """
+        hist_limit = self.get_option('hist_limit')
+        search_texts = [str(self.search_text_edit.itemText(index))
+                        for index in range(self.search_text_edit.count())]
+        excludes = [str(self.search_text_edit.itemText(index))
+                    for index in range(self.exclude_pattern_edit.count())]
+        path_history = self.path_selection_combo.get_external_paths()
+
+        self.set_option('path_history', path_history)
+        self.set_option('search_text', search_texts[:hist_limit])
+        self.set_option('exclude', excludes[:hist_limit])
+        self.set_option('path_history', path_history[-hist_limit:])
+        self.set_option(
+            'exclude_index', self.exclude_pattern_edit.currentIndex())
+        self.set_option(
+            'search_in_index', self.path_selection_combo.currentIndex())
+
+    def _handle_search_complete(self, completed):
+        """
+        Current search thread has finished.
+        """
+        self.result_browser.set_sorting(ON)
+        self.result_browser.expandAll()
+        if self.search_thread is None:
+            return
+
+        self.sig_finished.emit()
+        found = self.search_thread.get_results()
+        self._stop_and_reset_thread()
+        if found is not None:
+            self.result_browser.show()
+
+        self.stop_spinner()
+        self.update_actions()
+
+    def _stop_and_reset_thread(self, ignore_results=False):
+        """Stop current search thread and clean-up."""
         if self.search_thread is not None:
             if self.search_thread.isRunning():
                 if ignore_results:
@@ -1191,49 +1202,202 @@ class FindInFilesWidget(QWidget):
                         self.search_complete)
                 self.search_thread.stop()
                 self.search_thread.wait()
+
             self.search_thread.setParent(None)
             self.search_thread = None
 
-    def closing_widget(self):
-        """Perform actions before widget is closed"""
-        self.stop_and_reset_thread(ignore_results=True)
+        self.running = False
+        self.stop_spinner()
+        self.update_actions()
 
-    def search_complete(self, completed):
-        """Current search thread has finished"""
-        self.result_browser.set_sorting(ON)
-        self.find_options.ok_button.setEnabled(True)
-        self.status_bar.hide()
-        self.result_browser.expandAll()
-        if self.search_thread is None:
+    # --- Public API
+    # ------------------------------------------------------------------------
+    @property
+    def path(self):
+        """Return the current path."""
+        return self.path_selection_combo.path
+
+    @property
+    def project_path(self):
+        """Return the current project path."""
+        return self.path_selection_combo.project_path
+
+    @property
+    def file_path(self):
+        """Return the current file path."""
+        return self.path_selection_combo.file_path
+
+    def set_directory(self, directory):
+        """
+        Set directory as current path.
+
+        Parameters
+        ----------
+        directory: str
+            Directory path string.
+        """
+        self.path_selection_combo.path = osp.abspath(directory)
+
+    def set_project_path(self, path):
+        """
+        Set path as current project path.
+
+        Parameters
+        ----------
+        path: str
+            Project path string.
+        """
+        self.path_selection_combo.set_project_path(path)
+
+    def disable_project_search(self):
+        """Disable project search path in combobox."""
+        self.path_selection_combo.set_project_path(None)
+
+    def set_file_path(self, path):
+        """
+        Set path as current file path.
+
+        Parameters
+        ----------
+        path: str
+            File path string.
+        """
+        self.path_selection_combo.file_path = path
+
+    def set_search_text(self, text):
+        """
+        Set current search text.
+
+        Parameters
+        ----------
+        text: str
+            Search string.
+
+        Notes
+        -----
+        If `text` is empty, focus will be given to the search lineedit and no
+        search will be performed.
+        """
+        if text:
+            self.search_text_edit.add_text(text)
+            self.search_text_edit.lineEdit().selectAll()
+
+        self.search_text_edit.setFocus()
+
+    def find(self):
+        """
+        Start/stop find action.
+
+        Notes
+        -----
+        If there is no search running, this will start the search. If there is
+        a search running, this will stop it.
+        """
+        if self.running:
+            self.stop()
+        else:
+            self.start()
+
+    def stop(self):
+        """Stop find thread."""
+        self._stop_and_reset_thread()
+
+    def start(self):
+        """Start find thread."""
+        options = self._get_options()
+        if options is None:
             return
-        self.sig_finished.emit()
-        found = self.search_thread.get_results()
-        self.stop_and_reset_thread()
-        if found is not None:
-            results, pathlist, nb, error_flag = found
-            self.result_browser.show()
 
-    def set_max_results(self, value):
-        """Set maximum amount of results to add to result browser."""
-        self.result_browser.set_max_results(value)
+        self._stop_and_reset_thread(ignore_results=True)
+        search_text = self.search_text_edit.currentText()
+
+        # Update and set options
+        self._update_options()
+
+        # Start
+        self.running = True
+        self.start_spinner()
+        self.search_thread = SearchThread(self, search_text, self.text_color)
+        self.search_thread.sig_finished.connect(self._handle_search_complete)
+        self.search_thread.sig_file_match.connect(
+            self.result_browser.append_file_result
+        )
+        self.search_thread.sig_line_match.connect(
+            self.result_browser.append_result
+        )
+        self.result_browser.clear_title(search_text)
+        self.search_thread.initialize(*self._get_options())
+        self.search_thread.start()
+        self.update_actions()
+
+    def add_external_path(self, path):
+        """
+        Parameters
+        ----------
+        path: str
+            Path to add to combobox.
+        """
+        self.path_selection_combo.add_external_path(path)
+
+    def set_max_results(self, value=None):
+        """
+        Set maximum amount of results to add to the result browser.
+
+        Parameters
+        ----------
+        value: int, optional
+            Number of results. If None an input dialog will be used.
+            Default is None.
+        """
+        if value is None:
+            # Create dialog
+            dialog = QInputDialog(self)
+
+            # Set dialog properties
+            dialog.setModal(False)
+            dialog.setWindowTitle(self.get_name())
+            dialog.setLabelText(_('Set maximum number of results: '))
+            dialog.setInputMode(QInputDialog.IntInput)
+            dialog.setIntRange(1, 10000)
+            dialog.setIntStep(1)
+            dialog.setIntValue(self.get_option('max_results'))
+
+            # Connect slot
+            dialog.intValueSelected.connect(
+                lambda value: self.set_option('max_results', value))
+
+            dialog.show()
+        else:
+            self.set_option('max_results', value)
 
 
 def test():
-    """Run Find in Files widget test"""
-    from spyder.utils.qthelpers import qapplication
+    """
+    Run Find in Files widget test.
+    """
+    # Standard library imports
     from os.path import dirname
+    import sys
+
+    # Local imports
+    from spyder.utils.qthelpers import qapplication
+
     app = qapplication()
-    widget = FindInFilesWidget(None)
+    options = FindInFilesWidget.DEFAULT_OPTIONS.copy()
+    widget = FindInFilesWidget('find_in_files', options=options)
+    widget._setup(options=options)
+    widget.setup(options=options)
     widget.resize(640, 480)
     widget.show()
     external_paths = [
-            dirname(__file__),
-            dirname(dirname(__file__)),
-            dirname(dirname(dirname(__file__))),
-            dirname(dirname(dirname(dirname(__file__))))
-            ]
+        dirname(__file__),
+        dirname(dirname(__file__)),
+        dirname(dirname(dirname(__file__))),
+        dirname(dirname(dirname(dirname(__file__)))),
+    ]
     for path in external_paths:
-        widget.find_options.path_selection_combo.add_external_path(path)
+        widget.add_external_path(path)
+
     sys.exit(app.exec_())
 
 

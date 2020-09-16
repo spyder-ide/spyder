@@ -21,7 +21,7 @@ import pytest
 from pytestqt.plugin import QtBot
 
 from spyder.config.manager import CONF
-from spyder.plugins.completion.languageserver import SERVER_CAPABILITES
+from spyder.plugins.completion.manager.api import SERVER_CAPABILITES
 from spyder.plugins.completion.languageserver.plugin import (
     LanguageServerPlugin)
 
@@ -32,18 +32,30 @@ class EditorMock(QObject):
     LanguageServerPlugin.
     """
     sig_lsp_initialized = Signal()
+    sig_editor_focus_changed = Signal()
 
     def __init__(self):
         QObject.__init__(self)
-        self.lsp_editor_settings = {}
+        self.completion_capabilities = {}
 
     @Slot(dict, str)
-    def register_completion_server_settings(self, settings, language):
-        self.lsp_editor_settings[language] = settings
+    def register_completion_capabilities(self, capabilities, language):
+        """
+        Register completion server capabilities.
+
+        Notes
+        -----
+            See the docstring of this method in the Editor plugin for
+            the details.
+        """
+        self.completion_capabilities[language] = capabilities
         self.sig_lsp_initialized.emit()
 
     def stop_completion_services(self, language):
         pass
+
+    def get_current_editor(self):
+        return Mock()
 
 
 class ProjectsMock(QObject):
@@ -121,9 +133,9 @@ def lsp_context(is_stdio):
                 editor.sig_lsp_initialized, timeout=30000):
             manager.start_client('python')
 
-        settings = editor.lsp_editor_settings['python']
+        capabilities = editor.completion_capabilities['python']
         assert all(
-            [option in SERVER_CAPABILITES for option in settings.keys()])
+            [option in SERVER_CAPABILITES for option in capabilities.keys()])
 
         def teardown():
             manager.shutdown()

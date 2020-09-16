@@ -38,6 +38,7 @@ class EditorConfigPage(PluginConfigPage):
                 'show_class_func_dropdown')
         showindentguides_box = newcb(_("Show indent guides"),
                                      'indent_guides')
+        showcodefolding_box = newcb(_("Show code folding"), 'code_folding')
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         blanks_box = newcb(_("Show blank spaces"), 'blank_spaces')
         currentline_box = newcb(_("Highlight current line"),
@@ -90,6 +91,7 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(showtabbar_box)
         display_layout.addWidget(showclassfuncdropdown_box)
         display_layout.addWidget(showindentguides_box)
+        display_layout.addWidget(showcodefolding_box)
         display_layout.addWidget(linenumbers_box)
         display_layout.addWidget(blanks_box)
         display_layout.addWidget(currentline_box)
@@ -243,9 +245,10 @@ class EditorConfigPage(PluginConfigPage):
         docstring_label.setWordWrap(True)
 
         docstring_combo_choices = ((_("Numpy"), 'Numpydoc'),
-                                   (_("Google"), 'Googledoc'),)
+                                   (_("Google"), 'Googledoc'),
+                                   (_("Sphinx"), 'Sphinxdoc'),)
         docstring_combo = self.create_combobox(
-            "Type:",
+            _("Type:"),
             docstring_combo_choices,
             'docstring_type')
 

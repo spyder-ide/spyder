@@ -19,15 +19,16 @@ from qtpy.compat import from_qvariant, to_qvariant
 from qtpy.QtCore import (QEvent, QLibraryInfo, QLocale, QObject, Qt, QTimer,
                          QTranslator, Signal, Slot)
 from qtpy.QtGui import QIcon, QKeyEvent, QKeySequence, QPixmap
-from qtpy.QtWidgets import (QAction, QApplication, QHBoxLayout, QLabel,
-                            QLineEdit, QMenu, QProxyStyle, QStyle, QToolBar,
+from qtpy.QtWidgets import (QAction, QApplication, QDialog, QHBoxLayout,
+                            QLabel, QLineEdit, QMenu, QPlainTextEdit,
+                            QProxyStyle, QPushButton, QStyle, QToolBar,
                             QToolButton, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import get_image_path, MAC_APP_NAME
 from spyder.config.manager import CONF
 from spyder.config.gui import is_dark_interface
-from spyder.py3compat import is_text_string, to_text_string, PY2
+from spyder.py3compat import configparser, is_text_string, to_text_string, PY2
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.icon_manager import get_icon, get_std_icon
@@ -254,7 +255,8 @@ def create_waitspinner(size=32, n=11, parent=None):
     return spinner
 
 
-def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
+def action2button(action, autoraise=True, text_beside_icon=False, parent=None,
+                  icon=None):
     """Create a QToolButton directly from a QAction object"""
     if parent is None:
         parent = action.parent()
@@ -263,6 +265,8 @@ def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
     button.setAutoRaise(autoraise)
     if text_beside_icon:
         button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+    if icon:
+        action.setIcon(icon)
     return button
 
 
@@ -327,8 +331,18 @@ def add_shortcut_to_tooltip(action, context, name):
         # are changed by the user over the course of the current session.
         # See spyder-ide/spyder#10726.
         action._tooltip_backup = action.toolTip()
-    action.setToolTip(action._tooltip_backup + ' (%s)' %
-                      CONF.get_shortcut(context=context, name=name))
+
+    try:
+        # Some shortcuts might not be assigned so we need to catch the error
+        shortcut = CONF.get_shortcut(context=context, name=name)
+    except (configparser.NoSectionError, configparser.NoOptionError):
+        shortcut = None
+
+    if shortcut:
+        keyseq = QKeySequence(shortcut)
+        # See: spyder-ide/spyder#12168
+        string = keyseq.toString(QKeySequence.NativeText)
+        action.setToolTip(u'{0} ({1})'.format(action._tooltip_backup, string))
 
 
 def add_actions(target, actions, insert_before=None):
@@ -479,6 +493,12 @@ class SpyderAction(QAction):
         if sys.platform == "darwin":
             self.setIconVisibleInMenu(False)
 
+    def __str__(self):
+        return "SpyderAction('{0}')".format(self.text())
+
+    def __repr__(self):
+        return "SpyderAction('{0}')".format(self.text())
+
 
 class ShowStdIcons(QWidget):
     """
@@ -608,6 +628,36 @@ class SpyderProxyStyle(QProxyStyle):
             return 0
 
         return QProxyStyle.styleHint(self, hint, option, widget, returnData)
+
+
+class QInputDialogMultiline(QDialog):
+    """
+    Build a replica interface of QInputDialog.getMultilineText.
+
+    Based on: https://stackoverflow.com/a/58823967
+    """
+
+    def __init__(self, parent, title, label, text='', **kwargs):
+        super(QInputDialogMultiline, self).__init__(parent, **kwargs)
+        if title is not None:
+            self.setWindowTitle(title)
+
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(QLabel(label))
+        self.text_edit = QPlainTextEdit()
+        self.layout().addWidget(self.text_edit)
+
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        ok_button = QPushButton('OK')
+        button_layout.addWidget(ok_button)
+        cancel_button = QPushButton('Cancel')
+        button_layout.addWidget(cancel_button)
+        self.layout().addLayout(button_layout)
+
+        self.text_edit.setPlainText(text)
+        ok_button.clicked.connect(self.accept)
+        cancel_button.clicked.connect(self.reject)
 
 
 # =============================================================================

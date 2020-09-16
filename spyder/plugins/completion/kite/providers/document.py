@@ -15,7 +15,7 @@ import os.path as osp
 
 from qtpy.QtCore import QMutexLocker
 from spyder.plugins.completion.kite.decorators import send_request, handles
-from spyder.plugins.completion.languageserver import (
+from spyder.plugins.completion.manager.api import (
     LSPRequestTypes, CompletionItemKind)
 
 
@@ -198,7 +198,7 @@ class DocumentProvider:
         logger.debug(path)
         if os.name == 'nt':
             path = path.replace('::', ':')
-            path = 'windows:' + path
+            path = ':windows:' + path
         request = {
             'filename': path,
             'hash': md5,

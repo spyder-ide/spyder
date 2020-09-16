@@ -32,7 +32,7 @@ from qtpy.QtWidgets import (QAction, QApplication, QFileDialog, QHBoxLayout,
 
 # Local imports
 from spyder.config.base import _, running_under_pytest
-from spyder.config.gui import is_dark_interface
+from spyder.config.gui import is_dark_interface, STYLE_BUTTON_CSS
 from spyder.config.manager import CONF
 from spyder.config.utils import (get_edit_filetypes, get_edit_filters,
                                  get_filter, is_kde_desktop, is_anaconda)
@@ -437,7 +437,7 @@ class EditorStack(QWidget):
     refresh_save_all_action = Signal()
     sig_breakpoints_saved = Signal()
     text_changed_at = Signal(str, int)
-    current_file_changed = Signal(str, int)
+    current_file_changed = Signal(str, int, int, int)
     plugin_load = Signal((str,), ())
     edit_goto = Signal(str, int, str)
     sig_split_vertically = Signal()
@@ -455,6 +455,32 @@ class EditorStack(QWidget):
     sig_save_bookmark = Signal(int)
     sig_load_bookmark = Signal(int)
     sig_save_bookmarks = Signal(str, str)
+
+    sig_help_requested = Signal(dict)
+    """
+    This signal is emitted to request help on a given object `name`.
+
+    Parameters
+    ----------
+    help_data: dict
+        Dictionary required by the Help pane to render a docstring.
+
+    Examples
+    --------
+    >>> help_data = {
+        'obj_text': str,
+        'name': str,
+        'argspec': str,
+        'note': str,
+        'docstring': str,
+        'force_refresh': bool,
+        'path': str,
+    }
+
+    See Also
+    --------
+    :py:meth:spyder.plugins.editor.widgets.editor.EditorStack.send_to_help
+    """
 
     def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
@@ -515,8 +541,12 @@ class EditorStack(QWidget):
            text=_("Show in Finder")
         else:
            text= _("Show in external file explorer")
-        external_fileexp_action = create_action(self, text,
-                                triggered=self.show_in_external_file_explorer)
+        external_fileexp_action = create_action(
+            self, text,
+            triggered=self.show_in_external_file_explorer,
+            shortcut=CONF.get_shortcut(context="Editor",
+                                       name="show in external file explorer"),
+            context=Qt.WidgetShortcut)
 
         self.menu_actions = actions + [external_fileexp_action,
                                        None, switcher_action,
@@ -524,7 +554,6 @@ class EditorStack(QWidget):
                                        copy_to_cb_action, None, close_right,
                                        close_all_but_this, sort_tabs]
         self.outlineexplorer = None
-        self.help = None
         self.unregister_callback = None
         self.is_closable = False
         self.new_action = None
@@ -560,6 +589,7 @@ class EditorStack(QWidget):
         self.completions_hint_after_ms = 500
         self.hover_hints_enabled = True
         self.code_snippets_enabled = True
+        self.code_folding_enabled = True
         self.underline_errors_enabled = False
         self.highlight_current_line_enabled = False
         self.highlight_current_cell_enabled = False
@@ -573,7 +603,7 @@ class EditorStack(QWidget):
         self.run_cell_copy = False
         self.create_new_file_if_empty = True
         self.indent_guides = False
-        ccs = 'Spyder'
+        ccs = 'spyder/dark'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
@@ -835,6 +865,12 @@ class EditorStack(QWidget):
             name="close split panel",
             parent=self)
 
+        external_fileexp = CONF.config_shortcut(
+            self.show_in_external_file_explorer,
+            context="Editor",
+            name="show in external file explorer",
+            parent=self)
+
         # Return configurable ones
         return [inspect, set_breakpoint, set_cond_breakpoint, gotoline, tab,
                 tabshift, run_selection, new_file, open_file, save_file,
@@ -845,7 +881,7 @@ class EditorStack(QWidget):
                 go_to_next_cell, go_to_previous_cell, re_run_last_cell,
                 prev_warning, next_warning, split_vertically,
                 split_horizontally, close_split,
-                prevtab, nexttab]
+                prevtab, nexttab, external_fileexp]
 
     def get_shortcut_data(self):
         """
@@ -867,14 +903,7 @@ class EditorStack(QWidget):
 
         menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
-        # Don't show menu arrow and remove padding
-        if is_dark_interface():
-            menu_btn.setStyleSheet(
-                ("QToolButton::menu-indicator{image: none;}\n"
-                 "QToolButton{margin: 1px; padding: 3px;}"))
-        else:
-            menu_btn.setStyleSheet(
-                "QToolButton::menu-indicator{image: none;}")
+        menu_btn.setStyleSheet(STYLE_BUTTON_CSS)
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
@@ -949,7 +978,8 @@ class EditorStack(QWidget):
                 self.outlineexplorer.remove_editor(finfo.editor.oe_proxy)
 
         for finfo in self.data:
-            finfo.editor.notify_close()
+            if not finfo.editor.is_cloned:
+                finfo.editor.notify_close()
         QWidget.closeEvent(self, event)
 
     def clone_editor_from(self, other_finfo, set_current):
@@ -1064,13 +1094,14 @@ class EditorStack(QWidget):
             name = editor.get_last_hover_word()
         else:
             name = editor.get_current_word(help_req=True)
+
         try:
             editor.sig_display_object_info.disconnect(self.display_help)
         except TypeError:
             # Needed to prevent an error after some time in idle.
             # See spyder-ide/spyder#11228
             pass
-        self.help.switch_to_editor_source()
+
         self.send_to_help(name, help_text, force=True)
 
     #------ Editor Widget Settings
@@ -1103,9 +1134,6 @@ class EditorStack(QWidget):
         oe_btn = create_toolbutton(editor_plugin)
         oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
         self.add_corner_widgets_to_tabbar([5, oe_btn])
-
-    def set_help(self, help_plugin):
-        self.help = help_plugin
 
     def set_tempfile_path(self, path):
         self.tempfile_path = path
@@ -1182,7 +1210,7 @@ class EditorStack(QWidget):
         self.indent_guides = state
         if self.data:
             for finfo in self.data:
-                finfo.editor.indent_guides.set_enabled(state)
+                finfo.editor.toggle_identation_guides(state)
 
     def set_close_parentheses_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'close_parentheses')
@@ -1279,6 +1307,12 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_code_snippets(state)
 
+    def set_code_folding_enabled(self, state):
+        self.code_folding_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_code_folding(state)
+
     def set_automatic_completions_enabled(self, state):
         self.automatic_completions_enabled = state
         if self.data:
@@ -1372,6 +1406,18 @@ class EditorStack(QWidget):
         """If `state` is ``True``, code cells will be copied to the console."""
         self.run_cell_copy = state
 
+    def set_current_project_path(self, root_path=None):
+        """
+        Set the current active project root path.
+
+        Parameters
+        ----------
+        root_path: str or None, optional
+            Path to current project root path. Default is None.
+        """
+        for finfo in self.data:
+            finfo.editor.set_current_project_path(root_path)
+
     #------ Stacked widget management
     def get_stack_index(self):
         return self.tabs.currentIndex()
@@ -1460,14 +1506,46 @@ class EditorStack(QWidget):
         if index is None:
             return
         finfo = self.data[index]
-        if osp.splitext(finfo.filename)[1] != osp.splitext(new_filename)[1]:
-            # File type has changed!
+
+        # Send close request to LSP
+        finfo.editor.notify_close()
+
+        # Set new filename
+        finfo.filename = new_filename
+        finfo.editor.filename = new_filename
+
+        # File type has changed!
+        original_ext = osp.splitext(original_filename)[1]
+        new_ext = osp.splitext(new_filename)[1]
+        if original_ext != new_ext:
+            # Set file language and re-run highlighter
             txt = to_text_string(finfo.editor.get_text_with_eol())
             language = get_file_language(new_filename, txt)
-            finfo.editor.set_language(language)
+            finfo.editor.set_language(language, new_filename)
+            finfo.editor.run_pygments_highlighter()
+
+            # If the user renamed the file to a different language, we
+            # need to emit sig_open_file to see if we can start a
+            # language server for it.
+            options = {
+                'language': language,
+                'filename': new_filename,
+                'codeeditor': finfo.editor
+            }
+            self.sig_open_file.emit(options)
+
+            # Update panels
+            finfo.editor.set_debug_panel(
+                show_debug_panel=True, language=language)
+            finfo.editor.cleanup_code_analysis()
+            finfo.editor.cleanup_folding()
+        else:
+            # If there's no language change, we simply need to request a
+            # document_did_open for the new file.
+            finfo.editor.document_did_open()
+
         set_new_index = index == self.get_stack_index()
         current_fname = self.get_current_filename()
-        finfo.filename = new_filename
         new_index = self.data.index(finfo)
         self.__repopulate_stack()
         if set_new_index:
@@ -1700,7 +1778,10 @@ class EditorStack(QWidget):
             else:
                 new_index = current_index
 
-        is_ok = force or self.save_if_changed(cancelable=True, index=index)
+        can_close_file = self.parent().plugin.can_close_file(
+            self.data[index].filename) if self.parent() else True
+        is_ok = (force or self.save_if_changed(cancelable=True, index=index)
+                 and can_close_file)
         if is_ok:
             finfo = self.data[index]
             self.threadmanager.close_threads(finfo)
@@ -1759,12 +1840,22 @@ class EditorStack(QWidget):
             if editor.language.lower() == language:
                 editor.start_completion_services()
 
-    def update_server_configuration(self, language, config):
-        """Update language server settings across all editors."""
+    def register_completion_capabilities(self, capabilities, language):
+        """
+        Register completion server capabilities across all editors.
+
+        Parameters
+        ----------
+        capabilities: dict
+            Capabilities supported by a language server.
+        language: str
+            Programming language for the language server (it has to be
+            in small caps).
+        """
         for index in range(self.get_stack_count()):
             editor = self.tabs.widget(index)
             if editor.language.lower() == language:
-                editor.update_completion_configuration(config)
+                editor.register_completion_capabilities(capabilities)
 
     def notify_server_down(self, language):
         """Notify language server unavailability to code editors."""
@@ -2185,7 +2276,7 @@ class EditorStack(QWidget):
             return
         if index is None:
             index = self.get_stack_index()
-        if self.data:
+        if self.data and len(self.data) > index:
             finfo = self.data[index]
             if self.todolist_enabled:
                 finfo.run_todo_finder()
@@ -2207,10 +2298,7 @@ class EditorStack(QWidget):
 #        count = self.get_stack_count()
 #        for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
 #            btn.setEnabled(count > 1)
-
         editor = self.get_current_editor()
-        if editor.completions_available and not editor.document_opened:
-            editor.document_did_open()
         if index != -1:
             editor.setFocus()
             logger.debug("Set focus to: %s" % editor.filename)
@@ -2239,8 +2327,10 @@ class EditorStack(QWidget):
             # Needed in order to handle the close of files open in a directory
             # that has been renamed. See spyder-ide/spyder#5157.
             try:
+                line, col = editor.get_cursor_line_column()
                 self.current_file_changed.emit(self.data[index].filename,
-                                               editor.get_position('cursor'))
+                                               editor.get_position('cursor'),
+                                               line, col)
             except IndexError:
                 pass
 
@@ -2283,7 +2373,7 @@ class EditorStack(QWidget):
             return
         if index is None:
             index = self.get_stack_index()
-        if self.data:
+        if self.data and len(self.data) > index:
             finfo = self.data[index]
             oe.setEnabled(True)
             if finfo.editor.oe_proxy is None:
@@ -2312,20 +2402,31 @@ class EditorStack(QWidget):
 
     def __refresh_statusbar(self, index):
         """Refreshing statusbar widgets"""
-        finfo = self.data[index]
-        self.encoding_changed.emit(finfo.encoding)
-        # Refresh cursor position status:
-        line, index = finfo.editor.get_cursor_line_column()
-        self.sig_editor_cursor_position_changed.emit(line, index)
+        if self.data and len(self.data) > index:
+            finfo = self.data[index]
+            self.encoding_changed.emit(finfo.encoding)
+            # Refresh cursor position status:
+            line, index = finfo.editor.get_cursor_line_column()
+            self.sig_editor_cursor_position_changed.emit(line, index)
 
     def __refresh_readonly(self, index):
-        finfo = self.data[index]
-        read_only = not QFileInfo(finfo.filename).isWritable()
-        if not osp.isfile(finfo.filename):
-            # This is an 'untitledX.py' file (newly created)
-            read_only = False
-        finfo.editor.setReadOnly(read_only)
-        self.readonly_changed.emit(read_only)
+        if self.data and len(self.data) > index:
+            finfo = self.data[index]
+            read_only = not QFileInfo(finfo.filename).isWritable()
+            if not osp.isfile(finfo.filename):
+                # This is an 'untitledX.py' file (newly created)
+                read_only = False
+            elif os.name == 'nt':
+                try:
+                    # Try to open the file to see if its permissions allow
+                    # to write on it
+                    # Fixes spyder-ide/spyder#10657
+                    fd = os.open(finfo.filename, os.O_RDWR)
+                    os.close(fd)
+                except (IOError, OSError):
+                    read_only = True
+            finfo.editor.setReadOnly(read_only)
+            self.readonly_changed.emit(read_only)
 
     def __check_file_status(self, index):
         """Check if file has been changed in any way outside Spyder:
@@ -2337,6 +2438,9 @@ class EditorStack(QWidget):
             # triggering a refresh cycle which calls this method
             return
         self.__file_status_flag = True
+
+        if len(self.data) <= index:
+            index = self.get_stack_index()
 
         finfo = self.data[index]
         name = osp.basename(finfo.filename)
@@ -2395,11 +2499,6 @@ class EditorStack(QWidget):
             state = finfo.editor.document().isModified()
             self.set_stack_title(index, state)
 
-    def __reset_tooltip(self):
-        """Reset tooltip tip info for all the editors."""
-        for index, finfo in enumerate(self.data):
-            finfo.editor.reset_tooltip()
-
     def refresh(self, index=None):
         """Refresh tabwidget"""
         if index is None:
@@ -2416,7 +2515,6 @@ class EditorStack(QWidget):
             self.__refresh_readonly(index)
             self.__check_file_status(index)
             self.__modify_stack_title()
-            self.__reset_tooltip()
             self.update_plugin_title.emit()
         else:
             editor = None
@@ -2462,8 +2560,10 @@ class EditorStack(QWidget):
 
     #------ Load, reload
     def reload(self, index):
-        """Reload file from disk"""
+        """Reload file from disk."""
         finfo = self.data[index]
+        logger.debug("Reloading {}".format(finfo.filename))
+
         txt, finfo.encoding = encoding.read(finfo.filename)
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
         position = finfo.editor.get_position('cursor')
@@ -2482,9 +2582,11 @@ class EditorStack(QWidget):
         self._refresh_outlineexplorer(index)
 
     def revert(self):
-        """Revert file from disk"""
+        """Revert file from disk."""
         index = self.get_stack_index()
         finfo = self.data[index]
+        logger.debug("Reverting {}".format(finfo.filename))
+
         filename = finfo.filename
         if finfo.editor.document().isModified():
             self.msgbox = QMessageBox(
@@ -2538,10 +2640,13 @@ class EditorStack(QWidget):
             underline_errors=self.underline_errors_enabled,
             scroll_past_end=self.scrollpastend_enabled,
             edge_line=self.edgeline_enabled,
-            edge_line_columns=self.edgeline_columns, language=language,
-            markers=self.has_markers(), font=self.default_font,
+            edge_line_columns=self.edgeline_columns,
+            language=language,
+            markers=self.has_markers(),
+            font=self.default_font,
             color_scheme=self.color_scheme,
-            wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
+            wrap=self.wrap_enabled,
+            tab_mode=self.tabmode_enabled,
             strip_mode=self.stripmode_enabled,
             intelligent_backspace=self.intelligent_backspace_enabled,
             automatic_completions=self.automatic_completions_enabled,
@@ -2565,6 +2670,7 @@ class EditorStack(QWidget):
             filename=fname,
             show_class_func_dropdown=self.show_class_func_dropdown,
             indent_guides=self.indent_guides,
+            folding=self.code_folding_enabled,
         )
         if cloned_from is None:
             editor.set_text(txt)
@@ -2619,23 +2725,31 @@ class EditorStack(QWidget):
         """qstr1: obj_text, qstr2: argpspec, qstr3: note, qstr4: doc_text"""
         if not force and not self.help_enabled:
             return
-        if self.help is not None \
-          and (force or self.help.dockwidget.isVisible()):
-            signature = to_text_string(signature)
-            signature = unicodedata.normalize("NFKD", signature)
-            parts = signature.split('\n\n')
-            definition = parts[0]
-            documentation = '\n\n'.join(parts[1:])
-            args = ''
-            if '(' in definition:
-                args = definition[definition.find('('):]
 
-            doc = {'obj_text': '', 'name': name,
-                   'argspec': args, 'note': '',
-                   'docstring': documentation}
-            self.help.set_editor_doc(doc, force_refresh=force)
-            editor = self.get_current_editor()
-            editor.setFocus()
+        editor = self.get_current_editor()
+        language = editor.language.lower()
+        signature = to_text_string(signature)
+        signature = unicodedata.normalize("NFKD", signature)
+        parts = signature.split('\n\n')
+        definition = parts[0]
+        documentation = '\n\n'.join(parts[1:])
+        args = ''
+
+        if '(' in definition and language == 'python':
+            args = definition[definition.find('('):]
+        else:
+            documentation = signature
+
+        doc = {
+            'obj_text': '',
+            'name': name,
+            'argspec': args,
+            'note': '',
+            'docstring': documentation,
+            'force_refresh': force,
+            'path': editor.filename
+        }
+        self.sig_help_requested.emit(doc)
 
     def new(self, filename, encoding, text, default_content=False,
             empty=False):
@@ -2827,21 +2941,37 @@ class EditorStack(QWidget):
                 self.debug_cell_in_ipyclient.emit(*args)
             else:
                 self.run_cell_in_ipyclient.emit(*args)
-        editor.setFocus()
+        if self.focus_to_editor:
+            editor.setFocus()
+        else:
+            console = QApplication.focusWidget()
+            console.setFocus()
 
     #------ Drag and drop
     def dragEnterEvent(self, event):
-        """Reimplement Qt method
-        Inform Qt about the types of data that the widget accepts"""
+        """
+        Reimplemented Qt method.
+
+        Inform Qt about the types of data that the widget accepts.
+        """
+        logger.debug("dragEnterEvent was received")
         source = event.mimeData()
         # The second check is necessary on Windows, where source.hasUrls()
         # can return True but source.urls() is []
         # The third check is needed since a file could be dropped from
         # compressed files. In Windows mimedata2url(source) returns None
         # Fixes spyder-ide/spyder#5218.
-        if source.hasUrls() and source.urls() and mimedata2url(source):
-            all_urls = mimedata2url(source)
+        has_urls = source.hasUrls()
+        has_text = source.hasText()
+        urls = source.urls()
+        all_urls = mimedata2url(source)
+        logger.debug("Drag event source has_urls: {}".format(has_urls))
+        logger.debug("Drag event source urls: {}".format(urls))
+        logger.debug("Drag event source all_urls: {}".format(all_urls))
+        logger.debug("Drag event source has_text: {}".format(has_text))
+        if has_urls and urls and all_urls:
             text = [encoding.is_text_file(url) for url in all_urls]
+            logger.debug("Accept proposed action?: {}".format(any(text)))
             if any(text):
                 event.acceptProposedAction()
             else:
@@ -2853,13 +2983,19 @@ class EditorStack(QWidget):
             # which can be opened by the Editor if they are plain
             # text, but doesn't come with url info.
             # Fixes spyder-ide/spyder#2032.
+            logger.debug("Accept proposed action on Windows")
             event.acceptProposedAction()
         else:
+            logger.debug("Ignore drag event")
             event.ignore()
 
     def dropEvent(self, event):
-        """Reimplement Qt method
-        Unpack dropped data and handle it"""
+        """
+        Reimplement Qt method.
+
+        Unpack dropped data and handle it.
+        """
+        logger.debug("dropEvent was received")
         source = event.mimeData()
         # The second check is necessary when mimedata2url(source)
         # returns None.
@@ -2929,6 +3065,9 @@ class EditorSplitter(QSplitter):
         self.editorstack.sig_split_horizontally.connect(
                      lambda: self.split(orientation=Qt.Horizontal))
         self.addWidget(self.editorstack)
+
+        if not running_under_pytest():
+            self.editorstack.set_color_scheme(plugin.get_color_scheme())
 
     def closeEvent(self, event):
         """Override QWidget closeEvent().
@@ -3474,6 +3613,9 @@ class EditorPluginExample(QSplitter):
         """Fake!"""
         pass
 
+    def get_color_scheme(self):
+        pass
+
 
 def test():
     from spyder.utils.qthelpers import qapplication
@@ -3488,12 +3630,11 @@ def test():
 
     import time
     t0 = time.time()
+    test.load(osp.join(spyder_dir, "widgets", "collectionseditor.py"))
     test.load(osp.join(spyder_dir, "plugins", "editor", "widgets",
                        "editor.py"))
     test.load(osp.join(spyder_dir, "plugins", "explorer", "widgets",
                        'explorer.py'))
-    test.load(osp.join(spyder_dir, "plugins", "variableexplorer", "widgets",
-                       "collectionseditor.py"))
     test.load(osp.join(spyder_dir, "plugins", "editor", "widgets",
                        "codeeditor.py"))
     print("Elapsed time: %.3f s" % (time.time()-t0))  # spyder: test-skip

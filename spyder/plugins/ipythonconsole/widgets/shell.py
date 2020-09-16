@@ -15,11 +15,11 @@ import uuid
 from textwrap import dedent
 
 # Third party imports
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, QThread
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import programs, encoding
@@ -51,19 +51,22 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
 
     # For DebuggingWidget
     sig_pdb_step = Signal(str, int)
+    sig_pdb_state = Signal(bool, dict)
 
     # For ShellWidget
     focus_changed = Signal()
     new_client = Signal()
     sig_is_spykernel = Signal(object)
-    sig_kernel_restarted = Signal(str)
+    sig_kernel_restarted_message = Signal(str)
+    sig_kernel_restarted = Signal()
     sig_prompt_ready = Signal()
+    sig_remote_execute = Signal()
 
     # For global working directory
     sig_change_cwd = Signal(str)
 
     # For printing internal errors
-    sig_exception_occurred = Signal(str, bool)
+    sig_exception_occurred = Signal(dict)
 
     def __init__(self, ipyclient, additional_options, interpreter_versions,
                  external_kernel, *args, **kw):
@@ -90,8 +93,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # set in the qtconsole constructor. See spyder-ide/spyder#4806.
         self.set_bracket_matcher_color_scheme(self.syntax_style)
 
+        self.shutdown_called = False
         self.kernel_manager = None
         self.kernel_client = None
+        self.shutdown_thread = None
         handlers = {
             'pdb_state': self.set_pdb_state,
             'pdb_continue': self.pdb_continue,
@@ -102,10 +107,52 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'get_file_code': self.handle_get_file_code,
             'set_debug_state': self.handle_debug_state,
             'update_syspath': self.update_syspath,
+            'do_where': self.do_where,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
+
+    def __del__(self):
+        """Avoid destroying shutdown_thread."""
+        if (self.shutdown_thread is not None
+                and self.shutdown_thread.isRunning()):
+            self.shutdown_thread.wait()
+
+    # ---- Public API ---------------------------------------------------------
+    def shutdown(self):
+        """Shutdown kernel"""
+        self.shutdown_called = True
+        self.spyder_kernel_comm.close()
+        self.spyder_kernel_comm.shutdown_comm_channel()
+        self.kernel_manager.stop_restarter()
+
+        self.shutdown_thread = QThread()
+        self.shutdown_thread.run = self.kernel_manager.shutdown_kernel
+        if self.kernel_client is not None:
+            self.shutdown_thread.finished.connect(
+                self.kernel_client.stop_channels)
+        self.shutdown_thread.start()
+
+    def will_close(self, externally_managed):
+        """
+        Close communication channels with the kernel if shutdown was not
+        called. If the kernel is not externally managed, shutdown the kernel
+        as well.
+        """
+        if not self.shutdown_called and not externally_managed:
+            # Make sure the channels are stopped
+            self.spyder_kernel_comm.close()
+            self.spyder_kernel_comm.shutdown_comm_channel()
+            self.kernel_manager.stop_restarter()
+            self.kernel_manager.shutdown_kernel(now=True)
+            if self.kernel_client is not None:
+                self.kernel_client.stop_channels()
+        if externally_managed:
+            self.spyder_kernel_comm.close()
+            if self.kernel_client is not None:
+                self.kernel_client.stop_channels()
+        super(ShellWidget, self).will_close(externally_managed)
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
                     timeout=None):
@@ -145,7 +192,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Redefine the complete method to work while debugging.
         self.redefine_complete_for_dbg(self.kernel_client)
 
-    #---- Public API ----------------------------------------------------------
     def set_exit_callback(self):
         """Set exit callback for this shell."""
         self.exit_requested.connect(self.ipyclient.exit_callback)
@@ -209,14 +255,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if not dark_color:
             # Needed to change the colors of tracebacks
             self.silent_execute("%colors linux")
-            self.call_kernel(
-                interrupt=True,
-                blocking=False).set_sympy_forecolor(background_color='dark')
+            self.call_kernel().set_sympy_forecolor(background_color='dark')
         else:
             self.silent_execute("%colors lightbg")
-            self.call_kernel(
-                interrupt=True,
-                blocking=False).set_sympy_forecolor(background_color='light')
+            self.call_kernel().set_sympy_forecolor(background_color='light')
 
     def update_syspath(self, path_dict, new_path_dict):
         """Update sys.path contents on kernel."""
@@ -304,6 +346,11 @@ the sympy module (e.g. plot)
         reset_str = _("Remove all variables")
         warn_str = _("All user-defined variables will be removed. "
                      "Are you sure you want to proceed?")
+
+        # Don't show the warning when running our tests.
+        if running_under_pytest():
+            warning = False
+
         # This is necessary to make resetting variables work in external
         # kernels.
         # See spyder-ide/spyder#9505.
@@ -356,7 +403,11 @@ the sympy module (e.g. plot)
                     self.silent_execute(dedent(sympy_init))
                 if kernel_env.get('SPY_RUN_CYTHON') == 'True':
                     self.silent_execute("%reload_ext Cython")
-                self.refresh_namespacebrowser()
+
+                # This doesn't need to interrupt the kernel because
+                # "%reset -f" is being executed before it.
+                # Fixes spyder-ide/spyder#12689
+                self.refresh_namespacebrowser(interrupt=False)
 
                 if not self.external_kernel:
                     self.call_kernel().close_all_mpl_figures()
@@ -516,7 +567,7 @@ the sympy module (e.g. plot)
             if not 'inline' in command:
                 self.silent_execute(command)
 
-    # ---- Spyder-kernels methods -------------------------------------------
+    # ---- Spyder-kernels methods ---------------------------------------------
     def get_editor(self, filename):
         """Get editor for filename and set it as the current editor."""
         editorstack = self.get_editorstack()
@@ -540,14 +591,14 @@ the sympy module (e.g. plot)
             return editor.get_current_editorstack()
         raise RuntimeError('No editorstack found.')
 
-    def handle_get_file_code(self, filename):
+    def handle_get_file_code(self, filename, save_all=True):
         """
         Return the bytes that compose the file.
 
         Bytes are returned instead of str to support non utf-8 files.
         """
         editorstack = self.get_editorstack()
-        if CONF.get('editor', 'save_all_before_run', True):
+        if save_all and CONF.get('editor', 'save_all_before_run', True):
             editorstack.save_all(save_new_files=False)
         editor = self.get_editor(filename)
 
@@ -563,8 +614,6 @@ the sympy module (e.g. plot)
         Get cell code from cell name and file name.
         """
         editorstack = self.get_editorstack()
-        if CONF.get('editor', 'save_all_before_run', True):
-            editorstack.save_all(save_new_files=False)
         editor = self.get_editor(filename)
 
         if editor is None:
@@ -592,8 +641,12 @@ the sympy module (e.g. plot)
         """Get the current filename."""
         return self.get_editorstack().get_current_finfo().filename
 
-    # ---- Private methods (overrode by us) ---------------------------------
+    # ---- Public methods (overrode by us) ------------------------------------
+    def request_restart_kernel(self):
+        """Reimplemented to call our own restart mechanism."""
+        self.ipyclient.restart_kernel()
 
+    # ---- Private methods (overrode by us) -----------------------------------
     def _handle_error(self, msg):
         """
         Reimplemented to reset the prompt if the error comes after the reply
@@ -621,7 +674,11 @@ the sympy module (e.g. plot)
 
     def _kernel_restarted_message(self, died=True):
         msg = _("Kernel died, restarting") if died else _("Kernel restarting")
-        self.sig_kernel_restarted.emit(msg)
+        self.sig_kernel_restarted_message.emit(msg)
+
+    def _handle_kernel_restarted(self):
+        super(ShellWidget, self)._handle_kernel_restarted()
+        self.sig_kernel_restarted.emit()
 
     def _syntax_style_changed(self):
         """Refresh the highlighting with the current syntax style by class."""
@@ -639,6 +696,11 @@ the sympy module (e.g. plot)
         if not self._reading:
             self._highlighter.highlighting_on = True
             self.sig_prompt_ready.emit()
+
+    def _handle_execute_input(self, msg):
+        """Handle an execute_input message"""
+        super(ShellWidget, self)._handle_execute_input(msg)
+        self.sig_remote_execute.emit()
 
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):

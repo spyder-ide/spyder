@@ -124,6 +124,8 @@ class DataFrameModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self)
         self.dialog = parent
         self.df = dataFrame
+        self.df_columns_list = None
+        self.df_index_list = None
         self._format = format
         self.complex_intran = None
         self.display_error_idxs = []
@@ -166,6 +168,21 @@ class DataFrameModel(QAbstractTableModel):
         """
         return self.df.columns if axis == 0 else self.df.index
 
+    def _axis_list(self, axis):
+        """
+        Return the corresponding labels as a list taking into account the axis.
+
+        The axis could be horizontal (0) or vertical (1).
+        """
+        if axis == 0:
+            if self.df_columns_list is None:
+                self.df_columns_list = self.df.columns.tolist()
+            return self.df_columns_list
+        else:
+            if self.df_index_list is None:
+                self.df_index_list = self.df.index.tolist()
+            return self.df_index_list
+
     def _axis_levels(self, axis):
         """
         Return the number of levels in the labels taking into account the axis.
@@ -198,8 +215,11 @@ class DataFrameModel(QAbstractTableModel):
         given level.
         """
         ax = self._axis(axis)
-        return ax.tolist()[x] if not hasattr(ax, 'levels') \
-            else ax.values[x][level]
+        if not hasattr(ax, 'levels'):
+            ax = self._axis_list(axis)
+            return ax[x]
+        else:
+            return ax.values[x][level]
 
     def name(self, axis, level):
         """Return the labels of the levels if any."""
@@ -283,8 +303,12 @@ class DataFrameModel(QAbstractTableModel):
             else:
                 color_func = float
             vmax, vmin = self.return_max(self.max_min_col, column)
+            if vmax - vmin == 0:
+                vmax_vmin_diff = 1.0
+            else:
+                vmax_vmin_diff = vmax - vmin
             hue = (BACKGROUND_NUMBER_MINHUE + BACKGROUND_NUMBER_HUERANGE *
-                   (vmax - color_func(value)) / (vmax - vmin))
+                   (vmax - color_func(value)) / (vmax_vmin_diff))
             hue = float(abs(hue))
             if hue > 1:
                 hue = 1
@@ -515,9 +539,26 @@ class DataFrameView(QTableView):
             name='copy',
             parent=self)
         self.horizontalScrollBar().valueChanged.connect(
-                        lambda val: self.load_more_data(val, columns=True))
-        self.verticalScrollBar().valueChanged.connect(
-                        lambda val: self.load_more_data(val, rows=True))
+            self._load_more_columns)
+        self.verticalScrollBar().valueChanged.connect(self._load_more_rows)
+
+    def _load_more_columns(self, value):
+        """Load more columns to display."""
+        # Needed to avoid a NameError while fetching data when closing
+        # See spyder-ide/spyder#12034.
+        try:
+            self.load_more_data(value, columns=True)
+        except NameError:
+            pass
+
+    def _load_more_rows(self, value):
+        """Load more rows to display."""
+        # Needed to avoid a NameError while fetching data when closing
+        # See spyder-ide/spyder#12034.
+        try:
+            self.load_more_data(value, rows=True)
+        except NameError:
+            pass
 
     def load_more_data(self, value, rows=False, columns=False):
         """Load more rows and columns to display."""
@@ -566,7 +607,8 @@ class DataFrameView(QTableView):
                      (_("To str"), to_text_string))
         types_in_menu = [copy_action]
         for name, func in functions:
-            slot = lambda func=func: self.change_type(func)
+            def slot():
+                self.change_type(func)
             types_in_menu += [create_action(self, name,
                                             triggered=slot,
                                             context=Qt.WidgetShortcut)]
@@ -635,20 +677,31 @@ class DataFrameHeaderModel(QAbstractTableModel):
         self.model = model
         self.axis = axis
         self._palette = palette
-        if self.axis == 0:
-            self.total_cols = self.model.shape[1]
-            self._shape = (self.model.header_shape[0], self.model.shape[1])
+        self.total_rows = self.model.shape[0]
+        self.total_cols = self.model.shape[1]
+        size = self.total_rows * self.total_cols
+
+        # Use paging when the total size, number of rows or number of
+        # columns is too large
+        if size > LARGE_SIZE:
+            self.rows_loaded = ROWS_TO_LOAD
+            self.cols_loaded = COLS_TO_LOAD
+        else:
             if self.total_cols > LARGE_COLS:
                 self.cols_loaded = COLS_TO_LOAD
             else:
                 self.cols_loaded = self.total_cols
-        else:
-            self.total_rows = self.model.shape[0]
-            self._shape = (self.model.shape[0], self.model.header_shape[1])
             if self.total_rows > LARGE_NROWS:
                 self.rows_loaded = ROWS_TO_LOAD
             else:
                 self.rows_loaded = self.total_rows
+
+        if self.axis == 0:
+            self.total_cols = self.model.shape[1]
+            self._shape = (self.model.header_shape[0], self.model.shape[1])
+        else:
+            self.total_rows = self.model.shape[0]
+            self._shape = (self.model.shape[0], self.model.header_shape[1])
 
     def rowCount(self, index=None):
         """Get number of rows in the header."""

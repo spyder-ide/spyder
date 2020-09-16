@@ -28,14 +28,14 @@ from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font, is_dark_interface
 from spyder.config.manager import CONF
-from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
-                                    create_toolbutton, qapplication)
-from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.plugins.variableexplorer.widgets.basedialog import BaseDialog
 from spyder.plugins.variableexplorer.widgets.objectexplorer import (
     DEFAULT_ATTR_COLS, DEFAULT_ATTR_DETAILS, ToggleColumnTreeView,
     TreeItem, TreeModel, TreeProxyModel)
 from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import (add_actions, create_plugin_layout,
+                                    create_toolbutton, qapplication)
+from spyder.widgets.simplecodeeditor import SimpleCodeEditor
 
 
 logger = logging.getLogger(__name__)
@@ -297,7 +297,7 @@ class ObjectExplorer(BaseDialog):
         h_group_layout.addWidget(radio_widget)
 
         # Editor widget
-        self.editor = CodeEditor(self)
+        self.editor = SimpleCodeEditor(self)
         self.editor.setReadOnly(True)
         h_group_layout.addWidget(self.editor)
 
@@ -322,8 +322,6 @@ class ObjectExplorer(BaseDialog):
         self.central_splitter.setCollapsible(0, False)
         self.central_splitter.setCollapsible(1, True)
         self.central_splitter.setSizes([500, 320])
-        self.central_splitter.setStretchFactor(0, 10)
-        self.central_splitter.setStretchFactor(1, 0)
 
         # Connect signals
         # Keep a temporary reference of the selection_model to prevent
@@ -422,20 +420,19 @@ class ObjectExplorer(BaseDialog):
             data = attr_details.data_fn(tree_item)
             self.editor.setPlainText(data)
             self.editor.setWordWrapMode(attr_details.line_wrap)
-            show_blanks = CONF.get('editor', 'blank_spaces')
-            update_scrollbar = CONF.get('editor', 'scroll_past_end')
-            scheme_name = CONF.get('appearance', 'selected')
             self.editor.setup_editor(
-                tab_mode=False,
                 font=get_font(font_size_delta=DEFAULT_SMALL_DELTA),
-                show_blanks=show_blanks,
-                color_scheme=scheme_name,
-                scroll_past_end=update_scrollbar)
+                show_blanks=False,
+                color_scheme=CONF.get('appearance', 'selected'),
+                scroll_past_end=False,
+            )
             self.editor.set_text(data)
+
             if attr_details.name == 'Source code':
                 self.editor.set_language('Python')
             else:
                 self.editor.set_language('Rst')
+
         except Exception as ex:
             self.editor.setStyleSheet("color: red;")
             stack_trace = traceback.format_exc()

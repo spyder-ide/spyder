@@ -188,20 +188,40 @@ class DockTitleBar(QWidget):
 
 class SpyderDockWidget(QDockWidget):
     """Subclass to override needed methods"""
+
+    # Attributes
+    ALLOWED_AREAS = Qt.AllDockWidgetAreas
+    LOCATION = Qt.LeftDockWidgetArea
+    FEATURES = QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetMovable
+
+    # Signals
     sig_plugin_closed = Signal()
 
     def __init__(self, title, parent):
         super(SpyderDockWidget, self).__init__(title, parent)
 
-        # Set our custom title bar
+        self.title = title
+
+        # Widgets
+        self.main = parent
+        self.empty_titlebar = QWidget(self)
         self.titlebar = DockTitleBar(self)
+        self.dock_tabbar = None  # Needed for event filter
+
+        # Layout
+        # Prevent message on internal console
+        # See: https://bugreports.qt.io/browse/QTBUG-42986
+        layout = QHBoxLayout(self.empty_titlebar)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        self.empty_titlebar.setLayout(layout)
+        self.empty_titlebar.setMinimumSize(0, 0)
+        self.empty_titlebar.setMaximumSize(0, 0)
+
+        # Setup
         self.set_title_bar()
 
-        # Needed for the installation of the event filter
-        self.title = title
-        self.main = parent
-        self.dock_tabbar = None
-
+        # Signals
         # To track dockwidget changes the filter is installed when dockwidget
         # visibility changes. This installs the filter on startup and also
         # on dockwidgets that are undocked and then docked to a new location.
@@ -235,6 +255,10 @@ class SpyderDockWidget(QDockWidget):
                 self.dock_tabbar.filter = TabFilter(self.dock_tabbar,
                                                     self.main)
                 self.dock_tabbar.installEventFilter(self.dock_tabbar.filter)
+
+    def remove_title_bar(self):
+        """Set empty qwidget on title bar."""
+        self.setTitleBarWidget(self.empty_titlebar)
 
     def set_title_bar(self):
         """Set custom title bar."""

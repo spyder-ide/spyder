@@ -16,7 +16,9 @@ from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
 import locale
 import re
 import os
+import os.path as osp
 import sys
+import time
 import errno
 
 # Third-party imports
@@ -25,8 +27,13 @@ from atomicwrites import atomic_write
 
 # Local imports
 from spyder.py3compat import (is_string, to_text_string, is_binary_string,
-                              is_unicode)
+                              is_unicode, PY2)
 from spyder.utils.external.binaryornot.check import is_binary
+
+if PY2:
+    import pathlib2 as pathlib
+else:
+    import pathlib
 
 
 PREFERRED_ENCODING = locale.getpreferredencoding()
@@ -202,12 +209,6 @@ def encode(text, orig_coding):
         except (UnicodeError, LookupError):
             pass
 
-    # Try saving as ASCII
-    try:
-        return text.encode('ascii'), 'ascii'
-    except UnicodeError:
-        pass
-
     # Save as UTF-8 without BOM
     return text.encode('utf-8'), 'utf-8'
 
@@ -232,31 +233,55 @@ def write(text, filename, encoding='utf-8', mode='wb'):
     Return (eventually new) encoding
     """
     text, encoding = encode(text, encoding)
+
+    if os.name == 'nt':
+        try:
+            absolute_path_filename = pathlib.Path(filename).resolve()
+            if absolute_path_filename.exists():
+                absolute_filename = to_text_string(absolute_path_filename)
+            else:
+                absolute_filename = osp.realpath(filename)
+        except (OSError, RuntimeError):
+            absolute_filename = osp.realpath(filename)
+    else:
+        absolute_filename = osp.realpath(filename)
+
     if 'a' in mode:
-        with open(filename, mode) as textfile:
+        with open(absolute_filename, mode) as textfile:
             textfile.write(text)
     else:
         # Based in the solution at untitaker/python-atomicwrites#42.
         # Needed to fix file permissions overwritting.
         # See spyder-ide/spyder#9381.
         try:
-            original_mode = os.stat(filename).st_mode
+            file_stat = os.stat(absolute_filename)
+            original_mode = file_stat.st_mode
+            creation = file_stat.st_atime
         except OSError:  # Change to FileNotFoundError for PY3
             # Creating a new file, emulate what os.open() does
             umask = os.umask(0)
             os.umask(umask)
             original_mode = 0o777 & ~umask
+            creation = time.time()
         try:
-            with atomic_write(filename, overwrite=True,
+            with atomic_write(absolute_filename, overwrite=True,
                               mode=mode) as textfile:
                 textfile.write(text)
         except OSError as error:
             # Some filesystems don't support the option to sync directories
             # See untitaker/python-atomicwrites#17
             if error.errno != errno.EINVAL:
-                with open(filename, mode) as textfile:
+                with open(absolute_filename, mode) as textfile:
                     textfile.write(text)
-        os.chmod(filename, original_mode)
+        try:
+            os.chmod(absolute_filename, original_mode)
+            file_stat = os.stat(absolute_filename)
+            # Preserve creation timestamps
+            os.utime(absolute_filename, (creation, file_stat.st_mtime))
+        except OSError:
+            # Prevent error when chmod/utime is not allowed
+            # See spyder-ide/spyder#11308
+            pass
     return encoding
 
 

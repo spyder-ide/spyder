@@ -194,6 +194,8 @@ DEFAULTS = [
               'edge_line': True,
               'edge_line_columns': '79',
               'indent_guides': False,
+              'code_folding': True,
+              'show_code_folding_warning': True,
               'scroll_past_end': False,
               'toolbox_panel': True,
               'close_parentheses': True,
@@ -277,9 +279,8 @@ DEFAULTS = [
               'enable': True,
               'wrap': True,
               'name_filters': NAME_FILTERS,
-              'show_hidden': True,
+              'show_hidden': False,
               'show_all': True,
-              'show_icontext': False,
               'single_click_to_open': False,
               }),
             ('find_in_files',
@@ -306,6 +307,7 @@ DEFAULTS = [
             ('pylint',
              {
               'enable': True,
+              'max_entries': 30,
               }),
             ('workingdir',
              {
@@ -423,8 +425,8 @@ DEFAULTS = [
               'editor/save as': 'Ctrl+Shift+S',
               'editor/close all': "Ctrl+Shift+W",
               'editor/last edit location': "Ctrl+Alt+Shift+Left",
-              'editor/previous cursor position': "Ctrl+Alt+Left",
-              'editor/next cursor position': "Ctrl+Alt+Right",
+              'editor/previous cursor position': "Alt+Left",
+              'editor/next cursor position': "Alt+Right",
               'editor/previous warning': "Ctrl+Alt+Shift+,",
               'editor/next warning': "Ctrl+Alt+Shift+.",
               'editor/zoom in 1': "Ctrl++",
@@ -443,6 +445,7 @@ DEFAULTS = [
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
               'editor/docstring': "Ctrl+Alt+D",
+              'editor/show in external file explorer': '',
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
               # ---- Consoles (in widgets/shell) ----
@@ -469,6 +472,12 @@ DEFAULTS = [
               'plots/copy': 'Ctrl+C',
               'plots/previous figure': 'Ctrl+PgUp',
               'plots/next figure': 'Ctrl+PgDown',
+              'plots/save': 'Ctrl+S',
+              'plots/save all': 'Ctrl+Alt+S',
+              'plots/close': 'Ctrl+W',
+              'plots/close all': 'Ctrl+Shift+W',
+              'plots/zoom in': "Ctrl++",
+              'plots/zoom out': "Ctrl+-",
               # ---- In widgets/explorer ----
               'explorer/copy file': 'Ctrl+C',
               'explorer/paste file': 'Ctrl+V',
@@ -481,6 +490,7 @@ DEFAULTS = [
               # This option is not used with the LSP server config
               # It is used to disable hover hints in the editor
               'enable_hover_hints': True,
+              'show_lsp_down_warning': True,
               'code_completion': True,
               'code_snippets': True,
               'jedi_definition': True,
@@ -519,6 +529,7 @@ DEFAULTS = [
               # Enable the installation dialog
               'show_installation_dialog': True,
               'show_onboarding': True,
+              'show_installation_error_message': True,
              }),
             ]
 
@@ -601,6 +612,10 @@ NAME_MAP = {
             'startup/fixed_directory',
           ]
          ),
+        ('pylint', [
+          'history_filenames',
+          ]
+         ),
     ]
 }
 
@@ -615,4 +630,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '56.0.0'
+CONF_VERSION = '58.0.0'

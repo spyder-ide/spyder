@@ -31,6 +31,54 @@ def mixinsbot(qtbot):
 
 # --- Tests
 # -----------------------------------------------------------------------------
+@pytest.mark.parametrize(
+    "test_object", [(u"test.attr = np.linalg.norm()\n",
+                     [(None, 'test'),
+                      (4,    'test'),
+                      (1,    'test.attr'),
+                      (4,    'test.attr'),
+                      (1,     None),
+                      (1,     'np'),
+                      (4,     'np.linalg'),
+                      (6,     'np.linalg'),
+                      (1,     'np.linalg.norm'),
+                      (4,     'np.linalg.norm'),
+                      (1,     None)
+                      ]),
+                    (u"test$attr = np$linalg$norm()\n",
+                     [(None, 'test'),
+                      (4,    'test'),
+                      (1,    'test$attr'),
+                      (4,    'test$attr'),
+                      (1,     None),
+                      (1,     'np'),
+                      (4,     'np$linalg'),
+                      (6,     'np$linalg'),
+                      (1,     'np$linalg$norm'),
+                      (4,     'np$linalg$norm'),
+                      (1,     None)
+                      ])])
+def test_get_current_object(mixinsbot, test_object):
+    """
+    Test that we can get the current object to get help for the console.
+
+    For spyder-ide/spyder#11821
+    """
+    qtbot, widget = mixinsbot
+    get_current_object = widget.get_current_object
+
+    code, matches = test_object
+    widget.setPlainText(code)
+    cursor = widget.textCursor()
+    cursor.setPosition(widget.get_position('sof'))
+
+    for move, match in matches:
+        if move is not None:
+            widget.move_cursor(move)
+        current_word = get_current_object()
+        current_word == match
+
+
 def test_get_current_word(mixinsbot):
     """
     Test that we can get the current word to get help for the editor.

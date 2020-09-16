@@ -27,6 +27,7 @@ from flaky import flaky
 # Local imports
 import spyder.plugins.base
 from spyder.plugins.projects.plugin import Projects, QMessageBox
+from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.py3compat import to_text_string
 
 
@@ -63,7 +64,6 @@ def projects(qtbot, mocker):
     projects.shortcut = None
     mocker.patch.object(spyder.plugins.base.SpyderDockWidget,
                         'install_tab_event_filter')
-    mocker.patch.object(projects, '_toggle_view_action')
     projects._create_dockwidget()
 
     # This can only be done at this point
@@ -91,6 +91,7 @@ def create_projects(projects, mocker):
             projects.main.editor, 'get_open_filenames', return_value=files)
 
         return projects
+
     return _create_projects
 
 
@@ -173,6 +174,17 @@ def test_open_project_uses_visible_config(projects, tmpdir, value):
     projects.set_option('visible_if_project_open', value)
     projects.open_project(path=to_text_string(tmpdir))
     assert projects.dockwidget.isVisible() == value
+
+
+@pytest.mark.parametrize('value', [True, False])
+def test_switch_to_plugin(projects, tmpdir, value):
+    """Test that switch_to_plugin always shows the plugin if a project is
+    opened, regardless of the config option visible_if_project_open.
+    Regression test for spyder-ide/spyder#12491."""
+    projects.set_option('visible_if_project_open', value)
+    projects.open_project(path=to_text_string(tmpdir))
+    projects.switch_to_plugin()
+    assert projects.dockwidget.isVisible()
 
 
 def test_set_get_project_filenames_when_closing_no_files(create_projects,
@@ -422,6 +434,38 @@ def test_filesystem_notifications(qtbot, projects, tmpdir):
 
         modified_file, is_dir = blocker.args
         assert modified_file in to_text_string(file3)
+
+
+def test_loaded_and_closed_signals(create_projects, tmpdir, mocker, qtbot):
+    """
+    Test that loaded and closed signals are emitted when switching
+    projects.
+    """
+    dir_object1 = tmpdir.mkdir('project1')
+    path1 = to_text_string(dir_object1)
+    path2 = to_text_string(tmpdir.mkdir('project2'))
+
+    mocker.patch.object(ProjectDialog, "exec_", return_value=True)
+
+    # Needed to actually create the files
+    opened_files = []
+    for file in ['file1', 'file2', 'file3']:
+        file_object = dir_object1.join(file)
+        file_object.write(file)
+        opened_files.append(to_text_string(file_object))
+
+    # Create the projects plugin.
+    projects = create_projects(path1, opened_files)
+
+    # Switch to another project.
+    with qtbot.waitSignals(
+            [projects.sig_project_loaded, projects.sig_project_closed]):
+        projects.open_project(path=path2)
+
+    # Create new project with an active one. This must emit
+    # sig_project_closed!
+    with qtbot.waitSignal(projects.sig_project_closed):
+        projects.create_new_project()
 
 
 if __name__ == "__main__":

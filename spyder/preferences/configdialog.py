@@ -212,7 +212,13 @@ class ConfigDialog(QDialog):
         for idx in range(self.pages_widget.count()):
             widget = self.pages_widget.widget(idx)
             widget = widget.widget()
-            if widget.CONF_SECTION == name:
+            try:
+                # New API
+                section = widget.plugin.NAME
+            except AttributeError:
+                section = widget.CONF_SECTION
+
+            if section == name:
                 return idx
         else:
             return None
@@ -379,7 +385,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                 self.restart_options[option] = combobox.label_text
 
         for (fontbox, sizebox), option in list(self.fontboxes.items()):
-            font = self.get_font(option)
+            rich_font = True if "rich" in option.lower() else False
+            font = self.get_font(rich_font)
             fontbox.setCurrentFont(font)
             sizebox.setValue(font.pointSize())
             if option is None:
@@ -778,7 +785,8 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     def create_file_combobox(self, text, choices, option, default=NoDefault,
                              tip=None, restart=False, filters=None,
                              adjust_to_contents=False,
-                             default_line_edit=False, section=None):
+                             default_line_edit=False, section=None,
+                             validate_callback=None):
         """choices: couples (name, key)"""
         combobox = FileComboBox(self, adjust_to_contents=adjust_to_contents,
                                 default_line_edit=default_line_edit)
@@ -794,7 +802,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         combobox.addItems(choices)
 
         msg = _('Invalid file path')
-        self.validate_data[edit] = (osp.isfile, msg)
+        self.validate_data[edit] = (
+            validate_callback if validate_callback else osp.isfile,
+            msg)
         browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
         browse_btn.setToolTip(_("Select file"))
         browse_btn.clicked.connect(lambda: self.select_file(edit, filters))

@@ -34,6 +34,9 @@ from qtconsole.styles import dark_color
 # preferences page)
 Shortcut = namedtuple('Shortcut', 'data')
 
+# Stylesheet to remove the indicator that appears on tool buttons with a menu.
+STYLE_BUTTON_CSS = "QToolButton::menu-indicator{image: none;}"
+
 
 def font_is_installed(font):
     """Check if font is installed"""

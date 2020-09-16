@@ -17,6 +17,7 @@ import pytest
 
 # Local imports
 from spyder.plugins.editor.widgets.tests.test_codeeditor import editorbot
+from spyder.utils.vcs import get_git_remotes
 
 # Constants
 HERE = os.path.abspath(__file__)
@@ -28,6 +29,7 @@ TEST_FILE_ABS = TEST_FILES[0].replace(' ', '%20')
 TEST_FILE_REL = 'conftest.py'
 
 
+@pytest.mark.skipif(bool(os.environ.get('CI', None)), reason='Fails on CI!')
 @pytest.mark.parametrize('params', [
             # Parameter, expected output 1, full file path, expected output 2
             # ----------------------------------------------------------------
@@ -71,8 +73,11 @@ TEST_FILE_REL = 'conftest.py'
              'https://github.com/spyder-ide/spyder/issues/123'),
             ('# gh:spyder-ide/spyder#123\n', 'gh:spyder-ide/spyder#123', None,
              'https://github.com/spyder-ide/spyder/issues/123'),
-            ('# gh-123\n', 'gh-123', HERE,
-             'https://github.com/spyder-ide/spyder/issues/123'),
+            pytest.param(('# gh-123\n', 'gh-123', HERE,
+                          'https://github.com/spyder-ide/spyder/issues/123'),
+                         marks=pytest.mark.skipif(
+                             not(get_git_remotes(HERE)),
+                             reason='not in a git repository')),
         ]
     )
 def test_goto_uri(qtbot, editorbot, mocker, params):
@@ -115,6 +120,54 @@ def test_goto_uri(qtbot, editorbot, mocker, params):
         assert expected_output_2 == output_2
 
 
+def test_goto_uri_project_root_path(qtbot, editorbot, mocker, tmpdir):
+    """Test that the uri search is working correctly."""
+    _, code_editor = editorbot
+    code_editor.show()
+    mock_project_dir = str(tmpdir)
+    expected_output_path = os.path.join(mock_project_dir, "some-file.txt")
+    with open(expected_output_path, "w") as fh:
+        fh.write("BOOM!\n")
+
+    code_editor.set_current_project_path(mock_project_dir)
+    code_editor.filename = "foo.txt"
+    mocker.patch.object(QDesktopServices, 'openUrl')
+
+    # Set text in editor
+    code_editor.set_text("file://^/some-file.txt")
+
+    # Get cursor coordinates
+    code_editor.moveCursor(QTextCursor.Start)
+    x, y = code_editor.get_coordinates('cursor')
+
+    # The `+ 23` is to put the mouse on top of the word
+    point = code_editor.calculate_real_position(QPoint(x + 23, y))
+
+    # Move cursor to end of line
+    code_editor.moveCursor(QTextCursor.End)
+
+    # Move mouse cursor on top of test word
+    qtbot.mouseMove(code_editor, point, delay=500)
+
+    # Check valid with project open
+    with qtbot.waitSignal(code_editor.sig_file_uri_preprocessed,
+                          timeout=3000) as blocker:
+        qtbot.keyPress(code_editor, Qt.Key_Control, delay=500)
+        args = blocker.args
+        assert args[0] == expected_output_path
+
+    qtbot.wait(500)
+
+    # Check with project closed
+    expected_output_path = os.path.expanduser("~/some-file.txt")
+    code_editor.set_current_project_path()
+    with qtbot.waitSignal(code_editor.sig_file_uri_preprocessed,
+                          timeout=3000) as blocker:
+        qtbot.keyPress(code_editor, Qt.Key_Control, delay=500)
+        args = blocker.args
+        assert args[0] == expected_output_path
+
+
 def test_goto_uri_message_box(qtbot, editorbot, mocker):
     """
     Test that a message box is displayed when the shorthand issue notation is
@@ -143,7 +196,7 @@ def test_goto_uri_message_box(qtbot, editorbot, mocker):
 
 
 def test_pattern_highlight_regression(qtbot, editorbot):
-    """Fix regression on spyder-ide/spyder#11376. """
+    """Fix regression on spyder-ide/spyder#11376."""
     _, code_editor = editorbot
     code_editor.show()
 

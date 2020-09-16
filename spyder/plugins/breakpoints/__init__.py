@@ -6,9 +6,7 @@
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
 
+from spyder.plugins.breakpoints.plugin import Breakpoints
 
-# =============================================================================
-# The following statement is required to register this 3rd party plugin:
-# =============================================================================
-
-from .plugin import Breakpoints as PLUGIN_CLASS
+# The following statement is required to be able to grab internal plugins.
+PLUGIN_CLASSES = [Breakpoints]

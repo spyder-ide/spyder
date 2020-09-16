@@ -356,11 +356,12 @@ LANGUAGE_CODES = {
     'ru': u'Русский',
     'zh_CN': u'简体中文',
     'ja': u'日本語',
-    'de': u'Deutsch'
+    'de': u'Deutsch',
+    'pl': u'Polski'
 }
 
-# Disabled languages (because their translations are outdated)
-DISABLED_LANGUAGES = ['hu', 'ru']
+# Disabled languages because their translations are outdated or incomplete
+DISABLED_LANGUAGES = ['hu', 'ru', 'pl']
 
 def get_available_translations():
     """
@@ -521,9 +522,6 @@ EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
                   'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
                   'Inf', 'Infinity', 'sctypes', 'rcParams', 'rcParamsDefault',
                   'sctypeNA', 'typeNA', 'False_', 'True_',]
-
-# To be able to get and set variables between Python 2 and 3
-PICKLE_PROTOCOL = 2
 
 
 #==============================================================================

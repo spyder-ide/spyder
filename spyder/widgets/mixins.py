@@ -7,7 +7,7 @@
 """Mix-in classes
 
 These classes were created to be able to provide Spyder's regular text and
-console widget features to an independant widget based on QTextEdit for the
+console widget features to an independent widget based on QTextEdit for the
 IPython console plugin.
 """
 
@@ -96,16 +96,18 @@ class BaseEditMixin(object):
         if at_point is not None:
             # Showing tooltip at point position
             margin = (self.document().documentMargin() / 2) + 1
-            cx, cy = at_point.x() - margin, at_point.y() - margin
+            cx = int(at_point.x() - margin)
+            cy = int(at_point.y() - margin)
         elif at_line is not None:
             # Showing tooltip at line
             cx = 5
             line = at_line - 1
             cursor = QTextCursor(self.document().findBlockByNumber(line))
-            cy = self.cursorRect(cursor).top()
+            cy = int(self.cursorRect(cursor).top())
         else:
             # Showing tooltip at cursor position
             cx, cy = self.get_coordinates('cursor')
+            cx = int(cx)
             cy = int(cy - font.pointSize() / 2)
 
         # Calculate vertical delta
@@ -134,7 +136,7 @@ class BaseEditMixin(object):
         self._styled_widgets.add(id(widget))
 
         if is_dark_interface():
-            css = qdarkstyle.load_stylesheet_from_environment()
+            css = qdarkstyle.load_stylesheet(qt_api='')
             widget.setStyleSheet(css)
             palette = widget.palette()
             background = palette.color(palette.Window).lighter(150).name()
@@ -458,7 +460,11 @@ class BaseEditMixin(object):
         signature_or_text = signature_or_text.replace('{', '&#123;')
         signature_or_text = signature_or_text.replace('}', '&#125;')
 
-        lines = signature_or_text.split('\n')
+        # Remove 'ufunc' signature if needed. See spyder-ide/spyder#11821
+        lines = [line for line in signature_or_text.split('\n')
+                 if 'ufunc' not in line]
+        signature_or_text = '\n'.join(lines)
+
         if language == 'python':
             open_func_char = '('
             has_multisignature = False
@@ -635,17 +641,20 @@ class BaseEditMixin(object):
         html_signature, extra_text, _ = res
         point = self.get_word_start_pos(at_point)
 
-        # This is needed to get hover hints
-        cursor = self.cursorForPosition(at_point)
-        cursor.movePosition(QTextCursor.StartOfWord, QTextCursor.MoveAnchor)
-        self._last_hover_cursor = cursor
+        # Only display hover hint if there is documentation
+        if extra_text is not None:
+            # This is needed to get hover hints
+            cursor = self.cursorForPosition(at_point)
+            cursor.movePosition(QTextCursor.StartOfWord,
+                                QTextCursor.MoveAnchor)
+            self._last_hover_cursor = cursor
 
-        self.show_tooltip(signature=html_signature, text=extra_text,
-                          at_point=point, inspect_word=inspect_word,
-                          display_link=True, max_lines=max_lines,
-                          max_width=max_width, cursor=cursor,
-                          text_new_line=text_new_line,
-                          completion_doc=completion_doc)
+            self.show_tooltip(signature=html_signature, text=extra_text,
+                              at_point=point, inspect_word=inspect_word,
+                              display_link=True, max_lines=max_lines,
+                              max_width=max_width, cursor=cursor,
+                              text_new_line=text_new_line,
+                              completion_doc=completion_doc)
 
     def hide_tooltip(self):
         """
@@ -661,9 +670,9 @@ class BaseEditMixin(object):
         self._last_point = None
         self.tooltip_widget.hide()
 
-    def reset_tooltip(self):
-        """Reset tooltip tip."""
-        self.tooltip_widget.reset_tooltip()
+    # ----- Required methods for the LSP
+    def document_did_change(self, text=None):
+        pass
 
     #------EOL characters
     def set_eol_chars(self, text):
@@ -677,6 +686,7 @@ class BaseEditMixin(object):
             self.document().setModified(True)
             if self.sig_eol_chars_changed is not None:
                 self.sig_eol_chars_changed.emit(eol_chars)
+            self.document_did_change(text)
 
     def get_line_separator(self):
         """Return line separator based on current EOL mode"""
@@ -767,6 +777,15 @@ class BaseEditMixin(object):
     def get_cursor_line_number(self):
         """Return cursor line number"""
         return self.textCursor().blockNumber()+1
+
+    def get_position_line_number(self, line, col):
+        """Get position offset from (line, col) coordinates."""
+        block = self.document().findBlockByNumber(line)
+        cursor = QTextCursor(block)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.movePosition(QTextCursor.Right, QTextCursor.KeepAnchor,
+                            n=col + 1)
+        return cursor.position()
 
     def set_cursor_position(self, position):
         """Set cursor position"""
@@ -914,6 +933,7 @@ class BaseEditMixin(object):
             self.textCursor().insertText(text)
             if self.sig_text_was_inserted is not None:
                 self.sig_text_was_inserted.emit()
+            self.document_did_change()
 
     def replace_text(self, position_from, position_to, text):
         cursor = self.__select_text(position_from, position_to)
@@ -926,6 +946,7 @@ class BaseEditMixin(object):
         cursor.insertText(text)
         if self.sig_text_was_inserted is not None:
             self.sig_text_was_inserted.emit()
+        self.document_did_change()
 
     def remove_text(self, position_from, position_to):
         cursor = self.__select_text(position_from, position_to)
@@ -933,10 +954,57 @@ class BaseEditMixin(object):
             start, end = self.get_selection_start_end(cursor)
             self.sig_will_remove_selection.emit(start, end)
         cursor.removeSelectedText()
+        self.document_did_change()
 
-    def get_current_word_and_position(self, completion=False, help_req=False):
-        """Return current word, i.e. word at cursor position,
-            and the start position."""
+    def get_current_object(self):
+        """
+        Return current object under cursor.
+
+        Get the text of the current word plus all the characters
+        to the left until a space is found. Used to get text to inspect
+        for Help of elements following dot notation for example
+        np.linalg.norm
+        """
+        cursor = self.textCursor()
+        cursor_pos = cursor.position()
+        current_word = self.get_current_word(help_req=True)
+
+        # Get max position to the left of cursor until space or no more
+        # charaters are left
+        cursor.movePosition(QTextCursor.PreviousCharacter)
+        while self.get_character(cursor.position()).strip():
+            cursor.movePosition(QTextCursor.PreviousCharacter)
+            if cursor.atBlockStart():
+                break
+        cursor_pos_left = cursor.position()
+
+        # Get max position to the right of cursor until space or no more
+        # charaters are left
+        cursor.setPosition(cursor_pos)
+        while self.get_character(cursor.position()).strip():
+            cursor.movePosition(QTextCursor.NextCharacter)
+            if cursor.atBlockEnd():
+                break
+        cursor_pos_right = cursor.position()
+
+        # Get text of the object under the cursor
+        current_text = self.get_text(
+            cursor_pos_left, cursor_pos_right).strip()
+        current_object = current_word
+
+        if current_text and current_word is not None:
+            if current_word != current_text and current_word in current_text:
+                current_object = (
+                    current_text.split(current_word)[0] + current_word)
+
+        return current_object
+
+    def get_current_word_and_position(self, completion=False, help_req=False,
+                                      valid_python_variable=True):
+        """
+        Return current word, i.e. word at cursor position, and the start
+        position.
+        """
         cursor = self.textCursor()
         cursor_pos = cursor.position()
 
@@ -960,14 +1028,18 @@ class BaseEditMixin(object):
                 return not to_text_string(curs.selectedText()).strip()
 
             def is_special_character(move):
-                    curs = self.textCursor()
-                    curs.movePosition(move, QTextCursor.KeepAnchor)
-                    text_cursor = to_text_string(curs.selectedText()).strip()
-                    return len(re.findall(r'([^\d\W]\w*)',
-                                          text_cursor, re.UNICODE)) == 0
+                """Check if a character is a non-letter including numbers."""
+                curs = self.textCursor()
+                curs.movePosition(move, QTextCursor.KeepAnchor)
+                text_cursor = to_text_string(curs.selectedText()).strip()
+                return len(
+                    re.findall(r'([^\d\W]\w*)', text_cursor, re.UNICODE)) == 0
+
             if help_req:
-                if is_special_character(QTextCursor.NoMove):
-                    cursor.movePosition(QTextCursor.WordLeft)
+                if is_special_character(QTextCursor.PreviousCharacter):
+                    cursor.movePosition(QTextCursor.NextCharacter)
+                elif is_special_character(QTextCursor.NextCharacter):
+                    cursor.movePosition(QTextCursor.PreviousCharacter)
             elif not completion:
                 if is_space(QTextCursor.NextCharacter):
                     if is_space(QTextCursor.PreviousCharacter):
@@ -981,18 +1053,32 @@ class BaseEditMixin(object):
 
         cursor.select(QTextCursor.WordUnderCursor)
         text = to_text_string(cursor.selectedText())
-        # find a valid python variable name
-        match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
-        if match:
-            text, startpos = match[0], cursor.selectionStart()
-            if completion:
-                text = text[:cursor_pos - startpos]
-            return text, startpos
+        startpos = cursor.selectionStart()
 
-    def get_current_word(self, completion=False, help_req=False):
+        # Find a valid Python variable name
+        if valid_python_variable:
+            match = re.findall(r'([^\d\W]\w*)', text, re.UNICODE)
+            if not match:
+                # This is assumed in several places of our codebase,
+                # so please don't change this return!
+                return None
+            else:
+                text = match[0]
+
+        if completion:
+            text = text[:cursor_pos - startpos]
+
+        return text, startpos
+
+    def get_current_word(self, completion=False, help_req=False,
+                         valid_python_variable=True):
         """Return current word, i.e. word at cursor position."""
         ret = self.get_current_word_and_position(
-            completion=completion, help_req=help_req)
+            completion=completion,
+            help_req=help_req,
+            valid_python_variable=valid_python_variable
+        )
+
         if ret is not None:
             return ret[0]
 
@@ -1080,6 +1166,7 @@ class BaseEditMixin(object):
     def remove_selected_text(self):
         """Delete selected text."""
         self.textCursor().removeSelectedText()
+        self.document_did_change()
 
     def replace(self, text, pattern=None):
         """Replace selected text by *text*.
@@ -1103,6 +1190,7 @@ class BaseEditMixin(object):
         if self.sig_text_was_inserted is not None:
             self.sig_text_was_inserted.emit()
         cursor.endEditBlock()
+        self.document_did_change()
 
 
     #------Find/replace
@@ -1251,9 +1339,9 @@ class BaseEditMixin(object):
 
         # TODO: adapt to font size
         x = rect.left()
-        x = x - 14
+        x = int(x - 14)
         y = rect.top() + (rect.bottom() - rect.top())/2
-        y = y - dlg.height()/2 - 3
+        y = int(y - dlg.height()/2 - 3)
 
         pos = QPoint(x, y)
         pos = self.calculate_real_position(pos)
@@ -1279,12 +1367,16 @@ class BaseEditMixin(object):
                 if self.sig_text_was_inserted is not None:
                     self.sig_text_was_inserted.emit()
                 cursor.endEditBlock()
+                self.document_did_change()
 
 
 class TracebackLinksMixin(object):
     """ """
     QT_CLASS = None
-    go_to_error = None
+
+    # This signal emits a parsed error traceback text so we can then
+    # request opening the file that traceback comes from in the Editor.
+    sig_go_to_error_requested = None
 
     def __init__(self):
         self.__cursor_changed = False
@@ -1296,8 +1388,8 @@ class TracebackLinksMixin(object):
         self.QT_CLASS.mouseReleaseEvent(self, event)
         text = self.get_line_at(event.pos())
         if get_error_match(text) and not self.has_selected_text():
-            if self.go_to_error is not None:
-                self.go_to_error.emit(text)
+            if self.sig_go_to_error_requested is not None:
+                self.sig_go_to_error_requested.emit(text)
 
     def mouseMoveEvent(self, event):
         """Show Pointing Hand Cursor on error messages"""
@@ -1322,21 +1414,17 @@ class TracebackLinksMixin(object):
 
 
 class GetHelpMixin(object):
-    def __init__(self):
-        self.help = None
-        self.help_enabled = False
 
-    def set_help(self, help_plugin):
-        """Set Help DockWidget reference"""
-        self.help = help_plugin
+    def __init__(self):
+        self.help_enabled = False
 
     def set_help_enabled(self, state):
         self.help_enabled = state
 
     def inspect_current_object(self):
-        text = self.get_current_word(help_req=True)
-        if text:
-            self.show_object_info(text, force=True)
+        current_object = self.get_current_object()
+        if current_object is not None:
+            self.show_object_info(current_object, force=True)
 
     def show_object_info(self, text, call=False, force=False):
         """Show signature calltip and/or docstring in the Help plugin"""
@@ -1344,21 +1432,12 @@ class GetHelpMixin(object):
 
         # Show docstring
         help_enabled = self.help_enabled or force
-        if force and self.help is not None:
-            self.help.dockwidget.setVisible(True)
-            self.help.dockwidget.raise_()
-        if help_enabled and (self.help is not None) and \
-           (self.help.dockwidget.isVisible()):
-            # Help widget exists and is visible
-            if hasattr(self, 'get_doc'):
-                self.help.set_shell(self)
-            else:
-                self.help.set_shell(self.parent())
-            self.help.set_object_text(text, ignore_unknown=False)
-            self.setFocus() # if help was not at top level, raising it to
-                            # top will automatically give it focus because of
-                            # the visibility_changed signal, so we must give
-                            # focus back to shell
+        if help_enabled:
+            doc = {
+                'name': text,
+                'ignore_unknown': False,
+            }
+            self.sig_help_requested.emit(doc)
 
         # Show calltip
         if call and getattr(self, 'calltips', None):

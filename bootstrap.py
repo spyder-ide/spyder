@@ -19,14 +19,17 @@ See spyder-ide/spyder#741.
 # pylint: disable=C0412
 # pylint: disable=C0413
 
-import time
-time_start = time.time()
-
+# Standard library imports
+import atexit
+import argparse
 import os
 import os.path as osp
-import sys
-import argparse
 import shutil
+import subprocess
+import sys
+import time
+
+time_start = time.time()
 
 
 # --- Parse command line
@@ -53,6 +56,10 @@ parser.add_argument('--no-apport', action='store_true',
                     default=False, help="Disable Apport exception hook (Ubuntu)")
 parser.add_argument('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
+parser.add_argument('--filter-log', default='',
+                    help="Comma-separated module name hierarchies whose log "
+                         "messages should be shown. e.g., "
+                         "spyder.plugins.completion,spyder.plugins.editor")
 parser.add_argument('spyder_options', nargs='*')
 
 args = parser.parse_args()
@@ -115,36 +122,82 @@ if args.debug:
         sys.exit("ERROR: Can't enable debug mode - Spyder is already imported")
     print("0x. Switching debug mode on")
     os.environ["SPYDER_DEBUG"] = "3"
+    if len(args.filter_log) > 0:
+        print("*. Displaying log messages only from the "
+              "following modules: {0}".format(args.filter_log))
+    os.environ["SPYDER_FILTER_LOG"] = args.filter_log
     # this way of interaction suxx, because there is no feedback
     # if operation is successful
 
 
-from spyder.utils.vcs import get_git_revision
-print("Revision %s, Branch: %s" % get_git_revision(DEVPATH))
-
+# Add this path to the front of sys.path
 sys.path.insert(0, DEVPATH)
-print("01. Patched sys.path with %s" % DEVPATH)
+print("*. Patched sys.path with %s" % DEVPATH)
 
+# Add external dependencies subrepo paths to be the next entries
+# (1, 2, etc) of sys.path
+DEPS_PATH = osp.join(DEVPATH, 'external-deps')
+i = 1
+for path in os.listdir(DEPS_PATH):
+    external_dep_path = osp.join(DEPS_PATH, path)
+    sys.path.insert(i, external_dep_path)
+    print("*. Patched sys.path with %s" % external_dep_path)
+    i += 1
+
+# Create an egg-info folder to declare the PyLS subrepo entry points.
+pyls_submodule = osp.join(DEPS_PATH, 'python-language-server')
+pyls_installation_dir = osp.join(pyls_submodule, '.installation-dir')
+pyls_installation_egg = osp.join(
+    pyls_submodule, 'python_language_server.egg-info')
+
+
+def remove_pyls_installation():
+    shutil.rmtree(pyls_installation_dir, ignore_errors=True)
+    shutil.rmtree(pyls_installation_egg, ignore_errors=True)
+
+
+if osp.exists(pyls_installation_dir) or osp.exists(pyls_installation_egg):
+    # Remove any leftover installation from previous execution
+    print("*. Removing previous PyLS local installation.")
+    remove_pyls_installation()
+
+# Install PyLS locally
+print("*. Installing PyLS locally")
+subprocess.check_output(
+    [sys.executable,
+     '-W',
+     'ignore',
+     'setup.py',
+     'develop',
+     '--no-deps',
+     '--install-dir',
+     pyls_installation_dir],
+    env={**os.environ, **{'PYTHONPATH': pyls_installation_dir}},
+    cwd=pyls_submodule
+)
+
+atexit.register(remove_pyls_installation)
 
 # Selecting the GUI toolkit: PyQt5 if installed
 if args.gui is None:
     try:
         import PyQt5  # analysis:ignore
-        print("02. PyQt5 is detected, selecting")
+        print("*. PyQt5 is detected, selecting")
         os.environ['QT_API'] = 'pyqt5'
     except ImportError:
         sys.exit("ERROR: No PyQt5 detected!")
 else:
-    print ("02. Skipping GUI toolkit detection")
+    print ("*. Skipping GUI toolkit detection")
     os.environ['QT_API'] = args.gui
 
 
 # Checking versions (among other things, this has the effect of setting the
 # QT_API environment variable if this has not yet been done just above)
 from spyder import get_versions
-versions = get_versions(reporev=False)
-print("03. Imported Spyder %s" % versions['spyder'])
-print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
+versions = get_versions(reporev=True)
+print("*. Imported Spyder %s - Revision %s, Branch: %s" %
+      (versions['spyder'], versions['revision'], versions['branch']))
+print("    [Python %s %dbits, Qt %s, %s %s on %s]" %
       (versions['python'], versions['bitness'], versions['qt'],
        versions['qt_api'], versions['qt_api_ver'], versions['system']))
 
@@ -164,7 +217,7 @@ if args.show_console:
           "is to show the console, use --hide-console if you want to hide it")
 
 if args.hide_console and os.name == 'nt':
-    print("0x. Hiding parent console (Windows only)")
+    print("*. Hiding parent console (Windows only)")
     sys.argv.append("--hide-console")  # Windows only: show parent console
 
 # Reset temporary config directory if starting in --safe-mode
@@ -174,7 +227,7 @@ if args.safe_mode or os.environ.get('SPYDER_SAFE_MODE'):
     if osp.isdir(conf_dir):
         shutil.rmtree(conf_dir)
 
-print("04. Running Spyder")
+print("*. Running Spyder")
 from spyder.app import start  # analysis:ignore
 
 time_lapse = time.time() - time_start

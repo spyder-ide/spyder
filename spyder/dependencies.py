@@ -33,29 +33,31 @@ APPLAUNCHSERVICES_REQVER = '>=0.1.7'
 ATOMICWRITES_REQVER = '>=1.2.0'
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
+COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
 INTERVALTREE_REQVER = None
 IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
-JEDI_REQVER = '=0.14.1'
+JEDI_REQVER = '=0.17.1'
 KEYRING_REQVER = None
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
 PARAMIKO_REQVER = '>=2.4.0'
+PARSO_REQVER = '=0.7.0'
 PEXPECT_REQVER = '>=4.4.0'
 PICKLESHARE_REQVER = '>=0.4'
-PSUTIL_REQVER = '>=0.3'
+PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
-PYLINT_REQVER = '>=0.25'
-PYLS_REQVER = '>=0.31.2;<0.32.0'
+PYLINT_REQVER = '>=1.0'
+PYLS_REQVER = '>=0.34.0;<1.0.0'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
-QDARKSTYLE_REQVER = '>=2.7'
+QDARKSTYLE_REQVER = '>=2.8'
 QTAWESOME_REQVER = '>=0.5.7'
 QTCONSOLE_REQVER = '>=4.6.0'
 QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.8.3'
 SPHINX_REQVER = '>=0.6.6'
-SPYDER_KERNELS_REQVER = '>=1.8.1;<2.0.0'
+SPYDER_KERNELS_REQVER = '>=2.0.0dev0'
 WATCHDOG_REQVER = None
 
 
@@ -71,19 +73,16 @@ SYMPY_REQVER = '>=0.7.3'
 # =============================================================================
 # Descriptions
 # NOTE: We declare our dependencies in **alphabetical** order
+# If some dependencies are limited to some systems only, add a 'display' key.
+# See 'applaunchservices' for an example.
 # =============================================================================
 # List of descriptions
-DESCRIPTIONS = []
-
-if sys.platform == "darwin":
-    DESCRIPTIONS.append(
-        {'modname': "applaunchservices",
-         'package_name': "applaunchservices",
-         'features': _("Notify macOS that Spyder can open Python files"),
-         'required_version': APPLAUNCHSERVICES_REQVER})
-
-
-DESCRIPTIONS += [
+DESCRIPTIONS = [
+    {'modname': "applaunchservices",
+     'package_name': "applaunchservices",
+     'features': _("Notify macOS that Spyder can open Python files"),
+     'required_version': APPLAUNCHSERVICES_REQVER,
+     'display': sys.platform == "darwin"},
     {'modname': "atomicwrites",
      'package_name': "atomicwrites",
      'features': _("Atomic file writes in the Editor"),
@@ -96,8 +95,12 @@ DESCRIPTIONS += [
      'package_name': "cloudpickle",
      'features': _("Handle communications between kernel and frontend"),
      'required_version': CLOUDPICKLE_REQVER},
+    {'modname': "cookiecutter",
+     'package_name': "cookiecutter",
+     'features': _("Create projects from cookiecutter templates"),
+     'required_version': COOKIECUTTER_REQVER},
     {'modname': "diff_match_patch",
-     'package_name': "diff_match_patch",
+     'package_name': "diff-match-patch",
      'features': _("Compute text file diff changes during edition"),
      'required_version': DIFF_MATCH_PATCH_REQVER},
     {'modname': "intervaltree",
@@ -111,20 +114,13 @@ DESCRIPTIONS += [
     {'modname': "jedi",
      'package_name': "jedi",
      'features': _("Main backend for the Python Language Server"),
-     'required_version': JEDI_REQVER}
-]
-
-
-if sys.platform.startswith('linux') and not PY2:
-    DESCRIPTIONS.append(
-        {'modname': "keyring",
-         'package_name': "keyring",
-         'features': _("Save Github credentials to report internal errors securely"),
-         'required_version': KEYRING_REQVER}
-    )
-
-
-DESCRIPTIONS += [
+     'required_version': JEDI_REQVER},
+    {'modname': "keyring",
+     'package_name': "keyring",
+     'features': _("Save Github credentials to report internal "
+                   "errors securely"),
+     'required_version': KEYRING_REQVER,
+     'display': sys.platform.startswith('linux') and not PY2},
     {'modname': "nbconvert",
      'package_name': "nbconvert",
      'features': _("Manipulate Jupyter notebooks in the Editor"),
@@ -132,20 +128,17 @@ DESCRIPTIONS += [
     {'modname': "numpydoc",
      'package_name': "numpydoc",
      'features': _("Improve code completion for objects that use Numpy docstrings"),
-     'required_version': NUMPYDOC_REQVER}
-]
-
-
-if sys.platform == 'nt':
-    DESCRIPTIONS.append(
-        {'modname': "paramiko",
-         'package_name': "paramiko",
-         'features': _("Connect to remote kernels through SSH"),
-         'required_version': PARAMIKO_REQVER}
-    )
-
-
-DESCRIPTIONS += [
+     'required_version': NUMPYDOC_REQVER},
+    {'modname': "paramiko",
+     'package_name': "paramiko",
+     'features': _("Connect to remote kernels through SSH"),
+     'required_version': PARAMIKO_REQVER,
+     'display': os.name == 'nt'},
+    {'modname': "parso",
+     'package_name': "parso",
+     'features': _("Python parser that supports error recovery and "
+                   "round-trip parsing"),
+     'required_version': PARSO_REQVER},
     {'modname': "pexpect",
      'package_name': "pexpect",
      'features': _("Stdio support for our language server client"),
@@ -169,20 +162,12 @@ DESCRIPTIONS += [
     {'modname': 'pyls',
      'package_name': 'python-language-server',
      'features': _("Code completion and linting for the Editor"),
-     'required_version': PYLS_REQVER}
-]
-
-
-if sys.platform.startswith('linux'):
-    DESCRIPTIONS.append(
-        {'modname': "xdg",
-         'package_name': "pyxdg",
-         'features': _("Parse desktop files on Linux"),
-         'required_version': PYXDG_REQVER}
-    )
-
-
-DESCRIPTIONS += [
+     'required_version': PYLS_REQVER},
+    {'modname': "xdg",
+     'package_name': "pyxdg",
+     'features': _("Parse desktop files on Linux"),
+     'required_version': PYXDG_REQVER,
+     'display': sys.platform.startswith('linux')},
     {'modname': "zmq",
      'package_name': "pyzmq",
      'features': _("Client for the language server protocol (LSP)"),
@@ -202,20 +187,12 @@ DESCRIPTIONS += [
     {'modname': "qtpy",
      'package_name': "qtpy",
      'features': _("Abstraction layer for Python Qt bindings."),
-     'required_version': QTPY_REQVER}
-]
-
-
-if is_anaconda():
-    DESCRIPTIONS.append(
-        {'modname': "rtree",
-         'package_name': "rtree",
-         'features': _("Fast access to code snippets regions"),
-         'required_version': RTREE_REQVER}
-    )
-
-
-DESCRIPTIONS += [
+     'required_version': QTPY_REQVER},
+    {'modname': "rtree",
+     'package_name': "rtree",
+     'features': _("Fast access to code snippets regions"),
+     'required_version': RTREE_REQVER,
+     'display': is_anaconda()},
     {'modname': "sphinx",
      'package_name': "sphinx",
      'features': _("Show help for objects in the Editor and Consoles in a dedicated pane"),
@@ -227,7 +204,7 @@ DESCRIPTIONS += [
     {'modname': "watchdog",
      'package_name': "watchdog",
      'features': _("Watch file changes on project directories"),
-     'required_version': WATCHDOG_REQVER}
+     'required_version': WATCHDOG_REQVER},
 ]
 
 
@@ -398,6 +375,7 @@ def missing_dependencies():
 
 def declare_dependencies():
     for dep in DESCRIPTIONS:
-        add(dep['modname'], dep['package_name'],
-            dep['features'], dep['required_version'],
-            kind=dep.get('kind', MANDATORY))
+        if dep.get('display', True):
+            add(dep['modname'], dep['package_name'],
+                dep['features'], dep['required_version'],
+                kind=dep.get('kind', MANDATORY))

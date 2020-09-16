@@ -145,7 +145,7 @@ class FindReplace(QWidget):
                                      triggered=self.replace_find,
                                      text_beside_icon=True)
         self.replace_sel_button = create_toolbutton(self,
-                                     text=_('Replace selection'),
+                                     text=_('Replace in selection'),
                                      icon=ima.icon('DialogApplyButton'),
                                      triggered=self.replace_find_selection,
                                      text_beside_icon=True)
@@ -568,6 +568,9 @@ class FindReplace(QWidget):
         else:
             self.editor.setFocus()
 
+        if getattr(self.editor, 'document_did_change', False):
+            self.editor.document_did_change()
+
     @Slot()
     def replace_find_all(self, focus_replace_text=False):
         """Replace and find all matching occurrences"""
@@ -612,9 +615,7 @@ class FindReplace(QWidget):
                 cursor.insertText(replacement)
                 # Restore selection
                 self.editor.set_cursor_position(start_pos)
-                newl_cnt = replacement.count(self.editor.get_line_separator())
-                sel_len = len(replacement) - newl_cnt
-                for c in range(sel_len):
+                for c in range(len(replacement)):
                     self.editor.extend_selection_to_next('character', 'right')
                 cursor.endEditBlock()
 
@@ -622,6 +623,9 @@ class FindReplace(QWidget):
                 self.replace_text.setFocus()
             else:
                 self.editor.setFocus()
+
+            if getattr(self.editor, 'document_did_change', False):
+                self.editor.document_did_change()
 
     def change_number_matches(self, current_match=0, total_matches=0):
         """Change number of match and total matches."""
