@@ -143,8 +143,10 @@ class SpyderKernelSpec(KernelSpec):
                 pathlist += [subrepo_path] + pathlist
 
         # Create PYTHONPATH env entry to add it to the kernel
+        # Drop env to prevent default interpreter of the installer to
+        # to add path to the installed version packages
         pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
-                                            drop_env=False)
+                                            drop_env=True)
 
         # Environment variables that we need to pass to our sitecustomize
         umr_namelist = CONF.get('main_interpreter', 'umr/namelist')

@@ -238,12 +238,14 @@ def run(conda_path, python_version, bitness, repo_root, entrypoint,
 
         print("Updating pip in the virtual environment", env_python)
         subprocess_run(
-            [env_python, "-m", "pip", "install", "--upgrade", "pip"]
+            [env_python, "-m", "pip", "install", "--upgrade", "pip",
+             "--no-warn-script-location"]
         )
 
         print("Updating setuptools in the virtual environment", env_python)
         subprocess_run(
-            [env_python, "-m", "pip", "install", "--upgrade", "setuptools"]
+            [env_python, "-m", "pip", "install", "--upgrade", "setuptools",
+             "--no-warn-script-location"]
         )
 
         print("Installing package with", env_python)
