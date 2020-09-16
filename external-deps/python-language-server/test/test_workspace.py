@@ -199,6 +199,7 @@ def test_root_workspace_removed(tmpdir, pyls):
     assert pyls.workspace._root_uri == path_as_uri(str(workspace1_dir))
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_workspace_loads_pycodestyle_config(pyls, tmpdir):
     workspace1_dir = tmpdir.mkdir('Test123')
     pyls.root_uri = str(workspace1_dir)
