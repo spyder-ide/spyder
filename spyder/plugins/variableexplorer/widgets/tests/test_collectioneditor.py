@@ -895,9 +895,6 @@ def test_dicts_natural_sorting_mixed_types(qtbot):
 
     # now sort for sizes
     cm.sort(2)
-    print(cm.keys)
-    print(cm.types)
-    print(cm.sizes)
     assert data_table(cm, 4, 3) == [['DSeries', 'kDict', 'List', 'aStr'],
                                     ['Series', 'dict', 'list', 'str'],
                                     ['(0,)', 2, 3, str_size]]
