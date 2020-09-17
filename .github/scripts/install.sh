@@ -14,7 +14,7 @@ if [ "$USE_CONDA" = "true" ]; then
     fi
 
     # Install main dependencies
-    conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y
+    conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y -c spyder-ide/label/dev
 
     # Install three-merge and pyls-black temporarily while conda packages are available
     pip install three-merge pyls-black
@@ -43,12 +43,16 @@ else
 
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y
+    pip uninstall python-language-server -q -y
 fi
 
-# Install python-language-server from our subrepo
-pushd external-deps/python-language-server
-pip install --no-deps -q -e .
-popd
+# This is necessary only for Windows (don't know why).
+if [ "$OS" = "win" ]; then
+    # Install python-language-server from our subrepo
+    pushd external-deps/python-language-server
+    pip install --no-deps -q -e .
+    popd
+fi
 
 # To check our manifest
 pip install check-manifest

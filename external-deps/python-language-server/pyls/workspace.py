@@ -122,6 +122,7 @@ class Document(object):
         self.uri = uri
         self.version = version
         self.path = uris.to_fs_path(uri)
+        self.dot_path = _utils.path_to_dot_name(self.path)
         self.filename = os.path.basename(self.path)
 
         self._config = workspace._config

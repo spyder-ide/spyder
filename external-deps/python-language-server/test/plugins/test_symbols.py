@@ -40,7 +40,7 @@ def helper_check_symbols_all_scope(symbols):
     # Check we have some sane mappings to VSCode constants
     assert sym('a')['kind'] == SymbolKind.Variable
     assert sym('B')['kind'] == SymbolKind.Class
-    assert sym('__init__')['kind'] == SymbolKind.Function
+    assert sym('__init__')['kind'] == SymbolKind.Method
     assert sym('main')['kind'] == SymbolKind.Function
 
     # Not going to get too in-depth here else we're just testing Jedi
@@ -54,7 +54,7 @@ def test_symbols(config, workspace):
 
     # All four symbols (import sys, a, B, main)
     # y is not in the root scope, it shouldn't be returned
-    assert len(symbols) == 4
+    assert len(symbols) == 5
 
     def sym(name):
         return [s for s in symbols if s['name'] == name][0]

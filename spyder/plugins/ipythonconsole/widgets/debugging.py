@@ -9,19 +9,21 @@ Widget that handles communications between a console in debugging
 mode and Spyder
 """
 
+from distutils.version import LooseVersion
 import re
 import pdb
 
+from IPython import __version__ as ipy_version
 from IPython.core.history import HistoryManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import get_conf_path
 from spyder.config.manager import CONF
-from spyder.py3compat import PY2
-if not PY2:
-    from IPython.core.inputtransformer2 import TransformerManager
-else:
+
+if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
     from IPython.core.inputsplitter import IPythonInputSplitter
+else:
+    from IPython.core.inputtransformer2 import TransformerManager
 
 
 class PdbHistory(HistoryManager):
@@ -173,6 +175,12 @@ class DebuggingWidget(RichJupyterWidget):
                     magic, args)
         self.pdb_execute(code, hidden=True)
 
+    def do_where(self):
+        """Where was called, go to the current location."""
+        fname, lineno = self._pdb_frame_loc
+        if fname:
+            self.sig_pdb_step.emit(fname, lineno)
+
     def refresh_from_pdb(self, pdb_state):
         """
         Refresh Variable Explorer and Editor from a Pdb session,
@@ -271,7 +279,7 @@ class DebuggingWidget(RichJupyterWidget):
         """
         if source and source[0] == '!':
             source = source[1:]
-        if PY2:
+        if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
             tm = IPythonInputSplitter()
         else:
             tm = TransformerManager()

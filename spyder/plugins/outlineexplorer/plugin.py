@@ -54,7 +54,7 @@ class OutlineExplorer(SpyderPluginWidget):
         self.explorer.treewidget.header().hide()
         self.load_config()
 
-    #------ SpyderPluginWidget API ---------------------------------------------    
+    #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Outline")
@@ -62,18 +62,18 @@ class OutlineExplorer(SpyderPluginWidget):
     def get_plugin_icon(self):
         """Return widget icon"""
         return ima.icon('outline_explorer')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         return self.explorer.treewidget
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return self.explorer.treewidget.get_menu_actions()
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.restore_scrollbar_position.connect(
@@ -91,7 +91,7 @@ class OutlineExplorer(SpyderPluginWidget):
         super(SpyderPluginWidget, self)._visibility_changed(enable)
         if enable:
             self.explorer.is_visible.emit()
-            
+
     #------ Public API ---------------------------------------------------------
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
@@ -107,7 +107,7 @@ class OutlineExplorer(SpyderPluginWidget):
                         self.explorer.treewidget.get_expanded_state())
         self.set_option('scrollbar_position',
                         self.explorer.treewidget.get_scrollbar_position())
-        
+
     def load_config(self):
         """Load configuration: tree widget state"""
         expanded_state = self.get_option('expanded_state', None)

@@ -1,6 +1,7 @@
 # Copyright 2018 Palantir Technologies, Inc.
 import logging
-from autopep8 import fix_code
+import pycodestyle
+from autopep8 import fix_code, continued_indentation as autopep8_c_i
 from pyls import hookimpl
 
 log = logging.getLogger(__name__)
@@ -31,7 +32,15 @@ def _format(config, document, line_range=None):
     if line_range:
         options['line_range'] = list(line_range)
 
+    # Temporarily re-monkey-patch the continued_indentation checker - #771
+    del pycodestyle._checks['logical_line'][pycodestyle.continued_indentation]
+    pycodestyle.register_check(autopep8_c_i)
+
     new_source = fix_code(document.source, options=options)
+
+    # Switch it back
+    del pycodestyle._checks['logical_line'][autopep8_c_i]
+    pycodestyle.register_check(pycodestyle.continued_indentation)
 
     if new_source == document.source:
         return []
