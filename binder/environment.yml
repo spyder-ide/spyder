@@ -8,6 +8,7 @@ dependencies:
 # to requirements/conda.txt, and copy it here.
 - applaunchservices >=0.1.7
 - atomicwrites >=1.2.0
+- autopep8 >=1.5.3
 - chardet >=2.0.0
 - cloudpickle >=0.5.0
 - diff-match-patch >=20181111
@@ -24,6 +25,7 @@ dependencies:
 - psutil >=5.3
 - pygments >=2.0
 - pylint >=1.0
+- pyls-black >=0.4.6
 - pyqt <5.13
 - pyyaml
 # NOTE: There's no need to set constraints for python-language-server
@@ -40,7 +42,9 @@ dependencies:
 # NOTE: There's no need to set constraints for spyder-kernels here
 # because Spyder uses the subrepo for it when started in Binder.
 - spyder-kernels
+- three-merge >=0.1.1
 - watchdog
+- yapf >=0.30.0
 
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied

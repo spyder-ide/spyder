@@ -16,9 +16,6 @@ if [ "$USE_CONDA" = "true" ]; then
     # Install main dependencies
     conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y -c spyder-ide/label/dev
 
-    # Install three-merge and pyls-black temporarily while conda packages are available
-    pip install three-merge pyls-black
-
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
 
@@ -66,4 +63,4 @@ conda create -n spytest-ž -q -y python=3.6 spyder-kernels
 conda list -n spytest-ž
 
 # Coverage
-conda install -n test codecov
+pip install codecov
