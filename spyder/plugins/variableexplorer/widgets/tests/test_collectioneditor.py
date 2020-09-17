@@ -846,7 +846,6 @@ def test_dicts_natural_sorting(qtbot):
         'GUI sorting fail'
 
 
-
 def test_dicts_natural_sorting_mixed_types(qtbot):
     """
     Test that natural sorting actually does what it should do.
@@ -855,8 +854,8 @@ def test_dicts_natural_sorting_mixed_types(qtbot):
     Sorting for other columns will be tested as well.
     """
     import pandas as pd
-    dictionary = {'DSeries':pd.Series(dtype=int), 'aStr':'algName',
-                  'kDict':{2:'asd', 3:2}}
+    dictionary = {'DSeries': pd.Series(dtype=int), 'aStr': 'algName',
+                  'kDict': {2: 'asd', 3: 2}}
 
     # put this here variable, as it might change later to reflect string length
     str_size = get_size(dictionary['aStr'])

@@ -72,7 +72,8 @@ def natsort(s):
     Natural sorting, e.g. test3 comes before test100.
     Taken from https://stackoverflow.com/a/16090640/3110740
     """
-    if not isinstance(s, (str, bytes)): return s
+    if not isinstance(s, (str, bytes)):
+        return s
     x = [int(t) if t.isdigit() else t.lower() for t in re.split('([0-9]+)', s)]
     return x
 
@@ -1825,6 +1826,6 @@ def remote_editor_test():
     app.exec_()
 
 
-# if __name__ == "__main__":
-#     editor_test()
-#     remote_editor_test()
+if __name__ == "__main__":
+    editor_test()
+    remote_editor_test()
