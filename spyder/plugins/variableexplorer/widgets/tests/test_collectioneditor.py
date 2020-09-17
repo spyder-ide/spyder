@@ -877,7 +877,7 @@ def test_dicts_natural_sorting_mixed_types(qtbot):
                                     [1, '(0,)', 2]]
 
     # insert an item and check that it is still sorted correctly
-    editor.widget.editor.new_value('List', [1,2,3])
+    editor.widget.editor.new_value('List', [1, 2, 3])
     assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
                                     ['str', 'Series', 'dict', 'list'],
                                     [1, '(0,)', 2, 3]]
