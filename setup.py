@@ -203,7 +203,6 @@ if any(arg == 'bdist_wheel' for arg in sys.argv):
 install_requires = [
     'applaunchservices>=0.1.7;platform_system=="Darwin"',
     'atomicwrites>=1.2.0',
-    'autopep8>=1.5.3',
     'chardet>=2.0.0',
     'cloudpickle>=0.5.0',
     'diff-match-patch>=20181111',
@@ -236,8 +235,7 @@ install_requires = [
     'sphinx>=0.6.6',
     'spyder-kernels>=1.9.4,<1.10.0',
     'three-merge>=0.1.1',
-    'watchdog',
-    'yapf>=0.30.0'
+    'watchdog'
 ]
 
 extras_require = {
