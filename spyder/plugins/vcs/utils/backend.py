@@ -9,14 +9,17 @@
 """Builtin backends for Git and Mercurial."""
 
 # Standard library imports
-import ast
+from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime, timezone
 import platform
 import os
 import os.path as osp
+from pathlib import Path
 import re
+import shutil
 import subprocess
 import typing
+from urllib.parse import urlparse
 
 # Third party imports
 import pexpect
@@ -65,13 +68,13 @@ class GitBackend(*_git_bases):
         self.repodir = self.repodir.decode().strip("\n")
 
         if platform.system() != "Windows":
-            retcode, username, _ = self.run(['config', "--get", "user.name"],
-                                            git=git)
+            retcode, username, _ = self._run(['config', "--get", "user.name"],
+                                             git=git)
             if not retcode and username.strip():
                 try:
                     self.get_user_credentials(
                         username=username.strip().decode())
-                except VCSAuthError:
+                except (VCSAuthError, ValueError):
                     # No saved credentials found
                     pass
 
@@ -81,19 +84,139 @@ class GitBackend(*_git_bases):
         # Use current remote as credential context
         retcode, remote, err = self._run(
             ["config", "--get", "remote.origin.url"])
-
-        if retcode and remote and not err:
+        if not retcode and remote:
             return remote.decode().strip("\n")
         raise ValueError("Failed to get git remote")
 
     # VCSBackendBase implementation
+    @classmethod
+    @feature()
+    def create(
+            cls,
+            path: typing.Union[str, Path],
+            from_: str = None,
+            credentials: typing.Dict[str, object] = None) -> "VCSBackendBase":
+        def _restore():
+            if basepath is None:
+                with ThreadPoolExecutor() as pool:
+                    # Remove all the content of directory, but not the root.
+                    pool.map(
+                        lambda x: shutil.rmtree(osp.join(path, x)),
+                        os.listdir(path),
+                    )
+            else:
+                for parent in path.parents:
+                    if parent == basepath:
+                        break
+                    parent.rmdir()
+
+        def _raise(raw_err):
+            _restore()
+            raise VCSBackendFail(
+                strpath,
+                cls,
+                programs=("git", ),
+                raw_error=raw_err.decode(),
+            )
+
+        path = Path(path)
+        if path.exists():
+            if any(path.iterdir()):
+                raise FileExistsError("Directory Exists: {}".format(path))
+            basepath = None
+        else:
+            # Get the first existing parent folder.
+            # This path will be used when something goes wrong.
+            for parent in path.parents:
+                if parent.exists():
+                    basepath = parent
+                    break
+            else:
+                basepath = Path.root
+            os.makedirs(path)
+
+        # Initialize repository
+        strpath = str(path)
+        git = programs.find_program("git")
+        retcode, _, err = run_helper(git, ["init", "."], cwd=strpath)
+        if retcode:
+            _raise(err)
+
+        inst = cls(strpath)
+        if from_ is None:
+            return inst
+
+        # --- Clone a repository without git clone ---
+        # Source:
+        # https://ivan.bessarabov.com/blog/cloning-git-repo-withou-git-clone
+
+        # Check if given remote is a valid URL
+        parse_result = urlparse(from_)
+        if not ((parse_result.scheme == "file" and parse_result.path)
+                or all(parse_result[:3])):
+            raise ValueError("{} is not a valid url".format(repr(from_)))
+
+        # Add origin URL
+        retcode, _, err = run_helper(
+            git,
+            ["remote", "add", "origin", from_],
+            cwd=strpath,
+        )
+        if retcode:
+            _raise(err)
+
+        # Fetch remote
+        try:
+            inst.credentials = credentials
+            inst.fetch(sync=True)
+        except VCSAuthError as ex:
+            _restore()
+            raise ex
+
+        # Get default branch
+        retcode, branch, err = run_helper(
+            git,
+            ["symbolic-ref", "--short", "refs/remotes/origin/HEAD"],
+            cwd=strpath,
+        )
+        if retcode or not branch:
+            # .git/refs/remotes/origin/HEAD does not exists
+            # Try HEAD
+            retcode, branch, err = run_helper(
+                git,
+                ["symbolic-ref", "--short", "HEAD"],
+                cwd=strpath,
+            )
+            if retcode or not branch:
+                _raise(err)
+        else:
+            branch = branch.split(b"/", 1)[1]
+
+        # Create local branch from remote default branch
+        branch = branch.strip().decode()
+        retcode, _, err = run_helper(
+            git,
+            ["checkout", "-b", branch, "origin/" + branch],
+            cwd=strpath,
+        )
+        if retcode or not branch:
+            _raise(err)
+
+        # Clone done!
+        return inst
+
     @property
     @feature()
     def branch(self) -> str:
-        revision = get_git_status(self.repodir)[0]
-        if revision and revision[0]:
-            return revision[0]
-        raise VCSPropertyError(name="branch", operation="get")
+        retcode, out, err = self._run(["symbolic-ref", "--short", "HEAD"])
+
+        if retcode:
+            raise VCSPropertyError(
+                name="branch",
+                operation="get",
+                raw_error=err,
+            )
+        return out.strip().decode()
 
     @branch.setter
     @feature()
@@ -112,29 +235,44 @@ class GitBackend(*_git_bases):
     def branches(self) -> list:
         branches = git_get_branches(self.repodir, tag=True, remote=True)
         if branches:
-            return [item for sublist in branches.values() for item in sublist]
+            return [
+                item for sublist in branches.values() if sublist is not None
+                for item in sublist
+            ]
         raise VCSPropertyError(name="branches", operation="get")
 
     @property
     @feature()
     def editable_branches(self) -> list:
         branches = git_get_branches(self.repodir)
-        if branches:
+        if branches and branches.get("branch"):
             return branches["branch"]
-        raise VCSPropertyError(name="editable_branches", operation="get")
+        raise VCSPropertyError(
+            name="editable_branches",
+            operation="get",
+            error="Failed to get git branches.",
+        )
 
-    @feature()
-    def create_branch(self,
-                      branchname: str,
-                      from_current: bool = False) -> bool:
+    @feature(extra={"empty": True})
+    def create_branch(self, branchname: str, empty: bool = False) -> bool:
+        git = programs.find_program("git")
+        if branchname in self.branches:
+            raise VCSUnexpectedError(
+                method="create_branch",
+                error="Failed to create branch {}"
+                "since it already exists".format(branchname),
+            )
         args = ["checkout"]
-        if from_current:
-            args.extend(("-b", branchname))
-        else:
+        if empty:
             args.extend(("--orphan", branchname))
+        else:
+            args.extend(("-b", branchname))
 
-        return not self._run(args)[0] and (from_current or
-                                           not self._run(["rm", "-r", "."])[0])
+        create_retcode, _, err = self._run(args, git=git)
+        if empty:
+            remove_retcode, _, err = self._run(["rm", "-rf", "."], git=git)
+            return not (create_retcode or remove_retcode)
+        return not create_retcode
 
     @feature()
     def delete_branch(self, branchname: str) -> bool:
@@ -144,13 +282,11 @@ class GitBackend(*_git_bases):
     @property
     @feature(extra={"states": ("path", "kind", "staged")})
     def changes(self) -> typing.Sequence[typing.Dict[str, object]]:
-        filestates = get_git_status(self.repodir)[2]
+        filestates = get_git_status(self.repodir, nobranch=True)[2]
         if filestates is None:
-            raise VCSPropertyError(
-                "changes",
-                "get",
-                error="Failed to get git changes",
-            )
+            raise VCSPropertyError(name="changes",
+                                   operation="get",
+                                   error="Failed to get git changes")
         changes = []
         for record in filestates:
             changes.extend(self._parse_change_record(record))
@@ -160,10 +296,10 @@ class GitBackend(*_git_bases):
     def change(self,
                path: str,
                prefer_unstaged: bool = False) -> typing.Dict[str, object]:
-        filestates = get_git_status(self.repodir, path)[2]
+        filestates = get_git_status(self.repodir, path, nobranch=True)[2]
         if filestates is None:
             raise VCSUnexpectedError(
-                "change",
+                method="change",
                 error="Failed to get git changes",
             )
 
@@ -227,7 +363,7 @@ class GitBackend(*_git_bases):
     def fetch(self, sync: bool = False) -> (int, int):
         if sync:
             self._remote_operation("fetch")
-        return get_git_status(self.repodir)[1]
+        return get_git_status(self.repodir, ".git")[1]
 
     @feature()
     def pull(self) -> bool:
@@ -319,7 +455,7 @@ class GitBackend(*_git_bases):
         retcode = self._run(["checkout", "--", path])[0]
         if retcode == 0:
             change = self.change(path, prefer_unstaged=True)
-            if change and change["staged"]:
+            if not change or change["staged"]:
                 return True
         return False
 
@@ -379,28 +515,6 @@ class GitBackend(*_git_bases):
             path, staged, unstaged = record
             staged, unstaged = (ChangedStatus.from_string(staged),
                                 ChangedStatus.from_string(unstaged))
-            # remove git quote from file
-            if len(path) > 3 and path[0] == path[-1] in ("'", '"'):
-                path = path[1:-1]
-
-            unescaped_path = path
-            path = []
-
-            # As stated here:
-            # https://docs.python.org/3/library/ast.html#ast.literal_eval
-            # ast.literal_eval can crash the interpreter
-            # if the given input is too big,
-            # therefore the path is break down into chunks.
-            try:
-                for i in range(0, len(unescaped_path), 16384):
-                    path.append(
-                        ast.literal_eval("'" + unescaped_path[i:i + 16384] +
-                                         "'"))
-            except (ValueError, SyntaxError):
-                # ???: may this error should be raised
-                return []
-            else:
-                path = "".join(path)
 
             if unstaged != ChangedStatus.UNCHANGED:
                 changes.append(dict(path=path, kind=unstaged, staged=False))
@@ -451,14 +565,14 @@ class GitBackend(*_git_bases):
     def _remote_operation(self, operation: str, *args):
         """Helper for remote operations."""
         if platform.system() == "Windows":
-            # Windows uses its own credentials manager by default
+            # Git for Windows uses its own credentials manager by default
             # BUG: If the credentials manager is not the default
             #      (or it requires git prompt), the operation always fail.
             env = os.environ.copy()
             env["GIT_TERMINAL_PROMPT"] = "0"
             env["GIT_ASKPASS"] = ""
 
-            return self._run([operation], env=env)[0] == 0
+            return not self._run([operation], env=env)[0]
 
         credentials = self.credentials
         username = (credentials.get("username", "")
@@ -486,6 +600,7 @@ class GitBackend(*_git_bases):
         if status is False:
             # Auth failed
             raise VCSAuthError(
+                required_credentials=self.REQUIRED_CREDENTIALS,
                 username=username,
                 password=credentials.get("password"),
                 error="Wrong credentials",
@@ -573,15 +688,19 @@ def get_git_username(repopath):
     return None
 
 
-def get_git_status(repopath, pathspec="."):
+def get_git_status(repopath, pathspec=".", nobranch: bool = False):
     git = programs.find_program('git')
     if git:
         try:
             proc = programs.run_program(
                 git,
                 [
-                    'status', "-b", "-uall", "--porcelain=v1",
-                    "--ignore-submodule=all", pathspec
+                    "status",
+                    "-z" if nobranch else "-bz",
+                    "-uall",
+                    "--porcelain=v1",
+                    "--ignore-submodule=all",
+                    "\\" + pathspec if pathspec.startswith("-") else pathspec,
                 ],
                 cwd=repopath,
             )
@@ -593,34 +712,35 @@ def get_git_status(repopath, pathspec="."):
             pass
         else:
             changes = []
-            lines = output.decode().strip().splitlines()
+            lines = output[:-1].decode().split("\0")
             behind = ahead = 0
             local = remote = None
             if lines:
-                # match first line
-                match = re.match(
-                    # local branch (group 1)
-                    r"^## (.+?)"
-                    # remote branch (group 2)
-                    r"(?:\.\.\.(.+?))?"
-                    # behind/ahead (group 3 and 4)
-                    r"(?: \[(.+? \d+)(?:, )?(.+? \d+)?]"
-                    # extra cases (group 5)
-                    r"|(?: \((.+?)\)))?$",
-                    lines[0],
-                )
-                if match:
-                    # local remote match
-                    del lines[0]
-                    local, remote = match.group(1, 2)
-                    # behind ahead match
-                    for group in match.group(3, 4):
-                        if group is None:
-                            pass
-                        elif group.startswith("behind"):
-                            behind = int(group.rsplit(" ", 1)[-1])
-                        elif group.startswith("ahead"):
-                            ahead = int(group.rsplit(" ", 1)[-1])
+                if not nobranch:
+                    # match first line
+                    match = re.match(
+                        # local branch (group 1)
+                        r"^## (.+?)"
+                        # remote branch (group 2)
+                        r"(?:\.\.\.(.+?))?"
+                        # behind/ahead (group 3 and 4)
+                        r"(?: \[(.+? \d+)(?:, )?(.+? \d+)?]"
+                        # extra cases (group 5)
+                        r"|(?: \((.+?)\)))?$",
+                        lines[0],
+                    )
+                    if match:
+                        # local remote match
+                        del lines[0]
+                        local, remote = match.group(1, 2)
+                        # behind ahead match
+                        for group in match.group(3, 4):
+                            if group is None:
+                                pass
+                            elif group.startswith("behind"):
+                                behind = int(group.rsplit(" ", 1)[-1])
+                            elif group.startswith("ahead"):
+                                ahead = int(group.rsplit(" ", 1)[-1])
 
                 # get branch and changes
                 for line in lines:
@@ -631,9 +751,9 @@ def get_git_status(repopath, pathspec="."):
                             _GIT_STATUS_MAP["??"],
                         ))
                     elif "R" in line[:2] or "C" in line[:2]:
-                        # FIXME: skipped unless I know how to manage it
+                        # FIXME: skipped until I know how to manage it
                         pass
-                    else:
+                    elif line:
                         changes.append((
                             line[3:],
                             _GIT_STATUS_MAP.get(line[0], "UNKNOWN"),
@@ -668,7 +788,7 @@ def git_get_branches(repopath, branch=True, tag=False, remote=False) -> list:
                 proc = programs.run_program(
                     git, ["branch", "--format", "%(refname:lstrip=2)"],
                     cwd=repopath)
-                output, _ = proc.communicate()
+                output, err = proc.communicate()
                 if proc.returncode == 0 and output:
                     branches["branch"] = output.decode().splitlines()
 

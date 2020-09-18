@@ -8,15 +8,14 @@
 # -----------------------------------------------------------------------------
 """Backend specifications and utilities for VCSs."""
 
-# TODO: fix classes/methods/attributes/variables name
-#       (consistency, abbreviations and style)
-
 # Standard library imports
 import builtins
+import itertools
+import traceback
 import typing
 
 # Local imports
-from .errors import VCSError, VCSBackendFail
+from .errors import VCSError, VCSBackendFail, VCSAuthError
 
 _generic_func = typing.Callable[..., object]
 
@@ -114,6 +113,7 @@ class ChangedStatus(object):
     # minimal support
     ADDED = 1
     REMOVED = 2
+    DELETED = 2  # alias of REMOVED
     MODIFIED = 3
     EDITED = 3  # alias of MODIFIED
 
@@ -192,6 +192,19 @@ class VCSBackendBase(object):
     If any requisite stopped working
     (e.g. executable removed or module unrecoverable failure),
     a :class:`~VCSBackendFail` exception will be raised.
+
+    Parameters
+    ----------
+    repodir : str
+        The absolute path to the repository directory.
+
+    Raises
+    ------
+    VCSBackendFail
+        If an error that prevent the backend to be initialized occurred.
+        See its documentation for more information.
+    FileNotFoundError
+        If the given path is invalid or does not exists.
     """
 
     VCSNAME: str = None  # type: ignore
@@ -360,12 +373,13 @@ class VCSBackendBase(object):
 
     If this value is non-zero, credentials are suppored.
 
-    .. warning::
-        Since some VCS does not have a simple way to check
-        if credentials are necessary for the current repository (notably git),
-        the only way to know that is trying to do the operation
-        and catch the VCSAuthError,
-        then ask/get the credentials and retry the operation.
+    Warnings
+    --------
+    Since some VCS does not have a simple way to check
+    if credentials are necessary for the current repository (notably git),
+    the only way to know that is trying to do the operation
+    and catch VCSAuthError,
+    then ask/get the credentials and retry the operation.
     """
 
     # --- Non-features ---
@@ -453,7 +467,8 @@ class VCSBackendBase(object):
         The backend (self) type.
 
         Useful when the backend object is hidden by the manager
-        and you need to access to properties features.
+        and you need to access to the property objects
+        for them features.
         """
         return type(self)
 
@@ -518,11 +533,11 @@ class VCSBackendBase(object):
         ----------
         path : str
             The path where the repository directory will be created.
-            The directory must not exists as it will be created by this method,
-            or by a call to the VCS.
+            The directory must not exists or it must be empty
+            as it will be created by this method, or by a call to the VCS.
 
         from_ : str, optional
-            An URL to an existing repository.
+            If given, an URL to an existing repository.
             That repository will be cloned into the given path.
             The default is None.
 
@@ -542,6 +557,9 @@ class VCSBackendBase(object):
             If the directory creation fails for any reason
             (see :func:`os.makedirs` for more information).
 
+        ValueError
+            If the from_ parameter is not a valid URL.
+
         NotImplementedError
             If `from_` is specified and
             there is at least one missing feature.
@@ -549,6 +567,9 @@ class VCSBackendBase(object):
         VCSAuthError
             If the credentials are wrong or missing.
             The directory will be deleted before raising the exception.
+
+        VCSBackendFail
+            If something fails in backend construction.
         """
 
     # Status group
@@ -563,11 +584,11 @@ class VCSBackendBase(object):
         Get a list of all the changes in the repository.
         Each element is a dict that represents the file state.
 
-        .. warning::
-            If VCS supports the staging area and
-            a path in both the staged and unstaged area,
-            that path will have a state for the unstaged area
-            and another stage for the staged area.
+        --------
+        If VCS supports the staging area and
+        a path in both the staged and unstaged area,
+        that path will have a state for the unstaged area
+        and another stage for the staged area.
 
         .. important::
             Implementations must list the supported state keys
@@ -678,7 +699,7 @@ class VCSBackendBase(object):
 
     @property
     @feature(enabled=False)
-    def editable_branches(self) -> typing.List[str]:
+    def editable_branches(self) -> typing.Sequence[str]:
         """
         A list of editable branch names.
 
@@ -696,10 +717,8 @@ class VCSBackendBase(object):
         """
         return self.branches
 
-    @feature(enabled=False)
-    def create_branch(self,
-                      branchname: str,
-                      from_current: bool = False) -> bool:
+    @feature(enabled=False, extra={"empty": False})
+    def create_branch(self, branchname: str, empty: bool = False) -> bool:
         """
         Create a new branch.
 
@@ -711,15 +730,18 @@ class VCSBackendBase(object):
         branchname : str
             The branch name.
 
-        from_current : bool, optional
-            If True, the new branch is created as clone of the current one,
-            otherwise a new empty branch is created.
+        empty : bool, optional
+            If True, a new empty branch is created,
+            otherwise the new branch is created as clone of the current one.
+            It is allowed only if the empty extra is True.
+            An empty branch must have no files.
+            It is not guaranteed that an empty branch has an empty history.
             The default is False.
 
         Returns
         -------
         bool
-            True if the current branch is the given one, False otherwise.
+            True if the current branch is now the given one, False otherwise.
         """
 
     @feature(enabled=False)
@@ -1094,14 +1116,21 @@ class VCSBackendManager(object):
     __slots__ = (
         "_backends",
         "_backend",
-        "_sorted",
+        "_to_sort",
+        "_broken_backends",
     )
 
     def __init__(self, repodir: str, *backends: type):
         super().__init__()
-        self._backends = list(backends)
+
+        self._backends = {}
+        self._broken_backends = []
+        self._to_sort = set()
         self._backend = None
-        self._sorted = True
+
+        for backend in backends:
+            self.register_backend(backend)
+
         self.repodir = repodir
 
     def __getattr__(self, name: str) -> object:
@@ -1127,6 +1156,24 @@ class VCSBackendManager(object):
         elif name in dir(self._backend):
             delattr(self, name)
 
+    # Properties
+    @property
+    def vcs_types(self) -> typing.Sequence[str]:
+        """A list of available VCS types."""
+        return tuple(self._backends)
+
+    @property
+    def create_vcs_types(self) -> typing.Sequence[str]:
+        """
+        A list of available VCS types that have at least one backend
+        that supports :meth:`~VCSBackendBase.clone`.
+        """
+        types = []
+        for vcs, backends in self._backends.items():
+            if any(x.create.enabled for x in backends):
+                types.append(vcs)
+        return types
+
     @property
     def repodir(self) -> typing.Optional[str]:
         """
@@ -1141,21 +1188,25 @@ class VCSBackendManager(object):
         self._backend = selected_backend = None
         if path:
             errors = []
+            broken = []
             self.sort_backends()
-            for backend in self._backends:
-                try:
-                    selected_backend = backend(path)
-                except VCSBackendFail as ex:
-                    # TODO: complete error formatting
-                    import traceback
-                    traceback.print_exception(VCSBackendFail, ex,
-                                              ex.__traceback__)
-                    errors.append(ex)
-                except VCSError:
-                    # Ignore weird errors.
-                    pass
+            for backends in itertools.zip_longest(*self._backends.values()):
+                for backend in backends:
+                    if backend is not None:
+                        try:
+                            selected_backend = backend(path)
+                        except VCSBackendFail as ex:
+                            # TODO: complete error formatting
+                            traceback.print_exception(VCSBackendFail, ex,
+                                                      ex.__traceback__)
+                            errors.append(ex)
+                        except Exception:
+                            broken.append(backend)
+                        else:
+                            break
                 else:
-                    break
+                    continue
+                break
 
             if selected_backend is None:
                 raise VCSError(
@@ -1163,7 +1214,67 @@ class VCSBackendManager(object):
 
             self._backend = selected_backend
 
-    def register_backend(self, backend: type) -> None:
+    def create_with(self, vcs_type: str, *args, **kwargs) -> bool:
+        """
+        Do a clone operation with the given type.
+
+        Parameters
+        ----------
+        vcs_type : str
+            The VCS type.
+            Must be one of :attr:`VCSBackendManager.create_vcs_types.`
+        *args, **kwargs
+            Parameters passed to :meth:`~VCSBackendBase.clone`.
+
+        Returns
+        -------
+        bool
+            True if the clone operation is done successfully, False otherwise.
+
+        Raises
+        ------
+        NotImplementedError
+            If there is no VCSs that supports :meth:`~VCSBackendBase.clone`
+            completely.
+
+        Warnings
+        --------
+        If any error, caused by bad arguments given to
+        :meth:`~VCSBackendBase.clone`, is raised by the backend,
+        it will be propagated to the caller.
+
+        See Also
+        --------
+        create_vcs_types
+            For a list of vcs types that supports clone.
+        """
+        if vcs_type not in self.create_vcs_types:
+            raise NotImplementedError(
+                "The VCS type {} does not support clone.".format(vcs_type))
+
+        for backend in filter(lambda x: x.create.enabled,
+                              self._backends[vcs_type]):
+            try:
+                inst = backend.create(*args, **kwargs)
+            except (OSError, ValueError, VCSAuthError) as ex:
+                # Reraise good exceptions to caller
+                raise ex
+            except (NotImplementedError, VCSBackendFail):
+                # Skip any backend that does not have
+                # all the required features.
+                traceback.print_exc()
+                pass
+            except Exception:
+                # Suppress other exceptions
+                # Should be reported (e.g. with logging)
+                self._broken_backends.append(backend)
+                traceback.print_exc()
+            else:
+                self._backend = inst
+                return True
+        return False
+
+    def register_backend(self, backend: typing.Type[VCSBackendBase]) -> None:
         """
         Register a VCSBackendBase subclass.
 
@@ -1171,12 +1282,17 @@ class VCSBackendManager(object):
 
         Parameters
         ----------
-        backend : type
+        backend : Type[VCSBackendBase]
             The VCSBackendBase subclass.
         """
-        if backend not in self._backends:
-            self._backends.append(backend)
-            self._sorted = False
+        if backend not in self._broken_backends:
+            vcsname = backend.VCSNAME.lower()
+            if vcsname in self._backends:
+                if backend not in self._backends:
+                    self._backends[vcsname].append(backend)
+                    self._to_sort.add(vcsname)
+            else:
+                self._backends[vcsname] = [backend]
 
     # Debug API
     def force_use(self, backend: type, path: str) -> None:
@@ -1186,36 +1302,20 @@ class VCSBackendManager(object):
         This method bypass the backends priority system and
         the internal error handling,
         so it should be used for debugging purposes only.
-        Also, this method never registers the backend.
+        Also, this method never registers the given backend.
         """
         self._backend = backend(path)
 
     def sort_backends(self) -> None:
         """Sort backends by feature implemented."""
-        if not self._sorted:
-            new_backends = []
-            names = {}
-            for backend in self._backends:
-                if backend.VCSNAME not in names:
-                    names[backend.VCSNAME] = [backend]
-                else:
-                    names[backend.VCSNAME].append(backend)
+        if self._to_sort:
+            for vcsname in self._to_sort:
+                backends = self._backends[vcsname]
+                backends.sort(
+                    key=lambda backend: sum(
+                        backend.check(group, all=False)
+                        for group in backend.GROUP_MAPPING),
+                    reverse=True,
+                )
 
-            for name, backends in names.copy().items():
-                if len(backends) == 1:
-                    new_backends.append(backends[0])
-                    del names[name]
-
-            if names:
-                for backends in names.values():
-                    backend.sort(
-                        key=lambda backend: sum(
-                            backend.check(group, all=False)
-                            for group in backend.GROUP_MAPPING),
-                        reverse=True,
-                    )
-
-                for name in sorted(names):
-                    new_backends.extend(names[name])
-
-            self._sorted = True
+            self._to_sort.clear()

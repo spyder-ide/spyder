@@ -71,19 +71,21 @@ class CredentialsKeyringMixin(object):
 
     @credentials.setter
     def credentials(self, credentials: typing.Dict[str, object]) -> None:
-        # check token
-        token = credentials.get("token", False)
-
         if not credentials:
             self.__internal_credentials = {}
+            return
+
+        # check token
+        token = credentials.get("token", False)
 
         if token is None:
             # get last token
             i = self._get_last_token()
             if i == -1:
                 raise VCSAuthError(
+                    required_credentials=self.REQUIRED_CREDENTIALS,
                     token=None,
-                    error_message="No token is found for {}".format(
+                    error="No token is found for {}".format(
                         self.credential_context),
                 )
 
@@ -128,8 +130,9 @@ class CredentialsKeyringMixin(object):
                 else:
                     raise VCSAuthError(
                         **{type_: user},
-                        error_message="The given {} is not found for {}".
-                        format(type_, self.credential_context))
+                        required_credentials=self.REQUIRED_CREDENTIALS,
+                        error="The given {} is not found for {}".format(
+                            type_, self.credential_context))
 
     @credentials.deleter
     def credentials(self) -> None:

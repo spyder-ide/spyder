@@ -98,6 +98,7 @@ class VCSPropertyError(VCSError):
                  **kwargs: typing.Optional[str]):
         super().__init__(*args, **kwargs)
         self.name = name
+        operation = operation.lstrip("f")
         if operation in ("get", "set", "del"):
             self.operation = operation
 
@@ -166,11 +167,15 @@ class VCSAuthError(VCSError):
         The set email. The default is None.
     token : str, optional
         The set token. The default is None.
+    required_credentials : str, optional
+        The credentials that the backend requires.
     """
 
-    __slots__ = ("username", "password", "email", "token")
+    __slots__ = ("username", "password", "email", "token",
+                 "required_credentials")
 
     def __init__(self,
+                 required_credentials: typing.Sequence[str],
                  *args: object,
                  username: typing.Optional[str] = None,
                  password: typing.Optional[str] = None,
@@ -179,6 +184,7 @@ class VCSAuthError(VCSError):
                  **kwargs: typing.Optional[str]):
 
         super().__init__(*args, **kwargs)
+        self.required_credentials = required_credentials
         self.username = username
         self.password = password
         self.email = email
@@ -186,6 +192,7 @@ class VCSAuthError(VCSError):
 
     @property
     def are_credentials_inserted(self) -> bool:
-        """Check if object kind of credentials were inserted."""
-        return bool(((self.username or self.email) and self.password)
-                    or self.token)
+        """Check if the required credentials was inserted."""
+        return all(
+            getattr(self, key, None) is None
+            for key in self.required_credentials)

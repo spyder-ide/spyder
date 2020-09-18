@@ -12,28 +12,38 @@
 
 # Standard library imports
 from collections.abc import Sequence
+from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime, timezone
-import functools
+from functools import partial
+import os
+import os.path as osp
+import shutil
+from tempfile import TemporaryDirectory
 import typing
 
 # Third party imports
 from qtpy.QtWidgets import (QVBoxLayout, QHBoxLayout, QLabel, QTreeWidget,
                             QTreeWidgetItem, QPlainTextEdit, QSizePolicy,
-                            QMessageBox, QLayout, QToolButton, QHeaderView)
+                            QMessageBox, QLayout, QToolButton, QHeaderView,
+                            QDialog, QFormLayout, QComboBox, QDialogButtonBox,
+                            QLineEdit)
 
 from qtpy.QtGui import QIcon
-from qtpy.QtCore import Signal, Slot, Qt, QCoreApplication
+from qtpy.QtCore import Signal, Slot, QCoreApplication
 
 # Local imports
+from spyder.api.plugins import Plugins
 from spyder.api.translations import get_translation
 from spyder.api.widgets import PluginMainWidget
 import spyder.utils.icon_manager as ima
 from spyder.utils.qthelpers import action2button
+from spyder.widgets.comboboxes import UrlComboBox
 
-from .common import (STATE_TO_TEXT, ChangesItem, BranchesComboBox, LoginDialog,
-                     ThreadWrapper, THREAD_ENABLED)
-from ..utils.errors import VCSAuthError
-from ..utils.api import ChangedStatus
+from .common import (BranchesComboBox, LoginDialog, ThreadWrapper,
+                     THREAD_ENABLED, PAUSE_CYCLE)
+from .changes import ChangesTree
+from ..utils.api import VCSBackendManager
+from ..utils.errors import VCSAuthError, VCSUnexpectedError
 
 _ = get_translation('spyder')
 
@@ -48,7 +58,7 @@ class VCSWidget(PluginMainWidget):
 
     sig_auth_operation = Signal((str, ), (str, tuple, dict))
     """
-    This signal is emitted when an auth operation is requested
+    This signal is emitted when an auth operation is requested.
 
     It is intended to be used only internally. Use plugin's actions instead.
     """
@@ -57,7 +67,7 @@ class VCSWidget(PluginMainWidget):
     """
     This signal is emitted when an auth operation was done successfully.
 
-    It is intended to be used only internally and can corrupt the widget's UI.
+    It is intended to be used only internally and can corrupt widget's UI.
     """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -72,7 +82,6 @@ class VCSWidget(PluginMainWidget):
         self.commit_message = self.history = None
 
     # Reimplemented APIs
-
     def get_title(self):
         return self.get_plugin().get_name()
 
@@ -97,8 +106,8 @@ class VCSWidget(PluginMainWidget):
         self.branch_combobox = self.unstaged_files = self.staged_files = None
         self.commit_message = self.history = None
 
+        rootlayout = self.layout()
         if plugin.get_repository():
-            rootlayout = self.layout()
 
             # --- Toolbar ---
             toolbar = QHBoxLayout()
@@ -120,9 +129,10 @@ class VCSWidget(PluginMainWidget):
             rootlayout.addLayout(toolbar)
 
             # --- Changes ---
-            if manager.type.changes.fget.enabled:
-                is_stage_supported = (manager.stage.enabled
-                                      and manager.unstage.enabled)
+            changes_feature = manager.type.changes.fget
+            if changes_feature.enabled:
+                is_stage_supported = ("staged"
+                                      in changes_feature.extra["states"])
 
                 # header
                 header_layout = QHBoxLayout()
@@ -133,10 +143,11 @@ class VCSWidget(PluginMainWidget):
                 header_layout.addStretch(1)
                 rootlayout.addLayout(header_layout)
 
-                # --- Untaged changes (or simply changes) ---
-                self.unstaged_files = QTreeWidget()
-                _prepare_changes_widget(self.unstaged_files)
-
+                # --- Untaged changes (or just changes) ---
+                self.unstaged_files = ChangesTree(
+                    manager,
+                    staged=False if is_stage_supported else None,
+                )
                 rootlayout.addWidget(self.unstaged_files)
 
                 if is_stage_supported:
@@ -165,9 +176,7 @@ class VCSWidget(PluginMainWidget):
 
                     rootlayout.addLayout(header_layout)
 
-                    self.staged_files = QTreeWidget()
-                    _prepare_changes_widget(self.staged_files)
-
+                    self.staged_files = ChangesTree(manager, staged=True)
                     rootlayout.addWidget(self.staged_files)
 
             # --- Commit ---
@@ -235,6 +244,7 @@ class VCSWidget(PluginMainWidget):
             # --- Slots ---
             if (getattr(self, "branch_combobox", None) is not None
                     and manager.type.branch.fset.enabled):
+                # Branch slots
                 self.branch_combobox.currentIndexChanged.connect(
                     self.branch_combobox.select)
 
@@ -244,21 +254,51 @@ class VCSWidget(PluginMainWidget):
                 self.branch_combobox.sig_branch_changed.connect(
                     plugin.sig_branch_changed)
 
-            if getattr(self, "staged_files", None) is not None:
-                # unstaged are supposed to be already here
-                self.staged_files.itemDoubleClicked.connect(self.toggle_stage)
-                self.unstaged_files.itemDoubleClicked.connect(
-                    self.toggle_stage)
+            if getattr(self, "unstaged_files", None) is not None:
+                # Unstage slots
+                self.unstaged_files.sig_stage_toggled.connect(self.post_stage)
+                self.unstaged_files.sig_stage_toggled[bool, str].connect(
+                    self.post_stage)
+
+                plugin.stage_all_action.triggered.connect(
+                    self.unstaged_files.toggle_stage_all)
+
+            if getattr(self, "staged_files", None):
+                # Stage slots
+                self.staged_files.sig_stage_toggled.connect(self.post_stage)
+                self.staged_files.sig_stage_toggled[bool, str].connect(
+                    self.post_stage)
+
+                plugin.unstage_all_action.triggered.connect(
+                    self.staged_files.toggle_stage_all)
 
             # Show the whole UI before refreshes
             QCoreApplication.processEvents()
 
-        else:
+        elif getattr(plugin, "create_vcs_action", None) is not None:
             # TODO: show "no repository available"
             #       when repository is missing,
             #       including buttons for create
-            #       a new one or clone it.
-            pass
+            #       a new one or create it.
+            rootlayout.addStretch(1)
+            rootlayout.addWidget(
+                QLabel(
+                    _("<h3>No repository available</h3><br/>"
+                      "in ") + str(
+                          plugin.get_plugin(
+                              Plugins.Projects).get_active_project_path())))
+
+            create_button = action2button(
+                plugin.create_vcs_action,
+                text_beside_icon=True,
+                parent=self,
+            )
+            create_button.setEnabled(bool(manager.create_vcs_types))
+            # FIXME: change color if dark or white
+            create_button.setStyleSheet("background-color: #1122cc;")
+            rootlayout.addWidget(create_button)
+
+            rootlayout.addStretch(1)
 
     # Public methods
     def setup_slots(self) -> None:
@@ -270,22 +310,19 @@ class VCSWidget(PluginMainWidget):
         plugin.sig_repository_changed.connect(self.refresh_all)
 
         # Plugin actions
-        plugin.stage_all_action.triggered.connect(self.toggle_stage_all)
-        plugin.unstage_all_action.triggered.connect(
-            functools.partial(self.toggle_stage_all, True))
-
+        plugin.create_vcs_action.triggered.connect(self.show_create_dialog)
         plugin.commit_action.triggered.connect(self.commit)
         plugin.fetch_action.triggered.connect(
-            functools.partial(
+            partial(
                 self.sig_auth_operation[str, tuple, dict].emit,
                 "fetch",
                 (),
                 dict(sync=True),
             ))
         plugin.pull_action.triggered.connect(
-            functools.partial(self.sig_auth_operation.emit, "pull"))
+            partial(self.sig_auth_operation.emit, "pull"))
         plugin.push_action.triggered.connect(
-            functools.partial(self.sig_auth_operation.emit, "push"))
+            partial(self.sig_auth_operation.emit, "push"))
 
         plugin.refresh_action.triggered.connect(self.refresh_all)
 
@@ -309,52 +346,21 @@ class VCSWidget(PluginMainWidget):
         @Slot(object)
         def _handle_result(result):
             if isinstance(result, Sequence):
-                # Prevent sorting when inserting items
-                unstaged = self.unstaged_files
-                unstaged.clear()
-                unstaged.setSortingEnabled(False)
-
-                is_staged_enabled = (manager.stage.enabled
-                                     and manager.unstage.enabled)
-                if is_staged_enabled:
-                    staged = self.staged_files
-                    staged.clear()
-                    staged.setSortingEnabled(False)
-
-                # Iterate over result
-                for state_spec in result:
-                    state = state_spec.get("kind", ChangedStatus.UNKNOWN)
-                    if state not in (ChangedStatus.UNCHANGED,
-                                     ChangedStatus.IGNORED):
-                        if state not in STATE_TO_TEXT:
-                            state = ChangedStatus.UNKNOWN
-
-                        item = ChangesItem()
-                        if is_staged_enabled and state_spec.get("staged"):
-                            staged.addTopLevelItem(item)
-                        else:
-                            unstaged.addTopLevelItem(item)
-                        item.setup(state, state_spec["path"])
-
-                # Restore sorting
-                unstaged.setSortingEnabled(True)
-                if is_staged_enabled:
-                    staged.setSortingEnabled(True)
-
-                QCoreApplication.processEvents()
+                self.unstaged_files.refresh(result)
+                if getattr(self, "staged_files", None) is not None:
+                    self.staged_files.refresh(result)
 
         manager = self.get_plugin().vcs_manager
 
+        # Only one changes call is done for both the widgets.
         if manager.type.changes.fget.enabled:
-            if THREAD_ENABLED:
-                ThreadWrapper(
-                    self,
-                    lambda: manager.changes,
-                    result_slots=(_handle_result, ),
-                    error_slots=(_raise_if, ),
-                ).start()
-            else:
-                _handle_result(manager.changes)
+            ThreadWrapper(
+                self,
+                lambda: manager.changes,
+                result_slots=(_handle_result, ),
+                error_slots=(_raise_if, ),
+                nothread=not THREAD_ENABLED,
+            ).start()
 
     @Slot()
     @Slot(tuple)
@@ -363,7 +369,7 @@ class VCSWidget(PluginMainWidget):
         commit_difference: typing.Optional[typing.Tuple[int, int]] = None,
     ) -> None:
         """
-        Show the numbers of commits to pull and push compared to the remote.
+        Show the numbers of commits to pull and push compared to remote.
 
         Parameters
         ----------
@@ -371,8 +377,8 @@ class VCSWidget(PluginMainWidget):
             A tuple of 2 integers.
             The first one is the amount of commit to pull,
             the second one is the amount of commit to push.
-            Can be None, that allows this method to call the backend
-            to :meth:`~VCSBackendBase.fetch` the repository.
+            Can be None, that allows this method to call the backend's
+            ':meth:`~VCSBackendBase.fetch` method.
             The default is None.
         """
 
@@ -389,8 +395,8 @@ class VCSWidget(PluginMainWidget):
                         # found existing number
                         del label[1]
                     if difference > 0:
-                        action.setText(" ".join(label) +
-                                       " ({})".format(difference))
+                        action.setText("{} ({})".format(
+                            " ".join(label), difference))
                     else:
                         action.setText(" ".join(label))
             else:
@@ -399,17 +405,15 @@ class VCSWidget(PluginMainWidget):
 
         plugin = self.get_plugin()
         if commit_difference is None:
-            if THREAD_ENABLED:
-                ThreadWrapper(
-                    self,
-                    plugin.vcs_manager.fetch,  # pylint:disable=W0108
-                    result_slots=(_handle_result, ),
-                    error_slots=(_raise_if, ),
-                ).start()
-            else:
-                _handle_result(plugin.vcs_manager.fetch())
+            ThreadWrapper(
+                self,
+                plugin.vcs_manager.fetch,  # pylint:disable=W0108
+                result_slots=(_handle_result, ),
+                error_slots=(_raise_if, ),
+                nothread=not THREAD_ENABLED,
+            ).start()
         else:
-            _handle_result(plugin.vcs_manager.fetch())
+            _handle_result(commit_difference)
 
     @Slot()
     def refresh_history(self) -> None:
@@ -464,22 +468,27 @@ class VCSWidget(PluginMainWidget):
                         button = QToolButton()
                         button.setIcon(ima.icon("undo"))
                         button.clicked.connect(
-                            functools.partial(self.undo_commit, i + 1))
+                            partial(
+                                self.undo_commit,
+                                i + 1,
+                            ))
                         self.history.setItemWidget(item, 0, button)
+
+                    if i % PAUSE_CYCLE == 0:
+                        QCoreApplication.processEvents()
 
         manager = self.get_plugin().vcs_manager
         if manager.get_last_commits.enabled:
             self.history.clear()
-            if THREAD_ENABLED:
-                ThreadWrapper(
-                    self,
-                    functools.partial(manager.get_last_commits,
-                                      MAX_HISTORY_ROWS),
-                    result_slots=(_handle_result, ),
-                    error_slots=(_raise_if, ),
-                ).start()
-            else:
-                _handle_result(manager.get_last_commits(MAX_HISTORY_ROWS))
+            ThreadWrapper(
+                self,
+                partial(manager.get_last_commits, MAX_HISTORY_ROWS),
+                result_slots=(_handle_result, ),
+                error_slots=(lambda ex: _raise_if(ex, VCSUnexpectedError, True)
+                             and self.history.addTopLevelItem(
+                                 QTreeWidgetItem([None, ex.error, None])), ),
+                nothread=not THREAD_ENABLED,
+            ).start()
 
     @Slot()
     @Slot(str)
@@ -518,81 +527,35 @@ class VCSWidget(PluginMainWidget):
         AttributeError
             If changing branch is not supported.
         """
-        if (getattr(self, "branch_combobox", None) is None
-                or not self.branch_combobox.isEnabled()):
+        if getattr(self, "branch_combobox",
+                   None) is None or not self.branch_combobox.isEnabled():
             raise AttributeError("Cannot change branch in the current VCS")
         self.branch_combobox.select(branchname)
 
-    @Slot(QTreeWidgetItem)
-    def toggle_stage(self, item: ChangesItem) -> None:
+    @Slot(bool)
+    @Slot(bool, str)
+    def post_stage(
+        self,
+        staged: bool,
+        path: typing.Optional[str] = None,
+    ) -> None:
         """
-        Toggle the item state from unstage to stage and vice versa.
+        Refresh changes after a successful stage/unstage operation.
 
-        Parameters
-        ----------
-        item : ChangesItem
-            The item representing a changed file.
+        See Also
+        --------
+        ChangesTree.sig_stage_toggled
+            For a description of parameters.
         """
-        @Slot(object)
-        def _handle_result(result):
-            if result:
-                oldtreewidget.invisibleRootItem().removeChild(item)
-                newtreewidget.addTopLevelItem(item)
-                item.setup(item.state, item.text(0))
-
-        oldtreewidget = item.treeWidget()
-        newtreewidget = None
-        operation = None
-        manager = self.get_plugin().vcs_manager
-        if (manager.stage.enabled and manager.unstage.enabled):
-            if oldtreewidget == self.unstaged_files:
-                # stage item
-                newtreewidget = self.staged_files
-                operation = manager.stage
-
-            elif oldtreewidget == self.staged_files:
-                # unstage item
-                newtreewidget = self.unstaged_files
-                operation = manager.unstage
-
-            if THREAD_ENABLED:
-                ThreadWrapper(
-                    self,
-                    functools.partial(operation, item.text(0)),
-                    result_slots=(_handle_result, ),
-                    error_slots=(_raise_if, ),
-                ).start()
-
-            else:
-                _handle_result(operation(item.text(0)))
-
-    @Slot()
-    def toggle_stage_all(self, unstage: bool = False) -> None:
-        """
-        Move all the unstaged changes to the staged area or vice versa.
-
-        Parameters
-        ----------
-        unstage : bool
-            If True, staged changes are moved in the unstaged area.
-            The defaults is False, which does the opposite.
-        """
-        @Slot(object)
-        def _handle_result(result):
-            if result:
-                self.refresh_changes()
-
-        manager = self.get_plugin().vcs_manager
-        operation = manager.unstage_all if unstage else manager.stage_all
-        if THREAD_ENABLED:
-            ThreadWrapper(
-                self,
-                operation,
-                result_slots=(_handle_result, ),
-                error_slots=(_raise_if, ),
-            ).start()
+        if staged:
+            treewid = self.staged_files
         else:
-            _handle_result(operation())
+            treewid = self.unstaged_files
+        if treewid is not None:
+            if path is None:
+                treewid.refresh()
+            else:
+                treewid.refresh_one(path)
 
     @Slot()
     def commit(self) -> None:
@@ -664,24 +627,18 @@ class VCSWidget(PluginMainWidget):
         manager = self.get_plugin().vcs_manager
         func = getattr(manager, operation, None)
         if func is not None and func.enabled:
-            func = functools.partial(func, *args, **kwargs)
-            if THREAD_ENABLED:
-                ThreadWrapper(
-                    self,
-                    func,
-                    result_slots=(_handle_result,
-                                  self.refresh_commit_difference),
-                    error_slots=(
-                        lambda ex: _raise_if(ex, VCSAuthError, True) or self.
-                        handle_auth_error(ex, operation, args, kwargs), ),
-                ).start()
-            else:
-                try:
-                    result = func()
-                except VCSAuthError as ex:
-                    self.handle_auth_error(ex, operation, args, kwargs)
-                else:
-                    _handle_result(result)
+            func = partial(func, *args, **kwargs)
+            ThreadWrapper(
+                self,
+                func,
+                result_slots=(_handle_result,
+                              lambda res: self.refresh_commit_difference()
+                              if res else None),
+                error_slots=(
+                    lambda ex: _raise_if(ex, VCSAuthError, True) or self.
+                    handle_auth_error(ex, operation, args, kwargs), ),
+                nothread=not THREAD_ENABLED,
+            ).start()
 
     def handle_auth_error(  # pylint: disable=W0102
             self,
@@ -708,12 +665,10 @@ class VCSWidget(PluginMainWidget):
             )
 
         manager = self.get_plugin().vcs_manager
-        required_credentials = manager.REQUIRED_CREDENTIALS
-        credentials = manager.credentials
         credentials = {
-            # prefer error credentials over the backend ones
-            key: getattr(ex, key, None) or credentials.get(key)
-            for key in required_credentials
+            # prefer error credentials instead of the backend ones
+            key: getattr(ex, key, None) or manager.credentials.get(key)
+            for key in ex.required_credentials
         }
 
         if credentials:
@@ -721,6 +676,21 @@ class VCSWidget(PluginMainWidget):
             dialog.accepted.connect(_accepted)
             dialog.rejected.connect(_rejected)
             dialog.show()
+
+    @Slot()
+    def show_create_dialog(self) -> None:
+        """Show a :class:`CreateDialog` dialog for creating a repository."""
+        plugin = self.get_plugin()
+        plugin.create_vcs_action.setEnabled(False)
+        dialog = CreateDialog(
+            plugin.vcs_manager,
+            plugin.get_plugin(Plugins.Projects).get_active_project_path(),
+            parent=self,
+        )
+        dialog.rejected.connect(
+            partial(plugin.create_vcs_action.setEnabled, True))
+        dialog.sig_repository_ready.connect(plugin.set_repository)
+        dialog.show()
 
     @Slot()
     @Slot(int)
@@ -748,19 +718,173 @@ class VCSWidget(PluginMainWidget):
                 self.refresh_commit_difference,
                 self.refresh_history,
             ]
-            if THREAD_ENABLED:
-                slots.append(_refresh_commit_message)
+            slots.append(_refresh_commit_message)
+            ThreadWrapper(
+                self,
+                partial(manager.undo_commit, commits),
+                result_slots=slots,
+                error_slots=(_raise_if, ),
+                nothread=not THREAD_ENABLED,
+            ).start()
+
+
+class CreateDialog(QDialog):
+    """A dialog to manage cloning operation."""
+
+    sig_repository_ready = Signal(str)
+    """
+    This signal is emitted when repository creation is done.
+
+    Parameters
+    ----------
+    repodir : str
+        The repository directory.
+    """
+    def __init__(self, manager: VCSBackendManager, rootpath: str, parent=None):
+        super().__init__(parent=parent)
+        self.credentials = {}
+        self.tempdir = None
+        self.manager = manager
+
+        # Widgets
+        self.vcs_select = QComboBox()
+        self.directory = QLineEdit()
+        self.url_select = UrlComboBox(self)
+        buttonbox = QDialogButtonBox(QDialogButtonBox.Ok
+                                     | QDialogButtonBox.Cancel)
+
+        # Widget setup
+        self.vcs_select.addItems(manager.create_vcs_types)
+        self.directory.setText(rootpath)
+
+        # TODO: Currently, only opened projects can create repositories,
+        #       so it is forbidden to change the repository path.
+        self.directory.setReadOnly(True)
+
+        # Layout
+        rootlayout = QFormLayout(self)
+        rootlayout.addRow(QLabel(_("<h3>Create new repository</h3>")))
+        rootlayout.addRow(_("VCS Type"), self.vcs_select)
+        rootlayout.addRow(_("Destination"), self.directory)
+        rootlayout.addRow(_("Source repository"), self.url_select)
+        rootlayout.addRow(buttonbox)
+
+        # Slots
+        buttonbox.accepted.connect(self.accept)
+        buttonbox.rejected.connect(self.cleanup)
+        buttonbox.rejected.connect(self.reject)
+
+    # Public slots
+    @Slot()
+    def cleanup(self) -> None:
+        """Remove the temporary directory."""
+        self.tempdir = None
+
+    # Qt overrides
+    @Slot()
+    def accept(self) -> None:
+        url = self.url_select.currentText()
+        if url:
+            if not self.url_select.is_valid(url):
+                QMessageBox.critical(
+                    self, _("Invalid URL"),
+                    -("Creating a repository from an existing"
+                      "one requires a valid URL."))
+                return
+
+            if os.listdir(self.directory.text()):
+                ret = QMessageBox.warning(
+                    self,
+                    _("File override"),
+                    _("Local files will be overriden by cloning.\n"
+                      "Would you like to continue anyway?"),
+                    QMessageBox.Ok | QMessageBox.Cancel,
+                )
+                if ret != QMessageBox.Ok:
+                    return
+        else:
+            url = None
+        self._try_create(
+            self.vcs_select.currentText(),
+            self.directory.text(),
+            url,
+        )
+
+        super().accept()
+
+    def show(self) -> None:
+        self.tempdir = TemporaryDirectory()
+        super().show()
+
+    # Private methods
+    def _try_create(self, vcs_type: str, path: str,
+                    from_: typing.Optional[str]) -> None:
+        def _handle_result(result):
+            if result:
                 ThreadWrapper(
                     self,
-                    functools.partial(manager.undo_commit, commits),
-                    result_slots=slots,
-                    error_slots=(_raise_if, ),
+                    _move,
+                    result_slots=(
+                        lambda _: self.sig_repository_ready.emit(path),
+                        self.cleanup),
+                    error_slots=(_raise_if, self.cleanup),
                 ).start()
             else:
-                commit = manager.undo_commit(commits)
-                for slot in slots:
-                    slot()
-                _refresh_commit_message(commit)
+                QMessageBox.critical(self, _("Create failed"),
+                                     _("The create fails unexpectedly."))
+
+        def _move():
+            tempdir = self.tempdir.name
+            with ThreadPoolExecutor() as pool:
+                pool.map(lambda x: shutil.move(osp.join(tempdir, x), path),
+                         os.listdir(tempdir))
+
+        ThreadWrapper(
+            self,
+            partial(
+                self.manager.create_with,
+                vcs_type,
+                self.tempdir.name,
+                from_=from_,
+                credentials=self.credentials,
+            ),
+            result_slots=(_handle_result, ),
+            error_slots=(lambda ex: _raise_if(ex, VCSAuthError, True) or self.
+                         _handle_auth_error(ex), ),
+            nothread=not THREAD_ENABLED,
+        ).start()
+
+    @Slot(VCSAuthError)
+    def _handle_auth_error(self, ex: VCSAuthError):
+        def _accepted():
+            self.credentials = dialog.to_credentials()
+            self._try_create(self.vcs_select.currentText(),
+                             self.directory.text(),
+                             self.url_select.currentText())
+
+        def _rejected():
+            QMessageBox.critical(
+                self,
+                _("Authentication failed"),
+                _("Failed to authenticate to the {} remote server.").format(
+                    self.vcs_select.currentText()),
+            )
+            # Inform the main widget that the operation had failed.
+            self.cleanup()
+            self.rejected.emit()
+
+        credentials = {
+            # Use stored credentials if the error
+            # does not give them.
+            key: getattr(ex, key, None) or self.credentials.get(key)
+            for key in ex.required_credentials
+        }
+
+        if credentials:
+            dialog = LoginDialog(self, **credentials)
+            dialog.accepted.connect(_accepted)
+            dialog.rejected.connect(_rejected)
+            dialog.show()
 
 
 @Slot(Exception)
@@ -772,16 +896,6 @@ def _raise_if(ex: Exception,
     condition = isinstance(ex, required_type) ^ inverse
     if condition:
         raise ex
-
-
-def _prepare_changes_widget(treewid: QTreeWidget) -> QTreeWidget:
-    treewid.setHeaderHidden(True)
-    treewid.setRootIsDecorated(False)
-
-    treewid.setSortingEnabled(True)
-    treewid.sortItems(0, Qt.AscendingOrder)
-
-    return treewid
 
 
 def clear_layout(layout: QLayout) -> None:

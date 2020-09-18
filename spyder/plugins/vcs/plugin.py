@@ -117,6 +117,14 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
     When triggered, the :py:meth:`~VCSBackendBase.push` method is called.
     """
 
+    create_vcs_action: QAction
+    """
+    Action for create an empty repository.
+
+    When triggered, a dialog box is showed,
+    then :py:meth:`~VCSBackendBase.create` is called.
+    """
+
     # Other attributes definition
 
     vcs_manager: VCSBackendManager
@@ -128,8 +136,9 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
     .. warning::
         Any call to the manager blocks the current thread and
         may invoke subprocess or other long-running operation.
-        Is preferrable to run them in a separate thread and
-        wait the result asynchronously.
+        It is better to run those calls in separate threads
+        and wait results asynchronously.
+        The :class:`~ThreadWrapper` may help you.
 
     .. danger::
         Do any operation that changes the repository state
@@ -140,10 +149,7 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
         self.vcs_manager = VCSBackendManager(None)
         # workaround when imported as 3rd party plugin
         kwargs.setdefault("configuration", CONF)
-        super().__init__(
-            *args,
-            **kwargs,
-        )
+        super().__init__(*args, **kwargs)
 
     # Reimplemented APIs
     def get_name(self):
@@ -226,7 +232,7 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
             self.refresh_action.setEnabled(True)
             self.sig_repository_changed.emit(self.vcs_manager.repodir,
                                              self.vcs_manager.VCSNAME)
-
+        self.create_vcs_action.setEnabled(True)
         return self.get_repository()
 
     repository_path = property(
@@ -254,6 +260,16 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
     def _create_actions(self):
         # TODO: Add tips
         create_action = self.create_action
+
+        self.create_vcs_action = create_action(
+            "vcs_create_vcs_action",
+            _("create new repository"),
+            # icon=qta.icon("fa.long-arrow-down", color=ima.MAIN_FG_COLOR),
+            icon_text=_("create new repository"),
+            # tip=_("ADD TIP HERE"),
+            shortcut_context=self.NAME,
+            triggered=lambda: None,
+        )
         self.stage_all_action = create_action(
             "vcs_stage_all_action",
             _("stage all"),
