@@ -574,7 +574,7 @@ class EditorStack(QWidget):
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
         self.add_newline = False
-        self.remove_trailling_newlines = False
+        self.remove_trailing_newlines = False
         self.convert_eol_on_save = False
         self.convert_eol_on_save_to = 'LF'
         self.focus_to_editor = True
@@ -1378,11 +1378,11 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_add_newline(state)
 
-    def set_remove_trailling_newlines(self, state):
-        self.remove_trailling_newlines = state
+    def set_remove_trailing_newlines(self, state):
+        self.remove_trailing_newlines = state
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_remove_trailling_newlines(state)
+                finfo.editor.set_remove_trailing_newlines(state)
 
     def set_convert_eol_on_save(self, state):
         """If `state` is `True`, saving files will convert line endings."""
@@ -2028,8 +2028,8 @@ class EditorStack(QWidget):
             return True
         if self.always_remove_trailing_spaces:
             self.remove_trailing_spaces(index)
-        if self.remove_trailling_newlines:
-            self.trim_trailling_newlines(index)
+        if self.remove_trailing_newlines:
+            self.trim_trailing_newlines(index)
         if self.add_newline:
             self.add_newline_to_file(index)
         if self.convert_eol_on_save:
@@ -2659,8 +2659,8 @@ class EditorStack(QWidget):
             show_class_func_dropdown=self.show_class_func_dropdown,
             indent_guides=self.indent_guides,
             folding=self.code_folding_enabled,
-            remove_trailling_spaces=self.always_remove_trailing_spaces,
-            remove_trailling_newlines=self.remove_trailling_newlines,
+            remove_trailing_spaces=self.always_remove_trailing_spaces,
+            remove_trailing_newlines=self.remove_trailing_newlines,
             add_newline=self.add_newline
         )
         if cloned_from is None:
@@ -2816,11 +2816,11 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         finfo.editor.remove_trailing_spaces()
 
-    def trim_trailling_newlines(self, index=None):
+    def trim_trailing_newlines(self, index=None):
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
-        finfo.editor.trim_trailling_newlines()
+        finfo.editor.trim_trailing_newlines()
 
     def add_newline_to_file(self, index=None):
         if index is None:

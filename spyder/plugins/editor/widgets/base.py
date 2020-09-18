@@ -54,9 +54,9 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.extra_selections_dict = {}
         self._restore_selection_pos = None
 
-        # Trailling newlines/spaces trimming
-        self.remove_trailling_spaces = False
-        self.remove_trailling_newlines = False
+        # Trailing newlines/spaces trimming
+        self.remove_trailing_spaces = False
+        self.remove_trailing_newlines = False
 
         # Add a new line when saving
         self.add_newline = False
@@ -123,14 +123,14 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.tab_stop_width_spaces = tab_stop_width_spaces
         self.update_tab_stop_width_spaces()
 
-    def set_remove_trailling_spaces(self, flag):
-        self.remove_trailling_spaces = flag
+    def set_remove_trailing_spaces(self, flag):
+        self.remove_trailing_spaces = flag
 
     def set_add_newline(self, add_newline):
         self.add_newline = add_newline
 
-    def set_remove_trailling_newlines(self, flag):
-        self.remove_trailling_newlines = flag
+    def set_remove_trailing_newlines(self, flag):
+        self.remove_trailing_newlines = flag
 
     def update_tab_stop_width_spaces(self):
         self.setTabStopWidth(self.fontMetrics().width(

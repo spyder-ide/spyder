@@ -84,4 +84,5 @@ def match_path_to_folder(folders, path):
 
 
 def snake_to_camel(text):
+    """Convert a string from CamelCase to snake_case."""
     return re.sub('_([a-zA-Z0-9])', lambda m: m.group(1).upper(), text)

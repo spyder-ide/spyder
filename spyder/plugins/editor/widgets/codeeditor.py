@@ -834,8 +834,8 @@ class CodeEditor(TextEditBaseWidget):
                      scroll_past_end=False,
                      show_debug_panel=True,
                      folding=True,
-                     remove_trailling_spaces=False,
-                     remove_trailling_newlines=False,
+                     remove_trailing_spaces=False,
+                     remove_trailing_newlines=False,
                      add_newline=False):
         """
         Set-up configuration for the CodeEditor instance.
@@ -911,9 +911,9 @@ class CodeEditor(TextEditBaseWidget):
             its end. Default False.
         show_debug_panel: Enable/Disable debug panel. Default True.
         folding: Enable/Disable code folding. Default True.
-        remove_trailling_spaces: Remove trailling whitespaces on lines.
+        remove_trailing_spaces: Remove trailing whitespaces on lines.
             Default False.
-        remove_trailling_newlines: Remove extra lines at the end of the file.
+        remove_trailing_newlines: Remove extra lines at the end of the file.
             Default False.
         add_newline: Add a newline at the end of the file if there is not one.
             Default False.
@@ -951,11 +951,11 @@ class CodeEditor(TextEditBaseWidget):
         # Blanks
         self.set_blanks_enabled(show_blanks)
 
-        # Remove trailling whitespaces
-        self.set_remove_trailling_spaces(remove_trailling_spaces)
+        # Remove trailing whitespaces
+        self.set_remove_trailing_spaces(remove_trailing_spaces)
 
-        # Remove trailling newlines
-        self.set_remove_trailling_newlines(remove_trailling_newlines)
+        # Remove trailing newlines
+        self.set_remove_trailing_newlines(remove_trailing_newlines)
 
         # Add newline at the end
         self.set_add_newline(add_newline)
@@ -1505,9 +1505,9 @@ class CodeEditor(TextEditBaseWidget):
             'options': {
                 'tab_size': tab_size,
                 'insert_spaces': using_spaces,
-                'trim_trailling_whitespace': self.remove_trailling_spaces,
+                'trim_trailing_whitespace': self.remove_trailing_spaces,
                 'insert_final_new_line': self.add_newline,
-                'trim_final_new_lines': self.remove_trailling_newlines
+                'trim_final_new_lines': self.remove_trailing_newlines
             }
         }
         return params
@@ -1540,22 +1540,39 @@ class CodeEditor(TextEditBaseWidget):
             'options': {
                 'tab_size': tab_size,
                 'insert_spaces': using_spaces,
-                'trim_trailling_whitespace': self.remove_trailling_spaces,
+                'trim_trailing_whitespace': self.remove_trailing_spaces,
                 'insert_final_new_line': self.add_newline,
-                'trim_final_new_lines': self.remove_trailling_newlines
+                'trim_final_new_lines': self.remove_trailing_newlines
             }
         }
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_FORMATTING)
     def handle_document_formatting(self, edits):
-        self._apply_document_edits(edits)
+        try:
+            self._apply_document_edits(edits)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors("Error when processing document "
+                                       "formatting")
 
     @handles(LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def handle_document_range_formatting(self, edits):
-        self._apply_document_edits(edits)
+        try:
+            self._apply_document_edits(edits)
+        except RuntimeError:
+            # This is triggered when a codeeditor instance was removed
+            # before the response can be processed.
+            return
+        except Exception:
+            self.log_lsp_handle_errors("Error when processing document "
+                                       "selection formatting")
 
     def _apply_document_edits(self, edits):
+        """Apply a set of atomic document edits to the current editor text."""
         edits = edits['params']
         if edits is None:
             return
@@ -1990,7 +2007,8 @@ class CodeEditor(TextEditBaseWidget):
         cursor.endEditBlock()
         self.document_did_change()
 
-    def trim_trailling_newlines(self):
+    def trim_trailing_newlines(self):
+        """Remove extra newlines at the end of the document."""
         cursor = self.textCursor()
         cursor.beginEditBlock()
         cursor.movePosition(QTextCursor.End)
@@ -2023,6 +2041,7 @@ class CodeEditor(TextEditBaseWidget):
         self.document_did_change()
 
     def add_newline_to_file(self):
+        """Add a newline to the end of the file if it does not exist."""
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
         line = cursor.blockNumber()
@@ -3936,8 +3955,10 @@ class CodeEditor(TextEditBaseWidget):
             triggered=writer.write_docstring_at_first_line_of_function)
 
         # Document formatting
+        formatter = CONF.get('lsp-server', 'formatting')
         self.format_action = create_action(
-            self, _('Format document/selection'),
+            self, _('Format the current file or selection with {0}').format(
+                formatter),
             shortcut=CONF.get_shortcut('editor', 'autoformatting'),
             triggered=self.format_document_or_range)
 

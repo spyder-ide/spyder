@@ -31,7 +31,6 @@ PLUGIN = 'spyder plugins'
 # Hard dependencies
 APPLAUNCHSERVICES_REQVER = '>=0.1.7'
 ATOMICWRITES_REQVER = '>=1.2.0'
-AUTOPEP8_REQVER = '>=1.5.3'
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
@@ -61,7 +60,6 @@ SPHINX_REQVER = '>=0.6.6'
 SPYDER_KERNELS_REQVER = '>=1.9.4;<1.10.0'
 THREE_MERGE_REQVER = '>=0.1.1'
 WATCHDOG_REQVER = None
-YAPF_REQVER = '>=0.30.0'
 
 
 # Optional dependencies
@@ -90,10 +88,6 @@ DESCRIPTIONS = [
      'package_name': "atomicwrites",
      'features': _("Atomic file writes in the Editor"),
      'required_version': ATOMICWRITES_REQVER},
-    {'modname': 'autopep8',
-     'package_name': 'autopep8',
-     'features': _("Autoformat Python files in the Editor"),
-     'required_version': AUTOPEP8_REQVER},
     {'modname': "chardet",
      'package_name': "chardet",
      'features': _("Character encoding auto-detection for the Editor"),
@@ -168,7 +162,8 @@ DESCRIPTIONS = [
      'required_version': PYLS_REQVER},
     {'modname': 'pyls_black',
      'package_name': 'pyls-black',
-     'features': _("Autoformat Python files in the Editor"),
+     'features': _("Autoformat Python files in the Editor with the Black "
+                   "package"),
      'required_version': PYLS_BLACK_REQVER},
     {'modname': "xdg",
      'package_name': "pyxdg",
@@ -215,11 +210,7 @@ DESCRIPTIONS = [
     {'modname': "watchdog",
      'package_name': "watchdog",
      'features': _("Watch file changes on project directories"),
-     'required_version': WATCHDOG_REQVER},
-    {'modname': 'yapf',
-     'package_name': 'yapf',
-     'features': _("Autoformat Python files in the Editor"),
-     'required_version': YAPF_REQVER}
+     'required_version': WATCHDOG_REQVER}
 ]
 
 

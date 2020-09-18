@@ -901,9 +901,19 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         # --- Code formatting tab ---
         # Code formatting label
+        autopep8_url = (
+            "<a href='https://github.com/hhatto/autopep8'>Autopep8</a>"
+        )
+        yapf_url = (
+            "<a href='https://github.com/google/yapf'>Yapf</a>"
+        )
+        black_url = (
+            "<a href='https://black.readthedocs.io/en/stable'>Black</a>"
+        )
         code_fmt_label = QLabel(
-            _("Spyder can use autopep8, yapf or black to format your code for "
-              "conformance to the {} convention.").format(pep_url))
+            _("Spyder can use {0}, {1} or {2} to format your code for "
+              "conformance to the {3} convention.").format(
+                  autopep8_url, yapf_url, black_url, pep_url))
         code_fmt_label.setOpenExternalLinks(True)
         code_fmt_label.setWordWrap(True)
 

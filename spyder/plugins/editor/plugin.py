@@ -802,9 +802,13 @@ class Editor(SpyderPluginWidget):
             _("Remove trailing spaces"),
             triggered=self.remove_trailing_spaces)
 
+        formatter = CONF.get('lsp-server', 'formatting')
         self.formatting_action = create_action(
             self,
-            _("Format document/selection"),
+            _("Format the current file or selection with {0}").format(
+                formatter),
+            shortcut=CONF.get_shortcut('editor', 'autoformatting'),
+            context=Qt.WidgetShortcut,
             triggered=self.format_document_or_selection)
         self.formatting_action.setEnabled(False)
 
@@ -1328,7 +1332,7 @@ class Editor(SpyderPluginWidget):
             ('set_tabbar_visible',                  'show_tab_bar'),
             ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
-            ('set_remove_trailling_newlines',        'always_remove_trailing_newlines'),
+            ('set_remove_trailing_newlines',        'always_remove_trailing_newlines'),
             ('set_add_newline',                     'add_newline'),
             ('set_convert_eol_on_save',             'convert_eol_on_save'),
             ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
@@ -2889,7 +2893,7 @@ class Editor(SpyderPluginWidget):
                 if add_newline_n in options:
                     editorstack.set_add_newline(add_newline_o)
                 if removetrail_newlines_n in options:
-                    editorstack.set_remove_trailling_newlines(
+                    editorstack.set_remove_trailing_newlines(
                         removetrail_newlines_o)
                 if converteol_n in options:
                     editorstack.set_convert_eol_on_save(converteol_o)

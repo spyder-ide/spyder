@@ -139,13 +139,12 @@ class EditorConfigPage(PluginConfigPage):
             'always_remove_trailing_spaces',
             default=False)
         add_newline_box = newcb(
-            _("When saving a file, insert a newline character at the end "
-              "if one does not exist"),
+            _("Insert a newline at the end if one does not exist when saving "
+              "a file"),
             'add_newline',
             default=False)
         remove_trail_newline_box = newcb(
-            _("When saving a file, trim all newlines after the final newline "
-              "at the end"),
+            _("Trim all newlines after the final one when saving a file"),
             'always_remove_trailing_newlines',
             default=False)
 
