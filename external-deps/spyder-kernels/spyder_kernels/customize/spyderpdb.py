@@ -145,8 +145,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             self.onecmd('exit')
         else:
             self.setup(frame, traceback)
-            if get_ipython().kernel._pdb_print_code:
-                self.print_stack_entry(self.stack[self.curindex])
+            self.print_stack_entry(self.stack[self.curindex])
             self._cmdloop()
             self.forget()
 
@@ -322,7 +321,9 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         kernel._register_pdb_session(self)
 
     def do_debug(self, arg):
-        """debug code
+        """
+        Debug code
+
         Enter a recursive debugger that steps through the code
         argument (which is an arbitrary expression or statement to be
         executed in the current environment).
@@ -360,7 +361,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 try:
                     frontend_request(blocking=True).set_debug_state(False)
                 except (CommError, TimeoutError):
-                    logger.debug("Could not send debugging state to the frontend.")
+                    logger.debug(
+                        "Could not send debugging state to the frontend.")
                 raise
 
     def postcmd(self, stop, line):
