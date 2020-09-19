@@ -107,6 +107,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'get_file_code': self.handle_get_file_code,
             'set_debug_state': self.set_debug_state,
             'update_syspath': self.update_syspath,
+            'do_where': self.do_where,
             'pdb_input': self.pdb_input,
             'request_interrupt_eventloop': self.request_interrupt_eventloop,
         }

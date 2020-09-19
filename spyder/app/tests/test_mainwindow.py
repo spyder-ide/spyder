@@ -2951,7 +2951,7 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
 @flaky(max_runs=3)
 @pytest.mark.skipif(os.name == 'nt' or sys.platform == 'darwin',
                     reason="It times out on macOS and Windows")
-def test_pbd_key_leak(main_window, qtbot, tmpdir):
+def test_pdb_key_leak(main_window, qtbot, tmpdir):
     """
     Check that pdb notify spyder doesn't call
     QApplication.processEvents(). If it does there might be keystoke leakage.
@@ -3015,7 +3015,9 @@ def test_pbd_key_leak(main_window, qtbot, tmpdir):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'darwin', reason="It times out on macOS")
-def test_pbd_step(main_window, qtbot, tmpdir):
+@pytest.mark.parametrize(
+    "where", [True, False])
+def test_pdb_step(main_window, qtbot, tmpdir, where):
     """
     Check that pdb notify Spyder only moves when a new line is reached.
     """
@@ -3051,6 +3053,19 @@ def test_pbd_step(main_window, qtbot, tmpdir):
             main_window.editor.get_current_editor().filename,
             str(test_file)))
 
+    # Move to another file
+    main_window.editor.new()
+    qtbot.wait(100)
+    assert main_window.editor.get_current_editor().filename != str(test_file)
+    current_filename = main_window.editor.get_current_editor().filename
+
+    # Run a random command, make sure we don't move
+    qtbot.keyClick(control, 'a')
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.wait(1000)
+    assert current_filename == main_window.editor.get_current_editor().filename
+
     # Go up and enter second file
     qtbot.keyClick(control, 'u')
     qtbot.keyClick(control, Qt.Key_Enter)
@@ -3070,16 +3085,29 @@ def test_pbd_step(main_window, qtbot, tmpdir):
         main_window.editor.get_current_editor().filename,
         str(test_file))
 
-    # Change frame but stay at the same place
-    qtbot.keyClicks(control, 'test = 0')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-    qtbot.wait(1000)
+    if where:
+        # go back to the second file with where
+        qtbot.keyClicks(control, 'w')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+        qtbot.wait(1000)
 
-    # Make sure we didn't move
-    assert osp.samefile(
-        main_window.editor.get_current_editor().filename,
-        str(test_file))
+        # Make sure we moved
+        assert osp.samefile(
+            main_window.editor.get_current_editor().filename,
+            str(test_file2))
+
+    else:
+        # Stay at the same place
+        qtbot.keyClicks(control, 'a')
+        qtbot.keyClick(control, Qt.Key_Enter)
+        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+        qtbot.wait(1000)
+
+        # Make sure we didn't move
+        assert osp.samefile(
+            main_window.editor.get_current_editor().filename,
+            str(test_file))
 
 
 @pytest.mark.slow

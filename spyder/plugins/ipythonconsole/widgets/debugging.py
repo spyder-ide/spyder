@@ -299,7 +299,13 @@ class DebuggingWidget(DebuggingHistoryWidget):
         self.call_kernel(interrupt=True).set_pdb_execute_events(
             CONF.get('run', 'pdb_execute_events', False))
 
-    def _refresh_from_pdb(self, pdb_state):
+    def do_where(self):
+        """Where was called, go to the current location."""
+        fname, lineno = self._pdb_frame_loc
+        if fname:
+            self.sig_pdb_step.emit(fname, lineno)
+
+    def refresh_from_pdb(self, pdb_state):
         """
         Refresh Variable Explorer and Editor from a Pdb session,
         after running any pdb command.
