@@ -3843,7 +3843,7 @@ class CodeEditor(TextEditBaseWidget):
         # verticalScrollBar.
         # See https://bugreportts.qt.io/browse/QTBUG-25365
         if key in {Qt.Key_Up,  Qt.Key_Down}:
-            self.update_decorations()
+            self.update_decorations_timer.start()
 
         # This necessary to run our Pygments highlighter again after the
         # user generated text changes
