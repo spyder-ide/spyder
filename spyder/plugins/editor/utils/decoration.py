@@ -24,6 +24,8 @@ from qtpy.QtGui import QTextCharFormat
 from spyder.api.manager import Manager
 
 
+# Timeout to avoid almost simultaneous calls to update decorations, which
+# introduces a lot of sluggishness in the editor.
 UPDATE_TIMEOUT = 15 # miliseconds
 
 

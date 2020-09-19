@@ -91,17 +91,18 @@ from spyder.utils.vcs import get_git_remotes, remote_to_url
 from spyder.utils.qstringhelpers import qstring_length
 from spyder.widgets.helperwidgets import MessageCheckBox
 
-
 try:
     import nbformat as nbformat
     from nbconvert import PythonExporter as nbexporter
 except Exception:
     nbformat = None  # analysis:ignore
 
-
 logger = logging.getLogger(__name__)
-UPDATE_DECORATIONS_TIMEOUT = 500  # miliseconds
 
+# Timeout to update decorations (through a QTimer) when a position
+# changed is detected in the vertical scrollbar or when releasing
+# the up/down arrow keys.
+UPDATE_DECORATIONS_TIMEOUT = 500  # miliseconds
 
 # %% This line is for cell execution testing
 def is_letter_or_number(char):
