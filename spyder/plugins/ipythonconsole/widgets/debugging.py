@@ -9,14 +9,15 @@ Widget that handles communications between a console in debugging
 mode and Spyder
 """
 
+from distutils.version import LooseVersion
 import re
 import pdb
 
-from spyder.py3compat import PY2
-if not PY2:
-    from IPython.core.inputtransformer2 import TransformerManager
-else:
+from IPython import __version__ as ipy_version
+if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
     from IPython.core.inputsplitter import IPythonInputSplitter
+else:
+    from IPython.core.inputtransformer2 import TransformerManager
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from IPython.core.history import HistoryManager
 
@@ -402,7 +403,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
         """
         if source and source[0] == '!':
             source = source[1:]
-        if PY2:
+        if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
             tm = IPythonInputSplitter()
         else:
             tm = TransformerManager()
