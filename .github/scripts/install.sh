@@ -14,7 +14,7 @@ if [ "$USE_CONDA" = "true" ]; then
     fi
 
     # Install main dependencies
-    conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y
+    conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y -c spyder-ide/label/dev
 
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
@@ -37,9 +37,6 @@ else
 
     # Install qtconsole from Github
     pip install git+https://github.com/jupyter/qtconsole.git
-
-    # Pin python-jsonrpc-server and ujson to working versions (for now)
-    pip install python-jsonrpc-server==0.3.4 ujson==1.35
 
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y

@@ -38,6 +38,7 @@ from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
     generate_pandas_indexes
 from spyder.py3compat import PY2, to_text_string
+from spyder_kernels.utils.nsview import get_size
 
 
 # =============================================================================
@@ -843,6 +844,59 @@ def test_dicts_natural_sorting(qtbot):
     assert data_sorted == expected, 'Function failed'
     assert editor.widget.editor.source_model.keys == expected, \
         'GUI sorting fail'
+
+
+def test_dicts_natural_sorting_mixed_types(qtbot):
+    """
+    Test that natural sorting actually does what it should do.
+    testing for issue 13733, as mixed types were sorted incorrectly.
+
+    Sorting for other columns will be tested as well.
+    """
+    import pandas as pd
+    dictionary = {'DSeries': pd.Series(dtype=int), 'aStr': 'algName',
+                  'kDict': {2: 'asd', 3: 2}}
+
+    # put this here variable, as it might change later to reflect string length
+    str_size = get_size(dictionary['aStr'])
+
+    editor = CollectionsEditor()
+    editor.setup(dictionary)
+    cm = editor.widget.editor.source_model
+    cm.sort(0)
+    keys = cm.keys
+    types = cm.types
+    sizes = cm.sizes
+
+    assert keys == ['aStr', 'DSeries', 'kDict']
+    assert types == ['str', 'Series', 'dict']
+    assert sizes == [1, (0,), 2]
+
+    assert data_table(cm, 3, 3) == [['aStr', 'DSeries', 'kDict'],
+                                    ['str', 'Series', 'dict'],
+                                    [1, '(0,)', 2]]
+
+    # insert an item and check that it is still sorted correctly
+    editor.widget.editor.new_value('List', [1, 2, 3])
+    assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
+                                    ['str', 'Series', 'dict', 'list'],
+                                    [1, '(0,)', 2, 3]]
+    cm.sort(0)
+    assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
+                                    ['str', 'Series', 'dict', 'list'],
+                                    [1, '(0,)', 2, 3]]
+
+    # now sort for types
+    cm.sort(1)
+    assert data_table(cm, 4, 3) == [['DSeries', 'kDict', 'List', 'aStr'],
+                                    ['Series', 'dict', 'list', 'str'],
+                                    ['(0,)', 2, 3, 1]]
+
+    # now sort for sizes
+    cm.sort(2)
+    assert data_table(cm, 4, 3) == [['DSeries', 'kDict', 'List', 'aStr'],
+                                    ['Series', 'dict', 'list', 'str'],
+                                    ['(0,)', 2, 3, str_size]]
 
 
 if __name__ == "__main__":

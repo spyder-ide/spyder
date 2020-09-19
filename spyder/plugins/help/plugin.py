@@ -301,9 +301,9 @@ class Help(SpyderPluginWidget):
             cb = self._last_editor_cb
         if cb is None:
             if self.is_plain_text_mode():
-                self.plain_text.clear()
+                self.switch_to_plain_text()
             else:
-                self.rich_text.clear()
+                self.switch_to_rich_text()
         else:
             func = cb[0]
             args = cb[1:]
@@ -387,9 +387,9 @@ class Help(SpyderPluginWidget):
                 if text['note']:
                     note = ''.join(['Type: ', text['note'], '\n\n----\n\n'])
                 else:
-                    note = _('No further documentation available')
+                    note = ''
             except TypeError:
-                definition = _('No documentation available')
+                definition = self.no_doc_string
                 note = ''
 
             full_text = ''.join([rst_title, definition, note,
@@ -727,9 +727,7 @@ class Help(SpyderPluginWidget):
             if hlp_text is None:
                 hlp_text = source_text
                 if hlp_text is None:
-                    hlp_text = self.no_doc_string
-                    if ignore_unknown:
-                        return False
+                    return False
         else:
             hlp_text = source_text
             if hlp_text is None:
