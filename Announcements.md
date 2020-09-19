@@ -1,34 +1,33 @@
 # Minor release to list
 
-**Subject**: [ANN] Spyder 4.1.4 is released!
+**Subject**: [ANN] Spyder 4.1.5 is released!
 
 
 Hi all,
 
 On the behalf of the [Spyder Project Contributors](https://github.com/spyder-ide/spyder/graphs/contributors),
-I'm pleased to announce that Spyder **4.1.4** has been released and is available for
+I'm pleased to announce that Spyder **4.1.5** has been released and is available for
 Windows, GNU/Linux and MacOS X: https://github.com/spyder-ide/spyder/releases
 
-This release comes two months after version 4.1.3 and it contains the
-following important fixes:
+This release comes seven weeks after version 4.1.4 and it contains the
+following new features and important fixes:
 
-* Fix linter not being updated after changes on Windows.
-* Correctly restart kernels after a crash while running code.
-* Clear variable explorer after a kernel restart.
-* Fix several errors when sorting variables in the variable explorer.
-* Fix selection color in several syntax highlighting themes.
-* Support Jedi 0.17.1, which fixes several issues with code completion in the
-  editor.
-* Fix errors when running Dask code in the IPython console.
-* Show scrollflag in macOS with the dark theme.
-* Only show folding arrows when the user hovers over them, which improves
-  responsiveness in the editor.
-* Fix several problems with the integration between our projects and the
-  Python language server.
-* Handle NaT values in the Variable Explorer.
 
-In this release we fixed 62 issues and merged 79 pull requests that amount
-to more than 400 commits. For a full list of fixes, please see our
+- New features
+  * Add natural sorting for variables in the Variable Explorer.
+  * Add shortcut to open files in the Editor in the operating system file
+    explorer.
+  * Add an option to run lines of code when entering the debugger. This is
+    present in `Preferences > IPython console > Startup`.
+
+- Important fixes
+  * Fix error when opening projects.
+  * Fix error when hovering in the Editor caused by Kite.
+  * Don't save files when running cells.
+  * Several improvements to the user experience of Files.
+
+In this release we fixed 17 issues and merged 30 pull requests that amount
+to more than 120 commits. For a full list of fixes, please see our
 [Changelog](https://github.com/spyder-ide/spyder/blob/4.x/CHANGELOG.md).
 
 Don't forget to follow Spyder updates/news on the project's

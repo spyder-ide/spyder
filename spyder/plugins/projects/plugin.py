@@ -285,7 +285,6 @@ class Projects(SpyderPluginWidget):
     def open_project(self, path=None, restart_consoles=True,
                      save_previous_files=True):
         """Open the project located in `path`"""
-        self.notify_project_open(path)
         self.unmaximize()
         if path is None:
             basedir = get_home_dir()
@@ -300,7 +299,6 @@ class Projects(SpyderPluginWidget):
                 return
         else:
             path = encoding.to_unicode_from_fs(path)
-
         self.add_to_recent(path)
 
         # A project was not open before
@@ -326,6 +324,7 @@ class Projects(SpyderPluginWidget):
         project = EmptyProject(path)
         self.current_active_project = project
         self.latest_project = project
+        self.notify_project_open(path)
         self.set_option('current_project_path', self.get_active_project_path())
 
         self.setup_menu_actions()

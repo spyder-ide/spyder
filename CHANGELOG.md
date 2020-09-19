@@ -1,5 +1,83 @@
 # History of changes
 
+## Version 4.1.5 (2020-09-01)
+
+### New features
+
+* Add natural sorting for variables in the Variable Explorer.
+* Add shortcut to open files in the Editor in the operating system file
+  explorer.
+* Add an option to run lines of code when entering the debugger. This is
+  present in `Preferences > IPython console > Startup`.
+
+### Important fixes
+
+* Fix error when opening projects.
+* Fix error when hovering in the Editor caused by Kite.
+* Don't save files when running cells.
+* Several improvements to the user experience of Files.
+
+### Issues Closed
+
+* [Issue 13635](https://github.com/spyder-ide/spyder/issues/13635) - Update spyder-kernels subrepo ([PR 13202](https://github.com/spyder-ide/spyder/pull/13202) by [@impact27](https://github.com/impact27))
+* [Issue 13490](https://github.com/spyder-ide/spyder/issues/13490) - Test `test_dbg_input` is failing in Linux fast CI ([PR 13499](https://github.com/spyder-ide/spyder/pull/13499) by [@impact27](https://github.com/impact27))
+* [Issue 13481](https://github.com/spyder-ide/spyder/issues/13481) - Can't open Dict in variable explorer with mixed data types as keys. ([PR 13545](https://github.com/spyder-ide/spyder/pull/13545) by [@ccordoba12](https://github.com/ccordoba12))
+* [Issue 13444](https://github.com/spyder-ide/spyder/issues/13444) - Explorer "New" actions should depend on selected files ([PR 13482](https://github.com/spyder-ide/spyder/pull/13482) by [@steff456](https://github.com/steff456))
+* [Issue 13417](https://github.com/spyder-ide/spyder/issues/13417) - Error in Spyder tutorial ([PR 13419](https://github.com/spyder-ide/spyder/pull/13419) by [@aznpooface](https://github.com/aznpooface))
+* [Issue 13388](https://github.com/spyder-ide/spyder/issues/13388) - BrokenPipeError when trying to connect to the Pydoc server ([PR 13407](https://github.com/spyder-ide/spyder/pull/13407) by [@steff456](https://github.com/steff456))
+* [Issue 13363](https://github.com/spyder-ide/spyder/issues/13363) - Profiler doesn't sort by time ([PR 13426](https://github.com/spyder-ide/spyder/pull/13426) by [@juanis2112](https://github.com/juanis2112))
+* [Issue 13346](https://github.com/spyder-ide/spyder/issues/13346) - TypeError when opening a project ([PR 13377](https://github.com/spyder-ide/spyder/pull/13377) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 13297](https://github.com/spyder-ide/spyder/issues/13297) - TypeError when hovering in the editor ([PR 13575](https://github.com/spyder-ide/spyder/pull/13575) by [@andfoy](https://github.com/andfoy))
+* [Issue 13254](https://github.com/spyder-ide/spyder/issues/13254) - Add (0) to first image stored when saving all images from IDE ([PR 13334](https://github.com/spyder-ide/spyder/pull/13334) by [@arteagac](https://github.com/arteagac))
+* [Issue 13230](https://github.com/spyder-ide/spyder/issues/13230) - Another KeyError when folding regions ([PR 13279](https://github.com/spyder-ide/spyder/pull/13279) by [@steff456](https://github.com/steff456))
+* [Issue 13197](https://github.com/spyder-ide/spyder/issues/13197) - Spyder saves files before running code cells (but should not) ([PR 13202](https://github.com/spyder-ide/spyder/pull/13202) by [@impact27](https://github.com/impact27))
+* [Issue 13179](https://github.com/spyder-ide/spyder/issues/13179) - Some improvements for the Files plugin ([PR 13209](https://github.com/spyder-ide/spyder/pull/13209) by [@dalthviz](https://github.com/dalthviz))
+* [Issue 13158](https://github.com/spyder-ide/spyder/issues/13158) - Feature request: keyboard shortcut for "Show in external file explorer"
+* [Issue 13144](https://github.com/spyder-ide/spyder/issues/13144) - I'm not able to search by context in the shortcuts table ([PR 13294](https://github.com/spyder-ide/spyder/pull/13294) by [@steff456](https://github.com/steff456))
+* [Issue 12795](https://github.com/spyder-ide/spyder/issues/12795) - Startup script for debugger ([PR 10542](https://github.com/spyder-ide/spyder/pull/10542) by [@impact27](https://github.com/impact27))
+* [Issue 7844](https://github.com/spyder-ide/spyder/issues/7844) - Add a "Copy to clipboard" button to the "About Spyder" window ([PR 13268](https://github.com/spyder-ide/spyder/pull/13268) by [@davidxbuck](https://github.com/davidxbuck))
+
+In this release 17 issues were closed.
+
+### Pull Requests Merged
+
+* [PR 13679](https://github.com/spyder-ide/spyder/pull/13679) - PR: Update required version of spyder-kernels for 4.1.5, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13621](https://github.com/spyder-ide/spyder/pull/13621) - PR: Install PyLS locally without modifying site-packages, by [@andfoy](https://github.com/andfoy)
+* [PR 13575](https://github.com/spyder-ide/spyder/pull/13575) - PR: Prevent raising an exception when a hover request returns a list, by [@andfoy](https://github.com/andfoy) ([13297](https://github.com/spyder-ide/spyder/issues/13297))
+* [PR 13559](https://github.com/spyder-ide/spyder/pull/13559) - PR: Fix using dir in the spyder module, by [@impact27](https://github.com/impact27)
+* [PR 13558](https://github.com/spyder-ide/spyder/pull/13558) - PR: Add natural sorting for dicts (Variable Explorer), by [@skjerns](https://github.com/skjerns)
+* [PR 13554](https://github.com/spyder-ide/spyder/pull/13554) - PR: Change About and Dependencies dialogs to non-modal, by [@juanis2112](https://github.com/juanis2112)
+* [PR 13545](https://github.com/spyder-ide/spyder/pull/13545) - PR: Fix error when showing dicts with mixed type keys (Variable Explorer), by [@ccordoba12](https://github.com/ccordoba12) ([13481](https://github.com/spyder-ide/spyder/issues/13481))
+* [PR 13499](https://github.com/spyder-ide/spyder/pull/13499) - PR: Fix failing test for IPython 7.17, by [@impact27](https://github.com/impact27) ([13490](https://github.com/spyder-ide/spyder/issues/13490))
+* [PR 13482](https://github.com/spyder-ide/spyder/pull/13482) - PR: Explorer "New" actions now depend on selected files, by [@steff456](https://github.com/steff456) ([13444](https://github.com/spyder-ide/spyder/issues/13444))
+* [PR 13426](https://github.com/spyder-ide/spyder/pull/13426) - PR: Fix sorting of files in profiler by fixing parser, by [@juanis2112](https://github.com/juanis2112) ([13363](https://github.com/spyder-ide/spyder/issues/13363))
+* [PR 13419](https://github.com/spyder-ide/spyder/pull/13419) - PR: Fix error in tutorial (Help), by [@aznpooface](https://github.com/aznpooface) ([13417](https://github.com/spyder-ide/spyder/issues/13417))
+* [PR 13408](https://github.com/spyder-ide/spyder/pull/13408) - PR: Fix some failing tests, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13407](https://github.com/spyder-ide/spyder/pull/13407) - PR: Catch BrokenPipeError when trying to open a port (Online Help), by [@steff456](https://github.com/steff456) ([13388](https://github.com/spyder-ide/spyder/issues/13388))
+* [PR 13396](https://github.com/spyder-ide/spyder/pull/13396) - PR: Improve Binder installation, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13395](https://github.com/spyder-ide/spyder/pull/13395) - PR: Remove Github action to add Binder badge on pull request creation, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13393](https://github.com/spyder-ide/spyder/pull/13393) - PR: Fix Binder actions, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13392](https://github.com/spyder-ide/spyder/pull/13392) - PR: Add Github actions to display a Binder badge in our PRs, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13377](https://github.com/spyder-ide/spyder/pull/13377) - PR: Verify path before notifying project was open, by [@dalthviz](https://github.com/dalthviz) ([13346](https://github.com/spyder-ide/spyder/issues/13346))
+* [PR 13376](https://github.com/spyder-ide/spyder/pull/13376) - PR: Fix some issues with the Find and Code Analysis panes, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13359](https://github.com/spyder-ide/spyder/pull/13359) - PR: Add a "Show in external file browser" shortcut (Editor), by [@athompson673](https://github.com/athompson673)
+* [PR 13334](https://github.com/spyder-ide/spyder/pull/13334) - PR: Fix for consistent numbering when saving multiple plots, by [@arteagac](https://github.com/arteagac) ([13254](https://github.com/spyder-ide/spyder/issues/13254))
+* [PR 13311](https://github.com/spyder-ide/spyder/pull/13311) - PR: Remove Python 2 testing on Github Actions, by [@ccordoba12](https://github.com/ccordoba12)
+* [PR 13294](https://github.com/spyder-ide/spyder/pull/13294) - PR: Enable filtering in multiple columns in the shortcuts table (Preferences), by [@steff456](https://github.com/steff456) ([13144](https://github.com/spyder-ide/spyder/issues/13144))
+* [PR 13293](https://github.com/spyder-ide/spyder/pull/13293) - PR: Fix linux container dependencies install, by [@goanpeca](https://github.com/goanpeca)
+* [PR 13279](https://github.com/spyder-ide/spyder/pull/13279) - PR: Catch KeyError in codefolding when folding regions, by [@steff456](https://github.com/steff456) ([13230](https://github.com/spyder-ide/spyder/issues/13230))
+* [PR 13268](https://github.com/spyder-ide/spyder/pull/13268) - PR: Add "Copy to clipboard" button to the "About Spyder" dialog, by [@davidxbuck](https://github.com/davidxbuck) ([7844](https://github.com/spyder-ide/spyder/issues/7844))
+* [PR 13259](https://github.com/spyder-ide/spyder/pull/13259) - PR: Update Contributing guide to specify forking the Spyder repo, by [@CAM-Gerlach](https://github.com/CAM-Gerlach)
+* [PR 13209](https://github.com/spyder-ide/spyder/pull/13209) - PR: Improve Files plugin UI, by [@dalthviz](https://github.com/dalthviz) ([13179](https://github.com/spyder-ide/spyder/issues/13179))
+* [PR 13202](https://github.com/spyder-ide/spyder/pull/13202) - PR: Do not save file when runcell, by [@impact27](https://github.com/impact27) ([13635](https://github.com/spyder-ide/spyder/issues/13635), [13197](https://github.com/spyder-ide/spyder/issues/13197))
+* [PR 10542](https://github.com/spyder-ide/spyder/pull/10542) - PR: Add startup lines to the debugger, by [@impact27](https://github.com/impact27) ([12795](https://github.com/spyder-ide/spyder/issues/12795))
+
+In this release 30 pull requests were closed.
+
+
+----
+
+
 ## Version 4.1.4 (2020-07-10)
 
 ### Important fixes
