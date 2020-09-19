@@ -9,8 +9,10 @@
 # Third party imports
 import os.path as osp
 import random
+import sys
 from unittest.mock import patch
 
+from flaky import flaky
 import pytest
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QFont, QTextCursor, QTextFormat
@@ -108,6 +110,7 @@ def test_decorations(construct_editor, qtbot):
     assert decorations[0].kind == 'current_cell'
 
 
+@flaky(max_runs=10)
 def test_update_decorations_when_scrolling(qtbot):
     """
     Test how many calls we're doing to update decorations when
@@ -185,7 +188,8 @@ def test_update_decorations_when_scrolling(qtbot):
         # Simulate continuously pressing the down arrow key.
         for _ in range(200):
             qtbot.keyPress(editor, Qt.Key_Down)
-            qtbot.wait(5)
+            if not sys.platform == 'darwin':
+                qtbot.wait(5)
 
         # Only one call to _update should be done, after releasing the key.
         qtbot.wait(UPDATE_DECORATIONS_TIMEOUT + 100)
@@ -194,7 +198,8 @@ def test_update_decorations_when_scrolling(qtbot):
         # Simulate continuously pressing the up arrow key.
         for _ in range(200):
             qtbot.keyPress(editor, Qt.Key_Up)
-            qtbot.wait(5)
+            if not sys.platform == 'darwin':
+                qtbot.wait(5)
 
         # Only one call to _update should be done, after releasing the key.
         qtbot.wait(UPDATE_DECORATIONS_TIMEOUT + 100)
