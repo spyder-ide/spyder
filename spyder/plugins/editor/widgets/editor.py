@@ -1798,13 +1798,6 @@ class EditorStack(QWidget):
                 self.tabs.widget(index).language.lower())
         return set(languages)
 
-    def completion_server_ready(self, language):
-        """Notify language server availability to code editors."""
-        for index in range(self.get_stack_count()):
-            editor = self.tabs.widget(index)
-            if editor.language.lower() == language:
-                editor.start_completion_services()
-
     def register_completion_capabilities(self, capabilities, language):
         """
         Register completion server capabilities across all editors.
@@ -1821,6 +1814,13 @@ class EditorStack(QWidget):
             editor = self.tabs.widget(index)
             if editor.language.lower() == language:
                 editor.register_completion_capabilities(capabilities)
+
+    def start_completion_services(self, language):
+        """Notify language server availability to code editors."""
+        for index in range(self.get_stack_count()):
+            editor = self.tabs.widget(index)
+            if editor.language.lower() == language:
+                editor.start_completion_services()
 
     def notify_server_down(self, language):
         """Notify language server unavailability to code editors."""
