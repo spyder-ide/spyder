@@ -721,7 +721,7 @@ class MainWindow(QMainWindow):
                                 _("PYTHONPATH manager"),
                                 None, icon=ima.icon('pythonpath'),
                                 triggered=self.show_path_manager,
-                                tip=_("Python Path Manager"),
+                                tip=_("PYTHONPATH manager"),
                                 menurole=QAction.ApplicationSpecificRole)
         reset_spyder_action = create_action(
             self, _("Reset Spyder to factory defaults"),
