@@ -283,10 +283,12 @@ class Editor(SpyderPluginWidget):
         self.main.completions.register_file(
             language.lower(), filename, codeeditor)
         if status:
-            codeeditor.start_completion_services()
+            # When this condition is True, it means there's a server that
+            # can provide completion services for this file.
             if language.lower() in self.completion_capabilities:
                 codeeditor.register_completion_capabilities(
                     self.completion_capabilities[language.lower()])
+                codeeditor.start_completion_services()
         else:
             if codeeditor.language == language.lower():
                 logger.debug('Setting {0} completions off'.format(filename))
@@ -315,12 +317,15 @@ class Editor(SpyderPluginWidget):
             editorstack.register_completion_capabilities(
                 capabilities, language)
 
+        self.completion_server_ready(language)
+
     def stop_completion_services(self, language):
         """Notify all editorstacks about LSP server unavailability."""
         for editorstack in self.editorstacks:
             editorstack.notify_server_down(language)
 
     def completion_server_ready(self, language):
+        """Notify all editorstacks about LSP server availability."""
         for editorstack in self.editorstacks:
             editorstack.completion_server_ready(language)
 
