@@ -10,20 +10,20 @@ mode and Spyder
 """
 
 from distutils.version import LooseVersion
-import re
 import pdb
+import re
 
+from IPython.core.history import HistoryManager
 from IPython import __version__ as ipy_version
 if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
     from IPython.core.inputsplitter import IPythonInputSplitter
 else:
     from IPython.core.inputtransformer2 import TransformerManager
+
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
-from IPython.core.history import HistoryManager
 
-from spyder.config.manager import CONF
 from spyder.config.base import get_conf_path
-
+from spyder.config.manager import CONF
 
 class PdbHistory(HistoryManager):
 
@@ -332,7 +332,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
     def set_pdb_state(self, pdb_state):
         """Set current pdb state."""
         if pdb_state is not None and isinstance(pdb_state, dict):
-            self._refresh_from_pdb(pdb_state)
+            self.refresh_from_pdb(pdb_state)
 
     def get_pdb_last_step(self):
         """Get last pdb step retrieved from a Pdb session."""

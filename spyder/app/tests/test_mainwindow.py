@@ -3432,7 +3432,7 @@ hello()
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(debug_button, Qt.LeftButton)
 
-    # Check `test` has a value of
+    # Check `test` has a value of 1
     # Here we use "waitUntil" because `shell.executed` is emitted twice
     # One at the beginning of the file, and once at the breakpoint
     qtbot.waitUntil(lambda: 'test' in nsb.editor.source_model._data and
