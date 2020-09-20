@@ -293,6 +293,20 @@ class SpyderKernel(IPythonKernel):
         if self._pdb_obj:
             self._pdb_obj.pdb_execute_events = state
 
+    def pdb_input_reply(self, line, echo_stack_entry=True):
+        """Get a pdb command from the frontend."""
+        if self._pdb_obj:
+            self._pdb_obj._disable_next_stack_entry = not echo_stack_entry
+        self._pdb_input_line = line
+        if self.eventloop:
+            # Interrupting the eventloop is only implemented when a message is
+            # received on the shell channel, but this message is queued and
+            # won't be processed because an `execute` message is being
+            # processed. Therefore we process the message here (comm channel)
+            # and request a dummy message to be sent on the shell channel to
+            # stop the eventloop. This will call back `_interrupt_eventloop`.
+            self.frontend_call().request_interrupt_eventloop()
+
     def cmd_input(self, prompt=''):
         """
         Special input function for commands.
@@ -670,17 +684,3 @@ class SpyderKernel(IPythonKernel):
                 get_ipython().run_line_magic('reload_ext', 'wurlitzer')
             except Exception:
                 pass
-
-    def pdb_input_reply(self, line, echo_stack_entry=True):
-        """Get a pdb command from the frontend."""
-        if self._pdb_obj:
-            self._pdb_obj._disable_next_stack_entry = not echo_stack_entry
-        self._pdb_input_line = line
-        if self.eventloop:
-            # Interrupting the eventloop is only implemented when a message is
-            # received on the shell channel, but this message is queued and
-            # won't be processed because an `execute` message is being
-            # processed. Therefore we process the message here (comm channel)
-            # and request a dummy message to be sent on the shell channel to
-            # stop the eventloop. This will call back `_interrupt_eventloop`.
-            self.frontend_call().request_interrupt_eventloop()

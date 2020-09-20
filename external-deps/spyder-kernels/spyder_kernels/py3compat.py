@@ -24,6 +24,8 @@ import operator
 import os
 import sys
 
+from ipython_genutils.py3compat import input
+
 PY2 = sys.version[0] == '2'
 PY3 = sys.version[0] == '3'
 
@@ -237,7 +239,6 @@ else:
 
 if PY2:
     # Python 2
-    input = raw_input
     getcwd = os.getcwdu
     cmp = cmp
     import string
@@ -245,7 +246,6 @@ if PY2:
     from itertools import izip_longest as zip_longest
 else:
     # Python 3
-    input = input
     getcwd = os.getcwd
     def cmp(a, b):
         return (a > b) - (a < b)
