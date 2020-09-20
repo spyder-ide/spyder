@@ -1822,7 +1822,7 @@ class EditorStack(QWidget):
             if editor.language.lower() == language:
                 editor.start_completion_services()
 
-    def notify_server_down(self, language):
+    def stop_completion_services(self, language):
         """Notify language server unavailability to code editors."""
         for index in range(self.get_stack_count()):
             editor = self.tabs.widget(index)

@@ -327,7 +327,7 @@ class Editor(SpyderPluginWidget):
     def stop_completion_services(self, language):
         """Notify all editorstacks about LSP server unavailability."""
         for editorstack in self.editorstacks:
-            editorstack.notify_server_down(language)
+            editorstack.stop_completion_services(language)
 
     def send_completion_request(self, language, request, params):
         logger.debug("Perform request {0} for: {1}".format(
