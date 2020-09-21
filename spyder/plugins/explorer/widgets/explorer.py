@@ -335,11 +335,6 @@ class DirView(QTreeView):
     #---- Context menu
     def setup_common_actions(self):
         """Set-up context menu common actions."""
-        # Show all files
-        self.all_action = create_action(
-            self,
-            _("Show all files"),
-            toggled=self.toggle_all)
         # Show hidden files
         self.hidden_action = create_action(
             self,
@@ -359,7 +354,7 @@ class DirView(QTreeView):
             toggled=self.set_single_click_to_open,
         )
 
-        actions = [self.all_action, self.hidden_action, self.filters_action,
+        actions = [self.hidden_action, self.filters_action,
                    MENU_SEPARATOR, self.single_click_to_open_action]
         self.update_common_actions()
         return actions
@@ -368,7 +363,6 @@ class DirView(QTreeView):
         """Update the status of widget actions based on stored state."""
         self.set_show_all(self.show_all)
         self.set_show_hidden(self.show_hidden)
-        self.all_action.setChecked(self.show_all)
         self.hidden_action.setChecked(self.show_hidden)
         self.single_click_to_open_action.setChecked(self.single_click_to_open)
 
