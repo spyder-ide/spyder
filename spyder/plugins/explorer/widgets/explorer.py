@@ -330,7 +330,7 @@ class DirView(QTreeView):
         )
         # Filters
         self.filters_action = create_action(
-            self, _("Show files with these extensions..."), None,
+            self, _("Edit filter settings"), None,
             ima.icon('filter'),
             triggered=self.edit_filter,
         )
