@@ -91,7 +91,7 @@ class CommsErrorWrapper():
 
     def format_error(self):
         """
-        Format the error recieved from the other side and returns a list of
+        Format the error received from the other side and returns a list of
         strings.
         """
         lines = (['Exception in comms call {}:\n'.format(self.call_name)]

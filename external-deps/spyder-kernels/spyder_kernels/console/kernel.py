@@ -17,10 +17,10 @@ import threading
 
 # Third-party imports
 from ipykernel.ipkernel import IPythonKernel
-from ipython_genutils.py3compat import PY3, input
 
 # Local imports
 from spyder_kernels.comms.frontendcomm import FrontendComm
+from spyder_kernels.py3compat import PY3, input
 
 
 # Excluded variables from the Variable Explorer (i.e. they are not
@@ -292,6 +292,58 @@ class SpyderKernel(IPythonKernel):
         """
         if self._pdb_obj:
             self._pdb_obj.pdb_execute_events = state
+
+    def pdb_input_reply(self, line, echo_stack_entry=True):
+        """Get a pdb command from the frontend."""
+        if self._pdb_obj:
+            self._pdb_obj._disable_next_stack_entry = not echo_stack_entry
+        self._pdb_input_line = line
+        if self.eventloop:
+            # Interrupting the eventloop is only implemented when a message is
+            # received on the shell channel, but this message is queued and
+            # won't be processed because an `execute` message is being
+            # processed. Therefore we process the message here (comm channel)
+            # and request a dummy message to be sent on the shell channel to
+            # stop the eventloop. This will call back `_interrupt_eventloop`.
+            self.frontend_call().request_interrupt_eventloop()
+
+    def cmd_input(self, prompt=''):
+        """
+        Special input function for commands.
+        Runs the eventloop while debugging.
+        """
+        # Only works if the comm is open and this is a pdb prompt.
+        if not self.frontend_comm.is_open() or not self._pdb_frame:
+            return input(prompt)
+
+        # Flush output before making the request.
+        sys.stderr.flush()
+        sys.stdout.flush()
+
+        # Send the input request.
+        self._pdb_input_line = None
+        self.frontend_call().pdb_input(prompt)
+
+        # Allow GUI event loop to update
+        if PY3:
+            is_main_thread = (
+                threading.current_thread() is threading.main_thread())
+        else:
+            is_main_thread = isinstance(
+                threading.current_thread(), threading._MainThread)
+
+        if is_main_thread and self.eventloop:
+            while self._pdb_input_line is None:
+                self.eventloop(self)
+        else:
+            self.frontend_comm.wait_until(
+                lambda: self._pdb_input_line is not None)
+        return self._pdb_input_line
+
+    def _interrupt_eventloop(self):
+        """Interrupts the eventloop."""
+        # Receiving the request is enough to stop the eventloop.
+        pass
 
     # --- For the Help plugin
     def is_defined(self, obj, force_import=False):
@@ -632,55 +684,3 @@ class SpyderKernel(IPythonKernel):
                 get_ipython().run_line_magic('reload_ext', 'wurlitzer')
             except Exception:
                 pass
-
-    def cmd_input(self, prompt=''):
-        """
-        Special input function for commands.
-        Runs the eventloop while debugging.
-        """
-        # Only works if the comm is open and this is a pdb prompt.
-        if not self.frontend_comm.is_open() or not self._pdb_frame:
-            return input(prompt)
-
-        # Flush output before making the request.
-        sys.stderr.flush()
-        sys.stdout.flush()
-
-        # Send the input request.
-        self._pdb_input_line = None
-        self.frontend_call().pdb_input(prompt)
-
-        # Allow GUI event loop to update
-        if PY3:
-            is_main_thread = (
-                threading.current_thread() is threading.main_thread())
-        else:
-            is_main_thread = isinstance(
-                threading.current_thread(), threading._MainThread)
-
-        if is_main_thread and self.eventloop:
-            while self._pdb_input_line is None:
-                self.eventloop(self)
-        else:
-            self.frontend_comm.wait_until(
-                lambda: self._pdb_input_line is not None)
-        return self._pdb_input_line
-
-    def pdb_input_reply(self, line, echo_stack_entry=True):
-        """Get a pdb command from the frontend."""
-        if self._pdb_obj:
-            self._pdb_obj._disable_next_stack_entry = not echo_stack_entry
-        self._pdb_input_line = line
-        if self.eventloop:
-            # Interrupting the eventloop is only implemented when a message is
-            # recieved on the shell channel, but this message is queued and
-            # won't be processed because an `execute` message is being
-            # processed. Therefore we process the message here (comm channel)
-            # and request a dummy message to be sent on the shell channel to
-            # stop the eventloop. This will call back `_interrupt_eventloop`.
-            self.frontend_call().request_interrupt_eventloop()
-
-    def _interrupt_eventloop(self):
-        """Interrupts the eventloop."""
-        # Recieveing the request is enough to stop the eventloop.
-        pass

@@ -9,20 +9,21 @@ Widget that handles communications between a console in debugging
 mode and Spyder
 """
 
-import re
+from distutils.version import LooseVersion
 import pdb
+import re
 
-from spyder.py3compat import PY2
-if not PY2:
-    from IPython.core.inputtransformer2 import TransformerManager
-else:
-    from IPython.core.inputsplitter import IPythonInputSplitter
-from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from IPython.core.history import HistoryManager
+from IPython import __version__ as ipy_version
+if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
+    from IPython.core.inputsplitter import IPythonInputSplitter
+else:
+    from IPython.core.inputtransformer2 import TransformerManager
 
-from spyder.config.manager import CONF
+from qtconsole.rich_jupyter_widget import RichJupyterWidget
+
 from spyder.config.base import get_conf_path
-
+from spyder.config.manager import CONF
 
 class PdbHistory(HistoryManager):
 
@@ -302,7 +303,13 @@ class DebuggingWidget(DebuggingHistoryWidget):
         self.call_kernel(interrupt=True).set_pdb_execute_events(
             CONF.get('run', 'pdb_execute_events', False))
 
-    def _refresh_from_pdb(self, pdb_state):
+    def do_where(self):
+        """Where was called, go to the current location."""
+        fname, lineno = self._pdb_frame_loc
+        if fname:
+            self.sig_pdb_step.emit(fname, lineno)
+
+    def refresh_from_pdb(self, pdb_state):
         """
         Refresh Variable Explorer and Editor from a Pdb session,
         after running any pdb command.
@@ -328,7 +335,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
     def set_pdb_state(self, pdb_state):
         """Set current pdb state."""
         if pdb_state is not None and isinstance(pdb_state, dict):
-            self._refresh_from_pdb(pdb_state)
+            self.refresh_from_pdb(pdb_state)
 
     def get_pdb_last_step(self):
         """Get last pdb step retrieved from a Pdb session."""
@@ -399,7 +406,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
         """
         if source and source[0] == '!':
             source = source[1:]
-        if PY2:
+        if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
             tm = IPythonInputSplitter()
         else:
             tm = TransformerManager()

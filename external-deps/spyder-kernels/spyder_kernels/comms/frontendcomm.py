@@ -168,10 +168,10 @@ class FrontendComm(CommBase):
     # --- Private --------
     def _wait_reply(self, call_id, call_name, timeout, retry=True):
         """Wait until the frontend replies to a request."""
-        def reply_recieved():
+        def reply_received():
             """The reply is there!"""
             return call_id in self._reply_inbox
-        if not self.wait_until(reply_recieved):
+        if not self.wait_until(reply_received):
             if retry:
                 self._wait_reply(call_id, call_name, timeout, False)
                 return

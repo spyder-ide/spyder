@@ -107,6 +107,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             'get_file_code': self.handle_get_file_code,
             'set_debug_state': self.set_debug_state,
             'update_syspath': self.update_syspath,
+            'do_where': self.do_where,
             'pdb_input': self.pdb_input,
             'request_interrupt_eventloop': self.request_interrupt_eventloop,
         }
@@ -595,14 +596,14 @@ the sympy module (e.g. plot)
             return editor.get_current_editorstack()
         raise RuntimeError('No editorstack found.')
 
-    def handle_get_file_code(self, filename):
+    def handle_get_file_code(self, filename, save_all=True):
         """
         Return the bytes that compose the file.
 
         Bytes are returned instead of str to support non utf-8 files.
         """
         editorstack = self.get_editorstack()
-        if CONF.get('editor', 'save_all_before_run', True):
+        if save_all and CONF.get('editor', 'save_all_before_run', True):
             editorstack.save_all(save_new_files=False)
         editor = self.get_editor(filename)
 
@@ -618,8 +619,6 @@ the sympy module (e.g. plot)
         Get cell code from cell name and file name.
         """
         editorstack = self.get_editorstack()
-        if CONF.get('editor', 'save_all_before_run', True):
-            editorstack.save_all(save_new_files=False)
         editor = self.get_editor(filename)
 
         if editor is None:
