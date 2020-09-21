@@ -88,6 +88,7 @@ def create_script(fname):
                                "<br><br>Error message:<br>%s"
                                ) % (osp.basename(fname), str(error)))
 
+
 def listdir(path, include=r'.', exclude=r'\.pyc$|^\.', folders_only=False):
     """List files and directories"""
     namelist = []
@@ -421,7 +422,7 @@ class DirView(QTreeView):
                                      icon=ima.icon('TextFileIcon'),
                                      triggered=lambda:
                                      self.new_file(root_path))
-        new_module_act = create_action(self, _("Python script..."),
+        new_module_act = create_action(self, _("Python file..."),
                                        icon=ima.icon('python'),
                                        triggered=lambda:
                                        self.new_module(root_path))
@@ -1073,7 +1074,7 @@ class DirView(QTreeView):
     def new_module(self, basedir):
         """New module"""
         title = _("New module")
-        filters = _("Python scripts")+" (*.py *.pyw *.ipy)"
+        filters = _("Python files")+" (*.py *.pyw *.ipy)"
 
         def create_func(fname):
             self.sig_create_module.emit(fname)
