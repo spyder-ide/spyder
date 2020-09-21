@@ -1996,12 +1996,17 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.__find_first(text)
         self.occurrences = []
         extra_selections = self.get_extra_selections('occurrences')
+        first_ocurrence = None
         while cursor:
             self.occurrences.append(cursor.blockNumber())
-            selection = self.get_selection(
-                cursor, background_color=self.occurrence_color)
-            if selection:
+            selection = self.get_selection(cursor)
+            if len(selection.cursor.selectedText()) > 0:
                 extra_selections.append(selection)
+                if len(extra_selections) == 1:
+                    first_ocurrence = selection
+                else:
+                    selection.format.setBackground(self.occurrence_color)
+                    first_ocurrence.format.setBackground(self.occurrence_color)
             cursor = self.__find_next(text, cursor)
         self.set_extra_selections('occurrences', extra_selections)
         self.update_extra_selections()
