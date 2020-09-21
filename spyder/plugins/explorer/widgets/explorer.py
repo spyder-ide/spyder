@@ -88,30 +88,28 @@ def create_script(fname):
                                "<br><br>Error message:<br>%s"
                                ) % (osp.basename(fname), str(error)))
 
-def listdir(path, include=r'.', exclude=r'\.pyc$|^\.', show_all=False,
-            folders_only=False):
+def listdir(path, include=r'.', exclude=r'\.pyc$|^\.', folders_only=False):
     """List files and directories"""
     namelist = []
     dirlist = [to_text_string(osp.pardir)]
     for item in os.listdir(to_text_string(path)):
-        if re.search(exclude, item) and not show_all:
+        if re.search(exclude, item):
             continue
         if osp.isdir(osp.join(path, item)):
             dirlist.append(item)
         elif folders_only:
             continue
-        elif re.search(include, item) or show_all:
+        elif re.search(include, item):
             namelist.append(item)
     return sorted(dirlist, key=str_lower) + \
            sorted(namelist, key=str_lower)
 
 
-def has_subdirectories(path, include, exclude, show_all):
+def has_subdirectories(path, include, exclude):
     """Return True if path has subdirectories"""
     try:
         # > 1 because of '..'
-        return len( listdir(path, include, exclude,
-                            show_all, folders_only=True) ) > 1
+        return len( listdir(path, include, exclude, folders_only=True) ) > 1
     except (IOError, OSError):
         return False
 
@@ -159,7 +157,6 @@ class DirView(QTreeView):
 
         # Options
         self.name_filters = ['*.py']
-        self.show_all = None
         self.show_hidden = None
         self.single_click_to_open = False
         self.file_associations = {}
@@ -265,14 +262,6 @@ class DirView(QTreeView):
         self.name_filters = name_filters
         self.fsmodel.setNameFilters(name_filters)
 
-    def set_show_all(self, state):
-        """Toggle 'show all files' state"""
-        self.filters_action.setDisabled(state)
-        if state:
-            self.fsmodel.setNameFilters([])
-        else:
-            self.fsmodel.setNameFilters(self.name_filters)
-
     def set_show_hidden(self, state):
         """Toggle 'show hidden files' state"""
         filters = (QDir.AllDirs | QDir.Files | QDir.Drives |
@@ -311,14 +300,12 @@ class DirView(QTreeView):
                 return osp.dirname(fname)
 
     #---- Tree view widget
-    def setup(self, name_filters=['*.py', '*.pyw'], show_all=False,
-              show_hidden=False, single_click_to_open=False,
-              file_associations={}):
+    def setup(self, name_filters=['*.py', '*.pyw'], show_hidden=False,
+              single_click_to_open=False, file_associations={}):
         """Setup tree widget"""
         self.setup_view()
 
         self.set_name_filters(name_filters)
-        self.show_all = show_all
         self.show_hidden = show_hidden
         self.single_click_to_open = single_click_to_open
         self.set_file_associations(file_associations)
@@ -361,7 +348,6 @@ class DirView(QTreeView):
 
     def update_common_actions(self):
         """Update the status of widget actions based on stored state."""
-        self.set_show_all(self.show_all)
         self.set_show_hidden(self.show_hidden)
         self.hidden_action.setChecked(self.show_hidden)
         self.single_click_to_open_action.setChecked(self.single_click_to_open)
@@ -410,13 +396,6 @@ class DirView(QTreeView):
             filters = [f.strip() for f in to_text_string(filters).split(',')]
             self.parent_widget.sig_option_changed.emit('name_filters', filters)
             self.set_name_filters(filters)
-
-    @Slot(bool)
-    def toggle_all(self, checked):
-        """Toggle all files mode"""
-        self.parent_widget.sig_option_changed.emit('show_all', checked)
-        self.show_all = checked
-        self.set_show_all(checked)
 
     @Slot(bool)
     def toggle_hidden(self, checked):
@@ -1665,7 +1644,7 @@ class ExplorerWidget(QWidget):
     open_dir = Signal(str)
 
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
-                 show_all=False, show_hidden=False, show_cd_only=None,
+                 show_hidden=False, show_cd_only=None,
                  single_click_to_open=False, file_associations={},
                  options_button=None, visible_columns=[0, 3]):
         QWidget.__init__(self, parent)
@@ -1696,7 +1675,6 @@ class ExplorerWidget(QWidget):
         # Setup widgets
         self.treewidget.setup(
             name_filters=name_filters,
-            show_all=show_all,
             show_hidden=show_hidden,
             single_click_to_open=single_click_to_open,
             file_associations=file_associations,
