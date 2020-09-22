@@ -26,13 +26,15 @@ from qtpy.compat import getexistingdirectory, getsavefilename
 from qtpy.QtCore import (QDir, QFileInfo, QMimeData, QSize,
                          QSortFilterProxyModel, Qt, QTimer, QUrl, Signal, Slot)
 from qtpy.QtGui import QDrag, QKeySequence
-from qtpy.QtWidgets import (QApplication, QFileIconProvider, QFileSystemModel,
-                            QHBoxLayout, QInputDialog, QLabel, QLineEdit,
-                            QMenu, QMessageBox, QToolButton, QTreeView,
-                            QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
+                            QFileIconProvider, QFileSystemModel, QHBoxLayout,
+                            QInputDialog, QLabel, QLineEdit, QMenu,
+                            QMessageBox, QPushButton, QTextEdit, QToolButton,
+                            QTreeView, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _, get_home_dir
+from spyder.config.main import NAME_FILTERS
 from spyder.config.manager import CONF
 from spyder.py3compat import str_lower, to_binary_string, to_text_string
 from spyder.utils import encoding
@@ -386,17 +388,41 @@ class DirView(QTreeView):
     @Slot()
     def edit_filter(self):
         """Edit name filters."""
-        dialog = QInputDialogMultiline(
-            self, _('Edit filename filters'),
-            _('Name filters:'),
-            ", ".join(self.name_filters))
+        # Create Dialog
+        dialog = QDialog(self)
         dialog.resize(500, 300)
-        result = dialog.exec_()
-        if result:
-            filters = dialog.text_edit.toPlainText()
-            filters = [f.strip() for f in to_text_string(filters).split(',')]
-            self.parent_widget.sig_option_changed.emit('name_filters', filters)
-            self.set_name_filters(filters)
+        dialog.setWindowTitle(_('Edit filter settings'))
+
+        # Create dialog contents
+        description_label = QLabel(_('Here is the description'))
+        filters = QTextEdit(", ".join(self.name_filters))
+        layout = QVBoxLayout()
+        layout.addWidget(description_label)
+        layout.addWidget(filters)
+
+        def handle_ok():
+            filter_text = filters.toPlainText()
+            filter_text = [
+                f.strip() for f in to_text_string(filter_text).split(',')]
+            self.parent_widget.sig_option_changed.emit(
+                'name_filters', filter_text)
+            self.set_name_filters(filter_text)
+            dialog.accept()
+
+        def handle_reset():
+            self.set_name_filters(NAME_FILTERS)
+            filters.setPlainText(", ".join(self.name_filters))
+
+        # Dialog buttons
+        button_box = QDialogButtonBox(QDialogButtonBox.Reset |
+                                      QDialogButtonBox.Ok |
+                                      QDialogButtonBox.Cancel)
+        button_box.accepted.connect(handle_ok)
+        button_box.rejected.connect(dialog.reject)
+        button_box.button(QDialogButtonBox.Reset).clicked.connect(handle_reset)
+        layout.addWidget(button_box)
+        dialog.setLayout(layout)
+        dialog.show()
 
     @Slot(bool)
     def toggle_hidden(self, checked):
