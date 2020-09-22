@@ -3842,7 +3842,7 @@ class CodeEditor(TextEditBaseWidget):
         # Update decorations after releasing these keys because they don't
         # trigger the emission of the valueChanged signal in
         # verticalScrollBar.
-        # See https://bugreportts.qt.io/browse/QTBUG-25365
+        # See https://bugreports.qt.io/browse/QTBUG-25365
         if key in {Qt.Key_Up,  Qt.Key_Down}:
             self.update_decorations_timer.start()
 
