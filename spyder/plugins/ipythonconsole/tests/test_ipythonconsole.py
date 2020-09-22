@@ -1401,7 +1401,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(shell._completion_widget.isVisible)
     # cbs is another solution, so not completed yet
     assert control.toPlainText().split()[-1] == 'cb'
-    qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
+    qtbot.keyClick(shell._completion_widget, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbba')
 
     # Generate a traceback and enter debugging mode
@@ -1452,7 +1452,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(shell._completion_widget.isVisible)
     assert control.toPlainText().split()[-1] == 'ab'
-    qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
+    qtbot.keyClick(shell._completion_widget, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abba')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
