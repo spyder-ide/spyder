@@ -24,10 +24,24 @@ import operator
 import os
 import sys
 
-from ipython_genutils.py3compat import input
-
 PY2 = sys.version[0] == '2'
 PY3 = sys.version[0] == '3'
+
+if PY3:
+    # keep reference to builtin_mod because the kernel overrides that value
+    # to forward requests to a frontend.
+    def input(prompt=''):
+        return builtin_mod.input(prompt)
+    builtin_mod_name = "builtins"
+    import builtins as builtin_mod
+else:
+    # keep reference to builtin_mod because the kernel overrides that value
+    # to forward requests to a frontend.
+    def input(prompt=''):
+        return builtin_mod.raw_input(prompt)
+    builtin_mod_name = "__builtin__"
+    import __builtin__ as builtin_mod
+
 
 #==============================================================================
 # Data types
