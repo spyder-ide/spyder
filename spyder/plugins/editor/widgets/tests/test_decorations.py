@@ -59,7 +59,7 @@ def test_decorations(construct_editor, qtbot):
     )
 
     text = ''
-    for _ in range(100):
+    for __ in range(100):
         base_text = base_function * random.randint(2, 8) + "# %%\n"
         text = text + base_text
 
@@ -168,7 +168,7 @@ def test_update_decorations_when_scrolling(qtbot):
         # Simulate grabbing and moving the scrollbar with the mouse
         scrollbar = editor.verticalScrollBar()
         value = scrollbar.value()
-        for _ in range(400):
+        for __ in range(400):
             scrollbar.setValue(value + 1)
             value = scrollbar.value()
 
@@ -186,7 +186,7 @@ def test_update_decorations_when_scrolling(qtbot):
         editor.go_to_line(last)
 
         # Simulate continuously pressing the down arrow key.
-        for _ in range(200):
+        for __ in range(200):
             qtbot.keyPress(editor, Qt.Key_Down)
             if not sys.platform == 'darwin':
                 qtbot.wait(5)
@@ -196,7 +196,7 @@ def test_update_decorations_when_scrolling(qtbot):
         assert _update.call_count == 4
 
         # Simulate continuously pressing the up arrow key.
-        for _ in range(200):
+        for __ in range(200):
             qtbot.keyPress(editor, Qt.Key_Up)
             if not sys.platform == 'darwin':
                 qtbot.wait(5)
