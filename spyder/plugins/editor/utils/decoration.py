@@ -26,7 +26,7 @@ from spyder.api.manager import Manager
 
 # Timeout to avoid almost simultaneous calls to update decorations, which
 # introduces a lot of sluggishness in the editor.
-UPDATE_TIMEOUT = 15 # miliseconds
+UPDATE_TIMEOUT = 15  # miliseconds
 
 
 class TextDecorationsManager(Manager, QObject):
