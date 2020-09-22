@@ -281,7 +281,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
             "pdb_ignore_lib": CONF.get(
                 'run', 'pdb_ignore_lib', False),
             "pdb_execute_events": CONF.get(
-                'run', 'pdb_execute_events', False),
+                'run', 'pdb_execute_events', True),
             }
 
     # --- To Sort --------------------------------------------------
