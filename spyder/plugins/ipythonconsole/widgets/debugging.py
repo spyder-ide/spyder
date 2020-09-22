@@ -298,7 +298,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
     def set_pdb_execute_events(self):
         """Set pdb_execute_events into a debugging session"""
         self.call_kernel(interrupt=True).set_pdb_execute_events(
-            CONF.get('run', 'pdb_execute_events', False))
+            CONF.get('run', 'pdb_execute_events', True))
 
     def do_where(self):
         """Where was called, go to the current location."""
