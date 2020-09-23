@@ -208,8 +208,6 @@ class Editor(SpyderPluginWidget):
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
-        self.find_widget.visibility_changed.connect(
-                                          lambda vs: self.rehighlight_cells())
         self.register_widget_shortcuts(self.find_widget)
 
         # Start autosave component
@@ -1711,12 +1709,6 @@ class Editor(SpyderPluginWidget):
                  results is not None and len(results))
         if state is not None:
             self.todo_list_action.setEnabled(state)
-
-    def rehighlight_cells(self):
-        """Rehighlight cells of current editor"""
-        editor = self.get_current_editor()
-        editor.rehighlight_cells()
-        QApplication.processEvents()
 
     @Slot(set)
     def update_active_languages(self, languages):
