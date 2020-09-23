@@ -464,6 +464,7 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
         else:
             # We ignore the call to exec
             ipython_shell.showtraceback(tb_offset=1)
+    __tracebackhide__ = "__pdb_exit__"
 
 
 def get_file_code(filename, save_all=True):
