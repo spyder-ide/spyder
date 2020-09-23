@@ -107,6 +107,14 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         self.sig_exception_occurred.connect(
             self.main.console.handle_exception)
 
+    def __del__(self):
+        """Stop all heartbeats"""
+        for language in self.clients_hearbeat:
+            try:
+                self.clients_hearbeat[language].stop()
+            except (TypeError, KeyError, RuntimeError):
+                pass
+
     # --- Status bar widget handling
     def restart_lsp(self, language, force=False):
         """Restart language server on failure."""

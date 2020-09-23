@@ -356,7 +356,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if not self.shellwidget.is_waiting_pdb_input():
             self.interrupt_kernel()
         else:
-            self.shellwidget.pdb_execute('exit', hidden=True)
+            self.shellwidget.pdb_execute(
+                'exit', hidden=False, echo_stack_entry=False,
+                add_history=False)
 
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget."""
