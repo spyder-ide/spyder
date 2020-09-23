@@ -113,7 +113,7 @@ def has_subdirectories(path, include, exclude):
     """Return True if path has subdirectories"""
     try:
         # > 1 because of '..'
-        return len( listdir(path, include, exclude, folders_only=True) ) > 1
+        return len(listdir(path, include, exclude, folders_only=True)) > 1
     except (IOError, OSError):
         return False
 
