@@ -249,7 +249,7 @@ class VCSWidget(PluginMainWidget):
                     self.branch_combobox.select)
 
                 self.branch_combobox.sig_branch_changed.connect(
-                    self.refresh_changes)
+                    self.refresh_all)
 
                 self.branch_combobox.sig_branch_changed.connect(
                     plugin.sig_branch_changed)
@@ -715,7 +715,7 @@ class VCSWidget(PluginMainWidget):
         if manager.undo_commit.enabled:
             slots = [
                 self.refresh_changes,
-                self.refresh_commit_difference,
+                lambda _: self.refresh_commit_difference(),
                 self.refresh_history,
             ]
             slots.append(_refresh_commit_message)

@@ -55,17 +55,17 @@ class GitBackend(*_git_bases):
         git = programs.find_program("git")
         if git is None:
             raise VCSBackendFail(self.repodir, type(self), programs=("git", ))
-
         repodir = self.repodir
-        retcode, self.repodir, _ = self._run(["rev-parse", "--show-toplevel"],
-                                             git=git)
+        retcode, self.repodir, _ = run_helper(git,
+                                              ["rev-parse", "--show-toplevel"],
+                                              cwd=repodir)
         if retcode or not self.repodir:
             # use the original dir
             raise VCSBackendFail(repodir,
                                  type(self),
                                  is_valid_repository=False)
 
-        self.repodir = self.repodir.decode().strip("\n")
+        self.repodir = self.repodir.decode().rstrip("\n")
 
         if platform.system() != "Windows":
             retcode, username, _ = self._run(['config', "--get", "user.name"],
@@ -199,8 +199,9 @@ class GitBackend(*_git_bases):
             ["checkout", "-b", branch, "origin/" + branch],
             cwd=strpath,
         )
-        if retcode or not branch:
-            _raise(err)
+        # If remote has no branches, this command always fails
+        # if retcode or not branch:
+        #     _raise(err)
 
         # Clone done!
         return inst
@@ -269,7 +270,7 @@ class GitBackend(*_git_bases):
             args.extend(("-b", branchname))
 
         create_retcode, _, err = self._run(args, git=git)
-        if empty:
+        if empty and os.listdir(self.repodir) != [".git"]:
             remove_retcode, _, err = self._run(["rm", "-rf", "."], git=git)
             return not (create_retcode or remove_retcode)
         return not create_retcode
@@ -277,7 +278,7 @@ class GitBackend(*_git_bases):
     @feature()
     def delete_branch(self, branchname: str) -> bool:
         retcode = self._run(["branch", "-d", branchname])[0]
-        return retcode == 0
+        return not retcode
 
     @property
     @feature(extra={"states": ("path", "kind", "staged")})
@@ -314,8 +315,8 @@ class GitBackend(*_git_bases):
 
     @feature()
     def stage(self, path: str) -> bool:
-        retcode = self._run(["add", path])[0]
-        if retcode == 0:
+        retcode, _, err = self._run(["add", _escape_path(path)])
+        if not retcode:
             change = self.change(path, prefer_unstaged=True)
             if change and change["staged"]:
                 return True
@@ -323,7 +324,7 @@ class GitBackend(*_git_bases):
 
     @feature()
     def unstage(self, path: str) -> bool:
-        retcode = self._run(["reset", "--", path])[0]
+        retcode = self._run(["reset", "--", _escape_path(path)])[0]
         if retcode == 0:
             change = self.change(path, prefer_unstaged=False)
             if change and not change["staged"]:
@@ -507,7 +508,6 @@ class GitBackend(*_git_bases):
         raise VCSPropertyError("tags", "get")
 
     # Private methods
-
     @staticmethod
     def _parse_change_record(record):
         changes = []
@@ -617,6 +617,12 @@ class GitBackend(*_git_bases):
              git=None) -> typing.Tuple[int, bytes, bytes]:
         if git is None:
             git = programs.find_program("git")
+        if not osp.exists(osp.join(self.repodir, ".git")):
+            raise VCSBackendFail(
+                self.repodir,
+                type(self),
+                is_valid_repository=False,
+            )
         retcode, out, err = run_helper(git, args, cwd=self.repodir, env=env)
 
         # Integrity check
@@ -658,6 +664,7 @@ _GIT_STATUS_MAP = {
 }
 
 
+# Internal helpers
 def run_helper(program,
                args,
                cwd=None,
@@ -673,6 +680,12 @@ def run_helper(program,
     return None, None, None
 
 
+def _escape_path(path: str) -> str:
+    """Escape a path to be used as subprocess argument."""
+    return "\\" + path if path.startswith("-") else path
+
+
+# Git functions
 def get_git_username(repopath):
     git = programs.find_program('git')
     if git:
@@ -700,7 +713,7 @@ def get_git_status(repopath, pathspec=".", nobranch: bool = False):
                     "-uall",
                     "--porcelain=v1",
                     "--ignore-submodule=all",
-                    "\\" + pathspec if pathspec.startswith("-") else pathspec,
+                    _escape_path(pathspec),
                 ],
                 cwd=repopath,
             )

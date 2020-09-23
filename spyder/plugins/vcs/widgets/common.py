@@ -177,7 +177,7 @@ class BranchesComboBox(QComboBox):
     def _handle_select_error(self, branchname: str, ex: Exception) -> None:
         @Slot()
         def _show_error():
-            reason = "" if ex.error is None else ex.error
+            reason = ex.raw_error if ex.error is None else ex.error
             QMessageBox.critical(
                 self,
                 _("Failed to change branch"),
@@ -211,6 +211,9 @@ class BranchesComboBox(QComboBox):
                     error_slots=(self.refresh, _show_error),
                     nothread=not THREAD_ENABLED,
                 ).start()
+                dialog.accept()
+            else:
+                dialog.reject()
 
         if not isinstance(ex, VCSPropertyError):
             self.refresh()

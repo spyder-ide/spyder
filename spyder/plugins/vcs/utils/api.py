@@ -11,7 +11,6 @@
 # Standard library imports
 import builtins
 import itertools
-import traceback
 import typing
 
 # Local imports
@@ -766,7 +765,8 @@ class VCSBackendBase(object):
         Returns
         -------
         bool
-            True if the given branch was existed, False otherwise.
+            True if the given branch was existed before calling this and
+            now it is deleted, False otherwise.
         """
 
     # Stage-unstage group
@@ -1197,8 +1197,8 @@ class VCSBackendManager(object):
                             selected_backend = backend(path)
                         except VCSBackendFail as ex:
                             # TODO: complete error formatting
-                            traceback.print_exception(VCSBackendFail, ex,
-                                                      ex.__traceback__)
+                            # traceback.print_exception(VCSBackendFail, ex,
+                            #                           ex.__traceback__)
                             errors.append(ex)
                         except Exception:
                             broken.append(backend)
@@ -1262,13 +1262,11 @@ class VCSBackendManager(object):
             except (NotImplementedError, VCSBackendFail):
                 # Skip any backend that does not have
                 # all the required features.
-                traceback.print_exc()
                 pass
             except Exception:
                 # Suppress other exceptions
                 # Should be reported (e.g. with logging)
                 self._broken_backends.append(backend)
-                traceback.print_exc()
             else:
                 self._backend = inst
                 return True
