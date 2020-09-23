@@ -338,6 +338,12 @@ class CodeEditor(TextEditBaseWidget):
     # Used to indicate that an undo operation will take place
     sig_redo = Signal()
 
+    # Used to start the status spinner in the editor
+    sig_start_operation_in_progress = Signal()
+
+    # Used to start the status spinner in the editor
+    sig_stop_operation_in_progress = Signal()
+
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
@@ -593,6 +599,7 @@ class CodeEditor(TextEditBaseWidget):
         self.completion_args = None
         self.folding_supported = False
         self.is_cloned = False
+        self.operation_in_progress = False
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
@@ -1510,6 +1517,9 @@ class CodeEditor(TextEditBaseWidget):
                 'trim_final_new_lines': self.remove_trailing_newlines
             }
         }
+        self.setReadOnly(True)
+        self.sig_start_operation_in_progress.emit()
+        self.operation_in_progress = True
         return params
 
     @request(method=LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
@@ -1545,6 +1555,9 @@ class CodeEditor(TextEditBaseWidget):
                 'trim_final_new_lines': self.remove_trailing_newlines
             }
         }
+        self.setReadOnly(True)
+        self.sig_start_operation_in_progress.emit()
+        self.operation_in_progress = True
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_FORMATTING)
@@ -1558,6 +1571,10 @@ class CodeEditor(TextEditBaseWidget):
         except Exception:
             self.log_lsp_handle_errors("Error when processing document "
                                        "formatting")
+        finally:
+            self.setReadOnly(False)
+            self.sig_stop_operation_in_progress.emit()
+            self.operation_in_progress = False
 
     @handles(LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
     def handle_document_range_formatting(self, edits):
@@ -1570,6 +1587,10 @@ class CodeEditor(TextEditBaseWidget):
         except Exception:
             self.log_lsp_handle_errors("Error when processing document "
                                        "selection formatting")
+        finally:
+            self.setReadOnly(False)
+            self.sig_stop_operation_in_progress.emit()
+            self.operation_in_progress = False
 
     def _apply_document_edits(self, edits):
         """Apply a set of atomic document edits to the current editor text."""

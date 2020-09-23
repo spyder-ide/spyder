@@ -42,7 +42,8 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
-                                    mimedata2url, set_menu_icons)
+                                    mimedata2url, set_menu_icons,
+                                    create_waitspinner)
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.findreplace import FindReplace
@@ -881,13 +882,14 @@ class EditorStack(QWidget):
 
         menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
+        self.spinner = create_waitspinner(size=20, parent=self)
         menu_btn.setStyleSheet(STYLE_BUTTON_CSS)
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)
 
-        corner_widgets = {Qt.TopRightCorner: [menu_btn]}
+        corner_widgets = {Qt.TopRightCorner: [self.spinner, menu_btn]}
         self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
                              corner_widgets=corner_widgets)
         self.tabs.tabBar().setObjectName('plugin-tab')
@@ -2350,6 +2352,10 @@ class EditorStack(QWidget):
         fwidget = QApplication.focusWidget()
         for finfo in self.data:
             if fwidget is finfo.editor:
+                if finfo.editor.operation_in_progress:
+                    self.spinner.start()
+                else:
+                    self.spinner.stop()
                 self.refresh()
         self.editor_focus_changed.emit()
 
@@ -2678,6 +2684,8 @@ class EditorStack(QWidget):
 
         editor.sig_perform_completion_request.connect(
             perform_completion_request)
+        editor.sig_start_operation_in_progress.connect(self.spinner.start)
+        editor.sig_stop_operation_in_progress.connect(self.spinner.stop)
         editor.modificationChanged.connect(
             lambda state: self.modification_changed(state,
                 editor_id=id(editor)))
