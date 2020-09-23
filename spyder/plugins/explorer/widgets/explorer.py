@@ -42,8 +42,9 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import misc, programs, vcs
 from spyder.utils.misc import getcwd_or_home
 from spyder.utils.qthelpers import (add_actions, create_action,
-                                    create_plugin_layout, file_uri,
-                                    MENU_SEPARATOR, QInputDialogMultiline)
+                                    create_plugin_layout, create_toolbutton,
+                                    file_uri, MENU_SEPARATOR,
+                                    QInputDialogMultiline)
 
 try:
     from nbconvert import PythonExporter as nbexporter
@@ -262,8 +263,10 @@ class DirView(QTreeView):
 
     def set_name_filters(self, name_filters):
         """Set name filters"""
-        self.name_filters = name_filters
-        self.fsmodel.setNameFilters(name_filters)
+        if name_filters == ['']:
+            self.name_filters = []
+        else:
+            self.name_filters = name_filters
 
     def set_show_hidden(self, state):
         """Toggle 'show hidden files' state"""
@@ -1613,6 +1616,14 @@ class ExplorerTreeWidget(DirView):
         self.histindex += 1
         self.chdir(browsing_history=True)
 
+    @Slot()
+    def filter_files(self, filter_on):
+        """Filter files given the defined list of filters."""
+        if filter_on:
+            self.fsmodel.setNameFilters(self.name_filters)
+        else:
+            self.fsmodel.setNameFilters([])
+
     def update_history(self, directory):
         """Update browse history"""
         try:
@@ -1681,9 +1692,17 @@ class ExplorerWidget(QWidget):
         button_previous = QToolButton(self)
         button_next = QToolButton(self)
         button_parent = QToolButton(self)
+        self.filter_on = False
+        filter_button = create_toolbutton(
+            self, icon=ima.icon("filter"),
+            tip=_("Activate/deactivate filter"),
+            triggered=self.change_filter_state)
+        filter_button.setCheckable(True)
+        filter_button.setChecked(self.filter_on)
+
         self.button_menu = options_button or QToolButton(self)
         self.action_widgets = [button_previous, button_next, button_parent,
-                               self.button_menu]
+                               filter_button, self.button_menu]
 
         # Actions
         previous_action = create_action(
@@ -1751,6 +1770,7 @@ class ExplorerWidget(QWidget):
         blayout.addWidget(button_previous)
         blayout.addWidget(button_next)
         blayout.addWidget(button_parent)
+        blayout.addWidget(filter_button)
         blayout.addStretch()
         blayout.addWidget(self.button_menu)
 
@@ -1762,6 +1782,10 @@ class ExplorerWidget(QWidget):
                                                previous_action.setEnabled)
         self.treewidget.set_next_enabled.connect(next_action.setEnabled)
         self.sig_option_changed.connect(self.refresh_actions)
+
+    def change_filter_state(self):
+        self.filter_on = not self.filter_on
+        self.treewidget.filter_files(self.filter_on)
 
     def refresh_actions(self, option, value):
         """Refresh column visibility actions."""
