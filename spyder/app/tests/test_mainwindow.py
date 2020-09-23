@@ -340,7 +340,6 @@ def test_default_plugin_actions(main_window, qtbot):
 @pytest.mark.slow
 @flaky(max_runs=3)
 @pytest.mark.parametrize('main_window', [{'spy_config': ('main', 'opengl', 'software')}], indirect=True)
-@pytest.mark.skipif(os.name == 'nt', reason="Fails on win")
 def test_opengl_implementation(main_window, qtbot):
     """
     Test that we are setting the selected OpenGL implementation
