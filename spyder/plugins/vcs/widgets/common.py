@@ -79,6 +79,7 @@ class BranchesComboBox(QComboBox):
         """Clear and re-add branches."""
         def _task():
             """Task executed in another thread."""
+            branches = []
             if manager.type.branch.fget.enabled:
                 current_branch = manager.branch
             else:
@@ -86,17 +87,18 @@ class BranchesComboBox(QComboBox):
 
             if manager.type.editable_branches.fget.enabled:
                 try:
-                    self._branches.extend(manager.editable_branches)
+                    branches.extend(manager.editable_branches)
                 except VCSPropertyError:
                     # Suppress editable_branches fail
                     pass
             elif current_branch is not None:
-                self._branches.append(manager.branch)
-            return current_branch
+                branches.append(manager.branch)
+            return (current_branch, branches)
 
         @Slot(object)
-        def _handle_result(current_branch):
-            if self._branches:
+        def _handle_result(result):
+            if any(result):
+                current_branch, self._branches = result
                 # Block signals to reduce useless signal emissions
                 oldstate = self.blockSignals(True)
 

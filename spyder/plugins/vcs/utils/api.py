@@ -455,9 +455,6 @@ class VCSBackendBase(object):
                 if attr.__name__ != key:
                     # This approach can broke the backend
                     # if the attribute already exists.
-
-                    # if getattr(cls, attr.__name__, None) is not None:
-                    #     print("Attribute", attr.__name__, "overriden")
                     setattr(cls, attr.__name__, attr)
 
     @property

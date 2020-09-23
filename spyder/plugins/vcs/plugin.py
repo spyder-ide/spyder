@@ -10,6 +10,7 @@
 
 # Standard library imports
 import typing
+from functools import partial
 
 # Third party imports
 import qtawesome as qta
@@ -133,13 +134,12 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
 
     This can be used to get information about the repository.
 
-    Warnings
-    --------
-    Any call to the manager blocks the current thread and
-    may invoke subprocess or other long-running operation.
-    It is better to run those calls in separate threads
-    and wait results asynchronously.
-    The :class:`~ThreadWrapper` may help you.
+    .. warning::
+        Any call to the manager blocks the current thread and
+        may invoke subprocess or other long-running operation.
+        It is better to run those calls in separate threads
+        and wait results asynchronously.
+        The :class:`~ThreadWrapper` may help you.
 
     .. danger::
         Do any operation that changes the repository state
@@ -172,15 +172,14 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
         self._create_actions()
         self.get_widget().setup_slots()
 
-        dockwidget = self.dockwidget
-        dockwidget.hide()
+        self.toggle_view(False)
 
         # connect external signals
         project = self.get_plugin(Plugins.Projects)
         project.sig_project_loaded.connect(self.set_repository)
-        project.sig_project_loaded.connect(dockwidget.show)
+        project.sig_project_loaded.connect(partial(self.toggle_view, True))
         project.sig_project_closed.connect(lambda: self.set_repository(None))
-        project.sig_project_closed.connect(dockwidget.hide)
+        project.sig_project_closed.connect(partial(self.toggle_view, False))
 
     # Public API
     def get_repository(self) -> typing.Optional[str]:
@@ -347,18 +346,3 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
             shortcut_context=self.NAME,
             triggered=lambda: None,
         )
-
-    # workarounds when imported as 3rd party plugin
-    register_plugin = register
-
-    DESCRIPTION = get_description(None)
-
-    @property
-    def dockwidget(self):
-        dockwidget = self.get_widget().dockwidget
-        if dockwidget is None:
-            self.is_compatible, _ = self.check_compatibility()
-            self.get_main().add_dockwidget(self)
-            dockwidget = self.get_widget().dockwidget
-
-        return dockwidget
