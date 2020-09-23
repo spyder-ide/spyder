@@ -514,6 +514,7 @@ class Editor(SpyderPluginWidget):
                                     context=Qt.WidgetShortcut)
         self.register_shortcut(set_clear_breakpoint_action, context="Editor",
                                name="Breakpoint")
+
         set_cond_breakpoint_action = create_action(self,
                             _("Set/Edit conditional breakpoint"),
                             icon=ima.icon('breakpoint_cond_big'),
@@ -521,15 +522,22 @@ class Editor(SpyderPluginWidget):
                             context=Qt.WidgetShortcut)
         self.register_shortcut(set_cond_breakpoint_action, context="Editor",
                                name="Conditional breakpoint")
+
         clear_all_breakpoints_action = create_action(self,
                                     _('Clear breakpoints in all files'),
                                     triggered=self.clear_all_breakpoints)
-        pdb_ignore_lib = create_action(
+
+        pdb_ignore_lib_action = create_action(
             self, _("Ignore Python libraries while debugging"),
             toggled=self.toggle_pdb_ignore_lib)
-        pdb_execute_events = create_action(
+        pdb_ignore_lib_action.setChecked(
+            CONF.get('run', 'pdb_ignore_lib'))
+
+        pdb_execute_events_action = create_action(
             self, _("Process execute events while debugging"),
             toggled=self.toggle_pdb_execute_events)
+        pdb_execute_events_action.setChecked(
+            CONF.get('run', 'pdb_execute_events'))
 
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
@@ -979,8 +987,8 @@ class Editor(SpyderPluginWidget):
             self.debug_continue_action,
             self.debug_exit_action,
             MENU_SEPARATOR,
-            pdb_ignore_lib,
-            pdb_execute_events,
+            pdb_ignore_lib_action,
+            pdb_execute_events_action,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             clear_all_breakpoints_action,
@@ -1091,12 +1099,14 @@ class Editor(SpyderPluginWidget):
     def toggle_pdb_ignore_lib(self, checked):
         """"Set pdb_ignore_lib"""
         CONF.set('run', 'pdb_ignore_lib', checked)
-        self.main.ipyconsole.set_pdb_ignore_lib()
+        if self.main.ipyconsole is not None:
+            self.main.ipyconsole.set_pdb_ignore_lib()
 
     def toggle_pdb_execute_events(self, checked):
         """"Set pdb_execute_events"""
         CONF.set('run', 'pdb_execute_events', checked)
-        self.main.ipyconsole.set_pdb_execute_events()
+        if self.main.ipyconsole is not None:
+            self.main.ipyconsole.set_pdb_execute_events()
 
     def update_pdb_state(self, state, last_step):
         """Enable/disable debugging actions and handle pdb state change."""
