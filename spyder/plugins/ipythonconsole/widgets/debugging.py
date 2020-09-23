@@ -278,11 +278,9 @@ class DebuggingWidget(DebuggingHistoryWidget):
         """Get pdb settings"""
         return {
             "breakpoints": CONF.get('run', 'breakpoints', {}),
-            "pdb_ignore_lib": CONF.get(
-                'run', 'pdb_ignore_lib', False),
-            "pdb_execute_events": CONF.get(
-                'run', 'pdb_execute_events', True),
-            }
+            "pdb_ignore_lib": CONF.get('run', 'pdb_ignore_lib'),
+            "pdb_execute_events": CONF.get('run', 'pdb_execute_events'),
+        }
 
     # --- To Sort --------------------------------------------------
     def set_spyder_breakpoints(self):
