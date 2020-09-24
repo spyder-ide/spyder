@@ -17,20 +17,34 @@ Original file:
 """
 
 # Third party imports
+from qtpy.QtCore import QObject, QPoint, QTimer, Slot
 from qtpy.QtGui import QTextCharFormat
 
 # Local imports
 from spyder.api.manager import Manager
 
 
-class TextDecorationsManager(Manager):
+# Timeout to avoid almost simultaneous calls to update decorations, which
+# introduces a lot of sluggishness in the editor.
+UPDATE_TIMEOUT = 15  # miliseconds
+
+
+class TextDecorationsManager(Manager, QObject):
     """
     Manages the collection of TextDecoration that have been set on the editor
     widget.
     """
     def __init__(self, editor):
         super(TextDecorationsManager, self).__init__(editor)
+        QObject.__init__(self, None)
         self._decorations = []
+
+        # Timer to not constantly update decorations.
+        self.update_timer = QTimer(self)
+        self.update_timer.setSingleShot(True)
+        self.update_timer.setInterval(UPDATE_TIMEOUT)
+        self.update_timer.timeout.connect(
+            self._update)
 
     def add(self, decorations):
         """
@@ -58,7 +72,7 @@ class TextDecorationsManager(Manager):
             self.update()
         return added
 
-    def remove(self, decoration, update=True):
+    def remove(self, decoration):
         """
         Removes a text decoration from the editor.
 
@@ -70,38 +84,57 @@ class TextDecorationsManager(Manager):
         """
         try:
             self._decorations.remove(decoration)
-            if update:
-                self.update()
+            self.update()
             return True
         except ValueError:
             return False
-        except RuntimeError:
-            # This is needed to fix spyder-ide/spyder#9173.
-            pass
 
     def clear(self):
         """Removes all text decoration from the editor."""
         self._decorations[:] = []
-        try:
-            self.update()
-        except RuntimeError:
-            pass
+        self.update()
 
     def update(self):
+        """
+        Update decorations.
+
+        This starts a timer to update decorations only after
+        UPDATE_TIMEOUT has passed. That avoids multiple calls to
+        _update in a very short amount of time.
+        """
+        self.update_timer.start()
+
+    @Slot()
+    def _update(self):
         """Update editor extra selections with added decorations.
 
         NOTE: Update TextDecorations to use editor font, using a different
         font family and point size could cause unwanted behaviors.
         """
-        font = self.editor.font()
-        for decoration in self._decorations:
-            try:
-                decoration.format.setFont(
-                        font, QTextCharFormat.FontPropertiesSpecifiedOnly)
-            except (TypeError, AttributeError):  # Qt < 5.3
-                decoration.format.setFontFamily(font.family())
-                decoration.format.setFontPointSize(font.pointSize())
-        self.editor.setExtraSelections(self._decorations)
+        try:
+            font = self.editor.font()
+
+            # Get the current visible block numbers
+            first, last = self.editor.get_buffer_block_numbers()
+
+            # Update visible decorations
+            visible_decorations = []
+            for decoration in self._decorations:
+                block_nb = decoration.cursor.block().blockNumber()
+                if (first <= block_nb <= last or
+                        decoration.kind == 'current_cell'):
+                    visible_decorations.append(decoration)
+                    try:
+                        decoration.format.setFont(
+                            font, QTextCharFormat.FontPropertiesSpecifiedOnly)
+                    except (TypeError, AttributeError):  # Qt < 5.3
+                        decoration.format.setFontFamily(font.family())
+                        decoration.format.setFontPointSize(font.pointSize())
+
+            self.editor.setExtraSelections(visible_decorations)
+        except RuntimeError:
+            # This is needed to fix spyder-ide/spyder#9173.
+            return
 
     def __iter__(self):
         return iter(self._decorations)

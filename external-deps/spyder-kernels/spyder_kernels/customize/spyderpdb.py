@@ -139,15 +139,11 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             self._pdb_breaking = False
             if frame and frame.f_back:
                 return self.interaction(frame.f_back, traceback)
-        if (frame is not None
-                and "spydercustomize.py" in frame.f_code.co_filename
-                and "exec_code" == frame.f_code.co_name):
-            self.onecmd('exit')
-        else:
-            self.setup(frame, traceback)
-            self.print_stack_entry(self.stack[self.curindex])
-            self._cmdloop()
-            self.forget()
+
+        self.setup(frame, traceback)
+        self.print_stack_entry(self.stack[self.curindex])
+        self._cmdloop()
+        self.forget()
 
     def print_stack_entry(self, frame_lineno, prompt_prefix='\n-> ',
                           context=None):
@@ -161,6 +157,12 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
     # --- Methods overriden for skipping libraries
     def stop_here(self, frame):
         """Check if pdb should stop here."""
+        if (frame is not None
+                and frame.f_locals.get(
+                    "__tracebackhide__", False) == "__pdb_exit__"):
+            self.onecmd('exit')
+            return False
+
         if not super(SpyderPdb, self).stop_here(frame):
             return False
         filename = frame.f_code.co_filename

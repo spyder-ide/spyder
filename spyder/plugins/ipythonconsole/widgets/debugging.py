@@ -281,11 +281,9 @@ class DebuggingWidget(DebuggingHistoryWidget):
         """Get pdb settings"""
         return {
             "breakpoints": CONF.get('run', 'breakpoints', {}),
-            "pdb_ignore_lib": CONF.get(
-                'run', 'pdb_ignore_lib', False),
-            "pdb_execute_events": CONF.get(
-                'run', 'pdb_execute_events', False),
-            }
+            "pdb_ignore_lib": CONF.get('run', 'pdb_ignore_lib'),
+            "pdb_execute_events": CONF.get('run', 'pdb_execute_events'),
+        }
 
     # --- To Sort --------------------------------------------------
     def set_spyder_breakpoints(self):
@@ -301,7 +299,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
     def set_pdb_execute_events(self):
         """Set pdb_execute_events into a debugging session"""
         self.call_kernel(interrupt=True).set_pdb_execute_events(
-            CONF.get('run', 'pdb_execute_events', False))
+            CONF.get('run', 'pdb_execute_events', True))
 
     def do_where(self):
         """Where was called, go to the current location."""
