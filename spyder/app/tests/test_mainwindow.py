@@ -2661,6 +2661,28 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+def test_runcell_leading_indent(main_window, qtbot, tmpdir):
+    """Test the runcell command with leading indent."""
+    # Write code with a cell to a file
+    code = ("def a():\n    return\nif __name__ == '__main__':\n"
+            "# %%\n    print(1233 + 1)\n")
+    p = tmpdir.join("cell-test.py")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Execute runcell
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("runcell(1, r'{}')".format(to_text_string(p)))
+
+    assert "1234" in shell._control.toPlainText()
+    assert "This is not valid Python code" not in shell._control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_varexp_rename(main_window, qtbot, tmpdir):
     """
     Test renaming a variable.
