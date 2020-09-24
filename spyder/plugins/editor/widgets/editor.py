@@ -2069,7 +2069,7 @@ class EditorStack(QWidget):
             self.msgbox.exec_()
             return False
 
-    def _save_file(finfo):
+    def _save_file(self, finfo):
         self._write_to_file(finfo, finfo.filename)
         file_hash = self.compute_hash(finfo)
         self.autosave.file_hashes[finfo.filename] = file_hash
