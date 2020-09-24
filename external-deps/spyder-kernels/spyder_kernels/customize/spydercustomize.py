@@ -20,6 +20,7 @@ import sys
 import time
 import warnings
 import logging
+import cmd
 
 from IPython.core.getipython import get_ipython
 
@@ -311,7 +312,16 @@ if not PY2:
 # =============================================================================
 # Pdb adjustments
 # =============================================================================
+def cmd_input(prompt=''):
+    return get_ipython().kernel.cmd_input(prompt)
+
+
 pdb.Pdb = SpyderPdb
+
+if PY2:
+    cmd.raw_input = cmd_input
+else:
+    cmd.input = cmd_input
 
 
 # =============================================================================
@@ -400,6 +410,8 @@ def transform_cell(code):
 
 def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
     """Execute code and display any exception."""
+    # Tell IPython to hide this frame (>7.16)
+    __tracebackhide__ = True
     global SHOW_INVALID_SYNTAX_MSG
 
     if PY2:
@@ -436,7 +448,6 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
                         SHOW_INVALID_SYNTAX_MSG = False
         else:
             compiled = compile(transform_cell(code), filename, 'exec')
-
         exec(compiled, ns_globals, ns_locals)
     except SystemExit as status:
         # ignore exit(0)
@@ -453,6 +464,7 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
         else:
             # We ignore the call to exec
             ipython_shell.showtraceback(tb_offset=1)
+    __tracebackhide__ = "__pdb_exit__"
 
 
 def get_file_code(filename, save_all=True):
@@ -479,6 +491,8 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
     post_mortem: boolean, whether to enter post-mortem mode on error
     current_namespace: if true, run the file in the current namespace
     """
+    # Tell IPython to hide this frame (>7.16)
+    __tracebackhide__ = True
     ipython_shell = get_ipython()
     if filename is None:
         filename = get_current_file_name()
@@ -522,14 +536,22 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
             for arg in shlex.split(args):
                 sys.argv.append(arg)
         if wdir is not None:
-            try:
-                wdir = wdir.decode('utf-8')
-            except (UnicodeError, TypeError, AttributeError):
-                # UnicodeError, TypeError --> eventually raised in Python 2
-                # AttributeError --> systematically raised in Python 3
-                pass
+            if PY2:
+                try:
+                    wdir = wdir.decode('utf-8')
+                except (UnicodeError, TypeError):
+                    # UnicodeError, TypeError --> eventually raised in Python 2
+                    pass
             if os.path.isdir(wdir):
                 os.chdir(wdir)
+                # See https://github.com/spyder-ide/spyder/issues/13632
+                if "multiprocessing.process" in sys.modules:
+                    try:
+                        import multiprocessing.process
+                        multiprocessing.process.ORIGINAL_DIR = os.path.abspath(
+                            wdir)
+                    except Exception:
+                        pass
             else:
                 _print("Working directory {} doesn't exist.\n".format(wdir))
 
@@ -555,6 +577,8 @@ def debugfile(filename=None, args=None, wdir=None, post_mortem=False,
     wdir: working directory
     post_mortem: boolean, included for compatiblity with runfile
     """
+    # Tell IPython to hide this frame (>7.16)
+    __tracebackhide__ = True
     if filename is None:
         filename = get_current_file_name()
         if filename is None:
@@ -583,6 +607,8 @@ def runcell(cellname, filename=None, post_mortem=False):
     filename : str
         Needed to allow for proper traceback links.
     """
+    # Tell IPython to hide this frame (>7.16)
+    __tracebackhide__ = True
     if filename is None:
         filename = get_current_file_name()
         if filename is None:
@@ -631,6 +657,8 @@ builtins.runcell = runcell
 
 def debugcell(cellname, filename=None, post_mortem=False):
     """Debug a cell."""
+    # Tell IPython to hide this frame (>7.16)
+    __tracebackhide__ = True
     if filename is None:
         filename = get_current_file_name()
         if filename is None:
