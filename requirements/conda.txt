@@ -4,7 +4,6 @@
 # make changes here, please copy them over there too.
 applaunchservices >=0.1.7
 atomicwrites >=1.2.0
-autopep8 >=1.5.3
 chardet >=2.0.0
 cloudpickle >=0.5.0
 diff-match-patch >=20181111
@@ -39,4 +38,3 @@ sphinx >=0.6.6
 spyder-kernels
 three-merge >=0.1.1
 watchdog
-yapf >=0.30.0
