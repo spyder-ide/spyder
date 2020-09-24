@@ -2679,7 +2679,7 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
-def test_runcell_leading_indent(main_window, qtbot, tmpdir, debug):
+def test_runcell_leading_indent(main_window, qtbot, tmpdir):
     """Test the runcell command with leading indent."""
     # Write code with a cell to a file
     code = ("def a():\n    return\nif __name__ == '__main__':\n"
