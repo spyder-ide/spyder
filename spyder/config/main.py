@@ -503,6 +503,7 @@ DEFAULTS = [
               'pyflakes': True,
               'mccabe': False,
               'formatting': 'autopep8',
+              'format_on_save': False,
               'pycodestyle': False,
               'pycodestyle/filename': '',
               'pycodestyle/exclude': '',

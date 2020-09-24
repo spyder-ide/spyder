@@ -546,6 +546,9 @@ class CodeEditor(TextEditBaseWidget):
         self.add_colons_enabled = True
         self.auto_unindent_enabled = True
 
+        # Autoformat on save
+        self.format_on_save = False
+
         # Mouse tracking
         self.setMouseTracking(True)
         self.__cursor_changed = False
@@ -843,7 +846,8 @@ class CodeEditor(TextEditBaseWidget):
                      folding=True,
                      remove_trailing_spaces=False,
                      remove_trailing_newlines=False,
-                     add_newline=False):
+                     add_newline=False,
+                     format_on_save=False):
         """
         Set-up configuration for the CodeEditor instance.
 
@@ -923,6 +927,8 @@ class CodeEditor(TextEditBaseWidget):
         remove_trailing_newlines: Remove extra lines at the end of the file.
             Default False.
         add_newline: Add a newline at the end of the file if there is not one.
+            Default False.
+        format_on_save: Autoformat file automatically when saving.
             Default False.
         """
 
@@ -1017,6 +1023,9 @@ class CodeEditor(TextEditBaseWidget):
 
         # Code snippets
         self.toggle_code_snippets(code_snippets)
+
+        # Autoformat on save
+        self.toggle_format_on_save(format_on_save)
 
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
@@ -1768,6 +1777,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def toggle_code_snippets(self, state):
         self.code_snippets = state
+
+    def toggle_format_on_save(self, state):
+        self.format_on_save = state
 
     def toggle_code_folding(self, state):
         self.code_folding = state

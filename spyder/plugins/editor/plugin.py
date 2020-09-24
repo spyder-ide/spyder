@@ -1344,6 +1344,8 @@ class Editor(SpyderPluginWidget):
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
         editorstack.set_hover_hints_enabled(CONF.get('lsp-server',
                                                      'enable_hover_hints'))
+        editorstack.set_format_on_save(
+            CONF.get('lsp-server', 'format_on_save'))
         color_scheme = self.get_color_scheme()
         editorstack.set_default_font(self.get_font(), color_scheme)
 

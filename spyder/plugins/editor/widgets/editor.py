@@ -17,6 +17,7 @@ import logging
 import os
 import os.path as osp
 import sys
+import functools
 import unicodedata
 
 # Third party imports
@@ -565,6 +566,7 @@ class EditorStack(QWidget):
         self.completions_hint_enabled = True
         self.completions_hint_after_ms = 500
         self.hover_hints_enabled = True
+        self.format_on_save = False
         self.code_snippets_enabled = True
         self.code_folding_enabled = True
         self.underline_errors_enabled = False
@@ -1331,6 +1333,12 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_hover_hints(state)
 
+    def set_format_on_save(self, state):
+        self.format_on_save = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_format_on_save(state)
+
     def set_occurrence_highlighting_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'occurrence_highlighting')
         self.occurrence_highlighting_enabled = state
@@ -2041,31 +2049,13 @@ class EditorStack(QWidget):
             osname = osname_lookup[self.convert_eol_on_save_to]
             self.set_os_eol_chars(osname=osname)
         try:
-            self._write_to_file(finfo, finfo.filename)
-            file_hash = self.compute_hash(finfo)
-            self.autosave.file_hashes[finfo.filename] = file_hash
-            self.autosave.remove_autosave_file(finfo.filename)
-            finfo.newly_created = False
-            self.encoding_changed.emit(finfo.encoding)
-            finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
-
-            # We pass self object ID as a QString, because otherwise it would
-            # depend on the platform: long for 64bit, int for 32bit. Replacing
-            # by long all the time is not working on some 32bit platforms.
-            # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
-            # The filename is passed instead of an index in case the tabs
-            # have been rearranged. See spyder-ide/spyder#5703.
-            self.file_saved.emit(str(id(self)),
-                                 finfo.filename, finfo.filename)
-
-            finfo.editor.document().setModified(False)
-            self.modification_changed(index=index)
-            self.analyze_script(index)
-
-            # Rebuild the outline explorer data
-            self._refresh_outlineexplorer(index)
-
-            finfo.editor.notify_save()
+            if self.format_on_save and finfo.editor.formatting_enabled:
+                # Autoformat document and then save
+                finfo.editor.sig_stop_operation_in_progress.connect(
+                    functools.partial(self._save_file, finfo))
+                finfo.editor.format_document()
+            else:
+                self._save_file(finfo)
             return True
         except EnvironmentError as error:
             self.msgbox = QMessageBox(
@@ -2078,6 +2068,33 @@ class EditorStack(QWidget):
                     parent=self)
             self.msgbox.exec_()
             return False
+
+    def _save_file(finfo):
+        self._write_to_file(finfo, finfo.filename)
+        file_hash = self.compute_hash(finfo)
+        self.autosave.file_hashes[finfo.filename] = file_hash
+        self.autosave.remove_autosave_file(finfo.filename)
+        finfo.newly_created = False
+        self.encoding_changed.emit(finfo.encoding)
+        finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
+
+        # We pass self object ID as a QString, because otherwise it would
+        # depend on the platform: long for 64bit, int for 32bit. Replacing
+        # by long all the time is not working on some 32bit platforms.
+        # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
+        # The filename is passed instead of an index in case the tabs
+        # have been rearranged. See spyder-ide/spyder#5703.
+        self.file_saved.emit(str(id(self)),
+                             finfo.filename, finfo.filename)
+
+        finfo.editor.document().setModified(False)
+        self.modification_changed(index=index)
+        self.analyze_script(index)
+
+        # Rebuild the outline explorer data
+        self._refresh_outlineexplorer(index)
+
+        finfo.editor.notify_save()
 
     def file_saved_in_other_editorstack(self, original_filename, filename):
         """
@@ -2667,7 +2684,8 @@ class EditorStack(QWidget):
             folding=self.code_folding_enabled,
             remove_trailing_spaces=self.always_remove_trailing_spaces,
             remove_trailing_newlines=self.remove_trailing_newlines,
-            add_newline=self.add_newline
+            add_newline=self.add_newline,
+            format_on_save=self.format_on_save
         )
         if cloned_from is None:
             editor.set_text(txt)
