@@ -1836,6 +1836,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
         shell.execute("1 + 1")
     assert control.toPlainText().split()[-1] == "[3]:"
 
+
 @flaky(max_runs=3)
 @pytest.mark.skipif(sys.platform == 'nt', reason="Times out on Windows")
 def test_code_cache(ipyconsole, qtbot):

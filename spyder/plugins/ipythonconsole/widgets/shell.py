@@ -203,7 +203,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         if self._execute_queue:
             self.execute(*self._execute_queue.pop(0))
 
-    #---- Public API ----------------------------------------------------------
+    # ---- Public API ---------------------------------------------------------
     def interrupt_kernel(self):
         """Attempts to interrupt the running kernel."""
         # Empty queue when interrupting
