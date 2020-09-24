@@ -115,6 +115,9 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
 
+        self._execute_queue = []
+        self.executed.connect(self.pop_execute_queue)
+
     def __del__(self):
         """Avoid destroying shutdown_thread."""
         if (self.shutdown_thread is not None
@@ -195,7 +198,29 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         # Redefine the complete method to work while debugging.
         self._redefine_complete_for_dbg(self.kernel_client)
 
-    # ---- Public API ---------------------------------------------------------
+    def pop_execute_queue(self):
+        """Pop one waiting instruction."""
+        if self._execute_queue:
+            self.execute(*self._execute_queue.pop(0))
+
+    #---- Public API ----------------------------------------------------------
+    def interrupt_kernel(self):
+        """Attempts to interrupt the running kernel."""
+        # Empty queue when interrupting
+        # Fixes spyder-ide/spyder#7293.
+        self._execute_queue = []
+        super(ShellWidget, self).interrupt_kernel()
+
+    def execute(self, source=None, hidden=False, interactive=False):
+        """
+        Executes source or the input buffer, possibly prompting for more
+        input.
+        """
+        if self._executing:
+            self._execute_queue.append((source, hidden, interactive))
+            return
+        super(ShellWidget, self).execute(source, hidden, interactive)
+
     def request_interrupt_eventloop(self):
         """Send a message to the kernel to interrupt the eventloop."""
         self.call_kernel()._interrupt_eventloop()
