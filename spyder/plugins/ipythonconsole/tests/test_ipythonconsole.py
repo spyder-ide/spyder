@@ -872,8 +872,8 @@ def test_values_dbg(ipyconsole, qtbot):
     # Generate a traceback and enter debugging mode
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
-    shell.execute('%debug')
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug')
 
     # Get value
     qtbot.keyClicks(control, '!aa = 10')
@@ -1401,7 +1401,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(shell._completion_widget.isVisible)
     # cbs is another solution, so not completed yet
     assert control.toPlainText().split()[-1] == 'cb'
-    qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
+    qtbot.keyClick(shell._completion_widget, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'cbba')
 
     # Generate a traceback and enter debugging mode
@@ -1452,7 +1452,7 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(shell._completion_widget.isVisible)
     assert control.toPlainText().split()[-1] == 'ab'
-    qtbot.keyClick(shell._completion_widget, Qt.Key_Tab)
+    qtbot.keyClick(shell._completion_widget, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abba')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
@@ -1741,6 +1741,100 @@ def test_startup_code_pdb(ipyconsole, qtbot):
     # Reset setting
     CONF.set('ipython_console', 'startup/pdb_run_lines', '')
 
+
+@flaky(max_runs=3)
+@pytest.mark.parametrize(
+    "backend",
+    ['inline', 'qt5', 'tk', 'osx', ]
+)
+def test_pdb_eventloop(ipyconsole, qtbot, backend):
+    """Check if pdb works with every backend. (only testing 3)."""
+    # Skip failing tests
+    if backend == 'tk' and (os.name == 'nt' or PY2):
+        return
+    if backend == 'osx' and (sys.platform != "darwin" or PY2):
+        return
+
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_focus_widget()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%matplotlib " + backend)
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug print()")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("print('Two: ' + str(1+1))")
+
+    assert "Two: 2" in control.toPlainText()
+
+
+@flaky(max_runs=3)
+def test_pdb_without_comm(ipyconsole, qtbot):
+    """Check if pdb works without comm."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_focus_widget()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("get_ipython().kernel.frontend_comm.close()")
+    shell.execute("%debug print()")
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.keyClicks(control, "print('Two: ' + str(1+1))")
+    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+
+    assert "Two: 2" in control.toPlainText()
+
+
+@flaky(max_runs=3)
+def test_recursive_pdb(ipyconsole, qtbot):
+    """Check commands and code are separted."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_focus_widget()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug print()")
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("abab = 10")
+    # Check that we can't use magic twice
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("%debug print()")
+    assert "Please don't use '%debug'" in control.toPlainText()
+    # Check we can enter the recursive debugger twice
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("debug print()")
+    assert "(ipdb>)" in control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("debug print()")
+    assert "((ipdb>))" in control.toPlainText()
+    # quit one layer
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("quit")
+    assert control.toPlainText().split()[-1] == "(ipdb>)"
+    # Check completion works
+    qtbot.keyClicks(control, 'aba')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab',
+                    timeout=SHELL_TIMEOUT)
+    # quit one layer
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("quit")
+    assert control.toPlainText().split()[-1] == "ipdb>"
+    # Check completion works
+    qtbot.keyClicks(control, 'aba')
+    qtbot.keyClick(control, Qt.Key_Tab)
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab',
+                    timeout=SHELL_TIMEOUT)
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("quit")
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("1 + 1")
+    assert control.toPlainText().split()[-1] == "[3]:"
 
 if __name__ == "__main__":
     pytest.main()

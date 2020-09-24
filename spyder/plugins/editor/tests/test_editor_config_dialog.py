@@ -37,6 +37,7 @@ class MainWindowMock:
     new_instance = Mock()
     plugin_focus_changed = Mock()
     fallback_completions = Mock()
+    ipyconsole = Mock()
 
 
 @pytest.mark.parametrize(
