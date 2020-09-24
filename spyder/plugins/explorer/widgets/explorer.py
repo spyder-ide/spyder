@@ -397,7 +397,9 @@ class DirView(QTreeView):
         dialog.setWindowTitle(_('Edit filter settings'))
 
         # Create dialog contents
-        description_label = QLabel(_('Here is the description'))
+        description_label = QLabel(
+            _('Filter files by name, extension, or more using glob patterns. '
+              'Please enter the glob patterns, separated by commas.'))
         filters = QTextEdit(", ".join(self.name_filters))
         layout = QVBoxLayout()
         layout.addWidget(description_label)
