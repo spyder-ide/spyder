@@ -12,28 +12,31 @@
 #
 
 import bdb
+import cmd
+from distutils.version import LooseVersion
 import io
+import logging
 import os
 import pdb
 import shlex
 import sys
 import time
 import warnings
-import logging
-import cmd
 
+from IPython import __version__ as ipy_version
 from IPython.core.getipython import get_ipython
 
-from spyder_kernels.py3compat import TimeoutError, PY2, _print, encode
 from spyder_kernels.comms.frontendcomm import CommError, frontend_request
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.umr import UserModuleReloader
+from spyder_kernels.py3compat import TimeoutError, PY2, _print, encode
 
-if not PY2:
-    from IPython.core.inputtransformer2 import TransformerManager
+if LooseVersion(ipy_version) > LooseVersion('7.0.0'):
+    from IPython.core.inputtransformer2 import (
+        TransformerManager, leading_indent, leading_empty_lines)
 else:
-    from IPython.core.inputsplitter import IPythonInputSplitter as TransformerManager
+    from IPython.core.inputsplitter import IPythonInputSplitter
 
 
 logger = logging.getLogger(__name__)
@@ -398,13 +401,25 @@ def count_leading_empty_lines(cell):
     return len(lines)
 
 
-def transform_cell(code):
+def transform_cell(code, indent_only=False):
     """Transform ipython code to python code."""
-    tm = TransformerManager()
     number_empty_lines = count_leading_empty_lines(code)
-    code = tm.transform_cell(code)
-    if PY2:
-        return code
+    if indent_only:
+        # Not implemented for PY2
+        if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
+            return code
+        if not code.endswith('\n'):
+            code += '\n'  # Ensure the cell has a trailing newline
+        lines = code.splitlines(keepends=True)
+        lines = leading_indent(leading_empty_lines(lines))
+        code = ''.join(lines)
+    else:
+        if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
+            tm = IPythonInputSplitter()
+            return tm.transform_cell(code)
+        else:
+            tm = TransformerManager()
+            code = tm.transform_cell(code)
     return '\n' * number_empty_lines + code
 
 
@@ -425,7 +440,8 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
             # TODO: remove the try-except and let the SyntaxError raise
             # Because there should not be ipython code in a python file
             try:
-                compiled = compile(code, filename, 'exec')
+                compiled = compile(
+                    transform_cell(code, indent_only=True), filename, 'exec')
             except SyntaxError as e:
                 try:
                     compiled = compile(transform_cell(code), filename, 'exec')
@@ -442,9 +458,8 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
                             "\nWARNING: This is not valid Python code. "
                             "If you want to use IPython magics, "
                             "flexible indentation, and prompt removal, "
-                            "please save this file with the .ipy extension. "
-                            "This will be an error in a future version of "
-                            "Spyder.\n")
+                            "we recommend that you save this file with the "
+                            ".ipy extension.\n")
                         SHOW_INVALID_SYNTAX_MSG = False
         else:
             compiled = compile(transform_cell(code), filename, 'exec')
