@@ -58,8 +58,8 @@ class SpyderWidgets(object):
     history_log = "historylog"
     plots_plugin = "plots"
     find_plugin = "findinfiles"
-    profiler = "profiler"
-    code_analysis = "pylint"
+    profiler = "Profiler"
+    code_analysis = "Pylint"
 
     # Toolbars
     toolbars = ''
@@ -1026,12 +1026,18 @@ class AnimatedTour(QWidget):
 
         for name in names:
             base = name.split('.')[0]
-            temp = getattr(spy_window, base)
-
-            # Check if it is the current editor
-            if 'get_current_editor()' in name:
-                temp = temp.get_current_editor()
-                temp = getattr(temp, name.split('.')[-1])
+            try:
+              temp = getattr(spy_window, base)
+            except AttributeError:
+              for item in spy_window.thirdparty_plugins:
+                if type(item).__name__==name:
+                  temp = item
+                  break
+            else:
+              # Check if it is the current editor
+              if 'get_current_editor()' in name:
+                  temp = temp.get_current_editor()
+                  temp = getattr(temp, name.split('.')[-1])
 
             widgets.append(temp)
 
@@ -1117,6 +1123,7 @@ class AnimatedTour(QWidget):
         self.y_main = y
 
         delta = 20
+        offset = 10
 
         # Here is the tricky part to define the best position for the
         # tip widget
@@ -1128,13 +1135,16 @@ class AnimatedTour(QWidget):
                 point = dockwidgets[0].mapToGlobal(QPoint(0, 0))
                 x_glob, y_glob = point.x(), point.y()
 
-        # Put tip to the opposite side of the pane
+                # Put tip to the opposite side of the pane
                 if x < self.tips.width():
                     x = x_glob + width + delta
                     y = y_glob + height/2 - self.tips.height()/2
                 else:
                     x = x_glob - self.tips.width() - delta
                     y = y_glob + height/2 - self.tips.height()/2
+                
+                if (y + self.tips.height()) > (self.y_main + self.height_main):
+                    y = y - ((y + self.tips.height())-(self.y_main + self.height_main))-offset
         else:
             # Center on parent
             x = self.x_main + self.width_main/2 - self.tips.width()/2
