@@ -12,25 +12,25 @@
 #
 
 import bdb
+import cmd
+from distutils.version import LooseVersion
 import io
+import logging
 import os
 import pdb
 import shlex
 import sys
 import time
 import warnings
-import logging
-import cmd
 
-from distutils.version import LooseVersion
 from IPython import __version__ as ipy_version
 from IPython.core.getipython import get_ipython
 
-from spyder_kernels.py3compat import TimeoutError, PY2, _print, encode
 from spyder_kernels.comms.frontendcomm import CommError, frontend_request
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.umr import UserModuleReloader
+from spyder_kernels.py3compat import TimeoutError, PY2, _print, encode
 
 if LooseVersion(ipy_version) > LooseVersion('7.0.0'):
     from IPython.core.inputtransformer2 import (
