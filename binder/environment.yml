@@ -8,7 +8,6 @@ dependencies:
 # to requirements/conda.txt, and copy it here.
 - applaunchservices >=0.1.7
 - atomicwrites >=1.2.0
-- autopep8 >=1.5.3
 - chardet >=2.0.0
 - cloudpickle >=0.5.0
 - diff-match-patch >=20181111
@@ -44,7 +43,6 @@ dependencies:
 - spyder-kernels
 - three-merge >=0.1.1
 - watchdog
-- yapf >=0.30.0
 
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied
