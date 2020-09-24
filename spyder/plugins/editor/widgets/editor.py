@@ -2052,10 +2052,10 @@ class EditorStack(QWidget):
             if self.format_on_save and finfo.editor.formatting_enabled:
                 # Autoformat document and then save
                 finfo.editor.sig_stop_operation_in_progress.connect(
-                    functools.partial(self._save_file, finfo))
+                    functools.partial(self._save_file, finfo, index))
                 finfo.editor.format_document()
             else:
-                self._save_file(finfo)
+                self._save_file(finfo, index)
             return True
         except EnvironmentError as error:
             self.msgbox = QMessageBox(
@@ -2069,7 +2069,7 @@ class EditorStack(QWidget):
             self.msgbox.exec_()
             return False
 
-    def _save_file(self, finfo):
+    def _save_file(self, finfo, index):
         self._write_to_file(finfo, finfo.filename)
         file_hash = self.compute_hash(finfo)
         self.autosave.file_hashes[finfo.filename] = file_hash
