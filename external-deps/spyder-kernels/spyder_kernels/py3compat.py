@@ -27,6 +27,22 @@ import sys
 PY2 = sys.version[0] == '2'
 PY3 = sys.version[0] == '3'
 
+if PY3:
+    # keep reference to builtin_mod because the kernel overrides that value
+    # to forward requests to a frontend.
+    def input(prompt=''):
+        return builtin_mod.input(prompt)
+    builtin_mod_name = "builtins"
+    import builtins as builtin_mod
+else:
+    # keep reference to builtin_mod because the kernel overrides that value
+    # to forward requests to a frontend.
+    def input(prompt=''):
+        return builtin_mod.raw_input(prompt)
+    builtin_mod_name = "__builtin__"
+    import __builtin__ as builtin_mod
+
+
 #==============================================================================
 # Data types
 #==============================================================================
@@ -237,7 +253,6 @@ else:
 
 if PY2:
     # Python 2
-    input = raw_input
     getcwd = os.getcwdu
     cmp = cmp
     import string
@@ -245,7 +260,6 @@ if PY2:
     from itertools import izip_longest as zip_longest
 else:
     # Python 3
-    input = input
     getcwd = os.getcwd
     def cmp(a, b):
         return (a > b) - (a < b)

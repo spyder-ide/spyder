@@ -2679,6 +2679,28 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+def test_runcell_leading_indent(main_window, qtbot, tmpdir):
+    """Test the runcell command with leading indent."""
+    # Write code with a cell to a file
+    code = ("def a():\n    return\nif __name__ == '__main__':\n"
+            "# %%\n    print(1233 + 1)\n")
+    p = tmpdir.join("cell-test.py")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Execute runcell
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("runcell(1, r'{}')".format(to_text_string(p)))
+
+    assert "1234" in shell._control.toPlainText()
+    assert "This is not valid Python code" not in shell._control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_varexp_rename(main_window, qtbot, tmpdir):
     """
     Test renaming a variable.
@@ -2922,7 +2944,7 @@ def test_path_manager_updates_clients(qtbot, main_window, tmpdir):
     dlg.add_path(folder)
     qtbot.waitUntil(lambda: dlg.button_ok.isEnabled(), timeout=EVAL_TIMEOUT)
 
-    with qtbot.waitSignal(dlg.sig_path_changed):
+    with qtbot.waitSignal(dlg.sig_path_changed, timeout=EVAL_TIMEOUT):
         dlg.button_ok.animateClick()
 
     cmd = 'import sys;print(sys.path)'
@@ -3236,7 +3258,7 @@ def test_running_namespace(main_window, qtbot, tmpdir):
                     timeout=3000)
     assert 'b' not in nsb.editor.source_model._data
     assert nsb.editor.source_model._data['a']['view'] == '5'
-
+    qtbot.waitUntil(shell.is_waiting_pdb_input)
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute('c')
 
@@ -3390,6 +3412,80 @@ def test_immediate_debug(main_window, qtbot):
     shell = main_window.ipyconsole.get_current_shellwidget()
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute("%debug print()")
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_local_namespace(main_window, qtbot, tmpdir):
+    """
+    Test that the local namespace is not reset.
+
+    This can happen if `frame.f_locals` is called on the current frame, as this
+    has the side effect of discarding the pdb locals.
+    """
+    code = ("""
+def hello():
+    test = 1
+    print('test ==', test)
+hello()
+""")
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(code)
+    code_editor.debugger.toogle_breakpoint(line_number=4)
+
+    nsb = main_window.variableexplorer.get_focus_widget()
+
+    # Start debugging
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
+
+    # Check `test` has a value of 1
+    # Here we use "waitUntil" because `shell.executed` is emitted twice
+    # One at the beginning of the file, and once at the breakpoint
+    qtbot.waitUntil(lambda: 'test' in nsb.editor.source_model._data and
+                    nsb.editor.source_model._data['test']['view'] == '1',
+                    timeout=3000)
+
+    qtbot.waitUntil(
+            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+
+    # change value of test
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("test = 1 + 1")
+
+    # check value of test
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("print('test =', test)")
+    assert "test = 2" in shell._control.toPlainText()
+
+    # change value of test
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("test = 1 + 1 + 1")
+
+    # do next
+    with qtbot.waitSignal(shell.executed):
+        shell.pdb_execute("next")
+
+    assert "test == 3" in shell._control.toPlainText()
+
+    # Check the namespace browser is updated
+    assert ('test' in nsb.editor.source_model._data and
+            nsb.editor.source_model._data['test']['view'] == '3')
 
 
 if __name__ == "__main__":

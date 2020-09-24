@@ -280,7 +280,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.variableexplorer.set_shellwidget_from_id(id(sw))
             self.main.plots.set_shellwidget_from_id(id(sw))
             self.main.help.set_shell(sw)
-            self.sig_pdb_state.emit(sw.in_debug_loop(), sw.get_pdb_last_step())
+            self.sig_pdb_state.emit(sw.is_debugging(), sw.get_pdb_last_step())
         self.update_tabs_text()
         self.sig_update_plugin_title.emit()
 
@@ -474,8 +474,6 @@ class IPythonConsole(SpyderPluginWidget):
                     # still an execution taking place
                     # Fixes spyder-ide/spyder#7293.
                     pass
-                elif (client.shellwidget.in_debug_loop()):
-                    client.shellwidget.pdb_execute('!' + line)
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables)
                 else:
@@ -529,8 +527,6 @@ class IPythonConsole(SpyderPluginWidget):
                     # still an execution taking place
                     # Fixes spyder-ide/spyder#7293.
                     pass
-                elif (client.shellwidget.in_debug_loop()):
-                    client.shellwidget.pdb_execute('!' + line)
                 else:
                     self.execute_code(line)
             except AttributeError:
@@ -602,14 +598,32 @@ class IPythonConsole(SpyderPluginWidget):
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
-    def pdb_execute(self, line, hidden=False, echo_code=False):
+    def pdb_execute(self, line, hidden=False, echo_stack_entry=False,
+                    add_history=False):
+        """
+        Send line to the pdb kernel if possible.
+
+        Parameters
+        ----------
+        line: str
+            the line to execute
+
+        hidden: bool
+            If the line should be hidden
+
+        echo_stack_entry: bool
+            If not hidden, if the stack entry should be printed
+
+        add_history: bool
+            If not hidden, wether the line should be added to history
+        """
+
         sw = self.get_current_shellwidget()
         if sw is not None:
             # Needed to handle an error when kernel_client is None.
             # See spyder-ide/spyder#7578.
             try:
-                sw.set_pdb_echo_code(echo_code)
-                sw.pdb_execute(line, hidden)
+                sw.pdb_execute(line, hidden, echo_stack_entry, add_history)
             except AttributeError:
                 pass
 
@@ -617,7 +631,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Get debugging state of the current console."""
         sw = self.get_current_shellwidget()
         if sw is not None:
-            return sw.in_debug_loop()
+            return sw.is_debugging()
         return False
 
     def get_pdb_last_step(self):
