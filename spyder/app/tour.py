@@ -908,6 +908,7 @@ class AnimatedTour(QWidget):
         self.tips = None
         self.frames = None
         self.spy_window = None
+        self.saved_normal_geometry = None
 
         self.widgets = None
         self.dockwidgets = None
@@ -1207,6 +1208,10 @@ class AnimatedTour(QWidget):
 
     def start_tour(self):
         """ """
+        if not self.spy_window.fullscreen_flag:
+            self.saved_normal_geometry = self.spy_window.saveGeometry()
+            self.spy_window.showMaximized()
+
         geo = self.parent.geometry()
         x, y, width, height = geo.x(), geo.y(), geo.width(), geo.height()
 #        self.parent_x = x
@@ -1242,6 +1247,10 @@ class AnimatedTour(QWidget):
             pass
 
         self.is_running = False
+
+        if self.saved_normal_geometry: 
+            self.spy_window.restoreGeometry(self.saved_normal_geometry)
+            self.saved_normal_geometry = None
 
     def hide_tips(self):
         """Hide tips dialog when the main window loses focus."""
@@ -1295,7 +1304,8 @@ class AnimatedTour(QWidget):
     def any_has_focus(self):
         """Returns if tour or any of its components has focus."""
         f = (self.hasFocus() or self.parent.hasFocus() or
-             self.tips.hasFocus() or self.canvas.hasFocus())
+             self.tips.hasFocus() or self.canvas.hasFocus() or
+             self.tips.isActiveWindow())
         return f
 
 # ----------------------------------------------------------------------------
