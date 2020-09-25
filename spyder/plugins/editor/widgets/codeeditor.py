@@ -2012,7 +2012,8 @@ class CodeEditor(TextEditBaseWidget):
                     first_occurrence = selection
                 else:
                     selection.format.setBackground(self.occurrence_color)
-                    first_occurrence.format.setBackground(self.occurrence_color)
+                    first_occurrence.format.setBackground(
+                        self.occurrence_color)
             cursor = self.__find_next(text, cursor)
         self.set_extra_selections('occurrences', extra_selections)
         self.update_extra_selections()
