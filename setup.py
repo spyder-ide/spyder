@@ -228,7 +228,7 @@ install_requires = [
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8',
-    'qtawesome>=0.5.7',
+    'qtawesome>=1.0.0',
     'qtconsole>=4.7.7',
     'qtpy>=1.5.0',
     'sphinx>=0.6.6',
