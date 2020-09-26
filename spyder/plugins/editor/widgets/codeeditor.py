@@ -11,15 +11,12 @@ Editor widget based on QtGui.QPlainTextEdit
 # TODO: Try to separate this module from spyder to create a self
 #       consistent editor module (Qt source code and shell widgets library)
 
-# %% This line is for cell execution testing
 # pylint: disable=C0103
 # pylint: disable=R0903
 # pylint: disable=R0911
 # pylint: disable=R0201
 
 # Standard library imports
-from __future__ import division, print_function
-
 from unicodedata import category
 import logging
 import functools
@@ -34,13 +31,12 @@ import time
 from diff_match_patch import diff_match_patch
 from IPython.core.inputtransformer2 import TransformerManager
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import (QEvent, QPoint, QRegExp, Qt, QTimer, QThread, QUrl,
-                         Signal, Slot)
+from qtpy.QtCore import (QEvent, QRegExp, Qt, QTimer, QThread, QUrl, Signal,
+                         Slot)
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
                         QTextCharFormat, QTextCursor, QDesktopServices,
-                        QKeyEvent, QTextDocument, QTextFormat, QTextOption,
-                        QTextFrameFormat)
+                        QKeyEvent, QTextDocument, QTextFormat, QTextOption)
 from qtpy.QtPrintSupport import QPrinter
 from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QGridLayout, QHBoxLayout, QLabel,
@@ -48,8 +44,6 @@ from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
                             QToolTip, QVBoxLayout, QScrollBar)
 from spyder_kernels.utils.dochelpers import getobj
 from three_merge import merge
-
-# %% This line is for cell execution testing
 
 
 # Local imports
@@ -94,7 +88,6 @@ from spyder.utils.qthelpers import (add_actions, create_action, file_uri,
                                     mimedata2url)
 from spyder.utils.vcs import get_git_remotes, remote_to_url
 from spyder.utils.qstringhelpers import qstring_length
-from spyder.widgets.helperwidgets import MessageCheckBox
 
 
 try:
@@ -110,12 +103,12 @@ logger = logging.getLogger(__name__)
 # the up/down arrow keys.
 UPDATE_DECORATIONS_TIMEOUT = 500  # miliseconds
 
-# %% This line is for cell execution testing
 def is_letter_or_number(char):
     """Returns whether the specified unicode character is a letter or a number.
     """
     cat = category(char)
     return cat.startswith('L') or cat.startswith('N')
+
 
 # =============================================================================
 # Go to line dialog box
@@ -1695,8 +1688,6 @@ class CodeEditor(TextEditBaseWidget):
         if edits is None:
             return
 
-        texts = []
-        diffs = []
         text = self.toPlainText()
         text_tokens = list(text)
         merged_text = None
@@ -2460,7 +2451,6 @@ class CodeEditor(TextEditBaseWidget):
         top = self.blockBoundingGeometry(block).translated(
                                                     self.contentOffset()).top()
         bottom = top + self.blockBoundingRect(block).height()
-        folding_panel = self.panels.get(FoldingPanel)
         while block.isValid() and top < event.pos().y():
             block = block.next()
             if block.isVisible():  # skip collapsed blocks
@@ -3035,7 +3025,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         block = self.textCursor().block()
         line_count = self.document().blockCount()
-        for _ in range(line_count):
+        for __ in range(line_count):
             line_number = block.blockNumber() + 1
             if line_number < line_count:
                 block = block.next()
@@ -3055,7 +3045,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         block = self.textCursor().block()
         line_count = self.document().blockCount()
-        for _ in range(line_count):
+        for __ in range(line_count):
             line_number = block.blockNumber() + 1
             if line_number > 1:
                 block = block.previous()
@@ -4968,7 +4958,6 @@ class CodeEditor(TextEditBaseWidget):
         self._last_point = pos
         alt = event.modifiers() & Qt.AltModifier
         ctrl = event.modifiers() & Qt.ControlModifier
-        shift = event.modifiers() & Qt.ShiftModifier
 
         if alt:
             self.sig_alt_mouse_moved.emit(event)
@@ -5159,7 +5148,6 @@ class CodeEditor(TextEditBaseWidget):
         top = int(self.blockBoundingGeometry(block).translated(
             self.contentOffset()).top())
         bottom = top + int(self.blockBoundingRect(block).height())
-        ebottom_top = 0
         ebottom_bottom = self.height()
 
         while block.isValid():
