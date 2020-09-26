@@ -5,8 +5,8 @@
 ;
 [subrepo]
 	remote = https://github.com/palantir/python-language-server.git
-	branch = develop
-	commit = d81c7ba14d54b8e52192b0e00cbb4dacbb6f414d
-	parent = 772425a82808da813eca028f9fbb02a3d239e933
+	branch = jedi-environment-variables
+	commit = ab97333156f095a179cfde5a027e0bab50eb904b
+	parent = 718688ee90b2b2e9cfa619b4739d40de20fe6958
 	method = merge
 	cmdver = 0.4.1
