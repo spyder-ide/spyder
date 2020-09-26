@@ -208,7 +208,7 @@ install_requires = [
     'diff-match-patch>=20181111',
     'intervaltree',
     'ipython>=4.0',
-    'jedi==0.17.1',
+    'jedi==0.17.2',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
