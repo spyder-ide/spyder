@@ -420,6 +420,7 @@ def test_editor_delete_selection(codeeditor, qtbot):
     assert editor.textCursor().columnNumber() == expected_column
 
 
+@pytest.mark.skipif(True, reason='testing')
 def test_qtbug35861(qtbot):
     """This test will detect if upstream QTBUG-35861 is fixed.
 

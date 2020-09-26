@@ -654,6 +654,10 @@ class LanguageServerProvider(SpyderCompletionProvider):
                     language_client['instance'].disconnect()
                 except TypeError:
                     pass
+                try:
+                    self.clients_hearbeat[language].stop()
+                except (TypeError, KeyError, RuntimeError):
+                    pass
                 language_client['instance'].stop()
             language_client['status'] = self.STOPPED
 

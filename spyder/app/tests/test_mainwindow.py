@@ -361,6 +361,7 @@ def main_window(request, tmpdir, qtbot):
             if client.info_page != client.blank_page:
                 print('info_page')
                 print(client.info_page)
+            window.closing(cancelable=False, close_immediately=True)
             window.close()
             del main_window.window
         else:

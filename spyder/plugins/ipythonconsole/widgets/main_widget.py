@@ -1022,7 +1022,10 @@ class IPythonConsoleWidget(PluginMainWidget):
         self.sig_shellwidget_created.emit(client.shellwidget)
 
     def _shellwidget_deleted(self, client):
-        self.sig_shellwidget_deleted.emit(client.shellwidget)
+        try:
+            self.sig_shellwidget_deleted.emit(client.shellwidget)
+        except RuntimeError:
+            pass
 
     def _create_client_for_kernel(self, connection_file, hostname, sshkey,
                                   password):

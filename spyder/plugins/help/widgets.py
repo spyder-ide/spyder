@@ -563,7 +563,10 @@ class HelpWidget(PluginMainWidget):
                            self.object_combo,
                            self.object_edit]:
                 if action not in widget.actions():
-                    widget.addAction(action)
+                    try:
+                        widget.addAction(action)
+                    except RuntimeError:
+                        pass
 
     def get_focus_widget(self):
         self.object_combo.lineEdit().selectAll()

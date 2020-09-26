@@ -16,10 +16,8 @@ on:
       - '**.sh'
 
   pull_request:
-    branches:
-      - master
-      - 5.*
-      - 4.x
+    branches-ignore:
+      - '**'
     paths:
       - '.github/scripts/*.sh'
       - '.github/workflows/*.yml'

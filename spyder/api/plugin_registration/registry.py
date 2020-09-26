@@ -520,6 +520,19 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             if plugin_name not in excluding:
                 plugin_instance = self.plugin_registry[plugin_name]
                 if isinstance(plugin_instance, SpyderPluginV2):
+                    # Cleanly delete plugin widgets. This avoids segfautls with
+                    # PyQt 5.15
+                    if isinstance(plugin_instance, SpyderDockablePlugin):
+                        plugin_instance.get_widget().close()
+                        plugin_instance.get_widget().deleteLater()
+                    else:
+                        container = plugin_instance.get_container()
+                        if container:
+                            container.close()
+                            container.deleteLater()
+
+                    # Delete plugin
+                    plugin_instance.deleteLater()
                     can_close &= self.delete_plugin(plugin_name)
                     if not can_close and not close_immediately:
                         break
@@ -543,6 +556,19 @@ class SpyderPluginRegistry(QObject, PreferencesAdapter):
             if plugin_name not in excluding:
                 plugin_instance = self.plugin_registry[plugin_name]
                 if isinstance(plugin_instance, SpyderPluginV2):
+                    # Cleanly delete plugin widgets. This avoids segfautls with
+                    # PyQt 5.15
+                    if isinstance(plugin_instance, SpyderDockablePlugin):
+                        plugin_instance.get_widget().close()
+                        plugin_instance.get_widget().deleteLater()
+                    else:
+                        container = plugin_instance.get_container()
+                        if container:
+                            container.close()
+                            container.deleteLater()
+
+                    # Delete plugin
+                    plugin_instance.deleteLater()
                     can_close &= self.delete_plugin(plugin_name)
                     if not can_close and not close_immediately:
                         break

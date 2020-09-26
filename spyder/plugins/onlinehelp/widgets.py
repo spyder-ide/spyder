@@ -295,7 +295,10 @@ class PydocBrowser(PluginMainWidget):
     # --- Qt overrides
     # ------------------------------------------------------------------------
     def closeEvent(self, event):
-        self.server.quit_server()
+        try:
+            self.server.quit_server()
+        except AttributeError:
+            pass
         event.accept()
 
     # --- Public API
