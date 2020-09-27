@@ -1912,7 +1912,7 @@ def test_code_cache(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: check_value('var', 318))
     assert shell.get_value('var') == 318
 
-    # Send two execute requests and amke sure the second one is executed
+    # Send two execute requests and cancel the second one
     shell.execute('import time; time.sleep(.5)')
     shell.execute('var = 1000')
     shell.interrupt_kernel()
