@@ -7,13 +7,12 @@
 """
 This module contains the indentation guide panel.
 """
+
 # Third party imports
 from qtpy.QtCore import Qt
 from qtpy.QtGui import QPainter, QColor
-from intervaltree import IntervalTree
 
 # Local imports
-from spyder.plugins.editor.utils.editor import TextBlockHelper
 from spyder.api.panel import Panel
 
 
@@ -44,14 +43,12 @@ class IndentationGuide(Panel):
         color = QColor(self.color)
         color.setAlphaF(.5)
         painter.setPen(color)
-        offset = self.editor.document().documentMargin() + \
-            self.editor.contentOffset().x()
+        offset = (self.editor.document().documentMargin() +
+                  self.editor.contentOffset().x())
         folding_panel = self.editor.panels.get('FoldingPanel')
         folding_regions = folding_panel.folding_regions
-        folding_status = folding_panel.folding_status
         leading_whitespaces = self.editor.leading_whitespaces
         for line_number in folding_regions:
-            post_update = False
             end_line = folding_regions[line_number]
             start_block = self.editor.document().findBlockByNumber(
                 line_number)
