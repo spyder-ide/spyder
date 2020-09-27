@@ -620,7 +620,7 @@ class Editor(SpyderPluginWidget):
         self.debug_exit_action = create_action(
             self, _("Stop"),
             icon=ima.icon('stop_debug'), tip=_("Stop debugging"),
-            triggered=lambda: self.debug_command("exit"))
+            triggered=self.stop_debugging)
         self.register_shortcut(self.debug_exit_action, "_", "Debug Exit",
                                add_shortcut_to_tip=True)
 
@@ -2556,6 +2556,10 @@ class Editor(SpyderPluginWidget):
             if index is not None:
                 editorstack.data[index].editor.debugger.toogle_breakpoint(
                         lineno)
+
+    def stop_debugging(self):
+        """Stop debugging"""
+        self.main.ipyconsole.stop_debugging()
 
     def debug_command(self, command):
         """Debug actions"""

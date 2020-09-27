@@ -265,6 +265,9 @@ class DebuggingWidget(DebuggingHistoryWidget):
             self._finalize_input_request()
             hidden = True
 
+            # Emit executing
+            self.executing.emit(line)
+
         if self._pdb_input_ready:
             # Print the string to the console
             self._pdb_input_ready = False
