@@ -621,6 +621,19 @@ class IPythonConsole(SpyderPluginWidget):
             except AttributeError:
                 pass
 
+    def stop_debugging(self):
+        """Stop debugging"""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            if not sw.is_waiting_pdb_input():
+                sw.interrupt_kernel()
+            try:
+                sw.pdb_execute(
+                    "exit",
+                    hidden=False, echo_stack_entry=False, add_history=False)
+            except AttributeError:
+                pass
+
     def get_pdb_state(self):
         """Get debugging state of the current console."""
         sw = self.get_current_shellwidget()
