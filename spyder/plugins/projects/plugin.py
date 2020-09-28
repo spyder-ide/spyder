@@ -177,7 +177,6 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
 
-        self.main.pythonpath_changed()
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
         self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
@@ -422,8 +421,8 @@ class Projects(SpyderPluginWidget):
                                                default=None)
 
         # Needs a safer test of project existence!
-        if current_project_path and \
-          self.is_valid_project(current_project_path):
+        if (current_project_path and
+                self.is_valid_project(current_project_path)):
             self.open_project(path=current_project_path,
                               restart_consoles=False,
                               save_previous_files=False)

@@ -64,13 +64,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         self.requests = set({})
         self.register_queue = {}
         self.update_configuration()
-
         self.show_no_external_server_warning = True
-        self._mainwindow_setup_finished = False
-
-        # Signals
-        self.main.sig_setup_finished.connect(
-            self.on_mainwindow_setup_finished)
 
         # Status bar widget
         if parent is not None:
@@ -440,7 +434,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     def register_client_instance(self, instance):
         """Register signals emmited by a client instance."""
         if self.main:
-            self.main.sig_pythonpath_changed.connect(self.update_python_path)
+            self.main.sig_pythonpath_changed.connect(self.update_syspath)
             self.main.sig_main_interpreter_changed.connect(
                 functools.partial(self.update_configuration, python_only=True))
             instance.sig_went_down.connect(self.handle_lsp_down)
@@ -462,18 +456,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         for language in self.clients:
             self.close_client(language)
 
-    @Slot()
-    def on_mainwindow_setup_finished(self):
-        """Some adjustments after the main window setup finishes."""
-        self._mainwindow_setup_finished = True
-
-    def update_python_path(self):
+    def update_syspath(self):
         """Update configuration after a change in Spyder's Python path."""
-        # Call update_configuration only after the main window has
-        # finished to be setup. That avoids calling that method twice
-        # when a project is loaded at startup.
-        if self._mainwindow_setup_finished:
-            self.update_configuration(python_only=True)
+        logger.debug("Update server's sys.path")
+        self.update_configuration(python_only=True)
 
     def update_configuration(self, python_only=False):
         """
