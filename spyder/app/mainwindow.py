@@ -1704,8 +1704,9 @@ class MainWindow(QMainWindow):
         self.is_starting_up = False
 
         for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
-            self.tabify_plugin(plugin_instance)
-            plugin_instance.toggle_view(False)
+            if isinstance(plugin, SpyderDockablePlugin):
+                self.tabify_plugin(plugin_instance)
+                plugin_instance.toggle_view(False)
 
     def setup_menus(self):
         """Setup menus."""
