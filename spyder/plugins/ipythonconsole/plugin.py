@@ -595,13 +595,7 @@ class IPythonConsole(SpyderPluginWidget):
                 line = code.strip()
 
             try:
-                if client.shellwidget._executing:
-                    # Don't allow multiple executions when there's
-                    # still an execution taking place
-                    # Fixes spyder-ide/spyder#7293.
-                    pass
-                else:
-                    self.execute_code(line)
+                self.execute_code(line)
             except AttributeError:
                 pass
             self._visibility_changed(True)
