@@ -1,0 +1,27 @@
+These are some instructions meant for maintainers of this repo.
+
+* To avoid pushing to our main repo by accident, please use `https` for your `usptream` remote. That should make git to ask for your credentials (at least in Unix systems).
+* After merging a PR against the stable branch (e.g. `4.x`), you need to immediately merge that branch against `master` and push your changes to Github.
+  For that you need to perform the following actions in your local clone:
+
+    - git checkout 4.x
+    - git fetch upstream
+    - git merge upstream/4.x
+    - git checkout master
+    - git merge 4.x
+    - Commit with the following message:
+
+          Merge from 4.x: PR #<pr-number>
+
+          Fixes #<fixed-issue-number>
+
+      If the PR doesn't fix any issue, the second line is unnecessary.
+    - git push upstream master
+
+* To merge against `master` a PR that involved updating our spyder-kernels subrepo in the stable branch (e.g. `4.x`), you need to perform the following actions:
+
+    - git checkout master
+    - git merge 4.x
+    - git reset -- external-deps/spyder-kernels
+    - git checkout -- external-deps/spyder-kernels
+    - git subrepo pull external-deps/spyder-kernels
