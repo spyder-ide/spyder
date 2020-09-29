@@ -15,10 +15,12 @@ except ImportError:
 
 # Third party imports
 from qtpy.QtCore import QObject, QThread, Signal, QMutex
+from qtpy.QtWidgets import QMessageBox
 import requests
 
 # Local imports
 from spyder.config.base import _
+from spyder.config.manager import CONF
 from spyder.plugins.completion.kite import KITE_ENDPOINTS, KITE_REQUEST_MAPPING
 from spyder.plugins.completion.kite.decorators import class_register
 from spyder.plugins.completion.kite.providers import KiteMethodProviderMixIn
@@ -170,4 +172,17 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
                 converter = getattr(self, converter_name)
                 if response is not None:
                     response = converter(response)
-        self.sig_response_ready.emit(req_id, response or {})
+        if not isinstance(response, dict):
+            kite_url = '<a href="https://help.kite.com/"></a>'
+            QMessageBox.critical(
+                self, _('Kite error'),
+                _("The Kite completion engine returned an unexpected result "
+                  "for the request {0}: <br><tt>{1}</tt><br>"
+                  "Please make sure that your Kite installation is correct. "
+                  "In the meantime, Spyder will disable the Kite client to "
+                  "prevent further errors. <br>"
+                  "For more information, please visit the Kite help "
+                  "center: {2}").format(method, response, kite_url))
+            CONF.set('kite', 'enable', False)
+        else:
+            self.sig_response_ready.emit(req_id, response or {})
