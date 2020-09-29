@@ -895,11 +895,6 @@ class MainWindow(QMainWindow):
         self.editor = Editor(self)
         self.editor.register_plugin()
 
-        # Start code completion client
-        self.set_splash(_("Launching code completion client for Python..."))
-        self.completions.start()
-        self.completions.start_client(language='python')
-
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
                                     icon=ima.icon('exit'),
@@ -1367,6 +1362,10 @@ class MainWindow(QMainWindow):
             # If no project is active, load last session
             if self.projects.get_active_project() is None:
                 self.editor.setup_open_files(close_previous_files=False)
+
+        # Start Python completions
+        self.completions.start()
+        self.completions.start_client(language='python')
 
         # Connect Editor to Kite completions plugin status
         self.editor.kite_completions_file_status()
