@@ -1209,11 +1209,9 @@ class AnimatedTour(QWidget):
     def start_tour(self):
         """ """
 
-        if self.spy_window.fullscreen_flag:
-            print("STUPID .l.")
+        if self.spy_window.isFullScreen():
             self.initial_fullscreen_state = True
-            self.spy_window.toggle_fullscreen()
-            #self.setWindowState(Qt.WindowNoState)
+            self.spy_window.showMaximized()
         self.spy_window.save_current_window_settings('layout_current_temp/', section="quick_layouts")
         self.spy_window.quick_layout_switch('default')
         geo = self.parent.geometry()
@@ -1253,8 +1251,7 @@ class AnimatedTour(QWidget):
         self.is_running = False
         self.spy_window.quick_layout_switch('current_temp')
         if self.initial_fullscreen_state: 
-            self.spy_window.toggle_fullscreen()
-            #self.setWindowState(Qt.WindowFullScreen)
+            self.spy_window.showFullScreen()
             self.initial_fullscreen_state = None
 
     def hide_tips(self):
