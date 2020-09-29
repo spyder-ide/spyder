@@ -440,6 +440,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             instance.sig_went_down.connect(self.handle_lsp_down)
             instance.sig_initialize.connect(self.on_initialize)
 
+            if self.main.projects:
+                instance.sig_initialize.connect(
+                    self.main.projects.register_lsp_server_settings)
             if self.main.editor:
                 instance.sig_initialize.connect(
                     self.main.editor.register_completion_capabilities)
@@ -447,9 +450,6 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                     self.status_widget.update_status)
             if self.main.console:
                 instance.sig_server_error.connect(self.report_server_error)
-            if self.main.projects:
-                instance.sig_initialize.connect(
-                    self.main.projects.register_lsp_server_settings)
 
     def shutdown(self):
         logger.info("Shutting down LSP manager...")
