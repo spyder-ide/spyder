@@ -908,7 +908,7 @@ class AnimatedTour(QWidget):
         self.tips = None
         self.frames = None
         self.spy_window = None
-        self.saved_normal_geometry = None
+        self.initial_fullscreen_state = None
 
         self.widgets = None
         self.dockwidgets = None
@@ -1208,10 +1208,14 @@ class AnimatedTour(QWidget):
 
     def start_tour(self):
         """ """
-        if not self.spy_window.fullscreen_flag:
-            self.saved_normal_geometry = self.spy_window.saveGeometry()
-            self.spy_window.showMaximized()
 
+        if self.spy_window.fullscreen_flag:
+            print("STUPID .l.")
+            self.initial_fullscreen_state = True
+            self.spy_window.toggle_fullscreen()
+            #self.setWindowState(Qt.WindowNoState)
+        self.spy_window.save_current_window_settings('layout_current_temp/', section="quick_layouts")
+        self.spy_window.quick_layout_switch('default')
         geo = self.parent.geometry()
         x, y, width, height = geo.x(), geo.y(), geo.width(), geo.height()
 #        self.parent_x = x
@@ -1247,10 +1251,11 @@ class AnimatedTour(QWidget):
             pass
 
         self.is_running = False
-
-        if self.saved_normal_geometry: 
-            self.spy_window.restoreGeometry(self.saved_normal_geometry)
-            self.saved_normal_geometry = None
+        self.spy_window.quick_layout_switch('current_temp')
+        if self.initial_fullscreen_state: 
+            self.spy_window.toggle_fullscreen()
+            #self.setWindowState(Qt.WindowFullScreen)
+            self.initial_fullscreen_state = None
 
     def hide_tips(self):
         """Hide tips dialog when the main window loses focus."""
