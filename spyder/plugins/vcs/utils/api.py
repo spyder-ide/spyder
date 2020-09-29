@@ -185,7 +185,7 @@ class VCSBackendBase(object):
     **Error handling**
 
     By default, if a generic error occurred,
-    all the method for VCS operations raises a :class:`~VCSUnexpectedError`
+    all the method for VCS operations raises a :class:`~VCSFeatureError`
     and all the properties raises :class:`~VCSPropertyError`.
 
     If any requisite stopped working
@@ -443,6 +443,9 @@ class VCSBackendBase(object):
 
     def __init_subclass__(cls, **kwargs):
         """Adjust subclass attributes to match the feature name."""
+        def _dummy_feature(self, *_, **__):
+            raise NotImplementedError("This feature is not implemented yet.")
+
         super().__init_subclass__(**kwargs)
         attrs = {
             key: getattr(cls, key)
@@ -457,6 +460,21 @@ class VCSBackendBase(object):
                     # if the attribute already exists.
                     setattr(cls, attr.__name__, attr)
 
+            # check if attr is a property.
+            elif isinstance(attr, property):
+                # check if property is a feature
+                is_feature = getattr(attr.fget, "_is_feature", None)
+                if is_feature:
+                    # Add disabled feature for fget and fdel if they does not exists.
+                    if attr.fset is None:
+                        attr.setter(feature(name=key, enabled=False)(_dummy_feature))
+                    elif not getattr(attr.fset, "_is_feature", None):
+                        attr.setter(feature(name=key, enabled=False)(attr.fset))
+
+                    if attr.fdel is None:
+                        attr.deleter(feature(name=key, enabled=False)(_dummy_feature))
+                    elif not getattr(attr.fdel, "_is_feature", None):
+                        attr.deleter(feature(name=key, enabled=False)(attr.fdel))
     @property
     def type(self) -> type:
         """

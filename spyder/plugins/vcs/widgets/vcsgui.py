@@ -43,7 +43,7 @@ from .common import (BranchesComboBox, LoginDialog, ThreadWrapper,
                      THREAD_ENABLED, PAUSE_CYCLE)
 from .changes import ChangesTree
 from ..utils.api import VCSBackendManager
-from ..utils.errors import VCSAuthError, VCSUnexpectedError
+from ..utils.errors import VCSAuthError, VCSFeatureError
 
 _ = get_translation('spyder')
 
@@ -95,7 +95,7 @@ class VCSWidget(PluginMainWidget):
     @Slot()
     def setup(self, options=DEFAULT_OPTIONS) -> None:
         """Set up the GUI for the current repository."""
-        # get the required stuffs
+        # get the required stuff
         plugin = self.get_plugin()
         manager = plugin.vcs_manager
 
@@ -276,29 +276,28 @@ class VCSWidget(PluginMainWidget):
             QCoreApplication.processEvents()
 
         elif getattr(plugin, "create_vcs_action", None) is not None:
-            # TODO: show "no repository available"
-            #       when repository is missing,
-            #       including buttons for create
-            #       a new one or create it.
-            rootlayout.addStretch(1)
-            rootlayout.addWidget(
-                QLabel(
-                    _("<h3>No repository available</h3><br/>"
-                      "in ") + str(
-                          plugin.get_plugin(
-                              Plugins.Projects).get_active_project_path())))
+            project_path = plugin.get_plugin(
+                Plugins.Projects).get_active_project_path()
 
-            create_button = action2button(
-                plugin.create_vcs_action,
-                text_beside_icon=True,
-                parent=self,
-            )
-            create_button.setEnabled(bool(manager.create_vcs_types))
-            # FIXME: change color if dark or white
-            create_button.setStyleSheet("background-color: #1122cc;")
-            rootlayout.addWidget(create_button)
+            # Show No repository available only if there is an active project
+            if project_path:
+                rootlayout.addStretch(1)
+                rootlayout.addWidget(
+                    QLabel(
+                        _("<h3>No repository available</h3><br/>"
+                          "in ") + str(project_path)))
 
-            rootlayout.addStretch(1)
+                create_button = action2button(
+                    plugin.create_vcs_action,
+                    text_beside_icon=True,
+                    parent=self,
+                )
+                create_button.setEnabled(bool(manager.create_vcs_types))
+                # FIXME: change color if dark or white
+                create_button.setStyleSheet("background-color: #1122cc;")
+                rootlayout.addWidget(create_button)
+
+                rootlayout.addStretch(1)
 
     # Public methods
     def setup_slots(self) -> None:
@@ -484,7 +483,7 @@ class VCSWidget(PluginMainWidget):
                 self,
                 partial(manager.get_last_commits, MAX_HISTORY_ROWS),
                 result_slots=(_handle_result, ),
-                error_slots=(lambda ex: _raise_if(ex, VCSUnexpectedError, True)
+                error_slots=(lambda ex: _raise_if(ex, VCSFeatureError, True)
                              and self.history.addTopLevelItem(
                                  QTreeWidgetItem([None, ex.error, None])), ),
                 nothread=not THREAD_ENABLED,
@@ -649,7 +648,7 @@ class VCSWidget(PluginMainWidget):
     ) -> None:
         """Handle authentication errors by showing an input dialog."""
         def _accepted():
-            manager.credentials = dialog.to_credentials()
+            ex.credentials = dialog.to_credentials()
             self.sig_auth_operation[str, tuple, dict].emit(
                 operation,
                 args,
@@ -665,11 +664,14 @@ class VCSWidget(PluginMainWidget):
             )
 
         manager = self.get_plugin().vcs_manager
-        credentials = {
-            # prefer error credentials instead of the backend ones
-            key: getattr(ex, key, None) or manager.credentials.get(key)
-            for key in ex.required_credentials
-        }
+        credentials = ex.credentials
+        credentials.update(
+            **{
+                # Use backend credentials if error credentials are not given
+                key: manager.credentials.get(key)
+                for key in ex.required_credentials
+                if credentials.get(key) is None
+            })
 
         if credentials:
             dialog = LoginDialog(self, **credentials)
@@ -831,7 +833,9 @@ class CreateDialog(QDialog):
                 ).start()
             else:
                 QMessageBox.critical(self, _("Create failed"),
-                                     _("The create fails unexpectedly."))
+                                     _("Repository creation failed unexpectedly."))
+                self.cleanup()
+                self.rejected.emit()
 
         def _move():
             tempdir = self.tempdir.name

@@ -30,7 +30,7 @@ from spyder.utils.vcs import (is_hg_installed, get_hg_revision)
 
 from .api import VCSBackendBase, ChangedStatus, feature
 from .errors import (VCSAuthError, VCSPropertyError, VCSBackendFail,
-                     VCSUnexpectedError)
+                     VCSFeatureError)
 from .mixins import CredentialsKeyringMixin
 
 __all__ = ("GitBackend", "MercurialBackend")
@@ -258,8 +258,8 @@ class GitBackend(*_git_bases):
     def create_branch(self, branchname: str, empty: bool = False) -> bool:
         git = programs.find_program("git")
         if branchname in self.branches:
-            raise VCSUnexpectedError(
-                method="create_branch",
+            raise VCSFeatureError(
+                feature=self.create_branch,
                 error="Failed to create branch {}"
                 "since it already exists".format(branchname),
             )
@@ -299,8 +299,8 @@ class GitBackend(*_git_bases):
                prefer_unstaged: bool = False) -> typing.Dict[str, object]:
         filestates = get_git_status(self.repodir, path, nobranch=True)[2]
         if filestates is None:
-            raise VCSUnexpectedError(
-                method="change",
+            raise VCSFeatureError(
+                feature=self.change,
                 error="Failed to get git changes",
             )
 
@@ -324,7 +324,7 @@ class GitBackend(*_git_bases):
 
     @feature()
     def unstage(self, path: str) -> bool:
-        retcode = self._run(["reset", "--", _escape_path(path)])[0]
+        retcode, _, err = self._run(["reset", "--", _escape_path(path)])
         if retcode == 0:
             change = self.change(path, prefer_unstaged=False)
             if change and not change["staged"]:
@@ -401,8 +401,8 @@ class GitBackend(*_git_bases):
         )
 
         if retcode:
-            raise VCSUnexpectedError(
-                "undo_commit",
+            raise VCSFeatureError(
+                feature=self.undo_commit,
                 error="Failed get the number of commits in branch {}".format(
                     self.branch),
                 raw_error=err.decode(),
@@ -430,8 +430,8 @@ class GitBackend(*_git_bases):
             )
 
             if retcode:
-                # raise VCSUnexpectedError(
-                #     "get_last_commits",
+                # raise VCSFeatureError(
+                #     feature=self.get_last_commits,
                 #     error="Failed to get git history",
                 #     raw_error=err.decode(),
                 # )
@@ -443,8 +443,8 @@ class GitBackend(*_git_bases):
             ["reset", "--soft", "HEAD~" + str(commits)], git=git)
 
         if retcode:
-            raise VCSUnexpectedError(
-                "get_last_commits",
+            raise VCSFeatureError(
+                feature=self.get_last_commits,
                 error="Failed to undo {} commits".format(commits),
                 raw_error=err.decode(),
             )
@@ -490,8 +490,8 @@ class GitBackend(*_git_bases):
             "description:%n%b%x00",
         ])
         if retcode != 0:
-            raise VCSUnexpectedError(
-                method="get_last_commits",
+            raise VCSFeatureError(
+                feature=self.get_last_commits,
                 error="Failed to get git history",
                 raw_error=err.decode(),
             )
@@ -600,14 +600,17 @@ class GitBackend(*_git_bases):
         if status is False:
             # Auth failed
             raise VCSAuthError(
+                credentials={
+                    "username": username,
+                    "password": credentials.get("password"),
+                },
+                credentials_callback=lambda x: setattr(self, "credentials", x),
                 required_credentials=self.REQUIRED_CREDENTIALS,
-                username=username,
-                password=credentials.get("password"),
                 error="Wrong credentials",
             )
 
-        raise VCSUnexpectedError(
-            method=operation,
+        raise VCSFeatureError(
+            method=getattr(self, operation),
             error="Failed to {} from remote".format(operation),
         )
 
@@ -649,6 +652,11 @@ class MercurialBackend(VCSBackendBase):  # pylint: disable=W0223
         if revision:
             return revision[2]
         raise VCSPropertyError("branch", "get")
+
+    @branch.setter
+    @feature(enabled=False)
+    def branch(self, branch: str) -> None:
+        pass
 
 
 # --- VCS operation functions ---

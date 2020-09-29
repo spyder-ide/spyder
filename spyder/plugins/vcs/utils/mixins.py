@@ -83,8 +83,9 @@ class CredentialsKeyringMixin(object):
             i = self._get_last_token()
             if i == -1:
                 raise VCSAuthError(
+                    credentials={"token", None},
+                    credentials_callback=lambda x: setattr(self, "credentials", x),
                     required_credentials=self.REQUIRED_CREDENTIALS,
-                    token=None,
                     error="No token is found for {}".format(
                         self.credential_context),
                 )
@@ -129,7 +130,8 @@ class CredentialsKeyringMixin(object):
                     }
                 else:
                     raise VCSAuthError(
-                        **{type_: user},
+                        credentials={type_: user},
+                        credentials_callback=lambda x: setattr(self, "credentials", x),
                         required_credentials=self.REQUIRED_CREDENTIALS,
                         error="The given {} is not found for {}".format(
                             type_, self.credential_context))

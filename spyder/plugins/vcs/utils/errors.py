@@ -42,32 +42,36 @@ class VCSError(Exception):
         self.raw_error = raw_error
 
 
-class VCSUnexpectedError(VCSError):
+class VCSFeatureError(VCSError):
     """
-    Raised when a bad error is occurred.
+    Raised when a generic error happens in the feature.
+
+    Currently, only non-property features can raise this error.
 
     Parameters
     ----------
-    method : str, optional
-        The method where the error occurred. The default is None.
-
-    Notes
-    -----
-    This error is never raised by properties.
+    feature : Callable[..., object]
+        The feature where the error occurred.
+        Must be a valid feature decorated with :func:`~.api.feature
 
     See Also
     --------
     VCSPropertyError
     """
 
-    __slots__ = ("method", )
+    __slots__ = ("feature", )
 
-    def __init__(self,
-                 *args: object,
-                 method: typing.Optional[str] = None,
+    def __init__(self, *args: object, feature: typing.Callable[..., object],
                  **kwargs: typing.Optional[str]):
         super().__init__(*args, **kwargs)
-        self.method = method
+        self.feature = feature
+
+    def retry(self, *args, **kwargs) -> object:
+        """Call again the feature with given parameters."""
+        if self.feature.enabled:
+            return self.feature(*args, **kwargs)
+        raise NotImplementedError("The feature {} is disabled.".format(
+            self.feature.__name__))
 
 
 class VCSPropertyError(VCSError):
@@ -89,7 +93,7 @@ class VCSPropertyError(VCSError):
 
     See Also
     --------
-    VCSUnexpectedError
+    VCSFeatureError
     """
 
     __slots__ = ("name", "operation")
@@ -120,13 +124,14 @@ class VCSBackendFail(VCSError):
         A list of missing executables. The default is an empty list.
     modules : list, optional
         A list of missing python modules. The default is an empty list.
-    is_valid_repository : bool, optional
-        A flag indicating if the directory contains a valid repository.
-        The default is True.
 
         .. note::
             Module does refer to actual import-style module name,
             not pip package name.
+
+    is_valid_repository : bool, optional
+        A flag indicating if the directory contains a valid repository.
+        The default is True.
     """
     __slots__ = ("directory", "backend_type", "programs", "modules",
                  "is_valid_repository")
@@ -159,40 +164,58 @@ class VCSAuthError(VCSError):
 
     Parameters
     ----------
-    username : str, optional
-        The set username. The default is None.
-    password : str, optional
-        The set password. The default is None.
-    email : str, optional
-        The set email. The default is None.
-    token : str, optional
-        The set token. The default is None.
-    required_credentials : str, optional
+    required_credentials : str
         The credentials that the backend requires.
+    credentials_callback : str
+        The function to call when :meth:`VCSAuthError.set_credentials`
+        is called.
+    credentials : Dict[str, object], optional
+        The credentials that causes the error.
+
     """
 
-    __slots__ = ("username", "password", "email", "token",
-                 "required_credentials")
+    __slots__ = ("required_credentials", "_credentials",
+                 "_credentials_callback")
 
     def __init__(self,
                  required_credentials: typing.Sequence[str],
+                 credentials_callback: typing.Callable[..., None],
                  *args: object,
-                 username: typing.Optional[str] = None,
-                 password: typing.Optional[str] = None,
-                 email: typing.Optional[str] = None,
-                 token: typing.Optional[str] = None,
+                 credentials: typing.Optional[typing.Dict[str, object]] = None,
                  **kwargs: typing.Optional[str]):
 
         super().__init__(*args, **kwargs)
         self.required_credentials = required_credentials
-        self.username = username
-        self.password = password
-        self.email = email
-        self.token = token
+        self._credentials = credentials
+        self._credentials_callback = credentials_callback
 
     @property
-    def are_credentials_inserted(self) -> bool:
-        """Check if the required credentials was inserted."""
-        return all(
-            getattr(self, key, None) is None
-            for key in self.required_credentials)
+    def credentials(self) -> typing.Dict[str, object]:
+        """
+        A proxy for required backend credentials.
+
+        This property contains the required credentials fields.
+
+        You can set to it update the backend credentials.
+
+        It is preferred to interact with this property instead of
+        using the :attr:`.VCSBackendBase.credentials` property directly.
+
+        Raises
+        ------
+        ValueError
+            When setting, if one of the required field is missing.
+        """
+        return {
+            key: self._credentials.get(key)
+            for key in self.required_credentials
+        }
+
+    @credentials.setter
+    def credentials(self, credentials: typing.Dict[str, object]) -> None:
+        new_cred = {}
+        for key in self.required_credentials:
+            if credentials.get(key) is None:
+                raise ValueError("Missing field {}".format(key))
+            new_cred[key] = credentials[key]
+        self._credentials_callback(new_cred)
