@@ -348,8 +348,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         group_cells_act = create_action(self, text=_('Group code cells'),
                                         toggled=self.toggle_group_cells)
         group_cells_act.setChecked(self.group_cells)
-        display_variables_act = create_action(self, text=_('Display variables'),
-                                              toggled=self.toggle_variables)
+        display_variables_act = create_action(
+            self, text=_('Display variables'), toggled=self.toggle_variables)
         display_variables_act.setChecked(self.display_variables)
         sort_files_alphabetically_act = create_action(
             self, text=_('Sort files alphabetically'),
