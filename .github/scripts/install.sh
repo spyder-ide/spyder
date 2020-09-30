@@ -42,7 +42,7 @@ else
     pip install qtawesome==0.7.3
 
     # Install pyls-spyder whilist conda packages are available
-    pip install pyls-spyder -q -y --no-deps
+    pip install pyls-spyder --no-deps
 
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y
