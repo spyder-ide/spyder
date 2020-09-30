@@ -830,8 +830,7 @@ class MainWindow(QMainWindow):
         if sys.platform == 'darwin':
             self.fullscreen_action.setEnabled(False)
             self.fullscreen_action.setToolTip("Disabled for macOS")
-    
-        else: 
+        else:
             self.register_shortcut(self.fullscreen_action, "_",
                                "Fullscreen mode", add_shortcut_to_tip=True)
 
