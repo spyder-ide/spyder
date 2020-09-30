@@ -958,8 +958,8 @@ class AnimatedTour(QWidget):
     def _resized(self, event):
         """ """
         if self.is_running:
-            size = event.size()
-            self.canvas.setFixedSize(size)
+            geom = self.parent.geometry()
+            self.canvas.setFixedSize(geom.width(), geom.height())
             self.canvas.update_canvas()
 
             if self.is_tour_set:
@@ -968,8 +968,8 @@ class AnimatedTour(QWidget):
     def _moved(self, event):
         """ """
         if self.is_running:
-            pos = event.pos()
-            self.canvas.move(QPoint(pos.x(), pos.y()))
+            geom = self.parent.geometry()
+            self.canvas.move(geom.x(), geom.y())
 
             if self.is_tour_set:
                 self._set_data()
