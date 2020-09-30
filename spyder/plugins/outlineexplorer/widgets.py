@@ -29,6 +29,8 @@ from spyder.utils.qthelpers import (create_action, create_toolbutton,
                                     create_waitspinner)
 from spyder.widgets.onecolumntree import OneColumnTree
 
+CELL = 225
+BLOCK_COMMENT = 224
 
 SYMBOL_KIND_ICON = {
     SymbolKind.FILE: 'file',
@@ -56,7 +58,9 @@ SYMBOL_KIND_ICON = {
     SymbolKind.STRUCT: 'struct',
     SymbolKind.EVENT: 'event',
     SymbolKind.OPERATOR: 'operator',
-    SymbolKind.TYPE_PARAMETER: 'type_parameter'
+    SymbolKind.TYPE_PARAMETER: 'type_parameter',
+    CELL: 'cell',
+    BLOCK_COMMENT: 'blockcomment'
 }
 
 SYMBOL_NAME_MAP = {
@@ -85,7 +89,9 @@ SYMBOL_NAME_MAP = {
     SymbolKind.STRUCT: _('Struct'),
     SymbolKind.EVENT: _('Event'),
     SymbolKind.OPERATOR: _('Operator'),
-    SymbolKind.TYPE_PARAMETER: _('Type parameter')
+    SymbolKind.TYPE_PARAMETER: _('Type parameter'),
+    CELL: _('Cell'),
+    BLOCK_COMMENT: _('Block comment')
 }
 
 ICON_CACHE = {}
