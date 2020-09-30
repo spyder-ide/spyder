@@ -1475,11 +1475,12 @@ class MainWindow(QMainWindow):
         self.register_shortcut(doc_action, "_",
                                "spyder documentation")
 
-        if self.help is not None:
-            tut_action = create_action(self, _("Spyder tutorial"),
-                                       triggered=self.help.show_tutorial)
-        else:
-            tut_action = None
+        spyder_vid = ("https://www.youtube.com/playlist"
+                      "?list=PLPonohdiDqg9epClEcXoAPUiK0pN5eRoc")
+        vid_action = create_action(self, _("Tutorial videos"),
+                                   icon=ima.icon('VideoIcon'),
+                                   triggered=lambda:
+                                   programs.start_file(spyder_vid))
 
         #----- Tours
         self.tour = tour.AnimatedTour(self)
@@ -1504,7 +1505,7 @@ class MainWindow(QMainWindow):
 
         self.help_menu_actions = [
             doc_action,
-            tut_action,
+            vid_action,
             # shortcuts_action,
             self.tours_menu,
             MENU_SEPARATOR,
