@@ -240,6 +240,7 @@ _qtaargs = {
     'DialogCloseButton':       [('fa.close',), {'color': MAIN_FG_COLOR}],
     'DirClosedIcon':           [('fa.folder-o',), {'color': MAIN_FG_COLOR}],
     'DialogHelpButton':        [('fa.life-ring',), {'color': 'darkred'}],
+    'VideoIcon':               [('fa5s.video',), {'color': MAIN_FG_COLOR}],
     'MessageBoxInformation':   [('fa.info',), {'color': MAIN_FG_COLOR}],
     'DirOpenIcon':             [('fa.folder-open',), {'color': MAIN_FG_COLOR}],
     'FileIcon':                [('fa.file-o',), {'color': MAIN_FG_COLOR}],

@@ -1051,8 +1051,8 @@ class MainWindow(QMainWindow):
 
         spyder_vid = ("https://www.youtube.com/playlist"
                       "?list=PLPonohdiDqg9epClEcXoAPUiK0pN5eRoc")
-        vid_action = create_action(self, _("Tutorial Videos"),
-                                   icon=ima.icon('DialogHelpButton'),
+        vid_action = create_action(self, _("Tutorial videos"),
+                                   icon=ima.icon('VideoIcon'),
                                    triggered=lambda:
                                    programs.start_file(spyder_vid))
 
