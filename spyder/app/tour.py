@@ -24,8 +24,9 @@ from qtpy.QtGui import (QBrush, QColor, QIcon, QPainter, QPainterPath, QPen,
                         QPixmap, QRegion)
 from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
                             QGraphicsOpacityEffect, QHBoxLayout, QLabel,
-                            QLayout, QMainWindow, QMenu, QPushButton,
-                            QSpacerItem, QToolButton, QVBoxLayout, QWidget)
+                            QLayout, QMainWindow, QMenu, QMessageBox,
+                            QPushButton, QSpacerItem, QToolButton, QVBoxLayout, 
+                            QWidget)
 
 # Local imports
 from spyder.config.base import _, get_image_path
@@ -1210,8 +1211,17 @@ class AnimatedTour(QWidget):
         """ """
 
         if self.spy_window.isFullScreen():
-            self.initial_fullscreen_state = True
-            self.spy_window.showMaximized()
+            if sys.platform == 'darwin':
+                msg_title = _("Request")
+                msg = _("To run the tour, please press the green button in the top left corner of "
+                        "the screen to take Spyder out of fullscreen mode.")
+                QMessageBox.information(self, msg_title, msg,
+                                         QMessageBox.Ok)
+                return
+            #self.initial_fullscreen_state = True
+            #import time
+            #self.spy_window.setWindowState(self.spy_window.windowState() & (~ Qt.WindowFullScreen))
+            #self.spy_window.showMaximized()
         self.spy_window.save_current_window_settings('layout_current_temp/', section="quick_layouts")
         self.spy_window.quick_layout_switch('default')
         geo = self.parent.geometry()
@@ -1250,9 +1260,11 @@ class AnimatedTour(QWidget):
 
         self.is_running = False
         self.spy_window.quick_layout_switch('current_temp')
-        if self.initial_fullscreen_state: 
-            self.spy_window.showFullScreen()
-            self.initial_fullscreen_state = None
+        #if self.initial_fullscreen_state:
+            #import time
+            #self.spy_window.setWindowState(self.spy_window.windowState() | Qt.WindowFullScreen)
+            #time.sleep(5)
+            #self.initial_fullscreen_state = None
 
     def hide_tips(self):
         """Hide tips dialog when the main window loses focus."""
@@ -1293,9 +1305,15 @@ class AnimatedTour(QWidget):
 
     def lost_focus(self):
         """Confirm if the tour loses focus and hides the tips."""
-        if (self.is_running and not self.any_has_focus() and
+        if (self.is_running and
             not self.setting_data and not self.hidden):
-            self.hide_tips()
+            if sys.platform == 'darwin':
+                if not self.tour_has_focus():
+                    self.hide_tips()
+                    self.close_tour()
+            else:
+                if not self.any_has_focus():
+                    self.hide_tips()
 
     def gain_focus(self):
         """Confirm if the tour regains focus and unhides the tips."""
@@ -1306,7 +1324,10 @@ class AnimatedTour(QWidget):
     def any_has_focus(self):
         """Returns if tour or any of its components has focus."""
         f = (self.hasFocus() or self.parent.hasFocus() or
-             self.tips.hasFocus() or self.canvas.hasFocus() or
+             self.tour_has_focus())
+        return f
+    def tour_has_focus(self):
+        f = (self.tips.hasFocus() or self.canvas.hasFocus() or
              self.tips.isActiveWindow())
         return f
 

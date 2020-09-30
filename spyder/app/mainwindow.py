@@ -1062,27 +1062,30 @@ class MainWindow(QMainWindow):
 
         #----- Tours
         self.tour = tour.AnimatedTour(self)
-        self.tours_menu = QMenu(_("Interactive tours"), self)
-        self.tour_menu_actions = []
-        # TODO: Only show intro tour for now. When we are close to finish
-        # 3.0, we will finish and show the other tour
+        # self.tours_menu = QMenu(_("Interactive tours"), self)
+        # self.tour_menu_actions = []
+        # # TODO: Only show intro tour for now. When we are close to finish
+        # # 3.0, we will finish and show the other tour
         self.tours_available = tour.get_tours(0)
 
         for i, tour_available in enumerate(self.tours_available):
             self.tours_available[i]['last'] = 0
             tour_name = tour_available['name']
 
-            def trigger(i=i, self=self):  # closure needed!
-                return lambda: self.show_tour(i)
+        #     def trigger(i=i, self=self):  # closure needed!
+        #         return lambda: self.show_tour(i)
 
-            temp_action = create_action(self, tour_name, tip="",
-                                        triggered=trigger())
-            self.tour_menu_actions += [temp_action]
+        #     temp_action = create_action(self, tour_name, tip="",
+        #                                 triggered=trigger())
+        #     self.tour_menu_actions += [temp_action]
 
-        self.tours_menu.addActions(self.tour_menu_actions)
+        # self.tours_menu.addActions(self.tour_menu_actions)
+        tour_index = 0
+        self.tour_action = create_action(self, self.tours_available[tour_index]['name'], tip="",
+                                        triggered=lambda: self.show_tour(tour_index))
 
         self.help_menu_actions = [doc_action, vid_action, shortcuts_action,
-                                  self.tours_menu,
+                                  self.tour_action,
                                   MENU_SEPARATOR, trouble_action,
                                   report_action, dep_action,
                                   self.check_updates_action, support_action,
