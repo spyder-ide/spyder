@@ -52,3 +52,7 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
     def outlineexplorer_data_list(self):
         """Get outline explorer data list."""
         return self._editor.outlineexplorer_data_list()
+
+    def request_symbols(self):
+        """Request symbols of the current editor."""
+        self._editor.request_symbols()

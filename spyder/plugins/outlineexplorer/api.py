@@ -161,6 +161,10 @@ class OutlineExplorerProxy(QObject):
         """Returns a list of outline explorer data."""
         raise NotImplementedError
 
+    def request_symbols(self):
+        """Request symbols of the current editor."""
+        raise NotImplementedError
+
 
 class OutlineExplorerData(QObject):
     CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))

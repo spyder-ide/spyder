@@ -294,11 +294,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     sig_hide_spinner = Signal()
 
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
-                 group_cells=True, show_comments=True,
+                 group_cells=True, show_comments=True, display_variables=True,
                  sort_files_alphabetically=False, follow_cursor=True):
         self.show_fullpath = show_fullpath
         self.show_all_files = show_all_files
         self.group_cells = group_cells
+        self.display_variables = display_variables
         self.follow_cursor = follow_cursor
         self.show_comments = show_comments
         self.sort_files_alphabetically = sort_files_alphabetically
@@ -347,12 +348,16 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         group_cells_act = create_action(self, text=_('Group code cells'),
                                         toggled=self.toggle_group_cells)
         group_cells_act.setChecked(self.group_cells)
+        display_variables_act = create_action(self, text=_('Display variables'),
+                                              toggled=self.toggle_variables)
+        display_variables_act.setChecked(self.display_variables)
         sort_files_alphabetically_act = create_action(
             self, text=_('Sort files alphabetically'),
             toggled=self.toggle_sort_files_alphabetically)
         sort_files_alphabetically_act.setChecked(
             self.sort_files_alphabetically)
-        actions = [fullpath_act, allfiles_act, group_cells_act, comment_act,
+        actions = [fullpath_act, allfiles_act, group_cells_act,
+                   display_variables_act, comment_act,
                    sort_files_alphabetically_act, fromcursor_act]
         return actions
 
@@ -392,6 +397,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def toggle_group_cells(self, state):
         self.group_cells = state
         self.update_all()
+
+    @Slot(bool)
+    def toggle_variables(self, state):
+        self.display_variables = state
+        # self.update_all()
+        for editor, editor_id in list(self.editor_ids.items()):
+            editor.request_symbols()
 
     @Slot(bool)
     def toggle_sort_files_alphabetically(self, state):
@@ -557,6 +569,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             symbol_kind = symbol['kind']
             if (symbol_kind == SymbolKind.MODULE and
                     language.lower() == 'python'):
+                continue
+            if (symbol_kind == SymbolKind.VARIABLE and
+                    not self.display_variables):
                 continue
             # NOTE: This could be also a DocumentSymbol
             symbol_range = symbol['location']['range']
@@ -784,6 +799,7 @@ class OutlineExplorerWidget(QWidget):
     def __init__(self, parent=None, show_fullpath=True, show_all_files=True,
                  group_cells=True, show_comments=True,
                  sort_files_alphabetically=False,
+                 display_variables=True,
                  follow_cursor=True,
                  options_button=None):
         QWidget.__init__(self, parent)
@@ -793,6 +809,7 @@ class OutlineExplorerWidget(QWidget):
             show_fullpath=show_fullpath,
             show_all_files=show_all_files,
             group_cells=group_cells,
+            display_variables=display_variables,
             show_comments=show_comments,
             sort_files_alphabetically=sort_files_alphabetically,
             follow_cursor=follow_cursor,
@@ -862,6 +879,7 @@ class OutlineExplorerWidget(QWidget):
             show_fullpath=self.treewidget.show_fullpath,
             show_all_files=self.treewidget.show_all_files,
             group_cells=self.treewidget.group_cells,
+            display_variables=self.treewidget.display_variables,
             show_comments=self.treewidget.show_comments,
             sort_files_alphabetically=(
                 self.treewidget.sort_files_alphabetically),
