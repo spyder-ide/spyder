@@ -2031,17 +2031,6 @@ def test_troubleshooting_menu_item_and_url(monkeypatch):
     assert MockQDesktopServices.openUrl.call_count == 1
     mockQDesktopServices_instance.openUrl.called_once_with(__trouble_url__)
 
-    # Check that the URL resolves correctly. Ignored if no internet connection.
-    try:
-        urlopen("https://www.github.com", timeout=1)
-    except Exception:
-        pass
-    else:
-        try:
-            urlopen(__trouble_url__, timeout=1)
-        except URLError:
-            raise
-
 
 @flaky(max_runs=3)
 @pytest.mark.slow
