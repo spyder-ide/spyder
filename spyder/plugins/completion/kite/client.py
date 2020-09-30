@@ -173,16 +173,15 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
                 if response is not None:
                     response = converter(response)
         if not isinstance(response, dict):
-            kite_url = '<a href="https://help.kite.com/"></a>'
             QMessageBox.critical(
                 self, _('Kite error'),
                 _("The Kite completion engine returned an unexpected result "
-                  "for the request {0}: <br><tt>{1}</tt><br>"
+                  "for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>"
                   "Please make sure that your Kite installation is correct. "
                   "In the meantime, Spyder will disable the Kite client to "
-                  "prevent further errors. <br>"
-                  "For more information, please visit the Kite help "
-                  "center: {2}").format(method, response, kite_url))
+                  "prevent further errors. For more information, please "
+                  "visit the <a href='https://help.kite.com/'>Kite help "
+                  "center</a>").format(method, response))
             CONF.set('kite', 'enable', False)
         else:
             self.sig_response_ready.emit(req_id, response or {})
