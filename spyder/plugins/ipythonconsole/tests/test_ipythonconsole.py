@@ -184,6 +184,9 @@ def ipyconsole(qtbot, request):
                               is_cython=is_cython)
     window.setCentralWidget(console)
 
+    # Set exclamation mark to True
+    CONF.set('ipython_console', 'pdb_use_exclamation_mark', True)
+
     # This segfaults on macOS
     if not sys.platform == "darwin":
         qtbot.addWidget(window)
@@ -713,26 +716,27 @@ def test_save_history_dbg(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
 
-    shell.execute('%debug')
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug')
 
     # Enter an expression
-    qtbot.keyClicks(control, '!aa = 10')
-    qtbot.keyClick(control, Qt.Key_Enter)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, 'aa = 10')
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     # Add a pdb command to make sure it is not saved
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-    qtbot.keyClicks(control, 'u')
-    qtbot.keyClick(control, Qt.Key_Enter)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, '!u')
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     # Add an empty line to make sure it is not saved
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-    qtbot.keyClick(control, Qt.Key_Enter)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     # Clear console (for some reason using shell.clear_console
     # doesn't work here)
     shell.reset(clear=True)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(lambda: shell.is_waiting_pdb_input())
 
     # Make sure we are debugging
     assert shell.is_waiting_pdb_input()
@@ -740,7 +744,7 @@ def test_save_history_dbg(ipyconsole, qtbot):
     # Press Up arrow button and assert we get the last
     # introduced command
     qtbot.keyClick(control, Qt.Key_Up)
-    assert '!aa = 10' in control.toPlainText()
+    assert 'aa = 10' in control.toPlainText()
 
     # Open new widget
     ipyconsole.create_new_client()
@@ -757,16 +761,16 @@ def test_save_history_dbg(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
 
-    shell.execute('%debug')
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug')
 
     # Press Up arrow button and assert we get the last
     # introduced command
     qtbot.keyClick(control, Qt.Key_Up)
-    assert '!aa = 10' in control.toPlainText()
+    assert 'aa = 10' in control.toPlainText()
 
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
     # Add a multiline statment and ckeck we can browse it correctly
     shell._pdb_history.append('if True:\n    print(1)')
     shell._pdb_history.append('print(2)')
@@ -794,18 +798,18 @@ def test_dbg_input(ipyconsole, qtbot):
     control.setFocus()
 
     # Debug with input
-    shell.execute("%debug print('Hello', input('name'))")
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug print('Hello', input('name'))")
 
     # Reach the 'name' input
-    shell.pdb_execute('n')
+    shell.pdb_execute('!n')
     qtbot.wait(100)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'name')
 
     # Execute some code and make sure that it doesn't work
     # as this is not a pdb prompt
-    shell.pdb_execute('n')
-    shell.pdb_execute('!aa = 10')
+    shell.pdb_execute('!n')
+    shell.pdb_execute('aa = 10')
     qtbot.wait(500)
     assert control.toPlainText().split()[-1] == 'name'
     shell.kernel_client.input('test')
@@ -876,9 +880,11 @@ def test_values_dbg(ipyconsole, qtbot):
         shell.execute('%debug')
 
     # Get value
-    qtbot.keyClicks(control, '!aa = 10')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('aa = 10')
+
+    assert 'aa = 10' in control.toPlainText()
+
     assert shell.get_value('aa') == 10
 
     # Set value
@@ -902,9 +908,9 @@ def test_values_dbg(ipyconsole, qtbot):
             return False
 
     qtbot.waitUntil(lambda: not is_defined('aa'))
-    qtbot.keyClicks(control, '!aa')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('aa')
+    # Wait until the message is recieved
     assert "*** NameError: name 'aa' is not defined" in control.toPlainText()
 
 
@@ -926,37 +932,37 @@ def test_execute_events_dbg(ipyconsole, qtbot):
     # Generate a traceback and enter debugging mode
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
-    shell.execute('%debug')
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug')
 
     # Set processing events to True
-    CONF.set('run', 'pdb_execute_events', True)
-    ipyconsole.set_pdb_execute_events()
+    CONF.set('ipython_console', 'pdb_execute_events', True)
+    shell.set_pdb_execute_events()
 
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     # Assert that there's a plot in the console
     assert shell._control.toHtml().count('img src') == 1
 
     # Set processing events to False
-    CONF.set('run', 'pdb_execute_events', False)
-    ipyconsole.set_pdb_execute_events()
+    CONF.set('ipython_console', 'pdb_execute_events', False)
+    shell.set_pdb_execute_events()
 
     # Test reset magic
     qtbot.keyClicks(control, 'plt.plot(range(10))')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     # Assert that there's no new plots in the console
     assert shell._control.toHtml().count('img src') == 1
 
     # Test if the plot is shown with plt.show()
     qtbot.keyClicks(control, 'plt.show()')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     # Assert that there's a new plots in the console
     assert shell._control.toHtml().count('img src') == 2
@@ -1046,8 +1052,8 @@ def test_ctrl_c_dbg(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
 
-    shell.execute('%debug')
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug')
 
     # Test Ctrl+C
     qtbot.keyClick(control, Qt.Key_C, modifier=Qt.ControlModifier)
@@ -1075,26 +1081,25 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
 
-    shell.execute('%debug')
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug')
 
     # Test clear magic
     shell.clear_console()
-    qtbot.waitUntil(lambda: '\nipdb> ' == control.toPlainText())
-    assert '\nipdb> ' == control.toPlainText()
+    qtbot.waitUntil(lambda: '\n(IPdb [2]): ' == control.toPlainText())
 
     # Test reset magic
-    qtbot.keyClicks(control, '!bb = 10')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.keyClicks(control, 'bb = 10')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
     assert shell.get_value('bb') == 10
 
     shell.reset_namespace()
     qtbot.wait(1000)
 
-    qtbot.keyClicks(control, '!bb')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.keyClicks(control, 'bb')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     assert "*** NameError: name 'bb' is not defined" in control.toPlainText()
 
@@ -1408,16 +1413,16 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     with qtbot.waitSignal(shell.executed):
         shell.execute('1/0')
 
-    shell.execute('%debug')
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug')
 
     # Test complete in debug mode
     # check abs is completed twice (as the cursor moves)
-    qtbot.keyClicks(control, '!ab')
+    qtbot.keyClicks(control, 'ab')
     qtbot.keyClick(control, Qt.Key_Tab)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!abs')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abs')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     # A second time to check a function call doesn't cause a problem
     qtbot.keyClicks(control, 'print(ab')
@@ -1425,28 +1430,28 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     qtbot.waitUntil(
         lambda: control.toPlainText().split()[-1] == 'print(abs')
     qtbot.keyClicks(control, ')')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     # Enter an expression
     qtbot.keyClicks(control, 'baab = 10')
-    qtbot.keyClick(control, Qt.Key_Enter)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(100)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     qtbot.waitUntil(lambda: check_value('baab', 10))
 
     # Check baab is completed
     qtbot.keyClicks(control, 'baa')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'baab')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     # Check the completion widget is shown for abba, abs
     qtbot.keyClicks(control, 'abba = 10')
-    qtbot.keyClick(control, Qt.Key_Enter)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(100)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     qtbot.waitUntil(lambda: check_value('abba', 10))
     qtbot.keyClicks(control, 'ab')
     qtbot.keyClick(control, Qt.Key_Tab)
@@ -1454,45 +1459,45 @@ def test_console_complete(ipyconsole, qtbot, tmpdir):
     assert control.toPlainText().split()[-1] == 'ab'
     qtbot.keyClick(shell._completion_widget, Qt.Key_Enter)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abba')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     # Create a class
-    qtbot.keyClicks(control, '!class A(): baba = 1')
-    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.keyClicks(control, 'class A(): baba = 1')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(100)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     qtbot.waitUntil(lambda: shell.is_defined('A'))
-    qtbot.keyClicks(control, '!a = A()')
-    qtbot.keyClick(control, Qt.Key_Enter)
+    qtbot.keyClicks(control, 'a = A()')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(100)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
     qtbot.waitUntil(lambda: shell.is_defined('a'))
 
     # Check we can complete attributes
-    qtbot.keyClicks(control, '!a.ba')
+    qtbot.keyClicks(control, 'a.ba')
     qtbot.keyClick(control, Qt.Key_Tab)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!a.baba')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'a.baba')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     # Check we can complete pdb command names
-    qtbot.keyClicks(control, 'longl')
+    qtbot.keyClicks(control, '!longl')
     qtbot.keyClick(control, Qt.Key_Tab)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'longlist')
+    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '!longlist')
 
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     # Check we can use custom complete for pdb
     test_file = tmpdir.join('test.py')
     test_file.write('stuff\n')
     # Set a breakpoint in the new file
-    qtbot.keyClicks(control, 'b ' + str(test_file) + ':1')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.keyClicks(control, '!b ' + str(test_file) + ':1')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, Qt.Key_Enter)
     # Check we can complete the breakpoint number
-    qtbot.keyClicks(control, 'ignore ')
+    qtbot.keyClicks(control, '!ignore ')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == '1')
 
@@ -1508,10 +1513,10 @@ def test_pdb_multiline(ipyconsole, qtbot):
     control = ipyconsole.get_focus_widget()
     control.setFocus()
 
-    shell.execute('%debug print()')
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug print()')
 
-    assert '\nipdb> ' in control.toPlainText()
+    assert '\n(IPdb [' in control.toPlainText()
 
     # Test reset magic
     qtbot.keyClicks(control, 'if True:')
@@ -1541,24 +1546,24 @@ def test_pdb_ignore_lib(ipyconsole, qtbot, show_lib):
     control.setFocus()
 
     # Tests assume inline backend
-    CONF.set('run', 'pdb_ignore_lib', not show_lib)
+    CONF.set('ipython_console', 'pdb_ignore_lib', not show_lib)
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
 
-        qtbot.keyClicks(control, 's')
+    qtbot.keyClicks(control, '!s')
+    with qtbot.waitSignal(shell.executed):
         qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.wait(500)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.wait(500)
 
-        qtbot.keyClicks(control, 'q')
+    qtbot.keyClicks(control, '!q')
+    with qtbot.waitSignal(shell.executed):
         qtbot.keyClick(control, Qt.Key_Enter)
 
     if show_lib:
         assert 'iostream.py' in control.toPlainText()
     else:
         assert 'iostream.py' not in control.toPlainText()
-    CONF.set('run', 'pdb_ignore_lib', True)
+    CONF.set('ipython_console', 'pdb_ignore_lib', True)
 
 
 @flaky(max_runs=3)
@@ -1781,10 +1786,12 @@ def test_pdb_without_comm(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute("get_ipython().kernel.frontend_comm.close()")
     shell.execute("%debug print()")
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
     qtbot.keyClicks(control, "print('Two: ' + str(1+1))")
     qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    qtbot.waitUntil(
+        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
     assert "Two: 2" in control.toPlainText()
 
@@ -1807,15 +1814,15 @@ def test_recursive_pdb(ipyconsole, qtbot):
     assert "Please don't use '%debug'" in control.toPlainText()
     # Check we can enter the recursive debugger twice
     with qtbot.waitSignal(shell.executed):
-        shell.pdb_execute("debug print()")
-    assert "(ipdb>)" in control.toPlainText()
+        shell.pdb_execute("!debug print()")
+    assert "((IPdb [1])):" in control.toPlainText()
     with qtbot.waitSignal(shell.executed):
-        shell.pdb_execute("debug print()")
-    assert "((ipdb>))" in control.toPlainText()
+        shell.pdb_execute("!debug print()")
+    assert "(((IPdb [1]))):" in control.toPlainText()
     # quit one layer
     with qtbot.waitSignal(shell.executed):
-        shell.pdb_execute("quit")
-    assert control.toPlainText().split()[-1] == "(ipdb>)"
+        shell.pdb_execute("!quit")
+    assert control.toPlainText().split()[-2:] == ["((IPdb", "[1])):"]
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)
@@ -1823,18 +1830,18 @@ def test_recursive_pdb(ipyconsole, qtbot):
                     timeout=SHELL_TIMEOUT)
     # quit one layer
     with qtbot.waitSignal(shell.executed):
-        shell.pdb_execute("quit")
-    assert control.toPlainText().split()[-1] == "ipdb>"
+        shell.pdb_execute("!quit")
+    assert control.toPlainText().split()[-2:] == ["(IPdb", "[1]):"]
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)
     qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'abab',
                     timeout=SHELL_TIMEOUT)
     with qtbot.waitSignal(shell.executed):
-        shell.pdb_execute("quit")
+        shell.pdb_execute("!quit")
     with qtbot.waitSignal(shell.executed):
         shell.execute("1 + 1")
-    assert control.toPlainText().split()[-1] == "[3]:"
+    assert control.toPlainText().split()[-2:] == ["In", "[3]:"]
 
 
 @flaky(max_runs=3)
@@ -1856,11 +1863,12 @@ def test_stop_pdb(ipyconsole, qtbot):
         qtbot.mouseClick(stop_button, Qt.LeftButton)
     assert "KeyboardInterrupt" in control.toPlainText()
     # We are still in the debugger
-    assert control.toPlainText().split()[-1] == 'ipdb>'
+    assert "(IPdb [2]):" in control.toPlainText()
+    assert "In [2]:" not in control.toPlainText()
     # Leave the debugger
     with qtbot.waitSignal(shell.executed):
         qtbot.mouseClick(stop_button, Qt.LeftButton)
-    assert control.toPlainText().split()[-1] != 'ipdb>'
+    assert "In [2]:" in control.toPlainText()
 
 
 
@@ -1904,7 +1912,7 @@ def test_code_cache(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
 
-    assert 'ipdb>' in shell._control.toPlainText()
+    assert 'IPdb [' in shell._control.toPlainText()
     # Send two execute requests and make sure the second one is executed
     shell.execute('time.sleep(.5)')
     shell.execute('var = 318')
@@ -1919,6 +1927,75 @@ def test_code_cache(ipyconsole, qtbot):
     qtbot.wait(1000)
     # Make sure the value of var didn't change
     assert shell.get_value('var') == 318
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(PY2, reason="Doesn't work on Python 2.7")
+def test_pdb_code_and_cmd_separation(ipyconsole, qtbot):
+    """Check commands and code are separted."""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_focus_widget()
+
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug print()")
+    assert "Error" not in control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("n")
+    assert "name 'n' is not defined" in control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("!n")
+    assert "--Return--" in control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("abba")
+    assert "name 'abba' is not defined" in control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("!abba")
+    assert "Unknown command 'abba'" in control.toPlainText()
+
+
+@pytest.mark.skipif(PY2, reason="Fails on py2")
+@flaky(max_runs=3)
+def test_explore_mode(ipyconsole, qtbot):
+    """
+    Test explore mode works.
+    """
+    # Wait until the window is fully up
+    shell = ipyconsole.get_current_shellwidget()
+    control = ipyconsole.get_focus_widget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
+        shell.execute("%debug print()")
+    assert control.toPlainText().split()[-2:] == ["(IPdb", "[1]):"]
+    qtbot.keyClick(control, 'n', modifier=Qt.ControlModifier)
+    assert control.toPlainText().split()[-2:] == ["explore", "mode:"]
+    qtbot.keyClick(control, 'n', modifier=Qt.ControlModifier)
+    assert control.toPlainText().split()[-2:] == ["(IPdb", "[1]):"]
+    qtbot.keyClick(control, 'n', modifier=Qt.ControlModifier)
+    assert control.toPlainText().split()[-2:] == ["explore", "mode:"]
+    qtbot.keyClick(control, 'e')
+    assert "Error: 'e' is not a Pdb command." in control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(control, 'w')
+    assert "explore mode: !w" in control.toPlainText()
+    assert "Error: 'w' is not a Pdb command." not in control.toPlainText()
+    assert "(IPdb [2]):" not in control.toPlainText()
+    qtbot.keyClick(control, Qt.Key_Escape)
+    assert control.toPlainText().split()[-2:] == ["(IPdb", "[2]):"]
+
+    # Test pdb_single_letter_enter
+    qtbot.keyClick(control, 'n', modifier=Qt.ControlModifier)
+    assert control.toPlainText().split()[-2:] == ["explore", "mode:"]
+    CONF.set('ipython_console', 'pdb_single_letter_enter', False)
+    qtbot.keyClick(control, Qt.Key_Enter)
+    assert control.toPlainText().split()[-2:] != ["(IPdb", "[2]):"]
+    CONF.set('ipython_console', 'pdb_single_letter_enter', True)
+    qtbot.keyClick(control, Qt.Key_Enter)
+    assert control.toPlainText().split()[-2:] == ["(IPdb", "[2]):"]
+    CONF.set('ipython_console', 'pdb_single_letter_enter', False)
 
 
 if __name__ == "__main__":
