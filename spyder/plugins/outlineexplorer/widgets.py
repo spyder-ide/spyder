@@ -435,19 +435,35 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             line = self.current_editor.get_cursor_line_number()
             tree = self.editor_tree_cache[editor_id]
             root = self.editor_items[editor_id]
+            language = self.current_editor.get_language()
             overlap = tree[line - 1]
             if len(overlap) == 0:
                 item = root.node
             else:
                 sorted_nodes = sorted(overlap)
                 # The last item of the sorted elements correspond to the current
-                # node if expanding, otherwise it is the first one
-                idx = -1 if expand else 0
-                item_interval = sorted_nodes[idx]
-                item_ref = item_interval.data
-                item = item_ref.node
-            self.setCurrentItem(item)
-            self.scrollToItem(item)
+                # node if expanding, otherwise it is the first stopper found
+                if language.lower() != 'python' or not expand:
+                    idx = -1
+                    self.switch_to_node(sorted_nodes, idx)
+                else:
+                    stoppers = {SymbolKind.CLASS, SymbolKind.METHOD,
+                                SymbolKind.FUNCTION}
+                    for i, interval in enumerate(sorted_nodes[::-1]):
+                        item_ref = interval.data
+                        kind = item_ref.kind
+                        if kind in stoppers:
+                            idx = len(sorted_nodes) - (i + 1)
+                            self.switch_to_node(sorted_nodes, idx)
+                            break
+
+    def switch_to_node(self, sorted_nodes, idx):
+        """Given a set of tree nodes, highlight the node on index `idx`."""
+        item_interval = sorted_nodes[idx]
+        item_ref = item_interval.data
+        item = item_ref.node
+        self.setCurrentItem(item)
+        self.scrollToItem(item)
 
     @Slot()
     def do_follow_cursor(self):
