@@ -866,7 +866,7 @@ def test_dicts_natural_sorting(qtbot):
         'GUI sorting fail'
 
 
-def test_dicts_natural_sorting_mixed_types(qtbot):
+def test_dicts_natural_sorting_mixed_types():
     """
     Test that natural sorting actually does what it should do.
     testing for issue 13733, as mixed types were sorted incorrectly.
@@ -890,27 +890,27 @@ def test_dicts_natural_sorting_mixed_types(qtbot):
 
     assert keys == ['aStr', 'DSeries', 'kDict']
     assert types == ['str', 'Series', 'dict']
-    assert sizes == [1, (0,), 2]
+    assert sizes == [str_size, (0,), 2]
 
     assert data_table(cm, 3, 3) == [['aStr', 'DSeries', 'kDict'],
                                     ['str', 'Series', 'dict'],
-                                    [1, '(0,)', 2]]
+                                    [str_size, '(0,)', 2]]
 
     # insert an item and check that it is still sorted correctly
     editor.widget.editor.new_value('List', [1, 2, 3])
     assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
                                     ['str', 'Series', 'dict', 'list'],
-                                    [1, '(0,)', 2, 3]]
+                                    [str_size, '(0,)', 2, 3]]
     cm.sort(0)
     assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
                                     ['str', 'Series', 'dict', 'list'],
-                                    [1, '(0,)', 2, 3]]
+                                    [str_size, '(0,)', 2, 3]]
 
     # now sort for types
     cm.sort(1)
     assert data_table(cm, 4, 3) == [['DSeries', 'kDict', 'List', 'aStr'],
                                     ['Series', 'dict', 'list', 'str'],
-                                    ['(0,)', 2, 3, 1]]
+                                    ['(0,)', 2, 3, str_size]]
 
     # now sort for sizes
     cm.sort(2)
