@@ -507,7 +507,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 else:
                     if self.clients[language]['status'] == self.RUNNING:
                         client = self.clients[language]['instance']
-                        client.send_plugin_configurations(
+                        client.send_configurations(
                             new_lang_config['configurations'])
 
     def restart_client(self, language, config):

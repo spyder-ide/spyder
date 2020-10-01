@@ -126,7 +126,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             raise AssertionError(error)
 
         self.folder = folder
-        self.plugin_configurations = server_settings.get('configurations', {})
+        self.configurations = server_settings.get('configurations', {})
         self.client_capabilites = CLIENT_CAPABILITES
         self.server_capabilites = SERVER_CAPABILITES
         self.context = zmq.Context()
@@ -596,7 +596,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         # This sends a DidChangeConfiguration request to pass to the server
         # the configurations set by the user in our config system.
-        self.send_plugin_configurations(self.plugin_configurations)
+        self.send_configurations(self.configurations)
 
         # Inform other plugins that the server is up.
         self.sig_initialize.emit(self.server_capabilites, self.language)
