@@ -232,7 +232,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             # We can't use getcwd_or_home for LSP servers because if it
             # returns home and you have a lot of files on it
             # then computing completions takes a long time
-            # and blocks the LSP server.
+            # and blocks the server.
             # Instead we use an empty directory inside our config one,
             # just like we did for Rope in Spyder 3.
             path = osp.join(get_conf_path(), 'lsp_paths', 'root_path')
@@ -257,10 +257,6 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                 instance = language_client['instance']
                 if (instance.support_multiple_workspaces and
                         instance.support_workspace_update):
-                    logger.debug(
-                        u'Workspace folders change: {0} -> {1}'.format(
-                        project_path, update_kind)
-                    )
                     instance.send_workspace_folders_change({
                         'folder': project_path,
                         'instance': self.main.projects,
@@ -271,7 +267,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                         "{0}: LSP does not support multiple workspaces, "
                         "restarting client!".format(instance.language)
                     )
-                    self.main.projects.stop_lsp_services()
+                    self.main.projects.stop_workspace_services()
                     self.main.editor.stop_completion_services(language)
                     folder = self.get_root_path(language)
                     instance.folder = folder
@@ -442,7 +438,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
             if self.main.projects:
                 instance.sig_initialize.connect(
-                    self.main.projects.register_lsp_server_settings)
+                    lambda settings, language:
+                    self.main.projects.start_workspace_services())
             if self.main.editor:
                 instance.sig_initialize.connect(
                     self.main.editor.register_completion_capabilities)
@@ -508,7 +505,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
     def restart_client(self, language, config):
         """Restart a client."""
         self.main.editor.stop_completion_services(language)
-        self.main.projects.stop_lsp_services()
+        self.main.projects.stop_workspace_services()
         self.close_client(language)
         self.clients[language] = config
         self.start_client(language)

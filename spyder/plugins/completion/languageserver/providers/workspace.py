@@ -63,6 +63,7 @@ class WorkspaceProvider:
                     'uri': folder_uri,
                     'name': folder
                 })
+
         workspace_settings = self.server_capabilites['workspace']
         request_params = {
             'event': {
@@ -70,7 +71,13 @@ class WorkspaceProvider:
                 'removed': removed_folders
             }
         }
-        if not workspace_settings['workspaceFolders']['supported']:
+
+        if workspace_settings['workspaceFolders']['supported']:
+            logger.debug(
+                u'Workspace folders change: {0} -> {1}'.format(
+                    folder, params['kind'])
+            )
+        else:
             request_params[ClientConstants.CANCEL] = True
 
         return request_params

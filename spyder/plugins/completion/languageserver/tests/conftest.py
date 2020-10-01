@@ -63,7 +63,7 @@ class ProjectsMock(QObject):
     Mock for the projects plugin with the interface needed by
     LanguageServerPlugin.
     """
-    register_lsp_server_settings = Signal()
+    start_completion_services = Signal()
 
     def __init__(self):
         QObject.__init__(self)
@@ -71,7 +71,7 @@ class ProjectsMock(QObject):
     def get_active_project_path(self):
         return ''
 
-    def stop_lsp_services(self):
+    def stop_workspace_services(self):
         pass
 
 

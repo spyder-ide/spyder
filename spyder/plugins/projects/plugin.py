@@ -533,15 +533,15 @@ class Projects(SpyderPluginWidget):
         if len(self.recent_projects) > self.get_option('max_recent_projects'):
             self.recent_projects.pop(-1)
 
-    def register_lsp_server_settings(self, settings):
-        """Enable LSP workspace functions."""
+    def start_workspace_services(self):
+        """Enable LSP workspace functionality."""
         self.completions_available = True
         if self.current_active_project:
             path = self.get_active_project_path()
             self.notify_project_open(path)
 
-    def stop_lsp_services(self):
-        """Disable LSP workspace functions."""
+    def stop_workspace_services(self):
+        """Disable LSP workspace functionality."""
         self.completions_available = False
 
     def emit_request(self, method, params, requires_response):
