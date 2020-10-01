@@ -25,7 +25,7 @@ from qtpy.QtGui import (QBrush, QColor, QIcon, QPainter, QPainterPath, QPen,
 from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
                             QGraphicsOpacityEffect, QHBoxLayout, QLabel,
                             QLayout, QMainWindow, QMenu, QMessageBox,
-                            QPushButton, QSpacerItem, QToolButton, QVBoxLayout, 
+                            QPushButton, QSpacerItem, QToolButton, QVBoxLayout,
                             QWidget)
 
 # Local imports
@@ -203,7 +203,7 @@ def get_tour(index):
               'widgets': [sw.help_plugin],
               'interact': True},
 
-              {'title': _("Plots"),
+             {'title': _("Plots"),
               'content': _("This pane shows the figures and images created "
                            "during your code execution. It allows you to browse, "
                            "zoom, copy, and save the generated plots."),
@@ -221,20 +221,20 @@ def get_tour(index):
               'widgets': [sw.file_explorer],
               'interact': True},
 
-              {'title': _("The History Log"),
+             {'title': _("The History Log"),
               'content': _("This pane records all commands introduced in "
                            "the Python and IPython consoles."),
               'widgets': [sw.history_log],
               'interact': True},
 
-              {'title': _("Find"),
+             {'title': _("Find"),
               'content': _("The Find pane allows you to search for text in a "
                            "given directory and navigate through all the found "
                            "occurrences."),
               'widgets': [sw.find_plugin],
               'interact': True},
 
-              {'title': _("Profiler"),
+             {'title': _("Profiler"),
               'content': _("The Profiler helps you optimize your code by determining "
                            "the run time and number of calls for every function and "
                            "method used in a file. It also allows you to save and "
@@ -242,14 +242,14 @@ def get_tour(index):
               'widgets': [sw.profiler],
               'interact': True},
 
-              {'title': _("Code Analysis"),
+             {'title': _("Code Analysis"),
               'content': _("The Code Analysis helps you improve the quality of "
                            "your programs by detecting style issues, bad practices "
                            "and potential bugs."),
               'widgets': [sw.code_analysis],
               'interact': True},
 
-              {'title': _("The end"),
+             {'title': _("The end"),
               'content': _("You have reached the end of our tour, you are ready to "
                            "start using Spyder! If you want more information go to "
                            "our  <a href=\"{0}\">documentation</a>.<br><br>"
@@ -1029,17 +1029,17 @@ class AnimatedTour(QWidget):
         for name in names:
             base = name.split('.')[0]
             try:
-              temp = getattr(spy_window, base)
+                temp = getattr(spy_window, base)
             except AttributeError:
-              for item in spy_window.thirdparty_plugins:
-                if type(item).__name__==name:
-                  temp = item
-                  break
+                for item in spy_window.thirdparty_plugins:
+                    if type(item).__name__ == name:
+                        temp = item
+                        break
             else:
-              # Check if it is the current editor
-              if 'get_current_editor()' in name:
-                  temp = temp.get_current_editor()
-                  temp = getattr(temp, name.split('.')[-1])
+                # Check if it is the current editor
+                if 'get_current_editor()' in name:
+                    temp = temp.get_current_editor()
+                    temp = getattr(temp, name.split('.')[-1])
 
             widgets.append(temp)
 
@@ -1144,7 +1144,7 @@ class AnimatedTour(QWidget):
                 else:
                     x = x_glob - self.tips.width() - delta
                     y = y_glob + height/2 - self.tips.height()/2
-                
+
                 if (y + self.tips.height()) > (self.y_main + self.height_main):
                     y = y - ((y + self.tips.height())-(self.y_main + self.height_main))-offset
         else:
@@ -1209,19 +1209,24 @@ class AnimatedTour(QWidget):
 
     def start_tour(self):
         """ """
-
-        if self.spy_window.isFullScreen():
+        self.spy_window.setUpdatesEnabled(False)
+        if self.spy_window.isFullScreen() or self.spy_window.fullscreen_flag:
             if sys.platform == 'darwin':
+                self.spy_window.setUpdatesEnabled(True)
                 msg_title = _("Request")
                 msg = _("To run the tour, please press the green button in the top left corner of "
                         "the screen to take Spyder out of fullscreen mode.")
                 QMessageBox.information(self, msg_title, msg,
-                                         QMessageBox.Ok)
+                                        QMessageBox.Ok)
                 return
-            #self.initial_fullscreen_state = True
-            #import time
-            #self.spy_window.setWindowState(self.spy_window.windowState() & (~ Qt.WindowFullScreen))
-            #self.spy_window.showMaximized()
+            else:
+                if self.spy_window.fullscreen_flag:
+                    self.spy_window.toggle_fullscreen()
+                else:
+                    self.spy_window.setWindowState(
+                        self.spy_window.windowState()
+                        & (~ Qt.WindowFullScreen))
+
         self.spy_window.save_current_window_settings('layout_current_temp/', section="quick_layouts")
         self.spy_window.quick_layout_switch('default')
         geo = self.parent.geometry()
@@ -1238,6 +1243,7 @@ class AnimatedTour(QWidget):
         # Adjust the canvas size to match the main window size
         self.canvas.setFixedSize(width, height)
         self.canvas.move(QPoint(x, y))
+        self.spy_window.setUpdatesEnabled(True)
         self.canvas.fade_in(self._move_step)
         self._clear_canvas()
 
@@ -1246,6 +1252,7 @@ class AnimatedTour(QWidget):
     def close_tour(self):
         """ """
         self.tips.fade_out(self._close_canvas)
+        self.spy_window.setUpdatesEnabled(False)
         self.canvas.set_interaction(False)
         self._set_modal(True, [self.tips])
         self.canvas.hide()
@@ -1260,11 +1267,7 @@ class AnimatedTour(QWidget):
 
         self.is_running = False
         self.spy_window.quick_layout_switch('current_temp')
-        #if self.initial_fullscreen_state:
-            #import time
-            #self.spy_window.setWindowState(self.spy_window.windowState() | Qt.WindowFullScreen)
-            #time.sleep(5)
-            #self.initial_fullscreen_state = None
+        self.spy_window.setUpdatesEnabled(True)
 
     def hide_tips(self):
         """Hide tips dialog when the main window loses focus."""
@@ -1322,11 +1325,13 @@ class AnimatedTour(QWidget):
             self.unhide_tips()
 
     def any_has_focus(self):
-        """Returns if tour or any of its components has focus."""
+        """Returns true if tour or main window has focus."""
         f = (self.hasFocus() or self.parent.hasFocus() or
              self.tour_has_focus())
         return f
+
     def tour_has_focus(self):
+        """Returns true if tour or any of its components has focus."""
         f = (self.tips.hasFocus() or self.canvas.hasFocus() or
              self.tips.isActiveWindow())
         return f
