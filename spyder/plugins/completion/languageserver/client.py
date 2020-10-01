@@ -573,8 +573,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     @handles(LSPRequestTypes.INITIALIZE)
     def process_server_capabilities(self, server_capabilites, *args):
-        self.send_plugin_configurations(self.plugin_configurations)
-        self.initialized = True
+        """
+        Register server capabilities and inform other plugins that it's
+        available.
+        """
+        # Update server capabilities with the infor sent by the server.
         server_capabilites = server_capabilites['capabilities']
 
         if isinstance(server_capabilites['textDocumentSync'], int):
@@ -586,8 +589,17 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.server_capabilites.update(server_capabilites)
 
-        self.sig_initialize.emit(self.server_capabilites, self.language)
+        # The initialized notification needs to be the first request sent by
+        # the client according to the protocol.
+        self.initialized = True
         self.initialized_call()
+
+        # This sends a DidChangeConfiguration request to pass to the server
+        # the configurations set by the user in our config system.
+        self.send_plugin_configurations(self.plugin_configurations)
+
+        # Inform other plugins that the server is up.
+        self.sig_initialize.emit(self.server_capabilites, self.language)
 
     @send_notification(method=LSPRequestTypes.INITIALIZED)
     def initialized_call(self):
