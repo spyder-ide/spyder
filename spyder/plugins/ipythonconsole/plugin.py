@@ -202,6 +202,9 @@ class IPythonConsole(SpyderPluginWidget):
                 client.reset_warning = reset_namespace_o
             if ask_before_restart_n in options:
                 client.ask_before_restart = ask_before_restart_o
+            client.shellwidget.set_pdb_ignore_lib()
+            client.shellwidget.set_pdb_execute_events()
+            client.shellwidget.set_pdb_use_exclamation_mark()
 
     def toggle_view(self, checked):
         """Toggle view"""
@@ -592,24 +595,9 @@ class IPythonConsole(SpyderPluginWidget):
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
-    def pdb_execute(self, line, hidden=False, echo_stack_entry=False,
-                    add_history=False):
+    def pdb_execute_command(self, command):
         """
-        Send line to the pdb kernel if possible.
-
-        Parameters
-        ----------
-        line: str
-            the line to execute
-
-        hidden: bool
-            If the line should be hidden
-
-        echo_stack_entry: bool
-            If not hidden, if the stack entry should be printed
-
-        add_history: bool
-            If not hidden, wether the line should be added to history
+        Send command to the pdb kernel if possible.
         """
 
         sw = self.get_current_shellwidget()
@@ -617,7 +605,7 @@ class IPythonConsole(SpyderPluginWidget):
             # Needed to handle an error when kernel_client is None.
             # See spyder-ide/spyder#7578.
             try:
-                sw.pdb_execute(line, hidden, echo_stack_entry, add_history)
+                sw.pdb_execute_command(command)
             except AttributeError:
                 pass
 
@@ -628,9 +616,7 @@ class IPythonConsole(SpyderPluginWidget):
             if not sw.is_waiting_pdb_input():
                 sw.interrupt_kernel()
             try:
-                sw.pdb_execute(
-                    "exit",
-                    hidden=False, echo_stack_entry=False, add_history=False)
+                sw.pdb_execute_command("exit")
             except AttributeError:
                 pass
 
@@ -1122,16 +1108,6 @@ class IPythonConsole(SpyderPluginWidget):
         """Set Spyder breakpoints into all clients"""
         for cl in self.clients:
             cl.shellwidget.set_spyder_breakpoints()
-
-    def set_pdb_ignore_lib(self):
-        """Set pdb_ignore_lib into all clients"""
-        for cl in self.clients:
-            cl.shellwidget.set_pdb_ignore_lib()
-
-    def set_pdb_execute_events(self):
-        """Set pdb_execute_events into all clients"""
-        for cl in self.clients:
-            cl.shellwidget.set_pdb_execute_events()
 
     @Slot(str)
     def create_client_from_path(self, path):

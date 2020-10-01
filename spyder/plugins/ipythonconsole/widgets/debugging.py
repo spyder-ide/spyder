@@ -21,11 +21,28 @@ if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
     from IPython.core.inputsplitter import IPythonInputSplitter
 else:
     from IPython.core.inputtransformer2 import TransformerManager
-
+from IPython.lib.lexers import IPythonLexer, IPython3Lexer
+from pygments.lexer import bygroups
+from pygments.token import Keyword, Operator, Text
+from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 
 from spyder.config.base import get_conf_path
 from spyder.config.manager import CONF
+
+
+class SpyderIPy3Lexer(IPython3Lexer):
+    # Detect !cmd command and highlight them
+    tokens = IPython3Lexer.tokens
+    tokens['root'].insert(
+        0, (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, Text)))
+
+
+class SpyderIPy2Lexer(IPythonLexer):
+    tokens = IPython3Lexer.tokens
+    tokens['root'].insert(
+        0, (r'(!)(\w+)(.*\n)', bygroups(Operator, Keyword, Text)))
+
 
 class PdbHistory(HistoryManager):
 
@@ -94,8 +111,13 @@ class DebuggingHistoryWidget(RichJupyterWidget):
 
         cmd = line.split(" ")[0]
         args = line.split(" ")[1:]
-        is_pdb_cmd = (
-            cmd.strip() and cmd[0] != '!' and "do_" + cmd in dir(pdb.Pdb))
+        if self.is_pdb_using_exclamantion_mark():
+            is_pdb_cmd = (
+                cmd.strip() and cmd[0] == '!'
+                and "do_" + cmd[1:] in dir(pdb.Pdb))
+        else:
+            is_pdb_cmd = (
+                cmd.strip() and cmd[0] != '!' and "do_" + cmd in dir(pdb.Pdb))
         if cmd and (not is_pdb_cmd or len(args) > 0):
             self._pdb_history.append(line)
             self._pdb_history_index = len(self._pdb_history)
@@ -212,6 +234,21 @@ class DebuggingWidget(DebuggingHistoryWidget):
 
         self.sig_pdb_state.emit(self.is_debugging(), self.get_pdb_last_step())
 
+    def _pdb_cmd_prefix(self):
+        """Return the command prefix"""
+        prefix = ''
+        if self.is_pdb_using_exclamantion_mark():
+            prefix = '!'
+        return prefix
+
+    def pdb_execute_command(self, command):
+        """
+        Execute a pdb command
+        """
+        self.pdb_execute(
+            self._pdb_cmd_prefix() + command, hidden=False,
+            echo_stack_entry=False, add_history=False)
+
     def pdb_execute(self, line, hidden=False, echo_stack_entry=True,
                     add_history=True):
         """
@@ -286,8 +323,10 @@ class DebuggingWidget(DebuggingHistoryWidget):
         """Get pdb settings"""
         return {
             "breakpoints": CONF.get('run', 'breakpoints', {}),
-            "pdb_ignore_lib": CONF.get('run', 'pdb_ignore_lib'),
-            "pdb_execute_events": CONF.get('run', 'pdb_execute_events'),
+            "pdb_ignore_lib": CONF.get('ipython_console', 'pdb_ignore_lib'),
+            "pdb_execute_events": CONF.get('ipython_console', 'pdb_execute_events'),
+            "pdb_use_exclamation_mark": self.is_pdb_using_exclamantion_mark(),
+            "pdb_stop_first_line": CONF.get('ipython_console', 'pdb_stop_first_line'),
         }
 
     # --- To Sort --------------------------------------------------
@@ -299,12 +338,20 @@ class DebuggingWidget(DebuggingHistoryWidget):
     def set_pdb_ignore_lib(self):
         """Set pdb_ignore_lib into a debugging session"""
         self.call_kernel(interrupt=True).set_pdb_ignore_lib(
-            CONF.get('run', 'pdb_ignore_lib', False))
+            CONF.get('ipython_console', 'pdb_ignore_lib', False))
 
     def set_pdb_execute_events(self):
         """Set pdb_execute_events into a debugging session"""
         self.call_kernel(interrupt=True).set_pdb_execute_events(
-            CONF.get('run', 'pdb_execute_events', True))
+            CONF.get('ipython_console', 'pdb_execute_events', True))
+
+    def set_pdb_use_exclamation_mark(self):
+        """Set pdb_use_exclamation_mark into a debugging session"""
+        self.call_kernel(interrupt=True).set_pdb_use_exclamation_mark(
+            self.is_pdb_using_exclamantion_mark())
+
+    def is_pdb_using_exclamantion_mark(self):
+        return CONF.get('ipython_console', 'pdb_use_exclamation_mark')
 
     def do_where(self):
         """Where was called, go to the current location."""
@@ -393,6 +440,23 @@ class DebuggingWidget(DebuggingHistoryWidget):
             prompt = "({})".format(prompt)
         return prompt + ": "
 
+    def _handle_kernel_info_reply(self, rep):
+        """Handle kernel info replies."""
+        super(DebuggingWidget, self)._handle_kernel_info_reply(rep)
+        pygments_lexer = rep['content']['language_info'].get(
+            'pygments_lexer', '')
+        try:
+            # add custom lexer
+            if pygments_lexer == 'ipython3':
+                lexer = SpyderIPy3Lexer()
+            elif pygments_lexer == 'ipython2':
+                lexer = SpyderIPy2Lexer()
+            else:
+                return
+            self._highlighter._lexer = lexer
+        except ClassNotFound:
+            pass
+
     def _redefine_complete_for_dbg(self, client):
         """Redefine kernel client's complete method to work while debugging."""
 
@@ -456,7 +520,8 @@ class DebuggingWidget(DebuggingHistoryWidget):
                 else:
                     source = self.input_buffer
             else:
-                source = '!' + source
+                if not self.is_pdb_using_exclamantion_mark():
+                    source = '!' + source
                 if not hidden:
                     self.input_buffer = source
 

@@ -153,13 +153,14 @@ DEFAULTS = [
               # This is True because there are libraries like Pyomo
               # that generate a lot of Command Prompts while running,
               # and that's extremely annoying for Windows users.
-              'hide_cmd_windows': True
-              }),
-            ('run',
-             {
+              'hide_cmd_windows': True,
+              'pdb_prevent_closing': True,
               'pdb_ignore_lib': False,
-              'pdb_execute_events': True
-             }),
+              'pdb_execute_events': True,
+              'pdb_use_exclamation_mark': False,
+              'pdb_stop_first_line': True,
+              'pdb_single_letter_enter': False,
+              }),
             ('variable_explorer',
              {
               'check_all': CHECK_ALL,
@@ -465,6 +466,7 @@ DEFAULTS = [
               'ipython_console/new tab': "Ctrl+T",
               'ipython_console/reset namespace': "Ctrl+Alt+R",
               'ipython_console/restart kernel': "Ctrl+.",
+              'ipython_console/pdb single letter': "Ctrl+n",
               # ---- In widgets/arraybuider.py ----
               'array_builder/enter array inline': "Ctrl+Alt+M",
               'array_builder/enter array table': "Ctrl+M",
