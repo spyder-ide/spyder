@@ -1086,7 +1086,7 @@ def test_clear_and_reset_magics_dbg(ipyconsole, qtbot):
 
     # Test clear magic
     shell.clear_console()
-    qtbot.waitUntil(lambda: '\n(IPdb [2]): ' == control.toPlainText())
+    qtbot.waitUntil(lambda: '\nIPdb [2]: ' == control.toPlainText())
 
     # Test reset magic
     qtbot.keyClicks(control, 'bb = 10')
@@ -1516,7 +1516,7 @@ def test_pdb_multiline(ipyconsole, qtbot):
     with qtbot.waitSignal(shell.executed):
         shell.execute('%debug print()')
 
-    assert '\n(IPdb [' in control.toPlainText()
+    assert '\nIPdb [' in control.toPlainText()
 
     # Test reset magic
     qtbot.keyClicks(control, 'if True:')
@@ -1815,14 +1815,14 @@ def test_recursive_pdb(ipyconsole, qtbot):
     # Check we can enter the recursive debugger twice
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!debug print()")
-    assert "((IPdb [1])):" in control.toPlainText()
+    assert "(IPdb [1]):" in control.toPlainText()
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!debug print()")
-    assert "(((IPdb [1]))):" in control.toPlainText()
+    assert "((IPdb [1])):" in control.toPlainText()
     # quit one layer
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
-    assert control.toPlainText().split()[-2:] == ["((IPdb", "[1])):"]
+    assert control.toPlainText().split()[-2:] == ["(IPdb", "[1]):"]
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)
@@ -1831,7 +1831,7 @@ def test_recursive_pdb(ipyconsole, qtbot):
     # quit one layer
     with qtbot.waitSignal(shell.executed):
         shell.pdb_execute("!quit")
-    assert control.toPlainText().split()[-2:] == ["(IPdb", "[1]):"]
+    assert control.toPlainText().split()[-2:] == ["IPdb", "[1]:"]
     # Check completion works
     qtbot.keyClicks(control, 'aba')
     qtbot.keyClick(control, Qt.Key_Tab)
@@ -1863,7 +1863,7 @@ def test_stop_pdb(ipyconsole, qtbot):
         qtbot.mouseClick(stop_button, Qt.LeftButton)
     assert "KeyboardInterrupt" in control.toPlainText()
     # We are still in the debugger
-    assert "(IPdb [2]):" in control.toPlainText()
+    assert "IPdb [2]:" in control.toPlainText()
     assert "In [2]:" not in control.toPlainText()
     # Leave the debugger
     with qtbot.waitSignal(shell.executed):
@@ -1969,11 +1969,11 @@ def test_explore_mode(ipyconsole, qtbot):
 
     with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
         shell.execute("%debug print()")
-    assert control.toPlainText().split()[-2:] == ["(IPdb", "[1]):"]
+    assert control.toPlainText().split()[-2:] == ["IPdb", "[1]:"]
     qtbot.keyClick(control, 'n', modifier=Qt.ControlModifier)
     assert control.toPlainText().split()[-2:] == ["explore", "mode:"]
     qtbot.keyClick(control, 'n', modifier=Qt.ControlModifier)
-    assert control.toPlainText().split()[-2:] == ["(IPdb", "[1]):"]
+    assert control.toPlainText().split()[-2:] == ["IPdb", "[1]:"]
     qtbot.keyClick(control, 'n', modifier=Qt.ControlModifier)
     assert control.toPlainText().split()[-2:] == ["explore", "mode:"]
     qtbot.keyClick(control, 'e')
@@ -1982,19 +1982,19 @@ def test_explore_mode(ipyconsole, qtbot):
         qtbot.keyClick(control, 'w')
     assert "explore mode: !w" in control.toPlainText()
     assert "Error: 'w' is not a Pdb command." not in control.toPlainText()
-    assert "(IPdb [2]):" not in control.toPlainText()
+    assert "IPdb [2]:" not in control.toPlainText()
     qtbot.keyClick(control, Qt.Key_Escape)
-    assert control.toPlainText().split()[-2:] == ["(IPdb", "[2]):"]
+    assert control.toPlainText().split()[-2:] == ["IPdb", "[2]:"]
 
     # Test pdb_single_letter_enter
     qtbot.keyClick(control, 'n', modifier=Qt.ControlModifier)
     assert control.toPlainText().split()[-2:] == ["explore", "mode:"]
     CONF.set('ipython_console', 'pdb_single_letter_enter', False)
     qtbot.keyClick(control, Qt.Key_Enter)
-    assert control.toPlainText().split()[-2:] != ["(IPdb", "[2]):"]
+    assert control.toPlainText().split()[-2:] != ["IPdb", "[2]:"]
     CONF.set('ipython_console', 'pdb_single_letter_enter', True)
     qtbot.keyClick(control, Qt.Key_Enter)
-    assert control.toPlainText().split()[-2:] == ["(IPdb", "[2]):"]
+    assert control.toPlainText().split()[-2:] == ["IPdb", "[2]:"]
     CONF.set('ipython_console', 'pdb_single_letter_enter', False)
 
 

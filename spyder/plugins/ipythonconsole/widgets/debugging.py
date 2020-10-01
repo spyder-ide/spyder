@@ -435,7 +435,7 @@ class DebuggingWidget(DebuggingHistoryWidget):
 
     def _current_prompt(self):
         prompt = "IPdb [{}]".format(self._pdb_history_input_number + 1)
-        for i in range(self._pdb_in_loop):
+        for i in range(self._pdb_in_loop - 1):
             # Add recursive debugger prompt
             prompt = "({})".format(prompt)
         return prompt + ": "
