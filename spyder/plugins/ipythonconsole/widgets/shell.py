@@ -494,8 +494,17 @@ the sympy module (e.g. plot)
             name='clear line',
             parent=self)
 
-        return [inspect, clear_console, restart_kernel, new_tab,
-                reset_namespace, array_inline, array_table, clear_line]
+        pdb_single_letter = CONF.config_shortcut(
+            self._toggle_pdb_single_letter_mode,
+            context='ipython_console',
+            name='pdb single letter',
+            parent=self)
+
+        return [
+            inspect, clear_console, restart_kernel, new_tab,
+            reset_namespace, array_inline, array_table, clear_line,
+            pdb_single_letter
+            ]
 
     # --- To communicate with the kernel
     def silent_execute(self, code):
