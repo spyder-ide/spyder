@@ -336,7 +336,7 @@ class DirView(QTreeView):
         )
         # Filters
         self.filters_action = create_action(
-            self, _("Edit filter settings"), None,
+            self, _("Edit filter settings..."), None,
             ima.icon('filter'),
             triggered=self.edit_filter,
         )
@@ -398,8 +398,12 @@ class DirView(QTreeView):
 
         # Create dialog contents
         description_label = QLabel(
-            _('Filter files by name, extension, or more using glob patterns. '
-              'Please enter the glob patterns, separated by commas.'))
+            _('Filter files by name, extension, or more using '
+              '<a href="https://docs.python.org/3/library/glob.html">glob '
+              'patterns.</a> Please enter the glob patterns of the files you '
+              'want to show, separated by commas.'))
+        description_label.setOpenExternalLinks(True)
+        description_label.setWordWrap(True)
         filters = QTextEdit(", ".join(self.name_filters))
         layout = QVBoxLayout()
         layout.addWidget(description_label)
@@ -1694,17 +1698,16 @@ class ExplorerWidget(QWidget):
         button_previous = QToolButton(self)
         button_next = QToolButton(self)
         button_parent = QToolButton(self)
-        self.filter_on = False
-        filter_button = create_toolbutton(
+        self.filter_on = True
+        self.filter_button = create_toolbutton(
             self, icon=ima.icon("filter"),
-            tip=_("Activate/deactivate filter"),
             triggered=self.change_filter_state)
-        filter_button.setCheckable(True)
-        filter_button.setChecked(self.filter_on)
+        self.filter_button.setCheckable(True)
+        self.change_filter_state()
 
         self.button_menu = options_button or QToolButton(self)
         self.action_widgets = [button_previous, button_next, button_parent,
-                               filter_button, self.button_menu]
+                               self.filter_button, self.button_menu]
 
         # Actions
         previous_action = create_action(
@@ -1772,7 +1775,7 @@ class ExplorerWidget(QWidget):
         blayout.addWidget(button_previous)
         blayout.addWidget(button_next)
         blayout.addWidget(button_parent)
-        blayout.addWidget(filter_button)
+        blayout.addWidget(self.filter_button)
         blayout.addStretch()
         blayout.addWidget(self.button_menu)
 
@@ -1787,6 +1790,11 @@ class ExplorerWidget(QWidget):
 
     def change_filter_state(self):
         self.filter_on = not self.filter_on
+        self.filter_button.setChecked(self.filter_on)
+        tip_message = (
+            _("Deactivate filename filters") if self.filter_on else _(
+                "Activate filename filters"))
+        self.filter_button.setToolTip(tip_message)
         self.treewidget.filter_files(self.filter_on)
 
     def refresh_actions(self, option, value):
