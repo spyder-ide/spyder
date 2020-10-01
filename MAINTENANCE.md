@@ -24,6 +24,7 @@ These are some instructions meant for maintainers of this repo.
     - git merge 4.x
     - git reset -- external-deps/spyder-kernels
     - git checkout -- external-deps/spyder-kernels
+    - git commit with the files left and the same message format as above.
     - git subrepo pull external-deps/spyder-kernels
 
 * If a PR in spyder-kernels solves an issue in Spyder but was not part of a PR that updated its subrepo, you need to open one that does precisely that, i.e. update its subrepo, in order to fix that issue. 
