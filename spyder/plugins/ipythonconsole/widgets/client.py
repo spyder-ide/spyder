@@ -314,6 +314,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
+    def add_to_history(self, command):
+        """Add command to history"""
+        if self.shellwidget.is_debugging():
+            return
+        return super(ClientWidget, self).add_to_history(command)
+
     def _before_prompt_is_ready(self):
         """Configure shellwidget before kernel is connected."""
         self._show_loading_page()
@@ -347,7 +353,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # re-running files on dedicated consoles.
         # See spyder-ide/spyder#5958.
         if not self.shellwidget._executing:
-            self.stop_button.setDisabled(True)
+            # This avoids disabling the button while debugging
+            # see spyder-ide/spyder#13283
+            if not self.shellwidget.is_waiting_pdb_input():
+                self.stop_button.setDisabled(True)
+            else:
+                self.stop_button.setEnabled(True)
 
     @Slot()
     def stop_button_click_handler(self):
@@ -357,7 +368,9 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if not self.shellwidget.is_waiting_pdb_input():
             self.interrupt_kernel()
         else:
-            self.shellwidget.pdb_execute('exit', hidden=True)
+            self.shellwidget.pdb_execute(
+                'exit', hidden=False, echo_stack_entry=False,
+                add_history=False)
 
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget."""

@@ -32,7 +32,8 @@ import time
 # Third party imports
 from diff_match_patch import diff_match_patch
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import QPoint, QRegExp, Qt, QTimer, QUrl, Signal, Slot, QEvent
+from qtpy.QtCore import (QEvent, QPoint, QRegExp, Qt, QTimer, QThread, QUrl,
+                         Signal, Slot)
 from qtpy.QtGui import (QColor, QCursor, QFont, QIntValidator,
                         QKeySequence, QPaintEvent, QPainter, QMouseEvent,
                         QTextCharFormat, QTextCursor, QDesktopServices,
@@ -90,16 +91,18 @@ from spyder.utils.vcs import get_git_remotes, remote_to_url
 from spyder.utils.qstringhelpers import qstring_length
 from spyder.widgets.helperwidgets import MessageCheckBox
 
-
 try:
     import nbformat as nbformat
     from nbconvert import PythonExporter as nbexporter
 except Exception:
     nbformat = None  # analysis:ignore
 
-
 logger = logging.getLogger(__name__)
 
+# Timeout to update decorations (through a QTimer) when a position
+# changed is detected in the vertical scrollbar or when releasing
+# the up/down arrow keys.
+UPDATE_DECORATIONS_TIMEOUT = 500  # miliseconds
 
 # %% This line is for cell execution testing
 def is_letter_or_number(char):
@@ -503,6 +506,15 @@ class CodeEditor(TextEditBaseWidget):
         self.occurrence_timer.timeout.connect(self.__mark_occurrences)
         self.occurrences = []
 
+        # Update decorations
+        self.update_decorations_timer = QTimer(self)
+        self.update_decorations_timer.setSingleShot(True)
+        self.update_decorations_timer.setInterval(UPDATE_DECORATIONS_TIMEOUT)
+        self.update_decorations_timer.timeout.connect(
+            self.update_decorations)
+        self.verticalScrollBar().valueChanged.connect(
+            lambda value: self.update_decorations_timer.start())
+
         # Mark found results
         self.textChanged.connect(self.__text_has_changed)
         self.found_results = []
@@ -549,13 +561,11 @@ class CodeEditor(TextEditBaseWidget):
         # Keyboard shortcuts
         self.shortcuts = self.create_shortcuts()
 
-        # Code editor
+        # Paint event
         self.__visible_blocks = []  # Visible blocks, update with repaint
         self.painted.connect(self._draw_editor_cell_divider)
 
-        self.verticalScrollBar().valueChanged.connect(
-                                       lambda value: self.rehighlight_cells())
-
+        # Outline explorer
         self.oe_proxy = None
 
         # Line stripping
@@ -591,6 +601,7 @@ class CodeEditor(TextEditBaseWidget):
         self.completion_args = None
         self.folding_supported = False
         self.is_cloned = False
+        self._diagnostics = []
 
         # Editor Extensions
         self.editor_extensions = EditorExtensionsManager(self)
@@ -1832,11 +1843,6 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self.unhighlight_current_line()
 
-    def rehighlight_cells(self):
-        """Rehighlight cells when moving the scrollbar"""
-        if self.highlight_current_cell_enabled:
-            self.highlight_current_cell()
-
     def remove_trailing_spaces(self):
         """Remove trailing spaces"""
         cursor = self.textCursor()
@@ -1987,24 +1993,31 @@ class CodeEditor(TextEditBaseWidget):
                 self.get_selected_text().strip() != text):
             return
 
-        if (self.is_python_like()) and \
-           (sourcecode.is_keyword(to_text_string(text)) or \
-           to_text_string(text) == 'self'):
+        if (self.is_python_like() and
+                (sourcecode.is_keyword(to_text_string(text)) or
+                 to_text_string(text) == 'self')):
             return
 
         # Highlighting all occurrences of word *text*
         cursor = self.__find_first(text)
         self.occurrences = []
         extra_selections = self.get_extra_selections('occurrences')
+        first_occurrence = None
         while cursor:
             self.occurrences.append(cursor.blockNumber())
-            selection = self.get_selection(
-                cursor, background_color=self.occurrence_color)
-            if selection:
+            selection = self.get_selection(cursor)
+            if len(selection.cursor.selectedText()) > 0:
                 extra_selections.append(selection)
+                if len(extra_selections) == 1:
+                    first_occurrence = selection
+                else:
+                    selection.format.setBackground(self.occurrence_color)
+                    first_occurrence.format.setBackground(
+                        self.occurrence_color)
             cursor = self.__find_next(text, cursor)
         self.set_extra_selections('occurrences', extra_selections)
         self.update_extra_selections()
+
         if len(self.occurrences) > 1 and self.occurrences[-1] == 0:
             # XXX: this is never happening with PySide but it's necessary
             # for PyQt4... this must be related to a different behavior for
@@ -2408,13 +2421,21 @@ class CodeEditor(TextEditBaseWidget):
         self.sig_flags_changed.emit()
         self.linenumberarea.update()
 
-    def process_code_analysis(self, results):
-        """Process all linting results."""
-        self.cleanup_code_analysis()
-        self.setUpdatesEnabled(False)
-        document = self.document()
+    def _process_code_analysis(self, underline):
+        """
+        Process all code analysis results.
 
-        for diagnostic in results:
+        Parameters
+        ----------
+        underline: bool
+            Determines if errors and warnings are going to be set in
+            the line number area or underlined. It's better to separate
+            these two processes for perfomance reasons. That's because
+            setting errors can be done in a thread whereas underlining
+            them can't.
+        """
+        document = self.document()
+        for diagnostic in self._diagnostics:
             source = diagnostic.get('source', '')
             msg_range = diagnostic['range']
             start = msg_range['start']
@@ -2425,32 +2446,58 @@ class CodeEditor(TextEditBaseWidget):
                 'severity', DiagnosticSeverity.ERROR)
 
             block = document.findBlockByNumber(start['line'])
-            error = severity == DiagnosticSeverity.ERROR
-            color = self.error_color if error else self.warning_color
-            color = QColor(color)
-            color.setAlpha(255)
-
             data = block.userData()
             if not data:
                 data = BlockUserData(self)
 
-            data.selection_start = start
-            data.selection_end = end
-            data.code_analysis.append((source, code, severity, message))
-            block.setUserData(data)
-            block.color = color
+            if underline:
+                block_nb = block.blockNumber()
+                first, last = self.get_buffer_block_numbers()
 
-            # Underline errors and warnings in this editor.
-            if self.underline_errors_enabled:
-                self.highlight_selection('code_analysis_underline',
-                                         data._selection(),
-                                         underline_color=block.color)
+                if (self.underline_errors_enabled and
+                        first <= block_nb <= last):
+                    error = severity == DiagnosticSeverity.ERROR
+                    color = self.error_color if error else self.warning_color
+                    color = QColor(color)
+                    color.setAlpha(255)
+                    block.color = color
 
+                    data.selection_start = start
+                    data.selection_end = end
+
+                    self.highlight_selection('code_analysis_underline',
+                                             data._selection(),
+                                             underline_color=block.color)
+            else:
+                data.code_analysis.append((source, code, severity, message))
+                block.setUserData(data)
+
+    def set_errors(self):
+        """Set errors and warnings in the line number area."""
+        self._process_code_analysis(underline=False)
+
+    def underline_errors(self):
+        """Underline errors and warnings."""
+        self._process_code_analysis(underline=True)
+
+    def finish_code_analysis(self):
+        """Finish processing code analysis results."""
+        self.linenumberarea.update()
+        self.underline_errors()
+        self.update_extra_selections()
         self.sig_process_code_analysis.emit()
         self.sig_flags_changed.emit()
-        self.update_extra_selections()
-        self.setUpdatesEnabled(True)
-        self.linenumberarea.update()
+
+    def process_code_analysis(self, diagnostics):
+        """Process all code analysis results."""
+        self.cleanup_code_analysis()
+        self._diagnostics = diagnostics
+
+        # Process diagnostics in a thread to improve performance.
+        self.update_diagnostics = QThread()
+        self.update_diagnostics.run = self.set_errors
+        self.update_diagnostics.finished.connect(self.finish_code_analysis)
+        self.update_diagnostics.start()
 
     def hide_tooltip(self):
         """
@@ -2490,6 +2537,14 @@ class CodeEditor(TextEditBaseWidget):
                 self.tooltip_widget.move(at_point)
                 return
         self.hide_tooltip()
+
+    def update_decorations(self):
+        """Update decorations on the visible portion of the screen."""
+        if self.underline_errors_enabled:
+            self.underline_errors()
+            self.update_extra_selections()
+        else:
+            self.decorations.update()
 
     def show_code_analysis_results(self, line_number, block_data):
         """Show warning/error messages."""
@@ -2581,8 +2636,8 @@ class CodeEditor(TextEditBaseWidget):
         self.clear_extra_selections('code_analysis_highlight')
         self.highlight_selection('code_analysis_highlight',
                                  block_data._selection(),
-                                 background_color=block_data.color)
-        self.update_extra_selections()
+                                 background_color=block_data.color,
+                                 update=True)
         self.linenumberarea.update()
 
     def get_current_warnings(self):
@@ -3788,6 +3843,13 @@ class CodeEditor(TextEditBaseWidget):
         direction_keys = {Qt.Key_Up, Qt.Key_Left, Qt.Key_Right, Qt.Key_Down}
         if key in direction_keys:
             self.request_cursor_event()
+
+        # Update decorations after releasing these keys because they don't
+        # trigger the emission of the valueChanged signal in
+        # verticalScrollBar.
+        # See https://bugreports.qt.io/browse/QTBUG-25365
+        if key in {Qt.Key_Up,  Qt.Key_Down}:
+            self.update_decorations_timer.start()
 
         # This necessary to run our Pygments highlighter again after the
         # user generated text changes

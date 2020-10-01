@@ -208,7 +208,7 @@ install_requires = [
     'diff-match-patch>=20181111',
     'intervaltree',
     'ipython>=4.0',
-    'jedi==0.17.1',
+    'jedi==0.17.2',
     # Don't require keyring for Python 2 and Linux
     # because it depends on system packages
     'keyring;sys_platform!="linux2"',
@@ -229,7 +229,7 @@ install_requires = [
     'pyzmq>=17',
     'qdarkstyle>=2.8',
     'qtawesome>=0.5.7',
-    'qtconsole>=4.6.0',
+    'qtconsole>=4.7.7',
     'qtpy>=1.5.0',
     'sphinx>=0.6.6',
     'spyder-kernels>=1.9.4,<1.10.0',

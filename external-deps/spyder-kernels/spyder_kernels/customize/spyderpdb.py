@@ -7,7 +7,6 @@
 """Spyder debugger."""
 
 import bdb
-import pdb
 import sys
 import logging
 import traceback
@@ -52,6 +51,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         self.continue_if_has_breakpoints = False
         self.pdb_ignore_lib = False
         self.pdb_execute_events = False
+        self._disable_next_stack_entry = False
         super(SpyderPdb, self).__init__()
         self._pdb_breaking = False
 
@@ -67,6 +67,12 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         execute_events = self.pdb_execute_events
         if line[:1] == '!':
             line = line[1:]
+        # Disallow the use of %debug magic in the debugger
+        if line.startswith("%debug"):
+            self.error("Please don't use '%debug' in the debugger.\n"
+                       "For a recursive debugger, use the pdb 'debug'"
+                       " command instead")
+            return
         locals = self.curframe_locals
         globals = self.curframe.f_globals
         try:
@@ -133,20 +139,30 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             self._pdb_breaking = False
             if frame and frame.f_back:
                 return self.interaction(frame.f_back, traceback)
-        if (frame is not None
-                and "spydercustomize.py" in frame.f_code.co_filename
-                and "exec_code" == frame.f_code.co_name):
-            self.onecmd('exit')
-        else:
-            self.setup(frame, traceback)
-            if get_ipython().kernel._pdb_print_code:
-                self.print_stack_entry(self.stack[self.curindex])
-            self._cmdloop()
-            self.forget()
+
+        self.setup(frame, traceback)
+        self.print_stack_entry(self.stack[self.curindex])
+        self._cmdloop()
+        self.forget()
+
+    def print_stack_entry(self, frame_lineno, prompt_prefix='\n-> ',
+                          context=None):
+        """Disable printing stack entry if requested."""
+        if self._disable_next_stack_entry:
+            self._disable_next_stack_entry = False
+            return
+        return super(SpyderPdb, self).print_stack_entry(
+            frame_lineno, prompt_prefix, context)
 
     # --- Methods overriden for skipping libraries
     def stop_here(self, frame):
         """Check if pdb should stop here."""
+        if (frame is not None
+                and frame.f_locals.get(
+                    "__tracebackhide__", False) == "__pdb_exit__"):
+            self.onecmd('exit')
+            return False
+
         if not super(SpyderPdb, self).stop_here(frame):
             return False
         filename = frame.f_code.co_filename
@@ -278,6 +294,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 self.notify_spyder()
         except (CommError, TimeoutError):
             logger.debug("Could not get breakpoints from the frontend.")
+        super(SpyderPdb, self).preloop()
 
     def postloop(self):
         """Notifies spyder that the loop has ended."""
@@ -302,6 +319,18 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         Register Pdb session after reset.
         """
         super(SpyderPdb, self).reset()
+        kernel = get_ipython().kernel
+        kernel._register_pdb_session(self)
+
+    def do_debug(self, arg):
+        """
+        Debug code
+
+        Enter a recursive debugger that steps through the code
+        argument (which is an arbitrary expression or statement to be
+        executed in the current environment).
+        """
+        super(SpyderPdb, self).do_debug(arg)
         kernel = get_ipython().kernel
         kernel._register_pdb_session(self)
 
@@ -334,14 +363,13 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 try:
                     frontend_request(blocking=True).set_debug_state(False)
                 except (CommError, TimeoutError):
-                    logger.debug("Could not send debugging state to the frontend.")
+                    logger.debug(
+                        "Could not send debugging state to the frontend.")
                 raise
 
     def postcmd(self, stop, line):
         """
         Notify spyder on any pdb command.
-
-        Is that good or too lazy? i.e. is more specific behaviour desired?
         """
         self.notify_spyder(self.curframe)
         return super(SpyderPdb, self).postcmd(stop, line)
@@ -419,7 +447,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                     breaks and
                     lineno < breaks[0]):
                 try:
-                    get_ipython().kernel.pdb_continue()
+                    frontend_request(blocking=False).pdb_execute('continue')
                 except (CommError, TimeoutError):
                     logger.debug(
                         "Could not send a Pdb continue call to the frontend.")

@@ -38,6 +38,9 @@ else
     # Install qtconsole from Github
     pip install git+https://github.com/jupyter/qtconsole.git
 
+    # Install QtAwesome from Github
+    pip install git+https://github.com/spyder-ide/qtawesome.git
+
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y
     pip uninstall python-language-server -q -y

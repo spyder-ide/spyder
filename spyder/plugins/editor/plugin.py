@@ -169,8 +169,6 @@ class Editor(SpyderPluginWidget):
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
-        self.find_widget.visibility_changed.connect(
-                                          lambda vs: self.rehighlight_cells())
         self.register_widget_shortcuts(self.find_widget)
 
         # Start autosave component
@@ -519,6 +517,7 @@ class Editor(SpyderPluginWidget):
                                     context=Qt.WidgetShortcut)
         self.register_shortcut(set_clear_breakpoint_action, context="Editor",
                                name="Breakpoint")
+
         set_cond_breakpoint_action = create_action(self,
                             _("Set/Edit conditional breakpoint"),
                             icon=ima.icon('breakpoint_cond_big'),
@@ -526,15 +525,22 @@ class Editor(SpyderPluginWidget):
                             context=Qt.WidgetShortcut)
         self.register_shortcut(set_cond_breakpoint_action, context="Editor",
                                name="Conditional breakpoint")
+
         clear_all_breakpoints_action = create_action(self,
                                     _('Clear breakpoints in all files'),
                                     triggered=self.clear_all_breakpoints)
-        pdb_ignore_lib = create_action(
+
+        pdb_ignore_lib_action = create_action(
             self, _("Ignore Python libraries while debugging"),
             toggled=self.toggle_pdb_ignore_lib)
-        pdb_execute_events = create_action(
+        pdb_ignore_lib_action.setChecked(
+            CONF.get('run', 'pdb_ignore_lib'))
+
+        pdb_execute_events_action = create_action(
             self, _("Process execute events while debugging"),
             toggled=self.toggle_pdb_execute_events)
+        pdb_execute_events_action.setChecked(
+            CONF.get('run', 'pdb_execute_events'))
 
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
@@ -585,7 +591,7 @@ class Editor(SpyderPluginWidget):
         self.debug_exit_action = create_action(
             self, _("Stop"),
             icon=ima.icon('stop_debug'), tip=_("Stop debugging"),
-            triggered=lambda: self.debug_command("exit"))
+            triggered=self.stop_debugging)
         self.register_shortcut(self.debug_exit_action, "_", "Debug Exit",
                                add_shortcut_to_tip=True)
 
@@ -984,8 +990,8 @@ class Editor(SpyderPluginWidget):
             self.debug_continue_action,
             self.debug_exit_action,
             MENU_SEPARATOR,
-            pdb_ignore_lib,
-            pdb_execute_events,
+            pdb_ignore_lib_action,
+            pdb_execute_events_action,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             clear_all_breakpoints_action,
@@ -1096,12 +1102,14 @@ class Editor(SpyderPluginWidget):
     def toggle_pdb_ignore_lib(self, checked):
         """"Set pdb_ignore_lib"""
         CONF.set('run', 'pdb_ignore_lib', checked)
-        self.main.ipyconsole.set_pdb_ignore_lib()
+        if self.main.ipyconsole is not None:
+            self.main.ipyconsole.set_pdb_ignore_lib()
 
     def toggle_pdb_execute_events(self, checked):
         """"Set pdb_execute_events"""
         CONF.set('run', 'pdb_execute_events', checked)
-        self.main.ipyconsole.set_pdb_execute_events()
+        if self.main.ipyconsole is not None:
+            self.main.ipyconsole.set_pdb_execute_events()
 
     def update_pdb_state(self, state, last_step):
         """Enable/disable debugging actions and handle pdb state change."""
@@ -1680,12 +1688,6 @@ class Editor(SpyderPluginWidget):
                  results is not None and len(results))
         if state is not None:
             self.todo_list_action.setEnabled(state)
-
-    def rehighlight_cells(self):
-        """Rehighlight cells of current editor"""
-        editor = self.get_current_editor()
-        editor.rehighlight_cells()
-        QApplication.processEvents()
 
     @Slot(set)
     def update_active_languages(self, languages):
@@ -2524,10 +2526,16 @@ class Editor(SpyderPluginWidget):
                 editorstack.data[index].editor.debugger.toogle_breakpoint(
                         lineno)
 
+    def stop_debugging(self):
+        """Stop debugging"""
+        self.main.ipyconsole.stop_debugging()
+
     def debug_command(self, command):
         """Debug actions"""
         self.switch_to_plugin()
-        self.main.ipyconsole.pdb_execute(command, hidden=True, echo_code=False)
+        self.main.ipyconsole.pdb_execute(
+            command, hidden=False, echo_stack_entry=False,
+            add_history=False)
         focus_widget = self.main.ipyconsole.get_focus_widget()
         if focus_widget:
             focus_widget.setFocus()
