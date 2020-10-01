@@ -29,8 +29,9 @@ from spyder.utils.qthelpers import (create_action, create_toolbutton,
                                     create_waitspinner)
 from spyder.widgets.onecolumntree import OneColumnTree
 
-CELL = 225
+# Additional symbol constants (non-standard)
 BLOCK_COMMENT = 224
+CELL = 225
 
 SYMBOL_KIND_ICON = {
     SymbolKind.FILE: 'file',
@@ -59,8 +60,8 @@ SYMBOL_KIND_ICON = {
     SymbolKind.EVENT: 'event',
     SymbolKind.OPERATOR: 'operator',
     SymbolKind.TYPE_PARAMETER: 'type_parameter',
-    CELL: 'cell',
-    BLOCK_COMMENT: 'blockcomment'
+    BLOCK_COMMENT: 'blockcomment',
+    CELL: 'cell'
 }
 
 SYMBOL_NAME_MAP = {
@@ -351,11 +352,16 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                                         toggled=self.toggle_group_cells)
         group_cells_act.setChecked(self.group_cells)
         display_variables_act = create_action(
-            self, text=_('Display variables'), toggled=self.toggle_variables)
+            self,
+            text=_('Display variables'),
+            toggled=self.toggle_variables
+        )
         display_variables_act.setChecked(self.display_variables)
         display_innermost_act = create_action(
-            self, text=_('Always display the innermost element'),
-            toggled=self.toggle_innermost)
+            self,
+            text=_('Always display the innermost element'),
+            toggled=self.toggle_innermost
+        )
         display_innermost_act.setChecked(self.display_innermost)
         sort_files_alphabetically_act = create_action(
             self, text=_('Sort files alphabetically'),
@@ -407,7 +413,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     @Slot(bool)
     def toggle_variables(self, state):
         self.display_variables = state
-        # self.update_all()
         for editor, editor_id in list(self.editor_ids.items()):
             editor.request_symbols()
 

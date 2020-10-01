@@ -162,7 +162,7 @@ class OutlineExplorerProxy(QObject):
         raise NotImplementedError
 
     def request_symbols(self):
-        """Request symbols of the current editor."""
+        """Request current editor symbols."""
         raise NotImplementedError
 
 

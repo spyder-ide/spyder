@@ -161,7 +161,7 @@ DESCRIPTIONS = [
      'required_version': PYLS_REQVER},
     {'modname': 'pyls_spyder',
      'package_name': 'pyls-spyder',
-     'features': _('Spyder extensions for the pyls'),
+     'features': _('Spyder plugin for the Python Language Server'),
      'required_version': PYLS_SPYDER_REQVER},
     {'modname': "xdg",
      'package_name': "pyxdg",
