@@ -144,7 +144,9 @@ def create_outlineexplorer(qtbot):
 
         editor = OutlineExplorerProxyEditor(code_editor, filename)
 
-        outlineexplorer = OutlineExplorerWidget(follow_cursor=follow_cursor)
+        outlineexplorer = OutlineExplorerWidget(follow_cursor=follow_cursor,
+                                                display_innermost=True,
+                                                display_variables=True)
         outlineexplorer.set_current_editor(editor, False, False)
         outlineexplorer.show()
         outlineexplorer.setFixedSize(400, 350)

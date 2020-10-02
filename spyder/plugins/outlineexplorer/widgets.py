@@ -439,11 +439,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             overlap = tree[line - 1]
             if len(overlap) == 0:
                 item = root.node
+                self.setCurrentItem(item)
+                self.scrollToItem(item)
             else:
                 sorted_nodes = sorted(overlap)
                 # The last item of the sorted elements correspond to the current
                 # node if expanding, otherwise it is the first stopper found
-                if language.lower() != 'python' or not expand:
+                if language.lower() != 'python' or expand:
                     idx = -1
                     self.switch_to_node(sorted_nodes, idx)
                 else:
