@@ -38,8 +38,8 @@ else
     # Install qtconsole from Github
     pip install git+https://github.com/jupyter/qtconsole.git
 
-    # Pin QtAwesome to 0.7.3 until we can update to 1.0.0
-    pip install qtawesome==0.7.3
+    # Install QtAwesome from Github
+    pip install git+https://github.com/spyder-ide/qtawesome.git
 
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y

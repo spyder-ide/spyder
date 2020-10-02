@@ -36,7 +36,7 @@ class FakeObject(object):
 # Numpy arrays and numeric types support
 #==============================================================================
 try:
-    from numpy import (ndarray, array, matrix, recarray,
+    from numpy import (ndarray, array, matrix, recarray, integer,
                        int64, int32, int16, int8, uint64, uint32, uint16, uint8,
                        float64, float32, float16, complex64, complex128, bool_)
     from numpy.ma import MaskedArray
@@ -118,24 +118,33 @@ def try_to_eval(value):
     except (NameError, SyntaxError, ImportError):
         return value
 
-    
+
 def get_size(item):
-    """Return size of an item of arbitrary type"""
-    if isinstance(item, (list, set, tuple, dict)):
-        return len(item)
-    elif isinstance(item, (ndarray, MaskedArray)):
-        return item.shape
-    elif isinstance(item, Image):
-        return item.size
-    if isinstance(item, (DataFrame, Index, Series)):
-        try:
-            return item.shape
-        except RecursionError:
-            # This is necessary to avoid an error when trying to
-            # get the shape of these objects.
-            # Fixes spyder-ide/spyder-kernels#217
-            return (-1, -1)
-    else:
+    """Return shape/size/len of an item of arbitrary type"""
+    try:
+        if hasattr(item, 'shape') and isinstance(item.shape, (tuple, integer)):
+            try:
+                if item.shape:
+                    return item.shape
+                else:
+                    # Scalar value
+                    return 1
+            except RecursionError:
+                # This is necessary to avoid an error when trying to
+                # get the shape of these objects.
+                # Fixes spyder-ide/spyder-kernels#217
+                return (-1, -1)
+        elif hasattr(item, 'size') and isinstance(item.size, (tuple, integer)):
+            try:
+                return item.size
+            except RecursionError:
+                return (-1, -1)
+        elif hasattr(item, '__len__'):
+            return len(item)
+        else:
+            return 1
+    except Exception:
+        # There is one item
         return 1
 
 

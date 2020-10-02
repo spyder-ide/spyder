@@ -1049,11 +1049,12 @@ class MainWindow(QMainWindow):
         self.register_shortcut(doc_action, "_",
                                "spyder documentation")
 
-        if self.help is not None:
-            tut_action = create_action(self, _("Spyder tutorial"),
-                                       triggered=self.help.show_tutorial)
-        else:
-            tut_action = None
+        spyder_vid = ("https://www.youtube.com/playlist"
+                      "?list=PLPonohdiDqg9epClEcXoAPUiK0pN5eRoc")
+        vid_action = create_action(self, _("Tutorial videos"),
+                                   icon=ima.icon('VideoIcon'),
+                                   triggered=lambda:
+                                   programs.start_file(spyder_vid))
 
         shortcuts_action = create_action(self, _("Shortcuts Summary"),
                                          shortcut="Meta+F1",
@@ -1080,7 +1081,7 @@ class MainWindow(QMainWindow):
 
         self.tours_menu.addActions(self.tour_menu_actions)
 
-        self.help_menu_actions = [doc_action, tut_action, shortcuts_action,
+        self.help_menu_actions = [doc_action, vid_action, shortcuts_action,
                                   self.tours_menu,
                                   MENU_SEPARATOR, trouble_action,
                                   report_action, dep_action,
