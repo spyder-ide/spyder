@@ -5,6 +5,7 @@ Based on the Mu's win_installer.py script
 https://github.com/mu-editor/mu/blob/master/win_installer.py
 """
 
+import argparse
 import os
 import re
 import shutil
@@ -14,6 +15,10 @@ import tempfile
 
 import yarg
 
+
+# Packages to remove from the requirements for example pip
+
+UNWANTED_PACKAGES = ['pip']
 
 # Packages to skip checking for wheels and instead add them directly in the
 # 'packages' section
@@ -189,7 +194,7 @@ def create_pynsist_cfg(
         # Those from pip freeze except the package itself.
         line
         for line in pip_freeze(python, encoding=encoding)
-        if package_name(line) != package
+        if package_name(line) != package and package_name(line) not in UNWANTED_PACKAGES
     ]
     skip_wheels = [package] + SKIP_PACKAGES
     wheels = pypi_wheels_in(requirements, skip_wheels)
@@ -222,7 +227,7 @@ def create_pynsist_cfg(
 
 
 def run(conda_path, python_version, bitness, repo_root, entrypoint,
-        package, icon_path, license_path):
+        package, icon_path, license_path, extra_packages=None):
     """
     Run the installer generation.
 
@@ -230,60 +235,86 @@ def run(conda_path, python_version, bitness, repo_root, entrypoint,
     package name, icon path and license path a pynsist configuration file
     (locking the dependencies set in setup.py) is generated and pynsist runned.
     """
-    with tempfile.TemporaryDirectory(prefix="installer-pynsist-") as work_dir:
-        print("Temporary working directory at", work_dir)
+    try:
+        with tempfile.TemporaryDirectory(prefix="installer-pynsist-") as work_dir:
+            print("Temporary working directory at", work_dir)
 
-        print("Creating the package virtual environment.")
-        env_python = create_packaging_env(conda_path, work_dir, python_version)
+            print("Creating the package virtual environment.")
+            env_python = create_packaging_env(conda_path, work_dir, python_version)
 
-        print("Updating pip in the virtual environment", env_python)
-        subprocess_run(
-            [env_python, "-m", "pip", "install", "--upgrade", "pip",
-             "--no-warn-script-location"]
-        )
+            print("Updating pip in the virtual environment", env_python)
+            subprocess_run(
+                [env_python, "-m", "pip", "install", "--upgrade", "pip",
+                 "--no-warn-script-location"]
+            )
 
-        print("Updating setuptools in the virtual environment", env_python)
-        subprocess_run(
-            [env_python, "-m", "pip", "install", "--upgrade", "setuptools",
-             "--no-warn-script-location"]
-        )
+            print("Updating setuptools in the virtual environment", env_python)
+            subprocess_run(
+                [env_python, "-m", "pip", "install", "--upgrade", "setuptools",
+                 "--no-warn-script-location"]
+            )
 
-        print("Installing package with", env_python)
-        subprocess_run([env_python, "-m",
-                        "pip", "install", repo_root,
-                        "--no-warn-script-location"])
+            print("Installing package with", env_python)
+            subprocess_run([env_python, "-m",
+                            "pip", "install", repo_root,
+                            "--no-warn-script-location"])
 
-        pynsist_cfg = os.path.join(work_dir, "pynsist.cfg")
-        print("Creating pynsist configuration file", pynsist_cfg)
-        installer_exe = create_pynsist_cfg(
-            env_python, python_version, repo_root, entrypoint, package,
-            icon_path, license_path, pynsist_cfg)
+            if extra_packages:
+                print("Installing extra packages.")
+                subprocess_run([env_python, "-m", "pip", "install", "-r",
+                                extra_packages, "--no-warn-script-location"])
 
-        print("Installing pynsist.")
-        subprocess_run([env_python, "-m", "pip", "install", PYNSIST_REQ,
-                        "--no-warn-script-location"])
+            pynsist_cfg = os.path.join(work_dir, "pynsist.cfg")
+            print("Creating pynsist configuration file", pynsist_cfg)
+            installer_exe = create_pynsist_cfg(
+                env_python, python_version, repo_root, entrypoint, package,
+                icon_path, license_path, pynsist_cfg)
 
-        print("Running pynsist.")
-        subprocess_run([env_python, "-m", "nsist", pynsist_cfg])
+            print("Installing pynsist.")
+            subprocess_run([env_python, "-m", "pip", "install", PYNSIST_REQ,
+                            "--no-warn-script-location"])
 
-        destination_dir = os.path.join(repo_root, "dist")
-        print("Copying installer file to", destination_dir)
-        os.makedirs(destination_dir, exist_ok=True)
-        shutil.copy(
-            os.path.join(work_dir, "build", "nsis", installer_exe),
-            destination_dir,
-        )
+            print("Running pynsist.")
+            subprocess_run([env_python, "-m", "nsist", pynsist_cfg])
+
+            destination_dir = os.path.join(repo_root, "dist")
+            print("Copying installer file to", destination_dir)
+            os.makedirs(destination_dir, exist_ok=True)
+            shutil.copy(
+                os.path.join(work_dir, "build", "nsis", installer_exe),
+                destination_dir,
+            )
+            print("Installer created!")
+    except PermissionError:
+        pass
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 9:
-        sys.exit(
-            "Supply conda path, python version, bitness (32 or 64), "
-            "path to setup.py, entrypoint, package name, path to icon "
-            "and path to license")
+    parser = argparse.ArgumentParser(
+        description='Build a Windows installer with Pynsist')
+    parser.add_argument('conda_path', help='Path to conda executable')
+    parser.add_argument(
+        'python_version', help='Python version of the installer')
+    parser.add_argument('bitness', help='Bitness of the installer (32, 64)')
+    parser.add_argument('setup_py_path', help='Path to the setup.py file')
+    parser.add_argument('entrypoint', help='Entrypoint to execute the package')
+    parser.add_argument('package', help='Name of the package')
+    parser.add_argument(
+        'icon_path', help='Path to icon to use for the installer')
+    parser.add_argument('license_path', help='Path to license file')
+    parser.add_argument(
+        '-ep', '--extra_packages',
+        help='''Path to a .txt file with a list of packages to be added '''
+             '''to the installer besides the dependencies of '''
+             '''the main package''')
 
+    args = parser.parse_args()
+    from operator import attrgetter
     (conda_path, python_version, bitness, setup_py_path, entrypoint,
-     package, icon_path, license_path) = sys.argv[1:]
+     package, icon_path, license_path, extra_packages) = attrgetter(
+         'conda_path', 'python_version', 'bitness', 'setup_py_path',
+         'entrypoint', 'package', 'icon_path', 'license_path',
+         'extra_packages')(args)
 
     if not setup_py_path.endswith("setup.py"):
         sys.exit("Invalid path to setup.py:", setup_py_path)
@@ -291,6 +322,8 @@ if __name__ == "__main__":
     repo_root = os.path.abspath(os.path.dirname(setup_py_path))
     icon_file = os.path.abspath(icon_path)
     license_file = os.path.abspath(license_path)
+    if extra_packages:
+        extra_packages = os.path.abspath(extra_packages)
 
     run(conda_path, python_version, bitness, repo_root, entrypoint,
-        package, icon_file, license_file)
+        package, icon_file, license_file, extra_packages)
