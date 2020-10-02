@@ -19,7 +19,7 @@ from qtpy.QtWidgets import QMessageBox
 import requests
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, running_under_pytest
 from spyder.config.manager import CONF
 from spyder.plugins.completion.kite import KITE_ENDPOINTS, KITE_REQUEST_MAPPING
 from spyder.plugins.completion.kite.decorators import class_register
@@ -173,15 +173,16 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
                 if response is not None:
                     response = converter(response)
         if not isinstance(response, dict):
-            QMessageBox.critical(
-                self, _('Kite error'),
-                _("The Kite completion engine returned an unexpected result "
-                  "for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>"
-                  "Please make sure that your Kite installation is correct. "
-                  "In the meantime, Spyder will disable the Kite client to "
-                  "prevent further errors. For more information, please "
-                  "visit the <a href='https://help.kite.com/'>Kite help "
-                  "center</a>").format(method, response))
-            CONF.set('kite', 'enable', False)
+            if not running_under_pytest():
+                QMessageBox.critical(
+                    self, _('Kite error'),
+                    _("The Kite completion engine returned an unexpected result "
+                    "for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>"
+                    "Please make sure that your Kite installation is correct. "
+                    "In the meantime, Spyder will disable the Kite client to "
+                    "prevent further errors. For more information, please "
+                    "visit the <a href='https://help.kite.com/'>Kite help "
+                    "center</a>").format(method, response))
+                CONF.set('kite', 'enable', False)
         else:
             self.sig_response_ready.emit(req_id, response or {})
