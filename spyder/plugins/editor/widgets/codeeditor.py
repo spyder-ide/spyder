@@ -1537,9 +1537,14 @@ class CodeEditor(TextEditBaseWidget):
                 'trim_final_new_lines': self.remove_trailing_newlines
             }
         }
+
+        # Sets the document into read-only and updates its corresponding
+        # tab name to display the filename into parenthesis
         self.setReadOnly(True)
+        self.document().setModified(True)
         self.sig_start_operation_in_progress.emit()
         self.operation_in_progress = True
+
         return params
 
     @request(method=LSPRequestTypes.DOCUMENT_RANGE_FORMATTING)
@@ -1575,9 +1580,14 @@ class CodeEditor(TextEditBaseWidget):
                 'trim_final_new_lines': self.remove_trailing_newlines
             }
         }
+
+        # Sets the document into read-only and updates its corresponding
+        # tab name to display the filename into parenthesis
         self.setReadOnly(True)
+        self.document().setModified(True)
         self.sig_start_operation_in_progress.emit()
         self.operation_in_progress = True
+
         return params
 
     @handles(LSPRequestTypes.DOCUMENT_FORMATTING)
@@ -1592,7 +1602,10 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing document "
                                        "formatting")
         finally:
+            # Remove read-only parenthesis and highlight document modification
             self.setReadOnly(False)
+            self.document().setModified(False)
+            self.document().setModified(True)
             self.sig_stop_operation_in_progress.emit()
             self.operation_in_progress = False
 
@@ -1608,7 +1621,10 @@ class CodeEditor(TextEditBaseWidget):
             self.log_lsp_handle_errors("Error when processing document "
                                        "selection formatting")
         finally:
+            # Remove read-only parenthesis and highlight document modification
             self.setReadOnly(False)
+            self.document().setModified(False)
+            self.document().setModified(True)
             self.sig_stop_operation_in_progress.emit()
             self.operation_in_progress = False
 

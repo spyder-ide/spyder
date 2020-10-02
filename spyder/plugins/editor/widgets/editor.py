@@ -2048,6 +2048,7 @@ class EditorStack(QWidget):
             osname_lookup = {'LF': 'posix', 'CRLF': 'nt', 'CR': 'mac'}
             osname = osname_lookup[self.convert_eol_on_save_to]
             self.set_os_eol_chars(osname=osname)
+
         try:
             if self.format_on_save and finfo.editor.formatting_enabled:
                 # Autoformat document and then save
