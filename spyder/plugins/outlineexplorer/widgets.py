@@ -603,12 +603,15 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         for symbol in items:
             symbol_name = symbol['name']
             symbol_kind = symbol['kind']
-            if (symbol_kind == SymbolKind.MODULE and
-                    language.lower() == 'python'):
-                continue
-            if (symbol_kind == SymbolKind.VARIABLE and
-                    not self.display_variables):
-                continue
+            if language.lower() == 'python':
+                if symbol_kind == SymbolKind.MODULE:
+                    continue
+                if (symbol_kind == SymbolKind.VARIABLE and
+                        not self.display_variables):
+                    continue
+                if (symbol_kind == SymbolKind.FIELD and
+                        not self.display_variables):
+                    continue
             # NOTE: This could be also a DocumentSymbol
             symbol_range = symbol['location']['range']
             symbol_start = symbol_range['start']['line']
