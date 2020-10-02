@@ -4040,8 +4040,9 @@ class CodeEditor(TextEditBaseWidget):
         # Document formatting
         formatter = CONF.get('lsp-server', 'formatting')
         self.format_action = create_action(
-            self, _('Format the current file or selection with {0}').format(
-                formatter),
+            self,
+            _('Format the current file or selection with {0}').format(
+                formatter.capitalize()),
             shortcut=CONF.get_shortcut('editor', 'autoformatting'),
             triggered=self.format_document_or_range)
 
@@ -4816,6 +4817,11 @@ class CodeEditor(TextEditBaseWidget):
         self.run_selection_action.setVisible(self.is_python())
         self.re_run_last_cell_action.setVisible(self.is_python())
         self.gotodef_action.setVisible(self.go_to_definition_enabled)
+
+        formatter = CONF.get('lsp-server', 'formatting')
+        self.format_action.setText(_(
+            'Format the current file or selection with {0}').format(
+                formatter.capitalize()))
 
         # Check if a docstring is writable
         writer = self.writer_docstring

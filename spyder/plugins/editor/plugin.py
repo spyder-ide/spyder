@@ -811,8 +811,8 @@ class Editor(SpyderPluginWidget):
         formatter = CONF.get('lsp-server', 'formatting')
         self.formatting_action = create_action(
             self,
-            _("Format the current file or selection with {0}").format(
-                formatter),
+            _('Format the current file or selection with {0}').format(
+                formatter.capitalize()),
             shortcut=CONF.get_shortcut('editor', 'autoformatting'),
             context=Qt.WidgetShortcut,
             triggered=self.format_document_or_selection)
@@ -1655,6 +1655,12 @@ class Editor(SpyderPluginWidget):
 
     def refresh_formatting(self, status):
         self.formatting_action.setEnabled(status)
+
+    def refresh_formatter_name(self):
+        formatter = CONF.get('lsp-server', 'formatting')
+        self.formatting_action.setText(
+            _('Format the current file or selection with {0}').format(
+                formatter.capitalize()))
 
     #------ Slots
     def opened_files_list_changed(self):
