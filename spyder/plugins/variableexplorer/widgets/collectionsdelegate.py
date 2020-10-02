@@ -195,19 +195,19 @@ class CollectionsDelegate(QItemDelegate):
             return None
         # QDateEdit and QDateTimeEdit for a dates or datetime respectively
         elif isinstance(value, datetime.date) and not object_explorer:
-            # Needed to handle NaT values
-            # See spyder-ide/spyder#8329
-            try:
-                value.time()
-            except ValueError:
-                self.sig_editor_shown.emit()
-                return None
             if readonly:
                 self.sig_editor_shown.emit()
                 return None
             else:
                 if isinstance(value, datetime.datetime):
                     editor = QDateTimeEdit(value, parent=parent)
+                    # Needed to handle NaT values
+                    # See spyder-ide/spyder#8329
+                    try:
+                        value.time()
+                    except ValueError:
+                        self.sig_editor_shown.emit()
+                        return None
                 else:
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)

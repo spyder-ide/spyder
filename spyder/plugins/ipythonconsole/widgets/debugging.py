@@ -265,6 +265,9 @@ class DebuggingWidget(DebuggingHistoryWidget):
             self._finalize_input_request()
             hidden = True
 
+            # Emit executing
+            self.executing.emit(line)
+
         if self._pdb_input_ready:
             # Print the string to the console
             self._pdb_input_ready = False
@@ -441,12 +444,10 @@ class DebuggingWidget(DebuggingHistoryWidget):
             else:
                 if self._reading_callback:
                     self._reading_callback()
-
             return
-        if not self._executing:
-            # Only execute if not executing
-            return super(DebuggingWidget, self).execute(
-                source, hidden, interactive)
+
+        return super(DebuggingWidget, self).execute(
+            source, hidden, interactive)
 
     def _pdb_readline_callback(self, line):
         """Callback used when the user inputs text in pdb."""

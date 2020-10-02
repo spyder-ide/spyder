@@ -1836,5 +1836,90 @@ def test_recursive_pdb(ipyconsole, qtbot):
         shell.execute("1 + 1")
     assert control.toPlainText().split()[-1] == "[3]:"
 
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(os.name == 'nt', reason="Doesn't work on windows")
+def test_stop_pdb(ipyconsole, qtbot):
+    """Test if we can stop pdb"""
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+    control = ipyconsole.get_focus_widget()
+    stop_button = ipyconsole.get_current_client().stop_button
+    # Enter pdb
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("%debug print()")
+    # Start and interrupt a long execution
+    shell.execute("import time; time.sleep(10)")
+    qtbot.wait(500)
+    with qtbot.waitSignal(shell.executed, timeout=1000):
+        qtbot.mouseClick(stop_button, Qt.LeftButton)
+    assert "KeyboardInterrupt" in control.toPlainText()
+    # We are still in the debugger
+    assert control.toPlainText().split()[-1] == 'ipdb>'
+    # Leave the debugger
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(stop_button, Qt.LeftButton)
+    assert control.toPlainText().split()[-1] != 'ipdb>'
+
+
+
+@flaky(max_runs=3)
+@pytest.mark.skipif(sys.platform == 'nt', reason="Times out on Windows")
+def test_code_cache(ipyconsole, qtbot):
+    """
+    Test that code sent to execute is properly cached
+    and that the cache is empited on interrupt.
+    """
+    shell = ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Give focus to the widget that's going to receive clicks
+    control = ipyconsole.get_focus_widget()
+    control.setFocus()
+
+    def check_value(name, value):
+        try:
+            return shell.get_value(name) == value
+        except KeyError:
+            return False
+
+    # Send two execute requests and make sure the second one is executed
+    shell.execute('import time; time.sleep(.5)')
+    shell.execute('var = 142')
+    qtbot.wait(500)
+    qtbot.waitUntil(lambda: check_value('var', 142))
+    assert shell.get_value('var') == 142
+
+    # Send two execute requests and cancel the second one
+    shell.execute('import time; time.sleep(.5)')
+    shell.execute('var = 1000')
+    shell.interrupt_kernel()
+    qtbot.wait(1000)
+    # Make sure the value of var didn't change
+    assert shell.get_value('var') == 142
+
+    # Same for debugging
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug print()')
+
+    assert 'ipdb>' in shell._control.toPlainText()
+    # Send two execute requests and make sure the second one is executed
+    shell.execute('time.sleep(.5)')
+    shell.execute('var = 318')
+    qtbot.wait(500)
+    qtbot.waitUntil(lambda: check_value('var', 318))
+    assert shell.get_value('var') == 318
+
+    # Send two execute requests and cancel the second one
+    shell.execute('import time; time.sleep(.5)')
+    shell.execute('var = 1000')
+    shell.interrupt_kernel()
+    qtbot.wait(1000)
+    # Make sure the value of var didn't change
+    assert shell.get_value('var') == 318
+
+
 if __name__ == "__main__":
     pytest.main()

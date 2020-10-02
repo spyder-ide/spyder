@@ -2031,17 +2031,6 @@ def test_troubleshooting_menu_item_and_url(monkeypatch):
     assert MockQDesktopServices.openUrl.call_count == 1
     mockQDesktopServices_instance.openUrl.called_once_with(__trouble_url__)
 
-    # Check that the URL resolves correctly. Ignored if no internet connection.
-    try:
-        urlopen("https://www.github.com", timeout=1)
-    except Exception:
-        pass
-    else:
-        try:
-            urlopen(__trouble_url__, timeout=1)
-        except URLError:
-            raise
-
 
 @flaky(max_runs=3)
 @pytest.mark.slow
@@ -2679,6 +2668,28 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
 
 @pytest.mark.slow
 @flaky(max_runs=3)
+def test_runcell_leading_indent(main_window, qtbot, tmpdir):
+    """Test the runcell command with leading indent."""
+    # Write code with a cell to a file
+    code = ("def a():\n    return\nif __name__ == '__main__':\n"
+            "# %%\n    print(1233 + 1)\n")
+    p = tmpdir.join("cell-test.py")
+    p.write(code)
+    main_window.editor.load(to_text_string(p))
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Execute runcell
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("runcell(1, r'{}')".format(to_text_string(p)))
+
+    assert "1234" in shell._control.toPlainText()
+    assert "This is not valid Python code" not in shell._control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
 def test_varexp_rename(main_window, qtbot, tmpdir):
     """
     Test renaming a variable.
@@ -2907,6 +2918,43 @@ def test_runcell_pdb(main_window, qtbot):
 
     # Make sure the local variables are detected
     assert "abba 27" in shell._control.toPlainText()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.parametrize(
+    "debug", [False, True])
+def test_runcell_cache(main_window, qtbot, debug):
+    """Test the runcell command cache."""
+    # Write code with a cell to a file
+    code = ("import time\n"
+            "time.sleep(.5)\n"
+            "# %%\n"
+            "print('Done')\n")
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(code)
+
+    if debug:
+        # Start debugging
+        with qtbot.waitSignal(shell.executed):
+            shell.execute("%debug print()")
+
+    # Run the two cells
+    code_editor.setFocus()
+    code_editor.move_cursor(0)
+    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.wait(100)
+    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    qtbot.wait(500)
+
+    qtbot.waitUntil(lambda: "Done" in shell._control.toPlainText())
 
 
 # --- Path manager

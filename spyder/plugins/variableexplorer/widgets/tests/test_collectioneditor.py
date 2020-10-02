@@ -27,7 +27,7 @@ import pandas
 import pytest
 from flaky import flaky
 from qtpy.QtCore import Qt, QPoint
-from qtpy.QtWidgets import QWidget
+from qtpy.QtWidgets import QWidget, QDateEdit
 
 # Local imports
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
@@ -479,6 +479,26 @@ def test_rename_and_duplicate_item_in_collection_editor():
             assert editor.source_model.get_data() == coll_copy + [coll_copy[0]]
 
 
+def test_edit_datetime(monkeypatch):
+    """
+    Test datetimes are editable and NaT values are correctly handled.
+
+    Regression test for spyder-ide/spyder#13557 and spyder-ide/spyder#8329
+    """
+    variables = [pandas.NaT, datetime.date.today()]
+    editor_list = CollectionsEditorTableView(None, variables)
+
+    # Test that the NaT value cannot be edited on the variable explorer
+    editor_list_value = editor_list.delegate.createEditor(
+        None, None, editor_list.model.index(0, 3))
+    assert editor_list_value is None
+
+    # Test that a date can be edited on the variable explorer
+    editor_list_value = editor_list.delegate.createEditor(
+        None, None, editor_list.model.index(1, 3))
+    assert isinstance(editor_list_value, QDateEdit)
+
+
 def test_edit_mutable_and_immutable_types(monkeypatch):
     """
     Test that mutable objs/vals are editable in VarExp; immutable ones aren't.
@@ -846,7 +866,7 @@ def test_dicts_natural_sorting(qtbot):
         'GUI sorting fail'
 
 
-def test_dicts_natural_sorting_mixed_types(qtbot):
+def test_dicts_natural_sorting_mixed_types():
     """
     Test that natural sorting actually does what it should do.
     testing for issue 13733, as mixed types were sorted incorrectly.
@@ -870,27 +890,27 @@ def test_dicts_natural_sorting_mixed_types(qtbot):
 
     assert keys == ['aStr', 'DSeries', 'kDict']
     assert types == ['str', 'Series', 'dict']
-    assert sizes == [1, (0,), 2]
+    assert sizes == [str_size, (0,), 2]
 
     assert data_table(cm, 3, 3) == [['aStr', 'DSeries', 'kDict'],
                                     ['str', 'Series', 'dict'],
-                                    [1, '(0,)', 2]]
+                                    [str_size, '(0,)', 2]]
 
     # insert an item and check that it is still sorted correctly
     editor.widget.editor.new_value('List', [1, 2, 3])
     assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
                                     ['str', 'Series', 'dict', 'list'],
-                                    [1, '(0,)', 2, 3]]
+                                    [str_size, '(0,)', 2, 3]]
     cm.sort(0)
     assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
                                     ['str', 'Series', 'dict', 'list'],
-                                    [1, '(0,)', 2, 3]]
+                                    [str_size, '(0,)', 2, 3]]
 
     # now sort for types
     cm.sort(1)
     assert data_table(cm, 4, 3) == [['DSeries', 'kDict', 'List', 'aStr'],
                                     ['Series', 'dict', 'list', 'str'],
-                                    ['(0,)', 2, 3, 1]]
+                                    ['(0,)', 2, 3, str_size]]
 
     # now sort for sizes
     cm.sort(2)

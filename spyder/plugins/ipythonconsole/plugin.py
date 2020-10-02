@@ -522,13 +522,7 @@ class IPythonConsole(SpyderPluginWidget):
                 line = code.strip()
 
             try:
-                if client.shellwidget._executing:
-                    # Don't allow multiple executions when there's
-                    # still an execution taking place
-                    # Fixes spyder-ide/spyder#7293.
-                    pass
-                else:
-                    self.execute_code(line)
+                self.execute_code(line)
             except AttributeError:
                 pass
             self._visibility_changed(True)
@@ -624,6 +618,19 @@ class IPythonConsole(SpyderPluginWidget):
             # See spyder-ide/spyder#7578.
             try:
                 sw.pdb_execute(line, hidden, echo_stack_entry, add_history)
+            except AttributeError:
+                pass
+
+    def stop_debugging(self):
+        """Stop debugging"""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            if not sw.is_waiting_pdb_input():
+                sw.interrupt_kernel()
+            try:
+                sw.pdb_execute(
+                    "exit",
+                    hidden=False, echo_stack_entry=False, add_history=False)
             except AttributeError:
                 pass
 
