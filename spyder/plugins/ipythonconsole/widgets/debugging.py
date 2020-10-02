@@ -13,8 +13,6 @@ from distutils.version import LooseVersion
 import pdb
 import re
 
-from qtpy.QtCore import Qt
-
 from IPython.core.history import HistoryManager
 from IPython import __version__ as ipy_version
 if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
@@ -26,6 +24,7 @@ from pygments.lexer import bygroups
 from pygments.token import Keyword, Operator, Text
 from pygments.util import ClassNotFound
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
+from qtpy.QtCore import Qt
 
 from spyder.config.base import get_conf_path
 from spyder.config.manager import CONF
@@ -335,20 +334,20 @@ class DebuggingWidget(DebuggingHistoryWidget):
         self.call_kernel(interrupt=True).set_breakpoints(
             CONF.get('run', 'breakpoints', {}))
 
-    def set_pdb_ignore_lib(self):
+    def set_pdb_ignore_lib(self, pdb_ignore_lib):
         """Set pdb_ignore_lib into a debugging session"""
         self.call_kernel(interrupt=True).set_pdb_ignore_lib(
-            CONF.get('ipython_console', 'pdb_ignore_lib', False))
+            pdb_ignore_lib)
 
-    def set_pdb_execute_events(self):
+    def set_pdb_execute_events(self, pdb_execute_events):
         """Set pdb_execute_events into a debugging session"""
         self.call_kernel(interrupt=True).set_pdb_execute_events(
-            CONF.get('ipython_console', 'pdb_execute_events', True))
+            pdb_execute_events)
 
-    def set_pdb_use_exclamation_mark(self):
+    def set_pdb_use_exclamation_mark(self, pdb_use_exclamation_mark):
         """Set pdb_use_exclamation_mark into a debugging session"""
         self.call_kernel(interrupt=True).set_pdb_use_exclamation_mark(
-            self.is_pdb_using_exclamantion_mark())
+            pdb_use_exclamation_mark)
 
     def is_pdb_using_exclamantion_mark(self):
         return CONF.get('ipython_console', 'pdb_use_exclamation_mark')

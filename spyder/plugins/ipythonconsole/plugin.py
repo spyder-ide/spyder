@@ -187,6 +187,14 @@ class IPythonConsole(SpyderPluginWidget):
         reset_namespace_o = self.get_option(reset_namespace_n)
         ask_before_restart_n = 'ask_before_restart'
         ask_before_restart_o = self.get_option(ask_before_restart_n)
+        pdb_ignore_lib_n = 'pdb_ignore_lib'
+        pdb_ignore_lib_o = self.get_option(pdb_ignore_lib_n)
+        pdb_execute_events_n = 'pdb_execute_events'
+        pdb_execute_events_o = self.get_option(pdb_execute_events_n)
+        pdb_use_exclamation_mark_n = 'pdb_use_exclamation_mark'
+        pdb_use_exclamation_mark_o = self.get_option(
+            pdb_use_exclamation_mark_n)
+
         for client in self.clients:
             control = client.get_control()
             if font_n in options:
@@ -202,9 +210,15 @@ class IPythonConsole(SpyderPluginWidget):
                 client.reset_warning = reset_namespace_o
             if ask_before_restart_n in options:
                 client.ask_before_restart = ask_before_restart_o
-            client.shellwidget.set_pdb_ignore_lib()
-            client.shellwidget.set_pdb_execute_events()
-            client.shellwidget.set_pdb_use_exclamation_mark()
+            if pdb_ignore_lib_n in options:
+                client.shellwidget.set_pdb_ignore_lib(
+                    pdb_ignore_lib_o)
+            if pdb_execute_events_n in options:
+                client.shellwidget.set_pdb_execute_events(
+                    pdb_execute_events_o)
+            if pdb_use_exclamation_mark_n in options:
+                client.shellwidget.set_pdb_use_exclamation_mark(
+                    pdb_use_exclamation_mark_o)
 
     def toggle_view(self, checked):
         """Toggle view"""

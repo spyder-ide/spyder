@@ -284,14 +284,14 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             _("Process execute events while debugging"), 'pdb_execute_events',
             tip=_("This option lets you decide if the debugger should "
                   "process the 'execute events' after each prompt, such as "
-                  "matplotlib 'show'."))
+                  "matplotlib 'show' command."))
         debug_layout.addWidget(execute_events_box)
 
         exclamation_mark_box = newcb(
             _("Use exclamation mark prefix for Pdb commands"), 'pdb_use_exclamation_mark',
             tip=_("This option lets you decide if the Pdb commands should "
-                  "be prefixed by an excalamtion mark. This helps in separating Pdb "
-                  "commands from python code."))
+                  "be prefixed by an exclamation mark. This helps in separating Pdb "
+                  "commands from Python code."))
         debug_layout.addWidget(exclamation_mark_box)
 
         single_letter_enter_box = newcb(
@@ -440,7 +440,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
                     _("Startup"))
         tabs.addTab(self.create_tab(debug_group, pdb_run_lines_group),
-                    _("Debug"))
+                    _("Debugger"))
         tabs.addTab(self.create_tab(jedi_group, greedy_group, autocall_group,
                                     sympy_group, prompts_group,
                                     windows_group),
