@@ -830,12 +830,12 @@ class MainWindow(QMainWindow):
         if sys.platform == 'darwin':
             self.fullscreen_action.setEnabled(False)
             self.fullscreen_action.setToolTip(_("For fullscreen mode use "
-                                              "macOS built-in feature"))
+                                               "macOS built-in feature"))
         else:
             self.register_shortcut(
-                self.fullscreen_action, 
+                self.fullscreen_action,
                 "_",
-                "Fullscreen mode", 
+                "Fullscreen mode",
                 add_shortcut_to_tip=True
             )
 
