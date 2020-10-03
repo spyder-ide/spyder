@@ -79,19 +79,23 @@ def subprocess_run(args):
 
 
 def create_packaging_env(
-        conda_path, target_directory, python_version, name="packaging-env"):
+        target_directory, python_version, name="packaging-env",
+        conda_path=None):
     """
     Create a Python virtual environment in the target_directry.
 
     Returns the path to the newly created environment's Python executable.
     """
     fullpath = os.path.join(target_directory, name)
-    conda_command = [
-        conda_path, "create",
-        "-p", os.path.normpath(fullpath),
-        "python={}".format(python_version),
-        "-y"]
-    subprocess_run(conda_command)
+    if conda_path:
+        command = [
+            conda_path, "create",
+            "-p", os.path.normpath(fullpath),
+            "python={}".format(python_version),
+            "-y"]
+    else:
+        command = [sys.executable, "-m", "venv", fullpath]
+    subprocess_run(command)
     return os.path.join(fullpath, "python.exe")
 
 
@@ -194,7 +198,8 @@ def create_pynsist_cfg(
         # Those from pip freeze except the package itself.
         line
         for line in pip_freeze(python, encoding=encoding)
-        if package_name(line) != package and package_name(line) not in UNWANTED_PACKAGES
+        if package_name(line) != package and \
+            package_name(line) not in UNWANTED_PACKAGES
     ]
     skip_wheels = [package] + SKIP_PACKAGES
     wheels = pypi_wheels_in(requirements, skip_wheels)
@@ -226,8 +231,8 @@ def create_pynsist_cfg(
     return installer_exe
 
 
-def run(conda_path, python_version, bitness, repo_root, entrypoint,
-        package, icon_path, license_path, extra_packages=None):
+def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
+        license_path, extra_packages=None, conda_path=None):
     """
     Run the installer generation.
 
@@ -236,11 +241,13 @@ def run(conda_path, python_version, bitness, repo_root, entrypoint,
     (locking the dependencies set in setup.py) is generated and pynsist runned.
     """
     try:
-        with tempfile.TemporaryDirectory(prefix="installer-pynsist-") as work_dir:
+        with tempfile.TemporaryDirectory(
+                prefix="installer-pynsist-") as work_dir:
             print("Temporary working directory at", work_dir)
 
             print("Creating the package virtual environment.")
-            env_python = create_packaging_env(conda_path, work_dir, python_version)
+            env_python = create_packaging_env(
+                work_dir, python_version, conda_path=conda_path)
 
             print("Updating pip in the virtual environment", env_python)
             subprocess_run(
@@ -292,7 +299,6 @@ def run(conda_path, python_version, bitness, repo_root, entrypoint,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Build a Windows installer with Pynsist')
-    parser.add_argument('conda_path', help='Path to conda executable')
     parser.add_argument(
         'python_version', help='Python version of the installer')
     parser.add_argument('bitness', help='Bitness of the installer (32, 64)')
@@ -307,14 +313,17 @@ if __name__ == "__main__":
         help='''Path to a .txt file with a list of packages to be added '''
              '''to the installer besides the dependencies of '''
              '''the main package''')
+    parser.add_argument(
+        '-cp', '--conda_path', help='Path to conda executable')
+
 
     args = parser.parse_args()
     from operator import attrgetter
-    (conda_path, python_version, bitness, setup_py_path, entrypoint,
-     package, icon_path, license_path, extra_packages) = attrgetter(
-         'conda_path', 'python_version', 'bitness', 'setup_py_path',
+    (python_version, bitness, setup_py_path, entrypoint, package, icon_path,
+     license_path, extra_packages, conda_path) = attrgetter(
+         'python_version', 'bitness', 'setup_py_path',
          'entrypoint', 'package', 'icon_path', 'license_path',
-         'extra_packages')(args)
+         'extra_packages', 'conda_path')(args)
 
     if not setup_py_path.endswith("setup.py"):
         sys.exit("Invalid path to setup.py:", setup_py_path)
@@ -325,5 +334,6 @@ if __name__ == "__main__":
     if extra_packages:
         extra_packages = os.path.abspath(extra_packages)
 
-    run(conda_path, python_version, bitness, repo_root, entrypoint,
-        package, icon_file, license_file, extra_packages)
+    run(python_version, bitness, repo_root, entrypoint,
+        package, icon_file, license_file, extra_packages=extra_packages,
+        conda_path=conda_path)

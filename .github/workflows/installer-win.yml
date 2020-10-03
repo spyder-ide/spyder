@@ -1,0 +1,49 @@
+# Based on https://github.com/tlambert03/napari/blob/master/.github/workflows/make_bundle.yml
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+  pull_request:
+
+name: Create Windows Installer
+
+jobs:
+  bundle:
+    name: Windows installer
+    runs-on: windows-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install Python
+        uses: conda-incubator/setup-miniconda@v1
+        with:
+          miniconda-version: "latest"
+          activate-environment: installer
+          python-version: 3.7.9
+      - name: Install yarg
+        shell: bash -l {0}
+        run: |
+          conda install yarg
+      - name: Run script
+        run: |
+          python installers/win-installer.py 3.7.9 64 setup.py spyder.app.start:main spyder img_src/spyder.ico LICENSE.txt -cp conda
+      # - name: Upload Artifact
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: Spyder_64bit.exe
+      #     path: Spyder_64bit.exe
+      # - name: Get Release
+      #   id: get_release
+      #   uses: bruceadams/get-release@v1.2.0
+      # - name: Upload Release Asset
+      #   uses: actions/upload-release-asset@v1
+      #   with:
+      #     upload_url: ${{ steps.get_release.outputs.upload_url }}
+      #     asset_path: Spyder_64bit.exe
+      #     asset_name: Spyder_64bit.exe
+      #     asset_content_type: application/vnd.microsoft.portable-executable

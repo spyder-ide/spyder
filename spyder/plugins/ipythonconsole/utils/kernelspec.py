@@ -18,7 +18,7 @@ import sys
 from jupyter_client.kernelspec import KernelSpec
 
 # Local imports
-from spyder.config.base import DEV, running_under_pytest, SAFE_MODE
+from spyder.config.base import DEV, running_under_pytest, SAFE_MODE, is_pynsist
 from spyder.config.manager import CONF
 from spyder.py3compat import PY2, iteritems, to_binary_string, to_text_string
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
@@ -142,11 +142,16 @@ class SpyderKernelSpec(KernelSpec):
             else:
                 pathlist += [subrepo_path] + pathlist
 
+        # Drop env entry to prevent the addition of the installer packages path
+        # in non default interpreters
+        if is_pynsist() and not default_interpreter:
+            pkgs_installer_path = osp.abspath(
+                osp.join(HERE, '..', '..', '..', '..', '..', 'pkgs'))
+            os.environ['PYTHONPATH'] = os.environ['PYTHONPATH'].replace(
+                pkgs_installer_path, '')
+
         # Create PYTHONPATH env entry to add it to the kernel
-        # Drop env to prevent default interpreter of the installer to
-        # to add path to the installed version packages
-        pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
-                                            drop_env=True)
+        pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True)
 
         # Environment variables that we need to pass to our sitecustomize
         umr_namelist = CONF.get('main_interpreter', 'umr/namelist')

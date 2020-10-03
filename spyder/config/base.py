@@ -313,6 +313,14 @@ def is_py2exe_or_cx_Freeze():
     return osp.isfile(osp.join(get_module_path('spyder'), osp.pardir))
 
 
+def is_pynsist():
+    """Return True if this is a pynsist installation of Spyder."""
+    base_path = osp.abspath(osp.dirname(__file__))
+    pkgs_path = osp.abspath(
+        osp.join(base_path, '..', '..', '..', 'pkgs'))
+    return pkgs_path in os.environ['PYTHONPATH']
+
+
 #==============================================================================
 # Image path list
 #==============================================================================
