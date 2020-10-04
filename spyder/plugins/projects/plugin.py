@@ -323,7 +323,6 @@ class Projects(SpyderPluginWidget):
         project = EmptyProject(path)
         self.current_active_project = project
         self.latest_project = project
-        self.notify_project_open(path)
         self.set_option('current_project_path', self.get_active_project_path())
 
         self.setup_menu_actions()
@@ -360,7 +359,6 @@ class Projects(SpyderPluginWidget):
             self.explorer.clear()
             self.restart_consoles()
             self.watcher.stop()
-            self.notify_project_close(path)
 
     def delete_project(self):
         """
