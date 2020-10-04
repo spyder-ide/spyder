@@ -1213,27 +1213,30 @@ class AnimatedTour(QWidget):
 
         self.is_tour_set = True
 
+    def _handle_fullscreen(self):
+        if self.spy_window.isFullScreen() or self.spy_window.fullscreen_flag:
+              if sys.platform == 'darwin':
+                  self.spy_window.setUpdatesEnabled(True)
+                  msg_title = _("Request")
+                  msg = _("To run the tour, please press the green button on "
+                          "the left of the Spyder window's title bar to take "
+                          "it out of fullscreen mode.")
+                  QMessageBox.information(self, msg_title, msg,
+                                          QMessageBox.Ok)
+                  return True
+              if self.spy_window.fullscreen_flag:
+                  self.spy_window.toggle_fullscreen()
+              else:
+                  self.spy_window.setWindowState(
+                      self.spy_window.windowState()
+                      & (~ Qt.WindowFullScreen))
+        return False
+  
     def start_tour(self):
         """ """
         self.spy_window.setUpdatesEnabled(False)
-        if self.spy_window.isFullScreen() or self.spy_window.fullscreen_flag:
-            if sys.platform == 'darwin':
-                self.spy_window.setUpdatesEnabled(True)
-                msg_title = _("Request")
-                msg = _("To run the tour, please press the green button on "
-                        "the left of the Spyder window's title bar to take "
-                        "it out of fullscreen mode.")
-                QMessageBox.information(self, msg_title, msg,
-                                        QMessageBox.Ok)
-                return
-            else:
-                if self.spy_window.fullscreen_flag:
-                    self.spy_window.toggle_fullscreen()
-                else:
-                    self.spy_window.setWindowState(
-                        self.spy_window.windowState()
-                        & (~ Qt.WindowFullScreen))
-
+        if self._handle_fullscreen():
+            return
         self.spy_window.save_current_window_settings(
             'layout_current_temp/',
             section="quick_layouts"
