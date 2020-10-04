@@ -74,7 +74,17 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                        " command instead")
             return
         locals = self.curframe_locals
-        globals = self.curframe.f_globals
+
+        # This is necessary to allow running comprehensions with the
+        # frame locals. It also fallbacks to the right globals if the
+        # user wants to work with them instead.
+        # See spyder-ide/spyder#13909.
+        if not 'globals()' in line:
+            ns = self.curframe.f_globals.copy()
+            ns.update(locals)
+        else:
+            ns = self.curframe.f_globals
+
         try:
             line = TransformerManager().transform_cell(line)
             try:
@@ -91,7 +101,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 sys.displayhook = self.displayhook
                 if execute_events:
                      get_ipython().events.trigger('pre_execute')
-                exec(code, globals, locals)
+                exec(code, ns, locals)
                 if execute_events:
                      get_ipython().events.trigger('post_execute')
             finally:
