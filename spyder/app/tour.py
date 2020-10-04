@@ -34,6 +34,7 @@ from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils import icon_manager as ima
+from spyder import __docs_url__
 
 
 if is_dark_interface():
@@ -99,7 +100,8 @@ def get_tour(index):
     """
     sw = SpyderWidgets
     qtconsole_link = "https://qtconsole.readthedocs.io/en/stable/index.html"
-    ending_link = "https://docs.spyder-ide.org/current/index.html"
+    #docs_link = __docs_url__
+    docs_link = "https://docs.spyder-ide.org/current/index.html"
 
     # This test should serve as example of keys to use in the tour frame dics
     test = [{'title': "Welcome to Spyder introduction tour",
@@ -253,7 +255,7 @@ def get_tour(index):
              {'title': _("The end"),
               'content': _('You have reached the end of our tour and are ready to '
                            'start using Spyder! For more information, check out '
-                           f'our <a href="{ending_link}">documentation</a>.<br><br>'),
+                           f'our <a href="{docs_link}">documentation</a>.<br><br>'),
               'image': 'tour-spyder-logo.png'
               },
 
@@ -1146,7 +1148,11 @@ class AnimatedTour(QWidget):
                     y = y_glob + height/2 - self.tips.height()/2
 
                 if (y + self.tips.height()) > (self.y_main + self.height_main):
-                    y = y - ((y + self.tips.height())-(self.y_main + self.height_main))-offset
+                    y = (
+                        y
+                        - (y + self.tips.height() - (self.y_main + self.height_main))
+                        - offset
+                    )
         else:
             # Center on parent
             x = self.x_main + self.width_main/2 - self.tips.width()/2

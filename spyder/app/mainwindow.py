@@ -164,7 +164,8 @@ else:
 # Local utility imports
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, __website_url__, get_versions)
+                    __trouble_url__, __website_url__, get_versions,
+                    __docs_url__)
 from spyder.app.utils import (get_python_doc_path, delete_lsp_log_files,
                               qt_message_handler, setup_logging)
 from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
@@ -1041,11 +1042,10 @@ class MainWindow(QMainWindow):
                                                 triggered=self.check_updates)
 
         # Spyder documentation
-        spyder_doc = 'https://docs.spyder-ide.org/'
         doc_action = create_action(self, _("Spyder documentation"),
                                    icon=ima.icon('DialogHelpButton'),
                                    triggered=lambda:
-                                   programs.start_file(spyder_doc))
+                                   programs.start_file(__docs_url__))
         self.register_shortcut(doc_action, "_",
                                "spyder documentation")
 
