@@ -223,7 +223,8 @@ def get_tour(index):
 
              {'title': _("The History Log"),
               'content': _("This pane records all commands introduced in "
-                           "the Python and IPython consoles."),
+                           "any IPython console."),
+
               'widgets': [sw.history_log],
               'interact': True},
 
@@ -250,10 +251,9 @@ def get_tour(index):
               'interact': True},
 
              {'title': _("The end"),
-              'content': _("You have reached the end of our tour, you are ready to "
-                           "start using Spyder! If you want more information go to "
-                           "our  <a href=\"{0}\">documentation</a>.<br><br>"
-                           ).format(ending_link),
+              'content': _('You have reached the end of our tour and are ready to '
+                           'start using Spyder! For more information, check out '
+                           f'our <a href="{ending_link}">documentation</a>.<br><br>'),
               'image': 'tour-spyder-logo.png'
               },
 
@@ -1214,8 +1214,9 @@ class AnimatedTour(QWidget):
             if sys.platform == 'darwin':
                 self.spy_window.setUpdatesEnabled(True)
                 msg_title = _("Request")
-                msg = _("To run the tour, please press the green button in the top left corner of "
-                        "the screen to take Spyder out of fullscreen mode.")
+                msg = _("To run the tour, please press the green button on "
+                        "the left of the Spyder window's title bar to take "
+                        "it out of fullscreen mode.")
                 QMessageBox.information(self, msg_title, msg,
                                         QMessageBox.Ok)
                 return
@@ -1227,7 +1228,10 @@ class AnimatedTour(QWidget):
                         self.spy_window.windowState()
                         & (~ Qt.WindowFullScreen))
 
-        self.spy_window.save_current_window_settings('layout_current_temp/', section="quick_layouts")
+        self.spy_window.save_current_window_settings(
+            'layout_current_temp/',
+            section="quick_layouts"
+        )
         self.spy_window.quick_layout_switch('default')
         geo = self.parent.geometry()
         x, y, width, height = geo.x(), geo.y(), geo.width(), geo.height()
@@ -1309,7 +1313,7 @@ class AnimatedTour(QWidget):
     def lost_focus(self):
         """Confirm if the tour loses focus and hides the tips."""
         if (self.is_running and
-            not self.setting_data and not self.hidden):
+                not self.setting_data and not self.hidden):
             if sys.platform == 'darwin':
                 if not self.tour_has_focus():
                     self.hide_tips()
@@ -1325,7 +1329,7 @@ class AnimatedTour(QWidget):
             self.unhide_tips()
 
     def any_has_focus(self):
-        """Returns true if tour or main window has focus."""
+        """Returns True if tour or main window has focus."""
         f = (self.hasFocus() or self.parent.hasFocus() or
              self.tour_has_focus())
         return f

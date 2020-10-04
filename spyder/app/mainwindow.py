@@ -1082,7 +1082,9 @@ class MainWindow(QMainWindow):
         # self.tours_menu.addActions(self.tour_menu_actions)
         tour_index = 0
         self.tour_action = create_action(
-            self, self.tours_available[tour_index]['name'], tip="",
+            self, self.tours_available[tour_index]['name'],
+            tip=_("Interactive tour introducing Spyder's panes and features"),
+
             triggered=lambda: self.show_tour(tour_index))
 
         self.help_menu_actions = [doc_action, vid_action, shortcuts_action,
