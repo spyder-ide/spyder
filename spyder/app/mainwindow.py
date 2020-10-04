@@ -861,6 +861,7 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Starting code completion manager..."))
         from spyder.plugins.completion.plugin import CompletionManager
         self.completions = CompletionManager(self)
+        self.completions.start()
 
         # Working directory plugin
         logger.info("Loading working directory...")
@@ -1363,10 +1364,6 @@ class MainWindow(QMainWindow):
             # If no project is active, load last session
             if self.projects.get_active_project() is None:
                 self.editor.setup_open_files(close_previous_files=False)
-
-        # Start Python completions
-        self.completions.start()
-        self.completions.start_client(language='python')
 
         # Connect Editor to Kite completions plugin status
         self.editor.kite_completions_file_status()
@@ -2954,7 +2951,7 @@ class MainWindow(QMainWindow):
             if active:
                 sys.path.insert(1, path)
 
-        # Any plugin that needs to do some work based on this sigal should
+        # Any plugin that needs to do some work based on this signal should
         # connect to it on plugin registration
         self.sig_pythonpath_changed.emit(path_dict, new_path_dict_p)
 
