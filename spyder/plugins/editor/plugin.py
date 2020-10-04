@@ -281,11 +281,15 @@ class Editor(SpyderPluginWidget):
         self.main.completions.register_file(
             language.lower(), filename, codeeditor)
         if status:
-            # When this condition is True, it means there's a server that
-            # can provide completion services for this file.
             if language.lower() in self.completion_capabilities:
+                # When this condition is True, it means there's a server
+                # that can provide completion services for this file.
                 codeeditor.register_completion_capabilities(
                     self.completion_capabilities[language.lower()])
+                codeeditor.start_completion_services()
+            elif self.main.completions.is_fallback_only(language.lower()):
+                # This is required to use fallback completions for files
+                # without a language server.
                 codeeditor.start_completion_services()
         else:
             if codeeditor.language == language.lower():
