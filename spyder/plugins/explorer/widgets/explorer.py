@@ -399,7 +399,7 @@ class DirView(QTreeView):
         # Create dialog contents
         description_label = QLabel(
             _('Filter files by name, extension, or more using '
-              '<a href="https://docs.python.org/3/library/glob.html">glob '
+              '<a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob '
               'patterns.</a> Please enter the glob patterns of the files you '
               'want to show, separated by commas.'))
         description_label.setOpenExternalLinks(True)
@@ -1789,6 +1789,7 @@ class ExplorerWidget(QWidget):
         self.sig_option_changed.connect(self.refresh_actions)
 
     def change_filter_state(self):
+        """Handle the change of the filter state."""
         self.filter_on = not self.filter_on
         self.filter_button.setChecked(self.filter_on)
         tip_message = (

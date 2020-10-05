@@ -42,7 +42,7 @@ class ExplorerConfigPage(PluginConfigPage):
         filter_group = QGroupBox(_("Filter settings"))
         description_label = QLabel(
             _('Filter files by name, extension, or more using '
-              '<a href="https://docs.python.org/3/library/glob.html">glob '
+              '<a href="https://en.wikipedia.org/wiki/Glob_(programming)">glob '
               'patterns.</a> Please enter the glob patterns of the files you '
               'want to show, separated by commas.'))
         description_label.setOpenExternalLinks(True)
@@ -53,7 +53,9 @@ class ExplorerConfigPage(PluginConfigPage):
             tip=("Enter values separated by commas"),
             content_type=list,
         )
+
         self.edit_filename_filters.setEnabled(True)
+
         reset_btn = QPushButton(_("Reset to default values"))
         reset_btn.clicked.connect(self.reset_to_default)
         filter_layout = QVBoxLayout()
