@@ -135,6 +135,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self._server_args = server_settings.get('args', '')
         self._server_cmd = server_settings['cmd']
 
+        # Save requests name and id. This is only necessary for testing.
+        self._requests = []
+
     def _get_log_filename(self, kind):
         """
         Get filename to redirect server or transport logs to in
@@ -451,6 +454,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             }
 
         logger.debug('Perform request {0} with id {1}'.format(method, _id))
+
+        # Save requests to check their ordering.
+        if running_under_pytest():
+            self._requests.append((_id, method))
 
         # Try sending a message. If the send queue is full, keep trying for a
         # a second before giving up.
