@@ -52,7 +52,8 @@ class SpyderWidgets(object):
     # Panes
     ipython_console = 'ipyconsole'
     editor = 'editor'
-    editor_line_number_area = 'editor.get_current_editor().linenumberarea'
+    editor_line_number_area = (
+        'editor.get_current_editor().panels._panels.get(1).values()')
     editor_scroll_flag_area = 'editor.get_current_editor().scrollflagarea'
     file_explorer = 'explorer'
     help_plugin = 'help'
@@ -510,14 +511,23 @@ class FadingCanvas(FadingDialog):
             self.path_current = self.path_full
 
         if self.decoration is not None:
-            for widget in self.decoration:
+            for widgets in self.decoration:
+                if isinstance(widgets, QWidget):
+                    widgets = [widgets]
+                geoms = []
+                for widget in widgets:
+                    widget.raise_()
+                    widget.show()
+                    geo = widget.frameGeometry()
+                    width, height = geo.width(), geo.height()
+                    point = widget.mapTo(self.parent, QPoint(0, 0))
+                    x, y = point.x(), point.y()
+                    geoms.append((x, y, width, height))
+                x = min([geom[0] for geom in geoms])
+                y = min([geom[1] for geom in geoms])
+                width = max([geom[0]+geom[2] for geom in geoms])-x
+                height = max([geom[1]+geom[3] for geom in geoms])-y
                 temp_path = QPainterPath()
-                widget.raise_()
-                widget.show()
-                geo = widget.frameGeometry()
-                width, height = geo.width(), geo.height()
-                point = widget.mapTo(self.parent, QPoint(0, 0))
-                x, y = point.x(), point.y()
                 temp_path.addRect(QRectF(x, y, width, height))
 
                 temp_region_1 = QRegion(x-1, y-1, width+2, height+2)
@@ -1029,19 +1039,22 @@ class AnimatedTour(QWidget):
         dockwidgets = []
 
         for name in names:
-            base = name.split('.')[0]
             try:
-                temp = getattr(spy_window, base)
+                base = name.split('.')[0]
+                try:
+                    temp = getattr(spy_window, base)
+                except AttributeError:
+                    for item in spy_window.thirdparty_plugins:
+                        if type(item).__name__ == name:
+                            temp = item
+                            break
+                else:
+                    # Check if it is the current editor
+                    if 'get_current_editor()' in name:
+                        temp = temp.get_current_editor()
+                        temp = getattr(temp, name.split('.')[-1])
             except AttributeError:
-                for item in spy_window.thirdparty_plugins:
-                    if type(item).__name__ == name:
-                        temp = item
-                        break
-            else:
-                # Check if it is the current editor
-                if 'get_current_editor()' in name:
-                    temp = temp.get_current_editor()
-                    temp = getattr(temp, name.split('.')[-1])
+                temp = eval(f"spy_window.{name}")
 
             widgets.append(temp)
 
