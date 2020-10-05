@@ -457,6 +457,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def set_current_editor(self, editor, update):
         """Bind editor instance"""
         editor_id = editor.get_id()
+
         if editor_id in list(self.editor_ids.values()):
             item = self.editor_items[editor_id].node
             if not self.freeze:
@@ -478,11 +479,18 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.editor_items[editor_id] = this_root
             self.editor_tree_cache[editor_id] = editor_tree
             self.resizeColumnToContents(0)
+
         if editor not in self.editor_ids:
             self.editor_ids[editor] = editor_id
             self.ordered_editor_ids.append(editor_id)
             self.__sort_toplevel_items()
+
         self.current_editor = editor
+
+        # Update tree with currently stored info.
+        if (len(self.editor_tree_cache[editor_id]) == 0 and
+                editor.info is not None):
+            self.update_current(editor.info)
 
     def file_renamed(self, editor, new_filename):
         """File was renamed, updating outline explorer tree"""

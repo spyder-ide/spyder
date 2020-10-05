@@ -18,11 +18,13 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
         super(OutlineExplorerProxyEditor, self).__init__()
         self._editor = editor
         self.fname = fname
+        self.info = None
         editor.sig_cursor_position_changed.connect(
             self.sig_cursor_position_changed)
 
     def update_outline_info(self, info):
         self.sig_outline_explorer_data_changed.emit(info)
+        self.info = info
 
     def emit_request_in_progress(self):
         self.sig_start_outline_spinner.emit()
