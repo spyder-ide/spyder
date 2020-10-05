@@ -633,6 +633,7 @@ class FadingTipBox(FadingDialog):
         self.label_current = QLabel()
         self.label_content = QLabel()
 
+        self.label_content.setOpenExternalLinks(True)
         self.label_content.setMinimumWidth(self.fixed_width)
         self.label_content.setMaximumWidth(self.fixed_width)
 
