@@ -103,6 +103,11 @@ def get_tour(index):
     qtconsole_link = "https://qtconsole.readthedocs.io/en/stable/index.html"
     #docs_link = __docs_url__
     docs_link = "https://docs.spyder-ide.org/current/index.html"
+    button_text = ""
+    if sys.platform != "darwin":
+        button_text = ("Please click on the button below to run some simple "
+                       "code in this console. This will be useful to show "
+                       "you other important features.")
 
     # This test should serve as example of keys to use in the tour frame dics
     test = [{'title': "Welcome to Spyder introduction tour",
@@ -173,11 +178,9 @@ def get_tour(index):
                            "useful features that greatly improve your "
                            "programming workflow (like syntax highlighting and "
                            "inline plots). If you want to know more about them, "
-                           "please follow this <a href=\"{0}\">link</a>.<br><br>"
-                           "Please click on the button below to run some simple "
-                           "code in this console. This will be useful to show "
-                           "you other important features.").format(
-                           qtconsole_link),
+                           "please follow this <a href=\"{qtconsole_link}\">link</a>.<br><br>"
+                           "{button_text}").format(
+                           qtconsole_link=qtconsole_link, button_text=button_text),
               'widgets': [sw.ipython_console],
               'run': ["li = list(range(100))", "d = {'a': 1, 'b': 2}"]
               },
@@ -484,7 +487,6 @@ class FadingCanvas(FadingDialog):
         self.region_mask = QRegion(0, 0, w, h)
 
         self.path_full.addRect(0, 0, w, h)
-
         # Add the path
         if self.widgets is not None:
             for widget in self.widgets:
@@ -509,7 +511,6 @@ class FadingCanvas(FadingDialog):
             self.path_current = self.path_full.subtracted(self.path_subtract)
         else:
             self.path_current = self.path_full
-
         if self.decoration is not None:
             for widgets in self.decoration:
                 if isinstance(widgets, QWidget):
@@ -782,8 +783,11 @@ class FadingTipBox(FadingDialog):
         if run is None:
             self.button_run.setVisible(False)
         else:
-            self.button_run.setDisabled(False)
-            self.button_run.setVisible(True)
+            if sys.platform == "darwin":
+                self.button_run.setVisible(False)
+            else:
+                self.button_run.setDisabled(False)
+                self.button_run.setVisible(True)
 
         # Refresh layout
         self.layout().activate()
@@ -1115,7 +1119,7 @@ class AnimatedTour(QWidget):
             self._set_modal(True, [self.tips])
 
         if 'run' in frame:
-            # Asume that the frist widget is the console
+            # Asume that the first widget is the console
             run = frame['run']
             self.run = run
 
@@ -1340,7 +1344,8 @@ class AnimatedTour(QWidget):
             if sys.platform == 'darwin':
                 if not self.tour_has_focus():
                     self.hide_tips()
-                    self.close_tour()
+                    if not self.any_has_focus():
+                        self.close_tour()
             else:
                 if not self.any_has_focus():
                     self.hide_tips()
@@ -1354,7 +1359,7 @@ class AnimatedTour(QWidget):
     def any_has_focus(self):
         """Returns True if tour or main window has focus."""
         f = (self.hasFocus() or self.parent.hasFocus() or
-             self.tour_has_focus())
+             self.tour_has_focus() or self.isActiveWindow())
         return f
 
     def tour_has_focus(self):
