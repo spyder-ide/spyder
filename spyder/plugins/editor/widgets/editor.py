@@ -2341,9 +2341,6 @@ class EditorStack(QWidget):
         if self.data and len(self.data) > index:
             finfo = self.data[index]
             oe.setEnabled(True)
-            if finfo.editor.oe_proxy is None:
-                finfo.editor.oe_proxy = OutlineExplorerProxyEditor(
-                    finfo.editor, finfo.filename)
             oe.set_current_editor(finfo.editor.oe_proxy,
                                   update=update, clear=clear)
             if index != self.get_stack_index():
@@ -2666,6 +2663,8 @@ class EditorStack(QWidget):
 
         self.refresh_file_dependent_actions.emit()
         self.modification_changed(index=self.data.index(finfo))
+
+        editor.oe_proxy = OutlineExplorerProxyEditor(editor, editor.filename)
 
         # Needs to reset the highlighting on startup in case the PygmentsSH
         # is in use
