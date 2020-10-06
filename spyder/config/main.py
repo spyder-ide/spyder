@@ -30,14 +30,14 @@ from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 EXCLUDE_PATTERNS = ['*.csv, *.dat, *.log, *.tmp, *.bak, *.orig']
 
 # Extensions that should be visible in Spyder's file/project explorers
-SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
+SHOW_EXT = ['.py', '.ipynb', '.dat', '.pdf', '.png', '.svg']
 
 # Extensions supported by Spyder (Editor or Variable explorer)
 USEFUL_EXT = IMPORT_EXT + SHOW_EXT
 
 # Name filters for file/project explorers (excluding files without extension)
-NAME_FILTERS = ['README', 'INSTALL', 'LICENSE', 'CHANGELOG'] + \
-               ['*' + _ext for _ext in USEFUL_EXT if _ext]
+NAME_FILTERS = ['README', 'INSTALL', 'LICENSE', 'CHANGELOG']
+NAME_FILTERS += ['*' + _ext for _ext in USEFUL_EXT if _ext not in NAME_FILTERS]
 
 # Port used to detect if there is a running instance and to communicate with
 # it to open external files

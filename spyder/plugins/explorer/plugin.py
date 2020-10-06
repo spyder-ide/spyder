@@ -60,7 +60,6 @@ class Explorer(SpyderPluginWidget):
         self.fileexplorer = ExplorerWidget(
             self,
             name_filters=self.get_option('name_filters'),
-            show_all=self.get_option('show_all'),
             show_hidden=self.get_option('show_hidden'),
             options_button=self.options_button,
             single_click_to_open=self.get_option('single_click_to_open'),
@@ -82,18 +81,18 @@ class Explorer(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         return _("Files")
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         return self.fileexplorer.treewidget
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return self.fileexplorer.treewidget.common_actions
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         ipyconsole = self.main.ipyconsole
@@ -142,8 +141,6 @@ class Explorer(SpyderPluginWidget):
                 self.fileexplorer.treewidget.set_single_click_to_open,
             'name_filters':
                 self.fileexplorer.treewidget.set_name_filters,
-            'show_all':
-                self.fileexplorer.treewidget.toggle_all,
             'show_hidden':
                 self.fileexplorer.treewidget.toggle_hidden
         }
