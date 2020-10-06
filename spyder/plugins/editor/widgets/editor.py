@@ -335,7 +335,6 @@ class TabSwitcherWidget(QListWidget):
 
         Add elements in inverse order of stack_history.
         """
-
         for index in reversed(self.stack_history):
             text = self.tabs.tabText(index)
             text = text.replace('&', '')
@@ -1095,14 +1094,6 @@ class EditorStack(QWidget):
 
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
-        self.outlineexplorer.is_visible.connect(self._refresh_outlineexplorer)
-
-    def initialize_outlineexplorer(self):
-        """This method is called separately from 'set_oulineexplorer' to avoid
-        doing unnecessary updates when there are multiple editor windows"""
-        for index in range(self.get_stack_count()):
-            if index != self.get_stack_index():
-                self._refresh_outlineexplorer(index=index)
 
     def add_outlineexplorer_button(self, editor_plugin):
         oe_btn = create_toolbutton(editor_plugin)
@@ -1766,7 +1757,6 @@ class EditorStack(QWidget):
 
             self.opened_files_list_changed.emit()
             self.update_code_analysis_actions.emit()
-            self._refresh_outlineexplorer()
             self.refresh_file_dependent_actions.emit()
             self.update_plugin_title.emit()
 
@@ -2037,9 +2027,6 @@ class EditorStack(QWidget):
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
-
-            # Rebuild the outline explorer data
-            self._refresh_outlineexplorer(index)
 
             finfo.editor.notify_save()
             return True
@@ -2541,8 +2528,6 @@ class EditorStack(QWidget):
         # would be sufficient for outline explorer data.
         finfo.editor.rehighlight()
 
-        self._refresh_outlineexplorer(index)
-
     def revert(self):
         """Revert file from disk."""
         index = self.get_stack_index()
@@ -2746,7 +2731,6 @@ class EditorStack(QWidget):
         finfo = self.create_new_editor(filename, enc, text, set_current,
                                        add_where=add_where)
         index = self.data.index(finfo)
-        self._refresh_outlineexplorer(index, update=True)
         if processevents:
             self.ending_long_process.emit("")
         if self.isVisible() and self.checkeolchars_enabled \
@@ -3257,9 +3241,6 @@ class EditorWidget(QSplitter):
         splitter.addWidget(self.outlineexplorer)
         splitter.setStretchFactor(0, 5)
         splitter.setStretchFactor(1, 1)
-
-        # Refreshing outline explorer
-        editorsplitter.editorstack.initialize_outlineexplorer()
 
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
