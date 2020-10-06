@@ -469,10 +469,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         self.current_editor = editor
 
-        # Update tree with currently stored info.
-        if (len(self.editor_tree_cache[editor_id]) == 0 and
-                editor.info is not None):
-            self.update_current(editor.info)
+        # Update tree with currently stored info or require symbols if
+        # necessary.
+        if len(self.editor_tree_cache[editor_id]) == 0:
+            if editor.info is not None:
+                self.update_current(editor.info)
+            elif editor.is_cloned:
+                editor.request_symbols()
 
     def register_editor(self, editor):
         """
