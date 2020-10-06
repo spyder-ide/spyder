@@ -2651,7 +2651,8 @@ class EditorStack(QWidget):
 
         # To update the outline explorer.
         editor.oe_proxy = OutlineExplorerProxyEditor(editor, editor.filename)
-        self.outlineexplorer.register_editor(editor.oe_proxy)
+        if self.outlineexplorer is not None:
+            self.outlineexplorer.register_editor(editor.oe_proxy)
 
         # Needs to reset the highlighting on startup in case the PygmentsSH
         # is in use
