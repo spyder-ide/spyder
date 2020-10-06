@@ -13,7 +13,7 @@ from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWUSR
 
 # Qt-Imports to display Menus
 from qtpy.QtWidgets import QMenu
-from qtpy.QtCore import QPoint, QFileInfo, QTimer
+from qtpy.QtCore import QFileInfo, QTimer
 
 # Local imports
 from spyder.config.base import _
@@ -22,7 +22,6 @@ from spyder.utils import icon_manager as ima
 from spyder.utils.workers import WorkerManager
 from spyder.utils.vcs import get_git_refs
 from spyder.widgets.status import StatusBarWidget
-from spyder.utils.qthelpers import add_actions, create_action
 
 
 class ReadWriteStatus(StatusBarWidget):
@@ -30,7 +29,6 @@ class ReadWriteStatus(StatusBarWidget):
 
     def __init__(self, parent, statusbar):
         super(ReadWriteStatus, self).__init__(parent, statusbar)
-
         self.parent = parent
         self.menu = QMenu(self)
         # Signals
@@ -69,26 +67,6 @@ class ReadWriteStatus(StatusBarWidget):
             self.set_value("ERROR")
             QTimer.singleShot(750,
                               lambda: self.parent.editorstacks[0].refresh())
-
-    def show_menu(self):
-        """Display a menu when clicking on the widget."""
-        menu = self.menu
-
-        print(1, )
-
-        menu.clear()
-        text = _('test')
-        restart_action = create_action(
-            self,
-            text=text,
-            triggered=lambda: print('CHANGE RW'),
-        )
-        add_actions(menu, [restart_action])
-        rect = self.contentsRect()
-        os_height = 7 if os.name == 'nt' else 12
-        pos = self.mapToGlobal(
-            rect.topLeft() + QPoint(-40, -rect.height() - os_height))
-        menu.popup(pos)
 
 
 class EOLStatus(StatusBarWidget):
