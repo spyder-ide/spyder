@@ -47,7 +47,7 @@ class ReadWriteStatus(StatusBarWidget):
         """
         Toggle the rw permission. Explicitily use the permission that
         is displayed in the widget as basis for switch decision, to prevent
-        that the file permission has been changed in the background and not  
+        that the file permission has been changed in the background and not
         been updated in Spyder (in which case it would be switched back again).
         """
         filename = self.parent.get_current_filename()
@@ -59,9 +59,9 @@ class ReadWriteStatus(StatusBarWidget):
         filename = self.parent.get_current_filename()
         try:
             if writeable:
-                os.chmod(filename, S_IWUSR|S_IREAD)
+                os.chmod(filename, S_IWUSR | S_IREAD)
             else:
-                os.chmod(filename, S_IREAD|S_IRGRP|S_IROTH)
+                os.chmod(filename, S_IREAD | S_IRGRP | S_IROTH)
             self.parent.editorstacks[0].refresh()
         except PermissionError:
             self.set_value("ERROR")
