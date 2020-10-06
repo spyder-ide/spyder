@@ -144,6 +144,7 @@ class SpyderKernelSpec(KernelSpec):
 
         # Drop env entry to prevent the addition of the installer packages path
         # in non default interpreters
+        base_pythonpath = os.environ.get('PYTHONPATH')
         if is_pynsist() and not default_interpreter:
             pkgs_installer_path = osp.abspath(
                 osp.join(HERE, '..', '..', '..', '..', '..', 'pkgs'))
@@ -152,6 +153,10 @@ class SpyderKernelSpec(KernelSpec):
 
         # Create PYTHONPATH env entry to add it to the kernel
         pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True)
+
+        # Set PYTHONPATH to original value
+        if base_pythonpath:
+            os.environ['PYTHONPATH'] = base_pythonpath
 
         # Environment variables that we need to pass to our sitecustomize
         umr_namelist = CONF.get('main_interpreter', 'umr/namelist')

@@ -257,7 +257,8 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
 
             print("Updating setuptools in the virtual environment", env_python)
             subprocess_run(
-                [env_python, "-m", "pip", "install", "--upgrade", "setuptools",
+                [env_python, "-m", "pip", "install", "--upgrade",
+                 "--force-reinstall", "setuptools",
                  "--no-warn-script-location"]
             )
 

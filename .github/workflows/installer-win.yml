@@ -28,8 +28,9 @@ jobs:
       - name: Install yarg
         shell: bash -l {0}
         run: |
-          conda install yarg
+          pip install yarg
       - name: Run script
+        shell: bash -l {0}
         run: |
           python installers/win-installer.py 3.7.9 64 setup.py spyder.app.start:main spyder img_src/spyder.ico LICENSE.txt -cp conda
       # - name: Upload Artifact

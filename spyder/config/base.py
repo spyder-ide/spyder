@@ -318,7 +318,9 @@ def is_pynsist():
     base_path = osp.abspath(osp.dirname(__file__))
     pkgs_path = osp.abspath(
         osp.join(base_path, '..', '..', '..', 'pkgs'))
-    return pkgs_path in os.environ['PYTHONPATH']
+    if os.environ.get('PYTHONPATH') is not None:
+        return pkgs_path in os.environ.get('PYTHONPATH')
+    return False
 
 
 #==============================================================================
