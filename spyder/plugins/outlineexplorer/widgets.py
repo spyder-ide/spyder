@@ -458,32 +458,14 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """Bind editor instance"""
         editor_id = editor.get_id()
 
-        if editor_id in list(self.editor_ids.values()):
-            item = self.editor_items[editor_id].node
-            if not self.freeze:
-                self.scrollToItem(item)
-                self.root_item_selected(item)
-                self.__hide_or_show_root_items(item)
-            if update:
-                self.save_expanded_state()
-                self.restore_expanded_state()
-        else:
-            this_root = SymbolStatus(editor.fname, None, None, editor.fname)
-            root_item = FileRootItem(editor.fname, this_root,
-                                     self, editor.is_python())
-            root_item.set_text(fullpath=self.show_fullpath)
-            editor_tree = IntervalTree()
-            this_root.node = root_item
-            self.__hide_or_show_root_items(root_item)
-            self.root_item_selected(root_item)
-            self.editor_items[editor_id] = this_root
-            self.editor_tree_cache[editor_id] = editor_tree
-            self.resizeColumnToContents(0)
-
-        if editor not in self.editor_ids:
-            self.editor_ids[editor] = editor_id
-            self.ordered_editor_ids.append(editor_id)
-            self.__sort_toplevel_items()
+        item = self.editor_items[editor_id].node
+        if not self.freeze:
+            self.scrollToItem(item)
+            self.root_item_selected(item)
+            self.__hide_or_show_root_items(item)
+        if update:
+            self.save_expanded_state()
+            self.restore_expanded_state()
 
         self.current_editor = editor
 
@@ -491,6 +473,31 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if (len(self.editor_tree_cache[editor_id]) == 0 and
                 editor.info is not None):
             self.update_current(editor.info)
+
+    def register_editor(self, editor):
+        """
+        Register editor attributes and create basic objects associated
+        to it.
+        """
+        editor_id = editor.get_id()
+        self.editor_ids[editor] = editor_id
+        self.ordered_editor_ids.append(editor_id)
+
+        this_root = SymbolStatus(editor.fname, None, None, editor.fname)
+        self.editor_items[editor_id] = this_root
+
+        root_item = FileRootItem(editor.fname, this_root,
+                                 self, editor.is_python())
+        this_root.node = root_item
+        root_item.set_text(fullpath=self.show_fullpath)
+        self.resizeColumnToContents(0)
+        if not self.show_all_files:
+            root_item.setHidden(True)
+
+        editor_tree = IntervalTree()
+        self.editor_tree_cache[editor_id] = editor_tree
+
+        self.__sort_toplevel_items()
 
     def file_renamed(self, editor, new_filename):
         """File was renamed, updating outline explorer tree"""
@@ -855,6 +862,9 @@ class OutlineExplorerWidget(QWidget):
 
     def remove_editor(self, editor):
         self.treewidget.remove_editor(editor)
+
+    def register_editor(self, editor):
+        self.treewidget.register_editor(editor)
 
     def get_options(self):
         """
