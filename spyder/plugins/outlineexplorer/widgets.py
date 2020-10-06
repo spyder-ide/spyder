@@ -583,6 +583,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         deleted = current_tree - tree
 
         if len(changes) == 0 and len(deleted) == 0:
+            self.sig_hide_spinner.emit()
             return False
 
         adding_symbols = len(changes) > len(deleted)
