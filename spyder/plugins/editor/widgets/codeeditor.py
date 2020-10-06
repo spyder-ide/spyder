@@ -1147,9 +1147,9 @@ class CodeEditor(TextEditBaseWidget):
         """Handle symbols response."""
         try:
             symbols = params['params']
-            if symbols:
-                self.classfuncdropdown.update_data(symbols)
-                self.oe_proxy.update_outline_info(symbols)
+            symbols = [] if symbols is None else symbols
+            self.classfuncdropdown.update_data(symbols)
+            self.oe_proxy.update_outline_info(symbols)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
