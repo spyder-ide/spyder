@@ -93,10 +93,12 @@ def create_packaging_env(
             "-p", os.path.normpath(fullpath),
             "python={}".format(python_version),
             "-y"]
+        env_path = os.path.join(fullpath, "python.exe")
     else:
         command = [sys.executable, "-m", "venv", fullpath]
+        env_path = os.path.join(fullpath, "Scripts", "python.exe")
     subprocess_run(command)
-    return os.path.join(fullpath, "python.exe")
+    return env_path
 
 
 def pip_freeze(python, encoding):
@@ -199,7 +201,7 @@ def create_pynsist_cfg(
         line
         for line in pip_freeze(python, encoding=encoding)
         if package_name(line) != package and \
-            package_name(line) not in UNWANTED_PACKAGES
+        package_name(line) not in UNWANTED_PACKAGES
     ]
     skip_wheels = [package] + SKIP_PACKAGES
     wheels = pypi_wheels_in(requirements, skip_wheels)
@@ -316,7 +318,6 @@ if __name__ == "__main__":
              '''the main package''')
     parser.add_argument(
         '-cp', '--conda_path', help='Path to conda executable')
-
 
     args = parser.parse_args()
     from operator import attrgetter

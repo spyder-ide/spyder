@@ -20,27 +20,29 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install Python
-        uses: conda-incubator/setup-miniconda@v1
+        uses: actions/setup-python@v2
         with:
-          miniconda-version: "latest"
-          activate-environment: installer
           python-version: 3.7.9
       - name: Install yarg
         shell: bash -l {0}
         run: |
-          pip install yarg
+          python -m pip install yarg
       - name: Run script
         shell: bash -l {0}
         run: |
-          python installers/win-installer.py 3.7.9 64 setup.py spyder.app.start:main spyder img_src/spyder.ico LICENSE.txt -cp conda
-      # - name: Upload Artifact
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: Spyder_64bit.exe
-      #     path: Spyder_64bit.exe
-      # - name: Get Release
-      #   id: get_release
-      #   uses: bruceadams/get-release@v1.2.0
+          python installers/win_installer.py 3.7.9 64 setup.py spyder.app.start:main spyder img_src/spyder.ico LICENSE.txt
+       - name: Upload Artifact
+         uses: actions/upload-artifact@v2
+         with:
+           name: Spyder_64bit.exe
+           path: dist/Spyder_64bit.exe
+       - name: Get Release
+         id: get_release
+         uses: bruceadams/get-release@v1.2.0
+       - name: Check Release
+         shell: bash -l {0}
+         run: |
+           echo ${{ steps.get_release.outputs.upload_url }}
       # - name: Upload Release Asset
       #   uses: actions/upload-release-asset@v1
       #   with:
