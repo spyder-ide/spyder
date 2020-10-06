@@ -39,10 +39,6 @@ jobs:
        - name: Get Release
          id: get_release
          uses: bruceadams/get-release@v1.2.0
-       - name: Check Release
-         shell: bash -l {0}
-         run: |
-           echo ${{ steps.get_release.outputs.upload_url }}
       # - name: Upload Release Asset
       #   uses: actions/upload-release-asset@v1
       #   with:
