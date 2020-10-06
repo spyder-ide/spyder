@@ -58,7 +58,6 @@ class Projects(SpyderPluginWidget):
         self.explorer = ProjectExplorerWidget(
             self,
             name_filters=self.get_option('name_filters'),
-            show_all=self.get_option('show_all'),
             show_hscrollbar=self.get_option('show_hscrollbar'),
             options_button=self.options_button,
             single_click_to_open=CONF.get('explorer', 'single_click_to_open'),
