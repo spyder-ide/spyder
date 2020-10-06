@@ -38,8 +38,8 @@ else
     # Install qtconsole from Github
     pip install git+https://github.com/jupyter/qtconsole.git
 
-    # Pin python-jsonrpc-server and ujson to working versions (for now)
-    pip install python-jsonrpc-server==0.3.4 ujson==1.35
+    # Install QtAwesome from Github
+    pip install git+https://github.com/spyder-ide/qtawesome.git
 
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y

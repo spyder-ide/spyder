@@ -14,7 +14,7 @@ dependencies:
 - diff-match-patch >=20181111
 - intervaltree
 - ipython >=4.0
-- jedi =0.17.1
+- jedi =0.17.2
 - keyring
 - nbconvert >=4.0
 - numpydoc >=0.6.0
@@ -34,7 +34,7 @@ dependencies:
 - pyzmq >=17
 - qdarkstyle >=2.8
 - qtawesome >=0.5.7
-- qtconsole >=4.6.0
+- qtconsole >=4.7.7
 - qtpy >=1.5.0
 - rtree >=0.8.3
 - sphinx >=0.6.6

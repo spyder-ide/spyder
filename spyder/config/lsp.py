@@ -92,7 +92,8 @@ PYTHON_CONFIG = {
                 },
                 'jedi_symbols': {
                     'enabled': True,
-                    'all_scopes': True
+                    'all_scopes': True,
+                    'include_import_symbols': False
                 },
                 'mccabe': {
                     'enabled': False,

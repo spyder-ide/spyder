@@ -129,6 +129,7 @@ else:
 #==============================================================================
 from spyder.utils.qthelpers import qapplication
 from spyder.config.base import get_image_path
+from spyder.py3compat import PY3
 MAIN_APP = qapplication()
 
 if PYQT5:
@@ -137,6 +138,10 @@ else:
     APP_ICON = QIcon(get_image_path("spyder.png"))
 
 MAIN_APP.setWindowIcon(APP_ICON)
+
+# Required for correct icon on GNOME/Wayland:
+if hasattr(MAIN_APP, 'setDesktopFileName'):
+    MAIN_APP.setDesktopFileName('spyder3' if PY3 else 'spyder')
 
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time.
@@ -171,7 +176,7 @@ from spyder.config.main import OPEN_FILES_PORT
 from spyder.config.utils import IMPORT_EXT, is_anaconda, is_gtk_desktop
 from spyder import dependencies
 from spyder.py3compat import (is_text_string, to_text_string,
-                              PY3, qbytearray_to_str, configparser as cp)
+                              qbytearray_to_str, configparser as cp)
 from spyder.utils import encoding, programs
 from spyder.utils import icon_manager as ima
 from spyder.utils.programs import is_module_installed
@@ -1078,7 +1083,7 @@ class MainWindow(QMainWindow):
                                 _("PYTHONPATH manager"),
                                 None, icon=ima.icon('pythonpath'),
                                 triggered=self.show_path_manager,
-                                tip=_("Python Path Manager"),
+                                tip=_("PYTHONPATH manager"),
                                 menurole=QAction.ApplicationSpecificRole)
         reset_spyder_action = create_action(
             self, _("Reset Spyder to factory defaults"),
@@ -1184,8 +1189,17 @@ class MainWindow(QMainWindow):
                                         _("Fullscreen mode"),
                                         triggered=self.toggle_fullscreen,
                                         context=Qt.ApplicationShortcut)
-        self.register_shortcut(self.fullscreen_action, "_",
-                               "Fullscreen mode", add_shortcut_to_tip=True)
+        if sys.platform == 'darwin':
+            self.fullscreen_action.setEnabled(False)
+            self.fullscreen_action.setToolTip(_("For fullscreen mode use "
+                                               "macOS built-in feature"))
+        else:
+            self.register_shortcut(
+                self.fullscreen_action,
+                "_",
+                "Fullscreen mode",
+                add_shortcut_to_tip=True
+            )
 
         # Main toolbar
         self.main_toolbar_actions = [self.maximize_action,
@@ -1470,11 +1484,12 @@ class MainWindow(QMainWindow):
         self.register_shortcut(doc_action, "_",
                                "spyder documentation")
 
-        if self.help is not None:
-            tut_action = create_action(self, _("Spyder tutorial"),
-                                       triggered=self.help.show_tutorial)
-        else:
-            tut_action = None
+        spyder_vid = ("https://www.youtube.com/playlist"
+                      "?list=PLPonohdiDqg9epClEcXoAPUiK0pN5eRoc")
+        vid_action = create_action(self, _("Tutorial videos"),
+                                   icon=ima.icon('VideoIcon'),
+                                   triggered=lambda:
+                                   programs.start_file(spyder_vid))
 
         #----- Tours
         self.tour = tour.AnimatedTour(self)
@@ -1499,7 +1514,7 @@ class MainWindow(QMainWindow):
 
         self.help_menu_actions = [
             doc_action,
-            tut_action,
+            vid_action,
             # shortcuts_action,
             self.tours_menu,
             MENU_SEPARATOR,

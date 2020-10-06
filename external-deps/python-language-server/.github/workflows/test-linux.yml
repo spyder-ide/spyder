@@ -1,0 +1,52 @@
+name: Linux tests
+
+on:
+  push:
+    branches:
+      - develop
+
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  build:
+    name: Linux Py${{ matrix.PYTHON_VERSION }}
+    runs-on: ubuntu-latest
+    env:
+      CI: 'true'
+      OS: 'linux'
+      PYTHON_VERSION: ${{ matrix.PYTHON_VERSION }}
+    strategy:
+      fail-fast: false 
+      matrix:
+        PYTHON_VERSION: ['3.8', '3.7', '3.6', '2.7']
+    timeout-minutes: 10
+    steps:
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-${{ matrix.PYTHON_VERSION }}-pip-${{ hashFiles('setup.py') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.PYTHON_VERSION }}-pip-
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.PYTHON_VERSION }} 
+          architecture: 'x64'
+      - name: Create Jedi environment for testing
+        if: matrix.PYTHON_VERSION != '2.7'
+        run: |
+          python3 -m venv /tmp/pyenv
+          /tmp/pyenv/bin/python -m pip install loghub
+      - run: python -m pip install --upgrade pip setuptools
+      - run: pip install -e .[all] .[test]
+      - run: py.test -v test/
+      - name: Pylint checks
+        if: matrix.PYTHON_VERSION == '2.7'
+        run: pylint pyls test
+      - name: Code style checks
+        if: matrix.PYTHON_VERSION == '2.7'
+        run: pycodestyle pyls test
+      - name: Pyflakes checks
+        if: matrix.PYTHON_VERSION == '2.7'
+        run: pyflakes pyls test

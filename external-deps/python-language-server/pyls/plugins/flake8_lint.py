@@ -43,12 +43,12 @@ def pyls_lint(workspace, document):
     # Call the flake8 utility then parse diagnostics from stdout
     flake8_executable = settings.get('executable', 'flake8')
 
-    args = build_args(opts, document.path)
-    output = run_flake8(flake8_executable, args)
+    args = build_args(opts)
+    output = run_flake8(flake8_executable, args, document)
     return parse_stdout(document, output)
 
 
-def run_flake8(flake8_executable, args):
+def run_flake8(flake8_executable, args, document):
     """Run flake8 with the provided arguments, logs errors
     from stderr if any.
     """
@@ -60,26 +60,25 @@ def run_flake8(flake8_executable, args):
     try:
         cmd = [flake8_executable]
         cmd.extend(args)
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     except IOError:
         log.debug("Can't execute %s. Trying with 'python -m flake8'", flake8_executable)
         cmd = ['python', '-m', 'flake8']
         cmd.extend(args)
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    (stdout, stderr) = p.communicate()
+        p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    (stdout, stderr) = p.communicate(document.source.encode())
     if stderr:
         log.error("Error while running flake8 '%s'", stderr.decode())
     return stdout.decode()
 
 
-def build_args(options, doc_path):
+def build_args(options):
     """Build arguments for calling flake8.
 
     Args:
         options: dictionary of argument names and their values.
-        doc_path: path of the document to lint.
     """
-    args = [doc_path]
+    args = ['-']  # use stdin
     for arg_name, arg_val in options.items():
         if arg_val is None:
             continue

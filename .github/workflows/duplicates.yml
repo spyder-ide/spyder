@@ -73,19 +73,19 @@ jobs:
              },
              {
                "pattern": "TypeError: __init__() got an unexpected keyword argument 'size'",
-               "reply": "Thanks for reporting. This issue is a duplicate of #11875 and fixed in our latest Spyder version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=4.1.*`",
+               "reply": "Thanks for reporting. This issue is a duplicate of #11875 and fixed in our latest version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda install spyder=4.1.*`",
                "labels": ["resolution:Duplicate"],
                "close": true
              },
              {
                "pattern": "TypeError: CodeEditor.sig_display_object_info[str, bool].emit(): argument 1 has unexpected type 'list'",
-               "reply": "Thanks for reporting. This issue is a duplicate of #13297. You can solve it now by uninstalling Kite until we properly fix it.",
+               "reply": "Thanks for reporting. This issue is a duplicate of #13297 and fixed in our latest version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda update anaconda`<br>`conda install spyder=4.1.5`",
                "labels": ["resolution:Duplicate"],
                "close": true
              },
              {
                "pattern": "triggered=lambda v: self.open_project()",
-               "reply": "Thanks for reporting. This issue is a duplicate of #13346. We are working on fix for our next version in a couple of months. Sorry for the inconvenience.",
+               "reply": "Thanks for reporting. This issue is a duplicate of #13346 and fixed in our latest version. Please update by opening the Anaconda Prompt and running there:<br><br>`conda update anaconda`<br>`conda install spyder=4.1.5`",
                "labels": ["resolution:Duplicate"],
                "close": true
              }
