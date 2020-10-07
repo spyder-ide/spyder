@@ -403,7 +403,7 @@ def get_icon(name, default=None, resample=False, adjust_for_interface=False):
         icon0 = QIcon()
         for size in (16, 24, 32, 48, 96, 128, 256, 512):
             icon0.addPixmap(icon.pixmap(size, size))
-        return icon0
+        return icon
     else:
         return icon
 

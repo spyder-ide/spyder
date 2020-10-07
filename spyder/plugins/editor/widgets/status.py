@@ -57,16 +57,16 @@ class ReadWriteStatus(StatusBarWidget):
     def set_writable(self, writeable):
         """set the current file to writeable or not writeable"""
         filename = self.parent.get_current_filename()
+        editorstack = self.parent.get_current_editorstack()
         try:
             if writeable:
                 os.chmod(filename, S_IWUSR | S_IREAD)
             else:
                 os.chmod(filename, S_IREAD | S_IRGRP | S_IROTH)
-            self.parent.editorstacks[0].refresh()
+            editorstack.refresh()
         except PermissionError:
             self.set_value("ERROR")
-            QTimer.singleShot(750,
-                              lambda: self.parent.editorstacks[0].refresh())
+            QTimer.singleShot(750, lambda: editorstack.refresh())
 
 
 class EOLStatus(StatusBarWidget):
