@@ -1235,9 +1235,6 @@ class MainWindow(QMainWindow):
         logger.info("Setting up window...")
         self.setup_layout(default=False)
 
-        if self.splash is not None:
-            self.splash.hide()
-
         # Enabling tear off for all menus except help menu
         if CONF.get('main', 'tear_off_menus'):
             for child in self.menuBar().children():
@@ -1353,6 +1350,12 @@ class MainWindow(QMainWindow):
         # Show history file if no console is visible
         if not self.ipyconsole._isvisible:
             self.historylog.add_history(get_conf_path('history.py'))
+
+        # Process pending events and hide splash before loading the
+        # previous session.
+        QApplication.processEvents()
+        if self.splash is not None:
+            self.splash.hide()
 
         if self.open_project:
             self.projects.open_project(self.open_project)
