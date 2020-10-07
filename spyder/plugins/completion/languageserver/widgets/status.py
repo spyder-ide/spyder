@@ -44,16 +44,19 @@ class LSPStatusWidget(StatusBarWidget):
     STATUS = "LSP {}: {}"
 
     STRINGS_FOR_TRANSLATION = {
-        ClientStatus.STARTING: _("starting..."),
+        ClientStatus.STARTING: _("starting"),
         ClientStatus.READY: _("ready"),
-        ClientStatus.RESTARTING: _("restarting..."),
+        ClientStatus.RESTARTING: _("restarting"),
         ClientStatus.DOWN: _("down")
     }
 
     def __init__(self, parent, statusbar, plugin):
         self.tooltip = self.BASE_TOOLTIP
         super(LSPStatusWidget, self).__init__(
-            parent, statusbar, icon=ima.icon('lspserver'))
+            parent, statusbar,
+            icon=ima.icon('lspserver'),
+            spinner=True
+        )
 
         self.plugin = plugin
         self.menu = QMenu(self)
@@ -87,6 +90,13 @@ class LSPStatusWidget(StatusBarWidget):
 
     def set_status(self, lsp_language=None, status=None):
         """Set LSP status."""
+        if status in [ClientStatus.STARTING, ClientStatus.RESTARTING]:
+            self.spinner.show()
+            self.spinner.start()
+        else:
+            self.spinner.hide()
+            self.spinner.stop()
+
         if status is None:
             status = self.STRINGS_FOR_TRANSLATION[ClientStatus.STARTING]
         else:
