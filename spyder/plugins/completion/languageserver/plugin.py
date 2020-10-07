@@ -31,7 +31,7 @@ from spyder.plugins.completion.languageserver.client import LSPClient
 from spyder.plugins.completion.languageserver.confpage import (
     LanguageServerConfigPage)
 from spyder.plugins.completion.languageserver.widgets.status import (
-    LSPStatusWidget)
+    ClientStatus, LSPStatusWidget)
 from spyder.widgets.helperwidgets import MessageCheckBox
 
 
@@ -91,7 +91,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
 
         if force:
             logger.info("Manual restart for {}...".format(language))
-            self.set_status(language, _('restarting...'))
+            self.update_status(language, ClientStatus.RESTARTING)
             self.restart_client(language, client_config)
 
         elif self.clients_restarting[language]:
@@ -99,7 +99,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                        - self.clients_restart_count[language] + 1)
             logger.info("Automatic restart attempt {} for {}...".format(
                 attempt, language))
-            self.set_status(language, _('restarting...'))
+            self.update_status(language, ClientStatus.RESTARTING)
 
             self.clients_restart_count[language] -= 1
             self.restart_client(language, client_config)
@@ -139,7 +139,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             self.clients_restart_timers[language].stop()
             self.clients_restart_timers[language] = None
             self.clients_restart_count[language] = 0
-            self.set_status(language, _('ready'))
+            self.update_status(language, ClientStatus.READY)
 
     def check_heartbeat(self, language):
         """
@@ -152,9 +152,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             if instance.is_down() or status != self.RUNNING:
                 instance.sig_went_down.emit(language)
 
-    def set_status(self, language, status):
+    def update_status(self, language, status):
         """
-        Show status for the current file.
+        Update status for the current file.
         """
         self.clients_statusbar[language] = status
         self.status_widget.update_status(language, status)
@@ -165,7 +165,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """
         # Set status after the server was started correctly.
         if not self.clients_restarting.get(language, False):
-            self.set_status(language, _('ready'))
+            self.update_status(language, ClientStatus.READY)
 
         # Set status after a restart.
         if self.clients_restarting.get(language):
@@ -189,7 +189,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             timer.setInterval(self.TIME_BETWEEN_RESTARTS)
             timer.timeout.connect(lambda: self.restart_lsp(language))
 
-            self.set_status(language, _('restarting...'))
+            self.update_status(language, ClientStatus.RESTARTING)
             self.clients_restarting[language] = True
             self.clients_restart_count[language] = self.MAX_RESTART_ATTEMPTS
             self.clients_restart_timers[language] = timer
@@ -334,7 +334,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         Report that either the transport layer or the LSP server are
         down.
         """
-        self.set_status(language, _('down'))
+        self.update_status(language, ClientStatus.DOWN)
 
         if not self.get_option('show_lsp_down_warning'):
             return
@@ -412,7 +412,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                         if self.show_no_external_server_warning:
                             self.report_no_external_server(
                                 host, port, language)
-                        self.set_status(language, _("down"))
+                        self.update_status(language, ClientStatus.DOWN)
                         return False
 
                 language_client['instance'] = LSPClient(
