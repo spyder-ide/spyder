@@ -44,6 +44,25 @@ CASES = {
     for case in AVAILABLE_CASES
 }
 
+
+def get_tree_elements(treewidget):
+        """Get elements present in the Outline tree widget."""
+        root_item = treewidget.get_top_level_items()[0]
+        root_ref = root_item.ref
+        filename = osp.basename(root_ref.name)
+        root_tree = {filename: []}
+        stack = [(root_tree[filename], node) for node in root_ref.children]
+
+        while len(stack) > 0:
+            parent_tree, node = stack.pop(0)
+            this_tree = {node.name: []}
+            parent_tree.append(this_tree)
+            this_stack = [(this_tree[node.name], child)
+                          for child in node.children]
+            stack = this_stack + stack
+        return root_tree
+
+
 # ---- Qt Test Fixtures
 @pytest.fixture(scope="module")
 def test_files(tmpdir_factory):
@@ -270,22 +289,6 @@ def test_toggle_on_show_all_files(editorstack, outlineexplorer, test_files):
 @pytest.mark.second
 def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
     """Tests that the outline explorer reacts to editor changes."""
-    def get_tree_elements(treewidget):
-        root_item = treewidget.get_top_level_items()[0]
-        root_ref = root_item.ref
-        filename = osp.basename(root_ref.name)
-        root_tree = {filename: []}
-        stack = [(root_tree[filename], node) for node in root_ref.children]
-
-        while len(stack) > 0:
-            parent_tree, node = stack.pop(0)
-            this_tree = {node.name: []}
-            parent_tree.append(this_tree)
-            this_stack = [(this_tree[node.name], child)
-                          for child in node.children]
-            stack = this_stack + stack
-        return root_tree
-
     code_editor, outlineexplorer = lsp_codeeditor_outline
     treewidget = outlineexplorer.treewidget
 
@@ -416,6 +419,64 @@ def test_editor_outlineexplorer(qtbot, lsp_codeeditor_outline):
     tree = trees[5]
     root_tree = get_tree_elements(treewidget)
     assert root_tree == tree
+
+
+@pytest.mark.slow
+@pytest.mark.second
+def test_empty_file(qtbot, lsp_codeeditor_outline):
+    """
+    Test that the outline explorer is updated correctly when
+    it's associated file is empty.
+    """
+    code_editor, outlineexplorer = lsp_codeeditor_outline
+    treewidget = outlineexplorer.treewidget
+
+    code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
+
+    # Set empty contents
+    code_editor.set_text('')
+    code_editor.go_to_line(1)
+
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.request_symbols()
+
+    # Assert the spinner is not shown.
+    assert outlineexplorer.loading_widget.isHidden()
+
+    # Add some content
+    code_editor.set_text("""
+def foo():
+    a = 10
+    return a
+""")
+
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    with qtbot.waitSignal(treewidget.sig_tree_updated, timeout=30000):
+        code_editor.request_symbols()
+
+    root_tree = get_tree_elements(treewidget)
+    assert root_tree == {'test.py': [{'foo': [{'a': []}]}]}
+
+    # Remove content
+    code_editor.selectAll()
+    qtbot.keyPress(code_editor, Qt.Key_Delete)
+
+    with qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000):
+        code_editor.document_did_change()
+
+    with qtbot.waitSignal(treewidget.sig_tree_updated, timeout=30000):
+        code_editor.request_symbols()
+
+    # Assert the tree is empty and the spinner is not shown.
+    root_tree = get_tree_elements(treewidget)
+    assert root_tree == {'test.py': []}
+    assert outlineexplorer.loading_widget.isHidden()
 
 
 if __name__ == "__main__":
