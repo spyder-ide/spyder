@@ -1138,7 +1138,8 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_SYMBOL)
     def request_symbols(self):
         """Request document symbols."""
-        self.oe_proxy.emit_request_in_progress()
+        if self.oe_proxy is not None:
+            self.oe_proxy.emit_request_in_progress()
         params = {'file': self.filename}
         return params
 
@@ -1149,7 +1150,8 @@ class CodeEditor(TextEditBaseWidget):
             symbols = params['params']
             symbols = [] if symbols is None else symbols
             self.classfuncdropdown.update_data(symbols)
-            self.oe_proxy.update_outline_info(symbols)
+            if self.oe_proxy is not None:
+                self.oe_proxy.update_outline_info(symbols)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
