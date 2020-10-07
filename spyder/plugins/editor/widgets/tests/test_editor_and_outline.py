@@ -208,7 +208,8 @@ def test_sync_file_order(editorstack, outlineexplorer, test_files):
 
 
 # ---- Test single file mode
-def test_toggle_off_show_all_files(editorstack, outlineexplorer, test_files):
+def test_toggle_off_show_all_files(editorstack, outlineexplorer, test_files,
+                                   qtbot):
     """
     Test that toggling off the option to show all files in the Outline Explorer
     hide all root file items but the one corresponding to the currently
@@ -221,6 +222,7 @@ def test_toggle_off_show_all_files(editorstack, outlineexplorer, test_files):
 
     # Untoggle show all files option.
     treewidget.toggle_show_all_files(False)
+    qtbot.wait(500)
     results = [item.text(0) for item in treewidget.get_visible_items()]
     assert results == ['foo1.py']
 
