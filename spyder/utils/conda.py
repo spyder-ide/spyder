@@ -7,8 +7,13 @@
 """Conda/anaconda utilities."""
 
 # Standard library imports
+import json
 import os
+import os.path as osp
+import subprocess
 import sys
+
+WINDOWS = os.name == 'nt'
 
 
 def add_quotes(path):
@@ -92,3 +97,37 @@ def get_conda_env_path(pyexec, quote=False):
         conda_env = add_quotes(conda_env)
 
     return conda_env
+
+
+def get_list_conda_envs():
+    """Return the list of all the conda envs found in the system."""
+    try:
+        out, err = subprocess.Popen(
+            ['conda', 'env', 'list', '--json'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        ).communicate()
+        out = out.decode()
+        err = err.decode()
+    except Exception:
+        out = ''
+        err = ''
+    out = json.loads(out)
+    env_list = {}
+    for env in out['envs']:
+        name = env.split('/')[-1]
+        try:
+            path = osp.join(env, 'python') if WINDOWS else osp.join(
+                env, 'bin', 'python')
+            version, err = subprocess.Popen(
+                [path, '--version'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            ).communicate()
+            version = version.decode()
+            err = err.decode()
+        except Exception:
+            version = ''
+            err = ''
+        env_list[name] = (env, version.strip())
+    return env_list
