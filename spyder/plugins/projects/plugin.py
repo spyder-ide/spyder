@@ -396,7 +396,6 @@ class Projects(SpyderPluginWidget):
 
         self.current_active_project = project
         self.latest_project = project
-        self.notify_project_open(path)
         self.add_to_recent(path)
 
         self.set_option('current_project_path', self.get_active_project_path())
