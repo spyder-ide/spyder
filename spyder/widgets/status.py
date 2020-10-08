@@ -22,6 +22,7 @@ from spyder.config.base import _
 from spyder.config.gui import get_font
 from spyder.config import utils
 from spyder.py3compat import PY3
+from spyder.utils.qthelpers import create_waitspinner
 
 
 class StatusBarWidget(QWidget):
@@ -29,7 +30,7 @@ class StatusBarWidget(QWidget):
     # Signals
     sig_clicked = Signal()
 
-    def __init__(self, parent, statusbar, icon=None):
+    def __init__(self, parent, statusbar, icon=None, spinner=False):
         """Status bar widget base."""
         super(StatusBarWidget, self).__init__(parent)
 
@@ -43,12 +44,18 @@ class StatusBarWidget(QWidget):
         self._icon_size = QSize(16, 16)  # Should this be adjustable?
         self.label_icon = QLabel()
         self.label_value = QLabel()
+        self.spinner = None
+        if spinner:
+            self.spinner = create_waitspinner(size=14, parent=self)
 
         # Layout setup
         layout = QHBoxLayout(self)
         layout.setSpacing(0)  # Reduce space between icon and label
         layout.addWidget(self.label_icon)
         layout.addWidget(self.label_value)
+        if spinner:
+            layout.addWidget(self.spinner)
+            self.spinner.hide()
         layout.addSpacing(20)
         layout.setContentsMargins(0, 0, 0, 0)
 

@@ -281,10 +281,16 @@ class Editor(SpyderPluginWidget):
         self.main.completions.register_file(
             language.lower(), filename, codeeditor)
         if status:
-            codeeditor.start_completion_services()
             if language.lower() in self.completion_capabilities:
+                # When this condition is True, it means there's a server
+                # that can provide completion services for this file.
                 codeeditor.register_completion_capabilities(
                     self.completion_capabilities[language.lower()])
+                codeeditor.start_completion_services()
+            elif self.main.completions.is_fallback_only(language.lower()):
+                # This is required to use fallback completions for files
+                # without a language server.
+                codeeditor.start_completion_services()
         else:
             if codeeditor.language == language.lower():
                 logger.debug('Setting {0} completions off'.format(filename))
@@ -313,14 +319,17 @@ class Editor(SpyderPluginWidget):
             editorstack.register_completion_capabilities(
                 capabilities, language)
 
+        self.start_completion_services(language)
+
+    def start_completion_services(self, language):
+        """Notify all editorstacks about LSP server availability."""
+        for editorstack in self.editorstacks:
+            editorstack.start_completion_services(language)
+
     def stop_completion_services(self, language):
         """Notify all editorstacks about LSP server unavailability."""
         for editorstack in self.editorstacks:
-            editorstack.notify_server_down(language)
-
-    def completion_server_ready(self, language):
-        for editorstack in self.editorstacks:
-            editorstack.completion_server_ready(language)
+            editorstack.stop_completion_services(language)
 
     def send_completion_request(self, language, request, params):
         logger.debug("Perform request {0} for: {1}".format(

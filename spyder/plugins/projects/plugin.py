@@ -176,7 +176,6 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.editor.setup_open_files())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
 
-        self.main.pythonpath_changed()
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
         self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
@@ -323,7 +322,6 @@ class Projects(SpyderPluginWidget):
         project = EmptyProject(path)
         self.current_active_project = project
         self.latest_project = project
-        self.notify_project_open(path)
         self.set_option('current_project_path', self.get_active_project_path())
 
         self.setup_menu_actions()
@@ -360,7 +358,6 @@ class Projects(SpyderPluginWidget):
             self.explorer.clear()
             self.restart_consoles()
             self.watcher.stop()
-            self.notify_project_close(path)
 
     def delete_project(self):
         """
@@ -421,8 +418,8 @@ class Projects(SpyderPluginWidget):
                                                default=None)
 
         # Needs a safer test of project existence!
-        if current_project_path and \
-          self.is_valid_project(current_project_path):
+        if (current_project_path and
+                self.is_valid_project(current_project_path)):
             self.open_project(path=current_project_path,
                               restart_consoles=False,
                               save_previous_files=False)
@@ -533,15 +530,15 @@ class Projects(SpyderPluginWidget):
         if len(self.recent_projects) > self.get_option('max_recent_projects'):
             self.recent_projects.pop(-1)
 
-    def register_lsp_server_settings(self, settings):
-        """Enable LSP workspace functions."""
+    def start_workspace_services(self):
+        """Enable LSP workspace functionality."""
         self.completions_available = True
         if self.current_active_project:
             path = self.get_active_project_path()
             self.notify_project_open(path)
 
-    def stop_lsp_services(self):
-        """Disable LSP workspace functions."""
+    def stop_workspace_services(self):
+        """Disable LSP workspace functionality."""
         self.completions_available = False
 
     def emit_request(self, method, params, requires_response):

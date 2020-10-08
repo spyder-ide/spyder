@@ -3,6 +3,8 @@ import io
 import logging
 import os
 import re
+import functools
+from threading import RLock
 
 import jedi
 
@@ -13,6 +15,15 @@ log = logging.getLogger(__name__)
 # TODO: this is not the best e.g. we capture numbers
 RE_START_WORD = re.compile('[A-Za-z_0-9]*$')
 RE_END_WORD = re.compile('^[A-Za-z_0-9]*')
+
+
+def lock(method):
+    """Define an atomic region over a method."""
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+    return wrapper
 
 
 class Workspace(object):
@@ -131,6 +142,7 @@ class Document(object):
         self._source = source
         self._extra_sys_path = extra_sys_path or []
         self._rope_project_builder = rope_project_builder
+        self._lock = RLock()
 
     def __str__(self):
         return str(self.uri)
@@ -140,10 +152,12 @@ class Document(object):
         return libutils.path_to_resource(self._rope_project_builder(rope_config), self.path)
 
     @property
+    @lock
     def lines(self):
         return self.source.splitlines(True)
 
     @property
+    @lock
     def source(self):
         if self._source is None:
             with io.open(self.path, 'r', encoding='utf-8') as f:
@@ -153,6 +167,7 @@ class Document(object):
     def update_config(self, settings):
         self._config.update((settings or {}).get('pyls', {}))
 
+    @lock
     def apply_change(self, change):
         """Apply a change to the document."""
         text = change['text']
@@ -218,11 +233,13 @@ class Document(object):
 
         return m_start[0] + m_end[-1]
 
+    @lock
     def jedi_names(self, all_scopes=False, definitions=True, references=False):
         script = self.jedi_script()
         return script.get_names(all_scopes=all_scopes, definitions=definitions,
                                 references=references)
 
+    @lock
     def jedi_script(self, position=None):
         extra_paths = []
         environment_path = None
