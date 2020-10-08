@@ -904,9 +904,9 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         self.completion_widget.show_list(
             textlist, automatic=False, position=None)
 
-    def hide_completion_widget(self):
+    def hide_completion_widget(self, focus_to_parent=True):
         """Hide completion widget"""
-        self.completion_widget.hide()
+        self.completion_widget.hide(focus_to_parent=focus_to_parent)
 
     def show_completion_list(self, completions, completion_text=""):
         """Display the possible completions"""
