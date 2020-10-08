@@ -32,6 +32,13 @@ class ClientStatus:
     RESTARTING = 'restarting'
     DOWN = 'down'
 
+    STRINGS_FOR_TRANSLATION = {
+        STARTING: _("starting"),
+        READY: _("ready"),
+        RESTARTING: _("restarting"),
+        DOWN: _("down")
+    }
+
 
 class LSPStatusWidget(StatusBarWidget):
     """Status bar widget for LSP  status."""
@@ -42,13 +49,6 @@ class LSPStatusWidget(StatusBarWidget):
     )
 
     STATUS = "LSP {}: {}"
-
-    STRINGS_FOR_TRANSLATION = {
-        ClientStatus.STARTING: _("starting"),
-        ClientStatus.READY: _("ready"),
-        ClientStatus.RESTARTING: _("restarting"),
-        ClientStatus.DOWN: _("down")
-    }
 
     def __init__(self, parent, statusbar, plugin):
         self.tooltip = self.BASE_TOOLTIP
@@ -98,9 +98,10 @@ class LSPStatusWidget(StatusBarWidget):
             self.spinner.stop()
 
         if status is None:
-            status = self.STRINGS_FOR_TRANSLATION[ClientStatus.STARTING]
+            status = ClientStatus.STRINGS_FOR_TRANSLATION[
+                ClientStatus.STARTING]
         else:
-            status = self.STRINGS_FOR_TRANSLATION[status]
+            status = ClientStatus.STRINGS_FOR_TRANSLATION[status]
 
         if lsp_language is not None:
             status = self.STATUS.format(lsp_language, status)
