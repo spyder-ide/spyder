@@ -7,7 +7,6 @@
 """Miscellaneous utilities"""
 
 import functools
-import json
 import logging
 import os
 import os.path as osp
