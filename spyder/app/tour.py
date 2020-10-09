@@ -756,6 +756,7 @@ class FadingTipBox(FadingDialog):
         elif self.button_disable == 'next':
             self.button_next.setDisabled(True)
             self.button_end.setDisabled(True)
+        self.button_run.setDisabled(sys.platform == "darwin")
 
     def set_data(self, title, content, current, image, run, frames=None,
                  step=None):
@@ -786,7 +787,6 @@ class FadingTipBox(FadingDialog):
             self.button_run.setVisible(False)
         else:
             self.button_run.setVisible(True)
-            self.button_run.setDisabled(sys.platform == "darwin")
             if sys.platform == "darwin":
                 self.button_run.setToolTip("Not available on macOS")
 
