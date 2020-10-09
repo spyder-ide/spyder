@@ -31,8 +31,8 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: Spyder_64bit.exe
           path: dist/Spyder_64bit.exe
+          name: Spyder_64bit.exe
       - name: Get Release
         if: ${{github.event_name == 'release'}}
         id: get_release
@@ -46,6 +46,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: Spyder_64bit.exe
+          asset_path: dist/Spyder_64bit.exe
           asset_name: Spyder_64bit.exe
           asset_content_type: application/vnd.microsoft.portable-executable
