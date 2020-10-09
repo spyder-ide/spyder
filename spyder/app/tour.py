@@ -24,10 +24,13 @@ from qtpy.QtGui import (QBrush, QColor, QIcon, QPainter, QPainterPath, QPen,
                         QPixmap, QRegion)
 from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
                             QGraphicsOpacityEffect, QHBoxLayout, QLabel,
-                            QLayout, QMainWindow, QMenu, QPushButton,
-                            QSpacerItem, QToolButton, QVBoxLayout, QWidget)
+                            QLayout, QMainWindow, QMenu, QMessageBox,
+                            QPushButton, QSpacerItem, QToolButton, QVBoxLayout,
+                            QWidget)
 
 # Local imports
+from spyder import __docs_url__
+from spyder.api.panel import Panel
 from spyder.config.base import _, get_image_path
 from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_binary_string
@@ -50,12 +53,18 @@ class SpyderWidgets(object):
     # Panes
     ipython_console = 'ipyconsole'
     editor = 'editor'
-    editor_line_number_area = 'editor.get_current_editor().linenumberarea'
+    panel = Panel.Position.LEFT
+    editor_line_number_area = (
+        f'editor.get_current_editor().panels._panels[{panel}].values()')
     editor_scroll_flag_area = 'editor.get_current_editor().scrollflagarea'
     file_explorer = 'explorer'
     help_plugin = 'help'
     variable_explorer = 'variableexplorer'
     history_log = "historylog"
+    plots_plugin = "plots"
+    find_plugin = "findinfiles"
+    profiler = "Profiler"
+    code_analysis = "Pylint"
 
     # Toolbars
     toolbars = ''
@@ -94,6 +103,11 @@ def get_tour(index):
     """
     sw = SpyderWidgets
     qtconsole_link = "https://qtconsole.readthedocs.io/en/stable/index.html"
+    button_text = ""
+    if sys.platform != "darwin":
+        button_text = ("Please click on the button below to run some simple "
+                       "code in this console. This will be useful to show "
+                       "you other important features.")
 
     # This test should serve as example of keys to use in the tour frame dics
     test = [{'title': "Welcome to Spyder introduction tour",
@@ -164,11 +178,9 @@ def get_tour(index):
                            "useful features that greatly improve your "
                            "programming workflow (like syntax highlighting and "
                            "inline plots). If you want to know more about them, "
-                           "please follow this <a href=\"{0}\">link</a>.<br><br>"
-                           "Please click on the button below to run some simple "
-                           "code in this console. This will be useful to show "
-                           "you other important features.").format(
-                           qtconsole_link),
+                           "please follow this <a href=\"{qtconsole_link}\">link</a>.<br><br>"
+                           "{button_text}").format(
+                           qtconsole_link=qtconsole_link, button_text=button_text),
               'widgets': [sw.ipython_console],
               'run': ["li = list(range(100))", "d = {'a': 1, 'b': 2}"]
               },
@@ -197,7 +209,14 @@ def get_tour(index):
               'widgets': [sw.help_plugin],
               'interact': True},
 
-             {'title': _("The File Explorer"),
+             {'title': _("Plots"),
+              'content': _("This pane shows the figures and images created "
+                           "during your code execution. It allows you to browse, "
+                           "zoom, copy, and save the generated plots."),
+              'widgets': [sw.plots_plugin],
+              'interact': True},
+
+             {'title': _("Files"),
               'content': _("This pane lets you navigate through the directories "
                            "and files present in your computer.<br><br>"
                            "You can also open any of these files with its "
@@ -210,9 +229,40 @@ def get_tour(index):
 
              {'title': _("The History Log"),
               'content': _("This pane records all commands introduced in "
-                           "the Python and IPython consoles."),
+                           "any IPython console."),
+
               'widgets': [sw.history_log],
               'interact': True},
+
+             {'title': _("Find"),
+              'content': _("The Find pane allows you to search for text in a "
+                           "given directory and navigate through all the found "
+                           "occurrences."),
+              'widgets': [sw.find_plugin],
+              'interact': True},
+
+             {'title': _("Profiler"),
+              'content': _("The Profiler helps you optimize your code by determining "
+                           "the run time and number of calls for every function and "
+                           "method used in a file. It also allows you to save and "
+                           "compare your results between runs."),
+              'widgets': [sw.profiler],
+              'interact': True},
+
+             {'title': _("Code Analysis"),
+              'content': _("The Code Analysis helps you improve the quality of "
+                           "your programs by detecting style issues, bad practices "
+                           "and potential bugs."),
+              'widgets': [sw.code_analysis],
+              'interact': True},
+
+             {'title': _("The end"),
+              'content': _('You have reached the end of our tour and are ready to '
+                           'start using Spyder! For more information, check out '
+                           f'our <a href="{__docs_url__}">documentation</a>.<br><br>'),
+              'image': 'tour-spyder-logo.png'
+              },
+
              ]
 
 #                   ['The run toolbar',
@@ -437,7 +487,6 @@ class FadingCanvas(FadingDialog):
         self.region_mask = QRegion(0, 0, w, h)
 
         self.path_full.addRect(0, 0, w, h)
-
         # Add the path
         if self.widgets is not None:
             for widget in self.widgets:
@@ -462,16 +511,26 @@ class FadingCanvas(FadingDialog):
             self.path_current = self.path_full.subtracted(self.path_subtract)
         else:
             self.path_current = self.path_full
-
         if self.decoration is not None:
-            for widget in self.decoration:
+            for widgets in self.decoration:
+                if isinstance(widgets, QWidget):
+                    widgets = [widgets]
+                geoms = []
+                for widget in widgets:
+                    widget.raise_()
+                    widget.show()
+                    geo = widget.frameGeometry()
+                    width, height = geo.width(), geo.height()
+                    point = widget.mapTo(self.parent, QPoint(0, 0))
+                    x, y = point.x(), point.y()
+                    geoms.append((x, y, width, height))
+                x = min([geom[0] for geom in geoms])
+                y = min([geom[1] for geom in geoms])
+                width = max([
+                    geom[0] + geom[2] for geom in geoms]) - x
+                height = max([
+                    geom[1] + geom[3] for geom in geoms]) - y
                 temp_path = QPainterPath()
-                widget.raise_()
-                widget.show()
-                geo = widget.frameGeometry()
-                width, height = geo.width(), geo.height()
-                point = widget.mapTo(self.parent, QPoint(0, 0))
-                x, y = point.x(), point.y()
                 temp_path.addRect(QRectF(x, y, width, height))
 
                 temp_region_1 = QRegion(x-1, y-1, width+2, height+2)
@@ -577,6 +636,7 @@ class FadingTipBox(FadingDialog):
         self.label_current = QLabel()
         self.label_content = QLabel()
 
+        self.label_content.setOpenExternalLinks(True)
         self.label_content.setMinimumWidth(self.fixed_width)
         self.label_content.setMaximumWidth(self.fixed_width)
 
@@ -696,6 +756,7 @@ class FadingTipBox(FadingDialog):
         elif self.button_disable == 'next':
             self.button_next.setDisabled(True)
             self.button_end.setDisabled(True)
+        self.button_run.setDisabled(sys.platform == "darwin")
 
     def set_data(self, title, content, current, image, run, frames=None,
                  step=None):
@@ -725,8 +786,9 @@ class FadingTipBox(FadingDialog):
         if run is None:
             self.button_run.setVisible(False)
         else:
-            self.button_run.setDisabled(False)
             self.button_run.setVisible(True)
+            if sys.platform == "darwin":
+                self.button_run.setToolTip("Not available on macOS")
 
         # Refresh layout
         self.layout().activate()
@@ -865,6 +927,7 @@ class AnimatedTour(QWidget):
         self.tips = None
         self.frames = None
         self.spy_window = None
+        self.initial_fullscreen_state = None
 
         self.widgets = None
         self.dockwidgets = None
@@ -913,8 +976,8 @@ class AnimatedTour(QWidget):
     def _resized(self, event):
         """ """
         if self.is_running:
-            size = event.size()
-            self.canvas.setFixedSize(size)
+            geom = self.parent.geometry()
+            self.canvas.setFixedSize(geom.width(), geom.height())
             self.canvas.update_canvas()
 
             if self.is_tour_set:
@@ -923,8 +986,8 @@ class AnimatedTour(QWidget):
     def _moved(self, event):
         """ """
         if self.is_running:
-            pos = event.pos()
-            self.canvas.move(QPoint(pos.x(), pos.y()))
+            geom = self.parent.geometry()
+            self.canvas.move(geom.x(), geom.y())
 
             if self.is_tour_set:
                 self._set_data()
@@ -982,13 +1045,25 @@ class AnimatedTour(QWidget):
         dockwidgets = []
 
         for name in names:
-            base = name.split('.')[0]
-            temp = getattr(spy_window, base)
-
-            # Check if it is the current editor
-            if 'get_current_editor()' in name:
-                temp = temp.get_current_editor()
-                temp = getattr(temp, name.split('.')[-1])
+            try:
+                base = name.split('.')[0]
+                try:
+                    temp = getattr(spy_window, name)
+                except AttributeError:
+                    for item in spy_window.thirdparty_plugins:
+                        if type(item).__name__ == name:
+                            temp = item
+                            break
+                    else:
+                        temp = None
+                    # Check if it is the current editor
+                    if 'get_current_editor()' in name:
+                        temp = temp.get_current_editor()
+                        temp = getattr(temp, name.split('.')[-1])
+                    if temp is None:
+                        raise
+            except AttributeError:
+                temp = eval(f"spy_window.{name}")
 
             widgets.append(temp)
 
@@ -1048,7 +1123,7 @@ class AnimatedTour(QWidget):
             self._set_modal(True, [self.tips])
 
         if 'run' in frame:
-            # Asume that the frist widget is the console
+            # Asume that the first widget is the console
             run = frame['run']
             self.run = run
 
@@ -1074,6 +1149,7 @@ class AnimatedTour(QWidget):
         self.y_main = y
 
         delta = 20
+        offset = 10
 
         # Here is the tricky part to define the best position for the
         # tip widget
@@ -1085,23 +1161,20 @@ class AnimatedTour(QWidget):
                 point = dockwidgets[0].mapToGlobal(QPoint(0, 0))
                 x_glob, y_glob = point.x(), point.y()
 
-                # Check if is too tall and put to the side
-                y_fac = (height / self.height_main) * 100
-
-                if y_fac > 60:  # FIXME:
-                    if x < self.tips.width():
-                        x = x_glob + width + delta
-                        y = y_glob + height/2 - self.tips.height()/2
-                    else:
-                        x = x_glob - self.tips.width() - delta
-                        y = y_glob + height/2 - self.tips.height()/2
+                # Put tip to the opposite side of the pane
+                if x < self.tips.width():
+                    x = x_glob + width + delta
+                    y = y_glob + height/2 - self.tips.height()/2
                 else:
-                    if y < self.tips.height():
-                        x = x_glob + width/2 - self.tips.width()/2
-                        y = y_glob + height + delta
-                    else:
-                        x = x_glob + width/2 - self.tips.width()/2
-                        y = y_glob - delta - self.tips.height()
+                    x = x_glob - self.tips.width() - delta
+                    y = y_glob + height/2 - self.tips.height()/2
+
+                if (y + self.tips.height()) > (self.y_main + self.height_main):
+                    y = (
+                        y
+                        - (y + self.tips.height() - (self.y_main + self.height_main))
+                        - offset
+                    )
         else:
             # Center on parent
             x = self.x_main + self.width_main/2 - self.tips.width()/2
@@ -1162,8 +1235,34 @@ class AnimatedTour(QWidget):
 
         self.is_tour_set = True
 
+    def _handle_fullscreen(self):
+        if self.spy_window.isFullScreen() or self.spy_window.fullscreen_flag:
+            if sys.platform == 'darwin':
+                self.spy_window.setUpdatesEnabled(True)
+                msg_title = _("Request")
+                msg = _("To run the tour, please press the green button on "
+                        "the left of the Spyder window's title bar to take "
+                        "it out of fullscreen mode.")
+                QMessageBox.information(self, msg_title, msg,
+                                        QMessageBox.Ok)
+                return True
+            if self.spy_window.fullscreen_flag:
+                self.spy_window.toggle_fullscreen()
+            else:
+                self.spy_window.setWindowState(
+                    self.spy_window.windowState()
+                    & (~ Qt.WindowFullScreen))
+        return False
     def start_tour(self):
         """ """
+        self.spy_window.setUpdatesEnabled(False)
+        if self._handle_fullscreen():
+            return
+        self.spy_window.save_current_window_settings(
+            'layout_current_temp/',
+            section="quick_layouts",
+        )
+        self.spy_window.quick_layout_switch('default')
         geo = self.parent.geometry()
         x, y, width, height = geo.x(), geo.y(), geo.width(), geo.height()
 #        self.parent_x = x
@@ -1178,6 +1277,7 @@ class AnimatedTour(QWidget):
         # Adjust the canvas size to match the main window size
         self.canvas.setFixedSize(width, height)
         self.canvas.move(QPoint(x, y))
+        self.spy_window.setUpdatesEnabled(True)
         self.canvas.fade_in(self._move_step)
         self._clear_canvas()
 
@@ -1186,6 +1286,7 @@ class AnimatedTour(QWidget):
     def close_tour(self):
         """ """
         self.tips.fade_out(self._close_canvas)
+        self.spy_window.setUpdatesEnabled(False)
         self.canvas.set_interaction(False)
         self._set_modal(True, [self.tips])
         self.canvas.hide()
@@ -1199,6 +1300,8 @@ class AnimatedTour(QWidget):
             pass
 
         self.is_running = False
+        self.spy_window.quick_layout_switch('current_temp')
+        self.spy_window.setUpdatesEnabled(True)
 
     def hide_tips(self):
         """Hide tips dialog when the main window loses focus."""
@@ -1239,9 +1342,16 @@ class AnimatedTour(QWidget):
 
     def lost_focus(self):
         """Confirm if the tour loses focus and hides the tips."""
-        if (self.is_running and not self.any_has_focus() and
-            not self.setting_data and not self.hidden):
-            self.hide_tips()
+        if (self.is_running and
+                not self.setting_data and not self.hidden):
+            if sys.platform == 'darwin':
+                if not self.tour_has_focus():
+                    self.hide_tips()
+                    if not self.any_has_focus():
+                        self.close_tour()
+            else:
+                if not self.any_has_focus():
+                    self.hide_tips()
 
     def gain_focus(self):
         """Confirm if the tour regains focus and unhides the tips."""
@@ -1250,9 +1360,15 @@ class AnimatedTour(QWidget):
             self.unhide_tips()
 
     def any_has_focus(self):
-        """Returns if tour or any of its components has focus."""
+        """Returns True if tour or main window has focus."""
         f = (self.hasFocus() or self.parent.hasFocus() or
-             self.tips.hasFocus() or self.canvas.hasFocus())
+             self.tour_has_focus() or self.isActiveWindow())
+        return f
+
+    def tour_has_focus(self):
+        """Returns true if tour or any of its components has focus."""
+        f = (self.tips.hasFocus() or self.canvas.hasFocus() or
+             self.tips.isActiveWindow())
         return f
 
 # ----------------------------------------------------------------------------

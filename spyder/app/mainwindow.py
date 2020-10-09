@@ -165,7 +165,8 @@ else:
 # Local utility imports
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, __website_url__, get_versions)
+                    __trouble_url__, __website_url__, get_versions,
+                    __docs_url__)
 from spyder.app.utils import (get_python_doc_path, delete_lsp_log_files,
                               qt_message_handler, setup_logging)
 from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
@@ -1472,11 +1473,10 @@ class MainWindow(QMainWindow):
                                                 triggered=self.check_updates)
 
         # Spyder documentation
-        spyder_doc = 'https://docs.spyder-ide.org/'
         doc_action = create_action(self, _("Spyder documentation"),
                                    icon=ima.icon('DialogHelpButton'),
                                    triggered=lambda:
-                                   programs.start_file(spyder_doc))
+                                   programs.start_file(__docs_url__))
         self.register_shortcut(doc_action, "_",
                                "spyder documentation")
 
@@ -1489,30 +1489,35 @@ class MainWindow(QMainWindow):
 
         #----- Tours
         self.tour = tour.AnimatedTour(self)
-        self.tours_menu = QMenu(_("Interactive tours"), self)
-        self.tour_menu_actions = []
-        # TODO: Only show intro tour for now. When we are close to finish
-        # 3.0, we will finish and show the other tour
-        self.tours_available = tour.get_tours(0)
+        # self.tours_menu = QMenu(_("Interactive tours"), self)
+        # self.tour_menu_actions = []
+        # # TODO: Only show intro tour for now. When we are close to finish
+        # # 3.0, we will finish and show the other tour
+        tour_index = 0
+        self.tours_available = tour.get_tours(tour_index)
 
         for i, tour_available in enumerate(self.tours_available):
             self.tours_available[i]['last'] = 0
             tour_name = tour_available['name']
 
-            def trigger(i=i, self=self):  # closure needed!
-                return lambda: self.show_tour(i)
+        #     def trigger(i=i, self=self):  # closure needed!
+        #         return lambda: self.show_tour(i)
 
-            temp_action = create_action(self, tour_name, tip="",
-                                        triggered=trigger())
-            self.tour_menu_actions += [temp_action]
+        #     temp_action = create_action(self, tour_name, tip="",
+        #                                 triggered=trigger())
+        #     self.tour_menu_actions += [temp_action]
 
-        self.tours_menu.addActions(self.tour_menu_actions)
+        # self.tours_menu.addActions(self.tour_menu_actions)
+        self.tour_action = create_action(
+            self, self.tours_available[tour_index]['name'],
+            tip=_("Interactive tour introducing Spyder's panes and features"),
+            triggered=lambda: self.show_tour(tour_index))
 
         self.help_menu_actions = [
             doc_action,
             vid_action,
             # shortcuts_action,
-            self.tours_menu,
+            self.tour_action,
             MENU_SEPARATOR,
             trouble_action,
             report_action, dep_action,
@@ -2593,7 +2598,11 @@ class MainWindow(QMainWindow):
 
         # make sure the flags are correctly set for visible panes
         for plugin in (self.widgetlist + self.thirdparty_plugins):
-            action = plugin._toggle_view_action
+            try:
+                action = plugin._toggle_view_action
+            except AttributeError:
+                # New API
+                action = plugin.toggle_view_action
             action.setChecked(plugin.dockwidget.isVisible())
 
     # TODO: To be removed after all actions are moved to their corresponding
