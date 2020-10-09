@@ -304,6 +304,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.update_timers = {}
         self.ordered_editor_ids = []
         self._current_editor = None
+        self._languages = []
 
         title = _("Outline")
         self.set_title(title)
@@ -473,7 +474,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         # Update tree with currently stored info or require symbols if
         # necessary.
-        if len(self.editor_tree_cache[editor_id]) == 0:
+        if (editor.get_language() in self._languages and
+                len(self.editor_tree_cache[editor_id]) == 0):
             if editor.info is not None:
                 self.update_current(editor.info)
             elif editor.is_cloned:
@@ -813,6 +815,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def start_symbol_services(self, language):
         """Show symbols for all `language` files."""
+        # Save all languages that can send info to this pane.
+        self._languages.append(language)
+
         # Update all files associated to `language` through a timer
         # that allows to wait a bit between updates. That doesn't block
         # the interface at startup.
