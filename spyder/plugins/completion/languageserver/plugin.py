@@ -453,6 +453,10 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                     self.main.editor.register_completion_capabilities)
                 self.main.editor.sig_editor_focus_changed.connect(
                     self.status_widget.update_status)
+            if self.main.outlineexplorer:
+                instance.sig_initialize.connect(
+                    lambda settings, language:
+                    self.main.outlineexplorer.start_symbol_services(language))
             if self.main.console:
                 instance.sig_server_error.connect(self.report_server_error)
 

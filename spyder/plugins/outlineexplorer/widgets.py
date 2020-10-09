@@ -15,7 +15,7 @@ import uuid
 # Third party imports
 from intervaltree import IntervalTree
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtCore import QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
                             QTreeWidgetItemIterator)
 
@@ -301,8 +301,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.editor_items = {}
         self.editor_tree_cache = {}
         self.editor_ids = {}
+        self.update_timers = {}
         self.ordered_editor_ids = []
         self._current_editor = None
+
         title = _("Outline")
         self.set_title(title)
         self.setWindowTitle(title)
@@ -527,17 +529,39 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.restore_expanded_state()
         self.do_follow_cursor()
 
+    def update_editors(self, language):
+        """
+        Update all editors for a given language sequentially.
+
+        This is done through a timer to avoid lags during Spyder
+        startup.
+        """
+        for editor, editor_id in self.editor_ids.items():
+            if editor.get_language().lower() == language:
+                if (len(self.editor_tree_cache[editor_id]) == 0 and
+                        editor.info is not None):
+                    self.update_current(editor.info, editor)
+                    break
+
+        all_updated = all(ed.updated for ed in self.editor_ids.keys())
+
+        if not all_updated:
+            self.update_timers[language].start()
+
     @Slot(list)
-    def update_current(self, items):
+    def update_current(self, items, editor=None):
         """
         Update the outline explorer for the current editor tree preserving the
         tree state
         """
         plugin_base = self.parent().parent()
-        editor = self.current_editor
+        if editor is None:
+            editor = self.current_editor
+        editor.updated = True
         editor_id = editor.get_id()
         language = editor.get_language()
         update = self.update_tree(items, editor_id, language)
+
         if getattr(plugin_base, "_isvisible", True) and update:
             self.save_expanded_state()
             self.__do_update(editor, editor_id)
@@ -787,6 +811,18 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.root_item_selected(item)
         self.activated(item)
 
+    def start_symbol_services(self, language):
+        """Show symbols for all `language` files."""
+        # Update all files associated to `language` through a timer
+        # that allows to wait a bit between updates. That doesn't block
+        # the interface at startup.
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        timer.setInterval(700)
+        timer.timeout.connect(lambda: self.update_editors(language))
+        self.update_timers[language] = timer
+        timer.start()
+
 
 class OutlineExplorerWidget(QWidget):
     """Class browser"""
@@ -891,3 +927,7 @@ class OutlineExplorerWidget(QWidget):
 
     def file_renamed(self, editor, new_filename):
         self.treewidget.file_renamed(editor, new_filename)
+
+    def start_symbol_services(self, language):
+        """Enable LSP symbols functionality."""
+        self.treewidget.start_symbol_services(language)

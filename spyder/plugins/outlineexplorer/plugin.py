@@ -118,3 +118,7 @@ class OutlineExplorer(SpyderPluginWidget):
             expanded_state = None
         if expanded_state is not None:
             self.explorer.treewidget.set_expanded_state(expanded_state)
+
+    def start_symbol_services(self, language):
+        """Enable LSP symbols functionality."""
+        self.explorer.start_symbol_services(language)

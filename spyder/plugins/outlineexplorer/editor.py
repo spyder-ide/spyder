@@ -18,9 +18,15 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
         super(OutlineExplorerProxyEditor, self).__init__()
         self._editor = editor
         self.fname = fname
-        self.info = None
         editor.sig_cursor_position_changed.connect(
             self.sig_cursor_position_changed)
+
+        # This saves the symbols info that comes from the server.
+        self.info = None
+
+        # This allows us to know if the editor has been updated with
+        # that info or not.
+        self.updated = False
 
     def update_outline_info(self, info):
         self.sig_outline_explorer_data_changed.emit(info)
