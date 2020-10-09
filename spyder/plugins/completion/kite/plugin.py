@@ -75,7 +75,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             self.set_status)
         self.status_widget.sig_clicked.connect(
             self.show_installation_dialog)
-        self.main.sig_setup_finished.connect(self.mainwindow_setup_finished)
+        # self.main.sig_setup_finished.connect(self.mainwindow_setup_finished)
 
         # Config
         self.update_configuration()

@@ -346,6 +346,7 @@ class MainWindow(QMainWindow):
         # Tour  # TODO: Should I consider it a plugin?? or?
         self.tour = None
         self.tours_available = None
+        self.tour_dialog = None
 
         # File switcher
         self.switcher = None
@@ -1399,6 +1400,10 @@ class MainWindow(QMainWindow):
         # Show dialog with missing dependencies
         if not running_under_pytest():
             self.report_missing_dependencies()
+
+        # Show tour dialog
+        self.tour_dialog = tour.OpenTourDialog(self, lambda: self.show_tour(0))
+        self.tour_dialog.show()
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
