@@ -455,8 +455,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                     self.status_widget.update_status)
             if self.main.outlineexplorer:
                 instance.sig_initialize.connect(
-                    lambda settings, language:
-                    self.main.outlineexplorer.start_symbol_services(language))
+                    self.main.outlineexplorer.start_symbol_services)
             if self.main.console:
                 instance.sig_server_error.connect(self.report_server_error)
 

@@ -12,6 +12,7 @@ highlighter spyder.utils.syntaxhighlighters.PythonSH
 """
 
 # Third party imports
+from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
@@ -119,6 +120,9 @@ class OutlineExplorer(SpyderPluginWidget):
         if expanded_state is not None:
             self.explorer.treewidget.set_expanded_state(expanded_state)
 
-    def start_symbol_services(self, language):
+    @Slot(dict, str)
+    def start_symbol_services(self, capabilities, language):
         """Enable LSP symbols functionality."""
-        self.explorer.start_symbol_services(language)
+        symbol_provider = capabilities.get('documentSymbolProvider', False)
+        if symbol_provider:
+            self.explorer.start_symbol_services(language)
