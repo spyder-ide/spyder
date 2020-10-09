@@ -1066,7 +1066,8 @@ class MainWindow(QMainWindow):
         # self.tour_menu_actions = []
         # # TODO: Only show intro tour for now. When we are close to finish
         # # 3.0, we will finish and show the other tour
-        self.tours_available = tour.get_tours(0)
+        tour_index = 0
+        self.tours_available = tour.get_tours(tour_index)
 
         for i, tour_available in enumerate(self.tours_available):
             self.tours_available[i]['last'] = 0
@@ -1080,11 +1081,9 @@ class MainWindow(QMainWindow):
         #     self.tour_menu_actions += [temp_action]
 
         # self.tours_menu.addActions(self.tour_menu_actions)
-        tour_index = 0
         self.tour_action = create_action(
             self, self.tours_available[tour_index]['name'],
             tip=_("Interactive tour introducing Spyder's panes and features"),
-
             triggered=lambda: self.show_tour(tour_index))
 
         self.help_menu_actions = [doc_action, vid_action, shortcuts_action,

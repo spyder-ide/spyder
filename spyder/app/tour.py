@@ -29,12 +29,13 @@ from qtpy.QtWidgets import (QAction, QApplication, QComboBox, QDialog,
                             QWidget)
 
 # Local imports
+from spyder import __docs_url__
+from spyder.api.panel import Panel
 from spyder.config.base import _, get_image_path
 from spyder.config.gui import is_dark_interface
 from spyder.py3compat import to_binary_string
 from spyder.utils.qthelpers import add_actions, create_action
 from spyder.utils import icon_manager as ima
-from spyder import __docs_url__
 
 
 if is_dark_interface():
@@ -52,8 +53,9 @@ class SpyderWidgets(object):
     # Panes
     ipython_console = 'ipyconsole'
     editor = 'editor'
+    panel = Panel.Position.LEFT
     editor_line_number_area = (
-        'editor.get_current_editor().panels._panels.get(1).values()')
+        f'editor.get_current_editor().panels._panels[{panel}].values()')
     editor_scroll_flag_area = 'editor.get_current_editor().scrollflagarea'
     file_explorer = 'explorer'
     help_plugin = 'help'
@@ -101,8 +103,6 @@ def get_tour(index):
     """
     sw = SpyderWidgets
     qtconsole_link = "https://qtconsole.readthedocs.io/en/stable/index.html"
-    #docs_link = __docs_url__
-    docs_link = "https://docs.spyder-ide.org/current/index.html"
     button_text = ""
     if sys.platform != "darwin":
         button_text = ("Please click on the button below to run some simple "
@@ -259,7 +259,7 @@ def get_tour(index):
              {'title': _("The end"),
               'content': _('You have reached the end of our tour and are ready to '
                            'start using Spyder! For more information, check out '
-                           f'our <a href="{docs_link}">documentation</a>.<br><br>'),
+                           f'our <a href="{__docs_url__}">documentation</a>.<br><br>'),
               'image': 'tour-spyder-logo.png'
               },
 
@@ -526,8 +526,10 @@ class FadingCanvas(FadingDialog):
                     geoms.append((x, y, width, height))
                 x = min([geom[0] for geom in geoms])
                 y = min([geom[1] for geom in geoms])
-                width = max([geom[0]+geom[2] for geom in geoms])-x
-                height = max([geom[1]+geom[3] for geom in geoms])-y
+                width = max([
+                    geom[0] + geom[2] for geom in geoms]) - x
+                height = max([
+                    geom[1] + geom[3] for geom in geoms]) - y
                 temp_path = QPainterPath()
                 temp_path.addRect(QRectF(x, y, width, height))
 
@@ -783,11 +785,10 @@ class FadingTipBox(FadingDialog):
         if run is None:
             self.button_run.setVisible(False)
         else:
+            self.button_run.setVisible(True)
+            self.button_run.setDisabled(sys.platform == "darwin")
             if sys.platform == "darwin":
-                self.button_run.setVisible(False)
-            else:
-                self.button_run.setDisabled(False)
-                self.button_run.setVisible(True)
+                self.button_run.setToolTip("Not available on macOS")
 
         # Refresh layout
         self.layout().activate()
@@ -1047,17 +1048,20 @@ class AnimatedTour(QWidget):
             try:
                 base = name.split('.')[0]
                 try:
-                    temp = getattr(spy_window, base)
+                    temp = getattr(spy_window, name)
                 except AttributeError:
                     for item in spy_window.thirdparty_plugins:
                         if type(item).__name__ == name:
                             temp = item
                             break
-                else:
+                    else:
+                        temp = None
                     # Check if it is the current editor
                     if 'get_current_editor()' in name:
                         temp = temp.get_current_editor()
                         temp = getattr(temp, name.split('.')[-1])
+                    if temp is None:
+                        raise
             except AttributeError:
                 temp = eval(f"spy_window.{name}")
 
@@ -1233,23 +1237,22 @@ class AnimatedTour(QWidget):
 
     def _handle_fullscreen(self):
         if self.spy_window.isFullScreen() or self.spy_window.fullscreen_flag:
-              if sys.platform == 'darwin':
-                  self.spy_window.setUpdatesEnabled(True)
-                  msg_title = _("Request")
-                  msg = _("To run the tour, please press the green button on "
-                          "the left of the Spyder window's title bar to take "
-                          "it out of fullscreen mode.")
-                  QMessageBox.information(self, msg_title, msg,
-                                          QMessageBox.Ok)
-                  return True
-              if self.spy_window.fullscreen_flag:
-                  self.spy_window.toggle_fullscreen()
-              else:
-                  self.spy_window.setWindowState(
-                      self.spy_window.windowState()
-                      & (~ Qt.WindowFullScreen))
+            if sys.platform == 'darwin':
+                self.spy_window.setUpdatesEnabled(True)
+                msg_title = _("Request")
+                msg = _("To run the tour, please press the green button on "
+                        "the left of the Spyder window's title bar to take "
+                        "it out of fullscreen mode.")
+                QMessageBox.information(self, msg_title, msg,
+                                        QMessageBox.Ok)
+                return True
+            if self.spy_window.fullscreen_flag:
+                self.spy_window.toggle_fullscreen()
+            else:
+                self.spy_window.setWindowState(
+                    self.spy_window.windowState()
+                    & (~ Qt.WindowFullScreen))
         return False
-  
     def start_tour(self):
         """ """
         self.spy_window.setUpdatesEnabled(False)
@@ -1257,7 +1260,7 @@ class AnimatedTour(QWidget):
             return
         self.spy_window.save_current_window_settings(
             'layout_current_temp/',
-            section="quick_layouts"
+            section="quick_layouts",
         )
         self.spy_window.quick_layout_switch('default')
         geo = self.parent.geometry()
