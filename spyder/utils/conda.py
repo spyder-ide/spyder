@@ -129,5 +129,6 @@ def get_list_conda_envs():
         except Exception:
             version = ''
             err = ''
-        env_list[name] = (env, version.strip())
+        name = 'conda: {}'.format(name)
+        env_list[name] = (path, version.strip())
     return env_list

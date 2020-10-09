@@ -352,8 +352,8 @@ def get_list_pyenv_envs():
     for env in out:
         data = env.split('/')
         path = get_pyenv_path(data[-1])
-        name = 'pyenv-base' if data[-1] == '' else data[-1]
+        name = 'system' if data[-1] == '' else 'pyenv: {}'.format(data[-1])
         version = (
-            'Python 2.7.5' if data[-1] == '' else 'Python {}'.format(data[0]))
+            'Python 2.7' if data[-1] == '' else 'Python {}'.format(data[0]))
         env_list[name] = (path, version)
     return env_list

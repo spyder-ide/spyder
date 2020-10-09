@@ -9,20 +9,25 @@
 """Status bar widgets."""
 
 # Standard library imports
+import functools
 import os
 import subprocess
 
 # Third party imports
-from qtpy.QtCore import Qt, QSize, QTimer, Signal
+from qtpy.QtCore import Qt, QPoint, QSize, QTimer, Signal
 from qtpy.QtGui import QFont, QIcon
-from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
+from qtpy.QtWidgets import QHBoxLayout, QLabel, QMenu, QWidget
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.gui import get_font
+from spyder.config.manager import CONF
 from spyder.config import utils
 from spyder.py3compat import PY3
-from spyder.utils.qthelpers import create_waitspinner
+from spyder.utils.conda import get_list_conda_envs
+from spyder.utils.misc import get_list_pyenv_envs
+from spyder.utils.qthelpers import (add_actions, create_action,
+                                    create_waitspinner)
 
 
 class StatusBarWidget(QWidget):
@@ -232,51 +237,63 @@ class CondaStatus(StatusBarWidget):
         """Status bar widget for displaying the current conda environment."""
         self._interpreter = None
         super(CondaStatus, self).__init__(parent, statusbar, icon=icon)
+        self.main = parent
+        self.env_actions = []
+        self.current_action = None
+        self.path_to_env = {}
+        conda_env = get_list_conda_envs()
+        pyenv_env = get_list_pyenv_envs()
+        self.envs = {**conda_env, **pyenv_env}
+        conda_sep = False
+        for env in list(self.envs.keys()):
+            path, version = self.envs[env]
+            text = "{} ({})".format(env, version)
+            if 'conda' not in text and not conda_sep:
+                self.env_actions.append(None)
+                conda_sep = True
+            if 'conda' not in text and 'pyenv' not in text:
+                self.env_actions.append(None)
+            current_action = create_action(
+                self,
+                text=text,
+                triggered=functools.partial(self.handle_new_env, path),
+                )
+            if path == self._interpreter:
+                self.current_action = current_action
+            self.env_actions.append(current_action)
+            self.envs[env] = (path, version, current_action)
+            self.path_to_env[path] = env
+        self.menu = QMenu(self)
+        self.sig_clicked.connect(self.show_menu)
 
-    def _get_conda_env_info(self):
-        """Get conda environment information."""
-        try:
-            out, err = subprocess.Popen(
-                [self._interpreter, '-V'],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            ).communicate()
+    def show_menu(self):
+        """Display a menu when clicking on the widget."""
+        menu = self.menu
+        menu.clear()
+        add_actions(menu, self.env_actions)
+        rect = self.contentsRect()
+        pos = self.mapToGlobal(
+            rect.topLeft() + QPoint(-40, -rect.height() - 230))
+        menu.popup(pos)
 
-            if PY3:
-                out = out.decode()
-                err = err.decode()
-        except Exception:
-            out = ''
-            err = ''
+    def handle_new_env(self, path):
+        """Update main interpreter."""
+        CONF.set('main_interpreter', 'default', False)
+        CONF.set('main_interpreter', 'custom', True)
+        CONF.set('main_interpreter', 'custom_interpreter', path)
+        CONF.set('main_interpreter', 'executable', path)
+        self.main.sig_main_interpreter_changed.emit()
+        self.current_action.setText(self.current_action.text()[2:])
+        self.update_interpreter(path)
 
-        return out, err
-
-    def _process_conda_env_info(self):
-        """Process conda environment information."""
-        out, err = self._get_conda_env_info()
-        out = out or err  # Anaconda base python prints to stderr
-        out = out.split('\n')[0]
-        parts = out.split()
-
-        if len(parts) >= 2:
-            out = ' '.join(parts[:2])
-
-        envs_folder = os.path.sep + 'envs' + os.path.sep
-        if envs_folder in self._interpreter:
-            if os.name == 'nt':
-                env = os.path.dirname(self._interpreter)
-            else:
-                env = os.path.dirname(os.path.dirname(self._interpreter))
-            env = os.path.basename(env)
-        else:
-            env = 'base'
-
-        if utils.is_anaconda():
-            text = 'conda: {env} ({version})'.format(env=env, version=out)
-        else:
-            text = ''
-
-        return text
+    def _get_env_info(self, path):
+        """Get environment information."""
+        name = self.path_to_env[path]
+        _, version, current_action = self.envs[name]
+        self.current_action = current_action
+        if "✓ " not in self.current_action.text():
+            current_action.setText("✓ " + current_action.text())
+        return '{env} ({version})'.format(env=name, version=version)
 
     def get_tooltip(self):
         """Override api method."""
@@ -285,11 +302,7 @@ class CondaStatus(StatusBarWidget):
     def update_interpreter(self, interpreter):
         """Set main interpreter and update information."""
         self._interpreter = interpreter
-        if utils.is_anaconda():
-            text = self._process_conda_env_info()
-        else:
-            text = ''
-
+        text = self._get_env_info(interpreter)
         self.set_value(text)
         self.update_tooltip()
 
