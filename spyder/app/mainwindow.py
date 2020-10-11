@@ -222,6 +222,11 @@ CWD = getcwd_or_home()
 qInstallMessageHandler(qt_message_handler)
 
 #==============================================================================
+# Set the index for the default tour
+#==============================================================================
+DEFAULT_TOUR = 0
+
+#==============================================================================
 # Main Window
 #==============================================================================
 class MainWindow(QMainWindow):
@@ -1075,8 +1080,7 @@ class MainWindow(QMainWindow):
         # self.tour_menu_actions = []
         # # TODO: Only show intro tour for now. When we are close to finish
         # # 3.0, we will finish and show the other tour
-        tour_index = 0
-        self.tours_available = tour.get_tours(tour_index)
+        self.tours_available = tour.get_tours(DEFAULT_TOUR)
 
         for i, tour_available in enumerate(self.tours_available):
             self.tours_available[i]['last'] = 0
@@ -1091,9 +1095,9 @@ class MainWindow(QMainWindow):
 
         # self.tours_menu.addActions(self.tour_menu_actions)
         self.tour_action = create_action(
-            self, self.tours_available[tour_index]['name'],
+            self, self.tours_available[DEFAULT_TOUR]['name'],
             tip=_("Interactive tour introducing Spyder's panes and features"),
-            triggered=lambda: self.show_tour(tour_index))
+            triggered=lambda: self.show_tour(DEFAULT_TOUR))
 
         self.help_menu_actions = [doc_action, vid_action, shortcuts_action,
                                   self.tour_action,
@@ -3440,7 +3444,7 @@ class MainWindow(QMainWindow):
             if show_tour:
                 CONF.set('main', 'show_tour_message', False)
                 self.tour_dialog = tour.OpenTourDialog(
-                    self, lambda: self.show_tour(0))
+                    self, lambda: self.show_tour(DEFAULT_TOUR))
                 self.tour_dialog.show()
 
     @Slot()
