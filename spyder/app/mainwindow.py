@@ -3432,12 +3432,15 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def show_tour_message(self):
-        """Show message about starting the tour the first time Spyder starts."""
-        if  not running_under_pytest():
+        """
+        Show message about starting the tour the first time Spyder starts.
+        """
+        if not running_under_pytest():
             show_tour = CONF.get('main', 'show_tour_message')
             if show_tour:
                 CONF.set('main', 'show_tour_message', False)
-                self.tour_dialog = tour.OpenTourDialog(self, lambda: self.show_tour(0))
+                self.tour_dialog = tour.OpenTourDialog(
+                    self, lambda: self.show_tour(0))
                 self.tour_dialog.show()
 
     @Slot()
