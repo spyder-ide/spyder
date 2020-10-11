@@ -144,56 +144,64 @@ def get_tour(index):
              'interact': False},
             ]
 
-    intro = [{'title': _("Welcome to the Introduction tour"),
+    intro = [{'title': _("Welcome to the introduction tour!"),
               'content': _("<b>Spyder</b> is a powerful Interactive "
                            "Development Environment (or IDE) for the Python "
                            "programming language.<br><br>"
-                           "Here we are going to guide you through its most "
+                           "Here, we are going to guide you through its most "
                            "important features.<br><br>"
                            "Please use the arrow keys or click on the buttons "
                            "below to move along the tour."),
               'image': 'tour-spyder-logo.png'},
 
-             {'title': _("The Editor"),
-              'content': _("This is the pane where you write Python code before "
-                           "evaluating it. You can get automatic suggestions "
-                           "and completions while writing, by pressing the "
-                           "<b>Tab</b> key next to a given text.<br><br>"
-                           "The Editor comes "
-                           "with a line number area (highlighted here in red), "
-                           "where Spyder shows warnings and syntax errors. They "
-                           "can help you to detect potential problems before "
-                           "running the code.<br><br>"
+             {'title': _("Editor"),
+              'content': _("This is where you write Python code before "
+                           "evaluating it. You can get automatic "
+                           "completions while typing, along with calltips "
+                           "when calling a function and help when hovering "
+                           "over an object."
+                           "<br><br>The Editor comes "
+                           "with a line number area (highlighted here in red) "
+                           "where Spyder shows warnings and syntax errors. "
+                           "They can help you to detect potential problems "
+                           "before running your code.<br><br>"
                            "You can also set debug breakpoints in the line "
-                           "number area, by doing a double click next to "
-                           "a non-empty line."),
+                           "number area by clicking next to "
+
+                           "any non-empty line."),
               'widgets': [sw.editor],
               'decoration': [sw.editor_line_number_area]},
 
-             {'title': _("The IPython console"),
-              'content': _("This is one of panes where you can run or "
-                           "execute the code you wrote on the Editor. To do it "
-                           "you need to press the <b>F5</b> key.<br><br>"
-                           "This console comes with several "
+             {'title': _("IPython Console"),
+              'content': _("This is where you can run Python code, either "
+                           "from the Editor or interactively. To run the "
+                           "current file, press <b>F5</b> by default, "
+                           "or press <b>F9</b> to execute the current "
+                           "line or selection.<br><br>"
+                           "The IPython Console comes with many "
                            "useful features that greatly improve your "
-                           "programming workflow (like syntax highlighting and "
-                           "inline plots). If you want to know more about them, "
-                           "please follow this <a href=\"{qtconsole_link}\">link</a>.<br><br>"
-                           "{button_text}").format(
-                           qtconsole_link=qtconsole_link, button_text=button_text),
+                           "programming workflow, like syntax highlighting, "
+                           "autocompletion, plotting and 'magic' commands. "
+                           "To learn more, check out the "
+                           f"<a href=\"{qtconsole_link}\">documentation</a>."
+                           f"<br><br>{button_text}"),
               'widgets': [sw.ipython_console],
-              'run': ["li = list(range(100))", "d = {'a': 1, 'b': 2}"]
+              'run': [
+                  "test_list_tour = [1, 2, 3, 4, 5]",
+                  "test_dict_tour = {'a': 1, 'b': 2}",
+                  ]
               },
 
-             {'title': _("The Variable Explorer"),
+             {'title': _("Variable Explorer"),
               'content': _("In this pane you can view and edit the variables "
                            "generated during the execution of a program, or "
-                           "those entered directly in one of Spyder "
-                           "consoles.<br><br>"
-                           "As you can see, the Variable Explorer is showing "
-                           "the variables generated during the last step of "
-                           "this tour. By doing a double-click on any "
-                           "of them, a new window will be opened, where you "
+                           "those entered directly in the "
+                           "IPython Console.<br><br>"
+                           "If you ran the code in the previous step, "
+                           "the Variable Explorer will show "
+                           "the list and dictionary objects it generated. "
+                           "By double-clicking any variable, "
+                           "a new window will be opened where you "
                            "can inspect and modify their contents."),
               'widgets': [sw.variable_explorer],
               'interact': True},
@@ -201,11 +209,11 @@ def get_tour(index):
              {'title': _("Help"),
               'content': _("This pane displays documentation of the "
                            "functions, classes, methods or modules you are "
-                           "currently using in the Editor or the Consoles.<br><br>"
-                           "To use it, you need to press <b>Ctrl+I</b> in "
-                           "front of an object. If that object has some "
-                           "documentation associated with it, it will be "
-                           "displayed here."),
+                           "currently using in the Editor or the "
+                           "IPython Console."
+                           "<br><br>To use it, press <b>Ctrl+I</b> "
+                           "(<b>Cmd-I</b> on macOS) with the text cursor "
+                           "in or next to the object you want help on."),
               'widgets': [sw.help_plugin],
               'interact': True},
 
@@ -217,19 +225,23 @@ def get_tour(index):
               'interact': True},
 
              {'title': _("Files"),
-              'content': _("This pane lets you navigate through the directories "
-                           "and files present in your computer.<br><br>"
-                           "You can also open any of these files with its "
-                           "corresponding application, by doing a double "
-                           "click on it.<br><br>"
-                           "There is one exception to this rule: plain-text "
-                           "files will always be opened in the Spyder Editor."),
+              'content': _("This pane lets you browse the files and "
+                           "directories on your computer.<br><br>"
+                           "You can open any file in its "
+                           "corresponding application by double-clicking it, "
+                           "and supported file types will be opened right "
+                           "inside of Spyder.<br><br>"
+                           "The Files pane also allows you to copy one or "
+                           "many absolute or relative paths, automatically "
+                           "formatted as Python strings or lists, and perform "
+                           "a variety of other file operations."),
               'widgets': [sw.file_explorer],
               'interact': True},
 
-             {'title': _("The History Log"),
-              'content': _("This pane records all commands introduced in "
-                           "any IPython console."),
+             {'title': _("History Log"),
+              'content': _("This pane records all the commands and code run "
+                           "in any IPython console, allowing you to easily "
+                           "retrace your steps for reproducible research."),
 
               'widgets': [sw.history_log],
               'interact': True},
