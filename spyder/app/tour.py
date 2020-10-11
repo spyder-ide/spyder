@@ -144,7 +144,7 @@ def get_tour(index):
              'interact': False},
             ]
 
-    intro = [{'title': _("Welcome to Spyder!"),
+    intro = [{'title': _("Welcome to the introduction tour!"),
               'content': _("<b>Spyder</b> is a powerful Interactive "
                            "Development Environment (or IDE) for the Python "
                            "programming language.<br><br>"
@@ -154,19 +154,20 @@ def get_tour(index):
                            "below to move along the tour."),
               'image': 'tour-spyder-logo.png'},
 
-             {'title': _("The Editor"),
+             {'title': _("Editor"),
               'content': _("This is where you write Python code before "
                            "evaluating it. You can get automatic "
-                           "completions while typing by pressing the "
-                           "<b>Tab</b> key, or automatically by enabling "
-                           "on-the-fly completions in Spyder's Preferences. "
+                           "completions while typing, along with calltips "
+                           "when calling a function and help when hovering "
+                           "over an object."
                            "<br><br>The Editor comes "
                            "with a line number area (highlighted here in red) "
                            "where Spyder shows warnings and syntax errors. "
                            "They can help you to detect potential problems "
                            "before running your code.<br><br>"
                            "You can also set debug breakpoints in the line "
-                           "number area by clicking next to a "
+                           "number area by clicking next to "
+
                            "any non-empty line."),
               'widgets': [sw.editor],
               'decoration': [sw.editor_line_number_area]},
@@ -175,10 +176,9 @@ def get_tour(index):
               'content': _("This is where you can run Python code, either "
                            "from the Editor or interactively. To run the "
                            "current file, press <b>F5</b> by default, "
-                           "or press <b>Ctrl+Enter</b> "
-                           "(<b>Cmd-Return</b> on Mac) to execute the current "
+                           "or press <b>F9</b> to execute the current "
                            "line or selection.<br><br>"
-                           "This console comes with many  "
+                           "The IPython Console comes with many "
                            "useful features that greatly improve your "
                            "programming workflow, like syntax highlighting, "
                            "autocompletion, plotting and 'magic' commands. "
@@ -187,7 +187,7 @@ def get_tour(index):
                            f"<br><br>{button_text}"),
               'widgets': [sw.ipython_console],
               'run': [
-                  "test_list_tour = list(range(100))",
+                  "test_list_tour = [1, 2, 3, 4, 5]",
                   "test_dict_tour = {'a': 1, 'b': 2}",
                   ]
               },
@@ -195,7 +195,8 @@ def get_tour(index):
              {'title': _("Variable Explorer"),
               'content': _("In this pane you can view and edit the variables "
                            "generated during the execution of a program, or "
-                           "those entered directly in the Console.<br><br>"
+                           "those entered directly in the "
+                           "IPython Console.<br><br>"
                            "If you ran the code in the previous step, "
                            "the Variable Explorer will show "
                            "the list and dictionary objects it generated. "
@@ -208,9 +209,10 @@ def get_tour(index):
              {'title': _("Help"),
               'content': _("This pane displays documentation of the "
                            "functions, classes, methods or modules you are "
-                           "currently using in the Editor or the Console."
+                           "currently using in the Editor or the "
+                           "IPython Console."
                            "<br><br>To use it, press <b>Ctrl+I</b> "
-                           "(<b>Cmd-I</b> on Mac) with the text cursor "
+                           "(<b>Cmd-I</b> on macOS) with the text cursor "
                            "in or next to the object you want help on."),
               'widgets': [sw.help_plugin],
               'interact': True},
@@ -231,7 +233,7 @@ def get_tour(index):
                            "inside of Spyder.<br><br>"
                            "The Files pane also allows you to copy one or "
                            "many absolute or relative paths, automatically "
-                           "formatted as Python string or list, and perform "
+                           "formatted as Python strings or lists, and perform "
                            "a variety of other file operations."),
               'widgets': [sw.file_explorer],
               'interact': True},
