@@ -528,6 +528,9 @@ class MainWindow(QMainWindow):
                                                    socket.SOCK_STREAM,
                                                    socket.IPPROTO_TCP)
 
+        # To show the message about starting the tour
+        self.sig_setup_finished.connect(self.show_tour_message)
+
         # Apply preferences
         self.apply_settings()
 
@@ -1400,10 +1403,6 @@ class MainWindow(QMainWindow):
         # Show dialog with missing dependencies
         if not running_under_pytest():
             self.report_missing_dependencies()
-
-        # Show tour dialog
-        self.tour_dialog = tour.OpenTourDialog(self, lambda: self.show_tour(0))
-        self.tour_dialog.show()
 
         # Raise the menuBar to the top of the main window widget's stack
         # Fixes spyder-ide/spyder#3887.
@@ -3430,6 +3429,16 @@ class MainWindow(QMainWindow):
 
         # Provide feeback when clicking menu if check on startup is on
         self.give_updates_feedback = True
+
+    @Slot()
+    def show_tour_message(self):
+        """Show message about starting the tour the first time Spyder starts."""
+        if  not running_under_pytest():
+            show_tour = CONF.get('main', 'show_tour_message')
+            if show_tour:
+                CONF.set('main', 'show_tour_message', False)
+                self.tour_dialog = tour.OpenTourDialog(self, lambda: self.show_tour(0))
+                self.tour_dialog.show()
 
     @Slot()
     def check_updates(self, startup=False):

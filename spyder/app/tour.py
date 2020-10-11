@@ -1382,7 +1382,7 @@ class OpenTourDialog(QDialog):
 
         # Image
         images_layout = QHBoxLayout()
-            icon_filename = 'tour-spyder-logo.png'
+        icon_filename = 'tour-spyder-logo.png'
         image_path = get_image_path(icon_filename)
         image = QPixmap(image_path)
         image_label = QLabel()
