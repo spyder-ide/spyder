@@ -1374,10 +1374,6 @@ class AnimatedTour(QWidget):
 
 class OpenTourDialog(QDialog):
     """Initial Widget with tour"""
-    sig_launch_tour_button_clicked = Signal()
-    # Signal triggered for the 'Dismiss' button
-    sig_dismiss_button_clicked = Signal()
-
     def __init__(self, parent, tour_function):
         super().__init__(parent)
         self.setFixedHeight(170)
@@ -1386,9 +1382,6 @@ class OpenTourDialog(QDialog):
 
         # Image
         images_layout = QHBoxLayout()
-        if is_dark_interface():
-            icon_filename = 'tour-spyder-logo.png'
-        else:
             icon_filename = 'tour-spyder-logo.png'
         image_path = get_image_path(icon_filename)
         image = QPixmap(image_path)
@@ -1410,8 +1403,8 @@ class OpenTourDialog(QDialog):
 
         # Label
         tour_label = QLabel(
-            _("Welcome to Spyder! <br><br> Check our interactive tour to "
-              "explore some of Spyder's panes and features. "))
+            _("Welcome to Spyder!<br><br>Check out our interactive tour to "
+              "explore some of Spyder's panes and features."))
         tour_label.setWordWrap(True)
         action_layout = QVBoxLayout()
 
