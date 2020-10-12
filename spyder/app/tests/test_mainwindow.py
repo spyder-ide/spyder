@@ -3617,6 +3617,7 @@ def test_tour_message(main_window, qtbot):
     # Close the tour
     main_window.tour.close_tour()
     qtbot.waitUntil(lambda: not main_window.tour.is_running, timeout=9000)
+    main_window.tour_dialog.hide()
 
 
 @pytest.mark.slow
