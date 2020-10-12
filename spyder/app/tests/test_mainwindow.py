@@ -186,9 +186,26 @@ def main_window(request, tmpdir):
     preload_project = request.node.get_closest_marker('preload_project')
 
     if preload_project:
+        # Create project
         project_path = str(tmpdir.mkdir('test_project'))
         project = EmptyProject(project_path)
         CONF.set('project_explorer', 'current_project_path', project_path)
+
+        # Add some files to project
+        filenames = [
+            osp.join(project_path, f) for f in
+            ['file1.py', 'file2.py', 'file3.txt']
+        ]
+
+        for filename in filenames:
+            with open(filename, 'w') as f:
+                if osp.splitext(filename)[1] == '.py':
+                    f.write("def f(x):\n"
+                            "    return x\n")
+                else:
+                    f.write("Hello world!")
+
+        project.set_recent_files(filenames)
     else:
         CONF.set('project_explorer', 'current_project_path', None)
 
@@ -214,6 +231,7 @@ def main_window(request, tmpdir):
         window.switcher.close()
         for client in window.ipyconsole.get_clients():
             window.ipyconsole.close_client(client=client, force=True)
+        window.outlineexplorer.stop_symbol_services('python')
         # Reset cwd
         window.explorer.chdir(get_home_dir())
 
@@ -3543,8 +3561,7 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     # Wait until the initial requests are sent to the server.
     lsp = main_window.completions.get_client('lsp')
     python_client = lsp.clients['python']
-    qtbot.waitUntil(lambda: len(python_client['instance']._requests) == 5,
-                    timeout=30000)
+    qtbot.wait(5000)
 
     expected_requests = [
         (0, 'initialize'),
@@ -3554,7 +3571,7 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
         (4, 'textDocument/didOpen'),
     ]
 
-    assert python_client['instance']._requests == expected_requests
+    assert python_client['instance']._requests[:5] == expected_requests
 
 
 @pytest.mark.slow
@@ -3600,6 +3617,56 @@ def test_tour_message(main_window, qtbot):
     # Close the tour
     main_window.tour.close_tour()
     qtbot.waitUntil(lambda: not main_window.tour.is_running, timeout=9000)
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.use_introspection
+@pytest.mark.preload_project
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+def test_outline_at_startup(main_window, qtbot):
+    """Test that all files in the Outline pane are updated at startup."""
+    # Show outline explorer
+    outline_explorer = main_window.outlineexplorer
+    outline_explorer._toggle_view_action.setChecked(True)
+
+    # Get Python editor trees
+    treewidget = outline_explorer.explorer.treewidget
+    editors_py = [
+        editor for editor in treewidget.editor_ids.keys()
+        if editor.get_language() == 'Python'
+    ]
+
+    # Wait a bit for trees to be filled
+    qtbot.wait(5000)
+
+    # Assert all Python editors are filled
+    assert all(
+        [
+            len(treewidget.editor_tree_cache[editor.get_id()]) > 0
+            for editor in editors_py
+        ]
+    )
+
+    # Split editor
+    editorstack = main_window.editor.get_current_editorstack()
+    editorstack.sig_split_vertically.emit()
+    qtbot.wait(1000)
+
+    # Select file with no outline in splitted editorstack
+    editorstack = main_window.editor.get_current_editorstack()
+    editorstack.set_stack_index(2)
+    editor = editorstack.get_current_editor()
+    assert osp.splitext(editor.filename)[1] == '.txt'
+    assert editor.is_cloned
+
+    # Assert tree is empty
+    editor_tree = treewidget.current_editor
+    tree = treewidget.editor_tree_cache[editor_tree.get_id()]
+    assert len(tree) == 0
+
+    # Assert spinner is not shown
+    assert outline_explorer.explorer.loading_widget.isHidden()
 
 
 if __name__ == "__main__":
