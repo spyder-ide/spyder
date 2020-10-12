@@ -3539,5 +3539,50 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     assert python_client['instance']._requests == expected_requests
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.parametrize(
+    'main_window',
+    [{'spy_config': ('main', 'show_tour_message', 2)}],
+    indirect=True)
+def test_tour_message(main_window, qtbot):
+    """Test that the tour message displays and sends users to the tour."""
+    # Wait until window setup is finished, which is when the message appears
+    qtbot.waitSignal(main_window.sig_setup_finished, timeout=30000)
+
+    # Check that tour is shown automatically and manually show it
+    assert CONF.get('main', 'show_tour_message')
+    main_window.show_tour_message(force=True)
+
+    # Wait for the message to appear
+    qtbot.waitUntil(lambda: bool(main_window.tour_dialog), timeout=5000)
+    qtbot.waitUntil(lambda: main_window.tour_dialog.isVisible(), timeout=2000)
+
+    # Check that clicking dismiss hides the dialog and disables it
+    qtbot.mouseClick(main_window.tour_dialog.dismiss_button, Qt.LeftButton)
+    qtbot.waitUntil(lambda: not main_window.tour_dialog.isVisible(),
+                    timeout=2000)
+    assert not CONF.get('main', 'show_tour_message')
+
+    # Confirm that calling show_tour_message() normally doesn't show it again
+    main_window.show_tour_message()
+    qtbot.wait(2000)
+    assert not main_window.tour_dialog.isVisible()
+
+    # Ensure that it opens again with force=True
+    main_window.show_tour_message(force=True)
+    qtbot.waitUntil(lambda: main_window.tour_dialog.isVisible(), timeout=5000)
+
+    # Run the tour and confirm it's running and the dialog is closed
+    qtbot.mouseClick(main_window.tour_dialog.launch_tour_button, Qt.LeftButton)
+    qtbot.waitUntil(lambda: main_window.tour.is_running, timeout=9000)
+    assert not main_window.tour_dialog.isVisible()
+    assert not CONF.get('main', 'show_tour_message')
+
+    # Close the tour
+    main_window.tour.close_tour()
+    qtbot.waitUntil(lambda: not main_window.tour.is_running, timeout=9000)
+
+
 if __name__ == "__main__":
     pytest.main()
