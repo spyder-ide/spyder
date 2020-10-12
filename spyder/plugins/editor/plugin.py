@@ -286,7 +286,6 @@ class Editor(SpyderPluginWidget):
             # Pass the OutlineExplorer widget to the stacks because they
             # don't need the plugin
             editorstack.set_outlineexplorer(self.outlineexplorer.explorer)
-        self.editorstacks[0].initialize_outlineexplorer()
         self.outlineexplorer.explorer.edit_goto.connect(
                            lambda filenames, goto, word:
                            self.load(filenames=filenames, goto=goto, word=word,

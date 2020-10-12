@@ -306,6 +306,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                     )
                     self.main.projects.stop_workspace_services()
                     self.main.editor.stop_completion_services(language)
+                    self.main.outlineexplorer.stop_symbol_services(language)
                     folder = self.get_root_path(language)
                     instance.folder = folder
                     self.close_client(language)
@@ -486,6 +487,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                     self.main.editor.register_completion_capabilities)
                 self.main.editor.sig_editor_focus_changed.connect(
                     self.status_widget.update_status)
+            if self.main.outlineexplorer:
+                instance.sig_initialize.connect(
+                    self.main.outlineexplorer.start_symbol_services)
             if self.main.console:
                 instance.sig_server_error.connect(self.report_server_error)
 
@@ -563,6 +567,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """Restart a client."""
         self.main.editor.stop_completion_services(language)
         self.main.projects.stop_workspace_services()
+        self.main.outlineexplorer.stop_symbol_services(language)
         self.close_client(language)
         self.clients[language] = config
         self.start_client(language)
