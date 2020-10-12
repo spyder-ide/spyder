@@ -192,8 +192,6 @@ class DebuggingWidget(DebuggingHistoryWidget):
         self._pdb_input_queue = []  # List of (code, hidden, echo_stack_entry)
         # Temporary flags
         self._tmp_reading = False
-        self._pdb_single_letter_mode = False
-        self._pdb_single_letter_prompt = "explore mode: "
         # super init
         super(DebuggingWidget, self).__init__(*args, **kwargs)
 
@@ -223,7 +221,6 @@ class DebuggingWidget(DebuggingHistoryWidget):
         # If debugging starts or stops, clear the input queue.
         self._pdb_input_queue = []
         self._pdb_frame_loc = (None, None)
-        self._pdb_single_letter_mode = False
 
         # start/stop pdb history session
         if self.is_debugging():
@@ -420,19 +417,6 @@ class DebuggingWidget(DebuggingHistoryWidget):
                            password=password)
 
     # --- Private API --------------------------------------------------
-    def _toggle_pdb_single_letter_mode(self):
-        if not self.is_debugging():
-            return
-        if self._pdb_single_letter_mode:
-            self._pdb_single_letter_mode = False
-            prompt = self._current_prompt()
-        else:
-            self._pdb_single_letter_mode = True
-            prompt = self._pdb_single_letter_prompt
-        if self._reading:
-            self._update_pdb_prompt(prompt)
-            self._show_prompt(prompt)
-
     def _current_prompt(self):
         prompt = "IPdb [{}]".format(self._pdb_history_input_number + 1)
         for i in range(self._pdb_in_loop - 1):
@@ -551,11 +535,8 @@ class DebuggingWidget(DebuggingHistoryWidget):
             raise RuntimeError(
                 'Request for pdb input during hidden execution.')
 
-        if self._pdb_single_letter_mode:
-            prompt = self._pdb_single_letter_prompt
-        else:
-            prompt = self._current_prompt()
-
+        # Replace with numbered prompt
+        prompt = self._current_prompt()
         self._update_pdb_prompt(prompt, password)
 
         # The prompt should be printed unless:
@@ -610,24 +591,6 @@ class DebuggingWidget(DebuggingHistoryWidget):
     def _event_filter_console_keypress(self, event):
         """Handle Key_Up/Key_Down while debugging."""
         if self.is_waiting_pdb_input():
-            if (self._reading and self._pdb_single_letter_mode and
-                    event.modifiers() in (Qt.NoModifier, Qt.ShiftModifier)):
-                key = event.text()
-                if len(key) > 0 and key.isprintable():
-                    if key not in (
-                            'a', 'b', 'c', 'd', 'h', 'l',
-                            'n', 'q', 'r', 's', 'u', 'w'):
-                        self._append_plain_text(
-                            "** Error: '" + key + "' is not a Pdb command.\n",
-                            before_prompt=True)
-                    else:
-                        self.pdb_execute(self._pdb_cmd_prefix() + key)
-                elif event.key()  == Qt.Key_Escape:
-                    self._toggle_pdb_single_letter_mode()
-                elif (CONF.get('ipython_console', 'pdb_single_letter_enter')
-                          and event.key() in (Qt.Key_Return, Qt.Key_Enter)):
-                    self._toggle_pdb_single_letter_mode()
-                return True
             self._control.current_prompt_pos = self._prompt_pos
             # Pretend this is a regular prompt
             self._tmp_reading = self._reading

@@ -121,9 +121,9 @@ def test_shortcut_filtering_context(shortcut_table):
     # Filter by "console"
     shortcut_table.finder = FilterTextMock('console')
     shortcut_table.set_regex()
-    # Verify the number of entries after the regex are 8
+    # Verify the number of entries after the regex are 7
     # If a new shortcut is added to console, this needs to be changed
-    assert shortcut_table.model().rowCount() == 8
+    assert shortcut_table.model().rowCount() == 7
 
     # Filter by "pylint"
     shortcut_table.finder = FilterTextMock('pylint')

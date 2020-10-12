@@ -1986,17 +1986,6 @@ def test_explore_mode(ipyconsole, qtbot):
     qtbot.keyClick(control, Qt.Key_Escape)
     assert control.toPlainText().split()[-2:] == ["IPdb", "[2]:"]
 
-    # Test pdb_single_letter_enter
-    qtbot.keyClick(control, 'n', modifier=Qt.ControlModifier)
-    assert control.toPlainText().split()[-2:] == ["explore", "mode:"]
-    CONF.set('ipython_console', 'pdb_single_letter_enter', False)
-    qtbot.keyClick(control, Qt.Key_Enter)
-    assert control.toPlainText().split()[-2:] != ["IPdb", "[2]:"]
-    CONF.set('ipython_console', 'pdb_single_letter_enter', True)
-    qtbot.keyClick(control, Qt.Key_Enter)
-    assert control.toPlainText().split()[-2:] == ["IPdb", "[2]:"]
-    CONF.set('ipython_console', 'pdb_single_letter_enter', False)
-
 
 if __name__ == "__main__":
     pytest.main()

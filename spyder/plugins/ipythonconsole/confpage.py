@@ -294,11 +294,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                   "commands from Python code."))
         debug_layout.addWidget(exclamation_mark_box)
 
-        single_letter_enter_box = newcb(
-            _("Use enter to leave explore mode."), 'pdb_single_letter_enter',
-            tip=_("This option lets you stop the explore mode by pressing enter."))
-        debug_layout.addWidget(single_letter_enter_box)
-
         debug_group.setLayout(debug_layout)
 
         # ---- Advanced settings ----

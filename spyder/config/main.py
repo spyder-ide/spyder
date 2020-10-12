@@ -160,7 +160,6 @@ DEFAULTS = [
               'pdb_execute_events': True,
               'pdb_use_exclamation_mark': False,
               'pdb_stop_first_line': True,
-              'pdb_single_letter_enter': False,
               }),
             ('variable_explorer',
              {
