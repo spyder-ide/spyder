@@ -7,7 +7,6 @@
 """Outline explorer widgets."""
 
 # Standard library imports
-from __future__ import print_function
 import bisect
 import os.path as osp
 import uuid
@@ -302,6 +301,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.editor_tree_cache = {}
         self.editor_ids = {}
         self.update_timers = {}
+        self.editors_to_update = {}
         self.ordered_editor_ids = []
         self._current_editor = None
         self._languages = []
@@ -538,16 +538,11 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         This is done through a timer to avoid lags during Spyder
         startup.
         """
-        for editor, editor_id in self.editor_ids.items():
-            if editor.get_language().lower() == language:
-                if (len(self.editor_tree_cache[editor_id]) == 0 and
-                        editor.info is not None):
-                    self.update_current(editor.info, editor)
-                    break
-
-        all_updated = all(ed.updated for ed in self.editor_ids.keys())
-
-        if not all_updated:
+        if self.editors_to_update.get(language):
+            editor = self.editors_to_update[language][0]
+            if editor.info is not None:
+                self.update_current(editor.info, editor)
+                self.editors_to_update[language].remove(editor)
             self.update_timers[language].start()
 
     @Slot(list)
@@ -559,7 +554,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         plugin_base = self.parent().parent()
         if editor is None:
             editor = self.current_editor
-        editor.updated = True
         editor_id = editor.get_id()
         language = editor.get_language()
         update = self.update_tree(items, editor_id, language)
@@ -826,6 +820,15 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         timer.setInterval(700)
         timer.timeout.connect(lambda: self.update_editors(language))
         self.update_timers[language] = timer
+
+        # Select editors to update per language
+        to_update = []
+        for editor in self.editor_ids.keys():
+            if editor.get_language().lower() == language:
+                to_update.append(editor)
+        self.editors_to_update[language] = to_update
+
+        # Start timer
         timer.start()
 
 
