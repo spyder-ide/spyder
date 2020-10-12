@@ -129,7 +129,7 @@ def test_shortcut_filtering_context(shortcut_table):
     shortcut_table.set_regex()
     # Verify the number of entries after the regex is 1
     # If a new shortcut is added to pylint, this needs to be changed
-    assert shortcut_table.model().rowCount() == 1
+    assert shortcut_table.model().rowCount() == 2
 
 
 # ---- Tests ShortcutEditor
