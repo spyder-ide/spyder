@@ -831,6 +831,17 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         # Start timer
         timer.start()
 
+    def stop_symbol_services(self, language):
+        """Disable LSP symbols functionality."""
+        try:
+            self._languages.remove(language)
+        except ValueError:
+            pass
+
+        for editor in self.editor_ids.keys():
+            if editor.get_language().lower() == language:
+                editor.info = None
+
 
 class OutlineExplorerWidget(QWidget):
     """Class browser"""
@@ -939,3 +950,7 @@ class OutlineExplorerWidget(QWidget):
     def start_symbol_services(self, language):
         """Enable LSP symbols functionality."""
         self.treewidget.start_symbol_services(language)
+
+    def stop_symbol_services(self, language):
+        """Disable LSP symbols functionality."""
+        self.treewidget.stop_symbol_services(language)

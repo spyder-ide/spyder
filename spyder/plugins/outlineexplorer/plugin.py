@@ -126,3 +126,7 @@ class OutlineExplorer(SpyderPluginWidget):
         symbol_provider = capabilities.get('documentSymbolProvider', False)
         if symbol_provider:
             self.explorer.start_symbol_services(language)
+
+    def stop_symbol_services(self, language):
+        """Disable LSP symbols functionality."""
+        self.explorer.stop_symbol_services(language)
