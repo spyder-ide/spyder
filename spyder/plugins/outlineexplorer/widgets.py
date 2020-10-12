@@ -438,13 +438,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         sig_move = editor.sig_cursor_position_changed
         sig_display_spinner = editor.sig_start_outline_spinner
         if state:
-            sig_update.connect(self.update_current)
+            sig_update.connect(self.update_editor)
             sig_move.connect(self.do_follow_cursor)
             sig_display_spinner.connect(self.sig_display_spinner)
             self.do_follow_cursor()
         else:
             try:
-                sig_update.disconnect(self.update_current)
+                sig_update.disconnect(self.update_editor)
                 sig_move.disconnect(self.do_follow_cursor)
                 sig_display_spinner.disconnect(self.sig_display_spinner)
             except TypeError:
@@ -477,7 +477,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if (editor.get_language() in self._languages and
                 len(self.editor_tree_cache[editor_id]) == 0):
             if editor.info is not None:
-                self.update_current(editor.info)
+                self.update_editor(editor.info)
             elif editor.is_cloned:
                 editor.request_symbols()
 
@@ -541,15 +541,15 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if self.editors_to_update.get(language):
             editor = self.editors_to_update[language][0]
             if editor.info is not None:
-                self.update_current(editor.info, editor)
+                self.update_editor(editor.info, editor)
                 self.editors_to_update[language].remove(editor)
             self.update_timers[language].start()
 
     @Slot(list)
-    def update_current(self, items, editor=None):
+    def update_editor(self, items, editor=None):
         """
-        Update the outline explorer for the current editor tree preserving the
-        tree state
+        Update the outline explorer for `editor` preserving the tree
+        state.
         """
         plugin_base = self.parent().parent()
         if editor is None:
