@@ -277,7 +277,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                     )
                     self.main.projects.stop_workspace_services()
                     self.main.editor.stop_completion_services(language)
-                    self.main.outlineexplorer.stop_symbol_services(lamguage)
+                    self.main.outlineexplorer.stop_symbol_services(language)
                     folder = self.get_root_path(language)
                     instance.folder = folder
                     self.close_client(language)
