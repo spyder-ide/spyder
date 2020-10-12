@@ -3435,17 +3435,17 @@ class MainWindow(QMainWindow):
         self.give_updates_feedback = True
 
     @Slot()
-    def show_tour_message(self):
+    def show_tour_message(self, force=False):
         """
         Show message about starting the tour the first time Spyder starts.
         """
-        if not running_under_pytest() and not SAFE_MODE:
-            show_tour = CONF.get('main', 'show_tour_message')
-            if show_tour:
-                CONF.set('main', 'show_tour_message', False)
-                self.tour_dialog = tour.OpenTourDialog(
-                    self, lambda: self.show_tour(DEFAULT_TOUR))
-                self.tour_dialog.show()
+        should_show_tour = CONF.get('main', 'show_tour_message')
+        if force or (should_show_tour and not running_under_pytest()
+                     and not SAFE_MODE):
+            CONF.set('main', 'show_tour_message', False)
+            self.tour_dialog = tour.OpenTourDialog(
+                self, lambda: self.show_tour(DEFAULT_TOUR))
+            self.tour_dialog.show()
 
     @Slot()
     def check_updates(self, startup=False):

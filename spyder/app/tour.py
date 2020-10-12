@@ -1374,6 +1374,7 @@ class AnimatedTour(QWidget):
 
 class OpenTourDialog(QDialog):
     """Initial Widget with tour"""
+
     def __init__(self, parent, tour_function):
         super().__init__(parent)
         self.setFixedHeight(170)
@@ -1406,17 +1407,16 @@ class OpenTourDialog(QDialog):
             _("Welcome to Spyder!<br><br>Check out our interactive tour to "
               "explore some of Spyder's panes and features."))
         tour_label.setWordWrap(True)
-        action_layout = QVBoxLayout()
 
         # Buttons
         buttons_layout = QHBoxLayout()
-        launch_tour_button = QPushButton(_('Start tour'))
-        launch_tour_button.setAutoDefault(False)
-        dismiss_button = QPushButton(_('Dismiss'))
-        dismiss_button.setAutoDefault(False)
+        self.launch_tour_button = QPushButton(_('Start tour'))
+        self.launch_tour_button.setAutoDefault(False)
+        self.dismiss_button = QPushButton(_('Dismiss'))
+        self.dismiss_button.setAutoDefault(False)
         buttons_layout.addStretch()
-        buttons_layout.addWidget(launch_tour_button)
-        buttons_layout.addWidget(dismiss_button)
+        buttons_layout.addWidget(self.launch_tour_button)
+        buttons_layout.addWidget(self.dismiss_button)
 
         layout = QHBoxLayout()
         layout.addLayout(images_layout)
@@ -1426,8 +1426,8 @@ class OpenTourDialog(QDialog):
         general_layout.addLayout(buttons_layout)
         self.setLayout(general_layout)
 
-        launch_tour_button.clicked.connect(self._start_tour)
-        dismiss_button.clicked.connect(self.close)
+        self.launch_tour_button.clicked.connect(self._start_tour)
+        self.dismiss_button.clicked.connect(self.close)
 
     def _start_tour(self):
         self.close()
