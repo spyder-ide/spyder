@@ -622,7 +622,17 @@ class EditorStack(QWidget):
         """Show file in external file explorer"""
         if fnames is None:
             fnames = self.get_current_filename()
-        show_in_external_file_explorer(fnames)
+        try:
+            show_in_external_file_explorer(fnames)
+        except FileNotFoundError as error:
+            file = str(error).split("'")[1]
+            if "xdg-open" in file:
+                msg_title = _("Warning")
+                msg = _("Spyder can't show the file in the External file "
+                        "explorer because xdg-open is only available in "
+                        "Ubuntu and Debian.")
+                QMessageBox.information(self, msg_title, msg,
+                                        QMessageBox.Ok)
 
     def create_shortcuts(self):
         """Create local shortcuts"""
