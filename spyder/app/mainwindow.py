@@ -145,7 +145,7 @@ if hasattr(MAIN_APP, 'setDesktopFileName'):
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time.
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV
+from spyder.config.base import _, get_image_path, DEV, SAFE_MODE
 
 if not running_under_pytest():
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
@@ -220,6 +220,11 @@ CWD = getcwd_or_home()
 # Install Qt messaage handler
 #==============================================================================
 qInstallMessageHandler(qt_message_handler)
+
+#==============================================================================
+# Set the index for the default tour
+#==============================================================================
+DEFAULT_TOUR = 0
 
 #==============================================================================
 # Main Window
@@ -346,6 +351,7 @@ class MainWindow(QMainWindow):
         # Tour  # TODO: Should I consider it a plugin?? or?
         self.tour = None
         self.tours_available = None
+        self.tour_dialog = None
 
         # File switcher
         self.switcher = None
@@ -526,6 +532,9 @@ class MainWindow(QMainWindow):
             self.open_files_server = socket.socket(socket.AF_INET,
                                                    socket.SOCK_STREAM,
                                                    socket.IPPROTO_TCP)
+
+        # To show the message about starting the tour
+        self.sig_setup_finished.connect(self.show_tour_message)
 
         # Apply preferences
         self.apply_settings()
@@ -1071,8 +1080,7 @@ class MainWindow(QMainWindow):
         # self.tour_menu_actions = []
         # # TODO: Only show intro tour for now. When we are close to finish
         # # 3.0, we will finish and show the other tour
-        tour_index = 0
-        self.tours_available = tour.get_tours(tour_index)
+        self.tours_available = tour.get_tours(DEFAULT_TOUR)
 
         for i, tour_available in enumerate(self.tours_available):
             self.tours_available[i]['last'] = 0
@@ -1087,9 +1095,9 @@ class MainWindow(QMainWindow):
 
         # self.tours_menu.addActions(self.tour_menu_actions)
         self.tour_action = create_action(
-            self, self.tours_available[tour_index]['name'],
+            self, self.tours_available[DEFAULT_TOUR]['name'],
             tip=_("Interactive tour introducing Spyder's panes and features"),
-            triggered=lambda: self.show_tour(tour_index))
+            triggered=lambda: self.show_tour(DEFAULT_TOUR))
 
         self.help_menu_actions = [doc_action, vid_action, shortcuts_action,
                                   self.tour_action,
@@ -3425,6 +3433,19 @@ class MainWindow(QMainWindow):
 
         # Provide feeback when clicking menu if check on startup is on
         self.give_updates_feedback = True
+
+    @Slot()
+    def show_tour_message(self, force=False):
+        """
+        Show message about starting the tour the first time Spyder starts.
+        """
+        should_show_tour = CONF.get('main', 'show_tour_message')
+        if force or (should_show_tour and not running_under_pytest()
+                     and not SAFE_MODE):
+            CONF.set('main', 'show_tour_message', False)
+            self.tour_dialog = tour.OpenTourDialog(
+                self, lambda: self.show_tour(DEFAULT_TOUR))
+            self.tour_dialog.show()
 
     @Slot()
     def check_updates(self, startup=False):

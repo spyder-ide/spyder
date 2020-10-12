@@ -94,6 +94,7 @@ DEFAULTS = [
               'cursor/width': 2,
               'completion/size': (300, 180),
               'report_error/remember_token': False,
+              'show_tour_message': True,
               }),
             ('quick_layouts',
              {
