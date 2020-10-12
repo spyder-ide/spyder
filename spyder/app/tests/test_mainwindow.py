@@ -55,6 +55,7 @@ from spyder.plugins.base import PluginWindow
 from spyder.plugins.help.widgets import ObjectComboBox
 from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
+from spyder.plugins.projects.projecttypes import EmptyProject
 from spyder.py3compat import PY2, to_text_string
 from spyder.utils.programs import is_module_installed
 from spyder.widgets.dock import DockTitleBar
@@ -152,7 +153,7 @@ def find_desired_tab_in_window(tab_name, window):
 # =============================================================================
 
 @pytest.fixture
-def main_window(request):
+def main_window(request, tmpdir):
     """Main Window fixture"""
     # Tests assume inline backend
     CONF.set('ipython_console', 'pylab/backend', 0)
@@ -183,6 +184,16 @@ def main_window(request):
         CONF.set('main', 'single_instance', True)
     else:
         CONF.set('main', 'single_instance', False)
+
+    # Check if we need to preload a project in a give test
+    preload_project = request.node.get_closest_marker('preload_project')
+
+    if preload_project:
+        project_path = str(tmpdir.mkdir('test_project'))
+        project = EmptyProject(project_path)
+        CONF.set('project_explorer', 'current_project_path', project_path)
+    else:
+        CONF.set('project_explorer', 'current_project_path', None)
 
     # Get config values passed in parametrize and apply them
     try:
@@ -3488,6 +3499,83 @@ hello()
     # Check the namespace browser is updated
     assert ('test' in nsb.editor.source_model._data and
             nsb.editor.source_model._data['test']['view'] == '3')
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.use_introspection
+@pytest.mark.preload_project
+def test_ordering_lsp_requests_at_startup(main_window, qtbot):
+    """
+    Test the ordering of requests we send to the LSP at startup when a
+    project was left open during the previous session.
+
+    This is a regression test for spyder-ide/spyder#13351.
+    """
+    # Wait until the LSP server is up.
+    code_editor = main_window.editor.get_current_editor()
+    qtbot.waitSignal(code_editor.lsp_response_signal, timeout=30000)
+
+    # Wait until the initial requests are sent to the server.
+    lsp = main_window.completions.get_client('lsp')
+    python_client = lsp.clients['python']
+    qtbot.waitUntil(lambda: len(python_client['instance']._requests) == 5,
+                    timeout=30000)
+
+    expected_requests = [
+        (0, 'initialize'),
+        (1, 'initialized'),
+        (2, 'workspace/didChangeConfiguration'),
+        (3, 'workspace/didChangeWorkspaceFolders'),
+        (4, 'textDocument/didOpen'),
+    ]
+
+    assert python_client['instance']._requests == expected_requests
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.parametrize(
+    'main_window',
+    [{'spy_config': ('main', 'show_tour_message', 2)}],
+    indirect=True)
+def test_tour_message(main_window, qtbot):
+    """Test that the tour message displays and sends users to the tour."""
+    # Wait until window setup is finished, which is when the message appears
+    qtbot.waitSignal(main_window.sig_setup_finished, timeout=30000)
+
+    # Check that tour is shown automatically and manually show it
+    assert CONF.get('main', 'show_tour_message')
+    main_window.show_tour_message(force=True)
+
+    # Wait for the message to appear
+    qtbot.waitUntil(lambda: bool(main_window.tour_dialog), timeout=5000)
+    qtbot.waitUntil(lambda: main_window.tour_dialog.isVisible(), timeout=2000)
+
+    # Check that clicking dismiss hides the dialog and disables it
+    qtbot.mouseClick(main_window.tour_dialog.dismiss_button, Qt.LeftButton)
+    qtbot.waitUntil(lambda: not main_window.tour_dialog.isVisible(),
+                    timeout=2000)
+    assert not CONF.get('main', 'show_tour_message')
+
+    # Confirm that calling show_tour_message() normally doesn't show it again
+    main_window.show_tour_message()
+    qtbot.wait(2000)
+    assert not main_window.tour_dialog.isVisible()
+
+    # Ensure that it opens again with force=True
+    main_window.show_tour_message(force=True)
+    qtbot.waitUntil(lambda: main_window.tour_dialog.isVisible(), timeout=5000)
+
+    # Run the tour and confirm it's running and the dialog is closed
+    qtbot.mouseClick(main_window.tour_dialog.launch_tour_button, Qt.LeftButton)
+    qtbot.waitUntil(lambda: main_window.tour.is_running, timeout=9000)
+    assert not main_window.tour_dialog.isVisible()
+    assert not CONF.get('main', 'show_tour_message')
+
+    # Close the tour
+    main_window.tour.close_tour()
+    qtbot.waitUntil(lambda: not main_window.tour.is_running, timeout=9000)
 
 
 @pytest.mark.slow

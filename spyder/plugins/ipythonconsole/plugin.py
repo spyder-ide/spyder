@@ -297,7 +297,8 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.variableexplorer.set_shellwidget_from_id(id(sw))
             self.main.plots.set_shellwidget_from_id(id(sw))
             self.main.help.set_shell(sw)
-            self.sig_pdb_state.emit(sw.is_debugging(), sw.get_pdb_last_step())
+            self.sig_pdb_state.emit(
+                sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
         self.update_tabs_text()
         self.sig_update_plugin_title.emit()
 
@@ -638,7 +639,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Get debugging state of the current console."""
         sw = self.get_current_shellwidget()
         if sw is not None:
-            return sw.is_debugging()
+            return sw.is_waiting_pdb_input()
         return False
 
     def get_pdb_last_step(self):
