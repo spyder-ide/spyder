@@ -425,7 +425,7 @@ class MainWindow(QMainWindow):
         self.help_menu_actions = []
 
         # Status bar widgets
-        self.conda_status = None
+        self.interpreter_status = None
         self.mem_status = None
         self.cpu_status = None
         self.clock_status = None
@@ -903,11 +903,13 @@ class MainWindow(QMainWindow):
             self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
 
-        if is_anaconda():
-            from spyder.widgets.status import CondaStatus
-            self.conda_status = CondaStatus(self, status,
-                                            icon=ima.icon('environment'))
-            self.conda_status.update_interpreter(self.get_main_interpreter())
+        from spyder.widgets.status import InterpreterStatus
+        self.interpreter_status = InterpreterStatus(
+            self,
+            status,
+            icon=ima.icon('environment'),
+        )
+        self.interpreter_status.update_interpreter(self.get_main_interpreter())
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
@@ -1322,14 +1324,6 @@ class MainWindow(QMainWindow):
         # then set them again as floating windows here.
         for widget in self.floating_dockwidgets:
             widget.setFloating(True)
-
-        # In MacOS X 10.7 our app is not displayed after initialized (I don't
-        # know why because this doesn't happen when started from the terminal),
-        # so we need to resort to this hack to make it appear.
-        if running_in_mac_app():
-            idx = __file__.index(MAC_APP_NAME)
-            app_path = __file__[:idx]
-            subprocess.call(['open', app_path + MAC_APP_NAME])
 
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
@@ -3064,10 +3058,10 @@ class MainWindow(QMainWindow):
                     widget.setVisible(CONF.get('main', '%s/enable' % name))
                     widget.set_interval(CONF.get('main', '%s/timeout' % name))
 
-            # Update conda status widget
-            if is_anaconda() and self.conda_status:
+            # Update interpreter status widget
+            if self.interpreter_status:
                 interpreter = self.get_main_interpreter()
-                self.conda_status.update_interpreter(interpreter)
+                self.interpreter_status.update_interpreter(interpreter)
         else:
             return
 
