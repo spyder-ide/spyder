@@ -253,9 +253,6 @@ class RunConfigOptions(QWidget):
 
         # Checkbox to preserve the old behavior, i.e. always open the dialog
         # on first run
-        hline = QFrame()
-        hline.setFrameShape(QFrame.HLine)
-        hline.setFrameShadow(QFrame.Sunken)
         self.firstrun_cb = QCheckBox(ALWAYS_OPEN_FIRST_RUN % _("this dialog"))
         self.firstrun_cb.clicked.connect(self.set_firstrun_o)
         self.firstrun_cb.setChecked(firstrun_o)
@@ -266,7 +263,6 @@ class RunConfigOptions(QWidget):
         layout.addWidget(common_group)
         layout.addWidget(wdir_group)
         layout.addWidget(external_group)
-        layout.addWidget(hline)
         layout.addWidget(self.firstrun_cb)
         layout.addStretch(100)
 
