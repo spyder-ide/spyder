@@ -1942,11 +1942,15 @@ def test_pdb_code_and_cmd_separation(ipyconsole, qtbot):
         shell.execute("%debug print()")
     assert "Error" not in control.toPlainText()
     with qtbot.waitSignal(shell.executed):
-        shell.execute("n")
-    assert "name 'n' is not defined" in control.toPlainText()
+        shell.execute("e")
+    assert "name 'e' is not defined" in control.toPlainText()
     with qtbot.waitSignal(shell.executed):
         shell.execute("!n")
     assert "--Return--" in control.toPlainText()
+    with qtbot.waitSignal(shell.executed):
+        shell.execute("a")
+    assert ("*** NameError: name 'a' is not defined"
+            not in control.toPlainText())
     with qtbot.waitSignal(shell.executed):
         shell.execute("abba")
     assert "name 'abba' is not defined" in control.toPlainText()
