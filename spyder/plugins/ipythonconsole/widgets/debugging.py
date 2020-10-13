@@ -110,13 +110,13 @@ class DebuggingHistoryWidget(RichJupyterWidget):
 
         cmd = line.split(" ")[0]
         args = line.split(" ")[1:]
+        is_pdb_cmd = (
+                cmd.strip() and cmd[0] != '!' and "do_" + cmd in dir(pdb.Pdb))
         if self.is_pdb_using_exclamantion_mark():
-            is_pdb_cmd = (
+            is_pdb_cmd = is_pdb_cmd or (
                 cmd.strip() and cmd[0] == '!'
                 and "do_" + cmd[1:] in dir(pdb.Pdb))
-        else:
-            is_pdb_cmd = (
-                cmd.strip() and cmd[0] != '!' and "do_" + cmd in dir(pdb.Pdb))
+
         if cmd and (not is_pdb_cmd or len(args) > 0):
             self._pdb_history.append(line)
             self._pdb_history_index = len(self._pdb_history)
