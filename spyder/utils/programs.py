@@ -12,9 +12,9 @@ from __future__ import print_function
 from ast import literal_eval
 from distutils.version import LooseVersion
 from getpass import getuser
+from textwrap import dedent
 import glob
 import imp
-import inspect
 import itertools
 import os
 import os.path as osp
@@ -824,38 +824,49 @@ def get_module_version(module_name):
 
 def is_module_installed(module_name, version=None, interpreter=None):
     """
-    Return True if module *module_name* is installed
+    Return True if module ``module_name`` is installed
 
-    If version is not None, checking module version
-    (module must have an attribute named '__version__')
+    If ``version`` is not None, checks that the module's installed version is
+    consistent with ``version``. The module must have an attribute named
+    '__version__' or 'VERSION'.
 
     version may start with =, >=, > or < to specify the exact requirement ;
     multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')
 
-    interpreter: check if a module is installed with a given version
-    in a determined interpreter
+    If ``interpreter`` is not None, checks if a module is installed with a
+    given ``version`` in the ``interpreter``'s environment. Otherwise checks
+    in Spyder's environment.
     """
-    module_version = None
     if interpreter is not None:
         if is_python_interpreter(interpreter):
-            cmd = 'import %s; print(%s.__version__)' % ((module_name,) * 2)
+            cmd = dedent('''
+                         try:
+                             import %s as mod
+                         except Exception:
+                             print('No Module')
+                         print(getattr(mod, '__version__',
+                                       getattr(mod, 'VERSION', None)))
+                         ''' % module_name)
             try:
                 # use clean environment
                 proc = run_program(interpreter, ['-c', cmd], env={})
-                output, _err = proc.communicate()
+                stdout, stderr = proc.communicate()
+                stdout = stdout.decode().strip()
             except Exception:
                 return False
 
-            if _err.decode() == '':
-                module_version = output.decode().strip()
-            else:
+            if 'No Module' in stdout:
                 return False
+            elif stdout != 'None':
+                # the module is installed and it has a version attribute
+                module_version = stdout
+            else:
+                module_version = None
         else:
-            # Try to not take a wrong decision if interpreter check
-            # fails
+            # Try to not take a wrong decision if interpreter check fails
             return True
-
-    if module_version is None:
+    else:
+        # interpreter is None, just get module version in Spyder environment
         try:
             module_version = get_module_version(module_name)
         except Exception:
