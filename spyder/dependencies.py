@@ -276,10 +276,9 @@ class Dependency(object):
 
     def check(self):
         """Check if dependency is installed"""
-        if self.required_version and self.installed_version:
+        if self.required_version:
             return programs.is_module_installed(self.modname,
-                                                self.required_version,
-                                                self.installed_version)
+                                                self.required_version)
         else:
             return True
 
