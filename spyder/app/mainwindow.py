@@ -1758,14 +1758,6 @@ class MainWindow(QMainWindow):
         for widget in self.floating_dockwidgets:
             widget.setFloating(True)
 
-        # In MacOS X 10.7 our app is not displayed after initialized (I don't
-        # know why because this doesn't happen when started from the terminal),
-        # so we need to resort to this hack to make it appear.
-        if running_in_mac_app():
-            idx = __file__.index(MAC_APP_NAME)
-            app_path = __file__[:idx]
-            subprocess.call(['open', app_path + MAC_APP_NAME])
-
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
         # $ spyder foo.py
