@@ -1955,37 +1955,5 @@ def test_pdb_code_and_cmd_separation(ipyconsole, qtbot):
     assert "Unknown command 'abba'" in control.toPlainText()
 
 
-@pytest.mark.skipif(PY2, reason="Fails on py2")
-@flaky(max_runs=3)
-def test_explore_mode(ipyconsole, qtbot):
-    """
-    Test explore mode works.
-    """
-    # Wait until the window is fully up
-    shell = ipyconsole.get_current_shellwidget()
-    control = ipyconsole.get_focus_widget()
-    qtbot.waitUntil(lambda: shell._prompt_html is not None,
-                    timeout=SHELL_TIMEOUT)
-
-    with qtbot.waitSignal(shell.executed, timeout=SHELL_TIMEOUT):
-        shell.execute("%debug print()")
-    assert control.toPlainText().split()[-2:] == ["IPdb", "[1]:"]
-    qtbot.keyClick(control, 'n', modifier=Qt.ControlModifier)
-    assert control.toPlainText().split()[-2:] == ["explore", "mode:"]
-    qtbot.keyClick(control, 'n', modifier=Qt.ControlModifier)
-    assert control.toPlainText().split()[-2:] == ["IPdb", "[1]:"]
-    qtbot.keyClick(control, 'n', modifier=Qt.ControlModifier)
-    assert control.toPlainText().split()[-2:] == ["explore", "mode:"]
-    qtbot.keyClick(control, 'e')
-    assert "Error: 'e' is not a Pdb command." in control.toPlainText()
-    with qtbot.waitSignal(shell.executed):
-        qtbot.keyClick(control, 'w')
-    assert "explore mode: !w" in control.toPlainText()
-    assert "Error: 'w' is not a Pdb command." not in control.toPlainText()
-    assert "IPdb [2]:" not in control.toPlainText()
-    qtbot.keyClick(control, Qt.Key_Escape)
-    assert control.toPlainText().split()[-2:] == ["IPdb", "[2]:"]
-
-
 if __name__ == "__main__":
     pytest.main()
