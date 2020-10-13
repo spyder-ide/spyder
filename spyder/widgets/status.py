@@ -18,11 +18,12 @@ from qtpy.QtGui import QFont, QIcon
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QWidget
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, running_in_mac_app
 from spyder.config.gui import get_font
 from spyder.config import utils
 from spyder.py3compat import PY3
 from spyder.utils.qthelpers import create_waitspinner
+from spyder.utils.conda import is_conda_env
 
 
 class StatusBarWidget(QWidget):
@@ -225,15 +226,15 @@ class CPUStatus(BaseTimerStatus):
         return QIcon()
 
 
-class CondaStatus(StatusBarWidget):
+class InterpreterStatus(StatusBarWidget):
     """Status bar widget for displaying the current conda environment."""
 
     def __init__(self, parent, statusbar, icon=None):
         """Status bar widget for displaying the current conda environment."""
         self._interpreter = None
-        super(CondaStatus, self).__init__(parent, statusbar, icon=icon)
+        super(InterpreterStatus, self).__init__(parent, statusbar, icon=icon)
 
-    def _get_conda_env_info(self):
+    def _get_interpreter_env_info(self):
         """Get conda environment information."""
         try:
             out, err = subprocess.Popen(
@@ -251,9 +252,9 @@ class CondaStatus(StatusBarWidget):
 
         return out, err
 
-    def _process_conda_env_info(self):
+    def _process_interpreter_env_info(self):
         """Process conda environment information."""
-        out, err = self._get_conda_env_info()
+        out, err = self._get_interpreter_env_info()
         out = out or err  # Anaconda base python prints to stderr
         out = out.split('\n')[0]
         parts = out.split()
@@ -261,21 +262,23 @@ class CondaStatus(StatusBarWidget):
         if len(parts) >= 2:
             out = ' '.join(parts[:2])
 
-        envs_folder = os.path.sep + 'envs' + os.path.sep
-        if envs_folder in self._interpreter:
-            if os.name == 'nt':
-                env = os.path.dirname(self._interpreter)
+        if is_conda_env(pyexec=self._interpreter):
+            envs_folder = os.path.sep + 'envs' + os.path.sep
+            if envs_folder in self._interpreter:
+                if os.name == 'nt':
+                    env = os.path.dirname(self._interpreter)
+                else:
+                    env = os.path.dirname(os.path.dirname(self._interpreter))
+                env = os.path.basename(env)
             else:
-                env = os.path.dirname(os.path.dirname(self._interpreter))
-            env = os.path.basename(env)
+                env = 'base'
+            env = 'conda: ' + env
+        elif running_in_mac_app(self._interpreter):
+            env = 'internal'
         else:
-            env = 'base'
+            env = 'venv'  # Update when additional environments are supported
 
-        if utils.is_anaconda():
-            text = 'conda: {env} ({version})'.format(env=env, version=out)
-        else:
-            text = ''
-
+        text = '{env} ({version})'.format(env=env, version=out)
         return text
 
     def get_tooltip(self):
@@ -285,10 +288,8 @@ class CondaStatus(StatusBarWidget):
     def update_interpreter(self, interpreter):
         """Set main interpreter and update information."""
         self._interpreter = interpreter
-        if utils.is_anaconda():
-            text = self._process_conda_env_info()
-        else:
-            text = ''
+
+        text = self._process_interpreter_env_info()
 
         self.set_value(text)
         self.update_tooltip()
