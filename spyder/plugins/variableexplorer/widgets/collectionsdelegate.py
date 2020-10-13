@@ -121,32 +121,32 @@ class CollectionsDelegate(QItemDelegate):
                     val_type = 'array'
                 else:
                     val_type = 'dataframe, series'
-                message = ("Spyder is unable to show the {val_type} or object "
-                           "you're trying to view because <tt>{module}</tt> is"
-                           " not installed. ")
+                message = _("Spyder is unable to show the {val_type} or object"
+                            " you're trying to view because <tt>{module}</tt>"
+                            " is not installed. ")
                 if running_in_mac_app():
-                    message += ("Please consider using the full version of the"
-                                " Spyder MacOS application.<br>")
+                    message += _("Please consider using the full version of "
+                                 "the Spyder MacOS application.<br>")
                 else:
-                    message += ("Please install this package in your Spyder "
-                                "environment.<br>")
+                    message += _("Please install this package in your Spyder "
+                                 "environment.<br>")
                 QMessageBox.critical(
                     self.parent(), _("Error"),
-                    _(message).format(val_type=val_type, module=module))
+                    message.format(val_type=val_type, module=module))
                 return
             else:
-                message = ("Spyder is unable to show the variable you're "
-                           "trying to view because the module "
-                           "<tt>{module}</tt> is not ")
+                message = _("Spyder is unable to show the variable you're"
+                            " trying to view because the module "
+                            "<tt>{module}</tt> is not ")
                 if running_in_mac_app():
-                    message += ("supported in the Spyder MacOS application."
-                                "<br>")
+                    message += _("supported in the Spyder MacOS "
+                                 "application.<br>")
                 else:
-                    message += ("found in your Spyder environment. Please "
-                                "install this package in your Spyder "
-                                "environment.<br>")
+                    message += _("found in your Spyder environment. Please "
+                                 "install this package in your Spyder "
+                                 "environment.<br>")
                 QMessageBox.critical(self.parent(), _("Error"),
-                                     _(message).format(module=module))
+                                     message.format(module=module))
                 return
         except Exception as msg:
             QMessageBox.critical(
