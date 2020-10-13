@@ -461,7 +461,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """Bind editor instance"""
         editor_id = editor.get_id()
 
-        item = self.editor_items[editor_id].node
+        # Don't fail if editor doesn't exist anymore. This
+        # happens when switching projects.
+        try:
+            item = self.editor_items[editor_id].node
+        except KeyError:
+            return
+
         if not self.freeze:
             self.scrollToItem(item)
             self.root_item_selected(item)
@@ -543,6 +549,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if editor.info is not None:
                 self.update_editor(editor.info, editor)
                 self.editors_to_update[language].remove(editor)
+            self.update_timers[language].start()
+
+    def update_all_editors(self):
+        """Update all editors with LSP support."""
+        for language in self._languages:
+            self.set_editors_to_update(language)
             self.update_timers[language].start()
 
     @Slot(list)
@@ -807,6 +819,14 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.root_item_selected(item)
         self.activated(item)
 
+    def set_editors_to_update(self, language):
+        """Set editors to update per language."""
+        to_update = []
+        for editor in self.editor_ids.keys():
+            if editor.get_language().lower() == language:
+                to_update.append(editor)
+        self.editors_to_update[language] = to_update
+
     def start_symbol_services(self, language):
         """Show symbols for all `language` files."""
         # Save all languages that can send info to this pane.
@@ -821,12 +841,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         timer.timeout.connect(lambda: self.update_editors(language))
         self.update_timers[language] = timer
 
-        # Select editors to update per language
-        to_update = []
-        for editor in self.editor_ids.keys():
-            if editor.get_language().lower() == language:
-                to_update.append(editor)
-        self.editors_to_update[language] = to_update
+        # Set editors that need to be updated per language
+        self.set_editors_to_update(language)
 
         # Start timer
         timer.start()
@@ -954,3 +970,7 @@ class OutlineExplorerWidget(QWidget):
     def stop_symbol_services(self, language):
         """Disable LSP symbols functionality."""
         self.treewidget.stop_symbol_services(language)
+
+    def update_all_editors(self):
+        """Update all editors with an associated LSP server."""
+        self.treewidget.update_all_editors()

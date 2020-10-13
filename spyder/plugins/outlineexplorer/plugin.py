@@ -130,3 +130,7 @@ class OutlineExplorer(SpyderPluginWidget):
     def stop_symbol_services(self, language):
         """Disable LSP symbols functionality."""
         self.explorer.stop_symbol_services(language)
+
+    def update_all_editors(self):
+        """Update all editors with an associated LSP server."""
+        self.explorer.update_all_editors()
