@@ -336,6 +336,8 @@ class BaseRunConfigDialog(QDialog):
 
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
+        self.setWindowFlags(
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
