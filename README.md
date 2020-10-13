@@ -195,13 +195,13 @@ to install them separately in those cases.
 ### Build dependencies
 
 When installing Spyder from its source package, the only requirement is to have
-a Python version equal or greater than 3.5 or 2.7.
+a Python version equal or greater than 3.6.
 
 ### Runtime dependencies
 
 The basic dependencies to run Spyder are:
 
-* **Python** 3.5+ or 2.7: The core language Spyder is written in and for.
+* **Python** 3.6+: The core language Spyder is written in and for.
 * **PyQt5** 5.6+: Python bindings for Qt, used for Spyder's GUI.
 
 The rest our dependencies (both required and optional) are declared in
