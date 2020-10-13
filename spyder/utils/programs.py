@@ -822,8 +822,7 @@ def get_module_version(module_name):
     return getattr(mod, '__version__', getattr(mod, 'VERSION', None))
 
 
-def is_module_installed(module_name, version=None, installed_version=None,
-                        interpreter=None):
+def is_module_installed(module_name, version=None, interpreter=None):
     """
     Return True if module *module_name* is installed
 
@@ -836,14 +835,6 @@ def is_module_installed(module_name, version=None, installed_version=None,
     interpreter: check if a module is installed with a given version
     in a determined interpreter
     """
-    if installed_version is not None:
-        '''
-        installed_version only passed in from dependencies.Dependency.check
-        which retrieved it from get_module_version, so we know the module is
-        already installed
-        '''
-        return True
-
     module_version = None
     if interpreter is not None:
         if is_python_interpreter(interpreter):
