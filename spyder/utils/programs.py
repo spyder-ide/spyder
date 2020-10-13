@@ -140,9 +140,9 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
         kwargs.setdefault('creationflags', CONSOLE_CREATION_FLAGS)
 
         # ensure Windows subprocess environment has SYSTEMROOT
-        if (kwargs.get('env') is not None):
+        if kwargs.get('env') is not None:
             # Is SYSTEMROOT in env? case insensitive
-            if ('SYSTEMROOT' not in map(str.upper, kwargs['env'].keys())):
+            if 'SYSTEMROOT' not in map(str.upper, kwargs['env'].keys()):
                 # Add SYSTEMROOT from os.environ
                 sys_root_key = None
                 for k, v in os.environ.items():
