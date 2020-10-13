@@ -469,10 +469,10 @@ class RunConfigDialog(BaseRunConfigDialog):
         scrollarea = QScrollArea(self)
         scrollarea.setWidget(widget_dialog)
         scrollarea.setMinimumWidth(600)
-        scroll_layout = QVBoxLayout()
+        scrollarea.setWidgetResizable(True)
+        scroll_layout = QVBoxLayout(self)
         scroll_layout.addWidget(scrollarea)
-        self.setLayout(scroll_layout)
-        self.add_button_box(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        self.add_button_box(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
 
         self.setWindowTitle(_("Run configuration per file"))
 
