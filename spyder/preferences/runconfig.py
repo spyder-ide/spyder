@@ -390,6 +390,7 @@ class BaseRunConfigDialog(QDialog):
 
 class RunConfigOneDialog(BaseRunConfigDialog):
     """Run configuration dialog box: single file version"""
+
     def __init__(self, parent=None):
         BaseRunConfigDialog.__init__(self, parent)
         self.filename = None
@@ -425,6 +426,7 @@ class RunConfigOneDialog(BaseRunConfigDialog):
 
 class RunConfigDialog(BaseRunConfigDialog):
     """Run configuration dialog box: multiple file version"""
+
     def __init__(self, parent=None):
         BaseRunConfigDialog.__init__(self, parent)
         self.file_to_run = None
@@ -587,7 +589,7 @@ class RunConfigPage(GeneralConfigPage):
                             ALWAYS_OPEN_FIRST_RUN % _("Run Settings dialog"),
                             ALWAYS_OPEN_FIRST_RUN_OPTION, False)
 
-        vlayout = QVBoxLayout()
+        vlayout = QVBoxLayout(self)
         vlayout.addWidget(about_label)
         vlayout.addSpacing(10)
         vlayout.addWidget(interpreter_group)
@@ -596,7 +598,6 @@ class RunConfigPage(GeneralConfigPage):
         vlayout.addWidget(external_group)
         vlayout.addWidget(firstrun_cb)
         vlayout.addStretch(1)
-        self.setLayout(vlayout)
 
     def apply_settings(self, options):
         pass
