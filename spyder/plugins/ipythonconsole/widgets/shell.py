@@ -501,7 +501,10 @@ the sympy module (e.g. plot)
     def silent_execute(self, code):
         """Execute code in the kernel without increasing the prompt"""
         try:
-            self.kernel_client.execute(to_text_string(code), silent=True)
+            if self.is_debugging():
+                self.pdb_execute(code, hidden=True)
+            else:
+                self.kernel_client.execute(to_text_string(code), silent=True)
         except AttributeError:
             pass
 
