@@ -320,9 +320,11 @@ class DebuggingWidget(DebuggingHistoryWidget):
         return {
             "breakpoints": CONF.get('run', 'breakpoints', {}),
             "pdb_ignore_lib": CONF.get('ipython_console', 'pdb_ignore_lib'),
-            "pdb_execute_events": CONF.get('ipython_console', 'pdb_execute_events'),
+            "pdb_execute_events": CONF.get(
+                'ipython_console', 'pdb_execute_events'),
             "pdb_use_exclamation_mark": self.is_pdb_using_exclamantion_mark(),
-            "pdb_stop_first_line": CONF.get('ipython_console', 'pdb_stop_first_line'),
+            "pdb_stop_first_line": CONF.get(
+                'ipython_console', 'pdb_stop_first_line'),
         }
 
     # --- To Sort --------------------------------------------------

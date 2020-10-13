@@ -268,7 +268,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         debug_layout.addWidget(prevent_closing_box)
 
         continue_box = newcb(
-            _("Stop debugging on first line of files without breakpoints"), 'pdb_stop_first_line',
+            _("Stop debugging on first line of files without breakpoints"),
+            'pdb_stop_first_line',
             tip=_("This option lets you decide if the debugger should"
                   " stop on the first line while debugging if no breakpoints"
                   " are present."))
@@ -288,10 +289,11 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         debug_layout.addWidget(execute_events_box)
 
         exclamation_mark_box = newcb(
-            _("Use exclamation mark prefix for Pdb commands"), 'pdb_use_exclamation_mark',
+            _("Use exclamation mark prefix for Pdb commands"),
+            'pdb_use_exclamation_mark',
             tip=_("This option lets you decide if the Pdb commands should "
-                  "be prefixed by an exclamation mark. This helps in separating Pdb "
-                  "commands from Python code."))
+                  "be prefixed by an exclamation mark. This helps in "
+                  "separating Pdb commands from Python code."))
         debug_layout.addWidget(exclamation_mark_box)
 
         debug_group.setLayout(debug_layout)
