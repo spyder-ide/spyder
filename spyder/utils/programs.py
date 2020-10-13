@@ -139,17 +139,18 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
         CONSOLE_CREATION_FLAGS |= CREATE_NO_WINDOW
         kwargs.setdefault('creationflags', CONSOLE_CREATION_FLAGS)
 
-        # ensure Windows subprocess environment has SYSTEMROOT, but variable
-        # is case insensitive
-        if ((kwargs.get('env') is not None) and
-            ('SYSTEMROOT' not in map(str.upper, kwargs['env'].keys()))):
-            sys_root_key = None
-            for k, v in os.environ.items():
-                if 'SYSTEMROOT' == k.upper():
-                    sys_root_key = k
-                    break  # don't risk multiple values
-            if sys_root_key is not None:
-                kwargs['env'].update({sys_root_key: os.environ[sys_root_key]})
+        # ensure Windows subprocess environment has SYSTEMROOT
+        if (kwargs.get('env') is not None):
+            # Is SYSTEMROOT in env? case insensitive
+            if ('SYSTEMROOT' not in map(str.upper, kwargs['env'].keys())):
+                # Add SYSTEMROOT from os.environ
+                sys_root_key = None
+                for k, v in os.environ.items():
+                    if 'SYSTEMROOT' == k.upper():
+                        sys_root_key = k
+                        break  # don't risk multiple values
+                if sys_root_key is not None:
+                    kwargs['env'].update({sys_root_key: os.environ[sys_root_key]})
 
     return kwargs
 
