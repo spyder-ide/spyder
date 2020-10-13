@@ -441,8 +441,6 @@ class RunConfigDialog(BaseRunConfigDialog):
         """Setup Run Configuration dialog with filename *fname*"""
         self.combo = QComboBox()
         self.combo.setMaxVisibleItems(20)
-        self.combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
-        self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         combo_group = QWidget()
         combo_layout = QHBoxLayout(combo_group)
