@@ -174,8 +174,7 @@ class RunConfigOptions(QWidget):
 
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
-        interpreter_layout = QVBoxLayout()
-        interpreter_group.setLayout(interpreter_layout)
+        interpreter_layout = QVBoxLayout(interpreter_group)
 
         self.current_radio = QRadioButton(CURRENT_INTERPRETER)
         interpreter_layout.addWidget(self.current_radio)
@@ -188,8 +187,7 @@ class RunConfigOptions(QWidget):
 
         # --- General settings ----
         common_group = QGroupBox(_("General settings"))
-        common_layout = QGridLayout()
-        common_group.setLayout(common_layout)
+        common_layout = QGridLayout(common_group)
 
         self.clear_var_cb = QCheckBox(CLEAR_ALL_VARIABLES)
         common_layout.addWidget(self.clear_var_cb, 0, 0)
@@ -209,8 +207,7 @@ class RunConfigOptions(QWidget):
 
         # --- Working directory ---
         wdir_group = QGroupBox(_("Working directory settings"))
-        wdir_layout = QVBoxLayout()
-        wdir_group.setLayout(wdir_layout)
+        wdir_layout = QVBoxLayout(wdir_group)
 
         self.file_dir_radio = QRadioButton(FILE_DIR)
         wdir_layout.addWidget(self.file_dir_radio)
@@ -263,14 +260,15 @@ class RunConfigOptions(QWidget):
         self.firstrun_cb.clicked.connect(self.set_firstrun_o)
         self.firstrun_cb.setChecked(firstrun_o)
 
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
         layout.addWidget(wdir_group)
         layout.addWidget(external_group)
         layout.addWidget(hline)
         layout.addWidget(self.firstrun_cb)
-        self.setLayout(layout)
+        layout.addStretch(100)
 
     def select_directory(self):
         """Select directory"""
