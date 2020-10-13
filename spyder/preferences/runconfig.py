@@ -25,6 +25,7 @@ from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.qthelpers import create_toolbutton
 
 CURRENT_INTERPRETER = _("Execute in current console")
 DEDICATED_INTERPRETER = _("Execute in a dedicated console")
@@ -224,9 +225,12 @@ class RunConfigOptions(QWidget):
         self.fixed_dir_radio.toggled.connect(self.wd_edit.setEnabled)
         self.wd_edit.setEnabled(False)
         fixed_dir_layout.addWidget(self.wd_edit)
-        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
-        browse_btn.setToolTip(_("Select directory"))
-        browse_btn.clicked.connect(self.select_directory)
+        browse_btn = create_toolbutton(
+            self,
+            triggered=self.select_directory,
+            icon=ima.icon('DirOpenIcon'),
+            tip=_("Select directory")
+            )
         fixed_dir_layout.addWidget(browse_btn)
         wdir_layout.addLayout(fixed_dir_layout)
 
