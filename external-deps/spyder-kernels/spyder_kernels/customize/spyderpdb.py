@@ -119,6 +119,16 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         else:
             ns = self.curframe.f_globals
 
+        if self.pdb_use_exclamation_mark:
+            # Find pdb commands executed without !
+            cmd, arg, line = self.parseline(line)
+            if cmd and cmd not in ns:
+                # Check if it is not an assignment
+                if not (arg and arg[0] == "="):
+                    func = getattr(self, 'do_' + cmd, None)
+                    if func:
+                        self.lastcmd = line
+                        return func(arg)
         try:
             line = TransformerManager().transform_cell(line)
             try:
