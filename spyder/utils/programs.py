@@ -840,14 +840,13 @@ def is_module_installed(module_name, version=None, interpreter=None):
     """
     if interpreter is not None:
         if is_python_interpreter(interpreter):
-            cmd = dedent('''
-                         try:
-                             import %s as mod
-                         except Exception:
-                             print('No Module')
-                         print(getattr(mod, '__version__',
-                                       getattr(mod, 'VERSION', None)))
-                         ''' % module_name)
+            cmd = dedent("""
+                try:
+                    import {} as mod
+                except Exception:
+                    print('No Module')  # spyder: test-skip
+                print(getattr(mod, '__version__', getattr(mod, 'VERSION', None)))  # spyder: test-skip
+                """).format(module_name)
             try:
                 # use clean environment
                 proc = run_program(interpreter, ['-c', cmd], env={})
