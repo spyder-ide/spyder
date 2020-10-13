@@ -3648,7 +3648,7 @@ def test_outline_at_startup(main_window, qtbot):
     assert len(tree) == 0
 
     # Assert spinner is not shown
-    assert outline_explorer.explorer.loading_widget.isHidden()
+    assert not outline_explorer.explorer.loading_widget.isSpinning()
 
 
 if __name__ == "__main__":
