@@ -437,11 +437,17 @@ class RunConfigDialog(BaseRunConfigDialog):
 
     def setup(self, fname):
         """Setup Run Configuration dialog with filename *fname*"""
-        combo_label = QLabel(_("Select a run configuration:"))
         self.combo = QComboBox()
         self.combo.setMaxVisibleItems(20)
         self.combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
         self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        combo_group = QWidget()
+        combo_layout = QHBoxLayout(combo_group)
+        combo_layout.setContentsMargins(0, 0, 0, 0)
+        combo_layout.addWidget(QLabel(_("Select a run configuration:")))
+        combo_layout.addWidget(self.combo)
+        combo_layout.addStretch(100)
 
         self.stack = QStackedWidget()
 
@@ -463,7 +469,7 @@ class RunConfigDialog(BaseRunConfigDialog):
         self.combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
         self.combo.setCurrentIndex(index)
 
-        layout = self.add_widgets(combo_label, self.combo, 10, self.stack)
+        layout = self.add_widgets(combo_group, 10, self.stack)
         widget_dialog = QWidget()
         widget_dialog.setLayout(layout)
         scrollarea = QScrollArea(self)
