@@ -629,8 +629,8 @@ class EditorStack(QWidget):
             if "xdg-open" in file:
                 msg_title = _("Warning")
                 msg = _("Spyder can't show this file in the external file "
-                        "explorer because the <tt>xdg-utills</tt> package is "
-                        "not only available in your system.")
+                        "explorer because the <tt>xdg-utils</tt> package is "
+                        "not available on your system.")
                 QMessageBox.information(self, msg_title, msg,
                                         QMessageBox.Ok)
 
