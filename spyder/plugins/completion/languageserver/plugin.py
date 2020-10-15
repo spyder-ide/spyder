@@ -14,7 +14,6 @@ import functools
 import logging
 import os
 import os.path as osp
-import sys
 
 # Third-party imports
 from qtpy.QtCore import Slot, QTimer
@@ -26,7 +25,7 @@ from spyder.config.base import (_, get_conf_path, running_under_pytest,
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.manager import CONF
 from spyder.api.completion import SpyderCompletionPlugin
-from spyder.utils.misc import check_connection_port, getcwd_or_home
+from spyder.utils.misc import check_connection_port
 from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.completion.languageserver.client import LSPClient
 from spyder.plugins.completion.languageserver.confpage import (
