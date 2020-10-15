@@ -547,7 +547,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if self.editors_to_update.get(language):
             editor = self.editors_to_update[language][0]
             if editor.info is not None:
-                self.update_editor(editor.info, editor)
+                # Editor could be not there anymore after switching
+                # projects
+                try:
+                    self.update_editor(editor.info, editor)
+                except KeyError:
+                    pass
                 self.editors_to_update[language].remove(editor)
             self.update_timers[language].start()
 
