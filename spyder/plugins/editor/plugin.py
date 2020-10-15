@@ -819,7 +819,7 @@ class Editor(SpyderPluginWidget):
         formatter = CONF.get('lsp-server', 'formatting')
         self.formatting_action = create_action(
             self,
-            _('Format the current file or selection with {0}').format(
+            _('Format file or selection with {0}').format(
                 formatter.capitalize()),
             shortcut=CONF.get_shortcut('editor', 'autoformatting'),
             context=Qt.WidgetShortcut,
@@ -1667,7 +1667,7 @@ class Editor(SpyderPluginWidget):
     def refresh_formatter_name(self):
         formatter = CONF.get('lsp-server', 'formatting')
         self.formatting_action.setText(
-            _('Format the current file or selection with {0}').format(
+            _('Format file or selection with {0}').format(
                 formatter.capitalize()))
 
     #------ Slots

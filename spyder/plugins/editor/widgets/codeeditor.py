@@ -4069,7 +4069,7 @@ class CodeEditor(TextEditBaseWidget):
         formatter = CONF.get('lsp-server', 'formatting')
         self.format_action = create_action(
             self,
-            _('Format the current file or selection with {0}').format(
+            _('Format file or selection with {0}').format(
                 formatter.capitalize()),
             shortcut=CONF.get_shortcut('editor', 'autoformatting'),
             triggered=self.format_document_or_range)
@@ -4848,7 +4848,7 @@ class CodeEditor(TextEditBaseWidget):
 
         formatter = CONF.get('lsp-server', 'formatting')
         self.format_action.setText(_(
-            'Format the current file or selection with {0}').format(
+            'Format file or selection with {0}').format(
                 formatter.capitalize()))
 
         # Check if a docstring is writable
