@@ -311,9 +311,6 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To sync with working directory toolbar
         self.shellwidget.executed.connect(self.shellwidget.update_cwd)
 
-        # To apply style
-        self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
-
     def add_to_history(self, command):
         """Add command to history"""
         if self.shellwidget.is_debugging():
@@ -340,10 +337,19 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To show if special console is valid
         self._check_special_console_error()
 
+        # To apply style at kernel startup or kernel crashes
+        self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
+
+        # Don't call this method for any new prompt
         self.shellwidget.sig_prompt_ready.disconnect(
             self._when_prompt_is_ready)
-        self.shellwidget.sig_remote_execute.disconnect(
-            self._when_prompt_is_ready)
+
+        # This signal is not connected in a kernel crash
+        try:
+            self.shellwidget.sig_remote_execute.disconnect(
+                self._when_prompt_is_ready)
+        except TypeError:
+            pass
 
     def enable_stop_button(self):
         self.stop_button.setEnabled(True)
@@ -641,8 +647,13 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         """Finishes the restarting of the kernel."""
         sw = self.shellwidget
 
-        if self._abort_kernel_restart():
+        if self.get_stderr_contents():
             sw.spyder_kernel_comm.close()
+            self.stop_button.setDisabled(True)
+
+            # This covers the case of kernel crashes that generate stderr
+            # content, but still can recover and start a new kernel.
+            sw.sig_prompt_ready.connect(self._when_prompt_is_ready)
             return
 
         if self.restart_thread and self.restart_thread.error is not None:
