@@ -1645,8 +1645,15 @@ class CodeEditor(TextEditBaseWidget):
             start, end = edit_range['start'], edit_range['end']
             start_line, start_col = start['line'], start['character']
             end_line, end_col = end['line'], end['character']
+
             start_pos = self.get_position_line_number(start_line, start_col)
-            end_pos = self.get_position_line_number(end_line, end_col)
+
+            if end_line == self.document().blockCount():
+                end_pos = self.get_position('eof')
+                end_pos += 1
+            else:
+                end_pos = self.get_position_line_number(end_line, end_col)
+
             text_tokens = list(text_tokens)
             this_edit = list(repl_text)
             this_edition = (text_tokens[:max(start_pos - 1, 0)] +
