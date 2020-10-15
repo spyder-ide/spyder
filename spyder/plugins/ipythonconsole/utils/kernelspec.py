@@ -148,7 +148,7 @@ class SpyderKernelSpec(KernelSpec):
 
         # Create PYTHONPATH env entry to add it to the kernel
         pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
-                                            drop_env=False)
+                                            drop_env=True)
 
         # Add our PYTHONPATH to env_vars
         env_vars.update(pypath)
