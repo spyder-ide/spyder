@@ -145,7 +145,7 @@ if hasattr(MAIN_APP, 'setDesktopFileName'):
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time.
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV
+from spyder.config.base import _, get_image_path, DEV, SAFE_MODE
 
 if not running_under_pytest():
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
@@ -164,7 +164,8 @@ else:
 # Local utility imports
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, __website_url__, get_versions)
+                    __trouble_url__, __website_url__, get_versions,
+                    __docs_url__)
 from spyder.app.utils import (get_python_doc_path, delete_lsp_log_files,
                               qt_message_handler, setup_logging)
 from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
@@ -219,6 +220,11 @@ CWD = getcwd_or_home()
 # Install Qt messaage handler
 #==============================================================================
 qInstallMessageHandler(qt_message_handler)
+
+#==============================================================================
+# Set the index for the default tour
+#==============================================================================
+DEFAULT_TOUR = 0
 
 #==============================================================================
 # Main Window
@@ -345,6 +351,7 @@ class MainWindow(QMainWindow):
         # Tour  # TODO: Should I consider it a plugin?? or?
         self.tour = None
         self.tours_available = None
+        self.tour_dialog = None
 
         # File switcher
         self.switcher = None
@@ -418,7 +425,7 @@ class MainWindow(QMainWindow):
         self.help_menu_actions = []
 
         # Status bar widgets
-        self.conda_status = None
+        self.interpreter_status = None
         self.mem_status = None
         self.cpu_status = None
         self.clock_status = None
@@ -525,6 +532,9 @@ class MainWindow(QMainWindow):
             self.open_files_server = socket.socket(socket.AF_INET,
                                                    socket.SOCK_STREAM,
                                                    socket.IPPROTO_TCP)
+
+        # To show the message about starting the tour
+        self.sig_setup_finished.connect(self.show_tour_message)
 
         # Apply preferences
         self.apply_settings()
@@ -829,8 +839,17 @@ class MainWindow(QMainWindow):
                                         _("Fullscreen mode"),
                                         triggered=self.toggle_fullscreen,
                                         context=Qt.ApplicationShortcut)
-        self.register_shortcut(self.fullscreen_action, "_",
-                               "Fullscreen mode", add_shortcut_to_tip=True)
+        if sys.platform == 'darwin':
+            self.fullscreen_action.setEnabled(False)
+            self.fullscreen_action.setToolTip(_("For fullscreen mode use "
+                                               "macOS built-in feature"))
+        else:
+            self.register_shortcut(
+                self.fullscreen_action,
+                "_",
+                "Fullscreen mode",
+                add_shortcut_to_tip=True
+            )
 
         # Main toolbar
         self.main_toolbar_actions = [self.maximize_action,
@@ -863,6 +882,7 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Starting code completion manager..."))
         from spyder.plugins.completion.plugin import CompletionManager
         self.completions = CompletionManager(self)
+        self.completions.start()
 
         # Working directory plugin
         logger.info("Loading working directory...")
@@ -885,22 +905,19 @@ class MainWindow(QMainWindow):
             self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
 
-        if is_anaconda():
-            from spyder.widgets.status import CondaStatus
-            self.conda_status = CondaStatus(self, status,
-                                            icon=ima.icon('environment'))
-            self.conda_status.update_interpreter(self.get_main_interpreter())
+        from spyder.widgets.status import InterpreterStatus
+        self.interpreter_status = InterpreterStatus(
+            self,
+            status,
+            icon=ima.icon('environment'),
+        )
+        self.interpreter_status.update_interpreter(self.get_main_interpreter())
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
         from spyder.plugins.editor.plugin import Editor
         self.editor = Editor(self)
         self.editor.register_plugin()
-
-        # Start code completion client
-        self.set_splash(_("Launching code completion client for Python..."))
-        self.completions.start()
-        self.completions.start_client(language='python')
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -1043,11 +1060,10 @@ class MainWindow(QMainWindow):
                                                 triggered=self.check_updates)
 
         # Spyder documentation
-        spyder_doc = 'https://docs.spyder-ide.org/'
         doc_action = create_action(self, _("Spyder documentation"),
                                    icon=ima.icon('DialogHelpButton'),
                                    triggered=lambda:
-                                   programs.start_file(spyder_doc))
+                                   programs.start_file(__docs_url__))
         self.register_shortcut(doc_action, "_",
                                "spyder documentation")
 
@@ -1064,27 +1080,31 @@ class MainWindow(QMainWindow):
 
         #----- Tours
         self.tour = tour.AnimatedTour(self)
-        self.tours_menu = QMenu(_("Interactive tours"), self)
-        self.tour_menu_actions = []
-        # TODO: Only show intro tour for now. When we are close to finish
-        # 3.0, we will finish and show the other tour
-        self.tours_available = tour.get_tours(0)
+        # self.tours_menu = QMenu(_("Interactive tours"), self)
+        # self.tour_menu_actions = []
+        # # TODO: Only show intro tour for now. When we are close to finish
+        # # 3.0, we will finish and show the other tour
+        self.tours_available = tour.get_tours(DEFAULT_TOUR)
 
         for i, tour_available in enumerate(self.tours_available):
             self.tours_available[i]['last'] = 0
             tour_name = tour_available['name']
 
-            def trigger(i=i, self=self):  # closure needed!
-                return lambda: self.show_tour(i)
+        #     def trigger(i=i, self=self):  # closure needed!
+        #         return lambda: self.show_tour(i)
 
-            temp_action = create_action(self, tour_name, tip="",
-                                        triggered=trigger())
-            self.tour_menu_actions += [temp_action]
+        #     temp_action = create_action(self, tour_name, tip="",
+        #                                 triggered=trigger())
+        #     self.tour_menu_actions += [temp_action]
 
-        self.tours_menu.addActions(self.tour_menu_actions)
+        # self.tours_menu.addActions(self.tour_menu_actions)
+        self.tour_action = create_action(
+            self, self.tours_available[DEFAULT_TOUR]['name'],
+            tip=_("Interactive tour introducing Spyder's panes and features"),
+            triggered=lambda: self.show_tour(DEFAULT_TOUR))
 
         self.help_menu_actions = [doc_action, vid_action, shortcuts_action,
-                                  self.tours_menu,
+                                  self.tour_action,
                                   MENU_SEPARATOR, trouble_action,
                                   report_action, dep_action,
                                   self.check_updates_action, support_action,
@@ -1241,9 +1261,6 @@ class MainWindow(QMainWindow):
         logger.info("Setting up window...")
         self.setup_layout(default=False)
 
-        if self.splash is not None:
-            self.splash.hide()
-
         # Enabling tear off for all menus except help menu
         if CONF.get('main', 'tear_off_menus'):
             for child in self.menuBar().children():
@@ -1310,14 +1327,6 @@ class MainWindow(QMainWindow):
         for widget in self.floating_dockwidgets:
             widget.setFloating(True)
 
-        # In MacOS X 10.7 our app is not displayed after initialized (I don't
-        # know why because this doesn't happen when started from the terminal),
-        # so we need to resort to this hack to make it appear.
-        if running_in_mac_app():
-            idx = __file__.index(MAC_APP_NAME)
-            app_path = __file__[:idx]
-            subprocess.call(['open', app_path + MAC_APP_NAME])
-
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
         # $ spyder foo.py
@@ -1359,6 +1368,12 @@ class MainWindow(QMainWindow):
         # Show history file if no console is visible
         if not self.ipyconsole._isvisible:
             self.historylog.add_history(get_conf_path('history.py'))
+
+        # Process pending events and hide splash before loading the
+        # previous session.
+        QApplication.processEvents()
+        if self.splash is not None:
+            self.splash.hide()
 
         if self.open_project:
             self.projects.open_project(self.open_project)
@@ -2961,7 +2976,7 @@ class MainWindow(QMainWindow):
             if active:
                 sys.path.insert(1, path)
 
-        # Any plugin that needs to do some work based on this sigal should
+        # Any plugin that needs to do some work based on this signal should
         # connect to it on plugin registration
         self.sig_pythonpath_changed.emit(path_dict, new_path_dict_p)
 
@@ -3049,10 +3064,10 @@ class MainWindow(QMainWindow):
                     widget.setVisible(CONF.get('main', '%s/enable' % name))
                     widget.set_interval(CONF.get('main', '%s/timeout' % name))
 
-            # Update conda status widget
-            if is_anaconda() and self.conda_status:
+            # Update interpreter status widget
+            if self.interpreter_status:
                 interpreter = self.get_main_interpreter()
-                self.conda_status.update_interpreter(interpreter)
+                self.interpreter_status.update_interpreter(interpreter)
         else:
             return
 
@@ -3418,6 +3433,19 @@ class MainWindow(QMainWindow):
 
         # Provide feeback when clicking menu if check on startup is on
         self.give_updates_feedback = True
+
+    @Slot()
+    def show_tour_message(self, force=False):
+        """
+        Show message about starting the tour the first time Spyder starts.
+        """
+        should_show_tour = CONF.get('main', 'show_tour_message')
+        if force or (should_show_tour and not running_under_pytest()
+                     and not SAFE_MODE):
+            CONF.set('main', 'show_tour_message', False)
+            self.tour_dialog = tour.OpenTourDialog(
+                self, lambda: self.show_tour(DEFAULT_TOUR))
+            self.tour_dialog.show()
 
     @Slot()
     def check_updates(self, startup=False):

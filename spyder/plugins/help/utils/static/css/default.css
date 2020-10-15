@@ -406,12 +406,12 @@ div.admonition p.admonition-title {
 
 /* --- Kernel error messages --- */
 .panel-danger {
-    border-color: #eed3d7;
+    border-color: #E74C3C;
 }
 
 .panel-danger > .panel-heading {
     color: #b94a48;
     background-color: #f2dede;
-    border-color: #eed3d7;
-    background-color: rgb(199, 28, 34);
+    border-color: #E74C3C;
+    background-color: #E74C3C;
 }

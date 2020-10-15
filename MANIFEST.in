@@ -1,7 +1,6 @@
 include scripts/*
 include img_src/*.ico
 include img_src/spyder.png
-include img_src/spyder3.png
 include img_src/oxygen_icon_set/*
 include MANIFEST.in
 include README.md
