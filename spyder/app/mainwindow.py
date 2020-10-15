@@ -1259,12 +1259,6 @@ class MainWindow(QMainWindow):
         logger.info("Setting up window...")
         self.setup_layout(default=False)
 
-        # Enabling tear off for all menus except help menu
-        if CONF.get('main', 'tear_off_menus'):
-            for child in self.menuBar().children():
-                if isinstance(child, QMenu) and child != self.help_menu:
-                    child.setTearOffEnabled(True)
-
         # Menu about to show
         for child in self.menuBar().children():
             if isinstance(child, QMenu):
@@ -2538,9 +2532,6 @@ class MainWindow(QMainWindow):
         """Add a plugin QDockWidget to the window."""
         if plugin._is_compatible:
             dockwidget, location = plugin._create_dockwidget()
-            if CONF.get('main', 'vertical_dockwidget_titlebars'):
-                dockwidget.setFeatures(dockwidget.features()|
-                                       QDockWidget.DockWidgetVerticalTitleBar)
             self.addDockWidget(location, dockwidget)
             self.widgetlist.append(plugin)
 
@@ -3004,7 +2995,7 @@ class MainWindow(QMainWindow):
 
     #---- Preferences
     def apply_settings(self):
-        """Apply settings changed in 'Preferences' dialog box"""
+        """Apply main window settings."""
         qapp = QApplication.instance()
         # Set 'gtk+' as the default theme in Gtk-based desktops
         # Fixes spyder-ide/spyder#2036.
@@ -3040,8 +3031,6 @@ class MainWindow(QMainWindow):
         """Update dockwidgets features settings"""
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             features = plugin.dockwidget.FEATURES
-            if CONF.get('main', 'vertical_dockwidget_titlebars'):
-                features = features | QDockWidget.DockWidgetVerticalTitleBar
             plugin.dockwidget.setFeatures(features)
             plugin._update_margins()
 
