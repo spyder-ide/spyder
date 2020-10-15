@@ -1647,18 +1647,23 @@ class CodeEditor(TextEditBaseWidget):
             end_line, end_col = end['line'], end['character']
 
             start_pos = self.get_position_line_number(start_line, start_col)
+            end_pos = self.get_position_line_number(end_line, end_col)
+
+            text_tokens = list(text_tokens)
+            this_edit = list(repl_text)
 
             if end_line == self.document().blockCount():
                 end_pos = self.get_position('eof')
                 end_pos += 1
-            else:
-                end_pos = self.get_position_line_number(end_line, end_col)
 
-            text_tokens = list(text_tokens)
-            this_edit = list(repl_text)
+            if (end_pos == len(text_tokens) and
+                    text_tokens[end_pos - 1] == '\n'):
+                end_pos += 1
+
             this_edition = (text_tokens[:max(start_pos - 1, 0)] +
                             this_edit +
                             text_tokens[end_pos - 1:])
+
             text_edit = ''.join(this_edition)
             if merged_text is None:
                 merged_text = text_edit
