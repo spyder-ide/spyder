@@ -42,7 +42,7 @@ DEV = os.environ.get('SPYDER_DEV')
 # Manually override whether the dev configuration directory is used.
 USE_DEV_CONFIG_DIR = os.environ.get('SPYDER_USE_DEV_CONFIG_DIR')
 
-# 
+# Get a random id for the safe-mode config dir
 CLEAN_DIR_ID = str(uuid.uuid4()).split('-')[-1]
 
 

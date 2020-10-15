@@ -145,7 +145,7 @@ if hasattr(MAIN_APP, 'setDesktopFileName'):
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time.
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV, SAFE_MODE
+from spyder.config.base import _, get_image_path, DEV, get_safe_mode
 
 if not running_under_pytest():
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
@@ -3435,7 +3435,7 @@ class MainWindow(QMainWindow):
         """
         should_show_tour = CONF.get('main', 'show_tour_message')
         if force or (should_show_tour and not running_under_pytest()
-                     and not SAFE_MODE):
+                     and not get_safe_mode()):
             CONF.set('main', 'show_tour_message', False)
             self.tour_dialog = tour.OpenTourDialog(
                 self, lambda: self.show_tour(DEFAULT_TOUR))
