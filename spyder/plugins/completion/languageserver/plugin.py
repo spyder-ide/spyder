@@ -14,7 +14,6 @@ import functools
 import logging
 import os
 import os.path as osp
-import sys
 
 # Third-party imports
 from qtpy.QtCore import Signal, Slot, QTimer
@@ -22,10 +21,11 @@ from qtpy.QtCore import Slot, QTimer
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _, get_conf_path, running_under_pytest
+from spyder.config.base import (_, get_conf_path, running_under_pytest,
+                                running_in_mac_app)
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.manager import CONF
-from spyder.utils.misc import check_connection_port, getcwd_or_home
+from spyder.utils.misc import check_connection_port
 from spyder.plugins.completion.manager.api import (LSP_LANGUAGES,
                                                    SpyderCompletionPlugin)
 from spyder.plugins.completion.languageserver.client import LSPClient
@@ -687,13 +687,21 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         # Jedi configuration
         if self.get_option('default', section='main_interpreter'):
             environment = None
+            env_vars = None
         else:
             environment = self.get_option('custom_interpreter',
                                           section='main_interpreter')
+            env_vars = os.environ.copy()
+            # external interpreter should not use internal PYTHONPATH
+            env_vars.pop('PYTHONPATH', None)
+            if running_in_mac_app():
+                env_vars.pop('PYTHONHOME', None)
+
         jedi = {
             'environment': environment,
             'extra_paths': self.get_option('spyder_pythonpath',
                                            section='main', default=[]),
+            'env_vars': env_vars,
         }
         jedi_completion = {
             'enabled': self.get_option('code_completion'),
