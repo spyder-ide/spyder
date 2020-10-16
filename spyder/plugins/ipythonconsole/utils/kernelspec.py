@@ -21,7 +21,6 @@ from jupyter_client.kernelspec import KernelSpec
 from spyder.config.base import (DEV, running_under_pytest, SAFE_MODE,
                                 running_in_mac_app)
 from spyder.config.manager import CONF
-from spyder.py3compat import PY2
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
                                 get_conda_env_path, is_conda_env)
 from spyder.utils.environ import clean_env
@@ -73,8 +72,8 @@ class SpyderKernelSpec(KernelSpec):
         self.is_pylab = is_pylab
         self.is_sympy = is_sympy
 
-        self.display_name = 'Python 2 (Spyder)' if PY2 else 'Python 3 (Spyder)'
-        self.language = 'python2' if PY2 else 'python3'
+        self.display_name = 'Python 3 (Spyder)'
+        self.language = 'python3'
         self.resource_dir = ''
 
     @property
@@ -154,16 +153,6 @@ class SpyderKernelSpec(KernelSpec):
 
         # Environment variables that we need to pass to our sitecustomize
         umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
-
-        if PY2:
-            original_list = umr_namelist[:]
-            for umr_n in umr_namelist:
-                try:
-                    umr_n.encode('utf-8')
-                except UnicodeDecodeError:
-                    umr_namelist.remove(umr_n)
-            if original_list != umr_namelist:
-                CONF.set('main_interpreter', 'umr/namelist', umr_namelist)
 
         env_vars.update({
             'SPY_EXTERNAL_INTERPRETER': not default_interpreter,
