@@ -335,7 +335,6 @@ class TabSwitcherWidget(QListWidget):
 
         Add elements in inverse order of stack_history.
         """
-
         for index in reversed(self.stack_history):
             text = self.tabs.tabText(index)
             text = text.replace('&', '')
@@ -622,7 +621,17 @@ class EditorStack(QWidget):
         """Show file in external file explorer"""
         if fnames is None:
             fnames = self.get_current_filename()
-        show_in_external_file_explorer(fnames)
+        try:
+            show_in_external_file_explorer(fnames)
+        except FileNotFoundError as error:
+            file = str(error).split("'")[1]
+            if "xdg-open" in file:
+                msg_title = _("Warning")
+                msg = _("Spyder can't show this file in the external file "
+                        "explorer because the <tt>xdg-utils</tt> package is "
+                        "not available on your system.")
+                QMessageBox.information(self, msg_title, msg,
+                                        QMessageBox.Ok)
 
     def create_shortcuts(self):
         """Create local shortcuts"""
@@ -1095,14 +1104,6 @@ class EditorStack(QWidget):
 
     def set_outlineexplorer(self, outlineexplorer):
         self.outlineexplorer = outlineexplorer
-        self.outlineexplorer.is_visible.connect(self._refresh_outlineexplorer)
-
-    def initialize_outlineexplorer(self):
-        """This method is called separately from 'set_oulineexplorer' to avoid
-        doing unnecessary updates when there are multiple editor windows"""
-        for index in range(self.get_stack_count()):
-            if index != self.get_stack_index():
-                self._refresh_outlineexplorer(index=index)
 
     def add_outlineexplorer_button(self, editor_plugin):
         oe_btn = create_toolbutton(editor_plugin)
@@ -1766,7 +1767,6 @@ class EditorStack(QWidget):
 
             self.opened_files_list_changed.emit()
             self.update_code_analysis_actions.emit()
-            self._refresh_outlineexplorer()
             self.refresh_file_dependent_actions.emit()
             self.update_plugin_title.emit()
 
@@ -1798,13 +1798,6 @@ class EditorStack(QWidget):
                 self.tabs.widget(index).language.lower())
         return set(languages)
 
-    def completion_server_ready(self, language):
-        """Notify language server availability to code editors."""
-        for index in range(self.get_stack_count()):
-            editor = self.tabs.widget(index)
-            if editor.language.lower() == language:
-                editor.start_completion_services()
-
     def register_completion_capabilities(self, capabilities, language):
         """
         Register completion server capabilities across all editors.
@@ -1822,7 +1815,14 @@ class EditorStack(QWidget):
             if editor.language.lower() == language:
                 editor.register_completion_capabilities(capabilities)
 
-    def notify_server_down(self, language):
+    def start_completion_services(self, language):
+        """Notify language server availability to code editors."""
+        for index in range(self.get_stack_count()):
+            editor = self.tabs.widget(index)
+            if editor.language.lower() == language:
+                editor.start_completion_services()
+
+    def stop_completion_services(self, language):
         """Notify language server unavailability to code editors."""
         for index in range(self.get_stack_count()):
             editor = self.tabs.widget(index)
@@ -2037,9 +2037,6 @@ class EditorStack(QWidget):
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
-
-            # Rebuild the outline explorer data
-            self._refresh_outlineexplorer(index)
 
             finfo.editor.notify_save()
             return True
@@ -2341,9 +2338,6 @@ class EditorStack(QWidget):
         if self.data and len(self.data) > index:
             finfo = self.data[index]
             oe.setEnabled(True)
-            if finfo.editor.oe_proxy is None:
-                finfo.editor.oe_proxy = OutlineExplorerProxyEditor(
-                    finfo.editor, finfo.filename)
             oe.set_current_editor(finfo.editor.oe_proxy,
                                   update=update, clear=clear)
             if index != self.get_stack_index():
@@ -2544,8 +2538,6 @@ class EditorStack(QWidget):
         # would be sufficient for outline explorer data.
         finfo.editor.rehighlight()
 
-        self._refresh_outlineexplorer(index)
-
     def revert(self):
         """Revert file from disk."""
         index = self.get_stack_index()
@@ -2667,6 +2659,11 @@ class EditorStack(QWidget):
         self.refresh_file_dependent_actions.emit()
         self.modification_changed(index=self.data.index(finfo))
 
+        # To update the outline explorer.
+        editor.oe_proxy = OutlineExplorerProxyEditor(editor, editor.filename)
+        if self.outlineexplorer is not None:
+            self.outlineexplorer.register_editor(editor.oe_proxy)
+
         # Needs to reset the highlighting on startup in case the PygmentsSH
         # is in use
         editor.run_pygments_highlighter()
@@ -2745,7 +2742,6 @@ class EditorStack(QWidget):
         finfo = self.create_new_editor(filename, enc, text, set_current,
                                        add_where=add_where)
         index = self.data.index(finfo)
-        self._refresh_outlineexplorer(index, update=True)
         if processevents:
             self.ending_long_process.emit("")
         if self.isVisible() and self.checkeolchars_enabled \
@@ -3256,9 +3252,6 @@ class EditorWidget(QSplitter):
         splitter.addWidget(self.outlineexplorer)
         splitter.setStretchFactor(0, 5)
         splitter.setStretchFactor(1, 1)
-
-        # Refreshing outline explorer
-        editorsplitter.editorstack.initialize_outlineexplorer()
 
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)

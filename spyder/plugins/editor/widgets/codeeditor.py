@@ -1148,10 +1148,10 @@ class CodeEditor(TextEditBaseWidget):
         """Handle symbols response."""
         try:
             symbols = params['params']
-            if symbols:
-                self.classfuncdropdown.update_data(symbols)
-                if self.oe_proxy is not None:
-                    self.oe_proxy.update_outline_info(symbols)
+            symbols = [] if symbols is None else symbols
+            self.classfuncdropdown.update_data(symbols)
+            if self.oe_proxy is not None:
+                self.oe_proxy.update_outline_info(symbols)
         except RuntimeError:
             # This is triggered when a codeeditor instance was removed
             # before the response can be processed.
@@ -4776,23 +4776,13 @@ class TestWidget(QSplitter):
                                  font=QFont("Courier New", 10),
                                  show_blanks=True, color_scheme='Zenburn')
         self.addWidget(self.editor)
-        from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
-        self.classtree = OutlineExplorerWidget(self)
-        self.addWidget(self.classtree)
-        self.classtree.edit_goto.connect(
-                    lambda _fn, line, word: self.editor.go_to_line(line, word))
-        self.setStretchFactor(0, 4)
-        self.setStretchFactor(1, 1)
         self.setWindowIcon(ima.icon('spyder'))
 
     def load(self, filename):
-        from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
         self.editor.set_text_from_file(filename)
         self.setWindowTitle("%s - %s (%s)" % (_("Editor"),
                                               osp.basename(filename),
                                               osp.dirname(filename)))
-        oe_proxy = OutlineExplorerProxyEditor(self.editor, filename)
-        self.classtree.set_current_editor(oe_proxy, False, False)
         self.editor.hide_tooltip()
 
 

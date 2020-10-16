@@ -18,12 +18,11 @@ import sys
 from jupyter_client.kernelspec import KernelSpec
 
 # Local imports
-from spyder.config.base import DEV, running_under_pytest, SAFE_MODE, is_pynsist
+from spyder.config.base import (DEV, running_under_pytest, SAFE_MODE,
+                                running_in_mac_app)
 from spyder.config.manager import CONF
-from spyder.py3compat import PY2, iteritems, to_binary_string, to_text_string
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
                                 get_conda_env_path, is_conda_env)
-from spyder.utils.encoding import to_unicode_from_fs
 from spyder.utils.environ import clean_env
 from spyder.utils.misc import add_pathlist_to_PYTHONPATH, get_python_executable
 from spyder.utils.programs import is_python_interpreter
@@ -73,8 +72,8 @@ class SpyderKernelSpec(KernelSpec):
         self.is_pylab = is_pylab
         self.is_sympy = is_sympy
 
-        self.display_name = 'Python 2 (Spyder)' if PY2 else 'Python 3 (Spyder)'
-        self.language = 'python2' if PY2 else 'python3'
+        self.display_name = 'Python 3 (Spyder)'
+        self.language = 'python3'
         self.resource_dir = ''
 
     @property
@@ -84,9 +83,6 @@ class SpyderKernelSpec(KernelSpec):
         if CONF.get('main_interpreter', 'default'):
             pyexec = get_python_executable()
         else:
-            # Avoid IPython adding the virtualenv on which Spyder is running
-            # to the kernel sys.path
-            os.environ.pop('VIRTUAL_ENV', None)
             pyexec = CONF.get('main_interpreter', 'executable')
             if not is_python_interpreter(pyexec):
                 pyexec = get_python_executable()
@@ -106,7 +102,7 @@ class SpyderKernelSpec(KernelSpec):
             # the activation scripts at spyder/plugins/ipythonconsole/scripts/
             kernel_cmd = [
                 get_activation_script(),  # This is bundled with Spyder
-                get_conda_activation_script(),
+                get_conda_activation_script(pyexec),
                 get_conda_env_path(pyexec),  # Might be external
                 pyexec,
                 '{connection_file}',
@@ -127,6 +123,12 @@ class SpyderKernelSpec(KernelSpec):
     def env(self):
         """Env vars for kernels"""
         default_interpreter = CONF.get('main_interpreter', 'default')
+        env_vars = os.environ.copy()
+
+        # Avoid IPython adding the virtualenv on which Spyder is running
+        # to the kernel sys.path
+        env_vars.pop('VIRTUAL_ENV', None)
+
         pathlist = CONF.get('main', 'spyder_pythonpath', default=[])
 
         # Add spyder-kernels subrepo path to pathlist
@@ -142,36 +144,17 @@ class SpyderKernelSpec(KernelSpec):
             else:
                 pathlist += [subrepo_path] + pathlist
 
-        # Drop env entry to prevent the addition of the installer packages path
-        # in non default interpreters
-        base_pythonpath = os.environ.get('PYTHONPATH')
-        if is_pynsist() and not default_interpreter:
-            pkgs_installer_path = osp.abspath(
-                osp.join(HERE, '..', '..', '..', '..', '..', 'pkgs'))
-            os.environ['PYTHONPATH'] = os.environ['PYTHONPATH'].replace(
-                pkgs_installer_path, '')
-
         # Create PYTHONPATH env entry to add it to the kernel
-        pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True)
+        pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
+                                            drop_env=True)
 
-        # Set PYTHONPATH to original value
-        if base_pythonpath:
-            os.environ['PYTHONPATH'] = base_pythonpath
+        # Add our PYTHONPATH to env_vars
+        env_vars.update(pypath)
 
         # Environment variables that we need to pass to our sitecustomize
         umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
 
-        if PY2:
-            original_list = umr_namelist[:]
-            for umr_n in umr_namelist:
-                try:
-                    umr_n.encode('utf-8')
-                except UnicodeDecodeError:
-                    umr_namelist.remove(umr_n)
-            if original_list != umr_namelist:
-                CONF.set('main_interpreter', 'umr/namelist', umr_namelist)
-
-        env_vars = {
+        env_vars.update({
             'SPY_EXTERNAL_INTERPRETER': not default_interpreter,
             'SPY_UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
             'SPY_UMR_VERBOSE': CONF.get('main_interpreter', 'umr/verbose'),
@@ -198,7 +181,7 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
             'SPY_TESTING': running_under_pytest() or SAFE_MODE,
             'SPY_HIDE_CMD': CONF.get('ipython_console', 'hide_cmd_windows')
-        }
+        })
 
         if self.is_pylab is True:
             env_vars['SPY_AUTOLOAD_PYLAB_O'] = True
@@ -213,8 +196,9 @@ class SpyderKernelSpec(KernelSpec):
             env_vars['SPY_SYMPY_O'] = False
             env_vars['SPY_RUN_CYTHON'] = True
 
-        # Add our PYTHONPATH to env_vars
-        env_vars.update(pypath)
+        # macOS app considerations
+        if running_in_mac_app() and not default_interpreter:
+            env_vars.pop('PYTHONHOME', None)
 
         # Making all env_vars strings
         clean_env_vars = clean_env(env_vars)
