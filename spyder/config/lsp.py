@@ -67,6 +67,7 @@ PYTHON_CONFIG = {
                 'jedi': {
                     'environment': None,
                     'extra_paths': None,
+                    'env_vars': None,
                 },
                 'jedi_completion': {
                     'enabled': True,
