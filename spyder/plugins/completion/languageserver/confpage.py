@@ -899,6 +899,48 @@ class LanguageServerConfigPage(GeneralConfigPage):
         code_style_widget = QWidget()
         code_style_widget.setLayout(code_style_layout)
 
+        # --- Code formatting tab ---
+        # Code formatting label
+        autopep8_url = (
+            "<a href='https://github.com/hhatto/autopep8'>Autopep8</a>"
+        )
+        yapf_url = (
+            "<a href='https://github.com/google/yapf'>Yapf</a>"
+        )
+        black_url = (
+            "<a href='https://black.readthedocs.io/en/stable'>Black</a>"
+        )
+        code_fmt_label = QLabel(
+            _("Spyder can use {0}, {1} or {2} to format your code for "
+              "conformance to the {3} convention.").format(
+                  autopep8_url, yapf_url, black_url, pep_url))
+        code_fmt_label.setOpenExternalLinks(True)
+        code_fmt_label.setWordWrap(True)
+
+        # Code formatting providers
+        code_fmt_provider = self.create_combobox(
+            _("Choose the code formatting provider: "),
+            (("autopep8", 'autopep8'),
+             ("yapf", 'yapf'),
+             ("black", 'black')),
+            'formatting')
+
+        # Autoformat on save
+        format_on_save_box = newcb(
+            _("Autoformat files on save"),
+            'format_on_save',
+            tip=_("If enabled, autoformatting will take place when "
+                  "saving a file"))
+
+        # Code formatting layout
+        code_fmt_layout = QVBoxLayout()
+        code_fmt_layout.addWidget(code_fmt_label)
+        code_fmt_layout.addWidget(code_fmt_provider)
+        code_fmt_layout.addWidget(format_on_save_box)
+
+        code_fmt_widget = QWidget()
+        code_fmt_widget.setLayout(code_fmt_layout)
+
         # --- Docstring tab ---
         # Docstring style label
         numpy_url = (
@@ -1156,6 +1198,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.tabs.addTab(self.create_tab(introspection_group, advanced_group),
                          _('Introspection'))
         self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
+        self.tabs.addTab(self.create_tab(code_fmt_widget),
+                         _('Code formatting'))
         self.tabs.addTab(self.create_tab(docstring_style_widget),
                          _('Docstring style'))
         self.tabs.addTab(self.create_tab(clients_group,
@@ -1395,6 +1439,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
             'set_code_snippets_enabled': (self.CONF_SECTION, 'code_snippets'),
             'set_hover_hints_enabled':  (self.CONF_SECTION,
                                          'enable_hover_hints'),
+            'set_format_on_save': (self.CONF_SECTION, 'format_on_save'),
             'set_automatic_completions_enabled': ('editor',
                                                   'automatic_completions'),
             'set_completions_hint_enabled': ('editor', 'completions_hint'),

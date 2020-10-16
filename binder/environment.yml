@@ -25,6 +25,7 @@ dependencies:
 - psutil >=5.3
 - pygments >=2.0
 - pylint >=1.0
+- pyls-black
 - pyqt <5.13
 - pyyaml
 # NOTE: There's no need to set constraints for python-language-server
@@ -41,6 +42,7 @@ dependencies:
 # NOTE: There's no need to set constraints for spyder-kernels here
 # because Spyder uses the subrepo for it when started in Binder.
 - spyder-kernels
+- three-merge >=0.1.1
 - watchdog
 
 # We can not refer to an environment.yml file from another

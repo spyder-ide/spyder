@@ -1081,6 +1081,8 @@ class MainWindow(QMainWindow):
                                   None, self.cut_action, self.copy_action,
                                   self.paste_action, self.selectall_action]
 
+        self.source_menu.aboutToShow.connect(self.update_source_menu)
+
         logger.info("Creating Tools menu...")
         # Tools + External Tools
         prefs_action = create_action(self, _("Pre&ferences"),
@@ -2706,6 +2708,10 @@ class MainWindow(QMainWindow):
                           "Since it is the current active project, it will "
                           "be closed automatically.").format(path))
                 self.projects.close_project()
+
+    def update_source_menu(self):
+        """Update source menu options that vary dynamically."""
+        self.editor.refresh_formatter_name()
 
     def free_memory(self):
         """Free memory after event."""
