@@ -54,6 +54,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.extra_selections_dict = {}
         self._restore_selection_pos = None
 
+        # Trailing newlines/spaces trimming
+        self.remove_trailing_spaces = False
+        self.remove_trailing_newlines = False
+
+        # Add a new line when saving
+        self.add_newline = False
+
         # Code snippets
         self.code_snippets = True
 
@@ -115,6 +122,15 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     def set_tab_stop_width_spaces(self, tab_stop_width_spaces):
         self.tab_stop_width_spaces = tab_stop_width_spaces
         self.update_tab_stop_width_spaces()
+
+    def set_remove_trailing_spaces(self, flag):
+        self.remove_trailing_spaces = flag
+
+    def set_add_newline(self, add_newline):
+        self.add_newline = add_newline
+
+    def set_remove_trailing_newlines(self, flag):
+        self.remove_trailing_newlines = flag
 
     def update_tab_stop_width_spaces(self):
         self.setTabStopWidth(self.fontMetrics().width(
@@ -761,9 +777,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                                 QTextCursor.KeepAnchor)
         self.setTextCursor(cursor)
 
-    def delete_line(self):
+    def delete_line(self, cursor=None):
         """Delete current line."""
-        cursor = self.textCursor()
+        if cursor is None:
+            cursor = self.textCursor()
         if self.has_selected_text():
             self.extend_selection_to_complete_lines()
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()

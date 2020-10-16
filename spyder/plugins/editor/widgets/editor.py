@@ -17,6 +17,7 @@ import logging
 import os
 import os.path as osp
 import sys
+import functools
 import unicodedata
 
 # Third party imports
@@ -42,7 +43,8 @@ from spyder.utils import icon_manager as ima
 from spyder.utils import encoding, sourcecode, syntaxhighlighters
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_toolbutton, MENU_SEPARATOR,
-                                    mimedata2url, set_menu_icons)
+                                    mimedata2url, set_menu_icons,
+                                    create_waitspinner)
 from spyder.plugins.outlineexplorer.widgets import OutlineExplorerWidget
 from spyder.plugins.outlineexplorer.editor import OutlineExplorerProxyEditor
 from spyder.widgets.findreplace import FindReplace
@@ -413,6 +415,7 @@ class EditorStack(QWidget):
     encoding_changed = Signal(str)
     sig_editor_cursor_position_changed = Signal(int, int)
     sig_refresh_eol_chars = Signal(str)
+    sig_refresh_formatting = Signal(bool)
     starting_long_process = Signal(str)
     ending_long_process = Signal(str)
     redirect_stdio = Signal(bool)
@@ -562,6 +565,7 @@ class EditorStack(QWidget):
         self.completions_hint_enabled = True
         self.completions_hint_after_ms = 500
         self.hover_hints_enabled = True
+        self.format_on_save = False
         self.code_snippets_enabled = True
         self.code_folding_enabled = True
         self.underline_errors_enabled = False
@@ -571,6 +575,8 @@ class EditorStack(QWidget):
         self.occurrence_highlighting_timeout = 1500
         self.checkeolchars_enabled = True
         self.always_remove_trailing_spaces = False
+        self.add_newline = False
+        self.remove_trailing_newlines = False
         self.convert_eol_on_save = False
         self.convert_eol_on_save_to = 'LF'
         self.focus_to_editor = True
@@ -887,13 +893,14 @@ class EditorStack(QWidget):
 
         menu_btn = create_toolbutton(self, icon=ima.icon('tooloptions'),
                                      tip=_('Options'))
+        self.spinner = create_waitspinner(size=20, parent=self)
         menu_btn.setStyleSheet(STYLE_BUTTON_CSS)
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.menu.aboutToShow.connect(self.__setup_menu)
 
-        corner_widgets = {Qt.TopRightCorner: [menu_btn]}
+        corner_widgets = {Qt.TopRightCorner: [self.spinner, menu_btn]}
         self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
                              corner_widgets=corner_widgets)
         self.tabs.tabBar().setObjectName('plugin-tab')
@@ -1327,6 +1334,12 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.toggle_hover_hints(state)
 
+    def set_format_on_save(self, state):
+        self.format_on_save = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_format_on_save(state)
+
     def set_occurrence_highlighting_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'occurrence_highlighting')
         self.occurrence_highlighting_enabled = state
@@ -1366,6 +1379,21 @@ class EditorStack(QWidget):
     def set_always_remove_trailing_spaces(self, state):
         # CONF.get(self.CONF_SECTION, 'always_remove_trailing_spaces')
         self.always_remove_trailing_spaces = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_remove_trailing_spaces(state)
+
+    def set_add_newline(self, state):
+        self.add_newline = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_add_newline(state)
+
+    def set_remove_trailing_newlines(self, state):
+        self.remove_trailing_newlines = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_remove_trailing_newlines(state)
 
     def set_convert_eol_on_save(self, state):
         """If `state` is `True`, saving files will convert line endings."""
@@ -2010,35 +2038,25 @@ class EditorStack(QWidget):
             return True
         if self.always_remove_trailing_spaces:
             self.remove_trailing_spaces(index)
+        if self.remove_trailing_newlines:
+            self.trim_trailing_newlines(index)
+        if self.add_newline:
+            self.add_newline_to_file(index)
         if self.convert_eol_on_save:
             # hack to account for the fact that the config file saves
             # CR/LF/CRLF while set_os_eol_chars wants the os.name value.
             osname_lookup = {'LF': 'posix', 'CRLF': 'nt', 'CR': 'mac'}
             osname = osname_lookup[self.convert_eol_on_save_to]
             self.set_os_eol_chars(osname=osname)
+
         try:
-            self._write_to_file(finfo, finfo.filename)
-            file_hash = self.compute_hash(finfo)
-            self.autosave.file_hashes[finfo.filename] = file_hash
-            self.autosave.remove_autosave_file(finfo.filename)
-            finfo.newly_created = False
-            self.encoding_changed.emit(finfo.encoding)
-            finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
-
-            # We pass self object ID as a QString, because otherwise it would
-            # depend on the platform: long for 64bit, int for 32bit. Replacing
-            # by long all the time is not working on some 32bit platforms.
-            # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
-            # The filename is passed instead of an index in case the tabs
-            # have been rearranged. See spyder-ide/spyder#5703.
-            self.file_saved.emit(str(id(self)),
-                                 finfo.filename, finfo.filename)
-
-            finfo.editor.document().setModified(False)
-            self.modification_changed(index=index)
-            self.analyze_script(index)
-
-            finfo.editor.notify_save()
+            if self.format_on_save and finfo.editor.formatting_enabled:
+                # Autoformat document and then save
+                finfo.editor.sig_stop_operation_in_progress.connect(
+                    functools.partial(self._save_file, finfo, index))
+                finfo.editor.format_document()
+            else:
+                self._save_file(finfo, index)
             return True
         except EnvironmentError as error:
             self.msgbox = QMessageBox(
@@ -2051,6 +2069,30 @@ class EditorStack(QWidget):
                     parent=self)
             self.msgbox.exec_()
             return False
+
+    def _save_file(self, finfo, index):
+        self._write_to_file(finfo, finfo.filename)
+        file_hash = self.compute_hash(finfo)
+        self.autosave.file_hashes[finfo.filename] = file_hash
+        self.autosave.remove_autosave_file(finfo.filename)
+        finfo.newly_created = False
+        self.encoding_changed.emit(finfo.encoding)
+        finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
+
+        # We pass self object ID as a QString, because otherwise it would
+        # depend on the platform: long for 64bit, int for 32bit. Replacing
+        # by long all the time is not working on some 32bit platforms.
+        # See spyder-ide/spyder#1094 and spyder-ide/spyder#1098.
+        # The filename is passed instead of an index in case the tabs
+        # have been rearranged. See spyder-ide/spyder#5703.
+        self.file_saved.emit(str(id(self)),
+                             finfo.filename, finfo.filename)
+
+        finfo.editor.document().setModified(False)
+        self.modification_changed(index=index)
+        self.analyze_script(index)
+
+        finfo.editor.notify_save()
 
     def file_saved_in_other_editorstack(self, original_filename, filename):
         """
@@ -2325,6 +2367,10 @@ class EditorStack(QWidget):
         fwidget = QApplication.focusWidget()
         for finfo in self.data:
             if fwidget is finfo.editor:
+                if finfo.editor.operation_in_progress:
+                    self.spinner.start()
+                else:
+                    self.spinner.stop()
                 self.refresh()
         self.editor_focus_changed.emit()
 
@@ -2590,6 +2636,7 @@ class EditorStack(QWidget):
         editor.sig_breakpoints_saved.connect(self.sig_breakpoints_saved)
         editor.sig_process_code_analysis.connect(
             lambda: self.update_code_analysis_actions.emit())
+        editor.sig_refresh_formatting.connect(self.sig_refresh_formatting)
         language = get_file_language(fname, txt)
         editor.setup_editor(
             linenumbers=self.linenumbers_enabled,
@@ -2628,6 +2675,10 @@ class EditorStack(QWidget):
             show_class_func_dropdown=self.show_class_func_dropdown,
             indent_guides=self.indent_guides,
             folding=self.code_folding_enabled,
+            remove_trailing_spaces=self.always_remove_trailing_spaces,
+            remove_trailing_newlines=self.remove_trailing_newlines,
+            add_newline=self.add_newline,
+            format_on_save=self.format_on_save
         )
         if cloned_from is None:
             editor.set_text(txt)
@@ -2644,6 +2695,8 @@ class EditorStack(QWidget):
 
         editor.sig_perform_completion_request.connect(
             perform_completion_request)
+        editor.sig_start_operation_in_progress.connect(self.spinner.start)
+        editor.sig_stop_operation_in_progress.connect(self.spinner.stop)
         editor.modificationChanged.connect(
             lambda state: self.modification_changed(state,
                 editor_id=id(editor)))
@@ -2786,12 +2839,30 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         finfo.editor.remove_trailing_spaces()
 
+    def trim_trailing_newlines(self, index=None):
+        if index is None:
+            index = self.get_stack_index()
+        finfo = self.data[index]
+        finfo.editor.trim_trailing_newlines()
+
+    def add_newline_to_file(self, index=None):
+        if index is None:
+            index = self.get_stack_index()
+        finfo = self.data[index]
+        finfo.editor.add_newline_to_file()
+
     def fix_indentation(self, index=None):
         """Replace tab characters by spaces"""
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
         finfo.editor.fix_indentation()
+
+    def format_document_or_selection(self, index=None):
+        if index is None:
+            index = self.get_stack_index()
+        finfo = self.data[index]
+        finfo.editor.format_document_or_range()
 
     #------ Run
     def run_selection(self):

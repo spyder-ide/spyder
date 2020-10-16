@@ -651,6 +651,17 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             'matchDir': self.get_option('pydocstyle/match_dir')
         }
 
+        # Autoformatting configuration
+        formatter = self.get_option('formatting')
+        formatter = 'pyls_black' if formatter == 'black' else formatter
+        formatters = ['autopep8', 'yapf', 'pyls_black']
+        formatter_options = {
+            fmt: {
+                'enabled': fmt == formatter
+            }
+            for fmt in formatters
+        }
+
         # Jedi configuration
         if self.get_option('default', section='main_interpreter'):
             environment = None
@@ -707,5 +718,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         plugins['jedi_signature_help'].update(jedi_signature_help)
         plugins['jedi_definition'].update(jedi_definition)
         plugins['preload']['modules'] = self.get_option('preload_modules')
+
+        for formatter in formatters:
+            plugins[formatter] = formatter_options[formatter]
 
         return python_config

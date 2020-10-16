@@ -686,6 +686,8 @@ class MainWindow(QMainWindow):
         self.source_menu = self.menuBar().addMenu(_("Sour&ce"))
         self.source_toolbar = self.create_toolbar(_("Source toolbar"),
                                                     "source_toolbar")
+        self.source_menu.aboutToShow.connect(self.update_source_menu)
+
         # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
         self.run_toolbar = self.create_toolbar(_("Run toolbar"),
@@ -2257,6 +2259,10 @@ class MainWindow(QMainWindow):
                           "Since it is the current active project, it will "
                           "be closed automatically.").format(path))
                 self.projects.close_project()
+
+    def update_source_menu(self):
+        """Update source menu options that vary dynamically."""
+        self.editor.refresh_formatter_name()
 
     def free_memory(self):
         """Free memory after event."""

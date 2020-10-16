@@ -6,6 +6,7 @@
 
 """Spyder Language Server Protocol Client common util functions."""
 
+import re
 import os
 import os.path as osp
 from spyder.py3compat import PY2
@@ -80,3 +81,8 @@ def match_path_to_folder(folders, path):
                 max_len = match_len
                 chosen_folder = folder
     return chosen_folder
+
+
+def snake_to_camel(text):
+    """Convert a string from CamelCase to snake_case."""
+    return re.sub('_([a-zA-Z0-9])', lambda m: m.group(1).upper(), text)
