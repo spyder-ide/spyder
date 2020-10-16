@@ -100,7 +100,7 @@ def create_packaging_env(
         target_directory, python_version, name="packaging-env",
         conda_path=None):
     """
-    Create a Python virtual environment in the target_directry.
+    Create a Python virtual environment in the target_directory.
 
     Returns the path to the newly created environment's Python executable.
     """
@@ -189,7 +189,7 @@ def package_name(requirement):
 
 def packages_from(requirements, wheels, skip_packages):
     """
-    Return a list of the entires in requirements that aren't found in wheels.
+    Return a list of the entries in requirements that aren't found in wheels.
 
     Both assumed to be lists/iterables of strings formatted like
     "name==version".
