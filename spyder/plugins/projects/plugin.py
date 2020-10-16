@@ -191,6 +191,8 @@ class Projects(SpyderPluginWidget):
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
+        self.sig_project_loaded.connect(
+            lambda v: self.main.outlineexplorer.update_all_editors())
         self.sig_project_closed[object].connect(
             lambda v: self.main.workingdirectory.chdir(
                 self.get_last_working_dir()))
@@ -201,6 +203,8 @@ class Projects(SpyderPluginWidget):
                               update_kind=WorkspaceUpdateKind.DELETION))
         self.sig_project_closed.connect(
             lambda v: self.main.editor.setup_open_files())
+        self.sig_project_closed.connect(
+            lambda v: self.main.outlineexplorer.update_all_editors())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
 
         self.main.restore_scrollbar_position.connect(

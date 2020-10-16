@@ -3606,8 +3606,11 @@ def test_tour_message(main_window, qtbot):
 @pytest.mark.use_introspection
 @pytest.mark.preload_project
 @pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
-def test_outline_at_startup(main_window, qtbot):
-    """Test that all files in the Outline pane are updated at startup."""
+def test_update_outline(main_window, qtbot, tmpdir):
+    """
+    Test that files in the Outline pane are updated at startup and
+    after switching projects.
+    """
     # Show outline explorer
     outline_explorer = main_window.outlineexplorer
     outline_explorer._toggle_view_action.setChecked(True)
@@ -3649,6 +3652,25 @@ def test_outline_at_startup(main_window, qtbot):
 
     # Assert spinner is not shown
     assert not outline_explorer.explorer.loading_widget.isSpinning()
+
+    # Set one file as session without projects
+    prev_file = tmpdir.join("foo.py")
+    prev_file.write("def zz(x):\n"
+                    "    return x**2\n")
+    CONF.set('editor', 'filenames', [str(prev_file)])
+
+    # Close project to open that file automatically
+    main_window.projects.close_project()
+
+    # Wait a bit for its tree to be filled
+    qtbot.wait(1000)
+
+    # Assert the editor was filled
+    editor = list(treewidget.editor_ids.keys())[0]
+    assert len(treewidget.editor_tree_cache[editor.get_id()]) > 0
+
+    # Remove test file from session
+    CONF.set('editor', 'filenames', [])
 
 
 if __name__ == "__main__":
