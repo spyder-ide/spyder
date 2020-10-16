@@ -171,16 +171,23 @@ if 'make_app' in args:
 # DMG Creation
 # =============================================================================
 appfile = os.path.join(distdir, MAC_APP_NAME)
-name = '{}-{} Py-{}.{}.{}'.format(MAC_APP_NAME[:-4], spy_version, *py_ver)
+volume_name = '{}-{} Py-{}.{}.{}'.format(MAC_APP_NAME[:-4],
+                                         spy_version, *py_ver)
 if args.make_lite:
-    name += ' (lite)'
-dmgfile = os.path.join(distdir, name + '.dmg')
+    volume_name += ' (lite)'
+dmgfile = os.path.join(distdir, volume_name + '.dmg')
+
 settings_file = os.path.join(thisdir, 'dmg_settings.py')
-defines = {'app': appfile, 'badge_icon': iconfile}
+settings = {
+    'files': [appfile],
+    'badge_icon': iconfile,
+    'icon_locations': {MAC_APP_NAME: (140, 120), 'Applications': (500, 120)}
+}
 
 if args.make_dmg:
     logger.info('Building dmg file...')
-    build_dmg(dmgfile, name, settings_file=settings_file, defines=defines)
+    build_dmg(dmgfile, volume_name, settings_file=settings_file,
+              settings=settings)
 else:
     logger.info('Skipping dmg file...')
 
