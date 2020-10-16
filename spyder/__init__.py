@@ -32,6 +32,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 version_info = (5, 0, 0, "dev0")
 
 __version__ = '.'.join(map(str, version_info))
+__installer_version__ = '0.1.0'
+__title__ = 'Spyder'
+__author__ = 'Spyder Project Contributors and others'
 __license__ = __doc__
 __project_url__ = 'https://github.com/spyder-ide/spyder'
 __forum_url__   = 'https://groups.google.com/group/spyderlib'
