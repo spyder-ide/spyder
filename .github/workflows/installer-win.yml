@@ -27,7 +27,7 @@ jobs:
       - name: Run script
         shell: bash -l {0}
         run: |
-          python installers/win_installer.py 3.7.9 64 setup.py spyder.app.start:main spyder img_src/spyder.ico LICENSE.txt
+          python installers/Windows/installer.py 3.7.9 64 setup.py spyder.app.start:main spyder img_src/spyder.ico LICENSE.txt
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:

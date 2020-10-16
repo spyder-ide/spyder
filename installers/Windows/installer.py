@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright © 2020 Spyder Project Contributors.
-# Licensed under the terms of the MIT License
+# Licensed under the terms of the GPL-3.0 License
 # (see spyder/__init__.py for details)
 #
 # Copyright © 2018 Nicholas H.Tollervey.
