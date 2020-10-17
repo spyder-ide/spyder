@@ -96,8 +96,8 @@ logger.setLevel('INFO')
 # setup paths
 here = os.path.abspath(__file__)
 thisdir = os.path.dirname(here)
-distdir = os.path.join(thisdir, 'dist')
 spy_repo = os.path.realpath(os.path.join(thisdir, '..', '..'))
+distdir = os.path.join(thisdir, 'dist')
 
 # symlink to spyder package
 spy_link = os.path.join(thisdir, 'spyder')
@@ -173,9 +173,11 @@ if 'make_app' in args:
 appfile = os.path.join(distdir, MAC_APP_NAME)
 volume_name = '{}-{} Py-{}.{}.{}'.format(MAC_APP_NAME[:-4],
                                          spy_version, *py_ver)
+dmgfile = os.path.join(distdir, 'Spyder')
 if args.make_lite:
-    volume_name += ' (lite)'
-dmgfile = os.path.join(distdir, volume_name + '.dmg')
+    volume_name += ' Lite'
+    dmgfile += '-Lite'
+dmgfile += '.dmg'
 
 settings_file = os.path.join(thisdir, 'dmg_settings.py')
 settings = {

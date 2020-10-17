@@ -1,0 +1,74 @@
+# Based on https://github.com/tlambert03/napari/blob/master/.github/workflows/make_bundle.yml
+on:
+  pull_request:
+  release:
+    types:
+      - created
+
+name: Create macOS app bundle and DMG
+
+jobs:
+  build:
+    name: macOS app bundle
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7.9
+      - name: Install dependencies
+        shell: bash -l {0}
+        run: |
+          # is there a better way to install only spyder dependents?
+          pip install -r installers/macOS/req-build.txt -r installers/macOS/req-extras.txt -c installers/macOS/req-const.txt -e .
+          pip uninstall spyder
+      - name: Build Lite
+        shell: bash -l {0}
+        run: |
+          cd installers/macOS
+          python setup.py --lite --dmg py2app
+      - name: Build Full
+        shell: bash -l {0}
+        run: |
+          cd installers/macOS
+          python setup.py --dmg py2app
+      - name: Upload Artifact Lite
+        uses: actions/upload-artifact@v2
+        with:
+          path: installers/macOS/dist/Spyder-Lite.dmg
+          name: Spyder-Lite.dmg
+      - name: Upload Artifact Full
+        uses: actions/upload-artifact@v2
+        with:
+          path: installers/macOS/dist/Spyder.dmg
+          name: Spyder.dmg
+      - name: Get Release
+        if: ${{github.event_name == 'release'}}
+        id: get_release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        uses: bruceadams/get-release@v1.2.0
+      - name: Upload Release Asset Lite
+        if: ${{github.event_name == 'release'}}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: installers/macOS/dist/Spyder-Lite.dmg
+          asset_name: Spyder-Lite.dmg
+          asset_content_type: application/x-apple-diskimage
+      - name: Upload Release Asset Lite
+        if: ${{github.event_name == 'release'}}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: installers/macOS/dist/Spyder.dmg
+          asset_name: Spyder.dmg
+          asset_content_type: application/x-apple-diskimage
