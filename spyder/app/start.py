@@ -35,12 +35,14 @@ from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
 
 
-# Start Spyder with a clean configuration directory for testing purposes
+# Get argv
 if running_under_pytest():
     sys_argv = [sys.argv[0]]
     CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
 else:
     CLI_OPTIONS, CLI_ARGS = get_options()
+
+# Start Spyder with a clean configuration directory for testing purposes
 if CLI_OPTIONS.safe_mode:
     os.environ['SPYDER_SAFE_MODE'] = 'True'
 

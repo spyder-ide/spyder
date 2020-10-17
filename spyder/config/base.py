@@ -192,9 +192,11 @@ def get_clean_conf_dir():
     """
     Return the path to a temp clean configuration dir, for tests and safe mode.
     """
-    conf_dir = osp.join(str(tempfile.gettempdir()),
-                        'spyder{0!s}'.format(CLEAN_DIR_ID),
-                        get_conf_subfolder())
+    conf_dir = osp.join(
+        tempfile.gettempdir(),
+        'spyder-clean-conf-dirs',
+        CLEAN_DIR_ID,
+    )
     return conf_dir
 
 
