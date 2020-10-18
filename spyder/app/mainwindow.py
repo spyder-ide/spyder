@@ -1034,7 +1034,9 @@ class MainWindow(QMainWindow):
 
                     dependencies.add(module, name, description,
                                      '', None, kind=dependencies.PLUGIN)
-
+            except TypeError:
+                # Fixes spyder-ide/spyder#13977
+                pass
             except Exception as error:
                 print("%s: %s" % (mod, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
