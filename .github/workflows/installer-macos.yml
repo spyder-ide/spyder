@@ -24,18 +24,18 @@ jobs:
         shell: bash -l {0}
         run: |
           # is there a better way to install only spyder dependents?
-          pip install -r installers/macOS/req-build.txt -r installers/macOS/req-extras.txt -c installers/macOS/req-const.txt -e .
-          pip uninstall spyder
+           pip3 install -r installers/macOS/req-build.txt -r installers/macOS/req-extras.txt -c installers/macOS/req-const.txt -e .
+           pip3 uninstall spyder
       - name: Build Lite
         shell: bash -l {0}
         run: |
           cd installers/macOS
-          python setup.py --lite --dmg py2app
+          python3 setup.py --lite --dmg py2app
       - name: Build Full
         shell: bash -l {0}
         run: |
           cd installers/macOS
-          python setup.py --dmg py2app
+          python3 setup.py --dmg py2app
       - name: Upload Artifact Lite
         uses: actions/upload-artifact@v2
         with:
