@@ -25,7 +25,7 @@ jobs:
         run: |
           # is there a better way to install only spyder dependents?
            pip3 install -r installers/macOS/req-build.txt -r installers/macOS/req-extras.txt -c installers/macOS/req-const.txt -e .
-           pip3 uninstall spyder
+           pip3 uninstall -q -y spyder
       - name: Build Lite
         shell: bash -l {0}
         run: |
