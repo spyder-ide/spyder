@@ -18,7 +18,7 @@ import sys
 from jupyter_client.kernelspec import KernelSpec
 
 # Local imports
-from spyder.config.base import (DEV, running_under_pytest, SAFE_MODE,
+from spyder.config.base import (DEV, running_under_pytest, get_safe_mode,
                                 running_in_mac_app)
 from spyder.config.manager import CONF
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
@@ -179,7 +179,7 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_GREEDY_O': CONF.get('ipython_console', 'greedy_completer'),
             'SPY_JEDI_O': CONF.get('ipython_console', 'jedi_completer'),
             'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
-            'SPY_TESTING': running_under_pytest() or SAFE_MODE,
+            'SPY_TESTING': running_under_pytest() or get_safe_mode(),
             'SPY_HIDE_CMD': CONF.get('ipython_console', 'hide_cmd_windows')
         })
 
