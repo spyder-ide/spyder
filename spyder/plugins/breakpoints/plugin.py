@@ -142,6 +142,15 @@ class Breakpoints(SpyderDockablePlugin):
         for filename in list(breakpoints_dict.keys()):
             if not os.path.isfile(filename):
                 breakpoints_dict.pop(filename)
+                continue
+            # Make sure we don't have the same file under different names
+            new_filename = osp.normcase(filename)
+            if new_filename != filename:
+                bp = breakpoints_dict.pop(filename)
+                if new_filename in breakpoints_dict:
+                    breakpoints_dict[new_filename].extend(bp)
+                else:
+                    breakpoints_dict[new_filename] = bp
 
         return breakpoints_dict
 
