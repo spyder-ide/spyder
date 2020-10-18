@@ -47,7 +47,7 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder import __trouble_url__, __project_url__
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
-from spyder.config.base import get_home_dir, get_module_path
+from spyder.config.base import get_home_dir, get_conf_path, get_module_path
 from spyder.config.manager import CONF
 from spyder.widgets.dock import TabFilter
 from spyder.plugins.base import PluginWindow
@@ -57,9 +57,9 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.projects.api import EmptyProject
 from spyder.plugins.run.widgets import RunConfiguration
 from spyder.py3compat import PY2, to_text_string
+from spyder.utils.misc import remove_backslashes
 from spyder.utils.programs import is_module_installed
 from spyder.widgets.dock import DockTitleBar
-from spyder.utils.misc import remove_backslashes
 
 # For testing various Spyder urls
 if not PY2:
@@ -273,12 +273,10 @@ def cleanup(request):
 # =============================================================================
 # ---- Tests
 # =============================================================================
-@flaky(max_runs=3)
 @pytest.mark.slow
 @pytest.mark.first
 @pytest.mark.single_instance
-@pytest.mark.skipif((os.environ.get('CI', None) is None or (PY2
-                     and not sys.platform.startswith('linux'))),
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
                     reason="It's not meant to be run outside of CIs")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and %edit magic."""
@@ -287,15 +285,18 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     spy_dir = osp.dirname(get_module_path('spyder'))
-    lock_code = ("import sys\n"
-                 "sys.path.append(r'{spy_dir_str}')\n"
-                 "from spyder.config.base import get_conf_path\n"
-                 "from spyder.utils.external import lockfile\n"
-                 "lock_file = get_conf_path('spyder.lock')\n"
-                 "lock = lockfile.FilesystemLock(lock_file)\n"
-                 "lock_created = lock.lock()".format(spy_dir_str=spy_dir))
+    lock_code = (
+        "import sys\n"
+        "sys.path.append(r'{spy_dir_str}')\n"
+        "from spyder.utils.external import lockfile\n"
+        "lock_file = r'{lock_file}'\n"
+        "lock = lockfile.FilesystemLock(lock_file)\n"
+        "lock_created = lock.lock()\n"
+        "print(lock_created)".format(
+            spy_dir_str=spy_dir,
+            lock_file=get_conf_path('spyder.lock'))
+    )
 
-    # Test single instance
     with qtbot.waitSignal(shell.executed, timeout=2000):
         shell.execute(lock_code)
     assert not shell.get_value('lock_created')

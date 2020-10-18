@@ -110,13 +110,13 @@ from spyder.config.base import running_under_pytest
 # Ignore args if running tests or Spyder will try and fail to parse pytests's.
 if running_under_pytest():
     sys_argv = [sys.argv[0]]
-    CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
+    cli_options, __ = get_options(sys_argv)
 else:
-    CLI_OPTIONS, CLI_ARGS = get_options()
+    cli_options, __ = get_options()
 
 # **** Set OpenGL implementation to use ****
-if CLI_OPTIONS.opengl_implementation:
-    option = CLI_OPTIONS.opengl_implementation
+if cli_options.opengl_implementation:
+    option = cli_options.opengl_implementation
     set_opengl_implementation(option)
 else:
     if CONF.get('main', 'opengl') != 'automatic':
@@ -146,7 +146,7 @@ if hasattr(MAIN_APP, 'setDesktopFileName'):
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time.
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV, SAFE_MODE
+from spyder.config.base import _, get_image_path, DEV, get_safe_mode
 
 if not running_under_pytest():
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
@@ -3894,7 +3894,7 @@ class MainWindow(QMainWindow):
         """
         should_show_tour = CONF.get('main', 'show_tour_message')
         if force or (should_show_tour and not running_under_pytest()
-                     and not SAFE_MODE):
+                     and not get_safe_mode()):
             CONF.set('main', 'show_tour_message', False)
             self.tour_dialog = tour.OpenTourDialog(
                 self, lambda: self.show_tour(DEFAULT_TOUR))
@@ -4065,7 +4065,7 @@ def run_spyder(app, options, args):
 #==============================================================================
 # Main
 #==============================================================================
-def main():
+def main(options, args):
     """Main function"""
     # **** For Pytest ****
     if running_under_pytest():
@@ -4074,14 +4074,8 @@ def main():
             set_opengl_implementation(option)
 
         app = initialize()
-        window = run_spyder(app, CLI_OPTIONS, None)
+        window = run_spyder(app, options, None)
         return window
-
-    # **** Collect command line options ****
-    # Note regarding Options:
-    # It's important to collect options before monkey patching sys.exit,
-    # otherwise, argparse won't be able to exit if --help option is passed
-    options, args = (CLI_OPTIONS, CLI_ARGS)
 
     # **** Handle hide_console option ****
     if options.show_console:
@@ -4102,12 +4096,7 @@ def main():
     # **** Create the application ****
     app = initialize()
 
-    # **** Handle other options ****
-    if options.reset_config_files:
-        # <!> Remove all configuration files!
-        reset_config_files()
-        return
-    elif options.reset_to_defaults:
+    if options.reset_to_defaults:
         # Reset Spyder settings to defaults
         CONF.reset_to_defaults()
         return
