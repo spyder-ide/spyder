@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2009- Spyder Project Contributors
 #
@@ -191,18 +191,18 @@ def main():
             # sense
             from spyder.app import mainwindow
             if running_under_pytest():
-                return mainwindow.main()
+                return mainwindow.main(options, args)
             else:
-                mainwindow.main()
+                mainwindow.main(options, args)
                 return
 
         if lock_created:
             # Start a new instance
             from spyder.app import mainwindow
             if running_under_pytest():
-                return mainwindow.main()
+                return mainwindow.main(options, args)
             else:
-                mainwindow.main()
+                mainwindow.main(options, args)
         else:
             # Pass args to Spyder or print an informative
             # message
@@ -214,9 +214,9 @@ def main():
     else:
         from spyder.app import mainwindow
         if running_under_pytest():
-            return mainwindow.main()
+            return mainwindow.main(options, args)
         else:
-            mainwindow.main()
+            mainwindow.main(options, args)
 
 
 if __name__ == "__main__":

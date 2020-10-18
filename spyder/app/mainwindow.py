@@ -109,13 +109,13 @@ from spyder.config.base import running_under_pytest
 # Ignore args if running tests or Spyder will try and fail to parse pytests's.
 if running_under_pytest():
     sys_argv = [sys.argv[0]]
-    CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
+    cli_options, __ = get_options(sys_argv)
 else:
-    CLI_OPTIONS, CLI_ARGS = get_options()
+    cli_options, __ = get_options()
 
 # **** Set OpenGL implementation to use ****
-if CLI_OPTIONS.opengl_implementation:
-    option = CLI_OPTIONS.opengl_implementation
+if cli_options.opengl_implementation:
+    option = cli_options.opengl_implementation
     set_opengl_implementation(option)
 else:
     if CONF.get('main', 'opengl') != 'automatic':
@@ -3605,7 +3605,7 @@ def run_spyder(app, options, args):
 #==============================================================================
 # Main
 #==============================================================================
-def main():
+def main(options, args):
     """Main function"""
     # **** For Pytest ****
     if running_under_pytest():
@@ -3614,14 +3614,8 @@ def main():
             set_opengl_implementation(option)
 
         app = initialize()
-        window = run_spyder(app, CLI_OPTIONS, None)
+        window = run_spyder(app, options, None)
         return window
-
-    # **** Collect command line options ****
-    # Note regarding Options:
-    # It's important to collect options before monkey patching sys.exit,
-    # otherwise, argparse won't be able to exit if --help option is passed
-    options, args = (CLI_OPTIONS, CLI_ARGS)
 
     # **** Handle hide_console option ****
     if options.show_console:
