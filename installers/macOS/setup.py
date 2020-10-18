@@ -57,7 +57,6 @@ spyder_kernels :
     No module named spyder_kernels.console.__main__
 sphinx :
     No module named 'sphinx.builders.changes'
-
 """
 
 import os
@@ -123,10 +122,10 @@ PACKAGES = ['alabaster', 'astroid', 'ipykernel', 'IPython', 'jedi', 'jinja2',
 
 if args.make_lite:
     INCLUDES = []
-    EXCLUDES = ['numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy']
+    EXCLUDES = ['pip', 'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy']
 else:
     INCLUDES = ['numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy']
-    EXCLUDES = []
+    EXCLUDES = ['pip']
 
 EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
 
@@ -143,7 +142,7 @@ OPTIONS = {
               'CFBundleShortVersionString': spy_version}
 }
 
-# copy main application script
+# Copy main application script
 app_script_name = MAC_APP_NAME.replace('.app', '.py')
 app_script_path = os.path.join(spy_repo, 'scripts', app_script_name)
 shutil.copy2(os.path.join(spy_repo, 'scripts', 'spyder'), app_script_path)
