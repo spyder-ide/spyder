@@ -107,8 +107,6 @@ class MainConfigPage(GeneralConfigPage):
 
         verttabs_box = newcb(_("Vertical tabs in panes"),
                              'vertical_tabs')
-        animated_box = newcb(_("Animated toolbars and panes"),
-                             'animated_docks')
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
@@ -144,7 +142,6 @@ class MainConfigPage(GeneralConfigPage):
         # Layout interface
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(verttabs_box)
-        interface_layout.addWidget(animated_box)
         interface_layout.addLayout(margins_cursor_layout)
         interface_group.setLayout(interface_layout)
 

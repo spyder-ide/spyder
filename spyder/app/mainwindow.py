@@ -231,7 +231,10 @@ DEFAULT_TOUR = 0
 #==============================================================================
 class MainWindow(QMainWindow):
     """Spyder main window"""
-    DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
+    DOCKOPTIONS = (
+        QMainWindow.AllowTabbedDocks | QMainWindow.AllowNestedDocks |
+        QMainWindow.AnimatedDocks
+    )
     CURSORBLINK_OSDEFAULT = QApplication.cursorFlashTime()
     SPYDER_PATH = get_conf_path('path')
     SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
@@ -536,7 +539,7 @@ class MainWindow(QMainWindow):
         # To show the message about starting the tour
         self.sig_setup_finished.connect(self.show_tour_message)
 
-        # Apply preferences
+        # Apply main window settings
         self.apply_settings()
 
         # To set all dockwidgets tabs to be on top (in case we want to do it
@@ -2997,6 +3000,7 @@ class MainWindow(QMainWindow):
     def apply_settings(self):
         """Apply main window settings."""
         qapp = QApplication.instance()
+
         # Set 'gtk+' as the default theme in Gtk-based desktops
         # Fixes spyder-ide/spyder#2036.
         if is_gtk_desktop() and ('GTK+' in QStyleFactory.keys()):
@@ -3015,15 +3019,14 @@ class MainWindow(QMainWindow):
         default = self.DOCKOPTIONS
         if CONF.get('main', 'vertical_tabs'):
             default = default|QMainWindow.VerticalTabs
-        if CONF.get('main', 'animated_docks'):
-            default = default|QMainWindow.AnimatedDocks
         self.setDockOptions(default)
 
         self.apply_panes_settings()
         self.apply_statusbar_settings()
 
         if CONF.get('main', 'use_custom_cursor_blinking'):
-            qapp.setCursorFlashTime(CONF.get('main', 'custom_cursor_blinking'))
+            qapp.setCursorFlashTime(
+                CONF.get('main', 'custom_cursor_blinking'))
         else:
             qapp.setCursorFlashTime(self.CURSORBLINK_OSDEFAULT)
 

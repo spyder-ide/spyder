@@ -68,7 +68,6 @@ DEFAULTS = [
               'high_dpi_custom_scale_factor': False,
               'high_dpi_custom_scale_factors': '1.5',
               'vertical_tabs': False,
-              'animated_docks': True,
               'prompt_on_exit': False,
               'panes_locked': True,
               'window/size': (1260, 740),
