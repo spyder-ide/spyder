@@ -1,4 +1,4 @@
- # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2009- Spyder Project Contributors
 #
@@ -30,7 +30,7 @@ except:
 # Local imports
 from spyder.app.cli_options import get_options
 from spyder.config.base import (get_conf_path, running_in_mac_app,
-                                running_under_pytest)
+                                reset_config_files, running_under_pytest)
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
 
@@ -84,10 +84,16 @@ def main():
     Spyder is already running, this will just parse and send command line
     options to the application.
     """
-    from spyder.config.manager import CONF
-
     # Parse command line options
     options, args = (CLI_OPTIONS, CLI_ARGS)
+
+    # This is to allow reset without reading our conf file
+    if options.reset_config_files:
+        # <!> Remove all configuration files!
+        reset_config_files()
+        return
+
+    from spyder.config.manager import CONF
 
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])

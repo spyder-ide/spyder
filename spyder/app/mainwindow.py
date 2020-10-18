@@ -3636,12 +3636,7 @@ def main(options, args):
     # **** Create the application ****
     app = initialize()
 
-    # **** Handle other options ****
-    if options.reset_config_files:
-        # <!> Remove all configuration files!
-        reset_config_files()
-        return
-    elif options.reset_to_defaults:
+    if options.reset_to_defaults:
         # Reset Spyder settings to defaults
         CONF.reset_to_defaults()
         return
