@@ -1,47 +1,43 @@
-# Based on https://github.com/tlambert03/napari/blob/master/.github/workflows/make_bundle.yml
 on:
   pull_request:
   release:
     types:
       - created
 
-name: Create macOS app bundle and DMG
+name: Create macOS App Bundle and DMG
 
 jobs:
   build:
-    name: macOS app bundle
+    name: macOS App Bundle
     runs-on: macos-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+        working-directory: ./installers/macOS
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Install Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7.9
-      - name: Install dependencies
-        shell: bash -l {0}
+#      - name: Install Python
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: 3.7.9
+      - name: Install Dependencies
         run: |
           # is there a better way to install only spyder dependents?
-           pip3 install -r installers/macOS/req-build.txt -r installers/macOS/req-extras.txt -c installers/macOS/req-const.txt -e .
-           pip3 uninstall -q -y spyder
-      - name: Build Lite
-        shell: bash -l {0}
-        run: |
-          cd installers/macOS
-          python3 setup.py --lite --dmg py2app
-      - name: Build Full
-        shell: bash -l {0}
-        run: |
-          cd installers/macOS
-          python3 setup.py --dmg py2app
-      - name: Upload Artifact Lite
+          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt -e ../../
+          pip3 uninstall -q -y spyder
+      - name: Build Application Bundle -- Lite
+        run: python3 setup.py --lite --dmg py2app
+      - name: Build Application Bundle -- Full
+        run: python3 setup.py --dmg py2app
+      - name: Upload Artifact -- Lite
         uses: actions/upload-artifact@v2
         with:
           path: installers/macOS/dist/Spyder-Lite.dmg
           name: Spyder-Lite.dmg
-      - name: Upload Artifact Full
+      - name: Upload Artifact -- Full
         uses: actions/upload-artifact@v2
         with:
           path: installers/macOS/dist/Spyder.dmg
@@ -52,7 +48,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         uses: bruceadams/get-release@v1.2.0
-      - name: Upload Release Asset Lite
+      - name: Upload Release Asset -- Lite
         if: ${{github.event_name == 'release'}}
         uses: actions/upload-release-asset@v1
         env:
@@ -62,7 +58,7 @@ jobs:
           asset_path: installers/macOS/dist/Spyder-Lite.dmg
           asset_name: Spyder-Lite.dmg
           asset_content_type: application/x-apple-diskimage
-      - name: Upload Release Asset Lite
+      - name: Upload Release Asset -- Full
         if: ${{github.event_name == 'release'}}
         uses: actions/upload-release-asset@v1
         env:
