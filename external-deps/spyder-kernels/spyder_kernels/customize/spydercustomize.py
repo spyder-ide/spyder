@@ -715,10 +715,12 @@ builtins.cell_count = cell_count
 
 
 # =============================================================================
-# Restoring original PYTHONPATH
+# Extend sys.path with paths that come from Spyder
 # =============================================================================
-try:
-    os.environ['PYTHONPATH'] = os.environ['OLD_PYTHONPATH']
-    del os.environ['OLD_PYTHONPATH']
-except KeyError:
-    pass
+def set_spyder_pythonpath():
+    pypath = os.environ.get('SPY_PYTHONPATH')
+    if pypath:
+        pathlist = pypath.split(os.pathsep)
+        sys.path.extend(pathlist)
+
+set_spyder_pythonpath()
