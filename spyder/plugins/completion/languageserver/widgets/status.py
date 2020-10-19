@@ -25,6 +25,21 @@ from spyder.widgets.status import StatusBarWidget
 logger = logging.getLogger(__name__)
 
 
+# Main constants
+class ClientStatus:
+    STARTING = 'starting'
+    READY = 'ready'
+    RESTARTING = 'restarting'
+    DOWN = 'down'
+
+    STRINGS_FOR_TRANSLATION = {
+        STARTING: _("starting"),
+        READY: _("ready"),
+        RESTARTING: _("restarting"),
+        DOWN: _("down")
+    }
+
+
 class LSPStatusWidget(StatusBarWidget):
     """Status bar widget for LSP  status."""
 
@@ -32,18 +47,22 @@ class LSPStatusWidget(StatusBarWidget):
         "Completions, linting, code\n"
         "folding and symbols status."
     )
+
     STATUS = "LSP {}: {}"
 
     def __init__(self, parent, statusbar, plugin):
         self.tooltip = self.BASE_TOOLTIP
         super(LSPStatusWidget, self).__init__(
-            parent, statusbar, icon=ima.icon('lspserver'))
+            parent, statusbar,
+            icon=ima.icon('lspserver'),
+            spinner=True
+        )
 
         self.plugin = plugin
         self.menu = QMenu(self)
 
         # Setup
-        self.set_value('starting...')
+        self.set_status(status=ClientStatus.STARTING)
 
         # Signals
         self.sig_clicked.connect(self.show_menu)
@@ -69,9 +88,24 @@ class LSPStatusWidget(StatusBarWidget):
                 rect.topLeft() + QPoint(-40, -rect.height() - os_height))
             menu.popup(pos)
 
-    def set_value(self, value):
-        """Return lsp state."""
-        super(LSPStatusWidget, self).set_value(value)
+    def set_status(self, lsp_language=None, status=None):
+        """Set LSP status."""
+        if status in [ClientStatus.STARTING, ClientStatus.RESTARTING]:
+            self.spinner.show()
+            self.spinner.start()
+        else:
+            self.spinner.hide()
+            self.spinner.stop()
+
+        if status is None:
+            status = ClientStatus.STRINGS_FOR_TRANSLATION[
+                ClientStatus.STARTING]
+        else:
+            status = ClientStatus.STRINGS_FOR_TRANSLATION[status]
+
+        if lsp_language is not None:
+            status = self.STATUS.format(lsp_language, status)
+        self.set_value(status)
 
     def get_tooltip(self):
         """Reimplementation to get a dynamic tooltip."""
@@ -89,8 +123,10 @@ class LSPStatusWidget(StatusBarWidget):
                 self.setVisible(False)
             else:
                 status = self.plugin.clients_statusbar.get(
-                    lsp_language, _("starting..."))
-                self.set_value(self.STATUS.format(editor_language, status))
+                    lsp_language,
+                    ClientStatus.STARTING
+                )
+                self.set_status(editor_language, status)
                 self.setVisible(True)
             return
 
@@ -99,7 +135,7 @@ class LSPStatusWidget(StatusBarWidget):
         if editor_language.lower() != lsp_language:
             return
         else:
-            self.set_value(self.STATUS.format(editor_language, status))
+            self.set_status(editor_language, status)
             self.setVisible(True)
 
     def get_current_editor_language(self):

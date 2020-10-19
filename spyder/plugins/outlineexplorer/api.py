@@ -165,7 +165,12 @@ class OutlineExplorerProxy(QObject):
         """Request current editor symbols."""
         raise NotImplementedError
 
+    @property
+    def is_cloned(self):
+        """Check if the associated editor is cloned."""
+        return False
 
+      
 class OutlineExplorerData(QObject):
     CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
     FUNCTION_TOKEN = 'def'

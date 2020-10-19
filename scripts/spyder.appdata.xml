@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component type="desktop-application">
-  <id>spyder3.desktop</id>
+  <id>spyder.desktop</id>
   <name>Spyder</name>
   <summary>The Scientific Python Development Environment</summary>
 
