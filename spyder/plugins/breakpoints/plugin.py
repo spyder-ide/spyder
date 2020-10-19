@@ -11,7 +11,7 @@ Breakpoint Plugin.
 """
 
 # Standard library imports
-import os
+import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import Signal
@@ -92,7 +92,7 @@ class Breakpoints(SpyderDockablePlugin):
         return _("Manage code breakpoints in a unified pane.")
 
     def get_icon(self):
-        path = os.path.join(self.get_path(), self.IMG_PATH)
+        path = osp.join(self.get_path(), self.IMG_PATH)
         return self.create_icon('breakpoints', path=path)
 
     def register(self):
@@ -140,7 +140,7 @@ class Breakpoints(SpyderDockablePlugin):
             section='run',
         )
         for filename in list(breakpoints_dict.keys()):
-            if not os.path.isfile(filename):
+            if not osp.isfile(filename):
                 breakpoints_dict.pop(filename)
                 continue
             # Make sure we don't have the same file under different names
