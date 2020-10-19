@@ -677,7 +677,9 @@ the sympy module (e.g. plot)
 
     # ---- Private methods (overrode by us) -----------------------------------
     def _event_filter_console_keypress(self, event):
-        """ Reimplemented for execution interruption.
+        """
+        Reimplemented to avoid interrupting execution when trying to
+        copy text.
         """
         key = event.key()
         if self._control_key_down(event.modifiers(), include_command=False):
