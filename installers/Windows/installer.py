@@ -34,14 +34,18 @@ import tempfile
 import yarg
 
 
-# Packages to remove from the requirements for example pip
+# Packages to remove from the requirements for example pip. Need also for
+# packages with a different import name than the package name i.e
+# 'python-slugify' v.s 'slugify' (in such case change too the
+# SKIP_PACKAGES constant)
 
-UNWANTED_PACKAGES = ['pip']
+UNWANTED_PACKAGES = ['pip', 'python-slugify']
 
 # Packages to skip checking for wheels and instead add them directly in the
-# 'packages' section
+# 'packages' section. Needed for example if a package has different import name
+# than the package name i.e 'python-slugify' v.s 'slugify'
 
-SKIP_PACKAGES = ['bcrypt']
+SKIP_PACKAGES = ['bcrypt', 'slugify']
 
 # The pynsist requirement spec that will be used to install pynsist in
 # the temporary packaging virtual environment.
