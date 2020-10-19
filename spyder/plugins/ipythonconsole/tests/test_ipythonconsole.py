@@ -98,6 +98,9 @@ def ipyconsole(qtbot, request):
     """IPython console fixture."""
 
     class MainWindowMock(QMainWindow):
+        def get_spyder_pythonpath(self):
+            return CONF.get('main', 'spyder_pythonpath', [])
+
         def __getattr__(self, attr):
             if attr == 'consoles_menu_actions':
                 return []
@@ -1639,15 +1642,22 @@ def test_kernel_kill(ipyconsole, qtbot):
 
 
 @flaky(max_runs=3)
-def test_wrong_std_module(ipyconsole, qtbot):
+@pytest.mark.parametrize("spyder_pythonpath", [True, False])
+def test_wrong_std_module(ipyconsole, qtbot, tmpdir, spyder_pythonpath):
     """
     Test that a file with the same name of a standard library module in
     the current working directory doesn't break the console.
     """
     # Create an empty file called random.py in the cwd
-    wrong_random_mod = osp.join(os.getcwd(), 'random.py')
-    with open(wrong_random_mod, 'w') as f:
-        f.write('')
+    if spyder_pythonpath:
+        wrong_random_mod = tmpdir.join('random.py')
+        wrong_random_mod.write('')
+        wrong_random_mod = str(wrong_random_mod)
+        CONF.set('main', 'spyder_pythonpath', [str(tmpdir)])
+    else:
+        wrong_random_mod = osp.join(os.getcwd(), 'random.py')
+        with open(wrong_random_mod, 'w') as f:
+            f.write('')
 
     # Create a new client to see if its kernel starts despite the
     # faulty module.
@@ -1658,8 +1668,20 @@ def test_wrong_std_module(ipyconsole, qtbot):
     qtbot.waitUntil(lambda: shell._prompt_html is not None,
                     timeout=SHELL_TIMEOUT)
 
+    # Assert the extra path from spyder_pythonpath was added
+    if spyder_pythonpath:
+        check_sys_path = (
+            "import sys; path_added = r'{}' in sys.path".format(str(tmpdir))
+        )
+        with qtbot.waitSignal(shell.sig_prompt_ready, timeout=30000):
+            shell.execute(check_sys_path)
+        assert shell.get_value('path_added')
+
     # Remove wrong module
     os.remove(wrong_random_mod)
+
+    # Restore CONF
+    CONF.set('main', 'spyder_pythonpath', [])
 
 
 @flaky(max_runs=3)
