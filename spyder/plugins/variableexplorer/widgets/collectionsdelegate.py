@@ -20,7 +20,7 @@ from qtpy.QtWidgets import (QAbstractItemDelegate, QDateEdit, QDateTimeEdit,
                             QItemDelegate, QLineEdit, QMessageBox, QTableView)
 
 # Local imports
-from spyder.config.base import _
+from spyder.config.base import _, running_in_mac_app
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder_kernels.utils.nsview import (
@@ -121,23 +121,32 @@ class CollectionsDelegate(QItemDelegate):
                     val_type = 'array'
                 else:
                     val_type = 'dataframe, series'
+                message = _("Spyder is unable to show the {val_type} or object"
+                            " you're trying to view because <tt>{module}</tt>"
+                            " is not installed. ")
+                if running_in_mac_app():
+                    message += _("Please consider using the full version of "
+                                 "the Spyder MacOS application.<br>")
+                else:
+                    message += _("Please install this package in your Spyder "
+                                 "environment.<br>")
                 QMessageBox.critical(
                     self.parent(), _("Error"),
-                    _("Spyder is unable to show the {val_type} or object "
-                      "you're trying to view because <tt>{module}</tt> was "
-                      "not installed alongside Spyder. Please install "
-                      "this package in your Spyder environment."
-                      "<br>").format(val_type=val_type, module=module))
+                    message.format(val_type=val_type, module=module))
                 return
             else:
-                QMessageBox.critical(
-                    self.parent(), _("Error"),
-                    _("Spyder is unable to show the variable you're "
-                      "trying to view because the module "
-                      "<tt>{module}</tt> was not found in your  "
-                      "Spyder environment. Please install "
-                      "this package in your Spyder environment."
-                      "<br>").format(module=module))
+                message = _("Spyder is unable to show the variable you're"
+                            " trying to view because the module "
+                            "<tt>{module}</tt> is not ")
+                if running_in_mac_app():
+                    message += _("supported in the Spyder MacOS "
+                                 "application.<br>")
+                else:
+                    message += _("found in your Spyder environment. Please "
+                                 "install this package in your Spyder "
+                                 "environment.<br>")
+                QMessageBox.critical(self.parent(), _("Error"),
+                                     message.format(module=module))
                 return
         except Exception as msg:
             QMessageBox.critical(
@@ -195,19 +204,19 @@ class CollectionsDelegate(QItemDelegate):
             return None
         # QDateEdit and QDateTimeEdit for a dates or datetime respectively
         elif isinstance(value, datetime.date) and not object_explorer:
-            # Needed to handle NaT values
-            # See spyder-ide/spyder#8329
-            try:
-                value.time()
-            except ValueError:
-                self.sig_editor_shown.emit()
-                return None
             if readonly:
                 self.sig_editor_shown.emit()
                 return None
             else:
                 if isinstance(value, datetime.datetime):
                     editor = QDateTimeEdit(value, parent=parent)
+                    # Needed to handle NaT values
+                    # See spyder-ide/spyder#8329
+                    try:
+                        value.time()
+                    except ValueError:
+                        self.sig_editor_shown.emit()
+                        return None
                 else:
                     editor = QDateEdit(value, parent=parent)
                 editor.setCalendarPopup(True)

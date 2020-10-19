@@ -42,3 +42,4 @@ result.xml
 
 # Ignore setuptools development files in the PyLS subrepo
 external-deps/python-language-server/python_language_server.egg-info/
+external-deps/python-language-server/.installation-dir/

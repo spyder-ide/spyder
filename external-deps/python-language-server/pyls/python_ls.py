@@ -379,6 +379,7 @@ class PythonLanguageServer(MethodDispatcher):
                 workspace_config = config.Config(
                     added_uri, self.config._init_opts,
                     self.config._process_id, self.config._capabilities)
+                workspace_config.update(self.config._settings)
                 self.workspaces[added_uri] = Workspace(
                     added_uri, self._endpoint, workspace_config)
 

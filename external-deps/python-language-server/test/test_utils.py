@@ -2,10 +2,12 @@
 import time
 
 import mock
+from flaky import flaky
 
 from pyls import _utils
 
 
+@flaky
 def test_debounce():
     interval = 0.1
     obj = mock.Mock()
@@ -29,6 +31,7 @@ def test_debounce():
     assert len(obj.mock_calls) == 2
 
 
+@flaky
 def test_debounce_keyed_by():
     interval = 0.1
     obj = mock.Mock()

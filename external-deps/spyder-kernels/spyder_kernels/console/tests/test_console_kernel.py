@@ -739,5 +739,32 @@ def test_callables_and_modules(kernel, exclude_callables_and_modules,
     settings['exclude_unsupported'] = False
 
 
+def test_comprehensions_with_locals_in_pdb(kernel):
+    """
+    Test that evaluating comprehensions with locals works in Pdb.
+
+    Also test that we use the right frame globals, in case the user
+    wants to work with them.
+
+    This is a regression test for spyder-ide/spyder#13909.
+    """
+    pdb_obj = SpyderPdb()
+    pdb_obj.curframe = inspect.currentframe()
+    pdb_obj.curframe_locals = pdb_obj.curframe.f_locals
+    kernel._pdb_obj = pdb_obj
+
+    # Create a local variable.
+    kernel._pdb_obj.default('zz = 10')
+    assert kernel.get_value('zz') == 10
+
+    # Run a list comprehension with this variable.
+    kernel._pdb_obj.default("compr = [zz * i for i in [1, 2, 3]]")
+    assert kernel.get_value('compr') == [10, 20, 30]
+
+    # Check that the variable is not reported as being part of globals.
+    kernel._pdb_obj.default("in_globals = 'zz' in globals()")
+    assert kernel.get_value('in_globals') == False
+
+
 if __name__ == "__main__":
     pytest.main()

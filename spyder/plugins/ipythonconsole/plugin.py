@@ -280,7 +280,8 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.variableexplorer.set_shellwidget_from_id(id(sw))
             self.main.plots.set_shellwidget_from_id(id(sw))
             self.main.help.set_shell(sw)
-            self.sig_pdb_state.emit(sw.in_debug_loop(), sw.get_pdb_last_step())
+            self.sig_pdb_state.emit(
+                sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
         self.update_tabs_text()
         self.sig_update_plugin_title.emit()
 
@@ -474,8 +475,6 @@ class IPythonConsole(SpyderPluginWidget):
                     # still an execution taking place
                     # Fixes spyder-ide/spyder#7293.
                     pass
-                elif (client.shellwidget.in_debug_loop()):
-                    client.shellwidget.pdb_execute('!' + line)
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables)
                 else:
@@ -524,15 +523,7 @@ class IPythonConsole(SpyderPluginWidget):
                 line = code.strip()
 
             try:
-                if client.shellwidget._executing:
-                    # Don't allow multiple executions when there's
-                    # still an execution taking place
-                    # Fixes spyder-ide/spyder#7293.
-                    pass
-                elif (client.shellwidget.in_debug_loop()):
-                    client.shellwidget.pdb_execute('!' + line)
-                else:
-                    self.execute_code(line)
+                self.execute_code(line)
             except AttributeError:
                 pass
             self._visibility_changed(True)
@@ -602,14 +593,45 @@ class IPythonConsole(SpyderPluginWidget):
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
-    def pdb_execute(self, line, hidden=False, echo_code=False):
+    def pdb_execute(self, line, hidden=False, echo_stack_entry=False,
+                    add_history=False):
+        """
+        Send line to the pdb kernel if possible.
+
+        Parameters
+        ----------
+        line: str
+            the line to execute
+
+        hidden: bool
+            If the line should be hidden
+
+        echo_stack_entry: bool
+            If not hidden, if the stack entry should be printed
+
+        add_history: bool
+            If not hidden, wether the line should be added to history
+        """
+
         sw = self.get_current_shellwidget()
         if sw is not None:
             # Needed to handle an error when kernel_client is None.
             # See spyder-ide/spyder#7578.
             try:
-                sw.set_pdb_echo_code(echo_code)
-                sw.pdb_execute(line, hidden)
+                sw.pdb_execute(line, hidden, echo_stack_entry, add_history)
+            except AttributeError:
+                pass
+
+    def stop_debugging(self):
+        """Stop debugging"""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            if not sw.is_waiting_pdb_input():
+                sw.interrupt_kernel()
+            try:
+                sw.pdb_execute(
+                    "exit",
+                    hidden=False, echo_stack_entry=False, add_history=False)
             except AttributeError:
                 pass
 
@@ -617,7 +639,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Get debugging state of the current console."""
         sw = self.get_current_shellwidget()
         if sw is not None:
-            return sw.in_debug_loop()
+            return sw.is_waiting_pdb_input()
         return False
 
     def get_pdb_last_step(self):
@@ -690,12 +712,12 @@ class IPythonConsole(SpyderPluginWidget):
             has_spyder_kernels = programs.is_module_installed(
                 'spyder_kernels',
                 interpreter=pyexec,
-                version='>=1.9.2;<1.10.0')
+                version='>=1.9.4;<1.10.0')
             if not has_spyder_kernels and not running_under_pytest():
                 client.show_kernel_error(
                     _("Your Python environment or installation doesn't have "
                       "the <tt>spyder-kernels</tt> module or the right "
-                      "version of it installed (>= 1.9.2 and < 1.10.0). "
+                      "version of it installed (>= 1.9.4 and < 1.10.0). "
                       "Without this module is not possible for Spyder to "
                       "create a console for you.<br><br>"
                       "You can install it by running in a system terminal:"
@@ -862,7 +884,8 @@ class IPythonConsole(SpyderPluginWidget):
                     cmd = cmd.encode('utf-8')
 
                 try:
-                    proc = programs.run_shell_command(cmd)
+                    # Use clean environment
+                    proc = programs.run_shell_command(cmd, env={})
                     output, _err = proc.communicate()
                 except subprocess.CalledProcessError:
                     output = ''
@@ -1220,7 +1243,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Catch any error generated when trying to start the kernel.
         # See spyder-ide/spyder#7302.
         try:
-            kernel_manager.start_kernel(stderr=stderr_handle)
+            kernel_manager.start_kernel(stderr=stderr_handle,
+                                        env=kernel_spec.env)
         except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())

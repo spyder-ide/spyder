@@ -16,7 +16,7 @@ def pyls_definitions(config, document, position):
 
     return [
         {
-            'uri': uris.uri_with(document.uri, path=d.module_path),
+            'uri': uris.uri_with(document.uri, path=str(d.module_path)),
             'range': {
                 'start': {'line': d.line - 1, 'character': d.column},
                 'end': {'line': d.line - 1, 'character': d.column + len(d.name)},

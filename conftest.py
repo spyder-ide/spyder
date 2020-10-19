@@ -14,13 +14,9 @@ NOTE: DO NOT add fixtures here. It could generate problems with
 import os
 import os.path as osp
 import shutil
+import subprocess
 import sys
 import warnings
-
-
-if sys.version_info[0] == 2:
-    # Hide warnings on py2 due to qtawesome as it makes the results unreadable
-    warnings.filterwarnings("ignore")
 
 
 # To activate/deactivate certain things for pytest's only
@@ -29,7 +25,7 @@ os.environ['SPYDER_PYTEST'] = 'True'
 
 # Add external dependencies subrepo paths to sys.path
 # NOTE: Please don't move this from here!
-HERE = osp.dirname(os.path.realpath(__file__))
+HERE = osp.dirname(osp.abspath(__file__))
 DEPS_PATH = osp.join(HERE, 'external-deps')
 i = 0
 for path in os.listdir(DEPS_PATH):
@@ -37,6 +33,33 @@ for path in os.listdir(DEPS_PATH):
     sys.path.insert(i, external_dep_path)
     i += 1
 
+# Install PyLS locally. This fails on Windows and our CIs
+if os.name != 'nt' or os.name == 'nt' and not bool(os.environ.get('CI')):
+    # Create an egg-info folder to declare the PyLS subrepo entry points.
+    pyls_submodule = osp.join(DEPS_PATH, 'python-language-server')
+    pyls_installation_dir = osp.join(pyls_submodule, '.installation-dir')
+    pyls_installation_egg = osp.join(
+        pyls_submodule, 'python_language_server.egg-info')
+
+    # Remove previous local PyLS installation.
+    if osp.exists(pyls_installation_dir) or osp.exists(pyls_installation_egg):
+        shutil.rmtree(pyls_installation_dir, ignore_errors=True)
+        shutil.rmtree(pyls_installation_egg, ignore_errors=True)
+
+    subprocess.check_output(
+        [sys.executable,
+         '-W',
+         'ignore',
+         'setup.py',
+         'develop',
+         '--no-deps',
+         '--install-dir',
+         pyls_installation_dir],
+        env={**os.environ, **{'PYTHONPATH': pyls_installation_dir}},
+        cwd=pyls_submodule
+    )
+
+# Pytest adjustments
 import pytest
 
 # Remove temp conf_dir before starting the tests

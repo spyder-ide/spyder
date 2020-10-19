@@ -13,7 +13,8 @@ dependencies:
 - diff-match-patch >=20181111
 - intervaltree
 - ipython >=4.0
-- jedi =0.17.1
+- jedi =0.17.2
+- jsonschema >=3.2.0
 - keyring
 - nbconvert >=4.0
 - numpydoc >=0.6.0
@@ -24,6 +25,7 @@ dependencies:
 - psutil >=5.3
 - pygments >=2.0
 - pylint >=1.0
+- pyls-black
 - pyqt <5.13
 - pyyaml
 # NOTE: There's no need to set constraints for python-language-server
@@ -33,13 +35,14 @@ dependencies:
 - pyzmq >=17
 - qdarkstyle >=2.8
 - qtawesome >=0.5.7
-- qtconsole >=4.6.0
+- qtconsole >=4.7.7
 - qtpy >=1.5.0
 - rtree >=0.8.3
 - sphinx >=0.6.6
 # NOTE: There's no need to set constraints for spyder-kernels here
 # because Spyder uses the subrepo for it when started in Binder.
 - spyder-kernels
+- three-merge >=0.1.1
 - watchdog
 
 # We can not refer to an environment.yml file from another

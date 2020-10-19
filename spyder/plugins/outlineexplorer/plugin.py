@@ -12,6 +12,7 @@ highlighter spyder.utils.syntaxhighlighters.PythonSH
 """
 
 # Third party imports
+from qtpy.QtCore import Slot
 from qtpy.QtWidgets import QVBoxLayout
 
 # Local imports
@@ -54,7 +55,7 @@ class OutlineExplorer(SpyderPluginWidget):
         self.explorer.treewidget.header().hide()
         self.load_config()
 
-    #------ SpyderPluginWidget API ---------------------------------------------    
+    #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Outline")
@@ -62,18 +63,18 @@ class OutlineExplorer(SpyderPluginWidget):
     def get_plugin_icon(self):
         """Return widget icon"""
         return ima.icon('outline_explorer')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         return self.explorer.treewidget
-    
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return self.explorer.treewidget.get_menu_actions()
-    
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.restore_scrollbar_position.connect(
@@ -91,7 +92,7 @@ class OutlineExplorer(SpyderPluginWidget):
         super(SpyderPluginWidget, self)._visibility_changed(enable)
         if enable:
             self.explorer.is_visible.emit()
-            
+
     #------ Public API ---------------------------------------------------------
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
@@ -107,7 +108,7 @@ class OutlineExplorer(SpyderPluginWidget):
                         self.explorer.treewidget.get_expanded_state())
         self.set_option('scrollbar_position',
                         self.explorer.treewidget.get_scrollbar_position())
-        
+
     def load_config(self):
         """Load configuration: tree widget state"""
         expanded_state = self.get_option('expanded_state', None)
@@ -118,3 +119,18 @@ class OutlineExplorer(SpyderPluginWidget):
             expanded_state = None
         if expanded_state is not None:
             self.explorer.treewidget.set_expanded_state(expanded_state)
+
+    @Slot(dict, str)
+    def start_symbol_services(self, capabilities, language):
+        """Enable LSP symbols functionality."""
+        symbol_provider = capabilities.get('documentSymbolProvider', False)
+        if symbol_provider:
+            self.explorer.start_symbol_services(language)
+
+    def stop_symbol_services(self, language):
+        """Disable LSP symbols functionality."""
+        self.explorer.stop_symbol_services(language)
+
+    def update_all_editors(self):
+        """Update all editors with an associated LSP server."""
+        self.explorer.update_all_editors()

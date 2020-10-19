@@ -199,6 +199,7 @@ def test_root_workspace_removed(tmpdir, pyls):
     assert pyls.workspace._root_uri == path_as_uri(str(workspace1_dir))
 
 
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
 def test_workspace_loads_pycodestyle_config(pyls, tmpdir):
     workspace1_dir = tmpdir.mkdir('Test123')
     pyls.root_uri = str(workspace1_dir)
@@ -241,3 +242,23 @@ def test_workspace_loads_pycodestyle_config(pyls, tmpdir):
 
     seetings = pyls.workspaces[str(workspace3_dir)]._config.settings()
     assert seetings['plugins']['pycodestyle']['maxLineLength'] == 20
+
+
+def test_settings_of_added_workspace(pyls, tmpdir):
+    test_uri = str(tmpdir.mkdir('Test123'))
+    pyls.root_uri = test_uri
+    pyls.workspace._root_uri = test_uri
+
+    # Set some settings for the server.
+    server_settings = {'pyls': {'plugins': {'jedi': {'environment': '/usr/bin/python3'}}}}
+    pyls.m_workspace__did_change_configuration(server_settings)
+
+    # Create a new workspace.
+    workspace1 = {'uri': str(tmpdir.mkdir('NewTest456'))}
+    event = {'added': [workspace1]}
+    pyls.m_workspace__did_change_workspace_folders(event)
+
+    # Assert settings are inherited from the server config.
+    workspace1_object = pyls.workspaces[workspace1['uri']]
+    workspace1_jedi_settings = workspace1_object._config.plugin_settings('jedi')
+    assert workspace1_jedi_settings == server_settings['pyls']['plugins']['jedi']

@@ -50,6 +50,7 @@ def test_ignore_warnings(qtbot, lsp_codeeditor):
         editor.document_did_change()
 
     # Get current warnings
+    qtbot.wait(2000)
     warnings = editor.get_current_warnings()
 
     expected = [['D103: Missing docstring in public function', 1],
@@ -82,6 +83,7 @@ def test_adding_warnings(qtbot, lsp_codeeditor):
     with qtbot.waitSignal(editor.lsp_response_signal, timeout=30000):
         editor.document_did_change()
 
+    qtbot.wait(2000)
     block = editor.textCursor().block()
     line_count = editor.document().blockCount()
 
@@ -242,6 +244,7 @@ def test_update_warnings_after_closequotes(qtbot, lsp_codeeditor):
         assert editor.toPlainText() == "print('test')\n"
 
     # Assert that the error is gone.
+    qtbot.wait(2000)
     expected = [['D100: Missing docstring in public module', 1]]
     assert editor.get_current_warnings() == expected
 
@@ -279,5 +282,6 @@ def test_update_warnings_after_closebrackets(qtbot, lsp_codeeditor):
         assert editor.toPlainText() == "print('test')\n"
 
     # Assert that the error is gone.
+    qtbot.wait(2000)
     expected = [['D100: Missing docstring in public module', 1]]
     assert editor.get_current_warnings() == expected

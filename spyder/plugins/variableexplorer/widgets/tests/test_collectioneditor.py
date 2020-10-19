@@ -27,17 +27,18 @@ import pandas
 import pytest
 from flaky import flaky
 from qtpy.QtCore import Qt, QPoint
-from qtpy.QtWidgets import QWidget
+from qtpy.QtWidgets import QWidget, QDateEdit
 
 # Local imports
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView, CollectionsEditorTableView,
-    CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD)
+    CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD, natsort)
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespacesBrowserFinder)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
     generate_pandas_indexes
 from spyder.py3compat import PY2, to_text_string
+from spyder_kernels.utils.nsview import get_size
 
 
 # =============================================================================
@@ -478,6 +479,26 @@ def test_rename_and_duplicate_item_in_collection_editor():
             assert editor.source_model.get_data() == coll_copy + [coll_copy[0]]
 
 
+def test_edit_datetime(monkeypatch):
+    """
+    Test datetimes are editable and NaT values are correctly handled.
+
+    Regression test for spyder-ide/spyder#13557 and spyder-ide/spyder#8329
+    """
+    variables = [pandas.NaT, datetime.date.today()]
+    editor_list = CollectionsEditorTableView(None, variables)
+
+    # Test that the NaT value cannot be edited on the variable explorer
+    editor_list_value = editor_list.delegate.createEditor(
+        None, None, editor_list.model.index(0, 3))
+    assert editor_list_value is None
+
+    # Test that a date can be edited on the variable explorer
+    editor_list_value = editor_list.delegate.createEditor(
+        None, None, editor_list.model.index(1, 3))
+    assert isinstance(editor_list_value, QDateEdit)
+
+
 def test_edit_mutable_and_immutable_types(monkeypatch):
     """
     Test that mutable objs/vals are editable in VarExp; immutable ones aren't.
@@ -810,6 +831,92 @@ def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
 
     # Assert data was sorted correctly.
     assert data(view.model, 0, 0) == 9999
+
+
+def test_dicts_with_mixed_types_as_key(qtbot):
+    """
+    Test that we can show dictionaries with mixed data types as keys.
+
+    This is a regression for spyder-ide/spyder#13481.
+    """
+    colors = {1: 'red', 'Y': 'yellow'}
+    editor = CollectionsEditor()
+    editor.setup(colors)
+    assert editor.widget.editor.source_model.keys == [1, 'Y']
+
+
+def test_dicts_natural_sorting(qtbot):
+    """
+    Test that natural sorting actually does what it should do
+    """
+    import random
+    numbers = list(range(100))
+    random.shuffle(numbers)
+    dictionary = {'test{}'.format(i): None for i in numbers}
+    data_sorted = sorted(list(dictionary.keys()), key=natsort)
+    # numbers should be as a human would sort, e.g. test3 before test100
+    # regular sort would sort test1, test10, test11,..., test2, test20,...
+    expected = ['test{}'.format(i) for i in list(range(100))]
+    editor = CollectionsEditor()
+    editor.setup(dictionary)
+    editor.widget.editor.source_model.sort(0)
+
+    assert data_sorted == expected, 'Function failed'
+    assert editor.widget.editor.source_model.keys == expected, \
+        'GUI sorting fail'
+
+
+def test_dicts_natural_sorting_mixed_types():
+    """
+    Test that natural sorting actually does what it should do.
+    testing for issue 13733, as mixed types were sorted incorrectly.
+
+    Sorting for other columns will be tested as well.
+    """
+    import pandas as pd
+    dictionary = {'DSeries': pd.Series(dtype=int), 'aStr': 'algName',
+                  'kDict': {2: 'asd', 3: 2}}
+
+    # put this here variable, as it might change later to reflect string length
+    str_size = get_size(dictionary['aStr'])
+
+    editor = CollectionsEditor()
+    editor.setup(dictionary)
+    cm = editor.widget.editor.source_model
+    cm.sort(0)
+    keys = cm.keys
+    types = cm.types
+    sizes = cm.sizes
+
+    assert keys == ['aStr', 'DSeries', 'kDict']
+    assert types == ['str', 'Series', 'dict']
+    assert sizes == [str_size, (0,), 2]
+
+    assert data_table(cm, 3, 3) == [['aStr', 'DSeries', 'kDict'],
+                                    ['str', 'Series', 'dict'],
+                                    [str_size, '(0,)', 2]]
+
+    # insert an item and check that it is still sorted correctly
+    editor.widget.editor.new_value('List', [1, 2, 3])
+    assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
+                                    ['str', 'Series', 'dict', 'list'],
+                                    [str_size, '(0,)', 2, 3]]
+    cm.sort(0)
+    assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
+                                    ['str', 'Series', 'dict', 'list'],
+                                    [str_size, '(0,)', 2, 3]]
+
+    # now sort for types
+    cm.sort(1)
+    assert data_table(cm, 4, 3) == [['DSeries', 'kDict', 'List', 'aStr'],
+                                    ['Series', 'dict', 'list', 'str'],
+                                    ['(0,)', 2, 3, str_size]]
+
+    # now sort for sizes
+    cm.sort(2)
+    assert data_table(cm, 4, 3) == [['DSeries', 'kDict', 'List', 'aStr'],
+                                    ['Series', 'dict', 'list', 'str'],
+                                    ['(0,)', 2, 3, str_size]]
 
 
 if __name__ == "__main__":

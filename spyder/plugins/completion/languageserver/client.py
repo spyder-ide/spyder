@@ -126,7 +126,7 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             raise AssertionError(error)
 
         self.folder = folder
-        self.plugin_configurations = server_settings.get('configurations', {})
+        self.configurations = server_settings.get('configurations', {})
         self.client_capabilites = CLIENT_CAPABILITES
         self.server_capabilites = SERVER_CAPABILITES
         self.context = zmq.Context()
@@ -134,6 +134,9 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         # To set server args
         self._server_args = server_settings.get('args', '')
         self._server_cmd = server_settings['cmd']
+
+        # Save requests name and id. This is only necessary for testing.
+        self._requests = []
 
     def _get_log_filename(self, kind):
         """
@@ -257,6 +260,12 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
         self.server = QProcess(self)
         env = self.server.processEnvironment()
 
+        # Use local PyLS instead of site-packages one.
+        if DEV or running_under_pytest():
+            running_in_ci = bool(os.environ.get('CI'))
+            if os.name != 'nt' or os.name == 'nt' and not running_in_ci:
+                env.insert('PYTHONPATH', os.pathsep.join(sys.path)[:])
+
         # Adjustments for the Python language server.
         if self.language == 'python':
             # Set the PyLS current working to an empty dir inside
@@ -266,6 +275,13 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
             cwd = osp.join(get_conf_path(), 'lsp_paths', 'cwd')
             if not osp.exists(cwd):
                 os.makedirs(cwd)
+
+            # On Windows, some modules (notably Matplotlib)
+            # cause exceptions if they cannot get the user home.
+            # So, we need to pass the USERPROFILE env variable to
+            # the PyLS.
+            if os.name == "nt" and "USERPROFILE" in os.environ:
+                env.insert("USERPROFILE", os.environ["USERPROFILE"])
         else:
             # There's no need to define a cwd for other servers.
             cwd = None
@@ -439,6 +455,10 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         logger.debug('Perform request {0} with id {1}'.format(method, _id))
 
+        # Save requests to check their ordering.
+        if running_under_pytest():
+            self._requests.append((_id, method))
+
         # Try sending a message. If the send queue is full, keep trying for a
         # a second before giving up.
         timeout = 1
@@ -560,8 +580,11 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
     @handles(LSPRequestTypes.INITIALIZE)
     def process_server_capabilities(self, server_capabilites, *args):
-        self.send_plugin_configurations(self.plugin_configurations)
-        self.initialized = True
+        """
+        Register server capabilities and inform other plugins that it's
+        available.
+        """
+        # Update server capabilities with the infor sent by the server.
         server_capabilites = server_capabilites['capabilities']
 
         if isinstance(server_capabilites['textDocumentSync'], int):
@@ -573,8 +596,17 @@ class LSPClient(QObject, LSPMethodProviderMixIn):
 
         self.server_capabilites.update(server_capabilites)
 
-        self.sig_initialize.emit(self.server_capabilites, self.language)
+        # The initialized notification needs to be the first request sent by
+        # the client according to the protocol.
+        self.initialized = True
         self.initialized_call()
+
+        # This sends a DidChangeConfiguration request to pass to the server
+        # the configurations set by the user in our config system.
+        self.send_configurations(self.configurations)
+
+        # Inform other plugins that the server is up.
+        self.sig_initialize.emit(self.server_capabilites, self.language)
 
     @send_notification(method=LSPRequestTypes.INITIALIZED)
     def initialized_call(self):
