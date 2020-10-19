@@ -2837,7 +2837,7 @@ class EditorStack(QWidget):
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
-        finfo.editor.remove_trailing_spaces()
+        finfo.editor.trim_trailing_spaces()
 
     def trim_trailing_newlines(self, index=None):
         if index is None:
