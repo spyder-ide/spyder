@@ -62,15 +62,12 @@ DEFAULTS = [
               'opengl': 'software',
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
-              'tear_off_menus': False,
               'mac_open_file': False,
               'normal_screen_resolution': True,
               'high_dpi_scaling': False,
               'high_dpi_custom_scale_factor': False,
               'high_dpi_custom_scale_factors': '1.5',
-              'vertical_dockwidget_titlebars': False,
               'vertical_tabs': False,
-              'animated_docks': True,
               'prompt_on_exit': False,
               'panes_locked': True,
               'window/size': (1260, 740),
@@ -643,4 +640,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '58.1.0'
+CONF_VERSION = '59.0.0'
