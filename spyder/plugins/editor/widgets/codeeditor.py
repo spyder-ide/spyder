@@ -2069,7 +2069,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self.unhighlight_current_line()
 
-    def remove_trailing_spaces(self):
+    def trim_trailing_spaces(self):
         """Remove trailing spaces"""
         cursor = self.textCursor()
         cursor.beginEditBlock()
