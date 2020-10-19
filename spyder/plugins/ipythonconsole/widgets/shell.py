@@ -15,7 +15,7 @@ import uuid
 from textwrap import dedent
 
 # Third party imports
-from qtpy.QtCore import Signal, QThread
+from qtpy.QtCore import Signal, QThread, Qt
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
@@ -676,6 +676,21 @@ the sympy module (e.g. plot)
         self.ipyclient.restart_kernel()
 
     # ---- Private methods (overrode by us) -----------------------------------
+    def _event_filter_console_keypress(self, event):
+        """ Reimplemented for execution interruption.
+        """
+        key = event.key()
+        if self._control_key_down(event.modifiers(), include_command=False):
+            if key == Qt.Key_C and self._executing:
+                if self.can_copy():
+                    self.copy()
+                    return True
+                else:
+                    self.request_interrupt_kernel()
+                    return True
+
+        return super(ShellWidget, self)._event_filter_console_keypress(event)
+
     def _handle_error(self, msg):
         """
         Reimplemented to reset the prompt if the error comes after the reply
