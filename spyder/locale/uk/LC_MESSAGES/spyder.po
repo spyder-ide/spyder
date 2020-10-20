@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-10-20 18:49\n"
+"PO-Revision-Date: 2020-10-20 18:59\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -1249,7 +1249,7 @@ msgstr "Типово 3"
 
 #: spyder/plugins/completion/languageserver/confpage.py:727
 msgid "Show automatic completions after keyboard idle (ms):"
-msgstr ""
+msgstr "Показувати автоматичні завершення після простою клавіатури (мс):"
 
 #: spyder/plugins/completion/languageserver/confpage.py:729
 msgid "Default is 300"
@@ -1265,7 +1265,7 @@ msgstr "Основні можливості"
 
 #: spyder/plugins/completion/languageserver/confpage.py:759
 msgid "Enable Go to definition"
-msgstr ""
+msgstr "Увімкнути перехід до визначень"
 
 #: spyder/plugins/completion/languageserver/confpage.py:761
 msgid "If enabled, left-clicking on an object name while \n"
@@ -1305,7 +1305,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:810 spyder/plugins/editor/plugin.py:830
 msgid "Underline errors and warnings"
-msgstr ""
+msgstr "Підкреслювати помилки та попередження"
 
 #: spyder/plugins/completion/languageserver/confpage.py:814
 msgid "Enable complexity linting with the Mccabe package"
@@ -1457,7 +1457,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:1054
 msgid "This is an external server"
-msgstr ""
+msgstr "Це зовнішній сервер"
 
 #: spyder/plugins/completion/languageserver/confpage.py:1057
 msgid "Use stdio pipes to communicate with server"
@@ -1549,7 +1549,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/plugin.py:360
 msgid "Do you want to restart Spyder now?"
-msgstr ""
+msgstr "Перезапустити Spyder зараз?"
 
 #: spyder/plugins/completion/languageserver/plugin.py:365
 msgid "Don't show again"
@@ -1610,7 +1610,7 @@ msgstr ""
 
 #: spyder/plugins/console/plugin.py:163 spyder/plugins/history/confpage.py:31
 msgid "Set maximum line count"
-msgstr ""
+msgstr "Встановити максимальну кількість рядків"
 
 #: spyder/plugins/console/plugin.py:166
 msgid "External editor path..."
@@ -1630,7 +1630,7 @@ msgstr "Автозавершення коду"
 
 #: spyder/plugins/console/plugin.py:178
 msgid "Internal console settings"
-msgstr ""
+msgstr "Внутрішні налаштування консолі"
 
 #: spyder/plugins/console/plugin.py:229
 msgid "<h3>Spyder crashed during last session</h3>"
@@ -1638,7 +1638,7 @@ msgstr "<h3>Spyder зазнав краху під час останнього с
 
 #: spyder/plugins/console/plugin.py:232
 msgid "Please provide any additional information you might have about the crash."
-msgstr ""
+msgstr "Будь ласка, надайте додаткову інформацію про аварію, яку ви можливо маєте."
 
 #: spyder/plugins/console/plugin.py:280
 msgid "Run Python script"
@@ -1670,7 +1670,7 @@ msgstr "Довідка..."
 
 #: spyder/plugins/console/widgets/internalshell.py:278
 msgid "Shell special commands:"
-msgstr ""
+msgstr "Спеціальні команди:"
 
 #: spyder/plugins/console/widgets/internalshell.py:279
 msgid "Internal editor:"
@@ -1698,7 +1698,7 @@ msgstr "Довідка Python:"
 
 #: spyder/plugins/console/widgets/internalshell.py:285
 msgid "GUI-based editor:"
-msgstr ""
+msgstr "Редактор GUI:"
 
 #: spyder/plugins/console/widgets/internalshell.py:416
 msgid "In order to use commands like \"raw_input\" or \"input\" run Spyder with the multithread option (--multithread) from a system terminal"
@@ -1726,7 +1726,7 @@ msgstr "Журнал історії"
 
 #: spyder/plugins/console/widgets/shell.py:702
 msgid "Copy without prompts"
-msgstr ""
+msgstr "Копіювати без повідомлень"
 
 #: spyder/plugins/console/widgets/shell.py:708 spyder/plugins/console/widgets/shell.py:711
 msgid "Clear line"
@@ -1746,15 +1746,15 @@ msgstr "Показувати панель вкладок"
 
 #: spyder/plugins/editor/confpage.py:37 spyder/plugins/editor/plugin.py:820
 msgid "Show selector for classes and functions"
-msgstr ""
+msgstr "Показувати вибір для класів і функцій"
 
 #: spyder/plugins/editor/confpage.py:39 spyder/plugins/editor/plugin.py:814
 msgid "Show indent guides"
-msgstr ""
+msgstr "Показувати границі відступу"
 
 #: spyder/plugins/editor/confpage.py:41 spyder/plugins/editor/plugin.py:817
 msgid "Show code folding"
-msgstr ""
+msgstr "Показати складання коду"
 
 #: spyder/plugins/editor/confpage.py:42 spyder/plugins/history/confpage.py:35 spyder/plugins/history/plugin.py:116
 msgid "Show line numbers"
@@ -1774,7 +1774,7 @@ msgstr "Виділяти поточну комірку"
 
 #: spyder/plugins/editor/confpage.py:49 spyder/plugins/editor/plugin.py:810
 msgid "Scroll past the end"
-msgstr ""
+msgstr "Прокрутити до кінця"
 
 #: spyder/plugins/editor/confpage.py:52
 msgid "Show vertical lines at"
@@ -1794,15 +1794,15 @@ msgstr " мс"
 
 #: spyder/plugins/editor/confpage.py:108
 msgid "Automatic insertion of parentheses, braces and brackets"
-msgstr ""
+msgstr "Автоматичне вставлення дужок"
 
 #: spyder/plugins/editor/confpage.py:111
 msgid "Automatic insertion of closing quotes"
-msgstr ""
+msgstr "Автоматичне вставлення закриваючих лапок"
 
 #: spyder/plugins/editor/confpage.py:114
 msgid "Automatic insertion of colons after 'for', 'if', 'def', etc"
-msgstr ""
+msgstr "Автоматичне вставляння двокрапок після 'for', 'if', 'def', тощо"
 
 #: spyder/plugins/editor/confpage.py:117
 msgid "Automatic indentation after 'else', 'elif', etc."
