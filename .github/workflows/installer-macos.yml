@@ -18,7 +18,7 @@ jobs:
         shell: bash -l {0}
         working-directory: ./installers/macOS
     env:
-      spy_repo: ${HOME}/work/spyder/spyder
+      spy_repo: ${{ env.HOME }}/work/spyder/spyder
       spk_repo: /Users/runner/work/spyder/spyder/external-deps/spyder-kernels
       pls_repo: /Users/runner/work/spyder/spyder/external-deps/python-language-server
       build_type: ${{ matrix.build_type }}
@@ -30,22 +30,21 @@ jobs:
           fetch-depth: 0
       - run: |
           # Set build type variable
-          if {{ ${build_type} == 'Lite' }}; then
-              echo 'build lite'
-              # echo "::set-env name=BFLAG::'--lite'"
-              # echo "::set-env name=DMGNAME::'Spyder-Lite.dmg'"
+          if {{ ${build_type} == "Lite" }}; then
+              echo "build lite"
+              echo "::set-env name=BFLAG::'--lite'"
+              echo "::set-env name=DMGNAME::'Spyder-Lite.dmg'"
           else
-              echo 'build full'
-              # echo "::set-env name=BFLAG::''"
-              # echo "::set-env name=DMGNAME::'Spyder.dmg'"
+              echo "build full"
+              echo "::set-env name=BFLAG::''"
+              echo "::set-env name=DMGNAME::'Spyder.dmg'"
           fi
-          printenv | sort
-#          Set PR type variable
-#          if {{ ${EVENT_NAME} == 'release' }}; then
-#              echo "::set-env name=SUBREPOS::'-e ${spk_repo} -e ${pls_repo}'"
-#          else
-#              echo "::set-env name=SUBREPOS::''"
-#          fi
+          # Set PR type variable
+          if {{ ${event_name} == 'release' }}; then
+              echo "::set-env name=SUBREPOS::'-e ${spk_repo} -e ${pls_repo}'"
+          else
+              echo "::set-env name=SUBREPOS::''"
+          fi
 #      - name: Install Python
 #        uses: actions/setup-python@v2
 #        with:
