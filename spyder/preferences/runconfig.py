@@ -258,7 +258,6 @@ class RunConfigOptions(QWidget):
         self.firstrun_cb.setChecked(firstrun_o)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
         layout.addWidget(wdir_group)
@@ -458,6 +457,7 @@ class RunConfigDialog(BaseRunConfigDialog):
         for filename, options in configurations:
             widget = RunConfigOptions(self)
             widget.set(options)
+            widget.layout().setContentsMargins(0, 0, 0, 0)
             self.combo.addItem(filename)
             self.stack.addWidget(widget)
         self.combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
