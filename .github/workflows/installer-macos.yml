@@ -22,7 +22,6 @@ jobs:
       SPK_REPO: ${{ github.workspace }}/external-deps/spyder-kernels
       PLS_REPO: ${{ github.workspace }}/external-deps/python-language-server
       BUILD_TYPE: ${{ matrix.build_type }}
-      EVENT_NAME: ${{ github.event_name }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -32,40 +31,34 @@ jobs:
         run: |
           # Set build type flag and disk image name
           if [[ ${BUILD_TYPE} == "Lite" ]]; then
-              echo "BFLAG=--lite" >> $GITHUB_ENV
+              echo "BUILD_FLAG=--lite" >> $GITHUB_ENV
               echo "DMGNAME=Spyder-Lite.dmg" >> $GITHUB_ENV
           elif [[ ${BUILD_TYPE} == "Full" ]]; then
-              echo "BFLAG=" >> $GITHUB_ENV
+              echo "BUILD_FLAG=" >> $GITHUB_ENV
               echo "DMGNAME=Spyder.dmg" >> $GITHUB_ENV
           fi
           # Set subrepo install flags
-          if [[ ${EVENT_NAME} == 'release' ]]; then
+          if [[ ${GITHUB_EVENT_NAME} == 'release' ]]; then
               echo "SUBREPO_FLAGS='-e ${SPK_REPO} -e ${PLS_REPO}'" >> $GITHUB_ENV
-          elif [[ ${EVENT_NAME} == 'pull_request' ]]; then
-              echo "SUBREPO_FLAGS="
+          elif [[ ${GITHUB_EVENT_NAME} == 'pull_request' ]]; then
+              echo "SUBREPO_FLAGS=" >> $GITHUB_ENV
           fi
 #      - name: Install Python
 #        uses: actions/setup-python@v2
 #        with:
 #          python-version: 3.7.9
-      - name: Install Dependencies
-        run: |
-          printenv | sort
-          echo ${BUILD_TYPE}
-          echo ${SPY_REPO}
-          echo ${BFLAG}
-          echo ${DMGNAME}
-          echo ${SUBREPO_FLAGS}
-#          is there a better way to install only spyder dependents?
+#      - name: Install Dependencies
+#        run: |
+#          # is there a better way to install only spyder dependents?
 #          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt ${SUBREPO_FLAGS} -e ${SPY_REPO}
 #          pip3 uninstall -q -y spyder
 #      - name: Build Application Bundle
-#        run: python3 setup.py ${BFLAG} --dmg py2app
-#      - name: Upload Artifact
-#        uses: actions/upload-artifact@v2
-#        with:
-#          path: installers/macOS/dist/env.DMGNAME
-#          name: env.DMGNAME
+#        run: python3 setup.py ${BUILD_FLAG} --dmg py2app
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          path: installers/macOS/dist/${{ env.DMGNAME }}
+          name: ${{ env.DMGNAME }}
 #      - name: Get Release
 #        if: ${{github.event_name == 'release'}}
 #        id: get_release
