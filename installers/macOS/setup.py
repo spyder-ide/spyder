@@ -123,10 +123,10 @@ PACKAGES = ['alabaster', 'astroid', 'ipykernel', 'IPython', 'jedi', 'jinja2',
 
 if args.make_lite:
     INCLUDES = []
-    EXCLUDES = ['pip', 'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy']
+    EXCLUDES = ['numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy']
 else:
     INCLUDES = ['numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy']
-    EXCLUDES = ['pip']
+    EXCLUDES = []
 
 EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
 
