@@ -223,7 +223,7 @@ def get_common_path(pathlist):
                 return osp.abspath(common)
 
 
-def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False):
+def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=True):
     """
     Add a PYTHONPATH entry to a list of enviroment variables.
 
