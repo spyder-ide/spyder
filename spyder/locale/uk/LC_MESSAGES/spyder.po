@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-10-20 18:43\n"
+"PO-Revision-Date: 2020-10-20 18:49\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -1181,15 +1181,15 @@ msgstr "Адреса сервера"
 
 #: spyder/plugins/completion/languageserver/confpage.py:261 spyder/plugins/completion/languageserver/confpage.py:784 spyder/plugins/completion/languageserver/confpage.py:1164
 msgid "Advanced"
-msgstr ""
+msgstr "Розширені"
 
 #: spyder/plugins/completion/languageserver/confpage.py:314
 msgid "Hostname must be valid"
-msgstr ""
+msgstr "Ім'я хоста має бути дійсним"
 
 #: spyder/plugins/completion/languageserver/confpage.py:317
 msgid "Hostname or IP address of the host on which the server is running. Must be non empty."
-msgstr ""
+msgstr "Ім'я хоста або IP-адреса хоста, на якому працює сервер, повинне бути не порожнім."
 
 #: spyder/plugins/completion/languageserver/confpage.py:321
 msgid "Hostname is valid"
@@ -1197,7 +1197,7 @@ msgstr "Ім'я хоста є дійсним"
 
 #: spyder/plugins/completion/languageserver/confpage.py:329
 msgid "Command used to start the LSP server locally. Must be non empty"
-msgstr ""
+msgstr "Команда використовується для запуску LSP сервера локально. Повинна бути не порожньою"
 
 #: spyder/plugins/completion/languageserver/confpage.py:336
 msgid "Program was not found on your system"
@@ -1209,7 +1209,7 @@ msgstr "Програму знайдено у вашій системі"
 
 #: spyder/plugins/completion/languageserver/confpage.py:551
 msgid "Address"
-msgstr ""
+msgstr "Адреса"
 
 #: spyder/plugins/completion/languageserver/confpage.py:553
 msgid "Command to execute"
@@ -1217,7 +1217,7 @@ msgstr "Команда для виконання"
 
 #: spyder/plugins/completion/languageserver/confpage.py:699
 msgid "Completion and linting"
-msgstr ""
+msgstr "Завершення та підкладка"
 
 #: spyder/plugins/completion/languageserver/confpage.py:708
 msgid "Enable code completion"
@@ -1229,7 +1229,7 @@ msgstr "Показувати деталі завершення"
 
 #: spyder/plugins/completion/languageserver/confpage.py:715
 msgid "Show completion detail after keyboard idle (ms):"
-msgstr ""
+msgstr "Показувати деталі завершення після простою клавіатури (мс):"
 
 #: spyder/plugins/completion/languageserver/confpage.py:717
 msgid "Default is 500"
@@ -1237,11 +1237,11 @@ msgstr "Типово 500"
 
 #: spyder/plugins/completion/languageserver/confpage.py:719
 msgid "Show completions on the fly"
-msgstr ""
+msgstr "Показувати завершення на льоту"
 
 #: spyder/plugins/completion/languageserver/confpage.py:723
 msgid "Show automatic completions after characters entered:"
-msgstr ""
+msgstr "Показувати автоматичні завершення після введених символів:"
 
 #: spyder/plugins/completion/languageserver/confpage.py:725
 msgid "Default is 3"
