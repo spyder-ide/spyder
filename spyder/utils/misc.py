@@ -246,13 +246,12 @@ def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False):
     pypath = "PYTHONPATH"
     pathstr = os.pathsep.join(pathlist)
     if os.environ.get(pypath) and not drop_env:
-        old_pypath = os.environ[pypath]
         for index, var in enumerate(env[:]):
             if var.startswith(pypath + '='):
                 env[index] = var.replace(
                     pypath + '=',
-                    pypath + '=' + pathstr + os.pathsep)
-        env.append('OLD_PYTHONPATH=' + old_pypath)
+                    pypath + '=' + pathstr + os.pathsep
+                )
     else:
         env.append(pypath + '=' + pathstr)
 
