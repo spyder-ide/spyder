@@ -18,9 +18,11 @@ jobs:
         shell: bash -l {0}
         working-directory: ./installers/macOS
     env:
-      spy_repo: /Users/runner/work/spyder/spyder
+      spy_repo: ${HOME}/work/spyder/spyder
       spk_repo: /Users/runner/work/spyder/spyder/external-deps/spyder-kernels
       pls_repo: /Users/runner/work/spyder/spyder/external-deps/python-language-server
+      build_type: ${{ matrix.build_type }}
+      event_name: ${{ github.event_name }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
