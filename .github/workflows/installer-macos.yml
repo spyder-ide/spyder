@@ -50,6 +50,7 @@ jobs:
 #          python-version: 3.7.9
       - name: Install Dependencies
         run: |
+          printenv | sort
           echo ${BUILD_TYPE}
           echo ${SPY_REPO}
           echo ${BFLAG}
