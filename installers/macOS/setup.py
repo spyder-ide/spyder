@@ -67,6 +67,7 @@ import pkg_resources
 from logging import getLogger, StreamHandler, Formatter
 from setuptools import setup
 from dmgbuild import build_dmg
+from dmgbuild.core import DMGError
 
 # parse additional arguments for setup.py
 parser = argparse.ArgumentParser()
@@ -187,8 +188,15 @@ settings = {
 
 if args.make_dmg:
     logger.info('Building dmg file...')
-    build_dmg(dmgfile, volume_name, settings_file=settings_file,
-              settings=settings)
+    try:
+        build_dmg(dmgfile, volume_name, settings_file=settings_file,
+                  settings=settings, detach_retries=30)
+    except DMGError as exc:
+        if exc.args[0] == 'Unable to detach device cleanly':
+            # don't raise this error since the dmg is forced to detach
+            logger.warning(exc.args[0])
+        else:
+            raise exc
 else:
     logger.info('Skipping dmg file...')
 
