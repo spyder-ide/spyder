@@ -38,9 +38,9 @@ jobs:
               DMGNAME=Spyder.dmg
           fi          
           # Set subrepo install flags
-          if [[ ${GITHUB_EVENT_NAME} == 'release' ]]; then
+          if [[ ${GITHUB_EVENT_NAME} == 'pull_request' ]]; then
               SUBREPO_FLAGS=('-e ${SPK_REPO} -e ${PLS_REPO}')
-          elif [[ ${GITHUB_EVENT_NAME} == 'pull_request' ]]; then
+          elif [[ ${GITHUB_EVENT_NAME} == 'release' ]]; then
               SUBREPO_FLAGS=()
           fi
           echo "BUILD_FLAG=${BUILD_FLAG}" >> $GITHUB_ENV
