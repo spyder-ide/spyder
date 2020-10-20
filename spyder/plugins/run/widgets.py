@@ -260,7 +260,6 @@ class RunConfigOptions(QWidget):
         self.firstrun_cb.setChecked(firstrun_o)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
         layout.addWidget(wdir_group)
@@ -406,6 +405,7 @@ class RunConfigOneDialog(BaseRunConfigDialog):
         scrollarea = QScrollArea(self)
         scrollarea.setWidget(self.runconfigoptions)
         scrollarea.setMinimumWidth(560)
+        scrollarea.setWidgetResizable(True)
         self.add_widgets(scrollarea)
         self.add_button_box(QDialogButtonBox.Cancel)
         self.setWindowTitle(_("Run settings for %s") % osp.basename(fname))
@@ -460,6 +460,7 @@ class RunConfigDialog(BaseRunConfigDialog):
         for filename, options in configurations:
             widget = RunConfigOptions(self)
             widget.set(options)
+            widget.layout().setContentsMargins(0, 0, 0, 0)
             self.combo.addItem(filename)
             self.stack.addWidget(widget)
         self.combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
