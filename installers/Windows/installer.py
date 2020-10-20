@@ -34,16 +34,15 @@ import tempfile
 import yarg
 
 
-# Packages to remove from the requirements for example pip. Need also for
-# packages with a different import name than the package name i.e
-# 'python-slugify' v.s 'slugify' (in such case change too the
+# Packages to remove from the requirements for example pip. Needed also for
+# packages with a different import name than the package name, e.g.
+# 'python-slugify' vs 'slugify' (in such case change too the
 # SKIP_PACKAGES constant)
-
 UNWANTED_PACKAGES = ['pip', 'python-slugify']
 
 # Packages to skip checking for wheels and instead add them directly in the
 # 'packages' section. Needed for example if a package has different import name
-# than the package name i.e 'python-slugify' v.s 'slugify'
+# than the package name, e.g. 'python-slugify' vs 'slugify'
 
 SKIP_PACKAGES = ['bcrypt', 'slugify']
 
