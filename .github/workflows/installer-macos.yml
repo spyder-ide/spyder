@@ -18,32 +18,31 @@ jobs:
         shell: bash -l {0}
         working-directory: ./installers/macOS
     env:
-      spy_repo: ${{ github.workspace }}
-      spk_repo: ${{ github.workspace }}/external-deps/spyder-kernels
-      pls_repo: ${{ github.workspace }}/external-deps/python-language-server
-      build_type: ${{ matrix.build_type }}
-      event_name: ${{ github.event_name }}
+      SPY_REPO: ${{ github.workspace }}
+      SPK_REPO: ${{ github.workspace }}/external-deps/spyder-kernels
+      PLS_REPO: ${{ github.workspace }}/external-deps/python-language-server
+      BUILD_TYPE: ${{ matrix.build_type }}
+      EVENT_NAME: ${{ github.event_name }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - run: |
-          # Set build type variable
-          if [[ ${build_type} == "Lite" ]]; then
-              echo "build lite"
-              echo "::set-env name=BFLAG::'--lite'"
-              echo "::set-env name=DMGNAME::'Spyder-Lite.dmg'"
-          elif [[ ${build_type} == "Full" ]]; then
-              echo "build full"
-              echo "::set-env name=BFLAG::''"
-              echo "::set-env name=DMGNAME::'Spyder.dmg'"
+      - name: Set Build Variables
+        run: |
+          # Set build type flag and disk image name
+          if [[ ${BUILD_TYPE} == "Lite" ]]; then
+              echo "BFLAG=--lite" >> $GITHUB_ENV
+              echo "DMGNAME=Spyder-Lite.dmg" >> $GITHUB_ENV
+          elif [[ ${BUILD_TYPE} == "Full" ]]; then
+              echo "BFLAG=" >> $GITHUB_ENV
+              echo "DMGNAME=Spyder.dmg" >> $GITHUB_ENV
           fi
-          # Set PR type variable
-          if [[ ${event_name} == 'release' ]]; then
-              echo "::set-env name=SUBREPOS::'-e ${spk_repo} -e ${pls_repo}'"
-          else
-              echo "::set-env name=SUBREPOS::''"
+          # Set subrepo install flags
+          if [[ ${EVENT_NAME} == 'release' ]]; then
+              echo "SUBREPO_FLAGS='-e ${SPK_REPO} -e ${PLS_REPO}'" >> $GITHUB_ENV
+          elif [[ ${EVENT_NAME} == 'pull_request' ]]; then
+              echo "SUBREPO_FLAGS="
           fi
 #      - name: Install Python
 #        uses: actions/setup-python@v2
@@ -51,12 +50,13 @@ jobs:
 #          python-version: 3.7.9
       - name: Install Dependencies
         run: |
-          echo ${build_type}
-          echo ${spy_repo}
+          echo ${BUILD_TYPE}
+          echo ${SPY_REPO}
           echo ${BFLAG}
           echo ${DMGNAME}
+          echo ${SUBREPO_FLAGS}
 #          is there a better way to install only spyder dependents?
-#          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt ${SUBREPOS} -e ${spy_repo}
+#          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt ${SUBREPO_FLAGS} -e ${SPY_REPO}
 #          pip3 uninstall -q -y spyder
 #      - name: Build Application Bundle
 #        run: python3 setup.py ${BFLAG} --dmg py2app
