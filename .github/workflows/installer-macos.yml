@@ -18,9 +18,9 @@ jobs:
         shell: bash -l {0}
         working-directory: ./installers/macOS
     env:
-      spy_repo: ~/work/spyder/spyder
-      spk_repo: /Users/runner/work/spyder/spyder/external-deps/spyder-kernels
-      pls_repo: /Users/runner/work/spyder/spyder/external-deps/python-language-server
+      spy_repo: ${{ github.workspace }}
+      spk_repo: ${{ github.workspace }}/external-deps/spyder-kernels
+      pls_repo: ${{ github.workspace }}/external-deps/python-language-server
       build_type: ${{ matrix.build_type }}
       event_name: ${{ github.event_name }}
     steps:
@@ -30,17 +30,17 @@ jobs:
           fetch-depth: 0
       - run: |
           # Set build type variable
-          if {{ ${build_type} == "Lite" }}; then
+          if [[ ${build_type} == "Lite" ]]; then
               echo "build lite"
               echo "::set-env name=BFLAG::'--lite'"
               echo "::set-env name=DMGNAME::'Spyder-Lite.dmg'"
-          else
+          elif [[ ${build_type} == "Full" ]]
               echo "build full"
               echo "::set-env name=BFLAG::''"
               echo "::set-env name=DMGNAME::'Spyder.dmg'"
           fi
           # Set PR type variable
-          if {{ ${event_name} == 'release' }}; then
+          if [[ ${event_name} == 'release' ]]; then
               echo "::set-env name=SUBREPOS::'-e ${spk_repo} -e ${pls_repo}'"
           else
               echo "::set-env name=SUBREPOS::''"
