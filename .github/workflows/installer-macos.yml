@@ -34,7 +34,7 @@ jobs:
               echo "build lite"
               echo "::set-env name=BFLAG::'--lite'"
               echo "::set-env name=DMGNAME::'Spyder-Lite.dmg'"
-          elif [[ ${build_type} == "Full" ]]
+          elif [[ ${build_type} == "Full" ]]; then
               echo "build full"
               echo "::set-env name=BFLAG::''"
               echo "::set-env name=DMGNAME::'Spyder.dmg'"
