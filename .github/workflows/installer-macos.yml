@@ -10,6 +10,9 @@ jobs:
   build:
     name: macOS App Bundle
     runs-on: macos-latest
+    strategy:
+      matrix:
+        build_type: ['Lite', 'Full']
     defaults:
       run:
         shell: bash -l {0}
@@ -19,6 +22,21 @@ jobs:
       spk_repo: /Users/runner/work/spyder/spyder/external-deps/spyder-kernels
       pls_repo: /Users/runner/work/spyder/spyder/external-deps/python-language-server
     steps:
+      - run: |
+          # Set build type variable
+          if {{ ${build_type} == 'Lite' }}; then
+              echo "::set-env name=BFLAG::'--lite'"
+              echo "::set-env name=DMGNAME::'Spyder-Lite.dmg'"
+          else
+              echo "::set-env name=BFLAG::''"
+              echo "::set-env name=DMGNAME::'Spyder.dmg'"
+          fi
+          # Set PR type variable
+          if {{ ${EVENT_NAME} == 'release' }}; then
+              echo "::set-env name=SUBREPOS::'-e ${spk_repo} -e ${pls_repo}'"
+          else
+              echo "::set-env name=SUBREPOS::''"
+          fi
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
@@ -27,54 +45,31 @@ jobs:
 #        uses: actions/setup-python@v2
 #        with:
 #          python-version: 3.7.9
-      - name: Install Dependencies -- Release
-        if: ${{github.event_name == 'release'}}
+      - name: Install Dependencies
         run: |
           # is there a better way to install only spyder dependents?
-          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt -e ${spy_repo}
+          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt ${SUBREPOS} -e ${spy_repo}
           pip3 uninstall -q -y spyder
-      - name: Install Dependencies -- PR
-        if: ${{github.event_name == 'pull_request'}}
-        run: |
-          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt -e ${spk_repo} -e ${pls_repo} -e ${spy_repo}
-          pip3 uninstall -q -y spyder
-      - name: Build Application Bundle -- Lite
-        run: python3 setup.py --lite --dmg py2app
-      - name: Build Application Bundle -- Full
-        run: python3 setup.py --dmg py2app
-      - name: Upload Artifact -- Lite
+      - name: Build Application Bundle
+        run: python3 setup.py ${BFLAG} --dmg py2app
+      - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          path: installers/macOS/dist/Spyder-Lite.dmg
-          name: Spyder-Lite.dmg
-      - name: Upload Artifact -- Full
-        uses: actions/upload-artifact@v2
-        with:
-          path: installers/macOS/dist/Spyder.dmg
-          name: Spyder.dmg
+          path: installers/macOS/dist/env.DMGNAME
+          name: env.DMGNAME
       - name: Get Release
         if: ${{github.event_name == 'release'}}
         id: get_release
         env:
           GITHUB_TOKEN: ${{ github.token }}
         uses: bruceadams/get-release@v1.2.0
-      - name: Upload Release Asset -- Lite
+      - name: Upload Release Asset
         if: ${{github.event_name == 'release'}}
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: installers/macOS/dist/Spyder-Lite.dmg
-          asset_name: Spyder-Lite.dmg
-          asset_content_type: application/x-apple-diskimage
-      - name: Upload Release Asset -- Full
-        if: ${{github.event_name == 'release'}}
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: installers/macOS/dist/Spyder.dmg
-          asset_name: Spyder.dmg
+          asset_path: installers/macOS/dist/env.DMGNAME
+          asset_name: env.DMGNAME
           asset_content_type: application/x-apple-diskimage
