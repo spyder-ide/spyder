@@ -25,11 +25,13 @@ jobs:
       - run: |
           # Set build type variable
           if {{ ${build_type} == 'Lite' }}; then
-              echo "::set-env name=BFLAG::'--lite'"
-              echo "::set-env name=DMGNAME::'Spyder-Lite.dmg'"
+            echo 'build lite'
+#              echo "::set-env name=BFLAG::'--lite'"
+#              echo "::set-env name=DMGNAME::'Spyder-Lite.dmg'"
           else
-              echo "::set-env name=BFLAG::''"
-              echo "::set-env name=DMGNAME::'Spyder.dmg'"
+            echo 'build full'
+#              echo "::set-env name=BFLAG::''"
+#              echo "::set-env name=DMGNAME::'Spyder.dmg'"
           fi
 #          Set PR type variable
 #          if {{ ${EVENT_NAME} == 'release' }}; then
