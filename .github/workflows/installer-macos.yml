@@ -14,6 +14,10 @@ jobs:
       run:
         shell: bash -l {0}
         working-directory: ./installers/macOS
+    env:
+      spy_repo: /Users/runner/work/spyder/spyder
+      spk_repo: /Users/runner/work/spyder/spyder/external-deps/spyder-kernels
+      pls_repo: /Users/runner/work/spyder/spyder/external-deps/python-language-server
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -23,10 +27,16 @@ jobs:
 #        uses: actions/setup-python@v2
 #        with:
 #          python-version: 3.7.9
-      - name: Install Dependencies
+      - name: Install Dependencies -- Release
+        if: ${{github.event_name == 'release'}}
         run: |
           # is there a better way to install only spyder dependents?
-          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt -e ../../
+          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt -e ${spy_repo}
+          pip3 uninstall -q -y spyder
+      - name: Install Dependencies -- PR
+        if: ${{github.event_name == 'pull_request'}}
+        run: |
+          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt -e ${spk_repo} -e ${pls_repo} -e ${spy_repo}
           pip3 uninstall -q -y spyder
       - name: Build Application Bundle -- Lite
         run: python3 setup.py --lite --dmg py2app
