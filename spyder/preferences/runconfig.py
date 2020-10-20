@@ -403,6 +403,7 @@ class RunConfigOneDialog(BaseRunConfigDialog):
         scrollarea = QScrollArea(self)
         scrollarea.setWidget(self.runconfigoptions)
         scrollarea.setMinimumWidth(560)
+        scrollarea.setWidgetResizable(True)
         self.add_widgets(scrollarea)
         self.add_button_box(QDialogButtonBox.Cancel)
         self.setWindowTitle(_("Run settings for %s") % osp.basename(fname))
