@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-10-20 18:59\n"
+"PO-Revision-Date: 2020-10-20 19:14\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -1806,11 +1806,11 @@ msgstr "Автоматичне вставляння двокрапок післ�
 
 #: spyder/plugins/editor/confpage.py:117
 msgid "Automatic indentation after 'else', 'elif', etc."
-msgstr ""
+msgstr "Автоматичний відступ після 'else', 'elif' тощо."
 
 #: spyder/plugins/editor/confpage.py:120
 msgid "Tab always indent"
-msgstr ""
+msgstr "Завжди табуляція відступу"
 
 #: spyder/plugins/editor/confpage.py:122
 msgid "If enabled, pressing Tab will always indent,\n"
@@ -1818,11 +1818,15 @@ msgid "If enabled, pressing Tab will always indent,\n"
 "of a line (when this option is enabled, code\n"
 "completion may be triggered using the alternate\n"
 "shortcut: Ctrl+Space)"
-msgstr ""
+msgstr "Якщо увімкнено, натискання клавіші Tab завжди вставлятиме відступ,\n"
+"навіть якщо курсор знаходиться не на початку\n"
+"рядка (коли ця опція включена, завершення\n"
+"коду може викликатись використанням альтернативної\n"
+"комбінації клавіш: Ctrl+Space)"
 
 #: spyder/plugins/editor/confpage.py:128
 msgid "Automatically strip trailing spaces on changed lines"
-msgstr ""
+msgstr "Автоматично вилучати кінцеві пробіли на змінених рядках"
 
 #: spyder/plugins/editor/confpage.py:130
 msgid "If enabled, modified lines of code (excluding strings)\n"
@@ -2550,7 +2554,7 @@ msgstr ""
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3702
 msgid "Clear all ouput"
-msgstr ""
+msgstr "Очистити все виведення"
 
 #: spyder/plugins/editor/widgets/codeeditor.py:3705 spyder/plugins/explorer/widgets/explorer.py:468
 msgid "Convert to Python script"
@@ -3156,7 +3160,7 @@ msgstr "Пов'язані додатки:"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:306
 msgid "Set default"
-msgstr ""
+msgstr "Встановити за замовчуванням"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:405
 msgid "Application not found!"
@@ -3204,11 +3208,11 @@ msgstr ""
 
 #: spyder/plugins/findinfiles/widgets.py:276 spyder/plugins/findinfiles/widgets.py:1000
 msgid "String not found"
-msgstr ""
+msgstr "Рядок не знайдено"
 
 #: spyder/plugins/findinfiles/widgets.py:278
 msgid "matches in"
-msgstr ""
+msgstr "збіги в"
 
 #: spyder/plugins/findinfiles/widgets.py:279
 msgid "file"
