@@ -128,7 +128,7 @@ class RunConfigPage(PluginConfigPage):
             ALWAYS_OPEN_FIRST_RUN_OPTION,
             False)
 
-        vlayout = QVBoxLayout()
+        vlayout = QVBoxLayout(self)
         vlayout.addWidget(about_label)
         vlayout.addSpacing(10)
         vlayout.addWidget(interpreter_group)
@@ -137,7 +137,6 @@ class RunConfigPage(PluginConfigPage):
         vlayout.addWidget(external_group)
         vlayout.addWidget(firstrun_cb)
         vlayout.addStretch(1)
-        self.setLayout(vlayout)
 
     def apply_settings(self, options):
         pass
