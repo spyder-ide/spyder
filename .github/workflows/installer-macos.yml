@@ -31,47 +31,49 @@ jobs:
         run: |
           # Set build type flag and disk image name
           if [[ ${BUILD_TYPE} == "Lite" ]]; then
-              echo "BUILD_FLAG=--lite" >> $GITHUB_ENV
-              echo "DMGNAME=Spyder-Lite.dmg" >> $GITHUB_ENV
+              BUILD_FLAG=--lite
+              DMGNAME=Spyder-Lite.dmg
           elif [[ ${BUILD_TYPE} == "Full" ]]; then
-              echo "BUILD_FLAG=" >> $GITHUB_ENV
-              echo "DMGNAME=Spyder.dmg" >> $GITHUB_ENV
-          fi
+              BUILD_FLAG=
+              DMGNAME=Spyder.dmg
+          fi          
           # Set subrepo install flags
           if [[ ${GITHUB_EVENT_NAME} == 'release' ]]; then
-              echo "SUBREPO_FLAGS='-e ${SPK_REPO} -e ${PLS_REPO}'" >> $GITHUB_ENV
+              SUBREPO_FLAGS=('-e ${SPK_REPO} -e ${PLS_REPO}')
           elif [[ ${GITHUB_EVENT_NAME} == 'pull_request' ]]; then
-              echo "SUBREPO_FLAGS=" >> $GITHUB_ENV
+              SUBREPO_FLAGS=()
           fi
+          echo "BUILD_FLAG=${BUILD_FLAG}" >> $GITHUB_ENV
+          echo "DMGNAME=${DMGNAME}" >> $GITHUB_ENV
+          echo "DMGPATH=installers/macOS/dist/${DMGNAME}" >> $GITHUB_ENV
 #      - name: Install Python
 #        uses: actions/setup-python@v2
 #        with:
 #          python-version: 3.7.9
-#      - name: Install Dependencies
-#        run: |
-#          # is there a better way to install only spyder dependents?
-#          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt ${SUBREPO_FLAGS} -e ${SPY_REPO}
-#          pip3 uninstall -q -y spyder
-#      - name: Build Application Bundle
-#        run: python3 setup.py ${BUILD_FLAG} --dmg py2app
+      - name: Install Dependencies
+        run: |
+          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt "${SUBREPO_FLAGS[@]}" -e ${SPY_REPO}
+          pip3 uninstall -q -y spyder
+      - name: Build Application Bundle
+        run: python3 setup.py ${BUILD_FLAG} --dmg py2app
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          path: installers/macOS/dist/${{ env.DMGNAME }}
+          path: ${{ env.DMGPATH }}
           name: ${{ env.DMGNAME }}
-#      - name: Get Release
-#        if: ${{github.event_name == 'release'}}
-#        id: get_release
-#        env:
-#          GITHUB_TOKEN: ${{ github.token }}
-#        uses: bruceadams/get-release@v1.2.0
-#      - name: Upload Release Asset
-#        if: ${{github.event_name == 'release'}}
-#        uses: actions/upload-release-asset@v1
-#        env:
-#          GITHUB_TOKEN: ${{ github.token }}
-#        with:
-#          upload_url: ${{ steps.get_release.outputs.upload_url }}
-#          asset_path: installers/macOS/dist/env.DMGNAME
-#          asset_name: env.DMGNAME
-#          asset_content_type: application/x-apple-diskimage
+      - name: Get Release
+        if: ${{github.event_name == 'release'}}
+        id: get_release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        uses: bruceadams/get-release@v1.2.0
+      - name: Upload Release Asset
+        if: ${{github.event_name == 'release'}}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ${{ env.DMGPATH }}
+          asset_name: ${{ env.DMGNAME }}
+          asset_content_type: application/x-apple-diskimage
