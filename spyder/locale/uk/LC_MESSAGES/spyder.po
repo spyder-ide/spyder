@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-03 04:46\n"
+"PO-Revision-Date: 2020-10-20 18:43\n"
 "Last-Translator: \n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -435,7 +435,7 @@ msgstr ""
 
 #: spyder/app/mainwindow.py:1453
 msgid "Restart now"
-msgstr ""
+msgstr "Перезапустити зараз"
 
 #: spyder/app/mainwindow.py:1454 spyder/plugins/completion/kite/widgets/install.py:84 spyder/plugins/completion/kite/widgets/install.py:149
 msgid "Dismiss"
@@ -651,7 +651,7 @@ msgstr ""
 
 #: spyder/app/tour.py:264
 msgid "Welcome to Spyder introduction tour"
-msgstr ""
+msgstr "Ласкаво просимо до вступного туру по Spyder"
 
 #: spyder/app/tour.py:265
 msgid "Spyder is an interactive development environment based on bla"
@@ -767,11 +767,11 @@ msgstr ""
 
 #: spyder/config/utils.py:48
 msgid "Configuration files"
-msgstr ""
+msgstr "Файл налаштувань"
 
 #: spyder/config/utils.py:50
 msgid "Markdown files"
-msgstr ""
+msgstr "Файли Markdown"
 
 #: spyder/config/utils.py:54 spyder/plugins/explorer/widgets/explorer.py:1047
 msgid "All files"
@@ -783,7 +783,7 @@ msgstr "Підтримувані текстові файли"
 
 #: spyder/dependencies.py:82
 msgid "Notify macOS that Spyder can open Python files"
-msgstr ""
+msgstr "Сповістити macOS, що Spyder може відкривати файли Python"
 
 #: spyder/dependencies.py:87
 msgid "Atomic file writes in the Editor"
@@ -827,7 +827,7 @@ msgstr ""
 
 #: spyder/dependencies.py:129
 msgid "Connect to remote kernels through SSH"
-msgstr ""
+msgstr "Підключення до віддалених ядер через SSH"
 
 #: spyder/dependencies.py:134
 msgid "Python parser that supports error recovery and round-trip parsing"
@@ -851,7 +851,7 @@ msgstr ""
 
 #: spyder/dependencies.py:155
 msgid "Static code analysis"
-msgstr ""
+msgstr "Статичний аналіз коду"
 
 #: spyder/dependencies.py:159
 msgid "Code completion and linting for the Editor"
@@ -923,23 +923,23 @@ msgstr ""
 
 #: spyder/plugins/base.py:168 spyder/plugins/editor/widgets/editor.py:870 spyder/plugins/history/widgets.py:60 spyder/plugins/ipythonconsole/widgets/client.py:481 spyder/plugins/plots/widgets/figurebrowser.py:290 spyder/plugins/variableexplorer/widgets/namespacebrowser.py:346 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:204
 msgid "Options"
-msgstr ""
+msgstr "Параметри"
 
 #: spyder/plugins/base.py:192
 msgid "Dock"
-msgstr ""
+msgstr "Закріпити"
 
 #: spyder/plugins/base.py:194
 msgid "Dock the pane"
-msgstr ""
+msgstr "Закріпити панель"
 
 #: spyder/plugins/base.py:199
 msgid "Undock"
-msgstr ""
+msgstr "Відкріпити"
 
 #: spyder/plugins/base.py:201
 msgid "Undock the pane"
-msgstr ""
+msgstr "Відкріпити панель"
 
 #: spyder/plugins/base.py:206 spyder/plugins/variableexplorer/widgets/arrayeditor.py:805 spyder/plugins/variableexplorer/widgets/collectionseditor.py:1343 spyder/plugins/variableexplorer/widgets/dataframeeditor.py:997 spyder/plugins/variableexplorer/widgets/objectexplorer/objectexplorer.py:314 spyder/plugins/variableexplorer/widgets/texteditor.py:73 spyder/widgets/reporterror.py:219
 msgid "Close"
