@@ -18,7 +18,7 @@ jobs:
         shell: bash -l {0}
         working-directory: ./installers/macOS
     env:
-      spy_repo: ${{HOME}}/work/spyder/spyder
+      spy_repo: ~/work/spyder/spyder
       spk_repo: /Users/runner/work/spyder/spyder/external-deps/spyder-kernels
       pls_repo: /Users/runner/work/spyder/spyder/external-deps/python-language-server
       build_type: ${{ matrix.build_type }}
