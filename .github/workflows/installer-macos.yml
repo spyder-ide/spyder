@@ -22,6 +22,10 @@ jobs:
       spk_repo: /Users/runner/work/spyder/spyder/external-deps/spyder-kernels
       pls_repo: /Users/runner/work/spyder/spyder/external-deps/python-language-server
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - run: |
           # Set build type variable
           if {{ ${build_type} == 'Lite' }}; then
@@ -39,10 +43,6 @@ jobs:
 #          else
 #              echo "::set-env name=SUBREPOS::''"
 #          fi
-      - name: Checkout Code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
 #      - name: Install Python
 #        uses: actions/setup-python@v2
 #        with:
