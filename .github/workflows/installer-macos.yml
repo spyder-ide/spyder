@@ -31,12 +31,12 @@ jobs:
               echo "::set-env name=BFLAG::''"
               echo "::set-env name=DMGNAME::'Spyder.dmg'"
           fi
-          # Set PR type variable
-          if {{ ${EVENT_NAME} == 'release' }}; then
-              echo "::set-env name=SUBREPOS::'-e ${spk_repo} -e ${pls_repo}'"
-          else
-              echo "::set-env name=SUBREPOS::''"
-          fi
+#          Set PR type variable
+#          if {{ ${EVENT_NAME} == 'release' }}; then
+#              echo "::set-env name=SUBREPOS::'-e ${spk_repo} -e ${pls_repo}'"
+#          else
+#              echo "::set-env name=SUBREPOS::''"
+#          fi
       - name: Checkout Code
         uses: actions/checkout@v2
         with:
@@ -47,29 +47,33 @@ jobs:
 #          python-version: 3.7.9
       - name: Install Dependencies
         run: |
-          # is there a better way to install only spyder dependents?
-          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt ${SUBREPOS} -e ${spy_repo}
-          pip3 uninstall -q -y spyder
-      - name: Build Application Bundle
-        run: python3 setup.py ${BFLAG} --dmg py2app
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          path: installers/macOS/dist/env.DMGNAME
-          name: env.DMGNAME
-      - name: Get Release
-        if: ${{github.event_name == 'release'}}
-        id: get_release
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        uses: bruceadams/get-release@v1.2.0
-      - name: Upload Release Asset
-        if: ${{github.event_name == 'release'}}
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: installers/macOS/dist/env.DMGNAME
-          asset_name: env.DMGNAME
-          asset_content_type: application/x-apple-diskimage
+          echo ${build_type}
+          echo ${spy_repo}
+          echo ${BFLAG}
+          echo ${DMGNAME}
+#          is there a better way to install only spyder dependents?
+#          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt ${SUBREPOS} -e ${spy_repo}
+#          pip3 uninstall -q -y spyder
+#      - name: Build Application Bundle
+#        run: python3 setup.py ${BFLAG} --dmg py2app
+#      - name: Upload Artifact
+#        uses: actions/upload-artifact@v2
+#        with:
+#          path: installers/macOS/dist/env.DMGNAME
+#          name: env.DMGNAME
+#      - name: Get Release
+#        if: ${{github.event_name == 'release'}}
+#        id: get_release
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#        uses: bruceadams/get-release@v1.2.0
+#      - name: Upload Release Asset
+#        if: ${{github.event_name == 'release'}}
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#        with:
+#          upload_url: ${{ steps.get_release.outputs.upload_url }}
+#          asset_path: installers/macOS/dist/env.DMGNAME
+#          asset_name: env.DMGNAME
+#          asset_content_type: application/x-apple-diskimage
