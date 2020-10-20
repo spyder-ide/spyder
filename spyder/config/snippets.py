@@ -35,9 +35,8 @@ PYTHON_SNIPPETS = {
         'inheritance': {
             'text': dedent("""
                 class ${1:ClassName}($2):
-                    def __init__(self, ${2:*args}, ${3:**kwargs}):
-                        super().__init__(${4:*args}, ${5:**kwargs})
-                        $0
+                    def __init__(self, ${3:*args}, ${4:**kwargs}):
+                        super().__init__(${5:*args}, ${6:**kwargs})$0
             """).strip(),
             'remove_trigger': False
         }
