@@ -218,10 +218,12 @@ class Snippet:
     def __str__(self):
         return self.__repr__()
 
-    def update(self, trigger_text, description_text, snippet_text):
+    def update(self, trigger_text, description_text, snippet_text,
+               remove_trigger):
         self.trigger_text = trigger_text
-        self.description_text = description_text
+        self.description = description_text
         self.snippet_text = snippet_text
+        self.remove_trigger = remove_trigger
 
     def load(self):
         if self.language is not None and self.trigger_text != '':
@@ -242,10 +244,11 @@ class Snippet:
             if (self.initial_trigger_text != self.trigger_text or
                     self.initial_description != self.description):
                 # Delete previous entry
-                trigger = current_state[self.initial_trigger_text]
-                trigger.pop(self.initial_description)
-                if len(trigger) == 0:
-                    current_state.pop(self.initial_trigger_text)
+                if self.initial_trigger_text in current_state:
+                    trigger = current_state[self.initial_trigger_text]
+                    trigger.pop(self.initial_description)
+                    if len(trigger) == 0:
+                        current_state.pop(self.initial_trigger_text)
             trigger_info = current_state.get(self.trigger_text, {})
             trigger_info[self.description] = new_state
             current_state[self.trigger_text] = trigger_info
@@ -1014,21 +1017,27 @@ class SnippetEditor(QDialog):
         else:
             self.trigger_text_cb.setStyleSheet(self.VALID_CB_CSS)
 
-        if self.trigger_text != trigger_text:
-            if description_text in self.descriptions[trigger_text]:
-                invalid = True
-                self.description_input.setStyleSheet(self.INVALID_LINE_CSS)
-            else:
-                self.description_input.setStyleSheet(self.VALID_LINE_CSS)
-        else:
-            if description_text != self.description:
+        if trigger_text in self.descriptions:
+            if self.trigger_text != trigger_text:
                 if description_text in self.descriptions[trigger_text]:
                     invalid = True
-                    self.description_input.setStyleSheet(self.INVALID_LINE_CSS)
+                    self.description_input.setStyleSheet(
+                        self.INVALID_LINE_CSS)
                 else:
-                    self.description_input.setStyleSheet(self.VALID_LINE_CSS)
+                    self.description_input.setStyleSheet(
+                        self.VALID_LINE_CSS)
             else:
-                self.description_input.setStyleSheet(self.VALID_LINE_CSS)
+                if description_text != self.description:
+                    if description_text in self.descriptions[trigger_text]:
+                        invalid = True
+                        self.description_input.setStyleSheet(
+                            self.INVALID_LINE_CSS)
+                    else:
+                        self.description_input.setStyleSheet(
+                            self.VALID_LINE_CSS)
+                else:
+                    self.description_input.setStyleSheet(
+                        self.VALID_LINE_CSS)
 
         self.button_ok.setEnabled(not invalid)
 
@@ -1036,7 +1045,9 @@ class SnippetEditor(QDialog):
         trigger_text = self.trigger_text_cb.currentText()
         description_text = self.description_input.text()
         snippet_text = self.snippet_input.toPlainText()
-        self.base_snippet.update(trigger_text, description_text, snippet_text)
+        remove_trigger = self.remove_trigger_cb.isChecked()
+        self.base_snippet.update(
+            trigger_text, description_text, snippet_text, remove_trigger)
         return self.base_snippet
 
 
@@ -1331,10 +1342,13 @@ class SnippetTable(QTableView):
         self.source_model.reset()
         self.adjust_cells()
         self.sortByColumn(self.source_model.TRIGGER, Qt.AscendingOrder)
+        self.selectionModel().selectionChanged.connect(self.selection)
 
     def update_language_model(self, language):
+        self.language = language.lower()
         self.source_model = self.proxy.get_model(self, language.lower())
         self.setModel(self.source_model)
+        self._parent.delete_snippet_btn.setEnabled(False)
         self.reset_plain()
 
     def delete_snippet(self, idx):
@@ -1353,7 +1367,7 @@ class SnippetTable(QTableView):
             snippet = self.source_model.row(idx)
 
         snippets_keys = list(self.source_model.snippet_map.keys())
-        trigger_texts = [x[0] for x in snippets_keys]
+        trigger_texts = list({x[0] for x in snippets_keys})
         descriptions = {}
         for trigger, description in snippets_keys:
             trigger_descriptions = descriptions.get(trigger, set({}))
@@ -2119,7 +2133,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
     def reset_default_snippets(self):
         language = self.snippets_language_cb.currentText()
-        default_snippets_lang = SNIPPETS[language.lower()]
+        default_snippets_lang = SNIPPETS.get(language.lower(), {})
         self.snippets_proxy.reload_model(language, default_snippets_lang)
         self.snippets_table.reset_plain()
         self.set_modified(True)
