@@ -37,6 +37,7 @@ jobs:
               # echo "::set-env name=BFLAG::''"
               # echo "::set-env name=DMGNAME::'Spyder.dmg'"
           fi
+          printenv | sort
 #          Set PR type variable
 #          if {{ ${EVENT_NAME} == 'release' }}; then
 #              echo "::set-env name=SUBREPOS::'-e ${spk_repo} -e ${pls_repo}'"
