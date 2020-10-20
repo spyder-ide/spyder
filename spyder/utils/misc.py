@@ -233,7 +233,8 @@ def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=True):
     Parameters
     ----------
     env: list
-        List of environment variables
+        List of environment variables in the format of
+        QProcessEnvironment.
     pathlist: list
         List of paths to add to PYTHONPATH
     drop_env: bool
@@ -245,7 +246,7 @@ def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=True):
 
     pypath = "PYTHONPATH"
     pathstr = os.pathsep.join(pathlist)
-    if os.environ.get(pypath) and not drop_env:
+    if not drop_env:
         for index, var in enumerate(env[:]):
             if var.startswith(pypath + '='):
                 env[index] = var.replace(
