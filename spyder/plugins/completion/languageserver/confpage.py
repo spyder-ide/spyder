@@ -2134,7 +2134,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
     def reset_default_snippets(self):
         language = self.snippets_language_cb.currentText()
         default_snippets_lang = SNIPPETS.get(language.lower(), {})
-        self.snippets_proxy.reload_model(language, default_snippets_lang)
+        self.snippets_proxy.reload_model(
+            language.lower(), default_snippets_lang)
         self.snippets_table.reset_plain()
         self.set_modified(True)
 
