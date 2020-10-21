@@ -46,7 +46,7 @@ jobs:
           echo "BUILD_FLAG=${BUILD_FLAG}" >> $GITHUB_ENV
           echo "DMGNAME=${DMGNAME}" >> $GITHUB_ENV
           echo "DMGPATH=installers/macOS/dist/${DMGNAME}" >> $GITHUB_ENV
-          echo "SUBREPO_FLAGS=${SUBREPO_FLAGS}" >> $GITHUB_ENV
+          echo "SUBREPO_FLAGS=(${SUBREPO_FLAGS[@]})" >> $GITHUB_ENV
 #      - name: Install Python
 #        uses: actions/setup-python@v2
 #        with:
