@@ -9,54 +9,6 @@ Create a stand-alone macOS app using py2app
 
 To be used like this:
 $ python setup.py
-
-NOTES
------
-py2app includes all packages in Spyder.app/Contents/Resources/lib/python38.zip
-but some packages have issues when placed there.
-The following packages are included in py2app's PACKAGES option so that they
-will be placed in Spyder.app/Contents/Resources/lib/python38 instead.
-
-alabaster :
-    Error message: [Errno 20] Not a directory: '<path>/Resources/lib/
-    python38.zip/alabaster'
-astroid :
-    ImportError: cannot import name 'context' from 'astroid'
-    (<path>/Resources/lib/python38.zip/astroid/__init__.pyc)
-ipykernel :
-    ModuleNotFoundError: No module named 'ipykernel.datapub'
-ipython :
-    [IPKernelApp] WARNING | Could not copy README_STARTUP to startup dir.
-    Source file
-    <path>/Resources/lib/python38.zip/IPython/core/profile/README_STARTUP
-    does not exist
-jedi :
-    jedi.api.environment.InvalidPythonEnvironment: Could not get version
-    information for '<path>/Contents/MacOS/python': InternalError("The
-    subprocess <path>/Contents/MacOS/python has crashed (EOFError('Ran out
-    of input'), stderr=).")
-jinja2 :
-    No module named 'jinja2.ext'
-keyring :
-    ModuleNotFoundError: No module named 'keyring.backends.<mod>'
-parso :
-    NotADirectoryError: [Errno 20] Not a directory:
-    '<path>/Resources/lib/python38.zip/parso/python/grammar38.txt'
-pygments :
-    ModuleNotFoundError: No module named 'pygments.formatters.latex'
-pyls :
-    <path>/Contents/MacOS/python: No module named pyls
-    Note: still occurs in alias mode
-qtawesome :
-    NotADirectoryError: [Errno 20] Not a directory: '<path>/Resourses/lib/
-    python38.zip/qtawesome/fonts/fontawesome4.7-webfont.ttf'
-spyder :
-    NotADirectoryError: [Errno 20] Not a directory: '<path>/Resources/lib/
-    python38.zip/spyder/app/mac_stylesheet.qss'
-spyder_kernels :
-    No module named spyder_kernels.console.__main__
-sphinx :
-    No module named 'sphinx.builders.changes'
 """
 
 import os
@@ -95,6 +47,67 @@ PYVER = [sys.version_info.major, sys.version_info.minor,
 
 
 def make_app_bundle(dist_dir, make_lite=False):
+    """
+    Make macOS application bundle.
+
+    Parameters
+    ----------
+    dist_dir : str
+        Directory in which to put the application bundle.
+    make_lite : bool, optional
+        Whether to create the application bundle with minimal packages.
+        The default is False.
+
+    NOTES
+    -----
+    py2app includes all packages in Spyder.app/Contents/Resources/lib/
+    python<ver>.zip, but some packages have issues when placed there.
+    The following packages are included in py2app's PACKAGES option so that
+    they will be placed in Spyder.app/Contents/Resources/lib/python<ver>
+    instead.
+
+    alabaster :
+        Error message: [Errno 20] Not a directory: '<path>/Resources/lib/
+        python38.zip/alabaster'
+    astroid :
+        ImportError: cannot import name 'context' from 'astroid'
+        (<path>/Resources/lib/python38.zip/astroid/__init__.pyc)
+    ipykernel :
+        ModuleNotFoundError: No module named 'ipykernel.datapub'
+    ipython :
+        [IPKernelApp] WARNING | Could not copy README_STARTUP to startup dir.
+        Source file
+        <path>/Resources/lib/python38.zip/IPython/core/profile/README_STARTUP
+        does not exist
+    jedi :
+        jedi.api.environment.InvalidPythonEnvironment: Could not get version
+        information for '<path>/Contents/MacOS/python': InternalError("The
+        subprocess <path>/Contents/MacOS/python has crashed (EOFError('Ran out
+        of input'), stderr=).")
+    jinja2 :
+        No module named 'jinja2.ext'
+    keyring :
+        ModuleNotFoundError: No module named 'keyring.backends.<mod>'
+    parso :
+        NotADirectoryError: [Errno 20] Not a directory:
+        '<path>/Resources/lib/python38.zip/parso/python/grammar38.txt'
+    pygments :
+        ModuleNotFoundError: No module named 'pygments.formatters.latex'
+    pyls :
+        <path>/Contents/MacOS/python: No module named pyls
+        Note: still occurs in alias mode
+    qtawesome :
+        NotADirectoryError: [Errno 20] Not a directory: '<path>/Resourses/lib/
+        python38.zip/qtawesome/fonts/fontawesome4.7-webfont.ttf'
+    spyder :
+        NotADirectoryError: [Errno 20] Not a directory: '<path>/Resources/lib/
+        python38.zip/spyder/app/mac_stylesheet.qss'
+    spyder_kernels :
+        No module named spyder_kernels.console.__main__
+    sphinx :
+        No module named 'sphinx.builders.changes'
+
+   """
     build_type = 'lite' if make_lite else 'full'
     logger.info('Creating %s app bundle...', build_type)
 
@@ -159,6 +172,18 @@ def make_app_bundle(dist_dir, make_lite=False):
 
 
 def make_disk_image(dist_dir, make_lite=False):
+    """
+    Make macOS disk image containing Spyder.app application bundle.
+
+    Parameters
+    ----------
+    dist_dir : str
+        Directory in which to put the disk image.
+    make_lite : bool, optional
+        Whether to append the disk image file and volume name with 'Lite'.
+        The default is False.
+
+    """
     logger.info('Creating disk image...')
 
     volume_name = '{}-{} Py-{}.{}.{}'.format(MAC_APP_NAME[:-4], SPYVER, *PYVER)

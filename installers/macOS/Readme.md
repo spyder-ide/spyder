@@ -74,10 +74,10 @@ The build command also provides an option to exclude these packages, so you may 
 To create the standalone application and package it in a dmg disk image run:
 
 ```
-(spy-build) $ python setup.py --dmg py2app
+(spy-build) $ python setup.py --dmg
 ```
 
-Further documentation can be accessed via
+Further usage documentation can be accessed via
 
 ```
 (spy-build) $ python setup.py -h
