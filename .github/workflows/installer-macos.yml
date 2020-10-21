@@ -46,34 +46,37 @@ jobs:
           echo "BUILD_FLAG=${BUILD_FLAG}" >> $GITHUB_ENV
           echo "DMGNAME=${DMGNAME}" >> $GITHUB_ENV
           echo "DMGPATH=installers/macOS/dist/${DMGNAME}" >> $GITHUB_ENV
+          echo "SUBREPO_FLAGS=${SUBREPO_FLAGS}" >> $GITHUB_ENV
 #      - name: Install Python
 #        uses: actions/setup-python@v2
 #        with:
 #          python-version: 3.7.9
       - name: Install Dependencies
         run: |
-          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt "${SUBREPO_FLAGS[@]}" -e ${SPY_REPO}
-          pip3 uninstall -q -y spyder
-      - name: Build Application Bundle
-        run: python3 setup.py ${BUILD_FLAG} --dmg py2app
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          path: ${{ env.DMGPATH }}
-          name: ${{ env.DMGNAME }}
-      - name: Get Release
-        if: ${{github.event_name == 'release'}}
-        id: get_release
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        uses: bruceadams/get-release@v1.2.0
-      - name: Upload Release Asset
-        if: ${{github.event_name == 'release'}}
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ${{ env.DMGPATH }}
-          asset_name: ${{ env.DMGNAME }}
-          asset_content_type: application/x-apple-diskimage
+          echo "${SUBREPO_FLAGS[@]}"
+          pip3 install "${SUBREPO_FLAGS[@]}"
+#          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt "${SUBREPO_FLAGS[@]}" -e ${SPY_REPO}
+#          pip3 uninstall -q -y spyder
+#      - name: Build Application Bundle
+#        run: python3 setup.py ${BUILD_FLAG} --dmg py2app
+#      - name: Upload Artifact
+#        uses: actions/upload-artifact@v2
+#        with:
+#          path: ${{ env.DMGPATH }}
+#          name: ${{ env.DMGNAME }}
+#      - name: Get Release
+#        if: ${{github.event_name == 'release'}}
+#        id: get_release
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#        uses: bruceadams/get-release@v1.2.0
+#      - name: Upload Release Asset
+#        if: ${{github.event_name == 'release'}}
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#        with:
+#          upload_url: ${{ steps.get_release.outputs.upload_url }}
+#          asset_path: ${{ env.DMGPATH }}
+#          asset_name: ${{ env.DMGNAME }}
+#          asset_content_type: application/x-apple-diskimage
