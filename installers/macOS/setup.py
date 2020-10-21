@@ -8,7 +8,7 @@
 Create a stand-alone macOS app using py2app
 
 To be used like this:
-$ python setup.py py2app
+$ python setup.py
 
 NOTES
 -----
@@ -69,23 +69,7 @@ from setuptools import setup
 from dmgbuild import build_dmg
 from dmgbuild.core import DMGError
 
-# parse additional arguments for setup.py
-parser = argparse.ArgumentParser()
-parser.add_argument('--lite', dest='make_lite', action='store_true',
-                    default=False, help='Build with minimal internal packages')
-parser.add_argument('--dmg', dest='make_dmg', action='store_true',
-                    default=False, help='Create DMG')
-
-# parse additional arguments for py2app
-subparsers = parser.add_subparsers()
-py2app_parser = subparsers.add_parser('py2app')
-py2app_parser.add_argument('--make-app', dest='make_app',
-                           help=argparse.SUPPRESS)
-
-args, _ = parser.parse_known_args()
-[sys.argv.remove(s) for s in ['--lite', '--dmg'] if s in sys.argv]
-
-# setup logger
+# Setup logger
 fmt = Formatter('%(asctime)s [%(levelname)s] [%(name)s] -> %(message)s')
 h = StreamHandler()
 h.setFormatter(fmt)
@@ -93,116 +77,145 @@ logger = getLogger('spyder-macOS')
 logger.addHandler(h)
 logger.setLevel('INFO')
 
-# setup paths
-here = os.path.abspath(__file__)
-thisdir = os.path.dirname(here)
-spy_repo = os.path.realpath(os.path.join(thisdir, '..', '..'))
-distdir = os.path.join(thisdir, 'dist')
+# Setup paths
+HERE = os.path.abspath(__file__)
+THISDIR = os.path.dirname(HERE)
+SPYREPO = os.path.realpath(os.path.join(THISDIR, '..', '..'))
+ICONFILE = os.path.join(SPYREPO, 'img_src', 'spyder.icns')
 
-# symlink to spyder package
-spy_link = os.path.join(thisdir, 'spyder')
-if not os.path.islink(spy_link):
-    os.symlink(os.path.join(spy_repo, 'spyder'), spy_link)
+sys.path.insert(0, SPYREPO)
 
-# =============================================================================
-# App Creation
-# =============================================================================
-from spyder import __version__ as spy_version                    # noqa
+from spyder import __version__ as SPYVER                         # noqa
 from spyder.config.utils import EDIT_FILETYPES, _get_extensions  # noqa
 from spyder.config.base import MAC_APP_NAME                      # noqa
 
-iconfile = os.path.join(spy_repo, 'img_src', 'spyder.icns')
+# Python version
+PYVER = [sys.version_info.major, sys.version_info.minor,
+         sys.version_info.micro]
 
-py_ver = [sys.version_info.major, sys.version_info.minor,
-          sys.version_info.micro]
 
-PACKAGES = ['alabaster', 'astroid', 'ipykernel', 'IPython', 'jedi', 'jinja2',
-            'keyring', 'parso', 'pygments', 'pyls', 'qtawesome', 'spyder',
-            'spyder_kernels', 'sphinx',
-            ]
+def make_app_bundle(dist_dir, make_lite=False):
+    build_type = 'lite' if make_lite else 'full'
+    logger.info('Creating %s app bundle...', build_type)
 
-if args.make_lite:
-    INCLUDES = []
-    EXCLUDES = ['numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy']
-else:
-    INCLUDES = ['numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy']
-    EXCLUDES = []
+    PACKAGES = ['alabaster', 'astroid', 'ipykernel', 'IPython', 'jedi',
+                'jinja2', 'keyring', 'parso', 'pygments', 'pyls', 'qtawesome',
+                'spyder', 'spyder_kernels', 'sphinx']
 
-EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
+    if make_lite:
+        INCLUDES = []
+        EXCLUDES = [
+            'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy'
+        ]
+    else:
+        INCLUDES = [
+            'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy'
+        ]
+        EXCLUDES = []
 
-OPTIONS = {
-    'optimize': 0,
-    'packages': PACKAGES,
-    'includes': INCLUDES,
-    'excludes': EXCLUDES,
-    'iconfile': iconfile,
-    'plist': {'CFBundleDocumentTypes': [{'CFBundleTypeExtensions': EDIT_EXT,
-                                         'CFBundleTypeName': 'Text File',
-                                         'CFBundleTypeRole': 'Editor'}],
-              'CFBundleIdentifier': 'org.spyder-ide',
-              'CFBundleShortVersionString': spy_version}
-}
+    EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
 
-# Copy main application script
-app_script_name = MAC_APP_NAME.replace('.app', '.py')
-app_script_path = os.path.join(spy_repo, 'scripts', app_script_name)
-shutil.copy2(os.path.join(spy_repo, 'scripts', 'spyder'), app_script_path)
+    OPTIONS = {
+        'optimize': 0,
+        'packages': PACKAGES,
+        'includes': INCLUDES,
+        'excludes': EXCLUDES,
+        'iconfile': ICONFILE,
+        'dist_dir': dist_dir,
+        'plist': {
+            'CFBundleDocumentTypes': [{'CFBundleTypeExtensions': EDIT_EXT,
+                                       'CFBundleTypeName': 'Text File',
+                                       'CFBundleTypeRole': 'Editor'}],
+            'CFBundleIdentifier': 'org.spyder-ide',
+            'CFBundleShortVersionString': SPYVER
+        }
+    }
 
-if 'make_app' in args:
-    logger.info('Creating app bundle...')
-    setup(app=[app_script_path], options={'py2app': OPTIONS})
-else:
-    logger.info('Skipping app bundle...')
+    # Copy main application script
+    app_script_name = MAC_APP_NAME.replace('.app', '.py')
+    app_script_path = os.path.join(SPYREPO, 'scripts', app_script_name)
+    spy_link = os.path.join(THISDIR, 'spyder')
+    shutil.copy2(os.path.join(SPYREPO, 'scripts', 'spyder'), app_script_path)
+    os.symlink(os.path.join(SPYREPO, 'spyder'), spy_link)
 
-# =============================================================================
-# Post App Creation
-# =============================================================================
-if 'make_app' in args:
-    _py_ver = f'python{py_ver[0]}.{py_ver[1]}'
-    # copy egg info from site-packages: fixes pkg_resources issue for pyls
+    try:
+        setup(app=[app_script_path], options={'py2app': OPTIONS})
+    finally:
+        os.remove(app_script_path)
+        os.remove(spy_link)
+
+    # Copy egg info from site-packages: fixes pkg_resources issue for pyls
+    dest_dir = os.path.join(dist_dir, MAC_APP_NAME, 'Contents', 'Resources',
+                            'lib', f'python{PYVER[0]}.{PYVER[1]}')
     for dist in pkg_resources.working_set:
         if dist.egg_info is None:
             continue
-        dest = os.path.join(distdir, MAC_APP_NAME, 'Contents', 'Resources',
-                            'lib', _py_ver, os.path.basename(dist.egg_info))
+        dest = os.path.join(dest_dir, os.path.basename(dist.egg_info))
         shutil.copytree(dist.egg_info, dest)
 
-# =============================================================================
-# DMG Creation
-# =============================================================================
-appfile = os.path.join(distdir, MAC_APP_NAME)
-volume_name = '{}-{} Py-{}.{}.{}'.format(MAC_APP_NAME[:-4],
-                                         spy_version, *py_ver)
-dmgfile = os.path.join(distdir, 'Spyder')
-if args.make_lite:
-    volume_name += ' Lite'
-    dmgfile += '-Lite'
-dmgfile += '.dmg'
+    logger.info('App bundle complete.')
 
-settings_file = os.path.join(thisdir, 'dmg_settings.py')
-settings = {
-    'files': [appfile],
-    'badge_icon': iconfile,
-    'icon_locations': {MAC_APP_NAME: (140, 120), 'Applications': (500, 120)}
-}
+    return
 
-if args.make_dmg:
-    logger.info('Building dmg file...')
+
+def make_disk_image(dist_dir, make_lite=False):
+    logger.info('Creating disk image...')
+
+    volume_name = '{}-{} Py-{}.{}.{}'.format(MAC_APP_NAME[:-4], SPYVER, *PYVER)
+    dmgfile = os.path.join(dist_dir, 'Spyder')
+    if make_lite:
+        volume_name += ' Lite'
+        dmgfile += '-Lite'
+    dmgfile += '.dmg'
+
+    settings_file = os.path.join(THISDIR, 'dmg_settings.py')
+    settings = {
+        'files': [os.path.join(dist_dir, MAC_APP_NAME)],
+        'badge_icon': ICONFILE,
+        'icon_locations': {MAC_APP_NAME: (140, 120),
+                           'Applications': (500, 120)}
+    }
+
     try:
         build_dmg(dmgfile, volume_name, settings_file=settings_file,
                   settings=settings, detach_retries=30)
+        logger.info('Building disk image complete.')
     except DMGError as exc:
         if exc.args[0] == 'Unable to detach device cleanly':
             # don't raise this error since the dmg is forced to detach
             logger.warning(exc.args[0])
         else:
             raise exc
-else:
-    logger.info('Skipping dmg file...')
 
-# =============================================================================
-# Clean up
-# =============================================================================
-logger.info('Cleaning up...')
-os.remove(app_script_path)
-os.remove(spy_link)
+    return
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-n', '--no-app', dest='make_app',
+                        action='store_false', default=True,
+                        help='Do not create application bundle')
+    parser.add_argument('-l', '--lite', dest='make_lite', action='store_true',
+                        default=False,
+                        help='Build with minimal internal packages')
+    parser.add_argument('-i', '--dmg', dest='make_dmg', action='store_true',
+                        default=False, help='Create disk image')
+    parser.add_argument('-d', '--dist-dir', dest='dist_dir', default='dist',
+                        help='Distribution directory; passed to py2app')
+
+    args, rem = parser.parse_known_args()
+
+    # Groom sys.argv for py2app
+    sys.argv = sys.argv[:1] + ['py2app'] + rem
+
+    dist_dir = os.path.abspath(args.dist_dir)
+
+    if args.make_app:
+        make_app_bundle(dist_dir, make_lite=args.make_lite)
+    else:
+        logger.info('Skipping app bundle.')
+
+    if args.make_dmg:
+        make_disk_image(dist_dir, make_lite=args.make_lite)
+    else:
+        logger.info('Skipping disk image.')
