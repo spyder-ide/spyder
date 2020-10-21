@@ -10,6 +10,7 @@ Language server preferences
 
 # Standard library imports
 import bisect
+import copy
 import os.path as osp
 import json
 import re
@@ -129,14 +130,25 @@ def iter_servers():
 
 def iter_snippets(language, snippets=None):
     language_snippets = []
-    if snippets is None:
+    load_snippets = snippets is None
+    if load_snippets:
         snippets = CONF.get('snippet-completions', language.lower(), {})
     for trigger in snippets:
         trigger_descriptions = snippets[trigger]
         for description in trigger_descriptions:
-            this_snippet = Snippet(language=language, trigger_text=trigger,
-                                   description=description)
-            this_snippet.load()
+            if load_snippets:
+                this_snippet = Snippet(language=language, trigger_text=trigger,
+                                    description=description)
+                this_snippet.load()
+            else:
+                current_snippet = trigger_descriptions[description]
+                text = current_snippet['text']
+                remove_trigger = current_snippet['remove_trigger']
+                this_snippet = Snippet(language=language,
+                                       trigger_text=trigger,
+                                       description=description,
+                                       snippet_text=text,
+                                       remove_trigger=remove_trigger)
             language_snippets.append(this_snippet)
     return language_snippets
 
@@ -1152,6 +1164,7 @@ class SnippetModelsProxy:
     def reload_model(self, language, defaults):
         if language in self.models:
             model = self.models[language]
+            model.delete_queue = list(model.snippets)
             self.load_snippets(language, model, defaults)
 
     def load_snippets(self, language, model, snippets=None, to_add=[]):
@@ -1179,11 +1192,13 @@ class SnippetModelsProxy:
     def save_snippets(self):
         for language in self.models:
             language_model = self.models[language]
-            for snippet in language_model.snippets:
-                snippet.save()
+
             while len(language_model.delete_queue) > 0:
                 snippet = language_model.delete_queue.pop(0)
                 snippet.delete()
+
+            for snippet in language_model.snippets:
+                snippet.save()
 
         for language in list(self.awaiting_queue.keys()):
             language_queue = self.awaiting_queue.pop(language)
@@ -1214,6 +1229,7 @@ class SnippetModelsProxy:
         else:
             language_queue = self.awaiting_queue.get(language, [])
             language_queue.append(new_snippet)
+            self.awaiting_queue[language] = language_queue
 
     def export_snippets(self, filename):
         snippets = []
@@ -2133,7 +2149,8 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
     def reset_default_snippets(self):
         language = self.snippets_language_cb.currentText()
-        default_snippets_lang = SNIPPETS.get(language.lower(), {})
+        default_snippets_lang = copy.deepcopy(
+            SNIPPETS.get(language.lower(), {}))
         self.snippets_proxy.reload_model(
             language.lower(), default_snippets_lang)
         self.snippets_table.reset_plain()
