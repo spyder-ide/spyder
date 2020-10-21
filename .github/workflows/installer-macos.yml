@@ -39,7 +39,7 @@ jobs:
           fi          
           # Set subrepo install flags
           if [[ ${GITHUB_EVENT_NAME} == 'pull_request' ]]; then
-              SUBREPO_FLAGS=('-e ${SPK_REPO} -e ${PLS_REPO}')
+              SUBREPO_FLAGS=('-e' ${SPK_REPO} '-e' ${PLS_REPO})
           elif [[ ${GITHUB_EVENT_NAME} == 'release' ]]; then
               SUBREPO_FLAGS=()
           fi
@@ -53,7 +53,7 @@ jobs:
 #          python-version: 3.7.9
       - name: Install Dependencies
         run: |
-          echo "${SUBREPO_FLAGS[@]}"
+          echo "${SUBREPO_FLAGS[*]}"
           pip3 install "${SUBREPO_FLAGS[@]}"
 #          pip3 install -r req-build.txt -r req-extras.txt -c req-const.txt "${SUBREPO_FLAGS[@]}" -e ${SPY_REPO}
 #          pip3 uninstall -q -y spyder
