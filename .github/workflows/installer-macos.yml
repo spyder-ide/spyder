@@ -32,7 +32,6 @@ jobs:
 #          python-version: 3.7.9
       - name: Install Dependencies
         run: |
-          printenv | sort
           SPK_REPO=${GITHUB_WORKSPACE}/external-deps/spyder-kernels
           PLS_REPO=${GITHUB_WORKSPACE}/external-deps/python-language-server
           INSTALL_FLAGS=()
@@ -44,26 +43,26 @@ jobs:
           fi
           pip3 install -c req-const.txt -r req-build.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
           pip3 uninstall -q -y spyder
-#      - name: Build Application Bundle
-#        run: python3 setup.py ${BUILD_FLAG} --dmg py2app
-#      - name: Upload Artifact
-#        uses: actions/upload-artifact@v2
-#        with:
-#          path: ${{ env.DMGPATH }}
-#          name: ${{ env.DMGNAME }}
-#      - name: Get Release
-#        if: ${{github.event_name == 'release'}}
-#        id: get_release
-#        env:
-#          GITHUB_TOKEN: ${{ github.token }}
-#        uses: bruceadams/get-release@v1.2.0
-#      - name: Upload Release Asset
-#        if: ${{github.event_name == 'release'}}
-#        uses: actions/upload-release-asset@v1
-#        env:
-#          GITHUB_TOKEN: ${{ github.token }}
-#        with:
-#          upload_url: ${{ steps.get_release.outputs.upload_url }}
-#          asset_path: ${{ env.DMGPATH }}
-#          asset_name: ${{ env.DMGNAME }}
-#          asset_content_type: application/x-apple-diskimage
+      - name: Build Application Bundle
+        run: python3 setup.py ${BUILD_FLAG} --dmg py2app
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          path: ${{ env.DMGPATH }}
+          name: ${{ env.DMGNAME }}
+      - name: Get Release
+        if: ${{github.event_name == 'release'}}
+        id: get_release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        uses: bruceadams/get-release@v1.2.0
+      - name: Upload Release Asset
+        if: ${{github.event_name == 'release'}}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ${{ env.DMGPATH }}
+          asset_name: ${{ env.DMGNAME }}
+          asset_content_type: application/x-apple-diskimage
