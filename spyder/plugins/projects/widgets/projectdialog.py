@@ -53,6 +53,8 @@ class ProjectDialog(QDialog):
     def __init__(self, parent):
         """Project creation dialog."""
         super(ProjectDialog, self).__init__(parent=parent)
+        self.setWindowFlags(
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         # Variables
         current_python_version = '.'.join([to_text_string(sys.version_info[0]),
