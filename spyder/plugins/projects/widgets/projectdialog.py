@@ -27,7 +27,8 @@ from qtpy.QtWidgets import (QVBoxLayout, QLabel, QLineEdit, QPushButton,
 
 # Local imports
 from spyder.config.base import _, get_home_dir
-from spyder.utils.qthelpers import get_std_icon
+from spyder.utils import icon_manager as ima
+from spyder.utils.qthelpers import create_toolbutton
 from spyder.py3compat import to_text_string
 from spyder.plugins.projects.widgets import get_available_project_types
 
@@ -79,7 +80,11 @@ class ProjectDialog(QDialog):
         self.combo_project_type = QComboBox()
         self.combo_python_version = QComboBox()
 
-        self.button_select_location = QToolButton()
+        self.button_select_location = create_toolbutton(
+            self,
+            triggered=self.select_location,
+            icon=ima.icon('DirOpenIcon'),
+            tip=_("Select directory"))
         self.button_cancel = QPushButton(_('Cancel'))
         self.button_create = QPushButton(_('Create'))
 
@@ -92,7 +97,6 @@ class ProjectDialog(QDialog):
         self.radio_new_dir.setChecked(True)
         self.text_location.setEnabled(True)
         self.text_location.setReadOnly(True)
-        self.button_select_location.setIcon(get_std_icon('DirOpenIcon'))
         self.button_cancel.setDefault(True)
         self.button_cancel.setAutoDefault(True)
         self.button_create.setEnabled(False)
@@ -133,7 +137,6 @@ class ProjectDialog(QDialog):
         self.setLayout(layout)
 
         # Signals and slots
-        self.button_select_location.clicked.connect(self.select_location)
         self.button_create.clicked.connect(self.create_project)
         self.button_cancel.clicked.connect(self.close)
         self.radio_from_dir.clicked.connect(self.update_location)
