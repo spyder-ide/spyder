@@ -192,6 +192,7 @@ class SpyderKernelSpec(KernelSpec):
         # macOS app considerations
         if running_in_mac_app() and not default_interpreter:
             env_vars.pop('PYTHONHOME', None)
+            env_vars.pop('PYTHONPATH', None)
 
         # Making all env_vars strings
         clean_env_vars = clean_env(env_vars)
