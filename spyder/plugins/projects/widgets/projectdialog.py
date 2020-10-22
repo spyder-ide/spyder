@@ -19,11 +19,9 @@ import tempfile
 # Third party imports
 from qtpy.compat import getexistingdirectory
 from qtpy.QtCore import Qt, Signal
-from qtpy.QtWidgets import (QVBoxLayout, QLabel, QLineEdit, QPushButton,
-                            QDialog, QComboBox, QGridLayout, QToolButton,
-                            QDialogButtonBox, QGroupBox, QRadioButton,
-                            QHBoxLayout)
-
+from qtpy.QtWidgets import (QComboBox, QDialog, QDialogButtonBox, QGridLayout,
+                            QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                            QPushButton, QRadioButton, QVBoxLayout)
 
 # Local imports
 from spyder.config.base import _, get_home_dir
