@@ -35,7 +35,8 @@ THISDIR = os.path.dirname(HERE)
 SPYREPO = os.path.realpath(os.path.join(THISDIR, '..', '..'))
 ICONFILE = os.path.join(SPYREPO, 'img_src', 'spyder.icns')
 
-sys.path.insert(0, SPYREPO)
+SPYLINK = os.path.join(THISDIR, 'spyder')
+os.symlink(os.path.join(SPYREPO, 'spyder'), SPYLINK)
 
 from spyder import __version__ as SPYVER                         # noqa
 from spyder.config.utils import EDIT_FILETYPES, _get_extensions  # noqa
@@ -147,15 +148,12 @@ def make_app_bundle(dist_dir, make_lite=False):
     # Copy main application script
     app_script_name = MAC_APP_NAME.replace('.app', '.py')
     app_script_path = os.path.join(SPYREPO, 'scripts', app_script_name)
-    spy_link = os.path.join(THISDIR, 'spyder')
     shutil.copy2(os.path.join(SPYREPO, 'scripts', 'spyder'), app_script_path)
-    os.symlink(os.path.join(SPYREPO, 'spyder'), spy_link)
 
     try:
         setup(app=[app_script_path], options={'py2app': OPTIONS})
     finally:
         os.remove(app_script_path)
-        os.remove(spy_link)
 
     # Copy egg info from site-packages: fixes pkg_resources issue for pyls
     dest_dir = os.path.join(dist_dir, MAC_APP_NAME, 'Contents', 'Resources',
@@ -235,12 +233,15 @@ if __name__ == '__main__':
 
     dist_dir = os.path.abspath(args.dist_dir)
 
-    if args.make_app:
-        make_app_bundle(dist_dir, make_lite=args.make_lite)
-    else:
-        logger.info('Skipping app bundle.')
-
-    if args.make_dmg:
-        make_disk_image(dist_dir, make_lite=args.make_lite)
-    else:
-        logger.info('Skipping disk image.')
+    try:
+        if args.make_app:
+            make_app_bundle(dist_dir, make_lite=args.make_lite)
+        else:
+            logger.info('Skipping app bundle.')
+    
+        if args.make_dmg:
+            make_disk_image(dist_dir, make_lite=args.make_lite)
+        else:
+            logger.info('Skipping disk image.')
+    finally:
+        os.remove(SPYLINK)
