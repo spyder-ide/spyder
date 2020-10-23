@@ -151,7 +151,7 @@ class AboutDialog(QDialog):
         bbox = QDialogButtonBox(QDialogButtonBox.Ok)
 
         # Widget setup
-        self.setWindowIcon(ima.icon('tooloptions'))
+        self.setWindowIcon(ima.icon('MessageBoxInformation'))
         self.setModal(False)
 
         # Layout
