@@ -72,6 +72,7 @@ COLOR_SCHEME_KEYS = {
     "string":         _("String:"),
     "number":         _("Number:"),
     "instance":       _("Instance:"),
+    "magic":          _("Magic:"),
 }
 
 COLOR_SCHEME_NAMES = CONF.get('appearance', 'names')
@@ -469,6 +470,11 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                      ufstring6, string, number, any("SYNC", [r"\n"])])
 
 
+def make_ipython_patterns(additional_keywords=[], additional_builtins=[]):
+    return (make_python_patterns(additional_keywords, additional_builtins)
+            + r"|^\s*%%?(?P<magic>[^\s]*)")
+
+
 def get_code_cell_name(text):
     """Returns a code cell name from a code cell comment."""
     name = text.strip().lstrip("#% ")
@@ -683,6 +689,13 @@ class PythonSH(BaseSH):
         BaseSH.rehighlight(self)
 
 
+# =============================================================================
+# IPython syntax highlighter
+# =============================================================================
+class IPythonSH(PythonSH):
+    """IPython Syntax Highlighter"""
+    add_kw = ['async', 'await']
+    PROG = re.compile(make_ipython_patterns(additional_keywords=add_kw), re.S)
 #==============================================================================
 # Cython syntax highlighter
 #==============================================================================
