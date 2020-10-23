@@ -160,6 +160,10 @@ class CompletionManager(SpyderCompletionPlugin):
                 self.gather_and_send_to_codeeditor(request_responses)
                 return
 
+            if 'snippets' in request_responses['sources']:
+                self.gather_and_send_to_codeeditor(request_responses)
+                return
+
             # This drops responses that don't contain fallback
             return
 
