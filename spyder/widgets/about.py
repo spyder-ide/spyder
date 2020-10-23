@@ -28,8 +28,9 @@ class AboutDialog(QDialog):
 
     def __init__(self, parent):
         """Create About Spyder dialog with general information."""
-
         QDialog.__init__(self, parent)
+        self.setWindowFlags(
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         versions = get_versions()
         # Show Git revision for development version
         revlink = ''
