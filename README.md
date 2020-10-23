@@ -105,7 +105,7 @@ https://www.spyder-ide.org/).
 
     Examine your code with the static analyzer, trace its execution with the
     interactive debugger, and unleash its performance with the profiler.
-    Keep things organized with project support and a builtin file explorer, and
+    Keep things organized with project support and a built-in file explorer, and
     use find in files to search across entire projects with full regex support.
 
 
@@ -130,7 +130,7 @@ unexpected issues we are unable to help you with; it generally has the
 least likelihood of potential pitfalls for non-experts, and we may be
 able to provide limited assistance if you do run into trouble.
 
-Other install options exist, including:
+Other installation options exist, including:
 
 * The [WinPython](https://winpython.github.io/) distribution for Windows
 * The [MacPorts](https://www.macports.org/) project for macOS
@@ -195,13 +195,13 @@ to install them separately in those cases.
 ### Build dependencies
 
 When installing Spyder from its source package, the only requirement is to have
-a Python version equal or greater than 3.5 or 2.7.
+a Python version equal or greater than 3.6.
 
 ### Runtime dependencies
 
 The basic dependencies to run Spyder are:
 
-* **Python** 3.5+ or 2.7: The core language Spyder is written in and for.
+* **Python** 3.6+: The core language Spyder is written in and for.
 * **PyQt5** 5.6+: Python bindings for Qt, used for Spyder's GUI.
 
 The rest our dependencies (both required and optional) are declared in

@@ -11,7 +11,7 @@ import logging
 from spyder.plugins.completion.languageserver.providers.utils import (
     path_as_uri, process_uri, match_path_to_folder)
 from spyder.plugins.completion.languageserver import (
-    LSPRequestTypes, ClientConstants)
+    LSPRequestTypes, ClientConstants, WorkspaceUpdateKind)
 from spyder.plugins.completion.languageserver.decorators import (
     handles, send_request, send_response, send_notification)
 
@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 class WorkspaceProvider:
     @send_notification(method=LSPRequestTypes.WORKSPACE_CONFIGURATION_CHANGE)
-    def send_plugin_configurations(self, configurations, *args):
-        self.plugin_configurations = configurations
+    def send_configurations(self, configurations, *args):
+        self.configurations = configurations
         params = {
             'settings': configurations
         }
@@ -46,7 +46,7 @@ class WorkspaceProvider:
         folder_uri = path_as_uri(folder)
         added_folders = []
         removed_folders = []
-        if params['kind'] == 'addition':
+        if params['kind'] == WorkspaceUpdateKind.ADDITION:
             if folder not in self.watched_folders:
                 self.watched_folders[folder] = {
                     'uri': folder_uri,
@@ -56,27 +56,37 @@ class WorkspaceProvider:
                     'uri': folder_uri,
                     'name': folder
                 })
-        elif params['kind'] == 'deletion':
-            if folder not in self.watched_folders:
+        elif params['kind'] == WorkspaceUpdateKind.DELETION:
+            if folder in self.watched_folders:
                 self.watched_folders.pop(folder)
                 removed_folders.append({
                     'uri': folder_uri,
                     'name': folder
                 })
+
         workspace_settings = self.server_capabilites['workspace']
         request_params = {
-            'added': added_folders,
-            'removed': removed_folders
+            'event': {
+                'added': added_folders,
+                'removed': removed_folders
+            }
         }
-        if not workspace_settings['workspaceFolders']['supported']:
+
+        if workspace_settings['workspaceFolders']['supported']:
+            logger.debug(
+                u'Workspace folders change: {0} -> {1}'.format(
+                    folder, params['kind'])
+            )
+        else:
             request_params[ClientConstants.CANCEL] = True
+
         return request_params
 
     @send_response
     @handles(LSPRequestTypes.WORKSPACE_CONFIGURATION)
     def send_workspace_configuration(self, params):
         logger.debug(params)
-        return self.plugin_configurations
+        return self.configurations
 
     @send_notification(method=LSPRequestTypes.WORKSPACE_WATCHED_FILES_UPDATE)
     def send_watched_files_change(self, params):

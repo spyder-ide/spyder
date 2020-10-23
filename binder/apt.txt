@@ -8,3 +8,8 @@ xubuntu-icon-theme
 libxss1
 libpci3
 libasound2
+fonts-ubuntu
+qutebrowser
+htop
+nano
+libgles2

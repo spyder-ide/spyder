@@ -96,8 +96,8 @@ def test_multiple_workspaces(tmpdir, pyls):
 
     added_workspaces = [{'uri': path_as_uri(str(x))}
                         for x in (workspace1_dir, workspace2_dir)]
-    pyls.m_workspace__did_change_workspace_folders(
-        added=added_workspaces, removed=[])
+    event = {'added': added_workspaces, 'removed': []}
+    pyls.m_workspace__did_change_workspace_folders(event)
 
     for workspace in added_workspaces:
         assert workspace['uri'] in pyls.workspaces
@@ -116,6 +116,149 @@ def test_multiple_workspaces(tmpdir, pyls):
     workspace2_uri = added_workspaces[1]['uri']
     assert msg['uri'] in pyls.workspaces[workspace2_uri]._docs
 
-    pyls.m_workspace__did_change_workspace_folders(
-        added=[], removed=[added_workspaces[0]])
+    event = {'added': [], 'removed': [added_workspaces[0]]}
+    pyls.m_workspace__did_change_workspace_folders(event)
     assert workspace1_uri not in pyls.workspaces
+
+
+def test_multiple_workspaces_wrong_removed_uri(pyls, tmpdir):
+    workspace = {'uri': str(tmpdir.mkdir('Test123'))}
+    event = {'added': [], 'removed': [workspace]}
+    pyls.m_workspace__did_change_workspace_folders(event)
+    assert workspace['uri'] not in pyls.workspaces
+
+
+def test_root_workspace_changed(pyls, tmpdir):
+    test_uri = str(tmpdir.mkdir('Test123'))
+    pyls.root_uri = test_uri
+    pyls.workspace._root_uri = test_uri
+
+    workspace1 = {'uri': test_uri}
+    workspace2 = {'uri': str(tmpdir.mkdir('NewTest456'))}
+
+    event = {'added': [workspace2], 'removed': [workspace1]}
+    pyls.m_workspace__did_change_workspace_folders(event)
+
+    assert workspace2['uri'] == pyls.workspace._root_uri
+    assert workspace2['uri'] == pyls.root_uri
+
+
+def test_root_workspace_not_changed(pyls, tmpdir):
+    # removed uri != root_uri
+    test_uri_1 = str(tmpdir.mkdir('Test12'))
+    pyls.root_uri = test_uri_1
+    pyls.workspace._root_uri = test_uri_1
+    workspace1 = {'uri': str(tmpdir.mkdir('Test1234'))}
+    workspace2 = {'uri': str(tmpdir.mkdir('NewTest456'))}
+    event = {'added': [workspace2], 'removed': [workspace1]}
+    pyls.m_workspace__did_change_workspace_folders(event)
+    assert test_uri_1 == pyls.workspace._root_uri
+    assert test_uri_1 == pyls.root_uri
+    # empty 'added' list
+    test_uri_2 = str(tmpdir.mkdir('Test123'))
+    new_root_uri = workspace2['uri']
+    pyls.root_uri = test_uri_2
+    pyls.workspace._root_uri = test_uri_2
+    workspace1 = {'uri': test_uri_2}
+    event = {'added': [], 'removed': [workspace1]}
+    pyls.m_workspace__did_change_workspace_folders(event)
+    assert new_root_uri == pyls.workspace._root_uri
+    assert new_root_uri == pyls.root_uri
+    # empty 'removed' list
+    event = {'added': [workspace1], 'removed': []}
+    pyls.m_workspace__did_change_workspace_folders(event)
+    assert new_root_uri == pyls.workspace._root_uri
+    assert new_root_uri == pyls.root_uri
+    # 'added' list has no 'uri'
+    workspace2 = {'TESTuri': 'Test1234'}
+    event = {'added': [workspace2], 'removed': [workspace1]}
+    pyls.m_workspace__did_change_workspace_folders(event)
+    assert new_root_uri == pyls.workspace._root_uri
+    assert new_root_uri == pyls.root_uri
+
+
+def test_root_workspace_removed(tmpdir, pyls):
+    workspace1_dir = tmpdir.mkdir('workspace1')
+    workspace2_dir = tmpdir.mkdir('workspace2')
+    root_uri = pyls.root_uri
+
+    # Add workspaces to the pyls
+    added_workspaces = [{'uri': path_as_uri(str(x))}
+                        for x in (workspace1_dir, workspace2_dir)]
+    event = {'added': added_workspaces, 'removed': []}
+    pyls.m_workspace__did_change_workspace_folders(event)
+
+    # Remove the root workspace
+    removed_workspaces = [{'uri': root_uri}]
+    event = {'added': [], 'removed': removed_workspaces}
+    pyls.m_workspace__did_change_workspace_folders(event)
+
+    # Assert that the first of the workspaces (in alphabetical order) is now
+    # the root workspace
+    assert pyls.root_uri == path_as_uri(str(workspace1_dir))
+    assert pyls.workspace._root_uri == path_as_uri(str(workspace1_dir))
+
+
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+def test_workspace_loads_pycodestyle_config(pyls, tmpdir):
+    workspace1_dir = tmpdir.mkdir('Test123')
+    pyls.root_uri = str(workspace1_dir)
+    pyls.workspace._root_uri = str(workspace1_dir)
+
+    # Test that project settings are loaded
+    workspace2_dir = tmpdir.mkdir('NewTest456')
+    cfg = workspace2_dir.join("pycodestyle.cfg")
+    cfg.write(
+        "[pycodestyle]\n"
+        "max-line-length = 1000"
+    )
+
+    workspace1 = {'uri': str(workspace1_dir)}
+    workspace2 = {'uri': str(workspace2_dir)}
+
+    event = {'added': [workspace2], 'removed': [workspace1]}
+    pyls.m_workspace__did_change_workspace_folders(event)
+
+    seetings = pyls.workspaces[str(workspace2_dir)]._config.settings()
+    assert seetings['plugins']['pycodestyle']['maxLineLength'] == 1000
+
+    # Test that project settings prevail over server ones.
+    server_settings = {'pyls': {'plugins': {'pycodestyle': {'maxLineLength': 10}}}}
+    pyls.m_workspace__did_change_configuration(server_settings)
+    assert seetings['plugins']['pycodestyle']['maxLineLength'] == 1000
+
+    # Test switching to another workspace with different settings
+    workspace3_dir = tmpdir.mkdir('NewTest789')
+    cfg1 = workspace3_dir.join("pycodestyle.cfg")
+    cfg1.write(
+        "[pycodestyle]\n"
+        "max-line-length = 20"
+    )
+
+    workspace3 = {'uri': str(workspace3_dir)}
+
+    event = {'added': [workspace3], 'removed': [workspace2]}
+    pyls.m_workspace__did_change_workspace_folders(event)
+
+    seetings = pyls.workspaces[str(workspace3_dir)]._config.settings()
+    assert seetings['plugins']['pycodestyle']['maxLineLength'] == 20
+
+
+def test_settings_of_added_workspace(pyls, tmpdir):
+    test_uri = str(tmpdir.mkdir('Test123'))
+    pyls.root_uri = test_uri
+    pyls.workspace._root_uri = test_uri
+
+    # Set some settings for the server.
+    server_settings = {'pyls': {'plugins': {'jedi': {'environment': '/usr/bin/python3'}}}}
+    pyls.m_workspace__did_change_configuration(server_settings)
+
+    # Create a new workspace.
+    workspace1 = {'uri': str(tmpdir.mkdir('NewTest456'))}
+    event = {'added': [workspace1]}
+    pyls.m_workspace__did_change_workspace_folders(event)
+
+    # Assert settings are inherited from the server config.
+    workspace1_object = pyls.workspaces[workspace1['uri']]
+    workspace1_jedi_settings = workspace1_object._config.plugin_settings('jedi')
+    assert workspace1_jedi_settings == server_settings['pyls']['plugins']['jedi']

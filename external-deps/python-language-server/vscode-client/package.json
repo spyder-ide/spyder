@@ -40,6 +40,11 @@
                     "default": [],
                     "description": "Define extra paths for jedi.Script."
                 },
+                "pyls.plugins.jedi.env_vars": {
+                    "type": "dictionary",
+                    "default": null,
+                    "description": "Define environment variables for jedi.Script and Jedi.names."
+                },
                 "pyls.plugins.jedi.environment": {
                     "type": "string",
                     "default": null,
@@ -54,6 +59,16 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Auto-completes methods and classes with tabstops for each parameter."
+                },
+                "pyls.plugins.jedi_completion.include_class_objects": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Adds class objects as a separate completion item."
+                },
+                "pyls.plugins.jedi_completion.fuzzy": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable fuzzy when requesting autocomplete."
                 },
                 "pyls.plugins.jedi_definition.enabled": {
                     "type": "boolean",
@@ -248,6 +263,11 @@
                     },
                     "uniqueItems": false,
                     "description": "Arguments to pass to pylint."
+                },
+                "pyls.plugins.pylint.executable": {
+                  "type": "string",
+                  "default": null,
+                  "description": "Executable to run pylint with. Enabling this will run pylint on unsaved files via stdin. Can slow down workflow. Only works with python3."
                 },
                 "pyls.plugins.rope_completion.enabled": {
                     "type": "boolean",

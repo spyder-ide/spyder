@@ -345,16 +345,16 @@ div.admonition p.admonition-title {
     margin-top: 0;
     margin-bottom: 0;
     font-size: 110%;
-    color: rgb(255,255,255);
+    color: white;
 }
 
 .panel-body {
     padding: 15px;
-    background-color: #3498DB;
+    background-color: #19232D;
 }
 
 .panel-usage {
-    border-color: #2fa4e7;
+    border-color: #3E6691;
     margin-top: 15px;
     width: 60%;
     margin-left: auto;
@@ -362,20 +362,20 @@ div.admonition p.admonition-title {
 }
 
 .panel-usage > .panel-heading {
-    color: #19232D;
-    background-color: #444;
-    border-color: #3498DB;
+    color: white;
+    background-color: #3E6691;
+    border-color: #19232D;
 }
 
 .panel-usage > .panel-body > center > a {
-    color: white;
+    color: #00bc8d;
 }
 
 .panel-usage > .panel-body > br {
     display: block;
     margin: 12px 0;
     content: "";
-    background-color: #3498DB;
+    background-color: #19232D;
 }
 
 .hr {
@@ -413,19 +413,19 @@ div.admonition p.admonition-title {
 
 /* --- Kernel error messages --- */
 .panel-danger {
-    border-color: #E74C3C;
-    background-color: #E74C3C;
+    border-color: #C63323;
+    background-color: #19232D;
     color: white;
 }
 
 .panel-danger > .panel-heading {
     color: white;
-    border-color: #E74C3C;
-    background-color: #444;
+    border-color: #C63323;
+    background-color: #C63323;
 }
 
 .panel-danger > .panel-body {
-    background-color: #E74C3C;
+    background-color: #19232D;
 }
 
 /* --- Scrollbar -- */

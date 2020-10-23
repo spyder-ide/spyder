@@ -1,6 +1,6 @@
 # Copyright 2017 Palantir Technologies, Inc.
 import logging
-from pyls import hookimpl, uris
+from pyls import hookimpl, uris, _utils
 
 log = logging.getLogger(__name__)
 
@@ -8,13 +8,15 @@ log = logging.getLogger(__name__)
 @hookimpl
 def pyls_definitions(config, document, position):
     settings = config.plugin_settings('jedi_definition')
-    definitions = document.jedi_script(position).goto_assignments(
+    code_position = _utils.position_to_jedi_linecolumn(document, position)
+    definitions = document.jedi_script().goto(
         follow_imports=settings.get('follow_imports', True),
-        follow_builtin_imports=settings.get('follow_builtin_imports', True))
+        follow_builtin_imports=settings.get('follow_builtin_imports', True),
+        **code_position)
 
     return [
         {
-            'uri': uris.uri_with(document.uri, path=d.module_path),
+            'uri': uris.uri_with(document.uri, path=str(d.module_path)),
             'range': {
                 'start': {'line': d.line - 1, 'character': d.column},
                 'end': {'line': d.line - 1, 'character': d.column + len(d.name)},

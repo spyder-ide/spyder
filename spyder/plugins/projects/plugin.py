@@ -35,7 +35,7 @@ from spyder.plugins.projects.widgets.explorer import ProjectExplorerWidget
 from spyder.plugins.projects.widgets.projectdialog import ProjectDialog
 from spyder.plugins.projects.projecttypes import EmptyProject
 from spyder.plugins.completion.languageserver import (
-    LSPRequestTypes, FileChangeType)
+    LSPRequestTypes, FileChangeType, WorkspaceUpdateKind)
 from spyder.plugins.completion.decorators import (
     request, handles, class_register)
 
@@ -58,7 +58,6 @@ class Projects(SpyderPluginWidget):
         self.explorer = ProjectExplorerWidget(
             self,
             name_filters=self.get_option('name_filters'),
-            show_all=self.get_option('show_all'),
             show_hscrollbar=self.get_option('show_hscrollbar'),
             options_button=self.options_button,
             single_click_to_open=CONF.get('explorer', 'single_click_to_open'),
@@ -161,10 +160,12 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.set_window_title())
         self.sig_project_loaded.connect(
             functools.partial(lspmgr.project_path_update,
-                              update_kind='addition'))
+                              update_kind=WorkspaceUpdateKind.ADDITION))
         self.sig_project_loaded.connect(
             lambda v: self.main.editor.setup_open_files())
         self.sig_project_loaded.connect(self.update_explorer)
+        self.sig_project_loaded.connect(
+            lambda v: self.main.outlineexplorer.update_all_editors())
         self.sig_project_closed[object].connect(
             lambda v: self.main.workingdirectory.chdir(
                 self.get_last_working_dir()))
@@ -172,12 +173,13 @@ class Projects(SpyderPluginWidget):
             lambda v: self.main.set_window_title())
         self.sig_project_closed.connect(
             functools.partial(lspmgr.project_path_update,
-                              update_kind='deletion'))
+                              update_kind=WorkspaceUpdateKind.DELETION))
         self.sig_project_closed.connect(
             lambda v: self.main.editor.setup_open_files())
+        self.sig_project_closed.connect(
+            lambda v: self.main.outlineexplorer.update_all_editors())
         self.recent_project_menu.aboutToShow.connect(self.setup_menu_actions)
 
-        self.main.pythonpath_changed()
         self.main.restore_scrollbar_position.connect(
                                                self.restore_scrollbar_position)
         self.sig_pythonpath_changed.connect(self.main.pythonpath_changed)
@@ -266,9 +268,15 @@ class Projects(SpyderPluginWidget):
         dlg.sig_project_creation_requested.connect(self._create_project)
         dlg.sig_project_creation_requested.connect(self.sig_project_created)
         if dlg.exec_():
-            if (active_project is None
-                    and self.get_option('visible_if_project_open')):
-                self.show_explorer()
+            # A project was not open before
+            if active_project is None:
+                if self.get_option('visible_if_project_open'):
+                    self.show_explorer()
+            else:
+                # We are switching projects.
+                # TODO: Don't emit sig_project_closed when we support
+                # multiple workspaces.
+                self.sig_project_closed.emit(active_project.root_path)
             self.sig_pythonpath_changed.emit()
             self.restart_consoles()
 
@@ -279,7 +287,6 @@ class Projects(SpyderPluginWidget):
     def open_project(self, path=None, restart_consoles=True,
                      save_previous_files=True):
         """Open the project located in `path`"""
-        self.notify_project_open(path)
         self.unmaximize()
         if path is None:
             basedir = get_home_dir()
@@ -294,7 +301,6 @@ class Projects(SpyderPluginWidget):
                 return
         else:
             path = encoding.to_unicode_from_fs(path)
-
         self.add_to_recent(path)
 
         # A project was not open before
@@ -311,6 +317,11 @@ class Projects(SpyderPluginWidget):
             if self.main.editor is not None:
                 self.set_project_filenames(
                     self.main.editor.get_open_filenames())
+
+            # TODO: Don't emit sig_project_closed when we support
+            # multiple workspaces.
+            self.sig_project_closed.emit(
+                self.current_active_project.root_path)
 
         project = EmptyProject(path)
         self.current_active_project = project
@@ -351,7 +362,6 @@ class Projects(SpyderPluginWidget):
             self.explorer.clear()
             self.restart_consoles()
             self.watcher.stop()
-            self.notify_project_close(path)
 
     def delete_project(self):
         """
@@ -412,8 +422,8 @@ class Projects(SpyderPluginWidget):
                                                default=None)
 
         # Needs a safer test of project existence!
-        if current_project_path and \
-          self.is_valid_project(current_project_path):
+        if (current_project_path and
+                self.is_valid_project(current_project_path)):
             self.open_project(path=current_project_path,
                               restart_consoles=False,
                               save_previous_files=False)
@@ -524,15 +534,15 @@ class Projects(SpyderPluginWidget):
         if len(self.recent_projects) > self.get_option('max_recent_projects'):
             self.recent_projects.pop(-1)
 
-    def register_lsp_server_settings(self, settings):
-        """Enable LSP workspace functions."""
+    def start_workspace_services(self):
+        """Enable LSP workspace functionality."""
         self.completions_available = True
         if self.current_active_project:
             path = self.get_active_project_path()
             self.notify_project_open(path)
 
-    def stop_lsp_services(self):
-        """Disable LSP workspace functions."""
+    def stop_workspace_services(self):
+        """Disable LSP workspace functionality."""
         self.completions_available = False
 
     def emit_request(self, method, params, requires_response):

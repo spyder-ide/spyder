@@ -1,9 +1,20 @@
 #!/usr/bin/env python
+import sys
 from setuptools import find_packages, setup
 import versioneer
+import sys
 
 README = open('README.rst', 'r').read()
 
+install_requires = [
+        'configparser; python_version<"3.0"',
+        'future>=0.14.0; python_version<"3"',
+        'backports.functools_lru_cache; python_version<"3.2"',
+        'jedi>=0.17.2,<0.18.0',
+        'python-jsonrpc-server>=0.4.0',
+        'pluggy',
+        'ujson<=2.0.3 ; platform_system!="Windows" and python_version<"3.0"',
+        'ujson>=3.0.0 ; python_version>"3"']
 
 setup(
     name='python-language-server',
@@ -31,15 +42,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=[
-        'configparser; python_version<"3.0"',
-        'future>=0.14.0; python_version<"3"',
-        'backports.functools_lru_cache; python_version<"3.2"',
-        'jedi>=0.14.1,<0.16',
-        'python-jsonrpc-server>=0.3.2',
-        'pluggy',
-        'ujson<=1.35; platform_system!="Windows"'
-    ],
+    install_requires=install_requires,
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
@@ -48,27 +51,31 @@ setup(
     extras_require={
         'all': [
             'autopep8',
-            'flake8',
-            'mccabe',
-            'pycodestyle',
+            'flake8>=3.8.0',
+            'mccabe>=0.6.0,<0.7.0',
+            'pycodestyle>=2.6.0,<2.7.0',
             'pydocstyle>=2.0.0',
-            'pyflakes>=1.6.0,<2.2.0',
-            'pylint',
+            'pyflakes>=2.2.0,<2.3.0',
+            # pylint >= 2.5.0 is required for working through stdin and only
+            # available with python3
+            'pylint>=2.5.0' if sys.version_info.major >= 3 else 'pylint',
             'rope>=0.10.5',
             'yapf',
         ],
         'autopep8': ['autopep8'],
-        'flake8': ['flake8'],
-        'mccabe': ['mccabe'],
-        'pycodestyle': ['pycodestyle'],
+        'flake8': ['flake8>=3.8.0'],
+        'mccabe': ['mccabe>=0.6.0,<0.7.0'],
+        'pycodestyle': ['pycodestyle>=2.6.0,<2.7.0'],
         'pydocstyle': ['pydocstyle>=2.0.0'],
-        'pyflakes': ['pyflakes>=1.6.0,<2.2.0'],
-        'pylint': ['pylint'],
+        'pyflakes': ['pyflakes>=2.2.0,<2.3.0'],
+        'pylint': [
+            'pylint>=2.5.0' if sys.version_info.major >= 3 else 'pylint'],
         'rope': ['rope>0.10.5'],
         'yapf': ['yapf'],
-        'test': ['versioneer', 'pylint', 'pytest', 'mock', 'pytest-cov',
-                 'coverage', 'numpy', 'pandas', 'matplotlib',
-                 'pyqt5;python_version>="3"'],
+        'test': ['versioneer',
+                 'pylint>=2.5.0' if sys.version_info.major >= 3 else 'pylint',
+                 'pytest', 'mock', 'pytest-cov', 'coverage', 'numpy', 'pandas',
+                 'matplotlib', 'pyqt5;python_version>="3"', 'flaky'],
     },
 
     # To provide executable scripts, use entry points in preference to the
@@ -87,6 +94,7 @@ setup(
             'jedi_hover = pyls.plugins.hover',
             'jedi_highlight = pyls.plugins.highlight',
             'jedi_references = pyls.plugins.references',
+            'jedi_rename = pyls.plugins.jedi_rename',
             'jedi_signature_help = pyls.plugins.signature',
             'jedi_symbols = pyls.plugins.symbols',
             'mccabe = pyls.plugins.mccabe_lint',

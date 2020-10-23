@@ -85,6 +85,7 @@ class Editor(SpyderPluginWidget):
     breakpoints_saved = Signal()
     run_in_current_extconsole = Signal(str, str, str, bool, bool)
     open_file_update = Signal(str)
+    sig_file_debug_message_requested = Signal()
 
     # This signal is fired for any focus change among all editor stacks
     sig_editor_focus_changed = Signal()
@@ -157,7 +158,7 @@ class Editor(SpyderPluginWidget):
         self.__ignore_cursor_position = True
 
         # Completions setup
-        self.completion_editor_settings = {}
+        self.completion_capabilities = {}
 
         # Setup new windows:
         self.main.all_actions_defined.connect(self.setup_other_windows)
@@ -168,8 +169,6 @@ class Editor(SpyderPluginWidget):
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
-        self.find_widget.visibility_changed.connect(
-                                          lambda vs: self.rehighlight_cells())
         self.register_widget_shortcuts(self.find_widget)
 
         # Start autosave component
@@ -248,7 +247,6 @@ class Editor(SpyderPluginWidget):
             # Pass the OutlineExplorer widget to the stacks because they
             # don't need the plugin
             editorstack.set_outlineexplorer(self.outlineexplorer.explorer)
-        self.editorstacks[0].initialize_outlineexplorer()
         self.outlineexplorer.explorer.edit_goto.connect(
                            lambda filenames, goto, word:
                            self.load(filenames=filenames, goto=goto, word=word,
@@ -273,51 +271,68 @@ class Editor(SpyderPluginWidget):
 
     @Slot(dict)
     def report_open_file(self, options):
-        """Request to start a completion server to attend a language."""
+        """Report that a file was opened to the completion manager."""
         filename = options['filename']
         language = options['language']
-        logger.debug('Start completion server for %s [%s]' % (
-            filename, language))
         codeeditor = options['codeeditor']
+
         status = self.main.completions.start_client(language.lower())
         self.main.completions.register_file(
             language.lower(), filename, codeeditor)
         if status:
-            logger.debug('{0} completion server is ready'.format(language))
-            codeeditor.start_completion_services()
-            if language.lower() in self.completion_editor_settings:
-                codeeditor.update_completion_configuration(
-                    self.completion_editor_settings[language.lower()])
+            if language.lower() in self.completion_capabilities:
+                # When this condition is True, it means there's a server
+                # that can provide completion services for this file.
+                codeeditor.register_completion_capabilities(
+                    self.completion_capabilities[language.lower()])
+                codeeditor.start_completion_services()
+            elif self.main.completions.is_fallback_only(language.lower()):
+                # This is required to use fallback completions for files
+                # without a language server.
+                codeeditor.start_completion_services()
         else:
             if codeeditor.language == language.lower():
                 logger.debug('Setting {0} completions off'.format(filename))
                 codeeditor.completions_available = False
 
     @Slot(dict, str)
-    def register_completion_server_settings(self, settings, language):
-        """Register completion server settings."""
-        self.completion_editor_settings[language] = dict(settings)
-        logger.debug('Completion server settings for {!s} are: {!r}'.format(
-            language, settings))
-        self.completion_server_settings_ready(
-            language, self.completion_editor_settings[language])
+    def register_completion_capabilities(self, capabilities, language):
+        """
+        Register completion server capabilities in all editorstacks.
+
+        Parameters
+        ----------
+        capabilities: dict
+            Capabilities supported by a language server.
+        language: str
+            Programming language for the language server (it has to be
+            in small caps).
+        """
+        logger.debug(
+            'Completion server capabilities for {!s} are: {!r}'.format(
+                language, capabilities)
+        )
+
+        self.completion_capabilities[language] = dict(capabilities)
+        for editorstack in self.editorstacks:
+            editorstack.register_completion_capabilities(
+                capabilities, language)
+
+        self.start_completion_services(language)
+
+    def start_completion_services(self, language):
+        """Notify all editorstacks about LSP server availability."""
+        for editorstack in self.editorstacks:
+            editorstack.start_completion_services(language)
 
     def stop_completion_services(self, language):
         """Notify all editorstacks about LSP server unavailability."""
         for editorstack in self.editorstacks:
-            editorstack.notify_server_down(language)
-
-    def completion_server_ready(self, language):
-        for editorstack in self.editorstacks:
-            editorstack.completion_server_ready(language)
-
-    def completion_server_settings_ready(self, language, configuration):
-        """Notify all stackeditors about LSP server availability."""
-        for editorstack in self.editorstacks:
-            editorstack.update_server_configuration(language, configuration)
+            editorstack.stop_completion_services(language)
 
     def send_completion_request(self, language, request, params):
-        logger.debug("%s completion server request: %r" % (language, request))
+        logger.debug("Perform request {0} for: {1}".format(
+            request, params['file']))
         self.main.completions.send_request(language, request, params)
 
     def kite_completions_file_status(self):
@@ -505,6 +520,7 @@ class Editor(SpyderPluginWidget):
                                     context=Qt.WidgetShortcut)
         self.register_shortcut(set_clear_breakpoint_action, context="Editor",
                                name="Breakpoint")
+
         set_cond_breakpoint_action = create_action(self,
                             _("Set/Edit conditional breakpoint"),
                             icon=ima.icon('breakpoint_cond_big'),
@@ -512,15 +528,22 @@ class Editor(SpyderPluginWidget):
                             context=Qt.WidgetShortcut)
         self.register_shortcut(set_cond_breakpoint_action, context="Editor",
                                name="Conditional breakpoint")
+
         clear_all_breakpoints_action = create_action(self,
                                     _('Clear breakpoints in all files'),
                                     triggered=self.clear_all_breakpoints)
-        pdb_ignore_lib = create_action(
+
+        pdb_ignore_lib_action = create_action(
             self, _("Ignore Python libraries while debugging"),
             toggled=self.toggle_pdb_ignore_lib)
-        pdb_execute_events = create_action(
+        pdb_ignore_lib_action.setChecked(
+            CONF.get('run', 'pdb_ignore_lib'))
+
+        pdb_execute_events_action = create_action(
             self, _("Process execute events while debugging"),
             toggled=self.toggle_pdb_execute_events)
+        pdb_execute_events_action.setChecked(
+            CONF.get('run', 'pdb_execute_events'))
 
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
@@ -571,7 +594,7 @@ class Editor(SpyderPluginWidget):
         self.debug_exit_action = create_action(
             self, _("Stop"),
             icon=ima.icon('stop_debug'), tip=_("Stop debugging"),
-            triggered=lambda: self.debug_command("exit"))
+            triggered=self.stop_debugging)
         self.register_shortcut(self.debug_exit_action, "_", "Debug Exit",
                                add_shortcut_to_tip=True)
 
@@ -793,6 +816,16 @@ class Editor(SpyderPluginWidget):
             _("Remove trailing spaces"),
             triggered=self.remove_trailing_spaces)
 
+        formatter = CONF.get('lsp-server', 'formatting')
+        self.formatting_action = create_action(
+            self,
+            _('Format file or selection with {0}').format(
+                formatter.capitalize()),
+            shortcut=CONF.get_shortcut('editor', 'autoformatting'),
+            context=Qt.WidgetShortcut,
+            triggered=self.format_document_or_selection)
+        self.formatting_action.setEnabled(False)
+
         # Checkable actions
         showblanks_action = self._create_checkable_action(
             _("Show blank spaces"), 'blank_spaces', 'set_blanks_enabled')
@@ -970,8 +1003,8 @@ class Editor(SpyderPluginWidget):
             self.debug_continue_action,
             self.debug_exit_action,
             MENU_SEPARATOR,
-            pdb_ignore_lib,
-            pdb_execute_events,
+            pdb_ignore_lib_action,
+            pdb_execute_events_action,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             clear_all_breakpoints_action,
@@ -1012,7 +1045,8 @@ class Editor(SpyderPluginWidget):
             MENU_SEPARATOR,
             eol_menu,
             trailingspaces_action,
-            fixindentation_action
+            fixindentation_action,
+            self.formatting_action
         ]
         self.main.source_menu_actions += source_menu_actions
 
@@ -1082,12 +1116,14 @@ class Editor(SpyderPluginWidget):
     def toggle_pdb_ignore_lib(self, checked):
         """"Set pdb_ignore_lib"""
         CONF.set('run', 'pdb_ignore_lib', checked)
-        self.main.ipyconsole.set_pdb_ignore_lib()
+        if self.main.ipyconsole is not None:
+            self.main.ipyconsole.set_pdb_ignore_lib()
 
     def toggle_pdb_execute_events(self, checked):
         """"Set pdb_execute_events"""
         CONF.set('run', 'pdb_execute_events', checked)
-        self.main.ipyconsole.set_pdb_execute_events()
+        if self.main.ipyconsole is not None:
+            self.main.ipyconsole.set_pdb_execute_events()
 
     def update_pdb_state(self, state, last_step):
         """Enable/disable debugging actions and handle pdb state change."""
@@ -1115,8 +1151,6 @@ class Editor(SpyderPluginWidget):
         if self.main.outlineexplorer is not None:
             self.set_outlineexplorer(self.main.outlineexplorer)
         editorstack = self.get_current_editorstack()
-        if not editorstack.data:
-            self.__load_temp_file()
         self.add_dockwidget()
         self.update_pdb_state(False, {})
 
@@ -1314,6 +1348,8 @@ class Editor(SpyderPluginWidget):
             ('set_tabbar_visible',                  'show_tab_bar'),
             ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
+            ('set_remove_trailing_newlines',        'always_remove_trailing_newlines'),
+            ('set_add_newline',                     'add_newline'),
             ('set_convert_eol_on_save',             'convert_eol_on_save'),
             ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
                     )
@@ -1324,6 +1360,8 @@ class Editor(SpyderPluginWidget):
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
         editorstack.set_hover_hints_enabled(CONF.get('lsp-server',
                                                      'enable_hover_hints'))
+        editorstack.set_format_on_save(
+            CONF.get('lsp-server', 'format_on_save'))
         color_scheme = self.get_color_scheme()
         editorstack.set_default_font(self.get_font(), color_scheme)
 
@@ -1379,6 +1417,7 @@ class Editor(SpyderPluginWidget):
                                            self.refresh_file_dependent_actions)
         editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
         editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
+        editorstack.sig_refresh_formatting.connect(self.refresh_formatting)
         editorstack.sig_breakpoints_saved.connect(self.breakpoints_saved)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
@@ -1622,6 +1661,15 @@ class Editor(SpyderPluginWidget):
             self.mac_eol_action.setChecked(True)
         self.__set_eol_chars = True
 
+    def refresh_formatting(self, status):
+        self.formatting_action.setEnabled(status)
+
+    def refresh_formatter_name(self):
+        formatter = CONF.get('lsp-server', 'formatting')
+        self.formatting_action.setText(
+            _('Format file or selection with {0}').format(
+                formatter.capitalize()))
+
     #------ Slots
     def opened_files_list_changed(self):
         """
@@ -1668,12 +1716,6 @@ class Editor(SpyderPluginWidget):
                  results is not None and len(results))
         if state is not None:
             self.todo_list_action.setEnabled(state)
-
-    def rehighlight_cells(self):
-        """Rehighlight cells of current editor"""
-        editor = self.get_current_editor()
-        editor.rehighlight_cells()
-        QApplication.processEvents()
 
     @Slot(set)
     def update_active_languages(self, languages):
@@ -1796,9 +1838,16 @@ class Editor(SpyderPluginWidget):
                         # to this number if there's other untitled file in
                         # spyder. Please see spyder-ide/spyder#7831
                         fname_data = osp.splitext(current_filename)
-                        act_num = int(fname_data[0].split(_("untitled"))[-1])
-                        self.untitled_num = act_num + 1
-
+                        try:
+                            act_num = int(
+                                fname_data[0].split(_("untitled"))[-1])
+                            self.untitled_num = act_num + 1
+                        except ValueError:
+                            # Catch the error in case the user has something
+                            # different from a number after the untitled
+                            # part.
+                            # Please see spyder-ide/spyder#12892
+                            self.untitled_num = 0
             while True:
                 fname = create_fname(self.untitled_num)
                 self.untitled_num += 1
@@ -2085,8 +2134,10 @@ class Editor(SpyderPluginWidget):
         if debugging and 'fname' in last_pdb_step and filename:
             if osp.normcase(last_pdb_step['fname']) == osp.normcase(filename):
                 can_close = False
+                self.sig_file_debug_message_requested.emit()
         elif debugging:
             can_close = False
+            self.sig_file_debug_message_requested.emit()
         return can_close
 
     @Slot()
@@ -2321,6 +2372,12 @@ class Editor(SpyderPluginWidget):
         editorstack.remove_trailing_spaces()
 
     @Slot()
+    def format_document_or_selection(self):
+        self.switch_to_plugin()
+        editorstack = self.get_current_editorstack()
+        editorstack.format_document_or_selection()
+
+    @Slot()
     def fix_indentation(self):
         self.switch_to_plugin()
         editorstack = self.get_current_editorstack()
@@ -2503,10 +2560,16 @@ class Editor(SpyderPluginWidget):
                 editorstack.data[index].editor.debugger.toogle_breakpoint(
                         lineno)
 
+    def stop_debugging(self):
+        """Stop debugging"""
+        self.main.ipyconsole.stop_debugging()
+
     def debug_command(self, command):
         """Debug actions"""
         self.switch_to_plugin()
-        self.main.ipyconsole.pdb_execute(command, hidden=True, echo_code=False)
+        self.main.ipyconsole.pdb_execute(
+            command, hidden=False, echo_stack_entry=False,
+            add_history=False)
         focus_widget = self.main.ipyconsole.get_focus_widget()
         if focus_widget:
             focus_widget.setFocus()
@@ -2783,6 +2846,10 @@ class Editor(SpyderPluginWidget):
             completionshint_o = self.get_option(completionshint_n)
             removetrail_n = 'always_remove_trailing_spaces'
             removetrail_o = self.get_option(removetrail_n)
+            add_newline_n = 'add_newline'
+            add_newline_o = self.get_option(add_newline_n)
+            removetrail_newlines_n = 'always_remove_trailing_newlines'
+            removetrail_newlines_o = self.get_option(removetrail_newlines_n)
             converteol_n = 'convert_eol_on_save'
             converteol_o = self.get_option(converteol_n)
             converteolto_n = 'convert_eol_on_save_to'
@@ -2847,6 +2914,11 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
                 if removetrail_n in options:
                     editorstack.set_always_remove_trailing_spaces(removetrail_o)
+                if add_newline_n in options:
+                    editorstack.set_add_newline(add_newline_o)
+                if removetrail_newlines_n in options:
+                    editorstack.set_remove_trailing_newlines(
+                        removetrail_newlines_o)
                 if converteol_n in options:
                     editorstack.set_convert_eol_on_save(converteol_o)
                 if converteolto_n in options:
@@ -2913,7 +2985,7 @@ class Editor(SpyderPluginWidget):
                 filenames = self.get_open_filenames()
                 self.set_option('filenames', filenames)
 
-    def setup_open_files(self):
+    def setup_open_files(self, close_previous_files=True):
         """
         Open the list of saved files per project.
 
@@ -2928,7 +3000,9 @@ class Editor(SpyderPluginWidget):
             filenames = self.projects.get_project_filenames()
         else:
             filenames = self.get_option('filenames', default=[])
-        self.close_all_files()
+
+        if close_previous_files:
+            self.close_all_files()
 
         all_filenames = self.autosave.recover_files_to_open + filenames
         if all_filenames and any([osp.isfile(f) for f in all_filenames]):

@@ -86,7 +86,24 @@ def pylint_test_script(pylintrc_search_paths):
     with open(script_path, mode="w",
               encoding="utf-8", newline="\n") as script_file:
         script_file.write(PYLINT_TEST_SCRIPT)
+
     return script_path
+
+
+@pytest.fixture
+def pylint_test_scripts(pylintrc_search_paths):
+    def _pylint_test_scripts(filenames):
+        """Write scripts for testing Pylint to a temporary directory."""
+        script_paths = []
+        for filename in filenames:
+            script_path = osp.join(
+                pylintrc_search_paths[SCRIPT_DIR], filename)
+            with open(script_path, mode="w",
+                      encoding="utf-8", newline="\n") as script_file:
+                script_file.write(PYLINT_TEST_SCRIPT)
+            script_paths.append(script_path)
+        return script_paths
+    return _pylint_test_scripts
 
 
 @pytest.fixture(
@@ -185,10 +202,10 @@ def test_pylint_widget_pylintrc(
                 for bad_name in bad_names])
 
 
-def test_pylint_max_history_conf(pylint_test_script, mocker, qtbot):
+def test_pylint_max_history_conf(pylint_test_scripts, mocker):
     """Regression test for checking max_entries configuration.
 
-    For further information see spyder-ide/spyder#12874
+    For further information see spyder-ide/spyder#12884
     """
     # Create the pylint widget for code analysis
     main_window = MainWindowMock()
@@ -196,22 +213,36 @@ def test_pylint_max_history_conf(pylint_test_script, mocker, qtbot):
         return_value=None)
     pylint_sw = Pylint(parent=main_window)
     pylint_widget = PylintWidget(parent=pylint_sw)
+    pylint_widget.filecombo.clear()
+
+    script_0, script_1, script_2 = pylint_test_scripts(
+        ["test_script_{}.py".format(n) for n in range(3)])
 
     # Change the max_entry to 2
     pylint_widget.parent.set_option('max_entries', 2)
+    pylint_widget.change_history_limit(2)
     assert pylint_widget.parent.get_option('max_entries') == 2
 
-    # Analyze the test script with 1 as max_entry
-    pylint_widget.analyze(filename=pylint_test_script)
-    qtbot.waitUntil(
-        lambda: pylint_widget.get_data(pylint_test_script)[1] is not None,
-        timeout=5000)
-    pylint_data = pylint_widget.get_data(filename=pylint_test_script)
-    results = pylint_data[1][-1]
+    # Call to set_filename
+    pylint_widget.set_filename(filename=script_0)
+    assert pylint_widget.filecombo.count() == 1
 
-    max_entries = pylint_widget.parent.get_option('max_entries')
-    for key in results:
-        assert len(results[key]) <= max_entries
+    # Add to more filenames
+    pylint_widget.set_filename(filename=script_1)
+    pylint_widget.set_filename(filename=script_2)
+
+    assert pylint_widget.filecombo.count() == 2
+
+    assert 'test_script_2.py' in pylint_widget.curr_filenames[0]
+    assert 'test_script_1.py' in pylint_widget.curr_filenames[1]
+
+    # Change the max entry to 1
+    pylint_widget.parent.set_option('max_entries', 1)
+    pylint_widget.change_history_limit(1)
+
+    assert pylint_widget.filecombo.count() == 1
+
+    assert 'test_script_2.py' in pylint_widget.curr_filenames[0]
 
 
 if __name__ == "__main__":

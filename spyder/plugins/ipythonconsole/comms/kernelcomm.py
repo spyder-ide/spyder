@@ -32,7 +32,7 @@ class KernelComm(CommBase, QObject):
     """
 
     _sig_got_reply = Signal()
-    _sig_channel_open = Signal()
+    _sig_comm_port_changed = Signal()
     sig_exception_occurred = Signal(str, bool)
 
     def __init__(self):
@@ -46,6 +46,8 @@ class KernelComm(CommBase, QObject):
 
     def _set_comm_port(self, port):
         """Set comm port."""
+        if port is None:
+            return
         client = self.kernel_client
         if not (hasattr(client, 'comm_port') and client.comm_port == port):
             client.comm_port = port
@@ -54,8 +56,8 @@ class KernelComm(CommBase, QObject):
                 'comm', identity=identity)
             client.comm_channel = client.shell_channel_class(
                 socket, client.session, client.ioloop)
-        # We emit in case we are waiting on this
-        self._sig_channel_open.emit()
+            # We emit in case we are waiting on this
+            self._sig_comm_port_changed.emit()
 
     def shutdown_comm_channel(self):
         """Shutdown the comm channel."""
@@ -80,9 +82,9 @@ class KernelComm(CommBase, QObject):
         if not self.comm_channel_connected():
             # Ask again for comm config
             self.remote_call()._send_comm_config()
-            timeout = 45
+            timeout = 25
             self._wait(self.comm_channel_connected,
-                       self._sig_channel_open,
+                       self._sig_comm_port_changed,
                        "Timeout while waiting for comm port.",
                        timeout)
 
@@ -120,16 +122,40 @@ class KernelComm(CommBase, QObject):
             comm_id=comm_id, timeout=timeout)
 
     # ---- Private -----
+    def on_incoming_call(self, call_dict):
+        """A call was received"""
+        if "comm_port" in call_dict:
+            self._set_comm_port(call_dict["comm_port"])
+        return super(KernelComm, self).on_incoming_call(call_dict)
+
     def _get_call_return_value(self, call_dict, call_data, comm_id):
         """
         Interupt the kernel if needed.
         """
         settings = call_dict['settings']
+        blocking = 'blocking' in settings and settings['blocking']
+
+        if not self.kernel_client.is_alive():
+            if blocking:
+                raise RuntimeError("Kernel is dead")
+            else:
+                # The user has other problems
+                return
+
+        settings = call_dict['settings']
         interrupt = 'interrupt' in settings and settings['interrupt']
 
-        with self.comm_channel_manager(comm_id, queue_message=not interrupt):
-            return super(KernelComm, self)._get_call_return_value(
-                call_dict, call_data, comm_id)
+        try:
+            with self.comm_channel_manager(
+                    comm_id, queue_message=not interrupt):
+                return super(KernelComm, self)._get_call_return_value(
+                    call_dict, call_data, comm_id)
+        except RuntimeError:
+            if blocking:
+                raise
+            else:
+                # The user has other problems
+                return
 
     def _wait_reply(self, call_id, call_name, timeout):
         """Wait for the other side reply."""
@@ -149,28 +175,40 @@ class KernelComm(CommBase, QObject):
         timeout_msg: Message to display in case of a timeout.
         timeout: time in seconds before a timeout
         """
+        # Exit if condition is fulfilled or the kernel is dead.
         if condition():
             return
+        if not self.kernel_client.is_alive():
+            raise RuntimeError("Kernel is dead")
 
         # Create event loop to wait with
         wait_loop = QEventLoop()
-        signal.connect(wait_loop.quit)
         wait_timeout = QTimer()
         wait_timeout.setSingleShot(True)
+
+        # Connect signals to stop kernel loop
         wait_timeout.timeout.connect(wait_loop.quit)
+        self.kernel_client.hb_channel.kernel_died.connect(wait_loop.quit)
+        signal.connect(wait_loop.quit)
 
         # Wait until the kernel returns the value
         wait_timeout.start(timeout * 1000)
         while not condition():
             if not wait_timeout.isActive():
                 signal.disconnect(wait_loop.quit)
-                if not condition():
-                    raise TimeoutError(timeout_msg)
-                return
+                self.kernel_client.hb_channel.kernel_died.disconnect(
+                    wait_loop.quit)
+                if condition():
+                    return
+                if not self.kernel_client.is_alive():
+                    raise RuntimeError("Kernel is dead")
+                raise TimeoutError(timeout_msg)
             wait_loop.exec_()
 
         wait_timeout.stop()
         signal.disconnect(wait_loop.quit)
+        self.kernel_client.hb_channel.kernel_died.disconnect(
+            wait_loop.quit)
 
     def _handle_remote_call_reply(self, msg_dict, buffer):
         """

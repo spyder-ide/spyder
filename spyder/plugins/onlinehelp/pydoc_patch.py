@@ -871,8 +871,8 @@ def _url_handler(url, content_type="text/html"):
     # Errors outside the url handler are caught by the server.
     raise TypeError(
         _('There was an error while retrieving documentation '
-          'for the object you requested: unknown content type %r for url %s'
-          % (content_type, url)))
+          'for the object you requested: unknown content type %r for url %s')
+          % (content_type, url))
 
 
 def _start_server(urlhandler, hostname, port):
@@ -913,6 +913,11 @@ def _start_server(urlhandler, hostname, port):
                 # Needed to handle error when client closes the connection,
                 # for example when the client stops the load of the previously
                 # requested page. See spyder-ide/spyder#10755
+                pass
+            except BrokenPipeError:
+                # Needed to handle permission error when trying to open a port
+                # for the web server of the online help.
+                # See spyder-ide/spyder#13388
                 pass
 
         def log_message(self, *args):

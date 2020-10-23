@@ -15,8 +15,8 @@ from qtpy.QtCore import QSize, Qt, Signal, Slot
 from qtpy.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDialog,
                             QDialogButtonBox, QFrame, QGridLayout, QGroupBox,
                             QHBoxLayout, QLabel, QLineEdit, QMessageBox,
-                            QPushButton, QRadioButton, QSizePolicy,
-                            QStackedWidget, QVBoxLayout, QWidget)
+                            QPushButton, QRadioButton, QScrollArea,
+                            QSizePolicy, QStackedWidget, QVBoxLayout, QWidget)
 
 # Local imports
 from spyder.config.base import _
@@ -25,6 +25,7 @@ from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils.misc import getcwd_or_home
+from spyder.utils.qthelpers import create_toolbutton
 
 CURRENT_INTERPRETER = _("Execute in current console")
 DEDICATED_INTERPRETER = _("Execute in a dedicated console")
@@ -173,8 +174,7 @@ class RunConfigOptions(QWidget):
 
         # --- Interpreter ---
         interpreter_group = QGroupBox(_("Console"))
-        interpreter_layout = QVBoxLayout()
-        interpreter_group.setLayout(interpreter_layout)
+        interpreter_layout = QVBoxLayout(interpreter_group)
 
         self.current_radio = QRadioButton(CURRENT_INTERPRETER)
         interpreter_layout.addWidget(self.current_radio)
@@ -187,8 +187,7 @@ class RunConfigOptions(QWidget):
 
         # --- General settings ----
         common_group = QGroupBox(_("General settings"))
-        common_layout = QGridLayout()
-        common_group.setLayout(common_layout)
+        common_layout = QGridLayout(common_group)
 
         self.clear_var_cb = QCheckBox(CLEAR_ALL_VARIABLES)
         common_layout.addWidget(self.clear_var_cb, 0, 0)
@@ -208,8 +207,7 @@ class RunConfigOptions(QWidget):
 
         # --- Working directory ---
         wdir_group = QGroupBox(_("Working directory settings"))
-        wdir_layout = QVBoxLayout()
-        wdir_group.setLayout(wdir_layout)
+        wdir_layout = QVBoxLayout(wdir_group)
 
         self.file_dir_radio = QRadioButton(FILE_DIR)
         wdir_layout.addWidget(self.file_dir_radio)
@@ -224,9 +222,12 @@ class RunConfigOptions(QWidget):
         self.fixed_dir_radio.toggled.connect(self.wd_edit.setEnabled)
         self.wd_edit.setEnabled(False)
         fixed_dir_layout.addWidget(self.wd_edit)
-        browse_btn = QPushButton(ima.icon('DirOpenIcon'), '', self)
-        browse_btn.setToolTip(_("Select directory"))
-        browse_btn.clicked.connect(self.select_directory)
+        browse_btn = create_toolbutton(
+            self,
+            triggered=self.select_directory,
+            icon=ima.icon('DirOpenIcon'),
+            tip=_("Select directory")
+            )
         fixed_dir_layout.addWidget(browse_btn)
         wdir_layout.addLayout(fixed_dir_layout)
 
@@ -252,21 +253,17 @@ class RunConfigOptions(QWidget):
 
         # Checkbox to preserve the old behavior, i.e. always open the dialog
         # on first run
-        hline = QFrame()
-        hline.setFrameShape(QFrame.HLine)
-        hline.setFrameShadow(QFrame.Sunken)
         self.firstrun_cb = QCheckBox(ALWAYS_OPEN_FIRST_RUN % _("this dialog"))
         self.firstrun_cb.clicked.connect(self.set_firstrun_o)
         self.firstrun_cb.setChecked(firstrun_o)
 
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
         layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
         layout.addWidget(wdir_group)
         layout.addWidget(external_group)
-        layout.addWidget(hline)
         layout.addWidget(self.firstrun_cb)
-        self.setLayout(layout)
+        layout.addStretch(100)
 
     def select_directory(self):
         """Select directory"""
@@ -338,6 +335,8 @@ class BaseRunConfigDialog(QDialog):
 
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
+        self.setWindowFlags(
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -357,6 +356,7 @@ class BaseRunConfigDialog(QDialog):
                 layout.addSpacing(widget_or_spacing)
             else:
                 layout.addWidget(widget_or_spacing)
+        return layout
 
     def add_button_box(self, stdbtns):
         """Create dialog button box and add it to the dialog layout"""
@@ -389,6 +389,7 @@ class BaseRunConfigDialog(QDialog):
 
 class RunConfigOneDialog(BaseRunConfigDialog):
     """Run configuration dialog box: single file version"""
+
     def __init__(self, parent=None):
         BaseRunConfigDialog.__init__(self, parent)
         self.filename = None
@@ -399,7 +400,11 @@ class RunConfigOneDialog(BaseRunConfigDialog):
         self.filename = fname
         self.runconfigoptions = RunConfigOptions(self)
         self.runconfigoptions.set(RunConfiguration(fname).get())
-        self.add_widgets(self.runconfigoptions)
+        scrollarea = QScrollArea(self)
+        scrollarea.setWidget(self.runconfigoptions)
+        scrollarea.setMinimumWidth(560)
+        scrollarea.setWidgetResizable(True)
+        self.add_widgets(scrollarea)
         self.add_button_box(QDialogButtonBox.Cancel)
         self.setWindowTitle(_("Run settings for %s") % osp.basename(fname))
 
@@ -421,6 +426,7 @@ class RunConfigOneDialog(BaseRunConfigDialog):
 
 class RunConfigDialog(BaseRunConfigDialog):
     """Run configuration dialog box: multiple file version"""
+
     def __init__(self, parent=None):
         BaseRunConfigDialog.__init__(self, parent)
         self.file_to_run = None
@@ -436,8 +442,6 @@ class RunConfigDialog(BaseRunConfigDialog):
         combo_label = QLabel(_("Select a run configuration:"))
         self.combo = QComboBox()
         self.combo.setMaxVisibleItems(20)
-        self.combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
-        self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         self.stack = QStackedWidget()
 
@@ -454,13 +458,22 @@ class RunConfigDialog(BaseRunConfigDialog):
         for filename, options in configurations:
             widget = RunConfigOptions(self)
             widget.set(options)
+            widget.layout().setContentsMargins(0, 0, 0, 0)
             self.combo.addItem(filename)
             self.stack.addWidget(widget)
         self.combo.currentIndexChanged.connect(self.stack.setCurrentIndex)
         self.combo.setCurrentIndex(index)
 
-        self.add_widgets(combo_label, self.combo, 10, self.stack)
-        self.add_button_box(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        layout = self.add_widgets(combo_label, self.combo, 10, self.stack)
+        widget_dialog = QWidget()
+        widget_dialog.setLayout(layout)
+        scrollarea = QScrollArea(self)
+        scrollarea.setWidget(widget_dialog)
+        scrollarea.setMinimumWidth(600)
+        scrollarea.setWidgetResizable(True)
+        scroll_layout = QVBoxLayout(self)
+        scroll_layout.addWidget(scrollarea)
+        self.add_button_box(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
 
         self.setWindowTitle(_("Run configuration per file"))
 
@@ -569,7 +582,7 @@ class RunConfigPage(GeneralConfigPage):
                             ALWAYS_OPEN_FIRST_RUN % _("Run Settings dialog"),
                             ALWAYS_OPEN_FIRST_RUN_OPTION, False)
 
-        vlayout = QVBoxLayout()
+        vlayout = QVBoxLayout(self)
         vlayout.addWidget(about_label)
         vlayout.addSpacing(10)
         vlayout.addWidget(interpreter_group)
@@ -578,7 +591,6 @@ class RunConfigPage(GeneralConfigPage):
         vlayout.addWidget(external_group)
         vlayout.addWidget(firstrun_cb)
         vlayout.addStretch(1)
-        self.setLayout(vlayout)
 
     def apply_settings(self, options):
         pass

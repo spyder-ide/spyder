@@ -33,18 +33,12 @@ from distutils.command.install_data import install_data
 
 
 #==============================================================================
-# Check for Python 3
-#==============================================================================
-PY3 = sys.version_info[0] == 3
-
-
-#==============================================================================
 # Minimal Python version sanity check
 # Taken from the notebook setup.py -- Modified BSD License
 #==============================================================================
 v = sys.version_info
-if v[:2] < (2, 7) or (v[0] >= 3 and v[:2] < (3, 5)):
-    error = "ERROR: Spyder requires Python version 2.7 or 3.5 and above."
+if v[0] >= 3 and v[:2] < (3, 6):
+    error = "ERROR: Spyder requires Python version 3.6 and above."
     print(error, file=sys.stderr)
     sys.exit(1)
 
@@ -87,13 +81,8 @@ def get_subpackages(name):
 def get_data_files():
     """Return data_files in a platform dependent manner"""
     if sys.platform.startswith('linux'):
-        if PY3:
-            data_files = [('share/applications', ['scripts/spyder3.desktop']),
-                          ('share/icons', ['img_src/spyder3.png']),
-                          ('share/metainfo', ['scripts/spyder3.appdata.xml'])]
-        else:
-            data_files = [('share/applications', ['scripts/spyder.desktop']),
-                          ('share/icons', ['img_src/spyder.png'])]
+        data_files = [('share/applications', ['scripts/spyder.desktop']),
+                      ('share/icons', ['img_src/spyder.png'])]
     elif os.name == 'nt':
         data_files = [('scripts', ['img_src/spyder.ico',
                                    'img_src/spyder_reset.ico'])]
@@ -131,10 +120,7 @@ CMDCLASS = {'install_data': MyInstallData}
 # See spyder-ide/spyder#1158.
 SCRIPTS = ['%s_win_post_install.py' % NAME]
 
-if PY3 and sys.platform.startswith('linux'):
-    SCRIPTS.append('spyder3')
-else:
-    SCRIPTS.append('spyder')
+SCRIPTS.append('spyder')
 
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
@@ -165,7 +151,7 @@ setup_args = dict(
     long_description_content_type='text/markdown',
     download_url=__website_url__ + "#fh5co-download",
     author="The Spyder Project Contributors",
-    author_email="spyderlib@googlegroups.com",
+    author_email="spyder.python@gmail.com",
     url=__website_url__,
     license='MIT',
     keywords='PyQt5 editor console widgets IDE science data analysis IPython',
@@ -178,13 +164,10 @@ setup_args = dict(
                  'Operating System :: MacOS',
                  'Operating System :: Microsoft :: Windows',
                  'Operating System :: POSIX :: Linux',
-                 'Programming Language :: Python :: 2',
-                 'Programming Language :: Python :: 2.7',
                  'Programming Language :: Python :: 3',
-                 'Programming Language :: Python :: 3.4',
-                 'Programming Language :: Python :: 3.5',
                  'Programming Language :: Python :: 3.6',
                  'Programming Language :: Python :: 3.7',
+                 'Programming Language :: Python :: 3.8',
                  'Development Status :: 5 - Production/Stable',
                  'Intended Audience :: Education',
                  'Intended Audience :: Science/Research',
@@ -208,38 +191,35 @@ install_requires = [
     'diff-match-patch>=20181111',
     'intervaltree',
     'ipython>=4.0',
-    # This is here until Jedi 0.15+ fixes completions for
-    # Numpy and Pandas
-    'jedi==0.15.2',
-    # Don't require keyring for Python 2 and Linux
-    # because it depends on system packages
-    'keyring;sys_platform!="linux2"',
+    'jedi==0.17.2',
+    'keyring',
     'nbconvert>=4.0',
     'numpydoc>=0.6.0',
     # Required to get SSH connections to remote kernels
     'paramiko>=2.4.0;platform_system=="Windows"',
-    'parso==0.5.2',
+    'parso==0.7.0',
     'pexpect>=4.4.0',
     'pickleshare>=0.4',
     'psutil>=5.3',
     'pygments>=2.0',
     'pylint>=1.0',
-    'pyqt5<5.13;python_version>="3"',
-    'pyqtwebengine<5.13;python_version>="3"',
-    'python-language-server[all]>=0.31.9,<0.32.0',
+    'pyqt5<5.13',
+    'pyqtwebengine<5.13',
+    'python-language-server[all]>=0.35.0,<1.0.0',
+    'pyls-black',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8',
     'qtawesome>=0.5.7',
-    'qtconsole>=4.6.0',
+    'qtconsole>=4.7.7',
     'qtpy>=1.5.0',
     'sphinx>=0.6.6',
-    'spyder-kernels>=1.9.1,<1.10.0',
-    'watchdog',
+    'spyder-kernels>=1.9.4,<1.10.0',
+    'three-merge>=0.1.1',
+    'watchdog'
 ]
 
 extras_require = {
-    'test:python_version == "2.7"': ['mock'],
     'test:platform_system == "Linux"': ['pytest-xvfb'],
     'test:platform_system == "Windows"': ['pywin32'],
     'test': [
@@ -269,8 +249,7 @@ if 'setuptools' in sys.modules:
 
     setup_args['entry_points'] = {
         'gui_scripts': [
-            '{} = spyder.app.start:main'.format(
-                'spyder3' if PY3 else 'spyder')
+            'spyder = spyder.app.start:main'
         ]
     }
 

@@ -26,18 +26,19 @@ import numpy
 import pandas
 import pytest
 from flaky import flaky
-from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QWidget
+from qtpy.QtCore import Qt, QPoint
+from qtpy.QtWidgets import QWidget, QDateEdit
 
 # Local imports
 from spyder.plugins.variableexplorer.widgets.collectionseditor import (
     RemoteCollectionsEditorTableView, CollectionsEditorTableView,
-    CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD)
+    CollectionsModel, CollectionsEditor, LARGE_NROWS, ROWS_TO_LOAD, natsort)
 from spyder.plugins.variableexplorer.widgets.namespacebrowser import (
     NamespacesBrowserFinder)
 from spyder.plugins.variableexplorer.widgets.tests.test_dataframeeditor import \
     generate_pandas_indexes
 from spyder.py3compat import PY2, to_text_string
+from spyder_kernels.utils.nsview import get_size
 
 
 # =============================================================================
@@ -48,7 +49,7 @@ LOCATION = path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
 # =============================================================================
-# Utility functions
+# Utility functions and classes
 # =============================================================================
 def data(cm, i, j):
     return cm.data(cm.index(i, j))
@@ -56,6 +57,13 @@ def data(cm, i, j):
 
 def data_table(cm, n_rows, n_cols):
     return [[data(cm, i, j) for i in range(n_rows)] for j in range(n_cols)]
+
+
+class MockParent(QWidget):
+
+    def __init__(self):
+        super(QWidget, self).__init__(None)
+        self.proxy_model = None
 
 
 # =============================================================================
@@ -213,9 +221,15 @@ def test_remove_remote_variable(qtbot, monkeypatch):
 
 def test_filter_rows(qtbot):
     """Test rows filtering."""
-
-    df = pandas.DataFrame(['foo', 'bar'])
-    editor = CollectionsEditorTableView(None, {'dfa': df, 'dfb': df})
+    data = (
+        {'dfa':
+            {'type': 'DataFrame', 'size': (2, 1), 'color': '#00ff00',
+             'view': 'Column names: 0'},
+         'dfb':
+            {'type': 'DataFrame', 'size': (2, 1), 'color': '#00ff00',
+             'view': 'Column names: 0'}}
+    )
+    editor = RemoteCollectionsEditorTableView(None, data)
     editor.finder = NamespacesBrowserFinder(editor,
                                             editor.set_regex)
     qtbot.addWidget(editor)
@@ -238,6 +252,7 @@ def test_filter_rows(qtbot):
     # No match
     editor.finder.setText("dfbc")
     assert editor.model.rowCount() == 0
+
 
 def test_create_dataframeeditor_with_correct_format(qtbot, monkeypatch):
     MockDataFrameEditor = Mock()
@@ -265,9 +280,10 @@ def test_accept_sig_option_changed_from_dataframeeditor(qtbot, monkeypatch):
 
 def test_collectionsmodel_with_two_ints():
     coll = {'x': 1, 'y': 2}
-    cm = CollectionsModel(None, coll)
+    cm = CollectionsModel(MockParent(), coll)
+
     assert cm.rowCount() == 2
-    assert cm.columnCount() == 5
+    assert cm.columnCount() == 4
     # dict is unordered, so first row might be x or y
     assert data(cm, 0, 0) in {'x',
                               'y'}
@@ -290,7 +306,7 @@ def test_collectionsmodel_with_index():
     # modified for spyder-ide/spyder#3758.
     for rng_name, rng in generate_pandas_indexes().items():
         coll = {'rng': rng}
-        cm = CollectionsModel(None, coll)
+        cm = CollectionsModel(MockParent(), coll)
         assert data(cm, 0, 0) == 'rng'
         assert data(cm, 0, 1) == rng_name
         assert data(cm, 0, 2) == '(20,)' or data(cm, 0, 2) == '(20L,)'
@@ -320,9 +336,9 @@ def test_sort_numpy_numeric_collectionsmodel():
         numpy.float64(0), numpy.float64(-1e-6), numpy.float64(-1),
         numpy.float64(-10), numpy.float64(-1e16)
         ]
-    cm = CollectionsModel(None, var_list)
+    cm = CollectionsModel(MockParent(), var_list)
     assert cm.rowCount() == 10
-    assert cm.columnCount() == 5
+    assert cm.columnCount() == 4
     cm.sort(0)  # sort by index
     assert data_table(cm, 10, 4) == [list(range(0, 10)),
                                      [u'float64']*10,
@@ -344,9 +360,9 @@ def test_sort_float_collectionsmodel():
         float(1e16), float(10), float(1), float(0.1), float(1e-6),
         float(0), float(-1e-6), float(-1), float(-10), float(-1e16)
         ]
-    cm = CollectionsModel(None, var_list)
+    cm = CollectionsModel(MockParent(), var_list)
     assert cm.rowCount() == 10
-    assert cm.columnCount() == 5
+    assert cm.columnCount() == 4
     cm.sort(0)  # sort by index
     assert data_table(cm, 10, 4) == [list(range(0, 10)),
                                      [u'float']*10,
@@ -373,9 +389,9 @@ def test_sort_collectionsmodel():
     var_series2 = pandas.Series(var_list2)
 
     coll = [1, 3, 2]
-    cm = CollectionsModel(None, coll)
+    cm = CollectionsModel(MockParent(), coll)
     assert cm.rowCount() == 3
-    assert cm.columnCount() == 5
+    assert cm.columnCount() == 4
     cm.sort(0)  # sort by index
     assert data_table(cm, 3, 4) == [[0, 1, 2],
                                     ['int', 'int', 'int'],
@@ -389,9 +405,9 @@ def test_sort_collectionsmodel():
 
     coll = [1, var_list1, var_list2, var_dataframe1, var_dataframe2,
             var_series1, var_series2]
-    cm = CollectionsModel(None, coll)
+    cm = CollectionsModel(MockParent(), coll)
     assert cm.rowCount() == 7
-    assert cm.columnCount() == 5
+    assert cm.columnCount() == 4
 
     cm.sort(1)  # sort by type
     assert data_table(cm, 7, 4) == [
@@ -432,11 +448,11 @@ def test_sort_collectionsmodel():
          ]]
 
 
-def test_sort_collectionsmodel_with_many_rows():
+def test_sort_and_fetch_collectionsmodel_with_many_rows():
     coll = list(range(2*LARGE_NROWS))
-    cm = CollectionsModel(None, coll)
+    cm = CollectionsModel(MockParent(), coll)
     assert cm.rowCount() == cm.rows_loaded == ROWS_TO_LOAD
-    assert cm.columnCount() == 5
+    assert cm.columnCount() == 4
     cm.sort(1)  # This was causing an issue (#5232)
     cm.fetchMore()
     assert cm.rowCount() == 2 * ROWS_TO_LOAD
@@ -461,6 +477,26 @@ def test_rename_and_duplicate_item_in_collection_editor():
         if isinstance(coll, list):
             editor.duplicate_item()
             assert editor.source_model.get_data() == coll_copy + [coll_copy[0]]
+
+
+def test_edit_datetime(monkeypatch):
+    """
+    Test datetimes are editable and NaT values are correctly handled.
+
+    Regression test for spyder-ide/spyder#13557 and spyder-ide/spyder#8329
+    """
+    variables = [pandas.NaT, datetime.date.today()]
+    editor_list = CollectionsEditorTableView(None, variables)
+
+    # Test that the NaT value cannot be edited on the variable explorer
+    editor_list_value = editor_list.delegate.createEditor(
+        None, None, editor_list.model.index(0, 3))
+    assert editor_list_value is None
+
+    # Test that a date can be edited on the variable explorer
+    editor_list_value = editor_list.delegate.createEditor(
+        None, None, editor_list.model.index(1, 3))
+    assert isinstance(editor_list_value, QDateEdit)
 
 
 def test_edit_mutable_and_immutable_types(monkeypatch):
@@ -583,9 +619,9 @@ def test_notimplementederror_multiindex():
                    for minute in range(5, 35, 5)]
     time_delta_multiindex = pandas.MultiIndex.from_product([[0, 1, 2, 3, 4],
                                                             time_deltas])
-    col_model = CollectionsModel(None, time_delta_multiindex)
+    col_model = CollectionsModel(MockParent(), time_delta_multiindex)
     assert col_model.rowCount() == col_model.rows_loaded == ROWS_TO_LOAD
-    assert col_model.columnCount() == 5
+    assert col_model.columnCount() == 4
     col_model.fetchMore()
     assert col_model.rowCount() == 2 * ROWS_TO_LOAD
     for _ in range(3):
@@ -729,15 +765,21 @@ def test_edit_nonsettable_objects(qtbot, nonsettable_objects_data):
             last_row = row
 
         qtbot.wait(100)
+
         # Due to numpy's deliberate breakage of __eq__ comparison
         assert all([key == "_typ" or (getattr(col_editor.get_value(), key)
                     == getattr(expected_obj, key)) for key in keys])
 
         col_editor.accept()
         qtbot.wait(200)
+
         # Same reason as above
         assert all([key == "_typ" or (getattr(col_editor.get_value(), key)
                     == getattr(expected_obj, key)) for key in keys])
+
+        if getattr(test_obj, "_typ", None) is None:
+            keys.remove("_typ")
+
         assert all([getattr(test_obj, key)
                     == getattr(expected_obj, key) for key in keys])
 
@@ -769,6 +811,112 @@ def test_collectionseditor_with_class_having_correct_copy(qtbot):
     editor = CollectionsEditor()
     editor.setup(md)
     assert not editor.widget.editor.readonly
+
+
+def test_collectionseditor_when_clicking_on_header_and_large_rows(qtbot):
+    """
+    Test that sorting works when clicking in its header and there's a
+    large number of rows.
+    """
+    li = [1] * 10000
+    editor = CollectionsEditor()
+    editor.setup(li)
+
+    # Perform the sorting. It should be done quite quickly because
+    # there's a very small number of rows in display.
+    view = editor.widget.editor
+    header = view.horizontalHeader()
+    with qtbot.waitSignal(header.sectionClicked, timeout=200):
+        qtbot.mouseClick(header.viewport(), Qt.LeftButton, pos=QPoint(1, 1))
+
+    # Assert data was sorted correctly.
+    assert data(view.model, 0, 0) == 9999
+
+
+def test_dicts_with_mixed_types_as_key(qtbot):
+    """
+    Test that we can show dictionaries with mixed data types as keys.
+
+    This is a regression for spyder-ide/spyder#13481.
+    """
+    colors = {1: 'red', 'Y': 'yellow'}
+    editor = CollectionsEditor()
+    editor.setup(colors)
+    assert editor.widget.editor.source_model.keys == [1, 'Y']
+
+
+def test_dicts_natural_sorting(qtbot):
+    """
+    Test that natural sorting actually does what it should do
+    """
+    import random
+    numbers = list(range(100))
+    random.shuffle(numbers)
+    dictionary = {'test{}'.format(i): None for i in numbers}
+    data_sorted = sorted(list(dictionary.keys()), key=natsort)
+    # numbers should be as a human would sort, e.g. test3 before test100
+    # regular sort would sort test1, test10, test11,..., test2, test20,...
+    expected = ['test{}'.format(i) for i in list(range(100))]
+    editor = CollectionsEditor()
+    editor.setup(dictionary)
+    editor.widget.editor.source_model.sort(0)
+
+    assert data_sorted == expected, 'Function failed'
+    assert editor.widget.editor.source_model.keys == expected, \
+        'GUI sorting fail'
+
+
+def test_dicts_natural_sorting_mixed_types():
+    """
+    Test that natural sorting actually does what it should do.
+    testing for issue 13733, as mixed types were sorted incorrectly.
+
+    Sorting for other columns will be tested as well.
+    """
+    import pandas as pd
+    dictionary = {'DSeries': pd.Series(dtype=int), 'aStr': 'algName',
+                  'kDict': {2: 'asd', 3: 2}}
+
+    # put this here variable, as it might change later to reflect string length
+    str_size = get_size(dictionary['aStr'])
+
+    editor = CollectionsEditor()
+    editor.setup(dictionary)
+    cm = editor.widget.editor.source_model
+    cm.sort(0)
+    keys = cm.keys
+    types = cm.types
+    sizes = cm.sizes
+
+    assert keys == ['aStr', 'DSeries', 'kDict']
+    assert types == ['str', 'Series', 'dict']
+    assert sizes == [str_size, (0,), 2]
+
+    assert data_table(cm, 3, 3) == [['aStr', 'DSeries', 'kDict'],
+                                    ['str', 'Series', 'dict'],
+                                    [str_size, '(0,)', 2]]
+
+    # insert an item and check that it is still sorted correctly
+    editor.widget.editor.new_value('List', [1, 2, 3])
+    assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
+                                    ['str', 'Series', 'dict', 'list'],
+                                    [str_size, '(0,)', 2, 3]]
+    cm.sort(0)
+    assert data_table(cm, 4, 3) == [['aStr', 'DSeries', 'kDict', 'List'],
+                                    ['str', 'Series', 'dict', 'list'],
+                                    [str_size, '(0,)', 2, 3]]
+
+    # now sort for types
+    cm.sort(1)
+    assert data_table(cm, 4, 3) == [['DSeries', 'kDict', 'List', 'aStr'],
+                                    ['Series', 'dict', 'list', 'str'],
+                                    ['(0,)', 2, 3, str_size]]
+
+    # now sort for sizes
+    cm.sort(2)
+    assert data_table(cm, 4, 3) == [['DSeries', 'kDict', 'List', 'aStr'],
+                                    ['Series', 'dict', 'list', 'str'],
+                                    ['(0,)', 2, 3, str_size]]
 
 
 if __name__ == "__main__":

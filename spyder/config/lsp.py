@@ -44,6 +44,12 @@ PYTHON_CONFIG = {
                 'pyflakes': {
                     'enabled': True
                 },
+                'autopep8': {
+                    'enabled': True
+                },
+                'black': {
+                    'enabled': False
+                },
                 'yapf': {
                     'enabled': False
                 },
@@ -67,10 +73,13 @@ PYTHON_CONFIG = {
                 'jedi': {
                     'environment': None,
                     'extra_paths': None,
+                    'env_vars': None,
                 },
                 'jedi_completion': {
                     'enabled': True,
-                    'include_params': True
+                    'include_params': False,
+                    'include_class_objects': False,
+                    'fuzzy': False
                 },
                 'jedi_definition': {
                     'enabled': True,
@@ -90,7 +99,8 @@ PYTHON_CONFIG = {
                 },
                 'jedi_symbols': {
                     'enabled': True,
-                    'all_scopes': True
+                    'all_scopes': True,
+                    'include_import_symbols': False
                 },
                 'mccabe': {
                     'enabled': False,
@@ -103,6 +113,9 @@ PYTHON_CONFIG = {
                 'pylint': {
                     'enabled': False,
                     'args': []
+                },
+                'flake8': {
+                     'enabled': False,
                 }
             },
 

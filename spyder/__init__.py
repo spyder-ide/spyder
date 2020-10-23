@@ -32,12 +32,16 @@ OTHER DEALINGS IN THE SOFTWARE.
 version_info = (4, 2, 0, "dev0")
 
 __version__ = '.'.join(map(str, version_info))
+__installer_version__ = '0.1.0'
+__title__ = 'Spyder'
+__author__ = 'Spyder Project Contributors and others'
 __license__ = __doc__
 __project_url__ = 'https://github.com/spyder-ide/spyder'
 __forum_url__   = 'https://groups.google.com/group/spyderlib'
-__trouble_url__ = __project_url__ + '/wiki/Troubleshooting-Guide-and-FAQ'
+__trouble_url__ = 'https://docs.spyder-ide.org/current/first-steps.html'
 __trouble_url_short__ = 'https://tinyurl.com/SpyderHelp'
 __website_url__ = 'https://www.spyder-ide.org/'
+__docs_url__ = 'https://docs.spyder-ide.org/'
 
 # Dear (Debian, RPM, ...) package makers, please feel free to customize the
 # following path to module's data (images) and translations:
@@ -46,7 +50,7 @@ DATAPATH = LOCALEPATH = DOCPATH = MATHJAXPATH = JQUERYPATH = ''
 
 import os
 # Directory of the current file
-__dir__ = os.path.dirname(os.path.abspath(__file__))
+__current_directory__ = os.path.dirname(os.path.abspath(__file__))
 
 def add_to_distribution(dist):
     """Add package to py2exe/cx_Freeze distribution object
@@ -74,7 +78,8 @@ def get_versions(reporev=True):
     revision = None
     if reporev:
         from spyder.utils import vcs
-        revision, branch = vcs.get_git_revision(os.path.dirname(__dir__))
+        revision, branch = vcs.get_git_revision(
+            os.path.dirname(__current_directory__))
 
     if not sys.platform == 'darwin':  # To avoid a crash with our Mac app
         system = platform.system()

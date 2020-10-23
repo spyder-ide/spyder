@@ -1,5 +1,4 @@
 # Copyright 2017 Palantir Technologies, Inc.
-from distutils.version import LooseVersion
 import functools
 import inspect
 import logging
@@ -83,6 +82,18 @@ def find_parents(root, path, names):
     return []
 
 
+def path_to_dot_name(path):
+    """Given a path to a module, derive its dot-separated full name."""
+    directory = os.path.dirname(path)
+    module_name, _ = os.path.splitext(os.path.basename(path))
+    full_name = [module_name]
+    while os.path.exists(os.path.join(directory, '__init__.py')):
+        this_directory = os.path.basename(directory)
+        directory = os.path.dirname(directory)
+        full_name = [this_directory] + full_name
+    return '.'.join(full_name)
+
+
 def match_uri_to_workspace(uri, workspaces):
     if uri is None:
         return None
@@ -140,16 +151,32 @@ def format_docstring(contents):
     """
     contents = contents.replace('\t', u'\u00A0' * 4)
     contents = contents.replace('  ', u'\u00A0' * 2)
-    if LooseVersion(JEDI_VERSION) < LooseVersion('0.15.0'):
-        contents = contents.replace('*', '\\*')
     return contents
 
 
 def clip_column(column, lines, line_number):
-    # Normalise the position as per the LSP that accepts character positions > line length
-    # https://github.com/Microsoft/language-server-protocol/blob/master/protocol.md#position
+    """
+    Normalise the position as per the LSP that accepts character positions > line length
+
+    https://microsoft.github.io/language-server-protocol/specification#position
+    """
     max_column = len(lines[line_number].rstrip('\r\n')) if len(lines) > line_number else 0
     return min(column, max_column)
+
+
+def position_to_jedi_linecolumn(document, position):
+    """
+    Convert the LSP format 'line', 'character' to Jedi's 'line', 'column'
+
+    https://microsoft.github.io/language-server-protocol/specification#position
+    """
+    code_position = {}
+    if position:
+        code_position = {'line': position['line'] + 1,
+                         'column': clip_column(position['character'],
+                                               document.lines,
+                                               position['line'])}
+    return code_position
 
 
 if os.name == 'nt':

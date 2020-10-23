@@ -12,7 +12,8 @@ from qtpy.QtCore import QObject, Signal, Slot
 
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.plugins.completion.languageserver.client import LSPClient
-from spyder.plugins.completion.languageserver import LSPRequestTypes
+from spyder.plugins.completion.languageserver import (
+    LSPRequestTypes, WorkspaceUpdateKind)
 
 
 class CompletionManager(QObject):
@@ -217,3 +218,30 @@ def test_local_signature(lsp_client_and_completion, qtbot):
     # Assert the response has what we expect
     definition = response['params']
     assert 'Test docstring' in definition
+
+
+@pytest.mark.slow
+@pytest.mark.third
+def test_send_workspace_folders_change(lsp_client_and_completion, qtbot):
+    client, completion = lsp_client_and_completion
+    folder = '/tmp/'
+
+    # Test addition
+    params = {
+        'folder': folder,
+        'kind': WorkspaceUpdateKind.ADDITION,
+        'instance': ''
+    }
+
+    client.send_workspace_folders_change(params)
+    assert folder in client.watched_folders
+
+    # Test deletion
+    params = {
+        'folder': folder,
+        'kind': WorkspaceUpdateKind.DELETION,
+        'instance': ''
+    }
+
+    client.send_workspace_folders_change(params)
+    assert folder not in client.watched_folders

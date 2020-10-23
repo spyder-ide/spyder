@@ -3,6 +3,8 @@ import io
 import logging
 import os
 import re
+import functools
+from threading import RLock
 
 import jedi
 
@@ -13,6 +15,15 @@ log = logging.getLogger(__name__)
 # TODO: this is not the best e.g. we capture numbers
 RE_START_WORD = re.compile('[A-Za-z_0-9]*$')
 RE_END_WORD = re.compile('^[A-Za-z_0-9]*')
+
+
+def lock(method):
+    """Define an atomic region over a method."""
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        with self._lock:
+            return method(self, *args, **kwargs)
+    return wrapper
 
 
 class Workspace(object):
@@ -71,6 +82,9 @@ class Workspace(object):
         """
         return self._docs.get(doc_uri) or self._create_document(doc_uri)
 
+    def get_maybe_document(self, doc_uri):
+        return self._docs.get(doc_uri)
+
     def put_document(self, doc_uri, source, version=None):
         self._docs[doc_uri] = self._create_document(doc_uri, source=source, version=version)
 
@@ -81,10 +95,10 @@ class Workspace(object):
         self._docs[doc_uri].apply_change(change)
         self._docs[doc_uri].version = version
 
-    def update_config(self, config):
-        self._config = config
+    def update_config(self, settings):
+        self._config.update((settings or {}).get('pyls', {}))
         for doc_uri in self.documents:
-            self.get_document(doc_uri).update_config(config)
+            self.get_document(doc_uri).update_config(settings)
 
     def apply_edit(self, edit):
         return self._endpoint.request(self.M_APPLY_EDIT, {'edit': edit})
@@ -98,33 +112,37 @@ class Workspace(object):
     def source_roots(self, document_path):
         """Return the source roots for the given document."""
         files = _utils.find_parents(self._root_path, document_path, ['setup.py', 'pyproject.toml']) or []
-        return list(set((os.path.dirname(project_file) for project_file in files))) or [self._root_path]
+        return list({os.path.dirname(project_file) for project_file in files}) or [self._root_path]
 
     def _create_document(self, doc_uri, source=None, version=None):
         path = uris.to_fs_path(doc_uri)
         return Document(
-            doc_uri, source=source, version=version,
+            doc_uri,
+            self,
+            source=source,
+            version=version,
             extra_sys_path=self.source_roots(path),
             rope_project_builder=self._rope_project_builder,
-            config=self._config, workspace=self,
         )
 
 
 class Document(object):
 
-    def __init__(self, uri, source=None, version=None, local=True, extra_sys_path=None, rope_project_builder=None,
-                 config=None, workspace=None):
+    def __init__(self, uri, workspace, source=None, version=None, local=True, extra_sys_path=None,
+                 rope_project_builder=None):
         self.uri = uri
         self.version = version
         self.path = uris.to_fs_path(uri)
+        self.dot_path = _utils.path_to_dot_name(self.path)
         self.filename = os.path.basename(self.path)
 
-        self._config = config
+        self._config = workspace._config
         self._workspace = workspace
         self._local = local
         self._source = source
         self._extra_sys_path = extra_sys_path or []
         self._rope_project_builder = rope_project_builder
+        self._lock = RLock()
 
     def __str__(self):
         return str(self.uri)
@@ -134,19 +152,22 @@ class Document(object):
         return libutils.path_to_resource(self._rope_project_builder(rope_config), self.path)
 
     @property
+    @lock
     def lines(self):
         return self.source.splitlines(True)
 
     @property
+    @lock
     def source(self):
         if self._source is None:
             with io.open(self.path, 'r', encoding='utf-8') as f:
                 return f.read()
         return self._source
 
-    def update_config(self, config):
-        self._config = config
+    def update_config(self, settings):
+        self._config.update((settings or {}).get('pyls', {}))
 
+    @lock
     def apply_change(self, change):
         """Apply a change to the document."""
         text = change['text']
@@ -212,44 +233,48 @@ class Document(object):
 
         return m_start[0] + m_end[-1]
 
+    @lock
     def jedi_names(self, all_scopes=False, definitions=True, references=False):
-        environment_path = None
-        if self._config:
-            jedi_settings = self._config.plugin_settings('jedi', document_path=self.path)
-            environment_path = jedi_settings.get('environment')
-        environment = self.get_enviroment(environment_path) if environment_path else None
+        script = self.jedi_script()
+        return script.get_names(all_scopes=all_scopes, definitions=definitions,
+                                references=references)
 
-        return jedi.api.names(
-            source=self.source, path=self.path, all_scopes=all_scopes,
-            definitions=definitions, references=references, environment=environment,
-        )
-
+    @lock
     def jedi_script(self, position=None):
         extra_paths = []
         environment_path = None
+        env_vars = None
 
         if self._config:
             jedi_settings = self._config.plugin_settings('jedi', document_path=self.path)
             environment_path = jedi_settings.get('environment')
             extra_paths = jedi_settings.get('extra_paths') or []
+            env_vars = jedi_settings.get('env_vars')
 
-        sys_path = self.sys_path(environment_path) + extra_paths
-        environment = self.get_enviroment(environment_path) if environment_path else None
+        # Drop PYTHONPATH from env_vars before creating the environment because that makes
+        # Jedi throw an error.
+        if env_vars is None:
+            env_vars = os.environ.copy()
+        env_vars.pop('PYTHONPATH', None)
+
+        environment = self.get_enviroment(environment_path, env_vars=env_vars) if environment_path else None
+        sys_path = self.sys_path(environment_path, env_vars=env_vars) + extra_paths
+        project_path = self._workspace.root_path
 
         kwargs = {
-            'source': self.source,
+            'code': self.source,
             'path': self.path,
-            'sys_path': sys_path,
             'environment': environment,
+            'project': jedi.Project(path=project_path, sys_path=sys_path),
         }
 
         if position:
-            kwargs['line'] = position['line'] + 1
-            kwargs['column'] = _utils.clip_column(position['character'], self.lines, position['line'])
+            # Deprecated by Jedi to use in Script() constructor
+            kwargs += _utils.position_to_jedi_linecolumn(self, position)
 
         return jedi.Script(**kwargs)
 
-    def get_enviroment(self, environment_path=None):
+    def get_enviroment(self, environment_path=None, env_vars=None):
         # TODO(gatesn): #339 - make better use of jedi environments, they seem pretty powerful
         if environment_path is None:
             environment = jedi.api.environment.get_cached_default_environment()
@@ -257,14 +282,17 @@ class Document(object):
             if environment_path in self._workspace._environments:
                 environment = self._workspace._environments[environment_path]
             else:
-                environment = jedi.api.environment.create_environment(path=environment_path, safe=False)
+                environment = jedi.api.environment.create_environment(path=environment_path,
+                                                                      safe=False,
+                                                                      env_vars=env_vars)
                 self._workspace._environments[environment_path] = environment
 
         return environment
 
-    def sys_path(self, environment_path=None):
+    def sys_path(self, environment_path=None, env_vars=None):
         # Copy our extra sys path
+        # TODO: when safe to break API, use env_vars explicitly to pass to create_environment
         path = list(self._extra_sys_path)
-        environment = self.get_enviroment(environment_path=environment_path)
+        environment = self.get_enviroment(environment_path=environment_path, env_vars=env_vars)
         path.extend(environment.get_sys_path())
         return path

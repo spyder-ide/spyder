@@ -44,7 +44,7 @@ from spyder_kernels.utils.nsview import (
     get_type_string, NUMERIC_NUMPY_TYPES)
 
 # Local imports
-from spyder.config.base import _, PICKLE_PROTOCOL
+from spyder.config.base import _
 from spyder.config.fonts import DEFAULT_SMALL_DELTA
 from spyder.config.gui import get_font
 from spyder.py3compat import (io, is_binary_string, PY3, to_text_string,
@@ -65,6 +65,17 @@ MAX_SERIALIZED_LENGHT = 1e6
 
 LARGE_NROWS = 100
 ROWS_TO_LOAD = 50
+
+
+def natsort(s):
+    """
+    Natural sorting, e.g. test3 comes before test100.
+    Taken from https://stackoverflow.com/a/16090640/3110740
+    """
+    if not isinstance(s, (str, bytes)):
+        return s
+    x = [int(t) if t.isdigit() else t.lower() for t in re.split('([0-9]+)', s)]
+    return x
 
 
 class ProxyObject(object):
@@ -142,11 +153,6 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         self.types = []
         self.set_data(data)
 
-    def current_index(self):
-        """Get the currently selected index in the parent table view."""
-        idx = self._parent.proxy_model.mapToSource(self._parent.currentIndex())
-        return idx
-
     def get_data(self):
         """Return model data"""
         return self._data
@@ -175,7 +181,13 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self.title += _("Set")
             self._data = list(data)
         elif isinstance(data, dict):
-            self.keys = list(data.keys())
+            try:
+                self.keys = sorted(list(data.keys()), key=natsort)
+            except TypeError:
+                # This is necessary to display dictionaries with mixed
+                # types as keys.
+                # Fixes spyder-ide/spyder#13481
+                self.keys = list(data.keys())
             self.title += _("Dictionary")
             if not self.names:
                 self.header0 = _("Key")
@@ -184,13 +196,11 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self._data = data = self.showndata = ProxyObject(data)
             if not self.names:
                 self.header0 = _("Attribute")
-
         if not isinstance(self._data, ProxyObject):
             self.title += (' (' + str(len(self.keys)) + ' ' +
-                          _("elements") + ')')
+                           _("element" + "s" * (len(self.keys) != 1)) + ')')
         else:
             self.title += data_type
-
         self.total_rows = len(self.keys)
         if self.total_rows > LARGE_NROWS:
             self.rows_loaded = ROWS_TO_LOAD
@@ -238,43 +248,60 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             self.sizes = sizes
             self.types = types
 
+    def load_all(self):
+        """Load all the data."""
+        self.fetchMore(number_to_fetch=self.total_rows)
+
     def sort(self, column, order=Qt.AscendingOrder):
         """Overriding sort method"""
-        reverse = (order==Qt.DescendingOrder)
+
+        def all_string(listlike):
+            return all([isinstance(x, str) for x in listlike])
+
+        reverse = (order == Qt.DescendingOrder)
+        sort_key = natsort if all_string(self.keys) else None
+
         if column == 0:
-            self.sizes = sort_against(self.sizes, self.keys, reverse)
-            self.types = sort_against(self.types, self.keys, reverse)
+            self.sizes = sort_against(self.sizes, self.keys,
+                                      reverse=reverse,
+                                      sort_key=natsort)
+            self.types = sort_against(self.types, self.keys,
+                                      reverse=reverse,
+                                      sort_key=natsort)
             try:
-                self.keys.sort(reverse=reverse)
+                self.keys.sort(reverse=reverse, key=sort_key)
             except:
                 pass
         elif column == 1:
-            self.keys[:self.rows_loaded] = sort_against(self.keys, self.types,
-                                                        reverse)
-            self.sizes = sort_against(self.sizes, self.types, reverse)
+            self.keys[:self.rows_loaded] = sort_against(self.keys,
+                                                        self.types,
+                                                        reverse=reverse)
+            self.sizes = sort_against(self.sizes, self.types, reverse=reverse)
             try:
                 self.types.sort(reverse=reverse)
             except:
                 pass
         elif column == 2:
-            self.keys[:self.rows_loaded] = sort_against(self.keys, self.sizes,
-                                                        reverse)
-            self.types = sort_against(self.types, self.sizes, reverse)
+            self.keys[:self.rows_loaded] = sort_against(self.keys, self.sizes)
+            self.types = sort_against(self.types, self.sizes, reverse=reverse)
             try:
                 self.sizes.sort(reverse=reverse)
             except:
                 pass
         elif column in [3, 4]:
             values = [self._data[key] for key in self.keys]
-            self.keys = sort_against(self.keys, values, reverse)
-            self.sizes = sort_against(self.sizes, values, reverse)
-            self.types = sort_against(self.types, values, reverse)
+            self.keys = sort_against(self.keys, values, reverse=reverse)
+            self.sizes = sort_against(self.sizes, values, reverse=reverse)
+            self.types = sort_against(self.types, values, reverse=reverse)
         self.beginResetModel()
         self.endResetModel()
 
     def columnCount(self, qindex=QModelIndex()):
         """Array column number"""
-        return 5
+        if self._parent.proxy_model:
+            return 5
+        else:
+            return 4
 
     def rowCount(self, index=QModelIndex()):
         """Array row number"""
@@ -289,9 +316,12 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         else:
             return False
 
-    def fetchMore(self, index=QModelIndex()):
+    def fetchMore(self, index=QModelIndex(), number_to_fetch=None):
         reminder = self.total_rows - self.rows_loaded
-        items_to_fetch = min(reminder, ROWS_TO_LOAD)
+        if number_to_fetch is not None:
+            items_to_fetch = min(reminder, number_to_fetch)
+        else:
+            items_to_fetch = min(reminder, ROWS_TO_LOAD)
         self.set_size_and_type(self.rows_loaded,
                                self.rows_loaded + items_to_fetch)
         self.beginInsertRows(QModelIndex(), self.rows_loaded,
@@ -517,6 +547,8 @@ class BaseTableView(QTableView):
         self.imshow_action = None
         self.save_array_action = None
         self.insert_action = None
+        self.insert_action_above = None
+        self.insert_action_below = None
         self.remove_action = None
         self.minmax_action = None
         self.rename_action = None
@@ -577,9 +609,21 @@ class BaseTableView(QTableView):
                                                icon=ima.icon('filesave'),
                                                triggered=self.save_array)
         self.save_array_action.setVisible(False)
-        self.insert_action = create_action(self, _("Insert"),
-                                           icon=ima.icon('insert'),
-                                           triggered=self.insert_item)
+        self.insert_action = create_action(
+            self, _("Insert"),
+            icon=ima.icon('insert'),
+            triggered=lambda: self.insert_item(below=False)
+        )
+        self.insert_action_above = create_action(
+            self, _("Insert above"),
+            icon=ima.icon('insert'),
+            triggered=lambda: self.insert_item(below=False)
+        )
+        self.insert_action_below = create_action(
+            self, _("Insert below"),
+            icon=ima.icon('insert'),
+            triggered=lambda: self.insert_item(below=True)
+        )
         self.remove_action = create_action(self, _("Remove"),
                                            icon=ima.icon('editdelete'),
                                            triggered=self.remove_item)
@@ -601,9 +645,10 @@ class BaseTableView(QTableView):
         menu = QMenu(self)
         menu_actions = [self.edit_action, self.plot_action, self.hist_action,
                         self.imshow_action, self.save_array_action,
-                        self.insert_action, self.remove_action,
-                        self.copy_action, self.paste_action,
-                        self.view_action,
+                        self.insert_action,
+                        self.insert_action_above, self.insert_action_below,
+                        self.remove_action, self.copy_action,
+                        self.paste_action, self.view_action,
                         None, self.rename_action, self.duplicate_action,
                         None, resize_action, resize_columns_action]
         if ndarray is not FakeObject:
@@ -611,43 +656,12 @@ class BaseTableView(QTableView):
         add_actions(menu, menu_actions)
         self.empty_ws_menu = QMenu(self)
         add_actions(self.empty_ws_menu,
-                    [self.insert_action, self.paste_action,
-                     None, resize_action, resize_columns_action])
+                    [self.insert_action_above, self.insert_action_below,
+                    self.insert_action, self.paste_action, None, 
+                    resize_action, resize_columns_action])
         return menu
 
     # ------ Remote/local API -------------------------------------------------
-    def set_regex(self, regex=None, reset=False):
-        """Update the regex text for the variable finder."""
-        if reset or not self.finder.text():
-            text = ''
-        else:
-            text = self.finder.text().replace(' ', '').lower()
-
-        self.proxy_model.set_filter(text)
-        self.source_model.update_search_letters(text)
-
-        if text:
-            # TODO: Use constants for column numbers
-            self.sortByColumn(4, Qt.DescendingOrder)  # Col 4 for index
-
-        self.last_regex = regex
-
-    def next_row(self):
-        """Move to next row from currently selected row."""
-        row = self.currentIndex().row()
-        rows = self.proxy_model.rowCount()
-        if row + 1 == rows:
-            row = -1
-        self.selectRow(row + 1)
-
-    def previous_row(self):
-        """Move to previous row from currently selected row."""
-        row = self.currentIndex().row()
-        rows = self.proxy_model.rowCount()
-        if row == 0:
-            row = rows
-        self.selectRow(row - 1)
-
     def remove_values(self, keys):
         """Remove values from data"""
         raise NotImplementedError
@@ -709,13 +723,16 @@ class BaseTableView(QTableView):
         """Refresh context menu"""
         index = self.currentIndex()
         condition = index.isValid()
-        self.edit_action.setEnabled( condition )
-        self.remove_action.setEnabled( condition )
+        self.edit_action.setEnabled(condition)
+        self.remove_action.setEnabled(condition)
         self.refresh_plot_entries(index)
 
     def refresh_plot_entries(self, index):
         if index.isValid():
-            key = self.proxy_model.get_key(index)
+            if self.proxy_model:
+                key = self.proxy_model.get_key(index)
+            else:
+                key = self.source_model.get_key(index)
             is_list = self.is_list(key)
             is_array = self.is_array(key) and self.get_len(key) != 0
             condition_plot = (is_array and len(self.get_array_shape(key)) <= 2)
@@ -725,8 +742,12 @@ class BaseTableView(QTableView):
         else:
             is_array = condition_plot = condition_imshow = is_list \
                      = condition_hist = False
+        is_list_instance = isinstance(self.source_model.get_data(), list)
         self.plot_action.setVisible(condition_plot or is_list)
         self.hist_action.setVisible(condition_hist or is_list)
+        self.insert_action.setVisible(not is_list_instance)
+        self.insert_action_above.setVisible(is_list_instance)
+        self.insert_action_below.setVisible(is_list_instance)
         self.imshow_action.setVisible(condition_imshow)
         self.save_array_action.setVisible(is_array)
 
@@ -881,8 +902,12 @@ class BaseTableView(QTableView):
                                           one if len(indexes) == 1 else more,
                                           QMessageBox.Yes | QMessageBox.No)
         if force or answer == QMessageBox.Yes:
-            idx_rows = unsorted_unique(
-                [self.proxy_model.mapToSource(idx).row() for idx in indexes])
+            if self.proxy_model:
+                idx_rows = unsorted_unique(
+                    [self.proxy_model.mapToSource(idx).row()
+                     for idx in indexes])
+            else:
+                idx_rows = unsorted_unique([idx.row() for idx in indexes])
             keys = [self.source_model.keys[idx_row] for idx_row in idx_rows]
             self.remove_values(keys)
 
@@ -891,8 +916,11 @@ class BaseTableView(QTableView):
         indexes = self.selectedIndexes()
         if not indexes:
             return
-        idx_rows = unsorted_unique(
-            [self.proxy_model.mapToSource(idx).row() for idx in indexes])
+        if self.proxy_model:
+            idx_rows = unsorted_unique(
+                [self.proxy_model.mapToSource(idx).row() for idx in indexes])
+        else:
+            idx_rows = unsorted_unique([idx.row() for idx in indexes])
         if len(idx_rows) > 1 or not indexes[0].isValid():
             return
         orig_key = self.source_model.keys[idx_rows[0]]
@@ -929,13 +957,22 @@ class BaseTableView(QTableView):
         self.copy_item(erase_original=True, new_name=new_name)
 
     @Slot()
-    def insert_item(self):
+    def insert_item(self, below=True):
         """Insert item"""
         index = self.currentIndex()
         if not index.isValid():
             row = self.source_model.rowCount()
         else:
-            row = self.proxy_model.mapToSource(index).row()
+            if self.proxy_model:
+                if below:
+                    row = self.proxy_model.mapToSource(index).row() + 1
+                else:
+                    row = self.proxy_model.mapToSource(index).row()
+            else:
+                if below:
+                    row = index.row() + 1
+                else:
+                    row = index.row()
         data = self.source_model.get_data()
         if isinstance(data, list):
             key = row
@@ -983,8 +1020,11 @@ class BaseTableView(QTableView):
         """Plot item"""
         index = self.currentIndex()
         if self.__prepare_plot():
-            key = self.source_model.get_key(
-                self.proxy_model.mapToSource(index))
+            if self.proxy_model:
+                key = self.source_model.get_key(
+                    self.proxy_model.mapToSource(index))
+            else:
+                key = self.source_model.get_key(index)
             try:
                 self.plot(key, funcname)
             except (ValueError, TypeError) as error:
@@ -998,8 +1038,11 @@ class BaseTableView(QTableView):
         """Imshow item"""
         index = self.currentIndex()
         if self.__prepare_plot():
-            key = self.source_model.get_key(
-                self.proxy_model.mapToSource(index))
+            if self.proxy_model:
+                key = self.source_model.get_key(
+                    self.proxy_model.mapToSource(index))
+            else:
+                key = self.source_model.get_key(index)
             try:
                 if self.is_image(key):
                     self.show_image(key)
@@ -1122,17 +1165,8 @@ class CollectionsEditorTableView(BaseTableView):
         self.source_model = CollectionsModelClass(self, data, title,
                                                   names=names,
                                                   minmax=minmax)
-        self.proxy_model = CollectionsCustomSortFilterProxy(self)
-        self.model = self.proxy_model
-
-        self.proxy_model.setSourceModel(self.source_model)
-        self.proxy_model.setDynamicSortFilter(True)
-        self.proxy_model.setFilterCaseSensitivity(Qt.CaseInsensitive)
-        self.proxy_model.setSortRole(Qt.UserRole)
-        self.setModel(self.proxy_model)
-
-        self.hideColumn(4)  # Column 4 for Score
-
+        self.model = self.source_model
+        self.setModel(self.source_model)
         self.delegate = CollectionsDelegate(self)
         self.setItemDelegate(self.delegate)
 
@@ -1244,7 +1278,9 @@ class CollectionsEditorTableView(BaseTableView):
                     and not self.readonly
         self.edit_action.setEnabled( condition )
         self.remove_action.setEnabled( condition )
-        self.insert_action.setEnabled( not self.readonly )
+        self.insert_action.setEnabled(not self.readonly)
+        self.insert_action_above.setEnabled(not self.readonly)
+        self.insert_action_below.setEnabled(not self.readonly)
         self.duplicate_action.setEnabled(condition)
         condition_rename = not isinstance(data, (tuple, list, set))
         self.rename_action.setEnabled(condition_rename)
@@ -1405,11 +1441,10 @@ class RemoteCollectionsEditorTableView(BaseTableView):
 
         self.shellwidget = shellwidget
         self.var_properties = {}
-
         self.dictfilter = None
-        self.source_model = None
         self.delegate = None
         self.readonly = False
+
         self.source_model = CollectionsModel(
             self, data, names=True,
             minmax=minmax,
@@ -1417,6 +1452,9 @@ class RemoteCollectionsEditorTableView(BaseTableView):
             show_callable_attributes=show_callable_attributes,
             show_special_attributes=show_special_attributes,
             remote=True)
+
+        self.horizontalHeader().sectionClicked.connect(
+            self.source_model.load_all)
 
         self.proxy_model = CollectionsCustomSortFilterProxy(self)
         self.model = self.proxy_model
@@ -1504,34 +1542,56 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def plot(self, name, funcname):
         """Plot item"""
         sw = self.shellwidget
-        if sw.is_waiting_pdb_input():
-            sw.dbg_exec_magic('varexp', '--%s %s' % (funcname, name))
-        else:
-            sw.execute("%%varexp --%s %s" % (funcname, name))
+        sw.execute("%%varexp --%s %s" % (funcname, name))
 
     def imshow(self, name):
         """Show item's image"""
         sw = self.shellwidget
-        if sw.is_waiting_pdb_input():
-            sw.dbg_exec_magic('varexp', '--imshow %s' % name)
-        else:
-            sw.execute("%%varexp --imshow %s" % name)
+        sw.execute("%%varexp --imshow %s" % name)
 
     def show_image(self, name):
         """Show image (item is a PIL image)"""
         command = "%s.show()" % name
         sw = self.shellwidget
-        if sw.is_waiting_pdb_input():
-            sw.pdb_execute(command)
-        else:
-            sw.execute(command)
+        sw.execute(command)
 
-    # -------------------------------------------------------------------------
-
+    # ------ Other ------------------------------------------------------------
     def setup_menu(self, minmax):
         """Setup context menu."""
         menu = BaseTableView.setup_menu(self, minmax)
         return menu
+
+    def set_regex(self, regex=None, reset=False):
+        """Update the regex text for the variable finder."""
+        if reset or not self.finder.text():
+            text = ''
+        else:
+            text = self.finder.text().replace(' ', '').lower()
+
+        self.proxy_model.set_filter(text)
+        self.source_model.update_search_letters(text)
+
+        if text:
+            # TODO: Use constants for column numbers
+            self.sortByColumn(4, Qt.DescendingOrder)  # Col 4 for index
+
+        self.last_regex = regex
+
+    def next_row(self):
+        """Move to next row from currently selected row."""
+        row = self.currentIndex().row()
+        rows = self.proxy_model.rowCount()
+        if row + 1 == rows:
+            row = -1
+        self.selectRow(row + 1)
+
+    def previous_row(self):
+        """Move to previous row from currently selected row."""
+        row = self.currentIndex().row()
+        rows = self.proxy_model.rowCount()
+        if row == 0:
+            row = rows
+        self.selectRow(row - 1)
 
 
 class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
@@ -1629,6 +1689,18 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
         else:
             return True
 
+    def lessThan(self, left, right):
+        """
+        Implements ordering in a natural way, as a human would sort.
+        This functions enables sorting of the main variable editor table,
+        which does not rely on 'self.sort()'.
+        """
+        leftData = self.sourceModel().data(left)
+        rightData = self.sourceModel().data(right)
+        if isinstance(leftData, str) and isinstance(rightData, str):
+            return natsort(leftData) < natsort(rightData)
+        else:
+            return leftData < rightData
 
 # =============================================================================
 # Tests

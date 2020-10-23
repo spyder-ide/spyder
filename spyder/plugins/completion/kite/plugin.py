@@ -75,7 +75,7 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             self.set_status)
         self.status_widget.sig_clicked.connect(
             self.show_installation_dialog)
-        self.main.sig_setup_finished.connect(self.mainwindow_setup_finished)
+        # self.main.sig_setup_finished.connect(self.mainwindow_setup_finished)
 
         # Config
         self.update_configuration()
@@ -161,8 +161,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
                       "If you want to use Kite, please remove the "
                       "directory that appears bellow, "
                       "and try a reinstallation:<br><br>"
-                      "<code>{kite_dir}</code>".format(
-                          kite_dir=osp.dirname(path))))
+                      "<code>{kite_dir}</code>").format(
+                          kite_dir=osp.dirname(path)))
 
                 box.exec_()
 
