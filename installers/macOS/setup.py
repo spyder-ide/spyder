@@ -92,6 +92,9 @@ def make_app_bundle(dist_dir, make_lite=False):
     parso :
         NotADirectoryError: [Errno 20] Not a directory:
         '<path>/Resources/lib/python38.zip/parso/python/grammar38.txt'
+    PIL :
+        Library not loaded: @loader_path/.dylibs/libjpeg.9.dylib
+        Note: only applicable to not-Lite build
     pygments :
         ModuleNotFoundError: No module named 'pygments.formatters.latex'
     pyls :
@@ -126,6 +129,7 @@ def make_app_bundle(dist_dir, make_lite=False):
             'numpy', 'scipy', 'pandas', 'matplotlib', 'cython', 'sympy'
         ]
         EXCLUDES = []
+        PACKAGES.append('PIL')
 
     EDIT_EXT = [ext[1:] for ext in _get_extensions(EDIT_FILETYPES)]
 
