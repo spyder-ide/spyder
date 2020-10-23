@@ -230,10 +230,10 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         QMessageBox.critical(
             self.main, _('Kite error'),
             _("The Kite completion engine returned an unexpected result "
-            "for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>"
-            "Please make sure that your Kite installation is correct. "
-            "In the meantime, Spyder will disable the Kite client to "
-            "prevent further errors. For more information, please "
-            "visit the <a href='https://help.kite.com/'>Kite help "
-            "center</a>").format(method, response))
+              "for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>"
+              "Please make sure that your Kite installation is correct. "
+              "In the meantime, Spyder will disable the Kite client to "
+              "prevent further errors. For more information, please "
+              "visit the <a href='https://help.kite.com/'>Kite help "
+              "center</a>").format(method, response))
         self.set_option('enable', False)
