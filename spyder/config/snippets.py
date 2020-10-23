@@ -214,7 +214,13 @@ PYTHON_SNIPPETS = {
     'dict': {
         'comprenhension': {
             'text': dedent("""
-                {${1:key}:${2:value} for ${4:elem} in ${5:iterator}}$0
+                {${1:key}:${2:value} for ${3:elem} in ${4:iterator}\}$0
+            """).strip(),
+            'remove_trigger': True
+        },
+        'comprenhension if': {
+            'text': dedent("""
+                {${1:key}:${2:value} for ${3:elem} in ${4:iterator} if ${5:cond}\}$0
             """).strip(),
             'remove_trigger': True
         }
@@ -222,19 +228,19 @@ PYTHON_SNIPPETS = {
     'set': {
         'comprenhension': {
             'text': dedent("""
-                {${1:elem} for ${2:elem} in ${3:iterator}}$0
+                {${1:elem} for ${2:elem} in ${3:iterator}\}$0
             """).strip(),
             'remove_trigger': True
         },
         'comprenhension if': {
             'text': dedent("""
-                {${1:elem} for ${2:elem} in ${3:iterator} if ${4:cond}}$0
+                {${1:elem} for ${2:elem} in ${3:iterator} if ${4:cond}\}$0
             """).strip(),
             'remove_trigger': True
         },
         'comprenhension if/else': {
             'text': dedent("""
-                {${1:elem} if ${2:cond} else ${3:other} for ${4:elem} in ${5:iterator}}$0
+                {${1:elem} if ${2:cond} else ${3:other} for ${4:elem} in ${5:iterator}\}$0
             """).strip(),
             'remove_trigger': True
         }

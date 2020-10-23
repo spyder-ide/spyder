@@ -28,21 +28,26 @@ from spyder.plugins.completion.languageserver.plugin import (
     LanguageServerPlugin)
 from spyder.plugins.completion.kite.plugin import KiteCompletionPlugin
 from spyder.plugins.completion.fallback.plugin import FallbackPlugin
+from spyder.plugins.completion.snippets.plugin import SnippetsPlugin
 from spyder.plugins.completion.languageserver import LSPRequestTypes
 
 
 logger = logging.getLogger(__name__)
 
+ALL_COMPLETION_PLUGINS = {
+    p.COMPLETION_CLIENT_NAME: p for p in (
+        LanguageServerPlugin,
+        FallbackPlugin,
+        KiteCompletionPlugin,
+        SnippetsPlugin
+    )
+}
 
 class CompletionManager(SpyderCompletionPlugin):
     STOPPED = 'stopped'
     RUNNING = 'running'
 
-    BASE_PLUGINS = {p.COMPLETION_CLIENT_NAME: p for p in (
-        LanguageServerPlugin,
-        FallbackPlugin,
-        KiteCompletionPlugin,
-    )}
+    BASE_PLUGINS = ALL_COMPLETION_PLUGINS
 
     WAIT_FOR_SOURCE = defaultdict(
         lambda: {LanguageServerPlugin.COMPLETION_CLIENT_NAME},
@@ -63,11 +68,13 @@ class CompletionManager(SpyderCompletionPlugin):
 
     SOURCE_PRIORITY = defaultdict(
         lambda: (
+            SnippetsPlugin.COMPLETION_CLIENT_NAME,
             LanguageServerPlugin.COMPLETION_CLIENT_NAME,
             KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
             FallbackPlugin.COMPLETION_CLIENT_NAME,
         ), {
             LSPRequestTypes.DOCUMENT_COMPLETION: (
+                SnippetsPlugin.COMPLETION_CLIENT_NAME,
                 KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
                 LanguageServerPlugin.COMPLETION_CLIENT_NAME,
                 FallbackPlugin.COMPLETION_CLIENT_NAME,
@@ -78,7 +85,7 @@ class CompletionManager(SpyderCompletionPlugin):
         LSPRequestTypes.DOCUMENT_COMPLETION
     }
 
-    def __init__(self, parent, plugins=['lsp', 'kite', 'fallback']):
+    def __init__(self, parent, plugins=ALL_COMPLETION_PLUGINS):
         SpyderCompletionPlugin.__init__(self, parent)
         self.clients = {}
         self.requests = {}
