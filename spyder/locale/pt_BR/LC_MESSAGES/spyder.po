@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-10-23 01:15\n"
+"PO-Revision-Date: 2020-10-23 01:45\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -990,7 +990,7 @@ msgstr "Editar este ponto de interrupção"
 
 #: spyder/plugins/completion/kite/client.py:116
 msgid "<code>{error}</code><br><br>Note: If you are using a VPN, please don't route requests to localhost/127.0.0.1 with it"
-msgstr ""
+msgstr "<code>{error}</code><br><br>Aviso: se você está usando uma VPN, por favor, não direcione pedidos para localhost/127.0.0.1 com ela"
 
 #: spyder/plugins/completion/kite/plugin.py:152 spyder/plugins/completion/kite/widgets/install.py:329
 msgid "Kite installation error"
