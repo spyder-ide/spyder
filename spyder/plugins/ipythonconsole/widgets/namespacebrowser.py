@@ -90,7 +90,7 @@ class NamepaceBrowserWidget(RichJupyterWidget):
         reason_big = _("The variable is too big to be retrieved")
         reason_not_picklable = _("The variable is not picklable")
         reason_dead = _("The kernel is dead")
-        reason_other = _("An error occured, see console.")
+        reason_other = _("An error occured, see the console.")
         msg = _("%s.<br><br>"
                 "Note: Please don't report this problem on Github, "
                 "there's nothing to do about it.")

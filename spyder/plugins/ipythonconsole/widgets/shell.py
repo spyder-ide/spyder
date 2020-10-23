@@ -181,6 +181,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             blocking call to the kernel. If None, a default timeout
             (defined in commbase.py, present in spyder-kernels) is
             used.
+        display_error: bool
+            If an error occurs, should it be printed to the console.
         """
         return self.spyder_kernel_comm.remote_call(
             interrupt=interrupt,
