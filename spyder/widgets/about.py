@@ -134,6 +134,7 @@ class AboutDialog(QDialog):
         self.label.setWordWrap(True)
         self.label.setAlignment(Qt.AlignTop)
         self.label.setOpenExternalLinks(True)
+        self.label.setTextInteractionFlags(Qt.TextBrowserInteraction)
 
         if is_dark_interface():
             icon_filename = "spyder.svg"
