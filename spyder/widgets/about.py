@@ -164,12 +164,11 @@ class AboutDialog(QDialog):
         btmhlayout.addStretch()
         btmhlayout.addWidget(bbox)
 
-        vlayout = QVBoxLayout()
+        vlayout = QVBoxLayout(self)
         vlayout.addLayout(tophlayout)
+        vlayout.addSpacing(25)
         vlayout.addLayout(btmhlayout)
-
-        self.setLayout(vlayout)
-        self.setFixedSize(410, 560)
+        vlayout.setSizeConstraint(vlayout.SetFixedSize)
 
         # Signals
         btn.clicked.connect(self.copy_to_clipboard)
