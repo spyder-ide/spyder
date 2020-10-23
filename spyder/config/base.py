@@ -23,6 +23,7 @@ import re
 import shutil
 import sys
 import tempfile
+import uuid
 import warnings
 
 # Local imports
@@ -41,9 +42,16 @@ DEV = os.environ.get('SPYDER_DEV')
 # Manually override whether the dev configuration directory is used.
 USE_DEV_CONFIG_DIR = os.environ.get('SPYDER_USE_DEV_CONFIG_DIR')
 
-# Make Spyder use a temp clean configuration directory for testing purposes
-# SPYDER_SAFE_MODE can be set using the --safe-mode option of bootstrap.py
-SAFE_MODE = os.environ.get('SPYDER_SAFE_MODE')
+# Get a random id for the safe-mode config dir
+CLEAN_DIR_ID = str(uuid.uuid4()).split('-')[-1]
+
+
+def get_safe_mode():
+    """
+    Make Spyder use a temp clean configuration directory for testing
+    purposes SPYDER_SAFE_MODE can be set using the --safe-mode option.
+    """
+    return bool(os.environ.get('SPYDER_SAFE_MODE'))
 
 
 def running_under_pytest():
@@ -184,21 +192,18 @@ def get_clean_conf_dir():
     """
     Return the path to a temp clean configuration dir, for tests and safe mode.
     """
-    if sys.platform.startswith("win"):
-        current_user = ''
-    else:
-        current_user = '-' + str(getpass.getuser())
-
-    conf_dir = osp.join(str(tempfile.gettempdir()),
-                        'pytest-spyder{0!s}'.format(current_user),
-                        get_conf_subfolder())
+    conf_dir = osp.join(
+        tempfile.gettempdir(),
+        'spyder-clean-conf-dirs',
+        CLEAN_DIR_ID,
+    )
     return conf_dir
 
 
 def get_conf_path(filename=None):
     """Return absolute path to the config file with the specified filename."""
     # Define conf_dir
-    if running_under_pytest() or SAFE_MODE:
+    if running_under_pytest() or get_safe_mode():
         # Use clean config dir if running tests or the user requests it.
         conf_dir = get_clean_conf_dir()
     elif sys.platform.startswith('linux'):
@@ -217,7 +222,7 @@ def get_conf_path(filename=None):
 
     # Create conf_dir
     if not osp.isdir(conf_dir):
-        if running_under_pytest() or SAFE_MODE:
+        if running_under_pytest() or get_safe_mode():
             os.makedirs(conf_dir)
         else:
             os.mkdir(conf_dir)
@@ -311,6 +316,16 @@ def get_module_source_path(modname, basename=None):
 def is_py2exe_or_cx_Freeze():
     """Return True if this is a py2exe/cx_Freeze distribution of Spyder"""
     return osp.isfile(osp.join(get_module_path('spyder'), osp.pardir))
+
+
+def is_pynsist():
+    """Return True if this is a pynsist installation of Spyder."""
+    base_path = osp.abspath(osp.dirname(__file__))
+    pkgs_path = osp.abspath(
+        osp.join(base_path, '..', '..', '..', 'pkgs'))
+    if os.environ.get('PYTHONPATH') is not None:
+        return pkgs_path in os.environ.get('PYTHONPATH')
+    return False
 
 
 #==============================================================================
@@ -533,17 +548,21 @@ else:
     MAC_APP_NAME = 'Spyder-Py2.app'
 
 
-def running_in_mac_app():
+def running_in_mac_app(pyexec=None):
     """
-    Check if Spyder is running inside an app on macOS.
+    Check if Python executable is located inside a standalone Mac app.
 
-    Check if the app is a stand-alone app.
-    This means this file is located inside 'Spyder.app' and not in the
-    python path.
-    This is important for example for the single_instance option.
+    If no executable is provided, the default will check `sys.executable`, i.e.
+    whether Spyder is running from a standalone Mac app.
+
+    This is important for example for the single_instance option and the
+    interpreter status in the statusbar.
     """
+    if pyexec is None:
+        pyexec = sys.executable
+
     if sys.platform == "darwin":
-        if MAC_APP_NAME not in __file__:
+        if MAC_APP_NAME not in pyexec:
             return False
         return True
     else:

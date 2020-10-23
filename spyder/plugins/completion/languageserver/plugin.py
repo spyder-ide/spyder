@@ -14,18 +14,18 @@ import functools
 import logging
 import os
 import os.path as osp
-import sys
 
 # Third-party imports
 from qtpy.QtCore import Slot, QTimer
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _, get_conf_path, running_under_pytest
+from spyder.config.base import (_, get_conf_path, running_under_pytest,
+                                running_in_mac_app)
 from spyder.config.lsp import PYTHON_CONFIG
 from spyder.config.manager import CONF
 from spyder.api.completion import SpyderCompletionPlugin
-from spyder.utils.misc import check_connection_port, getcwd_or_home
+from spyder.utils.misc import check_connection_port
 from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.completion.languageserver.client import LSPClient
 from spyder.plugins.completion.languageserver.confpage import (
@@ -277,6 +277,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                     )
                     self.main.projects.stop_workspace_services()
                     self.main.editor.stop_completion_services(language)
+                    self.main.outlineexplorer.stop_symbol_services(language)
                     folder = self.get_root_path(language)
                     instance.folder = folder
                     self.close_client(language)
@@ -453,6 +454,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
                     self.main.editor.register_completion_capabilities)
                 self.main.editor.sig_editor_focus_changed.connect(
                     self.status_widget.update_status)
+            if self.main.outlineexplorer:
+                instance.sig_initialize.connect(
+                    self.main.outlineexplorer.start_symbol_services)
             if self.main.console:
                 instance.sig_server_error.connect(self.report_server_error)
 
@@ -530,6 +534,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         """Restart a client."""
         self.main.editor.stop_completion_services(language)
         self.main.projects.stop_workspace_services()
+        self.main.outlineexplorer.stop_symbol_services(language)
         self.close_client(language)
         self.clients[language] = config
         self.start_client(language)
@@ -646,16 +651,35 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             'matchDir': self.get_option('pydocstyle/match_dir')
         }
 
+        # Autoformatting configuration
+        formatter = self.get_option('formatting')
+        formatter = 'pyls_black' if formatter == 'black' else formatter
+        formatters = ['autopep8', 'yapf', 'pyls_black']
+        formatter_options = {
+            fmt: {
+                'enabled': fmt == formatter
+            }
+            for fmt in formatters
+        }
+
         # Jedi configuration
         if self.get_option('default', section='main_interpreter'):
             environment = None
+            env_vars = None
         else:
             environment = self.get_option('custom_interpreter',
                                           section='main_interpreter')
+            env_vars = os.environ.copy()
+            # external interpreter should not use internal PYTHONPATH
+            env_vars.pop('PYTHONPATH', None)
+            if running_in_mac_app():
+                env_vars.pop('PYTHONHOME', None)
+
         jedi = {
             'environment': environment,
             'extra_paths': self.get_option('spyder_pythonpath',
                                            section='main', default=[]),
+            'env_vars': env_vars,
         }
         jedi_completion = {
             'enabled': self.get_option('code_completion'),
@@ -694,5 +718,8 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         plugins['jedi_signature_help'].update(jedi_signature_help)
         plugins['jedi_definition'].update(jedi_definition)
         plugins['preload']['modules'] = self.get_option('preload_modules')
+
+        for formatter in formatters:
+            plugins[formatter] = formatter_options[formatter]
 
         return python_config

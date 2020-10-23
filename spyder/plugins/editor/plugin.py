@@ -247,7 +247,6 @@ class Editor(SpyderPluginWidget):
             # Pass the OutlineExplorer widget to the stacks because they
             # don't need the plugin
             editorstack.set_outlineexplorer(self.outlineexplorer.explorer)
-        self.editorstacks[0].initialize_outlineexplorer()
         self.outlineexplorer.explorer.edit_goto.connect(
                            lambda filenames, goto, word:
                            self.load(filenames=filenames, goto=goto, word=word,
@@ -805,6 +804,16 @@ class Editor(SpyderPluginWidget):
             _("Remove trailing spaces"),
             triggered=self.remove_trailing_spaces)
 
+        formatter = CONF.get('lsp-server', 'formatting')
+        self.formatting_action = create_action(
+            self,
+            _('Format file or selection with {0}').format(
+                formatter.capitalize()),
+            shortcut=CONF.get_shortcut('editor', 'autoformatting'),
+            context=Qt.WidgetShortcut,
+            triggered=self.format_document_or_selection)
+        self.formatting_action.setEnabled(False)
+
         # Checkable actions
         showblanks_action = self._create_checkable_action(
             _("Show blank spaces"), 'blank_spaces', 'set_blanks_enabled')
@@ -1022,7 +1031,8 @@ class Editor(SpyderPluginWidget):
             MENU_SEPARATOR,
             eol_menu,
             trailingspaces_action,
-            fixindentation_action
+            fixindentation_action,
+            self.formatting_action
         ]
         self.main.source_menu_actions += source_menu_actions
 
@@ -1312,6 +1322,8 @@ class Editor(SpyderPluginWidget):
             ('set_tabbar_visible',                  'show_tab_bar'),
             ('set_classfunc_dropdown_visible',      'show_class_func_dropdown'),
             ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
+            ('set_remove_trailing_newlines',        'always_remove_trailing_newlines'),
+            ('set_add_newline',                     'add_newline'),
             ('set_convert_eol_on_save',             'convert_eol_on_save'),
             ('set_convert_eol_on_save_to',          'convert_eol_on_save_to'),
                     )
@@ -1322,6 +1334,8 @@ class Editor(SpyderPluginWidget):
         editorstack.set_help_enabled(CONF.get('help', 'connect/editor'))
         editorstack.set_hover_hints_enabled(CONF.get('lsp-server',
                                                      'enable_hover_hints'))
+        editorstack.set_format_on_save(
+            CONF.get('lsp-server', 'format_on_save'))
         color_scheme = self.get_color_scheme()
         editorstack.set_default_font(self.get_font(), color_scheme)
 
@@ -1377,6 +1391,7 @@ class Editor(SpyderPluginWidget):
                                            self.refresh_file_dependent_actions)
         editorstack.refresh_save_all_action.connect(self.refresh_save_all_action)
         editorstack.sig_refresh_eol_chars.connect(self.refresh_eol_chars)
+        editorstack.sig_refresh_formatting.connect(self.refresh_formatting)
         editorstack.sig_breakpoints_saved.connect(self.breakpoints_saved)
         editorstack.text_changed_at.connect(self.text_changed_at)
         editorstack.current_file_changed.connect(self.current_file_changed)
@@ -1619,6 +1634,15 @@ class Editor(SpyderPluginWidget):
         else:
             self.mac_eol_action.setChecked(True)
         self.__set_eol_chars = True
+
+    def refresh_formatting(self, status):
+        self.formatting_action.setEnabled(status)
+
+    def refresh_formatter_name(self):
+        formatter = CONF.get('lsp-server', 'formatting')
+        self.formatting_action.setText(
+            _('Format file or selection with {0}').format(
+                formatter.capitalize()))
 
     #------ Slots
     def opened_files_list_changed(self):
@@ -2324,6 +2348,12 @@ class Editor(SpyderPluginWidget):
         editorstack.remove_trailing_spaces()
 
     @Slot()
+    def format_document_or_selection(self):
+        self.switch_to_plugin()
+        editorstack = self.get_current_editorstack()
+        editorstack.format_document_or_selection()
+
+    @Slot()
     def fix_indentation(self):
         self.switch_to_plugin()
         editorstack = self.get_current_editorstack()
@@ -2790,6 +2820,10 @@ class Editor(SpyderPluginWidget):
             completionshint_o = self.get_option(completionshint_n)
             removetrail_n = 'always_remove_trailing_spaces'
             removetrail_o = self.get_option(removetrail_n)
+            add_newline_n = 'add_newline'
+            add_newline_o = self.get_option(add_newline_n)
+            removetrail_newlines_n = 'always_remove_trailing_newlines'
+            removetrail_newlines_o = self.get_option(removetrail_newlines_n)
             converteol_n = 'convert_eol_on_save'
             converteol_o = self.get_option(converteol_n)
             converteolto_n = 'convert_eol_on_save_to'
@@ -2854,6 +2888,11 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
                 if removetrail_n in options:
                     editorstack.set_always_remove_trailing_spaces(removetrail_o)
+                if add_newline_n in options:
+                    editorstack.set_add_newline(add_newline_o)
+                if removetrail_newlines_n in options:
+                    editorstack.set_remove_trailing_newlines(
+                        removetrail_newlines_o)
                 if converteol_n in options:
                     editorstack.set_convert_eol_on_save(converteol_o)
                 if converteolto_n in options:

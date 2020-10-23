@@ -7,10 +7,11 @@
 """Appearance entry in Preferences."""
 
 from qtpy.QtCore import Qt, Slot
-from qtpy.QtWidgets import (QDialog, QDialogButtonBox, QFontComboBox,
-                            QGridLayout, QGroupBox, QHBoxLayout,
-                            QMessageBox, QPushButton, QStackedWidget,
-                            QStyleFactory, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QApplication, QDialog, QDialogButtonBox,
+                            QFontComboBox, QGridLayout, QGroupBox,
+                            QHBoxLayout, QMessageBox, QPushButton,
+                            QStackedWidget, QStyleFactory, QVBoxLayout,
+                            QWidget)
 
 from spyder.config.base import _
 from spyder.config.gui import (get_font, set_font, is_dark_font_color,
@@ -233,7 +234,14 @@ class AppearanceConfigPage(GeneralConfigPage):
                     plugin.apply_plugin_settings(['color_scheme_name'])
                 self.update_combobox()
                 self.update_preview()
-        self.main.apply_settings()
+
+        qapp = QApplication.instance()
+        if 'windows_style' in options:
+            style_name = self.get_option('windows_style')
+            style = QStyleFactory.create(style_name)
+            if style is not None:
+                style.setProperty('name', style_name)
+                qapp.setStyle(style)
 
     # Helpers
     # -------------------------------------------------------------------------
