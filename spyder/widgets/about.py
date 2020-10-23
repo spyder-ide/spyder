@@ -143,7 +143,8 @@ class AboutDialog(QDialog):
 
         pixmap = QPixmap(get_image_path(icon_filename))
         self.label_pic = QLabel(self)
-        self.label_pic.setPixmap(pixmap.scaled(64, 64))
+        self.label_pic.setPixmap(
+            pixmap.scaledToWidth(64, Qt.SmoothTransformation))
         self.label_pic.setAlignment(Qt.AlignTop)
 
         btn = QPushButton(_("Copy to clipboard"), )
