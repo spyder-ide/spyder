@@ -15,7 +15,7 @@ import re
 INLINE_FIGURE_FORMATS = {
     '0': 'png',
     '1': 'svg'
-    }
+}
 
 MPL_BACKENDS_TO_SPYDER = {
     'module://ipykernel.pylab.backend_inline': 0,
@@ -25,7 +25,8 @@ MPL_BACKENDS_TO_SPYDER = {
     'GTK3Agg': 5,
     'GTKAgg': 6,
     'WX': 7,
-    'TkAgg': 8}
+    'TkAgg': 8
+}
 
 
 def is_module_installed(module_name):
@@ -63,7 +64,8 @@ MPL_BACKENDS_FROM_SPYDER = {
     '5': 'gtk3',
     '6': 'gtk',
     '7': 'wx',
-    '8': 'tk'}
+    '8': 'tk'
+}
 
 
 def fix_reference_name(name, blacklist=None):

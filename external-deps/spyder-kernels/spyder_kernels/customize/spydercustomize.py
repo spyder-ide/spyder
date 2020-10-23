@@ -12,27 +12,31 @@
 #
 
 import bdb
+import cmd
+from distutils.version import LooseVersion
 import io
+import logging
 import os
 import pdb
 import shlex
 import sys
 import time
 import warnings
-import logging
 
+from IPython import __version__ as ipy_version
 from IPython.core.getipython import get_ipython
 
-from spyder_kernels.py3compat import TimeoutError, PY2, _print, encode
 from spyder_kernels.comms.frontendcomm import CommError, frontend_request
 from spyder_kernels.customize.namespace_manager import NamespaceManager
 from spyder_kernels.customize.spyderpdb import SpyderPdb
 from spyder_kernels.customize.umr import UserModuleReloader
+from spyder_kernels.py3compat import TimeoutError, PY2, _print, encode
 
-if not PY2:
-    from IPython.core.inputtransformer2 import TransformerManager
+if LooseVersion(ipy_version) > LooseVersion('7.0.0'):
+    from IPython.core.inputtransformer2 import (
+        TransformerManager, leading_indent, leading_empty_lines)
 else:
-    from IPython.core.inputsplitter import IPythonInputSplitter as TransformerManager
+    from IPython.core.inputsplitter import IPythonInputSplitter
 
 
 logger = logging.getLogger(__name__)
@@ -287,13 +291,22 @@ if not PY2:
             removed before execution.
             """
             try:
-                return _old_preparation_data(name)
+                d = _old_preparation_data(name)
             except AttributeError:
                 main_module = sys.modules['__main__']
                 # Any string for __spec__ does the job
                 main_module.__spec__ = ''
-                return _old_preparation_data(name)
-
+                d = _old_preparation_data(name)
+            # On windows, there is no fork, so we need to save the main file
+            # and import it
+            if (os.name == 'nt' and 'init_main_from_path' in d
+                    and not os.path.exists(d['init_main_from_path'])):
+                _print(
+                    "Warning: multiprocessing may need the main file to exist. "
+                    "Please save {}".format(d['init_main_from_path']))
+                # Remove path as the subprocess can't do anything with it
+                del d['init_main_from_path']
+            return d
         multiprocessing.spawn.get_preparation_data = _patched_preparation_data
     except Exception:
         pass
@@ -302,7 +315,16 @@ if not PY2:
 # =============================================================================
 # Pdb adjustments
 # =============================================================================
+def cmd_input(prompt=''):
+    return get_ipython().kernel.cmd_input(prompt)
+
+
 pdb.Pdb = SpyderPdb
+
+if PY2:
+    cmd.raw_input = cmd_input
+else:
+    cmd.input = cmd_input
 
 
 # =============================================================================
@@ -379,18 +401,32 @@ def count_leading_empty_lines(cell):
     return len(lines)
 
 
-def transform_cell(code):
+def transform_cell(code, indent_only=False):
     """Transform ipython code to python code."""
-    tm = TransformerManager()
     number_empty_lines = count_leading_empty_lines(code)
-    code = tm.transform_cell(code)
-    if PY2:
-        return code
+    if indent_only:
+        # Not implemented for PY2
+        if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
+            return code
+        if not code.endswith('\n'):
+            code += '\n'  # Ensure the cell has a trailing newline
+        lines = code.splitlines(keepends=True)
+        lines = leading_indent(leading_empty_lines(lines))
+        code = ''.join(lines)
+    else:
+        if LooseVersion(ipy_version) < LooseVersion('7.0.0'):
+            tm = IPythonInputSplitter()
+            return tm.transform_cell(code)
+        else:
+            tm = TransformerManager()
+            code = tm.transform_cell(code)
     return '\n' * number_empty_lines + code
 
 
 def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
     """Execute code and display any exception."""
+    # Tell IPython to hide this frame (>7.16)
+    __tracebackhide__ = True
     global SHOW_INVALID_SYNTAX_MSG
 
     if PY2:
@@ -404,7 +440,8 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
             # TODO: remove the try-except and let the SyntaxError raise
             # Because there should not be ipython code in a python file
             try:
-                compiled = compile(code, filename, 'exec')
+                compiled = compile(
+                    transform_cell(code, indent_only=True), filename, 'exec')
             except SyntaxError as e:
                 try:
                     compiled = compile(transform_cell(code), filename, 'exec')
@@ -421,13 +458,11 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
                             "\nWARNING: This is not valid Python code. "
                             "If you want to use IPython magics, "
                             "flexible indentation, and prompt removal, "
-                            "please save this file with the .ipy extension. "
-                            "This will be an error in a future version of "
-                            "Spyder.\n")
+                            "we recommend that you save this file with the "
+                            ".ipy extension.\n")
                         SHOW_INVALID_SYNTAX_MSG = False
         else:
             compiled = compile(transform_cell(code), filename, 'exec')
-
         exec(compiled, ns_globals, ns_locals)
     except SystemExit as status:
         # ignore exit(0)
@@ -444,13 +479,15 @@ def exec_code(code, filename, ns_globals, ns_locals=None, post_mortem=False):
         else:
             # We ignore the call to exec
             ipython_shell.showtraceback(tb_offset=1)
+    __tracebackhide__ = "__pdb_exit__"
 
 
-def get_file_code(filename):
+def get_file_code(filename, save_all=True):
     """Retrive the content of a file."""
     # Get code from spyder
     try:
-        file_code = frontend_request().get_file_code(filename)
+        file_code = frontend_request().get_file_code(
+            filename, save_all=save_all)
     except (CommError, TimeoutError):
         file_code = None
     if file_code is None:
@@ -469,6 +506,8 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
     post_mortem: boolean, whether to enter post-mortem mode on error
     current_namespace: if true, run the file in the current namespace
     """
+    # Tell IPython to hide this frame (>7.16)
+    __tracebackhide__ = True
     ipython_shell = get_ipython()
     if filename is None:
         filename = get_current_file_name()
@@ -512,14 +551,22 @@ def runfile(filename=None, args=None, wdir=None, namespace=None,
             for arg in shlex.split(args):
                 sys.argv.append(arg)
         if wdir is not None:
-            try:
-                wdir = wdir.decode('utf-8')
-            except (UnicodeError, TypeError, AttributeError):
-                # UnicodeError, TypeError --> eventually raised in Python 2
-                # AttributeError --> systematically raised in Python 3
-                pass
+            if PY2:
+                try:
+                    wdir = wdir.decode('utf-8')
+                except (UnicodeError, TypeError):
+                    # UnicodeError, TypeError --> eventually raised in Python 2
+                    pass
             if os.path.isdir(wdir):
                 os.chdir(wdir)
+                # See https://github.com/spyder-ide/spyder/issues/13632
+                if "multiprocessing.process" in sys.modules:
+                    try:
+                        import multiprocessing.process
+                        multiprocessing.process.ORIGINAL_DIR = os.path.abspath(
+                            wdir)
+                    except Exception:
+                        pass
             else:
                 _print("Working directory {} doesn't exist.\n".format(wdir))
 
@@ -545,6 +592,8 @@ def debugfile(filename=None, args=None, wdir=None, post_mortem=False,
     wdir: working directory
     post_mortem: boolean, included for compatiblity with runfile
     """
+    # Tell IPython to hide this frame (>7.16)
+    __tracebackhide__ = True
     if filename is None:
         filename = get_current_file_name()
         if filename is None:
@@ -573,6 +622,8 @@ def runcell(cellname, filename=None, post_mortem=False):
     filename : str
         Needed to allow for proper traceback links.
     """
+    # Tell IPython to hide this frame (>7.16)
+    __tracebackhide__ = True
     if filename is None:
         filename = get_current_file_name()
         if filename is None:
@@ -607,7 +658,7 @@ def runcell(cellname, filename=None, post_mortem=False):
     # See Spyder PR #7310.
     ipython_shell.events.trigger('post_execute')
     try:
-        file_code = get_file_code(filename)
+        file_code = get_file_code(filename, save_all=False)
     except Exception:
         file_code = None
     with NamespaceManager(filename, current_namespace=True,
@@ -621,6 +672,8 @@ builtins.runcell = runcell
 
 def debugcell(cellname, filename=None, post_mortem=False):
     """Debug a cell."""
+    # Tell IPython to hide this frame (>7.16)
+    __tracebackhide__ = True
     if filename is None:
         filename = get_current_file_name()
         if filename is None:
@@ -662,10 +715,12 @@ builtins.cell_count = cell_count
 
 
 # =============================================================================
-# Restoring original PYTHONPATH
+# Extend sys.path with paths that come from Spyder
 # =============================================================================
-try:
-    os.environ['PYTHONPATH'] = os.environ['OLD_PYTHONPATH']
-    del os.environ['OLD_PYTHONPATH']
-except KeyError:
-    pass
+def set_spyder_pythonpath():
+    pypath = os.environ.get('SPY_PYTHONPATH')
+    if pypath:
+        pathlist = pypath.split(os.pathsep)
+        sys.path.extend(pathlist)
+
+set_spyder_pythonpath()
