@@ -66,4 +66,4 @@ conda create -n spytest-ž -q -y python=3.6 spyder-kernels
 conda list -n spytest-ž
 
 # Coverage
-conda install -n test codecov
+pip install codecov

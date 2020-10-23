@@ -7,7 +7,6 @@
 """Outline explorer widgets."""
 
 # Standard library imports
-from __future__ import print_function
 import bisect
 import os.path as osp
 import uuid
@@ -15,7 +14,7 @@ import uuid
 # Third party imports
 from intervaltree import IntervalTree
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtCore import QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
                             QTreeWidgetItemIterator)
 
@@ -301,8 +300,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.editor_items = {}
         self.editor_tree_cache = {}
         self.editor_ids = {}
+        self.update_timers = {}
+        self.editors_to_update = {}
         self.ordered_editor_ids = []
         self._current_editor = None
+        self._languages = []
+
         title = _("Outline")
         self.set_title(title)
         self.setWindowTitle(title)
@@ -435,13 +438,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         sig_move = editor.sig_cursor_position_changed
         sig_display_spinner = editor.sig_start_outline_spinner
         if state:
-            sig_update.connect(self.update_current)
+            sig_update.connect(self.update_editor)
             sig_move.connect(self.do_follow_cursor)
             sig_display_spinner.connect(self.sig_display_spinner)
             self.do_follow_cursor()
         else:
             try:
-                sig_update.disconnect(self.update_current)
+                sig_update.disconnect(self.update_editor)
                 sig_move.disconnect(self.do_follow_cursor)
                 sig_display_spinner.disconnect(self.sig_display_spinner)
             except TypeError:
@@ -457,32 +460,57 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def set_current_editor(self, editor, update):
         """Bind editor instance"""
         editor_id = editor.get_id()
-        if editor_id in list(self.editor_ids.values()):
+
+        # Don't fail if editor doesn't exist anymore. This
+        # happens when switching projects.
+        try:
             item = self.editor_items[editor_id].node
-            if not self.freeze:
-                self.scrollToItem(item)
-                self.root_item_selected(item)
-                self.__hide_or_show_root_items(item)
-            if update:
-                self.save_expanded_state()
-                self.restore_expanded_state()
-        else:
-            this_root = SymbolStatus(editor.fname, None, None, editor.fname)
-            root_item = FileRootItem(editor.fname, this_root,
-                                     self, editor.is_python())
-            root_item.set_text(fullpath=self.show_fullpath)
-            editor_tree = IntervalTree()
-            this_root.node = root_item
-            self.__hide_or_show_root_items(root_item)
-            self.root_item_selected(root_item)
-            self.editor_items[editor_id] = this_root
-            self.editor_tree_cache[editor_id] = editor_tree
-            self.resizeColumnToContents(0)
-        if editor not in self.editor_ids:
-            self.editor_ids[editor] = editor_id
-            self.ordered_editor_ids.append(editor_id)
-            self.__sort_toplevel_items()
+        except KeyError:
+            return
+
+        if not self.freeze:
+            self.scrollToItem(item)
+            self.root_item_selected(item)
+            self.__hide_or_show_root_items(item)
+        if update:
+            self.save_expanded_state()
+            self.restore_expanded_state()
+
         self.current_editor = editor
+
+        # Update tree with currently stored info or require symbols if
+        # necessary.
+        if (editor.get_language() in self._languages and
+                len(self.editor_tree_cache[editor_id]) == 0):
+            if editor.info is not None:
+                self.update_editor(editor.info)
+            elif editor.is_cloned:
+                editor.request_symbols()
+
+    def register_editor(self, editor):
+        """
+        Register editor attributes and create basic objects associated
+        to it.
+        """
+        editor_id = editor.get_id()
+        self.editor_ids[editor] = editor_id
+        self.ordered_editor_ids.append(editor_id)
+
+        this_root = SymbolStatus(editor.fname, None, None, editor.fname)
+        self.editor_items[editor_id] = this_root
+
+        root_item = FileRootItem(editor.fname, this_root,
+                                 self, editor.is_python())
+        this_root.node = root_item
+        root_item.set_text(fullpath=self.show_fullpath)
+        self.resizeColumnToContents(0)
+        if not self.show_all_files:
+            root_item.setHidden(True)
+
+        editor_tree = IntervalTree()
+        self.editor_tree_cache[editor_id] = editor_tree
+
+        self.__sort_toplevel_items()
 
     def file_renamed(self, editor, new_filename):
         """File was renamed, updating outline explorer tree"""
@@ -509,17 +537,44 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.restore_expanded_state()
         self.do_follow_cursor()
 
-    @Slot(list)
-    def update_current(self, items):
+    def update_editors(self, language):
         """
-        Update the outline explorer for the current editor tree preserving the
-        tree state
+        Update all editors for a given language sequentially.
+
+        This is done through a timer to avoid lags during Spyder
+        startup.
+        """
+        if self.editors_to_update.get(language):
+            editor = self.editors_to_update[language][0]
+            if editor.info is not None:
+                # Editor could be not there anymore after switching
+                # projects
+                try:
+                    self.update_editor(editor.info, editor)
+                except KeyError:
+                    pass
+                self.editors_to_update[language].remove(editor)
+            self.update_timers[language].start()
+
+    def update_all_editors(self):
+        """Update all editors with LSP support."""
+        for language in self._languages:
+            self.set_editors_to_update(language)
+            self.update_timers[language].start()
+
+    @Slot(list)
+    def update_editor(self, items, editor=None):
+        """
+        Update the outline explorer for `editor` preserving the tree
+        state.
         """
         plugin_base = self.parent().parent()
-        editor = self.current_editor
+        if editor is None:
+            editor = self.current_editor
         editor_id = editor.get_id()
         language = editor.get_language()
         update = self.update_tree(items, editor_id, language)
+
         if getattr(plugin_base, "_isvisible", True) and update:
             self.save_expanded_state()
             self.__do_update(editor, editor_id)
@@ -565,6 +620,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         deleted = current_tree - tree
 
         if len(changes) == 0 and len(deleted) == 0:
+            self.sig_hide_spinner.emit()
             return False
 
         adding_symbols = len(changes) > len(deleted)
@@ -768,6 +824,45 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.root_item_selected(item)
         self.activated(item)
 
+    def set_editors_to_update(self, language):
+        """Set editors to update per language."""
+        to_update = []
+        for editor in self.editor_ids.keys():
+            if editor.get_language().lower() == language:
+                to_update.append(editor)
+        self.editors_to_update[language] = to_update
+
+    def start_symbol_services(self, language):
+        """Show symbols for all `language` files."""
+        # Save all languages that can send info to this pane.
+        self._languages.append(language)
+
+        # Update all files associated to `language` through a timer
+        # that allows to wait a bit between updates. That doesn't block
+        # the interface at startup.
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        timer.setInterval(700)
+        timer.timeout.connect(lambda: self.update_editors(language))
+        self.update_timers[language] = timer
+
+        # Set editors that need to be updated per language
+        self.set_editors_to_update(language)
+
+        # Start timer
+        timer.start()
+
+    def stop_symbol_services(self, language):
+        """Disable LSP symbols functionality."""
+        try:
+            self._languages.remove(language)
+        except ValueError:
+            pass
+
+        for editor in self.editor_ids.keys():
+            if editor.get_language().lower() == language:
+                editor.info = None
+
 
 class OutlineExplorerWidget(QWidget):
     """Class browser"""
@@ -848,6 +943,9 @@ class OutlineExplorerWidget(QWidget):
     def remove_editor(self, editor):
         self.treewidget.remove_editor(editor)
 
+    def register_editor(self, editor):
+        self.treewidget.register_editor(editor)
+
     def get_options(self):
         """
         Return outline explorer options
@@ -869,3 +967,15 @@ class OutlineExplorerWidget(QWidget):
 
     def file_renamed(self, editor, new_filename):
         self.treewidget.file_renamed(editor, new_filename)
+
+    def start_symbol_services(self, language):
+        """Enable LSP symbols functionality."""
+        self.treewidget.start_symbol_services(language)
+
+    def stop_symbol_services(self, language):
+        """Disable LSP symbols functionality."""
+        self.treewidget.stop_symbol_services(language)
+
+    def update_all_editors(self):
+        """Update all editors with an associated LSP server."""
+        self.treewidget.update_all_editors()

@@ -47,7 +47,7 @@ from qtpy.QtWebEngineWidgets import WEBENGINE
 from spyder import __trouble_url__, __project_url__
 from spyder.app import start
 from spyder.app.mainwindow import MainWindow  # Tests fail without this import
-from spyder.config.base import get_home_dir, get_module_path
+from spyder.config.base import get_home_dir, get_conf_path, get_module_path
 from spyder.config.manager import CONF
 from spyder.widgets.dock import TabFilter
 from spyder.preferences.runconfig import RunConfiguration
@@ -57,9 +57,9 @@ from spyder.plugins.help.tests.test_plugin import check_text
 from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 from spyder.plugins.projects.projecttypes import EmptyProject
 from spyder.py3compat import PY2, to_text_string
+from spyder.utils.misc import remove_backslashes
 from spyder.utils.programs import is_module_installed
 from spyder.widgets.dock import DockTitleBar
-from spyder.utils.misc import remove_backslashes
 
 # For testing various Spyder urls
 if not PY2:
@@ -186,9 +186,26 @@ def main_window(request, tmpdir):
     preload_project = request.node.get_closest_marker('preload_project')
 
     if preload_project:
+        # Create project
         project_path = str(tmpdir.mkdir('test_project'))
         project = EmptyProject(project_path)
         CONF.set('project_explorer', 'current_project_path', project_path)
+
+        # Add some files to project
+        filenames = [
+            osp.join(project_path, f) for f in
+            ['file1.py', 'file2.py', 'file3.txt']
+        ]
+
+        for filename in filenames:
+            with open(filename, 'w') as f:
+                if osp.splitext(filename)[1] == '.py':
+                    f.write("def f(x):\n"
+                            "    return x\n")
+                else:
+                    f.write("Hello world!")
+
+        project.set_recent_files(filenames)
     else:
         CONF.set('project_explorer', 'current_project_path', None)
 
@@ -214,6 +231,7 @@ def main_window(request, tmpdir):
         window.switcher.close()
         for client in window.ipyconsole.get_clients():
             window.ipyconsole.close_client(client=client, force=True)
+        window.outlineexplorer.stop_symbol_services('python')
         # Reset cwd
         window.explorer.chdir(get_home_dir())
 
@@ -247,12 +265,10 @@ def cleanup(request):
 # =============================================================================
 # ---- Tests
 # =============================================================================
-@flaky(max_runs=3)
 @pytest.mark.slow
 @pytest.mark.first
 @pytest.mark.single_instance
-@pytest.mark.skipif((os.environ.get('CI', None) is None or (PY2
-                     and not sys.platform.startswith('linux'))),
+@pytest.mark.skipif(os.environ.get('CI', None) is None,
                     reason="It's not meant to be run outside of CIs")
 def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     """Test single instance mode and %edit magic."""
@@ -261,15 +277,18 @@ def test_single_instance_and_edit_magic(main_window, qtbot, tmpdir):
     qtbot.waitUntil(lambda: shell._prompt_html is not None, timeout=SHELL_TIMEOUT)
 
     spy_dir = osp.dirname(get_module_path('spyder'))
-    lock_code = ("import sys\n"
-                 "sys.path.append(r'{spy_dir_str}')\n"
-                 "from spyder.config.base import get_conf_path\n"
-                 "from spyder.utils.external import lockfile\n"
-                 "lock_file = get_conf_path('spyder.lock')\n"
-                 "lock = lockfile.FilesystemLock(lock_file)\n"
-                 "lock_created = lock.lock()".format(spy_dir_str=spy_dir))
+    lock_code = (
+        "import sys\n"
+        "sys.path.append(r'{spy_dir_str}')\n"
+        "from spyder.utils.external import lockfile\n"
+        "lock_file = r'{lock_file}'\n"
+        "lock = lockfile.FilesystemLock(lock_file)\n"
+        "lock_created = lock.lock()\n"
+        "print(lock_created)".format(
+            spy_dir_str=spy_dir,
+            lock_file=get_conf_path('spyder.lock'))
+    )
 
-    # Test single instance
     with qtbot.waitSignal(shell.executed, timeout=2000):
         shell.execute(lock_code)
     assert not shell.get_value('lock_created')
@@ -3543,8 +3562,7 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
     # Wait until the initial requests are sent to the server.
     lsp = main_window.completions.get_client('lsp')
     python_client = lsp.clients['python']
-    qtbot.waitUntil(lambda: len(python_client['instance']._requests) == 5,
-                    timeout=30000)
+    qtbot.wait(5000)
 
     expected_requests = [
         (0, 'initialize'),
@@ -3554,7 +3572,125 @@ def test_ordering_lsp_requests_at_startup(main_window, qtbot):
         (4, 'textDocument/didOpen'),
     ]
 
-    assert python_client['instance']._requests == expected_requests
+    assert python_client['instance']._requests[:5] == expected_requests
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.parametrize(
+    'main_window',
+    [{'spy_config': ('main', 'show_tour_message', 2)}],
+    indirect=True)
+def test_tour_message(main_window, qtbot):
+    """Test that the tour message displays and sends users to the tour."""
+    # Wait until window setup is finished, which is when the message appears
+    qtbot.waitSignal(main_window.sig_setup_finished, timeout=30000)
+
+    # Check that tour is shown automatically and manually show it
+    assert CONF.get('main', 'show_tour_message')
+    main_window.show_tour_message(force=True)
+
+    # Wait for the message to appear
+    qtbot.waitUntil(lambda: bool(main_window.tour_dialog), timeout=5000)
+    qtbot.waitUntil(lambda: main_window.tour_dialog.isVisible(), timeout=2000)
+
+    # Check that clicking dismiss hides the dialog and disables it
+    qtbot.mouseClick(main_window.tour_dialog.dismiss_button, Qt.LeftButton)
+    qtbot.waitUntil(lambda: not main_window.tour_dialog.isVisible(),
+                    timeout=2000)
+    assert not CONF.get('main', 'show_tour_message')
+
+    # Confirm that calling show_tour_message() normally doesn't show it again
+    main_window.show_tour_message()
+    qtbot.wait(2000)
+    assert not main_window.tour_dialog.isVisible()
+
+    # Ensure that it opens again with force=True
+    main_window.show_tour_message(force=True)
+    qtbot.waitUntil(lambda: main_window.tour_dialog.isVisible(), timeout=5000)
+
+    # Run the tour and confirm it's running and the dialog is closed
+    qtbot.mouseClick(main_window.tour_dialog.launch_tour_button, Qt.LeftButton)
+    qtbot.waitUntil(lambda: main_window.tour.is_running, timeout=9000)
+    assert not main_window.tour_dialog.isVisible()
+    assert not CONF.get('main', 'show_tour_message')
+
+    # Close the tour
+    main_window.tour.close_tour()
+    qtbot.waitUntil(lambda: not main_window.tour.is_running, timeout=9000)
+    main_window.tour_dialog.hide()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.use_introspection
+@pytest.mark.preload_project
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+def test_update_outline(main_window, qtbot, tmpdir):
+    """
+    Test that files in the Outline pane are updated at startup and
+    after switching projects.
+    """
+    # Show outline explorer
+    outline_explorer = main_window.outlineexplorer
+    outline_explorer._toggle_view_action.setChecked(True)
+
+    # Get Python editor trees
+    treewidget = outline_explorer.explorer.treewidget
+    editors_py = [
+        editor for editor in treewidget.editor_ids.keys()
+        if editor.get_language() == 'Python'
+    ]
+
+    # Wait a bit for trees to be filled
+    qtbot.wait(5000)
+
+    # Assert all Python editors are filled
+    assert all(
+        [
+            len(treewidget.editor_tree_cache[editor.get_id()]) > 0
+            for editor in editors_py
+        ]
+    )
+
+    # Split editor
+    editorstack = main_window.editor.get_current_editorstack()
+    editorstack.sig_split_vertically.emit()
+    qtbot.wait(1000)
+
+    # Select file with no outline in splitted editorstack
+    editorstack = main_window.editor.get_current_editorstack()
+    editorstack.set_stack_index(2)
+    editor = editorstack.get_current_editor()
+    assert osp.splitext(editor.filename)[1] == '.txt'
+    assert editor.is_cloned
+
+    # Assert tree is empty
+    editor_tree = treewidget.current_editor
+    tree = treewidget.editor_tree_cache[editor_tree.get_id()]
+    assert len(tree) == 0
+
+    # Assert spinner is not shown
+    assert not outline_explorer.explorer.loading_widget.isSpinning()
+
+    # Set one file as session without projects
+    prev_file = tmpdir.join("foo.py")
+    prev_file.write("def zz(x):\n"
+                    "    return x**2\n")
+    CONF.set('editor', 'filenames', [str(prev_file)])
+
+    # Close project to open that file automatically
+    main_window.projects.close_project()
+
+    # Wait a bit for its tree to be filled
+    qtbot.wait(1000)
+
+    # Assert the editor was filled
+    editor = list(treewidget.editor_ids.keys())[0]
+    assert len(treewidget.editor_tree_cache[editor.get_id()]) > 0
+
+    # Remove test file from session
+    CONF.set('editor', 'filenames', [])
 
 
 if __name__ == "__main__":

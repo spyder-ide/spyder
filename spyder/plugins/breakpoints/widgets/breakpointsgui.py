@@ -260,6 +260,15 @@ class BreakpointWidget(QWidget):
         for filename in list(bp_dict.keys()):
             if not osp.isfile(filename):
                 bp_dict.pop(filename)
+                continue
+            # Make sure we don't have the same file under different names
+            new_filename = osp.normcase(filename)
+            if new_filename != filename:
+                bp = bp_dict.pop(filename)
+                if new_filename in bp_dict:
+                    bp_dict[new_filename].extend(bp)
+                else:
+                    bp_dict[new_filename] = bp
         return bp_dict
 
     def get_data(self):

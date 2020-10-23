@@ -226,31 +226,38 @@ def get_common_path(pathlist):
                 return osp.abspath(common)
 
 
-def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=False,
-                               ipyconsole=False):
+def add_pathlist_to_PYTHONPATH(env, pathlist, drop_env=True):
+    """
+    Add a PYTHONPATH entry to a list of enviroment variables.
+
+    This allows to extend the environment of an external process
+    created with QProcess with our additions to PYTHONPATH.
+
+    Parameters
+    ----------
+    env: list
+        List of environment variables in the format of
+        QProcessEnvironment.
+    pathlist: list
+        List of paths to add to PYTHONPATH
+    drop_env: bool
+        Whether to drop PYTHONPATH previously found in the environment.
+    """
     # PyQt API 1/2 compatibility-related tests:
     assert isinstance(env, list)
     assert all([is_text_string(path) for path in env])
 
     pypath = "PYTHONPATH"
     pathstr = os.pathsep.join(pathlist)
-    if os.environ.get(pypath) is not None and not drop_env:
-        old_pypath = os.environ[pypath]
-        if not ipyconsole:
-            for index, var in enumerate(env[:]):
-                if var.startswith(pypath+'='):
-                    env[index] = var.replace(pypath+'=',
-                                             pypath+'='+pathstr+os.pathsep)
-            env.append('OLD_PYTHONPATH='+old_pypath)
-        else:
-            pypath =  {'PYTHONPATH': pathstr + os.pathsep + old_pypath,
-                       'OLD_PYTHONPATH': old_pypath}
-            return pypath
+    if not drop_env:
+        for index, var in enumerate(env[:]):
+            if var.startswith(pypath + '='):
+                env[index] = var.replace(
+                    pypath + '=',
+                    pypath + '=' + pathstr + os.pathsep
+                )
     else:
-        if not ipyconsole:
-            env.append(pypath+'='+pathstr)
-        else:
-            return {'PYTHONPATH': pathstr}
+        env.append(pypath + '=' + pathstr)
 
 
 def memoize(obj):

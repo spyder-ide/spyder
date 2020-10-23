@@ -161,6 +161,15 @@ class OutlineExplorerProxy(QObject):
         """Returns a list of outline explorer data."""
         raise NotImplementedError
 
+    def request_symbols(self):
+        """Request current editor symbols."""
+        raise NotImplementedError
+
+    @property
+    def is_cloned(self):
+        """Check if the associated editor is cloned."""
+        return False
+
 
 class OutlineExplorerData(QObject):
     CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
