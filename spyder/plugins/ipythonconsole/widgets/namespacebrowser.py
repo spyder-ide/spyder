@@ -106,6 +106,8 @@ class NamepaceBrowserWidget(RichJupyterWidget):
             raise ValueError(msg % reason_not_picklable)
         except RuntimeError:
             raise ValueError(msg % reason_dead)
+        except KeyError:
+            raise
         except Exception:
             raise ValueError(msg % reason_other)
 
