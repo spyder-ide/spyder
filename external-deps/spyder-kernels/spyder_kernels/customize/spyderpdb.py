@@ -21,8 +21,10 @@ from spyder_kernels.py3compat import TimeoutError, PY2, _print, isidentifier
 
 if not PY2:
     from IPython.core.inputtransformer2 import TransformerManager
+    import builtins
     basestring = (str,)
 else:
+    import __builtin__ as builtins
     from IPython.core.inputsplitter import IPythonInputSplitter as TransformerManager
 
 
@@ -122,7 +124,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         if self.pdb_use_exclamation_mark:
             # Find pdb commands executed without !
             cmd, arg, line = self.parseline(line)
-            if cmd and cmd not in ns:
+            if cmd and cmd not in ns and cmd not in builtins.__dict__:
                 # Check if it is not an assignment
                 if not (arg and arg[0] == "="):
                     func = getattr(self, 'do_' + cmd, None)
