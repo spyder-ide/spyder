@@ -149,35 +149,29 @@ class FrontendComm(CommBase):
             callback=callback,
             timeout=timeout)
 
-    def wait_until(self, condition, timeout=None):
-        """Wait until condition is met. Returns False if timeout."""
-        if condition():
-            return True
+    # --- Private --------
+    def _wait_reply(self, call_id, call_name, timeout, retry=True):
+        """Wait until the frontend replies to a request."""
+        if call_id in self._reply_inbox:
+            return
+
         t_start = time.time()
-        while not condition():
-            if timeout is not None and time.time() > t_start + timeout:
-                return False
+        while call_id not in self._reply_inbox:
+            if time.time() > t_start + timeout:
+                if retry:
+                    # Send config again just in case
+                    self._send_comm_config()
+                    self._wait_reply(call_id, call_name, timeout, False)
+                    return
+                raise TimeoutError(
+                    "Timeout while waiting for '{}' reply.".format(
+                        call_name))
             if threading.current_thread() is self.comm_socket_thread:
                 # Wait for a reply on the comm channel.
                 self.poll_one()
             else:
                 # Wait 10ms for a reply
                 time.sleep(0.01)
-        return True
-
-    # --- Private --------
-    def _wait_reply(self, call_id, call_name, timeout, retry=True):
-        """Wait until the frontend replies to a request."""
-        def reply_received():
-            """The reply is there!"""
-            return call_id in self._reply_inbox
-        if not self.wait_until(reply_received):
-            if retry:
-                self._wait_reply(call_id, call_name, timeout, False)
-                return
-            raise TimeoutError(
-                "Timeout while waiting for '{}' reply.".format(
-                    call_name))
 
     def _comm_open(self, comm, msg):
         """
@@ -187,11 +181,6 @@ class FrontendComm(CommBase):
         self._register_comm(comm)
         self._set_pickle_protocol(msg['content']['data']['pickle_protocol'])
         self._send_comm_config()
-
-    def on_outgoing_call(self, call_dict):
-        """A message is about to be sent"""
-        call_dict["comm_port"] = self.comm_port
-        return super(FrontendComm, self).on_outgoing_call(call_dict)
 
     def _send_comm_config(self):
         """Send the comm config to the frontend."""

@@ -36,7 +36,7 @@ class FakeObject(object):
 # Numpy arrays and numeric types support
 #==============================================================================
 try:
-    from numpy import (ndarray, array, matrix, recarray, integer,
+    from numpy import (ndarray, array, matrix, recarray,
                        int64, int32, int16, int8, uint64, uint32, uint16, uint8,
                        float64, float32, float16, complex64, complex128, bool_)
     from numpy.ma import MaskedArray
@@ -46,11 +46,6 @@ except:
     ndarray = array = matrix = recarray = MaskedArray = np_savetxt = \
      int64 = int32 = int16 = int8 = uint64 = uint32 = uint16 = uint8 = \
      float64 = float32 = float16 = complex64 = complex128 = bool_ = FakeObject
-
-
-NUMERIC_NUMPY_TYPES = (int64, int32, int16, int8, uint64, uint32, uint16,
-                       uint8, float64, float32, float16, complex64, complex128,
-                       bool_)
 
 
 def get_numpy_dtype(obj):
@@ -118,33 +113,24 @@ def try_to_eval(value):
     except (NameError, SyntaxError, ImportError):
         return value
 
-
+    
 def get_size(item):
-    """Return shape/size/len of an item of arbitrary type"""
-    try:
-        if hasattr(item, 'shape') and isinstance(item.shape, (tuple, integer)):
-            try:
-                if item.shape:
-                    return item.shape
-                else:
-                    # Scalar value
-                    return 1
-            except RecursionError:
-                # This is necessary to avoid an error when trying to
-                # get the shape of these objects.
-                # Fixes spyder-ide/spyder-kernels#217
-                return (-1, -1)
-        elif hasattr(item, 'size') and isinstance(item.size, (tuple, integer)):
-            try:
-                return item.size
-            except RecursionError:
-                return (-1, -1)
-        elif hasattr(item, '__len__'):
-            return len(item)
-        else:
-            return 1
-    except Exception:
-        # There is one item
+    """Return size of an item of arbitrary type"""
+    if isinstance(item, (list, set, tuple, dict)):
+        return len(item)
+    elif isinstance(item, (ndarray, MaskedArray)):
+        return item.shape
+    elif isinstance(item, Image):
+        return item.size
+    if isinstance(item, (DataFrame, Index, Series)):
+        try:
+            return item.shape
+        except RecursionError:
+            # This is necessary to avoid an error when trying to
+            # get the shape of these objects.
+            # Fixes spyder-ide/spyder-kernels#217
+            return (-1, -1)
+    else:
         return 1
 
 
@@ -261,20 +247,16 @@ def is_editable_type(value):
 #==============================================================================
 # Sorting
 #==============================================================================
-def sort_against(list1, list2, reverse=False, sort_key=None):
+def sort_against(list1, list2, reverse=False):
     """
     Arrange items of list1 in the same order as sorted(list2).
 
     In other words, apply to list1 the permutation which takes list2 
     to sorted(list2, reverse).
     """
-    if sort_key is None:
-        key = lambda x: x[0]
-    else:
-        key = lambda x: sort_key(x[0])
     try:
         return [item for _, item in 
-                sorted(zip(list2, list1), key=key, reverse=reverse)]
+                sorted(zip(list2, list1), key=lambda x: x[0], reverse=reverse)]
     except:
         return list1
 
@@ -364,6 +346,10 @@ def value_to_display(value, minmax=False, level=0):
     np_printoptions = FakeObject
 
     try:
+        numeric_numpy_types = (int64, int32, int16, int8,
+                               uint64, uint32, uint16, uint8,
+                               float64, float32, float16,
+                               complex128, complex64, bool_)
         if ndarray is not FakeObject:
             # Save printoptions
             np_printoptions = get_printoptions()
@@ -384,11 +370,11 @@ def value_to_display(value, minmax=False, level=0):
                     try:
                         display = 'Min: %r\nMax: %r' % (value.min(), value.max())
                     except (TypeError, ValueError):
-                        if value.dtype.type in NUMERIC_NUMPY_TYPES:
+                        if value.dtype.type in numeric_numpy_types:
                             display = str(value)
                         else:
                             display = default_display(value)
-                elif value.dtype.type in NUMERIC_NUMPY_TYPES:
+                elif value.dtype.type in numeric_numpy_types:
                     display = str(value)
                 else:
                     display = default_display(value)
@@ -461,7 +447,7 @@ def value_to_display(value, minmax=False, level=0):
             display = str(value)
         elif (isinstance(value, NUMERIC_TYPES) or
               isinstance(value, bool) or
-              isinstance(value, NUMERIC_NUMPY_TYPES)):
+              isinstance(value, numeric_numpy_types)):
             display = repr(value)
         else:
             if level == 0:

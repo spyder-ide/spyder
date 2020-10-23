@@ -1,6 +1,5 @@
 codecov
 cython
-dask
 flaky
 matplotlib
 mock
@@ -10,4 +9,3 @@ pytest
 pytest-cov
 scipy
 xarray
-pillow

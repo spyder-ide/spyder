@@ -295,23 +295,11 @@ def main():
     while '' in sys.path:
         sys.path.remove('')
 
-    # Main imports
+    # Fire up the kernel instance.
     from ipykernel.kernelapp import IPKernelApp
     from spyder_kernels.console.kernel import SpyderKernel
 
-    class SpyderKernelApp(IPKernelApp):
-
-        def init_pdb(self):
-            """
-            This method was added in IPykernel 5.3.1 and it replaces
-            the debugger used by the kernel with a new class
-            introduced in IPython 7.15 during kernel's initialization.
-            Therefore, it doesn't allow us to use our debugger.
-            """
-            pass
-
-    # Fire up the kernel instance.
-    kernel = SpyderKernelApp.instance()
+    kernel = IPKernelApp.instance()
     kernel.kernel_class = SpyderKernel
     try:
         kernel.config = kernel_config()
