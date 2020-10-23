@@ -161,7 +161,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         super(ShellWidget, self).will_close(externally_managed)
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
-                    timeout=None):
+                    timeout=None, display_error=False):
         """
         Send message to Spyder kernel connected to this console.
 
@@ -186,7 +186,8 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             interrupt=interrupt,
             blocking=blocking,
             callback=callback,
-            timeout=timeout
+            timeout=timeout,
+            display_error=display_error
         )
 
     def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
