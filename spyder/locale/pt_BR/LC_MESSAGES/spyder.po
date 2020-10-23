@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-07-02 22:48-0500\n"
-"PO-Revision-Date: 2020-07-03 04:46\n"
+"PO-Revision-Date: 2020-10-23 01:15\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -438,7 +438,7 @@ msgstr "Foi detectada uma alteração na escala do monitor. <br><br>Recomendamos
 
 #: spyder/app/mainwindow.py:1453
 msgid "Restart now"
-msgstr ""
+msgstr "Reiniciar agora"
 
 #: spyder/app/mainwindow.py:1454 spyder/plugins/completion/kite/widgets/install.py:84 spyder/plugins/completion/kite/widgets/install.py:149
 msgid "Dismiss"
