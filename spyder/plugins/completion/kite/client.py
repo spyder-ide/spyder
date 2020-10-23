@@ -43,6 +43,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
     sig_status_response_ready = Signal((str,), (dict,))
     sig_perform_onboarding_request = Signal()
     sig_onboarding_response_ready = Signal(str)
+    sig_client_wrong_response = Signal(str, object)
 
     def __init__(self, parent, enable_code_snippets=True):
         QObject.__init__(self, parent)
@@ -174,15 +175,6 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
                     response = converter(response)
         if not isinstance(response, dict):
             if not running_under_pytest():
-                QMessageBox.critical(
-                    self, _('Kite error'),
-                    _("The Kite completion engine returned an unexpected result "
-                    "for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>"
-                    "Please make sure that your Kite installation is correct. "
-                    "In the meantime, Spyder will disable the Kite client to "
-                    "prevent further errors. For more information, please "
-                    "visit the <a href='https://help.kite.com/'>Kite help "
-                    "center</a>").format(method, response))
-                CONF.set('kite', 'enable', False)
+                self.sig_client_wrong_response.emit(method, response)
         else:
             self.sig_response_ready.emit(req_id, response or {})

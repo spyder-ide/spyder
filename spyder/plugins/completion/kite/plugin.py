@@ -70,6 +70,8 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
         self.client.sig_status_response_ready.connect(self._kite_onboarding)
         self.client.sig_onboarding_response_ready.connect(
             self._show_onboarding_file)
+        self.client.sig_client_wrong_response.connect(
+            self._wrong_response_error)
 
         self.installation_thread.sig_installation_status.connect(
             self.set_status)
@@ -222,3 +224,16 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
             return
         self.set_option('show_onboarding', False)
         self.main.open_file(onboarding_file)
+
+    @Slot(str, object)
+    def _wrong_response_error(self, method, resp):
+        QMessageBox.critical(
+            self.main, _('Kite error'),
+            _("The Kite completion engine returned an unexpected result "
+            "for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>"
+            "Please make sure that your Kite installation is correct. "
+            "In the meantime, Spyder will disable the Kite client to "
+            "prevent further errors. For more information, please "
+            "visit the <a href='https://help.kite.com/'>Kite help "
+            "center</a>").format(method, response))
+        self.set_option('enable', False)
