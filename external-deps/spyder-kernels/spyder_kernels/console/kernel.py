@@ -41,6 +41,7 @@ class SpyderKernel(IPythonKernel):
             'set_breakpoints': self.set_spyder_breakpoints,
             'set_pdb_ignore_lib': self.set_pdb_ignore_lib,
             'set_pdb_execute_events': self.set_pdb_execute_events,
+            'set_pdb_use_exclamation_mark': self.set_pdb_use_exclamation_mark,
             'get_value': self.get_value,
             'load_data': self.load_data,
             'save_namespace': self.save_namespace,
@@ -292,6 +293,14 @@ class SpyderKernel(IPythonKernel):
         """
         if self._pdb_obj:
             self._pdb_obj.pdb_execute_events = state
+
+    def set_pdb_use_exclamation_mark(self, state):
+        """
+        Set an option on the current debugging session to decide wether
+        the Pdb commands needs to be prefixed by '!'
+        """
+        if self._pdb_obj:
+            self._pdb_obj.pdb_use_exclamation_mark = state
 
     def pdb_input_reply(self, line, echo_stack_entry=True):
         """Get a pdb command from the frontend."""
