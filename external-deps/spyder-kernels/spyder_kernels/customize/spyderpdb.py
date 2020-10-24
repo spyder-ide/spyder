@@ -82,6 +82,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         self.pdb_ignore_lib = False
         self.pdb_execute_events = False
         self.pdb_use_exclamation_mark = False
+        self._exclamation_warning_printed = False
         self.pdb_stop_first_line = True
         self._disable_next_stack_entry = False
         super(SpyderPdb, self).__init__()
@@ -89,6 +90,13 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         self._frontend_notified = False
 
     # --- Methods overriden for code execution
+    def print_exclamation_warning(self):
+        """Print pdb warning for exclamation mark."""
+        if not self._exclamation_warning_printed:
+            print("Warning: '!' option enabled."
+                  " Use '!' as an optionnal prefix for pdb commands.")
+            self._exclamation_warning_printed = True
+
     def default(self, line):
         """
         Default way of running pdb statment.
@@ -101,6 +109,7 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         if line[:1] == '!':
             line = line[1:]
         elif self.pdb_use_exclamation_mark:
+            self.print_exclamation_warning()
             self.error("Unknown command '" + line.split()[0] + "'")
             return
         # Disallow the use of %debug magic in the debugger
@@ -131,6 +140,8 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                     if func:
                         self.lastcmd = line
                         return func(arg)
+            elif cmd:
+                self.print_exclamation_warning()
         try:
             line = TransformerManager().transform_cell(line)
             try:
