@@ -567,18 +567,6 @@ class Editor(SpyderPluginWidget):
                                     _('Clear breakpoints in all files'),
                                     triggered=self.clear_all_breakpoints)
 
-        pdb_ignore_lib_action = create_action(
-            self, _("Ignore Python libraries while debugging"),
-            toggled=self.toggle_pdb_ignore_lib)
-        pdb_ignore_lib_action.setChecked(
-            CONF.get('run', 'pdb_ignore_lib'))
-
-        pdb_execute_events_action = create_action(
-            self, _("Process execute events while debugging"),
-            toggled=self.toggle_pdb_execute_events)
-        pdb_execute_events_action.setChecked(
-            CONF.get('run', 'pdb_execute_events'))
-
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
         self.winpdb_action.setEnabled(WINPDB_PATH is not None and PY2)
@@ -1037,8 +1025,6 @@ class Editor(SpyderPluginWidget):
             self.debug_continue_action,
             self.debug_exit_action,
             MENU_SEPARATOR,
-            pdb_ignore_lib_action,
-            pdb_execute_events_action,
             set_clear_breakpoint_action,
             set_cond_breakpoint_action,
             clear_all_breakpoints_action,
@@ -1146,18 +1132,6 @@ class Editor(SpyderPluginWidget):
         self.stack_menu_actions = [gotoline_action, workdir_action]
 
         return self.file_dependent_actions
-
-    def toggle_pdb_ignore_lib(self, checked):
-        """"Set pdb_ignore_lib"""
-        CONF.set('run', 'pdb_ignore_lib', checked)
-        if self.main.ipyconsole is not None:
-            self.main.ipyconsole.set_pdb_ignore_lib()
-
-    def toggle_pdb_execute_events(self, checked):
-        """"Set pdb_execute_events"""
-        CONF.set('run', 'pdb_execute_events', checked)
-        if self.main.ipyconsole is not None:
-            self.main.ipyconsole.set_pdb_execute_events()
 
     def update_pdb_state(self, state, last_step):
         """Enable/disable debugging actions and handle pdb state change."""
@@ -2164,6 +2138,8 @@ class Editor(SpyderPluginWidget):
         """
         Check if a file can be closed taking into account debugging state.
         """
+        if not CONF.get('ipython_console', 'pdb_prevent_closing'):
+            return True
         debugging = self.main.ipyconsole.get_pdb_state()
         last_pdb_step = self.main.ipyconsole.get_pdb_last_step()
         can_close = True
@@ -2603,9 +2579,7 @@ class Editor(SpyderPluginWidget):
     def debug_command(self, command):
         """Debug actions"""
         self.switch_to_plugin()
-        self.main.ipyconsole.pdb_execute(
-            command, hidden=False, echo_stack_entry=False,
-            add_history=False)
+        self.main.ipyconsole.pdb_execute_command(command)
         focus_widget = self.main.ipyconsole.get_focus_widget()
         if focus_widget:
             focus_widget.setFocus()

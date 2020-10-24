@@ -168,6 +168,9 @@ def main_window(request, tmpdir):
     CONF.set('plots', 'mute_inline_plotting', False)
     CONF.set('ipython_console', 'pylab/inline/figure_format', 0)
 
+    # Set exclamation mark to True
+    CONF.set('ipython_console', 'pdb_use_exclamation_mark', True)
+
     # Check if we need to use introspection in a given test
     # (it's faster and less memory consuming not to use it!)
     use_introspection = request.node.get_closest_marker('use_introspection')
@@ -686,23 +689,21 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
             qtbot.wait(500)
 
         # Debug the cell
-        qtbot.keyClick(code_editor, Qt.Key_Return,
-                       modifier=Qt.AltModifier | Qt.ShiftModifier)
-
-        qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+        with qtbot.waitSignal(shell.executed):
+            qtbot.keyClick(code_editor, Qt.Key_Return,
+                           modifier=Qt.AltModifier | Qt.ShiftModifier)
 
         # Make sure everything is ready
         assert shell.spyder_kernel_comm.is_open()
         assert shell.is_waiting_pdb_input()
 
         with qtbot.waitSignal(shell.executed):
-            shell.pdb_execute('b')
+            shell.pdb_execute('!b')
         assert 'script.py:10' in shell._control.toPlainText()
         # We need to press continue as we don't test yet if a breakpoint
         # is in the cell
         with qtbot.waitSignal(shell.executed):
-            shell.pdb_execute('c')
+            shell.pdb_execute('!c')
 
     else:
         # Click the debug button
@@ -713,11 +714,11 @@ def test_move_to_first_breakpoint(main_window, qtbot, debugcell):
     shell.clear_console()
     qtbot.wait(500)
     with qtbot.waitSignal(shell.executed):
-        shell.pdb_execute("list")
+        shell.pdb_execute("!list")
     assert "1--> 10 arr = np.array(li)" in control.toPlainText()
 
     # Exit debugging
-    shell.pdb_execute("exit")
+    shell.pdb_execute("!exit")
     qtbot.wait(500)
 
     # Set breakpoint on first line with code
@@ -1163,7 +1164,7 @@ def test_set_new_breakpoints(main_window, qtbot):
     qtbot.wait(500)
 
     # Verify that the breakpoint was set
-    shell.pdb_execute("b")
+    shell.pdb_execute("!b")
     qtbot.wait(500)
     assert "1   breakpoint   keep yes   at {}:6".format(test_file) in control.toPlainText()
 
@@ -1295,11 +1296,10 @@ def test_run_code(main_window, qtbot, tmpdir):
     reset_run_code(qtbot, shell, code_editor, nsb)
 
     # ---- Debug cell ------
-    qtbot.keyClick(code_editor, Qt.Key_Return,
-                   modifier=Qt.AltModifier | Qt.ShiftModifier)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
-    qtbot.keyClick(shell._control, 'c')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_Return,
+                       modifier=Qt.AltModifier | Qt.ShiftModifier)
+    qtbot.keyClicks(shell._control, '!c')
     qtbot.keyClick(shell._control, Qt.Key_Enter)
 
     # Wait until the object has appeared in the variable explorer
@@ -1564,9 +1564,8 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     # Click the debug button
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
 
     # Set a breakpoint
     code_editor = main_window.editor.get_focus_widget()
@@ -1574,49 +1573,42 @@ def test_c_and_n_pdb_commands(main_window, qtbot):
     qtbot.wait(500)
 
     # Verify that c works
-    qtbot.keyClicks(control, 'c')
-    qtbot.keyClick(control, Qt.Key_Enter)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, '!c')
+        qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(
         lambda: nsb.editor.source_model.rowCount() == 1)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
     # Verify that n works
-    qtbot.keyClicks(control, 'n')
-    qtbot.keyClick(control, Qt.Key_Enter)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, '!n')
+        qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(
         lambda: nsb.editor.source_model.rowCount() == 2)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
     # Verify that doesn't go to sitecustomize.py with next and stops
     # the debugging session.
-    qtbot.keyClicks(control, 'n')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, '!n')
+        qtbot.keyClick(control, Qt.Key_Enter)
 
-    qtbot.keyClicks(control, 'n')
-    qtbot.keyClick(control, Qt.Key_Enter)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, '!n')
+        qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(
         lambda: nsb.editor.source_model.rowCount() == 3)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
 
-    qtbot.keyClicks(control, 'n')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, '!n')
+        qtbot.keyClick(control, Qt.Key_Enter)
 
-    qtbot.keyClicks(control, 'n')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, '!n')
+        qtbot.keyClick(control, Qt.Key_Enter)
 
-    qtbot.keyClicks(control, 'n')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(
-        lambda: 'In [2]:' in control.toPlainText())
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, '!n')
+        qtbot.keyClick(control, Qt.Key_Enter)
 
     # Assert that the prompt appear
     shell.clear_console()
@@ -1652,7 +1644,7 @@ def test_stop_dbg(main_window, qtbot):
     qtbot.wait(1000)
 
     # Move to the next line
-    shell.pdb_execute("n")
+    shell.pdb_execute("!n")
     qtbot.wait(1000)
 
     # Stop debugging
@@ -1662,7 +1654,7 @@ def test_stop_dbg(main_window, qtbot):
     qtbot.wait(1000)
 
     # Assert there are only two ipdb prompts in the console
-    assert shell._control.toPlainText().count('ipdb') == 2
+    assert shell._control.toPlainText().count('IPdb') == 2
 
     # Remove breakpoint and close test file
     main_window.editor.clear_all_breakpoints()
@@ -1703,7 +1695,7 @@ def test_change_cwd_dbg(main_window, qtbot):
     qtbot.wait(500)
 
     # Get cwd in console
-    qtbot.keyClicks(control, '!import os; os.getcwd()')
+    qtbot.keyClicks(control, 'import os; os.getcwd()')
     qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(1000)
 
@@ -1733,16 +1725,14 @@ def test_varexp_magic_dbg(main_window, qtbot):
     # Click the debug button
     debug_action = main_window.debug_toolbar_actions[0]
     debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
 
     # Get to an object that can be plotted
     for _ in range(2):
-        qtbot.keyClicks(control, 'n')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+        with qtbot.waitSignal(shell.executed):
+            qtbot.keyClicks(control, '!n')
+            qtbot.keyClick(control, Qt.Key_Enter)
 
     # Generate the plot from the Variable Explorer
     nsb.editor.plot('li', 'plot')
@@ -2308,26 +2298,23 @@ def test_break_while_running(main_window, qtbot, tmpdir):
     main_window.editor.clear_all_breakpoints()
 
     # Click the debug button
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
-    qtbot.wait(1000)
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
+        qtbot.wait(1000)
 
     # Continue debugging
-    qtbot.keyClick(shell._control, 'c')
+    qtbot.keyClicks(shell._control, '!c')
     qtbot.keyClick(shell._control, Qt.Key_Enter)
     qtbot.wait(500)
 
-    # Set a breakpoint
-    code_editor.debugger.toogle_breakpoint(line_number=3)
+    with qtbot.waitSignal(shell.executed):
+        # Set a breakpoint
+        code_editor.debugger.toogle_breakpoint(line_number=3)
+        # We should drop into the debugger
 
-    # We should drop into the debugger
-    qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
-
-    qtbot.keyClick(shell._control, 'q')
-    qtbot.keyClick(shell._control, Qt.Key_Enter)
-    qtbot.wait(500)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(shell._control, '!q')
+        qtbot.keyClick(shell._control, Qt.Key_Enter)
 
     # Clear all breakpoints
     main_window.editor.clear_all_breakpoints()
@@ -2624,11 +2611,9 @@ def test_debug_unsaved_file(main_window, qtbot):
 
     # There is a breakpoint, so it should continue
     qtbot.waitUntil(
-        lambda: 'ipdb> continue' in shell._control.toPlainText())
+        lambda: '!continue' in shell._control.toPlainText())
     qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
-
-    assert "1---> 2 print(1)" in control.toPlainText()
+        lambda: "1---> 2 print(1)" in control.toPlainText())
 
 
 @pytest.mark.slow
@@ -2651,15 +2636,13 @@ def test_runcell(main_window, qtbot, tmpdir, debug):
     else:
         function = 'runcell'
     # Execute runcell
-    shell.execute(function + u"(0, r'{}')".format(to_text_string(p)))
+    with qtbot.waitSignal(shell.executed):
+        shell.execute(function + u"(0, r'{}')".format(to_text_string(p)))
     control = main_window.ipyconsole.get_focus_widget()
 
     if debug:
-        # Continue
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-
         # Reach the 'name' input
-        shell.pdb_execute('c')
+        shell.pdb_execute('!c')
 
     qtbot.wait(1000)
 
@@ -2907,25 +2890,21 @@ def test_runcell_pdb(main_window, qtbot):
     code_editor.set_text(code)
 
     # Start debugging
-    qtbot.mouseClick(debug_button, Qt.LeftButton)
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
 
-    for key in ['n', 'n', 's', 'n', 'n']:
-        qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>',
-            timeout=3000)
-        qtbot.keyClick(shell._control, key)
-        qtbot.keyClick(shell._control, Qt.Key_Enter)
+    for key in ['!n', '!n', '!s', '!n', '!n']:
+        with qtbot.waitSignal(shell.executed):
+            qtbot.keyClicks(shell._control, key)
+            qtbot.keyClick(shell._control, Qt.Key_Enter)
 
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
     assert shell.get_value('abba') == 27
 
     code_editor.setFocus()
     # call runcell
-    qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
-    qtbot.waitUntil(lambda: "!runcell" in shell._control.toPlainText())
-    qtbot.waitUntil(
-        lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClick(code_editor, Qt.Key_Return, modifier=Qt.ShiftModifier)
+    assert "runcell" in shell._control.toPlainText()
 
     # Make sure the local variables are detected
     assert "abba 27" in shell._control.toPlainText()
@@ -3051,11 +3030,11 @@ def test_pdb_key_leak(main_window, qtbot, tmpdir):
     try:
         QApplication.processEvents = processEvents
         # Debug and open both files
-        shell.execute('%debug')
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
-        qtbot.keyClick(control, 'u')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+        with qtbot.waitSignal(shell.executed):
+            shell.execute('%debug')
+        with qtbot.waitSignal(shell.executed):
+            qtbot.keyClicks(control, '!u')
+            qtbot.keyClick(control, Qt.Key_Enter)
 
         # Wait until both files are open
         qtbot.waitUntil(
@@ -3105,8 +3084,8 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
     assert '1/0' in control.toPlainText()
 
     # Debug and enter first file
-    shell.execute('%debug')
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        shell.execute('%debug')
     qtbot.waitUntil(
         lambda: osp.samefile(
             main_window.editor.get_current_editor().filename,
@@ -3119,16 +3098,16 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
     current_filename = main_window.editor.get_current_editor().filename
 
     # Run a random command, make sure we don't move
-    qtbot.keyClick(control, 'a')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, '!a')
+        qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.wait(1000)
     assert current_filename == main_window.editor.get_current_editor().filename
 
     # Go up and enter second file
-    qtbot.keyClick(control, 'u')
-    qtbot.keyClick(control, Qt.Key_Enter)
-    qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+    with qtbot.waitSignal(shell.executed):
+        qtbot.keyClicks(control, '!u')
+        qtbot.keyClick(control, Qt.Key_Enter)
     qtbot.waitUntil(
         lambda: osp.samefile(
             main_window.editor.get_current_editor().filename,
@@ -3146,9 +3125,9 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
 
     if where:
         # go back to the second file with where
-        qtbot.keyClicks(control, 'w')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+        with qtbot.waitSignal(shell.executed):
+            qtbot.keyClicks(control, '!w')
+            qtbot.keyClick(control, Qt.Key_Enter)
         qtbot.wait(1000)
 
         # Make sure we moved
@@ -3158,9 +3137,9 @@ def test_pdb_step(main_window, qtbot, tmpdir, where):
 
     else:
         # Stay at the same place
-        qtbot.keyClicks(control, 'a')
-        qtbot.keyClick(control, Qt.Key_Enter)
-        qtbot.waitUntil(lambda: control.toPlainText().split()[-1] == 'ipdb>')
+        with qtbot.waitSignal(shell.executed):
+            qtbot.keyClicks(control, '!a')
+            qtbot.keyClick(control, Qt.Key_Enter)
         qtbot.wait(1000)
 
         # Make sure we didn't move
@@ -3241,7 +3220,7 @@ def test_ipython_magic(main_window, qtbot, tmpdir, ipython, test_cell_magic):
                 # Verify that the code was executed
                 assert osp.exists(to_text_string(write_file))
             else:
-                qtbot.waitUntil(lambda: 'ipdb>' in control.toPlainText())
+                qtbot.waitSignal(shell.executed)
             assert error_text not in control.toPlainText()
         else:
             qtbot.waitUntil(lambda: error_text in control.toPlainText())
@@ -3297,7 +3276,7 @@ def test_running_namespace(main_window, qtbot, tmpdir):
     assert nsb.editor.source_model._data['a']['view'] == '5'
     qtbot.waitUntil(shell.is_waiting_pdb_input)
     with qtbot.waitSignal(shell.executed):
-        shell.pdb_execute('c')
+        shell.pdb_execute('!c')
 
     # At the end, b should be back and a should be 10
     qtbot.waitUntil(lambda: 'b' in nsb.editor.source_model._data)
@@ -3322,7 +3301,7 @@ def test_post_mortem(main_window, qtbot, tmpdir):
         shell.execute(
             "runfile(" + repr(str(test_file)) + ", post_mortem=True)")
 
-    assert "ipdb>" in control.toPlainText()
+    assert "IPdb [" in control.toPlainText()
 
 
 @pytest.mark.slow
@@ -3498,9 +3477,6 @@ hello()
                     nsb.editor.source_model._data['test']['view'] == '1',
                     timeout=3000)
 
-    qtbot.waitUntil(
-            lambda: shell._control.toPlainText().split()[-1] == 'ipdb>')
-
     # change value of test
     with qtbot.waitSignal(shell.executed):
         shell.execute("test = 1 + 1")
@@ -3516,7 +3492,7 @@ hello()
 
     # do next
     with qtbot.waitSignal(shell.executed):
-        shell.pdb_execute("next")
+        shell.pdb_execute("!next")
 
     assert "test == 3" in shell._control.toPlainText()
 
@@ -3672,6 +3648,82 @@ def test_update_outline(main_window, qtbot, tmpdir):
 
     # Remove test file from session
     CONF.set('editor', 'filenames', [])
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_prevent_closing(main_window, qtbot):
+    """
+    Check we can bypass prevent closing.
+    """
+    code = "print(1 + 6)\nprint(1 + 6)\n"
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(code)
+    code_editor.debugger.toogle_breakpoint(line_number=1)
+
+    # Start debugging
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
+
+    CONF.set('ipython_console', 'pdb_prevent_closing', False)
+    # Check we can close a file we debug if the option is disabled
+    assert main_window.editor.get_current_editorstack().close_file()
+    CONF.set('ipython_console', 'pdb_prevent_closing', True)
+    # Check we are still debugging
+    assert shell.is_debugging()
+
+
+@pytest.mark.slow
+@flaky(max_runs=3)
+def test_continue_first_line(main_window, qtbot):
+    """
+    Check we can bypass prevent closing.
+    """
+    code = "print('a =', 1 + 6)\nprint('b =', 1 + 8)\n"
+
+    # Wait until the window is fully up
+    shell = main_window.ipyconsole.get_current_shellwidget()
+    qtbot.waitUntil(lambda: shell._prompt_html is not None,
+                    timeout=SHELL_TIMEOUT)
+
+    # Main variables
+    debug_action = main_window.debug_toolbar_actions[0]
+    debug_button = main_window.debug_toolbar.widgetForAction(debug_action)
+
+    # Clear all breakpoints
+    main_window.editor.clear_all_breakpoints()
+
+    # create new file
+    main_window.editor.new()
+    code_editor = main_window.editor.get_focus_widget()
+    code_editor.set_text(code)
+
+    CONF.set('ipython_console', 'pdb_stop_first_line', False)
+    # Start debugging
+    with qtbot.waitSignal(shell.executed):
+        qtbot.mouseClick(debug_button, Qt.LeftButton)
+    # The debugging should finish
+    qtbot.waitUntil(lambda: not shell.is_debugging())
+    CONF.set('ipython_console', 'pdb_stop_first_line', True)
+
+    # Check everything was executed
+    qtbot.waitUntil(lambda: "a = 7" in shell._control.toPlainText())
+    assert "b = 9" in shell._control.toPlainText()
 
 
 if __name__ == "__main__":
