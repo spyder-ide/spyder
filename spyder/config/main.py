@@ -155,7 +155,7 @@ DEFAULTS = [
               'pdb_prevent_closing': True,
               'pdb_ignore_lib': False,
               'pdb_execute_events': True,
-              'pdb_use_exclamation_mark': False,
+              'pdb_use_exclamation_mark': True,
               'pdb_stop_first_line': True,
               }),
             ('variable_explorer',
