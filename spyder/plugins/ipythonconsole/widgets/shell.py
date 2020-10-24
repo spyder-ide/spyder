@@ -29,7 +29,7 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
         ControlWidget, DebuggingWidget, FigureBrowserWidget,
-        HelpWidget, NamepaceBrowserWidget, PageControlWidget)
+        HelpWidget, NamepaceBrowserWidget)
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -72,7 +72,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                  external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
-        self.custom_page_control = PageControlWidget
         self.custom_edit = True
         self.spyder_kernel_comm = KernelComm()
         self.spyder_kernel_comm.sig_exception_occurred.connect(
