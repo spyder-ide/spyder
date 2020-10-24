@@ -124,7 +124,6 @@ DEFAULTS = [
              {
               'show_banner': True,
               'completion_type': 0,
-              'use_pager': False,
               'show_calltips': True,
               'ask_before_closing': False,
               'show_reset_namespace_warning': True,
@@ -640,4 +639,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '60.0.0'
+CONF_VERSION = '61.0.0'

@@ -35,13 +35,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                            tip=_("This option lets you hide the message "
                                  "shown at\nthe top of the console when "
                                  "it's opened."))
-        pager_box = newcb(_("Use a pager to display additional text inside "
-                            "the console"), 'use_pager',
-                          tip=_("Useful if you don't want to fill the "
-                                "console with long help or completion "
-                                "texts.\n"
-                                "Note: Use the Q key to get out of the "
-                                "pager."))
         calltips_box = newcb(_("Show calltips"), 'show_calltips')
         ask_box = newcb(_("Ask for confirmation before closing"),
                         'ask_before_closing')
@@ -60,7 +53,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(banner_box)
-        interface_layout.addWidget(pager_box)
         interface_layout.addWidget(calltips_box)
         interface_layout.addWidget(ask_box)
         interface_layout.addWidget(reset_namespace_box)
