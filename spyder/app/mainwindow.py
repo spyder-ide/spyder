@@ -3000,7 +3000,6 @@ class MainWindow(QMainWindow):
             try:
                 if isinstance(plugin, SpyderDockablePlugin):
                     plugin.close_window()
-
                 if not plugin.on_close(cancelable):
                     return False
             except AttributeError:
@@ -3011,7 +3010,6 @@ class MainWindow(QMainWindow):
                 plugin._close_window()
                 if not plugin.closing_plugin(cancelable):
                     return False
-
             except AttributeError:
                 pass
 
@@ -3023,7 +3021,6 @@ class MainWindow(QMainWindow):
 
                 if not plugin.on_close(cancelable):
                     return False
-
             except AttributeError as e:
                 logger.error(str(e))
 
