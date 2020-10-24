@@ -826,13 +826,6 @@ class IPythonConsole(SpyderPluginWidget):
         completions = {0: "droplist", 1: "ncurses", 2: "plain"}
         spy_cfg.JupyterWidget.gui_completion = completions[completion_type_o]
 
-        # Pager
-        pager_o = self.get_option('use_pager')
-        if pager_o:
-            spy_cfg.JupyterWidget.paging = 'inside'
-        else:
-            spy_cfg.JupyterWidget.paging = 'none'
-
         # Calltips
         calltips_o = self.get_option('show_calltips')
         spy_cfg.JupyterWidget.enable_calltips = calltips_o
