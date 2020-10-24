@@ -115,11 +115,11 @@ class KernelComm(CommBase, QObject):
                 'pickle_protocol': pickle.HIGHEST_PROTOCOL}))
 
     def remote_call(self, interrupt=False, blocking=False, callback=None,
-                    comm_id=None, timeout=None):
+                    comm_id=None, timeout=None, display_error=False):
         """Get a handler for remote calls."""
         return super(KernelComm, self).remote_call(
             interrupt=interrupt, blocking=blocking, callback=callback,
-            comm_id=comm_id, timeout=timeout)
+            comm_id=comm_id, timeout=timeout, display_error=display_error)
 
     # ---- Private -----
     def on_incoming_call(self, call_dict):
