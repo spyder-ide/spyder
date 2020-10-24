@@ -18,12 +18,13 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+import PIL
 
 # Local imports
 from spyder_kernels.py3compat import PY2
 from spyder_kernels.utils.nsview import (sort_against, is_supported,
-                                         value_to_display,
-                                         get_supported_types)
+                                         value_to_display, get_size,
+                                         get_supported_types, Image)
 
 def generate_complex_object():
     """Taken from issue #4221."""
@@ -41,6 +42,41 @@ DATASET = xr.Dataset({0: pd.DataFrame([1,2]), 1:pd.DataFrame([3,4])})
 
 # --- Tests
 # -----------------------------------------------------------------------------
+def test_get_size():
+    """Test that the size of all values is returned correctly"""
+
+    class RecursionClassNoLen():
+        def __getattr__(self, name):
+            if name=='size': return self.name
+            else:
+                return super(object, self).__getattribute__(name)
+
+
+    length = [list([1,2,3]), tuple([1,2,3]), set([1,2,3]), '123',
+              {1:1, 2:2, 3:3}]
+    for obj in length:
+        assert get_size(obj) == 3
+
+    df = pd.DataFrame([[1,2,3], [1,2,3]])
+    assert get_size(df) == (2, 3)
+
+    df = pd.Series([1,2,3])
+    assert get_size(df) == (3,)
+
+    df = pd.Index([1,2,3])
+    assert get_size(df) == (3,)
+
+    arr = np.array([[1,2,3], [1,2,3]], dtype=np.complex)
+    assert get_size(arr) == (2, 3)
+
+    img = PIL.Image.new('RGB', (256,256))
+    assert get_size(img) == (256,256)
+
+    obj = RecursionClassNoLen()
+    assert get_size(obj) == 1
+
+
+
 def test_sort_against():
     lista = [5, 6, 7]
     listb = [2, 3, 1]

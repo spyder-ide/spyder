@@ -47,6 +47,7 @@ REQUIREMENTS = [
 TEST_REQUIREMENTS = [
     'codecov',
     'cython',
+    'dask[distributed]',
     'flaky',
     'matplotlib',
     'mock',
@@ -56,6 +57,7 @@ TEST_REQUIREMENTS = [
     'pytest-cov',
     'scipy',
     'xarray',
+    'pillow',
 ]
 
 setup(
