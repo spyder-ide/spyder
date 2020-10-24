@@ -317,6 +317,10 @@ DEFAULTS = [
               'max_entries': 30,
               'project_dir': None,
               }),
+            ('vcs',
+             {
+              'enable': True,
+              }),
             ('workingdir',
              {
               'working_dir_adjusttocontents': False,
@@ -637,6 +641,7 @@ NAME_MAP = {
           'history_filenames',
           ]
          ),
+        
     ]
 }
 

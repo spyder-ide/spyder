@@ -14,6 +14,7 @@ import typing
 # Third party imports
 import keyring
 
+# Local imports
 from .errors import VCSAuthError
 
 
@@ -40,7 +41,7 @@ class CredentialsKeyringMixin(object):
     After implemetation you have a ready-to-use credentials implementation.
 
     .. note::
-        This mixin does not follow all the backends
+        This mixin is not strictly respecting the backends
         specifications in the credentials property.
         In particular, the setter can raise VCSAuthError
         if there is no credentials stored in the keyring.
@@ -84,7 +85,8 @@ class CredentialsKeyringMixin(object):
             if i == -1:
                 raise VCSAuthError(
                     credentials={"token", None},
-                    credentials_callback=lambda x: setattr(self, "credentials", x),
+                    credentials_callback=lambda x: setattr(
+                        self, "credentials", x),
                     required_credentials=self.REQUIRED_CREDENTIALS,
                     error="No token is found for {}".format(
                         self.credential_context),
@@ -131,7 +133,8 @@ class CredentialsKeyringMixin(object):
                 else:
                     raise VCSAuthError(
                         credentials={type_: user},
-                        credentials_callback=lambda x: setattr(self, "credentials", x),
+                        credentials_callback=lambda x: setattr(
+                            self, "credentials", x),
                         required_credentials=self.REQUIRED_CREDENTIALS,
                         error="The given {} is not found for {}".format(
                             type_, self.credential_context))

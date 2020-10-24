@@ -6,34 +6,37 @@
 # Distributed under the terms of the MIT License
 # (see spyder/__init__.py for details)
 # -----------------------------------------------------------------------------
-"""Builtin backends for Git and Mercurial."""
+"""Git backend module."""
 
-# Standard library imports
-from concurrent.futures.thread import ThreadPoolExecutor
-from datetime import datetime, timezone
-import platform
 import os
-import os.path as osp
-from pathlib import Path
 import re
 import shutil
-import subprocess
 import typing
+import os.path as osp
+import platform
+import subprocess
+from pathlib import Path
+from datetime import datetime, timezone
 from urllib.parse import urlparse
+# Standard library imports
+from concurrent.futures.thread import ThreadPoolExecutor
 
 # Third party imports
 import pexpect
 
 # Local imports
 from spyder.utils import programs
-from spyder.utils.vcs import (is_hg_installed, get_hg_revision)
 
-from .api import VCSBackendBase, ChangedStatus, feature
-from .errors import (VCSAuthError, VCSPropertyError, VCSBackendFail,
-                     VCSFeatureError)
+from .api import ChangedStatus, VCSBackendBase, feature
+from .errors import (
+    VCSAuthError,
+    VCSBackendFail,
+    VCSFeatureError,
+    VCSPropertyError
+)
 from .mixins import CredentialsKeyringMixin
 
-__all__ = ("GitBackend", "MercurialBackend")
+__all__ = ("GitBackend", )
 
 _git_bases = [VCSBackendBase]
 if platform.system() != "Windows":
@@ -82,7 +85,7 @@ class GitBackend(*_git_bases):
     @property
     def credential_context(self):
         # Use current remote as credential context
-        retcode, remote, err = self._run(
+        retcode, remote, _ = self._run(
             ["config", "--get", "remote.origin.url"])
         if not retcode and remote:
             return remote.decode().strip("\n")
@@ -269,9 +272,9 @@ class GitBackend(*_git_bases):
         else:
             args.extend(("-b", branchname))
 
-        create_retcode, _, err = self._run(args, git=git)
+        create_retcode, _, _ = self._run(args, git=git)
         if empty and os.listdir(self.repodir) != [".git"]:
-            remove_retcode, _, err = self._run(["rm", "-rf", "."], git=git)
+            remove_retcode, _, _ = self._run(["rm", "-rf", "."], git=git)
             return not (create_retcode or remove_retcode)
         return not create_retcode
 
@@ -283,11 +286,14 @@ class GitBackend(*_git_bases):
     @property
     @feature(extra={"states": ("path", "kind", "staged")})
     def changes(self) -> typing.Sequence[typing.Dict[str, object]]:
+        self._run(["status"], dry_run=True)
         filestates = get_git_status(self.repodir, nobranch=True)[2]
         if filestates is None:
-            raise VCSPropertyError(name="changes",
-                                   operation="get",
-                                   error="Failed to get git changes")
+            raise VCSPropertyError(
+                name="changes",
+                operation="get",
+                error="Failed to get git changes",
+            )
         changes = []
         for record in filestates:
             changes.extend(self._parse_change_record(record))
@@ -315,7 +321,11 @@ class GitBackend(*_git_bases):
 
     @feature()
     def stage(self, path: str) -> bool:
-        retcode, _, err = self._run(["add", _escape_path(path)])
+        retcode, _, _ = self._run(["add", _escape_path(path)])
+        if not osp.exists(osp.join(self.repodir, path)):
+            # Assume that the file may be already staged
+            retcode = 0
+
         if not retcode:
             change = self.change(path, prefer_unstaged=True)
             if change and change["staged"]:
@@ -324,8 +334,8 @@ class GitBackend(*_git_bases):
 
     @feature()
     def unstage(self, path: str) -> bool:
-        retcode, _, err = self._run(["reset", "--", _escape_path(path)])
-        if retcode == 0:
+        retcode, _, _ = self._run(["reset", "--", _escape_path(path)])
+        if not retcode:
             change = self.change(path, prefer_unstaged=False)
             if change and not change["staged"]:
                 return True
@@ -373,10 +383,6 @@ class GitBackend(*_git_bases):
     @feature()
     def push(self) -> bool:
         return self._remote_operation("push")
-
-    @feature()
-    def undo_stage(self, path: str) -> bool:
-        return self.unstage(path)
 
     @feature()
     def undo_commit(
@@ -610,22 +616,36 @@ class GitBackend(*_git_bases):
             )
 
         raise VCSFeatureError(
-            method=getattr(self, operation),
+            feature=getattr(self, operation),
             error="Failed to {} from remote".format(operation),
         )
 
     def _run(self,
-             args,
-             env=None,
-             git=None) -> typing.Tuple[int, bytes, bytes]:
+             args: typing.Sequence[str],
+             env: typing.Optional[typing.Dict[str, str]] = None,
+             git: typing.Optional[str] = None,
+             dry_run: bool = False) -> typing.Tuple[int, bytes, bytes]:
         if git is None:
             git = programs.find_program("git")
+
+            if git is None:
+                # If programs.find_program fails
+                raise VCSBackendFail(
+                    self.repodir,
+                    type(self),
+                    programs=("git", ),
+                )
+
         if not osp.exists(osp.join(self.repodir, ".git")):
             raise VCSBackendFail(
                 self.repodir,
                 type(self),
                 is_valid_repository=False,
             )
+
+        if dry_run:
+            return None, None, None
+
         retcode, out, err = run_helper(git, args, cwd=self.repodir, env=env)
 
         # Integrity check
@@ -633,30 +653,6 @@ class GitBackend(*_git_bases):
             raise VCSBackendFail(self.repodir, type(self), programs=("git", ))
 
         return retcode, out, err
-
-
-class MercurialBackend(VCSBackendBase):  # pylint: disable=W0223
-    """An implementation of VCSBackendBase for mercurial (hg)."""
-
-    VCSNAME = "mercurial"
-
-    def __init__(self, *args):
-        super().__init__(*args)
-        if not is_hg_installed():
-            raise VCSBackendFail(self.repodir, type(self), programs=("hg", ))
-
-    @property
-    @feature()
-    def branch(self) -> str:
-        revision = get_hg_revision(self.repodir)
-        if revision:
-            return revision[2]
-        raise VCSPropertyError("branch", "get")
-
-    @branch.setter
-    @feature(enabled=False)
-    def branch(self, branch: str) -> None:
-        pass
 
 
 # --- VCS operation functions ---
@@ -809,7 +805,7 @@ def git_get_branches(repopath, branch=True, tag=False, remote=False) -> list:
                 proc = programs.run_program(
                     git, ["branch", "--format", "%(refname:lstrip=2)"],
                     cwd=repopath)
-                output, err = proc.communicate()
+                output, _ = proc.communicate()
                 if proc.returncode == 0 and output:
                     branches["branch"] = output.decode().splitlines()
 

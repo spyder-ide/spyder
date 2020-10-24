@@ -14,19 +14,18 @@ from functools import partial
 
 # Third party imports
 import qtawesome as qta
-from qtpy.QtCore import Signal, Slot
-from qtpy.QtWidgets import QAction
+from qtpy.QtCore import Slot, Signal
 
 # Local imports
-from spyder.api.plugins import Plugins, SpyderDockablePlugin
-from spyder.api.translations import get_translation
-from spyder.config.manager import CONF
 from spyder.utils import icon_manager as ima
+from spyder.api.plugins import Plugins, SpyderDockablePlugin
+from spyder.config.manager import CONF
 from spyder.utils.qthelpers import toggle_actions
+from spyder.api.translations import get_translation
 
-from .utils.api import VCSBackendManager
-from .utils.backend import GitBackend, MercurialBackend
-from .utils.errors import VCSError
+from .backend.api import VCSBackendManager
+from .backend.git import GitBackend
+from .backend.errors import VCSError
 from .widgets.vcsgui import VCSWidget
 
 # Localization
@@ -72,60 +71,6 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
         The current branch name in the VCS.
     """
 
-    # Actions defintion
-    stage_all_action: QAction
-    """
-    Action for stage all the unstaged changes.
-
-    When triggered,
-    the :py:meth:`~VCSBackendBase.stage_all` method is called.
-    """
-
-    unstage_all_action: QAction
-    """
-    Action for unstage all the staged changes.
-
-    When triggered,
-    the :py:meth:`~VCSBackendBase.unstage_all` method is called.
-    """
-
-    commit_action: QAction
-    """
-    Action for commit.
-
-    When triggered and there is a commit message,
-    the :py:meth:`~VCSBackendBase.commit` method is called.
-    """
-
-    fetch_action: QAction
-    """
-    Action for fetch.
-
-    When triggered, the :py:meth:`~VCSBackendBase.fetch` method is called.
-    """
-
-    pull_action: QAction
-    """
-    Action for pull.
-
-    When triggered, the :py:meth:`~VCSBackendBase.pull` method is called.
-    """
-
-    push_action: QAction
-    """
-    Action for push.
-
-    When triggered, the :py:meth:`~VCSBackendBase.push` method is called.
-    """
-
-    create_vcs_action: QAction
-    """
-    Action for create an empty repository.
-
-    When triggered, a dialog box is showed,
-    then :py:meth:`~VCSBackendBase.create` is called.
-    """
-
     # Other attributes definition
 
     vcs_manager: VCSBackendManager
@@ -134,17 +79,17 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
 
     This can be used to get information about the repository.
 
-    .. warning::
-        Any call to the manager blocks the current thread and
-        may invoke subprocess or other long-running operation.
-        It is better to run those calls in separate threads
-        and wait results asynchronously.
-        The :class:`~ThreadWrapper` may help you.
+    Notes
+    -----
+    This is usually referred as "backend".
 
-    .. danger::
-        Do any operation that changes the repository state
-        will break the VCS pane UI.
-        Use actions where possible.
+    Warnings
+    --------
+    Any backend call blocks the current thread and
+    may invoke subprocess or other long-running operation.
+    It is better to run those calls in separate threads
+    and wait results asynchronously.
+    The class :class:`~ThreadWrapper` may help you.
     """
     def __init__(self, *args, **kwargs):
         self.vcs_manager = VCSBackendManager(None)
@@ -164,17 +109,13 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
         return qta.icon("mdi.source-branch")
 
     def register(self):
-        # register backends
+        # Register backends
         self.vcs_manager.register_backend(GitBackend)
-        self.vcs_manager.register_backend(MercurialBackend)
 
-        # Create actions
-        self._create_actions()
-        self.get_widget().setup_slots()
-
+        # Hide view
         self.toggle_view(False)
 
-        # connect external signals
+        # Connect external signals
         project = self.get_plugin(Plugins.Projects)
         project.sig_project_loaded.connect(self.set_repository)
         project.sig_project_loaded.connect(partial(self.toggle_view, True))
@@ -241,7 +182,6 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
             self.refresh_action.setEnabled(True)
             self.sig_repository_changed.emit(self.vcs_manager.repodir,
                                              self.vcs_manager.VCSNAME)
-        self.create_vcs_action.setEnabled(True)
         return self.get_repository()
 
     repository_path = property(
@@ -262,11 +202,20 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
         ------
         AttributeError
             If changing branch is not supported.
+
+        Notes
+        -----
+        Branch selection is done through the properly widget.
+        If you just want to change the branch, call the backend.
         """
+        branch_list = self.get_widget().branch_list
+        if (not branch_list.isEnabled() and not branch_list.isVisible()):
+            raise AttributeError("Cannot change branch in the current VCS")
+        branch_list.select(branchname)
+
         self.get_widget().select_branch(branchname)
 
-    # Private methods
-    def _create_actions(self):
+    def create_actions(self):
         # TODO: Add tips
         create_action = self.create_action
 
@@ -274,7 +223,7 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
             "vcs_create_vcs_action",
             _("create new repository"),
             # icon=qta.icon("fa.long-arrow-down", color=ima.MAIN_FG_COLOR),
-            icon_text=_("create new repository"),
+            icon_text=_("Create a new repository"),
             # tip=_("ADD TIP HERE"),
             shortcut_context=self.NAME,
             triggered=lambda: None,
@@ -301,7 +250,7 @@ class VCS(SpyderDockablePlugin):  # pylint: disable=W0201
             "vcs_commit_action",
             _("commit"),
             icon=qta.icon("mdi.source-commit", color=ima.MAIN_FG_COLOR),
-            icon_text=_("commit"),
+            icon_text=_("Commit changes"),
             # tip=_("ADD TIP HERE"),
             shortcut_context=self.NAME,
             triggered=lambda: None,

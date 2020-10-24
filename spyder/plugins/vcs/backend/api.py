@@ -9,21 +9,20 @@
 """Backend specifications and utilities for VCSs."""
 
 # Standard library imports
+import typing
 import builtins
 import itertools
-import typing
+from functools import partial
 
 # Local imports
-from .errors import VCSError, VCSBackendFail, VCSAuthError
-
-_generic_func = typing.Callable[..., object]
+from .errors import VCSError, VCSAuthError, VCSBackendFail
 
 
 def feature(
     name: str = None,
     enabled: bool = True,
-    extra: typing.Optional[typing.Dict[object, object]] = None,
-) -> _generic_func:
+    extra: typing.Optional[typing.Dict[object, object]] = None
+) -> typing.Callable[..., object]:
     """
     Decorate a function to become a feature.
 
@@ -92,13 +91,13 @@ def feature(
     if extra is None:
         extra = {}
 
-    def _decorator(func: _generic_func) -> _generic_func:
+    def _decorator(func: typing.Callable[..., object]):
         if name is not None:
             # Set the new function name
             func.__name__ = name
         func.enabled = enabled
         func.extra = extra
-        func._is_feature = True
+        func._is_feature = True  # pylint: disable=W0212
         return func
 
     return _decorator
@@ -178,9 +177,16 @@ class ChangedStatus(object):
         raise AttributeError("Given state {} does not exists".format(state))
 
 
+# TODO: Complete backend detailed description
 class VCSBackendBase(object):
     """
     Uniforms VCS fundamental operations across different VCSs.
+
+    **Instance usage**
+
+    Unlike backend implementators, backend users should use only
+    features (methods marked with :func:`~feature`)
+    and common attributes.
 
     **Error handling**
 
@@ -241,12 +247,11 @@ class VCSBackendBase(object):
                 "unstage",
                 "stage_all",
                 "unstage_all",
-                "undo_stage",
             ),
             "commit": ("commit", "undo_commit"),
             "remote": ("fetch", "push", "pull"),
             "undo":
-            ("undo_commit", "undo_stage", "undo_change", "undo_change_all"),
+            ("unstage", "undo_commit", "undo_change", "undo_change_all"),
             "history": (
                 ("tags", "fget"),
                 "get_last_commits",
@@ -340,8 +345,8 @@ class VCSBackendBase(object):
             Upload the local revision to the remote repository.
 
     - undo: Allows to undo an operation in the repository
-        :meth:`~VCSBackendBase.undo_stage`
-            Unstage a file (same as :meth:`~VCSBackendBase.unstage`)
+        :meth:`~VCSBackendBase.unstage`
+            Unstage a file.
 
         :meth:`~VCSBackendBase.undo_commit`
             Undo the last commit.
@@ -412,18 +417,19 @@ class VCSBackendBase(object):
                 featurename: typing.Union[typing.Tuple[str, str],
                                           str]) -> object:
             if isinstance(featurename, str):
-                feature = getattr(cls, featurename, None)
+                feature_func = getattr(cls, featurename, None)
             elif len(featurename) > 1:
                 # Only the first and the second element are considered
-                feature = getattr(getattr(cls, featurename[0], None),
-                                  featurename[1], None)
+                feature_func = getattr(getattr(cls, featurename[0], None),
+                                       featurename[1], None)
             else:
-                feature = None
+                feature_func = None
 
-            if (feature is None or getattr(feature, "_is_feature", False)):
+            if (feature_func is None
+                    or getattr(feature, "_is_feature", False)):
                 raise TypeError("Invalid feature name {}".format(featurename))
 
-            return feature
+            return feature_func
 
         group = cls.GROUPS_MAPPING.get(group)
         if group is None:
@@ -465,16 +471,22 @@ class VCSBackendBase(object):
                 # check if property is a feature
                 is_feature = getattr(attr.fget, "_is_feature", None)
                 if is_feature:
-                    # Add disabled feature for fget and fdel if they does not exists.
+                    # Add disabled features for fset and fdel
+                    # if they do not exists.
                     if attr.fset is None:
-                        attr.setter(feature(name=key, enabled=False)(_dummy_feature))
+                        attr.setter(
+                            feature(name=key, enabled=False)(_dummy_feature))
                     elif not getattr(attr.fset, "_is_feature", None):
-                        attr.setter(feature(name=key, enabled=False)(attr.fset))
+                        attr.setter(
+                            feature(name=key, enabled=False)(attr.fset))
 
                     if attr.fdel is None:
-                        attr.deleter(feature(name=key, enabled=False)(_dummy_feature))
+                        attr.deleter(
+                            feature(name=key, enabled=False)(_dummy_feature))
                     elif not getattr(attr.fdel, "_is_feature", None):
-                        attr.deleter(feature(name=key, enabled=False)(attr.fdel))
+                        attr.deleter(
+                            feature(name=key, enabled=False)(attr.fdel))
+
     @property
     def type(self) -> type:
         """
@@ -482,7 +494,7 @@ class VCSBackendBase(object):
 
         Useful when the backend object is hidden by the manager
         and you need to access to the property objects
-        for them features.
+        for their features.
         """
         return type(self)
 
@@ -618,12 +630,12 @@ class VCSBackendBase(object):
     def change(
         self,
         path: str,
-        prefer_unstaged: bool = False,
+        prefer_unstaged: bool = False
     ) -> typing.Optional[typing.Dict[str, object]]:
         """
         Get the state dict associated of path.
 
-        The state dict can have several optional fields (all of them optional):
+        The state dict can have several optional fields:
 
         path : :class:`str`
             The path to the file.
@@ -651,8 +663,8 @@ class VCSBackendBase(object):
             The relative path.
 
         prefer_unstaged : bool
-            If True, if the path has both the staged status
-            and the unstaged one, the latter will be returned,
+            If True, if the path has both a staged status
+            and a unstaged one, the latter will be returned,
             otherwise the first will be returned.
             The default is False.
 
@@ -916,9 +928,8 @@ class VCSBackendBase(object):
 
         Returns
         -------
-        bool
-            True if the pull was done correcly.
-            False otherwise.
+        True if the pull was done correcly and there are no commits to pull,
+        False otherwise.
 
         Raises
         ------
@@ -934,7 +945,7 @@ class VCSBackendBase(object):
 
         Returns
         -------
-        True if the push was done correctly and there is no commits to pull,
+        True if the push was done correctly and there are no commits to push,
         False otherwise.
 
         Raises
@@ -945,31 +956,11 @@ class VCSBackendBase(object):
         """
 
     # Undo group
-    @feature(enabled=False)
-    def undo_stage(self, path: str) -> bool:
-        """
-        Unstage a file.
-
-        Parameters
-        ----------
-        path : str
-            The path to remove from the stage area.
-
-        Returns
-        -------
-        True if the path is unstaged (or the file is already unstaged),
-        False otherwise.
-
-        See Also
-        --------
-        unstage
-        """
 
     @feature(enabled=False)
     def undo_commit(
-        self,
-        commits: int = 1,
-    ) -> typing.Optional[typing.Dict[str, object]]:
+            self,
+            commits: int = 1) -> typing.Optional[typing.Dict[str, object]]:
         """
         Undo a commit or some of them.
 
@@ -1016,8 +1007,7 @@ class VCSBackendBase(object):
         See Also
         --------
         undo_change_all
-
-        undo_stage
+        unstage
         """
 
     @feature(enabled=False)
@@ -1035,16 +1025,14 @@ class VCSBackendBase(object):
         See Also
         --------
         undo_change
-
-        undo_stage
+        unstage_all
         """
 
     # history group
     @feature(enabled=False, extra={"attrs": ()})
     def get_last_commits(
-        self,
-        commits: int = 1,
-    ) -> typing.Sequence[typing.Dict[str, object]]:
+            self,
+            commits: int = 1) -> typing.Sequence[typing.Dict[str, object]]:
         """
         Get a list of old commits and its attributes.
 
@@ -1171,7 +1159,6 @@ class VCSBackendManager(object):
         elif name in dir(self._backend):
             delattr(self, name)
 
-    # Properties
     @property
     def vcs_types(self) -> typing.Sequence[str]:
         """A list of available VCS types."""
@@ -1306,6 +1293,67 @@ class VCSBackendManager(object):
                     self._to_sort.add(vcsname)
             else:
                 self._backends[vcsname] = [backend]
+
+    def safe_check(
+        self, feature_name: typing.Union[str, typing.Sequence[str]]
+    ) -> typing.Optional[typing.Callable[..., object]]:
+        """
+        Check in a safe manner if a feature is enabled.
+
+        Unlike direct check, this method controls if the feature
+        can be checked or not.
+
+        Parameters
+        ----------
+        feature_name : str or tuple of str.
+            The feature to check.
+            Can be a string if the feature is a method
+            or a tuple of 2 strings if the feature is a property operation
+            (get, set, del).
+
+        Returns
+        -------
+        bool
+            True if the feature can be checked and
+            its enabled attribute is True, False otherwise.
+        """
+        if self.repodir is None:
+            return None
+
+        is_property = False
+        if isinstance(feature_name, str):
+            feature_inst = getattr(self._backend, feature_name, None)
+        else:
+            is_property = True
+            feature_name, operation, *_ = feature_name
+
+            if operation in ("fget", "fset", "fdel"):
+                # Nothing to do
+                pass
+            elif operation in ("get", "getter"):
+                operation = "fget"
+            elif operation in ("set", "setter"):
+                operation = "fset"
+            elif operation in ("del", "deleter"):
+                operation = "fdel"
+            else:
+                raise ValueError("Unknown operation {}".format(operation))
+
+            feature_inst = getattr(
+                getattr(
+                    type(self._backend),
+                    feature_name,
+                    None,
+                ),
+                operation,
+            )
+
+        if (getattr(feature_inst, "_is_feature", False)
+                and feature_inst.enabled):
+            if is_property:
+                return partial(feature_inst, self._backend)
+            return feature_inst
+        return None
 
     # Debug API
     def force_use(self, backend: type, path: str) -> None:

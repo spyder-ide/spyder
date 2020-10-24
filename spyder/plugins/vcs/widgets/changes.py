@@ -9,21 +9,32 @@
 """Widgets for change areas."""
 
 # Standard library imports
-from collections.abc import Iterable
-from functools import partial
 import typing
+from functools import partial
+from collections.abc import Iterable
+from concurrent.futures import ThreadPoolExecutor
 
 # Third party imports
-from qtpy.QtCore import Qt, Signal, Slot, QCoreApplication, QPoint
-from qtpy.QtWidgets import (QTreeWidgetItem, QTreeWidget, QMenu)
 import qtawesome as qta
+from qtpy.QtCore import Qt, Slot, QPoint, Signal
+from qtpy.QtWidgets import (
+    QMenu,
+    QLabel,
+    QAction,
+    QWidget,
+    QHBoxLayout,
+    QTreeWidget,
+    QVBoxLayout,
+    QTreeWidgetItem
+)
 
 # Local imports
-from spyder.api.translations import get_translation
 from spyder.config.gui import is_dark_interface
+from spyder.api.translations import get_translation
 
-from .common import ThreadWrapper, THREAD_ENABLED, PAUSE_CYCLE
-from ..utils.api import ChangedStatus, VCSBackendManager
+from .utils import action2button
+from .common import BaseComponent
+from ..backend.api import ChangedStatus
 
 _ = get_translation('spyder')
 
@@ -115,6 +126,25 @@ class ChangeItem(QTreeWidgetItem):
         self.state: typing.Optional[int] = None
         self.repodir: str = repodir
 
+    def __eq__(self, other: QTreeWidgetItem) -> bool:
+        """Check equality between two items."""
+        return self.state == other.state and self.text(0) == other.text(0)
+
+    def __lt__(self, other: QTreeWidgetItem) -> bool:
+        """Compare two items, prioritizing state over path."""
+        if self.state == other.state:
+            # compare with paths if the states are the same
+            return bool(self.text(0) < other.text(0))
+
+        return _STATE_LIST.index(self.state) < _STATE_LIST.index(other.state)
+
+    def __hash__(self) -> int:
+        return hash(self.state) + hash(self.text(0))
+
+    def __repr__(self) -> str:
+        return "<ChangesItem ({}, {})>".format(
+            ChangedStatus.to_string(self.state), self.text(0))
+
     def setup(self, state: int, path: str) -> None:
         """
         Set up the item UI. Can be called multiple times.
@@ -137,44 +167,22 @@ class ChangeItem(QTreeWidgetItem):
         else:
             self.setText(0, "")
 
-    def __lt__(self, other: QTreeWidgetItem) -> bool:
-        """
-        Compare two treewidget items, prioritizing state over path.
-
-        Parameters
-        ----------
-        other : QTreeWidgetItem
-            The item to compare.
-
-        Returns
-        -------
-        bool
-            True if self is less than other, False otherwise.
-        """
-        if self.state == other.state:
-            # compare with paths if the states are the same
-            return bool(self.text(0) < other.text(0))
-
-        return _STATE_LIST.index(self.state) < _STATE_LIST.index(other.state)
-
     @property
     def path(self) -> typing.Optional[str]:
-        """Return a path suitable for VCS backend calls."""
+        """Return a path suitable for backend calls."""
         text = self.text(0)
         if text:
             return text
         return None
 
 
-class ChangesTree(QTreeWidget):
+class ChangesTreeComponent(BaseComponent, QTreeWidget):
     """
-    A tree widget for vcs changes.
+    A tree widget for VCS changes.
 
     Parameters
     ----------
-    manager : VCSBackendManager
-        The VCS manager.
-    staged : bool, optional
+    staged : bool or None
         If True, all the changes listed should be staged.
         If False, all the changes listed should be unstaged.
         If None, the staged field in changes is ignored.
@@ -198,13 +206,16 @@ class ChangesTree(QTreeWidget):
     See Also
     --------
     VCSBackendBase.stage
+    VCSBackendBase.stage_all
     VCSBackendBase.unstage
+    VCSBackendBase.unstage_all
     """
-    def __init__(self, manager: VCSBackendManager, *args,
-                 staged: typing.Optional[bool], **kwargs):
+
+    REFRESH_TIME = 1500
+
+    def __init__(self, *args, staged: typing.Optional[bool], **kwargs):
         super().__init__(*args, **kwargs)
-        self.manager = manager
-        self.staged = staged
+        self._staged = staged
 
         self.setHeaderHidden(True)
         self.setRootIsDecorated(False)
@@ -214,11 +225,34 @@ class ChangesTree(QTreeWidget):
         self.sortItems(0, Qt.AscendingOrder)
 
         # Slots
-        self.sig_stage_toggled.connect(self.clear)
         self.customContextMenuRequested.connect(self.show_ctx_menu)
+        self.sig_stage_toggled.connect(self.clear)
 
-        if ((staged is True and manager.unstage.enabled)
-                or (staged is False and manager.stage.enabled)):
+    @property
+    def staged(self) -> bool:
+        """Return staged status."""
+        return self._staged
+
+    @Slot()
+    def setup(self):
+        with self.block_timer():
+            self.clear()
+
+        manager = self.manager
+        if not manager.safe_check(("changes", "fget")):
+            self.hide()
+            self.timer.stop()
+            return
+        self.show()
+
+        # Slots
+        try:
+            self.itemDoubleClicked.disconnect(self.toggle_stage)
+        except (RuntimeError, TypeError):
+            pass
+
+        if ((self._staged is True and manager.unstage.enabled)
+                or (self._staged is False and manager.stage.enabled)):
             self.itemDoubleClicked.connect(self.toggle_stage)
 
     @Slot(QPoint)
@@ -230,19 +264,19 @@ class ChangesTree(QTreeWidget):
             manager = self.manager
 
             # TODO: Add jump to file
-            if self.staged is True and manager.unstage.enabled:
+            if self._staged is True and manager.unstage.enabled:
                 action = menu.addAction(_("Unstage"))
                 action.triggered.connect(partial(self.toggle_stage, item))
 
-            elif self.staged is False and manager.stage.enabled:
+            elif self._staged is False and manager.stage.enabled:
                 action = menu.addAction(_("Stage"))
                 action.triggered.connect(partial(self.toggle_stage, item))
 
-            if not self.staged and manager.undo_change.enabled:
+            if not self._staged and manager.undo_change.enabled:
                 action = menu.addAction(_("Discard"))
                 action.triggered.connect(partial(self.discard, item))
 
-            menu.exec(self.mapToGlobal(pos))
+            menu.exec_(self.mapToGlobal(pos))
 
     # Refreshes
     @Slot()
@@ -272,10 +306,8 @@ class ChangesTree(QTreeWidget):
         @Slot(object)
         def _handle_result(result):
             if isinstance(result, Iterable):
-                if isinstance(self.staged, bool):
-                    result = filter(lambda x: x.get("staged") is self.staged,
-                                    result)
-                for i, change in enumerate(result):
+
+                def _task(change):
                     kind = change.get("kind", ChangedStatus.UNKNOWN)
                     if kind not in (ChangedStatus.UNCHANGED,
                                     ChangedStatus.IGNORED):
@@ -283,21 +315,36 @@ class ChangesTree(QTreeWidget):
                             kind = ChangedStatus.UNKNOWN
 
                         item = ChangeItem(self.manager.repodir)
-                        self.addTopLevelItem(item)
                         item.setup(kind, change["path"])
+                        return item
+                    return None
 
-                    if i % PAUSE_CYCLE == 0:
-                        QCoreApplication.processEvents()
+                if isinstance(self._staged, bool):
+                    result = filter(lambda x: x.get("staged") is self._staged,
+                                    result)
 
-        self.clear()
+                # OPTIMIZE: Don't spawn ChangesItem objects
+                #           if they will not be added to self.
+                with ThreadPoolExecutor() as pool:
+                    old_items = set(
+                        pool.map(lambda i: self.topLevelItem(i),
+                                 range(self.topLevelItemCount())))
+                    items = set(pool.map(_task, result))
+
+                new_items = items - old_items
+                old_items -= items
+                for item in new_items:
+                    if item.treeWidget() is None:
+                        self.addTopLevelItem(item)
+
+                for item in old_items:
+                    if item.treeWidget() == self:
+                        self.invisibleRootItem().removeChild(item)
+
         if changes:
             _handle_result(changes)
         else:
-            ThreadWrapper(self,
-                          lambda: self.manager.changes,
-                          result_slots=(_handle_result, ),
-                          error_slots=(_raise, ),
-                          nothread=not THREAD_ENABLED).start()
+            self.do_call(("changes", "get"), result_slots=_handle_result)
 
     @Slot(str)
     def refresh_one(self, path: str):
@@ -322,8 +369,8 @@ class ChangesTree(QTreeWidget):
         """
         @Slot(object)
         def _handle_result(result):
-            if (isinstance(result, dict)
-                    and result.get("staged", self.staged) is self.staged):
+            if (isinstance(result, dict)) and result.get(
+                    "staged", self._staged) is self._staged:
 
                 item = ChangeItem(self.manager.repodir)
                 self.addTopLevelItem(item)
@@ -335,17 +382,12 @@ class ChangesTree(QTreeWidget):
             self.invisibleRootItem().removeChild(items[0])
             path = items[0].path
 
-        ThreadWrapper(
-            self,
-            partial(
-                self.manager.change,
-                path,
-                prefer_unstaged=not self.staged,
-            ),
-            result_slots=(_handle_result, ),
-            error_slots=(_raise, ),
-            nothread=not THREAD_ENABLED,
-        ).start()
+        self.do_call(
+            "change",
+            path,
+            prefer_unstaged=not self._staged,
+            result_slots=_handle_result,
+        )
 
     # Stage operations
     @Slot(QTreeWidgetItem)
@@ -371,7 +413,7 @@ class ChangesTree(QTreeWidget):
             If the staged attribute is None.
 
         NotImplementedError
-            If the required feature is not supported by the current backend.
+            If the required feature is not supported by the backend.
         """
         @Slot(object)
         def _handle_result(result):
@@ -379,26 +421,16 @@ class ChangesTree(QTreeWidget):
                 path = item.path
                 self.invisibleRootItem().removeChild(item)
                 item.setup(item.state, path)
-                self.sig_stage_toggled[bool, str].emit(not self.staged, path)
+                self.sig_stage_toggled[bool, str].emit(not self._staged, path)
 
-        if (self.staged is True and self.manager.unstage.enabled):
-            # unstage item
-            operation = self.manager.unstage
-        elif (self.staged is False and self.manager.stage.enabled):
-            # stage item
-            operation = self.manager.stage
-        elif self.staged is None:
+        if self._staged is None:
             raise AttributeError("The staged attribute is not set.")
-        else:
-            raise NotImplementedError(
-                "The current VCS does not support {}".format(
-                    "stage" if self.staged else "unstage"))
 
-        ThreadWrapper(self,
-                      partial(operation, item.path),
-                      result_slots=(_handle_result, ),
-                      error_slots=(_raise, ),
-                      nothread=not THREAD_ENABLED).start()
+        self.do_call(
+            "unstage" if self._staged else "stage",
+            item.path,
+            result_slots=_handle_result,
+        )
 
     @Slot()
     def toggle_stage_all(self) -> None:
@@ -410,31 +442,23 @@ class ChangesTree(QTreeWidget):
 
         - If staged is True, :meth:`~VCSBackendBase.unstage_all` is called.
         - If staged is False, :meth:`~VCSBackendBase.stage_all` is called.
-        - If staged is None, an AttributeError will be raised.
+        - If staged is None, AttributeError is raised.
 
         Raises
         ------
         AttributeError
             If the staged attribute is None.
         NotImplementedError
-            If the required feature is not supported by the current backend.
+            If the required feature is not supported by the backend.
         """
-        if self.staged is None:
+        if self._staged is None:
             raise AttributeError("The staged attribute is not set.")
 
-        operation = (self.manager.unstage_all
-                     if self.staged else self.manager.stage_all)
-        if not operation.enabled:
-            raise NotImplementedError(
-                "The current VCS does not support {}".format(
-                    operation.__name__))
-
-        ThreadWrapper(self,
-                      operation,
-                      result_slots=(lambda result: result and self.
-                                    sig_stage_toggled.emit(not self.staged), ),
-                      error_slots=(_raise, ),
-                      nothread=not THREAD_ENABLED).start()
+        self.do_call(
+            "unstage_all" if self._staged else "stage_all",
+            result_slots=lambda res: res and self.sig_stage_toggled.emit(
+                not self._staged),
+        )
 
     @Slot(QTreeWidgetItem)
     def discard(self, item: ChangeItem) -> None:
@@ -446,16 +470,112 @@ class ChangesTree(QTreeWidget):
         item : ChangeItem
             The change item.
         """
-        if self.manager.undo_change.enabled:
-            ThreadWrapper(
-                self,
-                partial(self.manager.undo_change, item.path),
-                result_slots=(lambda res: res and self.invisibleRootItem().
-                              removeChild(item), ),
-                error_slots=(_raise, ),
-                nothread=not THREAD_ENABLED,
-            ).start()
+        self.do_call(
+            "undo_change",
+            item.path,
+            result_slots=lambda res: res and self.invisibleRootItem().
+            removeChild(item),
+        )
 
 
-def _raise(ex):
-    raise ex
+class ChangesComponent(BaseComponent, QWidget):
+    """
+    A widget for VCS changes management.
+
+    Parameters
+    ----------
+    staged : bool or None
+        If True, all the changes listed should be staged.
+        If False, all the changes listed should be unstaged.
+        If None, the staged field in changes is ignored.
+        The default is None.
+
+    stage_all_action : QAction or None
+        The action to use for creating the stage all/unstage all button.
+        Must be given if staged is not None.
+
+    Raises
+    ------
+    TypeError
+        If staged is not None and stage_all_action is None.
+    """
+    def __init__(self,
+                 *args,
+                 staged: typing.Optional[bool],
+                 stage_all_action: QAction = None,
+                 **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Widgets
+        self.title = QLabel()
+        if staged is None:
+            self.stage_all_button = QWidget()
+        elif stage_all_action is None:
+            raise TypeError(
+                "The stage_all_action parameter must be specified.")
+        else:
+            self.stage_all_button = action2button(
+                stage_all_action,
+                parent=self,
+                text_beside_icon=True,
+            )
+
+        self.changes_tree = ChangesTreeComponent(
+            self.manager,
+            staged=staged,
+            parent=self,
+        )
+
+        # Widgets setup
+        font = self.title.font()
+        font.setPointSize(11)
+        font.setBold(True)
+        self.title.setFont(font)
+
+        if staged is True:
+            self.title.setText(_("Staged changes"))
+        elif staged is False:
+            self.title.setText(_("Unstaged changes"))
+        else:
+            self.title.setText(_("Changes"))
+
+        # Layout
+        layout = QVBoxLayout(self)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        header_layout = QHBoxLayout()
+
+        header_layout.addWidget(self.title)
+        header_layout.addStretch(1)
+        header_layout.addWidget(self.stage_all_button)
+
+        layout.addLayout(header_layout)
+        layout.addWidget(self.changes_tree)
+
+        # Slot
+        self.changes_tree.sig_vcs_error.connect(self.sig_vcs_error)
+        if stage_all_action is not None:
+            stage_all_action.triggered.connect(
+                self.changes_tree.toggle_stage_all)
+
+    @Slot()
+    def setup(self) -> None:
+        manager = self.manager
+        staged = self.changes_tree.staged
+
+        self.changes_tree.setup()
+        if manager.repodir is not None and self.changes_tree.isEnabled():
+            if staged is True:
+                self.stage_all_button.setVisible(manager.unstage_all.enabled)
+            elif staged is False:
+                self.stage_all_button.setVisible(manager.stage_all.enabled)
+
+            states = manager.type.changes.fget.extra.get("states", ())
+            self.setVisible(("staged" in states) ^ (staged is None))
+        else:
+            self.hide()
+
+    @Slot()
+    def refresh(self) -> None:
+        with self.changes_tree.block_timer():
+            self.changes_tree.refresh()
