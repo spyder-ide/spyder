@@ -624,7 +624,8 @@ class IPythonConsole(SpyderPluginWidget):
         """Set current working directory.
         In the workingdirectory and explorer plugins.
         """
-        self.sig_current_directory_changed.emit(dirname)
+        if osp.isdir(dirname):
+            self.sig_current_directory_changed.emit(dirname)
 
     def update_working_directory(self):
         """Update working directory to console cwd."""

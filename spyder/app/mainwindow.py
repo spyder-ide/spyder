@@ -1704,8 +1704,9 @@ class MainWindow(QMainWindow):
         self.is_starting_up = False
 
         for plugin, plugin_instance in self._EXTERNAL_PLUGINS.items():
-            self.tabify_plugin(plugin_instance)
-            plugin_instance.toggle_view(False)
+            if isinstance(plugin, SpyderDockablePlugin):
+                self.tabify_plugin(plugin_instance)
+                plugin_instance.toggle_view(False)
 
     def setup_menus(self):
         """Setup menus."""
@@ -2993,10 +2994,12 @@ class MainWindow(QMainWindow):
         if not self.completions.closing_plugin(cancelable):
             return False
 
+        # Internal plugins
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             # New API
             try:
-                plugin.close_window()
+                if isinstance(plugin, SpyderDockablePlugin):
+                    plugin.close_window()
                 if not plugin.on_close(cancelable):
                     return False
             except AttributeError:
@@ -3009,6 +3012,17 @@ class MainWindow(QMainWindow):
                     return False
             except AttributeError:
                 pass
+
+        # New API: External plugins
+        for plugin_name, plugin in self._EXTERNAL_PLUGINS.items():
+            try:
+                if isinstance(plugin, SpyderDockablePlugin):
+                    plugin.close_window()
+
+                if not plugin.on_close(cancelable):
+                    return False
+            except AttributeError as e:
+                logger.error(str(e))
 
         # Save window settings *after* closing all plugin windows, in order
         # to show them in their previous locations in the next session.
