@@ -918,7 +918,6 @@ class IPythonConsole(SpyderPluginWidget):
         # Local vars
         shellwidget = client.shellwidget
         control = shellwidget._control
-        page_control = shellwidget._page_control
 
         # Create new clients with Ctrl+T shortcut
         shellwidget.new_client.connect(self.create_new_client)
@@ -972,14 +971,8 @@ class IPythonConsole(SpyderPluginWidget):
 
         shellwidget.sig_change_cwd.connect(self.set_working_directory)
 
-        # Update the find widget if focus changes between control and
-        # page_control
+        # Set editor for the find widget
         self.find_widget.set_editor(control)
-        if page_control:
-            page_control.focus_changed.connect(lambda: self.focus_changed.emit())
-            control.visibility_changed.connect(self.refresh_plugin)
-            page_control.visibility_changed.connect(self.refresh_plugin)
-            page_control.show_find_widget.connect(self.find_widget.show)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
