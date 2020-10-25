@@ -202,7 +202,8 @@ def packages_from(requirements, wheels, skip_packages):
 
 def create_pynsist_cfg(
         python, python_version, repo_root, entrypoint, package,
-        icon_file, license_file, filename, encoding="latin1", extras=""):
+        icon_file, license_file, filename, encoding="latin1", extras=None,
+        suffix=None):
     """
     Create a pynsist configuration file from the PYNSIST_CFG_TEMPLATE.
 
@@ -229,11 +230,14 @@ def create_pynsist_cfg(
     packages = packages_from(requirements, wheels, skip_packages)
 
     if extras:
-        installer_name = "{}_extras_{}bit.exe"
+        installer_name = "{}_extras_{}bit_{}.exe"
     else:
-        installer_name = "{}_{}bit.exe"
+        installer_name = "{}_{}bit{}.exe"
 
-    installer_exe = installer_name.format(repo_package_name, bitness)
+    if not suffix:
+        suffix = ""
+
+    installer_exe = installer_name.format(repo_package_name, bitness, suffix)
 
     pynsist_cfg_payload = PYNSIST_CFG_TEMPLATE.format(
         name=package,
@@ -259,7 +263,7 @@ def create_pynsist_cfg(
 
 
 def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
-        license_path, extra_packages=None, conda_path=None):
+        license_path, extra_packages=None, conda_path=None, suffix=None):
     """
     Run the installer generation.
 
@@ -303,7 +307,8 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
             print("Creating pynsist configuration file", pynsist_cfg)
             installer_exe = create_pynsist_cfg(
                 env_python, python_version, repo_root, entrypoint, package,
-                icon_path, license_path, pynsist_cfg, extras=extra_packages)
+                icon_path, license_path, pynsist_cfg, extras=extra_packages,
+                suffix=suffix)
 
             print("Installing pynsist.")
             subprocess_run([env_python, "-m", "pip", "install", PYNSIST_REQ,
@@ -343,14 +348,17 @@ if __name__ == "__main__":
              '''the main package''')
     parser.add_argument(
         '-cp', '--conda_path', help='Path to conda executable')
+    parser.add_argument(
+        '-s', '--suffix',
+        help='Suffix for the name of the generated executable')
 
     args = parser.parse_args()
     from operator import attrgetter
     (python_version, bitness, setup_py_path, entrypoint, package, icon_path,
-     license_path, extra_packages, conda_path) = attrgetter(
+     license_path, extra_packages, conda_path, suffix) = attrgetter(
          'python_version', 'bitness', 'setup_py_path',
          'entrypoint', 'package', 'icon_path', 'license_path',
-         'extra_packages', 'conda_path')(args)
+         'extra_packages', 'conda_path', 'suffix')(args)
 
     if not setup_py_path.endswith("setup.py"):
         sys.exit("Invalid path to setup.py:", setup_py_path)
@@ -363,4 +371,4 @@ if __name__ == "__main__":
 
     run(python_version, bitness, repo_root, entrypoint,
         package, icon_file, license_file, extra_packages=extra_packages,
-        conda_path=conda_path)
+        conda_path=conda_path, suffix=suffix)

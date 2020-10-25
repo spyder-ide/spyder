@@ -19,7 +19,8 @@ jobs:
       SKIP_PACKAGES: ${{github.event_name == 'pull_request' && 'bcrypt pyls spyder_kernels' || 'bcrypt' }}
       PYNSIST_REQ: pynsist==2.5.1
       EXTRA_FLAG: ${{ matrix.build_type == 'Full' && github.event_name == 'pull_request' && '-ep installers/Windows/req-extras-pull-request.txt' || matrix.build_type == 'Lite' && github.event_name == 'pull_request' && '-ep installers/Windows/req-pull-request.txt' || matrix.build_type == 'Full' && '-ep installers/Windows/req-extras-release.txt' || '' }}
-      EXE_NAME: ${{ matrix.build_type == 'Lite' && 'Spyder_64bit.exe' || 'Spyder_extras_64bit.exe' }}
+      SUFFIX_FLAG: ${{ matrix.build_type == 'Lite' && '-s lite' || '-s full' }}
+      EXE_NAME: ${{ matrix.build_type == 'Lite' && 'Spyder_64bit_lite.exe' || 'Spyder_extras_64bit_full.exe' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -36,7 +37,7 @@ jobs:
       - name: Run script
         shell: bash -l {0}
         run: |
-          python installers/Windows/installer.py 3.7.9 64 setup.py spyder.app.start:main spyder img_src/spyder.ico LICENSE.txt ${EXTRA_FLAG}
+          python installers/Windows/installer.py 3.7.9 64 setup.py spyder.app.start:main spyder img_src/spyder.ico LICENSE.txt ${EXTRA_FLAG} ${SUFFIX_FLAG}
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
