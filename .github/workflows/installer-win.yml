@@ -11,6 +11,12 @@ jobs:
   build:
     name: Windows installer
     runs-on: windows-latest
+    strategy:
+      matrix:
+        build_type: ['Lite', 'Full']
+    env:
+      EXTRA_FLAG: ${{ matrix.build_type == 'Full' && '-ep installers/Windows/req-extras.txt' || '' }}
+      EXE_NAME: ${{ matrix.build_type == 'Lite' && 'Spyder_64bit.exe' || 'Spyder_extras_64bit.exe' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -27,12 +33,12 @@ jobs:
       - name: Run script
         shell: bash -l {0}
         run: |
-          python installers/Windows/installer.py 3.7.9 64 setup.py spyder.app.start:main spyder img_src/spyder.ico LICENSE.txt
+          python installers/Windows/installer.py 3.7.9 64 setup.py spyder.app.start:main spyder img_src/spyder.ico LICENSE.txt ${EXTRA_FLAG}
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          path: dist/Spyder_64bit.exe
-          name: Spyder_64bit.exe
+          path: dist/${{ env.EXE_NAME }}
+          name: ${{ env.EXE_NAME }}
       - name: Get Release
         if: ${{github.event_name == 'release'}}
         id: get_release
@@ -46,6 +52,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: dist/Spyder_64bit.exe
-          asset_name: Spyder_64bit.exe
+          asset_path: dist/${{ env.EXE_NAME }}
+          asset_name: ${{ env.EXE_NAME }}
           asset_content_type: application/vnd.microsoft.portable-executable

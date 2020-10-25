@@ -200,7 +200,7 @@ def packages_from(requirements, wheels, skip_packages):
 
 def create_pynsist_cfg(
         python, python_version, repo_root, entrypoint, package,
-        icon_file, license_file, filename, encoding="latin1"):
+        icon_file, license_file, filename, encoding="latin1", extras=""):
     """
     Create a pynsist configuration file from the PYNSIST_CFG_TEMPLATE.
 
@@ -226,7 +226,12 @@ def create_pynsist_cfg(
     skip_packages = [package]
     packages = packages_from(requirements, wheels, skip_packages)
 
-    installer_exe = "{}_{}bit.exe".format(repo_package_name, bitness)
+    if extras:
+        installer_name = "{}_extras_{}bit.exe"
+    else:
+        installer_name = "{}_{}bit.exe"
+
+    installer_exe = installer_name.format(repo_package_name, bitness)
 
     pynsist_cfg_payload = PYNSIST_CFG_TEMPLATE.format(
         name=package,
@@ -296,7 +301,7 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
             print("Creating pynsist configuration file", pynsist_cfg)
             installer_exe = create_pynsist_cfg(
                 env_python, python_version, repo_root, entrypoint, package,
-                icon_path, license_path, pynsist_cfg)
+                icon_path, license_path, pynsist_cfg, extras=extra_packages)
 
             print("Installing pynsist.")
             subprocess_run([env_python, "-m", "pip", "install", PYNSIST_REQ,
