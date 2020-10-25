@@ -45,6 +45,15 @@ def workspace(tmpdir):
 
 
 @pytest.fixture
+def workspace_other_root_path(tmpdir):
+    """Return a workspace with a root_path other than tmpdir."""
+    ws_path = str(tmpdir.mkdir('test123').mkdir('test456'))
+    ws = Workspace(uris.from_fs_path(ws_path), Mock())
+    ws._config = Config(ws.root_uri, {}, 0, {})
+    return ws
+
+
+@pytest.fixture
 def config(workspace):  # pylint: disable=redefined-outer-name
     """Return a config object."""
     return Config(workspace.root_uri, {}, 0, {})
