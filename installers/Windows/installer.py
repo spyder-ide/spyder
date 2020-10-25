@@ -34,19 +34,21 @@ import tempfile
 import yarg
 
 
-# Packages to remove from the requirements for example pip
+# Packages to remove from the requirements for example pip or
+# external dependencies (pip python-language-server spyder-kernels)
 
-UNWANTED_PACKAGES = ['pip']
+UNWANTED_PACKAGES = os.environ.get('UNWANTED_PACKAGES', []).split()
 
 # Packages to skip checking for wheels and instead add them directly in the
-# 'packages' section
+# 'packages' section for example external dependencies
+# (bcrypt pyls spyder_kernels)
 
-SKIP_PACKAGES = ['bcrypt']
+SKIP_PACKAGES = os.environ.get('SKIP_PACKAGES', []).split()
 
 # The pynsist requirement spec that will be used to install pynsist in
-# the temporary packaging virtual environment.
+# the temporary packaging virtual environment (pynsist==2.5.1).
 
-PYNSIST_REQ = "pynsist==2.5.1"
+PYNSIST_REQ = os.environ.get('PYNSIST_REQ', [])
 
 # The pynsist configuration file template that will be used. Of note,
 # with regards to pynsist dependency collection and preparation:

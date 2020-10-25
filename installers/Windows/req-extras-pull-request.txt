@@ -16,3 +16,8 @@ pandas
 matplotlib
 cython
 sympy
+
+# Spyder external dependencies (python-language-server, spyder-kernels)
+./external-deps/python-language-server
+./external-deps/spyder-kernels
+
