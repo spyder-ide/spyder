@@ -34,13 +34,13 @@ TODO: Check issues with valid python names vs valid h5f5 names
 
 from __future__ import print_function
 
-try:
-    # Do not import h5py here because it will try to import IPython,
-    # and this is freezing the Spyder GUI
-    import imp
-    imp.find_module('h5py')
-    import numpy as np
+import importlib
+# Do not import h5py here because it will try to import IPython,
+# and this is freezing the Spyder GUI
 
+import numpy as np
+
+if importlib.util.find_spec('h5py'):
     def load_hdf5(filename):
         import h5py
         def get_group(group):
@@ -71,7 +71,7 @@ try:
             f.close()
         except Exception as error:
             return str(error)
-except ImportError:
+else:
     load_hdf5 = None
     save_hdf5 = None
 

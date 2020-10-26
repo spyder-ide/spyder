@@ -14,7 +14,7 @@ from distutils.version import LooseVersion
 from getpass import getuser
 from textwrap import dedent
 import glob
-import imp
+import importlib
 import itertools
 import os
 import os.path as osp
@@ -617,17 +617,23 @@ def python_script_exists(package=None, module=None):
     package=None -> module is in sys.path (standard library modules)
     """
     assert module is not None
-    try:
-        if package is None:
-            path = imp.find_module(module)[1]
+    if package is None:
+        spec = importlib.util.find_spec(module)
+        if spec:
+            path = spec.origin
         else:
-            path = osp.join(imp.find_module(package)[1], module)+'.py'
-    except ImportError:
-        return
-    if not osp.isfile(path):
-        path += 'w'
-    if osp.isfile(path):
-        return path
+            path = None
+    else:
+        spec = importlib.util.find_spec(package)
+        if spec:
+            path = osp.join(spec.origin, module)+'.py'
+        else:
+            path = None
+    if path:
+        if not osp.isfile(path):
+            path += 'w'
+        if osp.isfile(path):
+            return path
 
 
 def run_python_script(package=None, module=None, args=[], p_args=[]):
