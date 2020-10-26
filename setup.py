@@ -213,7 +213,7 @@ install_requires = [
     'qtawesome>=0.5.7',
     'qtconsole>=4.7.7',
     'qtpy>=1.5.0',
-    'setuptools',
+    'setuptools>=39.0.0',
     'sphinx>=0.6.6',
     'spyder-kernels>=1.9.4,<1.10.0',
     'three-merge>=0.1.1',

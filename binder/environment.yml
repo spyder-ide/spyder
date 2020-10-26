@@ -37,9 +37,7 @@ dependencies:
 - qtconsole >=4.7.7
 - qtpy >=1.5.0
 - rtree >=0.8.3
-# As pkg_resources is used to check version, it cannot have
-# a version requirement
-- setuptools
+- setuptools >=39.0.0
 - sphinx >=0.6.6
 # NOTE: There's no need to set constraints for spyder-kernels here
 # because Spyder uses the subrepo for it when started in Binder.

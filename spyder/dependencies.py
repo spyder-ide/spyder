@@ -56,6 +56,7 @@ QTAWESOME_REQVER = '>=0.5.7'
 QTCONSOLE_REQVER = '>=4.7.7'
 QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.8.3'
+SETUPTOOLS_REQVER = '>=39.0.0'
 SPHINX_REQVER = '>=0.6.6'
 SPYDER_KERNELS_REQVER = '>=1.9.4;<1.10.0'
 THREE_MERGE_REQVER = '>=0.1.1'
@@ -195,6 +196,10 @@ DESCRIPTIONS = [
      'features': _("Fast access to code snippets regions"),
      'required_version': RTREE_REQVER,
      'display': is_anaconda()},
+    {'modname': "setuptools",
+     'package_name': "setuptools",
+     'features': _("Determine package version"),
+     'required_version': SETUPTOOLS_REQVER},
     {'modname': "sphinx",
      'package_name': "sphinx",
      'features': _("Show help for objects in the Editor and Consoles in a dedicated pane"),

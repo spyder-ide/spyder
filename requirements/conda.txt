@@ -32,9 +32,7 @@ qtawesome >=0.5.7
 qtconsole >=4.7.7
 qtpy >=1.5.0
 rtree >=0.8.3
-# As pkg_resources is used to check version, it cannot have
-# a version requirement
-setuptools
+setuptools >=39.0.0
 sphinx >=0.6.6
 # NOTE: There's no need to set a version for spyder-kernels
 # here because we're using a subrepo for it to run our tests.
