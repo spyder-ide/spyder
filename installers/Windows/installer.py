@@ -35,20 +35,26 @@ import yarg
 
 
 # Packages to remove from the requirements for example pip or
-# external dependencies (pip python-language-server spyder-kernels)
+# external direct dependencies (python-language-server spyder-kernels)
 
-UNWANTED_PACKAGES = os.environ.get('UNWANTED_PACKAGES', []).split()
+UNWANTED_PACKAGES = os.environ.get('UNWANTED_PACKAGES', '').split()
 
-# Packages to skip checking for wheels and instead add them directly in the
-# 'packages' section for example external dependencies
-# (bcrypt pyls spyder_kernels)
+# Packages to skip when checking for wheels and instead add them directly in
+# the 'packages' section, for example bcrypt
 
-SKIP_PACKAGES = os.environ.get('SKIP_PACKAGES', []).split()
+SKIP_PACKAGES = os.environ.get('SKIP_PACKAGES', '').split()
+
+
+# Packages to be added to the packages section regardles wheel checks or
+# packages skipped, for example external direct dependencies
+# (python-language-server spyder-kernels)
+
+ADD_PACKAGES = os.environ.get('ADD_PACKAGES', '').split()
 
 # The pynsist requirement spec that will be used to install pynsist in
 # the temporary packaging virtual environment (pynsist==2.5.1).
 
-PYNSIST_REQ = os.environ.get('PYNSIST_REQ', [])
+PYNSIST_REQ = os.environ.get('PYNSIST_REQ', 'pynsist==2.5.1')
 
 # The pynsist configuration file template that will be used. Of note,
 # with regards to pynsist dependency collection and preparation:
@@ -197,6 +203,7 @@ def packages_from(requirements, wheels, skip_packages):
     "name==version".
     """
     packages = set(requirements) - set(wheels) - set(skip_packages)
+    packages = packages | set(ADD_PACKAGES)
     return [package_name(p) for p in packages]
 
 
