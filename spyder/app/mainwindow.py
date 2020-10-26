@@ -1976,11 +1976,9 @@ class MainWindow(QMainWindow):
         self.toggle_layout('next')
 
     def toggle_layout(self, direction='next'):
-        """ """
-        get = CONF.get
-        names = get('quick_layouts', 'names')
-        order = get('quick_layouts', 'order')
-        active = get('quick_layouts', 'active')
+        names = CONF.get('quick_layouts', 'names')
+        order = CONF.get('quick_layouts', 'order')
+        active = CONF.get('quick_layouts', 'active')
 
         if len(active) == 0:
             return
@@ -2006,11 +2004,9 @@ class MainWindow(QMainWindow):
         self.quick_layout_switch(layout_index[new_index])
 
     def quick_layout_set_menu(self):
-        """ """
-        get = CONF.get
-        names = get('quick_layouts', 'names')
-        order = get('quick_layouts', 'order')
-        active = get('quick_layouts', 'active')
+        names = CONF.get('quick_layouts', 'names')
+        order = CONF.get('quick_layouts', 'order')
+        active = CONF.get('quick_layouts', 'active')
 
         ql_actions = []
 
@@ -2070,11 +2066,9 @@ class MainWindow(QMainWindow):
 
     def quick_layout_save(self):
         """Save layout dialog"""
-        get = CONF.get
-        set_ = CONF.set
-        names = get('quick_layouts', 'names')
-        order = get('quick_layouts', 'order')
-        active = get('quick_layouts', 'active')
+        names = CONF.get('quick_layouts', 'names')
+        order = CONF.get('quick_layouts', 'order')
+        active = CONF.get('quick_layouts', 'active')
 
         dlg = self.dialog_layout_save(self, names)
 
@@ -2082,11 +2076,13 @@ class MainWindow(QMainWindow):
             name = dlg.combo_box.currentText()
 
             if name in names:
-                answer = QMessageBox.warning(self, _("Warning"),
-                                             _("Layout <b>%s</b> will be \
-                                               overwritten. Do you want to \
-                                               continue?") % name,
-                                             QMessageBox.Yes | QMessageBox.No)
+                answer = QMessageBox.warning(
+                    self,
+                    _("Warning"),
+                    _("<b>%s</b> will be overwritten. Do you want to "
+                      "continue?") % name,
+                    QMessageBox.Yes | QMessageBox.No
+                )
                 index = order.index(name)
             else:
                 answer = True
@@ -2106,27 +2102,23 @@ class MainWindow(QMainWindow):
             if answer:
                 self.save_current_window_settings('layout_{}/'.format(index),
                                                   section='quick_layouts')
-                set_('quick_layouts', 'names', names)
-                set_('quick_layouts', 'order', order)
-                set_('quick_layouts', 'active', active)
+                CONF.set('quick_layouts', 'names', names)
+                CONF.set('quick_layouts', 'order', order)
+                CONF.set('quick_layouts', 'active', active)
                 self.quick_layout_set_menu()
 
     def quick_layout_settings(self):
         """Layout settings dialog"""
-        get = CONF.get
-        set_ = CONF.set
-
         section = 'quick_layouts'
-
-        names = get(section, 'names')
-        order = get(section, 'order')
-        active = get(section, 'active')
+        names = CONF.get(section, 'names')
+        order = CONF.get(section, 'order')
+        active = CONF.get(section, 'active')
 
         dlg = self.dialog_layout_settings(self, names, order, active)
         if dlg.exec_():
-            set_(section, 'names', dlg.names)
-            set_(section, 'order', dlg.order)
-            set_(section, 'active', dlg.active)
+            CONF.set(section, 'names', dlg.names)
+            CONF.set(section, 'order', dlg.order)
+            CONF.set(section, 'active', dlg.active)
             self.quick_layout_set_menu()
 
     def quick_layout_switch(self, index):
