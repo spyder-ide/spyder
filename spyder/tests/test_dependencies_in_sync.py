@@ -52,10 +52,10 @@ def parse_requirements(fpath):
 
 def parse_environment_yaml(fpath):
     """
-    Parse a environment yaml file and return a dict of deps and versions.
+    Parse an environment yaml file and return a dict of deps and versions.
     """
     with open(fpath, 'r') as fh:
-        data = yaml.load(fh)
+        data = yaml.load(fh, Loader=yaml.FullLoader)
 
     deps = {}
     yaml_deps = data.get('dependencies')
