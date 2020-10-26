@@ -27,7 +27,6 @@ dependencies:
 - pylint >=1.0
 - pyls-black
 - pyqt <5.13
-- pyyaml
 # NOTE: There's no need to set constraints for python-language-server
 # here because Spyder uses the subrepo for it when started in Binder.
 - python-language-server
@@ -58,13 +57,14 @@ dependencies:
 - pandas
 - pillow
 - pytest <5.0
-- pytest-mock
 - pytest-cov
-- pytest-qt
-- pytest-ordering
-- pytest-lazy-fixture
 - pytest-faulthandler <2.0
+- pytest-lazy-fixture
+- pytest-mock
+- pytest-ordering
+- pytest-qt
 - pytest-xvfb
+- pyyaml
 - scipy
 - sympy
 
