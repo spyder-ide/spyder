@@ -17,9 +17,6 @@ Paramiko >=2.4.0
 parso =0.7.0
 pexpect >=4.4.0
 pickleshare >=0.4
-# As pkg_resources is used to check version, it cannot have
-# a version requirement
-pkg_resources
 psutil >=5.3
 pygments >=2.0
 pylint >=1.0
@@ -35,6 +32,9 @@ qtawesome >=0.5.7
 qtconsole >=4.7.7
 qtpy >=1.5.0
 rtree >=0.8.3
+# As pkg_resources is used to check version, it cannot have
+# a version requirement
+setuptools
 sphinx >=0.6.6
 # NOTE: There's no need to set a version for spyder-kernels
 # here because we're using a subrepo for it to run our tests.
