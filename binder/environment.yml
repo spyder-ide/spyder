@@ -11,20 +11,23 @@ dependencies:
 - chardet >=2.0.0
 - cloudpickle >=0.5.0
 - diff-match-patch >=20181111
-- intervaltree
+- intervaltree >=3.0.2
 - ipython >=4.0
 - jedi =0.17.2
-- keyring
+- keyring >=17.0.0
 - nbconvert >=4.0
 - numpydoc >=0.6.0
 - paramiko >=2.4.0
 - parso =0.7.0
 - pexpect >=4.4.0
 - pickleshare >=0.4
+# As pkg_resources is used to check version, it cannot have
+# a version requirement
+- pkg_resources
 - psutil >=5.3
 - pygments >=2.0
 - pylint >=1.0
-- pyls-black
+- pyls-black >=0.4.6
 - pyqt <5.13
 - pyyaml
 # NOTE: There's no need to set constraints for python-language-server
@@ -42,7 +45,7 @@ dependencies:
 # because Spyder uses the subrepo for it when started in Binder.
 - spyder-kernels
 - three-merge >=0.1.1
-- watchdog
+- watchdog >=0.10.3
 
 # We can not refer to an environment.yml file from another
 # So to get performant launches on mybinder.org, we have copied

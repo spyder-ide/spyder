@@ -16,7 +16,6 @@ from textwrap import dedent
 import glob
 import imp
 import itertools
-import pkg_resources
 import os
 import os.path as osp
 import re
@@ -27,6 +26,7 @@ import threading
 import time
 
 # Third party imports
+import pkg_resources
 import psutil
 
 # Local imports
@@ -820,7 +820,6 @@ def check_version(actver, version, cmp_op):
 
 def get_module_version(module_name):
     """Return module version or None if version can't be retrieved."""
-
     mod = __import__(module_name)
     ver = getattr(mod, '__version__', getattr(mod, 'VERSION', None))
     if not ver:
@@ -830,6 +829,9 @@ def get_module_version(module_name):
 
 def get_package_version(package_name):
     """Return package version or None if version can't be retrieved."""
+
+    # When support for Python 3.7 and below is dropped, this can be replaced
+    # with the built-in importlib.metadata.version
     try:
         ver = pkg_resources.get_distribution(package_name).version
         return ver

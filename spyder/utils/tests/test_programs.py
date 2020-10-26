@@ -21,7 +21,8 @@ from spyder.utils.programs import (_clean_win_application_path, check_version,
                                    is_python_interpreter_valid_name,
                                    open_files_with_application,
                                    parse_linux_desktop_entry,
-                                   run_python_script_in_terminal, shell_split)
+                                   run_python_script_in_terminal, shell_split,
+                                   get_package_version)
 
 if os.name == 'nt':
     python_dir = 'C:\\Miniconda\\'
@@ -280,6 +281,11 @@ Icon=/blah/blah.xpm
     # Test raises
     with pytest.raises(ValueError):
         return_codes = open_files_with_application('not-valid.ext', fnames)
+
+
+def test_get_package_version():
+    # Primarily a test of pkg_resources being installed properly
+    assert get_package_version('IPython')
 
 
 if __name__ == '__main__':
