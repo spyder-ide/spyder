@@ -235,5 +235,5 @@ class KiteCompletionPlugin(SpyderCompletionPlugin):
               "In the meantime, Spyder will disable the Kite client to "
               "prevent further errors. For more information, please "
               "visit the <a href='https://help.kite.com/'>Kite help "
-              "center</a>").format(method, response))
+              "center</a>").format(method, resp))
         self.set_option('enable', False)
