@@ -1648,7 +1648,10 @@ class MainWindow(QMainWindow):
         Save current window settings with `prefix` in
         the userconfig-based configuration, under `section`.
         """
-        win_size = self.window_size
+        # Use current size and position when saving window settings.
+        # Fixes spyder-ide/spyder#13882
+        win_size = self.size()
+        pos = self.pos()
         prefs_size = self.prefs_dialog_size
 
         CONF.set(section, prefix + 'size', (win_size.width(), win_size.height()))
@@ -1656,7 +1659,6 @@ class MainWindow(QMainWindow):
                  (prefs_size.width(), prefs_size.height()))
         CONF.set(section, prefix + 'is_maximized', self.isMaximized())
         CONF.set(section, prefix + 'is_fullscreen', self.isFullScreen())
-        pos = self.window_position
         CONF.set(section, prefix + 'position', (pos.x(), pos.y()))
         self.maximize_dockwidget(restore=True)# Restore non-maximized layout
         if none_state:
