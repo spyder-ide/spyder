@@ -236,7 +236,8 @@ class PathComboBox(EditableComboBox):
 
         completer = QCompleter(opts, self)
         if is_dark_interface():
-            dark_qss = qdarkstyle.load_stylesheet_from_environment()
+            dark_qss = qdarkstyle.load_stylesheet(
+                        qt_api=os.environ.get('QT_API', None))
             completer.popup().setStyleSheet(dark_qss)
         self.setCompleter(completer)
 
@@ -351,7 +352,8 @@ class FileComboBox(PathComboBox):
 
         completer = QCompleter(opts, self)
         if is_dark_interface():
-            dark_qss = qdarkstyle.load_stylesheet_from_environment()
+            dark_qss = qdarkstyle.load_stylesheet(
+                        qt_api=os.environ.get('QT_API', None))
             completer.popup().setStyleSheet(dark_qss)
         self.setCompleter(completer)
 
