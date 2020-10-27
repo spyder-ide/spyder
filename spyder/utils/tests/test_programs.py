@@ -22,7 +22,7 @@ from spyder.utils.programs import (_clean_win_application_path, check_version,
                                    open_files_with_application,
                                    parse_linux_desktop_entry,
                                    run_python_script_in_terminal, shell_split,
-                                   get_package_version)
+                                   get_package_version, get_module_version)
 
 if os.name == 'nt':
     python_dir = 'C:\\Miniconda\\'
@@ -284,8 +284,14 @@ Icon=/blah/blah.xpm
 
 
 def test_get_package_version():
-    # Primarily a test of pkg_resources being installed properly
+    # Primarily a test of pkg_resources/setuptools being installed properly
     assert get_package_version('IPython')
+
+
+def test_get_module_version():
+    # pyls_black should not have a __version__ attribute, so tests that the
+    # fallback mechanism to get_package_version is working
+    assert get_module_version('pyls_black')
 
 
 if __name__ == '__main__':
