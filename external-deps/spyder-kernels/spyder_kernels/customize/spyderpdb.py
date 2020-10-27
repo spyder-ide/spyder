@@ -21,12 +21,42 @@ from spyder_kernels.py3compat import TimeoutError, PY2, _print, isidentifier
 
 if not PY2:
     from IPython.core.inputtransformer2 import TransformerManager
+    import builtins
     basestring = (str,)
 else:
+    import __builtin__ as builtins
     from IPython.core.inputsplitter import IPythonInputSplitter as TransformerManager
 
 
 logger = logging.getLogger(__name__)
+
+
+class DebugWrapper(object):
+    """
+    Notifies the frontend when debuggging starts/stops
+    """
+    def __init__(self, pdb_obj):
+        self.pdb_obj = pdb_obj
+
+    def __enter__(self):
+        """
+        Debugging starts.
+        """
+        self.pdb_obj._frontend_notified = True
+        try:
+            frontend_request(blocking=True).set_debug_state(True)
+        except (CommError, TimeoutError):
+            logger.debug("Could not send debugging state to the frontend.")
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Debugging ends.
+        """
+        self.pdb_obj._frontend_notified = False
+        try:
+            frontend_request(blocking=True).set_debug_state(False)
+        except (CommError, TimeoutError):
+            logger.debug("Could not send debugging state to the frontend.")
 
 
 class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
@@ -51,11 +81,22 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         self.continue_if_has_breakpoints = False
         self.pdb_ignore_lib = False
         self.pdb_execute_events = False
+        self.pdb_use_exclamation_mark = False
+        self._exclamation_warning_printed = False
+        self.pdb_stop_first_line = True
         self._disable_next_stack_entry = False
         super(SpyderPdb, self).__init__()
         self._pdb_breaking = False
+        self._frontend_notified = False
 
     # --- Methods overriden for code execution
+    def print_exclamation_warning(self):
+        """Print pdb warning for exclamation mark."""
+        if not self._exclamation_warning_printed:
+            print("Warning: '!' option enabled."
+                  " Use '!' as an optionnal prefix for pdb commands.")
+            self._exclamation_warning_printed = True
+
     def default(self, line):
         """
         Default way of running pdb statment.
@@ -67,6 +108,10 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         execute_events = self.pdb_execute_events
         if line[:1] == '!':
             line = line[1:]
+        elif self.pdb_use_exclamation_mark:
+            self.print_exclamation_warning()
+            self.error("Unknown command '" + line.split()[0] + "'")
+            return
         # Disallow the use of %debug magic in the debugger
         if line.startswith("%debug"):
             self.error("Please don't use '%debug' in the debugger.\n"
@@ -85,6 +130,18 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         else:
             ns = self.curframe.f_globals
 
+        if self.pdb_use_exclamation_mark:
+            # Find pdb commands executed without !
+            cmd, arg, line = self.parseline(line)
+            if cmd and cmd not in ns and cmd not in builtins.__dict__:
+                # Check if it is not an assignment
+                if not (arg and arg[0] == "="):
+                    func = getattr(self, 'do_' + cmd, None)
+                    if func:
+                        self.lastcmd = line
+                        return func(arg)
+            elif cmd:
+                self.print_exclamation_warning()
         try:
             line = TransformerManager().transform_cell(line)
             try:
@@ -152,7 +209,11 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
 
         self.setup(frame, traceback)
         self.print_stack_entry(self.stack[self.curindex])
-        self._cmdloop()
+        if self._frontend_notified:
+            self._cmdloop()
+        else:
+            with DebugWrapper(self):
+                self._cmdloop()
         self.forget()
 
     def print_stack_entry(self, frame_lineno, prompt_prefix='\n-> ',
@@ -202,6 +263,15 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
     def do_complete(self, code, cursor_pos):
         """
         Respond to a complete request.
+        """
+        if self.pdb_use_exclamation_mark:
+            return self._complete_exclamation(code, cursor_pos)
+        else:
+            return self._complete_default(code, cursor_pos)
+
+    def _complete_default(self, code, cursor_pos):
+        """
+        Respond to a complete request if not pdb_use_exclamation_mark.
         """
         if cursor_pos is None:
             cursor_pos = len(code)
@@ -290,14 +360,101 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 'metadata': {},
                 'status': 'ok'}
 
+    def _complete_exclamation(self, code, cursor_pos):
+        """
+        Respond to a complete request if pdb_use_exclamation_mark.
+        """
+        if cursor_pos is None:
+            cursor_pos = len(code)
+
+        # Get text to complete
+        text = code[:cursor_pos].split(' ')[-1]
+        # Choose Pdb function to complete, based on cmd.py
+        origline = code
+        line = origline.lstrip()
+        if not line:
+            # Nothing to complete
+            return
+        is_pdb_command = line[0] == '!'
+        is_pdb_command_name = False
+
+        stripped = len(origline) - len(line)
+        begidx = cursor_pos - len(text) - stripped
+        endidx = cursor_pos - stripped
+
+        compfunc = None
+
+        if is_pdb_command:
+            line = line[1:]
+            begidx -= 1
+            endidx -= 1
+            if begidx == -1:
+                is_pdb_command_name = True
+                text = text[1:]
+                begidx += 1
+                compfunc = self.completenames
+            else:
+                cmd, args, _ = self.parseline(line)
+                if cmd != '':
+                    try:
+                        # Function to complete Pdb command arguments
+                        compfunc = getattr(self, 'complete_' + cmd)
+                    except AttributeError:
+                        # This command doesn't exist, nothing to complete
+                        return
+                else:
+                    # We don't know this command
+                    return
+
+        if not is_pdb_command_name:
+            # Remove eg. leading opening parenthesis
+            def is_name_or_composed(text):
+                if not text or text[0] == '.':
+                    return False
+                # We want to keep value.subvalue
+                return isidentifier(text.replace('.', ''))
+
+            while text and not is_name_or_composed(text):
+                text = text[1:]
+                begidx += 1
+
+        cursor_start = cursor_pos - len(text)
+        matches = []
+        if is_pdb_command:
+            matches = compfunc(text, line, begidx, endidx)
+            return {
+                'matches': matches,
+                'cursor_end': cursor_pos,
+                'cursor_start': cursor_start,
+                'metadata': {},
+                'status': 'ok'
+                }
+
+        kernel = get_ipython().kernel
+        # Make complete call with current frame
+        if self.curframe:
+            if self.curframe_locals:
+                Frame = namedtuple("Frame", ["f_locals", "f_globals"])
+                frame = Frame(self.curframe_locals,
+                              self.curframe.f_globals)
+            else:
+                frame = self.curframe
+            kernel.shell.set_completer_frame(frame)
+        result = kernel._do_complete(code, cursor_pos)
+        # Reset frame
+        kernel.shell.set_completer_frame()
+        return result
+
     # --- Methods overriden by us for Spyder integration
     def preloop(self):
         """Ask Spyder for breakpoints before the first prompt is created."""
         try:
-            frontend_request(blocking=True).set_debug_state(True)
             pdb_settings = frontend_request().get_pdb_settings()
             self.pdb_ignore_lib = pdb_settings['pdb_ignore_lib']
             self.pdb_execute_events = pdb_settings['pdb_execute_events']
+            self.pdb_use_exclamation_mark = pdb_settings[
+                'pdb_use_exclamation_mark']
+            self.pdb_stop_first_line = pdb_settings['pdb_stop_first_line']
             if self.starting:
                 self.set_spyder_breakpoints(pdb_settings['breakpoints'])
             if self.send_initial_notification:
@@ -305,14 +462,6 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
         except (CommError, TimeoutError):
             logger.debug("Could not get breakpoints from the frontend.")
         super(SpyderPdb, self).preloop()
-
-    def postloop(self):
-        """Notifies spyder that the loop has ended."""
-        try:
-            frontend_request(blocking=True).set_debug_state(False)
-        except (CommError, TimeoutError):
-            logger.debug("Could not send debugging state to the frontend.")
-        super(SpyderPdb, self).postloop()
 
     def set_continue(self):
         """
@@ -369,13 +518,23 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
                 _print("--KeyboardInterrupt--\n"
                        "For copying text while debugging, use Ctrl+Shift+C",
                        file=self.stdout)
-            except Exception:
-                try:
-                    frontend_request(blocking=True).set_debug_state(False)
-                except (CommError, TimeoutError):
-                    logger.debug(
-                        "Could not send debugging state to the frontend.")
-                raise
+
+    def precmd(self, line):
+        """
+        Hook method executed just before the command line is
+        interpreted, but after the input prompt is generated and issued.
+
+        Here we switch ! and non !
+        """
+        if not self.pdb_use_exclamation_mark:
+            return line
+        if not line:
+            return line
+        if line[0] == '!':
+            line = line[1:]
+        else:
+            line = '!' + line
+        return line
 
     def postcmd(self, stop, line):
         """
@@ -453,11 +612,24 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             # Do 'continue' if the first breakpoint is *not* placed
             # where the debugger is going to land.
             # Fixes issue 4681
-            if (self.continue_if_has_breakpoints and
-                    breaks and
-                    lineno < breaks[0]):
+            if self.pdb_stop_first_line:
+                do_continue = (
+                    self.continue_if_has_breakpoints
+                    and breaks
+                    and lineno < breaks[0])
+            else:
+                # The breakpoint could be in another file.
+                do_continue = (
+                    self.continue_if_has_breakpoints
+                    and not (breaks and lineno >= breaks[0]))
+
+            if do_continue:
                 try:
-                    frontend_request(blocking=False).pdb_execute('continue')
+                    if self.pdb_use_exclamation_mark:
+                        cont_cmd = '!continue'
+                    else:
+                        cont_cmd = 'continue'
+                    frontend_request(blocking=False).pdb_execute(cont_cmd)
                 except (CommError, TimeoutError):
                     logger.debug(
                         "Could not send a Pdb continue call to the frontend.")
@@ -493,3 +665,27 @@ class SpyderPdb(ipyPdb, object):  # Inherits `object` to call super() in PY2
             kernel.publish_pdb_state()
         except (CommError, TimeoutError):
             logger.debug("Could not send Pdb state to the frontend.")
+
+    def run(self, cmd, globals=None, locals=None):
+        """Debug a statement executed via the exec() function.
+
+        globals defaults to __main__.dict; locals defaults to globals.
+        """
+        with DebugWrapper(self):
+            super(SpyderPdb, self).run(cmd, globals, locals)
+
+    def runeval(self, expr, globals=None, locals=None):
+        """Debug an expression executed via the eval() function.
+
+        globals defaults to __main__.dict; locals defaults to globals.
+        """
+        with DebugWrapper(self):
+            super(SpyderPdb, self).runeval(expr, globals, locals)
+
+    def runcall(self, *args, **kwds):
+        """Debug a single function call.
+
+        Return the result of the function call.
+        """
+        with DebugWrapper(self):
+            super(SpyderPdb, self).runcall(*args, **kwds)
