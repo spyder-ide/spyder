@@ -1265,6 +1265,7 @@ class AnimatedTour(QWidget):
                     self.spy_window.windowState()
                     & (~ Qt.WindowFullScreen))
         return False
+
     def start_tour(self):
         """ """
         self.spy_window.setUpdatesEnabled(False)
