@@ -300,6 +300,13 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
                  "--no-warn-script-location"]
             )
 
+            print("Updating/installing wheel in the virtual environment",
+                  env_python)
+            subprocess_run(
+                [env_python, "-m", "pip", "install", "--upgrade", "wheel",
+                 "--no-warn-script-location"]
+            )
+
             print("Installing package with", env_python)
             subprocess_run([env_python, "-m",
                             "pip", "install", repo_root,
