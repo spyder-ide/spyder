@@ -1578,7 +1578,7 @@ class MainWindow(QMainWindow):
         if current_width < width or current_height < height:
             pos = CONF.get_default(section, prefix + 'position')
 
-        is_maximized =  get_func(section, prefix + 'is_maximized')
+        is_maximized = get_func(section, prefix + 'is_maximized')
         is_fullscreen = get_func(section, prefix + 'is_fullscreen')
         return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
                 is_fullscreen)
@@ -1654,7 +1654,8 @@ class MainWindow(QMainWindow):
         pos = self.pos()
         prefs_size = self.prefs_dialog_size
 
-        CONF.set(section, prefix + 'size', (win_size.width(), win_size.height()))
+        CONF.set(section, prefix + 'size',
+                 (win_size.width(), win_size.height()))
         CONF.set(section, prefix + 'prefs_dialog_size',
                  (prefs_size.width(), prefs_size.height()))
         CONF.set(section, prefix + 'is_maximized', self.isMaximized())
