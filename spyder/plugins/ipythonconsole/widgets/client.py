@@ -370,9 +370,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if not self.shellwidget.is_waiting_pdb_input():
             self.interrupt_kernel()
         else:
-            self.shellwidget.pdb_execute(
-                'exit', hidden=False, echo_stack_entry=False,
-                add_history=False)
+            self.shellwidget.pdb_execute_command('exit')
 
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget."""
@@ -421,12 +419,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
-        # page_control is the widget used for paging
-        page_control = self.shellwidget._page_control
-        if page_control and page_control.isVisible():
-            return page_control
-        else:
-            return self.shellwidget._control
+        return self.shellwidget._control
 
     def get_kernel(self):
         """Get kernel associated with this client"""

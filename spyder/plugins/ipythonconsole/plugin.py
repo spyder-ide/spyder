@@ -294,6 +294,26 @@ class IPythonConsole(SpyderPluginWidget):
             autocall_o = self.get_option(autocall_n)
             sw.set_autocall(autocall_o)
 
+    def _apply_pdb_plugin_settings(self, options, client):
+        """Apply debugging configurations to a client."""
+        # Debugging options
+        pdb_ignore_lib_n = 'pdb_ignore_lib'
+        pdb_execute_events_n = 'pdb_execute_events'
+        pdb_use_exclamation_mark_n = 'pdb_use_exclamation_mark'
+
+        # Client widget
+        sw = client.shellwidget
+        if pdb_ignore_lib_n in options:
+            pdb_ignore_lib_o = self.get_option(pdb_ignore_lib_n)
+            sw.set_pdb_ignore_lib(pdb_ignore_lib_o)
+        if pdb_execute_events_n in options:
+            pdb_execute_events_o = self.get_option(pdb_execute_events_n)
+            sw.set_pdb_execute_events(pdb_execute_events_o)
+        if pdb_use_exclamation_mark_n in options:
+            pdb_use_exclamation_mark_o = self.get_option(
+                pdb_use_exclamation_mark_n)
+            sw.set_pdb_use_exclamation_mark(pdb_use_exclamation_mark_o)
+
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings."""
         restart_needed = False
@@ -380,6 +400,9 @@ class IPythonConsole(SpyderPluginWidget):
 
                     # Advanced options
                     self._apply_advanced_plugin_settings(options, client)
+
+                    # Debugging options
+                    self._apply_pdb_plugin_settings(options, client)
 
     def toggle_view(self, checked):
         """Toggle view"""
@@ -771,24 +794,9 @@ class IPythonConsole(SpyderPluginWidget):
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
-    def pdb_execute(self, line, hidden=False, echo_stack_entry=False,
-                    add_history=False):
+    def pdb_execute_command(self, command):
         """
-        Send line to the pdb kernel if possible.
-
-        Parameters
-        ----------
-        line: str
-            the line to execute
-
-        hidden: bool
-            If the line should be hidden
-
-        echo_stack_entry: bool
-            If not hidden, if the stack entry should be printed
-
-        add_history: bool
-            If not hidden, wether the line should be added to history
+        Send command to the pdb kernel if possible.
         """
 
         sw = self.get_current_shellwidget()
@@ -796,7 +804,7 @@ class IPythonConsole(SpyderPluginWidget):
             # Needed to handle an error when kernel_client is None.
             # See spyder-ide/spyder#7578.
             try:
-                sw.pdb_execute(line, hidden, echo_stack_entry, add_history)
+                sw.pdb_execute_command(command)
             except AttributeError:
                 pass
 
@@ -807,9 +815,7 @@ class IPythonConsole(SpyderPluginWidget):
             if not sw.is_waiting_pdb_input():
                 sw.interrupt_kernel()
             try:
-                sw.pdb_execute(
-                    "exit",
-                    hidden=False, echo_stack_entry=False, add_history=False)
+                sw.pdb_execute_command("exit")
             except AttributeError:
                 pass
 
@@ -1006,13 +1012,6 @@ class IPythonConsole(SpyderPluginWidget):
         completions = {0: "droplist", 1: "ncurses", 2: "plain"}
         spy_cfg.JupyterWidget.gui_completion = completions[completion_type_o]
 
-        # Pager
-        pager_o = self.get_option('use_pager')
-        if pager_o:
-            spy_cfg.JupyterWidget.paging = 'inside'
-        else:
-            spy_cfg.JupyterWidget.paging = 'none'
-
         # Calltips
         calltips_o = self.get_option('show_calltips')
         spy_cfg.JupyterWidget.enable_calltips = calltips_o
@@ -1105,7 +1104,6 @@ class IPythonConsole(SpyderPluginWidget):
         # Local vars
         shellwidget = client.shellwidget
         control = shellwidget._control
-        page_control = shellwidget._page_control
 
         # Create new clients with Ctrl+T shortcut
         shellwidget.new_client.connect(self.create_new_client)
@@ -1159,14 +1157,8 @@ class IPythonConsole(SpyderPluginWidget):
 
         shellwidget.sig_change_cwd.connect(self.set_working_directory)
 
-        # Update the find widget if focus changes between control and
-        # page_control
+        # Set editor for the find widget
         self.find_widget.set_editor(control)
-        if page_control:
-            page_control.focus_changed.connect(lambda: self.focus_changed.emit())
-            control.visibility_changed.connect(self.refresh_plugin)
-            page_control.visibility_changed.connect(self.refresh_plugin)
-            page_control.show_find_widget.connect(self.find_widget.show)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
@@ -1304,16 +1296,6 @@ class IPythonConsole(SpyderPluginWidget):
         """Set Spyder breakpoints into all clients"""
         for cl in self.clients:
             cl.shellwidget.set_spyder_breakpoints()
-
-    def set_pdb_ignore_lib(self):
-        """Set pdb_ignore_lib into all clients"""
-        for cl in self.clients:
-            cl.shellwidget.set_pdb_ignore_lib()
-
-    def set_pdb_execute_events(self):
-        """Set pdb_execute_events into all clients"""
-        for cl in self.clients:
-            cl.shellwidget.set_pdb_execute_events()
 
     @Slot(str)
     def create_client_from_path(self, path):
