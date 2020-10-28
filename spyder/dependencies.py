@@ -35,10 +35,10 @@ CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 COOKIECUTTER_REQVER = '>=1.6.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
-INTERVALTREE_REQVER = None
+INTERVALTREE_REQVER = '>=3.0.2'
 IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
 JEDI_REQVER = '=0.17.2'
-KEYRING_REQVER = None
+KEYRING_REQVER = '>=17.0.0'
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
 PARAMIKO_REQVER = '>=2.4.0'
@@ -49,7 +49,7 @@ PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=1.0'
 PYLS_REQVER = '>=0.35.0;<1.0.0'
-PYLS_BLACK_REQVER = None
+PYLS_BLACK_REQVER = '>=0.4.6'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
 QDARKSTYLE_REQVER = '>=2.8'
@@ -57,10 +57,11 @@ QTAWESOME_REQVER = '>=0.5.7'
 QTCONSOLE_REQVER = '>=4.7.7'
 QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.8.3'
+SETUPTOOLS_REQVER = '>=39.0.0'
 SPHINX_REQVER = '>=0.6.6'
 SPYDER_KERNELS_REQVER = '>=2.0.0dev0'
 THREE_MERGE_REQVER = '>=0.1.1'
-WATCHDOG_REQVER = None
+WATCHDOG_REQVER = '>=0.10.3'
 
 
 # Optional dependencies
@@ -200,6 +201,10 @@ DESCRIPTIONS = [
      'features': _("Fast access to code snippets regions"),
      'required_version': RTREE_REQVER,
      'display': is_anaconda()},
+    {'modname': "setuptools",
+     'package_name': "setuptools",
+     'features': _("Determine package version"),
+     'required_version': SETUPTOOLS_REQVER},
     {'modname': "sphinx",
      'package_name': "sphinx",
      'features': _("Show help for objects in the Editor and Consoles in a dedicated pane"),
