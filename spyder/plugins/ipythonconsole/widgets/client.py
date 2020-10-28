@@ -468,11 +468,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # Code to add the stop button
         if self.interactive_button is None:
             self.interactive_button = create_toolbutton(
-                                   self,
-                                   text=_("Interactive"),
-                                   icon=self.window_icon,
-                                   tip=_("Enable interactive matplotlib backend"),
-                                   toggled=self.interactive_button_toggled_handler)
+                self,
+                text=_("Interactive"),
+                icon=self.window_icon,
+                tip=_("Enable interactive matplotlib backend"),
+                toggled=self.interactive_button_toggled_handler)
         if self.interactive_button is not None:
             buttons.append(self.interactive_button)
 
