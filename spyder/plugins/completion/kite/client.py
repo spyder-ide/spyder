@@ -173,7 +173,7 @@ class KiteClient(QObject, KiteMethodProviderMixIn):
                 converter = getattr(self, converter_name)
                 if response is not None:
                     response = converter(response)
-        if not isinstance(response, dict):
+        if not isinstance(response, (dict, type(None))):
             if not running_under_pytest():
                 self.sig_client_wrong_response.emit(method, response)
         else:
