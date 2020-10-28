@@ -347,10 +347,13 @@ class IPythonConsole(SpyderPluginWidget):
         restart_options += [run_lines_n, use_run_file_n, run_file_n,
                             symbolic_math_n, hide_cmd_windows_n]
 
+        restart_needed = any([restart_option in options
+                              for restart_option in restart_options])
+
         if running_under_pytest():
             only_new_clients = False
             all_clients = True
-        else:
+        elif restart_needed or pylab_restart:
             # Setup message dialog to confirm further actions
             msgbox = QMessageBox(self)
             msgbox.setIcon(QMessageBox.Information)
@@ -360,7 +363,10 @@ class IPythonConsole(SpyderPluginWidget):
                 "only for new consoles, for the current console "
                 "or all the running consoles.<br><br>"
                 "Keep in mind that <b>the settings will be used "
-                "for any new launched console</b>.")
+                "for any new launched console</b>."
+                "<br><br>NOTE: Some options require a restart to apply. "
+                "Applying these changes to the running consoles "
+                "will force a <b>kernel restart for some of them</b>")
             only_new_button = msgbox.addButton(
                 _("New consoles only"), QMessageBox.NoRole)
             msgbox.setDefaultButton(only_new_button)
@@ -368,18 +374,14 @@ class IPythonConsole(SpyderPluginWidget):
             all_button = msgbox.addButton(
                 _("All the consoles"), QMessageBox.NoRole)
 
-            restart_needed = any([restart_option in options
-                                  for restart_option in restart_options])
-            if restart_needed or pylab_restart:
-                settings_message += _(
-                    "<br><br>NOTE: Some options require a restart to apply. "
-                    "Applying these changes to the running consoles "
-                    "will force a <b>kernel restart for some of them</b>")
             msgbox.setText(settings_message)
             msgbox.exec_()
 
             only_new_clients = msgbox.clickedButton() == only_new_button
             all_clients = msgbox.clickedButton() == all_button
+        else:
+            only_new_clients = False
+            all_clients = True
 
         # Apply settings
         if not only_new_clients and not running_under_pytest():
