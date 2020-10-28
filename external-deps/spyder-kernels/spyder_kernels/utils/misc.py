@@ -17,6 +17,7 @@ INLINE_FIGURE_FORMATS = {
     '1': 'svg'
 }
 
+# Mapping of matlotlib backends options to Spyder
 MPL_BACKENDS_TO_SPYDER = {
     'module://ipykernel.pylab.backend_inline': 0,
     'Qt5Agg': 2,

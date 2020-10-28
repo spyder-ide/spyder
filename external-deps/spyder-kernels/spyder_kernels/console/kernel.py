@@ -761,7 +761,7 @@ class SpyderKernel(IPythonKernel):
         try:
             from matplotlib import rcParams
             rcParams[option] = value
-        except ImportError:
+        except Exception:
             # Needed in case matplolib isn't installed
             pass
 
