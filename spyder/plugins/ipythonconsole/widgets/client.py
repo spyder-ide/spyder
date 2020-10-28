@@ -115,9 +115,11 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
         # --- Other attrs
         self.options_button = options_button
+        self.interactive_button = None
         self.stop_button = None
         self.reset_button = None
         self.stop_icon = ima.icon('stop')
+        self.window_icon = ima.icon("newwindow")
         self.history = []
         self.allow_rename = True
         self.stderr_dir = None
@@ -452,9 +454,27 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         else:
             return additional_actions
 
+    def interactive_button_toggled_handler(self, state):
+        """Enable/disable interactive backend"""
+        if state:
+            self.shellwidget.execute('%matplotlib auto')
+        else:
+            self.shellwidget.execute('%matplotlib inline')
+
     def get_toolbar_buttons(self):
         """Return toolbar buttons list."""
         buttons = []
+
+        # Code to add the stop button
+        if self.interactive_button is None:
+            self.interactive_button = create_toolbutton(
+                                   self,
+                                   text=_("Interactive"),
+                                   icon=self.window_icon,
+                                   tip=_("Enable interactive matplotlib backend"),
+                                   toggled=self.interactive_button_toggled_handler)
+        if self.interactive_button is not None:
+            buttons.append(self.interactive_button)
 
         # Code to add the stop button
         if self.stop_button is None:
