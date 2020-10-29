@@ -20,6 +20,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
 
 # Local imports
 from spyder.config.base import _, STDOUT
+from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.plugins.completion.languageserver import SymbolKind
@@ -292,6 +293,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     sig_tree_updated = Signal()
     sig_display_spinner = Signal()
     sig_hide_spinner = Signal()
+    sig_update_configuration = Signal()
 
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
                  group_cells=True, show_comments=True, display_variables=False,
@@ -405,12 +407,18 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     @Slot(bool)
     def toggle_show_comments(self, state):
         self.show_comments = state
-        self.update_all()
+        CONF.set('lsp-server', 'display_block_comments', state)
+        self.sig_update_configuration.emit()
+        for editor, editor_id in list(self.editor_ids.items()):
+            editor.request_symbols()
 
     @Slot(bool)
     def toggle_group_cells(self, state):
         self.group_cells = state
-        self.update_all()
+        CONF.set('lsp-server', 'group_cells', state)
+        self.sig_update_configuration.emit()
+        for editor, editor_id in list(self.editor_ids.items()):
+            editor.request_symbols()
 
     @Slot(bool)
     def toggle_variables(self, state):
@@ -912,6 +920,7 @@ class OutlineExplorerWidget(QWidget):
     edit_goto = Signal(str, int, str)
     edit = Signal(str)
     is_visible = Signal()
+    sig_update_configuration = Signal()
 
     def __init__(self, parent=None, show_fullpath=True, show_all_files=True,
                  group_cells=True, show_comments=True,
@@ -934,6 +943,8 @@ class OutlineExplorerWidget(QWidget):
         self.loading_widget = create_waitspinner(size=16, parent=self)
         self.treewidget.sig_display_spinner.connect(self.loading_widget.start)
         self.treewidget.sig_hide_spinner.connect(self.loading_widget.stop)
+        self.treewidget.sig_update_configuration.connect(
+            self.sig_update_configuration)
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),

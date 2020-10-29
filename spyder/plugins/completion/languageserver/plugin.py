@@ -662,6 +662,14 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             for fmt in formatters
         }
 
+        # PyLS-Spyder configuration
+        group_cells = self.get_option('group_cells')
+        display_block_comments = self.get_option('display_block_comments')
+        pyls_spyder_options = {
+            'enable_block_comments': display_block_comments,
+            'group_cells': group_cells
+        }
+
         # Jedi configuration
         if self.get_option('default', section='main_interpreter'):
             environment = None
@@ -713,6 +721,7 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         plugins['pycodestyle'].update(pycodestyle)
         plugins['pyflakes'].update(pyflakes)
         plugins['pydocstyle'].update(pydocstyle)
+        plugins['pyls_spyder'].update(pyls_spyder_options)
         plugins['jedi'].update(jedi)
         plugins['jedi_completion'].update(jedi_completion)
         plugins['jedi_signature_help'].update(jedi_signature_help)

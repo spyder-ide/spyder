@@ -509,6 +509,8 @@ DEFAULTS = [
               'pyflakes': True,
               'mccabe': False,
               'formatting': 'autopep8',
+              'group_cells': True,
+              'display_block_comments': True,
               'format_on_save': False,
               'pycodestyle': False,
               'pycodestyle/filename': '',

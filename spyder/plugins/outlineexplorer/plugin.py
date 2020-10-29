@@ -51,6 +51,9 @@ class OutlineExplorer(SpyderPluginWidget):
            display_variables=display_variables,
            follow_cursor=follow_cursor,
            options_button=self.options_button)
+
+        self.explorer.sig_update_configuration.connect(
+            self.trigger_completion_config_update)
         layout = QVBoxLayout()
         layout.addWidget(self.explorer)
         self.setLayout(layout)
@@ -138,3 +141,6 @@ class OutlineExplorer(SpyderPluginWidget):
     def update_all_editors(self):
         """Update all editors with an associated LSP server."""
         self.explorer.update_all_editors()
+
+    def trigger_completion_config_update(self):
+        self.main.completions.update_configuration()
