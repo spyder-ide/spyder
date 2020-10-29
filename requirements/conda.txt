@@ -7,10 +7,10 @@ atomicwrites >=1.2.0
 chardet >=2.0.0
 cloudpickle >=0.5.0
 diff-match-patch >=20181111
-intervaltree
+intervaltree >=3.0.2
 IPython >=4.0
 jedi =0.17.2
-keyring
+keyring >=17.0.0
 nbconvert >=4.0
 numpydoc >=0.6.0
 Paramiko >=2.4.0
@@ -20,7 +20,7 @@ pickleshare >=0.4
 psutil >=5.3
 pygments >=2.0
 pylint >=1.0
-pyls-black
+pyls-black >=0.4.6
 pyls-spyder >=0.1.0
 pyqt <5.13
 # There's no need to set a version for python-language-server
@@ -33,9 +33,10 @@ qtawesome >=0.5.7
 qtconsole >=4.7.7
 qtpy >=1.5.0
 rtree >=0.8.3
+setuptools >=39.0.0
 sphinx >=0.6.6
 # NOTE: There's no need to set a version for spyder-kernels
 # here because we're using a subrepo for it to run our tests.
 spyder-kernels
 three-merge >=0.1.1
-watchdog
+watchdog >=0.10.3

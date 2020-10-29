@@ -124,7 +124,6 @@ DEFAULTS = [
              {
               'show_banner': True,
               'completion_type': 0,
-              'use_pager': False,
               'show_calltips': True,
               'ask_before_closing': False,
               'show_reset_namespace_warning': True,
@@ -151,13 +150,13 @@ DEFAULTS = [
               # This is True because there are libraries like Pyomo
               # that generate a lot of Command Prompts while running,
               # and that's extremely annoying for Windows users.
-              'hide_cmd_windows': True
-              }),
-            ('run',
-             {
+              'hide_cmd_windows': True,
+              'pdb_prevent_closing': True,
               'pdb_ignore_lib': False,
-              'pdb_execute_events': True
-             }),
+              'pdb_execute_events': True,
+              'pdb_use_exclamation_mark': True,
+              'pdb_stop_first_line': True,
+              }),
             ('variable_explorer',
              {
               'check_all': CHECK_ALL,
@@ -640,4 +639,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '59.0.0'
+CONF_VERSION = '61.0.0'
