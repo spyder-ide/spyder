@@ -57,6 +57,7 @@ TEST_REQUIREMENTS = [
     'pytest-cov',
     'scipy',
     'xarray',
+    'pillow',
 ]
 
 setup(

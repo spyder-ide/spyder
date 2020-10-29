@@ -105,15 +105,8 @@ class MainConfigPage(GeneralConfigPage):
         # --- Theme
         interface_group = QGroupBox(_("Interface"))
 
-        vertdock_box = newcb(_("Vertical title bars in panes"),
-                             'vertical_dockwidget_titlebars')
         verttabs_box = newcb(_("Vertical tabs in panes"),
                              'vertical_tabs')
-        animated_box = newcb(_("Animated toolbars and panes"),
-                             'animated_docks')
-        tear_off_box = newcb(_("Tear off menus"), 'tear_off_menus',
-                             tip=_("Set this to detach any<br> "
-                                   "menu from the main window"))
         margin_box = newcb(_("Custom margin for panes:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", _("pixels"), 'custom_margin',
@@ -148,10 +141,7 @@ class MainConfigPage(GeneralConfigPage):
 
         # Layout interface
         interface_layout = QVBoxLayout()
-        interface_layout.addWidget(vertdock_box)
         interface_layout.addWidget(verttabs_box)
-        interface_layout.addWidget(animated_box)
-        interface_layout.addWidget(tear_off_box)
         interface_layout.addLayout(margins_cursor_layout)
         interface_group.setLayout(interface_layout)
 

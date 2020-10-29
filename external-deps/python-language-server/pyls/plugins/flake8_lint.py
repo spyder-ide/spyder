@@ -1,7 +1,7 @@
 # Copyright 2019 Palantir Technologies, Inc.
 """Linter pluging for flake8"""
 import logging
-from os import path
+import os.path
 import re
 from subprocess import Popen, PIPE
 from pyls import hookimpl, lsp
@@ -34,8 +34,8 @@ def pyls_lint(workspace, document):
 
     # flake takes only absolute path to the config. So we should check and
     # convert if necessary
-    if opts.get('config') and not path.isabs(opts.get('config')):
-        opts['config'] = path.abspath(path.expanduser(path.expandvars(
+    if opts.get('config') and not os.path.isabs(opts.get('config')):
+        opts['config'] = os.path.abspath(os.path.expanduser(os.path.expandvars(
             opts.get('config')
         )))
         log.debug("using flake8 with config: %s", opts['config'])
@@ -55,6 +55,12 @@ def run_flake8(flake8_executable, args, document):
     # a quick temporary fix to deal with Atom
     args = [(i if not i.startswith('--ignore=') else FIX_IGNORES_RE.sub('', i))
             for i in args if i is not None]
+
+    # if executable looks like a path resolve it
+    if not os.path.isfile(flake8_executable) and os.sep in flake8_executable:
+        flake8_executable = os.path.abspath(
+            os.path.expanduser(os.path.expandvars(flake8_executable))
+        )
 
     log.debug("Calling %s with args: '%s'", flake8_executable, args)
     try:

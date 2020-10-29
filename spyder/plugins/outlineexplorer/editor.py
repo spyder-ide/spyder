@@ -21,8 +21,12 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
         editor.sig_cursor_position_changed.connect(
             self.sig_cursor_position_changed)
 
+        # This saves the symbols info that comes from the server.
+        self.info = None
+
     def update_outline_info(self, info):
         self.sig_outline_explorer_data_changed.emit(info)
+        self.info = info
 
     def emit_request_in_progress(self):
         self.sig_start_outline_spinner.emit()
@@ -56,3 +60,8 @@ class OutlineExplorerProxyEditor(OutlineExplorerProxy):
     def request_symbols(self):
         """Request current editor symbols."""
         self._editor.request_symbols()
+
+    @property
+    def is_cloned(self):
+        """Check if the associated editor is cloned."""
+        return self._editor.is_cloned

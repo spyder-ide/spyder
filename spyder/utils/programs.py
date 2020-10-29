@@ -12,9 +12,9 @@ from __future__ import print_function
 from ast import literal_eval
 from distutils.version import LooseVersion
 from getpass import getuser
+from textwrap import dedent
 import glob
 import imp
-import inspect
 import itertools
 import os
 import os.path as osp
@@ -26,6 +26,7 @@ import threading
 import time
 
 # Third party imports
+import pkg_resources
 import psutil
 
 # Local imports
@@ -138,6 +139,20 @@ def alter_subprocess_kwargs_by_platform(**kwargs):
         # We "or" them together
         CONSOLE_CREATION_FLAGS |= CREATE_NO_WINDOW
         kwargs.setdefault('creationflags', CONSOLE_CREATION_FLAGS)
+
+        # ensure Windows subprocess environment has SYSTEMROOT
+        if kwargs.get('env') is not None:
+            # Is SYSTEMROOT in env? case insensitive
+            if 'SYSTEMROOT' not in map(str.upper, kwargs['env'].keys()):
+                # Add SYSTEMROOT from os.environ
+                sys_root_key = None
+                for k, v in os.environ.items():
+                    if 'SYSTEMROOT' == k.upper():
+                        sys_root_key = k
+                        break  # don't risk multiple values
+                if sys_root_key is not None:
+                    kwargs['env'].update({sys_root_key: os.environ[sys_root_key]})
+
     return kwargs
 
 
@@ -806,95 +821,94 @@ def check_version(actver, version, cmp_op):
 def get_module_version(module_name):
     """Return module version or None if version can't be retrieved."""
     mod = __import__(module_name)
-    return getattr(mod, '__version__', getattr(mod, 'VERSION', None))
+    ver = getattr(mod, '__version__', getattr(mod, 'VERSION', None))
+    if not ver:
+        ver = get_package_version(module_name)
+    return ver
 
 
-def is_module_installed(module_name, version=None, installed_version=None,
-                        interpreter=None):
+def get_package_version(package_name):
+    """Return package version or None if version can't be retrieved."""
+
+    # When support for Python 3.7 and below is dropped, this can be replaced
+    # with the built-in importlib.metadata.version
+    try:
+        ver = pkg_resources.get_distribution(package_name).version
+        return ver
+    except DistributionNotFound:
+        return None
+
+
+def is_module_installed(module_name, version=None, interpreter=None):
     """
-    Return True if module *module_name* is installed
+    Return True if module ``module_name`` is installed
 
-    If version is not None, checking module version
-    (module must have an attribute named '__version__')
+    If ``version`` is not None, checks that the module's installed version is
+    consistent with ``version``. The module must have an attribute named
+    '__version__' or 'VERSION'.
 
-    version may starts with =, >=, > or < to specify the exact requirement ;
+    version may start with =, >=, > or < to specify the exact requirement ;
     multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')
 
-    interpreter: check if a module is installed with a given version
-    in a determined interpreter
+    If ``interpreter`` is not None, checks if a module is installed with a
+    given ``version`` in the ``interpreter``'s environment. Otherwise checks
+    in Spyder's environment.
     """
-    if interpreter:
+    if interpreter is not None:
         if is_python_interpreter(interpreter):
-            checkver = inspect.getsource(check_version)
-            get_modver = inspect.getsource(get_module_version)
-            stable_ver = inspect.getsource(is_stable_version)
-            ismod_inst = inspect.getsource(is_module_installed)
-
-            f = tempfile.NamedTemporaryFile('wt', suffix='.py',
-                                            dir=get_temp_dir(), delete=False)
-            try:
-                script = f.name
-                f.write("# -*- coding: utf-8 -*-" + "\n\n")
-                f.write("from distutils.version import LooseVersion" + "\n")
-                f.write("import re" + "\n\n")
-                f.write(stable_ver + "\n")
-                f.write(checkver + "\n")
-                f.write(get_modver + "\n")
-                f.write(ismod_inst + "\n")
-                if version:
-                    f.write("print(is_module_installed('%s','%s'))"\
-                            % (module_name, version))
-                else:
-                    f.write("print(is_module_installed('%s'))" % module_name)
-
-                # We need to flush and sync changes to ensure that the content
-                # of the file is in disk before running the script
-                f.flush()
-                os.fsync(f)
-                f.close()
+            cmd = dedent("""
                 try:
-                    proc = run_program(interpreter, [script])
-                    output, _err = proc.communicate()
-                except subprocess.CalledProcessError:
-                    return True
-                return eval(output.decode())
-            finally:
-                if not f.closed:
-                    f.close()
-                os.remove(script)
+                    import {} as mod
+                except Exception:
+                    print('No Module')  # spyder: test-skip
+                print(getattr(mod, '__version__', getattr(mod, 'VERSION', None)))  # spyder: test-skip
+                """).format(module_name)
+            try:
+                # use clean environment
+                proc = run_program(interpreter, ['-c', cmd], env={})
+                stdout, stderr = proc.communicate()
+                stdout = stdout.decode().strip()
+            except Exception:
+                return False
+
+            if 'No Module' in stdout:
+                return False
+            elif stdout != 'None':
+                # the module is installed and it has a version attribute
+                module_version = stdout
+            else:
+                module_version = None
         else:
-            # Try to not take a wrong decision if interpreter check
-            # fails
+            # Try to not take a wrong decision if interpreter check fails
             return True
     else:
-        if installed_version is None:
-            try:
-                actver = get_module_version(module_name)
-            except:
-                # Module is not installed
-                return False
-        else:
-            actver = installed_version
-        if actver is None and version is not None:
+        # interpreter is None, just get module version in Spyder environment
+        try:
+            module_version = get_module_version(module_name)
+        except Exception:
+            # Module is not installed
             return False
-        elif version is None:
-            return True
+
+    if version is None:
+        return True
+    else:
+        if ';' in version:
+            versions = version.split(';')
         else:
-            if ';' in version:
-                output = True
-                for ver in version.split(';'):
-                    output = output and is_module_installed(module_name, ver)
-                return output
-            match = re.search(r'[0-9]', version)
+            versions = [version]
+
+        output = True
+        for _ver in versions:
+            match = re.search(r'[0-9]', _ver)
             assert match is not None, "Invalid version number"
-            symb = version[:match.start()]
+            symb = _ver[:match.start()]
             if not symb:
                 symb = '='
             assert symb in ('>=', '>', '=', '<', '<='),\
-                    "Invalid version condition '%s'" % symb
-            version = version[match.start():]
-
-            return check_version(actver, version, symb)
+                "Invalid version condition '%s'" % symb
+            ver = _ver[match.start():]
+            output = output and check_version(module_version, ver, symb)
+        return output
 
 
 def is_python_interpreter_valid_name(filename):
@@ -950,7 +964,7 @@ def is_pythonw(filename):
 def check_python_help(filename):
     """Check that the python interpreter can compile and provide the zen."""
     try:
-        proc = run_program(filename, ['-c', 'import this'])
+        proc = run_program(filename, ['-c', 'import this'], env={})
         stdout, _ = proc.communicate()
         stdout = to_text_string(stdout)
         valid_lines = [

@@ -34,10 +34,10 @@ ATOMICWRITES_REQVER = '>=1.2.0'
 CHARDET_REQVER = '>=2.0.0'
 CLOUDPICKLE_REQVER = '>=0.5.0'
 DIFF_MATCH_PATCH_REQVER = '>=20181111'
-INTERVALTREE_REQVER = None
+INTERVALTREE_REQVER = '>=3.0.2'
 IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
 JEDI_REQVER = '=0.17.2'
-KEYRING_REQVER = None
+KEYRING_REQVER = '>=17.0.0'
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
 PARAMIKO_REQVER = '>=2.4.0'
@@ -48,6 +48,7 @@ PSUTIL_REQVER = '>=5.3'
 PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=1.0'
 PYLS_REQVER = '>=0.35.0;<1.0.0'
+PYLS_BLACK_REQVER = '>=0.4.6'
 PYLS_SPYDER_REQVER = '>=0.1.1'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
@@ -56,9 +57,11 @@ QTAWESOME_REQVER = '>=0.5.7'
 QTCONSOLE_REQVER = '>=4.7.7'
 QTPY_REQVER = '>=1.5.0'
 RTREE_REQVER = '>=0.8.3'
+SETUPTOOLS_REQVER = '>=39.0.0'
 SPHINX_REQVER = '>=0.6.6'
 SPYDER_KERNELS_REQVER = '>=1.9.4;<1.10.0'
-WATCHDOG_REQVER = None
+THREE_MERGE_REQVER = '>=0.1.1'
+WATCHDOG_REQVER = '>=0.10.3'
 
 
 # Optional dependencies
@@ -159,6 +162,11 @@ DESCRIPTIONS = [
      'package_name': 'python-language-server',
      'features': _("Code completion and linting for the Editor"),
      'required_version': PYLS_REQVER},
+    {'modname': 'pyls_black',
+     'package_name': 'pyls-black',
+     'features': _("Autoformat Python files in the Editor with the Black "
+                   "package"),
+     'required_version': PYLS_BLACK_REQVER},
     {'modname': 'pyls_spyder',
      'package_name': 'pyls-spyder',
      'features': _('Spyder plugin for the Python Language Server'),
@@ -193,6 +201,10 @@ DESCRIPTIONS = [
      'features': _("Fast access to code snippets regions"),
      'required_version': RTREE_REQVER,
      'display': is_anaconda()},
+    {'modname': "setuptools",
+     'package_name': "setuptools",
+     'features': _("Determine package version"),
+     'required_version': SETUPTOOLS_REQVER},
     {'modname': "sphinx",
      'package_name': "sphinx",
      'features': _("Show help for objects in the Editor and Consoles in a dedicated pane"),
@@ -201,6 +213,10 @@ DESCRIPTIONS = [
      'package_name': "spyder-kernels",
      'features': _("Jupyter kernels for the Spyder console"),
      'required_version': SPYDER_KERNELS_REQVER},
+    {'modname': "three_merge",
+     'package_name': "three-merge",
+     'features': _("3-way merge algorithm to merge document changes"),
+     'required_version': THREE_MERGE_REQVER},
     {'modname': "watchdog",
      'package_name': "watchdog",
      'features': _("Watch file changes on project directories"),
@@ -276,10 +292,9 @@ class Dependency(object):
 
     def check(self):
         """Check if dependency is installed"""
-        if self.required_version and self.installed_version:
+        if self.required_version:
             return programs.is_module_installed(self.modname,
-                                                self.required_version,
-                                                self.installed_version)
+                                                self.required_version)
         else:
             return True
 

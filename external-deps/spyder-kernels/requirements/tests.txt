@@ -10,3 +10,4 @@ pytest
 pytest-cov
 scipy
 xarray
+pillow

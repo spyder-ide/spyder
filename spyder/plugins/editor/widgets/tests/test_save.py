@@ -315,6 +315,8 @@ def test_save_as_with_outline(editor_bot, mocker, tmpdir):
     # Add an outline explorer to the editor stack and refresh it.
     editorstack.set_outlineexplorer(OutlineExplorerWidget())
     qtbot.addWidget(editorstack.outlineexplorer)
+    for finfo in editorstack.data:
+        editorstack.outlineexplorer.register_editor(finfo.editor.oe_proxy)
     editorstack.refresh()
 
     # No save name.

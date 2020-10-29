@@ -297,7 +297,6 @@ def test_clicked(qtbot, file_explorer_associations, tmp_path):
     some_dir.mkdir()
     fpath = some_dir / 'text.txt'
     fpath.write_text(u'hello!')
-    widget.set_show_all(True)
     widget.chdir(str(some_dir))
     qtbot.wait(500)
 

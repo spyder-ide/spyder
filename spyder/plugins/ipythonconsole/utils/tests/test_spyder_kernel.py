@@ -18,9 +18,9 @@ from spyder.plugins.ipythonconsole.utils.kernelspec import SpyderKernelSpec
 
 
 @pytest.mark.parametrize('default_interpreter', [True, False])
-def test_preserve_pypath(tmpdir, default_interpreter):
+def test_dont_preserve_pypath(tmpdir, default_interpreter):
     """
-    Test that we preserve PYTHONPATH in the env vars passed to the kernel
+    Test that PYTHONPATH is not preserved in the env vars passed to the kernel
     when an external interpreter is used or not.
 
     Regression test for spyder-ide/spyder#8681.
@@ -32,9 +32,9 @@ def test_preserve_pypath(tmpdir, default_interpreter):
     pypath = to_text_string(tmpdir.mkdir('test-pypath'))
     os.environ['PYTHONPATH'] = pypath
 
-    # Check that PYTHONPATH is in our kernelspec
+    # Check that PYTHONPATH is not the same as in our kernelspec
     kernel_spec = SpyderKernelSpec()
-    assert pypath in kernel_spec.env['PYTHONPATH']
+    assert pypath not in kernel_spec.env['PYTHONPATH']
 
     # Restore default value
     CONF.set('main_interpreter', 'default', True)

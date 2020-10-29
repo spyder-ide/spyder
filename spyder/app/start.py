@@ -30,10 +30,21 @@ except:
 # Local imports
 from spyder.app.cli_options import get_options
 from spyder.config.base import (get_conf_path, running_in_mac_app,
-                                running_under_pytest)
-from spyder.config.manager import CONF
+                                reset_config_files, running_under_pytest)
 from spyder.utils.external import lockfile
 from spyder.py3compat import is_unicode
+
+
+# Get argv
+if running_under_pytest():
+    sys_argv = [sys.argv[0]]
+    CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
+else:
+    CLI_OPTIONS, CLI_ARGS = get_options()
+
+# Start Spyder with a clean configuration directory for testing purposes
+if CLI_OPTIONS.safe_mode:
+    os.environ['SPYDER_SAFE_MODE'] = 'True'
 
 
 def send_args_to_spyder(args):
@@ -44,6 +55,7 @@ def send_args_to_spyder(args):
     Args can be Python scripts or files with these extensions: .spydata, .mat,
     .npy, or .h5, which can be imported by the Variable Explorer.
     """
+    from spyder.config.manager import CONF
     port = CONF.get('main', 'open_files_port')
 
     # Wait ~50 secs for the server to be up
@@ -73,20 +85,15 @@ def main():
     options to the application.
     """
     # Parse command line options
-    if running_under_pytest():
-        try:
-            from unittest.mock import Mock
-        except ImportError:
-            from mock import Mock # Python 2
+    options, args = (CLI_OPTIONS, CLI_ARGS)
 
-        options = Mock()
-        options.new_instance = False
-        options.reset_config_files = False
-        options.debug_info = None
-        options.paths = False
-        args = None
-    else:
-        options, args = get_options()
+    # This is to allow reset without reading our conf file
+    if options.reset_config_files:
+        # <!> Remove all configuration files!
+        reset_config_files()
+        return
+
+    from spyder.config.manager import CONF
 
     # Store variable to be used in self.restart (restart spyder instance)
     os.environ['SPYDER_ARGS'] = str(sys.argv[1:])
@@ -190,18 +197,18 @@ def main():
             # sense
             from spyder.app import mainwindow
             if running_under_pytest():
-                return mainwindow.main()
+                return mainwindow.main(options, args)
             else:
-                mainwindow.main()
+                mainwindow.main(options, args)
                 return
 
         if lock_created:
             # Start a new instance
             from spyder.app import mainwindow
             if running_under_pytest():
-                return mainwindow.main()
+                return mainwindow.main(options, args)
             else:
-                mainwindow.main()
+                mainwindow.main(options, args)
         else:
             # Pass args to Spyder or print an informative
             # message
@@ -213,9 +220,9 @@ def main():
     else:
         from spyder.app import mainwindow
         if running_under_pytest():
-            return mainwindow.main()
+            return mainwindow.main(options, args)
         else:
-            mainwindow.main()
+            mainwindow.main(options, args)
 
 
 if __name__ == "__main__":

@@ -30,14 +30,14 @@ from spyder.utils.introspection.module_completion import PREFERRED_MODULES
 EXCLUDE_PATTERNS = ['*.csv, *.dat, *.log, *.tmp, *.bak, *.orig']
 
 # Extensions that should be visible in Spyder's file/project explorers
-SHOW_EXT = ['.py', '.ipynb', '.txt', '.dat', '.pdf', '.png', '.svg']
+SHOW_EXT = ['.py', '.ipynb', '.dat', '.pdf', '.png', '.svg']
 
 # Extensions supported by Spyder (Editor or Variable explorer)
 USEFUL_EXT = IMPORT_EXT + SHOW_EXT
 
 # Name filters for file/project explorers (excluding files without extension)
-NAME_FILTERS = ['README', 'INSTALL', 'LICENSE', 'CHANGELOG'] + \
-               ['*' + _ext for _ext in USEFUL_EXT if _ext]
+NAME_FILTERS = ['README', 'INSTALL', 'LICENSE', 'CHANGELOG']
+NAME_FILTERS += ['*' + _ext for _ext in USEFUL_EXT if _ext not in NAME_FILTERS]
 
 # Port used to detect if there is a running instance and to communicate with
 # it to open external files
@@ -62,15 +62,12 @@ DEFAULTS = [
               'opengl': 'software',
               'single_instance': True,
               'open_files_port': OPEN_FILES_PORT,
-              'tear_off_menus': False,
               'mac_open_file': False,
               'normal_screen_resolution': True,
               'high_dpi_scaling': False,
               'high_dpi_custom_scale_factor': False,
               'high_dpi_custom_scale_factors': '1.5',
-              'vertical_dockwidget_titlebars': False,
               'vertical_tabs': False,
-              'animated_docks': True,
               'prompt_on_exit': False,
               'panes_locked': True,
               'window/size': (1260, 740),
@@ -94,6 +91,7 @@ DEFAULTS = [
               'cursor/width': 2,
               'completion/size': (300, 180),
               'report_error/remember_token': False,
+              'show_tour_message': True,
               }),
             ('quick_layouts',
              {
@@ -126,7 +124,6 @@ DEFAULTS = [
              {
               'show_banner': True,
               'completion_type': 0,
-              'use_pager': False,
               'show_calltips': True,
               'ask_before_closing': False,
               'show_reset_namespace_warning': True,
@@ -153,13 +150,13 @@ DEFAULTS = [
               # This is True because there are libraries like Pyomo
               # that generate a lot of Command Prompts while running,
               # and that's extremely annoying for Windows users.
-              'hide_cmd_windows': True
-              }),
-            ('run',
-             {
+              'hide_cmd_windows': True,
+              'pdb_prevent_closing': True,
               'pdb_ignore_lib': False,
-              'pdb_execute_events': True
-             }),
+              'pdb_execute_events': True,
+              'pdb_use_exclamation_mark': True,
+              'pdb_stop_first_line': True,
+              }),
             ('variable_explorer',
              {
               'check_all': CHECK_ALL,
@@ -226,6 +223,8 @@ DEFAULTS = [
               'occurrence_highlighting': True,
               'occurrence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
+              'add_newline': False,
+              'always_remove_trailing_newlines': False,
               'show_tab_bar': True,
               'show_class_func_dropdown': False,
               'max_recent_files': 20,
@@ -364,6 +363,8 @@ DEFAULTS = [
               '_/switch to find_in_files': "Ctrl+Shift+F",
               '_/switch to explorer': "Ctrl+Shift+X",
               '_/switch to plots': "Ctrl+Shift+G",
+              '_/switch to pylint': "Ctrl+Shift+C",
+              '_/switch to profiler': "Ctrl+Shift+R",
               # -- In widgets/findreplace.py
               'find_replace/find text': "Ctrl+F",
               'find_replace/find next': "F3",
@@ -450,6 +451,7 @@ DEFAULTS = [
               'editor/split horizontally': "Ctrl+_",
               'editor/close split panel': "Alt+Shift+W",
               'editor/docstring': "Ctrl+Alt+D",
+              'editor/autoformatting': "Ctrl+Alt+I",
               'editor/show in external file explorer': '',
               # -- In Breakpoints
               '_/switch to breakpoints': "Ctrl+Shift+B",
@@ -504,6 +506,8 @@ DEFAULTS = [
               'preload_modules': PRELOAD_MDOULES,
               'pyflakes': True,
               'mccabe': False,
+              'formatting': 'autopep8',
+              'format_on_save': False,
               'pycodestyle': False,
               'pycodestyle/filename': '',
               'pycodestyle/exclude': '',
@@ -635,4 +639,4 @@ NAME_MAP = {
 #    or if you want to *rename* options, then you need to do a MAJOR update in
 #    version, e.g. from 3.0.0 to 4.0.0
 # 3. You don't need to touch this value if you're just adding a new option
-CONF_VERSION = '58.1.0'
+CONF_VERSION = '61.0.0'

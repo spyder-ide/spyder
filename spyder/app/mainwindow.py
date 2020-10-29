@@ -109,13 +109,13 @@ from spyder.config.base import running_under_pytest
 # Ignore args if running tests or Spyder will try and fail to parse pytests's.
 if running_under_pytest():
     sys_argv = [sys.argv[0]]
-    CLI_OPTIONS, CLI_ARGS = get_options(sys_argv)
+    cli_options, __ = get_options(sys_argv)
 else:
-    CLI_OPTIONS, CLI_ARGS = get_options()
+    cli_options, __ = get_options()
 
 # **** Set OpenGL implementation to use ****
-if CLI_OPTIONS.opengl_implementation:
-    option = CLI_OPTIONS.opengl_implementation
+if cli_options.opengl_implementation:
+    option = cli_options.opengl_implementation
     set_opengl_implementation(option)
 else:
     if CONF.get('main', 'opengl') != 'automatic':
@@ -145,7 +145,7 @@ if hasattr(MAIN_APP, 'setDesktopFileName'):
 #==============================================================================
 # Create splash screen out of MainWindow to reduce perceived startup time.
 #==============================================================================
-from spyder.config.base import _, get_image_path, DEV
+from spyder.config.base import _, get_image_path, DEV, get_safe_mode
 
 if not running_under_pytest():
     SPLASH = QSplashScreen(QPixmap(get_image_path('splash.svg')))
@@ -164,7 +164,8 @@ else:
 # Local utility imports
 #==============================================================================
 from spyder import (__version__, __project_url__, __forum_url__,
-                    __trouble_url__, __website_url__, get_versions)
+                    __trouble_url__, __website_url__, get_versions,
+                    __docs_url__)
 from spyder.app.utils import (get_python_doc_path, delete_lsp_log_files,
                               qt_message_handler, setup_logging)
 from spyder.config.base import (get_conf_path, get_module_source_path, STDERR,
@@ -221,11 +222,19 @@ CWD = getcwd_or_home()
 qInstallMessageHandler(qt_message_handler)
 
 #==============================================================================
+# Set the index for the default tour
+#==============================================================================
+DEFAULT_TOUR = 0
+
+#==============================================================================
 # Main Window
 #==============================================================================
 class MainWindow(QMainWindow):
     """Spyder main window"""
-    DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
+    DOCKOPTIONS = (
+        QMainWindow.AllowTabbedDocks | QMainWindow.AllowNestedDocks |
+        QMainWindow.AnimatedDocks
+    )
     CURSORBLINK_OSDEFAULT = QApplication.cursorFlashTime()
     SPYDER_PATH = get_conf_path('path')
     SPYDER_NOT_ACTIVE_PATH = get_conf_path('not_active_path')
@@ -345,6 +354,7 @@ class MainWindow(QMainWindow):
         # Tour  # TODO: Should I consider it a plugin?? or?
         self.tour = None
         self.tours_available = None
+        self.tour_dialog = None
 
         # File switcher
         self.switcher = None
@@ -418,7 +428,7 @@ class MainWindow(QMainWindow):
         self.help_menu_actions = []
 
         # Status bar widgets
-        self.conda_status = None
+        self.interpreter_status = None
         self.mem_status = None
         self.cpu_status = None
         self.clock_status = None
@@ -526,7 +536,10 @@ class MainWindow(QMainWindow):
                                                    socket.SOCK_STREAM,
                                                    socket.IPPROTO_TCP)
 
-        # Apply preferences
+        # To show the message about starting the tour
+        self.sig_setup_finished.connect(self.show_tour_message)
+
+        # Apply main window settings
         self.apply_settings()
 
         # To set all dockwidgets tabs to be on top (in case we want to do it
@@ -676,6 +689,8 @@ class MainWindow(QMainWindow):
         self.source_menu = self.menuBar().addMenu(_("Sour&ce"))
         self.source_toolbar = self.create_toolbar(_("Source toolbar"),
                                                     "source_toolbar")
+        self.source_menu.aboutToShow.connect(self.update_source_menu)
+
         # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
         self.run_toolbar = self.create_toolbar(_("Run toolbar"),
@@ -827,8 +842,17 @@ class MainWindow(QMainWindow):
                                         _("Fullscreen mode"),
                                         triggered=self.toggle_fullscreen,
                                         context=Qt.ApplicationShortcut)
-        self.register_shortcut(self.fullscreen_action, "_",
-                               "Fullscreen mode", add_shortcut_to_tip=True)
+        if sys.platform == 'darwin':
+            self.fullscreen_action.setEnabled(False)
+            self.fullscreen_action.setToolTip(_("For fullscreen mode use "
+                                               "macOS built-in feature"))
+        else:
+            self.register_shortcut(
+                self.fullscreen_action,
+                "_",
+                "Fullscreen mode",
+                add_shortcut_to_tip=True
+            )
 
         # Main toolbar
         self.main_toolbar_actions = [self.maximize_action,
@@ -861,6 +885,7 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Starting code completion manager..."))
         from spyder.plugins.completion.plugin import CompletionManager
         self.completions = CompletionManager(self)
+        self.completions.start()
 
         # Working directory plugin
         logger.info("Loading working directory...")
@@ -883,22 +908,19 @@ class MainWindow(QMainWindow):
             self.outlineexplorer = OutlineExplorer(self)
             self.outlineexplorer.register_plugin()
 
-        if is_anaconda():
-            from spyder.widgets.status import CondaStatus
-            self.conda_status = CondaStatus(self, status,
-                                            icon=ima.icon('environment'))
-            self.conda_status.update_interpreter(self.get_main_interpreter())
+        from spyder.widgets.status import InterpreterStatus
+        self.interpreter_status = InterpreterStatus(
+            self,
+            status,
+            icon=ima.icon('environment'),
+        )
+        self.interpreter_status.update_interpreter(self.get_main_interpreter())
 
         # Editor plugin
         self.set_splash(_("Loading editor..."))
         from spyder.plugins.editor.plugin import Editor
         self.editor = Editor(self)
         self.editor.register_plugin()
-
-        # Start code completion client
-        self.set_splash(_("Launching code completion client for Python..."))
-        self.completions.start()
-        self.completions.start_client(language='python')
 
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -1015,7 +1037,9 @@ class MainWindow(QMainWindow):
 
                     dependencies.add(module, name, description,
                                      '', None, kind=dependencies.PLUGIN)
-
+            except TypeError:
+                # Fixes spyder-ide/spyder#13977
+                pass
             except Exception as error:
                 print("%s: %s" % (mod, str(error)), file=STDERR)
                 traceback.print_exc(file=STDERR)
@@ -1041,19 +1065,19 @@ class MainWindow(QMainWindow):
                                                 triggered=self.check_updates)
 
         # Spyder documentation
-        spyder_doc = 'https://docs.spyder-ide.org/'
         doc_action = create_action(self, _("Spyder documentation"),
                                    icon=ima.icon('DialogHelpButton'),
                                    triggered=lambda:
-                                   programs.start_file(spyder_doc))
+                                   programs.start_file(__docs_url__))
         self.register_shortcut(doc_action, "_",
                                "spyder documentation")
 
-        if self.help is not None:
-            tut_action = create_action(self, _("Spyder tutorial"),
-                                       triggered=self.help.show_tutorial)
-        else:
-            tut_action = None
+        spyder_vid = ("https://www.youtube.com/playlist"
+                      "?list=PLPonohdiDqg9epClEcXoAPUiK0pN5eRoc")
+        vid_action = create_action(self, _("Tutorial videos"),
+                                   icon=ima.icon('VideoIcon'),
+                                   triggered=lambda:
+                                   programs.start_file(spyder_vid))
 
         shortcuts_action = create_action(self, _("Shortcuts Summary"),
                                          shortcut="Meta+F1",
@@ -1061,27 +1085,31 @@ class MainWindow(QMainWindow):
 
         #----- Tours
         self.tour = tour.AnimatedTour(self)
-        self.tours_menu = QMenu(_("Interactive tours"), self)
-        self.tour_menu_actions = []
-        # TODO: Only show intro tour for now. When we are close to finish
-        # 3.0, we will finish and show the other tour
-        self.tours_available = tour.get_tours(0)
+        # self.tours_menu = QMenu(_("Interactive tours"), self)
+        # self.tour_menu_actions = []
+        # # TODO: Only show intro tour for now. When we are close to finish
+        # # 3.0, we will finish and show the other tour
+        self.tours_available = tour.get_tours(DEFAULT_TOUR)
 
         for i, tour_available in enumerate(self.tours_available):
             self.tours_available[i]['last'] = 0
             tour_name = tour_available['name']
 
-            def trigger(i=i, self=self):  # closure needed!
-                return lambda: self.show_tour(i)
+        #     def trigger(i=i, self=self):  # closure needed!
+        #         return lambda: self.show_tour(i)
 
-            temp_action = create_action(self, tour_name, tip="",
-                                        triggered=trigger())
-            self.tour_menu_actions += [temp_action]
+        #     temp_action = create_action(self, tour_name, tip="",
+        #                                 triggered=trigger())
+        #     self.tour_menu_actions += [temp_action]
 
-        self.tours_menu.addActions(self.tour_menu_actions)
+        # self.tours_menu.addActions(self.tour_menu_actions)
+        self.tour_action = create_action(
+            self, self.tours_available[DEFAULT_TOUR]['name'],
+            tip=_("Interactive tour introducing Spyder's panes and features"),
+            triggered=lambda: self.show_tour(DEFAULT_TOUR))
 
-        self.help_menu_actions = [doc_action, tut_action, shortcuts_action,
-                                  self.tours_menu,
+        self.help_menu_actions = [doc_action, vid_action, shortcuts_action,
+                                  self.tour_action,
                                   MENU_SEPARATOR, trouble_action,
                                   report_action, dep_action,
                                   self.check_updates_action, support_action,
@@ -1238,15 +1266,6 @@ class MainWindow(QMainWindow):
         logger.info("Setting up window...")
         self.setup_layout(default=False)
 
-        if self.splash is not None:
-            self.splash.hide()
-
-        # Enabling tear off for all menus except help menu
-        if CONF.get('main', 'tear_off_menus'):
-            for child in self.menuBar().children():
-                if isinstance(child, QMenu) and child != self.help_menu:
-                    child.setTearOffEnabled(True)
-
         # Menu about to show
         for child in self.menuBar().children():
             if isinstance(child, QMenu):
@@ -1307,14 +1326,6 @@ class MainWindow(QMainWindow):
         for widget in self.floating_dockwidgets:
             widget.setFloating(True)
 
-        # In MacOS X 10.7 our app is not displayed after initialized (I don't
-        # know why because this doesn't happen when started from the terminal),
-        # so we need to resort to this hack to make it appear.
-        if running_in_mac_app():
-            idx = __file__.index(MAC_APP_NAME)
-            app_path = __file__[:idx]
-            subprocess.call(['open', app_path + MAC_APP_NAME])
-
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
         # $ spyder foo.py
@@ -1356,6 +1367,12 @@ class MainWindow(QMainWindow):
         # Show history file if no console is visible
         if not self.ipyconsole._isvisible:
             self.historylog.add_history(get_conf_path('history.py'))
+
+        # Process pending events and hide splash before loading the
+        # previous session.
+        QApplication.processEvents()
+        if self.splash is not None:
+            self.splash.hide()
 
         if self.open_project:
             self.projects.open_project(self.open_project)
@@ -1532,18 +1549,24 @@ class MainWindow(QMainWindow):
                   ) % missing_deps, QMessageBox.Ok)
 
     def load_window_settings(self, prefix, default=False, section='main'):
-        """Load window layout settings from userconfig-based configuration
-        with *prefix*, under *section*
-        default: if True, do not restore inner layout"""
+        """
+        Load window layout settings from userconfig-based configuration
+        with `prefix`, under `section`.
+
+        Parameters
+        ----------
+        default: bool
+            If True, do not restore inner layout.
+        """
         get_func = CONF.get_default if default else CONF.get
-        window_size = get_func(section, prefix+'size')
-        prefs_dialog_size = get_func(section, prefix+'prefs_dialog_size')
+        window_size = get_func(section, prefix + 'size')
+        prefs_dialog_size = get_func(section, prefix + 'prefs_dialog_size')
         if default:
             hexstate = None
         else:
-            hexstate = get_func(section, prefix+'state', None)
+            hexstate = get_func(section, prefix + 'state', None)
 
-        pos = get_func(section, prefix+'position')
+        pos = get_func(section, prefix + 'position')
 
         # It's necessary to verify if the window/position value is valid
         # with the current screen. See spyder-ide/spyder#3748.
@@ -1553,16 +1576,19 @@ class MainWindow(QMainWindow):
         current_width = screen_shape.width()
         current_height = screen_shape.height()
         if current_width < width or current_height < height:
-            pos = CONF.get_default(section, prefix+'position')
+            pos = CONF.get_default(section, prefix + 'position')
 
-        is_maximized =  get_func(section, prefix+'is_maximized')
-        is_fullscreen = get_func(section, prefix+'is_fullscreen')
-        return hexstate, window_size, prefs_dialog_size, pos, is_maximized, \
-               is_fullscreen
+        is_maximized = get_func(section, prefix + 'is_maximized')
+        is_fullscreen = get_func(section, prefix + 'is_fullscreen')
+        return (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
+                is_fullscreen)
 
     def get_window_settings(self):
-        """Return current window settings
-        Symetric to the 'set_window_settings' setter"""
+        """
+        Return current window settings.
+
+        Symmetric to the 'set_window_settings' setter.
+        """
         window_size = (self.window_size.width(), self.window_size.height())
         is_fullscreen = self.isFullScreen()
         if is_fullscreen:
@@ -1578,8 +1604,11 @@ class MainWindow(QMainWindow):
 
     def set_window_settings(self, hexstate, window_size, prefs_dialog_size,
                             pos, is_maximized, is_fullscreen):
-        """Set window settings
-        Symetric to the 'get_window_settings' accessor"""
+        """
+        Set window settings.
+
+        Symmetric to the 'get_window_settings' accessor.
+        """
         self.setUpdatesEnabled(False)
         self.window_size = QSize(window_size[0], window_size[1]) # width,height
         self.prefs_dialog_size = QSize(prefs_dialog_size[0],
@@ -1615,26 +1644,31 @@ class MainWindow(QMainWindow):
 
     def save_current_window_settings(self, prefix, section='main',
                                      none_state=False):
-        """Save current window settings with *prefix* in
-        the userconfig-based configuration, under *section*"""
-        win_size = self.window_size
+        """
+        Save current window settings with `prefix` in
+        the userconfig-based configuration, under `section`.
+        """
+        # Use current size and position when saving window settings.
+        # Fixes spyder-ide/spyder#13882
+        win_size = self.size()
+        pos = self.pos()
         prefs_size = self.prefs_dialog_size
 
-        CONF.set(section, prefix+'size', (win_size.width(), win_size.height()))
-        CONF.set(section, prefix+'prefs_dialog_size',
+        CONF.set(section, prefix + 'size',
+                 (win_size.width(), win_size.height()))
+        CONF.set(section, prefix + 'prefs_dialog_size',
                  (prefs_size.width(), prefs_size.height()))
-        CONF.set(section, prefix+'is_maximized', self.isMaximized())
-        CONF.set(section, prefix+'is_fullscreen', self.isFullScreen())
-        pos = self.window_position
-        CONF.set(section, prefix+'position', (pos.x(), pos.y()))
+        CONF.set(section, prefix + 'is_maximized', self.isMaximized())
+        CONF.set(section, prefix + 'is_fullscreen', self.isFullScreen())
+        CONF.set(section, prefix + 'position', (pos.x(), pos.y()))
         self.maximize_dockwidget(restore=True)# Restore non-maximized layout
         if none_state:
             CONF.set(section, prefix + 'state', None)
         else:
             qba = self.saveState()
             CONF.set(section, prefix + 'state', qbytearray_to_str(qba))
-        CONF.set(section, prefix+'statusbar',
-                    not self.statusBar().isHidden())
+        CONF.set(section, prefix + 'statusbar',
+                 not self.statusBar().isHidden())
 
     def tabify_plugins(self, first, second):
         """Tabify plugin dockwigdets"""
@@ -1959,11 +1993,9 @@ class MainWindow(QMainWindow):
         self.toggle_layout('next')
 
     def toggle_layout(self, direction='next'):
-        """ """
-        get = CONF.get
-        names = get('quick_layouts', 'names')
-        order = get('quick_layouts', 'order')
-        active = get('quick_layouts', 'active')
+        names = CONF.get('quick_layouts', 'names')
+        order = CONF.get('quick_layouts', 'order')
+        active = CONF.get('quick_layouts', 'active')
 
         if len(active) == 0:
             return
@@ -1989,11 +2021,9 @@ class MainWindow(QMainWindow):
         self.quick_layout_switch(layout_index[new_index])
 
     def quick_layout_set_menu(self):
-        """ """
-        get = CONF.get
-        names = get('quick_layouts', 'names')
-        order = get('quick_layouts', 'order')
-        active = get('quick_layouts', 'active')
+        names = CONF.get('quick_layouts', 'names')
+        order = CONF.get('quick_layouts', 'order')
+        active = CONF.get('quick_layouts', 'active')
 
         ql_actions = []
 
@@ -2053,11 +2083,9 @@ class MainWindow(QMainWindow):
 
     def quick_layout_save(self):
         """Save layout dialog"""
-        get = CONF.get
-        set_ = CONF.set
-        names = get('quick_layouts', 'names')
-        order = get('quick_layouts', 'order')
-        active = get('quick_layouts', 'active')
+        names = CONF.get('quick_layouts', 'names')
+        order = CONF.get('quick_layouts', 'order')
+        active = CONF.get('quick_layouts', 'active')
 
         dlg = self.dialog_layout_save(self, names)
 
@@ -2065,11 +2093,13 @@ class MainWindow(QMainWindow):
             name = dlg.combo_box.currentText()
 
             if name in names:
-                answer = QMessageBox.warning(self, _("Warning"),
-                                             _("Layout <b>%s</b> will be \
-                                               overwritten. Do you want to \
-                                               continue?") % name,
-                                             QMessageBox.Yes | QMessageBox.No)
+                answer = QMessageBox.warning(
+                    self,
+                    _("Warning"),
+                    _("<b>%s</b> will be overwritten. Do you want to "
+                      "continue?") % name,
+                    QMessageBox.Yes | QMessageBox.No
+                )
                 index = order.index(name)
             else:
                 answer = True
@@ -2089,27 +2119,23 @@ class MainWindow(QMainWindow):
             if answer:
                 self.save_current_window_settings('layout_{}/'.format(index),
                                                   section='quick_layouts')
-                set_('quick_layouts', 'names', names)
-                set_('quick_layouts', 'order', order)
-                set_('quick_layouts', 'active', active)
+                CONF.set('quick_layouts', 'names', names)
+                CONF.set('quick_layouts', 'order', order)
+                CONF.set('quick_layouts', 'active', active)
                 self.quick_layout_set_menu()
 
     def quick_layout_settings(self):
         """Layout settings dialog"""
-        get = CONF.get
-        set_ = CONF.set
-
         section = 'quick_layouts'
-
-        names = get(section, 'names')
-        order = get(section, 'order')
-        active = get(section, 'active')
+        names = CONF.get(section, 'names')
+        order = CONF.get(section, 'order')
+        active = CONF.get(section, 'active')
 
         dlg = self.dialog_layout_settings(self, names, order, active)
         if dlg.exec_():
-            set_(section, 'names', dlg.names)
-            set_(section, 'order', dlg.order)
-            set_(section, 'active', dlg.active)
+            CONF.set(section, 'names', dlg.names)
+            CONF.set(section, 'order', dlg.order)
+            CONF.set(section, 'active', dlg.active)
             self.quick_layout_set_menu()
 
     def quick_layout_switch(self, index):
@@ -2122,7 +2148,7 @@ class MainWindow(QMainWindow):
             (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
              is_fullscreen) = settings
 
-            # The defaults layouts will always be regenerated unless there was
+            # The default layouts will always be regenerated unless there was
             # an overwrite, either by rewriting with same name, or by deleting
             # and then creating a new one
             if hexstate is None:
@@ -2143,9 +2169,6 @@ class MainWindow(QMainWindow):
                                  _("Quick switch layout #%s has not yet "
                                    "been defined.") % str(index))
             return
-            # TODO: is there any real use in calling the previous layout
-            # setting?
-            # self.previous_layout_settings = self.get_window_settings()
         self.set_window_settings(*settings)
         self.current_quick_layout = index
 
@@ -2241,6 +2264,10 @@ class MainWindow(QMainWindow):
                           "Since it is the current active project, it will "
                           "be closed automatically.").format(path))
                 self.projects.close_project()
+
+    def update_source_menu(self):
+        """Update source menu options that vary dynamically."""
+        self.editor.refresh_formatter_name()
 
     def free_memory(self):
         """Free memory after event."""
@@ -2522,9 +2549,6 @@ class MainWindow(QMainWindow):
         """Add a plugin QDockWidget to the window."""
         if plugin._is_compatible:
             dockwidget, location = plugin._create_dockwidget()
-            if CONF.get('main', 'vertical_dockwidget_titlebars'):
-                dockwidget.setFeatures(dockwidget.features()|
-                                       QDockWidget.DockWidgetVerticalTitleBar)
             self.addDockWidget(location, dockwidget)
             self.widgetlist.append(plugin)
 
@@ -2954,7 +2978,7 @@ class MainWindow(QMainWindow):
             if active:
                 sys.path.insert(1, path)
 
-        # Any plugin that needs to do some work based on this sigal should
+        # Any plugin that needs to do some work based on this signal should
         # connect to it on plugin registration
         self.sig_pythonpath_changed.emit(path_dict, new_path_dict_p)
 
@@ -2988,8 +3012,9 @@ class MainWindow(QMainWindow):
 
     #---- Preferences
     def apply_settings(self):
-        """Apply settings changed in 'Preferences' dialog box"""
+        """Apply main window settings."""
         qapp = QApplication.instance()
+
         # Set 'gtk+' as the default theme in Gtk-based desktops
         # Fixes spyder-ide/spyder#2036.
         if is_gtk_desktop() and ('GTK+' in QStyleFactory.keys()):
@@ -3008,15 +3033,14 @@ class MainWindow(QMainWindow):
         default = self.DOCKOPTIONS
         if CONF.get('main', 'vertical_tabs'):
             default = default|QMainWindow.VerticalTabs
-        if CONF.get('main', 'animated_docks'):
-            default = default|QMainWindow.AnimatedDocks
         self.setDockOptions(default)
 
         self.apply_panes_settings()
         self.apply_statusbar_settings()
 
         if CONF.get('main', 'use_custom_cursor_blinking'):
-            qapp.setCursorFlashTime(CONF.get('main', 'custom_cursor_blinking'))
+            qapp.setCursorFlashTime(
+                CONF.get('main', 'custom_cursor_blinking'))
         else:
             qapp.setCursorFlashTime(self.CURSORBLINK_OSDEFAULT)
 
@@ -3024,8 +3048,6 @@ class MainWindow(QMainWindow):
         """Update dockwidgets features settings"""
         for plugin in (self.widgetlist + self.thirdparty_plugins):
             features = plugin.dockwidget.FEATURES
-            if CONF.get('main', 'vertical_dockwidget_titlebars'):
-                features = features | QDockWidget.DockWidgetVerticalTitleBar
             plugin.dockwidget.setFeatures(features)
             plugin._update_margins()
 
@@ -3042,10 +3064,10 @@ class MainWindow(QMainWindow):
                     widget.setVisible(CONF.get('main', '%s/enable' % name))
                     widget.set_interval(CONF.get('main', '%s/timeout' % name))
 
-            # Update conda status widget
-            if is_anaconda() and self.conda_status:
+            # Update interpreter status widget
+            if self.interpreter_status:
                 interpreter = self.get_main_interpreter()
-                self.conda_status.update_interpreter(interpreter)
+                self.interpreter_status.update_interpreter(interpreter)
         else:
             return
 
@@ -3413,6 +3435,19 @@ class MainWindow(QMainWindow):
         self.give_updates_feedback = True
 
     @Slot()
+    def show_tour_message(self, force=False):
+        """
+        Show message about starting the tour the first time Spyder starts.
+        """
+        should_show_tour = CONF.get('main', 'show_tour_message')
+        if force or (should_show_tour and not running_under_pytest()
+                     and not get_safe_mode()):
+            CONF.set('main', 'show_tour_message', False)
+            self.tour_dialog = tour.OpenTourDialog(
+                self, lambda: self.show_tour(DEFAULT_TOUR))
+            self.tour_dialog.show()
+
+    @Slot()
     def check_updates(self, startup=False):
         """
         Check for spyder updates on github releases using a QThread.
@@ -3576,7 +3611,7 @@ def run_spyder(app, options, args):
 #==============================================================================
 # Main
 #==============================================================================
-def main():
+def main(options, args):
     """Main function"""
     # **** For Pytest ****
     if running_under_pytest():
@@ -3585,14 +3620,8 @@ def main():
             set_opengl_implementation(option)
 
         app = initialize()
-        window = run_spyder(app, CLI_OPTIONS, None)
+        window = run_spyder(app, options, None)
         return window
-
-    # **** Collect command line options ****
-    # Note regarding Options:
-    # It's important to collect options before monkey patching sys.exit,
-    # otherwise, argparse won't be able to exit if --help option is passed
-    options, args = (CLI_OPTIONS, CLI_ARGS)
 
     # **** Handle hide_console option ****
     if options.show_console:
@@ -3613,12 +3642,7 @@ def main():
     # **** Create the application ****
     app = initialize()
 
-    # **** Handle other options ****
-    if options.reset_config_files:
-        # <!> Remove all configuration files!
-        reset_config_files()
-        return
-    elif options.reset_to_defaults:
+    if options.reset_to_defaults:
         # Reset Spyder settings to defaults
         CONF.reset_to_defaults()
         return

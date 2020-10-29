@@ -140,12 +140,12 @@ class FindReplace(QWidget):
         self.replace_text.valid.connect(
                     lambda _: self.replace_find(focus_replace_text=True))
         self.replace_button = create_toolbutton(self,
-                                     text=_('Replace/find next'),
+                                     text=_('Find next'),
                                      icon=ima.icon('DialogApplyButton'),
                                      triggered=self.replace_find,
                                      text_beside_icon=True)
         self.replace_sel_button = create_toolbutton(self,
-                                     text=_('Replace in selection'),
+                                     text=_('In selection'),
                                      icon=ima.icon('DialogApplyButton'),
                                      triggered=self.replace_find_selection,
                                      text_beside_icon=True)
@@ -153,7 +153,7 @@ class FindReplace(QWidget):
         self.replace_sel_button.clicked.connect(self.update_search_combo)
 
         self.replace_all_button = create_toolbutton(self,
-                                     text=_('Replace all'),
+                                     text=_('All'),
                                      icon=ima.icon('DialogApplyButton'),
                                      triggered=self.replace_find_all,
                                      text_beside_icon=True)
