@@ -24,7 +24,7 @@ dependencies:
 - psutil >=5.3
 - pygments >=2.0
 - pylint >=1.0
-- pyls-spyder >=0.1.0
+- pyls-spyder >=0.1.1
 - pyqt <5.13
 - pyyaml
 # NOTE: There's no need to set constraints for python-language-server
