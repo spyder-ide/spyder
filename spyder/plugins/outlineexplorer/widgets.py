@@ -294,7 +294,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     sig_hide_spinner = Signal()
 
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
-                 group_cells=True, show_comments=True, display_variables=True,
+                 group_cells=True, show_comments=True, display_variables=False,
                  sort_files_alphabetically=False,
                  follow_cursor=True):
         self.show_fullpath = show_fullpath
@@ -916,7 +916,7 @@ class OutlineExplorerWidget(QWidget):
     def __init__(self, parent=None, show_fullpath=True, show_all_files=True,
                  group_cells=True, show_comments=True,
                  sort_files_alphabetically=False,
-                 display_variables=True,
+                 display_variables=False,
                  follow_cursor=True,
                  options_button=None):
         QWidget.__init__(self, parent)
