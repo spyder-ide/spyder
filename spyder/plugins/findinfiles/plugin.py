@@ -81,7 +81,7 @@ class FindInFiles(SpyderPluginWidget):
         """Toggle widget visibility"""
         if self.dockwidget:
             self.dockwidget.setVisible(state)
-    
+
     def refreshdir(self):
         """Refresh search directory"""
         self.findinfiles.find_options.set_directory(
@@ -153,7 +153,7 @@ class FindInFiles(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         return _("Find")
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when

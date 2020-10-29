@@ -269,6 +269,8 @@ DEFAULTS = [
               'group_cells': True,
               'sort_files_alphabetically': False,
               'show_comments': True,
+              'follow_cursor': True,
+              'display_variables': False
               }),
             ('project_explorer',
              {

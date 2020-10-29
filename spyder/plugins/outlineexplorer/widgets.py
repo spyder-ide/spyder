@@ -295,13 +295,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
                  group_cells=True, show_comments=True, display_variables=True,
-                 display_innermost=True, sort_files_alphabetically=False,
+                 sort_files_alphabetically=False,
                  follow_cursor=True):
         self.show_fullpath = show_fullpath
         self.show_all_files = show_all_files
         self.group_cells = group_cells
         self.display_variables = display_variables
-        self.display_innermost = display_innermost
         self.follow_cursor = follow_cursor
         self.show_comments = show_comments
         self.sort_files_alphabetically = sort_files_alphabetically
@@ -360,19 +359,19 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             toggled=self.toggle_variables
         )
         display_variables_act.setChecked(self.display_variables)
-        display_innermost_act = create_action(
+        follow_cursor_act = create_action(
             self,
-            text=_('Always display the innermost element'),
-            toggled=self.toggle_innermost
+            text=_('Follow cursor position'),
+            toggled=self.toggle_follow_cursor
         )
-        display_innermost_act.setChecked(self.display_innermost)
+        follow_cursor_act.setChecked(self.follow_cursor)
         sort_files_alphabetically_act = create_action(
             self, text=_('Sort files alphabetically'),
             toggled=self.toggle_sort_files_alphabetically)
         sort_files_alphabetically_act.setChecked(
             self.sort_files_alphabetically)
         actions = [fullpath_act, allfiles_act, group_cells_act,
-                   display_variables_act, display_innermost_act,
+                   display_variables_act, follow_cursor_act,
                    comment_act, sort_files_alphabetically_act, fromcursor_act]
         return actions
 
@@ -420,19 +419,13 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             editor.request_symbols()
 
     @Slot(bool)
-    def toggle_innermost(self, state):
-        self.display_innermost = state
-        if self.follow_cursor:
-            self.go_to_cursor_position(expand=self.display_innermost)
-
-    @Slot(bool)
     def toggle_sort_files_alphabetically(self, state):
         self.sort_files_alphabetically = state
         self.update_all()
         self.__sort_toplevel_items()
 
     @Slot()
-    def go_to_cursor_position(self, expand=True):
+    def go_to_cursor_position(self):
         if self.current_editor is not None:
             editor_id = self.editor_ids[self.current_editor]
             line = self.current_editor.get_cursor_line_number()
@@ -448,19 +441,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 sorted_nodes = sorted(overlap)
                 # The last item of the sorted elements correspond to the current
                 # node if expanding, otherwise it is the first stopper found
-                if language.lower() != 'python' or expand:
-                    idx = -1
-                    self.switch_to_node(sorted_nodes, idx)
-                else:
-                    stoppers = {SymbolKind.CLASS, SymbolKind.METHOD,
-                                SymbolKind.FUNCTION}
-                    for i, interval in enumerate(sorted_nodes[::-1]):
-                        item_ref = interval.data
-                        kind = item_ref.kind
-                        if kind in stoppers:
-                            idx = len(sorted_nodes) - (i + 1)
-                            self.switch_to_node(sorted_nodes, idx)
-                            break
+                idx = -1
+                self.switch_to_node(sorted_nodes, idx)
 
     def switch_to_node(self, sorted_nodes, idx):
         """Given a set of tree nodes, highlight the node on index `idx`."""
@@ -472,14 +454,15 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     @Slot()
     def do_follow_cursor(self):
-        """Go to cursor position without expending."""
+        """Go to cursor position."""
         if self.follow_cursor:
-            self.go_to_cursor_position(expand=self.display_innermost)
+            self.go_to_cursor_position()
 
     @Slot(bool)
     def toggle_follow_cursor(self, state):
         """Follow the cursor."""
         self.follow_cursor = state
+        self.do_follow_cursor()
 
     def connect_current_editor(self, state):
         """Connect or disconnect the editor from signals."""
@@ -935,7 +918,6 @@ class OutlineExplorerWidget(QWidget):
                  sort_files_alphabetically=False,
                  display_variables=True,
                  follow_cursor=True,
-                 display_innermost=True,
                  options_button=None):
         QWidget.__init__(self, parent)
 
@@ -945,7 +927,6 @@ class OutlineExplorerWidget(QWidget):
             show_all_files=show_all_files,
             group_cells=group_cells,
             display_variables=display_variables,
-            display_innermost=display_innermost,
             show_comments=show_comments,
             sort_files_alphabetically=sort_files_alphabetically,
             follow_cursor=follow_cursor,
@@ -1019,7 +1000,7 @@ class OutlineExplorerWidget(QWidget):
             show_all_files=self.treewidget.show_all_files,
             group_cells=self.treewidget.group_cells,
             display_variables=self.treewidget.display_variables,
-            display_innermost=self.treewidget.display_innermost,
+            follow_cursor=self.treewidget.follow_cursor,
             show_comments=self.treewidget.show_comments,
             sort_files_alphabetically=(
                 self.treewidget.sort_files_alphabetically),
