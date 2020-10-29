@@ -779,7 +779,7 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
                              tip=None, restart=False, filters=None,
                              adjust_to_contents=False,
                              default_line_edit=False, section=None,
-                             validate_callback=None, add_file_selector=True):
+                             validate_callback=None):
         """choices: couples (name, key)"""
         combobox = FileComboBox(self, adjust_to_contents=adjust_to_contents,
                                 default_line_edit=default_line_edit)
@@ -798,20 +798,17 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
         self.validate_data[edit] = (
             validate_callback if validate_callback else osp.isfile,
             msg)
-        if add_file_selector:
-            browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
-            browse_btn.setToolTip(_("Select file"))
-            browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
+        browse_btn = QPushButton(ima.icon('FileIcon'), '', self)
+        browse_btn.setToolTip(_("Select file"))
+        browse_btn.clicked.connect(lambda: self.select_file(edit, filters))
 
         layout = QGridLayout()
         layout.addWidget(combobox, 0, 0, 0, 9)
-        if add_file_selector:
-            layout.addWidget(browse_btn, 0, 10)
+        layout.addWidget(browse_btn, 0, 10)
         layout.setContentsMargins(0, 0, 0, 0)
         widget = QWidget(self)
         widget.combobox = combobox
-        if add_file_selector:
-            widget.browse_btn = browse_btn
+        widget.browse_btn = browse_btn
         widget.setLayout(layout)
 
         return widget

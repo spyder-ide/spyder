@@ -37,13 +37,15 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         self.cus_exec_radio = None
         self.pyexec_edit = None
         self.cus_exec_combo = None
+
         conda_env = get_list_conda_envs()
         pyenv_env = get_list_pyenv_envs()
         envs = {**conda_env, **pyenv_env}
-        self.envs = []
+        valid_custom_list = []
         for env in envs.keys():
             path, _ = envs[env]
-            self.envs.append(path)
+            valid_custom_list.append(path)
+        self.set_option('custom_interpreters_list', valid_custom_list)
 
         # Python executable selection (initializing default values as well)
         executable = self.get_option('executable', get_python_executable())
@@ -83,10 +85,6 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         self.def_exec_radio = self.create_radiobutton(
                                 _("Default (i.e. the same as Spyder's)"),
                                 'default', button_group=pyexec_bg)
-        self.env_exec_radio = self.create_radiobutton(
-                                _("Use the following conda/pyenv "
-                                  "interpreter:"),
-                                'conda_pyenv', button_group=pyexec_bg)
         self.cus_exec_radio = self.create_radiobutton(
                                 _("Use the following Python interpreter:"),
                                 'custom', button_group=pyexec_bg)
@@ -98,20 +96,6 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         pyexec_layout = QVBoxLayout()
         pyexec_layout.addWidget(pyexec_label)
         pyexec_layout.addWidget(self.def_exec_radio)
-        pyexec_layout.addWidget(self.env_exec_radio)
-        self.env_exec_combo = self.create_file_combobox(
-            _("Installed conda and pyenv interpreters"),
-            self.envs,
-            'custom_interpreter',
-            default_line_edit=False,
-            adjust_to_contents=True,
-            validate_callback=programs.is_python_interpreter,
-            add_file_selector=False
-        )
-        self.def_exec_radio.toggled.connect(self.env_exec_combo.setDisabled)
-        self.cus_exec_radio.toggled.connect(self.env_exec_combo.setDisabled)
-        self.env_exec_radio.toggled.connect(self.env_exec_combo.setEnabled)
-        pyexec_layout.addWidget(self.env_exec_combo)
         pyexec_layout.addWidget(self.cus_exec_radio)
         self.validate_custom_interpreters_list()
         self.cus_exec_combo = self.create_file_combobox(
@@ -124,7 +108,6 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             validate_callback=programs.is_python_interpreter,
         )
         self.def_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
-        self.env_exec_radio.toggled.connect(self.cus_exec_combo.setDisabled)
         self.cus_exec_radio.toggled.connect(self.cus_exec_combo.setEnabled)
         pyexec_layout.addWidget(self.cus_exec_combo)
         pyexec_group.setLayout(pyexec_layout)
@@ -258,10 +241,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
 
     def apply_settings(self, options):
         if not self.def_exec_radio.isChecked():
-            if self.cus_exec_radio.isChecked():
-                executable = self.pyexec_edit.text()
-            else:
-                executable = self.env_exec_combo.combobox.lineEdit().text()
+            executable = self.pyexec_edit.text()
             executable = osp.normpath(executable)
             if executable.endswith('pythonw.exe'):
                 executable = executable.replace("pythonw.exe", "python.exe")
@@ -276,7 +256,6 @@ class MainInterpreterConfigPage(GeneralConfigPage):
             self.cus_exec_combo.combobox.clear()
             self.cus_exec_combo.combobox.addItems(custom_list)
             self.pyexec_edit.setText(executable)
-            self.env_exec_combo.combobox.lineEdit().setText(executable)
 
             # Show warning compatibility message.
             self.warn_python_compatibility(executable)

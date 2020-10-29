@@ -114,7 +114,6 @@ DEFAULTS = [
              {
               'default': True,
               'custom': False,
-              'conda_pyenv': False,
               'umr/enabled': True,
               'umr/verbose': True,
               'umr/namelist': [],
