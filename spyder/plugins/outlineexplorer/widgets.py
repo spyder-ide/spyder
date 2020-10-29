@@ -357,7 +357,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         group_cells_act.setChecked(self.group_cells)
         display_variables_act = create_action(
             self,
-            text=_('Display variables'),
+            text=_('Display variables and attributes'),
             toggled=self.toggle_variables
         )
         display_variables_act.setChecked(self.display_variables)
