@@ -27,8 +27,10 @@ from qtconsole.client import QtKernelClient
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from qtpy.QtWidgets import (QActionGroup, QApplication, QCheckBox, QHBoxLayout,
-                            QMenu, QMessageBox, QVBoxLayout, QWidget)
+from qtpy.QtWidgets import (QActionGroup, QApplication, QButtonGroup,
+                            QCheckBox, QDialog, QHBoxLayout, QMenu,
+                            QMessageBox, QLabel, QPushButton, QVBoxLayout,
+                            QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
@@ -61,6 +63,96 @@ if is_dark_interface():
     MAIN_BG_COLOR = '#19232D'
 else:
     MAIN_BG_COLOR = 'white'
+
+
+class ConsoleRestartDialog(QDialog):
+    """
+    Dialog to apply preferences that need a restart of the console kernel.
+    """
+
+    # Constants for actions when preferences require restart of the kernel
+    NO_RESTART = 1
+    RESTART_CURRENT = 2
+    RESTART_ALL = 3
+
+    def __init__(self, parent):
+        super(ConsoleRestartDialog, self).__init__(parent)
+        self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint)
+        self._parent = parent
+        self._action = self.NO_RESTART
+        self._action_string = {
+            self.NO_RESTART: _("Keep Existing Kernels"),
+            self.RESTART_CURRENT: _("Restart Current Kernel"),
+            self.RESTART_ALL: _("Restart All Kernels")
+            }
+        # Dialog widgets
+        # Text
+        self._text_label = QLabel(
+            _("By default, some IPython console preferences will be "
+              "applied to new consoles only. To apply preferences to "
+              "existing consoles, select from the options below.<br><br>"
+              "Please note: applying changes to running consoles will force"
+              " a kernel restart and all current work will be lost.<br>"),
+            self)
+        self._text_label.setWordWrap(True)
+
+        # Checkboxes
+        self._restart_current = QCheckBox(
+            _("Apply to current console and restart kernel"), self)
+        self._restart_all = QCheckBox(
+            _("Apply to all existing consoles and restart all kernels"), self)
+        self._checkbox_group = QButtonGroup(self)
+        self._checkbox_group.setExclusive(False)
+        self._checkbox_group.addButton(
+            self._restart_current, id=self.RESTART_CURRENT)
+        self._checkbox_group.addButton(
+            self._restart_all, id=self.RESTART_ALL)
+
+        self._action_button = QPushButton(
+            self._action_string[self.NO_RESTART], parent=self)
+
+        # Dialog Layout
+        layout = QVBoxLayout()
+        layout.addWidget(self._text_label)
+        layout.addWidget(self._restart_current)
+        layout.addWidget(self._restart_all)
+        layout.addWidget(self._action_button, 0, Qt.AlignRight)
+        self.setLayout(layout)
+        self.setFixedWidth(600)
+
+        # Signals
+        self._checkbox_group.buttonToggled.connect(
+            self.update_action_button_text)
+        self._action_button.clicked.connect(self.accept)
+
+    def update_action_button_text(self, checkbox, is_checked):
+        """
+        Update action button text.
+
+        Takes into account the given checkbox to update the text.
+        """
+        checkbox_id = self._checkbox_group.id(checkbox)
+        if is_checked:
+            text = self._action_string[checkbox_id]
+            self._checkbox_group.buttonToggled.disconnect(
+                self.update_action_button_text)
+            self._restart_current.setChecked(False)
+            self._restart_all.setChecked(False)
+            checkbox.setChecked(True)
+            self._checkbox_group.buttonToggled.connect(
+                self.update_action_button_text)
+        else:
+            text = self._action_string[self.NO_RESTART]
+        self._action_button.setText(text)
+
+    def get_action_value(self):
+        """
+        Return tuple indicating True or False for the available actions.
+        """
+        restart_current = self._restart_current.isChecked()
+        restart_all = self._restart_all.isChecked()
+        no_restart = not any([restart_all, restart_current])
+        return restart_all, restart_current, no_restart
 
 
 class IPythonConsole(SpyderPluginWidget):
@@ -336,6 +428,9 @@ class IPythonConsole(SpyderPluginWidget):
             client_backend_not_inline = [
                 client.shellwidget.get_matplotlib_backend() != inline_backend
                 for client in self.clients]
+            current_client_backend_not_inline = (
+                self.get_current_client().shellwidget.get_matplotlib_backend()
+                != inline_backend)
             pylab_restart = (
                 any(client_backend_not_inline) and
                 pylab_backend_o != inline_backend)
@@ -350,61 +445,41 @@ class IPythonConsole(SpyderPluginWidget):
         restart_needed = any([restart_option in options
                               for restart_option in restart_options])
 
-        if running_under_pytest():
-            only_new_clients = False
-            all_clients = True
-        elif restart_needed or pylab_restart:
-            # Setup message dialog to confirm further actions
-            msgbox = QMessageBox(self)
-            msgbox.setIcon(QMessageBox.Information)
-            # Optional restart to see changes
-            settings_message = _(
-                "Please select if you want to apply the options "
-                "only for new consoles, for the current console "
-                "or all the running consoles.<br><br>"
-                "Keep in mind that <b>the settings will be used "
-                "for any new launched console</b>."
-                "<br><br>NOTE: Some options require a restart to apply. "
-                "Applying these changes to the running consoles "
-                "will force a <b>kernel restart for some of them</b>")
-            only_new_button = msgbox.addButton(
-                _("New consoles only"), QMessageBox.NoRole)
-            msgbox.setDefaultButton(only_new_button)
-            msgbox.addButton(_("Current console"), QMessageBox.NoRole)
-            all_button = msgbox.addButton(
-                _("All the consoles"), QMessageBox.NoRole)
-
-            msgbox.setText(settings_message)
-            msgbox.exec_()
-
-            only_new_clients = msgbox.clickedButton() == only_new_button
-            all_clients = msgbox.clickedButton() == all_button
+        if (restart_needed or pylab_restart) and not running_under_pytest():
+            restart_dialog = ConsoleRestartDialog(self)
+            restart_dialog.exec_()
+            (restart_all, restart_current,
+             no_restart) = restart_dialog.get_action_value()
         else:
-            only_new_clients = False
-            all_clients = True
+            restart_all = False
+            restart_current = False
+            no_restart = True
 
         # Apply settings
-        if not only_new_clients and not running_under_pytest():
-            clients = self.clients if all_clients else [
-                self.get_current_client()]
+        for idx, client in enumerate(self.clients):
+            restart = ((pylab_restart and client_backend_not_inline[idx]) or
+                       restart_needed)
+            if not (restart and restart_all) or no_restart:
+                # GUI options
+                self._apply_gui_plugin_settings(options, client)
 
-            for idx, client in enumerate(clients):
-                if ((pylab_restart and client_backend_not_inline[idx]) or
-                        restart_needed):
-                    client.ask_before_restart = False
-                    client.restart_kernel()
-                else:
-                    # GUI options
-                    self._apply_gui_plugin_settings(options, client)
+                # Matplotlib options
+                self._apply_mpl_plugin_settings(options, client)
 
-                    # Matplotlib options
-                    self._apply_mpl_plugin_settings(options, client)
+                # Advanced options
+                self._apply_advanced_plugin_settings(options, client)
 
-                    # Advanced options
-                    self._apply_advanced_plugin_settings(options, client)
+                # Debugging options
+                self._apply_pdb_plugin_settings(options, client)
+            elif restart and restart_all:
+                client.ask_before_restart = False
+                client.restart_kernel()
 
-                    # Debugging options
-                    self._apply_pdb_plugin_settings(options, client)
+        if (((pylab_restart and current_client_backend_not_inline)
+             or restart_needed) and restart_current):
+            current_client = self.get_current_client()
+            current_client.ask_before_restart = False
+            current_client.restart_kernel()
 
     def toggle_view(self, checked):
         """Toggle view"""
