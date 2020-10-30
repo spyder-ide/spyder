@@ -81,8 +81,7 @@ def test_status_bar_conda_interpreter_status(status_bar, qtbot, mocker):
     if os.name == 'nt':
         path_foo = os.sep.join(['miniconda', 'envs', 'foo', 'python'])
     else:
-        path_foo = os.sep.join(['miniconda', 'envs', 'foo', 'bin',
-                                    'python'])
+        path_foo = os.sep.join(['miniconda', 'envs', 'foo', 'bin', 'python'])
 
     name_base = 'conda: base'
     name_foo = 'conda: foo'
