@@ -662,6 +662,9 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
             for fmt in formatters
         }
 
+        if formatter == 'pyls_black':
+            formatter_options['pyls_black']['line_length'] = cs_max_line_length
+
         # Jedi configuration
         if self.get_option('default', section='main_interpreter'):
             environment = None

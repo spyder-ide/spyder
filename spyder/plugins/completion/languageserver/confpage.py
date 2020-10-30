@@ -1415,6 +1415,14 @@ class LanguageServerConfigPage(GeneralConfigPage):
 
         self.table.save_servers()
 
+        if(self.get_option('formatting') == 'black' and
+                self.get_option('pycodestyle/max_line_length') == 79):
+            self.set_option('pycodestyle/max_line_length', 88)
+
+        if(self.get_option('formatting') != 'black' and
+                self.get_option('pycodestyle/max_line_length') == 88):
+            self.set_option('pycodestyle/max_line_length', 79)
+
         # Update entries in the source menu
         for name, action in self.main.editor.checkable_actions.items():
             if name in options:
