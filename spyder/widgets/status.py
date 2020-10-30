@@ -264,7 +264,7 @@ class InterpreterStatus(StatusBarWidget):
         menu.popup(pos)
 
     def open_interpreter_preferences(self):
-        """Open the preferences dialog in the python interpreter section."""
+        """Open the Preferences dialog in the Python interpreter section."""
         self.main.show_preferences()
         dlg = self.main.prefs_dialog_instance
         index = dlg.get_index_by_name("main_interpreter")

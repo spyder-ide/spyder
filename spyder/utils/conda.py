@@ -100,7 +100,7 @@ def get_conda_env_path(pyexec, quote=False):
 
 
 def get_list_conda_envs():
-    """Return the list of all the conda envs found in the system."""
+    """Return the list of all conda envs found in the system."""
     try:
         out, err = subprocess.Popen(
             ['conda', 'env', 'list', '--json'],

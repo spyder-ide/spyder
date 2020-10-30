@@ -17,7 +17,7 @@ import socket
 import subprocess
 
 from spyder.py3compat import is_text_string, getcwd
-from spyder.config.base import get_home_dir
+from spyder.config.base import get_home_dir, running_in_mac_app
 
 
 logger = logging.getLogger(__name__)
@@ -330,7 +330,7 @@ def check_connection_port(address, port):
 
 def get_pyenv_path(name):
     """Return the complete path of the pyenv."""
-    home = os.environ['USERPROFILE'] if WINDOWS else os.environ['HOME']
+    home = get_home_dir()
     if WINDOWS:
         path = osp.join(
             home, '.pyenv', 'pyenv-win', 'versions', name, 'python')
@@ -342,7 +342,7 @@ def get_pyenv_path(name):
 
 
 def get_list_pyenv_envs():
-    """Return the list of all the pyenv envs found in the system."""
+    """Return the list of all pyenv envs found in the system."""
     try:
         out, err = subprocess.Popen(
             ['pyenv', 'versions', '--bare', '--skip-aliases'],
@@ -359,7 +359,10 @@ def get_list_pyenv_envs():
     for env in out:
         data = env.split('/')
         path = get_pyenv_path(data[-1])
-        name = 'system' if data[-1] == '' else 'pyenv: {}'.format(data[-1])
+        if data[-1] == '':
+            name = 'internal' if running_in_mac_app(path) else 'system'
+        else:
+            name = 'pyenv: {}'.format(data[-1])
         version = (
             'Python 2.7' if data[-1] == '' else 'Python {}'.format(data[0]))
         env_list[name] = (path, version)
