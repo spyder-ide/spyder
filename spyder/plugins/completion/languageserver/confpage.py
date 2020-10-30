@@ -385,9 +385,10 @@ class LanguageServerConfigPage(GeneralConfigPage):
             "{1}</a>".format(LSP_URL, _('the LSP grammar')))
         snippets_info_label = QLabel(
             _("Spyder allows to define custom completion snippets to use "
-              "in addition to the ones offered by the LSP. Each snippet "
-              "should follow {}. <b>Note:</b> All changes will be effective "
-              "only when applying the settings").format(grammar_url))
+              "in addition to the ones offered by the Language Server Protocol "
+              "(LSP). Each snippet should follow {}. <br><br><b>Note:</b> "
+              "All changes will be effective only when applying "
+              "the settings").format(grammar_url))
         snippets_info_label.setOpenExternalLinks(True)
         snippets_info_label.setWordWrap(True)
         snippets_info_label.setAlignment(Qt.AlignJustify)

@@ -484,7 +484,7 @@ class LSPServersModel(QAbstractTableModel):
         self.label = QLabel()
         self.widths = []
 
-        # Needed to compensate for the HTMLDelegate color selection unawarness
+        # Needed to compensate for the HTMLDelegate color selection unawareness
         palette = parent.palette()
         if text_color is None:
             self.text_color = palette.text().color().name()

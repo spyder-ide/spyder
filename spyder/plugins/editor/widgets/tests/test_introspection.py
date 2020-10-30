@@ -1014,7 +1014,7 @@ def test_text_snippet_completions(snippets_codeeditor, qtbot):
         qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
 
     # Assert all retrieved words start with 'f'
-    assert all({x['label'].startswith('f') for x in sig.args[0]})
+    assert all({x['sortText'][1] in {'for', 'from'} for x in sig.args[0]})
 
     code_editor.toggle_automatic_completions(True)
     code_editor.toggle_code_snippets(True)
