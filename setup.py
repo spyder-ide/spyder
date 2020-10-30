@@ -189,11 +189,11 @@ install_requires = [
     'chardet>=2.0.0',
     'cloudpickle>=0.5.0',
     'diff-match-patch>=20181111',
-    'intervaltree',
+    'intervaltree>=3.0.2',
     'ipython>=4.0',
     'jedi==0.17.2',
     'jsonschema>=3.2.0',
-    'keyring',
+    'keyring>=17.0.0',
     'nbconvert>=4.0',
     'numpydoc>=0.6.0',
     # Required to get SSH connections to remote kernels
@@ -207,17 +207,18 @@ install_requires = [
     'pyqt5<5.13',
     'pyqtwebengine<5.13',
     'python-language-server[all]>=0.35.0,<1.0.0',
-    'pyls-black',
+    'pyls-black>=0.4.6',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8',
     'qtawesome>=0.5.7',
     'qtconsole>=4.7.7',
     'qtpy>=1.5.0',
+    'setuptools>=39.0.0',
     'sphinx>=0.6.6',
     'spyder-kernels>=1.9.4,<1.10.0',
     'three-merge>=0.1.1',
-    'watchdog'
+    'watchdog>=0.10.3'
 ]
 
 extras_require = {

@@ -29,7 +29,7 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
         ControlWidget, DebuggingWidget, FigureBrowserWidget,
-        HelpWidget, NamepaceBrowserWidget, PageControlWidget)
+        HelpWidget, NamepaceBrowserWidget)
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -72,7 +72,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                  external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
-        self.custom_page_control = PageControlWidget
         self.custom_edit = True
         self.spyder_kernel_comm = KernelComm()
         self.spyder_kernel_comm.sig_exception_occurred.connect(
@@ -161,7 +160,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         super(ShellWidget, self).will_close(externally_managed)
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
-                    timeout=None):
+                    timeout=None, display_error=False):
         """
         Send message to Spyder kernel connected to this console.
 
@@ -181,12 +180,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             blocking call to the kernel. If None, a default timeout
             (defined in commbase.py, present in spyder-kernels) is
             used.
+        display_error: bool
+            If an error occurs, should it be printed to the console.
         """
         return self.spyder_kernel_comm.remote_call(
             interrupt=interrupt,
             blocking=blocking,
             callback=callback,
-            timeout=timeout
+            timeout=timeout,
+            display_error=display_error
         )
 
     def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
@@ -501,7 +503,10 @@ the sympy module (e.g. plot)
     def silent_execute(self, code):
         """Execute code in the kernel without increasing the prompt"""
         try:
-            self.kernel_client.execute(to_text_string(code), silent=True)
+            if self.is_debugging():
+                self.pdb_execute(code, hidden=True)
+            else:
+                self.kernel_client.execute(to_text_string(code), silent=True)
         except AttributeError:
             pass
 

@@ -334,3 +334,26 @@ def test_jedi_completion_environment(workspace):
     completions = pyls_jedi_completions(doc._config, doc, com_position)
     assert completions[0]['label'] == 'loghub'
     assert 'changelog generator' in completions[0]['documentation'].lower()
+
+
+def test_document_path_completions(tmpdir, workspace_other_root_path):
+    # Create a dummy module out of the workspace's root_path and try to get
+    # completions for it in another file placed next to it.
+    module_content = '''
+def foo():
+    pass
+'''
+
+    p = tmpdir.join("mymodule.py")
+    p.write(module_content)
+
+    # Content of doc to test completion
+    doc_content = """import mymodule
+mymodule.f"""
+    doc_path = str(tmpdir) + os.path.sep + 'myfile.py'
+    doc_uri = uris.from_fs_path(doc_path)
+    doc = Document(doc_uri, workspace_other_root_path, doc_content)
+
+    com_position = {'line': 1, 'character': 10}
+    completions = pyls_jedi_completions(doc._config, doc, com_position)
+    assert completions[0]['label'] == 'foo()'

@@ -24,7 +24,7 @@ from spyder.config.manager import CONF
 from spyder.utils.conda import (add_quotes, get_conda_activation_script,
                                 get_conda_env_path, is_conda_env)
 from spyder.utils.environ import clean_env
-from spyder.utils.misc import add_pathlist_to_PYTHONPATH, get_python_executable
+from spyder.utils.misc import get_python_executable
 from spyder.utils.programs import is_python_interpreter
 
 # Constants
@@ -129,31 +129,23 @@ class SpyderKernelSpec(KernelSpec):
         # to the kernel sys.path
         env_vars.pop('VIRTUAL_ENV', None)
 
-        pathlist = CONF.get('main', 'spyder_pythonpath', default=[])
-
-        # Add spyder-kernels subrepo path to pathlist
+        # Add spyder-kernels subrepo path to PYTHONPATH
         if DEV or running_under_pytest():
             repo_path = osp.normpath(osp.join(HERE, '..', '..', '..', '..'))
             subrepo_path = osp.join(repo_path, 'external-deps',
                                     'spyder-kernels')
 
-            if running_under_pytest():
-                # Oddly pathlist is not set as an empty list when running
-                # under pytest
-                pathlist = [subrepo_path]
-            else:
-                pathlist += [subrepo_path] + pathlist
+            env_vars.update({'PYTHONPATH': subrepo_path})
 
-        # Create PYTHONPATH env entry to add it to the kernel
-        pypath = add_pathlist_to_PYTHONPATH([], pathlist, ipyconsole=True,
-                                            drop_env=True)
+        # List of paths declared by the user, plus project's path, to
+        # add to PYTHONPATH
+        pathlist = CONF.get('main', 'spyder_pythonpath', default=[])
+        pypath = os.pathsep.join(pathlist)
 
-        # Add our PYTHONPATH to env_vars
-        env_vars.update(pypath)
-
-        # Environment variables that we need to pass to our sitecustomize
+        # List of modules to exclude from our UMR
         umr_namelist = CONF.get('main_interpreter', 'umr/namelist')
 
+        # Environment variables that we need to pass to the kernel
         env_vars.update({
             'SPY_EXTERNAL_INTERPRETER': not default_interpreter,
             'SPY_UMR_ENABLED': CONF.get('main_interpreter', 'umr/enabled'),
@@ -180,7 +172,8 @@ class SpyderKernelSpec(KernelSpec):
             'SPY_JEDI_O': CONF.get('ipython_console', 'jedi_completer'),
             'SPY_SYMPY_O': CONF.get('ipython_console', 'symbolic_math'),
             'SPY_TESTING': running_under_pytest() or get_safe_mode(),
-            'SPY_HIDE_CMD': CONF.get('ipython_console', 'hide_cmd_windows')
+            'SPY_HIDE_CMD': CONF.get('ipython_console', 'hide_cmd_windows'),
+            'SPY_PYTHONPATH': pypath
         })
 
         if self.is_pylab is True:
@@ -199,6 +192,7 @@ class SpyderKernelSpec(KernelSpec):
         # macOS app considerations
         if running_in_mac_app() and not default_interpreter:
             env_vars.pop('PYTHONHOME', None)
+            env_vars.pop('PYTHONPATH', None)
 
         # Making all env_vars strings
         clean_env_vars = clean_env(env_vars)

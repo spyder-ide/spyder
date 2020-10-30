@@ -1,0 +1,66 @@
+on:
+  pull_request:
+  release:
+    types:
+      - created
+
+name: Create macOS App Bundle and DMG
+
+jobs:
+  build:
+    name: macOS App Bundle
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        build_type: ['Lite', 'Full']
+    defaults:
+      run:
+        shell: bash -l {0}
+        working-directory: ${{ github.workspace }}/installers/macOS
+    env:
+      LITE_FLAG: ${{ matrix.build_type == 'Lite' && '--lite' || '' }}
+      DMGNAME: ${{ matrix.build_type == 'Lite' && 'Spyder-Lite.dmg' || 'Spyder.dmg' }}
+      DISTDIR: ${{ github.workspace }}/dist
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install Dependencies
+        run: |
+          SPK_REPO=${GITHUB_WORKSPACE}/external-deps/spyder-kernels
+          PLS_REPO=${GITHUB_WORKSPACE}/external-deps/python-language-server
+          INSTALL_FLAGS=()
+          if [[ -z ${LITE_FLAG} ]]; then
+              INSTALL_FLAGS+=('-r' 'req-extras.txt')
+          fi
+          if [[ ${GITHUB_EVENT_NAME} == 'pull_request' ]]; then
+              INSTALL_FLAGS+=('-e' ${SPK_REPO} '-e' ${PLS_REPO})
+          fi
+          pip3 install -c req-const.txt -r req-build.txt "${INSTALL_FLAGS[@]}" -e ${GITHUB_WORKSPACE}
+          pip3 uninstall -q -y spyder
+      - name: Build Application Bundle
+        run: python3 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR}
+      - name: Build Disk Image
+        run: python3 setup.py ${LITE_FLAG} --dist-dir ${DISTDIR} --dmg --no-app
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          path: ${{ env.DISTDIR }}/${{ env.DMGNAME }}
+          name: ${{ env.DMGNAME }}
+      - name: Get Release
+        if: ${{github.event_name == 'release'}}
+        id: get_release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        uses: bruceadams/get-release@v1.2.0
+      - name: Upload Release Asset
+        if: ${{github.event_name == 'release'}}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ${{ env.DISTDIR }}/${{ env.DMGNAME }}
+          asset_name: ${{ env.DMGNAME }}
+          asset_content_type: application/x-apple-diskimage
