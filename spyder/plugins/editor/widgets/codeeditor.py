@@ -1338,14 +1338,15 @@ class CodeEditor(TextEditBaseWidget):
                         completion['insertText'] = insert_text
                         del completion['textEdit']
 
-                insert_text = completion['insertText']
-                insert_text_lines = insert_text.splitlines()
-                reindented_text = [insert_text_lines[0]]
-                for insert_line in insert_text_lines[1:]:
-                    insert_line = indentation_whitespace + insert_line
-                    reindented_text.append(insert_line)
-                reindented_text = eol_char.join(reindented_text)
-                completion['insertText'] = reindented_text
+                if 'insertText' in completion:
+                    insert_text = completion['insertText']
+                    insert_text_lines = insert_text.splitlines()
+                    reindented_text = [insert_text_lines[0]]
+                    for insert_line in insert_text_lines[1:]:
+                        insert_line = indentation_whitespace + insert_line
+                        reindented_text.append(insert_line)
+                    reindented_text = eol_char.join(reindented_text)
+                    completion['insertText'] = reindented_text
 
             self.completion_widget.show_list(
                 completion_list, position, automatic)
