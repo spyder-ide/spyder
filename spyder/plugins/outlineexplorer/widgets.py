@@ -413,22 +413,19 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.show_comments = state
         CONF.set('outline_explorer', 'show_comments', state)
         self.sig_update_configuration.emit()
-        for editor, editor_id in list(self.editor_ids.items()):
-            editor.request_symbols()
+        self.update_all_editors()
 
     @Slot(bool)
     def toggle_group_cells(self, state):
         self.group_cells = state
         CONF.set('outline_explorer', 'group_cells', state)
         self.sig_update_configuration.emit()
-        for editor, editor_id in list(self.editor_ids.items()):
-            editor.request_symbols()
+        self.update_all_editors()
 
     @Slot(bool)
     def toggle_variables(self, state):
         self.display_variables = state
-        for editor, editor_id in list(self.editor_ids.items()):
-            editor.request_symbols()
+        self.update_all_editors()
 
     @Slot(bool)
     def toggle_sort_files_alphabetically(self, state):
@@ -592,8 +589,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         """
         Update all editors for a given language sequentially.
 
-        This is done through a timer to avoid lags during Spyder
-        startup.
+        This is done through a timer to avoid lags in the interface.
         """
         if self.editors_to_update.get(language):
             editor = self.editors_to_update[language][0]
