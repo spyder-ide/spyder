@@ -17,11 +17,8 @@ from qtpy.QtGui import QFont, QIcon
 from qtpy.QtWidgets import QHBoxLayout, QLabel, QMenu, QWidget
 
 # Local imports
-from spyder.config.base import _, running_in_mac_app
-from spyder.config.gui import get_font
-from spyder.config import utils
-from spyder.py3compat import PY3
-from spyder.utils.conda import is_conda_env, get_list_conda_envs
+from spyder.config.base import _
+from spyder.utils.conda import get_list_conda_envs
 from spyder.utils.misc import get_list_pyenv_envs
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_waitspinner)

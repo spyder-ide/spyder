@@ -13,6 +13,9 @@ import os.path as osp
 import subprocess
 import sys
 
+from spyder.config.base import running_in_mac_app
+
+
 WINDOWS = os.name == 'nt'
 
 
@@ -129,6 +132,9 @@ def get_list_conda_envs():
         except Exception:
             version = ''
             err = ''
-        name = 'conda: {}'.format(name)
+        if is_conda_env(pyexec=path):
+            name = 'conda: {}'.format(name)
+        elif running_in_mac_app(path):
+            name = 'system:'
         env_list[name] = (path, version.strip())
     return env_list
