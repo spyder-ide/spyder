@@ -1390,42 +1390,46 @@ class OpenTourDialog(QDialog):
 
     def __init__(self, parent, tour_function):
         super().__init__(parent)
-        self.setFixedHeight(170)
-        self.setFixedWidth(350)
         self.tour_function = tour_function
 
         # Image
         images_layout = QHBoxLayout()
-        icon_filename = 'tour-spyder-logo.png'
+        icon_filename = 'tour-spyder-logo.svg'
         image_path = get_image_path(icon_filename)
         image = QPixmap(image_path)
         image_label = QLabel()
-        screen = QApplication.primaryScreen()
-        device_image_ratio = screen.devicePixelRatio()
-        if device_image_ratio > 1:
-            image.setDevicePixelRatio(device_image_ratio)
-        else:
-            image_height = image.height() * 0.5
-            image_width = image.width() * 0.5
-            image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
-                                 Qt.SmoothTransformation)
+        image_height = image.height() * 0.7
+        image_width = image.width() * 0.7
+        image = image.scaled(image_width, image_height, Qt.KeepAspectRatio,
+                             Qt.SmoothTransformation)
         image_label.setPixmap(image)
 
         images_layout.addStretch()
         images_layout.addWidget(image_label)
         images_layout.addStretch()
+        images_layout.setContentsMargins(0, -5, 20, 0)
 
         # Label
+        tour_label_title = QLabel(
+            _("Welcome to Spyder!"))
+        tour_label_title.setStyleSheet("font-size: 19pt")
+        tour_label_title.setWordWrap(True)
         tour_label = QLabel(
-            _("Welcome to Spyder!<br><br>Check out our interactive tour to "
+            _("Check out our interactive tour to "
               "explore some of Spyder's panes and features."))
+        tour_label.setStyleSheet("font-size: 15pt")
         tour_label.setWordWrap(True)
+        tour_label.setFixedWidth(300)
 
         # Buttons
         buttons_layout = QHBoxLayout()
         self.launch_tour_button = QPushButton(_('Start tour'))
+        self.launch_tour_button.setStyleSheet(
+          "background-color: #3775A9; font-size: 15pt; padding: 6px")
         self.launch_tour_button.setAutoDefault(False)
         self.dismiss_button = QPushButton(_('Dismiss'))
+        self.dismiss_button.setStyleSheet(
+          "background-color: #60798B; font-size: 15pt; padding: 6px")
         self.dismiss_button.setAutoDefault(False)
         buttons_layout.addStretch()
         buttons_layout.addWidget(self.launch_tour_button)
@@ -1433,14 +1437,26 @@ class OpenTourDialog(QDialog):
 
         layout = QHBoxLayout()
         layout.addLayout(images_layout)
-        layout.addWidget(tour_label)
-        general_layout = QVBoxLayout()
+
+        label_layout = QVBoxLayout()
+        label_layout.addWidget(tour_label_title)
+        label_layout.addWidget(tour_label)
+        label_layout.addSpacing(10)
+
+        vertical_layout = QVBoxLayout()
+        vertical_layout.addLayout(label_layout)
+        vertical_layout.addLayout(buttons_layout)
+
+        general_layout = QHBoxLayout()
         general_layout.addLayout(layout)
-        general_layout.addLayout(buttons_layout)
+        general_layout.addLayout(vertical_layout)
+
         self.setLayout(general_layout)
 
         self.launch_tour_button.clicked.connect(self._start_tour)
         self.dismiss_button.clicked.connect(self.close)
+        self.setStyleSheet("background-color: #262E38")
+        self.setContentsMargins(18, 40, 18, 40)
 
     def _start_tour(self):
         self.close()
