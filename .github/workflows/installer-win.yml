@@ -17,7 +17,7 @@ jobs:
     env:
       UNWANTED_PACKAGES: ${{github.event_name == 'pull_request' && 'pip spyder-kernels' || 'pip' }}
       SKIP_PACKAGES: 'bcrypt'
-      ADD_PACKAGES: ${{github.event_name == 'pull_request' && 'pyls spyder_kernels blib2to3 _black_version' || '' }}
+      ADD_PACKAGES: ${{github.event_name == 'pull_request' && 'pyls spyder_kernels blib2to3 _black_version' || 'blib2to3 _black_version' }}
       INSTALL_EDITABLE_PACKAGES: ${{github.event_name == 'pull_request' && 'external-deps/python-language-server' || '' }}
       PYNSIST_REQ: pynsist==2.5.1
       EXTRA_FLAG: ${{ matrix.build_type == 'Full' && github.event_name == 'pull_request' && '-ep installers/Windows/req-extras-pull-request.txt' || matrix.build_type == 'Lite' && github.event_name == 'pull_request' && '-ep installers/Windows/req-pull-request.txt' || matrix.build_type == 'Full' && '-ep installers/Windows/req-extras-release.txt' || '' }}

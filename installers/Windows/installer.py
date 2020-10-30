@@ -170,7 +170,7 @@ def pypi_wheels_in(requirements, skip_packages):
         # Needed to detect the package being installed from source
         # <package> @ <path to package>==<version>
         name = name.split('@')[0].strip()
-        if any(skip in name for skip in skip_packages):
+        if name in skip_packages:
             print("-", requirement, "skipped")
         else:
             print("-", requirement, end=" ")
@@ -248,7 +248,7 @@ def create_pynsist_cfg(
     if extras:
         installer_name = "{}_extras_{}bit_{}.exe"
     else:
-        installer_name = "{}_{}bit{}.exe"
+        installer_name = "{}_{}bit_{}.exe"
 
     if not suffix:
         suffix = ""
