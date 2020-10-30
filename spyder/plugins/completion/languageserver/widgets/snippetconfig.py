@@ -287,7 +287,7 @@ class SnippetEditor(QDialog):
             self.trigger_text_cb.setCurrentIndex(idx)
 
         self.description_input.setText(self.description)
-        self.description_input.textChanged.connect(lambda _: self.validate())
+        self.description_input.textChanged.connect(lambda _x: self.validate())
 
         text_inputs = (self.trigger_text, self.description, self.snippet_text)
         non_empty_text = all([x != '' for x in text_inputs])
