@@ -47,9 +47,14 @@ SKIP_PACKAGES = os.environ.get('SKIP_PACKAGES', '').split()
 
 # Packages to be added to the packages section regardles wheel checks or
 # packages skipped, for example external direct dependencies
-# (python-language-server spyder-kernels)
+# (spyder-kernels python-language-server)
 
 ADD_PACKAGES = os.environ.get('ADD_PACKAGES', '').split()
+
+# Packages to be installed using the editable flag (python-language-server)
+
+INSTALL_EDITABLE_PACKAGES = os.environ.get(
+    'INSTALL_EDITABLE_PACKAGES', '').split()
 
 # The pynsist requirement spec that will be used to install pynsist in
 # the temporary packaging virtual environment (pynsist==2.5.1).
@@ -152,7 +157,7 @@ def about_dict(repo_root, package):
     return about
 
 
-def pypi_wheels_in(requirements, skip):
+def pypi_wheels_in(requirements, skip_packages):
     """
     Return a list of the entries in requirements (distributed as wheels).
 
@@ -165,7 +170,7 @@ def pypi_wheels_in(requirements, skip):
         # Needed to detect the package being installed from source
         # <package> @ <path to package>==<version>
         name = name.split('@')[0].strip()
-        if name in skip:
+        if any(skip in name for skip in skip_packages):
             print("-", requirement, "skipped")
         else:
             print("-", requirement, end=" ")
@@ -225,11 +230,15 @@ def create_pynsist_cfg(
     repo_author = repo_about["__author__"]
 
     requirements = [
-        # Those from pip freeze except the package itself.
+        # Those from pip freeze except the package itself and packages local
+        # installed (by passing a directory path or with the editable flag).
+        # To add such packages the ADD_PACKAGES should include the import names
+        # of the packages.
         line
         for line in pip_freeze(python, encoding=encoding)
         if package_name(line) != package and \
-        package_name(line) not in UNWANTED_PACKAGES
+        package_name(line) not in UNWANTED_PACKAGES and \
+        '-e git' not in line
     ]
     skip_wheels = [package] + SKIP_PACKAGES
     wheels = pypi_wheels_in(requirements, skip_wheels)
@@ -316,6 +325,12 @@ def run(python_version, bitness, repo_root, entrypoint, package, icon_path,
                 print("Installing extra packages.")
                 subprocess_run([env_python, "-m", "pip", "install", "-r",
                                 extra_packages, "--no-warn-script-location"])
+
+            if INSTALL_EDITABLE_PACKAGES:
+                print("Installing packages with the --editable flag")
+                for e_package in INSTALL_EDITABLE_PACKAGES:
+                    subprocess_run([env_python, "-m", "pip", "install", "-e",
+                                    e_package, "--no-warn-script-location"])
 
             pynsist_cfg = os.path.join(work_dir, "pynsist.cfg")
             print("Creating pynsist configuration file", pynsist_cfg)
