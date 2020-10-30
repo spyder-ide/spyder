@@ -92,8 +92,9 @@ def test_files(tmpdir_factory):
 def outlineexplorer(qtbot):
     """Set up an OutlineExplorerWidget."""
     outlineexplorer = OutlineExplorerWidget(
-        show_fullpath=False, show_all_files=True, group_cells=False,
-        show_comments=True, sort_files_alphabetically=False)
+        show_fullpath=False, show_all_files=True, group_cells=True,
+        show_comments=True, sort_files_alphabetically=False,
+        display_variables=True)
     # Fix the size of the outline explorer to prevent an
     # 'Unable to set geometry ' warning if the test fails.
     outlineexplorer.setFixedSize(400, 350)

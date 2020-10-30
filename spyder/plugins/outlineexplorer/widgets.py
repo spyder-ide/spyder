@@ -98,6 +98,10 @@ SYMBOL_NAME_MAP = {
 ICON_CACHE = {}
 
 
+def line_span(position):
+    return position[1] - position[0] + 1
+
+
 class SymbolStatus:
     def __init__(self, name, kind, position, path, node=None):
         self.name = name
@@ -445,6 +449,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 item = root.node
                 self.setCurrentItem(item)
                 self.scrollToItem(item)
+                self.expandItem(item)
             else:
                 sorted_nodes = sorted(overlap)
                 # The last item of the sorted elements correspond to the current
@@ -459,6 +464,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         item = item_ref.node
         self.setCurrentItem(item)
         self.scrollToItem(item)
+        self.expandItem(item)
 
     @Slot()
     def do_follow_cursor(self):
@@ -628,9 +634,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def merge_interval(self, parent, node):
         """Add node into an existing tree structure."""
-        if node.parent is not None:
-            return node
-
         match = False
         start, end = node.position
         while parent.parent is not None and not match:
@@ -639,6 +642,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 parent = parent.parent
             else:
                 match = True
+
+        if node.parent is not None:
+            node.parent.remove_node(node)
+            node.parent = None
+            if node.node.parent is not None:
+                node.node.parent.remove_children(node.node)
 
         parent.add_node(node)
         return node
@@ -687,9 +696,15 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             changed_entry_i = changed_entry.data
 
             if deleted_entry_i.name == changed_entry_i.name:
-                # Copy symbol status
-                changed_entry_i.clone_node(deleted_entry_i)
-
+                deleted_span = line_span(deleted_entry_i.position)
+                changed_span = line_span(changed_entry_i.position)
+                if deleted_span == changed_span:
+                    # Copy symbol status
+                    changed_entry_i.clone_node(deleted_entry_i)
+                else:
+                    deleted_entry_i.delete()
+                    changed_entry_i.create_node()
+                    non_merged += 1
                 deleted_entry = next(deleted_iter, None)
                 changed_entry = next(changes_iter, None)
             else:
