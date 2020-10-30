@@ -163,7 +163,7 @@ def get_git_refs(repopath):
     if os.path.isfile(repopath):
         repopath = os.path.dirname(repopath)
 
-    git = programs.find_program('git')
+    git = programs.find_git()
 
     if git:
         try:

@@ -38,6 +38,7 @@ from spyder.utils import encoding
 from spyder.utils.misc import get_python_executable
 
 
+HERE = osp.abspath(osp.dirname(__file__))
 WINDOWS = os.name == 'nt'
 
 
@@ -1104,3 +1105,14 @@ def get_interpreter_info(path):
         out = ''
         err = ''
     return out.strip()
+
+
+def find_git():
+    if sys.platform == 'darwin':
+        proc = subprocess.run(
+            osp.join(HERE, "check-git.sh"), capture_output=True)
+        if proc.returncode != 0:
+            return None
+        return find_program('git')
+    else:
+        return find_program('git')
