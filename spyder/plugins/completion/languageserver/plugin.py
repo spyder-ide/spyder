@@ -663,8 +663,14 @@ class LanguageServerPlugin(SpyderCompletionPlugin):
         }
 
         # PyLS-Spyder configuration
-        group_cells = self.get_option('group_cells')
-        display_block_comments = self.get_option('display_block_comments')
+        group_cells = self.get_option(
+            'group_cells',
+            section='outline_explorer'
+        )
+        display_block_comments = self.get_option(
+            'show_comments',
+            section='outline_explorer'
+        )
         pyls_spyder_options = {
             'enable_block_comments': display_block_comments,
             'group_cells': group_cells

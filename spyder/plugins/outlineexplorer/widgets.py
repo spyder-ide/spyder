@@ -411,7 +411,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     @Slot(bool)
     def toggle_show_comments(self, state):
         self.show_comments = state
-        CONF.set('lsp-server', 'display_block_comments', state)
+        CONF.set('outline_explorer', 'show_comments', state)
         self.sig_update_configuration.emit()
         for editor, editor_id in list(self.editor_ids.items()):
             editor.request_symbols()
@@ -419,7 +419,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     @Slot(bool)
     def toggle_group_cells(self, state):
         self.group_cells = state
-        CONF.set('lsp-server', 'group_cells', state)
+        CONF.set('outline_explorer', 'group_cells', state)
         self.sig_update_configuration.emit()
         for editor, editor_id in list(self.editor_ids.items()):
             editor.request_symbols()
