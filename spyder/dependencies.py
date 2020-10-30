@@ -116,7 +116,7 @@ DESCRIPTIONS = [
      'required_version': JEDI_REQVER},
     {'modname': 'jsonschema',
      'package_name': 'jsonschema',
-     'features': _('Verify if the snippets JSON file is valid'),
+     'features': _('Verify if snippets files are valid'),
      'required_version': JSONSCHEMA_REQVER},
     {'modname': "keyring",
      'package_name': "keyring",
