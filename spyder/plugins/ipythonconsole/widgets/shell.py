@@ -323,6 +323,10 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         """Set buffer size for the shell."""
         self.buffer_size = buffer_size
 
+    def set_completion_type(self, completion_type):
+        """Set completion type (Graphical, Terminal, Plain) for the shell."""
+        self.gui_completion = completion_type
+
     def set_in_prompt(self, in_prompt):
         """Set appereance of the In prompt."""
         self.in_prompt = in_prompt

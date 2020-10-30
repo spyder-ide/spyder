@@ -27,10 +27,8 @@ from qtconsole.client import QtKernelClient
 from qtpy.QtCore import Qt, Signal, Slot
 from qtpy.QtGui import QColor
 from qtpy.QtWebEngineWidgets import WEBENGINE
-from qtpy.QtWidgets import (QActionGroup, QApplication, QButtonGroup,
-                            QCheckBox, QDialog, QHBoxLayout, QMenu,
-                            QMessageBox, QLabel, QPushButton, QVBoxLayout,
-                            QWidget)
+from qtpy.QtWidgets import (QActionGroup, QApplication, QHBoxLayout, QMenu,
+                            QMessageBox, QVBoxLayout, QWidget)
 from traitlets.config.loader import Config, load_pyconfig_files
 from zmq.ssh import tunnel as zmqtunnel
 
@@ -46,6 +44,7 @@ from spyder.plugins.ipythonconsole.utils.manager import SpyderKernelManager
 from spyder.plugins.ipythonconsole.utils.ssh import openssh_tunnel
 from spyder.plugins.ipythonconsole.utils.style import create_qss_style
 from spyder.plugins.ipythonconsole.widgets import (ClientWidget,
+                                                   ConsoleRestartDialog,
                                                    KernelConnectionDialog)
 from spyder.py3compat import is_string, to_text_string, PY2, PY38_OR_MORE
 from spyder.utils import encoding
@@ -63,96 +62,6 @@ if is_dark_interface():
     MAIN_BG_COLOR = '#19232D'
 else:
     MAIN_BG_COLOR = 'white'
-
-
-class ConsoleRestartDialog(QDialog):
-    """
-    Dialog to apply preferences that need a restart of the console kernel.
-    """
-
-    # Constants for actions when preferences require restart of the kernel
-    NO_RESTART = 1
-    RESTART_CURRENT = 2
-    RESTART_ALL = 3
-
-    def __init__(self, parent):
-        super(ConsoleRestartDialog, self).__init__(parent)
-        self.setWindowFlags(Qt.Dialog | Qt.WindowTitleHint)
-        self._parent = parent
-        self._action = self.NO_RESTART
-        self._action_string = {
-            self.NO_RESTART: _("Keep Existing Kernels"),
-            self.RESTART_CURRENT: _("Restart Current Kernel"),
-            self.RESTART_ALL: _("Restart All Kernels")
-            }
-        # Dialog widgets
-        # Text
-        self._text_label = QLabel(
-            _("By default, some IPython console preferences will be "
-              "applied to new consoles only. To apply preferences to "
-              "existing consoles, select from the options below.<br><br>"
-              "Please note: applying changes to running consoles will force"
-              " a kernel restart and all current work will be lost.<br>"),
-            self)
-        self._text_label.setWordWrap(True)
-
-        # Checkboxes
-        self._restart_current = QCheckBox(
-            _("Apply to current console and restart kernel"), self)
-        self._restart_all = QCheckBox(
-            _("Apply to all existing consoles and restart all kernels"), self)
-        self._checkbox_group = QButtonGroup(self)
-        self._checkbox_group.setExclusive(False)
-        self._checkbox_group.addButton(
-            self._restart_current, id=self.RESTART_CURRENT)
-        self._checkbox_group.addButton(
-            self._restart_all, id=self.RESTART_ALL)
-
-        self._action_button = QPushButton(
-            self._action_string[self.NO_RESTART], parent=self)
-
-        # Dialog Layout
-        layout = QVBoxLayout()
-        layout.addWidget(self._text_label)
-        layout.addWidget(self._restart_current)
-        layout.addWidget(self._restart_all)
-        layout.addWidget(self._action_button, 0, Qt.AlignRight)
-        self.setLayout(layout)
-        self.setFixedWidth(600)
-
-        # Signals
-        self._checkbox_group.buttonToggled.connect(
-            self.update_action_button_text)
-        self._action_button.clicked.connect(self.accept)
-
-    def update_action_button_text(self, checkbox, is_checked):
-        """
-        Update action button text.
-
-        Takes into account the given checkbox to update the text.
-        """
-        checkbox_id = self._checkbox_group.id(checkbox)
-        if is_checked:
-            text = self._action_string[checkbox_id]
-            self._checkbox_group.buttonToggled.disconnect(
-                self.update_action_button_text)
-            self._restart_current.setChecked(False)
-            self._restart_all.setChecked(False)
-            checkbox.setChecked(True)
-            self._checkbox_group.buttonToggled.connect(
-                self.update_action_button_text)
-        else:
-            text = self._action_string[self.NO_RESTART]
-        self._action_button.setText(text)
-
-    def get_action_value(self):
-        """
-        Return tuple indicating True or False for the available actions.
-        """
-        restart_current = self._restart_current.isChecked()
-        restart_all = self._restart_all.isChecked()
-        no_restart = not any([restart_all, restart_current])
-        return restart_all, restart_current, no_restart
 
 
 class IPythonConsole(SpyderPluginWidget):
@@ -278,6 +187,7 @@ class IPythonConsole(SpyderPluginWidget):
         use_pager_n = 'use_pager'
         show_calltips_n = 'show_calltips'
         buffer_size_n = 'buffer_size'
+        completion_type_n = 'completion_type'
 
         # Advanced GUI options
         in_prompt_n = 'in_prompt'
@@ -317,6 +227,10 @@ class IPythonConsole(SpyderPluginWidget):
         if buffer_size_n in options:
             buffer_size_o = self.get_option(buffer_size_n)
             sw.set_buffer_size(buffer_size_o)
+        if completion_type_n in options:
+            completion_type_o = self.get_option(completion_type_n)
+            completions = {0: "droplist", 1: "ncurses", 2: "plain"}
+            sw.set_completion_type(completions[completion_type_o])
 
         # Advanced GUI options
         if in_prompt_n in options:
