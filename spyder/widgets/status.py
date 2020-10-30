@@ -10,6 +10,7 @@
 
 # Standard library imports
 import os
+import os.path as osp
 
 # Third party imports
 from qtpy.QtCore import Qt, QPoint, QSize, QTimer, Signal
@@ -19,7 +20,7 @@ from qtpy.QtWidgets import QHBoxLayout, QLabel, QMenu, QWidget
 # Local imports
 from spyder.config.base import _
 from spyder.utils.conda import get_list_conda_envs
-from spyder.utils.misc import get_list_pyenv_envs
+from spyder.utils.misc import get_list_pyenv_envs, get_interpreter_info
 from spyder.utils.qthelpers import (add_actions, create_action,
                                     create_waitspinner)
 
@@ -269,7 +270,18 @@ class InterpreterStatus(StatusBarWidget):
 
     def _get_env_info(self, path):
         """Get environment information."""
-        name = self.path_to_env[path]
+        try:
+            name = self.path_to_env[path]
+        except KeyError:
+            if 'Spyder.app' in path:
+                name = 'internal'
+            elif 'conda' in path:
+                name = 'conda: {}'.format(osp.split(path)[-2])
+            else:
+                name = 'custom'
+            version = get_interpreter_info(path)
+            self.path_to_env[path] = name
+            self.envs[name] = (path, version)
         _, version = self.envs[name]
         return '{env} ({version})'.format(env=name, version=version)
 

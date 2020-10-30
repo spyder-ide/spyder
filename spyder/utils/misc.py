@@ -367,3 +367,19 @@ def get_list_pyenv_envs():
             'Python 2.7' if data[-1] == '' else 'Python {}'.format(data[0]))
         env_list[name] = (path, version)
     return env_list
+
+
+def get_interpreter_info(path):
+    """Return the version information of the selected python interpreter."""
+    try:
+        out, err = subprocess.Popen(
+                [path, '-V'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+        ).communicate()
+        out = out.decode()
+        err = err.decode()
+    except Exception:
+        out = ''
+        err = ''
+    return out
