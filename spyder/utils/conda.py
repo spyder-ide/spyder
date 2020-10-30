@@ -13,7 +13,8 @@ import os.path as osp
 import subprocess
 import sys
 
-from spyder.config.base import running_in_mac_app
+from spyder.config.base import running_in_mac_app, get_home_dir
+from spyder.utils.programs import find_program
 
 
 WINDOWS = os.name == 'nt'
@@ -104,18 +105,25 @@ def get_conda_env_path(pyexec, quote=False):
 
 def get_list_conda_envs():
     """Return the list of all conda envs found in the system."""
+    conda_list = ['conda', 'env', 'list', '--json']
+    if sys.platform == 'darwin':
+        # This is needed when Spyder is run from Spyder.app
+        conda_path = find_program('conda')
+        if not conda_path:
+            conda_list = [get_home_dir(), 'opt', 'anaconda3', 'condabin',
+                          'conda', 'env', 'list', '--json']
     try:
         out, err = subprocess.Popen(
-            ['conda', 'env', 'list', '--json'],
+            conda_list,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         ).communicate()
         out = out.decode()
         err = err.decode()
+        out = json.loads(out)
     except Exception:
-        out = ''
+        out = {'envs': []}
         err = ''
-    out = json.loads(out)
     env_list = {}
     for env in out['envs']:
         name = env.split('/')[-1]
@@ -132,9 +140,6 @@ def get_list_conda_envs():
         except Exception:
             version = ''
             err = ''
-        if is_conda_env(pyexec=path):
-            name = 'conda: {}'.format(name)
-        elif running_in_mac_app(path):
-            name = 'system:'
+        name = 'conda: {}'.format(name)
         env_list[name] = (path, version.strip())
     return env_list
