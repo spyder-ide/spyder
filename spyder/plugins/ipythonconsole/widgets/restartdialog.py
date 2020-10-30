@@ -22,7 +22,7 @@ class ConsoleRestartDialog(QDialog):
     Dialog to apply preferences that need a restart of the console kernel.
     """
 
-    # Constants for actions when preferences require restart of the kernel
+    # Constants for actions when Preferences require a kernel restart
     NO_RESTART = 1
     RESTART_CURRENT = 2
     RESTART_ALL = 3
@@ -44,9 +44,10 @@ class ConsoleRestartDialog(QDialog):
               "applied to new consoles only. To apply preferences to "
               "existing consoles, select from the options below.<br><br>"
               "Please note: applying changes to running consoles will force"
-              " a kernel restart and all current work will be lost.<br>"),
+              " a kernel restart and all current work will be lost."),
             self)
         self._text_label.setWordWrap(True)
+        self._text_label.setFixedWidth(450)
 
         # Checkboxes
         self._restart_current = QCheckBox(
@@ -64,13 +65,15 @@ class ConsoleRestartDialog(QDialog):
             self._action_string[self.NO_RESTART], parent=self)
 
         # Dialog Layout
-        layout = QVBoxLayout()
+        layout = QVBoxLayout(self)
         layout.addWidget(self._text_label)
+        layout.addSpacing(5)
         layout.addWidget(self._restart_current)
         layout.addWidget(self._restart_all)
+        layout.addSpacing(10)
         layout.addWidget(self._action_button, 0, Qt.AlignRight)
+        layout.setContentsMargins(20, 20, 20, 20)
         self.setLayout(layout)
-        self.setFixedWidth(600)
 
         # Signals
         self._checkbox_group.buttonToggled.connect(
