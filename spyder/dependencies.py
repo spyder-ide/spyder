@@ -37,6 +37,7 @@ DIFF_MATCH_PATCH_REQVER = '>=20181111'
 INTERVALTREE_REQVER = '>=3.0.2'
 IPYTHON_REQVER = ">=4.0;<6.0" if PY2 else ">=4.0"
 JEDI_REQVER = '=0.17.2'
+JSONSCHEMA_REQVER = '>=3.2.0'
 KEYRING_REQVER = '>=17.0.0'
 NBCONVERT_REQVER = '>=4.0'
 NUMPYDOC_REQVER = '>=0.6.0'
@@ -113,6 +114,10 @@ DESCRIPTIONS = [
      'package_name': "jedi",
      'features': _("Main backend for the Python Language Server"),
      'required_version': JEDI_REQVER},
+    {'modname': 'jsonschema',
+     'package_name': 'jsonschema',
+     'features': _('Verify if snippets files are valid'),
+     'required_version': JSONSCHEMA_REQVER},
     {'modname': "keyring",
      'package_name': "keyring",
      'features': _("Save Github credentials to report internal "
