@@ -615,15 +615,15 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.tabs = QTabWidget()
         self.tabs.addTab(self.create_tab(completion_widget),
                          _('Completion'))
-        self.tabs.addTab(self.create_tab(snippets_widget), _('Snippets'))
         self.tabs.addTab(self.create_tab(linting_widget), _('Linting'))
         self.tabs.addTab(self.create_tab(introspection_group, advanced_group),
                          _('Introspection'))
         self.tabs.addTab(self.create_tab(code_style_widget), _('Code style'))
-        self.tabs.addTab(self.create_tab(code_fmt_widget),
-                         _('Code formatting'))
         self.tabs.addTab(self.create_tab(docstring_style_widget),
                          _('Docstring style'))
+        self.tabs.addTab(self.create_tab(code_fmt_widget),
+                         _('Code formatting'))
+        self.tabs.addTab(self.create_tab(snippets_widget), _('Snippets'))
         self.tabs.addTab(self.create_tab(clients_group,
                                          lsp_advanced_group,
                                          kite_group),
