@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Text snippets preferences
+Text snippets configuration widgets.
 """
 
 # Standard library imports
@@ -16,18 +16,15 @@ import json
 from jsonschema.exceptions import ValidationError
 from jsonschema import validate as json_validate
 from qtpy.compat import to_qvariant
-from qtpy.QtCore import (Qt, Slot, QAbstractTableModel, QModelIndex,
-                         QSize)
-from qtpy.QtWidgets import (QAbstractItemView, QCheckBox,
-                            QComboBox, QDialog, QDialogButtonBox, QGroupBox,
-                            QGridLayout, QLabel, QLineEdit,
-                            QPushButton, QTableView, QVBoxLayout)
+from qtpy.QtCore import Qt, Slot, QAbstractTableModel, QModelIndex, QSize
+from qtpy.QtWidgets import (QAbstractItemView, QCheckBox, QComboBox, QDialog,
+                            QDialogButtonBox, QGroupBox, QGridLayout, QLabel,
+                            QLineEdit, QTableView, QVBoxLayout)
 
 # Local imports
 from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.config.gui import get_font
-from spyder.config.snippets import SNIPPETS
 from spyder.plugins.completion.languageserver import LSP_LANGUAGES
 from spyder.plugins.editor.widgets.codeeditor import CodeEditor
 from spyder.utils.snippets.ast import build_snippet_ast
@@ -43,8 +40,6 @@ LSP_LANGUAGES_PY = list(LSP_LANGUAGES)
 LSP_LANGUAGES_PY.insert(PYTHON_POS, 'Python')
 
 LANGUAGE, ADDR, CMD = [0, 1, 2]
-
-
 
 SNIPPETS_SCHEMA = {
     'type': 'array',
@@ -457,6 +452,8 @@ class SnippetsModel(QAbstractTableModel):
                 return to_qvariant(snippet.description)
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignHCenter | Qt.AlignVCenter))
+        elif role == Qt.ToolTipRole:
+            return to_qvariant(_("Double-click to view or edit"))
         return to_qvariant()
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -741,8 +738,6 @@ class SnippetTable(QTableView):
             snippet = dialog.get_options()
             key = (snippet.trigger_text, snippet.description)
             self.source_model.snippet_map[key] = snippet
-            snippet_list = list(
-                self.source_model.snippet_map.values())
             self.source_model.snippets = list(
                 self.source_model.snippet_map.values())
             self.source_model.reset()
