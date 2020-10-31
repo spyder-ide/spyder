@@ -409,22 +409,27 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     @Slot(bool)
     def toggle_show_comments(self, state):
-        self.show_comments = state
-        CONF.set('outline_explorer', 'show_comments', state)
-        self.sig_update_configuration.emit()
-        self.update_all_editors()
+        if CONF.get('outline_explorer', 'show_comments') != state:
+            CONF.set('outline_explorer', 'show_comments', state)
+            self.show_comments = state
+            self.sig_update_configuration.emit()
+            self.update_all_editors()
 
     @Slot(bool)
     def toggle_group_cells(self, state):
-        self.group_cells = state
-        CONF.set('outline_explorer', 'group_cells', state)
-        self.sig_update_configuration.emit()
-        self.update_all_editors()
+        if CONF.get('outline_explorer', 'group_cells') != state:
+            CONF.set('outline_explorer', 'group_cells', state)
+            self.group_cells = state
+            self.sig_update_configuration.emit()
+            self.update_all_editors()
 
     @Slot(bool)
     def toggle_variables(self, state):
-        self.display_variables = state
-        self.update_all_editors()
+        if CONF.get('outline_explorer', 'display_variables') != state:
+            CONF.set('outline_explorer', 'display_variables', state)
+            self.display_variables = state
+            for editor in self.editor_ids.keys():
+                self.update_editor(editor.info, editor)
 
     @Slot(bool)
     def toggle_sort_files_alphabetically(self, state):
