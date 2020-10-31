@@ -11,37 +11,37 @@ Backend plugin to manage multiple code completion and introspection clients.
 # Standard library imports
 from collections import defaultdict
 import logging
-import os
-import os.path as osp
-import functools
 
 # Third-party imports
-from qtpy.QtCore import QObject, Slot, QMutex, QMutexLocker, QTimer
+from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _, get_conf_path
-from spyder.config.lsp import PYTHON_CONFIG
-from spyder.utils.misc import select_port, getcwd_or_home
+from spyder.config.base import _
 from spyder.plugins.completion.languageserver.plugin import (
     LanguageServerPlugin)
 from spyder.plugins.completion.kite.plugin import KiteCompletionPlugin
 from spyder.plugins.completion.fallback.plugin import FallbackPlugin
 from spyder.plugins.completion.manager.api import (LSPRequestTypes,
                                                    SpyderCompletionPlugin)
+from spyder.plugins.completion.snippets.plugin import SnippetsPlugin
 
 logger = logging.getLogger(__name__)
 
+ALL_COMPLETION_PLUGINS = {
+    p.COMPLETION_CLIENT_NAME: p for p in (
+        LanguageServerPlugin,
+        FallbackPlugin,
+        KiteCompletionPlugin,
+        SnippetsPlugin
+    )
+}
 
 class CompletionManager(SpyderCompletionPlugin):
     STOPPED = 'stopped'
     RUNNING = 'running'
 
-    BASE_PLUGINS = {p.COMPLETION_CLIENT_NAME: p for p in (
-        LanguageServerPlugin,
-        FallbackPlugin,
-        KiteCompletionPlugin,
-    )}
+    BASE_PLUGINS = ALL_COMPLETION_PLUGINS
 
     WAIT_FOR_SOURCE = defaultdict(
         lambda: {LanguageServerPlugin.COMPLETION_CLIENT_NAME},
@@ -64,11 +64,13 @@ class CompletionManager(SpyderCompletionPlugin):
         lambda: (
             LanguageServerPlugin.COMPLETION_CLIENT_NAME,
             KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
+            SnippetsPlugin.COMPLETION_CLIENT_NAME,
             FallbackPlugin.COMPLETION_CLIENT_NAME,
         ), {
             LSPRequestTypes.DOCUMENT_COMPLETION: (
                 KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
                 LanguageServerPlugin.COMPLETION_CLIENT_NAME,
+                SnippetsPlugin.COMPLETION_CLIENT_NAME,
                 FallbackPlugin.COMPLETION_CLIENT_NAME,
             ),
         })
@@ -77,7 +79,7 @@ class CompletionManager(SpyderCompletionPlugin):
         LSPRequestTypes.DOCUMENT_COMPLETION
     }
 
-    def __init__(self, parent, plugins=['lsp', 'kite', 'fallback']):
+    def __init__(self, parent, plugins=ALL_COMPLETION_PLUGINS):
         SpyderCompletionPlugin.__init__(self, parent)
         self.clients = {}
         self.requests = {}
@@ -149,6 +151,10 @@ class CompletionManager(SpyderCompletionPlugin):
         if self.is_fallback_only(language):
             # Only send response when fallback is among its sources
             if 'fallback' in request_responses['sources']:
+                self.gather_and_send_to_codeeditor(request_responses)
+                return
+
+            if 'snippets' in request_responses['sources']:
                 self.gather_and_send_to_codeeditor(request_responses)
                 return
 

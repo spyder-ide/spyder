@@ -998,6 +998,31 @@ def test_fallback_completions(fallback_codeeditor, qtbot):
 @pytest.mark.slow
 @pytest.mark.first
 @flaky(max_runs=5)
+def test_text_snippet_completions(snippets_codeeditor, qtbot):
+    code_editor, _ = snippets_codeeditor
+    completion = code_editor.completion_widget
+
+    code_editor.toggle_automatic_completions(False)
+    code_editor.toggle_code_snippets(False)
+
+    # Set cursor to start
+    code_editor.go_to_line(1)
+
+    with qtbot.waitSignal(completion.sig_show_completions,
+                          timeout=10000) as sig:
+        qtbot.keyClicks(code_editor, 'f')
+        qtbot.keyPress(code_editor, Qt.Key_Tab, delay=300)
+
+    # Assert all retrieved words start with 'f'
+    assert all({x['sortText'][1] in {'for', 'from'} for x in sig.args[0]})
+
+    code_editor.toggle_automatic_completions(True)
+    code_editor.toggle_code_snippets(True)
+
+
+@pytest.mark.slow
+@pytest.mark.first
+@flaky(max_runs=5)
 def test_kite_textEdit_completions(mock_completions_codeeditor, qtbot):
     """Test textEdit completions such as those returned by the Kite provider.
 

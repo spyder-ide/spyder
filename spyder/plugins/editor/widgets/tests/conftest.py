@@ -102,6 +102,38 @@ def fallback_codeeditor(qtbot_module, request):
 
 
 @pytest.fixture
+def snippets_codeeditor(qtbot_module, request):
+    """CodeEditor instance with text snippets enabled."""
+    completions = CompletionManager(None, ['snippets'])
+    completions.start()
+    completions.start_client('python')
+    completions.language_status['python']['snippets'] = True
+    qtbot_module.addWidget(completions)
+
+    # Create a CodeEditor instance
+    editor = codeeditor_factory()
+    qtbot_module.addWidget(editor)
+    editor.show()
+
+    # Redirect editor snippets requests to SnippetsActor
+    editor.sig_perform_completion_request.connect(completions.send_request)
+    editor.filename = 'test.py'
+    editor.language = 'Python'
+    editor.completions_available = True
+    qtbot_module.wait(2000)
+
+    def teardown():
+        completions.shutdown()
+        editor.hide()
+        editor.completion_widget.hide()
+
+    request.addfinalizer(teardown)
+    snippets = completions.get_client('snippets')
+    snippets.update_configuration()
+    return editor, snippets
+
+
+@pytest.fixture
 def kite_codeeditor(qtbot_module, request):
     """
     CodeEditor instance with Kite enabled.

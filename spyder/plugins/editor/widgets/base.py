@@ -907,10 +907,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             # Handle completions for the internal console
             self.insert_text(text)
         else:
-            if self.code_snippets:
-                self.sig_insert_completion.emit(text)
-            else:
-                self.insert_text(text)
+            self.sig_insert_completion.emit(text)
             self.document_did_change()
 
     def is_completion_widget_visible(self):
