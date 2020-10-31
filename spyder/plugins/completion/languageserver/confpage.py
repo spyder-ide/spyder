@@ -26,9 +26,9 @@ from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.config.gui import is_dark_interface
 from spyder.config.snippets import SNIPPETS
-from spyder.plugins.completion.languageserver.widgets.serverconfig import (
+from spyder.plugins.completion.languageserver.widgets.serversconfig import (
     LSPServerTable)
-from spyder.plugins.completion.languageserver.widgets.snippetconfig import (
+from spyder.plugins.completion.languageserver.widgets.snippetsconfig import (
     SnippetModelsProxy, SnippetTable, LSP_LANGUAGES_PY, PYTHON_POS)
 from spyder.preferences.configdialog import GeneralConfigPage
 from spyder.utils import icon_manager as ima

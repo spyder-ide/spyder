@@ -5,7 +5,7 @@
 # (see spyder/__init__.py for details)
 
 """
-Language server preferences
+Language servers configuration widgets.
 """
 
 # Standard library imports
