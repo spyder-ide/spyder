@@ -245,6 +245,7 @@ class SnippetEditor(QDialog):
 
         # Widgets
         self.snippet_settings_description = QLabel(snippet_description)
+        self.snippet_settings_description.setFixedWidth(450)
 
         # Trigger text
         self.trigger_text_label = QLabel(_('Trigger text:'))

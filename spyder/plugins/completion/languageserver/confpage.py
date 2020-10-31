@@ -409,7 +409,7 @@ class LanguageServerConfigPage(GeneralConfigPage):
         self.snippets_proxy = SnippetModelsProxy()
         self.snippets_table = SnippetTable(
             self, self.snippets_proxy, language=self.snippets_language)
-        self.snippets_table.setMaximumHeight(120)
+        self.snippets_table.setMaximumHeight(180)
 
         snippet_table_group = QGroupBox(_('Available snippets'))
         snippet_table_layout = QVBoxLayout()
