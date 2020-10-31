@@ -22,7 +22,6 @@ from qtpy.QtCore import QObject, QThread, QMutex, QMutexLocker, Signal, Slot
 from spyder.plugins.completion.snippets.trie import Trie
 from spyder.plugins.completion.languageserver import CompletionItemKind
 from spyder.plugins.completion.languageserver import LSPRequestTypes
-from spyder.plugins.completion.fallback.utils import is_prefix_valid
 
 
 SNIPPETS_COMPLETION = "Snippets"
@@ -72,7 +71,6 @@ class SnippetsActor(QObject):
         for language in snippets:
             lang_snippets = snippets[language]
             lang_trie = Trie()
-            sequences = []
             for trigger in lang_snippets:
                 trigger_descriptions = lang_snippets[trigger]
                 lang_trie[trigger] = (trigger, trigger_descriptions)
@@ -91,21 +89,24 @@ class SnippetsActor(QObject):
 
             if language in self.language_snippets:
                 language_snippets = self.language_snippets[language]
-                for node in language_snippets[current_word]:
-                    trigger, info = node.value
-                    for description in info:
-                        description_snippet = info[description]
-                        text = description_snippet['text']
-                        remove_trigger = description_snippet['remove_trigger']
-                        snippets.append({
-                            'kind': CompletionItemKind.SNIPPET,
-                            'insertText': text,
-                            'label': f'{trigger} ({description})',
-                            'sortText': trigger,
-                            'filterText': trigger,
-                            'documentation': '',
-                            'provider': SNIPPETS_COMPLETION,
-                            'remove_trigger': remove_trigger
-                        })
+                if language_snippets[current_word]:
+                    for node in language_snippets[current_word]:
+                        trigger, info = node.value
+                        for description in info:
+                            description_snippet = info[description]
+                            text = description_snippet['text']
+                            remove_trigger = description_snippet[
+                                'remove_trigger']
+                            snippets.append({
+                                'kind': CompletionItemKind.SNIPPET,
+                                'insertText': text,
+                                'label': f'{trigger} ({description})',
+                                'sortText': trigger,
+                                'filterText': trigger,
+                                'documentation': '',
+                                'provider': SNIPPETS_COMPLETION,
+                                'remove_trigger': remove_trigger
+                            })
+
             snippets = {'params': snippets}
             self.sig_snippets_response.emit(_id, snippets)
