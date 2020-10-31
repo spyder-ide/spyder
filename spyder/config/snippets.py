@@ -42,16 +42,16 @@ PYTHON_SNIPPETS = {
         }
     },
     'def': {
-        'function': {
+        'method': {
             'text': dedent("""
-                def ${1:func_name}(${2:*args}, ${3:**kwargs}):
+                def ${1:method_name}(self, ${2:*args}, ${3:**kwargs}):
                     ${4:pass}$0
             """).strip(),
             'remove_trigger': False
         },
-        'method': {
+        'function': {
             'text': dedent("""
-                def ${1:method_name}(self, ${2:*args}, ${3:**kwargs}):
+                def ${1:func_name}(${2:*args}, ${3:**kwargs}):
                     ${4:pass}$0
             """).strip(),
             'remove_trigger': False
