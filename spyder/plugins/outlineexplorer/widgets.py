@@ -413,7 +413,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             CONF.set('outline_explorer', 'show_comments', state)
             self.show_comments = state
             self.sig_update_configuration.emit()
-            self.update_all_editors()
+            self.update_all_editors(reset_info=True)
 
     @Slot(bool)
     def toggle_group_cells(self, state):
@@ -421,7 +421,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             CONF.set('outline_explorer', 'group_cells', state)
             self.group_cells = state
             self.sig_update_configuration.emit()
-            self.update_all_editors()
+            self.update_all_editors(reset_info=True)
 
     @Slot(bool)
     def toggle_variables(self, state):
@@ -607,10 +607,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 self.editors_to_update[language].remove(editor)
             self.update_timers[language].start()
 
-    def update_all_editors(self):
+    def update_all_editors(self, reset_info=False):
         """Update all editors with LSP support."""
         for language in self._languages:
-            self.set_editors_to_update(language)
+            self.set_editors_to_update(language, reset_info=reset_info)
             self.update_timers[language].start()
 
     @Slot(list)
@@ -889,12 +889,14 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.root_item_selected(item)
         self.activated(item)
 
-    def set_editors_to_update(self, language):
+    def set_editors_to_update(self, language, reset_info=False):
         """Set editors to update per language."""
         to_update = []
         for editor in self.editor_ids.keys():
             if editor.get_language().lower() == language:
                 to_update.append(editor)
+                if reset_info:
+                    editor.info = None
         self.editors_to_update[language] = to_update
 
     def start_symbol_services(self, language):
