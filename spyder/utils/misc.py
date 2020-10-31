@@ -382,4 +382,4 @@ def get_interpreter_info(path):
     except Exception:
         out = ''
         err = ''
-    return out
+    return out.strip()
