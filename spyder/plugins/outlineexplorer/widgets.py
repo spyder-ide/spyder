@@ -376,8 +376,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         sort_files_alphabetically_act.setChecked(
             self.sort_files_alphabetically)
         actions = [fullpath_act, allfiles_act, group_cells_act,
-                   display_variables_act, follow_cursor_act,
-                   comment_act, sort_files_alphabetically_act, fromcursor_act]
+                   display_variables_act, follow_cursor_act, comment_act,
+                   sort_files_alphabetically_act, fromcursor_act]
         return actions
 
     @Slot(bool)
@@ -940,10 +940,8 @@ class OutlineExplorerWidget(QWidget):
 
     def __init__(self, parent=None, show_fullpath=True, show_all_files=True,
                  group_cells=True, show_comments=True,
-                 sort_files_alphabetically=False,
-                 display_variables=False,
-                 follow_cursor=True,
-                 options_button=None):
+                 sort_files_alphabetically=False, display_variables=False,
+                 follow_cursor=True, options_button=None):
         QWidget.__init__(self, parent)
 
         self.treewidget = OutlineExplorerTreeWidget(
@@ -1034,7 +1032,7 @@ class OutlineExplorerWidget(QWidget):
             expanded_state=self.treewidget.get_expanded_state(),
             scrollbar_position=self.treewidget.get_scrollbar_position(),
             visibility=self.isVisible(),
-            )
+        )
 
     def update(self):
         self.treewidget.update_all()
