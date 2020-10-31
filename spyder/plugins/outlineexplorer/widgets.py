@@ -19,7 +19,7 @@ from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
                             QTreeWidgetItemIterator)
 
 # Local imports
-from spyder.config.base import _, STDOUT
+from spyder.config.base import _
 from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
@@ -301,8 +301,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
                  group_cells=True, show_comments=True, display_variables=False,
-                 sort_files_alphabetically=False,
-                 follow_cursor=True):
+                 sort_files_alphabetically=False, follow_cursor=True):
         self.show_fullpath = show_fullpath
         self.show_all_files = show_all_files
         self.group_cells = group_cells
@@ -440,7 +439,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             line = self.current_editor.get_cursor_line_number()
             tree = self.editor_tree_cache[editor_id]
             root = self.editor_items[editor_id]
-            language = self.current_editor.get_language()
             overlap = tree[line - 1]
             if len(overlap) == 0:
                 item = root.node
@@ -449,8 +447,9 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 self.expandItem(item)
             else:
                 sorted_nodes = sorted(overlap)
-                # The last item of the sorted elements correspond to the current
-                # node if expanding, otherwise it is the first stopper found
+                # The last item of the sorted elements correspond to the
+                # current node if expanding, otherwise it is the first stopper
+                # found
                 idx = -1
                 self.switch_to_node(sorted_nodes, idx)
 
@@ -872,7 +871,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.parent().edit.emit(path)
         self.freeze = False
 
-        parent = self.current_editor.parent()
         for editor_id, i_item in list(self.editor_items.items()):
             if i_item.path == path:
                 for editor, _id in list(self.editor_ids.items()):

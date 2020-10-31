@@ -170,7 +170,7 @@ class OutlineExplorerProxy(QObject):
         """Check if the associated editor is cloned."""
         return False
 
-      
+
 class OutlineExplorerData(QObject):
     CLASS, FUNCTION, STATEMENT, COMMENT, CELL = list(range(5))
     FUNCTION_TOKEN = 'def'
