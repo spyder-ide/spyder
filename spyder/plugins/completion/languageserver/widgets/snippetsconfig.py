@@ -33,7 +33,7 @@ from spyder.widgets.helperwidgets import ItemDelegate
 
 # Languages supported by the text snippets extension
 LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
-LANGUAGE_SET = {l.lower() for l in LSP_LANGUAGES}
+LANGUAGE_SET = {lang.lower() for lang in LSP_LANGUAGES}
 
 PYTHON_POS = bisect.bisect_left(LSP_LANGUAGES, 'Python')
 LSP_LANGUAGES_PY = list(LSP_LANGUAGES)
@@ -51,7 +51,7 @@ SNIPPETS_SCHEMA = {
             'language': {
                 'type': 'string',
                 'description': 'Programming language',
-                'enum': [l.lower() for l in LSP_LANGUAGES_PY]
+                'enum': [lang.lower() for lang in LSP_LANGUAGES_PY]
             },
             'triggers': {
                 'type': 'array',
@@ -119,7 +119,7 @@ def iter_snippets(language, snippets=None):
         for description in trigger_descriptions:
             if load_snippets:
                 this_snippet = Snippet(language=language, trigger_text=trigger,
-                                    description=description)
+                                       description=description)
                 this_snippet.load()
             else:
                 current_snippet = trigger_descriptions[description]

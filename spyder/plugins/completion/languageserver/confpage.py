@@ -385,9 +385,9 @@ class LanguageServerConfigPage(GeneralConfigPage):
             "{1}</a>".format(LSP_URL, _('the LSP grammar')))
         snippets_info_label = QLabel(
             _("Spyder allows to define custom completion snippets to use "
-              "in addition to the ones offered by the Language Server Protocol "
-              "(LSP). Each snippet should follow {}. <br><br><b>Note:</b> "
-              "All changes will be effective only when applying "
+              "in addition to the ones offered by the Language Server "
+              "Protocol (LSP). Each snippet should follow {}.<br><br> "
+              "<b>Note:</b> All changes will be effective only when applying "
               "the settings").format(grammar_url))
         snippets_info_label.setOpenExternalLinks(True)
         snippets_info_label.setWordWrap(True)
@@ -781,13 +781,17 @@ class LanguageServerConfigPage(GeneralConfigPage):
                 filename)
             modified = True
             if len(errors) == 0:
-                QMessageBox.information(self, _('All snippets imported'),
+                QMessageBox.information(
+                    self,
+                    _('All snippets imported'),
                     _('{0} snippets were loaded successfully').format(valid),
                     QMessageBox.Ok)
             else:
                 if 'loading' in errors:
                     modified = False
-                    QMessageBox.critical(self, _('JSON malformed'),
+                    QMessageBox.critical(
+                        self,
+                        _('JSON malformed'),
                         _('There was an error when trying to load the '
                           'provided JSON file: <tt>{0}</tt>').format(
                               errors['loading']),
@@ -795,7 +799,9 @@ class LanguageServerConfigPage(GeneralConfigPage):
                     )
                 elif 'validation' in errors:
                     modified = False
-                    QMessageBox.critical(self, _('Invalid snippet file'),
+                    QMessageBox.critical(
+                        self,
+                        _('Invalid snippet file'),
                         _('The provided snippet file does not comply with '
                           'the Spyder JSON snippets spec and therefore it '
                           'cannot be loaded.<br><br><tt>{}</tt>').format(
@@ -811,7 +817,9 @@ class LanguageServerConfigPage(GeneralConfigPage):
                             syntax_key, syntax_err))
                     err_msg = '<br>'.join(msg)
 
-                    QMessageBox.warning(self, _('Incorrect snippet format'),
+                    QMessageBox.warning(
+                        self,
+                        _('Incorrect snippet format'),
                         _('Spyder was able to load {0}/{1} snippets '
                           'correctly, please check the following snippets '
                           'for any syntax errors: '

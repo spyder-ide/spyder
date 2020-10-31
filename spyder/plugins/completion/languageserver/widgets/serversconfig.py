@@ -32,7 +32,7 @@ from spyder.utils.programs import find_program
 from spyder.widgets.helperwidgets import ItemDelegate
 
 LSP_LANGUAGE_NAME = {x.lower(): x for x in LSP_LANGUAGES}
-LANGUAGE_SET = {l.lower() for l in LSP_LANGUAGES}
+LANGUAGE_SET = {lang.lower() for lang in LSP_LANGUAGES}
 
 
 def iter_servers():
