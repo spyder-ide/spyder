@@ -50,6 +50,7 @@ PYGMENTS_REQVER = '>=2.0'
 PYLINT_REQVER = '>=1.0'
 PYLS_REQVER = '>=0.35.0;<1.0.0'
 PYLS_BLACK_REQVER = '>=0.4.6'
+PYLS_SPYDER_REQVER = '>=0.1.1'
 PYXDG_REQVER = '>=0.26'
 PYZMQ_REQVER = '>=17'
 QDARKSTYLE_REQVER = '>=2.8'
@@ -171,6 +172,10 @@ DESCRIPTIONS = [
      'features': _("Autoformat Python files in the Editor with the Black "
                    "package"),
      'required_version': PYLS_BLACK_REQVER},
+    {'modname': 'pyls_spyder',
+     'package_name': 'pyls-spyder',
+     'features': _('Spyder plugin for the Python Language Server'),
+     'required_version': PYLS_SPYDER_REQVER},
     {'modname': "xdg",
      'package_name': "pyxdg",
      'features': _("Parse desktop files on Linux"),

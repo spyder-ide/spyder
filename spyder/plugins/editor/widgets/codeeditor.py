@@ -607,6 +607,7 @@ class CodeEditor(TextEditBaseWidget):
         self.highlight_enabled = False
         self.formatting_enabled = False
         self.range_formatting_enabled = False
+        self.document_symbols_enabled = False
         self.formatting_characters = []
         self.rename_support = False
         self.completion_args = None
@@ -1144,6 +1145,9 @@ class CodeEditor(TextEditBaseWidget):
         self.formatting_enabled = capabilities['documentFormattingProvider']
         self.range_formatting_enabled = (
             capabilities['documentRangeFormattingProvider'])
+        self.document_symbols_enabled = (
+            capabilities['documentSymbolProvider']
+        )
         self.formatting_characters.append(
             range_formatting_options['firstTriggerCharacter'])
         self.formatting_characters += (
@@ -1179,6 +1183,8 @@ class CodeEditor(TextEditBaseWidget):
     @request(method=LSPRequestTypes.DOCUMENT_SYMBOL)
     def request_symbols(self):
         """Request document symbols."""
+        if not self.document_symbols_enabled:
+            return
         if self.oe_proxy is not None:
             self.oe_proxy.emit_request_in_progress()
         params = {'file': self.filename}
