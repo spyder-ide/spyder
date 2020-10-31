@@ -116,6 +116,10 @@ PYTHON_CONFIG = {
                 },
                 'flake8': {
                      'enabled': False,
+                },
+                'pyls_spyder': {
+                    'enable_block_comments': True,
+                    'group_cells': True
                 }
             },
 

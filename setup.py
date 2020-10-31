@@ -223,6 +223,7 @@ install_requires = [
     'pyqtwebengine<5.13',
     'python-language-server[all]>=0.35.0,<1.0.0',
     'pyls-black>=0.4.6',
+    'pyls-spyder>=0.1.1',
     'pyxdg>=0.26;platform_system=="Linux"',
     'pyzmq>=17',
     'qdarkstyle>=2.8',

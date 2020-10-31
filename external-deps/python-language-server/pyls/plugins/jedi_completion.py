@@ -57,7 +57,7 @@ def pyls_completions(config, document, position):
     code_position = _utils.position_to_jedi_linecolumn(document, position)
 
     code_position["fuzzy"] = settings.get("fuzzy", False)
-    completions = document.jedi_script().complete(**code_position)
+    completions = document.jedi_script(use_document_path=True).complete(**code_position)
 
     if not completions:
         return None
