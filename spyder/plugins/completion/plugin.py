@@ -11,19 +11,14 @@ Backend plugin to manage multiple code completion and introspection clients.
 # Standard library imports
 from collections import defaultdict
 import logging
-import os
-import os.path as osp
-import functools
 
 # Third-party imports
-from qtpy.QtCore import QObject, Slot, QMutex, QMutexLocker, QTimer
+from qtpy.QtCore import QMutex, QMutexLocker, QTimer, Slot
 from qtpy.QtWidgets import QMessageBox
 
 # Local imports
-from spyder.config.base import _, get_conf_path
-from spyder.config.lsp import PYTHON_CONFIG
+from spyder.config.base import _
 from spyder.api.completion import SpyderCompletionPlugin
-from spyder.utils.misc import select_port, getcwd_or_home
 from spyder.plugins.completion.languageserver.plugin import (
     LanguageServerPlugin)
 from spyder.plugins.completion.kite.plugin import KiteCompletionPlugin
@@ -68,15 +63,15 @@ class CompletionManager(SpyderCompletionPlugin):
 
     SOURCE_PRIORITY = defaultdict(
         lambda: (
-            SnippetsPlugin.COMPLETION_CLIENT_NAME,
             LanguageServerPlugin.COMPLETION_CLIENT_NAME,
             KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
+            SnippetsPlugin.COMPLETION_CLIENT_NAME,
             FallbackPlugin.COMPLETION_CLIENT_NAME,
         ), {
             LSPRequestTypes.DOCUMENT_COMPLETION: (
-                SnippetsPlugin.COMPLETION_CLIENT_NAME,
                 KiteCompletionPlugin.COMPLETION_CLIENT_NAME,
                 LanguageServerPlugin.COMPLETION_CLIENT_NAME,
+                SnippetsPlugin.COMPLETION_CLIENT_NAME,
                 FallbackPlugin.COMPLETION_CLIENT_NAME,
             ),
         })
