@@ -406,6 +406,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if self.show_all_files is False:
                 self.root_item_selected(
                     self.editor_items[self.editor_ids[self.current_editor]])
+            self.do_follow_cursor()
 
     @Slot(bool)
     def toggle_show_comments(self, state):
@@ -434,7 +435,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     @Slot(bool)
     def toggle_sort_files_alphabetically(self, state):
         self.sort_files_alphabetically = state
-        self.update_all()
         self.__sort_toplevel_items()
 
     @Slot()
@@ -577,18 +577,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             root_item.set_path(new_filename, fullpath=self.show_fullpath)
             self.__sort_toplevel_items()
 
-    @Slot()
-    def update_all(self):
-        """
-        Update the outline explorer for all editors tree preserving the tree
-        state
-        """
-        self.save_expanded_state()
-        for editor, editor_id in list(self.editor_ids.items()):
-            self.__do_update(editor, editor_id)
-        self.restore_expanded_state()
-        self.do_follow_cursor()
-
     def update_editors(self, language):
         """
         Update all editors for a given language sequentially.
@@ -628,7 +616,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
         if getattr(plugin_base, "_isvisible", True) and update:
             self.save_expanded_state()
-            self.__do_update(editor, editor_id)
             self.restore_expanded_state()
             self.do_follow_cursor()
 
@@ -746,14 +733,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.sig_tree_updated.emit()
         self.sig_hide_spinner.emit()
         return True
-
-    def __do_update(self, editor, editor_id):
-        """
-        Recalculate the and update the tree items in the Outliner for a
-        given editor
-        """
-        item = self.editor_items[editor_id].node
-        tree_cache = self.editor_tree_cache[editor_id]
 
     def remove_editor(self, editor):
         if editor in self.editor_ids:
@@ -1033,9 +1012,6 @@ class OutlineExplorerWidget(QWidget):
             scrollbar_position=self.treewidget.get_scrollbar_position(),
             visibility=self.isVisible(),
         )
-
-    def update(self):
-        self.treewidget.update_all()
 
     def file_renamed(self, editor, new_filename):
         self.treewidget.file_renamed(editor, new_filename)
