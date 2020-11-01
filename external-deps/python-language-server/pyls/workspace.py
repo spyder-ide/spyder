@@ -234,8 +234,8 @@ class Document(object):
         return m_start[0] + m_end[-1]
 
     @lock
-    def jedi_names(self, all_scopes=False, definitions=True, references=False):
-        script = self.jedi_script()
+    def jedi_names(self, use_document_path, all_scopes=False, definitions=True, references=False):
+        script = self.jedi_script(use_document_path=use_document_path)
         return script.get_names(all_scopes=all_scopes, definitions=definitions,
                                 references=references)
 
