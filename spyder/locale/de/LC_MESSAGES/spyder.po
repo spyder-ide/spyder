@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 14:18\n"
+"PO-Revision-Date: 2020-11-01 14:30\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -359,7 +359,7 @@ msgstr "Spyder-Dokumentation"
 
 #: spyder/app/mainwindow.py:1077
 msgid "Tutorial videos"
-msgstr ""
+msgstr "Tutorial-Videos"
 
 #: spyder/app/mainwindow.py:1082
 msgid "Shortcuts Summary"
@@ -2084,7 +2084,7 @@ msgstr "Nachgestellte Leerzeichen beim Speichern von Dateien automatisch entfern
 
 #: spyder/plugins/editor/confpage.py:142
 msgid "Insert a newline at the end if one does not exist when saving a file"
-msgstr ""
+msgstr "Eine neue Zeile am Ende einfügen, wenn diese beim Speichern einer Datei nicht vorhanden ist"
 
 #: spyder/plugins/editor/confpage.py:147
 msgid "Trim all newlines after the final one when saving a file"
@@ -4524,15 +4524,15 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:91
 msgid "Event"
-msgstr ""
+msgstr "Ereignis"
 
 #: spyder/plugins/outlineexplorer/widgets.py:92
 msgid "Operator"
-msgstr ""
+msgstr "Operator"
 
 #: spyder/plugins/outlineexplorer/widgets.py:93
 msgid "Type parameter"
-msgstr ""
+msgstr "Typparameter"
 
 #: spyder/plugins/outlineexplorer/widgets.py:94
 msgid "Cell"
@@ -5136,11 +5136,11 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:128
 msgid "Please consider using the full version of the Spyder MacOS application.<br>"
-msgstr ""
+msgstr "Bitte erwägen Sie die Verwendung der Vollversion der Spyder MacOS-Anwendung.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:131
 msgid "Please install this package in your Spyder environment.<br>"
-msgstr ""
+msgstr "Bitte installieren Sie dieses Paket in Ihrer Spyder-Umgebung.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:138
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not "
