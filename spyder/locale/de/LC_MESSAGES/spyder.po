@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 14:08\n"
+"PO-Revision-Date: 2020-11-01 14:18\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -477,7 +477,7 @@ msgstr "Das Fenster-Layout wird auf die Standardeinstellungen zurückgesetzt: Di
 
 #: spyder/app/mainwindow.py:2099
 msgid "<b>%s</b> will be overwritten. Do you want to continue?"
-msgstr ""
+msgstr "<b>%s</b> wird überschrieben. Möchten Sie fortfahren?"
 
 #: spyder/app/mainwindow.py:2161
 msgid "Error opening the custom layout.  Please close Spyder and try again.  If the issue persists, then you must use 'Reset to Spyder default' from the layout menu."
@@ -672,7 +672,7 @@ msgstr "Code-Analyse"
 
 #: spyder/app/tour.py:265
 msgid "The Code Analysis helps you improve the quality of your programs by detecting style issues, bad practices and potential bugs."
-msgstr ""
+msgstr "Die Code-Analyse hilft Ihnen, die Qualität Ihrer Programme zu verbessern, indem sie Stilprobleme, schlechte Praktiken und potenzielle Fehler aufspürt."
 
 #: spyder/app/tour.py:271
 msgid "The end"
@@ -1332,7 +1332,7 @@ msgstr "Standard ist 79"
 
 #: spyder/plugins/completion/languageserver/confpage.py:258
 msgid "Spyder can use {0}, {1} or {2} to format your code for conformance to the {3} convention."
-msgstr ""
+msgstr "Spyder kann {0}, {1} oder {2} verwenden, um Ihren Code entsprechend der {3}-Konvention zu formatieren."
 
 #: spyder/plugins/completion/languageserver/confpage.py:266
 msgid "Choose the code formatting provider: "
@@ -3052,7 +3052,7 @@ msgstr "Einfacher Klick zum Öffnen von Dateien"
 
 #: spyder/plugins/explorer/confpage.py:42
 msgid "Filter settings"
-msgstr ""
+msgstr "Filtereinstellungen"
 
 #: spyder/plugins/explorer/confpage.py:44 spyder/plugins/explorer/widgets/explorer.py:401
 msgid "Filter files by name, extension, or more using <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob patterns.</a> Please enter the glob patterns of the files you want to show, separated by commas."
@@ -3080,7 +3080,7 @@ msgstr "Änderungsdatum"
 
 #: spyder/plugins/explorer/widgets/explorer.py:339
 msgid "Edit filter settings..."
-msgstr ""
+msgstr "Filtereinstellungen bearbeiten..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:346
 msgid "Single click to open"
@@ -3088,7 +3088,7 @@ msgstr "Einfacher Klick zum Öffnen"
 
 #: spyder/plugins/explorer/widgets/explorer.py:397
 msgid "Edit filter settings"
-msgstr ""
+msgstr "Filtereinstellungen bearbeiten"
 
 #: spyder/plugins/explorer/widgets/explorer.py:456
 msgid "File..."
@@ -3096,7 +3096,7 @@ msgstr "Datei..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:460
 msgid "Python file..."
-msgstr ""
+msgstr "Python-Datei..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:464
 msgid "Folder..."
@@ -3104,7 +3104,7 @@ msgstr "Ordner..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:468
 msgid "Python Package..."
-msgstr ""
+msgstr "Python-Paket..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:489
 msgid "Open in Spyder"
@@ -3352,11 +3352,11 @@ msgstr "Änderungsdatum anzeigen"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1796
 msgid "Activate filename filters"
-msgstr ""
+msgstr "Dateinamensfilter aktivieren"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1796
 msgid "Deactivate filename filters"
-msgstr ""
+msgstr "Dateinamensfilter deaktivieren"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:113
 msgid "Browse..."
@@ -3944,7 +3944,7 @@ msgstr ""
 
 #: spyder/plugins/ipythonconsole/confpage.py:252
 msgid "Debug"
-msgstr ""
+msgstr "Debuggen"
 
 #: spyder/plugins/ipythonconsole/confpage.py:256
 msgid "Prevent editor from closing files while debugging"
@@ -4362,7 +4362,7 @@ msgstr "Der Kernel ist tot"
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:93
 msgid "An error occured, see the console."
-msgstr ""
+msgstr "Ein Fehler ist aufgetreten, siehe die Konsole."
 
 #: spyder/plugins/ipythonconsole/widgets/namespacebrowser.py:94
 msgid "%s.<br><br>Note: Please don't report this problem on Github, there's nothing to do about it."
@@ -4448,19 +4448,19 @@ msgstr "Modul"
 
 #: spyder/plugins/outlineexplorer/widgets.py:70
 msgid "Namespace"
-msgstr ""
+msgstr "Namensraum"
 
 #: spyder/plugins/outlineexplorer/widgets.py:71
 msgid "Package"
-msgstr ""
+msgstr "Paket"
 
 #: spyder/plugins/outlineexplorer/widgets.py:72
 msgid "Class"
-msgstr ""
+msgstr "Klasse"
 
 #: spyder/plugins/outlineexplorer/widgets.py:73
 msgid "Method"
-msgstr ""
+msgstr "Methode"
 
 #: spyder/plugins/outlineexplorer/widgets.py:74
 msgid "Property"
@@ -4472,7 +4472,7 @@ msgstr "Attribut"
 
 #: spyder/plugins/outlineexplorer/widgets.py:76
 msgid "constructor"
-msgstr ""
+msgstr "Konstruktor"
 
 #: spyder/plugins/outlineexplorer/widgets.py:77
 msgid "Enum"
@@ -4480,23 +4480,23 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:79
 msgid "Function"
-msgstr ""
+msgstr "Funktion"
 
 #: spyder/plugins/outlineexplorer/widgets.py:80
 msgid "Variable"
-msgstr ""
+msgstr "Variable"
 
 #: spyder/plugins/outlineexplorer/widgets.py:81
 msgid "Constant"
-msgstr ""
+msgstr "Konstante"
 
 #: spyder/plugins/outlineexplorer/widgets.py:82
 msgid "String"
-msgstr ""
+msgstr "Zeichenkette"
 
 #: spyder/plugins/outlineexplorer/widgets.py:83
 msgid "Number"
-msgstr ""
+msgstr "Zahl"
 
 #: spyder/plugins/outlineexplorer/widgets.py:84
 msgid "Boolean"
@@ -4536,11 +4536,11 @@ msgstr ""
 
 #: spyder/plugins/outlineexplorer/widgets.py:94
 msgid "Cell"
-msgstr ""
+msgstr "Zelle"
 
 #: spyder/plugins/outlineexplorer/widgets.py:95
 msgid "Block comment"
-msgstr ""
+msgstr "Blockkommentar"
 
 #: spyder/plugins/outlineexplorer/widgets.py:275
 msgid "Line %s"
@@ -4568,7 +4568,7 @@ msgstr "Code-Zellen gruppieren"
 
 #: spyder/plugins/outlineexplorer/widgets.py:363
 msgid "Display variables and attributes"
-msgstr ""
+msgstr "Variablen und Attribute anzeigen"
 
 #: spyder/plugins/outlineexplorer/widgets.py:369
 msgid "Follow cursor position"
@@ -5148,7 +5148,7 @@ msgstr ""
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:142
 msgid "supported in the Spyder MacOS application.<br>"
-msgstr ""
+msgstr "unterstützt in der Spyder MacOS-Anwendung.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:145
 msgid "found in your Spyder environment. Please install this package in your Spyder environment.<br>"
@@ -5200,7 +5200,7 @@ msgstr "Elemente"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:203
 msgid "element"
-msgstr ""
+msgstr "Element"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:444
 msgid "Value"
@@ -5240,11 +5240,11 @@ msgstr "Einfügen"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:621
 msgid "Insert above"
-msgstr ""
+msgstr "Darüber einfügen"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:626
 msgid "Insert below"
-msgstr ""
+msgstr "Darunter einfügen"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:640 spyder/plugins/variableexplorer/widgets/collectionseditor.py:934
 msgid "Duplicate"
@@ -6594,11 +6594,11 @@ msgstr "Zeichenkette ersetzen"
 
 #: spyder/widgets/findreplace.py:148
 msgid "In selection"
-msgstr ""
+msgstr "In Auswahl"
 
 #: spyder/widgets/findreplace.py:156
 msgid "All"
-msgstr ""
+msgstr "Alle"
 
 #: spyder/widgets/findreplace.py:633
 msgid "of"
