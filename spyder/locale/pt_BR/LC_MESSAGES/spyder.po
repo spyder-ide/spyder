@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 01:53\n"
+"PO-Revision-Date: 2020-11-01 13:37\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -243,7 +243,7 @@ msgstr "Modo tela cheia"
 
 #: spyder/app/mainwindow.py:847
 msgid "For fullscreen mode use macOS built-in feature"
-msgstr ""
+msgstr "Para o modo de tela cheia, use o recurso integrado do macOS"
 
 #: spyder/app/mainwindow.py:863
 msgid "Main toolbar"
@@ -358,7 +358,7 @@ msgstr "Documentação do Spyder"
 
 #: spyder/app/mainwindow.py:1077
 msgid "Tutorial videos"
-msgstr ""
+msgstr "Vídeos de tutorial"
 
 #: spyder/app/mainwindow.py:1082
 msgid "Shortcuts Summary"
@@ -366,7 +366,7 @@ msgstr "Resumo de Atalhos"
 
 #: spyder/app/mainwindow.py:1108
 msgid "Interactive tour introducing Spyder's panes and features"
-msgstr ""
+msgstr "Tour interativo introduzindo painéis e recursos do Spyder"
 
 #: spyder/app/mainwindow.py:1119
 msgid "Python documentation"
@@ -476,7 +476,7 @@ msgstr "O esquema das janelas retornará para as configurações padrões: isso 
 
 #: spyder/app/mainwindow.py:2099
 msgid "<b>%s</b> will be overwritten. Do you want to continue?"
-msgstr ""
+msgstr "<b>%s</b> será sobrescrito. Você quer continuar?"
 
 #: spyder/app/mainwindow.py:2161
 msgid "Error opening the custom layout.  Please close Spyder and try again.  If the issue persists, then you must use 'Reset to Spyder default' from the layout menu."
@@ -586,7 +586,7 @@ msgstr "Reiniciando"
 
 #: spyder/app/tour.py:147
 msgid "Welcome to the introduction tour!"
-msgstr ""
+msgstr "Bem-vindo ao tour de introdução!"
 
 #: spyder/app/tour.py:148
 msgid "<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for the Python programming language.<br><br>Here, we are going to guide you through its most important features.<br><br>Please use the arrow keys or click on the buttons below to move along the tour."
