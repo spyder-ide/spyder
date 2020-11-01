@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 01:53\n"
+"PO-Revision-Date: 2020-11-01 14:08\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -588,7 +588,7 @@ msgstr "Neustartvorgang"
 
 #: spyder/app/tour.py:147
 msgid "Welcome to the introduction tour!"
-msgstr ""
+msgstr "Willkommen bei der Einführungstour!"
 
 #: spyder/app/tour.py:148
 msgid "<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for the Python programming language.<br><br>Here, we are going to guide you through its most important features.<br><br>Please use the arrow keys or click on the buttons below to move along the tour."
@@ -612,7 +612,7 @@ msgstr ""
 
 #: spyder/app/tour.py:195
 msgid "Variable Explorer"
-msgstr ""
+msgstr "Variablenmanager"
 
 #: spyder/app/tour.py:196
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
@@ -644,7 +644,7 @@ msgstr ""
 
 #: spyder/app/tour.py:241
 msgid "History Log"
-msgstr ""
+msgstr "Chronikprotokoll"
 
 #: spyder/app/tour.py:242
 msgid "This pane records all the commands and code run in any IPython console, allowing you to easily retrace your steps for reproducible research."
@@ -676,7 +676,7 @@ msgstr ""
 
 #: spyder/app/tour.py:271
 msgid "The end"
-msgstr ""
+msgstr "Das Ende"
 
 #: spyder/app/tour.py:272
 msgid "You have reached the end of our tour and are ready to start using Spyder! For more information, check out our <a href=\"{}\">documentation</a>.<br><br>"
@@ -724,7 +724,7 @@ msgstr ""
 
 #: spyder/app/tour.py:1428
 msgid "Start tour"
-msgstr ""
+msgstr "Tour starten"
 
 #: spyder/config/manager.py:293
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
@@ -952,7 +952,7 @@ msgstr "Schneller Zugriff auf Code-Snippets-Regionen"
 
 #: spyder/dependencies.py:211
 msgid "Determine package version"
-msgstr ""
+msgstr "Paketversion bestimmen"
 
 #: spyder/dependencies.py:215
 msgid "Show help for objects in the Editor and Consoles in a dedicated pane"
@@ -964,7 +964,7 @@ msgstr "Jupyter-Kernel für die Spyder-Konsole"
 
 #: spyder/dependencies.py:223
 msgid "3-way merge algorithm to merge document changes"
-msgstr ""
+msgstr "3-Wege-Zusammenführungsalgorithmus zum Zusammenführen von Dokumentenänderungen"
 
 #: spyder/dependencies.py:227
 msgid "Watch file changes on project directories"
@@ -1072,7 +1072,7 @@ msgstr "Ihre Kite-Installation scheint fehlerhaft zu sein. Wenn Sie Kite verwend
 
 #: spyder/plugins/completion/kite/plugin.py:231
 msgid "Kite error"
-msgstr ""
+msgstr "Kite-Fehler"
 
 #: spyder/plugins/completion/kite/plugin.py:232
 msgid "The Kite completion engine returned an unexpected result for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>Please make sure that your Kite installation is correct. In the meantime, Spyder will disable the Kite client to prevent further errors. For more information, please visit the <a href='https://help.kite.com/'>Kite help center</a>"
@@ -1340,7 +1340,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:274
 msgid "Autoformat files on save"
-msgstr ""
+msgstr "Dateien beim Speichern autoformatieren"
 
 #: spyder/plugins/completion/languageserver/confpage.py:276
 msgid "If enabled, autoformatting will take place when saving a file"
@@ -1524,7 +1524,7 @@ msgstr "Docstring-Stil"
 
 #: spyder/plugins/completion/languageserver/confpage.py:625
 msgid "Code formatting"
-msgstr ""
+msgstr "Code-Formatierung"
 
 #: spyder/plugins/completion/languageserver/confpage.py:626
 msgid "Snippets"
@@ -1564,11 +1564,11 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/confpage.py:794
 msgid "JSON malformed"
-msgstr ""
+msgstr "JSON fehlerhaft"
 
 #: spyder/plugins/completion/languageserver/confpage.py:795
 msgid "There was an error when trying to load the provided JSON file: <tt>{0}</tt>"
-msgstr ""
+msgstr "Beim Versuch, die bereitgestellte JSON-Datei zu laden, ist ein Fehler aufgetreten: <tt>{0}</tt>"
 
 #: spyder/plugins/completion/languageserver/confpage.py:804
 msgid "Invalid snippet file"
@@ -1768,7 +1768,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:456
 msgid "Double-click to view or edit"
-msgstr ""
+msgstr "Doppelklick zum Anzeigen oder Bearbeiten"
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:468
 msgid "Trigger text"
@@ -1776,7 +1776,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:470
 msgid "Description"
-msgstr ""
+msgstr "Beschreibung"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:36
 msgid "starting"
@@ -2610,7 +2610,7 @@ msgstr "Abschließende Leerzeichen entfernen"
 
 #: spyder/plugins/editor/plugin.py:810 spyder/plugins/editor/plugin.py:1644 spyder/plugins/editor/widgets/codeeditor.py:4101 spyder/plugins/editor/widgets/codeeditor.py:4879
 msgid "Format file or selection with {0}"
-msgstr ""
+msgstr "Datei oder Auswahl mit {0} formatieren"
 
 #: spyder/plugins/editor/plugin.py:836
 msgid "Show code style warnings"
@@ -3040,11 +3040,11 @@ msgstr "Git-Zweig"
 
 #: spyder/plugins/explorer/confpage.py:32
 msgid "General options"
-msgstr ""
+msgstr "Allgemeine Optionen"
 
 #: spyder/plugins/explorer/confpage.py:33 spyder/plugins/explorer/widgets/explorer.py:334
 msgid "Show hidden files"
-msgstr ""
+msgstr "Versteckte Dateien anzeigen"
 
 #: spyder/plugins/explorer/confpage.py:34
 msgid "Single click to open files"
