@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 19:27\n"
+"PO-Revision-Date: 2020-11-01 20:27\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -3828,7 +3828,7 @@ msgstr "Silnik:"
 
 #: spyder/plugins/ipythonconsole/confpage.py:133
 msgid "This option will be applied the next time a console is opened."
-msgstr ""
+msgstr "Ta opcja zostanie zastosowana przy następnym otwarciu konsoli."
 
 #: spyder/plugins/ipythonconsole/confpage.py:144
 msgid "Inline backend"
@@ -3852,7 +3852,7 @@ msgstr "dpi"
 
 #: spyder/plugins/ipythonconsole/confpage.py:155
 msgid "Only used when the format is PNG. Default is 72"
-msgstr ""
+msgstr "Używane tylko, gdy wybrany jest format PNG. Domyślną wartością jest 72"
 
 #: spyder/plugins/ipythonconsole/confpage.py:158
 msgid "Width:"
