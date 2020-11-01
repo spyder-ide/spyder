@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 19:17\n"
+"PO-Revision-Date: 2020-11-01 19:27\n"
 "Last-Translator: \n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -3303,7 +3303,7 @@ msgstr "Pokaż tylko bieżący katalog"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1676
 msgid "You don't have the right permissions to open this directory"
-msgstr ""
+msgstr "Nie masz wymaganych uprawnień aby otworzyć ten katalog"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1714 spyder/plugins/variableexplorer/widgets/importwizard.py:543
 msgid "Previous"
@@ -3331,15 +3331,15 @@ msgstr "Rozmiar wyświetlacza"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1739
 msgid "Display date modified"
-msgstr ""
+msgstr "Wyświetl datę modyfikacji"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1796
 msgid "Activate filename filters"
-msgstr ""
+msgstr "Aktywuj filtry nazw plików"
 
 #: spyder/plugins/explorer/widgets/explorer.py:1796
 msgid "Deactivate filename filters"
-msgstr ""
+msgstr "Wyłącz filtry nazw plików"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:113
 msgid "Browse..."
@@ -3351,11 +3351,11 @@ msgstr "Programy"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:121
 msgid "Type to filter by name"
-msgstr ""
+msgstr "Zacznij pisać, aby filtrować wg nazwy"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:181
 msgid "Applications (*.app)"
-msgstr ""
+msgstr "Aplikacje (*.app)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:182 spyder/plugins/explorer/widgets/fileassociations.py:197 spyder/plugins/explorer/widgets/fileassociations.py:216
 msgid "Select application"
@@ -3363,19 +3363,19 @@ msgstr "Wybierz program"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:196
 msgid "Applications (*.exe *.bat *.com)"
-msgstr ""
+msgstr "Aplikacje (*.exe *.bat *.com)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:215
 msgid "Applications (*.desktop)"
-msgstr ""
+msgstr "Aplikacje (*.desktop)"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:252
 msgid "Choose the application for files of type "
-msgstr ""
+msgstr "Wybierz aplikację dla plików typu "
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:291
 msgid "Here you can associate different external applications to open specific file extensions (e.g. .txt files with Notepad++ or .csv files with Excel)."
-msgstr ""
+msgstr "Tutaj możesz powiązać różne zewnętrzne aplikacje do otwierania określonych rozszerzeń plików (np. pliki .txt z Notepad++ lub .csv z Excel)."
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:296
 msgid "File types:"
@@ -3395,7 +3395,7 @@ msgstr "Edytuj"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:302
 msgid "Associated applications:"
-msgstr ""
+msgstr "Powiązane aplikacje:"
 
 #: spyder/plugins/explorer/widgets/fileassociations.py:306
 msgid "Set default"
