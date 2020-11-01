@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 07:16\n"
+"PO-Revision-Date: 2020-11-01 07:27\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -23,27 +23,27 @@ msgstr "正在初始化..."
 
 #: spyder/app/mainwindow.py:243
 msgid "Python2 documentation"
-msgstr "Python2文档"
+msgstr "Python2 文档"
 
 #: spyder/app/mainwindow.py:245
 msgid "Python3 documentation"
-msgstr "Python3文档"
+msgstr "Python3 文档"
 
 #: spyder/app/mainwindow.py:247
 msgid "Numpy and Scipy documentation"
-msgstr "Numpy和Scipy文档"
+msgstr "Numpy 和 Scipy 文档"
 
 #: spyder/app/mainwindow.py:249
 msgid "Matplotlib documentation"
-msgstr "Matplotlib文档"
+msgstr "Matplotlib 文档"
 
 #: spyder/app/mainwindow.py:252
 msgid "PyQt5 Reference Guide"
-msgstr "PyQt5参考指南"
+msgstr "PyQt5 参考指南"
 
 #: spyder/app/mainwindow.py:255
 msgid "PyQt5 API Reference"
-msgstr "PyQt5 API参考"
+msgstr "PyQt5 API 参考"
 
 #: spyder/app/mainwindow.py:257
 msgid "WinPython"
@@ -51,15 +51,15 @@ msgstr "WinPython"
 
 #: spyder/app/mainwindow.py:528
 msgid "An error occurred while creating a socket needed by Spyder. Please, try to run as an Administrator from cmd.exe the following command and then restart your computer: <br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
-msgstr "创建Spyder所需的套接字时出现错误。请尝试使用管理员权限启动 cmd.exe，执行下述命令后重启电脑：<br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
+msgstr "创建 Spyder 所需的套接字时出现错误。请尝试使用管理员权限启动 cmd.exe，执行下述命令后重启电脑：<br><br><span style='color: #555555'><b>netsh winsock reset</b></span><br>"
 
 #: spyder/app/mainwindow.py:599
 msgid "Close current pane"
-msgstr "关闭当前窗格"
+msgstr "关闭当前面板"
 
 #: spyder/app/mainwindow.py:607
 msgid "Lock panes and toolbars"
-msgstr "锁定窗格及工具栏"
+msgstr "锁定面板和工具栏"
 
 #: spyder/app/mainwindow.py:614
 msgid "Use next layout"
@@ -219,19 +219,19 @@ msgstr "WinPython控制面板"
 
 #: spyder/app/mainwindow.py:783
 msgid "Qt Designer"
-msgstr "Qt设计器"
+msgstr "Qt Designer"
 
 #: spyder/app/mainwindow.py:787
 msgid "Qt Linguist"
-msgstr "Qt语言家"
+msgstr "Qt Linguist"
 
 #: spyder/app/mainwindow.py:808
 msgid "guidata examples"
-msgstr "guidata示例"
+msgstr "guidata 示例"
 
 #: spyder/app/mainwindow.py:819
 msgid "guiqwt examples"
-msgstr "guiqwt示例"
+msgstr "guiqwt 示例"
 
 #: spyder/app/mainwindow.py:824
 msgid "Sift"
@@ -256,15 +256,15 @@ msgid "Spyder Internal Console\n\n"
 "internals with the following commands:\n"
 "  spy.app, spy.window, dir(spy)\n\n"
 "Please don't use it to run your code\n\n"
-msgstr "Spyder内部控制台\n\n"
+msgstr "Spyder 内部控制台\n\n"
 "该控制台用于报告应用程序的内部错误，\n"
-"并通过下列命令对Spyder的内部进行检查：\n"
+"并通过下列命令对 Spyder 的内部进行检查：\n"
 " spy.app, spy.window, dir(spy)\n\n"
 "请不要用它执行代码\n\n"
 
 #: spyder/app/mainwindow.py:885
 msgid "Starting code completion manager..."
-msgstr "代码自动补全..."
+msgstr "正在启动代码补全管理器..."
 
 #: spyder/app/mainwindow.py:899
 msgid "Loading help..."
@@ -5123,15 +5123,15 @@ msgstr "请在你的 Spyder 环境中安装这个软件包。<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:138
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not "
-msgstr ""
+msgstr "Spyder 无法显示你正试图查看的变量，因为模块 <tt>{module}</tt> 尚未 "
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:142
 msgid "supported in the Spyder MacOS application.<br>"
-msgstr ""
+msgstr "在 Spyder MacOS 应用程序中获得支持。<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:145
 msgid "found in your Spyder environment. Please install this package in your Spyder environment.<br>"
-msgstr ""
+msgstr "在你的 Spyder 环境中找到。 请在你的 Spyder 环境中安装这个软件包。<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:154
 msgid "Spyder was unable to retrieve the value of this variable from the console.<br><br>The error message was:<br>%s"
@@ -5179,7 +5179,7 @@ msgstr "元素"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:203
 msgid "element"
-msgstr ""
+msgstr "元素"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:444
 msgid "Value"
@@ -5219,11 +5219,11 @@ msgstr "插入"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:621
 msgid "Insert above"
-msgstr ""
+msgstr "在上方插入"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:626
 msgid "Insert below"
-msgstr ""
+msgstr "在下方插入"
 
 #: spyder/plugins/variableexplorer/widgets/collectionseditor.py:640 spyder/plugins/variableexplorer/widgets/collectionseditor.py:934
 msgid "Duplicate"
@@ -6419,7 +6419,73 @@ msgid "\n"
 "            </p>\n"
 "            </div>\n"
 "            "
-msgstr ""
+msgstr "\n"
+"            <div style='font-family: \"{font_family}\";\n"
+"                        font-size: {font_size}pt;\n"
+"                        font-weight: normal;\n"
+"                        '>\n"
+"            <p>\n"
+"            <b>Spyder {spyder_ver}</b> {revision}\n"
+"            <br>\n"
+"            The Scientific Python Development Environment |\n"
+"            <a href=\"{website_url}\">Spyder-IDE.org</a>\n"
+"            <br>\n"
+"            Copyright &copy; 2009-2020 Spyder Project Contributors and\n"
+"            <a href=\"{github_url}/blob/master/AUTHORS.txt\">others</a>.\n"
+"            <br>\n"
+"            Distributed under the terms of the\n"
+"            <a href=\"{github_url}/blob/master/LICENSE.txt\">MIT License</a>.\n"
+"            </p>\n"
+"            <p>\n"
+"            Created by Pierre Raybaut; current maintainer is Carlos Cordoba.\n"
+"            Developed by the\n"
+"            <a href=\"{github_url}/graphs/contributors\">international\n"
+"            Spyder community</a>. Many thanks to all the Spyder beta testers\n"
+"            and dedicated users.\n"
+"            </p>\n"
+"            <p>For help with Spyder errors and crashes, please read our\n"
+"            <a href=\"{trouble_url}\">Troubleshooting Guide</a>, and for bug\n"
+"            reports and feature requests, visit our\n"
+"            <a href=\"{github_url}\">Github site</a>. For project discussion,\n"
+"            see our <a href=\"{forum_url}\">Google Group</a>.\n"
+"            </p>\n"
+"            <p>\n"
+"            This project is part of a larger effort to promote and\n"
+"            facilitate the use of Python for scientific and engineering\n"
+"            software development.\n"
+"            The popular Python distributions\n"
+"            <a href=\"https://www.anaconda.com/download/\">Anaconda</a> and\n"
+"            <a href=\"https://winpython.github.io/\">WinPython</a>\n"
+"            also contribute to this plan.\n"
+"            </p>\n"
+"            <p>\n"
+"            Python {python_ver} {bitness}-bit | Qt {qt_ver} |\n"
+"            {qt_api} {qt_api_ver} | {os_name} {os_ver}\n"
+"            </p>\n"
+"            <p><small>Certain source files under other compatible permissive\n"
+"            licenses and/or originally by other authors.\n"
+"            Spyder 3 theme icons derived from\n"
+"            <a href=\"https://fontawesome.com/\">Font Awesome</a> 4.7\n"
+"            (&copy; 2016 David Gandy; SIL OFL 1.1) and\n"
+"            <a href=\"http://materialdesignicons.com/\">Material Design</a>\n"
+"            (&copy; 2014 Austin Andrews; SIL OFL 1.1).\n"
+"            Most Spyder 2 theme icons sourced from the\n"
+"            <a href=\"https://www.everaldo.com\">Crystal Project iconset</a>\n"
+"            (&copy; 2006-2007 Everaldo Coelho; LGPL 2.1+).\n"
+"            Other icons from\n"
+"            <a href=\"http://p.yusukekamiyamane.com/\">Yusuke Kamiyamane</a>\n"
+"            (&copy; 2013 Yusuke Kamiyamane; CC-BY 3.0),\n"
+"            the <a href=\"http://www.famfamfam.com/lab/icons/silk/\">FamFamFam\n"
+"            Silk icon set</a> 1.3 (&copy; 2006 Mark James; CC-BY 2.5), and\n"
+"            the <a href=\"https://www.kde.org/\">KDE Oxygen icons</a>\n"
+"            (&copy; 2007 KDE Artists; LGPL 3.0+).</small>\n"
+"            </p>\n"
+"            <p>\n"
+"            See the <a href=\"{github_url}/blob/master/NOTICE.txt\">NOTICE</a>\n"
+"            file for full legal information.\n"
+"            </p>\n"
+"            </div>\n"
+"            "
 
 #: spyder/widgets/about.py:151 spyder/widgets/dependencies.py:94
 msgid "Copy to clipboard"
@@ -6567,11 +6633,11 @@ msgstr "替换字符串"
 
 #: spyder/widgets/findreplace.py:148
 msgid "In selection"
-msgstr ""
+msgstr "被选定"
 
 #: spyder/widgets/findreplace.py:156
 msgid "All"
-msgstr ""
+msgstr "全部"
 
 #: spyder/widgets/findreplace.py:633
 msgid "of"
