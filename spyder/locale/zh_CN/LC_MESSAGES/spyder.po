@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 05:56\n"
+"PO-Revision-Date: 2020-11-01 07:08\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -604,7 +604,7 @@ msgstr "IPython控制台"
 
 #: spyder/app/tour.py:176
 msgid "This is where you can run Python code, either from the Editor or interactively. To run the current file, press <b>F5</b> by default, or press <b>F9</b> to execute the current line or selection.<br><br>The IPython Console comes with many useful features that greatly improve your programming workflow, like syntax highlighting, autocompletion, plotting and 'magic' commands. To learn more, check out the <a href=\"{0}\">documentation</a>.<br><br>{1}"
-msgstr "在这里你可以运行 Python 代码，代码可以来自 Editor 或是交互模式。 要运行当前文件，默认是按 <b>F5</b>，或者按 <b>F9</b> 来运行当前行或选区。<br><br>IPython 控制台带有许多有用特性，能够极大地改善你的编程工作流，例如语法高亮、自动补全、绘图和 '魔法' 命令等等。 想要了解更多，请查看 <a href=\"{0}\">文档</a>。<br><br>{1}"
+msgstr "在这里你可以运行 Python 代码，代码可以来自编辑器或是交互模式。 要运行当前文件，默认是按 <b>F5</b>，或者按 <b>F9</b> 来运行当前行或选区。<br><br>IPython 控制台带有许多有用特性，能够极大地改善你的编程工作流，例如语法高亮、自动补全、绘图和 '魔法' 命令等等。 想要了解更多，请查看 <a href=\"{0}\">文档</a>。<br><br>{1}"
 
 #: spyder/app/tour.py:195
 msgid "Variable Explorer"
@@ -612,7 +612,7 @@ msgstr "变量浏览器"
 
 #: spyder/app/tour.py:196
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
-msgstr ""
+msgstr "在这个面板中你可以查看和编辑在程序执行期间所生成的变量，或者是在 IPython 控制台直接输入的变量。<br><br>如果你在之前操作中运行了代码，变量浏览器将显示它所生成的列表和字典。 通过双击任意变量，将打开一个新窗口，你可以在其中检查和修改它们的内容。"
 
 #: spyder/app/tour.py:209 spyder/plugins/console/widgets/internalshell.py:269 spyder/plugins/help/plugin.py:198 spyder/plugins/help/plugin.py:693 spyder/widgets/switcher.py:971 spyder/widgets/tests/test_switcher.py:32
 msgid "Help"
@@ -620,7 +620,7 @@ msgstr "帮助"
 
 #: spyder/app/tour.py:210
 msgid "This pane displays documentation of the functions, classes, methods or modules you are currently using in the Editor or the IPython Console.<br><br>To use it, press <b>Ctrl+I</b> (<b>Cmd-I</b> on macOS) with the text cursor in or next to the object you want help on."
-msgstr ""
+msgstr "这个面板会显示你当前在编辑器或 IPython 控制台中使用的函数、类、方法或模块的文档。<br><br>要使用它，请在文本光标位于你想获取帮助的对象之上或之后时按下 <b>Ctrl+I</b> (在 mac OS 上为 <b>Cmd-I</b>)。"
 
 #: spyder/app/tour.py:220 spyder/plugins/plots/plugin.py:133
 msgid "Plots"
@@ -628,7 +628,7 @@ msgstr "绘图"
 
 #: spyder/app/tour.py:221
 msgid "This pane shows the figures and images created during your code execution. It allows you to browse, zoom, copy, and save the generated plots."
-msgstr ""
+msgstr "这个面板会显示在你的代码执行期间所创建的图形和图像。 它允许你浏览、缩放、拷贝和保存所生成的图形。"
 
 #: spyder/app/tour.py:227 spyder/plugins/explorer/plugin.py:64
 msgid "Files"
@@ -636,15 +636,15 @@ msgstr "文件"
 
 #: spyder/app/tour.py:228
 msgid "This pane lets you browse the files and directories on your computer.<br><br>You can open any file in its corresponding application by double-clicking it, and supported file types will be opened right inside of Spyder.<br><br>The Files pane also allows you to copy one or many absolute or relative paths, automatically formatted as Python strings or lists, and perform a variety of other file operations."
-msgstr ""
+msgstr "这个面板允许你浏览你的计算机上的文件和目录。<br><br>你可以通过双击任意文件在相应的应用程序中打开它，而受支持的文件类型将会直接在 Spyder 中打开。<br><br>文件面板还允许你拷贝上个或多个绝对或相对路径，自动将其格式化为 Python 字符串或列表，并能执行多种其他文件操作。"
 
 #: spyder/app/tour.py:241
 msgid "History Log"
-msgstr ""
+msgstr "历史日志"
 
 #: spyder/app/tour.py:242
 msgid "This pane records all the commands and code run in any IPython console, allowing you to easily retrace your steps for reproducible research."
-msgstr ""
+msgstr "这个面板会记录在任何 IPython 控制台中运行过的所有命令和代码，允许你方便地回顾你的操作步骤用于可复现的研究。"
 
 #: spyder/app/tour.py:249 spyder/plugins/findinfiles/plugin.py:155
 msgid "Find"
@@ -652,7 +652,7 @@ msgstr "查找"
 
 #: spyder/app/tour.py:250
 msgid "The Find pane allows you to search for text in a given directory and navigate through all the found occurrences."
-msgstr ""
+msgstr "查找面板允许你在给定的目录中搜索文本并浏览所有已找到的结果。"
 
 #: spyder/app/tour.py:256 spyder/plugins/profiler/plugin.py:55
 msgid "Profiler"
@@ -660,7 +660,7 @@ msgstr "性能分析"
 
 #: spyder/app/tour.py:257
 msgid "The Profiler helps you optimize your code by determining the run time and number of calls for every function and method used in a file. It also allows you to save and compare your results between runs."
-msgstr ""
+msgstr "性能测试可以帮助你通过确定文件中所用的每个函数和方法的运行时间和调用次数来优化你的代码。 它还允许你保存和比较每次的运行结果。"
 
 #: spyder/app/tour.py:264 spyder/plugins/pylint/plugin.py:83
 msgid "Code Analysis"
@@ -668,15 +668,15 @@ msgstr "代码分析"
 
 #: spyder/app/tour.py:265
 msgid "The Code Analysis helps you improve the quality of your programs by detecting style issues, bad practices and potential bugs."
-msgstr ""
+msgstr "代码分析通过检测风格问题、不良做法和潜在缺陷来帮助你提升你的程序质量。"
 
 #: spyder/app/tour.py:271
 msgid "The end"
-msgstr ""
+msgstr "结束"
 
 #: spyder/app/tour.py:272
 msgid "You have reached the end of our tour and are ready to start using Spyder! For more information, check out our <a href=\"{}\">documentation</a>.<br><br>"
-msgstr ""
+msgstr "你已经抵达了本导览的最后一站，并准备好开始使用 Spyder 了！ 要了解更多信息，请查看我们的 <a href=\"{}\">文档</a>。<br><br>"
 
 #: spyder/app/tour.py:324
 msgid "<b>Spyder</b> is an interactive development environment based on bla"
@@ -708,19 +708,19 @@ msgstr "跳转到step： "
 
 #: spyder/app/tour.py:1256
 msgid "Request"
-msgstr ""
+msgstr "请求"
 
 #: spyder/app/tour.py:1257
 msgid "To run the tour, please press the green button on the left of the Spyder window's title bar to take it out of fullscreen mode."
-msgstr ""
+msgstr "要运行导览，请按下 Spyder 窗口标题栏左侧的绿色按钮以退出全屏模式。"
 
 #: spyder/app/tour.py:1422
 msgid "Welcome to Spyder!<br><br>Check out our interactive tour to explore some of Spyder's panes and features."
-msgstr ""
+msgstr "欢迎使用 Spyder！<br><br>请查看我们的交互式导览来探索 Spyder 的一些常用面板和特性。"
 
 #: spyder/app/tour.py:1428
 msgid "Start tour"
-msgstr ""
+msgstr "开始导览"
 
 #: spyder/config/manager.py:293
 msgid "Shortcut context must match '_' or the plugin `CONF_SECTION`!"
@@ -864,7 +864,7 @@ msgstr "Python 语言服务器的主后端"
 
 #: spyder/dependencies.py:120
 msgid "Verify if snippets files are valid"
-msgstr ""
+msgstr "验证代码片段文件是否有效"
 
 #: spyder/dependencies.py:124
 msgid "Save Github credentials to report internal errors securely"
@@ -912,11 +912,11 @@ msgstr "编辑器中的代码自动补全及语法检查"
 
 #: spyder/dependencies.py:172
 msgid "Autoformat Python files in the Editor with the Black package"
-msgstr ""
+msgstr "使用 Black 包自动格式化编辑器中的 Python 文件"
 
 #: spyder/dependencies.py:177
 msgid "Spyder plugin for the Python Language Server"
-msgstr ""
+msgstr "Python 语言服务器的 Spyder 插件"
 
 #: spyder/dependencies.py:181
 msgid "Parse desktop files on Linux"
@@ -948,7 +948,7 @@ msgstr "快速访问代码片段区域"
 
 #: spyder/dependencies.py:211
 msgid "Determine package version"
-msgstr ""
+msgstr "确定包版本"
 
 #: spyder/dependencies.py:215
 msgid "Show help for objects in the Editor and Consoles in a dedicated pane"
@@ -960,7 +960,7 @@ msgstr "Spyder控制台的 Jupyter 内核"
 
 #: spyder/dependencies.py:223
 msgid "3-way merge algorithm to merge document changes"
-msgstr ""
+msgstr "用于合并文档更改的 3 向合并算法"
 
 #: spyder/dependencies.py:227
 msgid "Watch file changes on project directories"
@@ -1068,11 +1068,11 @@ msgstr "您的 Kite 安装似乎有问题。 如果您想要使用 Kite，请移
 
 #: spyder/plugins/completion/kite/plugin.py:231
 msgid "Kite error"
-msgstr ""
+msgstr "Kite 错误"
 
 #: spyder/plugins/completion/kite/plugin.py:232
 msgid "The Kite completion engine returned an unexpected result for the request <tt>{0}</tt>: <br><br><tt>{1}</tt><br><br>Please make sure that your Kite installation is correct. In the meantime, Spyder will disable the Kite client to prevent further errors. For more information, please visit the <a href='https://help.kite.com/'>Kite help center</a>"
-msgstr ""
+msgstr "Kite 代码补全引擎对于请求 <tt>{0}</tt> 返回了非预期的结果: <br><br><tt>{1}</tt><br><br>请确保你的 Kite 安装正确无误。 在当前情况下，Spyder 将禁用 Kite 客户端以防止新的错误。 要了解更多信息，请访问 <a href='https://help.kite.com/'>Kite 帮助中心</a>"
 
 #: spyder/plugins/completion/kite/utils/install.py:34
 msgid "No status"
@@ -1326,19 +1326,19 @@ msgstr "默认为 79"
 
 #: spyder/plugins/completion/languageserver/confpage.py:258
 msgid "Spyder can use {0}, {1} or {2} to format your code for conformance to the {3} convention."
-msgstr ""
+msgstr "Spyder 可以使用 {0}, {1} 或 {2} 来格式化你的代码以符合 {3} 约定规范。"
 
 #: spyder/plugins/completion/languageserver/confpage.py:266
 msgid "Choose the code formatting provider: "
-msgstr ""
+msgstr "请选择代码格式化提供方: "
 
 #: spyder/plugins/completion/languageserver/confpage.py:274
 msgid "Autoformat files on save"
-msgstr ""
+msgstr "保存时自动格式化文件"
 
 #: spyder/plugins/completion/languageserver/confpage.py:276
 msgid "If enabled, autoformatting will take place when saving a file"
-msgstr ""
+msgstr "如果启用，当保存文件时将自动进行格式化"
 
 #: spyder/plugins/completion/languageserver/confpage.py:295
 msgid "<a href='http://www.pydocstyle.org/en/stable/error_codes.html'>page</a>"
@@ -1386,11 +1386,11 @@ msgstr "忽略点号开头文件夹（隐藏的文件夹）： [^\\.].*"
 
 #: spyder/plugins/completion/languageserver/confpage.py:385
 msgid "the LSP grammar"
-msgstr ""
+msgstr "LSP 语法"
 
 #: spyder/plugins/completion/languageserver/confpage.py:387
 msgid "Spyder allows to define custom completion snippets to use in addition to the ones offered by the Language Server Protocol (LSP). Each snippet should follow {}.<br><br> <b>Note:</b> All changes will be effective only when applying the settings"
-msgstr ""
+msgstr "Spyder 允许定义自定义的补全代码片段作为语言服务器协议 (LSP) 所提供的代码片段的补充。 每个代码片段应当遵循 {}.<br><br> <b>注意:</b> 所有修改只有在应用设置之后才会生效。"
 
 #: spyder/plugins/completion/languageserver/confpage.py:398 spyder/plugins/completion/languageserver/widgets/serversconfig.py:162
 msgid "Programming language provided by the LSP server"
@@ -1402,7 +1402,7 @@ msgstr "语言"
 
 #: spyder/plugins/completion/languageserver/confpage.py:414
 msgid "Available snippets"
-msgstr ""
+msgstr "可用代码片段"
 
 #: spyder/plugins/completion/languageserver/confpage.py:420 spyder/plugins/completion/languageserver/confpage.py:585 spyder/plugins/explorer/confpage.py:59 spyder/preferences/shortcuts.py:857
 msgid "Reset to default values"
@@ -1410,11 +1410,11 @@ msgstr "重置为默认值"
 
 #: spyder/plugins/completion/languageserver/confpage.py:421
 msgid "Create a new snippet"
-msgstr ""
+msgstr "创建新的代码片段"
 
 #: spyder/plugins/completion/languageserver/confpage.py:423
 msgid "Delete currently selected snippet"
-msgstr ""
+msgstr "删除当前选定的代码片段"
 
 #: spyder/plugins/completion/languageserver/confpage.py:425
 msgid "Export snippets to JSON"
