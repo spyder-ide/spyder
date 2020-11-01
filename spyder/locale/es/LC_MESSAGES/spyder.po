@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 01:53\n"
+"PO-Revision-Date: 2020-11-01 03:49\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -1777,7 +1777,7 @@ msgstr ""
 
 #: spyder/plugins/completion/languageserver/widgets/snippetsconfig.py:470
 msgid "Description"
-msgstr ""
+msgstr "Descripción"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:36
 msgid "starting"
