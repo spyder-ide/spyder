@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 05:48\n"
+"PO-Revision-Date: 2020-11-01 05:56\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -604,11 +604,11 @@ msgstr "IPython控制台"
 
 #: spyder/app/tour.py:176
 msgid "This is where you can run Python code, either from the Editor or interactively. To run the current file, press <b>F5</b> by default, or press <b>F9</b> to execute the current line or selection.<br><br>The IPython Console comes with many useful features that greatly improve your programming workflow, like syntax highlighting, autocompletion, plotting and 'magic' commands. To learn more, check out the <a href=\"{0}\">documentation</a>.<br><br>{1}"
-msgstr ""
+msgstr "在这里你可以运行 Python 代码，代码可以来自 Editor 或是交互模式。 要运行当前文件，默认是按 <b>F5</b>，或者按 <b>F9</b> 来运行当前行或选区。<br><br>IPython 控制台带有许多有用特性，能够极大地改善你的编程工作流，例如语法高亮、自动补全、绘图和 '魔法' 命令等等。 想要了解更多，请查看 <a href=\"{0}\">文档</a>。<br><br>{1}"
 
 #: spyder/app/tour.py:195
 msgid "Variable Explorer"
-msgstr ""
+msgstr "变量浏览器"
 
 #: spyder/app/tour.py:196
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
