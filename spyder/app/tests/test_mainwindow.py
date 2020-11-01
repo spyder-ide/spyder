@@ -3727,5 +3727,29 @@ def test_continue_first_line(main_window, qtbot):
     assert "b = 9" in shell._control.toPlainText()
 
 
+@pytest.mark.slow
+@flaky(max_runs=3)
+@pytest.mark.use_introspection
+@pytest.mark.skipif(os.name == 'nt', reason="Fails on Windows")
+def test_outline_no_init(main_window, qtbot):
+    # Open file in one of our directories without an __init__ file
+    spy_dir = osp.dirname(get_module_path('spyder'))
+    main_window.editor.load(osp.join(spy_dir, 'tools', 'rm_whitespace.py'))
+
+    # Show outline explorer
+    outline_explorer = main_window.outlineexplorer
+    outline_explorer._toggle_view_action.setChecked(True)
+
+    # Wait a bit for trees to be filled
+    qtbot.wait(5000)
+
+    # Get tree length
+    treewidget = outline_explorer.explorer.treewidget
+    editor_id = list(treewidget.editor_ids.values())[1]
+
+    # Assert symbols in the file are detected and shown
+    assert len(treewidget.editor_tree_cache[editor_id]) > 0
+
+
 if __name__ == "__main__":
     pytest.main()
