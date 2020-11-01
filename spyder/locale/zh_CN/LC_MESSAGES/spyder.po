@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 05:36\n"
+"PO-Revision-Date: 2020-11-01 05:48\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -596,7 +596,7 @@ msgstr "编辑器"
 
 #: spyder/app/tour.py:158
 msgid "This is where you write Python code before evaluating it. You can get automatic completions while typing, along with calltips when calling a function and help when hovering over an object.<br><br>The Editor comes with a line number area (highlighted here in red) where Spyder shows warnings and syntax errors. They can help you to detect potential problems before running your code.<br><br>You can also set debug breakpoints in the line number area by clicking next to any non-empty line."
-msgstr ""
+msgstr "在这里你可以编写 Python 代码立即执行以评估效果。 你可以在输入期间获得自动补全，同时在调用函数时获得调用提示，并在任何对象上获得浮动提示。<br><br>Editor 窗口带有行号区 (在此以红色高亮提示) Spyder 会在其中显示警告和语法错误。 它们可以帮助你在运行你的代码之前检查潜在的问题。<br><br>你还可以通过点击任何非空行对应的位置在行号区设置调试断点。"
 
 #: spyder/app/tour.py:175 spyder/plugins/help/confpage.py:33
 msgid "IPython Console"
