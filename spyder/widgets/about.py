@@ -113,7 +113,7 @@ class AboutDialog(QDialog):
             file for full legal information.
             </p>
             </div>
-            """.format(
+            """).format(
                 spyder_ver=versions['spyder'],
                 revision=revlink,
                 website_url=__website_url__,
@@ -130,7 +130,7 @@ class AboutDialog(QDialog):
                 font_family=font_family,
                 font_size=font_size,
             )
-        ))
+        )
         self.label.setWordWrap(True)
         self.label.setAlignment(Qt.AlignTop)
         self.label.setOpenExternalLinks(True)
