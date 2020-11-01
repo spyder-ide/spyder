@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 01:53\n"
+"PO-Revision-Date: 2020-11-01 05:36\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -243,7 +243,7 @@ msgstr "全屏模式"
 
 #: spyder/app/mainwindow.py:847
 msgid "For fullscreen mode use macOS built-in feature"
-msgstr ""
+msgstr "全屏模式使用 macOS 内置特性"
 
 #: spyder/app/mainwindow.py:863
 msgid "Main toolbar"
@@ -356,7 +356,7 @@ msgstr "Spyder文档"
 
 #: spyder/app/mainwindow.py:1077
 msgid "Tutorial videos"
-msgstr ""
+msgstr "教程视频"
 
 #: spyder/app/mainwindow.py:1082
 msgid "Shortcuts Summary"
@@ -364,7 +364,7 @@ msgstr "快捷键汇总"
 
 #: spyder/app/mainwindow.py:1108
 msgid "Interactive tour introducing Spyder's panes and features"
-msgstr ""
+msgstr "介绍 Spyder 的面板和特性的交互式导览"
 
 #: spyder/app/mainwindow.py:1119
 msgid "Python documentation"
@@ -474,7 +474,7 @@ msgstr "窗口布局将被重置为默认设置：这会影响窗口的位置、
 
 #: spyder/app/mainwindow.py:2099
 msgid "<b>%s</b> will be overwritten. Do you want to continue?"
-msgstr ""
+msgstr "<b>%s</b> 将被覆盖。 您想要继续吗？"
 
 #: spyder/app/mainwindow.py:2161
 msgid "Error opening the custom layout.  Please close Spyder and try again.  If the issue persists, then you must use 'Reset to Spyder default' from the layout menu."
@@ -584,11 +584,11 @@ msgstr "重启中"
 
 #: spyder/app/tour.py:147
 msgid "Welcome to the introduction tour!"
-msgstr ""
+msgstr "欢迎来到入门导览！"
 
 #: spyder/app/tour.py:148
 msgid "<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for the Python programming language.<br><br>Here, we are going to guide you through its most important features.<br><br>Please use the arrow keys or click on the buttons below to move along the tour."
-msgstr ""
+msgstr "<b>Spyder</b> 是一个用于 Python 编程语言的强大的交互式开发环境 (IDE)。<br><br>在这里，我们将引导你了解它最关键的特性。<br><br>请使用方向键或点击下方按钮切换导览内容。"
 
 #: spyder/app/tour.py:157 spyder/plugins/base.py:324 spyder/plugins/editor/confpage.py:26 spyder/plugins/editor/plugin.py:346 spyder/plugins/editor/plugin.py:1894 spyder/plugins/editor/utils/switcher.py:105 spyder/plugins/editor/widgets/codeeditor.py:132 spyder/plugins/editor/widgets/codeeditor.py:5087 spyder/plugins/editor/widgets/editor.py:541 spyder/plugins/help/confpage.py:31 spyder/plugins/help/plugin.py:98
 msgid "Editor"
