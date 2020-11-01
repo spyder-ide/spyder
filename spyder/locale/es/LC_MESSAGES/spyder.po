@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 03:49\n"
+"PO-Revision-Date: 2020-11-01 03:56\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -1781,7 +1781,7 @@ msgstr "Descripción"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:36
 msgid "starting"
-msgstr ""
+msgstr "iniciando"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:37
 msgid "ready"
@@ -1789,7 +1789,7 @@ msgstr "listo"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:38
 msgid "restarting"
-msgstr ""
+msgstr "reiniciando"
 
 #: spyder/plugins/completion/languageserver/widgets/status.py:39
 msgid "down"
@@ -2870,7 +2870,7 @@ msgstr "Mostrar en el explorador de archivos del sistema"
 
 #: spyder/plugins/editor/widgets/editor.py:636
 msgid "Spyder can't show this file in the external file explorer because the <tt>xdg-utils</tt> package is not available on your system."
-msgstr ""
+msgstr "Spyder no puede mostrar este archivo en el explorador de archivos externo porque el paquete <tt>xdg-utils</tt> no está disponible en tu sistema."
 
 #: spyder/plugins/editor/widgets/editor.py:1465
 msgid "Temporary file"
@@ -3048,11 +3048,11 @@ msgstr "Rama de git"
 
 #: spyder/plugins/explorer/confpage.py:32
 msgid "General options"
-msgstr ""
+msgstr "Opciones generales"
 
 #: spyder/plugins/explorer/confpage.py:33 spyder/plugins/explorer/widgets/explorer.py:334
 msgid "Show hidden files"
-msgstr ""
+msgstr "Mostrar archivos ocultos"
 
 #: spyder/plugins/explorer/confpage.py:34
 msgid "Single click to open files"
@@ -3060,7 +3060,7 @@ msgstr "Un solo click para abrir archivos"
 
 #: spyder/plugins/explorer/confpage.py:42
 msgid "Filter settings"
-msgstr ""
+msgstr "Ajustes de filtro"
 
 #: spyder/plugins/explorer/confpage.py:44 spyder/plugins/explorer/widgets/explorer.py:401
 msgid "Filter files by name, extension, or more using <a href=\"https://en.wikipedia.org/wiki/Glob_(programming)\">glob patterns.</a> Please enter the glob patterns of the files you want to show, separated by commas."
@@ -3088,7 +3088,7 @@ msgstr "Fecha de modificación"
 
 #: spyder/plugins/explorer/widgets/explorer.py:339
 msgid "Edit filter settings..."
-msgstr ""
+msgstr "Editar ajustes de filtro..."
 
 #: spyder/plugins/explorer/widgets/explorer.py:346
 msgid "Single click to open"
@@ -3096,7 +3096,7 @@ msgstr "Un solo click para abrir"
 
 #: spyder/plugins/explorer/widgets/explorer.py:397
 msgid "Edit filter settings"
-msgstr ""
+msgstr "Editar ajustes de filtro"
 
 #: spyder/plugins/explorer/widgets/explorer.py:456
 msgid "File..."
