@@ -72,6 +72,9 @@ def test_status_bar_conda_interpreter_status(status_bar, qtbot, mocker):
     name_base = 'conda: base'
     name_test = 'conda: test'
 
+    print(w.envs)
+    print(w.path_to_env)
+
     # Update to the base conda environment
     path_base, version = w.envs[name_base]
     w.update_interpreter(path_base)
