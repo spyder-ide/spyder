@@ -14,16 +14,12 @@ import re
 import sys
 import stat
 import socket
-import subprocess
 
 from spyder.py3compat import is_text_string, getcwd
-from spyder.config.base import get_home_dir, running_in_mac_app
-from spyder.utils.programs import find_program
+from spyder.config.base import get_home_dir
 
 
 logger = logging.getLogger(__name__)
-
-WINDOWS = os.name == 'nt'
 
 
 def __remove_pyc_pyo(fname):
@@ -327,68 +323,3 @@ def check_connection_port(address, port):
         return False
     finally:
         s.close()
-
-
-def get_pyenv_path(name):
-    """Return the complete path of the pyenv."""
-    home = get_home_dir()
-    if WINDOWS:
-        path = osp.join(
-            home, '.pyenv', 'pyenv-win', 'versions', name, 'python')
-    elif name == '':
-        path = osp.join(home, '.pyenv', 'shims', 'python')
-    else:
-        path = osp.join(home, '.pyenv', 'versions', name, 'bin', 'python')
-    return path
-
-
-def get_list_pyenv_envs():
-    """Return the list of all pyenv envs found in the system."""
-    pyenv = 'pyenv'
-    if running_in_mac_app():
-        old_path = os.environ['PATH']
-        os.environ['PATH'] = os.pathsep.join([old_path, '/usr/local/bin'])
-        pyenv_path = find_program('pyenv')
-        os.environ['PATH'] = old_path  # restore PATH
-        if pyenv_path:
-            pyenv = pyenv_path
-    try:
-        out, err = subprocess.Popen(
-            [pyenv, 'versions', '--bare', '--skip-aliases'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        ).communicate()
-        out = out.decode()
-        err = err.decode()
-    except Exception:
-        out = ''
-        err = ''
-    out = out.split('\n')
-    env_list = {}
-    for env in out:
-        data = env.split('/')
-        path = get_pyenv_path(data[-1])
-        if data[-1] == '':
-            name = 'internal' if running_in_mac_app(path) else 'system'
-        else:
-            name = 'pyenv: {}'.format(data[-1])
-        version = (
-            'Python 2.7' if data[-1] == '' else 'Python {}'.format(data[0]))
-        env_list[name] = (path, version)
-    return env_list
-
-
-def get_interpreter_info(path):
-    """Return version information of the selected Python interpreter."""
-    try:
-        out, err = subprocess.Popen(
-                [path, '-V'],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-        ).communicate()
-        out = out.decode()
-        err = err.decode()
-    except Exception:
-        out = ''
-        err = ''
-    return out.strip()

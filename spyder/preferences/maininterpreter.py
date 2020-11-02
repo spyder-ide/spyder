@@ -24,7 +24,8 @@ from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import icon_manager as ima
 from spyder.utils import programs
 from spyder.utils.conda import get_list_conda_envs
-from spyder.utils.misc import get_python_executable, get_list_pyenv_envs
+from spyder.utils.misc import get_python_executable
+from spyder.utils.programs import get_list_pyenv_envs
 
 
 class MainInterpreterConfigPage(GeneralConfigPage):
