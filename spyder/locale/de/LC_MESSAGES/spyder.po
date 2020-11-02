@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-02 10:25\n"
+"PO-Revision-Date: 2020-11-02 10:41\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -640,7 +640,7 @@ msgstr "Dateien"
 
 #: spyder/app/tour.py:228
 msgid "This pane lets you browse the files and directories on your computer.<br><br>You can open any file in its corresponding application by double-clicking it, and supported file types will be opened right inside of Spyder.<br><br>The Files pane also allows you to copy one or many absolute or relative paths, automatically formatted as Python strings or lists, and perform a variety of other file operations."
-msgstr ""
+msgstr "In diesem Bereich können Sie die Dateien und Verzeichnisse Ihres Computers durchsuchen.<br><br>Sie können jede Datei in der entsprechenden Anwendung durch Doppelklick öffnen und die unterstützten Dateitypen werden direkt in Spyder geöffnet.<br><br>Im Datei-Bereich können Sie auch einen oder mehrere absolute oder relative Pfade kopiere, welche automatisch als Python-Zeichenketten oder Listen formatiert werden, sowie und eine Vielzahl von anderen Dateioperationen durchführen."
 
 #: spyder/app/tour.py:241
 msgid "History Log"
@@ -648,7 +648,7 @@ msgstr "Chronikprotokoll"
 
 #: spyder/app/tour.py:242
 msgid "This pane records all the commands and code run in any IPython console, allowing you to easily retrace your steps for reproducible research."
-msgstr ""
+msgstr "In diesem Bereich werden alle Befehle und Code aufgezeichnet, die in den IPython-Konsolen ausgeführt werden, so dass Sie leicht Ihre Schritte für reproduzierbare Forschung nachverfolgen können."
 
 #: spyder/app/tour.py:249 spyder/plugins/findinfiles/plugin.py:155
 msgid "Find"
@@ -656,7 +656,7 @@ msgstr "Finden"
 
 #: spyder/app/tour.py:250
 msgid "The Find pane allows you to search for text in a given directory and navigate through all the found occurrences."
-msgstr ""
+msgstr "Im Suchfenster können Sie nach Text in einem bestimmten Verzeichnis suchen und durch alle gefundenen Vorkommen navigieren."
 
 #: spyder/app/tour.py:256 spyder/plugins/profiler/plugin.py:55
 msgid "Profiler"
@@ -664,7 +664,7 @@ msgstr "Profiler"
 
 #: spyder/app/tour.py:257
 msgid "The Profiler helps you optimize your code by determining the run time and number of calls for every function and method used in a file. It also allows you to save and compare your results between runs."
-msgstr ""
+msgstr "Der Profiler hilft Ihnen, Ihren Code zu optimieren, indem er die Laufzeit und die Anzahl der Aufrufe für jede Funktion und Methode, die in einer Datei verwendet werden, ermittelt. Er ermöglicht Ihnen auch, Ihre Ergebnisse zwischen Ausführungen zu speichern und zu vergleichen."
 
 #: spyder/app/tour.py:264 spyder/plugins/pylint/plugin.py:83
 msgid "Code Analysis"
@@ -680,7 +680,7 @@ msgstr "Das Ende"
 
 #: spyder/app/tour.py:272
 msgid "You have reached the end of our tour and are ready to start using Spyder! For more information, check out our <a href=\"{}\">documentation</a>.<br><br>"
-msgstr ""
+msgstr "Sie haben das Ende unserer Tour erreicht und sind bereit, Spyder zu benutzen! Weitere Informationen finden Sie in unserer <a href=\"{}\">-Dokumentation</a>.<br><br>"
 
 #: spyder/app/tour.py:324
 msgid "<b>Spyder</b> is an interactive development environment based on bla"
@@ -716,11 +716,11 @@ msgstr "Anfrage"
 
 #: spyder/app/tour.py:1257
 msgid "To run the tour, please press the green button on the left of the Spyder window's title bar to take it out of fullscreen mode."
-msgstr ""
+msgstr "Um die Tour zu starten, klicken Sie bitte auf den grüne Schaltfläche links in der Titelleiste des Spyder-Fensters, um es aus dem Vollbildmodus zu nehmen."
 
 #: spyder/app/tour.py:1422
 msgid "Welcome to Spyder!<br><br>Check out our interactive tour to explore some of Spyder's panes and features."
-msgstr ""
+msgstr "Willkommen bei Spyder!<br><br>Schauen Sie sich unsere interaktive Tour an, um einige der Spyder-Fenster und Funktionen zu erkunden."
 
 #: spyder/app/tour.py:1428
 msgid "Start tour"
@@ -868,7 +868,7 @@ msgstr "Haupt-Backend für den Python-Sprachserver"
 
 #: spyder/dependencies.py:120
 msgid "Verify if snippets files are valid"
-msgstr ""
+msgstr "Überprüfen ob Snippets Dateien gültig sind"
 
 #: spyder/dependencies.py:124
 msgid "Save Github credentials to report internal errors securely"
@@ -916,11 +916,11 @@ msgstr "Code-Vervollständigung und Linten für den Editor"
 
 #: spyder/dependencies.py:172
 msgid "Autoformat Python files in the Editor with the Black package"
-msgstr ""
+msgstr "Python-Dateien im Editor mit dem Paket Black automatisch formatieren"
 
 #: spyder/dependencies.py:177
 msgid "Spyder plugin for the Python Language Server"
-msgstr ""
+msgstr "Spyder Plugin für das Paket Python Language Server"
 
 #: spyder/dependencies.py:181
 msgid "Parse desktop files on Linux"
