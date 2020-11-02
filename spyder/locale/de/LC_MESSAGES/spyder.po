@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-02 11:07\n"
+"PO-Revision-Date: 2020-11-02 11:14\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -3940,7 +3940,7 @@ msgstr "Code während des Debuggens ausführen"
 
 #: spyder/plugins/ipythonconsole/confpage.py:236
 msgid "You can run several lines of code on each new prompt while debugging. Please introduce each one separated by semicolons and a space, for example:<br><i>import matplotlib.pyplot as plt</i>"
-msgstr ""
+msgstr "Beim Debuggen können Sie mehrere Codezeilen für jeden neue Eingabeaufforderung ausführen. Bitte geben Sie jede Zeile durch Semikolon und Leerzeichen getrennt ein, zum Beispiel:<br><i>import matplotlib.pyplot as plt</i>"
 
 #: spyder/plugins/ipythonconsole/confpage.py:252
 msgid "Debug"
@@ -4476,7 +4476,7 @@ msgstr "Konstruktor"
 
 #: spyder/plugins/outlineexplorer/widgets.py:77
 msgid "Enum"
-msgstr ""
+msgstr "Aufzählung"
 
 #: spyder/plugins/outlineexplorer/widgets.py:79
 msgid "Function"
@@ -4500,11 +4500,11 @@ msgstr "Zahl"
 
 #: spyder/plugins/outlineexplorer/widgets.py:84
 msgid "Boolean"
-msgstr ""
+msgstr "Wahrheitswert"
 
 #: spyder/plugins/outlineexplorer/widgets.py:85
 msgid "Array"
-msgstr ""
+msgstr "Array"
 
 #: spyder/plugins/outlineexplorer/widgets.py:87 spyder/plugins/variableexplorer/widgets/collectionseditor.py:193
 msgid "Key"
@@ -4512,15 +4512,15 @@ msgstr "Schlüssel"
 
 #: spyder/plugins/outlineexplorer/widgets.py:88
 msgid "Null"
-msgstr ""
+msgstr "Nullwert"
 
 #: spyder/plugins/outlineexplorer/widgets.py:89
 msgid "Enum member"
-msgstr ""
+msgstr "Aufzählungseintrag"
 
 #: spyder/plugins/outlineexplorer/widgets.py:90
 msgid "Struct"
-msgstr ""
+msgstr "Struct"
 
 #: spyder/plugins/outlineexplorer/widgets.py:91
 msgid "Event"
@@ -5132,7 +5132,7 @@ msgstr "Das Öffnen dieser Variable kann langsam sein\n\n"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:124
 msgid "Spyder is unable to show the {val_type} or object you're trying to view because <tt>{module}</tt> is not installed. "
-msgstr ""
+msgstr "Spyder kann den Typ {val_type} oder das Objekt, das Sie anzuzeigen versuchen, nicht anzeigen, weil <tt>{module}</tt> nicht installiert ist. "
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:128
 msgid "Please consider using the full version of the Spyder MacOS application.<br>"
