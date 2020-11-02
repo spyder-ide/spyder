@@ -72,7 +72,8 @@ def natsort(s):
     Natural sorting, e.g. test3 comes before test100.
     Taken from https://stackoverflow.com/a/16090640/3110740
     """
-    # if not isinstance(s, (str, bytes)): return s
+    if not isinstance(s, (str, bytes)):
+        return s
     x = [int(t) if t.isdigit() else t.lower() for t in re.split('([0-9]+)', s)]
     return x
 
@@ -196,8 +197,11 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
             if not self.names:
                 self.header0 = _("Attribute")
         if not isinstance(self._data, ProxyObject):
-            self.title += (' (' + str(len(self.keys)) + ' ' +
-                           _("element" + "s" * (len(self.keys) != 1)) + ')')
+            if len(self.keys) > 1:
+                elements = _("elements")
+            else:
+                elements = _("element")
+            self.title += (' (' + str(len(self.keys)) + ' ' + elements + ')')
         else:
             self.title += data_type
         self.total_rows = len(self.keys)
@@ -261,33 +265,37 @@ class ReadOnlyCollectionsModel(QAbstractTableModel):
         sort_key = natsort if all_string(self.keys) else None
 
         if column == 0:
-            self.sizes = sort_against(self.sizes, self.keys, reverse)
-            self.types = sort_against(self.types, self.keys, reverse)
+            self.sizes = sort_against(self.sizes, self.keys,
+                                      reverse=reverse,
+                                      sort_key=natsort)
+            self.types = sort_against(self.types, self.keys,
+                                      reverse=reverse,
+                                      sort_key=natsort)
             try:
                 self.keys.sort(reverse=reverse, key=sort_key)
             except:
                 pass
         elif column == 1:
-            self.keys[:self.rows_loaded] = sort_against(self.keys, self.types,
-                                                        reverse)
-            self.sizes = sort_against(self.sizes, self.types, reverse)
+            self.keys[:self.rows_loaded] = sort_against(self.keys,
+                                                        self.types,
+                                                        reverse=reverse)
+            self.sizes = sort_against(self.sizes, self.types, reverse=reverse)
             try:
-                self.types.sort(reverse=reverse, key=sort_key)
+                self.types.sort(reverse=reverse)
             except:
                 pass
         elif column == 2:
-            self.keys[:self.rows_loaded] = sort_against(self.keys, self.sizes,
-                                                        reverse)
-            self.types = sort_against(self.types, self.sizes, reverse)
+            self.keys[:self.rows_loaded] = sort_against(self.keys, self.sizes)
+            self.types = sort_against(self.types, self.sizes, reverse=reverse)
             try:
-                self.sizes.sort(reverse=reverse, key=sort_key)
+                self.sizes.sort(reverse=reverse)
             except:
                 pass
         elif column in [3, 4]:
             values = [self._data[key] for key in self.keys]
-            self.keys = sort_against(self.keys, values, reverse)
-            self.sizes = sort_against(self.sizes, values, reverse)
-            self.types = sort_against(self.types, values, reverse)
+            self.keys = sort_against(self.keys, values, reverse=reverse)
+            self.sizes = sort_against(self.sizes, values, reverse=reverse)
+            self.types = sort_against(self.types, values, reverse=reverse)
         self.beginResetModel()
         self.endResetModel()
 
@@ -1537,27 +1545,18 @@ class RemoteCollectionsEditorTableView(BaseTableView):
     def plot(self, name, funcname):
         """Plot item"""
         sw = self.shellwidget
-        if sw.is_waiting_pdb_input():
-            sw.dbg_exec_magic('varexp', '--%s %s' % (funcname, name))
-        else:
-            sw.execute("%%varexp --%s %s" % (funcname, name))
+        sw.execute("%%varexp --%s %s" % (funcname, name))
 
     def imshow(self, name):
         """Show item's image"""
         sw = self.shellwidget
-        if sw.is_waiting_pdb_input():
-            sw.dbg_exec_magic('varexp', '--imshow %s' % name)
-        else:
-            sw.execute("%%varexp --imshow %s" % name)
+        sw.execute("%%varexp --imshow %s" % name)
 
     def show_image(self, name):
         """Show image (item is a PIL image)"""
         command = "%s.show()" % name
         sw = self.shellwidget
-        if sw.is_waiting_pdb_input():
-            sw.pdb_execute(command)
-        else:
-            sw.execute(command)
+        sw.execute(command)
 
     # ------ Other ------------------------------------------------------------
     def setup_menu(self, minmax):
@@ -1694,7 +1693,11 @@ class CollectionsCustomSortFilterProxy(CustomSortFilterProxy):
             return True
 
     def lessThan(self, left, right):
-        """Implements ordering in a natural way, as a human would sort."""
+        """
+        Implements ordering in a natural way, as a human would sort.
+        This functions enables sorting of the main variable editor table,
+        which does not rely on 'self.sort()'.
+        """
         leftData = self.sourceModel().data(left)
         rightData = self.sourceModel().data(right)
         if isinstance(leftData, str) and isinstance(rightData, str):

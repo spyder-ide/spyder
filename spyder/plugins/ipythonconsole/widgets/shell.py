@@ -29,7 +29,7 @@ from spyder.widgets.helperwidgets import MessageCheckBox
 from spyder.plugins.ipythonconsole.comms.kernelcomm import KernelComm
 from spyder.plugins.ipythonconsole.widgets import (
         ControlWidget, DebuggingWidget, FigureBrowserWidget,
-        HelpWidget, NamepaceBrowserWidget, PageControlWidget)
+        HelpWidget, NamepaceBrowserWidget)
 
 
 class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
@@ -72,7 +72,6 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
                  external_kernel, *args, **kw):
         # To override the Qt widget used by RichJupyterWidget
         self.custom_control = ControlWidget
-        self.custom_page_control = PageControlWidget
         self.custom_edit = True
         self.spyder_kernel_comm = KernelComm()
         self.spyder_kernel_comm.sig_exception_occurred.connect(
@@ -99,19 +98,24 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.shutdown_thread = None
         handlers = {
             'pdb_state': self.set_pdb_state,
-            'pdb_continue': self.pdb_continue,
-            'get_pdb_settings': self.handle_get_pdb_settings,
+            'pdb_execute': self.pdb_execute,
+            'get_pdb_settings': self.get_pdb_settings,
             'run_cell': self.handle_run_cell,
             'cell_count': self.handle_cell_count,
             'current_filename': self.handle_current_filename,
             'get_file_code': self.handle_get_file_code,
-            'set_debug_state': self.handle_debug_state,
+            'set_debug_state': self.set_debug_state,
             'update_syspath': self.update_syspath,
             'do_where': self.do_where,
+            'pdb_input': self.pdb_input,
+            'request_interrupt_eventloop': self.request_interrupt_eventloop,
         }
         for request_id in handlers:
             self.spyder_kernel_comm.register_call_handler(
                 request_id, handlers[request_id])
+
+        self._execute_queue = []
+        self.executed.connect(self.pop_execute_queue)
 
     def __del__(self):
         """Avoid destroying shutdown_thread."""
@@ -133,6 +137,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             self.shutdown_thread.finished.connect(
                 self.kernel_client.stop_channels)
         self.shutdown_thread.start()
+        super(ShellWidget, self).shutdown()
 
     def will_close(self, externally_managed):
         """
@@ -155,7 +160,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         super(ShellWidget, self).will_close(externally_managed)
 
     def call_kernel(self, interrupt=False, blocking=False, callback=None,
-                    timeout=None):
+                    timeout=None, display_error=False):
         """
         Send message to Spyder kernel connected to this console.
 
@@ -175,12 +180,15 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             blocking call to the kernel. If None, a default timeout
             (defined in commbase.py, present in spyder-kernels) is
             used.
+        display_error: bool
+            If an error occurs, should it be printed to the console.
         """
         return self.spyder_kernel_comm.remote_call(
             interrupt=interrupt,
             blocking=blocking,
             callback=callback,
-            timeout=timeout
+            timeout=timeout,
+            display_error=display_error
         )
 
     def set_kernel_client_and_manager(self, kernel_client, kernel_manager):
@@ -190,7 +198,34 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
         self.spyder_kernel_comm.open_comm(kernel_client)
 
         # Redefine the complete method to work while debugging.
-        self.redefine_complete_for_dbg(self.kernel_client)
+        self._redefine_complete_for_dbg(self.kernel_client)
+
+    def pop_execute_queue(self):
+        """Pop one waiting instruction."""
+        if self._execute_queue:
+            self.execute(*self._execute_queue.pop(0))
+
+    # ---- Public API ---------------------------------------------------------
+    def interrupt_kernel(self):
+        """Attempts to interrupt the running kernel."""
+        # Empty queue when interrupting
+        # Fixes spyder-ide/spyder#7293.
+        self._execute_queue = []
+        super(ShellWidget, self).interrupt_kernel()
+
+    def execute(self, source=None, hidden=False, interactive=False):
+        """
+        Executes source or the input buffer, possibly prompting for more
+        input.
+        """
+        if self._executing:
+            self._execute_queue.append((source, hidden, interactive))
+            return
+        super(ShellWidget, self).execute(source, hidden, interactive)
+
+    def request_interrupt_eventloop(self):
+        """Send a message to the kernel to interrupt the eventloop."""
+        self.call_kernel()._interrupt_eventloop()
 
     def set_exit_callback(self):
         """Set exit callback for this shell."""
@@ -219,7 +254,7 @@ class ShellWidget(NamepaceBrowserWidget, HelpWidget, DebuggingWidget,
             dirname = osp.normpath(dirname)
 
         if self.ipyclient.hostname is None:
-            self.call_kernel(interrupt=True).set_cwd(dirname)
+            self.call_kernel(interrupt=self.is_debugging()).set_cwd(dirname)
             self._cwd = dirname
 
     def update_cwd(self):
@@ -330,10 +365,7 @@ the sympy module (e.g. plot)
 
     # --- To define additional shortcuts
     def clear_console(self):
-        if self.is_waiting_pdb_input():
-            self.dbg_exec_magic('clear')
-        else:
-            self.execute("%clear")
+        self.execute("%clear")
         # Stop reading as any input has been removed.
         self._reading = False
 
@@ -382,7 +414,7 @@ the sympy module (e.g. plot)
 
         try:
             if self.is_waiting_pdb_input():
-                self.dbg_exec_magic('reset', '-f')
+                self.execute('%reset -f')
             else:
                 if message:
                     self.reset()
@@ -471,7 +503,10 @@ the sympy module (e.g. plot)
     def silent_execute(self, code):
         """Execute code in the kernel without increasing the prompt"""
         try:
-            self.kernel_client.execute(to_text_string(code), silent=True)
+            if self.is_debugging():
+                self.pdb_execute(code, hidden=True)
+            else:
+                self.kernel_client.execute(to_text_string(code), silent=True)
         except AttributeError:
             pass
 
@@ -627,7 +662,6 @@ the sympy module (e.g. plot)
 
     def handle_cell_count(self, filename):
         """Get number of cells in file to loop."""
-        editorstack = self.get_editorstack()
         editor = self.get_editor(filename)
 
         if editor is None:

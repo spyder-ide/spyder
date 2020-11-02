@@ -28,13 +28,17 @@ def temp_document(doc_text, workspace):
     return name, doc
 
 
-def test_flake8_no_checked_file(workspace):
-    # A bad uri or a non-saved file may cause the flake8 linter to do nothing.
-    # In this situtation, the linter will return an empty list.
-
+def test_flake8_unsaved(workspace):
     doc = Document('', workspace, DOC)
     diags = flake8_lint.pyls_lint(workspace, doc)
-    assert 'Error' in diags[0]['message']
+    msg = 'local variable \'a\' is assigned to but never used'
+    unused_var = [d for d in diags if d['message'] == msg][0]
+
+    assert unused_var['source'] == 'flake8'
+    assert unused_var['code'] == 'F841'
+    assert unused_var['range']['start'] == {'line': 5, 'character': 1}
+    assert unused_var['range']['end'] == {'line': 5, 'character': 11}
+    assert unused_var['severity'] == lsp.DiagnosticSeverity.Warning
 
 
 def test_flake8_lint(workspace):

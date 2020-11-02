@@ -7,28 +7,204 @@
 """Outline explorer widgets."""
 
 # Standard library imports
-from __future__ import print_function
+import bisect
 import os.path as osp
+import uuid
 
 # Third party imports
+from intervaltree import IntervalTree
 from qtpy.compat import from_qvariant
-from qtpy.QtCore import QSize, Qt, Signal, Slot
+from qtpy.QtCore import QSize, Qt, QTimer, Signal, Slot
 from qtpy.QtWidgets import (QHBoxLayout, QTreeWidgetItem, QWidget,
                             QTreeWidgetItemIterator)
 
 # Local imports
-from spyder.config.base import _, STDOUT
+from spyder.config.base import _
+from spyder.config.manager import CONF
 from spyder.py3compat import to_text_string
 from spyder.utils import icon_manager as ima
+from spyder.plugins.completion.languageserver import SymbolKind
 from spyder.utils.qthelpers import (create_action, create_toolbutton,
-                                    set_item_user_text, create_plugin_layout)
+                                    set_item_user_text, create_plugin_layout,
+                                    create_waitspinner)
 from spyder.widgets.onecolumntree import OneColumnTree
 
+# Additional symbol constants (non-standard)
+BLOCK_COMMENT = 224
+CELL = 225
 
-class FileRootItem(QTreeWidgetItem):
-    def __init__(self, path, treewidget, is_python=True):
+SYMBOL_KIND_ICON = {
+    SymbolKind.FILE: 'file',
+    SymbolKind.MODULE: 'module',
+    SymbolKind.NAMESPACE: 'namespace',
+    SymbolKind.PACKAGE: 'package',
+    SymbolKind.CLASS: 'class',
+    SymbolKind.METHOD: 'method',
+    SymbolKind.PROPERTY: 'property',
+    SymbolKind.FIELD: 'field',
+    SymbolKind.CONSTRUCTOR: 'constructor',
+    SymbolKind.ENUM: 'enum',
+    SymbolKind.INTERFACE: 'interface',
+    SymbolKind.FUNCTION: 'function',
+    SymbolKind.VARIABLE: 'variable',
+    SymbolKind.CONSTANT: 'constant',
+    SymbolKind.STRING: 'string',
+    SymbolKind.NUMBER: 'number',
+    SymbolKind.BOOLEAN: 'boolean',
+    SymbolKind.ARRAY: 'array',
+    SymbolKind.OBJECT: 'object',
+    SymbolKind.KEY: 'key',
+    SymbolKind.NULL: 'null',
+    SymbolKind.ENUM_MEMBER: 'enum_member',
+    SymbolKind.STRUCT: 'struct',
+    SymbolKind.EVENT: 'event',
+    SymbolKind.OPERATOR: 'operator',
+    SymbolKind.TYPE_PARAMETER: 'type_parameter',
+    BLOCK_COMMENT: 'blockcomment',
+    CELL: 'cell'
+}
+
+SYMBOL_NAME_MAP = {
+    SymbolKind.FILE: _('File'),
+    SymbolKind.MODULE: _('Module'),
+    SymbolKind.NAMESPACE: _('Namespace'),
+    SymbolKind.PACKAGE: _('Package'),
+    SymbolKind.CLASS: _('Class'),
+    SymbolKind.METHOD: _('Method'),
+    SymbolKind.PROPERTY: _('Property'),
+    SymbolKind.FIELD: _('Attribute'),
+    SymbolKind.CONSTRUCTOR: _('constructor'),
+    SymbolKind.ENUM: _('Enum'),
+    SymbolKind.INTERFACE: _('Interface'),
+    SymbolKind.FUNCTION: _('Function'),
+    SymbolKind.VARIABLE: _('Variable'),
+    SymbolKind.CONSTANT: _('Constant'),
+    SymbolKind.STRING: _('String'),
+    SymbolKind.NUMBER: _('Number'),
+    SymbolKind.BOOLEAN: _('Boolean'),
+    SymbolKind.ARRAY: _('Array'),
+    SymbolKind.OBJECT: _('Object'),
+    SymbolKind.KEY: _('Key'),
+    SymbolKind.NULL: _('Null'),
+    SymbolKind.ENUM_MEMBER: _('Enum member'),
+    SymbolKind.STRUCT: _('Struct'),
+    SymbolKind.EVENT: _('Event'),
+    SymbolKind.OPERATOR: _('Operator'),
+    SymbolKind.TYPE_PARAMETER: _('Type parameter'),
+    CELL: _('Cell'),
+    BLOCK_COMMENT: _('Block comment')
+}
+
+ICON_CACHE = {}
+
+
+def line_span(position):
+    return position[1] - position[0] + 1
+
+
+class SymbolStatus:
+    def __init__(self, name, kind, position, path, node=None):
+        self.name = name
+        self.position = position
+        self.kind = kind
+        self.node = node
+        self.path = path
+        self.id = str(uuid.uuid4())
+        self.index = None
+        self.children = []
+        self.status = False
+        self.parent = None
+
+    def delete(self):
+        for child in self.children:
+            child.parent = None
+
+        self.children = []
+        self.node.takeChildren()
+
+        if self.parent is not None:
+            self.parent.remove_node(self)
+            self.parent = None
+
+        if self.node.parent is not None:
+            self.node.parent.remove_children(self.node)
+
+    def add_node(self, node):
+        if node.position == self.position:
+            # The nodes should be at the same level
+            self.parent.add_node(node)
+        else:
+            node.parent = self
+            node.path = self.path
+            this_node = self.node
+            children_ranges = [c.position[0] for c in self.children]
+            node_range = node.position[0]
+            new_index = bisect.bisect_left(children_ranges, node_range)
+            node.index = new_index
+            for child in self.children[new_index:]:
+                child.index += 1
+            this_node.append_children(new_index, node.node)
+            self.children.insert(new_index, node)
+            for idx, next_idx in zip(self.children, self.children[1:]):
+                assert idx.index < next_idx.index
+
+    def remove_node(self, node):
+        for child in self.children[node.index + 1:]:
+            child.index -= 1
+        self.children.pop(node.index)
+        for idx, next_idx in zip(self.children, self.children[1:]):
+            assert idx.index < next_idx.index
+
+    def clone_node(self, node):
+        self.id = node.id
+        self.index = node.index
+        self.path = node.path
+        self.children = node.children
+        self.status = node.status
+        self.node = node.node
+        self.parent = node.parent
+        self.node.update_info(self.name, self.kind, self.position[0] + 1)
+        self.node.ref = self
+
+        for child in self.children:
+            child.parent = self
+
+        if self.parent is not None:
+            self.parent.replace_node(self.index, self)
+
+    def replace_node(self, index, node):
+        self.children[index] = node
+
+    def create_node(self):
+        self.node = SymbolItem(None, self, self.name, self.kind,
+                               self.position[0] + 1)
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return '({0}, {1}, {2}, {3})'.format(
+            self.position, self.name, self.id, self.status)
+
+
+class BaseTreeItem(QTreeWidgetItem):
+    def clear(self):
+        self.takeChildren()
+
+    def append_children(self, index, node):
+        self.insertChild(index, node)
+        node.parent = self
+
+    def remove_children(self, node):
+        self.removeChild(node)
+        node.parent = None
+
+
+class FileRootItem(BaseTreeItem):
+    def __init__(self, path, ref, treewidget, is_python=True):
         QTreeWidgetItem.__init__(self, treewidget, QTreeWidgetItem.Type)
         self.path = path
+        self.ref = ref
         self.setIcon(
             0, ima.icon('python') if is_python else ima.icon('TextFileIcon'))
         self.setToolTip(0, path)
@@ -40,6 +216,26 @@ class FileRootItem(QTreeWidgetItem):
 
     def set_text(self, fullpath):
         self.setText(0, self.path if fullpath else osp.basename(self.path))
+
+
+class SymbolItem(BaseTreeItem):
+    """Generic symbol tree item."""
+    def __init__(self, parent, ref, name, kind, position):
+        QTreeWidgetItem.__init__(self, parent, QTreeWidgetItem.Type)
+        self.parent = parent
+        self.ref = ref
+        self.num_children = 0
+        self.update_info(name, kind, position)
+
+    def update_info(self, name, kind, position):
+        self.setIcon(0, ima.icon(SYMBOL_KIND_ICON.get(kind, 'no_match')))
+        identifier = SYMBOL_NAME_MAP.get(kind, '')
+        identifier = identifier.replace('_', ' ').capitalize()
+        self.setToolTip(0, '{3} {2}: {0} {1}'.format(
+            identifier, name, position, _('Line')))
+        set_item_user_text(self, name)
+        self.setText(0, name)
+
 
 class TreeItem(QTreeWidgetItem):
     """Class browser item base class."""
@@ -95,111 +291,21 @@ class TreeItem(QTreeWidgetItem):
         set_item_user_text(self, parent_text + '/' + name)
         self.setup()
 
-class ClassItem(TreeItem):
-    def get_name(self):
-        """Get name."""
-        return self.oedata.get_class_name()
-
-    def setup(self):
-        self.set_icon(ima.icon('class'))
-        self.setToolTip(0, _("Class defined at line %s") % str(self.line))
-
-class FunctionItem(TreeItem):
-    def get_name(self):
-        """Get name."""
-        return self.oedata.get_function_name()
-
-    def is_method(self):
-        return isinstance(self.parent(), ClassItem)
-
-    def setup(self):
-        if self.is_method():
-            self.setToolTip(0, _("Method defined at line %s") % str(self.line))
-            name = to_text_string(self.text(0))
-            if name.startswith('__'):
-                self.set_icon(ima.icon('private2'))
-            elif name.startswith('_'):
-                self.set_icon(ima.icon('private1'))
-            else:
-                self.set_icon(ima.icon('method'))
-        else:
-            self.set_icon(ima.icon('function'))
-            self.setToolTip(0, _("Function defined at line %s"
-                                 ) % str(self.line))
-
-class CommentItem(TreeItem):
-    def get_name(self):
-        """Get name."""
-        return self.oedata.def_name.lstrip("# ")
-
-    def setup(self):
-        self.set_icon(ima.icon('blockcomment'))
-        font = self.font(0)
-        font.setItalic(True)
-        self.setFont(0, font)
-        self.setToolTip(0, _("Line %s") % str(self.line))
-
-class CellItem(TreeItem):
-    def setup(self):
-        self.set_icon(ima.icon('cell'))
-        font = self.font(0)
-        font.setItalic(True)
-        self.setFont(0, font)
-        self.setToolTip(0, _("Cell starts at line %s") % str(self.line))
-
-def get_item_children(item):
-    """Return a sorted list of all the children items of 'item'."""
-    children = [item.child(index) for index in range(item.childCount())]
-    for child in children[:]:
-        others = get_item_children(child)
-        if others is not None:
-            children += others
-    # Remove any child without line number
-    children = [child for child in children if child.line is not None]
-    return sorted(children, key=lambda child: child.line)
-
-
-def item_at_line(root_item, line):
-    """
-    Find and return the item of the outline explorer under which is located
-    the specified 'line' of the editor.
-    """
-    previous_item = root_item
-    item = root_item
-    for item in get_item_children(root_item):
-        if item.line > line:
-            return previous_item
-        previous_item = item
-    else:
-        return item
-
-
-def remove_from_tree_cache(tree_cache, line=None, item=None):
-    if line is None:
-        for line, (_it, _debug) in list(tree_cache.items()):
-            if _it is item:
-                break
-    if line is None:
-        # Could not find the item
-        return
-    item, debug = tree_cache.pop(line)
-    try:
-        for child in [item.child(_i) for _i in range(item.childCount())]:
-            remove_from_tree_cache(tree_cache, item=child)
-        item.parent().removeChild(item)
-    except RuntimeError:
-        # Item has already been deleted
-        #XXX: remove this debug-related fragment of code
-        print("unable to remove tree item: ", debug, file=STDOUT)
-
 
 class OutlineExplorerTreeWidget(OneColumnTree):
+    # Used only for debug purposes
+    sig_tree_updated = Signal()
+    sig_display_spinner = Signal()
+    sig_hide_spinner = Signal()
+    sig_update_configuration = Signal()
+
     def __init__(self, parent, show_fullpath=False, show_all_files=True,
-                 group_cells=True, show_comments=True,
+                 group_cells=True, show_comments=True, display_variables=False,
                  sort_files_alphabetically=False, follow_cursor=True):
         self.show_fullpath = show_fullpath
         self.show_all_files = show_all_files
         self.group_cells = group_cells
+        self.display_variables = display_variables
         self.follow_cursor = follow_cursor
         self.show_comments = show_comments
         self.sort_files_alphabetically = sort_files_alphabetically
@@ -208,8 +314,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.editor_items = {}
         self.editor_tree_cache = {}
         self.editor_ids = {}
+        self.update_timers = {}
+        self.editors_to_update = {}
         self.ordered_editor_ids = []
         self._current_editor = None
+        self._languages = []
+
         title = _("Outline")
         self.set_title(title)
         self.setWindowTitle(title)
@@ -248,12 +358,25 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         group_cells_act = create_action(self, text=_('Group code cells'),
                                         toggled=self.toggle_group_cells)
         group_cells_act.setChecked(self.group_cells)
+        display_variables_act = create_action(
+            self,
+            text=_('Display variables and attributes'),
+            toggled=self.toggle_variables
+        )
+        display_variables_act.setChecked(self.display_variables)
+        follow_cursor_act = create_action(
+            self,
+            text=_('Follow cursor position'),
+            toggled=self.toggle_follow_cursor
+        )
+        follow_cursor_act.setChecked(self.follow_cursor)
         sort_files_alphabetically_act = create_action(
             self, text=_('Sort files alphabetically'),
             toggled=self.toggle_sort_files_alphabetically)
         sort_files_alphabetically_act.setChecked(
             self.sort_files_alphabetically)
-        actions = [fullpath_act, allfiles_act, group_cells_act, comment_act,
+        actions = [fullpath_act, allfiles_act, group_cells_act,
+                   display_variables_act, follow_cursor_act, comment_act,
                    sort_files_alphabetically_act, fromcursor_act]
         return actions
 
@@ -277,56 +400,84 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.show_all_files = state
         if self.current_editor is not None:
             editor_id = self.editor_ids[self.current_editor]
-            item = self.editor_items[editor_id]
+            item = self.editor_items[editor_id].node
             self.__hide_or_show_root_items(item)
             self.__sort_toplevel_items()
             if self.show_all_files is False:
                 self.root_item_selected(
                     self.editor_items[self.editor_ids[self.current_editor]])
+            self.do_follow_cursor()
 
     @Slot(bool)
     def toggle_show_comments(self, state):
-        self.show_comments = state
-        self.update_all()
+        if CONF.get('outline_explorer', 'show_comments') != state:
+            CONF.set('outline_explorer', 'show_comments', state)
+            self.show_comments = state
+            self.sig_update_configuration.emit()
+            self.update_all_editors(reset_info=True)
 
     @Slot(bool)
     def toggle_group_cells(self, state):
-        self.group_cells = state
-        self.update_all()
+        if CONF.get('outline_explorer', 'group_cells') != state:
+            CONF.set('outline_explorer', 'group_cells', state)
+            self.group_cells = state
+            self.sig_update_configuration.emit()
+            self.update_all_editors(reset_info=True)
+
+    @Slot(bool)
+    def toggle_variables(self, state):
+        if CONF.get('outline_explorer', 'display_variables') != state:
+            CONF.set('outline_explorer', 'display_variables', state)
+            self.display_variables = state
+            for editor in self.editor_ids.keys():
+                self.update_editor(editor.info, editor)
 
     @Slot(bool)
     def toggle_sort_files_alphabetically(self, state):
         self.sort_files_alphabetically = state
-        self.update_all()
         self.__sort_toplevel_items()
 
     @Slot()
-    def go_to_cursor_position(self, expand=True):
+    def go_to_cursor_position(self):
         if self.current_editor is not None:
-            line = self.current_editor.get_cursor_line_number()
             editor_id = self.editor_ids[self.current_editor]
-            root_item = self.editor_items[editor_id]
-            item = item_at_line(root_item, line)
-            if not expand:
-                # Look for a non expanded item
-                tree_iter = item
-                while tree_iter:
-                    if not tree_iter.isExpanded():
-                        item = tree_iter
-                    tree_iter = tree_iter.parent()
-            self.setCurrentItem(item)
-            self.scrollToItem(item)
+            line = self.current_editor.get_cursor_line_number()
+            tree = self.editor_tree_cache[editor_id]
+            root = self.editor_items[editor_id]
+            overlap = tree[line - 1]
+            if len(overlap) == 0:
+                item = root.node
+                self.setCurrentItem(item)
+                self.scrollToItem(item)
+                self.expandItem(item)
+            else:
+                sorted_nodes = sorted(overlap)
+                # The last item of the sorted elements correspond to the
+                # current node if expanding, otherwise it is the first stopper
+                # found
+                idx = -1
+                self.switch_to_node(sorted_nodes, idx)
+
+    def switch_to_node(self, sorted_nodes, idx):
+        """Given a set of tree nodes, highlight the node on index `idx`."""
+        item_interval = sorted_nodes[idx]
+        item_ref = item_interval.data
+        item = item_ref.node
+        self.setCurrentItem(item)
+        self.scrollToItem(item)
+        self.expandItem(item)
 
     @Slot()
     def do_follow_cursor(self):
-        """Go to cursor position without expending."""
+        """Go to cursor position."""
         if self.follow_cursor:
-            self.go_to_cursor_position(expand=False)
+            self.go_to_cursor_position()
 
     @Slot(bool)
     def toggle_follow_cursor(self, state):
         """Follow the cursor."""
         self.follow_cursor = state
+        self.do_follow_cursor()
 
     def connect_current_editor(self, state):
         """Connect or disconnect the editor from signals."""
@@ -337,14 +488,17 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         # Connect syntax highlighter
         sig_update = editor.sig_outline_explorer_data_changed
         sig_move = editor.sig_cursor_position_changed
+        sig_display_spinner = editor.sig_start_outline_spinner
         if state:
-            sig_update.connect(self.update_current)
+            sig_update.connect(self.update_editor)
             sig_move.connect(self.do_follow_cursor)
+            sig_display_spinner.connect(self.sig_display_spinner)
             self.do_follow_cursor()
         else:
             try:
-                sig_update.disconnect(self.update_current)
+                sig_update.disconnect(self.update_editor)
                 sig_move.disconnect(self.do_follow_cursor)
+                sig_display_spinner.disconnect(self.sig_display_spinner)
             except TypeError:
                 # This catches an error while performing
                 # teardown in one of our tests.
@@ -358,31 +512,57 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def set_current_editor(self, editor, update):
         """Bind editor instance"""
         editor_id = editor.get_id()
-        if editor_id in list(self.editor_ids.values()):
-            item = self.editor_items[editor_id]
-            if not self.freeze:
-                self.scrollToItem(item)
-                self.root_item_selected(item)
-                self.__hide_or_show_root_items(item)
-            if update:
-                self.save_expanded_state()
-                tree_cache = self.editor_tree_cache[editor_id]
-                self.populate_branch(editor, item, tree_cache)
-                self.restore_expanded_state()
-        else:
-            root_item = FileRootItem(editor.fname, self, editor.is_python())
-            root_item.set_text(fullpath=self.show_fullpath)
-            tree_cache = self.populate_branch(editor, root_item)
-            self.__hide_or_show_root_items(root_item)
-            self.root_item_selected(root_item)
-            self.editor_items[editor_id] = root_item
-            self.editor_tree_cache[editor_id] = tree_cache
-            self.resizeColumnToContents(0)
-        if editor not in self.editor_ids:
-            self.editor_ids[editor] = editor_id
-            self.ordered_editor_ids.append(editor_id)
-            self.__sort_toplevel_items()
+
+        # Don't fail if editor doesn't exist anymore. This
+        # happens when switching projects.
+        try:
+            item = self.editor_items[editor_id].node
+        except KeyError:
+            return
+
+        if not self.freeze:
+            self.scrollToItem(item)
+            self.root_item_selected(item)
+            self.__hide_or_show_root_items(item)
+        if update:
+            self.save_expanded_state()
+            self.restore_expanded_state()
+
         self.current_editor = editor
+
+        # Update tree with currently stored info or require symbols if
+        # necessary.
+        if (editor.get_language() in self._languages and
+                len(self.editor_tree_cache[editor_id]) == 0):
+            if editor.info is not None:
+                self.update_editor(editor.info)
+            elif editor.is_cloned:
+                editor.request_symbols()
+
+    def register_editor(self, editor):
+        """
+        Register editor attributes and create basic objects associated
+        to it.
+        """
+        editor_id = editor.get_id()
+        self.editor_ids[editor] = editor_id
+        self.ordered_editor_ids.append(editor_id)
+
+        this_root = SymbolStatus(editor.fname, None, None, editor.fname)
+        self.editor_items[editor_id] = this_root
+
+        root_item = FileRootItem(editor.fname, this_root,
+                                 self, editor.is_python())
+        this_root.node = root_item
+        root_item.set_text(fullpath=self.show_fullpath)
+        self.resizeColumnToContents(0)
+        if not self.show_all_files:
+            root_item.setHidden(True)
+
+        editor_tree = IntervalTree()
+        self.editor_tree_cache[editor_id] = editor_tree
+
+        self.__sort_toplevel_items()
 
     def file_renamed(self, editor, new_filename):
         """File was renamed, updating outline explorer tree"""
@@ -393,45 +573,166 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             return
         editor_id = editor.get_id()
         if editor_id in list(self.editor_ids.values()):
-            root_item = self.editor_items[editor_id]
+            root_item = self.editor_items[editor_id].node
             root_item.set_path(new_filename, fullpath=self.show_fullpath)
             self.__sort_toplevel_items()
 
-    @Slot()
-    def update_all(self):
+    def update_editors(self, language):
         """
-        Update the outline explorer for all editors tree preserving the tree
-        state
-        """
-        self.save_expanded_state()
-        for editor, editor_id in list(self.editor_ids.items()):
-            self.__do_update(editor, editor_id)
-        self.restore_expanded_state()
-        self.do_follow_cursor()
+        Update all editors for a given language sequentially.
 
-    @Slot()
-    def update_current(self):
+        This is done through a timer to avoid lags in the interface.
         """
-        Update the outline explorer for the current editor tree preserving the
-        tree state
+        if self.editors_to_update.get(language):
+            editor = self.editors_to_update[language][0]
+            if editor.info is not None:
+                # Editor could be not there anymore after switching
+                # projects
+                try:
+                    self.update_editor(editor.info, editor)
+                except KeyError:
+                    pass
+                self.editors_to_update[language].remove(editor)
+            self.update_timers[language].start()
+
+    def update_all_editors(self, reset_info=False):
+        """Update all editors with LSP support."""
+        for language in self._languages:
+            self.set_editors_to_update(language, reset_info=reset_info)
+            self.update_timers[language].start()
+
+    @Slot(list)
+    def update_editor(self, items, editor=None):
+        """
+        Update the outline explorer for `editor` preserving the tree
+        state.
         """
         plugin_base = self.parent().parent()
-        if getattr(plugin_base, "_isvisible", True):
-            self.save_expanded_state()
+        if editor is None:
             editor = self.current_editor
-            editor_id = editor.get_id()
-            self.__do_update(editor, editor_id)
+        editor_id = editor.get_id()
+        language = editor.get_language()
+        update = self.update_tree(items, editor_id, language)
+
+        if getattr(plugin_base, "_isvisible", True) and update:
+            self.save_expanded_state()
             self.restore_expanded_state()
             self.do_follow_cursor()
 
-    def __do_update(self, editor, editor_id):
-        """
-        Recalculate the and update the tree items in the Outliner for a
-        given editor
-        """
-        item = self.editor_items[editor_id]
-        tree_cache = self.editor_tree_cache[editor_id]
-        self.populate_branch(editor, item, tree_cache)
+    def merge_interval(self, parent, node):
+        """Add node into an existing tree structure."""
+        match = False
+        start, end = node.position
+        while parent.parent is not None and not match:
+            parent_start, parent_end = parent.position
+            if parent_end <= start:
+                parent = parent.parent
+            else:
+                match = True
+
+        if node.parent is not None:
+            node.parent.remove_node(node)
+            node.parent = None
+            if node.node.parent is not None:
+                node.node.parent.remove_children(node.node)
+
+        parent.add_node(node)
+        return node
+
+    def update_tree(self, items, editor_id, language):
+        current_tree = self.editor_tree_cache[editor_id]
+        tree_info = []
+        for symbol in items:
+            symbol_name = symbol['name']
+            symbol_kind = symbol['kind']
+            if language.lower() == 'python':
+                if symbol_kind == SymbolKind.MODULE:
+                    continue
+                if (symbol_kind == SymbolKind.VARIABLE and
+                        not self.display_variables):
+                    continue
+                if (symbol_kind == SymbolKind.FIELD and
+                        not self.display_variables):
+                    continue
+            # NOTE: This could be also a DocumentSymbol
+            symbol_range = symbol['location']['range']
+            symbol_start = symbol_range['start']['line']
+            symbol_end = symbol_range['end']['line']
+            symbol_repr = SymbolStatus(symbol_name, symbol_kind,
+                                       (symbol_start, symbol_end), None)
+            tree_info.append((symbol_start, symbol_end + 1, symbol_repr))
+
+        tree = IntervalTree.from_tuples(tree_info)
+        changes = tree - current_tree
+        deleted = current_tree - tree
+
+        if len(changes) == 0 and len(deleted) == 0:
+            self.sig_hide_spinner.emit()
+            return False
+
+        adding_symbols = len(changes) > len(deleted)
+        deleted_iter = iter(sorted(deleted))
+        changes_iter = iter(sorted(changes))
+
+        deleted_entry = next(deleted_iter, None)
+        changed_entry = next(changes_iter, None)
+        non_merged = 0
+
+        while deleted_entry is not None and changed_entry is not None:
+            deleted_entry_i = deleted_entry.data
+            changed_entry_i = changed_entry.data
+
+            if deleted_entry_i.name == changed_entry_i.name:
+                deleted_span = line_span(deleted_entry_i.position)
+                changed_span = line_span(changed_entry_i.position)
+                if deleted_span == changed_span:
+                    # Copy symbol status
+                    changed_entry_i.clone_node(deleted_entry_i)
+                else:
+                    deleted_entry_i.delete()
+                    changed_entry_i.create_node()
+                    non_merged += 1
+                deleted_entry = next(deleted_iter, None)
+                changed_entry = next(changes_iter, None)
+            else:
+                if adding_symbols:
+                    # New symbol added
+                    changed_entry_i.create_node()
+                    non_merged += 1
+                    changed_entry = next(changes_iter, None)
+                else:
+                    # Symbol removed
+                    deleted_entry_i.delete()
+                    non_merged += 1
+                    deleted_entry = next(deleted_iter, None)
+
+        if deleted_entry is not None:
+            while deleted_entry is not None:
+                # Symbol removed
+                deleted_entry_i = deleted_entry.data
+                deleted_entry_i.delete()
+                non_merged += 1
+                deleted_entry = next(deleted_iter, None)
+
+        root = self.editor_items[editor_id]
+        # tree_merge
+        if changed_entry is not None:
+            while changed_entry is not None:
+                # New symbol added
+                changed_entry_i = changed_entry.data
+                changed_entry_i.create_node()
+                non_merged += 1
+                changed_entry = next(changes_iter, None)
+
+        if non_merged > 0:
+            tree_copy = IntervalTree(tree)
+            tree_copy.merge_overlaps(
+                data_reducer=self.merge_interval, data_initializer=root)
+
+        self.editor_tree_cache[editor_id] = tree
+        self.sig_tree_updated.emit()
+        self.sig_hide_spinner.emit()
+        return True
 
     def remove_editor(self, editor):
         if editor in self.editor_ids:
@@ -444,7 +745,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 root_item = self.editor_items.pop(editor_id)
                 self.editor_tree_cache.pop(editor_id)
                 try:
-                    self.takeTopLevelItem(self.indexOfTopLevelItem(root_item))
+                    self.takeTopLevelItem(
+                        self.indexOfTopLevelItem(root_item.node))
                 except RuntimeError:
                     # item has already been removed
                     pass
@@ -476,7 +778,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 key=lambda item: osp.basename(item.path.lower()))
         else:
             new_ordered_items = [
-                self.editor_items.get(e_id) for e_id in
+                self.editor_items.get(e_id).node for e_id in
                 self.ordered_editor_ids if
                 self.editor_items.get(e_id) is not None]
 
@@ -491,183 +793,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.clearSelection()
             if selected_items:
                 selected_items[-1].setSelected(True)
-
-    def populate_branch(self, editor, root_item, tree_cache=None):
-        """
-        Generates an outline of the editor's content and stores the result
-        in a cache.
-        """
-        if tree_cache is None:
-            tree_cache = {}
-
-        for _l in list(tree_cache.keys()):
-            # Checking if key is still in tree cache in case one of its
-            # ancestors was deleted in the meantime (deleting all children):
-            if _l not in tree_cache:
-                continue
-
-            # Removing deleted items
-            if not tree_cache[_l][0].oedata.is_valid():
-                remove_from_tree_cache(tree_cache, line=_l)
-                continue
-
-            # Moving cached items whose line changed
-            block_line = tree_cache[_l][0].line
-            if _l != block_line:
-                if block_line in tree_cache:
-                    remove_from_tree_cache(tree_cache, line=block_line)
-                if _l in tree_cache:
-                    if block_line is not None:
-                        tree_cache[block_line] = tree_cache[_l]
-                    tree_cache.pop(_l)
-
-        ancestors = [(root_item, 0)]
-        cell_ancestors = [(root_item, 0)]
-        previous_item = None
-        previous_level = None
-        prev_cell_level = None
-        prev_cell_item = None
-
-        for data in editor.outlineexplorer_data_list():
-            try:
-                line_nb = data.get_block_number()
-                if line_nb is None:
-                    continue
-                line_nb += 1
-            except AttributeError:
-                continue
-            level = None if data is None else data.fold_level
-            citem, _d = tree_cache.get(line_nb, (None, ""))
-            if citem is not None:
-                # Check if underlying C++ object has been deleted
-                try:
-                    citem.text(0)
-                except RuntimeError:
-                    tree_cache.pop(line_nb)
-                    citem, _d = (None, "")
-
-            # Skip iteration if line is not the first line of a foldable block
-            if level is None:
-                if citem is not None:
-                    remove_from_tree_cache(tree_cache, line=line_nb)
-                continue
-
-            # Searching for class/function statements
-            not_class_nor_function = data.is_not_class_nor_function()
-            if not not_class_nor_function:
-                class_name = data.get_class_name()
-                if class_name is None:
-                    func_name = data.get_function_name()
-                    if func_name is None:
-                        if citem is not None:
-                            remove_from_tree_cache(tree_cache, line=line_nb)
-                        continue
-
-            # Skip iteration for if/else/try/for/etc foldable blocks.
-            if not_class_nor_function and not data.is_comment():
-                if citem is not None:
-                    remove_from_tree_cache(tree_cache, line=line_nb)
-                continue
-
-            if citem is not None:
-                cname = to_text_string(citem.text(0))
-                cparent = citem.parent()
-                clevel = citem.level()
-
-            # Blocks for Cell Groups.
-            if (data is not None and data.def_type == data.CELL and
-                    self.group_cells):
-                preceding = (root_item if previous_item is None
-                             else previous_item)
-                cell_level = data.cell_level
-                if prev_cell_level is not None:
-                    if cell_level == prev_cell_level:
-                        pass
-                    elif cell_level > prev_cell_level:
-                        cell_ancestors.append((prev_cell_item,
-                                               prev_cell_level))
-                    else:
-                        while (len(cell_ancestors) > 1 and
-                               cell_level <= prev_cell_level):
-                            cell_ancestors.pop(-1)
-                            _item, prev_cell_level = cell_ancestors[-1]
-                parent, _level = cell_ancestors[-1]
-                if citem is not None:
-                    if data.text == cname and level == clevel:
-                        previous_level = clevel
-                        previous_item = citem
-                        continue
-                    else:
-                        remove_from_tree_cache(tree_cache, line=line_nb)
-                item = CellItem(data, parent, preceding)
-                debug = "%s -- %s/%s" % (str(item.line).rjust(6),
-                                         to_text_string(item.parent().text(0)),
-                                         to_text_string(item.text(0)))
-                tree_cache[line_nb] = (item, debug)
-                ancestors = [(item, 0)]
-                prev_cell_level = cell_level
-                prev_cell_item = item
-                previous_item = item
-                continue
-
-            # Blocks for Code Groups.
-            if previous_level is not None:
-                if level == previous_level:
-                    pass
-                elif level > previous_level:
-                    ancestors.append((previous_item, previous_level))
-                else:
-                    while len(ancestors) > 1 and level <= previous_level:
-                        ancestors.pop(-1)
-                        _item, previous_level = ancestors[-1]
-            parent, _level = ancestors[-1]
-
-            preceding = root_item if previous_item is None else previous_item
-            if not_class_nor_function and data.is_comment():
-                if not self.show_comments:
-                    if citem is not None:
-                        remove_from_tree_cache(tree_cache, line=line_nb)
-                    continue
-                if citem is not None:
-                    if data.text == cname and level == clevel:
-                        previous_level = clevel
-                        previous_item = citem
-                        continue
-                    else:
-                        remove_from_tree_cache(tree_cache, line=line_nb)
-                if data.def_type == data.CELL:
-                    item = CellItem(data, parent, preceding)
-                else:
-                    item = CommentItem(data, parent, preceding)
-            elif class_name is not None:
-                if citem is not None:
-                    if (class_name == cname and level == clevel and
-                            parent is cparent):
-                        previous_level = clevel
-                        previous_item = citem
-                        continue
-                    else:
-                        remove_from_tree_cache(tree_cache, line=line_nb)
-                item = ClassItem(data, parent, preceding)
-            else:
-                if citem is not None:
-                    if (func_name == cname and level == clevel and
-                            parent is cparent):
-                        previous_level = clevel
-                        previous_item = citem
-                        continue
-                    else:
-                        remove_from_tree_cache(tree_cache, line=line_nb)
-                item = FunctionItem(data, parent, preceding)
-
-            debug = "%s -- %s/%s" % (str(item.line).rjust(6),
-                                     to_text_string(item.parent().text(0)),
-                                     to_text_string(item.text(0)))
-            tree_cache[line_nb] = (item, debug)
-            previous_level = level
-            previous_item = item
-
-        return tree_cache
 
     def root_item_selected(self, item):
         """Root item has been selected: expanding it and collapsing others"""
@@ -684,7 +809,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if self.current_editor is not None:
             self.collapseAll()
             editor_id = self.editor_ids[self.current_editor]
-            self.root_item_selected(self.editor_items[editor_id])
+            self.root_item_selected(self.editor_items[editor_id].node)
 
     def get_root_item(self, item):
         """Return the root item of the specified item."""
@@ -710,30 +835,32 @@ class OutlineExplorerTreeWidget(OneColumnTree):
 
     def activated(self, item):
         """Double-click event"""
-        editor_item = self.editor_items.get(
+        editor_root = self.editor_items.get(
             self.editor_ids.get(self.current_editor))
-        line = 0
-        if item == editor_item:
+        root_item = editor_root.node
+        text = ''
+        if isinstance(item, FileRootItem):
             line = 1
-        elif isinstance(item, TreeItem):
-            line = item.line
-
-        self.freeze = True
-        root_item = self.get_root_item(item)
-        if line:
-            self.parent().edit_goto.emit(root_item.path, line, item.text(0))
+            if id(root_item) != id(item):
+                root_item = item
         else:
-            self.parent().edit.emit(root_item.path)
+            line = item.ref.position[0] + 1
+            text = item.ref.name
+
+        path = item.ref.path
+        self.freeze = True
+        if line:
+            self.parent().edit_goto.emit(path, line, text)
+        else:
+            self.parent().edit.emit(path)
         self.freeze = False
 
-        parent = self.current_editor.parent()
         for editor_id, i_item in list(self.editor_items.items()):
-            if i_item is root_item:
+            if i_item.path == path:
                 for editor, _id in list(self.editor_ids.items()):
-                    if _id == editor_id and editor.parent() is parent:
-                        self.current_editor = editor
-                        break
-                break
+                    self.current_editor = editor
+                    break
+            break
 
     def clicked(self, item):
         """Click event"""
@@ -741,18 +868,59 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.root_item_selected(item)
         self.activated(item)
 
+    def set_editors_to_update(self, language, reset_info=False):
+        """Set editors to update per language."""
+        to_update = []
+        for editor in self.editor_ids.keys():
+            if editor.get_language().lower() == language:
+                to_update.append(editor)
+                if reset_info:
+                    editor.info = None
+        self.editors_to_update[language] = to_update
+
+    def start_symbol_services(self, language):
+        """Show symbols for all `language` files."""
+        # Save all languages that can send info to this pane.
+        self._languages.append(language)
+
+        # Update all files associated to `language` through a timer
+        # that allows to wait a bit between updates. That doesn't block
+        # the interface at startup.
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        timer.setInterval(700)
+        timer.timeout.connect(lambda: self.update_editors(language))
+        self.update_timers[language] = timer
+
+        # Set editors that need to be updated per language
+        self.set_editors_to_update(language)
+
+        # Start timer
+        timer.start()
+
+    def stop_symbol_services(self, language):
+        """Disable LSP symbols functionality."""
+        try:
+            self._languages.remove(language)
+        except ValueError:
+            pass
+
+        for editor in self.editor_ids.keys():
+            if editor.get_language().lower() == language:
+                editor.info = None
+
 
 class OutlineExplorerWidget(QWidget):
     """Class browser"""
     edit_goto = Signal(str, int, str)
     edit = Signal(str)
     is_visible = Signal()
+    sig_update_configuration = Signal()
 
     def __init__(self, parent=None, show_fullpath=True, show_all_files=True,
                  group_cells=True, show_comments=True,
-                 sort_files_alphabetically=False,
-                 follow_cursor=True,
-                 options_button=None):
+                 sort_files_alphabetically=False, display_variables=False,
+                 follow_cursor=True, options_button=None):
         QWidget.__init__(self, parent)
 
         self.treewidget = OutlineExplorerTreeWidget(
@@ -760,10 +928,16 @@ class OutlineExplorerWidget(QWidget):
             show_fullpath=show_fullpath,
             show_all_files=show_all_files,
             group_cells=group_cells,
+            display_variables=display_variables,
             show_comments=show_comments,
             sort_files_alphabetically=sort_files_alphabetically,
             follow_cursor=follow_cursor,
             )
+        self.loading_widget = create_waitspinner(size=16, parent=self)
+        self.treewidget.sig_display_spinner.connect(self.loading_widget.start)
+        self.treewidget.sig_hide_spinner.connect(self.loading_widget.stop)
+        self.treewidget.sig_update_configuration.connect(
+            self.sig_update_configuration)
 
         self.visibility_action = create_action(self,
                                            _("Show/hide outline explorer"),
@@ -778,6 +952,7 @@ class OutlineExplorerWidget(QWidget):
             btn_layout.addWidget(btn)
         if options_button:
             btn_layout.addStretch()
+            btn_layout.addWidget(self.loading_widget, Qt.AlignRight)
             btn_layout.addWidget(options_button, Qt.AlignRight)
 
         layout = create_plugin_layout(btn_layout, self.treewidget)
@@ -817,6 +992,9 @@ class OutlineExplorerWidget(QWidget):
     def remove_editor(self, editor):
         self.treewidget.remove_editor(editor)
 
+    def register_editor(self, editor):
+        self.treewidget.register_editor(editor)
+
     def get_options(self):
         """
         Return outline explorer options
@@ -825,16 +1003,27 @@ class OutlineExplorerWidget(QWidget):
             show_fullpath=self.treewidget.show_fullpath,
             show_all_files=self.treewidget.show_all_files,
             group_cells=self.treewidget.group_cells,
+            display_variables=self.treewidget.display_variables,
+            follow_cursor=self.treewidget.follow_cursor,
             show_comments=self.treewidget.show_comments,
             sort_files_alphabetically=(
                 self.treewidget.sort_files_alphabetically),
             expanded_state=self.treewidget.get_expanded_state(),
             scrollbar_position=self.treewidget.get_scrollbar_position(),
             visibility=self.isVisible(),
-            )
-
-    def update(self):
-        self.treewidget.update_all()
+        )
 
     def file_renamed(self, editor, new_filename):
         self.treewidget.file_renamed(editor, new_filename)
+
+    def start_symbol_services(self, language):
+        """Enable LSP symbols functionality."""
+        self.treewidget.start_symbol_services(language)
+
+    def stop_symbol_services(self, language):
+        """Disable LSP symbols functionality."""
+        self.treewidget.stop_symbol_services(language)
+
+    def update_all_editors(self):
+        """Update all editors with an associated LSP server."""
+        self.treewidget.update_all_editors()

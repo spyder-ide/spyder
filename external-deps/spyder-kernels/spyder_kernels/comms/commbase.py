@@ -91,7 +91,7 @@ class CommsErrorWrapper():
 
     def format_error(self):
         """
-        Format the error recieved from the other side and returns a list of
+        Format the error received from the other side and returns a list of
         strings.
         """
         lines = (['Exception in comms call {}:\n'.format(self.call_name)]
@@ -362,9 +362,14 @@ class CommBase(object):
         This will reply if settings['blocking'] == True
         """
         settings = call_dict['settings']
-        send_reply = 'send_reply' in settings and settings['send_reply']
 
-        if not send_reply and not is_error:
+        display_error = ('display_error' in settings and
+                         settings['display_error'])
+        if is_error and display_error:
+            data.print_error()
+
+        send_reply = 'send_reply' in settings and settings['send_reply']
+        if not send_reply:
             # Nothing to send back
             return
         content = {

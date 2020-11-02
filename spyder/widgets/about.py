@@ -28,8 +28,9 @@ class AboutDialog(QDialog):
 
     def __init__(self, parent):
         """Create About Spyder dialog with general information."""
-
         QDialog.__init__(self, parent)
+        self.setWindowFlags(
+            self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         versions = get_versions()
         # Show Git revision for development version
         revlink = ''
@@ -112,7 +113,7 @@ class AboutDialog(QDialog):
             file for full legal information.
             </p>
             </div>
-            """.format(
+            """).format(
                 spyder_ver=versions['spyder'],
                 revision=revlink,
                 website_url=__website_url__,
@@ -129,10 +130,12 @@ class AboutDialog(QDialog):
                 font_family=font_family,
                 font_size=font_size,
             )
-        ))
+        )
         self.label.setWordWrap(True)
         self.label.setAlignment(Qt.AlignTop)
         self.label.setOpenExternalLinks(True)
+        self.label.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        self.label.setFixedWidth(350)
 
         if is_dark_interface():
             icon_filename = "spyder.svg"
@@ -141,14 +144,15 @@ class AboutDialog(QDialog):
 
         pixmap = QPixmap(get_image_path(icon_filename))
         self.label_pic = QLabel(self)
-        self.label_pic.setPixmap(pixmap.scaled(64, 64))
+        self.label_pic.setPixmap(
+            pixmap.scaledToWidth(64, Qt.SmoothTransformation))
         self.label_pic.setAlignment(Qt.AlignTop)
 
         btn = QPushButton(_("Copy to clipboard"), )
         bbox = QDialogButtonBox(QDialogButtonBox.Ok)
 
         # Widget setup
-        self.setWindowIcon(ima.icon('tooloptions'))
+        self.setWindowIcon(ima.icon('MessageBoxInformation'))
         self.setModal(False)
 
         # Layout
@@ -161,12 +165,11 @@ class AboutDialog(QDialog):
         btmhlayout.addStretch()
         btmhlayout.addWidget(bbox)
 
-        vlayout = QVBoxLayout()
+        vlayout = QVBoxLayout(self)
         vlayout.addLayout(tophlayout)
+        vlayout.addSpacing(25)
         vlayout.addLayout(btmhlayout)
-
-        self.setLayout(vlayout)
-        self.setFixedSize(410, 560)
+        vlayout.setSizeConstraint(vlayout.SetFixedSize)
 
         # Signals
         btn.clicked.connect(self.copy_to_clipboard)

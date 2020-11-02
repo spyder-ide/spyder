@@ -155,7 +155,7 @@ class MainInterpreterConfigPage(GeneralConfigPage):
         spyder_version = sys.version_info[0]
         try:
             args = ["-c", "import sys; print(sys.version_info[0])"]
-            proc = programs.run_program(pyexec, args)
+            proc = programs.run_program(pyexec, args, env={})
             console_version = int(proc.communicate()[0])
         except IOError:
             console_version = spyder_version

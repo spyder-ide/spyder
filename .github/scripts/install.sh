@@ -14,7 +14,7 @@ if [ "$USE_CONDA" = "true" ]; then
     fi
 
     # Install main dependencies
-    conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y
+    conda install python=$PYTHON_VERSION --file requirements/conda.txt -q -y -c spyder-ide/label/dev
 
     # Install test ones
     conda install python=$PYTHON_VERSION --file requirements/tests.txt -c spyder-ide -q -y
@@ -37,6 +37,9 @@ else
 
     # Install qtconsole from Github
     pip install git+https://github.com/jupyter/qtconsole.git
+
+    # Install QtAwesome from Github
+    pip install git+https://github.com/spyder-ide/qtawesome.git
 
     # Remove packages we have subrepos for
     pip uninstall spyder-kernels -q -y
@@ -63,4 +66,4 @@ conda create -n spytest-ž -q -y python=3.6 spyder-kernels
 conda list -n spytest-ž
 
 # Coverage
-conda install -n test codecov
+pip install codecov

@@ -187,6 +187,14 @@ class IPythonConsole(SpyderPluginWidget):
         reset_namespace_o = self.get_option(reset_namespace_n)
         ask_before_restart_n = 'ask_before_restart'
         ask_before_restart_o = self.get_option(ask_before_restart_n)
+        pdb_ignore_lib_n = 'pdb_ignore_lib'
+        pdb_ignore_lib_o = self.get_option(pdb_ignore_lib_n)
+        pdb_execute_events_n = 'pdb_execute_events'
+        pdb_execute_events_o = self.get_option(pdb_execute_events_n)
+        pdb_use_exclamation_mark_n = 'pdb_use_exclamation_mark'
+        pdb_use_exclamation_mark_o = self.get_option(
+            pdb_use_exclamation_mark_n)
+
         for client in self.clients:
             control = client.get_control()
             if font_n in options:
@@ -202,6 +210,15 @@ class IPythonConsole(SpyderPluginWidget):
                 client.reset_warning = reset_namespace_o
             if ask_before_restart_n in options:
                 client.ask_before_restart = ask_before_restart_o
+            if pdb_ignore_lib_n in options:
+                client.shellwidget.set_pdb_ignore_lib(
+                    pdb_ignore_lib_o)
+            if pdb_execute_events_n in options:
+                client.shellwidget.set_pdb_execute_events(
+                    pdb_execute_events_o)
+            if pdb_use_exclamation_mark_n in options:
+                client.shellwidget.set_pdb_use_exclamation_mark(
+                    pdb_use_exclamation_mark_o)
 
     def toggle_view(self, checked):
         """Toggle view"""
@@ -280,7 +297,8 @@ class IPythonConsole(SpyderPluginWidget):
             self.main.variableexplorer.set_shellwidget_from_id(id(sw))
             self.main.plots.set_shellwidget_from_id(id(sw))
             self.main.help.set_shell(sw)
-            self.sig_pdb_state.emit(sw.in_debug_loop(), sw.get_pdb_last_step())
+            self.sig_pdb_state.emit(
+                sw.is_waiting_pdb_input(), sw.get_pdb_last_step())
         self.update_tabs_text()
         self.sig_update_plugin_title.emit()
 
@@ -474,8 +492,6 @@ class IPythonConsole(SpyderPluginWidget):
                     # still an execution taking place
                     # Fixes spyder-ide/spyder#7293.
                     pass
-                elif (client.shellwidget.in_debug_loop()):
-                    client.shellwidget.pdb_execute('!' + line)
                 elif current_client:
                     self.execute_code(line, current_client, clear_variables)
                 else:
@@ -524,15 +540,7 @@ class IPythonConsole(SpyderPluginWidget):
                 line = code.strip()
 
             try:
-                if client.shellwidget._executing:
-                    # Don't allow multiple executions when there's
-                    # still an execution taking place
-                    # Fixes spyder-ide/spyder#7293.
-                    pass
-                elif (client.shellwidget.in_debug_loop()):
-                    client.shellwidget.pdb_execute('!' + line)
-                else:
-                    self.execute_code(line)
+                self.execute_code(line)
             except AttributeError:
                 pass
             self._visibility_changed(True)
@@ -602,14 +610,28 @@ class IPythonConsole(SpyderPluginWidget):
             self.activateWindow()
             self.get_current_client().get_control().setFocus()
 
-    def pdb_execute(self, line, hidden=False, echo_code=False):
+    def pdb_execute_command(self, command):
+        """
+        Send command to the pdb kernel if possible.
+        """
+
         sw = self.get_current_shellwidget()
         if sw is not None:
             # Needed to handle an error when kernel_client is None.
             # See spyder-ide/spyder#7578.
             try:
-                sw.set_pdb_echo_code(echo_code)
-                sw.pdb_execute(line, hidden)
+                sw.pdb_execute_command(command)
+            except AttributeError:
+                pass
+
+    def stop_debugging(self):
+        """Stop debugging"""
+        sw = self.get_current_shellwidget()
+        if sw is not None:
+            if not sw.is_waiting_pdb_input():
+                sw.interrupt_kernel()
+            try:
+                sw.pdb_execute_command("exit")
             except AttributeError:
                 pass
 
@@ -617,7 +639,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Get debugging state of the current console."""
         sw = self.get_current_shellwidget()
         if sw is not None:
-            return sw.in_debug_loop()
+            return sw.is_waiting_pdb_input()
         return False
 
     def get_pdb_last_step(self):
@@ -804,13 +826,6 @@ class IPythonConsole(SpyderPluginWidget):
         completions = {0: "droplist", 1: "ncurses", 2: "plain"}
         spy_cfg.JupyterWidget.gui_completion = completions[completion_type_o]
 
-        # Pager
-        pager_o = self.get_option('use_pager')
-        if pager_o:
-            spy_cfg.JupyterWidget.paging = 'inside'
-        else:
-            spy_cfg.JupyterWidget.paging = 'none'
-
         # Calltips
         calltips_o = self.get_option('show_calltips')
         spy_cfg.JupyterWidget.enable_calltips = calltips_o
@@ -862,7 +877,8 @@ class IPythonConsole(SpyderPluginWidget):
                     cmd = cmd.encode('utf-8')
 
                 try:
-                    proc = programs.run_shell_command(cmd)
+                    # Use clean environment
+                    proc = programs.run_shell_command(cmd, env={})
                     output, _err = proc.communicate()
                 except subprocess.CalledProcessError:
                     output = ''
@@ -902,7 +918,6 @@ class IPythonConsole(SpyderPluginWidget):
         # Local vars
         shellwidget = client.shellwidget
         control = shellwidget._control
-        page_control = shellwidget._page_control
 
         # Create new clients with Ctrl+T shortcut
         shellwidget.new_client.connect(self.create_new_client)
@@ -956,14 +971,8 @@ class IPythonConsole(SpyderPluginWidget):
 
         shellwidget.sig_change_cwd.connect(self.set_working_directory)
 
-        # Update the find widget if focus changes between control and
-        # page_control
+        # Set editor for the find widget
         self.find_widget.set_editor(control)
-        if page_control:
-            page_control.focus_changed.connect(lambda: self.focus_changed.emit())
-            control.visibility_changed.connect(self.refresh_plugin)
-            page_control.visibility_changed.connect(self.refresh_plugin)
-            page_control.show_find_widget.connect(self.find_widget.show)
 
     def close_client(self, index=None, client=None, force=False):
         """Close client tab from index or widget (or close current tab)"""
@@ -1102,16 +1111,6 @@ class IPythonConsole(SpyderPluginWidget):
         for cl in self.clients:
             cl.shellwidget.set_spyder_breakpoints()
 
-    def set_pdb_ignore_lib(self):
-        """Set pdb_ignore_lib into all clients"""
-        for cl in self.clients:
-            cl.shellwidget.set_pdb_ignore_lib()
-
-    def set_pdb_execute_events(self):
-        """Set pdb_execute_events into all clients"""
-        for cl in self.clients:
-            cl.shellwidget.set_pdb_execute_events()
-
     @Slot(str)
     def create_client_from_path(self, path):
         """Create a client with its cwd pointing to path."""
@@ -1220,7 +1219,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Catch any error generated when trying to start the kernel.
         # See spyder-ide/spyder#7302.
         try:
-            kernel_manager.start_kernel(stderr=stderr_handle)
+            kernel_manager.start_kernel(stderr=stderr_handle,
+                                        env=kernel_spec.env)
         except Exception:
             error_msg = _("The error is:<br><br>"
                           "<tt>{}</tt>").format(traceback.format_exc())

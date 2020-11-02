@@ -314,6 +314,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # To apply style
         self.set_color_scheme(self.shellwidget.syntax_style, reset=False)
 
+    def add_to_history(self, command):
+        """Add command to history"""
+        if self.shellwidget.is_debugging():
+            return
+        return super(ClientWidget, self).add_to_history(command)
+
     def _before_prompt_is_ready(self):
         """Configure shellwidget before kernel is connected."""
         self._show_loading_page()
@@ -347,7 +353,12 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         # re-running files on dedicated consoles.
         # See spyder-ide/spyder#5958.
         if not self.shellwidget._executing:
-            self.stop_button.setDisabled(True)
+            # This avoids disabling the button while debugging
+            # see spyder-ide/spyder#13283
+            if not self.shellwidget.is_waiting_pdb_input():
+                self.stop_button.setDisabled(True)
+            else:
+                self.stop_button.setEnabled(True)
 
     @Slot()
     def stop_button_click_handler(self):
@@ -357,7 +368,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
         if not self.shellwidget.is_waiting_pdb_input():
             self.interrupt_kernel()
         else:
-            self.shellwidget.pdb_execute('exit', hidden=True)
+            self.shellwidget.pdb_execute_command('exit')
 
     def show_kernel_error(self, error):
         """Show kernel initialization errors in infowidget."""
@@ -406,12 +417,7 @@ class ClientWidget(QWidget, SaveHistoryMixin):
 
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
-        # page_control is the widget used for paging
-        page_control = self.shellwidget._page_control
-        if page_control and page_control.isVisible():
-            return page_control
-        else:
-            return self.shellwidget._control
+        return self.shellwidget._control
 
     def get_kernel(self):
         """Get kernel associated with this client"""

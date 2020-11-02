@@ -41,6 +41,7 @@ def test_is_stable_version():
 def test_get_conf_path(monkeypatch, use_dev_config_dir):
     """Test that the config dir path is set under dev and release builds."""
     monkeypatch.setenv('SPYDER_USE_DEV_CONFIG_DIR', str(use_dev_config_dir))
+    monkeypatch.setenv('SPYDER_PYTEST', '')
     reload(spyder.config.base)
     conf_path = spyder.config.base.get_conf_path()
     assert conf_path

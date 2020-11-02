@@ -30,5 +30,8 @@ def pyls_initialize(config):
         try:
             __import__(mod_name)
             log.debug("Preloaded module %s", mod_name)
-        except ImportError:
+        except Exception:  # pylint: disable=broad-except
+            # Catch any exception since not only ImportError can be raised here
+            # For example, old versions of NumPy can cause a ValueError.
+            # See spyder-ide/spyder#13985
             pass
