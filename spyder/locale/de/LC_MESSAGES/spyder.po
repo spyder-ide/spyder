@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-01 14:30\n"
+"PO-Revision-Date: 2020-11-02 09:55\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -243,7 +243,7 @@ msgstr "Vollbildmodus"
 
 #: spyder/app/mainwindow.py:847
 msgid "For fullscreen mode use macOS built-in feature"
-msgstr ""
+msgstr "Für den Vollbildmodus verwenden Sie die macOS-integrierte Funktion"
 
 #: spyder/app/mainwindow.py:863
 msgid "Main toolbar"
