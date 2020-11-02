@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-02 11:14\n"
+"PO-Revision-Date: 2020-11-02 11:23\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -3976,7 +3976,7 @@ msgstr "'Ausführen'-Befehle während des Debuggens verarbeiten"
 
 #: spyder/plugins/ipythonconsole/confpage.py:278
 msgid "This option lets you decide if the debugger should process the 'execute events' after each prompt, such as matplotlib 'show' command."
-msgstr ""
+msgstr "Mit dieser Option können Sie entscheiden, ob der Debugger die 'auszuführenden Ereignisse' nach jedem Prompt ausführen soll, wie zum Beispiel den 'show' Befehl für matplotlib."
 
 #: spyder/plugins/ipythonconsole/confpage.py:284
 msgid "Use exclamation mark prefix for Pdb commands"
@@ -5144,7 +5144,7 @@ msgstr "Bitte installieren Sie dieses Paket in Ihrer Spyder-Umgebung.<br>"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:138
 msgid "Spyder is unable to show the variable you're trying to view because the module <tt>{module}</tt> is not "
-msgstr ""
+msgstr "Spyder kann die Variable, die Sie anzusehen versuchen, nicht anzeigen, da das Modul <tt>{module}</tt> nicht installiert ist oder unterstützt wird:"
 
 #: spyder/plugins/variableexplorer/widgets/collectionsdelegate.py:142
 msgid "supported in the Spyder MacOS application.<br>"
