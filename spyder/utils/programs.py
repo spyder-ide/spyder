@@ -1108,6 +1108,7 @@ def get_interpreter_info(path):
 
 
 def find_git():
+    """Find git executable in the system."""
     if sys.platform == 'darwin':
         proc = subprocess.run(
             osp.join(HERE, "check-git.sh"), capture_output=True)
