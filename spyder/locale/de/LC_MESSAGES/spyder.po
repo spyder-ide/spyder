@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-02 10:08\n"
+"PO-Revision-Date: 2020-11-02 10:15\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -608,7 +608,7 @@ msgstr "IPython-Konsole"
 
 #: spyder/app/tour.py:176
 msgid "This is where you can run Python code, either from the Editor or interactively. To run the current file, press <b>F5</b> by default, or press <b>F9</b> to execute the current line or selection.<br><br>The IPython Console comes with many useful features that greatly improve your programming workflow, like syntax highlighting, autocompletion, plotting and 'magic' commands. To learn more, check out the <a href=\"{0}\">documentation</a>.<br><br>{1}"
-msgstr ""
+msgstr "Hier können Sie Python-Code entweder aus dem Editor oder interaktiv ausführen. Um die aktuelle Datei auszuführen, drücken Sie standardmäßig <b>F5</b> oder drücken Sie <b>F9</b>, um die aktuelle Zeile oder die Auswahl auszuführen.<br><br>Die IPython-Konsole enthält viele nützliche Funktionen, die Ihren Programmier-Workflow erheblich verbessern, wie Syntax-Hervorhebung, Autovervollständigung, Plotting und 'magic' Befehle. Um mehr zu erfahren, besuche die <a href=\"{0}\">Dokumentation</a>.<br><br>{1}"
 
 #: spyder/app/tour.py:195
 msgid "Variable Explorer"
@@ -624,7 +624,7 @@ msgstr "Hilfe"
 
 #: spyder/app/tour.py:210
 msgid "This pane displays documentation of the functions, classes, methods or modules you are currently using in the Editor or the IPython Console.<br><br>To use it, press <b>Ctrl+I</b> (<b>Cmd-I</b> on macOS) with the text cursor in or next to the object you want help on."
-msgstr ""
+msgstr "In diesem Bereich wird die Dokumentation der Funktionen, Klassen, Methoden oder Module angezeigt, die Sie derzeit im Editor oder der IPython Konsole verwenden.<br><br>Um es zu benutzen, müssen Sie <b>Strg+I</b>(<b>Cmd-I</b> in macOS) drücken, während der Cursor auf oder nahe des Objekts ist, zu dem Sie Hilfe benötigen."
 
 #: spyder/app/tour.py:220 spyder/plugins/plots/plugin.py:133
 msgid "Plots"
