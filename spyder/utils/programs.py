@@ -31,7 +31,7 @@ import psutil
 
 # Local imports
 from spyder.config.base import (is_stable_version, running_under_pytest,
-                                get_home_dir, running_in_mac_app)
+                                get_home_dir, running_in_mac_app, get_home_dir)
 from spyder.config.utils import is_anaconda
 from spyder.py3compat import PY2, is_text_string, to_text_string
 from spyder.utils import encoding
@@ -71,20 +71,63 @@ def get_temp_dir(suffix=None):
 def is_program_installed(basename):
     """
     Return program absolute path if installed in PATH.
+    Otherwise, return None.
 
-    Otherwise, return None
+    Temporarily adds specific platform dependent paths to PATH if not already
+    present. This permits general use without assuming user profiles are
+    sourced (e.g. .bash_Profile), such as when login shells are not used to
+    launch Spyder.
 
-    On macOS systems, a .app is considered installed if
-    it exists.
+    On macOS systems, a .app is considered installed if it exists.
+
+    Darwin:
+        /usr/local/bin
+        ~/opt/anaconda3/condabin
+        ~/opt/miniconda3/condabin
+        /opt/anaconda3/condabin
+        /opt/miniconda3/condabin
+    Linux:
+        ?
+    Windows:
+        ?
     """
-    if (sys.platform == 'darwin' and basename.endswith('.app') and
-            osp.exists(basename)):
-        return basename
+    home = get_home_dir()
+    req_paths = []
+    if sys.platform == 'darwin':
+        if basename.endswith('.app') and osp.exists(basename):
+            return basename
 
+        # prioritize anaconda before miniconda; local before global
+        req_paths.extend([
+            osp.join('/usr', 'local', 'bin'),
+            osp.join(home, 'opt', 'anaconda3', 'condabin'),
+            osp.join(home, 'opt', 'miniconda3', 'condabin'),
+            osp.join('/opt', 'anaconda3', 'condabin'),
+            osp.join('/opt', 'miniconda3', 'condabin')
+        ])
+    elif sys.platform.startswith('linux'):
+        # TODO: what are the possible conda paths?
+        # TODO: what are the possible pyenv paths?
+        pass
+    elif WINDOWS:
+        # TODO: what are the possible conda paths?
+        # TODO: what are the possible pyenv paths?
+        pass
+
+    # Temporarily add required paths
+    old_path = os.environ['PATH']
+    for path in req_paths:
+        if path not in old_path:
+            os.environ['PATH'] += os.pathsep + path
+
+    abspath = None
     for path in os.environ["PATH"].split(os.pathsep):
         abspath = osp.join(path, basename)
         if osp.isfile(abspath):
-            return abspath
+            break
+    os.environ['PATH'] = old_path  # retore PATH
+
+    return abspath
 
 
 def find_program(basename):
