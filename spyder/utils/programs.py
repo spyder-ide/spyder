@@ -1069,14 +1069,11 @@ def get_pyenv_path(name):
 
 def get_list_pyenv_envs():
     """Return the list of all pyenv envs found in the system."""
-    pyenv = 'pyenv'
-    if running_in_mac_app():
-        old_path = os.environ['PATH']
-        os.environ['PATH'] = os.pathsep.join([old_path, '/usr/local/bin'])
-        pyenv_path = find_program('pyenv')
-        os.environ['PATH'] = old_path  # restore PATH
-        if pyenv_path:
-            pyenv = pyenv_path
+    env_list = {}
+    pyenv = find_program('pyenv')
+    if pyenv is None:
+        return env_list
+
     try:
         out, err = subprocess.Popen(
             [pyenv, 'versions', '--bare', '--skip-aliases'],
@@ -1089,7 +1086,6 @@ def get_list_pyenv_envs():
         out = ''
         err = ''
     out = out.split('\n')
-    env_list = {}
     for env in out:
         data = env.split('/')
         path = get_pyenv_path(data[-1])
