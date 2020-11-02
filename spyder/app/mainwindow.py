@@ -3822,7 +3822,7 @@ class MainWindow(QMainWindow):
         """Called by WorkerUpdates when ready"""
         from spyder.widgets.helperwidgets import MessageCheckBox
 
-        # feedback` = False is used on startup, so only positive feedback is
+        # `feedback` = False is used on startup, so only positive feedback is
         # given. `feedback` = True is used when after startup (when using the
         # menu action, and gives feeback if updates are, or are not found.
         feedback = self.give_updates_feedback
@@ -3832,14 +3832,15 @@ class MainWindow(QMainWindow):
         latest_release = self.worker_updates.latest_release
         error_msg = self.worker_updates.error
 
-        url_r = __project_url__ + '/releases'
+        # Release url
+        url_r = __project_url__ + '/releases/tag/v{}'.format(latest_release)
         url_i = 'https://docs.spyder-ide.org/installation.html'
 
         # Define the custom QMessageBox
         box = MessageCheckBox(icon=QMessageBox.Information,
                               parent=self)
-        box.setWindowTitle(_("Spyder updates"))
-        box.set_checkbox_text(_("Check for updates on startup"))
+        box.setWindowTitle(_("New Spyder version"))
+        box.set_checkbox_text(_("Check for updates at startup"))
         box.setStandardButtons(QMessageBox.Ok)
         box.setDefaultButton(QMessageBox.Ok)
 
@@ -3856,26 +3857,29 @@ class MainWindow(QMainWindow):
             check_updates = box.is_checked()
         else:
             if update_available:
-                anaconda_msg = ''
-                if 'Anaconda' in sys.version or 'conda-forge' in sys.version:
-                    anaconda_msg = _("<hr><b>IMPORTANT NOTE:</b> It seems "
-                                     "that you are using Spyder with "
-                                     "<b>Anaconda/Miniconda</b>. Please "
-                                     "<b>don't</b> use <code>pip</code> to "
-                                     "update it as that will probably break "
-                                     "your installation.<br><br>"
-                                     "Instead, please wait until new conda "
-                                     "packages are available and use "
-                                     "<code>conda</code> to perform the "
-                                     "update.<hr>")
-                msg = _("<b>Spyder %s is available!</b> <br><br>Please use "
-                        "your package manager to update Spyder or go to our "
-                        "<a href=\"%s\">Releases</a> page to download this "
-                        "new version. <br><br>If you are not sure how to "
-                        "proceed to update Spyder please refer to our "
-                        " <a href=\"%s\">Installation</a> instructions."
-                        "") % (latest_release, url_r, url_i)
-                msg += '<br>' + anaconda_msg
+                header = _("<b>Spyder {} is available!</b><br><br>").format(
+                    latest_release)
+                footer = _(
+                    "For more information visit our "
+                    "<a href=\"{}\">installation guide</a>."
+                ).format(url_i)
+                if is_anaconda():
+                    content = _(
+                        "<b>Important note:</b> Since you installed "
+                        "Spyder with Anaconda, please <b>don't</b> use "
+                        "<code>pip</code> to update it as that will break "
+                        "your installation.<br><br>"
+                        "Instead, run the following commands in a "
+                        "terminal:<br>"
+                        "<code>conda update anaconda</code><br>"
+                        "<code>conda install spyder={}</code><br><br>"
+                    ).format(latest_release)
+                else:
+                    content = _(
+                        "Please go to <a href=\"{}\">this page</a> to "
+                        "download it.<br><br>"
+                    ).format(url_r)
+                msg = header + content + footer
                 box.setText(msg)
                 box.set_check_visible(True)
                 box.exec_()
