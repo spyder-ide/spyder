@@ -3372,6 +3372,7 @@ class MainWindow(QMainWindow):
 
         # Release url
         url_r = __project_url__ + '/releases/tag/v{}'.format(latest_release)
+        url_i = 'https://docs.spyder-ide.org/installation.html'
 
         # Define the custom QMessageBox
         box = MessageCheckBox(icon=QMessageBox.Information,
@@ -3396,6 +3397,10 @@ class MainWindow(QMainWindow):
             if update_available:
                 header = _("<b>Spyder {} is available!</b><br><br>").format(
                     latest_release)
+                footer = _(
+                    "For more information visit our "
+                    "<a href=\"{}\">installation guide</a>."
+                ).format(url_i)
                 if is_anaconda():
                     content = _(
                         "<b>Important note:</b> Since you installed "
@@ -3405,14 +3410,14 @@ class MainWindow(QMainWindow):
                         "Instead, run the following commands in a "
                         "terminal:<br>"
                         "<code>conda update anaconda</code><br>"
-                        "<code>conda install spyder={}</code>"
+                        "<code>conda install spyder={}</code><br><br>"
                     ).format(latest_release)
                 else:
                     content = _(
                         "Please go to <a href=\"{}\">this page</a> to "
-                        "download it."
+                        "download it.<br><br>"
                     ).format(url_r)
-                msg = header + content
+                msg = header + content + footer
                 box.setText(msg)
                 box.set_check_visible(True)
                 box.exec_()
