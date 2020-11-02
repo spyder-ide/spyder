@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-02 09:55\n"
+"PO-Revision-Date: 2020-11-02 10:08\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -367,7 +367,7 @@ msgstr "Zusammenfassung Tastenkombinationen"
 
 #: spyder/app/mainwindow.py:1108
 msgid "Interactive tour introducing Spyder's panes and features"
-msgstr ""
+msgstr "Interaktive Tour, die die Spyder-Bereiche und Funktionen vorstellt"
 
 #: spyder/app/mainwindow.py:1119
 msgid "Python documentation"
@@ -592,7 +592,7 @@ msgstr "Willkommen bei der Einführungstour!"
 
 #: spyder/app/tour.py:148
 msgid "<b>Spyder</b> is a powerful Interactive Development Environment (or IDE) for the Python programming language.<br><br>Here, we are going to guide you through its most important features.<br><br>Please use the arrow keys or click on the buttons below to move along the tour."
-msgstr ""
+msgstr "<b>Spyder</b> ist eine leistungsfähige interaktive Entwicklungsumgebung (oder IDE) für die Programmiersprache Python.<br><br>Hier führen wir Sie durch die wichtigsten Funktionen.<br><br>Bitte benutzen Sie die Pfeiltasten oder klicken Sie auf die Schaltflächen unten, um durch die Tour zu navigieren."
 
 #: spyder/app/tour.py:157 spyder/plugins/base.py:324 spyder/plugins/editor/confpage.py:26 spyder/plugins/editor/plugin.py:346 spyder/plugins/editor/plugin.py:1894 spyder/plugins/editor/utils/switcher.py:105 spyder/plugins/editor/widgets/codeeditor.py:132 spyder/plugins/editor/widgets/codeeditor.py:5087 spyder/plugins/editor/widgets/editor.py:541 spyder/plugins/help/confpage.py:31 spyder/plugins/help/plugin.py:98
 msgid "Editor"
@@ -600,7 +600,7 @@ msgstr "Editor"
 
 #: spyder/app/tour.py:158
 msgid "This is where you write Python code before evaluating it. You can get automatic completions while typing, along with calltips when calling a function and help when hovering over an object.<br><br>The Editor comes with a line number area (highlighted here in red) where Spyder shows warnings and syntax errors. They can help you to detect potential problems before running your code.<br><br>You can also set debug breakpoints in the line number area by clicking next to any non-empty line."
-msgstr ""
+msgstr "Dies ist der Bereich, wo Sie Python-Code schreiben, bevor Sie ihn evaluieren. Während des Schreibens können Sie automatische Vorschläge und Vervollständigungen erhalten. Zudem erhalten Sie Calltips für das Aufrufen einer Funktion, indem Sie über das Objekt hovern.<br><br>Der Editor hat einen Zeilennummernbereich (hier rot markiert) in dem Spyder Warnungen und Syntaxfehler anzeigt. Diese können Ihnen helfen, potenzielle Probleme zu erkennen, bevor Sie Ihren Code ausführen.<br><br>Sie können auch Debug-Haltepunkte im Zeilennummernbereich festlegen, indem Sie neben eine nicht leere Zeile klicken."
 
 #: spyder/app/tour.py:175 spyder/plugins/help/confpage.py:33
 msgid "IPython Console"
@@ -616,7 +616,7 @@ msgstr "Variablenmanager"
 
 #: spyder/app/tour.py:196
 msgid "In this pane you can view and edit the variables generated during the execution of a program, or those entered directly in the IPython Console.<br><br>If you ran the code in the previous step, the Variable Explorer will show the list and dictionary objects it generated. By double-clicking any variable, a new window will be opened where you can inspect and modify their contents."
-msgstr ""
+msgstr "In diesem Bereich können Sie die bei der Ausführung eines Programms erzeugten, oder direkt in der IPython-Konsole eingegebenen Variablen anzeigen und bearbeiten.<br><br>Wenn Sie im vorherigen Schritt den Code ausgeführt haben, zeigt der Variablenmanager die generierten Listen und Dictionaries an. Wenn Sie einen Doppelklick auf irgendeine Variable machen, wird ein neues Fenster geöffnet, in dem Sie den Inhalt überprüfen und ändern können."
 
 #: spyder/app/tour.py:209 spyder/plugins/console/widgets/internalshell.py:269 spyder/plugins/help/plugin.py:198 spyder/plugins/help/plugin.py:693 spyder/widgets/switcher.py:971 spyder/widgets/tests/test_switcher.py:32
 msgid "Help"
