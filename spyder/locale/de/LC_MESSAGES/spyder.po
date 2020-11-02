@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: spyder\n"
 "POT-Creation-Date: 2020-10-31 20:18-0500\n"
-"PO-Revision-Date: 2020-11-02 10:15\n"
+"PO-Revision-Date: 2020-11-02 10:25\n"
 "Last-Translator: \n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -632,7 +632,7 @@ msgstr "Abbildungen"
 
 #: spyder/app/tour.py:221
 msgid "This pane shows the figures and images created during your code execution. It allows you to browse, zoom, copy, and save the generated plots."
-msgstr ""
+msgstr "Dieser Bereich zeigt die Abbildungen und Bilder an, die während der Codeausführung erstellt wurden. Sie können die generierten Plots durchsuchen, zoomen, kopieren und speichern."
 
 #: spyder/app/tour.py:227 spyder/plugins/explorer/plugin.py:64
 msgid "Files"
@@ -712,7 +712,7 @@ msgstr "Gehe zu Schritt: "
 
 #: spyder/app/tour.py:1256
 msgid "Request"
-msgstr ""
+msgstr "Anfrage"
 
 #: spyder/app/tour.py:1257
 msgid "To run the tour, please press the green button on the left of the Spyder window's title bar to take it out of fullscreen mode."
@@ -1408,7 +1408,7 @@ msgstr "Sprache"
 
 #: spyder/plugins/completion/languageserver/confpage.py:414
 msgid "Available snippets"
-msgstr ""
+msgstr "Verfügbare Snippets"
 
 #: spyder/plugins/completion/languageserver/confpage.py:420 spyder/plugins/completion/languageserver/confpage.py:585 spyder/plugins/explorer/confpage.py:59 spyder/preferences/shortcuts.py:857
 msgid "Reset to default values"
@@ -1416,19 +1416,19 @@ msgstr "Auf Standardwerte zurücksetzen"
 
 #: spyder/plugins/completion/languageserver/confpage.py:421
 msgid "Create a new snippet"
-msgstr ""
+msgstr "Neues Snippet erstellen"
 
 #: spyder/plugins/completion/languageserver/confpage.py:423
 msgid "Delete currently selected snippet"
-msgstr ""
+msgstr "Aktuell ausgewähltes Snippet löschen"
 
 #: spyder/plugins/completion/languageserver/confpage.py:425
 msgid "Export snippets to JSON"
-msgstr ""
+msgstr "Snippets in JSON exportieren"
 
 #: spyder/plugins/completion/languageserver/confpage.py:426
 msgid "Import snippets from JSON"
-msgstr ""
+msgstr "Snippets aus JSON importieren"
 
 #: spyder/plugins/completion/languageserver/confpage.py:460
 msgid "Providers"
@@ -1528,7 +1528,7 @@ msgstr "Code-Formatierung"
 
 #: spyder/plugins/completion/languageserver/confpage.py:626
 msgid "Snippets"
-msgstr ""
+msgstr "Codeschnipsel"
 
 #: spyder/plugins/completion/languageserver/confpage.py:631
 msgid "Other languages"
@@ -1548,19 +1548,19 @@ msgstr "<b>Das Ändern dieser Optionen kann die Codevervollständigung beeinträ
 
 #: spyder/plugins/completion/languageserver/confpage.py:759
 msgid "Save snippets"
-msgstr ""
+msgstr "Snippets speichern"
 
 #: spyder/plugins/completion/languageserver/confpage.py:772
 msgid "Load snippets"
-msgstr ""
+msgstr "Snippets laden"
 
 #: spyder/plugins/completion/languageserver/confpage.py:786
 msgid "All snippets imported"
-msgstr ""
+msgstr "Alle Snippets importiert"
 
 #: spyder/plugins/completion/languageserver/confpage.py:787
 msgid "{0} snippets were loaded successfully"
-msgstr ""
+msgstr "{0} Snippets wurden erfolgreich geladen"
 
 #: spyder/plugins/completion/languageserver/confpage.py:794
 msgid "JSON malformed"
@@ -1572,15 +1572,15 @@ msgstr "Beim Versuch, die bereitgestellte JSON-Datei zu laden, ist ein Fehler au
 
 #: spyder/plugins/completion/languageserver/confpage.py:804
 msgid "Invalid snippet file"
-msgstr ""
+msgstr "Ungültige Snippet-Datei"
 
 #: spyder/plugins/completion/languageserver/confpage.py:805
 msgid "The provided snippet file does not comply with the Spyder JSON snippets spec and therefore it cannot be loaded.<br><br><tt>{}</tt>"
-msgstr ""
+msgstr "Die angegebene Snippet-Datei entspricht nicht der Spyder JSON Snippet-Spezifikation und kann daher nicht geladen werden.<br><br><tt>{}</tt>"
 
 #: spyder/plugins/completion/languageserver/confpage.py:822
 msgid "Incorrect snippet format"
-msgstr ""
+msgstr "Ungültiges Format des Snippets"
 
 #: spyder/plugins/completion/languageserver/confpage.py:823
 msgid "Spyder was able to load {0}/{1} snippets correctly, please check the following snippets for any syntax errors: <br><br>{2}"
